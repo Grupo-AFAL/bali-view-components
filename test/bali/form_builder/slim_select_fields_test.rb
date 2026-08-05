@@ -12,7 +12,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
 
   def test_slim_select_group_renders_a_label
     result = builder.slim_select_group(:status, Movie.statuses.to_a)
-    assert_html(result, "legend.fieldset-legend", text: "Status")
+    assert_html(result, "label.fieldset-legend", text: "Status")
   end
 
   def test_slim_select_group_renders_a_div_with_a_slim_select_controller
@@ -141,8 +141,8 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   def test_slim_select_field_select_all_option_uses_i18n_for_button_text
     I18n.with_locale(:en) do
       result = builder.slim_select_field(:status, Movie.statuses.to_a, select_all: true)
-      select_all_text = I18n.t("bali.form_builder.slim_select.select_all")
-      deselect_all_text = I18n.t("bali.form_builder.slim_select.deselect_all")
+      select_all_text = I18n.t("bali_view.form_builder.slim_select.select_all")
+      deselect_all_text = I18n.t("bali_view.form_builder.slim_select.deselect_all")
       assert_html(result, "a", text: select_all_text)
       assert_html(result, "a", text: deselect_all_text)
     end
@@ -151,12 +151,12 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # custom classes
 
   def test_slim_select_field_custom_classes_appends_custom_class_to_select
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { class: "custom-class" })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { class: "custom-class" })
     assert_html(result, "select.select.select-bordered.custom-class")
   end
 
   def test_slim_select_field_custom_classes_applies_select_class_to_wrapper
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { select_class: "wrapper-class" })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { select_class: "wrapper-class" })
     assert_html(result, "div.slim-select.wrapper-class")
   end
 
@@ -177,8 +177,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # custom data attributes
 
   def test_slim_select_field_custom_data_attributes_merges_custom_data_attributes_with_slim_select_target
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {},
-                                       { data: { turbo_frame: "_top", custom: "value" } })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html:                                        { data: { turbo_frame: "_top", custom: "value" } })
     assert_html(result, 'select[data-slim-select-target="select"]')
     assert_html(result, 'select[data-turbo-frame="_top"]')
     assert_html(result, 'select[data-custom="value"]')
@@ -192,7 +191,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # multiple select
 
   def test_slim_select_field_multiple_select_renders_a_multiple_select
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { multiple: true })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { multiple: true })
     assert_html(result, 'select[multiple="multiple"]')
   end
 
@@ -209,8 +208,31 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_slim_select_field_stimulus_data_values_sets_placeholder_value
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { placeholder: "Choose one" })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { placeholder: "Choose one" })
     assert_html(result, 'div[data-slim-select-placeholder-value="Choose one"]')
+  end
+
+  # The other six SlimSelect texts already go through `bali_view.form_builder.slim_select.*`;
+  # the placeholder was the odd one out — no data-attribute emitted, so the Stimulus
+  # controller's English default ('Select value') won on every call site that did not pass
+  # `html: { placeholder: }`.
+  def test_slim_select_field_placeholder_value_defaults_to_the_translated_placeholder
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    assert_html(result, 'div[data-slim-select-placeholder-value="Select value"]')
+  end
+
+  def test_slim_select_field_placeholder_value_default_is_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a)
+      assert_html(result, 'div[data-slim-select-placeholder-value="Selecciona una opción"]')
+    end
+  end
+
+  def test_slim_select_field_html_placeholder_wins_over_the_translated_default
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { placeholder: "Choose one" })
+      assert_html(result, 'div[data-slim-select-placeholder-value="Choose one"]')
+    end
   end
 
   def test_slim_select_field_stimulus_data_values_sets_add_items_value

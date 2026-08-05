@@ -14,6 +14,8 @@
         <%# Frequency selector %>
         <div class="form-control">
           <%= select_tag :freq, options_for_select(frequency_options),
+              id: control_id('freq'),
+              aria: { label: t('.frequency_label') },
               class: 'select select-bordered select-sm',
               disabled: disabled,
               data: { rrule_attr: 'freq', input_active: true,
@@ -29,6 +31,8 @@
 
           <div class="join">
             <%= number_field_tag :interval, 1, min: 1,
+                id: control_id('interval'),
+                aria: { label: t('.interval_label') },
                 class: 'input input-bordered input-sm join-item w-14 text-center',
                 disabled: disabled,
                 data: { rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
@@ -66,10 +70,14 @@
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="yearly_on_1">
             <%= select_tag :bymonth, options_for_select(bymonth_options),
+                id: control_id('yearly_on_1_bymonth'),
+                aria: { label: t('.month_label') },
                 class: 'select select-bordered select-sm',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :bymonthday, options_for_select(bymonthday_options),
+                id: control_id('yearly_on_1_bymonthday'),
+                aria: { label: t('.monthday_label') },
                 class: 'select select-bordered select-sm w-20',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
@@ -90,15 +98,21 @@
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="yearly_on_2">
             <%= select_tag :bysetpos, options_for_select(bysetpos_options),
+                id: control_id('yearly_on_2_bysetpos'),
+                aria: { label: t('.setpos_label') },
                 class: 'select select-bordered select-sm w-24',
                 disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :byweekday, options_for_select(byweekday_options),
+                id: control_id('yearly_on_2_byweekday'),
+                aria: { label: t('.weekday_label') },
                 class: 'select select-bordered select-sm w-28',
                 disabled: disabled,
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
             <span class="text-sm text-base-content/70"><%= t('.of') %></span>
             <%= select_tag :bymonth, options_for_select(bymonth_options),
+                id: control_id('yearly_on_2_bymonth'),
+                aria: { label: t('.month_label') },
                 class: 'select select-bordered select-sm w-28',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
@@ -129,6 +143,8 @@
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="monthly_on_1">
             <%= select_tag :bymonthday, options_for_select(bymonthday_options),
+                id: control_id('monthly_on_1_bymonthday'),
+                aria: { label: t('.monthday_label') },
                 class: 'select select-bordered select-sm w-20',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
@@ -149,10 +165,14 @@
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="monthly_on_2">
             <%= select_tag :bysetpos, options_for_select(bysetpos_options),
+                id: control_id('monthly_on_2_bysetpos'),
+                aria: { label: t('.setpos_label') },
                 class: 'select select-bordered select-sm',
                 disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :byweekday, options_for_select(byweekday_options),
+                id: control_id('monthly_on_2_byweekday'),
+                aria: { label: t('.weekday_label') },
                 class: 'select select-bordered select-sm',
                 disabled: disabled,
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
@@ -213,6 +233,8 @@
       <div class="flex flex-wrap items-center gap-3">
         <div class="form-control">
           <%= select_tag :end, options_for_select(ending_options),
+              id: control_id('end'),
+              aria: { label: t('.end_label') },
               class: 'select select-bordered select-sm',
               disabled: disabled,
               data: {
@@ -229,6 +251,8 @@
         <div class="hidden items-center gap-2" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
           <div class="join">
             <%= number_field_tag :count, 1, min: 1,
+                id: control_id('count'),
+                aria: { label: t('.count_label') },
                 class: 'input input-bordered input-sm join-item w-14 text-center',
                 disabled: disabled,
                 data: { rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
@@ -241,6 +265,8 @@
         <%# On specific date %>
         <div class="hidden items-center gap-2" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
           <%= text_field_tag :until, 6.months.from_now.to_date,
+              id: control_id('until'),
+              aria: { label: t('.until_label') },
               class: 'input input-bordered input-sm w-36 text-sm',
               disabled: disabled,
               data: {

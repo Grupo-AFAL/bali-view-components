@@ -5,7 +5,7 @@
   subtitle: "Last edited #{time_ago_in_words(@document.updated_at)} ago",
   initial_content: @document.content,
   breadcrumbs: [
-    { name: 'Dashboard', href: root_path, icon_name: 'home' },
+    { name: 'Dashboard', href: root_path, icon: 'home' },
     { name: 'Documents', href: documents_path },
     { name: @document.title }
   ]
@@ -24,10 +24,10 @@
         <%= render Bali::Icon::Component.new('pencil', size: :small) %>
         Edit
       </button>
-      <%= render Bali::ActionsDropdown::Component.new(size: :sm, align: :end) do |dropdown| %>
-        <% dropdown.with_item(name: 'Export PDF', icon_name: 'file-text', href: '#') %>
-        <% dropdown.with_item(name: 'Export DOCX', icon_name: 'file-down', href: '#') %>
-        <% dropdown.with_item(name: 'Delete', icon_name: 'trash-2', href: document_path(@document), method: :delete, confirm: 'Delete this document?') %>
+      <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
+        <% dropdown.with_item(name: 'Export PDF', icon: 'file-text', href: '#') %>
+        <% dropdown.with_item(name: 'Export DOCX', icon: 'file-down', href: '#') %>
+        <% dropdown.with_item(name: 'Delete', icon: 'trash-2', href: document_path(@document), method: :delete, confirm: 'Delete this document?') %>
       <% end %>
     </div>
   <% end %>
@@ -81,19 +81,21 @@
     close_url: document_path(@document),
     versions_url: document_versions_path(@document),
     editable: true,
-    comments: {
-      url: document_comment_threads_path(@document),
-      user: { id: "user-1", username: "Demo User" },
-      users: [
-        { id: "user-1", username: "Demo User" },
-        { id: "user-2", username: "Jane Smith" },
-        { id: "user-3", username: "Bob Wilson" }
-      ]
-    },
-    export: true,
-    export_filename: @document.title.parameterize,
-    references_url: "/entity_references",
-    references_resolve_url: "/entity_references/resolve"
+    config: {
+      comments: {
+        url: document_comment_threads_path(@document),
+        user: { id: "user-1", username: "Demo User" },
+        users: [
+          { id: "user-1", username: "Demo User" },
+          { id: "user-2", username: "Jane Smith" },
+          { id: "user-3", username: "Bob Wilson" }
+        ]
+      },
+      export: true,
+      export_filename: @document.title.parameterize,
+      references_url: "/entity_references",
+      references_resolve_url: "/entity_references/resolve"
+    }
   ) %>
 </div>
 
@@ -106,16 +108,18 @@
     close_url: document_path(@document),
     versions_url: document_versions_path(@document),
     editable: false,
-    comments: {
-      url: document_comment_threads_path(@document),
-      user: { id: "user-1", username: "Demo User" },
-      users: [
-        { id: "user-1", username: "Demo User" },
-        { id: "user-2", username: "Jane Smith" },
-        { id: "user-3", username: "Bob Wilson" }
-      ]
-    },
-    references_url: "/entity_references",
-    references_resolve_url: "/entity_references/resolve"
+    config: {
+      comments: {
+        url: document_comment_threads_path(@document),
+        user: { id: "user-1", username: "Demo User" },
+        users: [
+          { id: "user-1", username: "Demo User" },
+          { id: "user-2", username: "Jane Smith" },
+          { id: "user-3", username: "Bob Wilson" }
+        ]
+      },
+      references_url: "/entity_references",
+      references_resolve_url: "/entity_references/resolve"
+    }
   ) %>
 </div>

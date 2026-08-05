@@ -58,9 +58,8 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 /* Scan Bali ViewComponents for Tailwind classes */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
-/* Import Bali CSS */
+/* Import Bali CSS — one line, component sheets included */
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 
 /* Dark mode support */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
@@ -103,6 +102,8 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 | [Components](docs/guides/components.md) | Component usage patterns and slots |
 | [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
 | [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
+| [Overlays and the top layer](docs/guides/overlays-and-the-top-layer.md) | What the z-index scale orders, and what it cannot |
+| [Migrating v2 → v3](docs/guides/migration-v2-to-v3.md) | Breaking changes to the index page (DataTable) |
 | [Troubleshooting](docs/guides/troubleshooting.md) | Common issues and solutions |
 
 ## Component Categories
@@ -114,10 +115,10 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`, `ViewSwitch`
 
 ### Data Display
-`Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `GanttChart`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
+`Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
 
 ### Interactive
-`ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
+`ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SortableList`, `Tooltip`
 
 ### Feedback
 `FeedbackWidget`, `FlashNotifications`, `Loader`, `Message`, `Notification`
@@ -191,10 +192,16 @@ rails g view_component bali/my_component name
 
 ## JavaScript Debugging
 
-Some Stimulus controllers emit events for inter-controller communication. Enable debug logging:
+Some Stimulus controllers emit events for inter-controller communication. Every one of them is
+named `bali:<component>:<event>`, so a single console snippet logs the lot:
 
 ```javascript
-baliDispatchDebugEnabled = true
+// Paste in the browser console, then drive the UI
+const dispatchEvent = EventTarget.prototype.dispatchEvent
+EventTarget.prototype.dispatchEvent = function (event) {
+  if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+  return dispatchEvent.call(this, event)
+}
 ```
 
 ## License
@@ -236,7 +243,6 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | FlashNotifications | ✓ | - | ✓ |
 | Footer | ✓ | - | ✓ |
 | FormPage | ✓ | - | ✓ |
-| GanttChart | ✓ | ✓ | - |
 | Heatmap | ✓ | ✓ | ✓ |
 | Hero | ✓ | ✓ | ✓ |
 | HoverCard | ✓ | ✓ | ✓ |
@@ -265,7 +271,6 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | RecurrentEventRuleForm | ✓ | - | ✓ |
 | Reveal | ✓ | ✓ | ✓ |
 | RichTextEditor | ✓ | - | - |
-| SearchInput | ✓ | ✓ | ✓ |
 | ShowPage | ✓ | - | ✓ |
 | SideMenu | ✓ | ✓ | ✓ |
 | Skeleton | ✓ | - | ✓ |

@@ -13,7 +13,7 @@
     <button type="button"
             class="btn btn-ghost btn-sm btn-circle"
             data-action="direct-upload#dismissError"
-            aria-label="<%= t('bali.direct_upload.actions.dismiss') %>">
+            aria-label="<%= t('bali_view.direct_upload.actions.dismiss') %>">
       <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
     </button>
   </div>
@@ -24,16 +24,16 @@
          <%= tag.attributes(data: dropzone_data) %>
          role="button"
          tabindex="0"
-         aria-label="<%= t('bali.direct_upload.drop_zone.aria_label') %>">
+         aria-label="<%= t('bali_view.direct_upload.drop_zone.aria_label') %>">
       <%= render Bali::Icon::Component.new('upload', class: 'size-10 text-base-content/50 mx-auto mb-2', aria_hidden: true) %>
       <p class="text-base-content/70 mb-2">
-        <%= t('bali.direct_upload.drop_zone.title') %>
+        <%= t('bali_view.direct_upload.drop_zone.title') %>
       </p>
       <p class="text-base-content/50 text-sm">
-        <%= t('bali.direct_upload.drop_zone.or') %>
+        <%= t('bali_view.direct_upload.drop_zone.or') %>
       </p>
       <span class="btn btn-primary btn-sm mt-2" aria-hidden="true">
-        <%= t('bali.direct_upload.drop_zone.browse') %>
+        <%= t('bali_view.direct_upload.drop_zone.browse') %>
       </span>
     </div>
   <% else %>
@@ -42,7 +42,7 @@
             class="btn btn-primary btn-sm gap-2"
             data-action="direct-upload#openFilePicker">
       <%= render Bali::Icon::Component.new('upload', class: 'size-4', aria_hidden: true) %>
-      <%= t('bali.direct_upload.drop_zone.browse') %>
+      <%= t('bali_view.direct_upload.drop_zone.browse') %>
     </button>
   <% end %>
 
@@ -64,14 +64,14 @@
           <div class="flex items-center gap-2">
             <span class="text-success">
               <%= render Bali::Icon::Component.new('check', class: 'size-5', aria_hidden: true) %>
-              <span class="sr-only"><%= t('bali.direct_upload.status.uploaded') %></span>
+              <span class="sr-only"><%= t('bali_view.direct_upload.status.uploaded') %></span>
             </span>
             <button type="button"
                     class="btn btn-ghost btn-xs btn-circle"
                     data-action="direct-upload#removeExisting"
                     data-attachment-id="<%= attachment.id %>"
-                    title="<%= t('bali.direct_upload.actions.remove') %>"
-                    aria-label="<%= t('bali.direct_upload.actions.remove_file', filename: attachment.filename) %>">
+                    title="<%= t('bali_view.direct_upload.actions.remove') %>"
+                    aria-label="<%= t('bali_view.direct_upload.actions.remove_file', filename: attachment.filename) %>">
               <%= render Bali::Icon::Component.new('trash-2', class: 'size-4') %>
             </button>
           </div>
@@ -84,7 +84,7 @@
   <div data-direct-upload-target="fileList"
        class="mt-4 space-y-2"
        role="list"
-       aria-label="<%= t('bali.direct_upload.file_list.aria_label') %>"></div>
+       aria-label="<%= t('bali_view.direct_upload.file_list.aria_label') %>"></div>
 
   <%# Screen reader announcements (live region) %>
   <div data-direct-upload-target="announcer"
@@ -127,19 +127,19 @@
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-cancel"
                 data-action="direct-upload#cancel"
-                aria-label="<%= t('bali.direct_upload.actions.cancel') %>">
+                aria-label="<%= t('bali_view.direct_upload.actions.cancel') %>">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-retry hidden"
                 data-action="direct-upload#retry"
-                aria-label="<%= t('bali.direct_upload.actions.retry') %>">
+                aria-label="<%= t('bali_view.direct_upload.actions.retry') %>">
           <%= render Bali::Icon::Component.new('refresh-cw', class: 'size-4') %>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-remove hidden"
                 data-action="direct-upload#remove"
-                aria-label="<%= t('bali.direct_upload.actions.remove') %>">
+                aria-label="<%= t('bali_view.direct_upload.actions.remove') %>">
           <%= render Bali::Icon::Component.new('trash-2', class: 'size-4') %>
         </button>
         <span class="file-success text-success hidden" aria-hidden="true">

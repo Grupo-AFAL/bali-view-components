@@ -15,7 +15,7 @@
     <% menu.with_start_item(name: 'Home', href: '#') %>
     <% menu.with_start_item(name: 'Documentation', href: '#') %>
     <% menu.with_start_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :left) do |dropdown| %>
+      <%= render Bali::Dropdown::Component.new(align: :start) do |dropdown| %>
         <% dropdown.with_trigger(variant: :menu) do %>
           More
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>

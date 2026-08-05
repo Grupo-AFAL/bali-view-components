@@ -5,19 +5,16 @@
  * interactivity for the component templates.
  *
  * Usage:
- *   import { TableController, ModalController } from 'bali-view-components'
- *   application.register('table', TableController)
+ *   import { ModalController } from 'bali-view-components'
+ *   application.register('modal', ModalController)
  *
  * Heavy/Optional modules (import separately):
  *   - Charts:           import { ChartController } from 'bali-view-components/charts'
- *   - Gantt:            import { GanttChartController } from 'bali-view-components/gantt'
+ *   - Block Editor:     import { BlockEditorController } from 'bali-view-components/block-editor'
  *   - Rich Text Editor: import { RichTextEditorController } from 'bali-view-components/rich-text-editor'
  */
 
-// Core components
-// Import all for registerAll (static imports)
 import { installConfirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog'
-import { TableController } from '../../../components/bali/table/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
 import { DropdownController } from '../../../components/bali/dropdown/index'
@@ -25,6 +22,7 @@ import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
 import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
+import { SideMenuTriggerController } from '../../../components/bali/side_menu/trigger/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
@@ -32,6 +30,7 @@ import { BulkActionsController } from '../../../components/bali/bulk_actions/ind
 import { CarouselController } from '../../../components/bali/carousel/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
+import { KanbanController } from '../../../components/bali/kanban/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -39,8 +38,7 @@ import { ImageFieldController } from '../../../components/bali/image_field/index
 import { ImageExpanderController } from '../../../components/bali/image_grid/index'
 import { DirectUploadController } from '../../../components/bali/direct_upload/index'
 import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
-import { NotificationController } from '../../../components/bali/notification/index'
-import { MessageController } from '../../../components/bali/message/index'
+import { AlertController } from '../../../components/bali/alert/index'
 import { LocationsMapController } from '../../../components/bali/locations_map/index'
 import {
   FiltersController,
@@ -49,82 +47,152 @@ import {
   AppliedTagsController,
   MultiSelectController
 } from '../../../components/bali/filters/index'
-import { ColumnSelectorController, SavedViewsController } from '../../../components/bali/data_table/index'
+import {
+  ColumnSelectorController,
+  SavedViewsController,
+  ToolbarOverflowController,
+  ExportLinksController
+} from '../../../components/bali/data_table/index'
 import { DocumentEditorController } from '../../../components/bali/document_editor/index'
 import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
+import { ToastContainerController } from '../../../components/bali/toast_container/index'
 
-export { TableController } from '../../../components/bali/table/index'
-export { ModalController } from '../../../components/bali/modal/index'
-export { DrawerController } from '../../../components/bali/drawer/index'
-export { DropdownController } from '../../../components/bali/dropdown/index'
-export { TabsController } from '../../../components/bali/tabs/index'
-export { NavbarController } from '../../../components/bali/navbar/index'
-export { SideMenuController } from '../../../components/bali/side_menu/index'
-export { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
-
-// Data display components
-export { AvatarController } from '../../../components/bali/avatar/index'
-export { TimeagoController } from '../../../components/bali/timeago/index'
-export { RateController } from '../../../components/bali/rate/index'
-
-// Interactive components
-export { BulkActionsController } from '../../../components/bali/bulk_actions/index'
-export { CarouselController } from '../../../components/bali/carousel/index'
-export { ClipboardController } from '../../../components/bali/clipboard/index'
-export { HovercardController } from '../../../components/bali/hover_card/index'
-export { RevealController } from '../../../components/bali/reveal/index'
-export { SortableListController } from '../../../components/bali/sortable_list/index'
-export { TooltipController } from '../../../components/bali/tooltip/index'
-export { StatusController } from '../../../components/bali/status/index'
-
-// Form components
-export { ImageFieldController } from '../../../components/bali/image_field/index'
-export { ImageExpanderController } from '../../../components/bali/image_grid/index'
-export { DirectUploadController } from '../../../components/bali/direct_upload/index'
-export { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
-
-// Feedback components
-export { NotificationController } from '../../../components/bali/notification/index'
-export { MessageController } from '../../../components/bali/message/index'
-
-// Map components
-export { LocationsMapController } from '../../../components/bali/locations_map/index'
-
-// Filters (multiple controllers)
 export {
-  FiltersController,
-  FilterGroupController,
-  ConditionController,
+  AlertController,
   AppliedTagsController,
-  MultiSelectController
-} from '../../../components/bali/filters/index'
+  AvatarController,
+  BulkActionsController,
+  CarouselController,
+  ClipboardController,
+  ColumnSelectorController,
+  CommandController,
+  ConditionController,
+  DirectUploadController,
+  DocumentEditorController,
+  DocumentPageController,
+  DrawerController,
+  DropdownController,
+  ExportLinksController,
+  FeedbackWidgetController,
+  FilterGroupController,
+  FiltersController,
+  HovercardController,
+  ImageExpanderController,
+  ImageFieldController,
+  KanbanController,
+  LocationsMapController,
+  ModalController,
+  MultiSelectController,
+  NavbarController,
+  RateController,
+  RecurrentEventRuleController,
+  RevealController,
+  SavedViewsController,
+  SideMenuController,
+  SideMenuFlyoutController,
+  SideMenuTriggerController,
+  SortableListController,
+  StatusController,
+  TabsController,
+  TimeagoController,
+  ToastContainerController,
+  ToolbarOverflowController,
+  TooltipController,
+  TreeViewItemController
+}
 
-// DataTable components
-export { ColumnSelectorController, SavedViewsController } from '../../../components/bali/data_table/index'
+/**
+ * THE manifest of core component controllers: Stimulus identifier -> controller class.
+ *
+ * registerAll derives from this map; the named exports above exist so an app can
+ * import one controller without pulling in the rest. scripts/check-controller-manifest.mjs
+ * keeps the two lists and the source tree in sync.
+ *
+ * ChartController, BlockEditorController and RichTextEditorController are
+ * deliberately absent: they drag in Chart.js, React/BlockNote and TipTap
+ * respectively, so they ship from the ./charts, ./block-editor and
+ * ./rich-text-editor entries instead.
+ *
+ * The @__PURE__ annotation lets bundlers drop the map (and with it every import
+ * above) when a consumer only imports a single named controller.
+ */
+export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
+  // Core
+  modal: ModalController,
+  drawer: DrawerController,
+  dropdown: DropdownController,
+  tabs: TabsController,
+  navbar: NavbarController,
+  'side-menu': SideMenuController,
+  'side-menu-flyout': SideMenuFlyoutController,
+  'side-menu-trigger': SideMenuTriggerController,
 
-// Document components
-export { DocumentEditorController } from '../../../components/bali/document_editor/index'
-export { DocumentPageController } from '../../../components/bali/document_page/index'
+  // Data display
+  avatar: AvatarController,
+  timeago: TimeagoController,
+  rate: RateController,
 
-// Navigation components
-export { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
+  // Interactive
+  'bulk-actions': BulkActionsController,
+  carousel: CarouselController,
+  clipboard: ClipboardController,
+  hovercard: HovercardController,
+  kanban: KanbanController,
+  reveal: RevealController,
+  'sortable-list': SortableListController,
+  tooltip: TooltipController,
+  status: StatusController,
 
-// Integration components
-export { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
+  // Form
+  'image-field': ImageFieldController,
+  'image-expander': ImageExpanderController,
+  'direct-upload': DirectUploadController,
+  'recurrent-event-rule': RecurrentEventRuleController,
 
-// Command palette
-export { CommandController } from '../../../components/bali/command/index'
+  // Feedback
+  alert: AlertController,
+  'toast-container': ToastContainerController,
+
+  // Map
+  'locations-map': LocationsMapController,
+
+  // Filters
+  filters: FiltersController,
+  'filter-group': FilterGroupController,
+  condition: ConditionController,
+  'applied-tags': AppliedTagsController,
+  'multi-select': MultiSelectController,
+
+  // DataTable
+  'column-selector': ColumnSelectorController,
+  'saved-views': SavedViewsController,
+  'toolbar-overflow': ToolbarOverflowController,
+  'export-links': ExportLinksController,
+
+  // Document
+  'document-editor': DocumentEditorController,
+  'document-page': DocumentPageController,
+
+  // Navigation
+  'tree-view-item': TreeViewItemController,
+
+  // Integration
+  'feedback-widget': FeedbackWidgetController,
+
+  // Command palette
+  command: CommandController
+})
 
 /**
  * Register all core Bali component controllers with a Stimulus application
  *
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
  *   - Charts:           import { registerCharts } from 'bali-view-components/charts'
- *   - Gantt:            import { registerGantt } from 'bali-view-components/gantt'
+ *   - Block Editor:     import { registerBlockEditor } from 'bali-view-components/block-editor'
  *   - Rich Text Editor: import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *
  * @param {Application} application - Stimulus application instance
@@ -133,65 +201,7 @@ export function registerAll (application) {
   // Replace Turbo's native window.confirm with Bali's styled dialog (idempotent)
   installConfirmDialog()
 
-  // Core
-  application.register('table', TableController)
-  application.register('modal', ModalController)
-  application.register('drawer', DrawerController)
-  application.register('dropdown', DropdownController)
-  application.register('tabs', TabsController)
-  application.register('navbar', NavbarController)
-  application.register('side-menu', SideMenuController)
-  application.register('side-menu-flyout', SideMenuFlyoutController)
-
-  // Data display
-  application.register('avatar', AvatarController)
-  application.register('timeago', TimeagoController)
-  application.register('rate', RateController)
-
-  // Interactive
-  application.register('bulk-actions', BulkActionsController)
-  application.register('carousel', CarouselController)
-  application.register('clipboard', ClipboardController)
-  application.register('hovercard', HovercardController)
-  application.register('reveal', RevealController)
-  application.register('sortable-list', SortableListController)
-  application.register('tooltip', TooltipController)
-  application.register('status', StatusController)
-
-  // Form
-  application.register('image-field', ImageFieldController)
-  application.register('image-expander', ImageExpanderController)
-  application.register('direct-upload', DirectUploadController)
-  application.register('recurrent-event-rule', RecurrentEventRuleController)
-
-  // Feedback
-  application.register('notification', NotificationController)
-  application.register('message', MessageController)
-
-  // Map
-  application.register('locations-map', LocationsMapController)
-
-  // Filters
-  application.register('filters', FiltersController)
-  application.register('filter-group', FilterGroupController)
-  application.register('condition', ConditionController)
-  application.register('applied-tags', AppliedTagsController)
-  application.register('multi-select', MultiSelectController)
-
-  // DataTable
-  application.register('column-selector', ColumnSelectorController)
-  application.register('saved-views', SavedViewsController)
-
-  // Document
-  application.register('document-editor', DocumentEditorController)
-  application.register('document-page', DocumentPageController)
-
-  // Navigation
-  application.register('tree-view-item', TreeViewItemController)
-
-  // Integration
-  application.register('feedback-widget', FeedbackWidgetController)
-
-  // Command palette
-  application.register('command', CommandController)
+  for (const [identifier, controller] of Object.entries(CONTROLLERS)) {
+    application.register(identifier, controller)
+  }
 }

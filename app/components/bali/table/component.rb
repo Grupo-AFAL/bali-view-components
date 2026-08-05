@@ -10,6 +10,15 @@ module Bali
 
       class MissingFilterForm < StandardError; end
 
+      # `bulk_actions:` era el array de la selección legada, borrada en v3. Sin este guardia
+      # caería en `**options` y saldría como atributo HTML del `<table>`: la tabla se vería
+      # bien, sin columna de checkbox y sin barra, y nada lo delataría.
+      REMOVED_BULK_ACTIONS = "Bali::Table(bulk_actions:) was removed in v3. Turn on " \
+                             "`selectable: true` and declare the actions on a " \
+                             "`Bali::BulkActions::Component` ancestor — inside a DataTable " \
+                             "that is `with_bulk_actions`, standalone it is the default " \
+                             "`variant: :floating` bar."
+
       RowGroup = Struct.new(:value, :rows)
 
       renders_many :headers, ->(name: nil, sort: nil, **options) do
@@ -17,13 +26,13 @@ module Bali
       end
 
       renders_many :rows, ->(skip_tr: false, **options) do
-        Row::Component.new(skip_tr: skip_tr, bulk_actions: bulk_actions?, **options)
+        Row::Component.new(skip_tr: skip_tr, selectable: selectable?, **options)
       end
 
       renders_many :footers, Footer::Component
 
       renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
-        Bali::Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
+        Bali::Link::Component.new(name: name, href: href, variant: :success, modal: modal, **options)
       end
 
       renders_one :no_records_notification
@@ -31,9 +40,15 @@ module Bali
 
       attr_reader :options, :tbody_options, :table_container_options
 
-      def initialize(form: nil, bulk_actions: [], sticky_headers: false, group_counts: {}, **options)
+      # @param selectable [Boolean] Columna de checkbox + seleccionar-todo cableada al
+      #   controlador `bulk-actions`, que debe vivir en algún ancestro (el DataTable lo
+      #   pone solo cuando se declara `with_bulk_actions`). Cada fila necesita `record_id:`.
+      def initialize(form: nil, selectable: false, sticky_headers: false,
+                     group_counts: {}, **options)
+        raise ArgumentError, REMOVED_BULK_ACTIONS if options.key?(:bulk_actions)
+
         @form = form
-        @bulk_actions = bulk_actions
+        @selectable = selectable
         @sticky_headers = sticky_headers
         @group_counts = group_counts || {}
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
@@ -45,8 +60,8 @@ module Bali
         @options[:id] || @form&.id
       end
 
-      def bulk_actions?
-        @bulk_actions.any?
+      def selectable?
+        @selectable
       end
 
       def visible_headers
@@ -67,7 +82,7 @@ module Bali
       end
 
       def group_colspan
-        visible_headers.count + (bulk_actions? ? 1 : 0)
+        visible_headers.count + (selectable? ? 1 : 0)
       end
 
       def group_label(value)
@@ -124,8 +139,7 @@ module Bali
       end
 
       def build_container_options(options)
-        opts = prepend_class_name(options, container_classes)
-        prepend_controller(opts, "table")
+        prepend_class_name(options, container_classes)
       end
 
       def container_classes

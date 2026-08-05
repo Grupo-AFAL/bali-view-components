@@ -14,7 +14,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
       }
     ]
     @search = {
-      field_name: "q[name_cont]",
+      fields: [ :name ],
       value: nil,
       placeholder: "Search by name..."
     }
@@ -67,9 +67,15 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("select[name='q[status_eq]']")
   end
 
+  # `clear_filters` NO es cosmético: es el único param que en el server borra la caché de
+  # filtros (`Rails.cache.delete(cache_key)`). Sin él, el link navega a la URL pelada, que
+  # con la persistencia encendida es indistinguible de "no vino ningún filtro" — y el
+  # listado restaura lo que el usuario acaba de limpiar. Las otras dos rutas de limpieza
+  # (AppliedTags#clear_all_url y clearFiltersAndClose del JS) sí lo mandan; ésta se había
+  # quedado afuera, y estos tests fijaban la URL pelada como si fuera el contrato.
   def test_shows_clear_button_when_show_clear_is_true
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, show_clear: true))
-    assert_link(href: "/test")
+    assert_link(href: "/test?clear_filters=true")
   end
 
   def test_hides_clear_button_when_show_clear_is_false
@@ -109,6 +115,31 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     ]
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: filters_with_default))
     assert_selector("option[selected]", text: "Inactive")
+  end
+
+  # This template called `slim_select_field` with the two positional hashes #785 retired,
+  # so every index page carrying a slim_select filter warned on the host's behalf about a
+  # call written here (#797). The id and the width class come out of what used to be the
+  # second hash: assert them, or "fix" the warning by deleting the hash and still pass.
+  def test_slim_select_filter_does_not_leak_the_form_builder_deprecation_to_the_host
+    slim_select_filter = [
+      {
+        attribute: :status,
+        type: :slim_select,
+        collection: [ %w[Active active], %w[Inactive inactive] ],
+        blank: "All",
+        label: "Status",
+        value: "active"
+      }
+    ]
+
+    warning = capture_deprecation do
+      render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: slim_select_filter))
+    end
+
+    assert_nil(warning)
+    assert_selector("select#simple-filter-q-status_eq.w-full")
+    assert_selector("option[selected]", text: "Active")
   end
 
   def test_slim_select_filter_selects_the_current_value
@@ -175,6 +206,24 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[placeholder='Search by name...']")
   end
 
+  # #677: the caller declares columns, not the Ransack parameter. This is the same
+  # `search:` hash the Filters panel takes.
+  def test_search_input_name_is_derived_from_several_columns
+    search = @search.merge(fields: %i[name email])
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search))
+    assert_selector("input[type='text'][name='q[name_or_email_cont]']")
+    assert_selector("input#simple-filter-search-q-name_or_email_cont")
+  end
+
+  def test_an_unknown_search_option_raises
+    error = assert_raises(ArgumentError) do
+      Bali::DataTable::SimpleFilters::Component.new(
+        url: "/test", filters: @filters, search: { field_name: "q[name_cont]" }
+      )
+    end
+    assert_includes(error.message, ":field_name")
+  end
+
   def test_search_input_opts_out_of_password_manager_autofill
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
     # Un buscador no es un campo de login; salimos del autofill para que 1Password
@@ -221,7 +270,18 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   def test_search_parameter_shows_clear_button_when_show_clear_is_true_with_search
     search_with_value = @search.merge(value: "test")
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search_with_value, show_clear: true))
-    assert_link(href: "/test")
+    assert_link(href: "/test?clear_filters=true")
+  end
+
+  # Una `url:` con query string es el caso normal cuando el host pasa `request.fullpath` o un
+  # path helper con params: el param se AGREGA, sin pisar lo que ya viajaba ni duplicarse.
+  def test_the_clear_link_keeps_the_params_the_listing_url_already_carried
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+                    url: "/test?scope=mine", filters: @filters, show_clear: true))
+
+    href = page.find("a[href*='clear_filters']")[:href]
+    assert_equal("true", Rack::Utils.parse_query(URI(href).query)["clear_filters"])
+    assert_equal("mine", Rack::Utils.parse_query(URI(href).query)["scope"])
   end
 
   def test_search_parameter_does_not_show_clear_button_when_show_clear_is_false_even_with_search_value
@@ -501,16 +561,6 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
   # Persistence toggle tests
 
-  def test_persistence_available_returns_false_when_no_storage_id
-    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters)
-    refute(component.persistence_available?)
-  end
-
-  def test_persistence_available_returns_true_when_storage_id_is_present
-    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters")
-    assert(component.persistence_available?)
-  end
-
   def test_persist_enabled_returns_false_by_default
     component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters")
     refute(component.persist_enabled?)
@@ -546,8 +596,30 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('[data-filter-persistence-enabled-value="true"]')
   end
 
+  # El DataTable lo apaga porque pinta el marcador como control propio de la toolbar.
+  def test_does_not_render_persistence_toggle_when_persistence_toggle_is_false
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: @filters, storage_id: "records_filters", persistence_toggle: false
+    ))
+    assert_no_selector('[data-controller="filter-persistence"]')
+  end
+
   def test_persistence_toggle_renders_with_search_only_and_no_filters
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search, storage_id: "records_filters"))
     assert_selector('[data-controller="filter-persistence"]')
+  end
+
+  # --- El rótulo del botón nombra lo que el botón hace ---
+
+  def test_the_button_says_search_when_there_is_nothing_to_filter
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search))
+
+    assert_selector("button[type=submit]", text: I18n.t("bali_view.filters.submit_search"))
+    assert_no_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
+  end
+
+  def test_the_button_says_filter_as_soon_as_there_is_a_filter
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
+    assert_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
   end
 end

@@ -14,18 +14,24 @@ module Bali
       # Auto-configured by DataTable from a FilterForm that declares
       # `group_by_attribute`.
       class Component < ApplicationViewComponent
+        include Bali::DataTable::ToolbarHref
+
         # @param url [String] Base URL for the option links (typically request.path)
         # @param filter_form [Bali::FilterForm] Form exposing group_by_options / group_by
         # @param current_params [Hash] Current query params to preserve (merged into links)
         # @param options [Array<Hash>] Explicit {attribute:, label:} options — for surfaces
-        #   whose grouping no vive en un FilterForm (p.ej. un Gantt server-rendered). Gana
-        #   sobre las del form.
+        #   whose grouping no vive en un FilterForm (p.ej. un roadmap server-rendered).
+        #   Gana sobre las del form.
         # @param current [String, Symbol] Explicit current grouping value (pairs with options:)
         # @param param [String] Query param that carries the grouping (default "group_by")
         # @param include_none [Boolean] Whether to offer the "no grouping" item
         # @param label [String] Trigger label override (defaults to the i18n "Group by")
+        # @param disabled [Boolean] Renderizar el control INERTE en vez de esconderlo. Se usa
+        #   cuando el modo de visualización actual no aplica agrupación: esconderlo movía la
+        #   toolbar al cambiar de modo y dejaba sin explicar por qué el control desapareció.
         def initialize(url:, filter_form: nil, current_params: {}, options: nil, current: nil,
-                       param: "group_by", include_none: true, label: nil)
+                       param: "group_by", include_none: true, label: nil, disabled: false)
+          @disabled = disabled
           @url = url
           @filter_form = filter_form
           @current_params = (current_params || {}).to_h.with_indifferent_access
@@ -37,6 +43,27 @@ module Bali
         end
 
         attr_reader :param
+
+        def disabled? = @disabled
+
+        # Por qué está inerte. Va como `title` y no como cartel en la fila: el estado ya lo
+        # comunica el botón apagado, y un texto permanente ahí competía con los filtros.
+        def disabled_title
+          I18n.t("bali_view.data_table.group_by_control.disabled_title",
+                 modes: disabled_modes)
+        end
+
+        # `humanize` here is the extension point, not a missing translation: the
+        # display modes a listing declares are the HOST's, and Bali only ships
+        # names for the four it previews. Without the lookup the whole sentence
+        # came out half-translated — a Spanish `disabled_title` interpolating an
+        # English "Cards".
+        def disabled_modes
+          modes = @filter_form.respond_to?(:group_by_modes) ? @filter_form.group_by_modes : []
+          modes.map do |mode|
+            I18n.t("bali_view.data_table.display_modes.#{mode}", default: mode.to_s.humanize)
+          end.to_sentence
+        end
 
         def render?
           options.present?
@@ -70,8 +97,12 @@ module Bali
           build_href(attribute.to_s)
         end
 
+        # `""` y no `nil`: el param se queda en la URL, vacío. Sacándolo, "sin agrupación" era
+        # indistinguible de "no vino nada", y un listado con persistencia de filtros restaura
+        # de la caché lo que la URL no dice — o sea que apagar la agrupación la resucitaba en
+        # el mismo render (ver FilterForm#fetch_stored_filter_state).
         def no_grouping_href
-          build_href(nil)
+          build_href("")
         end
 
         def option_active?(attribute)
@@ -79,11 +110,11 @@ module Bali
         end
 
         def label
-          @label || I18n.t("view_components.bali.data_table.group_by_control.label", default: "Group by")
+          @label || I18n.t("bali_view.data_table.group_by_control.label")
         end
 
         def no_grouping_label
-          I18n.t("view_components.bali.data_table.group_by_control.no_grouping", default: "No grouping")
+          I18n.t("bali_view.data_table.group_by_control.no_grouping")
         end
 
         def item_class(selected)
@@ -92,15 +123,11 @@ module Bali
 
         private
 
-        # Merge (or drop) the grouping param into the preserved params and build the URL.
-        # `page` is always dropped so grouping changes reset pagination, and the one-shot
-        # commands (`clear_filters`/`clear_search`) never ride along: they are actions, not
-        # navigation state, and carrying them re-executed the wipe on every later click.
+        # Merge (or drop) the grouping param into the preserved params. See ToolbarHref for
+        # why `page`/`clear_*` never ride along and why the base URL is parsed instead of
+        # concatenated.
         def build_href(group_by)
-          params = @current_params.except("page", "clear_filters", "clear_search", param)
-          params = params.merge(param => group_by) unless group_by.nil?
-          query = params.to_query
-          query.present? ? "#{@url}?#{query}" : @url
+          build_toolbar_href(@url, @current_params, param, group_by)
         end
       end
     end

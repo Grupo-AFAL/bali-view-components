@@ -29,12 +29,29 @@ module Bali
       end
 
       def call
-        tag.time(**time_options)
+        return blank_element if datetime.blank?
+
+        tag.time(relative_time, **time_options)
       end
 
       private
 
       attr_reader :datetime, :add_suffix, :refresh_interval, :include_seconds, :options
+
+      # A <time> is only valid with a machine-readable datetime, and there is none
+      # to give, so a nil datetime renders a plain <span> carrying the same class.
+      # It used to raise NoMethodError instead.
+      def blank_element
+        tag.span(t("bali_view.timeago.blank"), **options.except(:data).merge(class: time_classes))
+      end
+
+      # Rendered so the element is never blank before Stimulus connects — or at all,
+      # if the host ships no JavaScript. The controller overwrites it with date-fns
+      # output on connect, which is where the wording can differ slightly.
+      def relative_time
+        distance = time_ago_in_words(datetime, include_seconds: include_seconds)
+        add_suffix ? t("bali_view.timeago.ago", time: distance) : distance
+      end
 
       def time_options
         base_options = {

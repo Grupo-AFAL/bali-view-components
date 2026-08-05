@@ -42,6 +42,13 @@ module Bali
       ViewComponent::Preview.extend ViewComponentContrib::Preview::Abstract
     end
 
+    # `before: :load_environment_config` mirrors Rails' own "active_support.deprecator":
+    # `active_support.deprecation_behavior` applies config.active_support.deprecation to
+    # whatever is registered by then, and plain engine initializers run after it.
+    initializer "bali.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:bali] = Bali.deprecator
+    end
+
     initializer "Register Bali ActiveModel::Types" do
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end
@@ -58,10 +65,12 @@ module Bali
       ActionController::Base.helper(Bali::BlockEditorHelper)
     end
 
-    initializer "bali.add_locales" do |app|
-      app.config.i18n.load_path += Dir[root.join("config", "locales", "*.yml")]
-    end
-
+    # No initializer adds config/locales here on purpose. Rails::Engine already
+    # registers it through `paths["config/locales"]`, in an order that puts every
+    # engine BEFORE the app — which is what lets a host override a Bali string.
+    # Appending the same files to `i18n.load_path` by hand (what this engine used
+    # to do) put them back at the END, after the host's, so I18n's last-one-wins
+    # made the gem beat the app and no host override ever took effect.
     initializer "Bali add assets paths", before: :append_assets_path do |app|
       # Add Bali's JavaScript and component paths for both Propshaft and Sprockets
       app.config.assets.paths << root.join("app", "components")

@@ -1,5 +1,9 @@
 import { Controller } from '@hotwired/stimulus'
 
+// Gap between the trigger and the panel, and the minimum breathing room the panel
+// keeps from the viewport edges.
+const PANEL_MARGIN = 8
+
 // Drives the editable status pill: opens/closes the options panel, positions it
 // with position:fixed (so it escapes DataTable overflow clipping), and wires
 // keyboard + outside-click. Selecting an option submits the form natively; the
@@ -46,7 +50,11 @@ export class StatusController extends Controller {
       this.panelTarget.hidden = true
       this.panelTarget.classList.remove('status-panel--open')
     }
-    this.triggerTarget?.setAttribute('aria-expanded', 'false')
+    // Not `?.`: a missing Stimulus target throws from the getter, so the optional chain
+    // never runs. Matches the `hasPanelTarget` guard three lines up.
+    if (this.hasTriggerTarget) {
+      this.triggerTarget.setAttribute('aria-expanded', 'false')
+    }
 
     document.removeEventListener('click', this.handleOutsideClick)
     document.removeEventListener('keydown', this.handleKeydown)
@@ -57,23 +65,41 @@ export class StatusController extends Controller {
   // Lets the native submit run; nothing else to do here.
   clear () {}
 
+  // A `fixed` element is positioned against the viewport ONLY while no ancestor
+  // carries a transform, filter or perspective; one that does becomes the
+  // containing block, and viewport coordinates then mean something else entirely.
+  // Bali's own Drawer animates with `transform: translateX(...)`, so a pill inside
+  // one used to get a `left` of ~1000px measured from the drawer's edge and threw
+  // the panel off screen. Rather than special-case the drawer, probe for the
+  // offset: park the panel at (0,0) and read back where it actually landed — 0,0
+  // under the viewport, anything else under a transformed ancestor — then express
+  // the position we want in that coordinate space. The horizontal clamp keeps the
+  // panel on screen in both cases.
   reposition () {
-    const rect = this.triggerTarget.getBoundingClientRect()
     const panel = this.panelTarget
+    const trigger = this.triggerTarget.getBoundingClientRect()
+
     panel.style.position = 'fixed'
-    panel.style.minWidth = `${rect.width}px`
-    panel.style.left = `${rect.left}px`
+    panel.style.minWidth = `${trigger.width}px`
+
+    panel.style.left = '0px'
+    panel.style.top = '0px'
+    const origin = panel.getBoundingClientRect()
+
+    const panelWidth = panel.offsetWidth
+    const clampedLeft = Math.min(trigger.left, window.innerWidth - panelWidth - PANEL_MARGIN)
+    const desiredLeft = Math.max(PANEL_MARGIN, clampedLeft)
 
     // Open downward, or upward if there isn't room below.
-    const belowSpace = window.innerHeight - rect.bottom
     const panelHeight = panel.offsetHeight
-    if (belowSpace < panelHeight && rect.top > belowSpace) {
-      panel.style.top = 'auto'
-      panel.style.bottom = `${window.innerHeight - rect.top + 4}px`
-    } else {
-      panel.style.bottom = 'auto'
-      panel.style.top = `${rect.bottom + 4}px`
-    }
+    const belowSpace = window.innerHeight - trigger.bottom
+    const desiredTop = belowSpace < panelHeight && trigger.top > belowSpace
+      ? trigger.top - panelHeight - PANEL_MARGIN
+      : trigger.bottom + PANEL_MARGIN
+
+    panel.style.left = `${desiredLeft - origin.left}px`
+    panel.style.top = `${desiredTop - origin.top}px`
+    panel.style.bottom = 'auto'
   }
 
   handleOutsideClick (event) {

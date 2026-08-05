@@ -1,0 +1,30 @@
+<%# The container is the point: `overflow-x-auto` clips on BOTH axes (CSS turns the other
+    axis into `auto` the moment one of them is not `visible`), which is why a menu inside a
+    scrollable table needs somewhere else to go. %>
+<div class="p-8 space-y-8">
+  <div>
+    <p class="text-sm font-medium mb-2">Inside the flow <span class="text-error">(clipped)</span></p>
+    <div class="overflow-x-auto border border-base-300 rounded-lg h-24 flex items-center px-4">
+      <%= render(Bali::Dropdown::Component.new(align: :start)) do |c|
+        c.with_trigger(class: 'btn-primary') { 'Clipped' }
+
+        c.with_item(name: 'Edit', href: '#', icon: 'pencil')
+        c.with_item(name: 'Export', href: '#', icon: 'download')
+        c.with_item(name: 'Delete', href: '#', method: :delete, icon: 'trash')
+      end %>
+    </div>
+  </div>
+
+  <div>
+    <p class="text-sm font-medium mb-2">popover: true <span class="text-success">(escapes)</span></p>
+    <div class="overflow-x-auto border border-base-300 rounded-lg h-24 flex items-center px-4">
+      <%= render(Bali::Dropdown::Component.new(popover: true, align: :start)) do |c|
+        c.with_trigger(class: 'btn-primary') { 'Escapes' }
+
+        c.with_item(name: 'Edit', href: '#', icon: 'pencil')
+        c.with_item(name: 'Export', href: '#', icon: 'download')
+        c.with_item(name: 'Delete', href: '#', method: :delete, icon: 'trash')
+      end %>
+    </div>
+  </div>
+</div>

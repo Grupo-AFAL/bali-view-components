@@ -28,7 +28,7 @@ module Bali
       #
       # @param method [Symbol] Name of the association
       # @param options [Hash] Options to customize the display
-      def dynamic_fields_group(method, options = {}, &block)
+      def dynamic_fields_group(method, **options, &block)
         singular = method.to_s.singularize
         container = build_fields_container(method, singular)
         header = block ? @template.capture(&block) : default_header_contents(method, options)
@@ -38,30 +38,44 @@ module Bali
         end
       end
 
-      # Creates a link to add new nested fields
-      # @param name [String] Link text
+      # Adds a set of nested fields to the form.
+      #
+      # A `<button>`, not the `<a href="#">` this used to emit. Nothing here
+      # navigates, so a screen reader was announcing a link that goes nowhere,
+      # and the `#` href jumped the page to the top on any activation the
+      # Stimulus action did not swallow.
+      #
+      # The concrete breakage was `connect()`, which disables this control once
+      # the association is at its maximum: `disabled` is inert on an `<a>`, so
+      # the cap looked enforced and was not — the control stayed clickable and
+      # `addFields` had to bail out on its own. On a `<button>` the attribute
+      # does what it says.
+      #
+      # @param name [String] Button text
       # @param association [Symbol] Association name
-      # @param html_options [Hash] HTML attributes for the link
+      # @param html_options [Hash] HTML attributes for the button
       def link_to_add_fields(name, association, html_options = {})
         partial = "#{association.to_s.singularize}_fields"
         form_object, builder = resolve_form_builder
         fields = render_template_fields(builder, association, partial, form_object)
-        wrapper_class = html_options.delete(:wrapper_class)
+        wrapper_class = html_options[:wrapper_class]
 
         tag.div(class: wrapper_class) do
-          tag.a(name, **build_add_link_options(html_options)) +
+          tag.button(name, **build_add_link_options(html_options.except(:wrapper_class))) +
             tag.template(fields, data: { "#{CONTROLLER_NAME}-target": "template" })
         end
       end
 
-      # Creates a link to remove nested fields
-      # @param name [String] Link text
+      # Removes a set of nested fields from the form. A `<button>` for the same
+      # reason, plus one of its own: these sit inside a `<form>`, where a button
+      # with no `type` submits it, so both spell `type="button"` explicitly.
+      #
+      # @param name [String] Button text
       # @param html_options [Hash] HTML attributes (:soft_delete for soft delete)
       def link_to_remove_fields(name, html_options = {})
-        soft_delete = html_options.delete(:soft_delete)
-        destroy_attribute = soft_delete ? :_soft_delete : :_destroy
+        destroy_attribute = html_options[:soft_delete] ? :_soft_delete : :_destroy
 
-        tag.a(name, **build_remove_link_options(html_options)) +
+        tag.button(name, **build_remove_link_options(html_options.except(:soft_delete))) +
           hidden_field(destroy_attribute, class: DESTROY_FLAG_CLASS)
       end
 
@@ -89,7 +103,7 @@ module Bali
 
       def default_header_contents(method, options)
         label_text = options[:label] || translate_association_label(method)
-        button_text = options[:button_text] || I18n.t("helpers.add.text")
+        button_text = options[:button_text] || I18n.t("bali_view.form_builder.dynamic_fields.add")
         button_class = options[:button_class] || DEFAULT_BUTTON_CLASS
 
         tag.div(class: HEADER_CLASS) do
@@ -124,13 +138,14 @@ module Bali
 
       def build_add_link_options(html_options)
         prepend_action(
-          html_options.merge(href: "#", data: { "#{CONTROLLER_NAME}-target": "button" }),
+          html_options.merge(type: "button", data: { "#{CONTROLLER_NAME}-target": "button" }),
           "#{CONTROLLER_NAME}#addFields"
         )
       end
 
       def build_remove_link_options(html_options)
-        prepend_action(html_options.merge(href: "#"), "#{CONTROLLER_NAME}#removeFields")
+        prepend_action(dup_options(html_options).merge(type: "button"),
+                       "#{CONTROLLER_NAME}#removeFields")
       end
     end
   end

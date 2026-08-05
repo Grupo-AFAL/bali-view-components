@@ -1,15 +1,6 @@
-<div class="index-page-component">
+<div class="<%= page_container_class('index-page-component') %>">
   <%= render_breadcrumbs %>
-
-  <%= render Bali::PageHeader::Component.new(title: title, subtitle: subtitle, back: back, class: breadcrumb_spacer_class) do |header| %>
-    <%= render_actions_bar %>
-  <% end %>
-
+  <%= render_page_header %>
   <%= render_nav %>
-
-  <% if body? %>
-    <div class="mt-4">
-      <%= body %>
-    </div>
-  <% end %>
+  <%= render_body %>
 </div>

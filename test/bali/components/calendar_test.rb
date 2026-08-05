@@ -23,8 +23,8 @@ class BaliCalendarComponentTest < ComponentTestCase
 
   public
 
-  def test_renders_calendar_component_with_all_week
-    @options.merge!(start_date: "2020-01-01", all_week: true)
+  def test_renders_calendar_component_with_the_full_week
+    @options.merge!(start_date: "2020-01-01", weekdays_only: false)
     render_inline(component) do |c|
       c.with_header(period: c.period, start_date: "2020-01-01")
     end
@@ -40,7 +40,7 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
 
   def test_renders_calendar_component_from_monday_to_friday
-    @options.merge!(start_date: "2020-01-01", all_week: false)
+    @options.merge!(start_date: "2020-01-01", weekdays_only: true)
     render_inline(component)
 
     assert_selector(".calendar-component")
@@ -84,13 +84,13 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
   # #prev_day
 
-  def test_prev_day_all_week_true_returns_the_previous_day
-    @options.merge!(start_date: monday.to_s, all_week: true)
+  def test_prev_day_with_weekends_returns_the_previous_day
+    @options.merge!(start_date: monday.to_s, weekdays_only: false)
     assert_equal({ start_time: monday - 1.day }, component.prev_day)
   end
 
-  def test_prev_day_all_week_false_returns_the_previous_friday
-    @options.merge!(start_date: monday.to_s, all_week: false)
+  def test_prev_day_weekdays_only_returns_the_previous_friday
+    @options.merge!(start_date: monday.to_s, weekdays_only: true)
     assert_equal({ start_time: monday - 3.days }, component.prev_day)
   end
 
@@ -100,13 +100,13 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
   # #next_day
 
-  def test_next_day_all_week_true_returns_the_next_day
-    @options.merge!(start_date: friday.to_s, all_week: true)
+  def test_next_day_with_weekends_returns_the_next_day
+    @options.merge!(start_date: friday.to_s, weekdays_only: false)
     assert_equal({ start_time: friday + 1.day }, component.next_day)
   end
 
-  def test_next_day_all_week_false_returns_the_next_monday
-    @options.merge!(start_date: friday.to_s, all_week: false)
+  def test_next_day_weekdays_only_returns_the_next_monday
+    @options.merge!(start_date: friday.to_s, weekdays_only: true)
     assert_equal({ start_time: friday + 3.days }, component.next_day)
   end
 
@@ -215,6 +215,67 @@ class BaliCalendarComponentTest < ComponentTestCase
     @options.merge!(start_date: "")
     assert_equal(Date.current, component.start_date)
   end
+  # start_date is reachable from the query string, so none of these may raise
+
+  def test_start_date_falls_back_to_today_when_unparseable
+    @options.merge!(start_date: "zzz")
+    assert_equal(Date.current, component.start_date)
+  end
+
+  def test_start_date_falls_back_to_today_when_the_date_does_not_exist
+    @options.merge!(start_date: "2026-13-45")
+    assert_equal(Date.current, component.start_date)
+  end
+
+  def test_start_date_falls_back_to_today_when_given_an_array
+    @options.merge!(start_date: [ "1" ])
+    assert_equal(Date.current, component.start_date)
+  end
+
+  def test_start_date_falls_back_to_today_when_given_a_hash
+    @options.merge!(start_date: { "year" => "1" })
+    assert_equal(Date.current, component.start_date)
+  end
+
+  def test_renders_with_an_unparseable_start_date_instead_of_raising
+    @options.merge!(start_date: "zzz")
+    render_inline(component)
+
+    assert_selector(".calendar-component")
+  end
+
+  # The header parsed its own start_date, and it took the raw value without #to_s,
+  # so an Array reached Date.parse as a TypeError rather than an ArgumentError.
+  def test_header_falls_back_to_today_when_given_an_array
+    header = Bali::Calendar::Header::Component.new(start_date: [ "1" ])
+    assert_equal(Date.current, header.start_date)
+  end
+
+  def test_header_falls_back_to_today_when_unparseable
+    header = Bali::Calendar::Header::Component.new(start_date: "zzz")
+    assert_equal(Date.current, header.start_date)
+  end
+
+  # period comes off the same query string, and #to_sym is not total either
+  def test_period_falls_back_to_month_when_unknown
+    @options.merge!(period: "zzz")
+    assert_equal(:month, component.period)
+  end
+
+  def test_period_falls_back_to_month_when_given_an_array
+    @options.merge!(period: [ "1" ])
+    assert_equal(:month, component.period)
+  end
+
+  def test_period_accepts_the_string_a_query_string_produces
+    @options.merge!(period: "week")
+    assert_equal(:week, component.period)
+  end
+
+  def test_header_period_falls_back_to_month_when_given_an_array
+    header = Bali::Calendar::Header::Component.new(start_date: "2020-01-01", period: [ "1" ])
+    assert_equal(:month, header.period)
+  end
   # weekdays_only parameter
 
   def test_weekdays_only_true_hides_weekends
@@ -228,22 +289,16 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_no_selector("tr > th.text-center", text: "Sunday")
   end
 
-  def test_weekdays_only_backward_compatibility_with_all_week_false
+  def test_all_week_is_no_longer_read_and_does_not_hide_the_weekend
     @options.merge!(start_date: "2020-01-01", all_week: false)
     render_inline(component)
 
-    assert_no_selector("tr > th.text-center", text: "Saturday")
-
-    assert_no_selector("tr > th.text-center", text: "Sunday")
+    assert_selector("tr > th.text-center", text: "Saturday")
+    assert_selector("tr > th.text-center", text: "Sunday")
   end
 
-  def test_weekdays_only_takes_precedence_over_all_week
-    @options.merge!(start_date: "2020-01-01", weekdays_only: false, all_week: false)
-    render_inline(component)
-
-    assert_selector("tr > th.text-center", text: "Saturday")
-
-    assert_selector("tr > th.text-center", text: "Sunday")
+  def test_all_week_reader_is_gone
+    refute_respond_to(component, :all_week)
   end
   # helper methods
 
@@ -263,6 +318,34 @@ class BaliCalendarComponentTest < ComponentTestCase
     @options.merge!(weekdays_only: true)
     refute(component.show_weekends?)
     assert(component.weekdays_only?)
+  end
+
+  def test_weekdays_only_defaults_to_false_rather_than_nil
+    assert_equal(false, component.weekdays_only?)
+    assert_equal(true, component.show_weekends?)
+  end
+  # markup
+
+  def test_frames_the_grid_with_the_card_component
+    @options.merge!(start_date: "2020-01-01")
+    render_inline(component)
+
+    assert_selector(".calendar-component > .card.month-view > .card-body > .overflow-x-auto")
+  end
+
+  def test_week_view_marks_the_card_instead_of_the_month
+    @options.merge!(start_date: "2020-01-01", period: :week)
+    render_inline(component)
+
+    assert_selector(".calendar-component > .card.week-view")
+    assert_no_selector(".month-view")
+  end
+
+  def test_weekly_title_class_is_an_explicit_parameter
+    @options.merge!(start_date: "2020-01-01", period: :week, weekly_title_class: "text-error")
+    render_inline(component)
+
+    assert_selector("td.day > div.text-error")
   end
 end
 

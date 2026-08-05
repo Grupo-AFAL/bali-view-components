@@ -1,9 +1,9 @@
 name: Cypress Tests
 on:
   push:
-    branches: [main]
+    branches: [main, "3.1"]
   pull_request:
-    branches: [main]
+    branches: [main, "3.1"]
 
 jobs:
   cypress:
@@ -20,14 +20,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          # 22, not 20: @blocknote/core 0.52 depends on lib0 1.0.0-rc.22, whose
+          # engines.node is ">=22". On Node 20 installing spec/dummy aborts with
+          # "Found incompatible module" before the server ever boots.
+          node-version: '22'
           cache: 'yarn'
           cache-dependency-path: |
             yarn.lock
             spec/dummy/yarn.lock
 
+      # Los previews del DataTable leen de la BASE (escenario "Live DB"), así que un schema
+      # vacío los renderiza sin una sola fila y los specs fallan buscando elementos que el
+      # componente nunca tuvo qué pintar — no por una regresión. `seeds.rb` crea todo con
+      # find_or_create_by! / find_or_initialize_by y no borra nada, así que es idempotente.
       - name: Setup database
-        run: cd spec/dummy && bin/rails db:schema:load
+        run: cd spec/dummy && bin/rails db:schema:load db:seed
 
       - name: Install dependencies
         run: |

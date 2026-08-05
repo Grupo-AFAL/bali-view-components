@@ -403,15 +403,25 @@
 
 /* When comments are enabled, the ThreadsSidebar lives inside BlockNoteView
  * (required for React context). We apply flex layout to .bn-container so
- * the editor and sidebar sit side-by-side. */
-.bn-with-comments .bn-container {
+ * the editor and sidebar sit side-by-side.
+ *
+ * The child combinator is load-bearing. Every comment body is its own nested
+ * BlockNote instance, and it emits a SECOND `.bn-container`
+ * (`.bn-container.bn-comment-editor`) inside `.bn-thread`. As a descendant
+ * selector this pair turned each of those into a flex row and handed its
+ * `.bn-editor` `flex: 1; min-width: 0` — a `flex-basis: 0%` item in a
+ * shrink-to-fit container, which resolves to width 0. Measured on
+ * /lookbook/preview/bali/block_editor/with_comments: comment editor 163px wide,
+ * its `.bn-editor` 0px, so every comment and the "Add comment" placeholder
+ * wrapped one character per line, in the popover and in the sidebar alike. */
+.bn-with-comments > .bn-container {
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
 }
 
 /* Editor takes remaining space */
-.bn-with-comments .bn-container > .bn-editor {
+.bn-with-comments > .bn-container > .bn-editor {
   flex: 1;
   min-width: 0;
 }
@@ -432,13 +442,22 @@
  * the editor inside BlockNoteView (non-portaled mode).
  * ------------------------------------------------------- */
 
-/* Thread card - inline */
+/* Thread card - inline
+ *
+ * `min-width: 0` cancels BlockNote's own `.bn-mantine .bn-thread { min-width: 350px }`.
+ * The sidebar above is 18rem = 288px, so the card sat 62px wider than its own panel
+ * (measured: sidebar clientWidth 288, scrollWidth 350) and the sidebar grew a horizontal
+ * scrollbar -- it declares `overflow-y: auto`, which makes overflow-x compute to `auto`.
+ * Both rules are unlayered and both are (0,2,0); this one wins on source order alone,
+ * because index.css is imported after BlockNote's CSS in BlockNoteEditorWrapper.jsx.
+ * `.document-editor-panel .bn-thread` below already carries the same declaration. */
 .block-editor-component .bn-thread {
   background-color: var(--color-base-100);
   border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
   border-radius: var(--radius-box, 0.5rem);
   padding: 0.75rem;
   margin-bottom: 0.5rem;
+  min-width: 0;
   transition: border-color 0.15s;
 }
 
@@ -485,33 +504,39 @@
   background-color: color-mix(in oklch, var(--color-warning) 35%, transparent);
 }
 
-/* Floating composer and thread popovers */
-.block-editor-component .bn-floating-composer,
-.block-editor-component .bn-floating-thread {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 16px color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+/* Floating composer and thread popovers.
+ *
+ * The two selectors this rule used to carry, `.bn-floating-composer` and
+ * `.bn-floating-thread`, match nothing — measured 0 elements on
+ * /lookbook/preview/bali/block_editor/with_comments while a composer was open —
+ * so its `max-width: 20rem` never applied. BlockNote floats the card with
+ * Floating UI, and the portal that renders it is the hook that does exist.
+ *
+ * `width` and not `max-width`, because the positioned box Floating UI emits
+ * carries no width of its own: the card was shrink-to-fit and breathed with the
+ * text, measured 165px for a three-letter draft and 966px for one long line.
+ * 20rem is the threads sidebar's 18rem plus the gutters the popover has and the
+ * sidebar does not.
+ *
+ * The card look is repeated here rather than inherited because
+ * `.document-editor-panel .bn-thread` further down deliberately strips it — a
+ * thread in that side panel is a row in a list, not a card — and a popover
+ * floating over the page needs its own edges either way. */
+:is(.block-editor-component, .document-editor-panel) [data-floating-ui-portal] .bn-thread {
+  width: 20rem;
+  max-width: calc(100vw - 2rem);
+  background-color: var(--color-base-100);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent);
   border-radius: var(--radius-box, 0.5rem);
-  max-width: 20rem;
+  box-shadow: 0 4px 16px color-mix(in oklch, var(--color-base-content) 15%, transparent);
 }
 
 /* --- Tooltip styling (Mantine Tooltip used by reaction badges, action buttons) ---
-   Shared between inline and portaled sidebars. */
-:is(.block-editor-component, .document-editor-panel) .bn-tooltip {
-  background-color: var(--color-base-200) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-  border-radius: 0.375rem !important;
-  box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
-  color: var(--color-base-content) !important;
-  padding: 4px 8px !important;
-  font-size: 0.75rem !important;
-  line-height: 1.4 !important;
-  text-align: center !important;
-  z-index: 9999 !important;
-}
-
+   The card is skinned once, on `.bn-tooltip`, in the global block at the bottom of this
+   file. The Mantine box around it carries the stacking order and nothing else — the note
+   down there says why it must not get a background, border, shadow or padding. */
 :is(.block-editor-component, .document-editor-panel) .mantine-Tooltip-tooltip {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-tooltip) !important;
 }
 
 /* Hide redundant Save-button tooltip (withinPortal=false renders it inline) */
@@ -881,19 +906,19 @@
 /* --- Popovers and menus (z-index fixes) --- */
 .document-editor-panel .bn-emoji-picker-popover,
 .block-editor-component .bn-emoji-picker-popover {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-popover) !important;
   position: fixed !important;
 }
 
 .document-editor-panel .mantine-Popover-dropdown {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-popover) !important;
 }
 
 .document-editor-panel .mantine-Menu-dropdown {
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
   box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-  z-index: 9999 !important;
+  z-index: var(--bali-z-popover) !important;
 }
 
 /* --- Mantine Skeleton (loading state) --- */
@@ -902,9 +927,10 @@
   border-radius: 0.25rem;
 }
 
-/* Collapse comments sidebar on narrow viewports */
+/* Collapse comments sidebar on narrow viewports.
+ * `>` for the same reason as the rule this overrides — see the note there. */
 @media (max-width: 768px) {
-  .bn-with-comments .bn-container {
+  .bn-with-comments > .bn-container {
     flex-direction: column;
   }
 
@@ -916,9 +942,25 @@
 }
 
 /* ==========================================================================
- * Global Tooltip — Mantine portals tooltips to <body>, outside scoped
- * containers (.block-editor-component, .document-editor-panel). These
- * global rules restore styling for BlockNote's .bn-tooltip wrapper.
+ * Tooltip — one card, and it belongs to `.bn-tooltip`.
+ *
+ * BlockNote renders every tooltip as `<Tooltip label={<Stack className="bn-tooltip">}>`,
+ * draws the card on that label, and deliberately zeroes the Mantine box around it:
+ *
+ *   .bn-mantine .mantine-Tooltip-tooltip {
+ *     background-color: transparent; border: none; border-radius: 0;
+ *     box-shadow: none; padding: 0;
+ *   }
+ *
+ * All we do is re-skin that card with daisyUI tokens. Never give
+ * `.mantine-Tooltip-tooltip` a background, border, radius, shadow or padding: it
+ * overrides that reset, so the card is drawn twice — two borders and two shadows around
+ * every tooltip — and any rule that hides the inner label (the Save button below) leaves
+ * the outer box behind as an empty pill.
+ *
+ * Left unscoped on purpose: today both call sites pass `withinPortal: false` and the
+ * tooltip renders inside the editor, but a portaled one would escape
+ * .block-editor-component / .document-editor-panel and come out unstyled.
  * ========================================================================== */
 .bn-tooltip {
   background-color: var(--color-base-200, #f2f2f2) !important;
@@ -938,25 +980,9 @@
   white-space: pre-wrap !important;
 }
 
-/* Mantine Tooltip — portaled to <body>, outside any scoped container.
- * Provides full visual styling for tooltips used by emoji reactions,
- * action buttons, and other BlockNote comment UI. */
+/* The Mantine box only carries the stacking order — see the note above. */
 .mantine-Tooltip-tooltip {
-  z-index: 9999 !important;
-  background-color: var(--color-base-200, #f2f2f2) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-  border-radius: 0.375rem !important;
-  box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
-  color: var(--color-base-content) !important;
-  padding: 4px 8px !important;
-  font-size: 0.75rem !important;
-  line-height: 1.4 !important;
-  max-width: 200px !important;
-}
-
-.mantine-Tooltip-tooltip p {
-  margin: 0 !important;
-  white-space: pre-wrap !important;
+  z-index: var(--bali-z-tooltip) !important;
 }
 
 /* ==========================================================================
@@ -1027,4 +1053,13 @@
 
 .version-btn-restore:hover svg {
   opacity: 1;
+}
+
+/* Upload-failure toast, built by useFileUpload.js and appended INSIDE the
+   `.block-editor-component` whose upload failed -- not to <body>, so two editors
+   on one page each get their own instead of stacking on the same corner. Same
+   reason as `.filters-multi-select-content`: Tailwind does not scan this
+   package's JavaScript, so the tier cannot ride on a utility class. */
+.block-editor-upload-toast {
+  z-index: var(--bali-z-toast);
 }

@@ -1,0 +1,534 @@
+en:
+  bali_view:
+    filters:
+      close_panel: "Close filters"
+      # UI Labels
+      title: "Filters"
+      where: "Where"
+      filters_button: "Filters"
+      search_placeholder: "Search..."
+      search: "Search..."
+      select_field: "Select field..."
+      select_value: "Select..."
+      select_values: "Select values..."
+      enter_value: "Enter value..."
+      remove_condition: "Remove condition"
+      remove_filter: "Remove filter"
+      incomplete_condition: "No value chosen, so this condition is ignored"
+      add_condition: "Add condition"
+      add_group: "Add filter group"
+      clear_all: "Clear all"
+      apply: "Apply"
+      apply_filters: "Apply Filters"
+      reset: "Reset"
+      clear_search: "Clear search"
+      submit_search: "Search"
+      active_filters: "Active filters:"
+      auto_saved: "Auto-saved"
+      filters_saved: "Filters are saved automatically"
+      persistence_enabled: "Filters are being saved. Click to disable."
+      persistence_disabled: "Filters are not saved. Click to enable."
+      persistence_label: "Remember filters"
+
+      # Date/time placeholders
+      select_date: "Select date..."
+      select_datetime: "Select date & time..."
+      select_date_range: "Select date range..."
+      select_datetime_range: "Select date & time range..."
+
+      # Boolean values
+      any: "Any"
+      "yes": "Yes"
+      "no": "No"
+
+      # Group combinators
+      combinators:
+        and: "AND"
+        or: "OR"
+
+      # Selected count for multi-select
+      selected_count: "%{count} selected"
+
+      # Placeholders (nested structure for JavaScript controller)
+      placeholders:
+        enter_value: "Enter value..."
+        number: "0"
+        select_date: "Select date..."
+        select_datetime: "Select date & time..."
+        select_date_range: "Select date range..."
+        select_datetime_range: "Select date & time range..."
+        select: "Select..."
+        select_values: "Select values..."
+
+      # Boolean (nested structure for JavaScript controller)
+      boolean:
+        any: "Any"
+        "yes": "Yes"
+        "no": "No"
+
+      # Operators
+      operators:
+        # Text operators
+        contains: "contains"
+        equals: "is exactly"
+        starts_with: "starts with"
+        ends_with: "ends with"
+        not_contains: "does not contain"
+        not_equals: "is not"
+        # Date/time operators
+        "on": "is"
+        is: "is"
+        is_not: "is not"
+        between: "between"
+        after: "after"
+        before: "before"
+        on_or_after: "on or after"
+        on_or_before: "on or before"
+        # Select operators
+        is_any_of: "is any of"
+        is_not_any_of: "is not any of"
+        # Number operators
+        greater_than: "greater than"
+        less_than: "less than"
+        greater_than_or_equal: "greater than or equal"
+        less_than_or_equal: "less than or equal"
+
+    # Simple filters
+    simple_filters:
+      apply: "Filter"
+      clear: "Clear"
+
+    # File input
+    file_input:
+      remove: "Remove %{name}"
+
+    # Side menu
+    side_menu:
+      label: "Sidebar"
+      collapse: "Collapse sidebar"
+      expand: "Expand sidebar"
+      toggle_item: "Toggle %{name}"
+      close: "Close sidebar"
+      trigger:
+        toggle: "Open sidebar"
+
+    # App layout
+    app_layout:
+      skip_to_content: "Skip to main content"
+
+    # Command palette (⌘K)
+    command:
+      esc_key: "esc"
+      placeholder: "Search…"
+      trigger_label: "Search…"
+      no_results: "No results"
+      navigate: "navigate"
+      open_action: "open"
+      close: "close"
+
+    # Modal
+    modal:
+      close: "Close modal"
+      confirm_close: "You have unsaved changes. Discard them?"
+
+    # Image grid
+    image_grid:
+      expand: "Expand image"
+      empty_state:
+        title: "No images yet"
+        add_image: "Add image"
+
+    # Breadcrumb
+    breadcrumb:
+      aria_label: "Breadcrumb"
+
+    # Direct upload
+    direct_upload:
+      drop_zone:
+        title: "Drag files here"
+        or: "or"
+        browse: "Browse Files"
+        aria_label: "Drop files here or click to browse"
+      file_list:
+        aria_label: "Files to upload"
+      file_status:
+        pending: "Waiting..."
+        uploading: "Uploading..."
+        completed: "Uploaded"
+        error: "Failed"
+      status:
+        uploaded: "Already uploaded"
+      errors:
+        too_many_files: "Maximum %{max} files allowed"
+        file_too_large: "File exceeds %{max}MB limit"
+        invalid_type: "File type not accepted"
+      actions:
+        cancel: "Cancel"
+        retry: "Retry"
+        remove: "Remove"
+        dismiss: "Dismiss error"
+        remove_file: "Remove %{filename}"
+
+    # FilterForm — quick text search across multiple columns
+    filter_form:
+      search_placeholder_with_fields: "Search by %{fields}..."
+
+    # Form builder
+    form_builder:
+      date_fields:
+        # Placeholder shown when `allow_input: true` and no explicit `alt_format:`
+        # is given. Mirrors flatpickr's non-localized "F j, Y" token order (month
+        # name, then day, then year) rather than a conventional Spanish date order,
+        # since that's the literal text the field will parse.
+        allow_input_placeholder: "e.g., December 31, 2026"
+        clear: "Clear date"
+        previous: "Previous date"
+        next: "Next date"
+        # Written between the two dates of a range AND used to split them back
+        # apart, so a locale that translates it must keep it round-trippable.
+        range_separator: " to "
+      # Moved out of the host's `helpers.*` namespace, which this gem had no
+      # business writing into (Rails owns it for form label/submit lookups).
+      coordinates_polygon:
+        clear: "Clear"
+        clear_holes: "Clear holes"
+        confirm: "Are you sure?"
+      dynamic_fields:
+        add: "Add"
+      submit:
+        cancel: "Cancel"
+      file:
+        choose_file: "Choose file"
+        no_file_selected: "No file selected"
+      search:
+        placeholder: "Search..."
+        submit: "Search"
+      slim_select:
+        placeholder: "Select value"
+        search_placeholder: "Search"
+        select_all: "Select all"
+        deselect_all: "Deselect all"
+        no_results: "No results"
+        searching: "Searching..."
+        results: "Results"
+
+    # Saved views (B2) — Bali::SavedViewsController notices
+    saved_views:
+      saved: "View saved."
+      renamed: "View renamed."
+      updated: "View updated."
+      deleted: "View deleted."
+
+    # Status
+    status:
+      no_status: "No status"
+
+    # Time periods
+    time_periods:
+      yearly: "Yearly"
+      yesterday: "Yesterday"
+      last_7_days: "Last 7 days"
+      last_30_days: "Last 30 days"
+      last_12_weeks: "Last 12 weeks"
+      last_12_months: "Last 12 months"
+
+    bulk_actions:
+      selected_one: selected
+      selected_other: selected
+      clear: Clear selection
+    tree_view:
+      toggle_branch: "Toggle %{name}"
+    timeago:
+      # Rendered server-side; the Stimulus controller replaces it with date-fns
+      # output once it connects. `blank` is what a nil datetime shows.
+      blank: "—"
+      ago: "%{time} ago"
+    table:
+      no_records: No Records
+      no_results: No Results
+      group_count: "%{group} (%{count})"
+      group_partial: "showing %{shown}"
+      ungrouped: Ungrouped
+      select_all: Select all
+      row:
+        select_row: Select row
+        select_row_named: Select %{name}
+    data_table:
+      simple_filters:
+        placeholder_min: "Min"
+        placeholder_max: "Max"
+      display_modes:
+        table: Table
+        cards: Cards
+        grid: Grid
+        timeline: Timeline
+      group_by_control:
+        label: Group by
+        no_grouping: No grouping
+        disabled_title: "Grouping applies in %{modes} view"
+      view_switch_control:
+        aria_label: Views
+      toolbar_overflow:
+        button_label: More options
+      column_selector:
+        button_label: Columns
+        menu_title: Show/Hide Columns
+      saved_views:
+        button_label: Views
+        suggested_title: Suggested
+        mine_title: My views
+        save_current: Save current view
+        save_as_new: Save as new view
+        update_current: "Update \"%{name}\""
+        update_confirm: "Overwrite the \"%{name}\" view with what you are seeing now?"
+        name_placeholder: View name
+        save: Save
+        rename: Rename
+        delete: Delete
+        delete_confirm: "Delete the \"%{name}\" view?"
+      export:
+        button_label: Export
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
+    page_header:
+      back: Go back
+    page_components:
+      secondary_actions:
+        button_label: More actions
+      export:
+        menu_title: Export filtered
+    pagination:
+      aria_label: Pagination
+      previous_page: Previous page
+      next_page: Next page
+      page: "Page %{page}"
+      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+      default_item_name:
+        one: item
+        other: items
+    chart:
+      loading: Loading...
+      default_label: Chart
+    clipboard:
+      copied: Copied!
+      copy_label: Copy to clipboard
+    drawer:
+      close_drawer: Close drawer
+      confirm_close: You have unsaved changes. Discard them?
+    dropdown:
+      actions_trigger_label: Actions
+      menu_label: Dropdown menu
+    delete_link:
+      generic_confirm_message: Are you sure?
+      default_name: Delete
+      specific_confirm_message: Are you sure you want to delete %{pronoun} %{name}?
+      confirm_title: Confirm deletion
+      confirm_accept: Delete
+      confirm_cancel: Cancel
+    image_field:
+      clear_image: Clear image
+    loader:
+      loading: Loading...
+    turbo_native_app:
+      sign_out:
+        name: Sign out
+        confirm: Are you sure?
+    carousel:
+      arrows:
+        previous_slide: Previous slide
+        next_slide: Next slide
+      bullets:
+        navigation: Slide navigation
+        go_to_slide: "Go to slide %{number}"
+    calendar:
+      header:
+        week: Week
+        month: Month
+        previous: Previous
+        next: Next
+    navbar:
+      main_navigation: Main navigation
+      toggle_menu: Toggle menu
+      burger:
+        toggle_menu: Toggle menu
+    notification:
+      close: Close notification
+    step_number_field:
+      increase: Increase value
+      decrease: Decrease value
+    rate:
+      label: Rating
+      star_rating: "%{number} stars"
+    recurrent_event_rule_form:
+      yearly: Yearly
+      monthly: Monthly
+      weekly: Weekly
+      daily: Daily
+      hourly: Hourly
+      never: Never
+      after: After
+      on_date: On date
+      first: First
+      second: Second
+      third: Third
+      fourth: Fourth
+      last: Last
+      day: Day
+      weekday: Weekday
+      weekend_day: Weekend day
+      repeat: Repeat
+      every: every
+      month_s: month(s)
+      week_s: week(s)
+      day_s: day(s)
+      hour_s: hour(s)
+      on_option: "On"
+      on_the: On the
+      on_day: On day
+      end: End
+      ocurrence_s: occurrence(s)
+      yearly_options: Yearly Options
+      monthly_options: Monthly Options
+      repeat_on_days: Repeat on Days
+      # Accessible names for the controls of the recurrence builder. None of
+      # them is reachable by a <label for>: the visible text around them is
+      # loose copy ("Repeat", "every", "On the"), so without these each select
+      # and number input was announced with no name at all.
+      frequency_label: Frequency
+      interval_label: Repeat interval
+      month_label: Month
+      monthday_label: Day of month
+      setpos_label: Week of month
+      weekday_label: Weekday
+      end_label: End condition
+      count_label: Number of occurrences
+      until_label: End date
+      of: of
+
+    feedback_widget:
+      title: "Feedback"
+      open: "Open feedback"
+
+    document_editor:
+      # App bar
+      toggle_toc: "Toggle table of contents"
+      title_placeholder: "Untitled document"
+      save_changes: "Save changes"
+      save: "Save"
+      toggle_comments: "Toggle comments"
+      toggle_history: "Toggle version history"
+      export_pdf: "Export PDF"
+      export_docx: "Export DOCX"
+      close: "Close editor"
+
+      # Panels
+      contents: "Contents"
+      comments: "Comments"
+      version_history: "Version History"
+
+      # Version preview banner
+      previewing: "Previewing"
+      read_only: "— read only"
+      back_to_current: "Back to current"
+
+      # Version item actions
+      preview: "Preview"
+      restore: "Restore"
+
+      # Save status. The controller writes these into the DOM after a fetch
+      # resolves, so they travel as Stimulus values rather than as rendered text.
+      status_unsaved: "Unsaved changes"
+      status_saving: "Saving..."
+      status_saved: "Saved at %{time}"
+      status_failed: "Save failed"
+
+      # Version preview banner label, interpolated in JavaScript.
+      version_label: "Version %{number}"
+
+      # Version list states. Rendered hidden and revealed by the controller (the
+      # BulkActions pattern) because they carry no runtime data.
+      versions_error: "Failed to load versions."
+      versions_empty: "No versions yet."
+
+      # Restore confirmation, shown through Bali's confirm dialog.
+      restore_confirm: "Restore this version? Current content will be saved as a new version first."
+      confirm_title: "Restore version"
+      confirm_accept: "Restore"
+      confirm_cancel: "Cancel"
+    block_editor:
+      disabled_title: "Bali::BlockEditor is disabled"
+      disabled_help_html: "Set %{setting} in %{initializer} and install the npm packages listed in %{docs}. This notice only appears in development."
+      export_pdf: "Export PDF"
+      export_docx: "Export DOCX"
+
+      # Everything the React bundle writes into the DOM. Served as one JSON
+      # object (data-block-editor-translations-value) because the strings are
+      # spread across hooks that all hang off this one controller.
+      load_failed: "Failed to load editor. Ensure @blocknote/react, @blocknote/mantine, react, and react-dom are installed."
+      table_of_contents: "Table of contents"
+      upload_not_configured: "File uploads are not configured"
+      upload_too_large: "File is too large (%{size} MB). Maximum allowed is %{max} MB."
+      upload_failed: "Upload failed (%{status})"
+      # Shown in a comment thread when a user id resolves to no name.
+      user_fallback: "User %{id}"
+      # The only translatable entry of the code-block language list; the rest are
+      # proper names.
+      plain_text: "Plain Text"
+    document_page:
+      toggle_toc: "Toggle table of contents"
+      toggle_details: "Toggle details"
+      contents: "Contents"
+    rich_text_editor:
+      # Default editor placeholder, handed to the Stimulus controller as a value
+      placeholder: "Start typing..."
+
+      bubble_menu:
+        # Node type dropdown; `text` doubles as the trigger's default label
+        nodes:
+          text: "Text"
+          h1: "Heading 1"
+          h2: "Heading 2"
+          h3: "Heading 3"
+          bullet_list: "Bulleted list"
+          ordered_list: "Ordered list"
+          quote: "Quote"
+          code: "Code"
+
+        # Link panel
+        link:
+          url_placeholder: "Enter the URL"
+          tabs:
+            url: "URL"
+            pages: "Pages"
+
+        # Table panel
+        table:
+          insert: "Insert Table"
+          insert_left: "Insert Left"
+          insert_right: "Insert Right"
+          insert_above: "Insert Above"
+          insert_below: "Insert Below"
+          remove_column: "Remove Column"
+          remove_row: "Remove Row"
+    avatar:
+      upload:
+        upload_image: "Upload avatar image"
+    alert:
+      close: "Close alert"
+    message:
+      close: "Close message"
+    boolean_icon:
+      "true": "Yes"
+      "false": "No"
+      blank: "Not specified"
+    kanban:
+      column_label:
+        zero: "%{title}, 0 cards"
+        one: "%{title}, 1 card"
+        other: "%{title}, %{count} cards"
+      card_moved: "%{card} moved to %{column}, position %{position} of %{total}"
+    tabs:
+      navigation: "Section navigation"

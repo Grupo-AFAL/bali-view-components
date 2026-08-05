@@ -5,6 +5,7 @@ require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
 require_relative "filter_form/saved_views_configuration"
+require_relative "filter_form/enum_casting"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -49,8 +50,14 @@ module Bali
     include SimpleFiltersConfiguration
     include GroupByConfiguration
     include SavedViewsConfiguration
+    include EnumCasting
 
-    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
+    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
+
+    # Param que lleva el modo de visualización. Es EL MISMO que el `view_param:` del
+    # DataTable: UNA sola literal para que no se puedan desincronizar (el DataTable revienta
+    # temprano si difieren, ver Bali::DataTable::Component#initialize).
+    DEFAULT_VIEW_PARAM = :view
 
     # Ransack attribute for receiving the sort parameters
     attribute :s
@@ -79,17 +86,25 @@ module Bali
       # @param type [Symbol] Data type: :text, :number, :date, :datetime,
       #   :select, :boolean. Drives the advanced UI operators and the default
       #   simple widget.
-      # @param label [String, Proc] Human-readable label (defaults to humanized key).
+      # @param label [String, Proc, false] Human-readable label (defaults to humanized key).
       #   Zero-arity procs are resolved per-instance with instance_exec (useful
       #   for I18n lookups that must not be frozen at class-load time).
+      #   `false` means "no caption" in the SimpleFilters row, for a control that
+      #   already names itself through its blank option ("All roles"). It is not
+      #   the same as omitting it: omitted derives one from the Ransack attribute
+      #   name, which for a path through an association is the predicate humanized
+      #   in English. The advanced popover keeps a label either way — a row there
+      #   needs a name.
       # @param options [Array, Proc] For select types, array of [label, value]
       #   pairs or a zero-arity proc resolved per-instance with instance_exec —
       #   inside it you can use `scope` (the relation the controller passed in,
       #   typically already narrowed to the policy scope).
-      # @param collection [Array, Proc] Alias of options (legacy simple_filter name)
+      # @param collection [Array, Proc] Alias of options, matching the key name
+      #   the instance-level `simple_filters:` hashes use
       # @param simple [Boolean] Also render this attribute in the SimpleFilters UI
       # @param advanced [Boolean] Offer this attribute in the Filters popover
-      #   (default true; the legacy simple_filter DSL declares with false)
+      #   (default true; pass false for an attribute that only belongs in the
+      #   inline SimpleFilters row)
       # @param input [Symbol] SimpleFilters widget when it differs from the one
       #   derived from type (e.g. type: :select, input: :slim_select)
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
@@ -181,10 +196,21 @@ module Bali
     #   `storage_id:` (see SavedViewsConfiguration)
     # @param saved_views_owner [Object] Owner of the `:default` store (e.g. current_user);
     #   ignored when an explicit store object is given
+    # @param group_by_modes [Array<Symbol>] Modos de visualización que APLICAN la agrupación
+    #   (default `[:table]`). Fuera de ellos la agrupación se suspende: el control se esconde
+    #   y el ordenamiento no corre, pero el param sobrevive (ver GroupByConfiguration)
+    # @param view_param [Symbol] Param de la URL que lleva el modo de visualización
+    #   (default `:view`). Tiene que ser el MISMO que el del DataTable
+    # @param display_mode [Symbol, String] Modo que el listado va a RENDERIZAR, cuando el
+    #   param de la URL no alcanza para saberlo: un listado cuya vista por default no es la
+    #   tabla (el view switch declara las tarjetas primero) aterriza sin `?view=` y el form,
+    #   mirando solo la URL, creería que está en la tabla y aplicaría la agrupación sobre las
+    #   tarjetas. Pasá lo MISMO que le pasás al DataTable (p.ej. `params[:view] || :grid`)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
                    search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
-                   group_by_attributes: nil, saved_views_store: nil, saved_views_owner: nil)
+                   group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
+                   saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
@@ -193,13 +219,34 @@ module Bali
       @instance_search_icon = search_icon
       @instance_simple_filters = simple_filters
       @instance_group_by_attributes = group_by_attributes
+      @instance_group_by_modes = group_by_modes
+      @view_param = (view_param || DEFAULT_VIEW_PARAM).to_sym
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
       @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
       @saved_view_param = params[:saved_view].presence
+      # ORIGEN vs APLICACIÓN, la misma separación que group_by. `saved_view` APLICA (pisa el
+      # estado con el payload) y por eso #669 lo sacó de los forms de filtro: preservarlo
+      # re-aplicaba la vista encima de lo que el usuario acababa de teclear. Pero al perderlo
+      # también se pierde SABER de qué vista venía el estado, y sin eso no se puede ofrecer
+      # "Actualizar 'X'". `view_origin` es ese dato y NUNCA se aplica: solo recuerda.
+      @saved_view_origin_param = params[:view_origin].presence || @saved_view_param
       @group_by = resolve_group_by(params[:group_by])
+      # Que el param VENGA es distinto de que traiga un valor válido: "sin agrupación" llega
+      # como `?group_by=` y tiene que ganarle a la agrupación guardada en la caché de filtros
+      # (ver #fetch_stored_filter_state). Sin esta distinción, apagar la agrupación con la
+      # persistencia encendida la resucitaba en el próximo render.
+      @group_by_requested = params.key?(:group_by)
+      # La agrupación se SUSPENDE fuera de los modos que la aplican (default: tabla), pero el
+      # param sigue vivo: volver a la tabla la encuentra como se dejó. El modo que pasa el
+      # host gana sobre la URL: es el único que sabe qué vista renderiza un listado que
+      # todavía no tiene `?view=` (ver el @param display_mode). `.to_s` primero porque esto
+      # llega crudo de la URL y un param anidado (`?view[]=x`) no responde a `to_sym`; un
+      # valor desconocido simplemente no está en group_by_modes y suspende, que es el lado
+      # seguro (agrupar de más es lo que no se ve venir).
+      @display_mode = (display_mode || params[@view_param]).to_s.presence&.to_sym
 
       q_params = params.fetch(:q, {})
       @q_params = q_params # Store for simple_filters value extraction
@@ -220,6 +267,15 @@ module Bali
       # current_simple_filter_value. These are NOT added to `attributes` —
       # simple filter values bypass ActiveModel and go straight to Ransack.
       @q_params = q_params.permit(perm_attrs) if self.simple_filters_enabled?
+
+      # ORIGEN vs VALOR, la misma distinción que `@group_by_requested` hace para la
+      # agrupación, y por el mismo motivo: el form de SimpleFilters manda TODOS sus
+      # controles, así que vaciar un select llega como `q[genre_eq]=` — una elección
+      # explícita cuyo valor es vacío. Mirando solo los valores no se distingue de "no vino
+      # nada", y con la persistencia encendida eso cae al branch de restaurar, que le
+      # devolvía al usuario el filtro que acababa de limpiar. Se captura ANTES de aplicar
+      # una vista guardada, que reemplaza `@q_params` con el estado de la vista.
+      @simple_filters_requested = simple_filter_params?(@q_params)
 
       # Vista guardada aplicada por URL (?saved_view=<id>): su payload REEMPLAZA el estado
       # que hubiera venido en q — una vista es un estado completo, no un merge. Va ANTES de
@@ -295,23 +351,46 @@ module Bali
       @cache_key ||= "#{self.class.name.tableize};#{context};#{storage_id}"
     end
 
+    # How many values are narrowing this listing right now. The quick search counts
+    # as one: it cuts the result exactly like any other filter, and a toolbar that
+    # reads "0 filters" over 3 of 200 rows is telling the user something false.
     def active_filters_count
-      (active_filters.keys & attribute_names).size
+      active_filters.size
     end
 
     def active_filters?
       active_filters.any?
     end
 
+    # Every value narrowing the listing right now, keyed the way the query carries
+    # it. Three sources, because a listing can be narrowed from three places and
+    # only the first used to be represented here:
+    #
+    #   - attributes declared with the `filter_attribute` DSL, via `query_params`;
+    #   - the simple filters, which never become ActiveModel attributes — a plain
+    #     `FilterForm.new(scope, params, simple_filters: [...])` declares none, so
+    #     `attribute_names` is just `["s"]` and this answered `{}` no matter what
+    #     the user had chosen;
+    #   - the quick search box, whose value never lived in `query_params` either.
+    #
+    # That mattered beyond the count: `Table` picks its empty state from
+    # `active_filters?`, so a search or a simple filter that cut the result to zero
+    # got "No records yet" plus an invitation to create one, instead of "No results"
+    # — the listing blamed the data for what the filters had done.
+    #
+    # `"s"` is Ransack's *sort* param, not a filter, and stays out.
     def active_filters
-      @active_filters || query_params.except("s").compact_blank
+      @active_filters || begin
+        filters = query_params.except("s").compact_blank.merge(active_simple_filters)
+        filters[search_field_name] = search_value if search_enabled? && search_value.present?
+        filters
+      end
     end
 
     # Get the available filter attributes defined via filter_attribute DSL.
     # Used by Filters component for rendering the filter UI.
     #
-    # Entries declared with `advanced: false` (including everything declared
-    # through the legacy simple_filter DSL) are excluded. `label:`/`options:`
+    # Entries declared with `advanced: false` are excluded. `label:`/`options:`
     # given as zero-arity procs are resolved here with instance_exec, so they
     # can use instance context — most importantly `scope`, the (typically
     # policy-scoped) relation the controller passed in.
@@ -384,7 +463,10 @@ module Bali
       # Group-first ordering (sort-within-groups) when grouping is active
       apply_group_by_ordering(params)
 
-      params
+      # Último paso y sobre una copia: el estado que se RENDERIZA (filter_groups, las pills,
+      # el payload de una vista guardada, la caché de persistencia) sigue hablando en
+      # etiquetas, que es lo que trae el `<option value>`. Ver EnumCasting.
+      cast_enum_labels(params)
     end
 
     private
@@ -409,10 +491,28 @@ module Bali
     # for its grouping structure. Ransack performs its own attribute authorization
     # via `ransackable_attributes` / `ransackable_associations` on the model,
     # so arbitrary keys are rejected at the Ransack layer, not here.
+    #
+    # Cada grupo tiene que ser un hash y `g` puede llegar de cualquier forma: `q[g][]` (la
+    # forma de ARRAY, que Ransack acepta y Bali no emite) reventaba con un NoMethodError sobre
+    # `to_unsafe_h`, y un grupo escalar (`q[g][0]=x`) llegaba entero hasta Ransack para reventar
+    # ahí — un 500 en cualquier index desde una URL a mano. Se normaliza a la forma indexada
+    # que habla el resto de Bali (filter_groups, el payload de una vista guardada, EnumCasting),
+    # así que la forma de array también PASA por la traducción de enums en vez de esquivarla en
+    # silencio y devolver los registros contrarios.
     def extract_groupings(q_params)
-      return nil if q_params[:g].blank?
+      groupings = q_params[:g]
+      return nil if groupings.blank?
 
-      q_params[:g].to_unsafe_h
+      groups = unwrap_params(groupings)
+      groups = groups.each_with_index.to_h { |group, index| [ index.to_s, group ] } if groups.is_a?(Array)
+      return nil unless groups.is_a?(Hash)
+
+      groups.transform_values { |group| unwrap_params(group) }
+            .select { |_index, group| group.is_a?(Hash) }.presence
+    end
+
+    def unwrap_params(value)
+      value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
     end
 
     # Persist or restore complete filter state including groupings, combinator, and search.
@@ -429,7 +529,8 @@ module Bali
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
-      has_filter_params = force_write || attributes.present? || groupings.present? || search_value.present?
+      has_filter_params = force_write || attributes.present? || groupings.present? ||
+                          search_value.present? || @simple_filters_requested
 
       if has_filter_params
         # User submitted new filters → always save complete state. `group_by` viaja con el
@@ -440,7 +541,12 @@ module Bali
                             groupings: groupings,
                             combinator: combinator,
                             search_value: search_value,
-                            group_by: @group_by
+                            group_by: @group_by,
+                            # Misma llave y misma forma que `PAYLOAD_KEYS` de las vistas
+                            # guardadas: el round-trip es el que ya existe (`active_simple_filters`
+                            # escribe, `apply_simple_filter_state` restaura,
+                            # `current_simple_filter_value` lee), no una segunda ruta.
+                            simple_filters: active_simple_filters
                           })
         [ attributes, groupings, combinator, search_value ]
       elsif @clear_filters
@@ -454,32 +560,67 @@ module Bali
         # por la que reaparecen filtros que la URL ya no describe.
         stored = @persist_enabled ? Rails.cache.fetch(cache_key) : nil
         if stored.is_a?(Hash)
+          # Los simplificados sobreviven al merge —solo `search_value` se anula— y salen por
+          # el efecto: limpiar la búsqueda no puede llevarse los selects. `clearSearch` navega
+          # descartando todos los `q[...]` (ver preservedParamsUrl), así que la caché es la
+          # ÚNICA fuente de lo que el usuario tenía elegido.
           Rails.cache.write(cache_key, stored.merge(search_value: nil))
+          restore_simple_filter_state(stored)
           [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
         else
           [ {}, nil, nil, nil ]
         end
       elsif @persist_enabled
         # No filters in URL and persistence enabled → restore from cache
-        stored = Rails.cache.fetch(cache_key)
-        if stored.is_a?(Hash) && stored[:attributes]
-          @group_by = resolve_group_by(stored[:group_by]) if stored.key?(:group_by)
-          [
-            stored[:attributes] || {},
-            stored[:groupings],
-            stored[:combinator],
-            stored[:search_value]
-          ]
-        else
-          # Legacy format (just attributes) or empty
-          [ stored || {}, nil, nil, nil ]
+        stored = normalize_stored_state(Rails.cache.fetch(cache_key))
+        if @group_by_requested
+          # La URL manda, igual que con una vista guardada (ver #apply_saved_view_state).
+          # Elegir una agrupación llega SOLO como `?group_by=` —los filtros viven en la caché,
+          # así que la URL no los lleva y este branch es el que corre—, y restaurar acá pisaba
+          # el click recién hecho con la agrupación vieja: el control no hacía nada, y el
+          # viaje tarjetas↔tabla perdía la agrupación en el camino. Se GUARDA además de
+          # renderizarse: sin escribirla, el mismo render salía bien y el próximo request sin
+          # el param resucitaba la agrupación vieja — el mismo síntoma, corrido un request.
+          Rails.cache.write(cache_key, stored.merge(group_by: @group_by))
+        elsif stored.key?(:group_by)
+          @group_by = resolve_group_by(stored[:group_by])
         end
+        restore_simple_filter_state(stored)
+        [
+          stored[:attributes] || {},
+          stored[:groupings],
+          stored[:combinator],
+          stored[:search_value]
+        ]
       else
         # Persistence not enabled → don't restore, return empty
         [ {}, nil, nil, nil ]
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+    # Los simplificados se restauran por un EFECTO y no por la tupla, porque su valor nunca es
+    # un atributo de ActiveModel: vive en `@q_params` y va directo a Ransack. Es exactamente lo
+    # que ya hace una vista guardada, así que se reusa su camino en vez de abrir un segundo.
+    #
+    # `apply_simple_filter_state` REEMPLAZA `@q_params`, no mergea — un estado restaurado es
+    # completo, igual que una vista. Por eso solo se llega acá desde los branches donde la URL
+    # no pidió ningún simplificado (`@simple_filters_requested` los manda al branch de
+    # escribir): si no, esto pisaría el filtro recién elegido con el viejo.
+    def restore_simple_filter_state(stored)
+      return unless simple_filters_enabled?
+
+      apply_simple_filter_state(stored[:simple_filters])
+    end
+
+    # Formato viejo de la caché: solo los atributos, sin las llaves del estado completo. Se
+    # normaliza en la entrada para que el resto del branch hable una sola forma — restaurar y
+    # volver a escribir tienen que ver el MISMO hash o la caché termina contando otra historia.
+    def normalize_stored_state(stored)
+      return stored if stored.is_a?(Hash) && stored[:attributes]
+
+      { attributes: stored || {} }
+    end
 
     def array_predicates
       %w[_any _all _not_in _in]

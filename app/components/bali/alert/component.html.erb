@@ -1,0 +1,20 @@
+<%= tag.div(role: role, **options) do %>
+  <% if icon? %>
+    <%= render Bali::Icon::Component.new(icon_name, size: :small) %>
+  <% end %>
+  <% if title.present? || header? %>
+    <div class="flex flex-col gap-1">
+      <% if title.present? %>
+        <span class="font-bold"><%= title %></span>
+      <% elsif header? %>
+        <%= header %>
+      <% end %>
+      <span><%= content %></span>
+    </div>
+  <% else %>
+    <span><%= content %></span>
+  <% end %>
+  <% if closable? %>
+    <%= render close_button %>
+  <% end %>
+<% end %>

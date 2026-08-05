@@ -3,26 +3,26 @@
 require "test_helper"
 
 class BaliFormBuilderPasswordFieldsTest < FormBuilderTestCase
-  # #password_field_group
+  # #password_group
 
-  def test_password_field_group_renders_a_fieldset_wrapper
-    result = builder.password_field_group(:budget)
+  def test_password_group_renders_a_fieldset_wrapper
+    result = builder.password_group(:budget)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_password_field_group_renders_a_legend_label
-    result = builder.password_field_group(:budget)
-    assert_html(result, "legend.fieldset-legend", text: "Budget")
+  def test_password_group_renders_a_legend_label
+    result = builder.password_group(:budget)
+    assert_html(result, "label.fieldset-legend", text: "Budget")
   end
 
-  def test_password_field_group_renders_a_password_input_with_correct_attributes
-    result = builder.password_field_group(:budget)
+  def test_password_group_renders_a_password_input_with_correct_attributes
+    result = builder.password_group(:budget)
     assert_html(result, 'input#movie_budget[type="password"][name="movie[budget]"]')
   end
 
-  def test_password_field_group_applies_daisyui_input_classes
-    result = builder.password_field_group(:budget)
-    assert_html(result, "input.input.input-bordered")
+  def test_password_group_applies_daisyui_input_classes
+    result = builder.password_group(:budget)
+    assert_html(result, "input.input")
   end
 
   # #password_field
@@ -39,12 +39,12 @@ class BaliFormBuilderPasswordFieldsTest < FormBuilderTestCase
 
   def test_password_field_applies_daisyui_input_classes
     result = builder.password_field(:budget)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   def test_password_field_with_custom_class_includes_custom_class_with_daisyui_classes
     result = builder.password_field(:budget, class: "custom-input")
-    assert_html(result, "input.input.input-bordered.custom-input")
+    assert_html(result, "input.input.custom-input")
   end
 
   def test_password_field_with_validation_errors_applies_error_class_to_input
@@ -61,7 +61,7 @@ class BaliFormBuilderPasswordFieldsTest < FormBuilderTestCase
 
   def test_password_field_with_help_text_displays_help_text
     result = builder.password_field(:budget, help: "Minimum 8 characters")
-    assert_html(result, "p.label-text-alt", text: "Minimum 8 characters")
+    assert_html(result, "p.fieldset-label", text: "Minimum 8 characters")
   end
 
   def test_password_field_with_data_attributes_passes_through_data_attributes

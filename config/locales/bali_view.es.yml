@@ -1,0 +1,535 @@
+es:
+  bali_view:
+    filters:
+      close_panel: "Cerrar filtros"
+      # UI Labels
+      title: "Filtros"
+      where: "Donde"
+      filters_button: "Filtros"
+      search_placeholder: "Buscar..."
+      search: "Buscar..."
+      select_field: "Seleccionar campo..."
+      select_value: "Seleccionar..."
+      select_values: "Seleccionar valores..."
+      enter_value: "Ingrese valor..."
+      remove_condition: "Eliminar condición"
+      remove_filter: "Eliminar filtro"
+      incomplete_condition: "Sin valor elegido, así que esta condición se ignora"
+      add_condition: "Agregar condición"
+      add_group: "Agregar grupo de filtros"
+      clear_all: "Limpiar todo"
+      apply: "Aplicar"
+      apply_filters: "Aplicar Filtros"
+      reset: "Restablecer"
+      clear_search: "Limpiar búsqueda"
+      submit_search: "Buscar"
+      active_filters: "Filtros activos:"
+      auto_saved: "Auto-guardado"
+      filters_saved: "Los filtros se guardan automáticamente"
+      persistence_enabled: "Los filtros se están guardando. Haz clic para desactivar."
+      persistence_disabled: "Los filtros no se guardan. Haz clic para activar."
+      persistence_label: "Recordar filtros"
+
+      # Date/time placeholders
+      select_date: "Seleccionar fecha..."
+      select_datetime: "Seleccionar fecha y hora..."
+      select_date_range: "Seleccionar rango de fechas..."
+      select_datetime_range: "Seleccionar rango de fecha y hora..."
+
+      # Boolean values
+      any: "Cualquiera"
+      "yes": "Sí"
+      "no": "No"
+
+      # Group combinators
+      combinators:
+        and: "Y"
+        or: "O"
+
+      # Selected count for multi-select
+      selected_count: "%{count} seleccionados"
+
+      # Placeholders (nested structure for JavaScript controller)
+      placeholders:
+        enter_value: "Ingrese valor..."
+        number: "0"
+        select_date: "Seleccionar fecha..."
+        select_datetime: "Seleccionar fecha y hora..."
+        select_date_range: "Seleccionar rango de fechas..."
+        select_datetime_range: "Seleccionar rango de fecha y hora..."
+        select: "Seleccionar..."
+        select_values: "Seleccionar valores..."
+
+      # Boolean (nested structure for JavaScript controller)
+      boolean:
+        any: "Cualquiera"
+        "yes": "Sí"
+        "no": "No"
+
+      # Operators
+      operators:
+        # Text operators
+        contains: "contiene"
+        equals: "es exactamente"
+        starts_with: "comienza con"
+        ends_with: "termina con"
+        not_contains: "no contiene"
+        not_equals: "no es"
+        # Date/time operators
+        "on": "es"
+        is: "es"
+        is_not: "no es"
+        between: "entre"
+        after: "después de"
+        before: "antes de"
+        on_or_after: "en o después de"
+        on_or_before: "en o antes de"
+        # Select operators
+        is_any_of: "es cualquiera de"
+        is_not_any_of: "no es ninguno de"
+        # Number operators
+        greater_than: "mayor que"
+        less_than: "menor que"
+        greater_than_or_equal: "mayor o igual que"
+        less_than_or_equal: "menor o igual que"
+
+    # Simple filters
+    simple_filters:
+      apply: "Filtrar"
+      clear: "Limpiar"
+
+    # File input
+    file_input:
+      remove: "Eliminar %{name}"
+
+    # Side menu
+    side_menu:
+      label: "Menú lateral"
+      collapse: "Colapsar menú lateral"
+      expand: "Expandir menú lateral"
+      toggle_item: "Alternar %{name}"
+      close: "Cerrar menú lateral"
+      trigger:
+        toggle: "Abrir menú lateral"
+
+    # App layout
+    app_layout:
+      skip_to_content: "Saltar al contenido principal"
+
+    # Paleta de comandos (⌘K)
+    command:
+      esc_key: "esc"
+      placeholder: "Buscar…"
+      trigger_label: "Buscar…"
+      no_results: "Sin resultados"
+      navigate: "navegar"
+      open_action: "abrir"
+      close: "cerrar"
+
+    # Modal
+    modal:
+      close: "Cerrar modal"
+      confirm_close: "Hay cambios sin guardar. ¿Descartar los cambios?"
+
+    # Image grid
+    image_grid:
+      expand: "Ampliar imagen"
+      empty_state:
+        title: "Aún no hay imágenes"
+        add_image: "Agregar imagen"
+
+    # Breadcrumb
+    breadcrumb:
+      aria_label: "Navegación de migas de pan"
+
+    # Direct upload
+    direct_upload:
+      drop_zone:
+        title: "Arrastra archivos aquí"
+        or: "o"
+        browse: "Seleccionar archivos"
+        aria_label: "Arrastra archivos aquí o haz clic para seleccionar"
+      file_list:
+        aria_label: "Archivos para subir"
+      file_status:
+        pending: "Esperando..."
+        uploading: "Subiendo..."
+        completed: "Subido"
+        error: "Error"
+      status:
+        uploaded: "Ya subido"
+      errors:
+        too_many_files: "Máximo %{max} archivos permitidos"
+        file_too_large: "El archivo excede el límite de %{max}MB"
+        invalid_type: "Tipo de archivo no aceptado"
+      actions:
+        cancel: "Cancelar"
+        retry: "Reintentar"
+        remove: "Eliminar"
+        dismiss: "Cerrar error"
+        remove_file: "Eliminar %{filename}"
+
+    # FilterForm — búsqueda rápida en varias columnas
+    filter_form:
+      search_placeholder_with_fields: "Buscar por %{fields}..."
+
+    # Form builder
+    form_builder:
+      date_fields:
+        # Coincide con el orden de tokens no localizado de flatpickr ("F j, Y":
+        # nombre de mes, día, año) en vez del orden habitual en español, porque
+        # es el texto literal que el campo va a intentar interpretar.
+        allow_input_placeholder: "ej. diciembre 31, 2026"
+        clear: "Limpiar fecha"
+        previous: "Fecha anterior"
+        next: "Fecha siguiente"
+        # Se escribe entre las dos fechas de un rango Y se usa para volver a
+        # separarlas, así que una traducción tiene que seguir siendo reversible.
+        range_separator: " a "
+      # Salen del namespace `helpers.*` del host, donde esta gema no tenía nada
+      # que escribir (Rails lo usa para labels y submits de sus forms).
+      coordinates_polygon:
+        clear: "Limpiar"
+        clear_holes: "Limpiar agujeros"
+        confirm: "¿Estás seguro(a)?"
+      dynamic_fields:
+        add: "Agregar"
+      submit:
+        cancel: "Cancelar"
+      file:
+        choose_file: "Seleccionar archivo"
+        no_file_selected: "Ningún archivo seleccionado"
+      search:
+        placeholder: "Buscar..."
+        submit: "Buscar"
+      slim_select:
+        placeholder: "Selecciona una opción"
+        search_placeholder: "Buscar"
+        select_all: "Seleccionar todo"
+        deselect_all: "Deseleccionar todo"
+        no_results: "Sin resultados"
+        searching: "Buscando..."
+        results: "Resultados"
+
+    # Saved views (B2) — notices de Bali::SavedViewsController
+    saved_views:
+      saved: "Vista guardada."
+      renamed: "Vista renombrada."
+      updated: "Vista actualizada."
+      deleted: "Vista borrada."
+
+    # Status
+    status:
+      no_status: "Sin estado"
+
+    # Time periods
+    time_periods:
+      yearly: "Anual"
+      yesterday: "Ayer"
+      last_7_days: "Últimos 7 días"
+      last_30_days: "Últimos 30 días"
+      last_12_weeks: "Últimas 12 semanas"
+      last_12_months: "Últimos 12 meses"
+
+    bulk_actions:
+      selected_one: seleccionado
+      selected_other: seleccionados
+      clear: Limpiar selección
+    tree_view:
+      toggle_branch: "Alternar %{name}"
+    timeago:
+      # Se renderiza en el servidor; el controller de Stimulus lo reemplaza con la
+      # salida de date-fns al conectarse. `blank` es lo que muestra un datetime nil.
+      blank: "—"
+      ago: "hace %{time}"
+    table:
+      no_records: Sin Registros
+      no_results: Sin Resultados
+      group_count: "%{group} (%{count})"
+      group_partial: "mostrando %{shown}"
+      ungrouped: Sin agrupar
+      select_all: Seleccionar todo
+      row:
+        select_row: Seleccionar fila
+        select_row_named: Seleccionar %{name}
+    data_table:
+      simple_filters:
+        placeholder_min: "Mín"
+        placeholder_max: "Máx"
+      display_modes:
+        table: Tabla
+        cards: Tarjetas
+        grid: Cuadrícula
+        timeline: Línea de tiempo
+      group_by_control:
+        label: Agrupar por
+        no_grouping: Sin agrupar
+        disabled_title: "La agrupación se aplica en la vista %{modes}"
+      view_switch_control:
+        aria_label: Vistas
+      toolbar_overflow:
+        button_label: Más opciones
+      column_selector:
+        button_label: Columnas
+        menu_title: Mostrar/Ocultar Columnas
+      saved_views:
+        button_label: Vistas
+        suggested_title: Sugeridas
+        mine_title: Mis vistas
+        save_current: Guardar vista actual
+        save_as_new: Guardar como vista nueva
+        update_current: "Actualizar \"%{name}\""
+        update_confirm: "¿Sobrescribir la vista \"%{name}\" con lo que estás viendo?"
+        name_placeholder: Nombre de la vista
+        save: Guardar
+        rename: Renombrar
+        delete: Borrar
+        delete_confirm: "¿Borrar la vista \"%{name}\"?"
+      export:
+        button_label: Exportar
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
+    page_header:
+      back: Volver
+    page_components:
+      secondary_actions:
+        button_label: Más acciones
+      export:
+        menu_title: Exportar lo filtrado
+    pagination:
+      aria_label: Paginación
+      previous_page: Página anterior
+      next_page: Página siguiente
+      page: "Página %{page}"
+      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+      default_item_name:
+        one: elemento
+        other: elementos
+    chart:
+      loading: Cargando...
+      default_label: Gráfica
+    clipboard:
+      copied: ¡Copiado!
+      copy_label: Copiar al portapapeles
+    drawer:
+      close_drawer: Cerrar panel
+      confirm_close: Hay cambios sin guardar. ¿Descartar los cambios?
+    dropdown:
+      actions_trigger_label: Acciones
+      menu_label: Menú desplegable
+    delete_link:
+      generic_confirm_message: '¿Estás seguro(a)?'
+      default_name: Eliminar
+      specific_confirm_message: '¿Seguro que desea eliminar %{pronoun} %{name}?'
+      confirm_title: Confirmar eliminación
+      confirm_accept: Eliminar
+      confirm_cancel: Cancelar
+    image_field:
+      clear_image: Borrar imagen
+    loader:
+      loading: Cargando...
+    turbo_native_app:
+      sign_out:
+        name: Cerrar sesión
+        confirm: ¿Estás seguro?
+    carousel:
+      arrows:
+        previous_slide: Diapositiva anterior
+        next_slide: Diapositiva siguiente
+      bullets:
+        navigation: Navegación de diapositivas
+        go_to_slide: "Ir a diapositiva %{number}"
+    calendar:
+      header:
+        week: Semana
+        month: Mes
+        previous: Anterior
+        next: Siguiente
+    navbar:
+      main_navigation: Navegación principal
+      toggle_menu: Alternar menú
+      burger:
+        toggle_menu: Alternar menú
+    notification:
+      close: Cerrar notificación
+    step_number_field:
+      increase: Aumentar valor
+      decrease: Disminuir valor
+    rate:
+      label: Calificación
+      star_rating: "%{number} estrellas"
+    recurrent_event_rule_form:
+      yearly: Anualmente
+      monthly: Mensualmente
+      weekly: Semanalmente
+      daily: Por día
+      hourly: Por hora
+      never: Nunca
+      after: Después de
+      on_date: En la fecha
+      first: Primer
+      second: Segundo
+      third: Tercer
+      fourth: Cuarto
+      last: Último
+      day: Día
+      weekday: Días laborales
+      weekend_day: Fines de semana
+      repeat: Repetir
+      every: cada
+      month_s: mes(es)
+      week_s: semana(s)
+      day_s: día(s)
+      hour_s: hora(s)
+      on_option: En
+      on_the: El
+      on_day: En el día
+      end: Termina
+      ocurrence_s: ocurrencia(s)
+      yearly_options: Opciones Anuales
+      monthly_options: Opciones Mensuales
+      repeat_on_days: Repetir en Días
+      # Accessible names for the controls of the recurrence builder. None of
+      # them is reachable by a <label for>: the visible text around them is
+      # loose copy ("Repeat", "every", "On the"), so without these each select
+      # and number input was announced with no name at all.
+      frequency_label: Frecuencia
+      interval_label: Intervalo de repetición
+      month_label: Mes
+      monthday_label: Día del mes
+      setpos_label: Semana del mes
+      weekday_label: Día de la semana
+      end_label: Condición de fin
+      count_label: Número de repeticiones
+      until_label: Fecha de fin
+      of: de
+
+    feedback_widget:
+      title: "Comentarios"
+      open: "Abrir comentarios"
+
+    document_editor:
+      # Barra superior
+      toggle_toc: "Alternar tabla de contenido"
+      title_placeholder: "Documento sin título"
+      save_changes: "Guardar cambios"
+      save: "Guardar"
+      toggle_comments: "Alternar comentarios"
+      toggle_history: "Alternar historial de versiones"
+      export_pdf: "Exportar PDF"
+      export_docx: "Exportar DOCX"
+      close: "Cerrar editor"
+
+      # Paneles
+      contents: "Contenido"
+      comments: "Comentarios"
+      version_history: "Historial de Versiones"
+
+      # Aviso de vista previa de versión
+      previewing: "Vista previa de"
+      read_only: "— solo lectura"
+      back_to_current: "Volver a la actual"
+
+      # Acciones de cada versión
+      preview: "Vista previa"
+      restore: "Restaurar"
+
+      # Estado de guardado. El controlador los escribe en el DOM cuando resuelve
+      # un fetch, así que viajan como valores de Stimulus y no como texto ya
+      # renderizado.
+      status_unsaved: "Cambios sin guardar"
+      status_saving: "Guardando..."
+      status_saved: "Guardado a las %{time}"
+      status_failed: "Error al guardar"
+
+      # Etiqueta del aviso de vista previa, interpolada en JavaScript.
+      version_label: "Versión %{number}"
+
+      # Estados de la lista de versiones. Se renderizan ocultos y el controlador
+      # los revela (el patrón de BulkActions) porque no llevan dato de runtime.
+      versions_error: "No se pudieron cargar las versiones."
+      versions_empty: "Todavía no hay versiones."
+
+      # Confirmación de restaurar, mostrada con el diálogo de confirmación de Bali.
+      restore_confirm: "¿Restaurar esta versión? El contenido actual se guardará antes como una versión nueva."
+      confirm_title: "Restaurar versión"
+      confirm_accept: "Restaurar"
+      confirm_cancel: "Cancelar"
+    block_editor:
+      disabled_title: "Bali::BlockEditor está deshabilitado"
+      disabled_help_html: "Configura %{setting} en %{initializer} e instala los paquetes npm listados en %{docs}. Este aviso solo aparece en desarrollo."
+      export_pdf: "Exportar PDF"
+      export_docx: "Exportar DOCX"
+
+      # Todo lo que el bundle de React escribe en el DOM. Viaja como un solo
+      # objeto JSON (data-block-editor-translations-value) porque las cadenas
+      # están repartidas entre hooks que cuelgan de este mismo controlador.
+      load_failed: "No se pudo cargar el editor. Verifica que @blocknote/react, @blocknote/mantine, react y react-dom estén instalados."
+      table_of_contents: "Tabla de contenido"
+      upload_not_configured: "La carga de archivos no está configurada"
+      upload_too_large: "El archivo es demasiado grande (%{size} MB). El máximo permitido es %{max} MB."
+      upload_failed: "Error al subir el archivo (%{status})"
+      # Se muestra en un hilo de comentarios cuando un id de usuario no resuelve
+      # a ningún nombre.
+      user_fallback: "Usuario %{id}"
+      # La única entrada traducible de la lista de lenguajes de bloques de código;
+      # el resto son nombres propios.
+      plain_text: "Texto plano"
+    document_page:
+      toggle_toc: "Alternar tabla de contenido"
+      toggle_details: "Alternar detalles"
+      contents: "Contenido"
+    rich_text_editor:
+      # Default editor placeholder, handed to the Stimulus controller as a value
+      placeholder: "Empieza a escribir..."
+
+      bubble_menu:
+        # Node type dropdown; `text` doubles as the trigger's default label
+        nodes:
+          text: "Texto"
+          h1: "Encabezado 1"
+          h2: "Encabezado 2"
+          h3: "Encabezado 3"
+          bullet_list: "Lista con viñetas"
+          ordered_list: "Lista numerada"
+          quote: "Cita"
+          code: "Código"
+
+        # Link panel
+        link:
+          url_placeholder: "Ingresa la URL"
+          tabs:
+            url: "URL"
+            pages: "Páginas"
+
+        # Table panel
+        table:
+          insert: "Insertar tabla"
+          insert_left: "Insertar a la izquierda"
+          insert_right: "Insertar a la derecha"
+          insert_above: "Insertar arriba"
+          insert_below: "Insertar abajo"
+          remove_column: "Eliminar columna"
+          remove_row: "Eliminar fila"
+    avatar:
+      upload:
+        upload_image: "Subir imagen de avatar"
+    alert:
+      close: "Cerrar alerta"
+    message:
+      close: "Cerrar mensaje"
+    boolean_icon:
+      "true": "Sí"
+      "false": "No"
+      blank: "Sin especificar"
+    kanban:
+      column_label:
+        zero: "%{title}, 0 tarjetas"
+        one: "%{title}, 1 tarjeta"
+        other: "%{title}, %{count} tarjetas"
+      card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
+    tabs:
+      navigation: "Navegación de secciones"

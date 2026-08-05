@@ -11,22 +11,25 @@ module Bali
       # `default_views:` son atajos ESTÁTICOS (no persistidos) que la app define — pares
       # {name:, url:} listos para navegar; se pintan en su propia sección "Sugeridas".
       class Component < ApplicationViewComponent
+        include Bali::DataTable::ListingIdentity
+
         DefaultView = Struct.new(:name, :url, keyword_init: true)
 
         # @param filter_form [Bali::FilterForm] con saved_views_store configurado
         # @param url [String] base RESTful de la app para crear/renombrar/borrar vistas
         # @param base_url [String] URL del listado donde se aplican (?saved_view=<id>)
-        # @param table_id [String] id de la tabla (para capturar columnas visibles al guardar)
+        # @param listing_id [String] identidad del listado (para capturar las columnas
+        #   visibles del selector al guardar; ver Bali::DataTable::ListingIdentity)
         # @param default_views [Array<Hash>] atajos estáticos {name:, url:}
-        def initialize(filter_form:, url:, base_url:, table_id: nil, default_views: nil)
+        def initialize(filter_form:, url:, base_url:, listing_id: nil, default_views: nil)
           @filter_form = filter_form
           @url = url
           @base_url = base_url.to_s
-          @table_id = table_id && (table_id.start_with?("#") ? table_id : "##{table_id}")
+          @listing_id = listing_id.to_s.delete_prefix("#")
           @default_views = Array(default_views).map { |view| DefaultView.new(**view.to_h.symbolize_keys) }
         end
 
-        attr_reader :filter_form, :url, :table_id, :default_views
+        attr_reader :filter_form, :url, :listing_id, :default_views
 
         # Sin URL no hay mutaciones posibles (pasa cuando el slot no recibió `url:` y el
         # form no tiene storage_id para armar la default del engine): no pintar nada gana
@@ -55,11 +58,41 @@ module Bali
                          default_views.find { |view| default_view_active?(view) }
         end
 
+        # El botón nombra la vista ACTIVA; sin ninguna aplicada, el label genérico.
+        def button_label
+          active_view ? active_view.name : t(".button_label")
+        end
+
         def active_view?(view)
           view.equal?(active_view) ||
             (!view.is_a?(DefaultView) && !active_view.is_a?(DefaultView) &&
              active_view&.id == view.id)
         end
+
+        # Marca del item activo. NO `menu-active`: en daisyUI 5 esa clase pinta el item con
+        # `neutral`, o sea un bloque negro sólido que se come el resto del menú. El estándar
+        # de este repo para "esto es lo seleccionado" dentro de una lista es texto primary sin
+        # fondo — igual que SlimSelect (`.ss-selected`, slim_select.css:607) y que el dropdown
+        # hermano de "Agrupar por" (GroupByControl#item_class).
+        def active_item_class(view)
+          "text-primary font-medium" if active_view?(view)
+        end
+
+        # La vista sobre la que se está trabajando, aunque ya se le hayan cambiado filtros
+        # (sobrevive al submit vía `view_origin`). Es la que se ofrece ACTUALIZAR.
+        def origin_view = filter_form.saved_view_origin
+
+        # Solo se ofrece actualizar si hay de dónde venir Y el estado cambió: con el estado
+        # intacto el botón prometería guardar algo que ya está guardado.
+        def updatable? = filter_form.saved_view_dirty?
+
+        def update_label = t(".update_current", name: origin_view.name)
+
+        def update_confirm = t(".update_confirm", name: origin_view.name)
+
+        # Con una vista modificada, guardar de nuevo es "guardar como NUEVA": el texto lo dice
+        # para que no se confunda con actualizar la que ya existe.
+        def save_label = updatable? ? t(".save_as_new") : t(".save_current")
 
         def apply_url(view)
           "#{@base_url}#{@base_url.include?('?') ? '&' : '?'}saved_view=#{view.id}"
@@ -76,6 +109,14 @@ module Bali
         # columnas visibles las agrega el Stimulus al enviar (viven en el DOM del selector).
         def payload_json
           filter_form.current_view_payload.to_json
+        end
+
+        # Columnas que IMPUSO la vista aplicada. El selector solo se pinta en modo tabla, y
+        # sin él el JS caía a localStorage — que es la memoria del dispositivo ANTERIOR a la
+        # vista: guardar una vista nueva desde tarjetas la persistía con columnas que el
+        # usuario no estaba viendo.
+        def server_columns_json
+          Array(filter_form.try(:saved_view_columns)).map(&:to_i).to_json
         end
 
         private
@@ -108,7 +149,7 @@ module Bali
           return @search_predicate if defined?(@search_predicate)
 
           fields = filter_form.try(:search_config)&.dig(:fields)
-          @search_predicate = fields.presence && "#{Array(fields).map(&:to_s).join('_or_')}_cont"
+          @search_predicate = Bali::RansackParamName.predicate(fields)
         end
       end
     end

@@ -1,0 +1,34 @@
+<%# The canonical index page: page chrome (breadcrumbs, title, primary action) plus the
+    DataTable body shared with `data_table/complete`, so the reference composition is
+    written once. %>
+<%= render Bali::IndexPage::Component.new(
+      title: 'Movies',
+      subtitle: 'Every toolbar control family, row selection and pagination',
+      breadcrumbs: [
+        { name: 'Dashboard', href: '/lookbook', icon: 'home' },
+        { name: 'Movies' }
+      ]
+    ) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: '#', variant: :primary,
+                                         icon: 'plus') %>
+  <% end %>
+
+  <%# Secondary actions live in the `⋯` next to the primary one. Export is here and not in
+      the toolbar because it acts ON the page; the links carry the active filters, the
+      grouping and the sort, which is what the item's name promises. %>
+  <% page.with_export(url: request.path) %>
+  <% page.with_secondary_action(name: 'Import', icon: 'upload', href: '#') %>
+
+  <%# The DataTable goes in bare: the surface travels with its content slot. %>
+  <% page.with_body do %>
+    <%= render partial: 'bali/data_table/previews/canonical_index',
+               locals: {
+                 url: request.path,
+                 filter_form: filter_form,
+                 pagy: pagy,
+                 movies: movies,
+                 display_mode: display_mode
+               } %>
+  <% end %>
+<% end %>

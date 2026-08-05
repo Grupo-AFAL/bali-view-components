@@ -24,14 +24,14 @@
             </div>
           </div>
           <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
-            <% dropdown.with_item(href: movie_character_path(movie, character), method: :delete, icon_name: 'trash', class: 'text-error') { 'Remove' } %>
+            <% dropdown.with_item(href: movie_character_path(movie, character), method: :delete, icon: 'trash', class: 'text-error') { 'Remove' } %>
           <% end %>
         </div>
       <% end %>
     <% end %>
   <% end %>
 <% else %>
-  <%= render Bali::Message::Component.new(color: :info) do %>
+  <%= render Bali::Alert::Component.new(color: :info) do %>
     No characters have been added to this movie yet.
   <% end %>
 <% end %>

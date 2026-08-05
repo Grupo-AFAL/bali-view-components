@@ -5,13 +5,13 @@ require "test_helper"
 class BaliModalComponentTest < ComponentTestCase
   def test_basic_rendering_renders_with_modal_open_when_active_is_true
     render_inline(Bali::Modal::Component.new(active: true))
-    assert_selector("div.modal.modal-open")
+    assert_selector("dialog.modal.modal-open")
   end
 
   def test_basic_rendering_renders_without_modal_open_when_active_is_false
     render_inline(Bali::Modal::Component.new(active: false))
-    assert_selector("div.modal")
-    assert_no_selector("div.modal-open")
+    assert_selector("dialog.modal")
+    assert_no_selector("dialog.modal-open")
   end
 
   def test_basic_rendering_renders_with_modal_box
@@ -26,27 +26,45 @@ class BaliModalComponentTest < ComponentTestCase
 
   def test_basic_rendering_generates_unique_modal_id
     render_inline(Bali::Modal::Component.new)
-    assert_selector('div.modal[id^="modal-"]')
+    assert_selector('dialog.modal[id^="modal-"]')
   end
 
   def test_basic_rendering_uses_custom_modal_id_when_provided
     render_inline(Bali::Modal::Component.new(id: "custom-modal"))
-    assert_selector("div.modal#custom-modal")
+    assert_selector("dialog.modal#custom-modal")
   end
 
-  def test_accessibility_has_role_dialog
+  # A native `<dialog>` opened with `showModal()`. `role="dialog"` and
+  # `aria-modal="true"` are gone because both are implicit on the element, and
+  # the second one was a lie in the state a static attribute cannot tell apart:
+  # a panel rendered `active:` that no script has opened yet is not modal.
+  def test_accessibility_is_a_native_dialog_element
     render_inline(Bali::Modal::Component.new)
-    assert_selector('div.modal[role="dialog"]')
+    assert_selector("dialog.modal")
+    assert_no_selector("dialog.modal[role]")
+    assert_no_selector("dialog.modal[aria-modal]")
   end
 
-  def test_accessibility_has_aria_modal_attribute
+  # Focus has to land somewhere inside the panel while the skeleton is showing,
+  # and at that point the panel holds nothing focusable of its own.
+  def test_accessibility_panel_is_focusable_for_the_skeleton_phase
     render_inline(Bali::Modal::Component.new)
-    assert_selector('div.modal[aria-modal="true"]')
+    assert_selector('div.modal-box[tabindex="-1"]')
   end
 
-  def test_accessibility_has_aria_labelledby_pointing_to_title
+  def test_accessibility_has_aria_labelledby_when_header_slot_is_used
+    render_inline(Bali::Modal::Component.new(id: "test-modal")) do |modal|
+      modal.with_header(title: "Test")
+    end
+    assert_selector('dialog.modal[aria-labelledby="test-modal-title"]')
+    assert_selector("#test-modal-title", text: "Test")
+  end
+
+  # The header slot is the only thing that puts `title_id` on the DOM, so
+  # without one the attribute named an element that was never rendered.
+  def test_accessibility_does_not_have_aria_labelledby_when_header_slot_is_not_used
     render_inline(Bali::Modal::Component.new(id: "test-modal"))
-    assert_selector('div.modal[aria-labelledby="test-modal-title"]')
+    assert_no_selector("dialog.modal[aria-labelledby]")
   end
 
   def test_accessibility_has_aria_describedby_when_body_slot_is_used
@@ -54,7 +72,7 @@ class BaliModalComponentTest < ComponentTestCase
       modal.with_header(title: "Test")
       modal.with_body { "Body content" }
     end
-    assert_selector('div.modal[aria-describedby="test-modal-description"]')
+    assert_selector('dialog.modal[aria-describedby="test-modal-description"]')
     assert_selector("#test-modal-description", text: "Body content")
   end
 
@@ -62,7 +80,7 @@ class BaliModalComponentTest < ComponentTestCase
     render_inline(Bali::Modal::Component.new) do
       "Just content"
     end
-    assert_no_selector("div.modal[aria-describedby]")
+    assert_no_selector("dialog.modal[aria-describedby]")
   end
 
   def test_content_renders_custom_content
@@ -104,7 +122,7 @@ class BaliModalComponentTest < ComponentTestCase
 
   def test_custom_classes_merges_custom_classes
     render_inline(Bali::Modal::Component.new(class: "custom-class"))
-    assert_selector("div.modal-component.custom-class")
+    assert_selector("dialog.modal-component.custom-class")
   end
 
   def test_header_slot_renders_header_with_title
@@ -207,12 +225,12 @@ class BaliModalComponentTest < ComponentTestCase
 
   def test_confirm_on_close_adds_confirm_close_message_value_and_self_scoped_controller
     render_inline(Bali::Modal::Component.new(confirm_on_close: true))
-    assert_selector("div.modal[data-controller='modal'][data-modal-confirm-close-message-value]")
+    assert_selector("dialog.modal[data-controller='modal'][data-modal-confirm-close-message-value]")
   end
 
   def test_confirm_on_close_uses_default_message
     render_inline(Bali::Modal::Component.new(confirm_on_close: true))
-    modal = page.find("div.modal")
+    modal = page.find("dialog.modal")
     assert_equal("You have unsaved changes. Discard them?", modal["data-modal-confirm-close-message-value"])
   end
 

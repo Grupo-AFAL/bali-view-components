@@ -23,6 +23,166 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("a[href='/movies']", text: "Item 1")
   end
 
+  # --- landmark and list semantics ---
+
+  def test_renders_a_nav_landmark_with_an_accessible_name
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector("nav.side-menu-component[aria-label]")
+  end
+
+  def test_nav_label_can_be_overridden
+    @options[:aria_label] = "Admin sections"
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector("nav[aria-label='Admin sections']")
+  end
+
+  def test_carries_the_default_id_every_trigger_points_at
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector("nav##{Bali::SideMenu::Component::DEFAULT_ID}")
+  end
+
+  def test_items_are_marked_up_as_a_list
+    render_inline(component) do |c|
+      c.with_list(title: "Comedor") do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+        list.with_item(name: "Item 2", href: "/studios")
+      end
+    end
+    assert_selector("ul.side-menu-list > li", count: 2)
+    assert_selector("ul.side-menu-list > li > a[href='/movies']")
+  end
+
+  def test_bottom_section_is_marked_up_as_a_list
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+      c.with_bottom_item(name: "Log out", href: "/logout")
+    end
+    assert_selector("ul.side-menu-bottom-section > li > a[href='/logout']")
+  end
+
+  # --- keyboard operability: no hidden checkboxes anywhere ---
+
+  def test_does_not_render_hidden_checkboxes
+    @options[:collapsible] = true
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_no_selector("input.side-menu-mobile-trigger", visible: :all)
+    assert_no_selector("input.side-menu-collapse-trigger", visible: :all)
+  end
+
+  def test_collapse_toggles_are_buttons_wired_to_the_stimulus_controller
+    @options[:collapsible] = true
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector(
+      "button[type='button'][data-action='side-menu#toggleCollapse']" \
+      "[aria-controls='#{Bali::SideMenu::Component::DEFAULT_ID}']",
+      count: 2, visible: :all
+    )
+  end
+
+  def test_mobile_close_button_is_a_button_not_a_label
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector("button[type='button'][data-action='side-menu#close']", visible: :all)
+    assert_no_selector("label", visible: :all)
+  end
+
+  def test_controller_receives_the_state_it_now_owns
+    @options[:collapsible] = true
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector("[data-controller~='side-menu'][data-side-menu-collapsible-value='true']")
+    assert_selector("[data-side-menu-fixed-value='true']")
+  end
+
+  # The module switcher is a `<details>`, and a `<details>` closes when its own `<summary>`
+  # is pressed again and on no other event — so click-outside and Escape are JavaScript
+  # (#830). The controller used to be attached only for `collapsible:` or `fixed:`, which
+  # left an inline sidebar with a switcher — the composition the preview itself uses —
+  # without any controller for that JavaScript to live in.
+  def test_a_switcher_earns_the_controller_even_when_nothing_else_asks_for_it
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_menu_switch(title: "Back of House", href: "/boh", icon: "chef-hat", active: true)
+      c.with_menu_switch(title: "Logistics", href: "/logistics", icon: "truck")
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector(".menu-switcher > details")
+    assert_selector("[data-controller~='side-menu']")
+  end
+
+  # One menu renders no switcher, so nothing changes for a sidebar that had no reason to
+  # carry a controller.
+  def test_a_single_menu_still_leaves_an_inline_sidebar_without_a_controller
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_menu_switch(title: "Back of House", href: "/boh", icon: "chef-hat", active: true)
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_no_selector(".menu-switcher > details")
+    assert_no_selector("[data-controller~='side-menu']")
+  end
+
+  def test_scrim_is_hidden_from_assistive_tech_and_closes_the_menu
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector(
+      ".side-menu-overlay[aria-hidden='true'][data-action='click->side-menu-trigger#close']",
+      visible: :all
+    )
+  end
+
+  def test_inline_menu_renders_no_scrim
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_no_selector(".side-menu-overlay", visible: :all)
+  end
+
+  # --- aria-current ---
+
+  def test_marks_the_active_item_with_aria_current_page
+    @options[:current_path] = "/movies"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Movies", href: "/movies", match: :exact)
+        list.with_item(name: "Studios", href: "/studios", match: :exact)
+      end
+    end
+    assert_selector("a[href='/movies'][aria-current='page']")
+    assert_no_selector("a[href='/studios'][aria-current]")
+  end
+
+  def test_an_active_parent_hands_aria_current_to_its_active_child
+    # `active?` keeps the parent highlighted while a child route is open, but
+    # only the link pointing at the current page is `aria-current="page"`.
+    @options[:current_path] = "/projects/active"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Projects", href: "/projects") do |item|
+          item.with_item(name: "Active", href: "/projects/active")
+          item.with_item(name: "Archived", href: "/projects/archived")
+        end
+      end
+    end
+    assert_selector("a[href='/projects/active'][aria-current='page']", visible: :all)
+    assert_no_selector("a[href='/projects'][aria-current]", visible: :all)
+    assert_no_selector("a[href='/projects/archived'][aria-current]", visible: :all)
+  end
+
   def test_renders_a_section_badge_when_with_list_badge_is_given
     render_inline(component) do |c|
       c.with_list(title: "Pendientes", badge: "3") do |list|

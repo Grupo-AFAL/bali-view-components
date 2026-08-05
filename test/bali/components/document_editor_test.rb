@@ -47,7 +47,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      comments: { url: "/block_editor_comments", user: { id: "1", username: "demo" } }
+      config: { comments: { url: "/block_editor_comments", user: { id: "1", username: "demo" } } }
     ))
     assert_selector("[data-action*='document-editor#toggleComments']")
   end
@@ -136,7 +136,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      comments: { url: "/comments", user: { id: "1", username: "demo" } }
+      config: { comments: { url: "/comments", user: { id: "1", username: "demo" } } }
     ))
     assert_selector("[data-document-editor-target='commentsPanel']")
     assert_text("Comments")
@@ -186,7 +186,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      export: true
+      config: { export: true }
     ))
     assert_selector("[data-action='document-editor#exportPdf']")
     assert_selector("[data-action='document-editor#exportDocx']")
@@ -197,7 +197,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      export: false
+      config: { export: false }
     ))
     assert_no_selector("[data-action='document-editor#exportPdf']")
   end
@@ -249,5 +249,213 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       id: "my-editor"
     ))
     assert_selector("#my-editor.document-editor-overlay")
+  end
+
+  # --- REST contract (#700) ---------------------------------------------------
+
+  # The controller used to POST to "#{document_url}/restore_version", a path it
+  # invented. It is now a declared value with the same default, so an app whose
+  # routes already matched keeps working while one that does not can say so.
+  def test_restore_version_url_defaults_to_the_conventional_path
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-restore-version-url-value='/documents/1/restore_version']")
+  end
+
+  def test_restore_version_url_can_be_named_by_the_host
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      restore_version_url: "/documents/1/revisions/restore"
+    ))
+    assert_selector("[data-document-editor-restore-version-url-value='/documents/1/revisions/restore']")
+  end
+
+  # The PATCH payload root and the hidden input name both used to hardcode
+  # "document", which assumed every host named its model Document.
+  def test_param_key_defaults_to_document_and_drives_the_input_name
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-param-key-value='document']")
+    assert_selector("[data-document-editor-input-name-value='document[content]']")
+  end
+
+  def test_param_key_renames_the_payload_root_and_the_input_name
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/articles/1",
+      param_key: :article
+    ))
+    assert_selector("[data-document-editor-param-key-value='article']")
+    assert_selector("[data-document-editor-input-name-value='article[content]']")
+  end
+
+  def test_an_explicit_input_name_still_wins_over_the_derived_one
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/articles/1",
+      param_key: :article,
+      input_name: "article[body]"
+    ))
+    assert_selector("[data-document-editor-input-name-value='article[body]']")
+  end
+
+  # --- Shared config package (#700) -------------------------------------------
+
+  def test_config_reaches_the_nested_block_editor
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { ai_url: "/ai", mentions_url: "/users" }
+    ))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+    assert_selector("[data-block-editor-mentions-url-value='/users']")
+  end
+
+  def test_config_accepts_a_config_object_as_well_as_a_hash
+    config = Bali::BlockEditor::Config.new(ai_url: "/ai")
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: config
+    ))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+  end
+
+  def test_export_filename_falls_back_to_the_parameterized_title
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Big Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { export: true }
+    ))
+    assert_selector("[data-block-editor-export-filename-value='my-big-document']")
+  end
+
+  def test_an_export_filename_in_the_config_beats_the_title
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Big Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { export: true, export_filename: "roadmap" }
+    ))
+    assert_selector("[data-block-editor-export-filename-value='roadmap']")
+  end
+
+  def test_the_save_status_strings_travel_as_values
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-status-unsaved-value='Unsaved changes']")
+    assert_selector("[data-document-editor-status-saving-value='Saving...']")
+    assert_selector("[data-document-editor-status-failed-value='Save failed']")
+  end
+
+  # The placeholders belong to the browser: it is the only side that knows the
+  # clock time and the version number, so they have to survive Rails untouched.
+  def test_the_two_status_values_with_runtime_data_keep_their_placeholder
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-status-saved-value='Saved at %{time}']")
+    assert_selector("[data-document-editor-version-label-value='Version %{number}']")
+  end
+
+  def test_the_save_status_strings_follow_the_locale
+    I18n.with_locale(:es) do
+      render_inline(Bali::DocumentEditor::Component.new(
+        title: "My Document",
+        initial_content: [],
+        document_url: "/documents/1"
+      ))
+    end
+    assert_selector("[data-document-editor-status-unsaved-value='Cambios sin guardar']")
+    assert_selector("[data-document-editor-status-saved-value='Guardado a las %{time}']")
+    assert_selector("[data-document-editor-locale-value='es']")
+  end
+
+  # Intl.RelativeTimeFormat replaced four hardcoded English strings, and it needs
+  # the locale to do it.
+  def test_the_locale_reaches_the_controller
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-locale-value='en']")
+  end
+
+  # Both list messages are rendered up front and hidden; the controller only
+  # picks which one to reveal, so it never has to build translated text.
+  def test_renders_both_version_list_messages_hidden
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      versions_url: "/documents/1/versions"
+    ))
+    assert_selector("[data-document-editor-target='versionsError'].hidden",
+                    text: "Failed to load versions.", visible: :all)
+    assert_selector("[data-document-editor-target='versionsEmpty'].hidden",
+                    text: "No versions yet.", visible: :all)
+  end
+
+  def test_the_version_list_messages_follow_the_locale
+    I18n.with_locale(:es) do
+      render_inline(Bali::DocumentEditor::Component.new(
+        title: "My Document",
+        initial_content: [],
+        document_url: "/documents/1",
+        versions_url: "/documents/1/versions"
+      ))
+    end
+    assert_selector("[data-document-editor-target='versionsError']",
+                    text: "No se pudieron cargar las versiones.", visible: :all)
+    assert_selector("[data-document-editor-target='versionsEmpty']",
+                    text: "Todavía no hay versiones.", visible: :all)
+  end
+
+  # Restoring goes through Bali's styled dialog now, which reads its labels off
+  # the button -- the same channel DeleteLink uses. The button is cloned out of a
+  # <template>, whose contents are inert, so the assertions read the raw markup.
+  def test_the_restore_button_carries_translated_confirm_dialog_labels
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      versions_url: "/documents/1/versions"
+    ))
+    assert_includes rendered_content, 'data-bali-confirm-title="Restore version"'
+    assert_includes rendered_content, 'data-bali-confirm-accept="Restore"'
+    assert_includes rendered_content, 'data-bali-confirm-cancel="Cancel"'
+    assert_selector("[data-document-editor-restore-confirm-value]")
+  end
+
+  def test_the_confirm_dialog_labels_follow_the_locale
+    I18n.with_locale(:es) do
+      render_inline(Bali::DocumentEditor::Component.new(
+        title: "My Document",
+        initial_content: [],
+        document_url: "/documents/1",
+        versions_url: "/documents/1/versions"
+      ))
+    end
+    assert_includes rendered_content, 'data-bali-confirm-title="Restaurar versión"'
+    assert_includes rendered_content, 'data-bali-confirm-cancel="Cancelar"'
   end
 end

@@ -16,7 +16,7 @@ module Bali
         max_time: "data-datepicker-max-time-value"
       }.freeze
 
-      def time_field_group(method, options = {})
+      def time_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           time_field(method, options)
         end

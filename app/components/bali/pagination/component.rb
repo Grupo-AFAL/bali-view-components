@@ -1,30 +1,41 @@
 # frozen_string_literal: true
 
-require "pagy/toolbox/helpers/support/series"
-
 module Bali
   module Pagination
     class Component < ApplicationViewComponent
-      # Pagy 43+ no longer requires Pagy::Frontend include
-      # URL generation is now done via @pagy.page_url(page)
-
+      # Everything this component knows about Pagy goes through PagyAdapter; nothing here
+      # touches the gem directly.
+      #
       # @param pagy [Pagy] The Pagy pagination object
       # @param size [Symbol] Button size - :xs, :sm, :md (default), :lg
       # @param variant [Symbol] Button variant - :default, :outline, :ghost
-      # @param url [String] Optional base URL for pagination links (defaults to request.path)
-      def initialize(pagy:, size: :md, variant: :default, url: nil, **options)
+      # @param url [String] Base URL for the page links. Only needed when the Pagy was not
+      #   built by the `pagy()` helper (a bare `Pagy::Offset.new` carries no request and
+      #   cannot build URLs). When given it wins over the Pagy's own URLs, so it has to
+      #   carry any query string that must survive paging.
+      # @param fragment [String] Anchor appended to every page link, e.g. "#results", so a
+      #   paginator halfway down the page does not jump the reader to the top. With the
+      #   `pagy()` helper `pagy(scope, fragment: "#results")` does the same thing.
+      # @param data [Hash] data attributes for every page link, e.g.
+      #   `{ turbo_frame: "movies" }` to page inside a Turbo Frame.
+      def initialize(pagy:, size: :md, variant: :default, url: nil, fragment: nil, data: nil)
         @pagy = pagy
         @size = size
         @variant = variant
         @url = url
-        @options = options
+        @fragment = fragment
+        @data = data
       end
 
       def render?
-        @pagy.pages > 1
+        adapter.navigable?
       end
 
       private
+
+      def adapter
+        @adapter ||= PagyAdapter.new(@pagy, base_url: @url, fragment: @fragment)
+      end
 
       def btn_class
         classes = %w[join-item btn]
@@ -34,8 +45,12 @@ module Bali
         classes.join(" ")
       end
 
+      # `btn-active` SOLO no se ve: en daisyUI 5 oscurece apenas un `btn` plano, así que la
+      # página actual quedaba indistinguible de las demás aunque el marcado ya fuera correcto
+      # (`aria-current="page"`). El resto de Bali marca "esto es lo seleccionado" con
+      # `btn-active btn-primary` (ver `ViewSwitch::View`), y la paginación se alinea.
       def btn_active_class
-        "#{btn_class} btn-active"
+        "#{btn_class} btn-active btn-primary"
       end
 
       def btn_disabled_class
@@ -43,58 +58,35 @@ module Bali
       end
 
       def prev_page
-        # Pagy 43.x uses `previous` instead of `prev`
-        @pagy.previous
+        adapter.previous_page
       end
 
       def next_page
-        @pagy.next
+        adapter.next_page
       end
 
       def series
-        # Pagy 43.x series is accessed via send since it's protected
-        @pagy.send(:series)
+        adapter.series
       end
 
       def page_url(page)
-        # Pagy 43.x uses @pagy.page_url which requires a request object
-        # For compatibility, we check if page_url works, otherwise fall back to simple URL
-        if @pagy.respond_to?(:page_url, true) && @pagy.instance_variable_get(:@request)
-          @pagy.page_url(page)
-        else
-          build_page_url(page)
-        end
-      end
-
-      def build_page_url(page)
-        base = @url || helpers.request.path
-        # Build URL with page param
-        uri = URI.parse(base)
-        params = Rack::Utils.parse_nested_query(uri.query || "")
-        page_key = if @pagy.respond_to?(:vars)
-                     @pagy.vars[:page_key]
-                   elsif @pagy.respond_to?(:page_key)
-                     @pagy.page_key
-        end || "page"
-        params[page_key] = page
-        uri.query = Rack::Utils.build_nested_query(params)
-        uri.to_s
+        adapter.page_url(page)
       end
 
       def aria_label
-        I18n.t("view_components.bali.pagination.aria_label")
+        I18n.t("bali_view.pagination.aria_label")
       end
 
       def prev_aria_label
-        I18n.t("view_components.bali.pagination.previous_page")
+        I18n.t("bali_view.pagination.previous_page")
       end
 
       def next_aria_label
-        I18n.t("view_components.bali.pagination.next_page")
+        I18n.t("bali_view.pagination.next_page")
       end
 
       def page_aria_label(page)
-        I18n.t("view_components.bali.pagination.page", page: page)
+        I18n.t("bali_view.pagination.page", page: page)
       end
     end
   end

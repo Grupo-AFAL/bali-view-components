@@ -8,15 +8,15 @@
   <% nav.with_menu do |menu| %>
     <%# Standard navigation items %>
     <% menu.with_start_item(name: t('navbar.dashboard'), href: root_path) %>
-    <% menu.with_start_item(name: t('navbar.movies'), href: movies_path) %>
-    <% menu.with_start_item(name: 'Studios', href: studios_path) %>
+    <% menu.with_start_item(name: t('navbar.movies'), href: admin_movies_path) %>
+    <% menu.with_start_item(name: 'Studios', href: admin_studios_path) %>
     <% menu.with_start_item(name: t('navbar.showcase'), href: showcase_path) %>
     <% menu.with_start_item(name: t('navbar.landing'), href: landing_path) %>
     <% menu.with_start_item(name: 'Admin', href: admin_root_path) %>
 
     <%# Settings dropdown %>
     <% menu.with_start_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(hoverable: true, align: :left) do |dropdown| %>
+      <%= render Bali::Dropdown::Component.new(hoverable: true, align: :start) do |dropdown| %>
         <% dropdown.with_trigger(variant: :menu) do %>
           <%= t('navbar.settings') %>
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
@@ -35,7 +35,7 @@
 
     <%# Theme Switcher %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+      <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
         <% dropdown.with_trigger(variant: :menu) do %>
           <%= render Bali::Icon::Component.new('palette', size: :small) %>
           Theme
@@ -58,7 +58,7 @@
 
     <%# Language Switcher %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+      <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
         <% dropdown.with_trigger(variant: :menu) do %>
           <%= render Bali::Icon::Component.new('globe', size: :small) %>
           <%= I18n.locale.to_s.upcase %>
@@ -75,7 +75,7 @@
 
     <%# User dropdown on the right side %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+      <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
         <% dropdown.with_trigger(variant: :menu) do %>
           <%= render Bali::Icon::Component.new('circle-user', size: :small) %>
           <%= t('navbar.admin') %>

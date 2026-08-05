@@ -5,7 +5,7 @@
     back: { href: showcase_path }
   ) %>
 
-  <%= render Bali::Message::Component.new(color: :info, class: 'mb-6') do %>
+  <%= render Bali::Alert::Component.new(color: :info, class: 'mb-6') do %>
     This form tests that DirectUpload generates correct field names when using
     <%= render Bali::Tag::Component.new(text: 'form_with url:', color: :ghost) %>
     without a model.
@@ -47,23 +47,21 @@
       <%= render Bali::Link::Component.new(
         name: 'Back to Showcase',
         href: showcase_path,
-        type: :ghost
+        variant: :ghost
       ) %>
     </div>
   <% end %>
 
   <div class="divider my-8"></div>
 
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <div class="card-body prose">
-      <h3>What to verify:</h3>
-      <ol>
-        <li>Open browser DevTools (Network tab)</li>
-        <li>Upload some files</li>
-        <li>Submit the form</li>
-        <li>Check the form data - field should be <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %></li>
-        <li>After success, files should auto-clear (Turbo integration)</li>
-      </ol>
-    </div>
+  <%= render Bali::Card::Component.new(style: :bordered, body_class: 'prose') do %>
+    <h3>What to verify:</h3>
+    <ol>
+      <li>Open browser DevTools (Network tab)</li>
+      <li>Upload some files</li>
+      <li>Submit the form</li>
+      <li>Check the form data - field should be <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %></li>
+      <li>After success, files should auto-clear (Turbo integration)</li>
+    </ol>
   <% end %>
 </div>

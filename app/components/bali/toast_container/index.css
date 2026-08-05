@@ -1,0 +1,18 @@
+/* Toast stack — the two UA `[popover]` rules daisyUI's `.toast` does not already
+ * override.
+ *
+ * The stack becomes a `popover="manual"` element whenever it has to clear an
+ * overlay in the top layer; see `index.js` for why that is the only move
+ * available. daisyUI's `.toast` already writes `position`, all four insets,
+ * `width` and a transparent background, so it beats the UA rule on every one of
+ * those, and `border`/`margin`/`padding` are zeroed globally. What is left is
+ * a scroll container the stack never wanted and a system text colour that would
+ * be inherited by anything inside a toast that does not set its own.
+ *
+ * @layer components is enough: this only has to beat the user-agent origin,
+ * which every author rule does, and staying in the layer keeps a host's utility
+ * classes winning over it as they do everywhere else. */
+.toast-container-component[popover] {
+  overflow: visible;
+  color: inherit;
+}

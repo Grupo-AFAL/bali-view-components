@@ -4,8 +4,12 @@
     <%= render_badge %>
   </p>
 <% end %>
-<div class="space-y-0.5 px-2.5">
+<%# A menu is a list of links, so it is marked up as one: a screen reader
+    announces how many items the section has and where in it you are. The
+    section title stays a <p>: the sidebar renders before <main>, so headings
+    here would land above the page's own h1 and break heading order. %>
+<ul class="side-menu-list space-y-0.5 px-2.5">
   <% items.each do |item| %>
-    <%= item %>
+    <li><%= item %></li>
   <% end %>
-</div>
+</ul>

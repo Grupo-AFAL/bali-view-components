@@ -1,16 +1,8 @@
-/* DaisyUI structural variable fallbacks.
-   Built-in themes (light, dark) define these, but custom themes that only
-   set colors will silently break borders, radii, and sizing without them. */
+/* The daisyUI structural fallbacks (--border, --radius-*, --size-*, --depth,
+   --noise) used to live here. They moved to ./theme-fallbacks.css, which is
+   imported into @layer base with `:where(:root)` so they behave as fallbacks
+   instead of silently overriding daisyUI themes. */
 :root {
-  --border: 1px;
-  --radius-box: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-selector: 0.5rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --depth: 1;
-  --noise: 0;
-
   /* Shared height for the app shell chrome — SideMenu brand row + Topbar.
      Both must derive from this so the bottom-border divider stays aligned
      across the seam when the value changes. */
@@ -66,37 +58,11 @@ a {
   height: var(--bali-icon-size);
 }
 
-/* Notification animations */
-.slideInRight {
-  animation: slideInRight 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
-}
-
-.fadeOutRight {
-  animation: fadeOutRight 0.3s cubic-bezier(0.06, 0.71, 0.55, 1) both;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translate3d(100%, 0, 0);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes fadeOutRight {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-    transform: translate3d(100%, 0, 0);
-  }
-}
+/* The notification animations that used to live here — `.slideInRight` and
+   `.fadeOutRight`, animate.css names in the package's global namespace — moved to
+   ../../../components/bali/toast/index.css as `.toast-component` and
+   `.toast-leaving`. They are unlayered there because they have to beat daisyUI's
+   own `.toast > *` animation; the file's header carries the measurement. */
 
 .box {
   @apply card card-border card-body bg-base-100 shadow-sm;

@@ -1,9 +1,9 @@
 <%# Component Showcase - Missing components from Kitchen Sink %>
-<%# Showcases: Calendar, Clipboard, Drawer, FlashNotifications, ImageField, List, Loader, LocationsMap, Modal, SearchInput, Tags, Tooltip, TreeView, RecurrentEventRuleForm %>
+<%# Showcases: Calendar, Clipboard, Drawer, FlashNotifications, ImageField, List, Loader, LocationsMap, Modal, Tags, Tooltip, TreeView, RecurrentEventRuleForm %>
 
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
-  <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon: 'home') %>
   <% breadcrumb.with_item(name: t('showcase.title')) %>
 <% end %>
 
@@ -38,7 +38,7 @@
       <%= render Bali::Link::Component.new(
         name: 'Open Test Page',
         href: new_direct_upload_path,
-        type: :primary
+        variant: :primary
       ) %>
     </div>
   <% end %>
@@ -92,8 +92,8 @@
           %>
           <%= f.slim_select_group :assignees,
             options_for_select(team_options),
-            { label: 'Team Members', include_blank: 'Select team members...', hide_selected: true },
-            { multiple: true, placeholder: 'Search team members...' } %>
+            label: 'Team Members', include_blank: 'Select team members...', hide_selected: true,
+            html: { multiple: true, placeholder: 'Search team members...' } %>
         <% end %>
       </div>
 
@@ -131,8 +131,8 @@
           %>
           <%= f.slim_select_group :priority,
             options_for_select(priority_options, 'medium'),
-            { label: 'Priority Level', allow_deselect_option: true },
-            { placeholder: 'Select priority...' } %>
+            label: 'Priority Level', allow_deselect_option: true,
+            html: { placeholder: 'Select priority...' } %>
         <% end %>
       </div>
     </div>
@@ -178,16 +178,16 @@
 
       <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
         <%# Text fields %>
-        <%= f.text_field_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
-        <%= f.email_field_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
+        <%= f.text_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
+        <%= f.email_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
 
         <%# Password fields %>
-        <%= f.password_field_group :password, label: t('showcase.password') %>
-        <%= f.password_field_group :password_confirmation, label: t('showcase.password_confirmation') %>
+        <%= f.password_group :password, label: t('showcase.password') %>
+        <%= f.password_group :password_confirmation, label: t('showcase.password_confirmation') %>
 
         <%# Number and URL %>
-        <%= f.number_field_group :age, label: t('showcase.age'), min: 18, max: 120 %>
-        <%= f.url_field_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
+        <%= f.number_group :age, label: t('showcase.age'), min: 18, max: 120 %>
+        <%= f.url_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
       <% end %>
 
       <%# Select %>
@@ -196,7 +196,7 @@
          [t('showcase.experience_levels.intermediate'), 'intermediate'],
          [t('showcase.experience_levels.advanced'), 'advanced'],
          [t('showcase.experience_levels.expert'), 'expert']],
-        { include_blank: t('showcase.select_level') },
+        include_blank: t('showcase.select_level'),
         label: t('showcase.experience_level') %>
 
       <%# Text area %>
@@ -204,12 +204,12 @@
 
       <%# Boolean fields %>
       <div class="space-y-2">
-        <%= f.switch_field_group :newsletter, label: t('showcase.newsletter') %>
-        <%= f.boolean_field_group :terms, label: t('showcase.terms') %>
+        <%= f.switch_group :newsletter, text: t('showcase.newsletter') %>
+        <%= f.boolean_group :terms, text: t('showcase.terms') %>
       </div>
 
       <%# Submit %>
-      <%= f.submit_actions t('showcase.register'), cancel_path: '#' %>
+      <%= f.submit_group t('showcase.register'), cancel_path: '#' %>
     <% end %>
 
     <div class="divider">Usage</div>
@@ -217,7 +217,7 @@
     <div class="mockup-code text-sm">
       <pre data-prefix="1"><code>&lt;%= form_with model: @user, builder: Bali::FormBuilder do |f| %&gt;</code></pre>
       <pre data-prefix="2" class="text-success"><code>  &lt;%= f.error_summary %&gt;</code></pre>
-      <pre data-prefix="3"><code>  &lt;%= f.text_field_group :name %&gt;</code></pre>
+      <pre data-prefix="3"><code>  &lt;%= f.text_group :name %&gt;</code></pre>
       <pre data-prefix="4"><code>  ...</code></pre>
       <pre data-prefix="5"><code>&lt;% end %&gt;</code></pre>
     </div>
@@ -235,17 +235,15 @@
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <div class="space-y-4">
       <%# Simulated flash notifications %>
-      <%= render Bali::FlashNotifications::Component.new(
-        notice: t('showcase.changes_saved'),
-        alert: nil
-      ) %>
+      <%= render Bali::Toast::Component.new(color: :success, duration: nil) do %>
+        <%= t('showcase.changes_saved') %>
+      <% end %>
 
       <div class="divider"><%= t('showcase.with_alert') %></div>
 
-      <%= render Bali::FlashNotifications::Component.new(
-        notice: nil,
-        alert: t('showcase.error_processing')
-      ) %>
+      <%= render Bali::Toast::Component.new(color: :error, duration: nil) do %>
+        <%= t('showcase.error_processing') %>
+      <% end %>
     </div>
   <% end %>
 </section>
@@ -375,28 +373,28 @@
     <div class="flex flex-wrap items-center justify-center gap-8 py-8">
       <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.top'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.top'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_top') %></span>
       <% end %>
 
       <%= render Bali::Tooltip::Component.new(placement: :bottom) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.bottom'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.bottom'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_bottom') %></span>
       <% end %>
 
       <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.left'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.left'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_left') %></span>
       <% end %>
 
       <%= render Bali::Tooltip::Component.new(placement: :right) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.right'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.right'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_right') %></span>
       <% end %>
@@ -548,9 +546,9 @@
           </div>
           <% item.with_action do %>
             <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
-              <% dropdown.with_item(href: '#', icon_name: 'download') { t('showcase.download') } %>
-              <% dropdown.with_item(href: '#', icon_name: 'share-2') { t('showcase.share') } %>
-              <% dropdown.with_item(href: '#', icon_name: 'trash', class: 'text-error') { t('common.delete') } %>
+              <% dropdown.with_item(href: '#', icon: 'download') { t('showcase.download') } %>
+              <% dropdown.with_item(href: '#', icon: 'share-2') { t('showcase.share') } %>
+              <% dropdown.with_item(href: '#', icon: 'trash', class: 'text-error') { t('common.delete') } %>
             <% end %>
           <% end %>
         <% end %>
@@ -563,9 +561,9 @@
           </div>
           <% item.with_action do %>
             <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
-              <% dropdown.with_item(href: '#', icon_name: 'download') { t('showcase.download') } %>
-              <% dropdown.with_item(href: '#', icon_name: 'share-2') { t('showcase.share') } %>
-              <% dropdown.with_item(href: '#', icon_name: 'trash', class: 'text-error') { t('common.delete') } %>
+              <% dropdown.with_item(href: '#', icon: 'download') { t('showcase.download') } %>
+              <% dropdown.with_item(href: '#', icon: 'share-2') { t('showcase.share') } %>
+              <% dropdown.with_item(href: '#', icon: 'trash', class: 'text-error') { t('common.delete') } %>
             <% end %>
           <% end %>
         <% end %>
@@ -578,9 +576,9 @@
           </div>
           <% item.with_action do %>
             <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
-              <% dropdown.with_item(href: '#', icon_name: 'download') { t('showcase.download') } %>
-              <% dropdown.with_item(href: '#', icon_name: 'share-2') { t('showcase.share') } %>
-              <% dropdown.with_item(href: '#', icon_name: 'trash', class: 'text-error') { t('common.delete') } %>
+              <% dropdown.with_item(href: '#', icon: 'download') { t('showcase.download') } %>
+              <% dropdown.with_item(href: '#', icon: 'share-2') { t('showcase.share') } %>
+              <% dropdown.with_item(href: '#', icon: 'trash', class: 'text-error') { t('common.delete') } %>
             <% end %>
           <% end %>
         <% end %>
@@ -748,19 +746,21 @@
   </h2>
   <p class="text-base-content/70 mb-4"><%= t('showcase.calendar_desc') %></p>
 
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <%= render Bali::Calendar::Component.new(
-      start_date: Date.current,
-      period: :month,
-      events: @calendar_events || [],
-      show_date: true
-    ) do |calendar| %>
-      <% calendar.with_header(route_path: '/pages/showcase', period_switch: true) %>
-    <% end %>
+  <%# The header's prev/next and period links write `?start_time=` and `?period=` back to
+      this same path, so the page has to read them or navigating does nothing. Reading them
+      raw is also the point: this is the route that shows garbage in the query string
+      degrading to today instead of raising. The Calendar brings its own card. %>
+  <%= render Bali::Calendar::Component.new(
+    start_date: params[:start_time],
+    period: params[:period],
+    events: @calendar_events || [],
+    show_date: true
+  ) do |calendar| %>
+    <% calendar.with_header(route_path: '/showcase', period_switch: true) %>
   <% end %>
 </section>
 
-<%# SearchInput Demo %>
+<%# Search field Demo — the replacement for the removed Bali::SearchInput %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
     <%= render Bali::Icon::Component.new('search', class: 'text-primary') %>
@@ -772,28 +772,23 @@
     <div class="space-y-6">
       <div>
         <h4 class="font-medium mb-2"><%= t('showcase.with_submit_button') %></h4>
-        <%= form_with url: '/pages/showcase', method: :get, local: true do |f| %>
+        <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder do |f| %>
           <div class="max-w-md">
-            <%= render Bali::SearchInput::Component.new(
-              form: Struct.new(:model_name, :query).new(model_name: 'search', query: ''),
-              field: :query,
-              placeholder: t('showcase.search_products'),
-              auto_submit: false
-            ) %>
+            <%= f.search_group :query, placeholder: t('showcase.search_products') %>
           </div>
         <% end %>
       </div>
 
       <div>
         <h4 class="font-medium mb-2"><%= t('showcase.auto_submit') %></h4>
-        <%= form_with url: '/pages/showcase', method: :get, local: true, data: { controller: 'submit-on-change' } do |f| %>
+        <%# Dropping the addon is what turns the submit button off; the form submits
+            on input instead, through the submit-on-change controller. %>
+        <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
           <div class="max-w-md">
-            <%= render Bali::SearchInput::Component.new(
-              form: Struct.new(:model_name, :query).new(model_name: 'search', query: ''),
-              field: :query,
-              placeholder: t('showcase.start_typing'),
-              auto_submit: true
-            ) %>
+            <%= f.search_group :query,
+                  placeholder: t('showcase.start_typing'),
+                  addon_right: nil,
+                  data: { action: 'submit-on-change#submit' } %>
           </div>
         <% end %>
       </div>
@@ -820,7 +815,7 @@
       </div>
 
       <div class="mt-6">
-        <%= render Bali::Message::Component.new(color: :info) do %>
+        <%= render Bali::Alert::Component.new(color: :info) do %>
           <%= raw t('showcase.generated_rrule') %>
         <% end %>
       </div>
@@ -828,7 +823,7 @@
   <% end %>
 </section>
 
-<%# LocationsMap Demo (requires GOOGLE_MAPS_KEY) %>
+<%# LocationsMap Demo (requires Bali.google_maps_key) %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
     <%= render Bali::Icon::Component.new('map-pin', class: 'text-primary') %>
@@ -837,7 +832,7 @@
   <p class="text-base-content/70 mb-4"><%= t('showcase.locations_map_desc') %></p>
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <% if ENV['GOOGLE_MAPS_KEY'].present? %>
+    <% if Bali.google_maps_key.present? %>
       <%= render Bali::LocationsMap::Component.new(
         center_latitude: 37.7749,
         center_longitude: -122.4194,
@@ -854,7 +849,7 @@
         ) %>
       <% end %>
     <% else %>
-      <%= render Bali::Message::Component.new(color: :warning) do %>
+      <%= render Bali::Alert::Component.new(color: :warning) do %>
         <%= raw t('showcase.google_maps_required') %>
       <% end %>
 
@@ -985,7 +980,7 @@
 
 <%# Summary %>
 <section class="mb-12">
-  <%= render Bali::Message::Component.new(color: :success) do %>
+  <%= render Bali::Alert::Component.new(color: :success) do %>
     <div class="flex items-start gap-3">
       <%= render Bali::Icon::Component.new('check-circle', class: 'size-6 shrink-0 mt-0.5') %>
       <div>
@@ -1004,7 +999,6 @@
             <% tags.with_item(text: 'LocationsMap', size: :sm) %>
             <% tags.with_item(text: 'Modal', size: :sm) %>
             <% tags.with_item(text: 'RecurrentEventRuleForm', size: :sm) %>
-            <% tags.with_item(text: 'SearchInput', size: :sm) %>
             <% tags.with_item(text: 'Tags', size: :sm) %>
             <% tags.with_item(text: 'Tooltip', size: :sm) %>
             <% tags.with_item(text: 'TreeView', size: :sm) %>

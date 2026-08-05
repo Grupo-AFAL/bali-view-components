@@ -22,50 +22,102 @@ module Bali
         content_width: nil
       }.freeze
 
-      def slim_select_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
-          slim_select_field(method, values, options, html_options)
+      # Same split as SelectFields: `**options` are the field's own — SlimSelect's
+      # behaviour flags and the group's caption — and `html:` is what lands on the
+      # `<select>` element.
+      def slim_select_group(method, values, *legacy, html: {}, **options)
+        options, html = legacy_option_hashes(:slim_select_group, legacy, html, options)
+        group = group_options(options, html)
+
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, group) do
+          slim_select_field(method, values, html: html, **options)
         end
       end
 
-      def slim_select_field(method, values, options = {}, html_options = {})
-        merged_options = build_options(options)
+      def slim_select_field(method, values, *legacy, html: {}, **options)
+        options, html_options = legacy_option_hashes(:slim_select_field, legacy, html, options)
         merged_html = apply_input_name_options(options, build_html_options(html_options))
+        merged_options = drop_unenforceable_required(build_options(options), merged_html)
+        # `merged_html` carries the real HTML attributes — the Stimulus target
+        # among them — so it stays untouched. The caption keys travel separately.
+        group = group_options(options, merged_html)
 
-        select_class = merged_html.delete(:select_class)
-        custom_class = merged_html[:class]
-        merged_html[:class] = field_class_name(
-          method, class_names([ SELECT_CLASS, custom_class ].compact), error_class: "select-error"
+        # `widget_attributes`, not `html_attributes`: this family cannot carry `required`.
+        # See #drop_unenforceable_required.
+        attributes = widget_attributes(merged_html)
+        attributes[:class] = field_class_name(
+          method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
+          error_class: "select-error"
         )
+        merge_aria_attributes(attributes, method, group)
 
-        field = build_wrapper(method, merged_options, merged_html, select_class) do
-          build_select_content(method, values, merged_options, merged_html)
+        field = build_wrapper(method, merged_options, attributes, merged_html[:select_class]) do
+          build_select_content(method, values, merged_options, attributes)
         end
 
-        field_helper(method, field, merged_html)
+        field_helper(method, field, group)
       end
 
       private
 
+      # `required` on this family is a constraint the user can never be told about, so it is
+      # not emitted at all.
+      #
+      # The `<select>` SlimSelect wraps is clipped to 1x1 by `bali/slim_select.css`, which is
+      # correct — SlimSelect draws its own UI — but the browser cannot anchor a validation
+      # bubble to a box that size. Measured with only that field invalid:
+      # `form.reportValidity()` returns false and focuses the `<select>` (it is focusable,
+      # being clipped rather than `display: none`), and NO bubble appears and nothing
+      # scrolls. The submit is blocked and there is no way for the user to find out why.
+      #
+      # {BaliFormBuilderRequiredOptionTest} already writes the contract this settles: the
+      # attribute reaches a control the browser validates, or it reaches nothing at all.
+      # Being validated but unable to report is the in-between that test exists to forbid.
+      #
+      # Both hashes have to be stripped, not just the element's: Rails' `select_content_tag`
+      # copies `:required`, `:multiple` and `:size` OUT of the select options and onto the
+      # element when the element does not already carry them, so a top-level `required:`
+      # reaches the `<select>` just as `html: { required: true }` does.
+      #
+      # The blank option goes back explicitly, because Rails was adding one *as a
+      # consequence* of the field being required (`placeholder_required?`). Dropping the
+      # attribute silently dropped the blank too, and a nil value then paints as the first
+      # option in the list — a record with no priority opening its form with "Low" already
+      # chosen. The condition mirrors Rails' own, so nothing changes for a caller who
+      # already asked for a blank or a prompt, or for a multiple select (which Rails never
+      # gave a blank to anyway).
+      def drop_unenforceable_required(options, html_options)
+        return options unless options[:required] || html_options[:required]
+
+        if !html_options[:multiple] && options[:include_blank].nil? && options[:prompt].nil?
+          options = options.merge(include_blank: true)
+        end
+
+        options.except(:required)
+      end
+
       def build_options(options)
         DEFAULT_OPTIONS.merge(options).merge(
+          placeholder: options.fetch(:placeholder) do
+            I18n.t("bali_view.form_builder.slim_select.placeholder")
+          end,
           search_placeholder: options.fetch(:search_placeholder) do
-            I18n.t("bali.form_builder.slim_select.search_placeholder")
+            I18n.t("bali_view.form_builder.slim_select.search_placeholder")
           end,
           select_all_text: options.fetch(:select_all_text) do
-            I18n.t("bali.form_builder.slim_select.select_all")
+            I18n.t("bali_view.form_builder.slim_select.select_all")
           end,
           deselect_all_text: options.fetch(:deselect_all_text) do
-            I18n.t("bali.form_builder.slim_select.deselect_all")
+            I18n.t("bali_view.form_builder.slim_select.deselect_all")
           end,
           no_results_text: options.fetch(:no_results_text) do
-            I18n.t("bali.form_builder.slim_select.no_results")
+            I18n.t("bali_view.form_builder.slim_select.no_results")
           end,
           searching_text: options.fetch(:searching_text) do
-            I18n.t("bali.form_builder.slim_select.searching")
+            I18n.t("bali_view.form_builder.slim_select.searching")
           end,
           results_text: options.fetch(:results_text) do
-            I18n.t("bali.form_builder.slim_select.results")
+            I18n.t("bali_view.form_builder.slim_select.results")
           end
         )
       end
@@ -137,10 +189,13 @@ module Bali
               data: { action: action, slim_select_target: target })
       end
 
+      # The wrapper id used to be a bare `#{method}_select_div`, which ignored the
+      # object name, the index and any nested-attribute path — so two forms for
+      # the same model on one page emitted the very same id twice.
       def wrapper_attributes(method, options, html_options, select_class)
         size_class = SIZE_CLASSES[options[:size]&.to_sym]
         {
-          id: "#{method}_select_div",
+          id: field_id(method, "select_div"),
           class: class_names([ WRAPPER_CLASS, size_class, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
@@ -149,7 +204,10 @@ module Bali
       def stimulus_data(options, html_options)
         data = {
           controller: "slim-select",
-          slim_select_placeholder_value: html_options[:placeholder],
+          # `html: { placeholder: }` keeps priority — call sites that pass it must not
+          # change. The translated default only fills the gap where nothing was emitted
+          # and the Stimulus controller's English 'Select value' won by omission.
+          slim_select_placeholder_value: html_options[:placeholder] || options[:placeholder],
           slim_select_show_content_value: options[:show_content],
           slim_select_search_placeholder_value: options[:search_placeholder],
           slim_select_select_all_text_value: options[:select_all_text],

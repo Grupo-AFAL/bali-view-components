@@ -42,11 +42,9 @@ Rails.application.routes.draw do
   end
 
   # === Existing routes (keep for Cypress tests) ===
-  namespace :movies do
-    resource :bulk_actions, only: :create
-  end
-
-  resources :movies do
+  # Sin `index`: los cuatro índices de referencia viven bajo /admin. Lo que queda acá son las
+  # páginas de detalle y de formulario que Cypress y los previews visitan directo.
+  resources :movies, except: :index do
     resources :characters, only: %i[new create destroy] do
       collection do
         patch :sort
@@ -54,12 +52,14 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :studios
   resource :settings, only: %i[show update]
 
   # DirectUpload test
   resources :direct_uploads, only: %i[new create]
   get 'sidemenu-example', to: 'pages#sidemenu_example'
+  get 'z-stack', to: 'pages#z_stack' # Manual check for the overlay z-index scale
+  get 'feedback-widget-demo', to: 'pages#feedback_widget_demo'
+  get 'embed/feedback_posts', to: 'pages#feedback_embed' # Stand-in for Opina's embed page
 
   # Modal/Drawer content routes (for remote loading)
   get 'modals/basic', to: 'modals#basic'
@@ -75,11 +75,9 @@ Rails.application.routes.draw do
   get 'tab2', to: 'tabs#tab2'
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
-  post 'table/bulk_action', to: 'table#bulk_action'
   get 'users', to: 'users#index'
   get 'entity_references', to: 'entity_references#index'
   post 'entity_references/resolve', to: 'entity_references#resolve'
-  resources :gantt_chart, only: %i[update]
 
   # BlockEditor
   resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
@@ -90,7 +88,10 @@ Rails.application.routes.draw do
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
   # Documents (full editing experience reference)
-  resources :documents do
+  # No `edit`: editing a document happens in the overlay `documents#show` opens, not on a
+  # page of its own, so `DocumentsController` implements six of the seven actions and the
+  # seventh route answered 404 to anyone who followed it.
+  resources :documents, except: :edit do
     resources :versions, only: [:index, :show], controller: 'document_versions'
     resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
       resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do

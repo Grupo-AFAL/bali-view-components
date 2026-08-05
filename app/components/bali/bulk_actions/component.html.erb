@@ -6,13 +6,41 @@
   <%= content %>
 
   <% if actions.any? %>
-    <%= tag.div class: CLASSES[:floating_bar], data: { bulk_actions_target: 'actionsContainer' } do %>
-      <%= tag.div class: CLASSES[:floating_bar_inner] do %>
-        <%= tag.div '0', class: CLASSES[:counter], data: { bulk_actions_target: 'selectedCount' } %>
-        <%= tag.div class: CLASSES[:actions_wrapper] do %>
+    <%# Región viva SIEMPRE presente y nunca en display:none: el contador vive dentro de un
+        contenedor que arranca oculto, y una live region que aparece junto con su texto no se
+        anuncia. Sin esto, seleccionar filas no le decía NADA al lector de pantalla — ni el
+        conteo, ni que aparecieron acciones masivas, ni que la búsqueda y los filtros se
+        fueron de la página (WCAG 2.1 SC 4.1.3). El plural lo sirve el servidor en dos data
+        attributes para no interpolar i18n en JS. %>
+    <%= tag.div class: 'sr-only', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true',
+                data: { bulk_actions_target: 'announcement',
+                        selected_one: t('.selected_one'), selected_other: t('.selected_other') } %>
+
+    <%= tag.div class: bar_classes, data: { bulk_actions_target: 'actionsContainer' } do %>
+      <%= tag.div class: bar_inner_classes do %>
+        <% if toolbar? %>
+          <%= tag.div class: CLASSES[:toolbar_counter_wrapper] do %>
+            <%= tag.span '0', class: CLASSES[:toolbar_counter], data: { bulk_actions_target: 'selectedCount' } %>
+            <%= tag.span t('.selected_one'), class: 'hidden', data: { bulk_actions_target: 'selectedLabelOne' } %>
+            <%= tag.span t('.selected_other'), data: { bulk_actions_target: 'selectedLabelOther' } %>
+          <% end %>
+        <% else %>
+          <%= tag.div '0', class: CLASSES[:counter], data: { bulk_actions_target: 'selectedCount' } %>
+        <% end %>
+
+        <%= tag.div class: actions_wrapper_classes do %>
           <% actions.each do |action| %>
             <%= action %>
           <% end %>
+        <% end %>
+
+        <% if toolbar? %>
+          <%# Limpiar la selección es una ACCIÓN, no navegación: botón, no link. %>
+          <%= render Bali::Button::Component.new(
+                icon: 'times', variant: :ghost, size: :xs, responsive: false,
+                'aria-label': t('.clear'),
+                data: { action: 'bulk-actions#clear' }
+              ) %>
         <% end %>
       <% end %>
     <% end %>

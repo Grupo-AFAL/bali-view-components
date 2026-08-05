@@ -2,6 +2,10 @@
 
 module Bali
   module Drawer
+    # Like Modal, the panel is a native `<dialog>` that `DrawerController` opens
+    # with `showModal()`. The `dirty_form` scenario below is the one that proves
+    # the awkward half: flatpickr portals its calendar to `<body>`, where a modal
+    # dialog would leave it both covered and inert, so it is moved back in.
     class Preview < ApplicationViewComponentPreview
       # @param active toggle
       # @param size select [sm, md, lg, xl, full]
@@ -49,6 +53,18 @@ module Bali
       # page and the drawer closes, instead of injecting the raw
       # `<turbo-stream>` markup as inert HTML. Used by the Cypress suite.
       def turbo_stream_form
+        render_with_template
+      end
+
+      # Required Fields
+      # ---
+      # `drawer#submit` cancels the event before the browser can run its own
+      # interactive validation, so the controller is what has to report an invalid
+      # field. It asks the FORM, which covers `<textarea>` and `<select>` as well as
+      # `<input>` and stops at the first invalid control: until #894 the report walked
+      # `input` only, and a required textarea or select blocked the submit with no
+      # message at all. Used by the Cypress suite.
+      def required_fields
         render_with_template
       end
 

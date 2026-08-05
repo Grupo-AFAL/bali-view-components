@@ -12,7 +12,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
 
   def test_select_group_renders_a_label
     result = builder.select_group(:status, Movie.statuses.to_a)
-    assert_html(result, "legend.fieldset-legend", text: "Status")
+    assert_html(result, "label.fieldset-legend", text: "Status")
   end
 
   def test_select_group_renders_a_select_with_daisyui_classes
@@ -47,7 +47,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_select_field_with_custom_class_includes_custom_class_with_daisyui_classes
-    result = builder.select_field(:status, Movie.statuses.to_a, {}, class: "custom-class")
+    result = builder.select_field(:status, Movie.statuses.to_a, html: { class: "custom-class" })
     assert_html(result, "select.select.select-bordered.w-full.custom-class")
   end
 
@@ -64,8 +64,8 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_select_field_with_help_text_displays_help_text
-    result = builder.select_field(:status, Movie.statuses.to_a, {}, help: "Select a status")
-    assert_html(result, "p.label-text-alt", text: "Select a status")
+    result = builder.select_field(:status, Movie.statuses.to_a, help: "Select a status")
+    assert_html(result, "p.fieldset-label", text: "Select a status")
   end
 
   # input_name / input_id options (issue #547)
@@ -86,7 +86,9 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_select_field_explicit_html_name_wins_over_input_name
-    result = builder.select_field(:status, Movie.statuses.to_a, { input_name: "a[b]" }, name: "c[d]")
+    result = builder.select_field(
+      :status, Movie.statuses.to_a, input_name: "a[b]", html: { name: "c[d]" }
+    )
     assert_html(result, 'select[name="c[d]"]')
   end
 

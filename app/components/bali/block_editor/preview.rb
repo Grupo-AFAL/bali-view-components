@@ -27,6 +27,22 @@ module Bali
         )
       end
 
+      # @label Two Editors On One Page
+      # Two independent editors in the same document. This is the case that broke:
+      # `useFileUpload` looked its container up with a global
+      # `document.querySelector('[data-controller="block-editor"]')`, so an upload
+      # error was reported against whichever editor came first in the DOM rather
+      # than the one that failed, and both toasts landed on the same fixed corner.
+      #
+      # Editor B's `upload_url` points at a 404 on purpose, so its uploads fail on
+      # demand and the toast has somewhere wrong it could go.
+      def two_editors
+        render_with_template(locals: {
+          content_a: [ paragraph("Editor A. Uploads work here.") ],
+          content_b: [ paragraph("Editor B. Uploads are unconfigured here on purpose.") ]
+        })
+      end
+
       def with_form_input
         render BlockEditor::Component.new(
           editable: true,
@@ -142,8 +158,9 @@ module Bali
       def with_comments(editable: true)
         render BlockEditor::Component.new(
           editable: editable,
-          comments: { user: sample_comments_user, users: sample_comments_users },
-          initial_content: sample_content.to_json
+          comments: { user: sample_comments_user, users: sample_comments_users,
+                      threads: sample_comment_threads },
+          initial_content: commented_document.to_json
         )
       end
 
@@ -205,7 +222,112 @@ module Bali
         ]
       end
 
+      # A comment lives in TWO places and needs both to render as a real one: a thread in
+      # the store, and a `comment` mark on the text it is anchored to. Seeding only the
+      # store gets threads in the sidebar, each labelled "Original content deleted" —
+      # measured — because nothing in the document points at them.
+      #
+      # The mark cannot travel in the blocks array `initial_content` usually takes:
+      # BlockNote's comment mark declares `blocknoteIgnore`, so the block serializer skips
+      # it by design. It travels in the OTHER shape `initial_content` accepts — ProseMirror
+      # JSON, the `{ type: "doc" }` form the component detects and loads through
+      # `setContent` precisely because it preserves comment marks. Hence this document
+      # rather than `sample_content`.
+      #
+      # The ids are fixed so the two halves can refer to each other from Ruby.
+      def commented_document
+        pm_doc(
+          pm_block("preview-block-1", pm_heading(2, [ pm_text("Comments") ])),
+          pm_block("preview-block-2", pm_paragraph([
+                                                     pm_text("Select any text and use the comment button in the toolbar to " \
+                                                             "start a thread. The two threads in the sidebar arrived with " \
+                                                             "the document.")
+                                                   ])),
+          pm_block("preview-block-3", pm_paragraph([
+                                                     pm_text("Keyboard shortcuts are listed in the slash menu.",
+                                                             thread_id: "preview-thread-1")
+                                                   ])),
+          pm_block("preview-block-4", pm_paragraph([
+                                                     pm_text("The export formats follow the spec.",
+                                                             thread_id: "preview-thread-2")
+                                                   ]))
+        )
+      end
+
+      # The ProseMirror shape BlockNote reads: every block is wrapped in a `blockContainer`
+      # inside one `blockGroup`. Taken from `_tiptapEditor.getJSON()` on a real document
+      # rather than written from the schema, so it stays the shape the editor emits.
+      PM_BLOCK_ATTRS = {
+        backgroundColor: "default", textColor: "default", textAlignment: "left"
+      }.freeze
+
+      def pm_doc(*containers)
+        { type: "doc", content: [ { type: "blockGroup", content: containers } ] }
+      end
+
+      def pm_block(id, node)
+        { type: "blockContainer", attrs: { id: id }, content: [ node ] }
+      end
+
+      def pm_paragraph(runs)
+        { type: "paragraph", attrs: PM_BLOCK_ATTRS, content: runs }
+      end
+
+      def pm_heading(level, runs)
+        { type: "heading", attrs: PM_BLOCK_ATTRS.merge(level: level, isToggleable: false), content: runs }
+      end
+
+      def pm_text(text, thread_id: nil)
+        run = { type: "text", text: text }
+        return run if thread_id.nil?
+
+        run.merge(marks: [ { type: "comment", attrs: { orphan: false, threadId: thread_id } } ])
+      end
+
+      # A preview called "With Comments" that opens with none exercises nothing, and the
+      # preview sweep still counts it a 200. It is what made #832 — a thread card wider
+      # than the sidebar it sits in — invisible: reproducing that needed a comment created
+      # by hand through the UI first.
+      #
+      # Two threads on purpose, because the sidebar's width is what breaks: a short one
+      # that fits, and one carrying a long URL with nothing to break on, which is the
+      # string that overflows a fixed-width card.
+      def sample_comment_threads
+        [
+          {
+            id: 'preview-thread-1',
+            comments: [
+              comment_body('preview-comment-1', '2',
+                           'Should this section mention the keyboard shortcuts too?')
+            ]
+          },
+          {
+            id: 'preview-thread-2',
+            comments: [
+              comment_body('preview-comment-2', '3',
+                           'Reference for the spec we agreed on: ' \
+                           'https://example.com/very/long/path/that/never/breaks/' \
+                           'because-it-has-no-spaces-anywhere-in-it-at-all'),
+              comment_body('preview-comment-3', '1', 'Linked, thanks.')
+            ]
+          }
+        ]
+      end
+
+      # The body of a comment is a BlockNote document, not a string.
+      def comment_body(id, user_id, text)
+        {
+          id: id,
+          userId: user_id,
+          body: [ paragraph(text) ]
+        }
+      end
+
       # rubocop:disable Metrics/MethodLength
+      def paragraph(text)
+        { type: 'paragraph', content: [ { type: 'text', text: text, styles: {} } ] }
+      end
+
       def sample_content
         [
           # Heading Level 1

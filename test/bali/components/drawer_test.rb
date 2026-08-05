@@ -13,13 +13,13 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_basic_rendering_renders_drawer_component
     render_inline(component)
-    assert_selector("div.drawer-component")
+    assert_selector("dialog.drawer-component")
   end
 
   def test_basic_rendering_renders_drawer_open_class_when_active
     @options.merge!(active: true)
     render_inline(component)
-    assert_selector("div.drawer-component.drawer-open")
+    assert_selector("dialog.drawer-component.drawer-open")
   end
 
   def test_basic_rendering_renders_with_custom_content
@@ -75,9 +75,16 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_selector(".drawer-panel.bg-base-100.shadow-2xl")
   end
 
+  # Focus has to land somewhere inside the panel while the skeleton is showing,
+  # and at that point the panel holds nothing focusable of its own.
+  def test_structure_panel_is_focusable_for_the_skeleton_phase
+    render_inline(component)
+    assert_selector('.drawer-panel[tabindex="-1"]')
+  end
+
   def test_unique_ids_generates_unique_drawer_id_by_default
     render_inline(component)
-    id = page.find('[role="dialog"]')["id"]
+    id = page.find("dialog.drawer-component")["id"]
     assert_match(/drawer-[a-f0-9]{8}/, id)
   end
 
@@ -87,27 +94,43 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_selector("#my-settings-drawer")
   end
 
-  def test_accessibility_has_role_dialog
+  # A `drawer#open` trigger usually names no drawer, so the open event is a broadcast. Every
+  # drawer used to answer one, which was fine only while a page carried a single overlay —
+  # and the package itself ships a second one in `FeedbackWidget` (#854). A drawer that
+  # belongs to one feature opts out and waits to be named.
+  def test_broadcast_a_shared_drawer_answers_an_unaddressed_open_by_default
     render_inline(component)
-    assert_selector('[role="dialog"]')
+    assert_no_selector("dialog.drawer-component[data-drawer-shared-value]")
   end
 
-  def test_accessibility_has_aria_modal_true
+  def test_broadcast_an_unshared_drawer_says_so_on_the_controller_element
+    @options.merge!(shared: false)
     render_inline(component)
-    assert_selector('[aria-modal="true"]')
+    assert_selector("dialog.drawer-component[data-controller~='drawer'][data-drawer-shared-value='false']")
+  end
+
+  # A native `<dialog>` opened with `showModal()`. `role="dialog"` and
+  # `aria-modal="true"` are gone because both are implicit on the element, and
+  # the second one was a lie in the state a static attribute cannot tell apart:
+  # a panel rendered `active:` that no script has opened yet is not modal.
+  def test_accessibility_is_a_native_dialog_element
+    render_inline(component)
+    assert_selector("dialog.drawer-component")
+    assert_no_selector("dialog.drawer-component[role]")
+    assert_no_selector("dialog.drawer-component[aria-modal]")
   end
 
   def test_accessibility_connects_aria_labelledby_to_title_when_title_is_provided
     @options.merge!(title: "Settings")
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     title_id = dialog["aria-labelledby"]
     assert_selector("##{title_id}", text: "Settings")
   end
 
   def test_accessibility_does_not_add_aria_labelledby_when_no_title_is_provided
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_nil(dialog["aria-labelledby"])
   end
 
@@ -124,7 +147,7 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_accessibility_has_escape_key_handling_via_data_action
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_includes(dialog["data-action"], "keydown.esc->drawer#close")
   end
 
@@ -181,7 +204,7 @@ class BaliDrawerComponentTest < ComponentTestCase
   def test_options_passthrough_merges_data_attributes_with_defaults
     @options.merge!(data: { custom: "value" })
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_equal("drawer", dialog["data-controller"])
     assert_equal("value", dialog["data-custom"])
   end
@@ -193,7 +216,7 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_confirm_close_uses_default_message
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_equal("You have unsaved changes. Discard them?", dialog["data-drawer-confirm-close-message-value"])
   end
 

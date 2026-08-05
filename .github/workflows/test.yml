@@ -1,9 +1,9 @@
 name: Tests
 on:
   push:
-    branches: [main]
+    branches: [main, "3.1"]
   pull_request:
-    branches: [main]
+    branches: [main, "3.1"]
 
 jobs:
   test:
@@ -18,7 +18,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          # 22, not 20: @blocknote/core 0.52 depends on lib0 1.0.0-rc.22, whose
+          # engines.node is ">=22". On Node 20 the `yarn install` below aborts with
+          # "Found incompatible module" before a single test runs.
+          node-version: '22'
           cache: 'yarn'
           cache-dependency-path: spec/dummy/yarn.lock
       - name: Install Node dependencies

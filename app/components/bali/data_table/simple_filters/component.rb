@@ -17,6 +17,8 @@ module Bali
       #   ])
       #
       class Component < ApplicationViewComponent
+        include Utils::Url
+
         # Min-width for slim_select dropdowns. Triggers in SimpleFilters are narrow
         # (~13rem), so we let the dropdown grow past the trigger to fit long labels
         # without wrapping.
@@ -25,28 +27,35 @@ module Bali
         # @param url [String] Form submission URL
         # @param filters [Array<Hash>] Filter configurations
         # @param show_clear [Boolean] Show clear button
-        # @param search [Hash, nil] Search input configuration
-        #   - :field_name [String] Ransack param name (e.g., "q[name_cont]")
+        # @param search [Hash, nil] Search input configuration (see Bali::SearchConfig)
+        #   - :fields [Array<Symbol>] Columns to search (e.g., [:name, :email]);
+        #     Bali derives the Ransack param name from them
         #   - :value [String, nil] Current search value
         #   - :placeholder [String, nil] Placeholder text
-        #   - :label [String, nil] Custom label (defaults to I18n)
+        #   - :label [String, nil] Accessible name for the search input
+        #   - :icon [String, nil] Icon rendered as a leading addon
         #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
         # @param storage_id [String, nil] Optional storage ID indicating filters can be persisted
         # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+        # @param persistence_toggle [Boolean] Render the bookmark toggle inline (default: true).
+        #   DataTable turns it off and paints it as its own toolbar control.
         # @param preserved_params [Hash] Extra top-level params (e.g. an active
         #   `group_by`) rendered as hidden fields so the GET submit keeps them
         # rubocop:disable Metrics/ParameterLists
         def initialize(url:, filters: [], show_clear: false, search: nil, storage_id: nil,
-                       persist_enabled: false, preserved_params: {})
+                       persist_enabled: false, persistence_toggle: true, preserved_params: {})
           # rubocop:enable Metrics/ParameterLists
           @url = url
           @filters = filters
           @show_clear = show_clear
-          @search = search
+          @search = Bali::SearchConfig.wrap(search)
           @storage_id = storage_id
           @persist_enabled = persist_enabled
+          @persistence_toggle = persistence_toggle
           @preserved_params = preserved_params || {}
         end
+
+        attr_reader :storage_id
 
         # Top-level params to carry through the GET submit as hidden fields.
         # Blank values are dropped so no empty inputs are emitted.
@@ -62,26 +71,41 @@ module Bali
           @show_clear
         end
 
-        # Returns true if persistence is available (storage_id is configured)
-        def persistence_available?
-          @storage_id.present?
-        end
-
         # Returns true if user has enabled persistence
         def persist_enabled?
           @persist_enabled
         end
 
+        # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
+        # controladores `filter-persistence` sobre el mismo storage_id se pisan el
+        # localStorage y la cookie.
+        def persistence_toggle?
+          @persistence_toggle
+        end
+
         def search_enabled?
-          @search.present? && @search[:field_name].present?
+          @search.enabled?
+        end
+
+        # "q[name_or_email_cont]"
+        def search_field_name
+          @search.param_name
+        end
+
+        def search_value
+          @search.value
+        end
+
+        def search_placeholder
+          @search.placeholder
         end
 
         def search_icon
-          @search&.dig(:icon)
+          @search.icon
         end
 
         def search_width
-          @search&.dig(:width) || "w-48 sm:w-96"
+          @search.width.presence || "w-48 sm:w-96"
         end
 
         def filter_type(filter)
@@ -139,6 +163,35 @@ module Bali
           values
         end
 
+        # A filter whose caption cannot be a `<label for>` because it has no
+        # single control to point at. Those get a `role="group"` named by the
+        # caption instead, which is what a caption over several controls is.
+        def multi_control?(filter)
+          toggle_group?(filter) || radio_group?(filter) || number_range?(filter)
+        end
+
+        # Derived from the Ransack param name, not from the attribute: the
+        # predicate is what tells two filters over the same column apart, and it
+        # is already assumed unique — two filters sharing a name would be
+        # fighting over the same param anyway.
+        def filter_control_id(filter)
+          "simple-filter-#{filter_field_name(filter).gsub(/[^a-zA-Z0-9_-]+/, "-").squeeze("-").delete_suffix("-")}"
+        end
+
+        def filter_label_id(filter)
+          "#{filter_control_id(filter)}-label"
+        end
+
+        def search_input_id
+          "simple-filter-search-#{search_field_name.gsub(/[^a-zA-Z0-9_-]+/, "-").squeeze("-").delete_suffix("-")}"
+        end
+
+        # Documented since the component was written but never rendered, which
+        # left the search box named by its placeholder alone.
+        def search_label
+          @search.label
+        end
+
         def icon_addon(icon_name)
           return unless icon_name
 
@@ -147,12 +200,32 @@ module Bali
           end
         end
 
+        # Sin filtros declarados el botón no filtra nada: lo único que manda es el término
+        # de búsqueda, y "Filtrar" nombra algo que en esa pantalla no existe. La cadena
+        # para ese caso ya estaba en el paquete —`filters.submit_search`, hoy usada como
+        # `aria-label` del buscador del panel completo— así que no suma traducciones.
         def apply_button_text
-          I18n.t("bali.simple_filters.apply", default: "Filter")
+          return I18n.t("bali_view.filters.submit_search") if @filters.blank?
+
+          I18n.t("bali_view.simple_filters.apply")
         end
 
         def clear_button_text
-          I18n.t("bali.simple_filters.clear", default: "Clear")
+          I18n.t("bali_view.simple_filters.clear")
+        end
+
+        # Navegar a la URL pelada NO limpia: para el server es indistinguible de "no vino
+        # ningún filtro", y con la persistencia encendida ese es justo el caso que RESTAURA
+        # lo guardado — el usuario limpiaba y el listado le devolvía el filtro. `clear_filters`
+        # es lo único que dispara el borrado de la caché (`FilterForm`: `Rails.cache.delete`).
+        # Las otras dos rutas de limpieza ya lo mandaban (`AppliedTags#clear_all_url` y
+        # `clearFiltersAndClose` del JS); ésta se había quedado afuera.
+        #
+        # Se AGREGA al query string en vez de reemplazarlo: la `url:` del listado puede traer
+        # params propios del host (`request.fullpath`, un scope), y perderlos al limpiar
+        # mandaría al usuario a otra vista.
+        def clear_href
+          add_query_param(@url, :clear_filters, true)
         end
       end
     end

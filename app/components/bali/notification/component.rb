@@ -2,100 +2,55 @@
 
 module Bali
   module Notification
-    class Component < ApplicationViewComponent
-      BASE_CLASSES = "notification-component alert shadow-xl"
-      UNCLOSABLE_CLASSES = "[&.is-unclosable_.btn-circle]:hidden " \
-                           "[&.is-unclosable_.notification-content-component]:mr-0"
-
-      TYPES = {
-        success: "alert-success",
-        info: "alert-info",
-        warning: "alert-warning",
-        error: "alert-error",
-        danger: "alert-error",
-        primary: "alert-info"
+    # Deprecated in v3, removed in v4. Split into {Bali::Toast::Component} (the
+    # alert, which this subclasses) and {Bali::ToastContainer::Component} (the
+    # fixed stack, which this still emits by hand when `fixed:` is on).
+    #
+    # Three keywords are translated here because the old names meant something
+    # else: `type:` is `color:`, and `delay:` plus `dismiss:` collapse into a
+    # single `duration:`. `dismiss:` in particular never had anything to do with
+    # the close button — that button was always rendered, and the only way to hide
+    # it was an `is-unclosable` class the gem never set. It is `closable:` now.
+    class Component < Bali::Toast::Component
+      # `danger` and `primary` were aliases: they rendered `alert-error` and
+      # `alert-info`, the same classes `error` and `info` already rendered.
+      LEGACY_COLORS = {
+        danger: :error,
+        primary: :info
       }.freeze
 
-      ICONS = {
-        success: "circle-check",
-        info: "info",
-        warning: "triangle-alert",
-        error: "circle-x",
-        danger: "circle-x",
-        primary: "info"
+      LEGACY_POSITIONS = {
+        top_right: :top_end,
+        bottom_right: :bottom_end
       }.freeze
 
-      STYLES = {
-        soft: "alert-soft",
-        outline: "alert-outline",
-        dash: "alert-dash"
-      }.freeze
-
-      POSITIONS = {
-        top_right: "fixed top-4 right-4 z-[101]",
-        bottom_right: "fixed bottom-4 right-4 z-[101]"
-      }.freeze
-
-      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, position: :bottom_right, **options)
-        @type = type&.to_sym
-        @delay = delay
-        @fixed = fixed
-        @dismiss = dismiss
-        @style = style&.to_sym
-        @position = position&.to_sym
-        @options = options
-      end
-
-      def alert_classes
-        class_names(
-          BASE_CLASSES,
-          UNCLOSABLE_CLASSES,
-          type_class,
-          style_class,
-          fixed_classes,
-          options[:class]
+      def initialize(type: :success, delay: DEFAULT_DURATION, dismiss: true,
+                     fixed: true, position: :bottom_right, **options)
+        Bali.deprecator.warn(
+          "Bali::Notification::Component is deprecated and is removed in 4.0. " \
+          "Use Bali::Toast::Component inside a Bali::ToastContainer::Component: " \
+          "`type:` is `color:`, `delay:`/`dismiss:` are one `duration:` (nil never " \
+          "auto-closes), and `fixed:`/`position:` move to the container. " \
+          "See docs/guides/migration-v2-to-v3.md."
         )
-      end
 
-      def stimulus_attributes
-        {
-          controller: "notification",
-          'notification-delay-value': delay,
-          'notification-dismiss-value': dismiss,
-          'turbo-cache': false
-        }
-      end
+        @fixed = fixed
+        @position = LEGACY_POSITIONS.fetch(position&.to_sym, position&.to_sym)
 
-      def type_icon
-        ICONS.fetch(type, ICONS[:success])
-      end
-
-      def close_button_label
-        t(".close")
+        key = type&.to_sym
+        super(color: LEGACY_COLORS.fetch(key, key), duration: dismiss ? delay : nil, **options)
       end
 
       private
 
-      attr_reader :type, :delay, :fixed, :dismiss, :style, :position, :options
+      def fixed? = @fixed
 
-      def type_class
-        TYPES.fetch(type, TYPES[:success])
-      end
-
-      def style_class
-        STYLES[style]
-      end
-
-      def aria_role
-        type == :error || type == :danger ? "alert" : "status"
-      end
-
-      def fixed_classes
-        return unless fixed
-
+      def container_classes
         class_names(
-          POSITIONS.fetch(position, POSITIONS[:bottom_right]),
-          Bali.native_app && "left-1/2 right-auto -translate-x-1/2 w-full"
+          Bali::ToastContainer::Component::BASE_CLASSES,
+          Bali::ToastContainer::Component::POSITIONS.fetch(
+            @position, Bali::ToastContainer::Component::POSITIONS[:bottom_end]
+          )
         )
       end
     end

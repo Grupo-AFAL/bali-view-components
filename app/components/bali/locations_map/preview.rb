@@ -18,11 +18,15 @@ module Bali
       # Displays an interactive Google Map with location markers.
       #
       # ## Setup Required
-      # This component requires a Google Maps JavaScript API key.
-      # Set the `GOOGLE_MAPS_KEY` environment variable:
+      # This component requires a Google Maps JavaScript API key, read from
+      # `Bali.google_maps_key`:
+      # ```ruby
+      # Bali.google_maps_key = Rails.application.credentials.dig(:google, :maps_key)
       # ```
-      # GOOGLE_MAPS_KEY=AIzaSy...your_key
-      # ```
+      # With nothing configured it falls back to the `GOOGLE_MAPS_KEY`
+      # environment variable. Without either, the component still renders and
+      # the map area stays blank — the missing key is reported in the browser
+      # console, not by a server-side error.
       # See [External Services Guide](/docs/guides/external-services.md) for setup instructions.
       #
       # @param zoom number

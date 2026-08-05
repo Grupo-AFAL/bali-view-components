@@ -1,0 +1,18 @@
+<div class="flex justify-center items-center gap-16 p-16">
+  <%= render Bali::Tooltip::Component.new(placement: :bottom, class: 'image-balloon') do |c| %>
+    <% c.with_trigger do %>
+      <span class="link link-primary">Poster</span>
+    <% end %>
+    <%= image_tag 'avatar.png', width: 64, height: 64, alt: '' %>
+  <% end %>
+
+  <%= render Bali::Tooltip::Component.new(placement: :bottom, class: 'sparkline-balloon') do |c| %>
+    <% c.with_trigger do %>
+      <span class="link link-primary">Trend</span>
+    <% end %>
+    <svg width="120" height="40" viewBox="0 0 120 40" role="img" aria-label="Revenue trend">
+      <polyline points="0,30 30,20 60,25 90,8 120,14"
+                fill="none" stroke="currentColor" stroke-width="2"></polyline>
+    </svg>
+  <% end %>
+</div>

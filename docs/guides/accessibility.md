@@ -169,10 +169,14 @@ All buttons, links, and controls must have:
 
 ### Modal
 
+`Bali::Modal` and `Bali::Drawer` render a native `<dialog>` and open it with
+`showModal()`. Do the same in your own markup, and do **not** write `role="dialog"`
+or `aria-modal="true"` on it: both are implicit on the element, and `aria-modal`
+written by hand is a claim the markup cannot keep — a `<dialog>` that no script has
+opened with `showModal()` is not modal, whatever the attribute says.
+
 ```erb
-<dialog class="modal" 
-        role="dialog"
-        aria-modal="true"
+<dialog class="modal"
         aria-labelledby="modal-title"
         aria-describedby="modal-desc">
   <div class="modal-box">
@@ -373,6 +377,104 @@ All buttons, links, and controls must have:
 </div>
 ```
 
+### Tabs vs navigation
+
+Sharing a look is not sharing a role. `Bali::Tabs` renders two different widgets and picks
+between them by whether the triggers have an `href:`:
+
+| Triggers | Renders | Why |
+|---|---|---|
+| No `href:` — each tab owns a panel | `role="tablist"` / `role="tab"` / `role="tabpanel"` | The ARIA tabs pattern: a click swaps a panel without leaving the page |
+| `href:` on **every** tab | `<nav aria-label>` + `aria-current="page"` | The click leaves the page. There is no panel, so `role="tab"` would promise an `aria-controls` target that does not exist |
+
+Mixing them raises `ArgumentError`. A tablist where half the children are links leaving the
+page is a widget ARIA does not describe.
+
+Name the `<nav>` whenever a page holds more than one: `Tabs::Component.new(label: '…')`.
+
+### Label / value pairs
+
+A `<label>` with no `for=` and no control inside it labels nothing — the text and the value
+next to it end up as two unrelated nodes in the accessibility tree. Use the pairing the
+markup actually means:
+
+```erb
+<%# One pair that stands on its own, or pairs placed individually in a grid %>
+<%= render Bali::LabelValue::Component.new(label: 'Name', value: 'Juan Perez') %>
+<%# → <dl><dt>Name</dt><dd>Juan Perez</dd></dl> %>
+
+<%# A set read top to bottom: one table, one announcement of how many rows %>
+<%= render Bali::PropertiesTable::Component.new do |t| %>
+  <% t.with_property(label: 'Name', value: 'Juan Perez') %>
+  <% t.with_property(label: 'Email', value: 'juan@example.com') %>
+<% end %>
+```
+
+### Icon-only state
+
+An icon is not a name. Lucide ships its SVGs `aria-hidden`, so an icon on its own is an
+anonymous node — a table cell holding one announces as empty, and colour ends up being the
+only thing separating two states, which fails WCAG 1.4.1 as well.
+
+```erb
+<%# Bali::BooleanIcon does this for you: icon + sr-only name %>
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+
+<%# The hand-rolled equivalent %>
+<span class="text-success">
+  <%= render Bali::Icon::Component.new('check-circle', 'aria-hidden': true) %>
+  <span class="sr-only">Yes</span>
+</span>
+```
+
+Keep three states three states. `nil` is missing data, not `false`: announcing "No" for a
+column nobody filled in asserts something the record does not say.
+
+### Charts and other canvas
+
+A canvas is opaque to assistive tech — everything drawn into it is pixels, and the fallback
+content inside the tag is only surfaced when canvas itself is unsupported.
+
+```erb
+<%= render Bali::Chart::Component.new(data: @sales, title: 'Weekly sales') do |c| %>
+  <% c.with_data_table do %>
+    <%# a real <table>, rendered sr-only next to the canvas %>
+  <% end %>
+<% end %>
+```
+
+- `role="img"` plus a name is the floor. An unnamed `role="img"` is announced as nothing,
+  so a generic name beats none.
+- A name is not a number. The `data_table` slot is the only way a screen reader user reads
+  a value off the chart.
+
+The same reasoning drives `Bali::Heatmap`: axis labels are `<th scope="col">` and
+`<th scope="row">` so both axes reach the cell as headers, and each cell carries its value
+as `sr-only` text, because a coloured cell with no text is an empty cell.
+
+### Drag and drop
+
+A drop moves the DOM and nothing else: focus stays where it was and no text changes, so
+nothing is announced. A live region is the only channel the outcome can travel through.
+
+```erb
+<%# Bali::Kanban ships this: a role="status" region plus a translated template %>
+<div class="sr-only" role="status" aria-live="polite" aria-atomic="true"
+     data-kanban-target="liveRegion"></div>
+```
+
+Two things that are easy to get wrong:
+
+- **The region has to be in the DOM before the text arrives.** Inserting the region and its
+  text together is not a change to a live region; it is a new element, and most screen
+  readers say nothing.
+- **Writing the same string twice is not a change either.** Dropping a card back where it
+  came from goes silent unless you clear the region first and set it on the next frame.
+
+Name the drop targets too: `Kanban` gives each column `role="list"` with an `aria-label`
+carrying the count, including `"Backlog, 0 cards"` — an empty column that stays quiet is an
+unnamed list of nothing.
+
 ---
 
 ## Color Contrast Requirements
@@ -454,19 +556,49 @@ Ensure logical tab order:
 
 ### Skip Links
 
+`Bali::AppLayout::Component` renders one for you. It is the first focusable element on the
+page, it points at the `<main id="main-content" tabindex="-1">` the layout also renders, and it
+is off-screen until it takes focus. Pass `skip_link: false` to opt out.
+
+Hand-rolling one outside AppLayout:
+
 ```erb
 <body>
   <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-base-100 focus:p-4">
     Skip to main content
   </a>
-  
+
   <nav>...</nav>
-  
+
   <main id="main-content" tabindex="-1">
     ...
   </main>
 </body>
 ```
+
+`tabindex="-1"` on the target is not optional: without it the browser scrolls to `<main>` but
+leaves focus behind, and the next Tab restarts at the top of the page.
+
+### Sidebar navigation
+
+`Bali::SideMenu::Component` renders a `<nav aria-label>` landmark whose items are a real
+`ul`/`li` list, and marks the link pointing at the current page with `aria-current="page"`. An
+ancestor of the current page stays visually highlighted but does **not** get `aria-current` —
+that belongs to the one link that actually points at the page you are on.
+
+Everything that opens or collapses it is a `<button>`. Do not build your own hamburger: render
+`Bali::SideMenu::Trigger::Component`, which carries `aria-controls`, keeps `aria-expanded` in
+sync with the sidebar, and gets focus back when the drawer closes.
+
+```erb
+<%= render Bali::SideMenu::Trigger::Component.new %>
+```
+
+Below the `lg` breakpoint the sidebar is a modal drawer:
+
+- it carries `inert` while closed, so nothing inside it is reachable by Tab;
+- opening it moves focus to its first control and keeps Tab inside it;
+- Escape closes it and returns focus to the trigger that opened it.
 
 ---
 
@@ -520,12 +652,39 @@ module AccessibilityHelpers
 end
 ```
 
+### Read the accessibility tree, not the markup
+
+An `aria-label` on the wrong element looks perfect in the HTML and never reaches the tree.
+Assert against what the browser computed:
+
+- **DevTools** → Elements → Accessibility pane, or the full-page tree at the top of it.
+- **Scripted**, over CDP — this is the same tree, and it works headless:
+
+  ```js
+  const cdp = await context.newCDPSession(page)
+  await cdp.send('Accessibility.enable')
+  const { nodes } = await cdp.send('Accessibility.getFullAXTree')
+  // each node: { role: {value}, name: {value}, properties: [...], childIds, ignored }
+  ```
+
+  `page.accessibility.snapshot()` was removed in Playwright 1.61; `getFullAXTree` replaces it.
+
+Two traps worth knowing before you trust a negative result:
+
+- **CDP does not report `aria-current`.** It is absent from the `AXPropertyName` enum, so a
+  link with `aria-current="page"` shows no such property even on a hand-written control
+  page. Verify that one in the DOM.
+- **A page at rest hides half the work.** A live region is empty until something writes to
+  it, and a drop announcement only exists after a real drag. Provoke the state; a snapshot
+  of the loaded page will look clean and prove nothing.
+
 ### Manual Testing
 
 | Test | Method |
 |------|--------|
 | Keyboard navigation | Tab through all interactive elements |
 | Screen reader | Test with VoiceOver (Mac) or NVDA (Windows) |
+| Accessibility tree | Read it, per the section above — not the rendered HTML |
 | Zoom | Test at 200% zoom |
 | Color blindness | Use simulator (e.g., Chrome DevTools) |
 | Motion | Test with `prefers-reduced-motion` |
@@ -626,10 +785,9 @@ cy.checkA11y()
   <div class="modal-box">...</div>
 </div>
 
-<%# FIX %>
-<dialog class="modal" 
-        role="dialog" 
-        aria-modal="true"
+<%# FIX — a native <dialog>, opened with showModal(). No `role`, no
+    `aria-modal`: both are implicit, and the element decides its own modality. %>
+<dialog class="modal"
         aria-labelledby="modal-title">
   <div class="modal-box">
     <h3 id="modal-title">Dialog Title</h3>

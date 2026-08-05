@@ -36,25 +36,33 @@ module Bali
         )
       end
 
-      MOBILE_TRIGGER_ID = "side-menu-mobile-trigger"
+      # The id every trigger points at through `aria-controls`, and the id the
+      # `side-menu-trigger` controller addresses its open/close events to. One
+      # sidebar per page is the norm, so a fixed default keeps Topbar,
+      # AppLayout and Navbar::Burger wired without configuration.
+      DEFAULT_ID = "side-menu"
 
       # @param current_path [String] The current request path for active state detection
+      # @param id [String] DOM id — the target of every trigger's `aria-controls`
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
       # @param collapsible [Boolean] Whether the sidebar can collapse to icon-only mode
       # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
-      # @param mobile_trigger_id [String] Mobile trigger checkbox ID
-      def initialize(current_path:, fixed: true, collapsible: false,
+      # @param aria_label [String] Accessible name of the <nav> landmark
+      def initialize(current_path:, id: DEFAULT_ID, fixed: true, collapsible: false,
                      group_behavior: :expandable,
-                     brand: nil, mobile_trigger_id: MOBILE_TRIGGER_ID, **options)
+                     brand: nil, aria_label: nil, **options)
         @current_path = current_path
+        @id = id
         @fixed = fixed
         @collapsible = collapsible
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
         @brand = brand
-        @mobile_trigger_id = mobile_trigger_id
+        @aria_label = aria_label
         @options = options
       end
+
+      attr_reader :id
 
       def fixed?
         @fixed
@@ -64,18 +72,12 @@ module Bali
         @collapsible
       end
 
-
       def expandable_groups?
         @group_behavior == :expandable
       end
 
       def dropdown_groups?
         @group_behavior == :dropdown
-      end
-
-      # Unique ID for the collapse checkbox (needed for CSS selectors)
-      def collapse_checkbox_id
-        @collapse_checkbox_id ||= "side-menu-collapse-#{SecureRandom.alphanumeric(8)}"
       end
 
       def container_classes
@@ -87,19 +89,34 @@ module Bali
         )
       end
 
+      # `multiple_menus?` joins the two states that already asked for the controller
+      # because the module switcher now needs it too: a `<details>` closes on its own
+      # `<summary>` and on nothing else, so click-outside and Escape are JavaScript
+      # (#830). Without this a sidebar that is neither collapsible nor fixed — which is
+      # exactly what the switcher preview composes — got no controller at all and the
+      # panel stayed open over the page.
       def container_data
         data = (@options[:data] || {}).dup
-        data[:controller] =
-          class_names(data[:controller], { "side-menu" => @collapsible || @fixed })
-        data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsible
-        data[:side_menu_mobile_trigger_value] = @mobile_trigger_id if @fixed
+        data[:controller] = class_names(
+          data[:controller],
+          { "side-menu" => @collapsible || @fixed || multiple_menus? }
+        )
+        data[:side_menu_collapsible_value] = @collapsible
+        data[:side_menu_fixed_value] = @fixed
         data
       end
 
       def container_options
         opts = @options.except(:class, :data)
+        opts[:id] = @id
         opts[:class] = container_classes
         opts[:data] = container_data
+        opts["aria-label"] = aria_label
+        # A pinned sidebar starts closed and off-screen, so it starts out of the
+        # tab order too. SideMenuController takes ownership on connect and drops
+        # the attribute immediately at desktop widths, where the sidebar is
+        # permanent chrome rather than a drawer.
+        opts[:inert] = true if @fixed
         opts
       end
 
@@ -120,8 +137,6 @@ module Bali
         authorized_menus.find(&:active?) || authorized_menus.first
       end
 
-      attr_reader :mobile_trigger_id
-
       # True when EITHER the brand slot is set OR the `brand:` text param is present.
       # Overrides the slot's auto-generated `brand?` so the chrome row renders
       # whichever path the consumer used.
@@ -129,24 +144,23 @@ module Bali
         brand? || @brand.present?
       end
 
-      # Translated aria-label for mobile trigger checkbox
-      def toggle_mobile_label
-        I18n.t("bali.side_menu.toggle_mobile", default: "Toggle sidebar")
+      def aria_label
+        @aria_label.presence || I18n.t("bali_view.side_menu.label")
       end
 
-      # Translated aria-label for collapse checkbox
-      def toggle_collapse_label
-        I18n.t("bali.side_menu.toggle_collapse", default: "Toggle sidebar collapse")
+      # Translated aria-label for the mobile close button
+      def close_label
+        I18n.t("bali_view.side_menu.close")
       end
 
       # Translated title for collapse button
       def collapse_label
-        I18n.t("bali.side_menu.collapse", default: "Collapse sidebar")
+        I18n.t("bali_view.side_menu.collapse")
       end
 
       # Translated title for expand button
       def expand_label
-        I18n.t("bali.side_menu.expand", default: "Expand sidebar")
+        I18n.t("bali_view.side_menu.expand")
       end
     end
   end

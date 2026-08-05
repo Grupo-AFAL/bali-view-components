@@ -1,0 +1,36 @@
+<%= render Bali::FormPage::Component.new(
+  title: "New Movie",
+  context: context,
+  card: card,
+  breadcrumbs: [
+    { name: "Dashboard", href: "/admin", icon: "home" },
+    { name: "Movies", href: "/admin/movies" },
+    { name: "New" }
+  ],
+  back: { href: "/admin/movies" }
+) do |page| %>
+  <% page.with_body do %>
+    <div class="space-y-4">
+      <div class="form-control">
+        <label class="label"><span class="label-text">Title</span></label>
+        <input type="text" placeholder="Enter movie title" class="input input-bordered w-full" />
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Genre</span></label>
+        <select class="select select-bordered w-full">
+          <option disabled selected>Select genre</option>
+          <option>Action</option>
+          <option>Drama</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-2 pt-4">
+        <% if page.drawer? %>
+          <%= render Bali::Button::Component.new(name: "Cancel", variant: :ghost) %>
+        <% else %>
+          <%= render Bali::Link::Component.new(name: "Cancel", href: "/admin/movies", variant: :ghost) %>
+        <% end %>
+        <%= render Bali::Button::Component.new(name: "Create Movie", variant: :primary, type: :submit) %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

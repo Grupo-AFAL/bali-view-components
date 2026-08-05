@@ -32,7 +32,7 @@
                 name: param,
                 value: option[:value],
                 aria: { selected: option[:value].to_s == @selected },
-                style: pill_style(option[:color])) %>
+                style: pill_style(option)) %>
         <% end %>
         <% if clearable? %>
           <%= tag.button(placeholder,

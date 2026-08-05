@@ -20,17 +20,24 @@ module Bali
     module RichTextFields
       DEFAULT_RICH_TEXT_FORMAT = :markdown
 
-      def rich_text_group(method, options = {})
-        block_editor_group(method, { preset: :simple }.merge(options))
+      def rich_text_group(method, **options)
+        block_editor_group(method, **{ preset: :simple }.merge(options))
       end
 
-      def rich_text(method, options = {})
-        block_editor(method, { preset: :simple }.merge(options))
+      def rich_text_field(method, **options)
+        block_editor_field(method, **{ preset: :simple }.merge(options))
       end
 
-      def block_editor_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          block_editor(method, options)
+      # The caption stays a `<legend>`: what the user types into is a ProseMirror
+      # `contenteditable` BlockNote creates client-side, so at render time there
+      # is no id for a `for` to point at. Naming it needs an `aria-labelledby`
+      # written by the editor once it mounts — the one control this issue leaves
+      # unnamed, tracked apart.
+      def block_editor_group(method, **options)
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
+          block_editor_field(method, **options)
         end
       end
 
@@ -38,16 +45,19 @@ module Bali
       # not reach the component, which forwards anything it does not recognise
       # straight onto the wrapper div as an HTML attribute — `label="..."` and
       # `help="..."` would end up in the markup.
-      FIELD_GROUP_OPTIONS = %i[
-        label help required addon_left addon_right control_class control_data
-      ].freeze
+      #
+      # `CONTROL_ONLY_OPTIONS` rides along for the same reason: this editor has
+      # no input of its own to carry them.
+      FIELD_GROUP_OPTIONS = (
+        HtmlUtils::WRAPPER_OPTIONS + HtmlUtils::CONTROL_ONLY_OPTIONS
+      ).freeze
 
-      def block_editor(method, options = {})
-        opts = options.except(*FIELD_GROUP_OPTIONS)
-        format = (opts.delete(:format) || DEFAULT_RICH_TEXT_FORMAT).to_sym
+      def block_editor_field(method, **options)
+        opts = options.except(*FIELD_GROUP_OPTIONS, :format, :input_name)
+        format = (options[:format] || DEFAULT_RICH_TEXT_FORMAT).to_sym
 
         component_options = opts.merge(
-          input_name: opts.delete(:input_name) || field_name(method),
+          input_name: options[:input_name] || field_name(method),
           format: format,
           **content_for_format(method, format)
         )

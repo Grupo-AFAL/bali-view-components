@@ -5,35 +5,34 @@ module Bali
     class Component < ApplicationViewComponent
       include PageComponents::Shared
 
-      renders_one :body
-      renders_one :sidebar
+      self.default_max_width = :md
 
-      MAX_WIDTHS = {
-        sm: "max-w-xl",
-        md: "max-w-3xl",
-        lg: "max-w-5xl",
-        xl: "max-w-7xl",
-        full: "max-w-full"
-      }.freeze
-
-      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: :md, card: true)
-        @title = title
-        @subtitle = subtitle
-        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
-        @back = back
-        @max_width = MAX_WIDTHS.fetch(max_width) do
-          raise ArgumentError, "Unknown max_width: #{max_width.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
-        end
+      def initialize(card: nil, **options)
+        super(**options)
         @card = card
       end
 
+      # `nil` — the default — hands the decision to the context: a page gets the Card, a
+      # drawer does not, because the drawer's own panel already IS that card. Unlike `back:`
+      # and the breadcrumbs, an explicit value always wins here, `card: true` inside a drawer
+      # included: a Card is decoration a caller can legitimately want in either place, not a
+      # way out of the page.
       def card?
+        return !drawer? if @card.nil?
+
         @card
       end
 
       private
 
-      attr_reader :title, :subtitle, :breadcrumbs, :back, :max_width
+      # Lo ÚNICO que FormPage no comparte con ShowPage: el cuerpo va dentro de una Card.
+      # El grid con la barra lateral es el mismo y vive en el concern.
+      def page_body
+        form = super
+        return form unless card?
+
+        render(Bali::Card::Component.new(style: :bordered)) { form }
+      end
     end
   end
 end

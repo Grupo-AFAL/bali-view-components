@@ -12,7 +12,7 @@
             data-action="condition#attributeChanged"
             data-condition-target="attribute">
       <option value="">
-        <%= t('bali.filters.select_field', default: 'Select field...') %>
+        <%= t('bali_view.filters.select_field') %>
       </option>
       <% available_attributes.each do |attr| %>
         <option value="<%= attr[:key] %>"
@@ -42,180 +42,196 @@
     </select>
   </div>
 
-  <%# Value input container - takes remaining space %>
-  <div class="flex-1 min-w-0" data-condition-target="valueContainer">
-    <% case attribute_type.to_sym %>
-    <% when :select %>
-      <% if multiple_operator? %>
-        <%# Multi-select dropdown for "is any of" / "is not any of" %>
-        <div class="relative w-full"
-             data-controller="multi-select"
-             data-multi-select-translations-value="<%= multi_select_translations_json %>"
-             data-condition-target="value">
-          <div tabindex="0"
-               role="button"
-               class="select select-bordered select-sm w-full flex items-center cursor-pointer"
-               data-action="click->multi-select#toggle"
-               data-multi-select-target="trigger">
-            <span class="flex-1 truncate text-left" data-multi-select-target="label">
-              <%= t('bali.filters.select_values', default: 'Select values...') %>
-            </span>
+  <%# Value input plus its "ignored" note - takes remaining space. The note is a SIBLING of
+      the container rather than a child of it: condition_controller.js rebuilds the
+      container's innerHTML whenever the operator asks for a different widget, and that
+      would take the note with it. %>
+  <div class="flex-1 min-w-0">
+    <div data-condition-target="valueContainer">
+      <% case attribute_type.to_sym %>
+      <% when :select %>
+        <% if multiple_operator? %>
+          <%# Multi-select dropdown for "is any of" / "is not any of" %>
+          <div class="relative w-full"
+               data-controller="multi-select"
+               data-multi-select-translations-value="<%= multi_select_translations_json %>"
+               data-condition-target="value">
+            <div tabindex="0"
+                 role="button"
+                 class="select select-bordered select-sm w-full flex items-center cursor-pointer"
+                 data-action="click->multi-select#toggle"
+                 data-multi-select-target="trigger">
+              <span class="flex-1 truncate text-left" data-multi-select-target="label">
+                <%= t('bali_view.filters.select_values') %>
+              </span>
+            </div>
+            <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
+                 data-multi-select-target="dropdown">
+              <% attribute_options.each do |opt| %>
+                <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
+                <% checked = Array(value).map(&:to_s).include?(opt_value.to_s) %>
+                <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
+                  <input type="checkbox"
+                         class="checkbox checkbox-sm checkbox-primary"
+                         name="<%= field_name %>[]"
+                         value="<%= opt_value %>"
+                         data-label="<%= opt_label %>"
+                         data-action="multi-select#updateSelection"
+                         <%= 'checked' if checked %>>
+                  <span class="text-sm"><%= opt_label %></span>
+                </label>
+              <% end %>
+            </div>
           </div>
-          <div class="absolute left-0 top-full hidden z-[100] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
-               data-multi-select-target="dropdown">
-            <% attribute_options.each do |opt| %>
-              <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
-              <% checked = Array(value).map(&:to_s).include?(opt_value.to_s) %>
-              <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
-                <input type="checkbox"
-                       class="checkbox checkbox-sm checkbox-primary"
-                       name="<%= field_name %>[]"
-                       value="<%= opt_value %>"
-                       data-label="<%= opt_label %>"
-                       data-action="multi-select#updateSelection"
-                       <%= 'checked' if checked %>>
-                <span class="text-sm"><%= opt_label %></span>
-              </label>
-            <% end %>
-          </div>
-        </div>
-      <% else %>
-        <%# Single searchable select for "is" / "is not" (SlimSelect).
-            slim-select-sm matches the select-sm height of the field/operator selects. %>
-        <div class="w-full slim-select-sm" data-controller="slim-select"
-             data-slim-select-placeholder-value="<%= t('bali.filters.select_value', default: 'Select...') %>"
-             data-slim-select-search-placeholder-value="<%= t('bali.filters.search', default: 'Buscar...') %>">
-          <select class="select select-bordered select-sm w-full"
-                  name="<%= field_name %>"
-                  data-slim-select-target="select"
-                  data-condition-target="value">
-            <option value="">
-              <%= t('bali.filters.select_value', default: 'Select...') %>
-            </option>
-            <% attribute_options.each do |opt| %>
-              <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
-              <option value="<%= opt_value %>" <%= 'selected' if opt_value.to_s == value.to_s %>>
-                <%= opt_label %>
+        <% else %>
+          <%# Single searchable select for "is" / "is not" (SlimSelect).
+              slim-select-sm matches the select-sm height of the field/operator selects. %>
+          <div class="w-full slim-select-sm" data-controller="slim-select"
+               data-slim-select-placeholder-value="<%= t('bali_view.filters.select_value') %>"
+               data-slim-select-search-placeholder-value="<%= t('bali_view.filters.search') %>">
+            <select class="select select-bordered select-sm w-full"
+                    name="<%= field_name %>"
+                    data-slim-select-target="select"
+                    data-condition-target="value">
+              <option value="">
+                <%= t('bali_view.filters.select_value') %>
               </option>
-            <% end %>
-          </select>
-        </div>
-      <% end %>
+              <% attribute_options.each do |opt| %>
+                <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
+                <option value="<%= opt_value %>" <%= 'selected' if opt_value.to_s == value.to_s %>>
+                  <%= opt_label %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+        <% end %>
 
-    <% when :boolean %>
-      <select class="select select-bordered select-sm w-full"
-              name="<%= field_name %>"
-              data-condition-target="value">
-        <option value="">
-          <%= t('bali.filters.boolean.any', default: 'Any') %>
-        </option>
-        <option value="true" <%= 'selected' if value.to_s == 'true' %>>
-          <%= t('bali.filters.boolean.yes', default: 'Yes') %>
-        </option>
-        <option value="false" <%= 'selected' if value.to_s == 'false' %>>
-          <%= t('bali.filters.boolean.no', default: 'No') %>
-        </option>
-      </select>
+      <% when :boolean %>
+        <select class="select select-bordered select-sm w-full"
+                name="<%= field_name %>"
+                data-condition-target="value">
+          <option value="">
+            <%= t('bali_view.filters.boolean.any') %>
+          </option>
+          <option value="true" <%= 'selected' if value.to_s == 'true' %>>
+            <%= t('bali_view.filters.boolean.yes') %>
+          </option>
+          <option value="false" <%= 'selected' if value.to_s == 'false' %>>
+            <%= t('bali_view.filters.boolean.no') %>
+          </option>
+        </select>
 
-    <% when :date %>
-      <% if range_operator? %>
-        <%# Date range picker using Flatpickr range mode with hidden fields for Ransack %>
-        <div class="w-full" data-condition-target="value">
+      <% when :date %>
+        <% if range_operator? %>
+          <%# Date range picker using Flatpickr range mode with hidden fields for Ransack %>
+          <div class="w-full" data-condition-target="value">
+            <input type="text"
+                   class="input input-bordered input-sm w-full"
+                   placeholder="<%= t('bali_view.filters.select_date_range') %>"
+                   data-controller="datepicker"
+                   data-datepicker-locale-value="<%= I18n.locale %>"
+                   data-datepicker-mode-value="range"
+                   data-datepicker-alt-format-value="<%= short_date_format %>"
+                   data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                   data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
+                   data-action="change->condition#syncRangeDates"
+                   data-condition-target="rangeInput">
+            <%# Hidden fields for Ransack gteq/lteq params %>
+            <input type="hidden"
+                   name="<%= range_field_names[:start] %>"
+                   value="<%= range_values[:start] %>"
+                   data-condition-target="rangeStart">
+            <input type="hidden"
+                   name="<%= range_field_names[:end] %>"
+                   value="<%= range_values[:end] %>"
+                   data-condition-target="rangeEnd">
+          </div>
+        <% else %>
+          <%# Single date picker using Flatpickr %>
           <input type="text"
                  class="input input-bordered input-sm w-full"
-                 placeholder="<%= t('bali.filters.select_date_range', default: 'Select date range...') %>"
+                 name="<%= field_name %>"
+                 value="<%= value %>"
+                 placeholder="<%= t('bali_view.filters.select_date') %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
-                 data-datepicker-mode-value="range"
+                 data-datepicker-mode-value="single"
                  data-datepicker-alt-format-value="<%= short_date_format %>"
                  data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-                 data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
-                 data-action="change->condition#syncRangeDates"
-                 data-condition-target="rangeInput">
-          <%# Hidden fields for Ransack gteq/lteq params %>
-          <input type="hidden"
-                 name="<%= range_field_names[:start] %>"
-                 value="<%= range_values[:start] %>"
-                 data-condition-target="rangeStart">
-          <input type="hidden"
-                 name="<%= range_field_names[:end] %>"
-                 value="<%= range_values[:end] %>"
-                 data-condition-target="rangeEnd">
-        </div>
-      <% else %>
-        <%# Single date picker using Flatpickr %>
-        <input type="text"
-               class="input input-bordered input-sm w-full"
-               name="<%= field_name %>"
-               value="<%= value %>"
-               placeholder="<%= t('bali.filters.select_date', default: 'Select date...') %>"
-               data-controller="datepicker"
-               data-datepicker-locale-value="<%= I18n.locale %>"
-               data-datepicker-mode-value="single"
-               data-datepicker-alt-format-value="<%= short_date_format %>"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-condition-target="value">
-      <% end %>
+                 data-condition-target="value">
+        <% end %>
 
-    <% when :datetime %>
-      <% if range_operator? %>
-        <%# Datetime range picker using Flatpickr range mode with hidden fields for Ransack %>
-        <div class="w-full" data-condition-target="value">
+      <% when :datetime %>
+        <% if range_operator? %>
+          <%# Datetime range picker using Flatpickr range mode with hidden fields for Ransack %>
+          <div class="w-full" data-condition-target="value">
+            <input type="text"
+                   class="input input-bordered input-sm w-full"
+                   placeholder="<%= t('bali_view.filters.select_datetime_range') %>"
+                   data-controller="datepicker"
+                   data-datepicker-locale-value="<%= I18n.locale %>"
+                   data-datepicker-mode-value="range"
+                   data-datepicker-enable-time-value="true"
+                   data-datepicker-alt-format-value="<%= short_datetime_format %>"
+                   data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                   data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
+                   data-action="change->condition#syncRangeDates"
+                   data-condition-target="rangeInput">
+            <%# Hidden fields for Ransack gteq/lteq params %>
+            <input type="hidden"
+                   name="<%= range_field_names[:start] %>"
+                   value="<%= range_values[:start] %>"
+                   data-condition-target="rangeStart">
+            <input type="hidden"
+                   name="<%= range_field_names[:end] %>"
+                   value="<%= range_values[:end] %>"
+                   data-condition-target="rangeEnd">
+          </div>
+        <% else %>
+          <%# Single datetime picker using Flatpickr %>
           <input type="text"
                  class="input input-bordered input-sm w-full"
-                 placeholder="<%= t('bali.filters.select_datetime_range', default: 'Select date & time range...') %>"
+                 name="<%= field_name %>"
+                 value="<%= value %>"
+                 placeholder="<%= t('bali_view.filters.select_datetime') %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
-                 data-datepicker-mode-value="range"
+                 data-datepicker-mode-value="single"
                  data-datepicker-enable-time-value="true"
                  data-datepicker-alt-format-value="<%= short_datetime_format %>"
                  data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-                 data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
-                 data-action="change->condition#syncRangeDates"
-                 data-condition-target="rangeInput">
-          <%# Hidden fields for Ransack gteq/lteq params %>
-          <input type="hidden"
-                 name="<%= range_field_names[:start] %>"
-                 value="<%= range_values[:start] %>"
-                 data-condition-target="rangeStart">
-          <input type="hidden"
-                 name="<%= range_field_names[:end] %>"
-                 value="<%= range_values[:end] %>"
-                 data-condition-target="rangeEnd">
-        </div>
+                 data-condition-target="value">
+        <% end %>
+
+      <% when :number %>
+        <input type="number"
+               class="input input-bordered input-sm w-full"
+               name="<%= field_name %>"
+               value="<%= value %>"
+               step="any"
+               placeholder="0"
+               data-condition-target="value">
+
       <% else %>
-        <%# Single datetime picker using Flatpickr %>
         <input type="text"
                class="input input-bordered input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
-               placeholder="<%= t('bali.filters.select_datetime', default: 'Select date & time...') %>"
-               data-controller="datepicker"
-               data-datepicker-locale-value="<%= I18n.locale %>"
-               data-datepicker-mode-value="single"
-               data-datepicker-enable-time-value="true"
-               data-datepicker-alt-format-value="<%= short_datetime_format %>"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               placeholder="<%= t('bali_view.filters.enter_value') %>"
                data-condition-target="value">
       <% end %>
+    </div>
 
-    <% when :number %>
-      <input type="number"
-             class="input input-bordered input-sm w-full"
-             name="<%= field_name %>"
-             value="<%= value %>"
-             step="any"
-             placeholder="0"
-             data-condition-target="value">
-
-    <% else %>
-      <input type="text"
-             class="input input-bordered input-sm w-full"
-             name="<%= field_name %>"
-             value="<%= value %>"
-             placeholder="<%= t('bali.filters.enter_value', default: 'Enter value...') %>"
-             data-condition-target="value">
-    <% end %>
+    <%# A condition with an attribute and no value cannot travel: a blank Ransack
+        predicate is discarded server-side without a word and the list comes back
+        unfiltered. Shown only once the row has been checked (Apply, or a widget swap
+        that dropped the value), never while it is still being filled in. %>
+    <p class="filters-condition-hint mt-1 items-center gap-1 text-xs text-warning"
+       role="status"
+       data-condition-target="hint">
+      <%= render Bali::Icon::Component.new('alert', class: 'w-3 h-3 shrink-0') %>
+      <%= t('bali_view.filters.incomplete_condition') %>
+    </p>
   </div>
 
   <%# Remove condition button - absolute top-right on mobile, inline on desktop %>
@@ -223,7 +239,7 @@
     <button type="button"
             class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-error hover:bg-error/10"
             data-action="condition#remove"
-            title="<%= t('bali.filters.remove_condition', default: 'Remove condition') %>">
+            title="<%= t('bali_view.filters.remove_condition') %>">
       <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
     </button>
   </div>

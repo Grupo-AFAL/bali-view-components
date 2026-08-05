@@ -42,7 +42,7 @@ module Bali
       def custom_color
         render Status::Component.new(
           selected: "brand",
-          options: [{ value: "brand", label: "Brand", color: "#7c3aed" }]
+          options: [{ value: "brand", label: "Brand", custom_color: "#7c3aed" }]
         )
       end
 
@@ -55,6 +55,14 @@ module Bali
 
       # Editable pill inside an overflow-x container (proves the panel is not clipped).
       def in_table
+        render_with_template
+      end
+
+      # Editable pill inside a transformed ancestor — what a Drawer is while it
+      # animates. A transformed ancestor becomes the containing block of its
+      # `fixed` descendants, so the panel has to be positioned against it and not
+      # against the viewport, or it lands off screen.
+      def in_transformed_ancestor
         render_with_template
       end
     end

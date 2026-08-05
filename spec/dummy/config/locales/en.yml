@@ -57,17 +57,14 @@ en:
     mark_done: Mark Done
     archive: Archive
     delete: Delete
-    info_level: InfoLevel Component
     total_revenue: Total Revenue
     avg_budget: Avg. Budget
     completion_rate: Completion Rate
     active_users: Active Users
-    production_timeline: Production Timeline (GanttChart)
     activity_heatmap: Activity Heatmap
     day_of_week: Day of Week
     hour: Hour
     activity: Activity
-    no_movies_timeline: No movies to display in timeline. Add some movies first!
     today: Today
 
   # Movies
@@ -83,16 +80,21 @@ en:
       studio: Studio
       indie: Indie
       created: Created
+      actions: Actions
+    secondary_actions:
+      import: Import from CSV
     actions:
       view: View
       edit: Edit
       delete: Delete
     bulk_actions:
-      select_action: Select action...
       mark_done: Mark as Done
       mark_draft: Mark as Draft
       delete: Delete Selected
-      apply: Apply
+    views:
+      table: Table
+      cards: Cards
+      calendar: Calendar
     characters:
       role: Character
       empty: No characters have been added to this movie yet.
@@ -144,9 +146,6 @@ en:
       linked_to: "Linked to %{name}"
       drag_to_reorder: Drag to reorder characters by importance
       add_character: Add Character
-    no_movies: No movies found.
-    no_movies_help: Try adjusting your filters or
-    add_new_movie: add a new movie
     form:
       name: Name
       genre: Genre
@@ -168,6 +167,7 @@ en:
       movie_details: Movie Details
       synopsis: Synopsis
       enter_synopsis: Enter movie synopsis...
+      synopsis_help: A short summary, 500 characters at most.
       rich_description: Rich Description
       enter_rich_description: Write a detailed description with formatting...
       release_date: Release Date
@@ -225,8 +225,6 @@ en:
     genre_distribution_title: Genre Distribution
     copy: Copy
     recent_activity: Recent Activity
-    timeline_title: Production Timeline
-    no_timeline: No movies with timeline data.
 
   # Revenue
   revenue:
@@ -270,10 +268,14 @@ en:
   # Studios
   studios:
     title: Studios
+    subtitle: The production companies behind the catalog
     new_studio: New Studio
+    search_placeholder: Search by name...
     form:
       new_title: New Studio
       edit_title: "Edit %{name}"
+      subtitle_new: Add a production company to the catalog
+      subtitle_edit: Update this studio's details
       new_breadcrumb: New
       select_country: Select country...
       select_status: Select status...
@@ -415,8 +417,8 @@ en:
     placeholder: Placeholder
     calendar: Calendar
     calendar_desc: Monthly/weekly calendar view with event display.
-    search_input: SearchInput
-    search_input_desc: Search field with optional auto-submit functionality.
+    search_input: Search field
+    search_input_desc: Search field with optional auto-submit functionality, built with the FormBuilder.
     with_submit_button: With Submit Button
     search_products: Search products...
     auto_submit: Auto-submit (no button)
@@ -426,7 +428,7 @@ en:
     generated_rrule: "Generated RRULE: The form above generates standard iCalendar recurrence rules (RFC 5545) that can be used with calendar applications."
     locations_map: LocationsMap
     locations_map_desc: Google Maps integration with location markers.
-    google_maps_required: "Google Maps API Key Required: Set the GOOGLE_MAPS_KEY environment variable to enable the LocationsMap component."
+    google_maps_required: "Google Maps API Key Required: Set Bali.google_maps_key (or the GOOGLE_MAPS_KEY environment variable) to enable the LocationsMap component."
     map_placeholder: Map placeholder
     block_editor: BlockEditor
     block_editor_desc: Block-based rich text editor powered by BlockNote. Supports headings, lists, code blocks, and more.

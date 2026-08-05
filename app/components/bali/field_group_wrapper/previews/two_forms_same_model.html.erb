@@ -1,0 +1,25 @@
+<%# The case no other preview covers and the one the old hand-built ids broke:
+    two forms for the same model on one page. Every id here — the fieldset, the
+    caption, the input, the error and help paragraphs, SlimSelect's wrapper —
+    comes from Rails' `field_id`, so the form index keeps them apart. Open the
+    accessibility tree and each control reads out its own name; run
+    `document.querySelectorAll('[id]')` and no id appears twice.
+
+    One field per family on purpose: repeating an attribute inside a single form
+    would collide on its own, which is Rails' behaviour and not what this shows. %>
+<div class="p-4 grid gap-6 md:grid-cols-2">
+  <% [1, 2].each do |index| %>
+    <div class="border border-base-300 rounded-box p-4">
+      <p class="text-sm font-semibold mb-2">Form <%= index %></p>
+
+      <%= form_with(model: model, url: '/', builder: Bali::FormBuilder, index: index) do |form| %>
+        <%= form.text_group :text, label: 'Title', help: 'Shown under both forms' %>
+        <%= form.email_group :email, label: 'Contact email' %>
+        <%= form.date_group :date, label: 'Released on' %>
+        <%= form.select_group :select, [%w[Draft 1], %w[Published 2]], label: 'Status' %>
+        <%= form.slim_select_group :number, [%w[Drama 1], %w[Comedy 2]], html: { label: 'Genre' } %>
+        <%= form.boolean_group :boolean, label: 'Featured' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

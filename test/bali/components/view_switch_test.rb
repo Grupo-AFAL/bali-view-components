@@ -6,7 +6,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   def render_switch(**component_options)
     render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views", **component_options)) do |switch|
       switch.with_view(name: "List", icon: "list", href: "/projects/list", active: true)
-      switch.with_view(name: "Board", icon: "grid", href: "/projects/board")
+      switch.with_view(name: "Board", icon: "grid-2x2", href: "/projects/board")
     end
   end
 
@@ -22,14 +22,14 @@ class BaliViewSwitchComponentTest < ComponentTestCase
     assert_selector("a[href='/projects/board']", text: "Board")
   end
 
-  def test_active_view_gets_primary_classes_and_aria_pressed_true
+  def test_active_view_gets_primary_classes_and_aria_current_page
     render_switch
-    assert_selector("a.btn-active.btn-primary[href='/projects/list'][aria-pressed='true']")
+    assert_selector("a.btn-active.btn-primary[href='/projects/list'][aria-current='page']")
   end
 
-  def test_inactive_view_gets_outline_classes_and_aria_pressed_false
+  def test_inactive_view_gets_outline_classes_and_no_aria_current
     render_switch
-    assert_selector("a.btn-outline[href='/projects/board'][aria-pressed='false']")
+    assert_selector("a.btn-outline[href='/projects/board']:not([aria-current])")
     assert_no_selector("a.btn-active[href='/projects/board']")
   end
 
@@ -61,32 +61,32 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   end
 
   def test_active_is_autodetected_from_the_request_path
-    with_request_url "/studios" do
+    with_request_url "/admin/studios" do
       render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
-        switch.with_view(name: "List", icon: "list", href: "/movies")
-        switch.with_view(name: "Board", icon: "grid", href: "/studios")
+        switch.with_view(name: "List", icon: "list", href: "/admin/movies")
+        switch.with_view(name: "Board", icon: "grid-2x2", href: "/admin/studios")
       end
     end
-    assert_selector("a.btn-active.btn-primary[href='/studios'][aria-pressed='true']")
-    assert_selector("a.btn-outline[href='/movies'][aria-pressed='false']")
+    assert_selector("a.btn-active.btn-primary[href='/admin/studios'][aria-current='page']")
+    assert_selector("a.btn-outline[href='/admin/movies']:not([aria-current])")
   end
 
   def test_autodetection_ignores_the_query_string
-    with_request_url "/studios?page=2" do
+    with_request_url "/admin/studios?page=2" do
       render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
-        switch.with_view(name: "Board", icon: "grid", href: "/studios")
+        switch.with_view(name: "Board", icon: "grid-2x2", href: "/admin/studios")
       end
     end
-    assert_selector("a.btn-active.btn-primary[aria-pressed='true']")
+    assert_selector("a.btn-active.btn-primary[aria-current='page']")
   end
 
   def test_explicit_active_false_overrides_autodetection
-    with_request_url "/studios" do
+    with_request_url "/admin/studios" do
       render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
-        switch.with_view(name: "Board", icon: "grid", href: "/studios", active: false)
+        switch.with_view(name: "Board", icon: "grid-2x2", href: "/admin/studios", active: false)
       end
     end
-    assert_selector("a.btn-outline[aria-pressed='false']")
+    assert_selector("a.btn-outline:not([aria-current])")
     assert_no_selector("a.btn-active")
   end
 
@@ -99,6 +99,21 @@ class BaliViewSwitchComponentTest < ComponentTestCase
 
   def test_icon_only_uses_the_name_as_native_tooltip_and_accessible_label
     render_switch(icon_only: true)
+    assert_selector("a[href='/projects/list'][title='List'][aria-label='List']")
+    assert_selector("a[href='/projects/board'][title='Board'][aria-label='Board']")
+  end
+
+  def test_responsive_icon_only_keeps_the_label_in_the_dom_and_collapses_it_below_sm
+    render_switch(icon_only: :responsive)
+    assert_selector("a[href='/projects/list'] span.max-sm\\:hidden", text: "List")
+    assert_selector("a.max-sm\\:btn-square", count: 2)
+    assert_no_selector("a.btn-square")
+  end
+
+  def test_responsive_icon_only_names_the_button_at_every_size
+    # El texto se esconde por CSS, así que el nombre accesible tiene que viajar SIEMPRE:
+    # sin esto, en móvil quedan botones con solo un icono y sin nombre.
+    render_switch(icon_only: :responsive)
     assert_selector("a[href='/projects/list'][title='List'][aria-label='List']")
     assert_selector("a[href='/projects/board'][title='Board'][aria-label='Board']")
   end

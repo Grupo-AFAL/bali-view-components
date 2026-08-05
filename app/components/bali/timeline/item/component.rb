@@ -6,6 +6,8 @@ module Bali
       # Timeline item component for individual timeline entries.
       #
       # Uses DaisyUI's timeline-start, timeline-middle, timeline-end structure.
+      # The heading and the content are emitted once, in the single content box
+      # the parent timeline assigned through `side:`.
       #
       # @example Basic usage
       #   render Bali::Timeline::Item::Component.new(heading: 'Event Title') do
@@ -23,55 +25,87 @@ module Bali
         # Base classes for the timeline item marker
         MARKER_BASE_CLASSES = "timeline-middle"
 
-        # Color variants for the marker icon
+        # DaisyUI grid area the single content box is placed in
+        SIDES = {
+          start: "timeline-start",
+          end: "timeline-end"
+        }.freeze
+
+        # Marker colours, keyed by Bali::Color::NAMES. Spelled out because
+        # Tailwind only emits a class it can find literally in a source file.
         COLORS = {
-          default: "text-base-content",
+          neutral: "text-neutral",
           primary: "text-primary",
           secondary: "text-secondary",
           accent: "text-accent",
+          info: "text-info",
           success: "text-success",
           warning: "text-warning",
           error: "text-error",
-          info: "text-info"
+          ghost: "text-base-content"
         }.freeze
 
-        # Color variants for the connecting line (hr element)
+        # Colours for the connecting line (hr element). `ghost` leaves it to
+        # DaisyUI's own line colour, which is what the name means everywhere.
         LINE_COLORS = {
-          default: "",
+          neutral: "bg-neutral",
           primary: "bg-primary",
           secondary: "bg-secondary",
           accent: "bg-accent",
+          info: "bg-info",
           success: "bg-success",
           warning: "bg-warning",
           error: "bg-error",
-          info: "bg-info"
+          ghost: ""
         }.freeze
+
+        DEFAULT_COLOR = :ghost
 
         # @param heading [String, nil] Optional heading text for the item
         # @param icon [String, nil] Lucide icon name to display in the marker
-        # @param color [:default, :primary, :secondary, :accent, :success, :warning, :error, :info]
-        #   Color variant for the marker and line
+        # @param color [Symbol] Semantic colour for the marker and line (Bali::Color::NAMES)
+        # @param custom_color [String, nil] Hex colour for the marker and line
+        # @param side [:start, :end] Which side of the line the content box lands on.
+        #   Set by {Bali::Timeline::Component}, which owns the layout decision.
         # @param options [Hash] Additional HTML attributes for the container
-        def initialize(heading: nil, icon: nil, color: :default, **options)
+        # rubocop:disable Metrics/ParameterLists
+        def initialize(heading: nil, icon: nil, color: DEFAULT_COLOR, custom_color: nil,
+                       side: :start, **options)
+          # rubocop:enable Metrics/ParameterLists
           @heading = heading
           @icon = icon
-          @color = color.to_sym
+          @custom_color = Bali::Color.hex!(self.class, custom_color)
+          @color = @custom_color ? nil : Bali::Color.name!(self.class, color || DEFAULT_COLOR)
+          @side = side.to_sym
           @options = options
         end
 
         private
 
-        attr_reader :heading, :icon, :color, :options
+        attr_reader :heading, :icon, :color, :custom_color, :side, :options
+
+        def content_box_classes
+          class_names(
+            SIDES.fetch(side, SIDES[:start]),
+            "timeline-box",
+            "timeline-content-box"
+          )
+        end
 
         def marker_classes
-          class_names(
-            MARKER_BASE_CLASSES,
-            COLORS.fetch(color, COLORS[:default])
-          )
+          class_names(MARKER_BASE_CLASSES, COLORS[color])
+        end
+
+        def marker_style
+          "color: #{custom_color}" if custom_color
         end
 
         def line_classes
           LINE_COLORS.fetch(color, "")
+        end
+
+        def line_style
+          "background-color: #{custom_color}" if custom_color
         end
 
         def default_icon

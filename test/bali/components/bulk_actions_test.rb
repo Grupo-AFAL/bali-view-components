@@ -127,6 +127,54 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_button("Delete")
   end
 
+  def test_toolbar_variant_renders_the_contextual_bar_instead_of_the_floating_one
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector(".hidden.mb-4[data-bulk-actions-target='actionsContainer']")
+    assert_no_selector(".fixed[data-bulk-actions-target='actionsContainer']")
+  end
+
+  def test_toolbar_variant_renders_a_clear_button_wired_to_the_controller
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector("button[data-action='bulk-actions#clear']", visible: :all)
+    assert_no_selector("a[data-action='bulk-actions#clear']", visible: :all)
+  end
+
+  def test_toolbar_variant_renders_both_plural_labels_with_the_singular_hidden
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector("[data-bulk-actions-target='selectedLabelOne'].hidden", visible: :all)
+    assert_selector("[data-bulk-actions-target='selectedLabelOther']", visible: :all)
+    assert_selector("[data-bulk-actions-target='selectedCount']", text: "0", visible: :all)
+  end
+
+  def test_unknown_variant_falls_back_to_floating
+    render_inline(Bali::BulkActions::Component.new(variant: :sidebar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector(".fixed[data-bulk-actions-target='actionsContainer']")
+  end
+
+  def test_standalone_false_does_not_emit_its_own_stimulus_controller
+    # Dos controladores `bulk-actions` anidados se reparten los targets: la barra dejaría
+    # de ver las filas y el contador quedaría en 0 SIN error.
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false))
+    assert_selector("div.bulk-actions-component")
+    assert_no_selector("[data-controller='bulk-actions']")
+  end
+
+  def test_custom_data_attributes_survive_in_both_modes
+    render_inline(Bali::BulkActions::Component.new(data: { foo: "bar" }))
+    assert_selector("[data-foo='bar'][data-controller='bulk-actions']")
+
+    render_inline(Bali::BulkActions::Component.new(standalone: false, data: { foo: "bar" }))
+    assert_selector("[data-foo='bar']")
+  end
+
   def test_combined_items_and_actions_renders_both_items_and_actions_together
     render_inline(@component) do |c|
       c.with_action(label: "Bulk Update", href: "/bulk_update")
@@ -136,5 +184,55 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector(".bulk-actions-component")
     assert_selector(".bulk-actions-item", count: 2)
     assert_button("Bulk Update")
+  end
+
+  # La fila contextual REEMPLAZA a la toolbar del DataTable en su mismo hueco: si miden
+  # distinto, seleccionar una fila empuja el listado. Antes pasaba (18px: `py-2` + `border`).
+  def test_the_toolbar_row_declares_the_same_minimum_height_as_the_datatable_toolbar
+    assert_includes(Bali::DataTable::Component::TOOLBAR_CLASSES,
+                    Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
+
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+
+    bar = page.find("[data-bulk-actions-target='actionsContainer'] > div")
+    assert_includes(bar[:class], Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
+  end
+
+  # La barra mide lo mismo que la toolbar (32px), así que un botón `sm` —que mide EXACTAMENTE
+  # eso— queda a ras del tinte y se ve apretado. `xs` deja 4px de aire sin mover el alto.
+  # La flotante no vive dentro de una superficie de alto fijo y conserva `sm`.
+  def test_the_toolbar_row_sizes_its_actions_below_the_bar_height
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+    assert_selector("input.btn.btn-xs[value='Borrar']")
+    assert_no_selector(".btn-sm")
+
+    render_inline(Bali::BulkActions::Component.new) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+    assert_selector("input.btn.btn-sm[value='Borrar']")
+  end
+
+  def test_an_explicit_action_size_wins_over_the_one_the_bar_injects
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar", size: :lg)
+    end
+    assert_selector("input.btn.btn-lg[value='Borrar']")
+  end
+
+  # El contorno va con `ring` (box-shadow) y sin padding vertical justamente porque un
+  # `border`/`py-*` sí ocupan layout y devolverían el salto.
+  def test_the_toolbar_row_outline_costs_no_vertical_space
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+
+    classes = page.find("[data-bulk-actions-target='actionsContainer'] > div")[:class]
+    assert_includes(classes, "ring-1")
+    refute_match(/\bborder\b/, classes)
+    refute_match(/\bpy-\d/, classes)
   end
 end

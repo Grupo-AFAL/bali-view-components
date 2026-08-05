@@ -4,20 +4,13 @@ module Bali
   module Heatmap
     class Component < ApplicationViewComponent
       CELL_CLASSES = "heatmap-cell rounded-sm"
-      LABEL_CLASSES = "text-xs text-center truncate text-base-content/70"
+      # The axis labels are `<th>` so the data cells inherit both axes as headers;
+      # `font-normal` keeps the weight the plain `<td>` used to have.
+      LABEL_CLASSES = "text-xs text-center truncate font-normal text-base-content/70"
       X_LABEL_CLASSES = "#{LABEL_CLASSES} pt-2".freeze
       Y_LABEL_CLASSES = "#{LABEL_CLASSES} pr-3 text-right".freeze
 
-      # DaisyUI color presets using theme variables
-      COLOR_PRESETS = {
-        primary: "#6366f1", # Will be converted to gradient
-        secondary: "#8b5cf6",
-        accent: "#f59e0b",
-        success: "#22c55e",
-        info: "#3b82f6",
-        warning: "#f59e0b",
-        error: "#ef4444"
-      }.freeze
+      DEFAULT_COLOR = :primary
 
       renders_one :x_axis_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
@@ -42,23 +35,20 @@ module Bali
       attr_reader :html_options
 
       # @param data [Hash] Heatmap data in format { x_label => { y_label => value } }
-      # @param color [String, Symbol] Base color (hex string or DaisyUI preset symbol)
+      # @param color [Symbol] Semantic base colour of the ramp (Bali::Color::NAMES)
+      # @param custom_color [String, nil] Hex base colour, for a ramp outside the theme
       # @param cell_size [Integer] Size of each cell in pixels (default: auto-calculated)
       # @param responsive [Boolean] If true, stretches to fill container width
-      def initialize(data:, color: :primary, cell_size: nil, responsive: true, **html_options)
+      # rubocop:disable Metrics/ParameterLists
+      def initialize(data:, color: DEFAULT_COLOR, custom_color: nil, cell_size: nil,
+                     responsive: true, **html_options)
+        # rubocop:enable Metrics/ParameterLists
         @data = data
-        @color = resolve_color(color)
+        @custom_color = Bali::Color.hex!(self.class, custom_color)
+        @color = @custom_color || Bali::Color.name!(self.class, color || DEFAULT_COLOR)
         @cell_size = cell_size
         @responsive = responsive
         @html_options = prepend_class_name(html_options, component_classes)
-      end
-
-      def resolve_color(color)
-        if color.is_a?(Symbol) || COLOR_PRESETS.key?(color.to_sym)
-          return COLOR_PRESETS[color.to_sym]
-        end
-
-        color
       end
 
       # Public API for template
@@ -70,8 +60,11 @@ module Bali
         @y_labels ||= compute_y_labels
       end
 
+      # The ramp is built out of the theme variable, not out of a hex constant, so
+      # a heatmap declared `:primary` is the host's primary rather than the
+      # indigo this component used to hardcode.
       def gradient_colors
-        @gradient_colors ||= Bali::Utils::ColorPicker.gradient(@color)
+        @gradient_colors ||= Bali::Color.gradient(@color)
       end
 
       def max_value
@@ -105,9 +98,15 @@ module Bali
         "heatmap-component w-full"
       end
 
+      # Integer y-keys are treated as a scale, so the range is filled in and rows
+      # with no data still get a (zero-valued) row — that is the point for hours of
+      # the day. Any other key type is a label, not a scale: `("Fri".."Mon")` is a
+      # nonsense range of thousands of strings, and mixing types raises outright, so
+      # those keep the keys as given, in first-seen order.
       def compute_y_labels
         keys = @data.values.flat_map(&:keys)
         return [ 0 ] if keys.empty?
+        return keys.uniq unless keys.all?(Integer)
 
         (keys.min..keys.max)
       end

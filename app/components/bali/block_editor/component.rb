@@ -6,6 +6,13 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
+      # Distinguishes "the caller did not pass this" from "the caller passed the
+      # value that happens to be the default". Without it, `config:` could not be
+      # overridden by an explicit `comments: false` or `upload_url: nil`, because
+      # both are indistinguishable from an untouched default.
+      UNSET = Object.new.freeze
+      private_constant :UNSET
+
       # rubocop:disable Metrics/ParameterLists, Metrics/AbcSize
       def initialize(
         initial_content: nil,
@@ -15,28 +22,43 @@ module Bali
         format: :json,
         preset: :full,
         locale: nil,
-        syntax_highlighting: nil,
+        syntax_highlighting: UNSET,
         editable: true,
         placeholder: nil,
-        upload_url: :auto,
+        upload_url: UNSET,
         theme: :light,
-        export: false,
-        export_filename: "document",
-        ai_url: nil,
-        mentions_url: nil,
-        mentions: nil,
-        references_url: nil,
-        references_resolve_url: nil,
-        references_config: nil,
-        multi_column: false,
+        export: UNSET,
+        export_filename: UNSET,
+        ai_url: UNSET,
+        mentions_url: UNSET,
+        mentions: UNSET,
+        references_url: UNSET,
+        references_resolve_url: UNSET,
+        references_config: UNSET,
+        multi_column: UNSET,
         table_of_contents: false,
         table_of_contents_container_id: nil,
         show_export_buttons: true,
-        comments: false,
+        comments: UNSET,
         comments_container_id: nil,
+        config: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
+        # A shared Config supplies the feature set; an explicit keyword overrides
+        # one item of it. That order is the useful one: a host passes the bundle
+        # its app always uses and then turns a single feature off for one editor.
+        @config = Config.wrap(config).merge(
+          {
+            syntax_highlighting: syntax_highlighting, upload_url: upload_url,
+            export: export, export_filename: export_filename, ai_url: ai_url,
+            mentions_url: mentions_url, mentions: mentions,
+            references_url: references_url, references_resolve_url: references_resolve_url,
+            references_config: references_config, multi_column: multi_column,
+            comments: comments
+          }.reject { |_, value| UNSET.equal?(value) }
+        )
+
         @initial_content = initial_content
         @html_content = html_content
         @markdown_content = markdown_content
@@ -46,49 +68,51 @@ module Bali
         # Sigue a la app por default: un editor en inglés dentro de una UI en
         # español es el error más visible de una instalación sin configurar.
         @locale = locale || I18n.locale.to_s.split("-").first
-        @syntax_highlighting = syntax_highlighting.nil? ? Bali.block_editor_syntax_highlighting : syntax_highlighting
+        @syntax_highlighting = @config.syntax_highlighting
+        @syntax_highlighting = Bali.block_editor_syntax_highlighting if @syntax_highlighting.nil?
         @editable = editable
         @placeholder = placeholder
-        @upload_url_auto = (upload_url == :auto)
-        @upload_url = upload_url == :auto ? nil : upload_url
+        @upload_url_auto = (@config.upload_url == :auto)
+        @upload_url = @config.upload_url == :auto ? nil : @config.upload_url
         @theme = theme
-        @export = export
-        @export_filename = export_filename
-        @ai_url = ai_url
-        @mentions_url = mentions_url
-        @mentions = mentions
-        @references_url = references_url
-        @references_resolve_url = references_resolve_url
-        @references_config = references_config
-        @multi_column = multi_column
+        @export = @config.export
+        @export_filename = @config.export_filename || "document"
+        @ai_url = @config.ai_url
+        @mentions_url = @config.mentions_url
+        @mentions = @config.mentions
+        @references_url = @config.references_url
+        @references_resolve_url = @config.references_resolve_url
+        @references_config = @config.references_config
+        @multi_column = @config.multi_column
         @table_of_contents = table_of_contents
         @table_of_contents_container_id = table_of_contents_container_id
         @show_export_buttons = show_export_buttons
         @comments_container_id = comments_container_id
 
-        comments_config = comments.is_a?(Hash) ? comments.transform_keys(&:to_sym) : nil
+        comments_config = @config.comments.is_a?(Hash) ? @config.comments.transform_keys(&:to_sym) : nil
         @comments       = comments_config.present?
         @comments_url   = comments_config&.fetch(:url, nil)
         @comments_user  = comments_config&.fetch(:user, nil)
         @comments_users = comments_config&.fetch(:users, nil)
         @comments_users_url = comments_config&.fetch(:users_url, nil)
+        @comments_threads = comments_config&.fetch(:threads, nil)
+        # -1 stands for "not configured": 0 is a real value that turns polling off,
+        # so it cannot double as the unset marker.
+        @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
 
         @options = prepend_class_name(options, "block-editor-component")
         @options = prepend_controller(@options, "block-editor")
         @options = prepend_values(@options, "block-editor", controller_values)
       end
 
-      # Resolve upload_url at render time (not in initialize) because
-      # engine route helpers require the view context which is only available here.
+      # Two things can only be resolved here, both for the same reason: the view
+      # context does not exist yet in `initialize`. Engine route helpers need it,
+      # and so does `translate` -- ViewComponent raises
+      # TranslateCalledBeforeRenderError if the strings are gathered any earlier.
       def before_render
-        return unless @upload_url_auto && editable?
+        @options = prepend_values(@options, "block-editor", { translations: translations_json })
 
-        resolved = Bali.block_editor_upload_url || resolve_engine_upload_path
-        return unless resolved
-
-        @upload_url = resolved
-        @options[:data] ||= {}
-        @options[:data][:'block-editor-upload-url-value'] = resolved
+        resolve_auto_upload_url
       end
 
       def editable?
@@ -185,10 +209,43 @@ module Bali
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,
-          comments_users_url: @comments_users_url || ""
+          comments_users_url: @comments_users_url || "",
+          comments_threads: serialized_comments_threads,
+          comments_poll_interval: @comments_poll_interval
         }
       end
       # rubocop:enable Metrics/CyclomaticComplexity
+
+      # Every string the React bundle writes into the DOM, in one JSON value --
+      # the channel `filters/condition/component.rb#translations_json` already
+      # uses. They were hardcoded in English across four modules, so a Spanish
+      # app still got "File is too large (12.4 MB)..." inside its own editor.
+      #
+      # The three that carry runtime data keep their Rails placeholder and are
+      # substituted in JavaScript: only the browser knows the file size, the HTTP
+      # status or the unresolved user id.
+      def translations_json
+        {
+          load_failed: t("bali_view.block_editor.load_failed"),
+          table_of_contents: t("bali_view.block_editor.table_of_contents"),
+          upload_not_configured: t("bali_view.block_editor.upload_not_configured"),
+          upload_too_large: t("bali_view.block_editor.upload_too_large"),
+          upload_failed: t("bali_view.block_editor.upload_failed"),
+          user_fallback: t("bali_view.block_editor.user_fallback"),
+          plain_text: t("bali_view.block_editor.plain_text")
+        }.to_json
+      end
+
+      def resolve_auto_upload_url
+        return unless @upload_url_auto && editable?
+
+        resolved = Bali.block_editor_upload_url || resolve_engine_upload_path
+        return unless resolved
+
+        @upload_url = resolved
+        @options[:data] ||= {}
+        @options[:data][:'block-editor-upload-url-value'] = resolved
+      end
 
       def export_values
         {
@@ -230,6 +287,21 @@ module Bali
           else m.respond_to?(:to_h) ? m.to_h : { name: m.to_s }
           end
         end.to_json
+      end
+
+      # Threads the in-memory store opens with. Only for a store that does not persist:
+      # with `url:` the REST store fetches the list and owns it, so a seed there would be
+      # gone on the first poll (see useComments).
+      #
+      # A seeded thread lists and reads, but anchors to nothing in the text. That is not a
+      # gap in this method — BlockNote's `comment` mark declares `blocknoteIgnore`, so it
+      # is deliberately absent from the block JSON and there is no way to express one in
+      # `initial_content`. The comments sidebar reads the STORE, which is why a thread
+      # still shows.
+      def serialized_comments_threads
+        return "[]" if @comments_threads.blank?
+
+        Array(@comments_threads).map { |thread| thread.respond_to?(:to_h) ? thread.to_h : thread }.to_json
       end
 
       def serialized_comments_user

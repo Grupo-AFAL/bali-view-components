@@ -42,10 +42,31 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     assert_selector("a[href*='group_by=status']")
   end
 
-  def test_renders_no_grouping_option_that_removes_the_param
+  # El trigger comparte chrome con Filtros/Columnas/Vistas: `ghost` no tiene borde y entre
+  # dos vecinos con borde se leía como de otra familia.
+  def test_the_trigger_wears_the_same_outline_chrome_as_the_other_toolbar_controls
+    render_inline(component)
+
+    assert_selector("[data-dropdown-target='trigger'].btn.btn-outline.btn-sm")
+    assert_no_selector("[data-dropdown-target='trigger'].btn-ghost")
+  end
+
+  # El label mutante ES el marcador de estado (mismo criterio que Vistas guardadas), así que
+  # el chrome no puede cambiar entre agrupado y sin agrupar.
+  def test_the_active_trigger_keeps_the_same_chrome_and_only_the_label_changes
+    render_inline(component(active: true, group_by: :genre))
+
+    assert_selector("[data-dropdown-target='trigger'].btn.btn-outline", text: /Género/)
+  end
+
+  # El param se queda VACÍO en vez de desaparecer: "sin agrupación" tiene que ser distinguible
+  # de "no vino nada", o un listado con persistencia de filtros restaura de la caché la
+  # agrupación que el usuario acaba de apagar.
+  def test_renders_no_grouping_option_that_empties_the_param
     render_inline(component(active: true, group_by: :genre))
     no_group = page.find("a", text: "No grouping")
-    refute_includes(no_group[:href], "group_by")
+
+    assert_match(/[?&]group_by=(&|\z)/, no_group[:href])
   end
 
   def test_option_links_preserve_existing_query_params
@@ -78,21 +99,21 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     end
   end
 
-  # --- R5: opciones explícitas (superficies sin FilterForm, p.ej. el Gantt) ---
+  # --- R5: opciones explícitas (superficies sin FilterForm, p.ej. un roadmap propio) ---
 
   def test_explicit_options_render_without_a_filter_form
     render_inline(Bali::DataTable::GroupByControl::Component.new(
-      url: "/projects", current_params: { "data_display_mode" => "gantt" },
+      url: "/projects", current_params: { "view" => "roadmap" },
       options: [ { attribute: "program", label: "Programa" }, { attribute: "area", label: "Área" } ],
-      current: "program", param: "gantt_group_by", include_none: false
+      current: "program", param: "roadmap_group_by", include_none: false
     ))
 
     # El param propio viaja en los hrefs, conservando los params ajenos.
-    assert_selector "a[href='/projects?data_display_mode=gantt&gantt_group_by=area']", text: "Área"
+    assert_selector "a[href='/projects?roadmap_group_by=area&view=roadmap']", text: "Área"
     # La opción activa nombra el trigger.
     assert_text "Group by: Programa"
     # include_none: false — no hay item "sin agrupar".
-    assert_no_selector "a[href='/projects?data_display_mode=gantt']"
+    assert_no_selector "a[href='/projects?view=roadmap']"
   end
 
   def test_explicit_options_win_over_the_filter_form

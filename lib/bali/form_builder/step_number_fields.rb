@@ -6,11 +6,11 @@ module Bali
       BUTTON_BASE_CLASSES = "btn join-item"
       BUTTON_DISABLED_CLASSES = "btn-disabled pointer-events-none"
       # Hide native number spinners since we provide +/- buttons
-      INPUT_CLASSES = "input input-bordered join-item text-center w-16 " \
+      INPUT_CLASSES = "input join-item text-center w-16 " \
                       "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none " \
                       "[&::-webkit-inner-spin-button]:appearance-none"
 
-      def step_number_field_group(method, options = {})
+      def step_number_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           step_number_field(method, options)
         end
@@ -33,17 +33,19 @@ module Bali
 
       def extract_button_options(options)
         {
-          subtract_data: options.delete(:subtract_data) || {},
-          add_data: options.delete(:add_data) || {},
-          button_class: options.delete(:button_class),
+          subtract_data: options[:subtract_data] || {},
+          add_data: options[:add_data] || {},
+          button_class: options[:button_class],
           disabled: options[:disabled]
         }
       end
 
+      # The button-only keys stay in the hash here and are dropped downstream by
+      # `field_options`, which strips every reserved key before `number_field`
+      # delegates to Rails.
       def build_step_number_input_options(options)
-        opts = options.dup
-        opts[:data] ||= {}
-        opts[:data]["step-number-input-target"] = "input"
+        opts = dup_options(options)
+        opts[:data] = (opts[:data] || {}).merge("step-number-input-target" => "input")
         opts[:class] = @template.class_names(INPUT_CLASSES, opts[:class])
         opts
       end
@@ -73,11 +75,11 @@ module Bali
       end
 
       def subtract_label
-        I18n.t("view_components.bali.step_number_field.decrease", default: "Decrease value")
+        I18n.t("bali_view.step_number_field.decrease")
       end
 
       def add_label
-        I18n.t("view_components.bali.step_number_field.increase", default: "Increase value")
+        I18n.t("bali_view.step_number_field.increase")
       end
 
       def step_button(opts)
@@ -87,7 +89,7 @@ module Bali
           BUTTON_DISABLED_CLASSES => opts[:disabled]
         )
 
-        data = build_button_data(opts[:action], opts[:target], opts[:extra_data], opts[:disabled])
+        data = build_button_data(opts[:action], opts[:target], opts[:extra_data])
 
         @template.button_tag(
           @template.render(Bali::Icon::Component.new(opts[:icon])),
@@ -100,9 +102,12 @@ module Bali
         )
       end
 
-      def build_button_data(action, target, extra_data, disabled)
-        return {} if disabled
-
+      # Targets and actions are emitted even for a disabled field. The Stimulus
+      # controller declares both buttons as required targets, so omitting them made
+      # `connect` raise and left the controller unattached: a host that enabled the
+      # field later got dead buttons. `disabled` is what makes the buttons inert, and
+      # the controller keeps it that way.
+      def build_button_data(action, target, extra_data)
         action_value = [
           "step-number-input##{action}",
           extra_data[:action]

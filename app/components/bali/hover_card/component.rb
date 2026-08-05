@@ -12,12 +12,16 @@ module Bali
         left left-start left-end
       ].freeze
 
+      # `focusin` and not tippy's `focus`: tippy only honours `focus` when the focused
+      # element IS the reference, and the reference here is the trigger slot's wrapper
+      # `<div>`, which has no tabindex and therefore never takes focus. The keyboard half
+      # of "mouseenter focus" was dead in every hovercard the library has ever rendered —
+      # measured in Chrome, `state.isVisible` false on focus with `focus`, true with
+      # `focusin`. `focusin` bubbles, so focusing anything inside the trigger opens the card.
       TRIGGERS = {
-        hover: "mouseenter focus",
+        hover: "mouseenter focusin",
         click: "click"
       }.freeze
-
-      DEFAULT_Z_INDEX = 9999
 
       renders_one :trigger, ->(**options, &block) do
         tag.div(**options.merge(data: { hovercard_target: "trigger" }), &block)
@@ -27,7 +31,8 @@ module Bali
       # @param placement [String] Tippy.js placement option (see PLACEMENTS)
       # @param open_on_click [Boolean] Switch between hover and click behavior
       # @param append_to [String] Where to append the popup ('body', 'parent', or CSS selector)
-      # @param z_index [Integer] Z-index for the popup
+      # @param z_index [Integer] Overrides the popup's tier in Bali's z-index scale;
+      #   left out, the controller reads `--bali-z-tooltip`
       # @param content_padding [Boolean] Whether to add padding to content
       # @param arrow [Boolean] Whether to show an arrow pointing to trigger
       # rubocop:disable Metrics/ParameterLists
@@ -36,7 +41,7 @@ module Bali
         placement: "auto",
         open_on_click: false,
         append_to: "body",
-        z_index: DEFAULT_Z_INDEX,
+        z_index: nil,
         content_padding: true,
         arrow: true,
         **options

@@ -67,6 +67,9 @@ export default function BlockNoteEditorWrapper ({
   syntaxHighlighting = true,
   uploadUrl,
   outputElement,
+  // The `.block-editor-component` element this editor lives in. Upload errors are
+  // rendered inside it, so two editors on one page never share a toast corner.
+  containerElement,
   onEditorReady,
   onSyncReady,
   theme = 'light',
@@ -85,7 +88,12 @@ export default function BlockNoteEditorWrapper ({
   commentsUrl,
   commentsUser,
   commentsUsers,
-  commentsUsersUrl
+  commentsUsersUrl,
+  commentsPollInterval,
+  commentsThreads,
+  // Rails-supplied UI strings, keyed as in config/locales/bali_view.*.yml. The
+  // hooks below used to hardcode them in English regardless of the app's locale.
+  translations = {}
 }) {
   const htmlParsed = useRef(false)
   // Deferred content (HTML/Markdown) is applied after mount; hold back the
@@ -97,7 +105,7 @@ export default function BlockNoteEditorWrapper ({
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
 
-  const uploadFile = useFileUpload(uploadUrl)
+  const uploadFile = useFileUpload(uploadUrl, containerElement, translations)
 
   // Parse content, detecting format:
   // - Array → BlockNote blocks (legacy/default)
@@ -122,6 +130,13 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [initialContent])
 
+  // "Plain Text" is the one entry of the language list that is a description
+  // rather than a proper name, so it is the one that needs translating.
+  const supportedLanguages = useMemo(() => ({
+    ...SUPPORTED_LANGUAGES,
+    text: { ...SUPPORTED_LANGUAGES.text, name: translations.plain_text ?? SUPPORTED_LANGUAGES.text.name }
+  }), [translations.plain_text])
+
   // Build schema with optional syntax highlighting, multi-column, and mentions support.
   //
   // `shiki` is a heavyweight optional dependency (~9 MB unminified with every
@@ -133,7 +148,7 @@ export default function BlockNoteEditorWrapper ({
   const schema = useMemo(() => {
     const codeBlock = syntaxHighlighting
       ? createCodeBlockSpec({
-        supportedLanguages: SUPPORTED_LANGUAGES,
+        supportedLanguages,
         defaultLanguage: 'text',
         createHighlighter: async () => {
           try {
@@ -164,7 +179,7 @@ export default function BlockNoteEditorWrapper ({
       }
     })
     return multiColumn ? multiColumn.withMultiColumn(base) : base
-  }, [multiColumn, syntaxHighlighting])
+  }, [multiColumn, syntaxHighlighting, supportedLanguages])
 
   const aiExtension = useMemo(() => {
     if (!aiEnabled) return null
@@ -177,7 +192,10 @@ export default function BlockNoteEditorWrapper ({
     commentsUser: commentsEnabled ? commentsUser : undefined,
     commentsUsers: commentsEnabled ? commentsUsers : undefined,
     commentsUsersUrl: commentsEnabled ? commentsUsersUrl : undefined,
-    commentsUrl: commentsEnabled ? commentsUrl : undefined
+    commentsUrl: commentsEnabled ? commentsUrl : undefined,
+    commentsPollInterval: commentsEnabled ? commentsPollInterval : undefined,
+    commentsThreads: commentsEnabled ? commentsThreads : undefined,
+    translations
   })
 
   const extensions = useMemo(() => {
@@ -290,25 +308,20 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor, pmContent])
 
-  // Pre-populate the UserStore cache with all known users so that
-  // resolved threads don't crash when BlockNote's Comments component
-  // calls getUser() before async resolution completes.
-  // We gate BlockNoteView's comments prop AND ThreadsSidebar on
-  // commentsReady to ensure the cache is populated before any
-  // resolved-thread UI mounts.
+  // The user store is created by the comments extension, so it only exists once
+  // the editor does. Hand it to useComments, which is what keeps every user id a
+  // thread references answerable before BlockNote renders that thread -- read
+  // the note there for why that has to happen, and why it cannot wait for the
+  // async resolution. The comments UI stays gated on commentsReady so it never
+  // mounts against a store nobody has seeded.
   const [commentsReady, setCommentsReady] = useState(!commentsEnabled)
   useEffect(() => {
-    if (!editor || !commentsResult?.staticUserMap) return
+    if (!editor || !commentsResult) return
     // editor.extensions is a Map<key, extension>, not an array
-    if (editor.extensions) {
-      for (const [, ext] of editor.extensions) {
-        if (ext.userStore?.userCache) {
-          for (const [id, user] of commentsResult.staticUserMap) {
-            ext.userStore.userCache.set(id, user)
-          }
-          break
-        }
-      }
+    for (const [, ext] of editor.extensions ?? []) {
+      if (typeof ext.userStore?.getUser !== 'function') continue
+      commentsResult.attachUserStore(ext.userStore)
+      break
     }
     setCommentsReady(true)
   }, [editor, commentsResult])
@@ -493,7 +506,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents && tocPortalContainer) {
     return (
       <>
-        {createPortal(<TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />, tocPortalContainer)}
+        {createPortal(<TableOfContents headings={tocHeadings} editorElement={editor?.domElement} label={translations.table_of_contents} />, tocPortalContainer)}
         {editorView}
       </>
     )
@@ -503,7 +516,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents) {
     return (
       <div className='bn-toc-layout'>
-        <TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />
+        <TableOfContents headings={tocHeadings} editorElement={editor?.domElement} label={translations.table_of_contents} />
         <div className='bn-toc-editor-wrapper'>{editorView}</div>
       </div>
     )

@@ -1,11 +1,14 @@
-<%= render Bali::DataTable::Component.new(url: request.path, filter_form: filter_form) do |c| %>
+<%# `id:` explícito: el filter_form del preview no trae storage_id, y sin identidad estable
+    el demo dejaría de mostrar la captura de columnas al guardar una vista. %>
+<%= render Bali::DataTable::Component.new(url: request.path, filter_form: filter_form,
+                                          id: 'saved-views-preview') do |c| %>
   <% c.with_filters_panel(available_attributes: filter_attributes) %>
-  <% c.with_saved_views(url: '/preview/saved_views', table_id: 'saved-views-preview-table',
+  <% c.with_saved_views(url: '/preview/saved_views',
                         default_views: [
                           { name: 'Todo (sin filtros)', url: request.path },
                           { name: 'Pendientes', url: "#{request.path}?q%5Bstatus_eq%5D=pending" }
                         ]) %>
-  <% c.with_column_selector(table_id: 'saved-views-preview-table') do |cs| %>
+  <% c.with_column_selector do |cs| %>
     <% cs.with_column(index: 0, label: 'Name') %>
     <% cs.with_column(index: 1, label: 'Status') %>
     <% cs.with_column(index: 2, label: 'Amount') %>
@@ -13,7 +16,9 @@
   <% end %>
 
   <% c.with_table do %>
-    <%= render Bali::Table::Component.new(id: 'saved-views-preview-table') do |ct| %>
+    <%# Sin `id:`: el selector de columnas apunta al contenedor del DataTable
+        (`#saved-views-preview table`), no a la tabla. %>
+    <%= render Bali::Table::Component.new do |ct| %>
       <%= ct.with_headers(headers) %>
       <% records.each do |record| %>
         <%= ct.with_row do %>

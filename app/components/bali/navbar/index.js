@@ -33,8 +33,21 @@ export class NavbarController extends Controller {
   }
 
   updateBackgroundColor = () => {
+    // `hasBurgerTarget` and not `?.`: the getter Stimulus generates for a singular target
+    // THROWS when the element is missing (stimulus 3.2.2, dist/stimulus.js:2286-2294), and
+    // `?.` is evaluated on its RESULT — so the `||` below was unreachable, not a fallback.
+    // A navbar whose only burger is `type: :sidebar` declares no `burger` target at all
+    // (Burger::CONFIGURATIONS[:sidebar] is empty; :alt points at `altBurger`; the `href:`
+    // form never calls configure_attrs). Rendered and measured: that navbar comes out with
+    // `allow-transparency-value="true"` and only a `menu` target, so with transparency on
+    // every throttled scroll tick threw in here and `removeIsTransparent()` never ran —
+    // the navbar stayed `bg-transparent shadow-none` over the scrolled page for good.
+    //
+    // The `||` stays, because it earns its keep in the case where the target IS there: the
+    // burger is `lg:hidden`, so above the lg breakpoint its offsetHeight is 0 and the
+    // navbar's own height is the right thing to compare the scroll position against.
     const targetHeight =
-      this.burgerTarget?.offsetHeight || this.element.offsetHeight
+      (this.hasBurgerTarget && this.burgerTarget.offsetHeight) || this.element.offsetHeight
     if (window.scrollY > targetHeight) {
       this.removeIsTransparent()
     } else {
@@ -97,10 +110,12 @@ export class NavbarController extends Controller {
     this._updateClickOutsideListener()
   }
 
-  // Toggle the side menu via global event (for cross-component communication)
+  // Toggle the side menu via global event (for cross-component communication).
+  // Targets `window` because that is where SideMenuController listens: the two
+  // are siblings, so an event bubbling out of the navbar never reaches it.
   toggleSideMenu (event) {
     event.preventDefault()
-    window.dispatchEvent(new CustomEvent('bali:side-menu:toggle'))
+    this.dispatch('toggle', { prefix: 'bali:side-menu', target: window })
   }
 
   // Close mobile menu when clicking outside the navbar

@@ -3,15 +3,37 @@
 module Bali
   module Navbar
     class Component < ApplicationViewComponent
-      BASE_CLASSES = "navbar shadow-sm"
+      BASE_CLASSES = "navbar"
       STICKY_CLASSES = "sticky top-0 z-50"
 
+      # `shadow: false` emits a class instead of skipping one, because the
+      # default it turns off is not a class: it is `.navbar { @apply shadow-sm }`
+      # in navbar/index.css. The default had to move there so that
+      # `.navbar.is-transparent { @apply shadow-none }` — same layer, one
+      # compound more specific — finally beats it; as a utility on the element it
+      # never did. Nothing declared in @layer components can be undone from the
+      # `class:` option, so the off switch has to come from @layer utilities,
+      # which outranks it.
+      NO_SHADOW_CLASSES = "shadow-none"
+
+      # Clases de Bali y no utilidades de Tailwind, por la misma razón que la sombra: el
+      # preset tiene que vivir en la capa donde `.navbar.is-transparent` lo pueda pisar.
+      # Como utilidades sobre el elemento le ganaban a la regla de estado desde otra capa, y
+      # un navbar `transparency: true` no era transparente — medido sobre
+      # /lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true, con
+      # `is-transparent` puesto el fondo seguía en `oklch(1 0 0)`.
+      #
+      # Las declaraciones están en navbar/index.css, en @layer components y ARRIBA de la
+      # regla de `.is-transparent`: las dos son (0,2,0), así que decide el orden.
+      #
+      # De paso, un host que quiera pisar el color del preset con una utilidad ahora le gana
+      # limpio, en vez de empatar contra `bg-base-100` y depender del orden de la hoja.
       COLORS = {
-        base: "bg-base-100",
-        primary: "bg-primary text-primary-content",
-        secondary: "bg-secondary text-secondary-content",
-        accent: "bg-accent text-accent-content",
-        neutral: "bg-neutral text-neutral-content"
+        base: "navbar-base",
+        primary: "navbar-primary",
+        secondary: "navbar-secondary",
+        accent: "navbar-accent",
+        neutral: "navbar-neutral"
       }.freeze
 
       # Brand slot - accepts content block or name parameter
@@ -25,11 +47,17 @@ module Bali
       # @param fullscreen [Boolean] Full-width navbar without max-width constraint
       # @param color [Symbol, nil] Background color preset (:base, :primary, :secondary, :accent,
       #   :neutral). Pass nil to skip color classes and use your own via the class: option.
-      def initialize(sticky: true, transparency: false, fullscreen: false, color: :base, **options)
+      # @param shadow [Boolean] Draw the drop shadow under the bar (default: true).
+      #   Pass false where the bar already separates itself some other way — an app
+      #   shell whose navbar carries a bottom border that continues the sidebar's
+      #   gets two dividers otherwise.
+      def initialize(sticky: true, transparency: false, fullscreen: false, color: :base,
+                     shadow: true, **options)
         @sticky = sticky
         @transparency = transparency.present?
         @fullscreen = fullscreen.present?
         @color = color&.to_sym
+        @shadow = shadow
         @container_class = options.delete(:container_class)
 
         @options = prepend_controller(options, "navbar")
@@ -58,12 +86,17 @@ module Bali
         COLORS.fetch(@color, nil)
       end
 
+      # `@options[:class]` is deliberately absent: `prepend_class_name` appends
+      # whatever the caller passed after this string, so naming it here printed
+      # every host class twice — measured on the AppLayout preview, the
+      # `min-h-0 bali-chrome-height border-b border-base-300` it passes came out
+      # in the attribute two times over.
       def navbar_classes
         class_names(
           BASE_CLASSES,
           color_classes,
           @sticky && STICKY_CLASSES,
-          @options[:class]
+          !@shadow && NO_SHADOW_CLASSES
         )
       end
     end

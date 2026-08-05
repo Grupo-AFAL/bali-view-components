@@ -1,18 +1,17 @@
-<% if params[:layout] == 'false' %>
-  <h2 class="text-lg font-semibold mb-4"><%= t('studios.form.new_title') %></h2>
-  <%= render 'form', studio: @studio %>
-<% else %>
-  <%= render Bali::FormPage::Component.new(
-    title: t('studios.form.new_title'),
-    breadcrumbs: [
-      { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
-      { name: t('studios.title'), href: admin_studios_path },
-      { name: t('studios.form.new_breadcrumb') }
-    ],
-    back: { href: admin_studios_path }
-  ) do |page| %>
-    <% page.with_body do %>
-      <%= render 'form', studio: @studio %>
-    <% end %>
+<%# One render serves the full page and the drawer: FormPage autodetects the context and drops
+    its Card, its back button and its breadcrumbs when the drawer is the one fetching the view —
+    which is why declaring them here costs the drawer nothing. %>
+<%= render Bali::FormPage::Component.new(
+  title: t('studios.form.new_title'),
+  subtitle: t('studios.form.subtitle_new'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
+    { name: t('studios.title'), href: admin_studios_path },
+    { name: t('studios.form.new_breadcrumb') }
+  ],
+  back: { href: admin_studios_path }
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', studio: @studio, drawer: page.drawer? %>
   <% end %>
 <% end %>

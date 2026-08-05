@@ -7,7 +7,40 @@
  *   - Compact-density density overrides (parent → child cascade)
  */
 
-/* ── Active row state — neutral darken (avoids primary-tint purple cast) ── */
+/* ── Defaults that the state and density rules have to beat ──────────────
+   Every declaration below used to be a utility class on the templates. Since
+   this file moved into @layer components, a utility on the element beats
+   anything here — which is the point of the layer, but it also meant that
+   each rule further down which exists to OVERRIDE one of these defaults
+   (`.is-active`, `.is-compact`) silently lost to the template. A default and
+   the rule that overrides it have to sit in the same layer, so the defaults
+   live here, next to what overrides them.
+
+   The rule of thumb: a static utility on the template is fine until Bali's
+   own CSS declares a state or a variant for that same property. At that
+   point the default has to come here too, or the variant is dead. */
+.cmd-input-wrap {
+  @apply px-4 py-3;
+}
+.cmd-input {
+  @apply text-base;
+}
+.cmd-row {
+  @apply px-2.5 py-2 hover:bg-base-content/8;
+}
+.cmd-row-ic {
+  @apply bg-base-200 text-base-content/70;
+}
+.cmd-row-body {
+  @apply flex-col gap-px;
+}
+.cmd-row-hint {
+  @apply opacity-0;
+}
+
+/* ── Active row state — neutral darken (avoids primary-tint purple cast) ──
+   Same specificity as the `.cmd-row:hover` default above, so source order is
+   what makes the keyboard-highlighted row keep its state under the cursor. */
 .cmd-row.is-active {
   background: color-mix(in oklch, var(--color-base-content) 10%, transparent);
 }
@@ -48,4 +81,27 @@
 .cmd-panel.is-compact .cmd-row-meta {
   font-size: 0.75rem;
   flex: 1;
+}
+
+/* ── The <dialog> that carries the palette into the top layer ───────────── */
+/* It holds nothing of its own: the backdrop and the panel inside it are both
+   `position: fixed`, which leaves this box zero-sized. What is left to undo is
+   the UA sheet a dialog arrives with — a centred, fit-content sheet on a Canvas
+   background with its own scroll container. `border`, `margin` and `padding` are
+   already zeroed by the global reset. */
+.bali-command-surface {
+  inset: auto;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  background: transparent;
+  color: inherit;
+  overflow: visible;
+}
+
+/* The palette draws its own backdrop, so the UA one would only wash a second
+   layer of black over it. */
+.bali-command-surface::backdrop {
+  background: transparent;
 }

@@ -89,19 +89,19 @@ class BaliNavbarComponentTest < ComponentTestCase
 
   def test_renders_base_color_by_default
     render_inline(Bali::Navbar::Component.new)
-    assert_selector("nav.navbar.bg-base-100")
+    assert_selector("nav.navbar.navbar-base")
   end
 
   def test_skips_color_classes_for_unknown_symbol
     render_inline(Bali::Navbar::Component.new(color: :invalid))
     assert_selector("nav.navbar")
-    assert_no_selector("nav.navbar.bg-base-100")
+    assert_no_selector("nav.navbar.navbar-base")
   end
 
   def test_skips_color_classes_when_color_is_nil_allowing_custom_class
     render_inline(Bali::Navbar::Component.new(color: nil, class: "bg-indigo-600 text-white"))
     assert_selector("nav.navbar.bg-indigo-600.text-white")
-    assert_no_selector("nav.navbar.bg-base-100")
+    assert_no_selector("nav.navbar.navbar-base")
   end
 
   def test_accessibility_has_navigation_role
@@ -260,5 +260,62 @@ class BaliNavbarBurgerComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Burger::Component.new(href: "/menu", type: :main))
     assert_no_selector("[data-navbar-target]")
     assert_no_selector("[data-action]")
+  end
+
+  # --- shadow: ---
+
+  # The default is `.navbar { @apply shadow-sm }` in navbar/index.css, and it has
+  # to stay there: from @layer components is the only place the `.is-transparent`
+  # rule can beat it. As a utility on the element (which is where it used to be)
+  # it outranked every state rule the sheet declares for that property.
+  def test_shadow_is_on_by_default_and_puts_no_class_on_the_element
+    render_inline(Bali::Navbar::Component.new)
+
+    classes = page.find("nav")[:class].split
+    assert_not_includes classes, "shadow-sm"
+    assert_not_includes classes, "shadow-none"
+  end
+
+  def test_shadow_false_turns_it_off_from_the_utilities_layer
+    render_inline(Bali::Navbar::Component.new(shadow: false))
+    assert_selector("nav.navbar.shadow-none")
+  end
+
+  # `navbar_classes` used to name `@options[:class]` and then hand its result to
+  # `prepend_class_name`, which appends the caller's classes a second time.
+  def test_caller_classes_land_on_the_nav_exactly_once
+    render_inline(Bali::Navbar::Component.new(class: "border-b border-base-300"))
+
+    classes = page.find("nav")[:class].split
+    assert_equal 1, classes.count("border-b")
+    assert_equal 1, classes.count("border-base-300")
+  end
+
+  # --- type: :sidebar delegates to the one shared trigger ---
+
+  def test_sidebar_burger_renders_the_shared_trigger
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar))
+    assert_selector("button[type='button'][data-controller~='side-menu-trigger']")
+    assert_selector(
+      "button[aria-controls='#{Bali::SideMenu::Component::DEFAULT_ID}'][aria-expanded='false']"
+    )
+    assert_selector("button.lg\\:hidden svg")
+    # It used to be a <label for=…> pointing at a hidden checkbox.
+    assert_no_selector("label")
+  end
+
+  def test_sidebar_burger_accepts_a_custom_menu_id
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar, menu_id: "reports"))
+    assert_selector("button[aria-controls='reports']")
+  end
+
+  def test_sidebar_burger_keeps_custom_classes
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar, class: "custom-x"))
+    assert_selector("button.custom-x.lg\\:hidden")
+  end
+
+  def test_sidebar_burger_with_href_still_renders_a_link
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar, href: "/menu"))
+    assert_selector("a[href='/menu'].btn.btn-ghost")
   end
 end

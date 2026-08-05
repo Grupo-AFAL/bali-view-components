@@ -2,40 +2,53 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
+    # El de Rails, para que la implementación pueda vivir bajo el nombre canónico
+    # `time_zone_select_field`. Se liga por la superclase y no con `alias`: ver la nota larga
+    # en `file_fields.rb` (#840).
+    define_method(:rails_time_zone_select, superclass.instance_method(:time_zone_select))
+
     module TimeZoneSelectFields
       # DaisyUI select classes matching SelectFields pattern
       BASE_CLASSES = "select select-bordered w-full"
 
-      def time_zone_select_group(method, priority_zones = nil, options = {}, html_options = {})
-        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
-          time_zone_select(method, priority_zones, options, html_options)
+      def time_zone_select_group(method, priority_zones = nil, *legacy, html: {}, **options)
+        options, html = legacy_option_hashes(:time_zone_select_group, legacy, html, options)
+        group = group_options(options, html)
+
+        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, group)) do
+          time_zone_select_field(method, priority_zones, html: html, **options)
         end
       end
 
+      # Rails' own name, kept as an override so an existing `f.time_zone_select`
+      # keeps its daisyUI classes and its error and help messages.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
-        merged_options = time_zone_html_options(method, html_options)
-        field = super(method, priority_zones, options, merged_options)
+        time_zone_select_field(method, priority_zones, html: html_options, **options)
+      end
 
-        field_helper(method, field, extract_help_options(html_options))
+      def time_zone_select_field(method, priority_zones = nil, *legacy, html: {}, **options)
+        options, html = legacy_option_hashes(:time_zone_select_field, legacy, html, options)
+        group = group_options(options, html)
+        attributes = time_zone_html_options(method, html, group)
+        field = rails_time_zone_select(method, priority_zones, options, attributes)
+
+        field_helper(method, field, group)
       end
 
       private
 
-      def time_zone_html_options(method, html_options)
-        custom_class = html_options[:class]
+      # `group` and not `html`: `aria_attributes` decides whether to emit
+      # `aria-describedby` by looking for `help:`, so reading the hash that does
+      # not carry it points the control at nothing while the paragraph renders
+      # anyway — a description that exists on screen and not in the a11y tree.
+      def time_zone_html_options(method, html_options, group = html_options)
         base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
 
-        html_options.except(:class, :control_data, :control_class, :help).merge(
-          class: [ base, custom_class ].compact.join(" ")
+        attributes = html_attributes(html_options).except(:class).merge(
+          class: [ base, html_options[:class] ].compact.join(" ")
         )
-      end
 
-      def extract_help_options(html_options)
-        {
-          help: html_options[:help],
-          control_data: html_options[:control_data],
-          control_class: html_options[:control_class]
-        }
+        merge_aria_attributes(attributes, method, group)
       end
     end
   end

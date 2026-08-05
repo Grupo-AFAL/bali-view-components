@@ -3,8 +3,17 @@
   --bali-navbar-height: 3.75rem;
 }
 
+/* The shadow lives here and not on the element, so that the `.is-transparent`
+ * rule below can reach it. It used to be `shadow-sm` in the component's
+ * BASE_CLASSES — a utility, so from @layer components the state rule's
+ * `shadow-none` never won, and a transparent navbar kept its shadow: measured
+ * on /lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true,
+ * box-shadow stayed `0 1px 3px rgba(0,0,0,.1)` with `is-transparent` on the
+ * element. (The `@apply shadow-md` that stood here lost the same way and had
+ * never rendered at all.) `shadow-none` from `shadow: false` still wins, on
+ * purpose: that one comes from @layer utilities. */
 .navbar {
-  @apply shadow-md;
+  @apply shadow-sm;
   transition: background-color 1s;
 
   &>.container {
@@ -17,6 +26,34 @@
     }
   }
 
+  /* Los presets de `color:`. Van acá y ARRIBA de `.is-transparent` por la misma razón
+   * que la sombra: los dos selectores son (0,2,0), así que a igual especificidad y en la
+   * misma capa decide el orden de origen, y el estado tiene que poder pisar al default.
+   * Como utilidades sobre el elemento —que es donde estaban— le ganaban desde
+   * @layer utilities y `bg-transparent` no se veía nunca. */
+  &.navbar-base {
+    @apply bg-base-100;
+  }
+
+  &.navbar-primary {
+    @apply bg-primary text-primary-content;
+  }
+
+  &.navbar-secondary {
+    @apply bg-secondary text-secondary-content;
+  }
+
+  &.navbar-accent {
+    @apply bg-accent text-accent-content;
+  }
+
+  &.navbar-neutral {
+    @apply bg-neutral text-neutral-content;
+  }
+
+  /* El color del texto NO se toca acá: un navbar transparente sobre una portada oscura
+   * sigue queriendo el `*-content` claro de su preset. Lo que se recupera bajo 1023px
+   * cuando el menú está abierto lo hace el bloque de abajo, que ya existía. */
   &.is-transparent {
     @apply bg-transparent shadow-none;
     transition: background-color 1s;

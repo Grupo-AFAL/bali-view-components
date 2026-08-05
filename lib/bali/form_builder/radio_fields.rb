@@ -5,8 +5,6 @@ module Bali
     module RadioFields
       RADIO_CLASS = "radio"
       LABEL_CLASS = "label cursor-pointer justify-start gap-3"
-      LABEL_TEXT_CLASS = "label-text"
-      ERROR_CLASS = "label-text-alt text-error"
       TOGGLERS_CLASS = "join"
       TOGGLER_CLASS = "join-item btn btn-sm"
       TOGGLER_ACTIVE_CLASS = "btn-primary"
@@ -14,6 +12,10 @@ module Bali
       TOGGLER_TYPE = "button"
       RADIO_BUTTONS_GROUP_CLASS = "radio-buttons-group"
       DEFAULT_ORIENTATION = :vertical
+
+      # Read while building the radio list, and not attributes of the radio input:
+      # `size` and `color` are daisyUI variants here.
+      RADIO_OPTIONS = %i[radio_label_class size color orientation].freeze
 
       ORIENTATIONS = {
         vertical: "flex flex-col gap-1",
@@ -39,15 +41,25 @@ module Bali
 
       CONTROLLER_NAME = "radio-buttons-group"
 
-      def radio_field_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
-          radio_field(method, values, options, html_options)
+      # The caption stays a `<legend>`, which is what a legend is actually for:
+      # the group holds one radio per value, each already named by its own
+      # `<label>`, and there is no single control a `for` could point at.
+      #
+      # `html:` is what each `<input type="radio">` carries — including the
+      # daisyUI variants `size:` and `color:`, and `orientation:`, which this
+      # family reads there rather than on the group.
+      def radio_group(method, values, html: {}, **options)
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
+          radio_field(method, values, html: html, **options)
         end
       end
 
-      def radio_field(method, values, options = {}, html_options = {})
+      def radio_field(method, values, html: {}, **options)
+        html_options = html
         label_class = build_radio_label_class(html_options)
-        radio_opts = build_radio_input_options(method, html_options)
+        radio_opts = build_radio_input_options(method, html_options, options)
         orientation = html_options.fetch(:orientation, DEFAULT_ORIENTATION).to_sym
         container_class = ORIENTATIONS.fetch(orientation, ORIENTATIONS[DEFAULT_ORIENTATION])
 
@@ -62,21 +74,25 @@ module Bali
         field_helper(method, field, options)
       end
 
-      def radio_buttons_group(method, values, options = {}, togglers_options = {},
-                              radios_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
-          radio_buttons_field(method, values, options, togglers_options, radios_options)
+      # The only family that took three positional hashes. `togglers:` and
+      # `radios:` name the two that were anonymous. No compatibility shim for the
+      # positional form: none of the eight applications that render this builder
+      # calls this helper at all.
+      def radio_buttons_group(method, values, togglers: {}, radios: {}, **options)
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
+          radio_buttons_field(method, values, togglers: togglers, radios: radios, **options)
         end
       end
 
-      def radio_buttons_field(method, values, options = {}, togglers_options = {},
-                              radios_options = {})
+      def radio_buttons_field(method, values, togglers: {}, radios: {}, **options)
         current_value = extract_current_value(values, options)
         control_options = build_control_options(options, current_value)
 
         field = safe_join(
-          [ render_togglers(values, togglers_options, current_value),
-           render_grouped_radios(method, values, radios_options) ]
+          [ render_togglers(values, togglers, current_value),
+           render_grouped_radios(method, values, radios) ]
         )
 
         field_helper(method, field, control_options)
@@ -89,7 +105,10 @@ module Bali
         [ LABEL_CLASS, custom_class ].compact.join(" ")
       end
 
-      def build_radio_input_options(method, html_options)
+      # `help:` travels in the group's `options`, not in the radio's own
+      # `html_options`, so the pair of hashes has to be read together to know
+      # which ids `aria-describedby` may name.
+      def build_radio_input_options(method, html_options, options = {})
         size = html_options[:size]
         color = html_options[:color]
         custom_class = html_options[:class]
@@ -102,8 +121,10 @@ module Bali
           custom_class
         ].compact.join(" ")
 
-        html_options.except(:radio_label_class, :size, :color, :class, :orientation)
-                    .merge(class: radio_class)
+        attributes = html_attributes(html_options).except(:class, *RADIO_OPTIONS)
+                                                  .merge(class: radio_class)
+
+        merge_aria_attributes(attributes, method, options)
       end
 
       def extract_current_value(values, options)
@@ -136,7 +157,7 @@ module Bali
           label(method, class: label_class, value: value) do
             safe_join(
               [ radio_button(method, value, merged_options),
-               content_tag(:span, display, class: LABEL_TEXT_CLASS) ]
+               content_tag(:span, display) ]
             )
           end
         end
@@ -164,7 +185,7 @@ module Bali
       end
 
       def build_toggler_options(options)
-        opts = (options[:toggler] || {}).dup
+        opts = dup_options(options[:toggler] || {})
         opts[:class] = [ TOGGLER_CLASS, opts[:class] ].compact.join(" ")
         opts = prepend_action(opts, "#{CONTROLLER_NAME}#change")
         opts = prepend_data_attribute(opts, "#{CONTROLLER_NAME}-target", "toggler")
@@ -174,7 +195,7 @@ module Bali
 
       def render_grouped_radios(method, values, options)
         container_options = prepend_data_attribute(
-          options.except(:label),
+          dup_options(options).except(:label),
           "#{CONTROLLER_NAME}-target",
           "element"
         )

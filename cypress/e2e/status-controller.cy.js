@@ -54,6 +54,39 @@ describe('StatusController', () => {
     })
   })
 
+  // A transformed ancestor becomes the containing block of its `fixed`
+  // descendants, so `left: <viewport x>` gets measured from that ancestor's edge
+  // instead of from the viewport. Inside a Drawer — which animates with
+  // translateX — that used to throw the panel about 1000px off screen.
+  context('inside a transformed ancestor', () => {
+    beforeEach(() => {
+      cy.visit('/bali/status/in_transformed_ancestor')
+    })
+
+    it('keeps the panel inside the viewport', () => {
+      cy.get('[data-status-target="trigger"]').first().click()
+      cy.get('.status-panel').first().should('be.visible').then(($panel) => {
+        const panel = $panel[0].getBoundingClientRect()
+        expect(panel.width).to.be.greaterThan(0)
+        expect(panel.left).to.be.at.least(0)
+        expect(panel.right).to.be.at.most(Cypress.config('viewportWidth'))
+        expect(panel.top).to.be.at.least(0)
+      })
+    })
+
+    it('anchors the panel to its trigger', () => {
+      cy.get('[data-status-target="trigger"]').first().click()
+      cy.get('[data-status-target="trigger"]').first().then(($trigger) => {
+        const trigger = $trigger[0].getBoundingClientRect()
+        cy.get('.status-panel').first().then(($panel) => {
+          const panel = $panel[0].getBoundingClientRect()
+          expect(Math.abs(panel.left - trigger.left)).to.be.lessThan(2)
+          expect(panel.top).to.be.greaterThan(trigger.top)
+        })
+      })
+    })
+  })
+
   context('inside an overflow container', () => {
     beforeEach(() => {
       cy.visit('/bali/status/in_table')

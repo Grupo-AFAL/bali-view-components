@@ -10,7 +10,7 @@ class BaliTimePeriodsSelectOptionsTest < ActiveSupport::TestCase
 
   def test_yearly_quarter_includes_yearly_option_with_i18n
     options = Bali::TimePeriods::SelectOptions.yearly_quarter
-    assert_equal(I18n.t("bali.time_periods.yearly"), options.first.first)
+    assert_equal(I18n.t("bali_view.time_periods.yearly"), options.first.first)
   end
 
   def test_yearly_quarter_includes_q1_q4_options
@@ -49,8 +49,8 @@ class BaliTimePeriodsSelectOptionsTest < ActiveSupport::TestCase
   def test_trailing_includes_common_periods
     options = Bali::TimePeriods::SelectOptions.trailing
     labels = options.map(&:first)
-    assert_includes(labels, I18n.t("bali.time_periods.yesterday"))
-    assert_includes(labels, I18n.t("bali.time_periods.last_7_days"))
-    assert_includes(labels, I18n.t("bali.time_periods.last_30_days"))
+    assert_includes(labels, I18n.t("bali_view.time_periods.yesterday"))
+    assert_includes(labels, I18n.t("bali_view.time_periods.last_7_days"))
+    assert_includes(labels, I18n.t("bali_view.time_periods.last_30_days"))
   end
 end

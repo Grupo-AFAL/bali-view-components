@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bali/ransack_param_name"
+require "bali/search_config"
 require "bali/filter_form"
 require "bali/form_builder/html_utils"
 require "bali/form_builder/shared_utils"
@@ -34,6 +36,7 @@ require "bali/form_builder/email_fields"
 require "bali/form_builder/error_summary_fields"
 require "bali/form_builder/file_fields"
 require "bali/form_builder/number_fields"
+require "bali/form_builder/numeric_fields"
 require "bali/form_builder/password_fields"
 require "bali/form_builder/percentage_fields"
 require "bali/form_builder/radio_fields"
@@ -54,6 +57,9 @@ require "bali/form_builder/time_period_fields"
 require "bali/form_builder/time_zone_select_fields"
 require "bali/form_builder/url_fields"
 
+# The v2 spellings, kept for one cycle. Removed in 4.0.
+require "bali/form_builder/deprecated_names"
+
 # Commands
 require "bali/commands/csv_export"
 require "bali/commands/xlsx_export"
@@ -66,6 +72,25 @@ require "bali/engine"
 module Bali
   mattr_accessor :native_app, default: false
   mattr_accessor :custom_icons, default: {}
+
+  # Google Maps JavaScript API key, read by LocationsMap and by the form
+  # builder's coordinates polygon field. Both used to call
+  # `ENV.fetch("GOOGLE_MAPS_KEY")` on their own, which made the environment the
+  # only place the key could come from — an application that keeps credentials
+  # in `Rails.application.credentials` or in a secrets manager had to export an
+  # environment variable just to satisfy this gem.
+  #
+  # The environment variable is still read, so nothing an app already does
+  # stops working, but it is now the fallback rather than the source: an
+  # explicit `Bali.google_maps_key = ...` wins.
+  mattr_writer :google_maps_key, default: nil
+
+  # Resolved per call, not memoised: `config/initializers` runs before an
+  # application's own credential loading in more setups than not, and a value
+  # frozen at boot would be the empty string forever in every one of them.
+  def self.google_maps_key
+    @@google_maps_key.presence || ENV["GOOGLE_MAPS_KEY"].presence
+  end
 
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
@@ -127,6 +152,14 @@ module Bali
   # controller del engine.
   # Example: ->(controller, owner) { owner&.can?("tdflow.access") }
   mattr_accessor :saved_views_authorize, default: ->(_controller, owner) { owner.present? }
+
+  # Every deprecation this gem emits goes through here. The engine registers it
+  # as `app.deprecators[:bali]`, so a host silences, logs or raises Bali's
+  # warnings with the same `config.active_support.deprecation` it already uses
+  # for Rails' own — and `Bali.deprecator.silence { }` scopes an exception.
+  def self.deprecator
+    @deprecator ||= ActiveSupport::Deprecation.new("4.0", "Bali")
+  end
 
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str

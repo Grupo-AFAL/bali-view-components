@@ -12,7 +12,7 @@
   <% end %>
 
   <% page.with_action do %>
-    <%= render Bali::Button::Component.new(name: "Edit", variant: :primary, size: :sm, icon_name: "pencil") %>
+    <%= render Bali::Button::Component.new(name: "Edit", variant: :primary, size: :sm, icon: "pencil") %>
   <% end %>
 
   <% page.with_metadata do %>
@@ -36,7 +36,7 @@
     </div>
   <% end %>
 
-  <% page.with_preview do %>
+  <% page.with_body do %>
     <div class="prose max-w-none">
       <h2>Executive Summary</h2>
       <p>This document outlines the key objectives and milestones for the upcoming quarter. Our team has been working diligently on several initiatives that will significantly impact our product roadmap.</p>

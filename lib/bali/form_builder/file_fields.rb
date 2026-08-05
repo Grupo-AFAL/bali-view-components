@@ -2,7 +2,19 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    alias rails_file_field file_field
+    # Se liga el método de la SUPERCLASE por su dueño, no `alias file_field`.
+    #
+    # `alias` captura lo que el nombre resuelva EN ESE MOMENTO. La primera vez que se carga
+    # este archivo `FileFields` todavía no está incluido, así que captura el de ActionView y
+    # todo funciona. Pero el archivo se vuelve a ejecutar en cada reload de código, y para
+    # entonces el módulo YA está incluido: el alias pasaba a apuntar al override de Bali, y
+    # `rails_file_field` terminaba llamándose a sí mismo. Cualquier host en desarrollo se
+    # comía un `SystemStackError` en todos sus file fields desde el primer reload y hasta
+    # reiniciar el servidor (#840). Ningún test lo agarraba porque la suite arranca en frío.
+    #
+    # `instance_method` sobre la superclase no depende del orden de carga ni de cuántas veces
+    # se re-ejecute el archivo: sólo puede significar el de Rails.
+    define_method(:rails_file_field, superclass.instance_method(:file_field))
 
     module FileFields
       # hidden class hides the native file input (consistent with ImageField)
@@ -13,44 +25,30 @@ module Bali
       LABEL_CLASS = "cursor-pointer inline-flex"
       DEFAULT_ICON = "upload"
 
-      def file_field_group(method, options = {})
+      def file_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           file_field(method, options)
         end
       end
 
       def file_field(method, options = {})
-        field_helper(
-          method,
-          custom_file_field(method, field_options(method, options)),
-          options
-        )
+        field_helper(method, custom_file_field(method, options), options)
       end
 
       private
 
       def custom_file_field(method, options = {})
-        choose_file_text = extract_option(options, :choose_file_text) { default_choose_text }
-        non_selected_text = extract_option(options, :non_selected_text) do
-          default_non_selected_text
-        end
-        file_icon_name = extract_option(options, :icon) || DEFAULT_ICON
+        choose_file_text = options.fetch(:choose_file_text) { default_choose_text }
+        non_selected_text = options.fetch(:non_selected_text) { default_non_selected_text }
+        file_icon_name = options[:icon] || DEFAULT_ICON
         multiple = options.fetch(:multiple, false)
-        file_class = extract_option(options, :file_class)
+        file_class = options[:file_class]
 
-        input_options = build_file_input_options(options)
+        input_options = build_file_input_options(field_options(method, options))
 
         @template.content_tag(:div, wrapper_options(non_selected_text, multiple, file_class)) do
           file_label(method, input_options, file_icon_name, choose_file_text) +
             filename_display(non_selected_text)
-        end
-      end
-
-      def extract_option(options, key, &block)
-        if options.key?(key)
-          options.delete(key)
-        elsif block
-          block.call
         end
       end
 
@@ -63,7 +61,7 @@ module Bali
 
       def build_file_input_options(options)
         # Override class completely - file input must be hidden (not styled as DaisyUI input)
-        opts = options.merge(class: INPUT_CLASS)
+        opts = dup_options(options).merge(class: INPUT_CLASS)
         opts = prepend_action(opts, "file-input#onChange")
         prepend_data_attribute(opts, :file_input_target, :input)
       end
@@ -97,11 +95,11 @@ module Bali
       end
 
       def default_choose_text
-        I18n.t("bali.form_builder.file.choose_file")
+        I18n.t("bali_view.form_builder.file.choose_file")
       end
 
       def default_non_selected_text
-        I18n.t("bali.form_builder.file.no_file_selected")
+        I18n.t("bali_view.form_builder.file.no_file_selected")
       end
     end
   end

@@ -50,6 +50,22 @@ es:
       short: "%d de %b"
       long: "%d de %B de %Y"
 
+  # Spanish number formats: the period groups thousands and the comma
+  # introduces the decimals, the exact opposite of the English defaults Rails
+  # falls back to. Normally a host gets these from rails-i18n; the dummy does
+  # not depend on it, so without this block `es` silently used English formats
+  # and there was no way to exercise the locale-aware pattern that
+  # `currency_group` and `percentage_group` build, nor the parsing
+  # in Bali::Concerns::NumericAttributesWithCommas.
+  #
+  # This lives in the dummy on purpose. The gem must not ship `number.format`
+  # for `es` — that key belongs to the host, and overriding it from an engine
+  # would silently change how every number in the application is formatted.
+  number:
+    format:
+      separator: ","
+      delimiter: "."
+
   # Navigation
   navbar:
     dashboard: Panel
@@ -94,17 +110,14 @@ es:
     mark_done: Marcar Completado
     archive: Archivar
     delete: Eliminar
-    info_level: Componente InfoLevel
     total_revenue: Ingresos Totales
     avg_budget: Presupuesto Promedio
     completion_rate: Tasa de Finalizacion
     active_users: Usuarios Activos
-    production_timeline: Cronograma de Produccion (GanttChart)
     activity_heatmap: Mapa de Calor de Actividad
     day_of_week: Dia de la Semana
     hour: Hora
     activity: Actividad
-    no_movies_timeline: No hay peliculas para mostrar en el cronograma. Agrega algunas peliculas primero!
     today: Hoy
 
   # Movies
@@ -120,19 +133,21 @@ es:
       studio: Estudio
       indie: Indie
       created: Creado
+      actions: Acciones
+    secondary_actions:
+      import: Importar desde CSV
     actions:
       view: Ver
       edit: Editar
       delete: Eliminar
     bulk_actions:
-      select_action: Seleccionar accion...
       mark_done: Marcar como Completado
       mark_draft: Marcar como Borrador
       delete: Eliminar Seleccionados
-      apply: Aplicar
-    no_movies: No se encontraron peliculas.
-    no_movies_help: Intenta ajustar tus filtros o
-    add_new_movie: agrega una nueva pelicula
+    views:
+      table: Tabla
+      cards: Tarjetas
+      calendar: Calendario
     form:
       name: Nombre
       genre: Genero
@@ -154,6 +169,7 @@ es:
       movie_details: Detalles de la Pelicula
       synopsis: Sinopsis
       enter_synopsis: Ingrese la sinopsis de la pelicula...
+      synopsis_help: Un resumen breve, maximo 500 caracteres.
       rich_description: Descripcion Detallada
       enter_rich_description: Escribe una descripcion detallada con formato...
       release_date: Fecha de Estreno
@@ -175,6 +191,48 @@ es:
         poster: Poster
         details: Detalles
         settings: Configuracion
+
+  studios:
+    title: Estudios
+    subtitle: Las productoras detras del catalogo
+    new_studio: Nuevo Estudio
+    search_placeholder: Buscar por nombre...
+    form:
+      new_title: Nuevo Estudio
+      edit_title: "Editar %{name}"
+      subtitle_new: Agrega una productora al catalogo
+      subtitle_edit: Actualiza los datos de este estudio
+      new_breadcrumb: Nuevo
+      select_country: Selecciona un pais...
+      select_status: Selecciona un estado...
+      select_size: Selecciona un tamano...
+      update: Actualizar Estudio
+      create: Crear Estudio
+    columns:
+      name: Nombre
+      country: Pais
+      status: Estado
+      size: Tamano
+      founded: Fundado
+      actions: Acciones
+    actions:
+      view: Ver
+      edit: Editar
+      delete: Eliminar
+      close: Cerrar
+    confirm_delete: "Seguro que quieres eliminar %{name}?"
+    show:
+      dashboard: Panel
+      edit: Editar
+      name: Nombre
+      country: Pais
+      status: Estado
+      size: Tamano
+      founded: Fundado
+      created: Creado
+      delete_studio: Eliminar Estudio
+      confirm_delete: "Seguro que quieres eliminar %{name}?"
+      no_value: "—"
 
   # Showcase page
   showcase:
@@ -264,7 +322,7 @@ es:
     calendar: Calendario
     calendar_desc: Vista de calendario mensual/semanal con visualizacion de eventos.
     search_input: Campo de Busqueda
-    search_input_desc: Campo de busqueda con funcionalidad de envio automatico opcional.
+    search_input_desc: Campo de busqueda con envio automatico opcional, construido con el FormBuilder.
     with_submit_button: Con Boton de Enviar
     search_products: Buscar productos...
     auto_submit: Envio automatico (sin boton)
@@ -274,7 +332,7 @@ es:
     generated_rrule: "RRULE Generado: El formulario de arriba genera reglas de recurrencia estandar iCalendar (RFC 5545) que pueden usarse con aplicaciones de calendario."
     locations_map: Mapa de Ubicaciones
     locations_map_desc: Integracion de Google Maps con marcadores de ubicacion.
-    google_maps_required: "Clave API de Google Maps Requerida: Establece la variable de entorno GOOGLE_MAPS_KEY para habilitar el componente LocationsMap."
+    google_maps_required: "Clave API de Google Maps Requerida: Establece Bali.google_maps_key (o la variable de entorno GOOGLE_MAPS_KEY) para habilitar el componente LocationsMap."
     map_placeholder: Marcador de posicion del mapa
     block_editor: Editor de Bloques
     block_editor_desc: Editor de texto enriquecido basado en bloques impulsado por BlockNote. Soporta encabezados, listas, bloques de codigo y mas.

@@ -5,9 +5,11 @@ module Bali
     module SwitchFields
       TOGGLE_CLASS = "toggle"
       LABEL_CLASS = "label cursor-pointer gap-3"
-      LABEL_TEXT_CLASS = "label-text"
-      ERROR_CLASS = "label-text-alt text-error"
-      FIELDSET_CLASS = "fieldset"
+
+      # Consumed here rather than forwarded: `size` and `color` name daisyUI
+      # variants in this family, so unlike on a text input they are not the HTML
+      # attributes of the same name.
+      TOGGLE_OPTIONS = %i[label_options size color].freeze
 
       SIZES = {
         xs: "toggle-xs",
@@ -26,60 +28,66 @@ module Bali
         error: "toggle-error"
       }.freeze
 
-      def switch_field_group(method, options = {}, checked_value = "1", unchecked_value = "0")
-        @template.content_tag(:fieldset, class: FIELDSET_CLASS) do
-          switch_field(method, options, checked_value, unchecked_value)
+      # Through FieldGroupWrapper like every other group, which is where the
+      # fieldset's id, its `w-full` and the `tooltip:`/`label: false` handling
+      # come from — a hand-rolled `<fieldset class="fieldset">` had none of them,
+      # so two toggles for the same model on one page shared no id at all and
+      # the group could not be captioned.
+      #
+      # Same split as BooleanFields: `text:` beside the toggle, `label:` as the
+      # `<legend>`, and no legend unless asked for.
+      #
+      # `checked_value:` / `unchecked_value:` are keywords for the same reason as
+      # in BooleanFields.
+      def switch_group(method, checked_value: "1", unchecked_value: "0", **options)
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false, label: options.fetch(:label, false))
+        ) do
+          switch_field(
+            method, checked_value: checked_value, unchecked_value: unchecked_value, **options
+          )
         end
       end
 
-      def switch_field(method, options = {}, checked_value = "1", unchecked_value = "0")
-        label_text = extract_switch_label_text(method, options)
-        label_options = extract_switch_label_options(options)
+      def switch_field(method, checked_value: "1", unchecked_value: "0", **options)
+        label_options = build_switch_label_options(options)
         toggle_options = build_toggle_options(method, options)
 
         label_html = label(method, label_options) do
           safe_join([
-                      content_tag(:span, label_text, class: LABEL_TEXT_CLASS),
+                      inline_caption(method, options),
                       check_box(method, toggle_options, checked_value, unchecked_value)
-                    ], " ")
+                    ].compact, " ")
         end
 
-        append_switch_error_message(method, label_html)
+        label_html + error_and_help(method, options)
       end
 
       private
 
-      def extract_switch_label_text(method, options)
-        options.delete(:label) || translate_attribute(method)
-      end
+      # No `for`, for the same reason as BooleanFields: the label wraps the
+      # toggle, so the implicit association names it and survives both a repeated
+      # attribute and a caller-supplied `id:`, neither of which an explicit `for`
+      # survives.
+      def build_switch_label_options(options)
+        base_options = options[:label_options] || {}
 
-      def extract_switch_label_options(options)
-        base_options = options.delete(:label_options) || {}
-        custom_class = base_options[:class]
-        base_options[:class] = [ LABEL_CLASS, custom_class ].compact.join(" ")
-        base_options
+        base_options.reverse_merge(for: nil)
+                    .merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
       end
 
       def build_toggle_options(method, options)
-        size = options.delete(:size)
-        color = options.delete(:color)
-        custom_class = options.delete(:class)
-
         toggle_class = [
           TOGGLE_CLASS,
-          SIZES[size],
-          COLORS[color],
+          SIZES[options[:size]],
+          COLORS[options[:color]],
           (errors?(method) ? "toggle-error" : nil),
-          custom_class
+          options[:class]
         ].compact.join(" ")
 
-        options.merge(class: toggle_class)
-      end
+        attributes = html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
 
-      def append_switch_error_message(method, html)
-        return html unless errors?(method)
-
-        html + content_tag(:p, full_errors(method), class: ERROR_CLASS)
+        merge_aria_attributes(attributes, method, options)
       end
     end
   end

@@ -30,10 +30,23 @@ class BaliRecurrentEventRuleFormComponentTest < ComponentTestCase
     assert_selector('input[type="hidden"][data-recurrent-event-rule-target="input"]', visible: :hidden)
   end
 
-  def test_basic_rendering_generates_unique_ids_for_inputs
+  # Ids are namespaced by the form's own `field_id`, so they are unique on a page
+  # without being random: the previous `SecureRandom.hex(4)` prefix changed on
+  # every render, which no `<label for>` and no Turbo morph can follow.
+  def test_basic_rendering_namespaces_control_ids_with_the_form_field_id
     render_inline(component)
     radio = page.find('input[type="radio"]', match: :first)
-    assert_match(/[a-f0-9]{8}_yearly/, radio["id"])
+    assert_equal("movie_rule_yearly_on_1", radio["id"])
+  end
+
+  def test_basic_rendering_gives_every_unlabelled_control_its_own_id_and_name
+    render_inline(component)
+    ids = page.all("select, input[type='number'], input[type='text']", visible: :all).map { |n| n["id"] }
+
+    assert_equal(ids.uniq, ids, "duplicate ids inside a single recurrence form: #{ids.inspect}")
+    assert(ids.all? { |id| id.to_s.start_with?("movie_rule_") }, ids.inspect)
+    assert(page.all("select", visible: :all).all? { |n| n["aria-label"].present? },
+           "a select with no accessible name")
   end
   # with value
 

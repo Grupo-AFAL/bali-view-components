@@ -1,0 +1,18 @@
+<div class="p-6 bg-base-200 min-h-[480px]">
+  <%# The slot REPLACES the default search well — for shapes the default cannot
+      be, like an icon-only button in a crowded toolbar. The slot content is the
+      whole trigger: bring your own accessible name. %>
+  <%= render Bali::Command::Component.new(placeholder: 'Search…') do |c| %>
+    <% c.with_trigger do %>
+      <%= render Bali::Button::Component.new(
+        icon: 'search', variant: :ghost, size: :sm,
+        class: 'btn-square', aria: { label: 'Open command palette' }
+      ) %>
+    <% end %>
+
+    <% c.with_group(name: 'Pages') do |g| %>
+      <% g.with_item(title: 'Dashboard', meta: 'Overview', icon: 'layout-dashboard', href: '/lookbook') %>
+      <% g.with_item(title: 'Reports', meta: 'Analytics', icon: 'chart-column', href: '/lookbook') %>
+    <% end %>
+  <% end %>
+</div>

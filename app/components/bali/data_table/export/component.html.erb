@@ -1,12 +1,25 @@
-<div class="dropdown dropdown-end">
-  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
+<%# `export-links` re-sincroniza los href desde la URL del navegador: el link se sirve con el
+    recorte de la carga completa, y un submit de filtros (que responde turbo_stream y
+    reemplaza SOLO el nodo del listado) puede dejarlo congelado si este dropdown vive afuera
+    de ese nodo — que es exactamente donde vive en el ⋯ del PageHeader. %>
+<div class="dropdown dropdown-end"
+     data-controller="export-links"
+     data-export-links-sync-value="<%= sync_links? %>">
+  <%# aria-label explícito: el label visible vive en un span `hidden sm:inline` (ver el
+      column selector). %>
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>">
     <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
-    <span class="hidden sm:inline"><%= button_label %></span>
+    <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>
-  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-200">
+  <ul tabindex="0" class="dropdown-content z-[var(--bali-z-dropdown)] menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-200">
     <% export_items.each do |item| %>
       <li>
-        <%= link_to item[:url], method: method, class: 'flex items-center gap-2' do %>
+        <%# `data-turbo="false"`: un CSV/XLSX no es una respuesta que Turbo Drive pueda
+            renderizar, así que la visita se queda a mitad de camino en vez de disparar la
+            descarga. El `method:` de Rails-UJS que había acá emitía un `data-method="get"`
+            muerto bajo Turbo. %>
+        <%= link_to item[:url], class: 'flex items-center gap-2',
+                    data: { turbo: false, export_links_target: 'link' } do %>
           <%= render Bali::Icon::Component.new(item[:icon], class: 'w-4 h-4') %>
           <%= item[:label] %>
         <% end %>

@@ -1,5 +1,5 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.number_field_group :budget,
+  <%= form.number_group :budget,
       min: 0,
       max: 1000000,
       step: 100,

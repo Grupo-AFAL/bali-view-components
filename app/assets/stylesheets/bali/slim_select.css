@@ -3,6 +3,15 @@
  *
  * Self-contained CSS for SlimSelect without vendor CSS dependency.
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
+ *
+ * UNLAYERED ON PURPOSE (see ../bali.css). SlimSelect copies the native
+ * `<select>`'s class list onto its own `.ss-main` / `.ss-content` nodes, so
+ * those elements carry daisyUI's `.select` — which lives in @layer utilities
+ * and sets width, height, padding, border, radius, display, overflow and
+ * background-image. Cascade layers beat specificity, so from @layer components
+ * daisyUI takes the trigger over: measured on bali/form/slim_select/default,
+ * `.ss-main.select` went 1248px -> 320px wide, `display: flex` -> `inline-flex`
+ * and `appearance: none` -> `base-select`.
  */
 
 /* =============================================================================
@@ -34,8 +43,35 @@
 }
 
 /* =============================================================================
+   About the !important in this file (32 of them, audited for #693)
+   -----------------------------------------------------------------------------
+   Two groups, both kept:
+
+   A. Overrides of daisyUI's `.select` — the visually-hidden native select
+      below, the arrow `background-image`, `padding`, `height`, `appearance`
+      and the `::before/::after` suppression near the bottom of the file.
+      SlimSelect copies the native select's class list onto its own nodes, so
+      these elements really do carry `.select`. Being unlayered already beats
+      daisyUI, but not a host's own unlayered `.select` rule imported after
+      Bali — and the failure mode there is the raw native select becoming
+      visible next to the widget. Cheap insurance, kept.
+
+   B. Intra-file ordering: `.ss-hide`, and the `transform` on
+      `.ss-content.ss-dir-above/below`. These fight `.ss-main { @apply flex }`
+      and `.ss-content.ss-open { transform: scaleY(1) }` in this same file at
+      equal specificity, where the competing rule comes later. Load-bearing as
+      the file is written; removing them silently breaks the open/closed
+      animation. Kept.
+
+   Nothing here is reachable by a `!` utility variant from a host — SlimSelect
+   builds this DOM itself, so there is no element to put a class on.
+   ============================================================================= */
+
+/* =============================================================================
    Utility Classes (used by SlimSelect internally)
    ============================================================================= */
+/* Group B: competes with `.ss-main { @apply flex }` (same specificity, later)
+   and with Tailwind's own `.hidden`. */
 .ss-hide {
   display: none !important;
 }
@@ -110,11 +146,36 @@
   /* Never grow past the container, even when a selected option is wider
      than the column that holds it (see .control { min-width: 0 } in forms.css) */
   max-width: 100%;
-  @apply flex flex-row items-center relative select-none w-full h-10 min-h-[40px] p-0 cursor-pointer text-[14px];
+  @apply flex flex-row items-center relative select-none w-full min-h-[40px] p-0 cursor-pointer text-[14px];
   @apply bg-base-100 border border-base-content/20;
+  /* #841 — `height` stays DECLARED even though the value is `auto`. This file is
+     unlayered and `.ss-main` carries daisyUI's `.select` (see the file header), so
+     dropping the declaration does not free the box: it hands it back to
+     `.select { height: var(--size) }` in @layer utilities, i.e. 40px again.
+
+     `auto` plus the 40px minimum is what lets a `multiple` grow to a second row of
+     pills instead of being cut by the `overflow: hidden` that the same `.select`
+     rule sets. Measured on form/slim_select/multiple narrowed to 260px with four
+     values: `.ss-values` scrollHeight 56px inside a 38px content box — and because
+     this rule is `align-items: center`, the overflow split both ways: row 1 at
+     offsetTop -9 and row 2 ending at 47 against a clientHeight of 38. BOTH rows were
+     clipped, and the second row's delete buttons were unreachable. daisyUI answers
+     the native case the same way: `.select[multiple] { height: auto }`.
+
+     Capping the height and scrolling `.ss-values` was the alternative, and it loses:
+     a click anywhere on `.ss-main` opens the list, so the scroll surface and the
+     widget's own click target would be the same box.
+
+     The 6px of block padding restores the breathing room the fixed 40px used to give
+     a single row (26px pill + 6 + 6 + 2px border = 40px, unchanged). On a
+     fixed-height, centre-aligned box it is inert, so `.slim-select-sm` — still
+     pinned to 32px further down, and never a multiple — measures identical either
+     way. */
+  height: auto;
   border-radius: 4px;
   outline: none;
   box-sizing: border-box;
+  padding-block: 6px;
   padding-left: 12px;
   padding-right: 12px;
   transition: border-color var(--ss-animation-timing) ease,
@@ -342,7 +403,7 @@
   background-color: var(--ss-bg-color);
   box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
   overflow: hidden;
-  z-index: 10000;
+  z-index: var(--bali-z-popover);
   opacity: 0;
   transform: scaleY(0);
   transition: transform var(--ss-animation-timing) ease,
@@ -380,6 +441,18 @@
     opacity: 1;
     transform: scaleY(1);
   }
+}
+
+/* Inside a modal overlay the list joins the top layer as a popover, which is the
+ * only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
+ * for the hit-test. Of the UA's `[popover]` rules only these two are not already
+ * stated above: `inset: 0` fights the coordinates SlimSelect writes (including
+ * the `-9999px` it parks the closed list at) and `margin: auto` then centres what
+ * is left. */
+.ss-content[popover] {
+  inset: auto;
+  margin: 0;
+  color: inherit;
 }
 
 /* =============================================================================

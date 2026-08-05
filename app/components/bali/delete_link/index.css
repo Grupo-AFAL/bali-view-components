@@ -1,0 +1,25 @@
+/* DeleteLink
+ *
+ * `button_to` envuelve su botón en un `<form>`, y ese form es una caja en la página. Su
+ * `display` vive ACÁ, en @layer components, y no como una utilidad `inline-block` sobre el
+ * elemento, para que un `form_class:` del call site le pueda ganar: las utilidades superan a
+ * esta capa, así que CUALQUIER utilidad de display que llegue por ahí gana limpio.
+ *
+ * No es una preferencia, es el único orden que funciona. Escrito como
+ * `class_names("inline-block", form_class)` las dos utilidades empatan en capa y en
+ * especificidad, así que decide la hoja compilada — y decide en contra: medido, `.contents`
+ * se emite ANTES que `.inline-block`, o sea que `class="inline-block contents"` renderiza
+ * como `inline-block` y un `form_class: "contents"` no hace nada, en silencio.
+ *
+ * Por qué alguien quiere `contents`: dentro de un `.menu`, daisyUI pinta el item sobre
+ * `li > *` salvo que sea un `.btn`. El form no lo es, así que se llevaba el padding, el
+ * radio y el hover del item mientras el botón quedaba adentro con una segunda caja propia
+ * (#829). Fuera del árbol de cajas, el botón ES el item.
+ *
+ * Antes esto se pedía gateando en `plain:`, sobre la premisa de que ese keyword significa
+ * "soy item de menú". No la significa (#868): es lo que la API dice —un botón sin la caja
+ * del `.btn`— y viaja lejos de cualquier menú.
+ */
+.bali-delete-link-form {
+  display: inline-block;
+}

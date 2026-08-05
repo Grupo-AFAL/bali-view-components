@@ -47,6 +47,29 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
     assert_equal(names.size, names.uniq.size)
   end
 
+  # Resolution consults MAPPING before trying the name as a Lucide icon, so a
+  # key that is ALSO a current Lucide name and points at a different glyph
+  # shadows the real icon: the honest spelling of that name becomes
+  # unreachable, silently. `grid` and `file-signature` were removed for exactly
+  # that. The keys below are the known leftovers, frozen in BOTH directions —
+  # a new shadowing entry fails this test, and removing one obliges updating
+  # the list, which is the paper trail we want. Measured SVG against SVG on
+  # lucide-rails 0.7.4 (what Gemfile.lock pins — the determinism comes from the
+  # lock, not from the gemspec cap): only `plus-circle` still draws the same
+  # thing as its target; the other seven redirect to a genuinely different
+  # glyph, and #902 tracks deciding each of them.
+  KNOWN_SHADOWED_KEYS = %w[
+    plus-circle
+    check-circle cog edit expand indent outdent trash
+  ].freeze
+
+  def test_no_mapping_key_shadows_a_current_lucide_name_beyond_the_known_set
+    shadowed = Bali::Icon::LucideMapping::MAPPING
+                 .select { |key, target| key != target && lucide_icon?(key) }
+                 .keys.sort
+    assert_equal(KNOWN_SHADOWED_KEYS.sort, shadowed)
+  end
+
   def test_mapping_constant_is_frozen
     assert(Bali::Icon::LucideMapping::MAPPING.frozen?)
   end
@@ -57,5 +80,15 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
 
   def test_mapping_constant_has_string_values
     assert(Bali::Icon::LucideMapping::MAPPING.values.all? { |e| e.is_a?(String) })
+  end
+
+  private
+
+  # The same predicate the resolution pipeline uses in its step 2.
+  def lucide_icon?(name)
+    LucideRails::IconProvider.icon(name)
+    true
+  rescue ArgumentError
+    false
   end
 end

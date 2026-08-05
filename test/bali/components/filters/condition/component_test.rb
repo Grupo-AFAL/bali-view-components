@@ -51,6 +51,19 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_selector('button[data-action="condition#remove"]')
   end
 
+  # The note lives OUTSIDE the value container on purpose: the container's innerHTML is
+  # rebuilt whenever the operator asks for a different widget, which would take the note
+  # with it. It ships hidden — the controller reveals it once the row owes an explanation.
+  def test_rendering_renders_the_incomplete_note_hidden_and_outside_the_value_container
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+    ))
+    assert_selector('[data-condition-target="hint"].filters-condition-hint',
+      text: "No value chosen, so this condition is ignored", visible: :all)
+    assert_no_selector('[data-condition-target="hint"].is-shown', visible: :all)
+    assert_no_selector('[data-condition-target="valueContainer"] [data-condition-target="hint"]', visible: :all)
+  end
+
   def test_with_pre_selected_attribute_selects_the_attribute_in_the_dropdown
     condition = { attribute: "name", operator: "cont", value: "John" }
     render_inline(Bali::Filters::Condition::Component.new(

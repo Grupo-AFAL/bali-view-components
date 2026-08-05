@@ -177,6 +177,29 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_selector('[data-block-editor-comments-url-value=""]')
   end
 
+  # `threads:` is what lets a store that does not persist open with something in it — the
+  # comments sidebar reads the STORE, so a seeded thread lists without the document having
+  # to say anything. Anchoring it is the other half, and travels in the ProseMirror form of
+  # `initial_content` (#863).
+  def test_with_comments_serializes_seed_threads_as_json_array
+    threads = [
+      { id: "t1", comments: [ { id: "c1", userId: "2", body: [ { type: "paragraph" } ] } ] }
+    ]
+    render_inline(Bali::BlockEditor::Component.new(
+                    comments: { user: { id: "1", username: "Alice" }, threads: threads }
+                  ))
+
+    parsed = JSON.parse(page.find("[data-block-editor-comments-threads-value]")[:"data-block-editor-comments-threads-value"])
+    assert_equal(1, parsed.size)
+    assert_equal("t1", parsed.first["id"])
+    assert_equal("c1", parsed.first["comments"].first["id"])
+  end
+
+  def test_with_comments_defaults_seed_threads_to_an_empty_array
+    render_inline(Bali::BlockEditor::Component.new(comments: { user: { id: "1", username: "Alice" } }))
+    assert_selector('[data-block-editor-comments-threads-value="[]"]')
+  end
+
   def test_export_functionality_does_not_render_export_buttons_by_default
     render_inline(Bali::BlockEditor::Component.new)
     assert_no_selector('[data-action*="exportPdf"]')
@@ -311,5 +334,97 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     end
 
     assert_includes output.string, "block_editor_enabled"
+  end
+
+  # --- Shared config package (#700) -------------------------------------------
+
+  def test_config_supplies_the_feature_set
+    render_inline(Bali::BlockEditor::Component.new(config: { ai_url: "/ai", multi_column: true }))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+    assert_selector("[data-block-editor-multi-column-value='true']")
+  end
+
+  # A host passes the bundle its app always uses, then turns one feature off for
+  # one editor. Without the UNSET sentinel this was impossible: `ai_url: nil` and
+  # "argument not given" were the same thing.
+  def test_an_explicit_keyword_overrides_the_config
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { ai_url: "/ai", multi_column: true },
+      multi_column: false
+    ))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+    assert_selector("[data-block-editor-multi-column-value='false']")
+  end
+
+  def test_an_explicit_nil_can_switch_a_configured_feature_off
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { ai_url: "/ai" },
+      ai_url: nil
+    ))
+    assert_selector("[data-block-editor-ai-url-value='']")
+  end
+
+  def test_the_config_object_is_not_mutated_by_being_rendered
+    config = Bali::BlockEditor::Config.new(ai_url: "/ai", multi_column: true)
+    render_inline(Bali::BlockEditor::Component.new(config: config, multi_column: false))
+
+    assert config.multi_column, "rendering must not write back into the caller's config"
+  end
+
+  def test_comments_poll_interval_is_unset_by_default
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector("[data-block-editor-comments-poll-interval-value='-1']")
+  end
+
+  # 0 is a real value -- it turns polling off -- so it must survive as itself
+  # rather than being read as "not configured".
+  def test_comments_poll_interval_of_zero_survives
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { comments: { url: "/c", user: { id: "1" }, poll_interval: 0 } }
+    ))
+    assert_selector("[data-block-editor-comments-poll-interval-value='0']")
+  end
+
+  def test_comments_poll_interval_can_be_configured
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { comments: { url: "/c", user: { id: "1" }, poll_interval: 30000 } }
+    ))
+    assert_selector("[data-block-editor-comments-poll-interval-value='30000']")
+  end
+
+  def test_every_string_the_react_bundle_renders_travels_as_one_json_value
+    render_inline(Bali::BlockEditor::Component.new)
+
+    assert_equal(
+      %w[load_failed plain_text table_of_contents upload_failed upload_not_configured
+         upload_too_large user_fallback],
+      react_translations.keys.sort
+    )
+    assert_equal "Table of contents", react_translations["table_of_contents"]
+  end
+
+  def test_the_react_strings_follow_the_locale
+    I18n.with_locale(:es) { render_inline(Bali::BlockEditor::Component.new) }
+
+    assert_equal "Tabla de contenido", react_translations["table_of_contents"]
+    assert_equal "La carga de archivos no está configurada", react_translations["upload_not_configured"]
+    assert_equal "Texto plano", react_translations["plain_text"]
+  end
+
+  # The file size, the HTTP status and the unresolved user id only exist in the
+  # browser, so these sentences have to reach it uninterpolated.
+  def test_the_strings_with_runtime_data_keep_their_placeholders
+    render_inline(Bali::BlockEditor::Component.new)
+
+    assert_includes react_translations["upload_too_large"], "%{size}"
+    assert_includes react_translations["upload_too_large"], "%{max}"
+    assert_includes react_translations["upload_failed"], "%{status}"
+    assert_includes react_translations["user_fallback"], "%{id}"
+  end
+
+  private
+
+  def react_translations
+    JSON.parse(page.find("[data-block-editor-translations-value]", visible: :all)["data-block-editor-translations-value"])
   end
 end

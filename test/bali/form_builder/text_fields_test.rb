@@ -3,26 +3,26 @@
 require "test_helper"
 
 class BaliFormBuilderTextFieldsTest < FormBuilderTestCase
-  # #text_field_group
+  # #text_group
 
-  def test_text_field_group_renders_a_fieldset_wrapper
-    result = builder.text_field_group(:name)
+  def test_text_group_renders_a_fieldset_wrapper
+    result = builder.text_group(:name)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_text_field_group_renders_a_legend_label
-    result = builder.text_field_group(:name)
-    assert_html(result, "legend.fieldset-legend", text: "Name")
+  def test_text_group_renders_a_legend_label
+    result = builder.text_group(:name)
+    assert_html(result, "label.fieldset-legend", text: "Name")
   end
 
-  def test_text_field_group_renders_a_text_input_with_correct_attributes
-    result = builder.text_field_group(:name)
+  def test_text_group_renders_a_text_input_with_correct_attributes
+    result = builder.text_group(:name)
     assert_html(result, 'input#movie_name[type="text"][name="movie[name]"]')
   end
 
-  def test_text_field_group_applies_daisyui_input_classes
-    result = builder.text_field_group(:name)
-    assert_html(result, "input.input.input-bordered")
+  def test_text_group_applies_daisyui_input_classes
+    result = builder.text_group(:name)
+    assert_html(result, "input.input")
   end
 
   # #text_field
@@ -39,12 +39,12 @@ class BaliFormBuilderTextFieldsTest < FormBuilderTestCase
 
   def test_text_field_applies_daisyui_input_classes
     result = builder.text_field(:name)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   def test_text_field_with_custom_class_includes_custom_class_with_daisyui_classes
     result = builder.text_field(:name, class: "custom-input")
-    assert_html(result, "input.input.input-bordered.custom-input")
+    assert_html(result, "input.input.custom-input")
   end
 
   def test_text_field_with_validation_errors_applies_error_class_to_input
@@ -61,7 +61,7 @@ class BaliFormBuilderTextFieldsTest < FormBuilderTestCase
 
   def test_text_field_with_help_text_displays_help_text
     result = builder.text_field(:name, help: "Enter your name")
-    assert_html(result, "p.label-text-alt", text: "Enter your name")
+    assert_html(result, "p.fieldset-label", text: "Enter your name")
   end
 
   def test_text_field_with_data_attributes_passes_through_data_attributes

@@ -4,6 +4,9 @@ import { Controller } from '@hotwired/stimulus'
  * Command palette controller — Linear/Notion-style ⌘K launcher.
  *
  * Targets:
+ *   - surface    <dialog> holding the backdrop and the panel, opened with
+ *                showModal() so the palette lands in the top layer — over a
+ *                Modal or a Drawer, which are top-layer dialogs themselves
  *   - panel      Modal container (toggled hidden/visible)
  *   - backdrop   Click-to-close overlay
  *   - input      Search input
@@ -12,14 +15,22 @@ import { Controller } from '@hotwired/stimulus'
  *   - noResults  "No matches" message (shown when query has no regular hits)
  *   - count      Result count display in the footer
  *
- * Global events (window):
+ * Global events (window), listened for:
  *   - bali:command:open    → opens the palette
  *   - bali:command:close   → closes the palette
  *   - bali:command:toggle  → toggles
+ *
+ * Emitted:
+ *   - bali:command:select  → an item without an href was activated
  */
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event name stays put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:command'
+
 export class CommandController extends Controller {
   static targets = [
-    'panel', 'backdrop', 'input', 'group', 'row', 'noResults', 'count'
+    'surface', 'panel', 'backdrop', 'input', 'group', 'row', 'noResults', 'count'
   ]
 
   static values = {
@@ -31,6 +42,18 @@ export class CommandController extends Controller {
     this._handleGlobalOpen = () => this.open()
     this._handleGlobalClose = () => this.close()
     this._handleGlobalToggle = () => (this.openValue ? this.close() : this.open())
+    // A dialog answers a close request on its own. `_handleKeydown` cancels every
+    // Escape it sees while the palette is open, so this only runs for a request
+    // that never reached it — and it keeps `openValue` and the hidden classes in
+    // step with the element instead of letting them drift apart.
+    this._handleSurfaceCancel = event => {
+      event.preventDefault()
+      this.close()
+    }
+
+    if (this.hasSurfaceTarget) {
+      this.surfaceTarget.addEventListener('cancel', this._handleSurfaceCancel)
+    }
 
     document.addEventListener('keydown', this._handleKeydown)
     window.addEventListener('bali:command:open', this._handleGlobalOpen)
@@ -46,12 +69,17 @@ export class CommandController extends Controller {
     window.removeEventListener('bali:command:open', this._handleGlobalOpen)
     window.removeEventListener('bali:command:close', this._handleGlobalClose)
     window.removeEventListener('bali:command:toggle', this._handleGlobalToggle)
+
+    if (this.hasSurfaceTarget) {
+      this.surfaceTarget.removeEventListener('cancel', this._handleSurfaceCancel)
+    }
   }
 
   open (event) {
     event?.preventDefault()
     if (this.openValue) return
     this.openValue = true
+    this._showSurface()
     this.panelTarget.classList.remove('hidden')
     this.backdropTarget.classList.remove('hidden')
     this.filter()
@@ -64,7 +92,29 @@ export class CommandController extends Controller {
     this.openValue = false
     this.panelTarget.classList.add('hidden')
     this.backdropTarget.classList.add('hidden')
+    this._hideSurface()
     if (this.hasInputTarget) this.inputTarget.value = ''
+  }
+
+  // The palette is painted in the top layer or it is painted under the drawer
+  // whose field the user was filling in. Guarded rather than assumed so a host
+  // that hand-writes the markup without the dialog keeps working on the classes
+  // alone, exactly as it did before.
+  _showSurface () {
+    if (!this.hasSurfaceTarget) return
+    const surface = this.surfaceTarget
+    if (typeof surface.showModal !== 'function' || surface.open) return
+
+    try {
+      surface.showModal()
+    } catch {
+      // Not connected yet; the hidden classes still show the palette.
+    }
+  }
+
+  _hideSurface () {
+    if (!this.hasSurfaceTarget) return
+    if (this.surfaceTarget.open) this.surfaceTarget.close()
   }
 
   filter () {
@@ -179,10 +229,10 @@ export class CommandController extends Controller {
       return
     }
     // Custom event so consumers can hook actions without an href
-    this.element.dispatchEvent(new CustomEvent('bali:command:select', {
-      bubbles: true,
+    this.dispatch('select', {
+      prefix: EVENT_PREFIX,
       detail: { row, value: row.dataset.value }
-    }))
+    })
     this.close()
   }
 

@@ -5,24 +5,20 @@ module Bali
     module CurrencyFields
       DEFAULT_SYMBOL = "$"
 
-      def currency_field_group(method, options = {})
-        symbol = options.delete(:symbol) || DEFAULT_SYMBOL
-        options.with_defaults!(
-          placeholder: 0,
-          addon_left: currency_addon(symbol),
-          step: "0.01",
-          pattern_type: :number_with_commas
-        )
+      def currency_group(method, **options)
+        numeric_group(method, **currency_options(options))
+      end
 
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          text_field(method, options)
-        end
+      def currency_field(method, **options)
+        numeric_field(method, **currency_options(options))
       end
 
       private
 
-      def currency_addon(symbol)
-        tag.span(symbol, class: HtmlUtils::ADDON_CLASSES)
+      def currency_options(options)
+        symbol = options[:symbol] || DEFAULT_SYMBOL
+
+        options.with_defaults(addon_left: numeric_addon(symbol))
       end
     end
   end

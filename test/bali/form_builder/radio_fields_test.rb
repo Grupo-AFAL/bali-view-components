@@ -3,34 +3,34 @@
 require "test_helper"
 
 class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
-  # #radio_field_group
+  # #radio_group
 
-  def test_radio_field_group_renders_a_label_and_input_within_a_control
-    result = builder.radio_field_group(:status, Movie.statuses.to_a)
+  def test_radio_group_renders_a_label_and_input_within_a_control
+    result = builder.radio_group(:status, Movie.statuses.to_a)
     assert_html(result, "div.control")
   end
 
-  def test_radio_field_group_renders_a_label_and_input_for_each_option
-    result = builder.radio_field_group(:status, Movie.statuses.to_a)
+  def test_radio_group_renders_a_label_and_input_for_each_option
+    result = builder.radio_group(:status, Movie.statuses.to_a)
     Movie.statuses.each_value do |value|
       assert_html(result, "label[for=\"movie_status_#{value}\"]")
       assert_html(result, "input#movie_status_#{value}[value=\"#{value}\"]")
     end
   end
 
-  def test_radio_field_group_renders_radio_inputs_with_daisyui_radio_class
-    result = builder.radio_field_group(:status, Movie.statuses.to_a)
+  def test_radio_group_renders_radio_inputs_with_daisyui_radio_class
+    result = builder.radio_group(:status, Movie.statuses.to_a)
     assert_html(result, "input.radio")
   end
 
-  def test_radio_field_group_renders_labels_with_cursor_pointer_class
-    result = builder.radio_field_group(:status, Movie.statuses.to_a)
+  def test_radio_group_renders_labels_with_cursor_pointer_class
+    result = builder.radio_group(:status, Movie.statuses.to_a)
     assert_html(result, "label.label.cursor-pointer")
   end
 
-  def test_radio_field_group_renders_display_text_in_span_with_label_text_class
-    result = builder.radio_field_group(:status, Movie.statuses.to_a)
-    assert_html(result, "span.label-text")
+  def test_radio_group_renders_display_text_in_a_span
+    result = builder.radio_group(:status, Movie.statuses.to_a)
+    assert_html(result, "label.label span")
   end
 
   # #radio_field
@@ -51,25 +51,25 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
 
   def test_radio_field_with_size_option_applies_size_class_to_radio_inputs
     values = [ %w[One 1], %w[Two 2], %w[Three 3] ]
-    result = builder.radio_field(:status, values, {}, { size: :lg })
+    result = builder.radio_field(:status, values, html: { size: :lg })
     assert_html(result, "input.radio.radio-lg", count: 3)
   end
 
   def test_radio_field_with_color_option_applies_color_class_to_radio_inputs
     values = [ %w[One 1], %w[Two 2], %w[Three 3] ]
-    result = builder.radio_field(:status, values, {}, { color: :primary })
+    result = builder.radio_field(:status, values, html: { color: :primary })
     assert_html(result, "input.radio.radio-primary", count: 3)
   end
 
   def test_radio_field_with_custom_label_class_appends_custom_class_to_labels
     values = [ %w[One 1], %w[Two 2], %w[Three 3] ]
-    result = builder.radio_field(:status, values, {}, { radio_label_class: "custom-label" })
+    result = builder.radio_field(:status, values, html: { radio_label_class: "custom-label" })
     assert_html(result, "label.label.cursor-pointer.custom-label", count: 3)
   end
 
   def test_radio_field_with_custom_input_class_appends_custom_class_to_radio_inputs
     values = [ %w[One 1], %w[Two 2], %w[Three 3] ]
-    result = builder.radio_field(:status, values, {}, { class: "custom-input" })
+    result = builder.radio_field(:status, values, html: { class: "custom-input" })
     assert_html(result, "input.radio.custom-input", count: 3)
   end
 
@@ -81,13 +81,13 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
 
   def test_radio_field_with_horizontal_orientation_renders_container_with_flex_row_class
     values = [ %w[One 1], %w[Two 2], %w[Three 3] ]
-    result = builder.radio_field(:status, values, {}, { orientation: :horizontal })
+    result = builder.radio_field(:status, values, html: { orientation: :horizontal })
     assert_html(result, "div.flex.flex-row.flex-wrap")
   end
 
   def test_radio_field_with_shared_data_attributes_applies_shared_data_attributes_to_all_radio_inputs
     values = [ %w[One 1], %w[Two 2], %w[Three 3] ]
-    result = builder.radio_field(:status, values, {}, { data: { action: "change->form#submit" } })
+    result = builder.radio_field(:status, values, html: { data: { action: "change->form#submit" } })
     assert_html(result, 'input[data-action="change->form#submit"]', count: 3)
   end
 
@@ -117,7 +117,7 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
       [ "One", "1", { data: { price: "100" } } ],
       %w[Two 2]
     ]
-    result = builder.radio_field(:status, values, {}, { data: { controller: "pricing" } })
+    result = builder.radio_field(:status, values, html: { data: { controller: "pricing" } })
     assert_html(result, 'input[data-controller="pricing"][data-price="100"]', count: 1)
   end
 
@@ -126,7 +126,7 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
       [ "One", "1", { data: { price: "100" } } ],
       %w[Two 2]
     ]
-    result = builder.radio_field(:status, values, {}, { data: { controller: "pricing" } })
+    result = builder.radio_field(:status, values, html: { data: { controller: "pricing" } })
     assert_html(result, 'input[value="2"][data-controller="pricing"]')
   end
 
@@ -187,14 +187,6 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
 
   def test_class_constants_defines_label_class_with_cursor_pointer_and_spacing
     assert_equal "label cursor-pointer justify-start gap-3", Bali::FormBuilder::RadioFields::LABEL_CLASS
-  end
-
-  def test_class_constants_defines_label_text_class
-    assert_equal "label-text", Bali::FormBuilder::RadioFields::LABEL_TEXT_CLASS
-  end
-
-  def test_class_constants_defines_error_class
-    assert_equal "label-text-alt text-error", Bali::FormBuilder::RadioFields::ERROR_CLASS
   end
 
   def test_class_constants_defines_controller_name

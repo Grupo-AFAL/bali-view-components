@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "2.18.0",
+  "version": "3.0.0",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -11,7 +11,6 @@
   "exports": {
     ".": "./app/frontend/bali/index.js",
     "./charts": "./app/frontend/bali/charts.js",
-    "./gantt": "./app/frontend/bali/gantt.js",
     "./block-editor": "./app/frontend/bali/block-editor.js",
     "./block-editor-entry": "./app/frontend/bali/block-editor-entry.js",
     "./block-editor-loader": "./app/frontend/bali/block-editor-loader.js",
@@ -27,6 +26,7 @@
   },
   "scripts": {
     "build": "yarn --cwd spec/dummy build",
+    "check:manifest": "node scripts/check-controller-manifest.mjs",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
     "cy:run:electron": "cypress run",
@@ -35,10 +35,8 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/eslint-parser": "^7.28.6",
-    "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "7.29.7",
     "cypress": "15.18.1",
-    "playwright": "^1.60.0",
     "standard": "^17.1.2"
   },
   "standard": {
@@ -53,11 +51,13 @@
       "describe",
       "expect",
       "beforeEach",
+      "afterEach",
       "Cypress",
       "fetch",
       "history",
       "FormData",
       "CustomEvent",
+      "getComputedStyle",
       "localStorage",
       "DataTransfer",
       "MutationObserver",
@@ -65,13 +65,25 @@
     ]
   },
   "//peerDependencies": [
-    "Everything here is optional: Bali is a component library and no app uses all of it.",
-    "Block Editor (subpath ./block-editor): @blocknote/core + /react + /mantine, @mantine/core,",
-    "  @mantine/hooks, react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for",
-    "  syntax-highlighted code blocks; pass syntax_highlighting: false and you can skip it.",
-    "Rich Text Editor (subpath ./rich-text-editor): the @tiptap/* set plus lowlight, highlight.js,",
-    "  tippy.js and lodash.throttle. This list previously existed only as a code comment that",
-    "  named three packages and trailed off in an ellipsis.",
+    "REQUIRED: @hotwired/stimulus (70 shipped files import it), @hotwired/turbo-rails (used as the",
+    "  window.Turbo global, never imported -- so a bundler will not tell you it is missing),",
+    "  and daisyui, because the components emit daisyUI class names from Ruby: without it they",
+    "  render unstyled, not merely unthemed.",
+    "EVERYTHING ELSE IS OPTIONAL. Bali is a component library and no app uses all of it; each",
+    "  optional peer is listed next to the entry that reaches for it.",
+    "  Root entry, per controller: @glidejs/glide (carousel), @googlemaps/markerclusterer +",
+    "  @rails/activestorage (locations map, direct upload), @rails/request.js, date-fns",
+    "  (timeago), flatpickr (datepicker), lodash.debounce, lodash.throttle, rrule (recurrent",
+    "  event rule), slim-select, sortablejs (kanban, sortable list), tippy.js.",
+    "  ./charts: chart.js.",
+    "  ./block-editor: @blocknote/core + /react + /mantine, @mantine/core, @mantine/hooks,",
+    "    react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for syntax-highlighted",
+    "    code blocks; pass syntax_highlighting: false and you can skip it.",
+    "    The @blocknote/* lower bound is 0.52.1 because that is the version spec/dummy pins and",
+    "    the one the editor was exercised against by hand. It is not an aspiration: do not widen",
+    "    it downwards without running the editor on the version you want to claim.",
+    "  ./rich-text-editor: the @tiptap/* set plus lowlight, highlight.js. DEPRECATED in v3 and",
+    "    removed in v4 -- migrate to ./block-editor.",
     "DELIBERATELY ABSENT -- @blocknote/xl-ai, xl-multi-column, xl-pdf-exporter, xl-docx-exporter",
     "  and their companions (`ai`, `docx`, `@react-pdf/renderer`). Those four are",
     "  'GPL-3.0 OR PROPRIETARY': a closed-source application needs a paid commercial licence.",
@@ -80,14 +92,18 @@
     "  features on still builds and runs without them."
   ],
   "peerDependencies": {
-    "@blocknote/core": ">=0.51.0",
-    "@blocknote/mantine": ">=0.51.0",
-    "@blocknote/react": ">=0.51.0",
+    "@hotwired/stimulus": ">=3.2.0",
+    "@hotwired/turbo-rails": ">=8.0.0",
+    "daisyui": ">=5.7.0",
+    "@blocknote/core": ">=0.52.1",
+    "@blocknote/mantine": ">=0.52.1",
+    "@blocknote/react": ">=0.52.1",
+    "@glidejs/glide": ">=3.6.0",
+    "@googlemaps/markerclusterer": ">=2.0.0",
     "@mantine/core": ">=8.3.0",
     "@mantine/hooks": ">=8.3.0",
-    "shiki": ">=1.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
+    "@rails/activestorage": ">=7.0.0",
+    "@rails/request.js": ">=0.0.9",
     "@tiptap/core": ">=2.0.0",
     "@tiptap/extension-blockquote": ">=2.0.0",
     "@tiptap/extension-bold": ">=2.0.0",
@@ -95,6 +111,7 @@
     "@tiptap/extension-bullet-list": ">=2.0.0",
     "@tiptap/extension-code": ">=2.0.0",
     "@tiptap/extension-code-block": ">=2.0.0",
+    "@tiptap/extension-code-block-lowlight": ">=2.0.0",
     "@tiptap/extension-color": ">=2.0.0",
     "@tiptap/extension-document": ">=2.0.0",
     "@tiptap/extension-dropcursor": ">=2.0.0",
@@ -103,11 +120,13 @@
     "@tiptap/extension-heading": ">=2.0.0",
     "@tiptap/extension-highlight": ">=2.0.0",
     "@tiptap/extension-history": ">=2.0.0",
+    "@tiptap/extension-horizontal-rule": ">=2.0.0",
     "@tiptap/extension-image": ">=2.0.0",
     "@tiptap/extension-italic": ">=2.0.0",
     "@tiptap/extension-link": ">=2.0.0",
     "@tiptap/extension-list-item": ">=2.0.0",
     "@tiptap/extension-mention": ">=2.0.0",
+    "@tiptap/extension-ordered-list": ">=2.0.0",
     "@tiptap/extension-paragraph": ">=2.0.0",
     "@tiptap/extension-placeholder": ">=2.0.0",
     "@tiptap/extension-strike": ">=2.0.0",
@@ -115,6 +134,7 @@
     "@tiptap/extension-superscript": ">=2.0.0",
     "@tiptap/extension-table": ">=2.0.0",
     "@tiptap/extension-table-cell": ">=2.0.0",
+    "@tiptap/extension-table-header": ">=2.0.0",
     "@tiptap/extension-table-row": ">=2.0.0",
     "@tiptap/extension-task-item": ">=2.0.0",
     "@tiptap/extension-task-list": ">=2.0.0",
@@ -123,10 +143,19 @@
     "@tiptap/extension-text-style": ">=2.0.0",
     "@tiptap/extension-underline": ">=2.0.0",
     "@tiptap/suggestion": ">=2.0.0",
-    "@rails/request.js": ">=0.0.9",
+    "chart.js": ">=4.0.0",
+    "date-fns": ">=3.0.0",
+    "flatpickr": ">=4.6.0",
     "highlight.js": ">=11.0.0",
+    "lodash.debounce": ">=4.0.0",
     "lodash.throttle": ">=4.0.0",
     "lowlight": ">=2.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "rrule": ">=2.7.0",
+    "shiki": ">=1.0.0",
+    "slim-select": ">=2.0.0",
+    "sortablejs": ">=1.15.0",
     "tippy.js": ">=6.0.0"
   },
   "peerDependenciesMeta": {
@@ -139,19 +168,22 @@
     "@blocknote/react": {
       "optional": true
     },
+    "@glidejs/glide": {
+      "optional": true
+    },
+    "@googlemaps/markerclusterer": {
+      "optional": true
+    },
     "@mantine/core": {
       "optional": true
     },
     "@mantine/hooks": {
       "optional": true
     },
-    "shiki": {
+    "@rails/activestorage": {
       "optional": true
     },
-    "react": {
-      "optional": true
-    },
-    "react-dom": {
+    "@rails/request.js": {
       "optional": true
     },
     "@tiptap/core": {
@@ -173,6 +205,9 @@
       "optional": true
     },
     "@tiptap/extension-code-block": {
+      "optional": true
+    },
+    "@tiptap/extension-code-block-lowlight": {
       "optional": true
     },
     "@tiptap/extension-color": {
@@ -199,6 +234,9 @@
     "@tiptap/extension-history": {
       "optional": true
     },
+    "@tiptap/extension-horizontal-rule": {
+      "optional": true
+    },
     "@tiptap/extension-image": {
       "optional": true
     },
@@ -212,6 +250,9 @@
       "optional": true
     },
     "@tiptap/extension-mention": {
+      "optional": true
+    },
+    "@tiptap/extension-ordered-list": {
       "optional": true
     },
     "@tiptap/extension-paragraph": {
@@ -233,6 +274,9 @@
       "optional": true
     },
     "@tiptap/extension-table-cell": {
+      "optional": true
+    },
+    "@tiptap/extension-table-header": {
       "optional": true
     },
     "@tiptap/extension-table-row": {
@@ -259,10 +303,19 @@
     "@tiptap/suggestion": {
       "optional": true
     },
-    "@rails/request.js": {
+    "chart.js": {
+      "optional": true
+    },
+    "date-fns": {
+      "optional": true
+    },
+    "flatpickr": {
       "optional": true
     },
     "highlight.js": {
+      "optional": true
+    },
+    "lodash.debounce": {
       "optional": true
     },
     "lodash.throttle": {
@@ -271,19 +324,41 @@
     "lowlight": {
       "optional": true
     },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "rrule": {
+      "optional": true
+    },
+    "shiki": {
+      "optional": true
+    },
+    "slim-select": {
+      "optional": true
+    },
+    "sortablejs": {
+      "optional": true
+    },
     "tippy.js": {
       "optional": true
     }
   },
   "resolutions": {
     "qs": "^6.15.2",
-    "js-yaml": ">=4.1.1",
+    "js-yaml": ">=5.2.2",
     "minimatch": ">=3.1.5",
     "flatted": ">=3.4.2",
     "lodash": ">=4.18.1",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "brace-expansion": ">=5.0.7"
   },
-  "dependencies": {
-    "daisyui": "5.6.18"
-  }
+  "files": [
+    "app/**/*",
+    "lib/bali/**/*.rb",
+    "MIT-LICENSE",
+    "README.md"
+  ]
 }

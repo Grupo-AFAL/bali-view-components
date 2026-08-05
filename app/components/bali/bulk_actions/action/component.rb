@@ -4,25 +4,22 @@ module Bali
   module BulkActions
     module Action
       class Component < ApplicationViewComponent
-        attr_reader :label, :href, :method, :variant
+        attr_reader :label, :href, :method, :variant, :size
 
-        VARIANTS = {
-          primary: "btn-primary",
-          secondary: "btn-secondary",
-          accent: "btn-accent",
-          info: "btn-info",
-          success: "btn-success",
-          warning: "btn-warning",
-          error: "btn-error",
-          ghost: "btn-ghost",
-          neutral: "btn-neutral"
-        }.freeze
+        # One table for every `.btn` in the library. See Bali::ButtonTaxonomy.
+        VARIANTS = Bali::ButtonTaxonomy::VARIANTS
+        SIZES = Bali::ButtonTaxonomy::SIZES
 
-        def initialize(label:, href:, method: :post, variant: :secondary, **options)
+        # @param size [Symbol] Tamaño del botón. Lo inyecta la barra según su variante
+        #   (`xs` en la fila contextual, `sm` en la flotante); pasarlo explícito gana.
+        def initialize(label:, href:, method: :post, variant: :secondary, size: :sm, **options)
           @label = label
           @href = href
           @method = method.to_sym
           @variant = variant.to_sym
+          @size = size.to_sym
+          @variant_class = Bali::ButtonTaxonomy.variant!(self.class, @variant)
+          @size_class = Bali::ButtonTaxonomy.size!(self.class, @size)
           @options = options
         end
 
@@ -44,8 +41,8 @@ module Bali
           render Bali::Link::Component.new(
             name: label,
             href: href,
-            type: variant,
-            size: :sm,
+            variant: variant,
+            size: size,
             data: { bulk_actions_target: "bulkAction" },
             **@options
           )
@@ -66,8 +63,10 @@ module Bali
           { bulk_actions_target: "bulkAction" }
         end
 
+        # `"btn-#{size}"` was invisible to Tailwind's scanner: the class only ever shipped
+        # because some other component happened to spell it out.
         def button_classes
-          class_names("btn btn-sm", VARIANTS[variant])
+          class_names("btn", @size_class, @variant_class)
         end
       end
     end

@@ -1,0 +1,8 @@
+<%= tag.div(**options) do %>
+  <% flash_entries.each do |color, message| %>
+    <%= render Bali::Toast::Component.new(color: color, duration: duration) do %><%= message %><% end %>
+  <% end %>
+  <% toasts.each do |toast| %>
+    <%= toast %>
+  <% end %>
+<% end %>

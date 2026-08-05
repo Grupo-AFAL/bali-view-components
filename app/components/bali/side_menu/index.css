@@ -1,5 +1,14 @@
 /* Side Menu Component
  * Nexus-style sidebar with DaisyUI collapse for expandable groups
+ *
+ * This file lives in @layer components (see ../../assets/stylesheets/bali.css),
+ * so a utility class on the element wins — that is what lets the header
+ * toggles use plain `lg:hidden` / `max-lg:hidden` instead of `!hidden`.
+ *
+ * The rules that have to outrank daisyUI (.dropdown, .collapse, .menu,
+ * .tooltip — all emitted inside @layer utilities) do NOT fit that model and
+ * live unlayered in ./daisyui-overrides.css. Read its header before adding a
+ * rule here whose right-most compound is a daisyUI class.
  */
 
 :root {
@@ -21,25 +30,27 @@
   position: relative;
 }
 
-/* Menu-switcher tooltip is only useful when the sidebar is collapsed —
-   in expanded state the title is right there in the trigger button.
-   Hide DaisyUI's tooltip pseudo-elements unless the sidebar is collapsed. */
-.menu-switcher-trigger.tooltip::before,
-.menu-switcher-trigger.tooltip::after {
-  display: none;
-}
-.side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher-trigger.tooltip:hover::before,
-.side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher-trigger.tooltip:hover::after,
-.side-menu-component.is-collapsed .menu-switcher-trigger.tooltip:hover::before,
-.side-menu-component.is-collapsed .menu-switcher-trigger.tooltip:hover::after {
-  display: block;
-}
+/* The menu-switcher tooltip visibility rules live in ./daisyui-overrides.css
+   (they fight daisyUI's own `.tooltip:after`). */
 
 /* Fixed positioning variant - for full-page sidebars.
    Uses a 1px right border for desktop separation (lines up with the topbar's
    bottom border to form one continuous app-chrome divider). On mobile, where
    the sidebar slides in as an overlay over content, the border is replaced by
-   a drop shadow for visual depth. */
+   a drop shadow for visual depth.
+
+   `transform` only moves the closed drawer off-screen; what takes it out of
+   the tab order is the `inert` attribute, which SideMenuController owns and
+   the component renders on first paint. It is deliberately NOT `visibility:
+   hidden` here: the rule that reveals the panel is a transition, so hiding it
+   in CSS would tie "can this be focused" to the animation clock, and the panel
+   is still un-focusable in the task that opened it. Measured — see the note on
+   `syncInert` in ./index.js.
+
+   Both the default and the state that overrides it live in this file, in
+   @layer components. Splitting them — a utility on the element for one and CSS
+   for the other — would leave the utility winning in both directions and the
+   drawer stuck. */
 .side-menu-component--fixed {
   @apply fixed top-0 left-0 h-full z-40 bg-base-100;
   border-right: 1px solid var(--color-base-300);
@@ -47,13 +58,17 @@
   transform: translateX(-100%);
   transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
 
-  /* Visible on desktop */
-  @media (min-width: 1024px) {
-    transform: translateX(0);
-  }
-
   /* Active state (mobile menu open) */
   &.is-active {
+    transform: translateX(0);
+  }
+}
+
+/* On screen at desktop widths, where the sidebar is permanent chrome rather
+   than a drawer. Placed after the block above so it beats the closed default;
+   the `.is-active` rule agrees with it, so their order does not matter. */
+@media (min-width: 1024px) {
+  .side-menu-component--fixed {
     transform: translateX(0);
   }
 }
@@ -86,14 +101,16 @@
      The collapsed-state padding is added in the .is-collapsed block below. */
   @apply space-y-1 max-lg:pt-2;
 
-  /* Allow dropdowns to overflow outside the menu container */
-  .dropdown {
-    overflow: visible;
-  }
+  /* The `.dropdown` / `.dropdown-content` overrides for this container live in
+     ./daisyui-overrides.css. */
+}
 
-  .dropdown-content {
-    position: fixed;
-  }
+/* A titled section gets its top gap from `.menu-label`'s `pt-3`. An untitled
+   first section has no label, so its first item sat flush against the chrome
+   row's border — which is why consuming apps were patching this padding
+   themselves. `:first-child` matches the list only when no title precedes it. */
+.sidebar-menu > .side-menu-list:first-child {
+  @apply pt-3;
 }
 
 .menu-item {
@@ -106,32 +123,34 @@
   }
 }
 
+/* `display` lives here, not as a utility on the element: the collapsed sidebar
+   hides labels with `.menu-label { @apply hidden }` further down, and a utility
+   on the element would beat that rule now that this file is layered. Same
+   reason for `.side-menu-brand` and the two `px-2.5` containers below. */
 .menu-label {
+  @apply flex;
   @apply text-xs font-semibold uppercase tracking-wider text-base-content/50;
+}
+
+.side-menu-brand {
+  @apply flex;
+}
+
+.side-menu-component .menu-switcher {
+  @apply px-2.5;
+}
+
+.side-menu-bottom-section {
+  @apply px-2.5;
 }
 
 /* ========================================
    Collapse Component Styling
    ======================================== */
 
-.side-menu-component .collapse {
-  @apply rounded-lg;
-}
-
-.side-menu-component .collapse-title {
-  @apply flex items-center gap-2 min-h-0 px-2.5 py-2 rounded-lg cursor-pointer;
-  @apply text-base-content/80 hover:bg-base-200 hover:text-base-content;
-  @apply transition-all duration-200 after:hidden;
-  /* Remove default DaisyUI arrow */
-
-  &.active {
-    @apply text-primary font-medium;
-  }
-}
-
-.side-menu-component .collapse-content {
-  @apply pb-0;
-}
+/* `.collapse`, `.collapse-title` and `.collapse-content` are styled by daisyUI
+   inside @layer utilities, so their overrides live in
+   ./daisyui-overrides.css. */
 
 /* Arrow icon rotation */
 .side-menu-component .arrow-icon {
@@ -161,8 +180,10 @@
   }
 }
 
-/* When collapse checkbox is checked, collapse the sidebar */
-.side-menu-collapse-trigger:checked+.side-menu-component,
+/* Icon-only rail. `is-collapsed` is set by SideMenuController, which restores
+   it from localStorage on connect — it used to be a hidden checkbox read with
+   `:checked + .side-menu-component`, and a `display: none` checkbox is not
+   something a keyboard can reach. */
 .side-menu-component.is-collapsed {
   width: var(--bali-side-menu-collapsed-width);
 
@@ -201,26 +222,8 @@
     @apply !hidden;
   }
 
-  /* Reposition the dropdown popup to open beside the collapsed sidebar
-     (instead of below, where it would overlap the menu items). Mirrors the
-     pattern used by .side-menu-bottom-group.dropdown above. */
-  .menu-switcher details {
-    position: static;
-  }
-  .menu-switcher .dropdown-content {
-    position: absolute !important;
-    top: 0;
-    left: var(--bali-side-menu-collapsed-width);
-    right: auto;
-    bottom: auto;
-    width: var(--bali-side-menu-width);
-    margin: 0;
-  }
-  /* In the dropdown items, don't stretch the title div — let icon + title
-     sit naturally next to each other with the menu_switch's gap-3 spacing. */
-  .menu-switcher .dropdown-content .side-menu-component--menu-switch-component > div {
-    @apply !flex-none;
-  }
+  /* The collapsed-state repositioning of `.menu-switcher details` and its
+     `.dropdown-content` lives in ./daisyui-overrides.css. */
 
   /* Hide section labels */
   .menu-label {
@@ -259,106 +262,25 @@
     @apply pt-2;
   }
 
-  /* Collapsed-state flyout for expandable groups. The container is
-     shown by `.side-menu-collapsed { !flex }` above. DaisyUI's
-     `dropdown-right` relies on CSS Anchor Positioning, which silently
-     falls back to viewport-relative when the anchor chain isn't set up
-     correctly — the panel can end up at `top: 0` of the viewport,
-     creating a vertical gap the cursor can't cross. We override that
-     here: the JS controller measures the trigger and sets `top` / `left`
-     so the panel is flush against the trigger's right edge. */
-  .side-menu-collapsed-flyout .dropdown-content {
-    /* `left` and `top` are set inline by side-menu-flyout controller. */
-    inset: auto !important;
-  }
-
-  /* Safe-triangle bridge: the trigger (collapsed `menu-item` with `p-2`)
-     is ~32px wide while the panel sits flush against the 56px rail edge,
-     leaving a ~14px dead zone the cursor would otherwise cross with no
-     element to hover. This transparent pseudo-element extends 24px to
-     the left of the panel — wider than the worst-case gap — so the
-     cursor's `:hover` state stays on the `.dropdown` throughout the
-     traversal. */
-  .side-menu-collapsed-flyout .dropdown-content::before {
-    content: "";
-    @apply absolute -left-6 top-0 bottom-0 w-6;
-  }
-
-  /* Intent delay — wait ~120ms before opening so cursor drift past the
-     rail doesn't trigger a flyout mid-task. Closing has a longer delay
-     (300ms) to give users grace if the cursor briefly drifts off the
-     trigger before reaching the panel. */
-  .side-menu-collapsed-flyout .dropdown-content {
-    transition-delay: 300ms;
-  }
-  .side-menu-collapsed-flyout:hover .dropdown-content,
-  .side-menu-collapsed-flyout:focus-within .dropdown-content {
-    transition-delay: 120ms;
-  }
-
-  /* Open the panel when the trigger is hovered OR the container has
-     focus inside it (keyboard tab / touch tap) — covers all three
-     interaction modes (mouse, keyboard, touch). DaisyUI's dropdown-hover
-     handles :hover; this rule extends it to focus-within so keyboard
-     and touch open the panel too. */
-  .side-menu-collapsed-flyout:focus-within .dropdown-content {
-    @apply opacity-100 visible;
-  }
-
-  /* Explicit close via Escape — overrides both :hover and :focus-within
-     until the user moves cursor away or tabs out. Paired with the
-     `is-suppressed` class the controller toggles. */
-  .side-menu-collapsed-flyout.is-suppressed .dropdown-content {
-    @apply opacity-0 invisible;
-  }
-
-  /* Bottom group dropdown: open right instead of up when collapsed */
-  .side-menu-bottom-group.dropdown {
-    position: static;
-
-    .dropdown-content {
-      left: var(--bali-side-menu-collapsed-width);
-      bottom: 0;
-      top: auto;
-      right: auto;
-
-      /* Override collapsed-state rules inside the dropdown */
-      .side-menu-expanded {
-        @apply !flex;
-      }
-
-      .side-menu-collapsed {
-        @apply !hidden;
-      }
-
-      .menu-item {
-        @apply justify-start px-2.5 py-2;
-      }
-    }
-  }
-}
-
-/* ========================================
-   Mobile Toggle (checkbox-driven)
-   ======================================== */
-
-/* Show sidebar when mobile trigger is checked */
-.side-menu-mobile-trigger:checked~.side-menu-component--fixed {
-  transform: translateX(0);
+  /* The collapsed-state flyout and bottom-group dropdown rules all target
+     daisyUI's `.dropdown` / `.dropdown-content` and live in
+     ./daisyui-overrides.css. */
 }
 
 /* ========================================
    Mobile Expansion Override
-   When the mobile sidebar opens, force expanded view
-   regardless of the collapse checkbox state.
+   The icon-only rail is a desktop affordance; on mobile the sidebar is a
+   drawer that always opens at full width.
    ======================================== */
 
 @media (max-width: 1023.98px) {
   /* Disable collapse mode on mobile — icon-only sidebar is desktop-only.
-     These rules match the specificity of the collapse rules above (0-3-0)
-     and appear later, so they win when both are !important. */
-  .side-menu-collapse-trigger:checked + .side-menu-component,
-  .side-menu-mobile-trigger:checked ~ .side-menu-component {
+     These rules match the specificity of the collapse rules above (0-2-0 on
+     the wrapper, 0-3-0 on the descendants) and appear later, so they win when
+     both are !important. The selector used to be the two hidden checkboxes
+     (`.side-menu-collapse-trigger:checked + …`); it now reads the same
+     `is-collapsed` state class the desktop rules do. */
+  .side-menu-component.is-collapsed {
     width: var(--bali-side-menu-width) !important;
 
     .side-menu-expanded { display: flex !important; }
@@ -399,8 +321,8 @@
   transition: opacity 0.2s ease-in-out;
 }
 
-/* Show overlay when sidebar is open on mobile (checkbox or legacy is-active) */
-.side-menu-mobile-trigger:checked~.side-menu-overlay,
+/* Show the scrim while the drawer is open. `~` because the scrim renders as
+   the sidebar's next sibling, outside the <nav>, so it can stack below it. */
 .side-menu-component--fixed.is-active~.side-menu-overlay {
   @apply opacity-100 pointer-events-auto;
 }

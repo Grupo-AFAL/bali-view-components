@@ -4,10 +4,11 @@ This guide covers complete setup of Bali ViewComponents in your Rails applicatio
 
 ## Prerequisites
 
-- Rails 7.0+ (Rails 8.x supported)
-- Ruby 3.0+
+- Rails 8.1+ (the gemspec requires `>= 8.1, < 9.0`)
+- Ruby 4.0+
 - Node.js 18+ and npm/yarn
 - Tailwind CSS v4 (via tailwindcss-rails or Vite)
+- daisyUI 5.7+
 
 ---
 
@@ -29,17 +30,27 @@ bundle install
 
 ## Step 2: Install JavaScript Package
 
-Install the npm package which contains Stimulus controllers and CSS:
+Install the npm package, which contains the Stimulus controllers and the CSS:
 
 ```bash
-npm install bali-view-components
+npm install bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
 # or
-yarn add bali-view-components
+yarn add bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
 ```
 
-This package includes:
-- Pre-built CSS for components with custom styling
-- Peer dependency on DaisyUI 5.x
+Those three are **required peer dependencies**, so your package manager will not install
+them for you — and two of them fail quietly if you skip them:
+
+| Peer | Why it is required |
+|------|--------------------|
+| `@hotwired/stimulus` | Every controller extends it. |
+| `@hotwired/turbo-rails` | Reached through the `window.Turbo` global rather than an import, so **no bundler will warn you it is missing** — the components simply stop reacting. |
+| `daisyui` | The Ruby components emit daisyUI class names, so without it they render *unstyled*, not merely unthemed. |
+
+Everything Bali touches beyond those three is an **optional** peer declared per feature:
+install only what you actually render. *Step 6: External Dependencies* below lists them,
+and the grouped comment in the package's own `package.json` maps every optional peer to
+the entry point that reaches for it.
 
 ---
 
@@ -66,13 +77,13 @@ Create `app/assets/tailwind/application.css` (or similar):
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
 /* =============================================
-   Bali CSS Imports
+   Bali CSS Import
    =============================================
-   - bali.css: Base styles, forms, typography, variables
-   - components.css: Component-specific CSS (navbar, calendar, etc.)
+   One line. bali.css pulls in base styles, forms, typography and every
+   component sheet. (Before v3 you also had to import components.css by hand;
+   forgetting it left every component unstyled with no error.)
 */
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 
 /* =============================================
    Dark Mode Configuration
@@ -91,6 +102,21 @@ Create `app/assets/tailwind/application.css` (or similar):
 ```
 
 > **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). Without it, Tailwind won't detect these classes and components will appear unstyled.
+
+### Overriding Bali styles
+
+Bali's own component CSS ships in `@layer components`, so **a utility class on
+the element wins** — `class="menu-item lg:hidden"` hides the item, no `!`
+variant needed. Put the import after `@import "tailwindcss"` and after
+`@plugin "daisyui"` so the layer order is the one Tailwind sets up.
+
+A handful of sheets stay unlayered on purpose, because their whole job is to
+beat a rule daisyUI emits inside `@layer utilities` (daisyUI 5 does not use
+`@layer components`): `forms.css`, `datepicker.css`, `slim_select.css`,
+`breadcrumb/index.css`, `data_table/index.css` and
+`side_menu/daisyui-overrides.css`. Each file's header names the rule it is
+fighting. To override one of those from your app, use a `!` utility variant or
+plain unlayered CSS imported after Bali.
 
 ### DaisyUI Themes
 
@@ -196,16 +222,34 @@ ActionView::Base.default_form_builder = Bali::FormBuilder
 
 ## Step 6: External Dependencies
 
-Some components require additional JavaScript libraries:
+Every library below is an **optional peer dependency**: it is declared in Bali's
+`package.json` but never installed for you, and the controller that needs it loads it with
+a dynamic `import()`. That means a component you do not use costs you nothing, and a
+component you *do* use fails at runtime rather than at build time if its library is
+missing.
 
 | Component | Dependency | Installation |
 |-----------|------------|--------------|
-| Calendar, DatePicker | Flatpickr | `npm install flatpickr` |
+| Datepicker, Calendar | Flatpickr | `npm install flatpickr` |
 | SlimSelect | Slim Select | `npm install slim-select` |
-| Chart | Chart.js | `npm install chart.js` |
 | SortableList | SortableJS | `npm install sortablejs` |
-| RichTextEditor | Trix | Included with Rails |
-| AutocompleteAddress | Google Maps API | Add script to layout |
+| Carousel | Glide | `npm install @glidejs/glide` |
+| Timeago | date-fns | `npm install date-fns` |
+| RecurrentEventRuleForm | rrule | `npm install rrule` |
+| DirectUpload, ImageField | Active Storage JS | `npm install @rails/activestorage` |
+| LocationsMap | Google Maps marker clusterer | `npm install @googlemaps/markerclusterer` + the Maps script below |
+| AutocompleteAddress | Google Maps API | Add the script to your layout (below) |
+| Tabs, SlimSelect, SortableList, DataTable | `@rails/request.js` | `npm install @rails/request.js` |
+| Navbar, ElementsOverlap, SubmitOnChange | lodash throttle/debounce | `npm install lodash.throttle lodash.debounce` |
+| TrixAttachments | Trix | Included with Rails (Action Text) |
+
+Components behind their own entry point carry their own dependency sets, which are larger:
+
+| Entry point | Dependency set |
+|-------------|----------------|
+| `bali-view-components/charts` | `chart.js` |
+| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.52.1, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
+| `bali-view-components/rich-text-editor` | The `@tiptap/*` set plus `lowlight`, `highlight.js` and `tippy.js`. **Deprecated in v3, removed in v4** — migrate to the block editor. |
 
 ### Flatpickr Setup
 
@@ -216,11 +260,23 @@ import "flatpickr/dist/flatpickr.min.css"
 
 ### Google Maps (for AutocompleteAddress)
 
-Add to your layout:
+No script tag: Bali loads the Maps API itself, on demand, from the controller that
+needs it. Give it the key instead.
+
+```ruby
+# config/initializers/bali.rb — read by LocationsMap and coordinates_polygon
+Bali.config { |config| config.google_maps_key = Rails.application.credentials.dig(:google, :maps_key) }
+```
+
+The `autocomplete-address` controller is wired by hand, so it takes its key from the
+element (or from a global):
 
 ```erb
-<%= javascript_include_tag "https://maps.googleapis.com/maps/api/js?key=#{ENV['GOOGLE_MAPS_API_KEY']}&libraries=places" %>
+<div data-controller="autocomplete-address"
+     data-autocomplete-address-api-key-value="<%= Bali.google_maps_key %>">
 ```
+
+See [External Services](external-services.md) for the full setup.
 
 ---
 
@@ -323,6 +379,36 @@ By default, `Bali::Modal::Component` renders with `active: true` (open state). T
   <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>
 <% end %>
 ```
+
+### A second drawer on the same page
+
+A `drawer#open` trigger may name the drawer it opens, and usually does not:
+
+```erb
+<%# The ordinary spelling: no name, so the open event is a broadcast %>
+<%= render Bali::Link::Component.new(name: "New Studio", href: new_studio_path,
+      data: { action: "drawer#open" }) %>
+```
+
+A broadcast is answered by every **shared** drawer on the page, which is the right thing while the
+page has one — the shell drawer above. The moment a page has a second drawer that belongs to one
+feature and has its own trigger, that one must opt out, or an unnamed trigger opens both and only
+one of them is closed afterwards. A `<dialog>` left in the top layer makes the whole document
+inert, so the symptom is a page that looks normal and stops answering the mouse.
+
+```erb
+<%# Belongs to one feature, opened only by its own trigger %>
+<%= render Bali::Drawer::Component.new(drawer_id: "cart", shared: false) do %>
+  ...
+<% end %>
+
+<%# ...and the trigger names it %>
+<%= render Bali::Button::Component.new(name: "Cart",
+      data: { action: "drawer#open", drawer_id: "cart" }) %>
+```
+
+`Bali::FeedbackWidget` already does this for its own panel, so mounting the widget alongside
+`AppLayout` needs nothing from you.
 
 ---
 

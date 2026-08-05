@@ -82,6 +82,14 @@ module Bali
         !header?
       end
 
+      # `title_id` is only ever put on the DOM by the header slot, so pointing
+      # `aria-labelledby` at it without one — the shared `#main-modal`, every
+      # modal built from `content` — named the dialog after an element that does
+      # not exist. Drawer already gated this the same way.
+      def title?
+        header?
+      end
+
       # Check if we have describable content (body slot provides aria-describedby)
       def description?
         body?
@@ -89,7 +97,7 @@ module Bali
 
       # Translated label for close button (accessibility)
       def close_label
-        I18n.t("bali.modal.close", default: "Close modal")
+        I18n.t("bali_view.modal.close")
       end
 
       # Opt-in confirm-on-close: when enabled, an unsaved form inside the modal
@@ -101,7 +109,7 @@ module Bali
       end
 
       def confirm_close_message
-        @confirm_close_message.presence || I18n.t("bali.modal.confirm_close", default: "You have unsaved changes. Discard them?")
+        @confirm_close_message.presence || I18n.t("bali_view.modal.confirm_close")
       end
     end
   end

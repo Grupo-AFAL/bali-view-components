@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
+import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 
 // TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
@@ -43,6 +44,18 @@ export class SlimSelectController extends Controller {
     // before (re)initializing, and tear SlimSelect down again right before
     // Turbo caches the page so the stored snapshot stays clean.
     this.removeStaleWidget()
+
+    // `connect()` is async, and the `await` below is a window in which Stimulus can
+    // disconnect this controller — any DOM move does it, and the DataTable toolbar moves its
+    // items on every overflow recalculation. A `teardown()` inside that window destroys
+    // `this.select`, which is still null, so it destroys nothing; the in-flight `connect()`
+    // then finishes and builds an instance nobody owns. SlimSelect ships a guard for exactly
+    // this — `this.selectEl.dataset.ssid && this.destroy()` — but it is dead code in 3.4.3:
+    // `ssid` appears once in the whole bundle, at that read, and is never written. So the two
+    // instances coexist, each with its own MutationObserver on the same <select>, and the
+    // orphan reverts what the live one writes: the user picks an option, the widget shows it,
+    // and the <select> that FormData serializes stays empty.
+    const generation = (this.generation = (this.generation || 0) + 1)
 
     this.beforeCacheHandler = () => this.teardown()
     document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
@@ -91,7 +104,17 @@ export class SlimSelectController extends Controller {
         options.events.afterChange = this.fetchAfterChange
       }
 
-      this.select = new SlimSelect(options)
+      const instance = new SlimSelect(options)
+
+      // The controller disconnected while the import was in flight: this instance belongs to
+      // nobody, and leaving it alive is what corrupts the <select>. Destroying it here is the
+      // only chance to — `teardown()` already ran, and it only ever looks at `this.select`.
+      if (generation !== this.generation) {
+        instance.destroy()
+        return
+      }
+
+      this.select = instance
 
       // Disable the select if disabled value is set
       // Note: settings.disabled in constructor doesn't work reliably,
@@ -115,12 +138,19 @@ export class SlimSelectController extends Controller {
           contentEl.classList.add('slim-select-sm-content')
         }
       }
+
+      this.joinTopLayer()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
     }
   }
 
   disconnect () {
+    // Bumped before `teardown()` so an in-flight `connect()` sees a stale generation and
+    // destroys the instance it is about to build, instead of leaving it observing the
+    // <select> forever.
+    this.generation = (this.generation || 0) + 1
+
     if (this.beforeCacheHandler) {
       document.removeEventListener('turbo:before-cache', this.beforeCacheHandler)
       this.beforeCacheHandler = null
@@ -128,7 +158,30 @@ export class SlimSelectController extends Controller {
     this.teardown()
   }
 
+  // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers
+  // and renders inert — see utils/top-layer.js for the hit-test that measured it.
+  //
+  // Done once, at connect, rather than on each open: SlimSelect debounces all
+  // four of its open/close callbacks by 100ms, so a hook that reparents there
+  // fires long after the list is already on screen and clickable. The list is
+  // parked at `top: -9999px` while closed, so leaving it in the top layer for the
+  // widget's lifetime shows nothing; when the overlay closes it takes its
+  // contents with it, and `teardown()` removes the node either way.
+  //
+  // Reads the list off the instance rather than off the DOM: the class-fixing
+  // lookup above falls back to the first `.ss-content` in the document, which on
+  // a page with several selects is somebody else's, and relocating that one would
+  // be a good deal worse than mislabelling it.
+  joinTopLayer () {
+    const contentEl = this.select?.render?.content?.main
+    const host = contentEl && topLayerHost(this.element)
+
+    if (host) enterTopLayer(contentEl, host)
+  }
+
   teardown () {
+    leaveTopLayer(this.select?.render?.content?.main)
+
     this.select?.destroy()
     this.select = null
   }

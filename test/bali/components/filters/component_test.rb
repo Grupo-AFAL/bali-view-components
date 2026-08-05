@@ -198,6 +198,17 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_text("Auto-saved")
   end
 
+  # El DataTable apaga el toggle porque lo pinta él en la toolbar, pero la leyenda del pie
+  # NO es un control: apagarla dejaría al panel sin decir que está guardando.
+  def test_persistence_toggle_can_be_turned_off_without_losing_the_auto_saved_hint
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, storage_id: "users_filters",
+      persist_enabled: true, persistence_toggle: false
+    ))
+    assert_no_selector('[data-controller="filter-persistence"]')
+    assert_text("Auto-saved")
+  end
+
   def test_persistence_toggle_does_not_render_auto_saved_text_when_persistence_is_disabled
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, storage_id: "users_filters", persist_enabled: false
@@ -263,6 +274,18 @@ class BaliFiltersComponentTest < ComponentTestCase
       preserved_params: { group_by: "genre" }
     ))
     assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all, minimum: 1)
+  end
+
+  def test_preserved_params_hidden_fields_carry_no_id
+    # En modo popover se pintan en LOS DOS forms (búsqueda rápida y panel): con el id
+    # derivado del name quedaban ids duplicados en el documento.
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" }, preserved_params: { view: "grid" }
+    ))
+
+    assert_selector("form input[type=hidden][name=view]", visible: :all, count: 2)
+    assert_no_selector("input[type=hidden][name=view][id]", visible: :all)
   end
 
   def test_preserved_query_params_excludes_clear_filters_and_clear_search_params
@@ -406,5 +429,58 @@ class BaliFiltersComponentTest < ComponentTestCase
                     "[data-filter-persistence-enabled-tooltip-value]" \
                     "[data-filter-persistence-disabled-tooltip-value]"
     assert_no_selector "button[data-filter-persistence-enabled-tooltip]"
+  end
+
+  # --- #677: one `search:` shape, honoured key by key ---
+
+  def test_the_search_input_name_is_derived_from_the_declared_columns
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: %i[name email] }
+    ))
+
+    assert_selector 'input[name="q[name_or_email_cont]"]'
+  end
+
+  def test_the_search_input_takes_its_accessible_name_from_label
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], label: "Search users" }
+    ))
+
+    assert_selector '[data-filters-target="searchInput"][aria-label="Search users"]'
+  end
+
+  # An empty aria-label names the field the empty string, which is worse than
+  # leaving the naming to the placeholder.
+  def test_the_search_input_emits_no_aria_label_without_one
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ] }
+    ))
+
+    assert_selector '[data-filters-target="searchInput"]'
+    assert_no_selector '[data-filters-target="searchInput"][aria-label]'
+  end
+
+  def test_the_search_box_takes_the_declared_width
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], width: "w-full sm:w-96" }
+    ))
+
+    assert_selector "label.join-item.w-full.sm\\:w-96"
+    assert_no_selector "label.sm\\:w-64"
+  end
+
+  def test_an_unknown_search_option_raises
+    error = assert_raises(ArgumentError) do
+      Bali::Filters::Component.new(
+        url: "/users", available_attributes: @available_attributes,
+        search: { field_name: "q[name_cont]" }
+      )
+    end
+
+    assert_includes error.message, ":field_name"
   end
 end

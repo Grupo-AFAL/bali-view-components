@@ -31,12 +31,17 @@ module Bali
       # @param max_groups [Integer] Maximum number of filter groups allowed
       # @param popover [Boolean] Whether to show filters in a popover (default: true)
       # @param button_text [String] Text for the popover trigger button
-      # @param search [Hash] Quick search configuration
+      # @param search [Hash] Quick search configuration (see Bali::SearchConfig)
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
+      #   - :label [String] Accessible name for the search input
+      #   - :icon [String] Icon for the submit button (default: "search")
+      #   - :width [String] Width classes for the search box
       # @param storage_id [String] Optional storage ID indicating filters can be persisted
       # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+      # @param persistence_toggle [Boolean] Render the bookmark toggle inside this panel
+      #   (default: true). DataTable turns it off and paints it as its own toolbar control.
       # @param turbo_stream [Boolean] Whether to accept Turbo Stream responses (default: false)
       #   When true, forms will include data-turbo-stream="true" to accept stream responses.
       #   The URL is still updated via JavaScript before form submission.
@@ -53,6 +58,7 @@ module Bali
         search: {},
         storage_id: nil,
         persist_enabled: false,
+        persistence_toggle: true,
         turbo_stream: false,
         preserved_params: {},
         **options
@@ -70,9 +76,10 @@ module Bali
         @max_groups = max_groups
         @popover = popover
         @button_text = button_text
-        @search = search || {}
+        @search = Bali::SearchConfig.wrap(search)
         @storage_id = storage_id
         @persist_enabled = persist_enabled
+        @persistence_toggle = persistence_toggle
         @turbo_stream = turbo_stream
         @id = options[:id] || "filters-#{SecureRandom.hex(4)}"
       end
@@ -88,29 +95,49 @@ module Bali
         @persist_enabled
       end
 
+      # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
+      # controladores `filter-persistence` sobre el mismo storage_id se pisan el localStorage
+      # y la cookie. Apaga SOLO el toggle — el panel sigue necesitando storage_id y
+      # persist_enabled para su leyenda "Auto-guardado".
+      def persistence_toggle?
+        @persistence_toggle
+      end
+
       def button_text
-        @button_text || I18n.t("bali.filters.filters_button", default: "Filters")
+        @button_text || I18n.t("bali_view.filters.filters_button")
       end
 
       def search_enabled?
-        @search[:fields].present?
+        @search.enabled?
       end
 
       def search_value
-        @search[:value]
+        @search.value
       end
 
       def search_placeholder
-        @search[:placeholder] || I18n.t("bali.filters.search_placeholder",
-                                        default: "Search...")
+        @search.placeholder || I18n.t("bali_view.filters.search_placeholder")
       end
 
-      # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
-      def search_field_name
-        return nil unless search_enabled?
+      # An accessible name for the box, when the caller has one better than the
+      # placeholder. Nil drops the attribute rather than emitting an empty one.
+      def search_label
+        @search.label.presence
+      end
 
-        fields = @search[:fields].map(&:to_s).join("_or_")
-        "q[#{fields}_cont]"
+      def search_icon
+        @search.icon.presence || "search"
+      end
+
+      # The width the box WANTS, not a floor: `min-w-0` stays outside it so a
+      # cramped toolbar can still shrink the field instead of overflowing.
+      def search_width
+        @search.width.presence || "w-full sm:w-64"
+      end
+
+      # "q[name_or_genre_cont]"
+      def search_field_name
+        @search.param_name
       end
 
       def active_filter_count
@@ -146,8 +173,8 @@ module Bali
       def translations_json
         {
           combinators: {
-            and: I18n.t("bali.filters.combinators.and", default: "AND"),
-            or: I18n.t("bali.filters.combinators.or", default: "OR")
+            and: I18n.t("bali_view.filters.combinators.and"),
+            or: I18n.t("bali_view.filters.combinators.or")
           }
         }.to_json
       end
@@ -170,10 +197,13 @@ module Bali
         from_url.reject { |name, _| explicit_keys.include?(name) } + explicit
       end
 
-      # Render hidden fields for preserved params (call from template)
+      # Render hidden fields for preserved params (call from template).
+      # `id: nil` como en active_filter_hidden_fields: en modo popover estos campos se pintan
+      # en los DOS forms (búsqueda rápida y panel), y con id derivado del name quedaban ids
+      # duplicados en el documento.
       def preserved_params_hidden_fields
         safe_join(
-          preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value) }
+          preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value, id: nil) }
         )
       end
 

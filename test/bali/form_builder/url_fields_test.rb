@@ -3,26 +3,26 @@
 require "test_helper"
 
 class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
-  # #url_field_group
+  # #url_group
 
-  def test_url_field_group_renders_a_fieldset_wrapper
-    result = builder.url_field_group(:website_url)
+  def test_url_group_renders_a_fieldset_wrapper
+    result = builder.url_group(:website_url)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_url_field_group_renders_a_legend_label
-    result = builder.url_field_group(:website_url)
-    assert_html(result, "legend.fieldset-legend", text: "Website url")
+  def test_url_group_renders_a_legend_label
+    result = builder.url_group(:website_url)
+    assert_html(result, "label.fieldset-legend", text: "Website url")
   end
 
-  def test_url_field_group_renders_a_url_input_with_correct_attributes
-    result = builder.url_field_group(:website_url)
+  def test_url_group_renders_a_url_input_with_correct_attributes
+    result = builder.url_group(:website_url)
     assert_html(result, 'input#movie_website_url[type="url"][name="movie[website_url]"]')
   end
 
-  def test_url_field_group_applies_daisyui_input_classes
-    result = builder.url_field_group(:website_url)
-    assert_html(result, "input.input.input-bordered")
+  def test_url_group_applies_daisyui_input_classes
+    result = builder.url_group(:website_url)
+    assert_html(result, "input.input")
   end
 
   # #url_field
@@ -39,12 +39,12 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
 
   def test_url_field_applies_daisyui_input_classes
     result = builder.url_field(:website_url)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   def test_url_field_with_custom_class_includes_custom_class_with_daisyui_classes
     result = builder.url_field(:website_url, class: "custom-input")
-    assert_html(result, "input.input.input-bordered.custom-input")
+    assert_html(result, "input.input.custom-input")
   end
 
   def test_url_field_with_validation_errors_applies_error_class_to_input
@@ -61,7 +61,7 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
 
   def test_url_field_with_help_text_displays_help_text
     result = builder.url_field(:website_url, help: "Enter website URL")
-    assert_html(result, "p.label-text-alt", text: "Enter website URL")
+    assert_html(result, "p.fieldset-label", text: "Enter website URL")
   end
 
   def test_url_field_with_data_attributes_passes_through_data_attributes

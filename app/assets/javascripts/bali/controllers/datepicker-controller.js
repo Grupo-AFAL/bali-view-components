@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 
 // TODO: Add tests (Issue: #154)
 
@@ -21,7 +22,11 @@ export class DatepickerController extends Controller {
     enableSeconds: { type: Boolean, default: false },
     disableWeekends: { type: Boolean, default: false },
     time24hr: { type: Boolean, default: false },
-    locale: { type: String, default: 'es' },
+    // Every Bali call site emits this from I18n.locale. The default only applies
+    // to a host wiring the controller by hand, and for a library that default has
+    // to be the neutral one — it used to be 'es', so an English app that forgot
+    // the attribute got a Spanish calendar.
+    locale: { type: String, default: 'en' },
     defaultDate: String,
     defaultDates: Array,
     disabledDates: Array,
@@ -47,7 +52,7 @@ export class DatepickerController extends Controller {
         : this.element.querySelector('input')
 
     // this is necesary because `altInputClass` option does not inherit the original classes
-    this.altInputClassValue = `form-control input ${this.altInputClassValue}`
+    this.altInputClassValue = `input ${this.altInputClassValue}`
 
     const options = {
       altInput: this.altInputValue,
@@ -67,27 +72,93 @@ export class DatepickerController extends Controller {
       mode: this.modeValue,
       disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
       allowInput: this.allowInputValue,
-      static: this.staticValue
+      static: this.staticValue,
+      onOpen: [this.joinTopLayer],
+      onClose: [this.quitTopLayer]
     }
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
     this.flatpickr = flatpickr(input, options)
+    this.forwardAccessibleName(input)
     // flatpickr's own keydown handler skips Escape while allowInput is on and
     // focus is in the input (allowKeydown gate), leaving the calendar stuck open.
     this.flatpickr._input?.addEventListener('keydown', this.closeOnEscape)
+  }
+
+  // With `altInput` on — the default — flatpickr builds a brand new input, copies
+  // only the placeholder, disabled, required and tabIndex across, and turns the
+  // original into `type="hidden"`. Everything that named the original therefore
+  // stops applying to the field the user actually types into: the `<label for>`
+  // now points at a hidden element, and so do `aria-describedby` and
+  // `aria-invalid`. Carry them over by hand.
+  forwardAccessibleName (input) {
+    const altInput = this.flatpickr?.altInput
+    if (!altInput || !input) return
+
+    // Rails derives the id off the method name, so a filter bound to a Ransack
+    // param carries brackets: `q[released_at_gteq]`. Those need escaping before
+    // they go anywhere near a selector.
+    const selector = input.id && `label[for="${window.CSS.escape(input.id)}"]`
+    const label = selector && document.querySelector(selector)
+
+    if (label?.id) {
+      altInput.setAttribute('aria-labelledby', label.id)
+    } else if (input.getAttribute('aria-label')) {
+      altInput.setAttribute('aria-label', input.getAttribute('aria-label'))
+    } else if (input.getAttribute('aria-labelledby')) {
+      altInput.setAttribute('aria-labelledby', input.getAttribute('aria-labelledby'))
+    }
+
+    for (const attribute of ['aria-describedby', 'aria-invalid']) {
+      const value = input.getAttribute(attribute)
+      if (value) altInput.setAttribute(attribute, value)
+    }
   }
 
   closeOnEscape = event => {
     if (event.key === 'Escape' && this.flatpickr?.isOpen) this.flatpickr.close()
   }
 
+  // flatpickr portals the calendar to <body>, which a modal overlay both covers
+  // and renders inert — see utils/top-layer.js for the hit-test that measured it.
+  // Runs after flatpickr has positioned the calendar, and the coordinates it
+  // wrote survive the move because they are document-relative and the top layer
+  // resolves against the initial containing block.
+  //
+  // Left alone when `static` puts the calendar in flow next to the input, and
+  // when the call site named its own container with an `appendTo` target: both
+  // are a decision about where the calendar lives that this should not override.
+  joinTopLayer = () => {
+    const calendar = this.flatpickr?.calendarContainer
+    if (!calendar || this.staticValue || this.hasAppendToTarget) return
+
+    const host = topLayerHost(this.element)
+    if (host) enterTopLayer(calendar, host)
+  }
+
+  quitTopLayer = () => {
+    leaveTopLayer(this.flatpickr?.calendarContainer)
+  }
+
+  // One entry per locale this gem ships translations for. The branch this
+  // replaces had no table: it returned Spanish for EVERY code that was not
+  // 'en', so a host on `fr` rendered a Spanish calendar and nothing said so.
+  // Unknown codes now get flatpickr's built-in English.
+  //
+  // Static specifiers on purpose. `import(`…/${code}.js`)` would cover all 67
+  // flatpickr locales in one line, but esbuild cannot bundle a computed
+  // specifier, and importing `l10n/index.js` to index it pulls the whole 100 kB
+  // table into every host's bundle to serve locales this gem has no strings for.
+  // A host that needs another one calls flatpickr.localize() itself.
+  static LOCALES = {
+    es: () => import('flatpickr/dist/l10n/es.js').then(m => m.Spanish)
+  }
+
   async setLocale (countryCode) {
-    if (countryCode === 'en') {
-      return 'default'
-    } else {
-      await import('flatpickr/dist/l10n/es.js')
-      return 'es'
-    }
+    const code = String(countryCode || 'en').toLowerCase().split(/[-_]/)[0]
+    const load = DatepickerController.LOCALES[code]
+
+    return load ? await load() : 'default'
   }
 
   clear () {

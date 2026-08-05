@@ -3,20 +3,20 @@
 require "test_helper"
 
 class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
-  # #step_number_field_group
+  # #step_number_group
 
-  def test_step_number_field_group_renders_the_input_and_label_within_a_wrapper
-    result = builder.step_number_field_group(:duration)
-    assert_html(result, "#field-duration.fieldset")
+  def test_step_number_group_renders_the_input_and_label_within_a_wrapper
+    result = builder.step_number_group(:duration)
+    assert_html(result, "#movie_duration_field.fieldset")
   end
 
-  def test_step_number_field_group_renders_the_label
-    result = builder.step_number_field_group(:duration)
-    assert_html(result, "legend.fieldset-legend", text: "Duration")
+  def test_step_number_group_renders_the_label
+    result = builder.step_number_group(:duration)
+    assert_html(result, "label.fieldset-legend", text: "Duration")
   end
 
-  def test_step_number_field_group_renders_the_input
-    result = builder.step_number_field_group(:duration)
+  def test_step_number_group_renders_the_input
+    result = builder.step_number_group(:duration)
     assert_html(result, 'input#movie_duration[name="movie[duration]"]')
   end
 
@@ -63,7 +63,7 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_step_number_field_input_field_renders_with_daisyui_input_classes
     result = builder.step_number_field(:duration)
-    assert_html(result, "input.input.input-bordered.join-item")
+    assert_html(result, "input.input.join-item")
   end
 
   def test_step_number_field_input_field_renders_with_correct_name_and_id
@@ -105,14 +105,33 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
     assert_html(result, "button.btn-disabled.pointer-events-none[disabled]", count: 2)
   end
 
-  def test_step_number_field_when_disabled_does_not_add_data_actions_to_disabled_buttons
-    result = builder.step_number_field(:duration, disabled: true)
-    refute_html(result, "button[disabled][data-action]")
-  end
-
   def test_step_number_field_when_disabled_renders_disabled_input
     result = builder.step_number_field(:duration, disabled: true)
     assert_html(result, "input[disabled]")
+  end
+
+  # The controller declares both buttons as required targets, so dropping them from a
+  # disabled field made `connect` raise and left the controller unattached.
+
+  def test_step_number_field_when_disabled_still_renders_the_subtract_target
+    result = builder.step_number_field(:duration, disabled: true)
+    assert_html(result, 'button[disabled][data-step-number-input-target="subtract"]')
+  end
+
+  def test_step_number_field_when_disabled_still_renders_the_add_target
+    result = builder.step_number_field(:duration, disabled: true)
+    assert_html(result, 'button[disabled][data-step-number-input-target="add"]')
+  end
+
+  def test_step_number_field_when_disabled_still_renders_the_stimulus_actions
+    result = builder.step_number_field(:duration, disabled: true)
+    assert_html(result, 'button[disabled][data-action*="step-number-input#subtract"]')
+    assert_html(result, 'button[disabled][data-action*="step-number-input#add"]')
+  end
+
+  def test_step_number_field_when_disabled_still_merges_custom_data_attributes
+    result = builder.step_number_field(:duration, disabled: true, add_data: { confirm: "Sure?" })
+    assert_html(result, 'button[disabled][data-confirm="Sure?"]')
   end
 
   # custom button class
@@ -181,7 +200,7 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_step_number_field_with_custom_input_class_appends_custom_class_to_default_input_classes
     result = builder.step_number_field(:duration, class: "w-20")
-    assert_html(result, "input.input.input-bordered.join-item.w-20")
+    assert_html(result, "input.input.join-item.w-20")
   end
 
   # value
@@ -205,7 +224,7 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_constants_defines_frozen_input_classes_constant
     assert Bali::FormBuilder::StepNumberFields::INPUT_CLASSES.frozen?
-    assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "input input-bordered join-item text-center"
+    assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "input join-item text-center"
     assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "[appearance:textfield]"
   end
 end

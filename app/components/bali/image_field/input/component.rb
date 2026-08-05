@@ -4,17 +4,26 @@ module Bali
   module ImageField
     module Input
       class Component < ApplicationViewComponent
+        include Bali::DeprecatedIconName
+
         DEFAULT_FORMATS = %i[jpg jpeg png webp].freeze
         DEFAULT_ICON = "camera"
         private_constant :DEFAULT_FORMATS, :DEFAULT_ICON
 
-        attr_reader :form, :field_name, :icon_name
+        attr_reader :form, :field_name, :icon
 
-        def initialize(form:, method:, formats: DEFAULT_FORMATS, icon_name: DEFAULT_ICON, **options)
+        # The only one of the seven receivers whose `icon:` has a default, so here the
+        # deprecated spelling is read first: `icon:` is always set, and reading it first
+        # would make `icon_name:` unreachable rather than deprecated.
+        #
+        # @param icon [String, Symbol] Icon name drawn over the image on hover.
+        # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
+        def initialize(form:, method:, formats: DEFAULT_FORMATS, icon: DEFAULT_ICON,
+                       icon_name: nil, **options)
           @form = form
           @field_name = method
           @formats = formats.freeze
-          @icon_name = icon_name
+          @icon = deprecated_icon_name(icon_name) || icon
           @options = options
         end
 

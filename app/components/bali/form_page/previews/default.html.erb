@@ -1,14 +1,14 @@
 <%= render Bali::FormPage::Component.new(
   title: "New Movie",
   breadcrumbs: [
-    { name: "Dashboard", href: "/admin", icon_name: "home" },
+    { name: "Dashboard", href: "/admin", icon: "home" },
     { name: "Movies", href: "/admin/movies" },
     { name: "New" }
   ],
   back: { href: "/admin/movies" }
 ) do |page| %>
   <% page.with_body do %>
-    <div class="card-body space-y-4">
+    <div class="space-y-4">
       <div class="form-control">
         <label class="label"><span class="label-text">Title</span></label>
         <input type="text" placeholder="Enter movie title" class="input input-bordered w-full" />
@@ -32,7 +32,7 @@
         <input type="date" class="input input-bordered w-full" />
       </div>
       <div class="flex justify-end gap-2 pt-4">
-        <%= render Bali::Link::Component.new(name: "Cancel", href: "/admin/movies", type: :ghost) %>
+        <%= render Bali::Link::Component.new(name: "Cancel", href: "/admin/movies", variant: :ghost) %>
         <%= render Bali::Button::Component.new(name: "Create Movie", variant: :primary, type: :submit) %>
       </div>
     </div>

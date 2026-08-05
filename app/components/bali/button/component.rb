@@ -3,38 +3,37 @@
 module Bali
   module Button
     class Component < ApplicationViewComponent
-      VARIANTS = {
-        primary: "btn-primary",
-        secondary: "btn-secondary",
-        accent: "btn-accent",
-        info: "btn-info",
-        success: "btn-success",
-        warning: "btn-warning",
-        error: "btn-error",
-        ghost: "btn-ghost",
-        link: "btn-link",
-        neutral: "btn-neutral",
-        outline: "btn-outline"
-      }.freeze
+      include Bali::DeprecatedIconName
 
-      SIZES = {
-        xs: "btn-xs",
-        sm: "btn-sm",
-        md: "",
-        lg: "btn-lg",
-        xl: "btn-xl"
-      }.freeze
+      # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy for
+      # why `outline` is a `style:` here and no longer a `variant:`.
+      VARIANTS = Bali::ButtonTaxonomy::VARIANTS
+      STYLES = Bali::ButtonTaxonomy::STYLES
+      SIZES = Bali::ButtonTaxonomy::SIZES
 
+      # The slot and the `icon:` keyword are the same concept written two ways, and now
+      # under the same word: the slot is the one that takes options (`with_icon('star',
+      # class: 'text-error')`), so it wins when both are given.
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
+      # @param variant [Symbol] Colour, from Bali::ButtonTaxonomy::VARIANTS
+      # @param style [Symbol] Fill, from Bali::ButtonTaxonomy::STYLES
+      # @param size [Symbol] Scale, from Bali::ButtonTaxonomy::SIZES
+      # @param icon [String, Symbol] Icon name, drawn before the label.
+      # @param type [String, Symbol] The HTML `type` attribute (`:button`, `:submit`,
+      #   `:reset`) — never a look. Bali::Link used to take a `type:` that meant the colour,
+      #   and it is gone in v3 exactly because of this collision.
+      # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
       # rubocop:disable Metrics/ParameterLists
-      def initialize(name: nil, variant: nil, size: nil, icon_name: nil, type: :button,
-                     disabled: false, loading: false, responsive: true, **options)
+      def initialize(name: nil, variant: nil, style: nil, size: nil, icon: nil,
+                     icon_name: nil, type: :button, disabled: false, loading: false,
+                     responsive: true, **options)
         @name = name
-        @variant = variant&.to_sym
-        @size = size&.to_sym
-        @icon_name = icon_name
+        @variant_class = Bali::ButtonTaxonomy.variant!(self.class, variant)
+        @style_class = Bali::ButtonTaxonomy.style!(self.class, style)
+        @size_class = Bali::ButtonTaxonomy.size!(self.class, size)
+        @icon = icon || deprecated_icon_name(icon_name)
         @type = type
         @disabled = disabled
         @loading = loading
@@ -45,28 +44,41 @@ module Bali
 
       private
 
+      # No `loading` class here, and that is the whole point: in daisyUI 5 `.loading`
+      # IS the spinner, not a modifier that adds one. It sets `aspect-ratio: 1`, a
+      # width of six selector units and `background-color: currentColor` masked by
+      # the spinner SVG — so on the `<button>` it collapsed the box from 66x40 to
+      # 34x40 and painted it as the spinner, with the label still inside showing
+      # through the holes in the mask (#839). The spinner the template renders
+      # inside the button is the whole of the loading state.
       def button_classes
         class_names(
           "btn",
-          VARIANTS[@variant],
-          SIZES[@size],
+          @variant_class,
+          @style_class,
+          @size_class,
           "btn-disabled" => @disabled,
-          "loading loading-spinner" => @loading,
           "max-sm:btn-square" => responsive_icon_only?
         )
       end
 
+      # `loading:` disables the button. It always did — `.loading` carried
+      # `pointer-events: none` — but it did it as a side effect of a class that also
+      # destroyed the button's box. Saying it in the attribute keeps the behaviour
+      # and adds what the class never gave: the button stops being submittable and
+      # focusable, and `aria-busy` says what the spinner means.
       def button_attributes
         attrs = @options.merge(
           class: class_names(button_classes, @options[:class]),
           type: @type,
-          disabled: @disabled || nil
+          disabled: @disabled || @loading || nil
         )
+        attrs[:"aria-busy"] = "true" if @loading
         attrs[:"aria-label"] = @name if responsive_icon_only? && @name.present?
         attrs.compact
       end
 
-      def responsive_icon_only? = @responsive && @icon_name.present?
+      def responsive_icon_only? = @responsive && @icon.present?
     end
   end
 end

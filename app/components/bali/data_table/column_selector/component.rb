@@ -4,16 +4,20 @@ module Bali
   module DataTable
     module ColumnSelector
       class Component < ApplicationViewComponent
+        include Bali::DataTable::ListingIdentity
+
         # Simple struct for column data
         Column = Struct.new(:index, :label, :visible, keyword_init: true)
 
-        # @param table_id [String] CSS selector for the target table (e.g., '#my-table')
+        # @param listing_id [String] Identidad del listado (el id del contenedor del
+        #   DataTable, que la resuelve). De ella se derivan el target de las columnas
+        #   (`#<listing_id> table`) y la llave de localStorage.
         # @param button_label [String] Label for the dropdown button (i18n default)
         # @param button_icon [String] Icon name (default: 'table')
         # @param persist [Boolean] Persist column visibility in localStorage keyed by
-        #   table_id (per-device, B2/FB-17). Default: true.
-        def initialize(table_id:, button_label: nil, button_icon: "table", persist: true)
-          @table_id = table_id.start_with?("#") ? table_id : "##{table_id}"
+        #   listing_id (per-device, B2/FB-17). Default: true.
+        def initialize(listing_id:, button_label: nil, button_icon: "table", persist: true)
+          @listing_id = listing_id.to_s.delete_prefix("#")
           @button_label = button_label
           @button_icon = button_icon
           @persist = persist
@@ -21,17 +25,13 @@ module Bali
           @columns = []
         end
 
-        attr_reader :table_id, :button_icon, :columns
+        attr_reader :listing_id, :button_icon, :columns
 
         # ¿La visibilidad viene impuesta por el servidor (vista guardada aplicada)? El JS
         # entonces NO restaura localStorage encima — la vista manda.
         def server_state? = @server_state
 
         def persist? = @persist
-
-        def storage_key
-          "bali:columns:#{@table_id.delete_prefix('#')}"
-        end
 
         # Impone la visibilidad desde una vista guardada: visibles = los índices dados.
         # Se llama DESPUÉS del bloque de with_column (el DataTable lo hace solo).

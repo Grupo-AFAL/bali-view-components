@@ -3,25 +3,42 @@
 module Bali
   module DeleteLink
     class Component < ApplicationViewComponent
+      include Bali::DeprecatedIconName
+
       class MissingURL < StandardError; end
 
-      SIZES = {
-        xs: "btn-xs",
-        sm: "btn-sm",
-        md: "",
-        lg: "btn-lg"
-      }.freeze
+      # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy — DeleteLink
+      # used to take `size:` alone, capped at `lg`, with no way to ask for any other look.
+      VARIANTS = Bali::ButtonTaxonomy::VARIANTS
+      STYLES = Bali::ButtonTaxonomy::STYLES
+      SIZES = Bali::ButtonTaxonomy::SIZES
 
-      BASE_CLASSES = "btn btn-ghost text-error"
+      DEFAULT_VARIANT = :ghost
 
-      attr_reader :options, :disabled_hover_url, :icon_name
+      # The variants with no colour of their own, and so the only ones that leave room for
+      # the destructive red. `variant: :error` already paints the button red; adding
+      # `text-error` on top of it would be red text on a red fill.
+      COLOURLESS_VARIANTS = %i[ghost link].freeze
 
+      DEFAULT_ICON = "trash"
+
+      # The one component where `icon:` is not the old value under a new name: it also
+      # takes `true`, which is what the pair `icon: true` + `icon_name: 'x'` collapsed into.
+      ICON_HINT = "Here `icon:` takes an icon name as well as `true`."
+
+      attr_reader :options, :disabled_hover_url
+
+      # @param icon [Boolean, String, Symbol] `true` for the default trash icon, or the
+      #   name of any other icon. Replaces the old `icon:` / `icon_name:` pair, where one
+      #   said whether and the other said which.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         model: nil,
         href: nil,
         name: nil,
         confirm: nil,
+        variant: DEFAULT_VARIANT,
+        style: nil,
         size: nil,
         disabled: false,
         disabled_hover_url: nil,
@@ -36,15 +53,39 @@ module Bali
         @href = href
         @name = name
         @confirm = confirm
-        @size = size&.to_sym
+        @variant = (variant || DEFAULT_VARIANT).to_sym
+        @variant_class = Bali::ButtonTaxonomy.variant!(self.class, @variant)
+        @style_class = Bali::ButtonTaxonomy.style!(self.class, style)
+        @size_class = Bali::ButtonTaxonomy.size!(self.class, size)
         @disabled = disabled
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
-        @icon = icon
-        @icon_name = icon_name
+        @icon = icon.presence || deprecated_icon_name(icon_name, hint: ICON_HINT)
         @authorized = authorized
         @plain = plain
-        @form_class = class_names("inline-block", options.delete(:form_class))
+        # `button_to` puts a <form> around the button, and daisyUI styles `.menu li > *`
+        # (`:not(.btn)` skips a button, not a form) — so inside a menu the FORM was the
+        # item: it took the 6px/12px padding, the radius and the hover box, on top of the
+        # 8px/10px `.menu .menu-item` already gave the button. Measured on
+        # /lookbook/preview/bali/actions_dropdown/default: Delete 192x49 against Edit's
+        # 192x37, with the clickable button inset to 168px and a second hover box inside
+        # the first. `display: contents` takes the form out of the box tree and leaves the
+        # button as the item — 192x37 @0,0, identical to a link item.
+        #
+        # It is asked for with `form_class: "contents"` and nothing else. It used to be
+        # gated on `plain:`, on the premise that the keyword means "this DeleteLink is a
+        # menu item"; it does not (#868). `plain:` is what the API says it is — a button
+        # without the `.btn` box — and it travels far outside menus: the same Dropdown
+        # builder hands it to `Link` too, `Breadcrumb::Item` passes it with no menu in
+        # sight, and in afal-apps alone twelve `DeleteLink` carry it hand-written in the
+        # action rows of show pages, none of them from `build_link_item`. Gated there,
+        # `plain:` grew a second, undocumented meaning — "take my `<form>` out of the box
+        # tree" — that a caller asking for the documented one never signed up for.
+        # `inline-block` no va acá sino en delete_link/index.css, y su encabezado explica
+        # por qué: como utilidad sobre el elemento empata con la que llegue por
+        # `form_class:`, y el desempate lo gana la hoja compilada —medido, `.contents` se
+        # emite ANTES que `.inline-block`— así que `form_class: "contents"` no hacía nada.
+        @form_class = class_names("bali-delete-link-form", options.delete(:form_class))
         @options = options
 
         validate_url_presence!
@@ -85,8 +126,11 @@ module Bali
         }
       end
 
-      def icon?
-        @icon
+      # The icon to draw, or nil for none. `true` means "the usual one".
+      def icon_name
+        return if @icon.blank?
+
+        @icon == true ? DEFAULT_ICON : @icon.to_s
       end
 
       def disabled?
@@ -98,9 +142,14 @@ module Bali
           class_names("flex items-center gap-2 text-error", @options[:class])
         else
           class_names(
-            BASE_CLASSES,
-            SIZES[@size],
-            { "btn-disabled" => @disabled },
+            "btn",
+            @variant_class,
+            @style_class,
+            @size_class,
+            {
+              "text-error" => COLOURLESS_VARIANTS.include?(@variant),
+              "btn-disabled" => @disabled
+            },
             @options[:class]
           )
         end

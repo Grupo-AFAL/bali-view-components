@@ -5,10 +5,10 @@
     [t('drawers.filters.electronics'), 'electronics'],
     [t('drawers.filters.clothing'), 'clothing']
   ] %>
-  <%= f.select_group :category, categories, {}, { label: t('drawers.filters.category') } %>
+  <%= f.select_group :category, categories, html: { label: t('drawers.filters.category') } %>
 
   <%# Price Range Slider %>
-  <%= f.range_field_group :price_range,
+  <%= f.range_group :price_range,
       label: t('drawers.filters.price_range'),
       min: 0,
       max: 1000,
@@ -20,7 +20,7 @@
       prefix: '$' %>
 
   <%# In Stock Toggle %>
-  <%= f.switch_field_group :in_stock, label: t('drawers.filters.in_stock_only'), color: :primary %>
+  <%= f.switch_group :in_stock, text: t('drawers.filters.in_stock_only'), color: :primary %>
 
   <%# Submit Button %>
   <div class="pt-2">

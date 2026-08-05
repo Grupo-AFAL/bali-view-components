@@ -2,7 +2,7 @@
   title: 'The Matrix',
   subtitle: 'Added 2 days ago',
   breadcrumbs: [
-    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Dashboard', href: '/lookbook', icon: 'home' },
     { name: 'Movies', href: '/lookbook' },
     { name: 'The Matrix' }
   ],
@@ -15,7 +15,7 @@
     <%= render Bali::Tag::Component.new(text: 'Released', color: :success, size: :sm) %>
   <% end %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'Edit', href: '#', variant: :ghost, icon_name: 'pencil') %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: '#', variant: :ghost, icon: 'pencil') %>
   <% end %>
   <% page.with_body do %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>

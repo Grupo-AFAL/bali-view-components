@@ -1,0 +1,101 @@
+<%# Manual check for the overlay stack. Every tier open at once, because the
+    ordering only means anything when several overlays are on screen together — a
+    preview with one overlay open proves nothing.
+
+    Two stacks are on this page now, and telling them apart is the point of it:
+
+    * The z-index scale (app/assets/stylesheets/bali/z_index.css) still orders the
+      overlays that live IN THE DOCUMENT — here, the dropdown at 200 under
+      everything else.
+    * Drawer, Modal and Command open with `showModal()`, so they are painted in the
+      TOP LAYER, which no z-index reaches. Among themselves they stack by the order
+      they were opened in, not by their tier: the last one opened is on top, which
+      is why the palette — opened last below — covers the modal and the drawer.
+
+    Everything the scale ranks ABOVE those three has to join the top layer to stay
+    visible over them, and does: the datepicker and the select portal to <body> and
+    are moved back in by `utils/top-layer.js`, and the toast stack moves into the
+    open overlay for as long as it lasts. The tooltip and the hovercard are
+    triggered from the page BEHIND the overlays here, so they are covered on
+    purpose — a tooltip on a control the modal is blocking is not a tooltip anyone
+    can reach. See docs/guides/overlays-and-the-top-layer.md. %>
+<h1 class="text-2xl font-bold p-6">z-index scale — every overlay open at once</h1>
+
+<div class="p-6 flex gap-4 items-start">
+  <div id="probe-dropdown-wrap">
+    <%= render Bali::Dropdown::Component.new(align: :end, class: 'dropdown-open') do |c| %>
+      <% c.with_trigger(name: 'Dropdown trigger') %>
+      <% c.with_item(name: 'Item one', href: '#') %>
+      <% c.with_item(name: 'Item two', href: '#') %>
+    <% end %>
+  </div>
+
+  <span id="probe-tooltip-wrap">
+    <%= render Bali::Tooltip::Component.new(placement: :bottom) do |c| %>
+      <% c.with_trigger do %>
+        <span class="btn btn-sm">Tooltip trigger</span>
+      <% end %>
+      <p>Tooltip content</p>
+    <% end %>
+  </span>
+
+  <span id="probe-hovercard-wrap">
+    <%= render Bali::HoverCard::Component.new(placement: 'bottom') do |c| %>
+      <% c.with_trigger do %>
+        <button type="button" class="btn btn-sm">HoverCard trigger</button>
+      <% end %>
+      <p>HoverCard content</p>
+    <% end %>
+  </span>
+</div>
+
+<%= render Bali::Drawer::Component.new(drawer_id: 'probe-drawer', active: true, title: 'Drawer') do %>
+  <p>Drawer body</p>
+<% end %>
+
+<%= render Bali::Modal::Component.new(id: 'probe-modal', active: true) do |c| %>
+  <% c.with_header(title: 'Modal') %>
+  <% c.with_body do %>
+    <p>Modal body</p>
+    <%# A tooltip triggered from INSIDE the overlay, unlike the two at the top of
+        the page: tippy portals its balloon, so this is the one that has to end up
+        in the dialog's subtree rather than under <body>. %>
+    <span id="probe-modal-tooltip-wrap">
+      <%= render Bali::Tooltip::Component.new(placement: :bottom) do |t| %>
+        <% t.with_trigger do %>
+          <span class="btn btn-sm">Tooltip inside the modal</span>
+        <% end %>
+        <p>Tooltip from inside</p>
+      <% end %>
+    </span>
+    <%= form_with(model: Movie.new, url: '/', builder: Bali::FormBuilder) do |form| %>
+      <%= form.datetime_group :release_date %>
+      <%= form.slim_select_field :genre, [['Drama', 'drama'], ['Comedy', 'comedy']] %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%# trigger: false — this palette opens only via ⌘K / bali:command:open; the
+    page must not grow a visible search well. %>
+<%= render Bali::Command::Component.new(placeholder: 'Command palette', trigger: false) do |c| %>
+  <% c.with_group(name: 'Group') do |g| %>
+    <% g.with_item(title: 'Command item', href: '#') %>
+  <% end %>
+<% end %>
+
+<%# duration: nil keeps the toast on screen; the default auto-closes after 3s. %>
+<%= render Bali::ToastContainer::Component.new(position: :top_end) do |c| %>
+  <% c.with_toast(duration: nil) { 'Toast' } %>
+<% end %>
+
+<script>
+  // The palette opens on user input; this page needs it open on load. It goes
+  // through the controller's own event rather than reaching for the hidden
+  // classes, because since the palette became a <dialog> the classes alone leave
+  // it out of the top layer — which is the very thing this page is checking.
+  // The drawer and the modal are rendered `active:`, and their controllers
+  // promote them on connect.
+  document.addEventListener('DOMContentLoaded', () => {
+    window.dispatchEvent(new Event('bali:command:open'))
+  })
+</script>

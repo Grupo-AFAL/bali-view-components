@@ -178,6 +178,24 @@ module Bali
         )
       end
 
+      # @label With Persistence
+      # @param persist_enabled toggle
+      # @param persistence_toggle toggle "Off when a DataTable paints the bookmark itself"
+      # With `storage_id` the panel shows the bookmark that remembers filters across visits.
+      # Inside a DataTable the bookmark is painted by the toolbar and this one arrives off
+      # (`persistence_toggle: false`): two `filter-persistence` controllers over the same
+      # storage_id fight over localStorage and the cookie. The "Auto-saved" hint in the panel
+      # footer does NOT depend on the toggle and keeps showing.
+      def with_persistence(persist_enabled: false, persistence_toggle: true)
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: sample_attributes,
+          storage_id: 'lookbook_filters',
+          persist_enabled: persist_enabled,
+          persistence_toggle: persistence_toggle
+        )
+      end
+
       private
 
       def sample_attributes

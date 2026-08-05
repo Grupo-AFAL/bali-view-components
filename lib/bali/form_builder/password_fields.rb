@@ -3,7 +3,7 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module PasswordFields
-      def password_field_group(method, options = {})
+      def password_group(method, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
           password_field(method, options)
         end

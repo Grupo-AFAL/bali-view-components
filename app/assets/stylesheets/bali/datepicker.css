@@ -4,6 +4,16 @@
  * Self-contained CSS for Flatpickr without vendor CSS dependency.
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
  * ~500 lines vs ~900 lines vendor CSS
+ *
+ * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names two of its state
+ * classes `inline` and `static`, which collide with the Tailwind utilities of
+ * the same name (`.inline{display:inline}`, `.static{position:static}`) — both
+ * present in any app that uses them anywhere. Cascade layers beat specificity,
+ * so from @layer components `.flatpickr-calendar.inline` and
+ * `.flatpickr-calendar.static` (reachable through the controller's `static:`
+ * value) would lose their `display` / `position` and the calendar would render
+ * in the wrong place. Nothing here is markup a host can put utilities on
+ * either — flatpickr builds this DOM itself — so the layer would buy nothing.
  */
 
 /* =============================================================================
@@ -50,7 +60,7 @@
   border: 1px solid var(--fp-border-color);
   border-radius: var(--fp-border-radius);
   box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
-  z-index: 99999;
+  z-index: var(--bali-z-popover);
   animation: none;
 }
 
@@ -66,6 +76,21 @@
   animation: fpFadeIn var(--fp-animation-timing) ease-out;
 }
 
+/* Inside a modal overlay the calendar joins the top layer as a popover, which is
+ * the only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
+ * for the hit-test. That brings the UA's `[popover]` rules with it, and the three
+ * declarations the block above does not already state leak through: `inset: 0`
+ * fights the coordinates flatpickr writes, `margin: auto` then centres what is
+ * left, and `overflow: auto` turns the calendar into a scroll container that
+ * clips its own arrow. Everything else (position, width, padding, border,
+ * background) is declared above and wins on origin alone. */
+.flatpickr-calendar[popover] {
+  inset: auto;
+  margin: 0;
+  overflow: visible;
+  color: inherit;
+}
+
 .flatpickr-calendar.inline {
   display: block;
   position: relative;
@@ -78,7 +103,7 @@
 }
 
 .flatpickr-calendar.static.open {
-  z-index: 999;
+  z-index: var(--bali-z-popover);
   display: block;
 }
 
@@ -654,6 +679,22 @@ span.flatpickr-weekday {
   transition: background var(--fp-animation-timing) ease;
 }
 
+/* La hora, los minutos y los segundos son `input[type=number]`, y el
+ * `appearance: textfield` de arriba ya no los desarma: Chrome dejó de honrarlo
+ * para ese tipo de input, así que sobre el campo que tiene el mouse encima pinta
+ * SU spinner además de las flechas que flatpickr dibuja en `.numInputWrapper`.
+ * Se ven dos pares de flechas en la misma columna —el nativo es más grande, más
+ * oscuro y trae su propia pista gris— y encima queda montado sobre el de
+ * flatpickr, que es el único de los dos conectado al valor del calendario.
+ * Es el par que `input.cur-year` ya trae desde siempre unas líneas más arriba;
+ * a esta fila nunca se le puso. */
+.flatpickr-time input::-webkit-outer-spin-button,
+.flatpickr-time input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
 .flatpickr-time input.flatpickr-hour {
   font-weight: 600;
 }
@@ -673,9 +714,28 @@ span.flatpickr-weekday {
   line-height: inherit;
   color: var(--fp-font-color);
   font-weight: 600;
-  width: 2%;
   user-select: none;
   align-self: center;
+}
+
+/* El `:` es lo único que estructura la fila `12 : 00 PM` y era lo menos visible de ella.
+ * Dos causas, medidas en /lookbook/preview/bali/form/time/with_value: heredaba el
+ * `font-size: 0.875rem` del calendario contra el `1rem` explícito de `.flatpickr-time
+ * input` (14px contra 16px), y el `width: 2%` que compartía con `.flatpickr-am-pm` —que
+ * lo pisa con 18% en el bloque de abajo, así que el 2% sólo le tocaba a él— le dejaba una
+ * caja de 6.12px sin lugar para aire. Las flechas del stepper van `position: absolute;
+ * right: 0` sobre el numInputWrapper de la hora, cuyo borde derecho ES el borde izquierdo
+ * del separador: 0.00px entre el triángulo y los dos puntos, y por eso el `:` se leía como
+ * un control más. Con ancho automático y 0.5rem de padding la caja pasa a 20.98px y el
+ * glifo arranca a 8px de la flecha; el ancho del calendario (308px) y el alto de la fila
+ * (48px) no se mueven, y `hasSeconds` sigue sin desbordar (scrollWidth === clientWidth
+ * === 306). `flex: none` porque los numInputWrapper son `flex: 1` y sin esto el separador
+ * es el único que puede encogerse cuando la fila aprieta. */
+.flatpickr-time .flatpickr-time-separator {
+  flex: none;
+  width: auto;
+  padding: 0 0.5rem;
+  font-size: 1rem;
 }
 
 .flatpickr-time .flatpickr-am-pm {
@@ -735,8 +795,11 @@ span.flatpickr-weekday {
 /* =============================================================================
    Multi-month calendar
    ============================================================================= */
+/* No !important: the only rule setting `box-shadow` on `.flatpickr-day.inRange`
+   is in this same file at (0,2,0), and this selector is both more specific and
+   later. Nothing in @layer utilities matches `.flatpickr-*`. */
 .flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+1) .flatpickr-day.inRange:nth-child(7n+7) {
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 .flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+2) .flatpickr-day.inRange:nth-child(7n+1) {
@@ -849,10 +912,13 @@ span.flatpickr-weekday {
   }
 }
 
-/* Hide the arrow pointing to input - cleaner look matching other dropdowns */
+/* Hide the arrow pointing to input - cleaner look matching other dropdowns.
+   No !important: the only rule that sets `display` on these pseudo-elements is
+   the `.flatpickr-calendar:before/:after` block earlier in this file, same
+   specificity (0,1,1), and this one comes later. */
 .flatpickr-calendar:before,
 .flatpickr-calendar:after {
-  display: none !important;
+  display: none;
 }
 
 /* Weekday labels */

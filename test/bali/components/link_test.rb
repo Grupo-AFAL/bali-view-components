@@ -79,8 +79,8 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_selector("span.icon-component")
   end
 
-  def test_with_icon_name_parameter_renders_icon_from_icon_name
-    render_inline(Bali::Link::Component.new(name: "Click", href: "#", icon_name: "star"))
+  def test_with_icon_keyword_renders_the_icon
+    render_inline(Bali::Link::Component.new(name: "Click", href: "#", icon: "star"))
     assert_selector("span.icon-component")
   end
 
@@ -184,36 +184,55 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_selector("a.btn", text: "Custom Content")
   end
 
-  def test_deprecated_type_parameter_supports_type_for_backwards_compatibility
-    render_inline(Bali::Link::Component.new(name: "Button", href: "#", type: :primary))
-    assert_selector("a.btn.btn-primary", text: "Button")
+  # `<a type="primary">` is valid HTML, so letting `type:` fall through to **options would
+  # have rendered an attribute nobody asked for instead of the colour they did ask for.
+  def test_removed_type_parameter_is_rejected_and_names_its_replacement
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", type: :primary)
+    end
+    assert_match(/no longer accepts `type:`/, error.message)
+    assert_match(/Use `variant:`/, error.message)
   end
 
-  def test_deprecated_type_parameter_prefers_variant_over_type_when_both_are_provided
-    render_inline(Bali::Link::Component.new(name: "Button", href: "#", variant: :error, type: :primary))
-    assert_selector("a.btn.btn-error", text: "Button")
-    assert_no_selector("a.btn-primary")
+  def test_removed_type_parameter_is_rejected_even_alongside_a_variant
+    assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", variant: :error, type: :primary)
+    end
+  end
+
+  def test_variants_rejects_a_style_name_and_names_the_keyword_that_takes_it
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", variant: :outline)
+    end
+    assert_match(/Use style: :outline/, error.message)
+  end
+
+  def test_variants_rejects_an_unknown_name
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", variant: :chartreuse)
+    end
+    assert_match(/unknown variant :chartreuse/, error.message)
   end
 
   # Responsive (icon-only on mobile)
 
   def test_responsive_adds_btn_square_class_with_icon_and_variant
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus"))
     assert_selector("a.btn.max-sm\\:btn-square")
   end
 
   def test_responsive_wraps_name_in_hidden_span
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus"))
     assert_selector("a span.max-sm\\:hidden", text: "New")
   end
 
   def test_responsive_adds_aria_label
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus"))
     assert_selector('a[aria-label="New"]')
   end
 
   def test_responsive_false_renders_normally
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus", responsive: false))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus", responsive: false))
     assert_no_selector("a.max-sm\\:btn-square")
     assert_no_selector("a span.max-sm\\:hidden")
     assert_no_selector("a[aria-label]")
@@ -225,7 +244,7 @@ class BaliLinkComponentTest < ComponentTestCase
   end
 
   def test_responsive_without_variant_does_not_add_btn_square
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", icon: "plus"))
     assert_no_selector("a.max-sm\\:btn-square")
   end
 end

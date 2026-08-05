@@ -2,9 +2,10 @@
   <%= tag.table(**options) do %>
     <thead>
       <tr>
-        <% if bulk_actions? %>
-          <th>
-            <%= tag.input type: 'checkbox', class: 'checkbox', data: { action: 'table#toggleAll', table_target: 'toggleAll' } %>
+        <% if selectable? %>
+          <th class="w-4">
+            <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm', 'aria-label': t('.select_all'),
+                          data: { bulk_actions_target: 'selectAll', action: 'change->bulk-actions#toggleAll' } %>
           </th>
         <% end %>
         <% visible_headers.each do |header| %>
@@ -27,7 +28,9 @@
         <% end %>
       <% else %>
         <tr id="<%= empty_table_row_id %>">
-          <td class="empty-table text-center" colspan="<%= headers.count %>">
+          <%# `group_colspan` y no `headers.count`: suma la columna de selección y descuenta
+              los headers ocultos, así el empty state cubre el ancho REAL de la tabla. %>
+          <td class="empty-table text-center" colspan="<%= group_colspan %>">
             <% if custom_empty_state_content.present? %>
               <div class="<%= Bali::EmptyState::Component.container_classes %>">
                 <%= custom_empty_state_content %>
@@ -48,17 +51,5 @@
         <% footers.each do |footer| %><%= footer %><% end %>
       </tfoot>
     <% end %>
-  <% end %>
-  <% if bulk_actions? %>
-    <div class="bulk-actions-container fixed bottom-4 left-1/2 -translate-x-1/2 bg-base-300 rounded-box shadow-lg p-4 hidden z-50" data-table-target="actionsContainer">
-      <div class="flex items-center gap-4">
-        <span class="badge badge-primary" data-table-target="selectedCount">0</span>
-        <div class="flex gap-2">
-          <% @bulk_actions.each do |action| %>
-            <%= render Bali::Table::BulkAction::Component.new(**action) %>
-          <% end %>
-        </div>
-      </div>
-    </div>
   <% end %>
 <% end %>

@@ -67,6 +67,30 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal("true", canvas["data-chart-display-percent-value"])
   end
 
+  def test_string_keys_reads_the_multi_series_format_written_with_string_keys
+    render_inline(Bali::Chart::Component.new(
+      data: {
+        "labels" => %w[Mon Tue],
+        "datasets" => [ { "label" => "Beef", "data" => [ 10, 5 ] } ]
+      }
+    ))
+    canvas = page.find("canvas.chart")
+    assert_equal(%w[Mon Tue], JSON.parse(canvas["data-chart-labels-value"]))
+
+    payload = JSON.parse(canvas["data-chart-data-value"])
+    assert_equal(%w[Mon Tue], payload["labels"])
+    assert_equal(1, payload["datasets"].size)
+    assert_equal("Beef", payload["datasets"].first["label"])
+    assert_equal([ 10, 5 ], payload["datasets"].first["data"])
+  end
+
+  def test_string_keys_still_reads_the_simple_format_written_with_string_keys
+    render_inline(Bali::Chart::Component.new(data: { "Mon" => 10, "Tue" => 20 }))
+    canvas = page.find("canvas.chart")
+    assert_equal(%w[Mon Tue], JSON.parse(canvas["data-chart-labels-value"]))
+    assert_equal([ 10, 20 ], JSON.parse(canvas["data-chart-data-value"])["datasets"].first["data"])
+  end
+
   def test_constants_has_max_label_length_constant
     assert_equal(16, Bali::Chart::Component::MAX_LABEL_LENGTH)
   end
@@ -134,5 +158,61 @@ class BaliChartComponentTest < ComponentTestCase
   def test_theme_colors_can_disable_theme_colors
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, use_theme_colors: false))
     assert_selector('canvas[data-chart-use-theme-colors-value="false"]')
+  end
+
+  # Everything Chart.js draws is pixels. Without a role and a name the canvas is
+  # an unlabelled node the accessibility tree walks straight past.
+  def test_a11y_canvas_is_an_image_named_after_the_title
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, title: "Chocolate Sales"))
+    assert_selector('canvas[role="img"][aria-label="Chocolate Sales"]')
+  end
+
+  def test_a11y_aria_label_overrides_the_title
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 }, title: "Sales", aria_label: "Monthly chocolate sales, 2026"
+    ))
+    assert_selector('canvas[aria-label="Monthly chocolate sales, 2026"]')
+  end
+
+  # A generic name beats no name: an unnamed `role="img"` is announced as
+  # nothing at all.
+  def test_a11y_falls_back_to_a_generic_name_without_a_title
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
+    assert_selector('canvas[aria-label="Chart"]')
+  end
+
+  def test_a11y_translates_the_fallback_name
+    I18n.with_locale(:es) do
+      render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
+      assert_selector('canvas[aria-label="Gráfica"]')
+    end
+  end
+
+  def test_a11y_names_the_canvas_inside_a_card_too
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 }, title: "Sales", card_style: :default
+    ))
+    assert_selector('canvas[role="img"][aria-label="Sales"]')
+  end
+
+  # `role="img"` gives the chart a name, not its numbers. The slot is the only
+  # way a screen reader user reads a value off it.
+  def test_a11y_renders_the_data_table_slot_for_screen_readers
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 })) do |c|
+      c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
+    end
+    assert_selector("div.sr-only table td", text: "Chocolate")
+  end
+
+  def test_a11y_renders_the_data_table_slot_inside_a_card
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, card_style: :default)) do |c|
+      c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
+    end
+    assert_selector(".card-body div.sr-only table td", text: "Chocolate")
+  end
+
+  def test_a11y_renders_no_table_wrapper_without_the_slot
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
+    assert_no_selector("div.sr-only")
   end
 end

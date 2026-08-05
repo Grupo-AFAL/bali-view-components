@@ -4,7 +4,7 @@
   </div>
 
   <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-    <%= form.time_period_field_group :date,
+    <%= form.time_period_group :date,
         [
           ['Next week', 1.week.from_now.all_week],
           ['This week', Time.zone.now.all_week],

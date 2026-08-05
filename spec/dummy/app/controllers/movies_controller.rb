@@ -5,27 +5,8 @@ class MoviesController < ApplicationController
 
   before_action :set_movie, only: %i[show edit update destroy]
 
-  def index
-    # FilterForm handles Ransack search params, sorting, and filter_groups parsing
-    # search_fields enables quick text search across multiple columns
-    # storage_id enables filter persistence across page visits
-    # persist_enabled is controlled by user preference (stored in cookie)
-    @filter_form = Bali::FilterForm.new(
-      Movie.all,
-      params,
-      search_fields: %i[name genre tenant_name],
-      storage_id: 'movies',
-      persist_enabled: cookies['bali_persist_movies'] == '1'
-    )
-
-    # Use Pagy for pagination on the filtered/sorted results
-    @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)
-
-    respond_to do |format|
-      format.html
-      format.turbo_stream
-    end
-  end
+  # Sin `index`: el índice canónico de películas es `/admin/movies`. Lo que sigue son las
+  # páginas de detalle y de formulario, que Cypress y los previews visitan directo.
 
   def show
     @characters = @movie.characters.positioned
@@ -57,7 +38,7 @@ class MoviesController < ApplicationController
 
   def destroy
     @movie.destroy
-    redirect_to movies_url, notice: 'Movie was successfully deleted.'
+    redirect_to admin_movies_url, notice: 'Movie was successfully deleted.'
   end
 
   private

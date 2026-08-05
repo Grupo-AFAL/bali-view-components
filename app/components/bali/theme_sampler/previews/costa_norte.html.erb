@@ -64,10 +64,10 @@
   <section>
     <h2 class="text-xl font-bold mb-4">Alerts</h2>
     <div class="space-y-2">
-      <%= render Bali::Message::Component.new(color: :info) { 'This is an informational message.' } %>
-      <%= render Bali::Message::Component.new(color: :success) { 'Operation completed successfully.' } %>
-      <%= render Bali::Message::Component.new(color: :warning) { 'Please review before continuing.' } %>
-      <%= render Bali::Message::Component.new(color: :danger) { 'Something went wrong. Please try again.' } %>
+      <%= render(Bali::Alert::Component.new(color: :info)) { 'This is an informational message.' } %>
+      <%= render(Bali::Alert::Component.new(color: :success)) { 'Operation completed successfully.' } %>
+      <%= render(Bali::Alert::Component.new(color: :warning)) { 'Please review before continuing.' } %>
+      <%= render(Bali::Alert::Component.new(color: :error)) { 'Something went wrong. Please try again.' } %>
     </div>
   </section>
 
@@ -76,27 +76,23 @@
     <h2 class="text-xl font-bold mb-4">Card</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <%= render Bali::Card::Component.new do |card| %>
-        <div class="card-body">
-          <h3 class="card-title">Shipment #4821</h3>
-          <p>Guadalajara to Monterrey via Highway 40D. Estimated arrival in 6 hours.</p>
-          <div class="card-actions justify-end">
-            <%= render Bali::Button::Component.new(name: 'Track', variant: :primary, size: :sm) %>
-            <%= render Bali::Button::Component.new(name: 'Details', variant: :ghost, size: :sm) %>
-          </div>
+        <h3 class="card-title">Shipment #4821</h3>
+        <p>Guadalajara to Monterrey via Highway 40D. Estimated arrival in 6 hours.</p>
+        <div class="card-actions justify-end">
+          <%= render Bali::Button::Component.new(name: 'Track', variant: :primary, size: :sm) %>
+          <%= render Bali::Button::Component.new(name: 'Details', variant: :ghost, size: :sm) %>
         </div>
       <% end %>
 
       <%= render Bali::Card::Component.new do |card| %>
-        <div class="card-body">
-          <h3 class="card-title">Fleet Status</h3>
-          <div class="flex gap-2 flex-wrap">
-            <%= render Bali::Tag::Component.new(text: '12 Active', color: :success) %>
-            <%= render Bali::Tag::Component.new(text: '3 Idle', color: :warning) %>
-            <%= render Bali::Tag::Component.new(text: '1 Maintenance', color: :error) %>
-          </div>
-          <div class="mt-2">
-            <%= render Bali::Progress::Component.new(value: 75, color: :primary) %>
-          </div>
+        <h3 class="card-title">Fleet Status</h3>
+        <div class="flex gap-2 flex-wrap">
+          <%= render Bali::Tag::Component.new(text: '12 Active', color: :success) %>
+          <%= render Bali::Tag::Component.new(text: '3 Idle', color: :warning) %>
+          <%= render Bali::Tag::Component.new(text: '1 Maintenance', color: :error) %>
+        </div>
+        <div class="mt-2">
+          <%= render Bali::Progress::Component.new(value: 75, color: :primary) %>
         </div>
       <% end %>
     </div>
@@ -140,10 +136,10 @@
     <h2 class="text-xl font-bold mb-4">Form Inputs</h2>
     <%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-        <%= form.text_field_group :name, placeholder: 'Enter name' %>
+        <%= form.text_group :name, placeholder: 'Enter name' %>
         <%= form.select_group :genre, [['Action', 'action'], ['Drama', 'drama'], ['Comedy', 'comedy']] %>
-        <%= form.date_field_group :created_at %>
-        <%= form.boolean_field_group :indie %>
+        <%= form.date_group :created_at %>
+        <%= form.boolean_group :indie %>
       </div>
     <% end %>
   </section>

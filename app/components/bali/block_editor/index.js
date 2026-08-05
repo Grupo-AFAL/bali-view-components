@@ -32,7 +32,15 @@ export class BlockEditorController extends Controller {
     commentsUrl: { type: String, default: '' },
     commentsUser: { type: Object, default: {} },
     commentsUsers: { type: Array, default: [] },
-    commentsUsersUrl: { type: String, default: '' }
+    commentsUsersUrl: { type: String, default: '' },
+    commentsThreads: { type: Array, default: [] },
+    // 0 turns polling off; -1 means "unset", so RESTThreadStore's own 5000 ms
+    // default stays the single place that number is written down.
+    commentsPollInterval: { type: Number, default: -1 },
+    // Every string the React bundle puts on screen, served by Rails. It is only
+    // empty when a host wires this controller up by hand instead of rendering
+    // the component; the modules that read it fall back to English there.
+    translations: { type: Object, default: {} }
   }
 
   async connect () {
@@ -73,6 +81,7 @@ export class BlockEditorController extends Controller {
         syntaxHighlighting: this.syntaxHighlightingValue,
         uploadUrl: this.uploadUrlValue || undefined,
         outputElement: this.hasOutputTarget ? this.outputTarget : null,
+        containerElement: this.element,
         onEditorReady: (editor) => { this.blockNoteEditor = editor },
         onSyncReady: (flush) => this._bindSubmitFlush(flush),
         theme: this.themeValue,
@@ -89,7 +98,10 @@ export class BlockEditorController extends Controller {
         commentsUrl: this.commentsUrlValue || undefined,
         commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
         commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,
-        commentsUsersUrl: this.commentsUsersUrlValue || undefined
+        commentsUsersUrl: this.commentsUsersUrlValue || undefined,
+        commentsThreads: this.commentsThreadsValue.length > 0 ? this.commentsThreadsValue : undefined,
+        commentsPollInterval: this.commentsPollIntervalValue >= 0 ? this.commentsPollIntervalValue : undefined,
+        translations: this.translationsValue
       }
 
       // Dynamically load multi-column module when enabled
@@ -146,7 +158,7 @@ export class BlockEditorController extends Controller {
       if (this.hasEditorTarget) {
         const errorMsg = document.createElement('p')
         errorMsg.className = 'text-error text-sm p-4'
-        errorMsg.textContent = 'Failed to load editor. Ensure @blocknote/react, @blocknote/mantine, react, and react-dom are installed.'
+        errorMsg.textContent = this.translationsValue.load_failed
         this.editorTarget.appendChild(errorMsg)
       }
     }

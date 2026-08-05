@@ -1,5 +1,5 @@
 <%# Admin Analytics - Showcases: DashboardPage, Chart (line/doughnut/bar), Progress, Heatmap,
-    Table, Tag, Tooltip, Tabs, Notification, List, GanttChart, Clipboard, Loader %>
+    Table, Tag, Tooltip, Tabs, Notification, List, Clipboard, Loader %>
 
 <%= render Bali::DashboardPage::Component.new(
   title: t('analytics.title'),
@@ -13,7 +13,7 @@
   <% page.with_body do %>
     <%# Notifications - different types %>
     <div class="space-y-2 mb-6">
-      <%= render Bali::Notification::Component.new(type: :info, dismiss: true) do %>
+      <%= render Bali::Alert::Component.new(color: :info, icon: true, closable: true) do %>
         <strong>Pro tip:</strong> <%= t('analytics.pro_tip') %>
       <% end %>
     </div>
@@ -66,8 +66,11 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center gap-2 mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.top_rated') %></h3>
-          <%= render Bali::Tooltip::Component.new(text: t('analytics.top_rated_tooltip'), position: :right) do %>
-            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <%= render Bali::Tooltip::Component.new(placement: :right) do |tooltip| %>
+            <% tooltip.with_trigger do %>
+              <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+            <% end %>
+            <%= t('analytics.top_rated_tooltip') %>
           <% end %>
         </div>
         <% if @top_movies.any? %>
@@ -75,14 +78,17 @@
             <% table.with_header(name: t('analytics.columns.rank')) %>
             <% table.with_header(name: t('analytics.columns.movie')) %>
             <% table.with_header(name: t('analytics.columns.genre')) %>
-            <% table.with_header(name: t('analytics.columns.rating'), align: :right) %>
+            <% table.with_header(name: t('analytics.columns.rating'), class: 'text-right') %>
 
             <% @top_movies.each_with_index do |movie, i| %>
               <% table.with_row do %>
                 <td class="text-base-content/60"><%= i + 1 %></td>
                 <td class="font-medium">
-                  <%= render Bali::Tooltip::Component.new(text: "#{movie.status.humanize} — #{movie.genre}", position: :top) do %>
-                    <%= movie.name %>
+                  <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
+                    <% tooltip.with_trigger do %>
+                      <%= movie.name %>
+                    <% end %>
+                    <%= "#{movie.status.humanize} — #{movie.genre}" %>
                   <% end %>
                 </td>
                 <td>
@@ -102,7 +108,7 @@
             <% end %>
           <% end %>
         <% else %>
-          <%= render Bali::Message::Component.new(color: :info) do %>
+          <%= render Bali::Alert::Component.new(color: :info) do %>
             <%= t('analytics.no_movies') %>
           <% end %>
         <% end %>
@@ -112,8 +118,11 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center justify-between mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.heatmap_title') %></h3>
-          <%= render Bali::Tooltip::Component.new(text: t('analytics.heatmap_tooltip'), position: :left) do %>
-            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
+            <% tooltip.with_trigger do %>
+              <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+            <% end %>
+            <%= t('analytics.heatmap_tooltip') %>
           <% end %>
         </div>
         <%= render Bali::Heatmap::Component.new(
@@ -130,14 +139,11 @@
     <%# Genre Distribution with Progress + Clipboard %>
     <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between gap-4 mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.genre_distribution_title') %></h3>
-          <%= render Bali::Clipboard::Component.new(
-            text: @movies_by_genre.map { |g, c| "#{g}: #{c}" }.join("\n"),
-            class: 'btn btn-ghost btn-xs'
-          ) do %>
-            <%= render Bali::Icon::Component.new('copy', size: :small) %>
-            <span class="ml-1"><%= t('analytics.copy') %></span>
+          <%= render Bali::Clipboard::Component.new(class: 'max-w-xs') do |clipboard| %>
+            <% clipboard.with_source(@movies_by_genre.map { |g, c| "#{g}: #{c}" }.join("\n")) %>
+            <% clipboard.with_trigger(t('analytics.copy')) %>
           <% end %>
         </div>
         <div class="space-y-4">
@@ -160,10 +166,12 @@
           <% @top_movies.each do |movie| %>
             <% list.with_item do %>
               <div class="flex items-center gap-4 w-full">
-                <%= render Bali::Avatar::Component.new(
-                  name: movie.name,
-                  size: :sm
-                ) %>
+                <%# Initials go through the `placeholder` slot: Avatar has no `name:`. %>
+                <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+                  <% avatar.with_placeholder do %>
+                    <span><%= movie.name.first(2).upcase %></span>
+                  <% end %>
+                <% end %>
                 <div class="flex-1 min-w-0">
                   <p class="font-medium truncate"><%= movie.name %></p>
                   <p class="text-sm text-base-content/60">
@@ -182,25 +190,5 @@
       <% end %>
     <% end %>
 
-    <%# Production Timeline - GanttChart %>
-    <div class="mt-6">
-      <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg mb-4"><%= t('analytics.timeline_title') %></h3>
-        <% if @gantt_tasks.any? %>
-          <div class="overflow-x-auto">
-            <%= render Bali::GanttChart::Component.new(
-              tasks: @gantt_tasks,
-              zoom: :week,
-              readonly: true,
-              row_height: 40
-            ) %>
-          </div>
-        <% else %>
-          <%= render Bali::Message::Component.new(color: :info) do %>
-            <%= t('analytics.no_timeline') %>
-          <% end %>
-        <% end %>
-      <% end %>
-    </div>
   <% end %>
 <% end %>

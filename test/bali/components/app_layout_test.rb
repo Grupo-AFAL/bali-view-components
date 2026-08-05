@@ -262,13 +262,49 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector(".app-layout--has-sidebar")
   end
 
-  def test_toast_notifications_are_fixed_bottom_right
+  def test_flash_renders_a_toast_container_in_the_bottom_right
     render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
       layout.with_body { "Content" }
     end
-    assert_selector("#toast-notifications.fixed.bottom-4")
-    assert_selector('#toast-notifications[role="status"]')
-    assert_selector('#toast-notifications[aria-live="polite"]')
+    assert_selector("#toast-notifications.toast.toast-bottom.toast-end")
+    assert_selector("#toast-notifications .toast-component.alert-success", text: "Saved!")
+  end
+
+  # The wrapper used to be an aria-live region holding alerts that were live
+  # regions themselves. A live region inside a live region is not reliably
+  # announced by anything, so the roles now live on the toasts alone.
+  def test_the_toast_container_is_not_a_live_region
+    render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications[aria-live]")
+    assert_no_selector("#toast-notifications[role]")
+    assert_selector('#toast-notifications [role="status"]')
+  end
+
+  # `flash[:warning]` and `flash[:info]` had nowhere to go before: AppLayout read
+  # two keys off the hash and dropped the rest.
+  def test_flash_keys_beyond_notice_and_alert_are_rendered
+    render_inline(Bali::AppLayout::Component.new(flash: { warning: "Careful", info: "Heads up" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#toast-notifications .toast-component.alert-warning", text: "Careful")
+    assert_selector("#toast-notifications .toast-component.alert-info", text: "Heads up")
+  end
+
+  def test_no_container_without_a_flash
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications")
+  end
+
+  # `flash[:timedout]` and friends are state, not messages.
+  def test_no_container_for_flash_keys_that_are_not_messages
+    render_inline(Bali::AppLayout::Component.new(flash: { timedout: true })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications")
   end
 
   def test_uses_flex_col_direction
@@ -370,7 +406,19 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     assert_selector(".app-layout-topbar--default-mobile.lg\\:hidden")
     assert_selector(
-      ".app-layout-topbar--default-mobile label[for='#{Bali::SideMenu::Component::MOBILE_TRIGGER_ID}']"
+      ".app-layout-topbar--default-mobile " \
+      "button[aria-controls='#{Bali::SideMenu::Component::DEFAULT_ID}']"
+    )
+  end
+
+  def test_default_mobile_topbar_trigger_is_keyboard_operable
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-topbar--default-mobile label")
+    assert_selector(
+      ".app-layout-topbar--default-mobile button[type='button'][aria-expanded='false']"
     )
   end
 
@@ -421,5 +469,107 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     main_el = page.find("main")
     refute_includes main_el[:class], "p-6"
+  end
+
+  # --- skip link ---
+
+  def test_renders_skip_link_as_the_first_focusable_element
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_navbar { '<a href="/">Home</a>'.html_safe }
+      layout.with_body { "Content" }
+    end
+    focusables = page.all("a[href], button, input, [tabindex]:not([tabindex='-1'])")
+    assert_equal "##{Bali::AppLayout::Component::MAIN_ID}", focusables.first[:href]
+  end
+
+  def test_skip_link_points_at_the_main_element
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("a.bali-skip-link[href='##{Bali::AppLayout::Component::MAIN_ID}']")
+    assert_selector("main##{Bali::AppLayout::Component::MAIN_ID}")
+  end
+
+  def test_main_is_programmatically_focusable_so_the_skip_link_moves_focus
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("main[tabindex='-1']")
+  end
+
+  def test_skip_link_can_be_disabled
+    render_inline(Bali::AppLayout::Component.new(skip_link: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("a.bali-skip-link")
+  end
+
+  # --- fixed sidebar single source of truth ---
+
+  def test_fixed_sidebar_defaults_to_true_matching_the_side_menu_default
+    markup = side_menu_markup
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_sidebar { markup }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout--has-fixed-sidebar")
+    assert_selector(".side-menu-component--fixed")
+  end
+
+  def test_raises_when_the_sidebar_slot_disagrees_with_fixed_sidebar
+    markup = side_menu_markup(fixed: true)
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+        layout.with_sidebar { markup }
+        layout.with_body { "Content" }
+      end
+    end
+    assert_match(/fixed_sidebar: false/, error.message)
+    assert_match(/fixed: true/, error.message)
+  end
+
+  def test_does_not_raise_for_a_sidebar_that_is_not_a_bali_side_menu
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+      layout.with_sidebar { '<aside class="my-own-sidebar">Custom</aside>'.html_safe }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".my-own-sidebar")
+  end
+
+  def test_inline_sidebar_pairs_with_fixed_sidebar_false
+    markup = side_menu_markup(fixed: false)
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+      layout.with_sidebar { markup }
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--has-fixed-sidebar")
+    assert_selector(".side-menu-component--inline")
+  end
+
+  def test_viewport_lock_follows_the_effective_fixed_sidebar_not_the_raw_flag
+    # `fixed_sidebar: true` with nothing in the slot used to lock the viewport
+    # for a sidebar that was never rendered.
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--viewport-locked")
+  end
+
+  def test_viewport_lock_can_still_be_forced_without_a_sidebar
+    render_inline(Bali::AppLayout::Component.new(viewport_locked: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout--viewport-locked")
+  end
+
+  private
+
+  # Real SideMenu markup, so the sync check is exercised against what the
+  # component actually emits rather than a hand-written class list.
+  def side_menu_markup(**options)
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", **options)) do |menu|
+      menu.with_list { |list| list.with_item(name: "Dashboard", href: "/") }
+    end
+    rendered_content
   end
 end

@@ -12,6 +12,14 @@ module Bali
     #
     # rubocop:disable Metrics/ClassLength
     class LucideMapping
+      # This map is consulted BEFORE the name is tried as a Lucide icon, so a
+      # key that is itself a current Lucide name and points at a different
+      # glyph shadows the real icon — the honest spelling becomes unreachable,
+      # with no error and no warning. Do not add entries like that; the test
+      # freezes the known leftovers so the set can only shrink (see the
+      # shadowing test in lucide_mapping_test.rb, and the issue it names for
+      # the five still pending a decision).
+      #
       # Mapping from Bali icon names to Lucide icon names
       MAPPING = {
         # Alerts & Status
@@ -59,7 +67,6 @@ module Bali
         "attachment" => "paperclip",
         "file-export" => "file-output",
         "file-certificate" => "file-badge",
-        "file-signature" => "file-pen",
         "copy" => "copy",
         "sticky-note" => "sticky-note",
 
@@ -86,7 +93,6 @@ module Bali
         "cog" => "settings",
         "ellipsis-h" => "ellipsis",
         "more" => "more-horizontal",
-        "grid" => "grid-2x2",
         "list" => "list",
         "table" => "table",
         "dashboard" => "layout-dashboard",

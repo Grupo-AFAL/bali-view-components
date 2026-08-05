@@ -1,5 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
-import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
+import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
+
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event names stay put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:hovercard'
 
 const ARROW_SVG = `
 <svg width="14" height="8" viewBox="0 0 14 8" fill="none">
@@ -30,13 +36,11 @@ export class HovercardController extends Controller {
     trigger: { type: String, default: 'mouseenter focus' },
     contentPadding: { type: Boolean, default: true },
     appendTo: { type: String, default: 'body' },
-    zIndex: { type: Number, default: 9999 },
+    zIndex: Number,
     arrow: { type: Boolean, default: true }
   }
 
   async connect () {
-    useDispatch(this)
-
     this.contentLoaded = false
 
     // Use template content, or loading spinner if fetching from URL
@@ -53,7 +57,7 @@ export class HovercardController extends Controller {
       placement: this.placementValue,
       trigger: this.triggerValue,
       interactive: true,
-      zIndex: this.zIndexValue,
+      zIndex: this.hasZIndexValue ? this.zIndexValue : zIndexFor('tooltip'),
       onTrigger: this.onTrigger,
       onCreate: this.onCreate,
       onShow: this.onShow,
@@ -74,11 +78,22 @@ export class HovercardController extends Controller {
     return ''
   }
 
+  // A modal overlay overrides whatever the call site chose: everything outside
+  // its subtree is inert, so a card portaled to <body> is painted under the
+  // overlay and stops taking pointer events. See utils/top-layer.js. Popper
+  // recomputes its offsets against the new offsetParent, so the move is all
+  // tippy needs.
   appendToProp () {
-    if (this.appendToValue === 'body') return () => document.body
-    if (this.appendToValue === 'parent') return 'parent'
+    if (this.appendToValue === 'parent') {
+      return element => topLayerHost(element) ?? element.parentNode
+    }
 
-    return document.querySelector(this.appendToValue)
+    if (this.appendToValue === 'body') {
+      return element => topLayerHost(element) ?? document.body
+    }
+
+    return element =>
+      topLayerHost(element) ?? document.querySelector(this.appendToValue) ?? document.body
   }
 
   disconnect () {
@@ -103,12 +118,12 @@ export class HovercardController extends Controller {
 
   onShow = () => {
     this.element.classList.add('is-active')
-    this.dispatch('show', { tippy: this.tippy })
+    this.dispatch('show', { prefix: EVENT_PREFIX, detail: { tippy: this.tippy } })
   }
 
   onHide = () => {
     this.element.classList.remove('is-active')
-    this.dispatch('hide', { tippy: this.tippy })
+    this.dispatch('hide', { prefix: EVENT_PREFIX, detail: { tippy: this.tippy } })
   }
 
   async loadContent () {

@@ -1,16 +1,9 @@
 <%= render Bali::Topbar::Component.new do |topbar| %>
   <% topbar.with_search do %>
+    <%# No trigger slot: the Command's default search well is exactly this markup. %>
     <%= render Bali::Command::Component.new(
       placeholder: 'Search documents, pages, actions…'
     ) do |cmd| %>
-      <% cmd.with_trigger do %>
-        <button type="button"
-                class="flex items-center gap-2 w-full bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/60 cursor-pointer transition-colors">
-          <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
-          <span class="flex-1 text-left">Search…</span>
-          <kbd class="kbd kbd-xs hidden sm:inline-grid">⌘K</kbd>
-        </button>
-      <% end %>
 
       <% cmd.with_group(name: 'Pages') do |g| %>
         <% g.with_item(title: 'Dashboard', meta: 'Admin overview', icon: 'layout-dashboard', href: admin_root_path) %>
@@ -50,12 +43,14 @@
   <% end %>
 
   <% topbar.with_user_menu do %>
-    <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+    <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
       <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
+        <%# La identidad sale de `current_user`, no de dos strings sueltos: quien nombra el
+            topbar ES el dueño de las vistas guardadas de /admin/movies. %>
         <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
-          <% avatar.with_placeholder { 'AG' } %>
+          <% avatar.with_placeholder { current_user.name.split.map(&:first).join } %>
         <% end %>
-        <span class="hidden md:inline">Ana García</span>
+        <span class="hidden md:inline"><%= current_user.name %></span>
         <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
       <% end %>
       <% dropdown.with_item(href: admin_settings_path) { t('navbar.profile') } %>

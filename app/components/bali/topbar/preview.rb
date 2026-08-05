@@ -23,7 +23,7 @@ module Bali
       end
 
       # @label Without Mobile Trigger
-      # Topbar for layouts that have no sidebar (no hamburger button).
+      # Topbar for layouts that have no sidebar: pass `menu_id: nil` and no hamburger renders.
       def without_mobile_trigger
         render_with_template(template: "bali/topbar/previews/without_mobile_trigger")
       end

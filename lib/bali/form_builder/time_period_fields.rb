@@ -8,8 +8,15 @@ module Bali
       SELECT_WRAPPER_CLASSES = "mb-2"
       DATE_FIELD_HIDDEN_CLASS = "hidden"
 
-      def time_period_field_group(method, select_options, selected: nil, **options)
-        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
+      # The caption names the period select, not the hidden field the controller
+      # writes the resolved range into: the select is the control the user
+      # operates, and a hidden input is not labelable anyway.
+      def time_period_group(method, select_options, selected: nil, **options)
+        @template.render(
+          Bali::FieldGroupWrapper::Component.new(
+            self, method, options.merge(control_id: period_select_id(method))
+          )
+        ) do
           time_period_field(method, select_options, selected: selected, **options)
         end
       end
@@ -37,7 +44,7 @@ module Bali
 
       def time_period_wrapper_attrs(options)
         prepend_controller(
-          options.except(:include_blank),
+          widget_attributes(dup_options(options)).except(:include_blank),
           CONTROLLER_NAME
         )
       end
@@ -59,10 +66,19 @@ module Bali
           @template.select_tag(
             "#{method}_period",
             @template.options_for_select(select_options, selected_value),
+            id: period_select_id(method),
             class: SELECT_CLASSES,
             data: select_data_attributes
           )
         end
+      end
+
+      # `select_tag` derives its id from the name, so this used to be a bare
+      # `created_at_period`: no object name, no index, and therefore the same id
+      # twice as soon as two forms for the same model share a page. Only the id
+      # changes — the name is left alone in case a host reads it.
+      def period_select_id(method)
+        field_id(method, "period")
       end
 
       def select_data_attributes

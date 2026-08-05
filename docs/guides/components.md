@@ -39,6 +39,32 @@ Most components share these standard parameters:
 
 ---
 
+## Colors
+
+Every component that colours something takes the same two keywords, resolved by
+`Bali::Color`:
+
+| Keyword | Takes | Follows the DaisyUI theme? |
+|---|---|---|
+| `color:` | one of `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
+| `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No — that is the point of it |
+
+The seven components on this contract are `Tag`, `Status`, `Heatmap`, `Chart`,
+`Timeline::Item` / `Timeline::Header`, `StatCard` and `Kanban::Column`. A value
+outside the list raises `ArgumentError` at construction, naming the component and
+the valid values; a removed Bulma name (`:danger`, `:link`, `:black`, `:dark`,
+`:light`, `:white`) is told its replacement by name.
+
+`:ghost` means "no colour of its own" — DaisyUI has no `--color-ghost`, so a
+component either has a class for it (`badge-ghost`) or falls back to the theme's
+own foreground.
+
+Two components take names beyond this list on purpose: `Bali::Status` also
+accepts its twelve fixed workflow colours (`:slate`, `:green`, …), which do *not*
+follow the theme, because a workflow's "blue" is not the app's `primary`.
+
+---
+
 ## Variants and Sizes
 
 ### Standard Variants
@@ -109,9 +135,9 @@ Slots allow you to inject content into specific areas of a component:
 **Multiple slots:**
 ```erb
 <%= render Bali::Tabs::Component.new do |tabs| %>
-  <% tabs.with_tab(label: "Tab 1") { "Content 1" } %>
-  <% tabs.with_tab(label: "Tab 2") { "Content 2" } %>
-  <% tabs.with_tab(label: "Tab 3") { "Content 3" } %>
+  <% tabs.with_tab(title: "Tab 1", active: true) { "Content 1" } %>
+  <% tabs.with_tab(title: "Tab 2") { "Content 2" } %>
+  <% tabs.with_tab(title: "Tab 3") { "Content 3" } %>
 <% end %>
 ```
 
@@ -152,11 +178,14 @@ slots are independent so non-shell layouts work too.
 ```
 
 **Options:**
-- `fixed_sidebar` - Sidebar uses `position: fixed`; content gets left padding (default: false)
-- `viewport_locked` - Body locks to 100vh; only inner `<main>` scrolls (Linear/Notion app-shell pattern). Defaults to `fixed_sidebar` value — pass explicitly to decouple
+- `fixed_sidebar` - Sidebar uses `position: fixed`; content gets left padding (default: true). Must match the `fixed:` of the `SideMenu` in the slot — they share the same default, and a mismatch raises in development
+- `viewport_locked` - Body locks to 100vh; only inner `<main>` scrolls (Linear/Notion app-shell pattern). Defaults to whether a fixed sidebar is actually rendered — pass explicitly to decouple
+- `skip_link` - Render the "skip to main content" link as the first focusable element (default: true)
 - `body_container` - `:wide` (default), `:contained`, `:narrow`, `:full`
 - `flash` - Pass `flash` for built-in toast notifications
 - `modal` / `drawer` - Render shared modal/drawer slots (default: true)
+
+The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
 
 **Decoupled scroll model**:
 | `fixed_sidebar` | `viewport_locked` | Behavior |
@@ -172,13 +201,22 @@ Top-of-content bar that sits inside the AppLayout's `with_topbar` slot. 56px
 tall to align horizontally with the SideMenu's brand row. Slots: brand,
 search, actions (many), user_menu.
 
+**Topbar or Navbar?** Decide by what the strip *is*, not where it sits. When the
+sidebar is the navigation and the top strip carries search / notifications / the
+user menu, that strip is app chrome: use **Topbar** — a `<header>` (banner
+landmark) rendered inside the content column, sharing `--bali-chrome-height`
+with the sidebar's brand row, with its own mobile hamburger. When the top bar
+IS the navigation (no sidebar, marketing shells), use **Navbar** — the page's
+`<nav>`, rendered full-width above everything. A Navbar over a sidebar-driven
+layout announces a second navigation landmark with nothing navigational in it.
+The AppLayout previews model both: "Topbar + Sidebar + Content" and
+"Navbar + Content".
+
 ```erb
 <%= render Bali::Topbar::Component.new do |topbar| %>
   <% topbar.with_search do %>
+    <%# The Command renders its own search-well trigger — no slot needed. %>
     <%= render Bali::Command::Component.new do |cmd| %>
-      <% cmd.with_trigger do %>
-        <button type="button" class="...">Search… <kbd>⌘K</kbd></button>
-      <% end %>
       <% cmd.with_group(name: "Pages") do |g| %>
         <% g.with_item(title: "Dashboard", icon: 'layout-dashboard', href: '/') %>
       <% end %>
@@ -200,7 +238,9 @@ search, actions (many), user_menu.
 ```
 
 **Options:**
-- `mobile_trigger_id` - ID of the sidebar's mobile checkbox (renders the `lg:hidden` hamburger). Defaults to `Bali::SideMenu::Component::MOBILE_TRIGGER_ID`. Pass `nil` for layouts without a sidebar
+- `menu_id` - DOM id of the sidebar the `lg:hidden` hamburger opens. Defaults to `Bali::SideMenu::Component::DEFAULT_ID`. Pass `nil` for layouts without a sidebar
+
+The root element is a `<header>` (the page's banner landmark) and the hamburger is a `Bali::SideMenu::Trigger::Component`.
 
 #### Card
 
@@ -226,7 +266,11 @@ Content container with optional header, image, and actions.
 
 #### Modal
 
-Dialog overlay for focused interactions.
+Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
+`showModal()`, so the panel is painted in the top layer, the page behind it is inert, and
+Escape and focus restoration come from the element. See
+[Overlays and the top layer](overlays-and-the-top-layer.md) for what that means for
+anything you render over it.
 
 ```erb
 <%= render Bali::Modal::Component.new(title: "Confirm Action") do |modal| %>
@@ -245,7 +289,8 @@ Dialog overlay for focused interactions.
 
 #### Drawer
 
-Slide-in panel from edge of screen.
+Slide-in panel from edge of screen. Like `Modal`, a native `<dialog>` opened with
+`showModal()`.
 
 ```erb
 <%= render Bali::Drawer::Component.new(title: "Settings", position: :right) do |drawer| %>
@@ -328,6 +373,11 @@ Full-width hero section (DaisyUI `hero`) with title, subtitle, and action slots.
 
 #### Level
 
+> **Deprecated in v3, removed in 4.0.** Level is a flex row with `justify-between` and
+> nothing else: `<div class="flex justify-between items-center gap-4">` does the same
+> without a component in between. For a page header use
+> [PageHeader](#pageheader), which is what Level was holding up.
+
 Horizontal bar that spreads content between left and right sides, wrapping on small screens; use `with_item` directly when positioning is not needed.
 
 ```erb
@@ -364,7 +414,23 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `subtitle` - Subtitle text; use the `with_subtitle` slot for a custom tag or classes (default: `nil`)
 - `align` - Vertical alignment of left/right content: `:top`, `:center`, `:bottom` (default: `:center`)
 - `back` - Back button options hash, requires `href` (e.g. `{ href: path }`) (default: `nil`)
-- `responsive` - Apply tighter spacing on small screens (default: `true`)
+- `responsive` - Stack the header, and give the back button its own row, below `sm` (default: `true`)
+
+**Slots:**
+- `with_title(text, tag: :h1, **options)` - The page's heading. A block is the heading's
+  *content*, not a replacement for it — a heading inside the block nests one heading in
+  another. Nothing renders without text or a block.
+- `with_subtitle(text, tag: :p, **options)` - Renders a `<p>`; pass `tag:` for a heading.
+- `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
+  stay out of its accessible name, and the row wraps on narrow viewports.
+
+**Headings.** The title is the page's `h1`. If your layout already renders one, pass
+`tag: :h2` — see the [migration guide](migration-v2-to-v3.md). `tag:` sets the element only;
+the size comes from `TITLE_CLASSES` and is overridden with `class:`.
+
+**Accessibility.** The back button is icon-only, so it carries a default `aria-label` from
+`bali_view.page_header.back`. Pass a visible `name:` and the label is skipped, so the
+accessible name keeps matching the visible one.
 
 #### Footer
 
@@ -422,10 +488,33 @@ bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
 
 **Options:**
 - `current_path` (required) - For active-state matching
-- `fixed` - Fixed-to-viewport sidebar (default: true)
+- `id` - DOM id every trigger targets through `aria-controls` (default: `DEFAULT_ID`, `"side-menu"`)
+- `fixed` - Fixed-to-viewport sidebar (default: true). Must match `AppLayout`'s `fixed_sidebar:`
 - `collapsible` - Show desktop collapse toggle and icon-only collapsed state
 - `brand` - Simple text brand. For richer brand (logo + text, custom HTML), use the `with_brand` slot instead
+- `aria_label` - Accessible name of the `<nav>` landmark (default: translated "Sidebar")
 - `group_behavior` - `:expandable` (default, DaisyUI collapse) or `:dropdown` (hover dropdown for nested items)
+
+Renders a `<nav aria-label>` whose items are a `ul`/`li` list, with `aria-current="page"` on the
+item pointing at the current page.
+
+#### SideMenu::Trigger
+
+The single button that opens a `SideMenu` — rendered for you by `Topbar`, by `AppLayout`'s
+fallback mobile chrome, and by `Navbar::Burger(type: :sidebar)`. Render it directly for custom
+chrome.
+
+```erb
+<%= render Bali::SideMenu::Trigger::Component.new %>
+<%= render Bali::SideMenu::Trigger::Component.new(menu_id: 'reports-menu', icon: 'panel-left') %>
+```
+
+**Options:**
+- `menu_id` - id of the sidebar it opens; becomes its `aria-controls` (default: `SideMenu::Component::DEFAULT_ID`)
+- `icon` - icon name, or `nil` and pass content for custom markup
+
+It keeps `aria-expanded` in sync with the sidebar, and the sidebar hands focus back to it when
+the drawer closes.
 
 **Brand row aligns** with `Bali::Topbar` (both 56px) so they form one continuous chrome divider when paired in `Bali::AppLayout`.
 
@@ -437,15 +526,8 @@ bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
 results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcut.
 
 ```erb
-<%= render Bali::Command::Component.new(placeholder: 'Search…') do |c| %>
-  <% c.with_trigger do %>
-    <button type="button" class="...">
-      <%= render Bali::Icon::Component.new('search') %>
-      <span>Search…</span>
-      <kbd class="kbd kbd-xs">⌘K</kbd>
-    </button>
-  <% end %>
-
+<%# The search-well trigger is built in — size it via `class:`, no slot needed. %>
+<%= render Bali::Command::Component.new(placeholder: 'Search…', class: 'max-w-md') do |c| %>
   <% c.with_group(name: 'Pages') do |g| %>
     <% g.with_item(title: 'Dashboard', meta: 'Overview', icon: 'layout-dashboard', href: '/') %>
     <% g.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: movies_path) %>
@@ -468,16 +550,21 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 
 **Options:**
 - `placeholder` - Search input placeholder
+- `trigger_label` - Text of the default trigger (default "Search…"/"Buscar…" via i18n). Independent of `placeholder` — the trigger is usually shorter
 - `density` - `:default` (44px rows) or `:compact` (32px rows)
 - `no_results_text` / `no_results_subtitle` - Empty-state copy
-- `shortcut_label` - Display label for the shortcut hint (default `⌘K`). Actual binding is hardcoded to ⌘K/Ctrl+K
+- `shortcut_label` - Display label for the shortcut hint on the default trigger (default `⌘K`; `nil` hides it). Actual binding is hardcoded to ⌘K/Ctrl+K
 
 **Triggers:**
-- `with_trigger` slot — any clickable element opens the palette (input-shaped buttons are common)
+- Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it
+- `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name
 - Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 
 **Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
+
+**Emits:** `bali:command:select` (bubbles, `detail: { row, value }`) when an item without an
+`href` is activated.
 
 #### Breadcrumb
 
@@ -493,22 +580,59 @@ Navigation path indicator.
 
 #### Tabs
 
-Tabbed content navigation.
+One component, two widgets. Which one you get depends on whether the triggers navigate.
+
+**Tabs with panels** — the click swaps a panel without leaving the page. Renders the ARIA
+tabs pattern (`role="tablist"` / `role="tab"` / `role="tabpanel"`) driven by the `tabs`
+Stimulus controller.
 
 ```erb
-<%= render Bali::Tabs::Component.new(variant: :boxed) do |tabs| %>
-  <% tabs.with_tab(label: "Overview", active: true) do %>
+<%= render Bali::Tabs::Component.new(style: :box) do |tabs| %>
+  <% tabs.with_tab(title: "Overview", active: true) do %>
     Overview content...
   <% end %>
-  <% tabs.with_tab(label: "Details") do %>
+  <% tabs.with_tab(title: "Details") do %>
     Details content...
   <% end %>
 <% end %>
+
+<%# src: loads a panel's content on demand, still without leaving the page %>
+<%= render Bali::Tabs::Component.new do |tabs| %>
+  <% tabs.with_tab(title: "Activity", src: activity_path(@project), active: true) %>
+<% end %>
 ```
+
+**Tabs that navigate** — every trigger has an `href:`, so the click leaves the page. There is
+no panel to control, so this renders `<nav aria-label>` with plain links and
+`aria-current="page"` on the active one, and no Stimulus controller.
+
+```erb
+<%= render Bali::Tabs::Component.new(style: :border, label: "Project sections") do |tabs| %>
+  <% tabs.with_tab(title: "Summary", icon: "layout-dashboard", href: project_path(@project)) %>
+  <% tabs.with_tab(title: "Quality", icon: "shield-check", href: project_quality_path(@project)) %>
+<% end %>
+```
+
+Without `active:`, an `href:` tab decides for itself by comparing the URL against the current
+path; pass `active:` to override that.
+
+**Mixing the two raises `ArgumentError`.** A `role="tablist"` where half the children are
+links leaving the page and half own a panel is not a widget ARIA describes, and it used to
+render in silence. Split it into two components, or drop `href:` from all of them.
+
+**Options:**
+- `style` - `:default`, `:border` (default), `:box`, `:lift`
+- `size` - `:xs`, `:sm`, `:md` (default), `:lg`, `:xl`
+- `label` - Accessible name for the `<nav>` in navigation mode. Pass it whenever a page has more than one; defaults to `bali_view.tabs.navigation`. Ignored when the tabs have panels (default: nil)
+- `**options` - Additional HTML attributes for the wrapper
+
+**Slots:** `with_tab(title:, icon:, active:, src:, reload:, href:, **options)`.
 
 #### ViewSwitch
 
 Segmented control (DaisyUI `join` of buttons) to switch between sibling views of the same content (list / table / board / schedule). Each view is a real link — keep the selected view in the PATH so GET filter forms don't lose it.
+
+> Inside a `DataTable` do **not** use this component directly: `dt.with_view_switch { |switch| switch.with_view(value: :grid, ...) }` renders it and builds the hrefs for you, preserving the listing's query string. See the DataTable section.
 
 ```erb
 <%= render Bali::ViewSwitch::Component.new(aria_label: "Views") do |switch| %>
@@ -528,7 +652,7 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
 **Options:**
 - `aria_label` - Accessible label for the button group (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
-- `icon_only` - Square icon-only buttons; each view's `name:` becomes the native tooltip (`title`) and the accessible label (default: `false`)
+- `icon_only` - `true` for square icon-only buttons at every size, or `:responsive` to collapse only the label below `sm` (what `DataTable` uses: the switch shrinks instead of folding into the `⋯` menu). Either way each view's `name:` becomes the native tooltip (`title`) and the accessible label, so the buttons never lose their accessible name (default: `false`)
 - `**options` - Additional HTML attributes for the container `div`
 
 **Each `with_view`:**
@@ -540,13 +664,55 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
 
 #### Dropdown
 
-Action menu that opens on click/hover.
+Action menu that opens on click, on hover, or as a popover. One component: `ActionsDropdown`
+is a preset of this one, not a second implementation.
 
 ```erb
-<%= render Bali::Dropdown::Component.new do |dd| %>
+<%= render Bali::Dropdown::Component.new(align: :end) do |dd| %>
   <% dd.with_trigger { "Options" } %>
-  <% dd.with_item(href: "/edit") { "Edit" } %>
-  <% dd.with_item(href: "/delete", class: "text-error") { "Delete" } %>
+  <% dd.with_item(name: "Edit", href: "/edit", icon: "pencil") %>
+  <% dd.with_item(name: "Delete", href: "/things/1", method: :delete, icon: "trash") %>
+<% end %>
+```
+
+**Options:**
+- `align` - horizontal axis: `:start` (default), `:center`, `:end`
+- `direction` - the side the menu opens towards: `:top`, `:bottom`, `:left`, `:right`.
+  Left out, daisyUI's default (below the trigger) applies. It composes with `align:`.
+- `width` - `:sm` (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
+- `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
+  it (default: `false`). What a dropdown inside a scrollable table needs.
+- `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
+- `close_on_click` - close when the reader clicks outside (default: `true`)
+- `menu` - `<ul role="menu">` semantics (default: `true`). Pass `false` when the panel holds
+  a form or checkboxes rather than menu items: `role="menu"` exposes children it does not
+  allow and puts a screen reader into menu mode over a form.
+
+**Items.** `with_item` builds one of three things, and `icon:` means the same in all of them:
+
+```erb
+<% dd.with_item(tag: :title, name: "Export") %>            <%# section heading %>
+<% dd.with_item(name: "CSV", href: "/x.csv", icon: "download") %>
+<% dd.with_item(name: "Delete", href: "/x", method: :delete) %>   <%# DeleteLink + confirm %>
+<% dd.with_item(tag: :button, name: "Duplicate", icon: "copy",
+                data: { action: "thing#duplicate" }) %>    <%# a real <button> %>
+```
+
+**Keyboard**, and it is the same in both modes. Tab reaches the trigger, Enter or Space
+opens it, `↓` / `↑` walk the items, Escape closes it and puts the focus back on the trigger,
+and `aria-expanded` follows what is on screen rather than the path that got there — daisyUI
+opens the CSS dropdown from `:focus-within` without any JavaScript running, so an attribute
+set by hand goes stale the moment somebody uses a mouse.
+
+#### ActionsDropdown
+
+`Bali::Dropdown` with its trigger already chosen: the ⋯ button of a table row. Takes every
+Dropdown keyword plus `icon:` for the trigger (default `"ellipsis-h"`).
+
+```erb
+<%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |c| %>
+  <% c.with_item(name: "Edit", icon: "pencil", href: edit_movie_path(movie)) %>
+  <% c.with_item(name: "Delete", icon: "trash", href: movie_path(movie), method: :delete) %>
 <% end %>
 ```
 
@@ -584,11 +750,23 @@ Pagination controls (DaisyUI `join` buttons) built from a Pagy object; renders n
 - `pagy` - The Pagy pagination object (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg` (default: `:md`)
 - `variant` - Button variant: `:default`, `:outline`, `:ghost` (default: `:default`)
-- `url` - Base URL for pagination links (default: `nil`, uses the request path)
+- `url` - Base URL for the page links (default: `nil`). Only needed when the Pagy was **not** built by the `pagy()` helper — a bare `Pagy::Offset.new` carries no request and cannot build a URL. When given it wins over the Pagy's own URLs, so it has to carry any query string that must survive paging.
+- `fragment` - Anchor appended to every link, e.g. `'#results'`, so a paginator halfway down the page does not send the reader back to the top
+- `data` - Data attributes for every link, e.g. `{ turbo_frame: 'movies' }` to page inside a Turbo Frame
+
+```erb
+<%# Paging a section without leaving it %>
+<%= render Bali::Pagination::Component.new(
+      pagy: @pagy, fragment: '#results', data: { turbo_frame: 'movies' }) %>
+```
+
+From the controller, `pagy(scope, fragment: '#results')` and `pagy(scope, path: '/movies')` do the same two jobs, and are the better place for them when the whole page paginates.
+
+Everything the component knows about Pagy goes through `Bali::Pagination::PagyAdapter`, the only file in the gem that calls anything Pagy does not promise (`series` is protected; the request lives in an ivar with no reader). Patch the adapter, not the component, if a Pagy upgrade ever calls for it.
 
 #### PaginationFooter
 
-Footer row combining a "Showing X-Y of Z items" summary with `Pagination` controls; renders nothing without a Pagy object.
+Footer row combining a "Showing X-Y of Z items" summary with `Pagination` controls. This is *the* summary-plus-controls band in the library — `Bali::DataTable` renders it instead of an inline copy, and anything else that needs a listing footer should too. Renders nothing without a Pagy object, and nothing when there is neither a summary nor controls left to draw — including `count == 0`, where "Showing 0-0 of 0 movies" said nothing worth saying.
 
 ```erb
 <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: 'movies') %>
@@ -599,6 +777,21 @@ Footer row combining a "Showing X-Y of Z items" summary with `Pagination` contro
 - `item_name` - Name for items in the summary text (default: `nil`, falls back to "items")
 - `show_summary` - Whether to show the summary text (default: `true`)
 - `show_pagination` - Whether to show pagination controls (default: `true`)
+- `size`, `variant`, `url`, `fragment`, `data` - forwarded to `Pagination` (see above). Note that `data` lands on each page **link**, not on the wrapper — `turbo_frame:` is only useful where the navigation happens. Put wrapper attributes in `data-*` keys of your own if you need them there.
+- `divider` - sit under a rule at the foot of a listing instead of standing on its own (default: `false`). The vertical space moves above the line and a `border-t` draws it, because a footer that closes a listing should not pad below itself. This is what `DataTable` passes.
+- any other option becomes an HTML attribute on the wrapper `div`
+
+The spacing is deliberately **not** something you pass through `class:`. The standalone band carries `py-4`, and adding `pt-4` on top of it leaves both on one element: Tailwind resolves that pair by stylesheet order rather than by the order you wrote them, and nothing you can add cancels the bottom half of a `py-*`. `divider:` swaps the whole spacing set instead of layering a second one on it.
+
+Slots: `with_controls` replaces the `Pagination` component with your own nav.
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(pagy: @pagy) do |footer| %>
+  <% footer.with_controls { pagy_nav(@pagy) } %>
+<% end %>
+```
+
+The sentence and the fallback item name come from `bali_view.pagination.summary` and `bali_view.pagination.default_item_name`, in en and es. That one pair is what `DataTable` uses too.
 
 ---
 
@@ -624,9 +817,58 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**Sorting** — `sort:` needs a `form:` (a `Bali::FilterForm`); without one the header raises
+`Bali::Table::Component::MissingFilterForm`. The value is a **Ransack** attribute, so
+sorting through an association takes its path, not the column: `sort: :studio_name` for a
+`belongs_to :studio`, never the name of a Ruby `alias_method` — Ransack cannot see those and
+drops the sort in silence.
+
+Every sortable column paints a dimmed double chevron that brightens on hover and on keyboard
+focus, so a sortable header is distinguishable from a fixed one before it is clicked; the
+active one shows a single chevron in the sort direction. The `<th>` carries `aria-sort`
+(`ascending` / `descending` / `none`), which is what announces the state — the indicator is
+`aria-hidden`. Headers without `sort:` get no `aria-sort` and no indicator.
+
+**Row selection** — `selectable: true` renders the checkbox column plus a select-all
+header, wired to the `bulk-actions` Stimulus controller. Every row needs a `record_id:`
+(missing one raises `Bali::Table::Row::Component::IncompatibleOptions`), and the `<tr>`
+itself becomes the selectable item: it carries the record id, the `selected` class and its
+own checkbox. Double-clicking a row toggles it too.
+
+```erb
+<%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |table| %>
+  <% table.with_header(name: "Name", sort: :name) %>
+
+  <% @movies.each do |movie| %>
+    <% table.with_row(record_id: movie.id) do %>
+      <td><%= movie.name %></td>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+The controller must live on an **ancestor** element — `DataTable#with_bulk_actions` puts it
+on the DataTable container for you. Standalone, wrap the table in a
+`Bali::BulkActions::Component`: its default `variant: :floating` renders the fixed bottom
+bar with the counter and the action buttons, and it emits the controller itself.
+
+```erb
+<%= render Bali::BulkActions::Component.new do |bulk| %>
+  <% bulk.with_action(label: 'Archive', href: bulk_archive_movies_path, variant: :info) %>
+
+  <%= render Bali::Table::Component.new(selectable: true) do |table| %>
+    <%# ... %>
+  <% end %>
+<% end %>
+```
+
+This is the replacement for the `bulk_actions:` array that `Bali::Table` accepted in v2;
+passing it now raises `ArgumentError` (see the migration guide). The selection column shifts
+every other column by one: a column selector's 0-based indexes must account for it.
+
 **Row grouping** — pass `group:` to `with_row` to render a group-header row
 whenever the value changes between consecutive rows. The header spans every
-column (including the bulk-actions column when present) and shows the group
+column (including the selection column when present) and shows the group
 value plus the count of rows in that run (e.g. `Norte (12)`).
 
 ```erb
@@ -665,7 +907,7 @@ Caveats:
   overlap.
 - Rows given `group: nil` (or with no `group:` while other rows have one) are
   collected under a localized "Ungrouped" header (i18n
-  `bali.table.ungrouped`). When **no** row has a `group:`, the table renders
+  `bali_view.table.ungrouped`). When **no** row has a `group:`, the table renders
   exactly as it does without the feature — no header rows.
 
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
@@ -688,13 +930,59 @@ Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
 `group_by` is a **whitelisted top-level param** (not a `q[...]` predicate). The
 raw value only takes effect when it matches a declared attribute — anything else
 is ignored, so it can never reach `.group()`/`.order()` (Ransack does not
-authorize `.group`). When active, the form:
+authorize `.group`). When **applied**, the form:
 
 - orders the query by the group field **first**, keeping any user column sort as
   the **secondary** sort — so column sorting and grouping now coexist
   (sort-within-groups); and
 - exposes `group_counts`, the **global** per-group totals over the full filtered
   (unpaginated) result.
+
+##### State vs. application (three predicates, three questions)
+
+Grouping only **applies in table mode**: a table is the only surface of
+contiguous rows where a group band means something. In cards or a timeline the
+same ordering would rearrange the content invisibly, with nothing on screen to
+explain it. So outside a grouping mode the control **hides**, the grouping is
+**suspended** — and the `group_by` param **survives** in the URL and in the
+hidden fields of the filter forms, so switching back to the table finds the
+grouping exactly as it was left.
+
+| Question | API | Governs |
+|----------|-----|---------|
+| Is a grouping **chosen**? (state) | `group_by`, `group_by_active?` | Preservation: hidden fields, filters cache, saved-view payload |
+| Does this display mode **apply** grouping? (mode) | `group_by_applies?` | Visibility of the "Group by" control |
+| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, the `group:` value of each row |
+| Chosen but not applied here | `group_by_suspended?` | The "Grouped by Genre — applies in table view" hint the DataTable paints where the control used to be |
+
+Use `group_by_applied` (not `group_by`) wherever you paint the grouping, and
+never null out `group_by` yourself to suspend it: the state has to survive.
+
+Three options tune it:
+
+- `group_by_modes:` — display modes that apply grouping (default `[:table]`).
+  `[]` means *no* mode applies it: the param is still preserved and still saved
+  into a view, it is simply never applied.
+- `view_param:` — the URL param carrying the display mode (default `:view`).
+  It must be the **same** one you give the DataTable; a DataTable whose
+  `view_param:` disagrees with its form raises `ArgumentError` at build time,
+  because desynced there is nothing visible to give the bug away.
+- `display_mode:` — the mode the listing is going to **render**. Only needed when
+  the URL cannot say it: a listing whose first declared view is not a grouping
+  mode lands with no `?view=`, and the form — which only sees the URL — would
+  assume the grouping applies and sort the cards by group with nothing on screen
+  to explain it. Pass the same value you give the DataTable
+  (`display_mode: params[:view] || :grid`). While the two disagree the DataTable
+  raises `ArgumentError` on render.
+
+Known limit: an invalid `?view=` (hand-typed) makes the DataTable fall back to
+the first declared view while the form suspends — a table with no bands. The
+state survives and the next click fixes it. That one does **not** raise: a
+user can type it, and a 500 is not the answer to a typo.
+
+"No grouping" leaves `?group_by=` (empty) in the URL rather than dropping the
+param: with filter persistence on, an absent param means "restore the cached
+state", so removing it resurrected the grouping the user just turned off.
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
@@ -708,7 +996,8 @@ counts when you pass `group_counts:`:
       <%= t.with_header(name: "Name", sort: :name) %>
       <%= t.with_header(name: "Genre", sort: :genre) %>
       <% @movies.each do |movie| %>
-        <%= t.with_row(group: @filter_form.group_by && movie.public_send(@filter_form.group_by)) do %>
+        <% applied = @filter_form.group_by_applied %>
+        <%= t.with_row(group: applied && movie.public_send(applied)) do %>
           <td><%= movie.name %></td>
           <td><%= movie.genre %></td>
         <% end %>
@@ -719,7 +1008,7 @@ counts when you pass `group_counts:`:
 ```
 
 A split group then reads e.g. `Norte (30) — showing 25` (i18n
-`bali.table.group_partial`). The count lookup is tolerant of string-vs-symbol
+`bali_view.table.group_partial`). The count lookup is tolerant of string-vs-symbol
 keys and falls back to the page-local count on a miss.
 
 Constraints:
@@ -727,9 +1016,10 @@ Constraints:
 - **Do not `.reorder` the relation after `result`** when grouping — it drops the
   group-first ordering and rows stop cohering into groups. Let the form own the
   order.
-- **`group_by` is not persisted** in the FilterForm filters cache. It lives only
-  in the URL (the "Agrupar por" links carry it, and the filter forms round-trip
-  it as a hidden field), so it resets when the URL does.
+- **`group_by` travels with the state, always.** The "Agrupar por" links carry
+  it, the filter forms round-trip it as a hidden field, the filters cache stores
+  it and a saved view records it — including while it is suspended in card mode.
+  Suspension is a derived predicate, never `@group_by = nil`.
 
 #### Avatar
 
@@ -750,8 +1040,29 @@ Labels and status indicators.
 
 ```erb
 <%= render Bali::Tag::Component.new(text: "New", color: :primary) %>
-<%= render Bali::Tag::Component.new(text: "Pending", color: :warning, outline: true) %>
+<%= render Bali::Tag::Component.new(text: "Pending", color: :warning, style: :outline) %>
+<%= render Bali::Tag::Component.new(text: "Docs", href: "/docs", color: :info, size: :sm) %>
+<%= render Bali::Tag::Component.new(text: "Custom", custom_color: "#3b82f6") %>
 ```
+
+**Options:**
+- `text` - Label; falls back to the block content when omitted (default: nil)
+- `href` - Renders an `<a>` instead of a `<div>` (default: nil)
+- `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
+- `style` - `:outline`, `:soft`, `:dash` (default: nil)
+- `custom_color` - Hex string applied as an inline background, with the text color picked for contrast (default: nil)
+- `rounded` - Fully rounded pill (default: false)
+
+An unknown `color:` or `size:` raises `ArgumentError` naming the valid values. The Bulma
+names v2 accepted (`:danger`, `:small`, `light: true`, …) are gone; the error names their
+replacement, and the full table is in the [migration guide](migration-v2-to-v3.md).
+
+**A Tag never wraps.** daisyUI's `.badge` is a fixed-height box, so a wrapped label renders
+its extra lines outside the pill. The component sets `white-space: nowrap`, which means a
+long tag widens its container instead of breaking — inside `Bali::Table` the table scrolls,
+inside a fixed-width card the pill overhangs. Opt out per call site with
+`class: "whitespace-normal"`; the rule is in `@layer components`, so a plain utility wins.
 
 #### Status
 
@@ -775,12 +1086,12 @@ Colorful, SmartSuite-style status pill with optional inline editing. Presentatio
 
 **Options:**
 - `selected` - Currently selected value, matched against each option's `value:` (default: nil)
-- `options` - Array of `{ value:, label:, color: }`; `color:` is a palette symbol (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`) or a hex string (default: `[]`)
+- `options` - Array of `{ value:, label:, color: }` or `{ value:, label:, custom_color: }`. `color:` takes either the fixed status palette (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`), which deliberately does not follow the theme, or one of the semantic names shared with every other component (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`), which does. `custom_color:` takes a hex — in v2 a hex went in `color:` (default: `[]`)
 - `form` - `{ url:, method:, param: }`; when present (and `readonly:` is false) the pill becomes clickable and opens a portaled panel of colored option rows that submits via Turbo on selection (default: nil)
 - `readonly` - Forces the read-only pill even when `form:` is given, e.g. permission-gated call sites (default: false)
 - `clearable` - Adds a clear (X) button and a "no status" row to the panel; only applies when editable (default: false)
 - `size` - `:xs`, `:sm`, `:md` (default: `:sm`)
-- `placeholder` - Text shown when nothing is selected (default: i18n `bali.status.no_status`, "No status")
+- `placeholder` - Text shown when nothing is selected (default: i18n `bali_view.status.no_status`, "No status")
 - `**html_options` - Additional HTML attributes for the wrapper `span`; the consumer owns the Turbo target id via `id:` passthrough
 
 The consuming controller responds with a Turbo Stream replacing the element identified by the `id:` you pass.
@@ -800,8 +1111,8 @@ Responsive image gallery with optional lightbox and empty state.
 ```erb
 <%= render Bali::ImageGrid::Component.new(columns: 4, expandable: true) do |grid| %>
   <% grid.with_empty_state do %>
-    <p class="text-sm text-base-content/60"><%= t('bali.image_grid.empty_state.title') %></p>
-    <%= render Bali::Link::Component.new(name: t('bali.image_grid.empty_state.add_image'),
+    <p class="text-sm text-base-content/60"><%= t('bali_view.image_grid.empty_state.title') %></p>
+    <%= render Bali::Link::Component.new(name: t('bali_view.image_grid.empty_state.add_image'),
           href: new_image_path, type: :primary) %>
   <% end %>
   <% @images.each do |image| %>
@@ -812,19 +1123,27 @@ Responsive image gallery with optional lightbox and empty state.
 
 The `empty_state` slot renders inside a dashed-border centered box instead of
 the grid when there are no images; it is ignored when images are present.
-i18n keys `bali.image_grid.empty_state.{title,add_image}` ship in en/es.
+i18n keys `bali_view.image_grid.empty_state.{title,add_image}` ship in en/es.
 
 #### BooleanIcon
 
-Displays a boolean value as a colored icon — a green check for true, a red cross for false (nil is treated as false). Useful in table cells and lists.
+Displays a boolean as a coloured icon plus an `sr-only` name — a green check for true, a red cross for false, and a neutral dash for nil. Useful in table cells and lists.
+
+The value is **ternary**. `nil` is missing data, not `false`: announcing "No" for a column nobody filled in states something the record does not say. Pass `value: false` explicitly if an unset value should read as no.
 
 ```erb
-<%= render Bali::BooleanIcon::Component.new(value: movie.indie?) %>
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+
+<%# The default name is generic; supply the subject where the surrounding markup doesn't %>
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie, label: t('.indie_film')) %>
 ```
 
 **Options:**
-- `value` - Boolean value to display; nil is coerced to false (required)
+- `value` - `true`, `false`, or `nil` for "not specified". Any other truthy value still reads as true (required)
+- `label` - Accessible name for this cell. Defaults to `bali_view.boolean_icon.true` / `.false` / `.blank` — "Yes" / "No" / "Not specified" (default: nil)
 - `**options` - Additional HTML attributes for the wrapper div
+
+The icon is `aria-hidden`, so the `sr-only` label is the only accessible name the component has. Without it the colour is the sole difference between the two states, which also fails WCAG 1.4.1.
 
 #### Chart
 
@@ -858,10 +1177,41 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `card_style` - Card wrapper: `:default`, `:bordered`, `:compact`, `:none` (default: `:none`)
 - `height` - Height preset: `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `use_theme_colors` - Use DaisyUI theme colors for series, grid, and tooltips (default: true)
+- `color` - Semantic name the palette starts from (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`). A single-series chart is painted in it; a multi-series one cycles from it (default: nil, i.e. `:primary` first)
+- `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
+- `aria_label` - Accessible name for the canvas. Falls back to `title:`, then to `bali_view.chart.default_label` (default: nil)
+
+**Slots:** `with_data_table` — a real `<table>` rendered `sr-only` next to the canvas.
+
+Everything Chart.js draws is pixels, so the canvas is `role="img"` with a name. A name is not
+a number: `with_data_table` is the only way a screen reader user reads a value off the chart.
+
+```erb
+<%= render Bali::Chart::Component.new(data: @sales, title: t('.weekly_sales')) do |c| %>
+  <% c.with_data_table do %>
+    <table>
+      <caption><%= t('.weekly_sales') %></caption>
+      <thead><tr><th scope="col"><%= t('.day') %></th><th scope="col"><%= t('.sales') %></th></tr></thead>
+      <tbody>
+        <% @sales.each do |day, total| %>
+          <tr><th scope="row"><%= day %></th><td><%= total %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>
+```
 
 #### DataTable
 
 Complete data table wrapper with filters, quick search, summary, and pagination. Integrates with `Bali::FilterForm` — when a `filter_form` is given, `with_filters_panel` auto-configures attributes, filter groups, and search.
+
+The component owns three bands: a **bare** toolbar (identical in every display mode), the **content**, and a bare footer (summary + pagination). The surface travels with the content slot, so the host does **not** wrap the DataTable in `Bali::Card`.
+
+The canonical composition — the seven toolbar control families, row selection and
+pagination — is the `Complete` scenario of the DataTable preview, and the same body inside
+a page is `bali/index_page/complete`. Copy one of those rather than assembling from the
+option list below.
 
 ```erb
 <%= render Bali::DataTable::Component.new(filter_form: @filter_form, url: movies_path, pagy: @pagy) do |dt| %>
@@ -876,45 +1226,212 @@ Complete data table wrapper with filters, quick search, summary, and pagination.
 ```
 
 **Options:**
-- `url` - Base URL for filtering/sorting links (required)
+- `url` - Base URL for filtering/sorting links (required). It is also the base for the **page**
+  links, but only when the `pagy` cannot build its own — that is, when it was not created by
+  the `pagy()` helper and so carries no request. With the helper (the normal case) Pagy keeps
+  building them from the real request, which is what preserves an applied filter across a page
+  change; `url:` is a filtering base and does not carry the query string, so letting it win
+  would drop that filter. When it *is* used, the listing composes it the way the view switch and
+  "Group by" do: `url` plus the current query string, minus the one-shot params.
 - `filter_form` - `Bali::FilterForm` instance for Ransack integration (default: nil)
 - `pagy` - Pagy object for pagination (default: nil)
-- `show_summary` - Show record summary (default: true when pagy present)
-- `summary_position` - `:top` or `:bottom` (default: `:bottom`)
-- `item_name` - Item name used in the summary text (default: i18n)
-- `table_class` - CSS class for the table wrapper (default: `"overflow-x-auto"`)
-- `display_mode` - `:table` or `:grid` (default: `:table`)
+- `show_summary` - Show record summary (default: true when pagy present). Suppressed either way when there are no results — a "Showing 0-0 of 0" line under an empty table tells nobody anything.
+- `summary_position` - `:top` or `:bottom` (default: `:bottom`). At the bottom it is the left half of a [`PaginationFooter`](#paginationfooter), which the DataTable renders rather than duplicating.
+- `item_name` - Item name used in the summary text (default: `bali_view.pagination.default_item_name`)
+- `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
+- `display_mode` - Display mode requested by the host, typically `params[:view]`. It does
+  **not** select a slot — there is only one content band, and the host chooses what to
+  declare, reading the already-validated value from `dt.display_mode` (see
+  `with_view_switch`). Omitted, it falls back to `params[<view_param>]` and then to the
+  first declared view, so a switch still works if you forget to wire it; pass it explicitly
+  when the mode does not come from the URL.
+- `view_param` - URL param that carries the view (default: `:view`)
+- `id` - Listing identity: the container id, the column selector's `querySelector` target
+  (`#<id> table`) and the localStorage key of its columns (`bali:columns:<id>`) — one name
+  for everything the listing persists. Resolved in this order: explicit `id:`, then
+  `filter_form.storage_id`, then a random hex. The value is sanitized into a valid CSS
+  identifier (case preserved). With the random hex the id cannot survive the next render,
+  so **column persistence turns itself off** rather than writing a key nothing can read
+  back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
 
-Slots: `with_filters_panel`, `with_simple_filters`, `with_table`, `with_grid`, `with_summary`, `with_toolbar_button`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
-
-#### GanttChart
-
-Interactive Gantt chart with nested tasks, dependencies, milestones, drag/resize editing, and day/week/month zoom levels.
+If the host replaces the listing over Turbo Streams, target the **resolved** id — not the raw
+`storage_id`, which is not the same string whenever sanitizing changes it (`'admin/movies'` →
+`admin-movies`). Turbo looks the target up with `getElementById`, so a miss replaces nothing
+and reports nothing:
 
 ```erb
-<%= render Bali::GanttChart::Component.new(tasks: [
-  { id: 1, name: 'Task 1', start_date: Date.current, end_date: Date.current + 16.days, update_url: '/tasks/1' },
-  { id: 2, name: 'Task 1.1', start_date: Date.current, end_date: Date.current + 10.days, parent_id: 1, update_url: '/tasks/2' }
-], zoom: :day) do |c| %>
-  <% c.with_view_mode_button(label: 'Day', zoom: :day, active: true) %>
-  <% c.with_view_mode_button(label: 'Week', zoom: :week, active: false) %>
-  <% c.with_footer { 'This is a footer' } %>
+<%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
+  <%= render 'listing' %>
 <% end %>
 ```
 
-**Options:**
-- `tasks` - Array of task hashes (`id`, `name`, `start_date`, `end_date`, `update_url`, plus optional `parent_id`, `dependent_on_id`, `progress`, `milestone`, `critical`, `href`, `actions`) (default: `[]`)
-- `row_height` - Row height in pixels (default: 35)
-- `col_width` - Column width in pixels (default: 25 for day zoom, 100 for week/month)
-- `zoom` - `:day`, `:week`, or `:month` (default: `:day`)
-- `readonly` - Disable drag/resize editing (default: false)
-- `offset` - Initial horizontal scroll offset in pixels (default: scrolls near today)
-- `resource_name` - Resource name sent with update requests (default: nil)
-- `list_param_name` - Param name used when reordering tasks (default: `"list_id"`)
-- `start_date` - Chart start date string; computed from tasks when nil (default: nil)
-- `colors` - Hash with `:default` and `:completed` task bar colors (via `**options`)
+`Bali::DataTable::ListingIdentity.for` accepts the form (or a raw value) and applies exactly
+the rule the component applies.
 
-Slots: `with_view_mode_button`, `with_footer`, `with_list_footer`.
+**That recipe is only correct from a request that already carries the listing's state.** It
+re-renders the listing from `params`, so it needs the grouping, the filters and the sort the
+page had. `index` has them. A form submitted from inside a `Modal` or `Drawer` does not: the
+controller posts to the **form's** action with `fetch`, adding only `layout=false`, so
+`request.query_parameters` is `{"layout" => "false"}` and nothing else. Re-rendering from
+there answers 200 with an ungrouped, unfiltered listing, and writes that single param into the
+toolbar's links and into every ransack `sort_link` on the way out. Nothing raises.
+
+From an overlay, ask Turbo to revisit the page instead — the browser's URL is the one that
+still has the state:
+
+```erb
+<%# create.turbo_stream.erb, answering a form inside a Drawer %>
+<%= turbo_stream.refresh(method: :morph, scroll: :preserve) %>
+```
+
+The controller renders no listing at all on that branch; `index` rebuilds it from the real
+URL. `method: :morph` keeps scroll and focus instead of repainting the page, and the overlay
+still closes, because closing is what the stream response itself triggers.
+
+One thing to know before relying on it: Turbo drops a refresh whose `X-Turbo-Request-Id` it
+has seen recently (`isRecentRequest`). `Modal`/`Drawer` submit through plain `fetch`, not
+`Turbo.fetch`, so they never send that header and the refresh always fires. A host that
+submits the same form through `Turbo.fetch`, or from inside a `turbo-frame`, has to send the
+listing's params along and go back to the `replace` above.
+
+**Content slot.** There is exactly ONE content band, and it decides its own surface:
+
+| Slot | Surface | Scroll wrapper |
+|------|---------|----------------|
+| `with_table` | yes (a table needs a background of its own) | yes |
+| `with_grid` | no (the cards *are* the surface) | no |
+| `with_content(surface:, scroll:)` | `surface:` (default `true`) | `scroll:` (default `false`) |
+
+`with_table` and `with_grid` are sugar over `with_content`. Extra keywords go straight to
+the `Bali::Card` surface (`style:`, `class:`, `shadow:`, `body_class:`). Content that brings
+its own chrome — a calendar, a map — passes `surface: false`.
+
+Declaring two content slots raises `Bali::DataTable::Component::DuplicateContent`: to
+alternate between modes, pick which one you declare with an `if` on `dt.display_mode`.
+
+```erb
+<% if dt.display_mode == :grid %>
+  <% dt.with_grid do %>...<% end %>
+<% else %>
+  <% dt.with_table do %>...<% end %>
+<% end %>
+```
+
+**View switch.** `with_view_switch` puts a `Bali::ViewSwitch` in the toolbar. Unlike the
+standalone component, each view declares a `value:` — the DataTable builds the href itself,
+merging the current query string so filters, sorting, grouping and the applied
+`saved_view` survive the mode change (`page` is dropped, so switching returns to page one).
+`href:` is still accepted per view, for a mode that lives on another route.
+
+```erb
+<%= render Bali::DataTable::Component.new(
+      url: movies_path, filter_form: @filter_form, pagy: @pagy,
+      display_mode: params[:view]) do |dt| %>
+  <% dt.with_view_switch do |switch| %>
+    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
+    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
+  <% end %>
+
+  <% if dt.display_mode == :grid %>
+    <% dt.with_grid do %>...<% end %>
+  <% else %>
+    <% dt.with_table do %>...<% end %>
+  <% end %>
+<% end %>
+```
+
+`dt.display_mode` is the value **validated against the declared views**: an unknown
+`?view=` falls back to the first declared view instead of leaving the listing empty, so a
+raw URL param never reaches the content unchecked. Declare the switch before reading it.
+`aria_label:`, `size:`, `icon_only:` and any HTML attribute pass through to
+`Bali::ViewSwitch` (the DataTable defaults it to `icon_only: :responsive`).
+
+Passing `display_mode:` also makes the view travel as a hidden field on the filter forms,
+so applying a filter or a search from the cards view does not drop the user back into the
+table. A filter submit rebuilds the URL from `url:` — which hosts pass without a query
+string — so anything that must survive it has to be an explicit hidden field; the active
+`group_by` travels the same way.
+
+**Toolbar layout.** The row reads left to right as
+`search + filters · group by · columns ￨ saved views · persistence` and, pinned to the far
+right, the view switch. The left side is the **state of the listing and how it is
+remembered**, the right side is **how it is displayed** — the display mode is not part of a
+saved view's payload, which is why the view switch is the only thing on that side. The
+vertical rule between `columns` and `saved views` marks the boundary between the two left
+subgroups; it is rendered only when both sides have content and hidden below the breakpoint
+(see below).
+
+Four home groups back this: `left` (filters, group by, columns), `memory` (saved views,
+the filter-persistence bookmark), `host` (your `toolbar_buttons`) and `right` (the view
+switch, alone). Host buttons get their own group precisely so the view switch stays pinned
+to the edge: inside `right` the JS orders by priority and they landed to its right.
+Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
+[Secondary page actions](#secondary-page-actions-and-export).
+
+**Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
+`⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
+copies of the column selector would be two Stimulus controllers driving one table. Survival
+order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
+group by, columns, saved views, the persistence bookmark and host `toolbar_buttons`
+collapse. Three consequences worth knowing:
+
+- **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
+  expanding re-sorts each group by descending priority, which is what lets the controller be
+  stateless across Turbo reconnects. **The order of the groups** is the template's. The
+  numbers descend in reading order, so the `⋯` lists the collapsed controls in the same
+  order the row does.
+- The separator is not a control: it carries no priority and is not an `item`, so it can
+  never travel into the `⋯`. The controller only hides it — when a collapse empties either
+  of the two groups it flanks, and by CSS (`max-sm:hidden`) when the bundle has not loaded.
+  An empty group is hidden too, so it does not keep stealing the row's `gap`.
+- The `⋯` is a server-side decision (it is not rendered when nothing is collapsible), so a
+  host that adds or removes `toolbar_buttons` from JavaScript after render can leave the
+  gate stale. The controller hides an empty `⋯`, but it cannot create one.
+
+Anything placed in a collapsible slot (`with_toolbar_button` is arbitrary host content)
+must therefore:
+
+1. have an **idempotent `connect()`** — moving a node fires `disconnect()` then `connect()`;
+2. carry **no `data-turbo-permanent`**;
+3. keep its label readable inside the menu — mark a label that hides on mobile with the
+   `toolbar-control-label` class, or, for a `Bali::Button`/`Bali::Link`, pass
+   `responsive: false` (their responsive mode hides the label below `sm`, which inside the
+   `⋯` leaves an anonymous icon).
+
+**Row selection and bulk actions**
+
+```erb
+<%= render Bali::DataTable::Component.new(url: movies_path, filter_form: @filter_form) do |dt| %>
+  <% dt.with_bulk_actions do |bulk| %>
+    <% bulk.with_action(label: 'Mark as done', href: bulk_actions_path(bulk_action: 'mark_done'), variant: :success) %>
+    <% bulk.with_action(label: 'Delete', href: bulk_actions_path(bulk_action: 'delete'), variant: :error) %>
+  <% end %>
+
+  <% dt.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |t| %>
+      <% @movies.each do |movie| %>
+        <% t.with_row(record_id: movie.id, select_label: movie.name) do %>...<% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+Pass `select_label:` on every selectable row: without it all the checkboxes share the label
+"Select row", and in a screen reader's form-controls rotor a 25-row page is 25 identical
+entries.
+
+`with_bulk_actions` renders a `Bali::BulkActions(variant: :toolbar)` contextual row that
+**replaces the toolbar** while a selection exists and restores it when it is cleared. The
+`bulk-actions` Stimulus controller goes on the DataTable container, so the bar and the
+table rows share one scope. Each action is its own form whose only hidden field is
+`selected_ids` (a JSON array injected by the controller) — extra parameters travel in the
+action's query string.
+
+Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
+
+Export is not one of them: `page.with_export` on the surrounding page component puts it in
+the page's `⋯` — see [Secondary page actions](#secondary-page-actions-and-export).
 
 #### Heatmap
 
@@ -937,11 +1454,17 @@ Grid visualization that shows magnitude as color intensity across two dimensions
 
 **Options:**
 - `data` - Hash of `{ x_label => { y_label => value } }` (required)
-- `color` - DaisyUI preset (`:primary`, `:secondary`, `:accent`, `:success`, `:info`, `:warning`, `:error`) or hex string (default: `:primary`)
+- `color` - Semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`). The ramp is built from the DaisyUI theme variable, so it repaints when the theme changes; in v2 these were hardcoded hex and `:primary` was indigo whatever the theme said (default: `:primary`)
+- `custom_color` - Hex base colour for the ramp; does not follow the theme. In v2 a hex went in `color:` (default: nil)
 - `cell_size` - Cell size in pixels (default: 28)
 - `responsive` - Stretch to fill container width (default: true)
 
 Slots: `with_x_axis_title`, `with_y_axis_title`, `with_legend_title`, `with_hovercard_title`.
+
+The value lived only in the hover card through v2, which put every number behind a mouse. The
+axis labels are `<th scope="col">` (x, at the foot) and `<th scope="row">` (y), so both axes
+reach each cell as headers, and each cell carries its value as `sr-only` text — a coloured
+cell with no text is an empty cell to a screen reader. Nothing moved visually.
 
 #### Icon
 
@@ -959,6 +1482,10 @@ Renders an icon by name, resolving Lucide icons first (1,600+ available), then k
 - `**options` - Additional HTML attributes (e.g. `class`)
 
 #### InfoLevel
+
+> **Deprecated in v3, removed in 4.0.** Each item is a stat card with a third design of its
+> own; the one that stays is [StatCard](#statcard), which is also what
+> `DashboardPage#with_stat` renders since v3. For a row of figures, a grid of StatCard.
 
 Horizontal row of heading/title stat items, useful for profile counts or summary metrics.
 
@@ -983,7 +1510,7 @@ Slots: `with_item` (each item takes `with_heading` and `with_title`, as text or 
 
 #### LabelValue
 
-Displays a small bold label above its value — a common pattern on show pages.
+Displays a small bold label above its value — a common pattern on show pages. Renders as a single-pair `<dl>`: `<dt>` for the label, `<dd>` for the value.
 
 ```erb
 <%= render Bali::LabelValue::Component.new(label: 'Name', value: 'Juan Perez') %>
@@ -998,6 +1525,22 @@ Displays a small bold label above its value — a common pattern on show pages.
 - `label` - Label text shown above the value (required)
 - `value` - Value to display; when nil, block content is rendered instead (default: nil)
 - `**options` - Additional HTML attributes
+
+**LabelValue or PropertiesTable?** They render the same information and read differently.
+
+| | LabelValue | PropertiesTable |
+|---|---|---|
+| Markup | one `<dl>` per pair | one `<table>`, `<th scope="row">` per row |
+| Layout | you place each pair — a grid cell, a card, a column | rows, stacked, zebra-striped |
+| Screen reader | a run of them is a run of separate one-pair lists | one set, with table navigation and a row count |
+
+Use `PropertiesTable` when the pairs form **one set read top to bottom**, which is most detail
+pages. Use `LabelValue` for a pair that stands on its own, or when each pair needs its own
+placement in a layout the table cannot express.
+
+It was a `<div>` holding a `<label>` through v2. A `<label>` with no control to point at
+labels nothing: the text and the value beside it were two unrelated nodes in the
+accessibility tree.
 
 #### List
 
@@ -1024,7 +1567,7 @@ Slots: `with_item` (each item takes `with_title`, `with_subtitle`, and repeatabl
 
 #### LocationsMap
 
-Interactive Google Map with location markers, optional info views, clustering, and linked location cards. Requires the `GOOGLE_MAPS_KEY` environment variable to be set with a Google Maps JavaScript API key.
+Interactive Google Map with location markers, optional info views, clustering, and linked location cards. Requires a Google Maps JavaScript API key in `Bali.google_maps_key`, which falls back to the `GOOGLE_MAPS_KEY` environment variable.
 
 ```erb
 <%= render Bali::LocationsMap::Component.new(zoom: 12, clustered: false) do |c| %>
@@ -1106,7 +1649,7 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 <%= render Bali::StatCard::Component.new(
   title: 'Total Users',
   value: '1,234',
-  icon_name: 'users',
+  icon: 'users',
   color: :primary
 ) do |c| %>
   <% c.with_footer { tag.span('+12% from last month', class: 'text-success') } %>
@@ -1116,10 +1659,14 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
-- `icon_name` - Bali/Lucide icon name (required)
-- `color` - Icon accent: `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`, `:info` (default: :primary)
+- `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
+- `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
+- `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
 
 **Slots:** `with_footer` — optional footer for trends or status text.
+
+This is the one stat card. `DashboardPage#with_stat` renders it, and both `InfoLevel` and
+DashboardPage's own inline card — the other two designs — are gone or deprecated in v3.
 
 #### Tags
 
@@ -1161,21 +1708,25 @@ Vertical timeline for chronological sequences of events, using DaisyUI's timelin
 
 ```erb
 <%= render Bali::Timeline::Component.new(position: :left) do |c| %>
-  <% c.with_tag_header(text: 'Start', color: :primary) %>
-  <% c.with_tag_item(heading: 'January 2022', icon: 'check', color: :success) do %>
+  <% c.with_header(text: 'Start', color: :primary) %>
+  <% c.with_item(heading: 'January 2022', icon: 'check', color: :success) do %>
     <p>Timeline event 1</p>
   <% end %>
-  <% c.with_tag_item(heading: 'February 2022') do %>
+  <% c.with_item(heading: 'February 2022') do %>
     <p>Timeline event 2</p>
   <% end %>
-  <% c.with_tag_header(text: 'End') %>
+  <% c.with_header(text: 'End') %>
 <% end %>
 ```
 
 **Options:**
 - `position` - Timeline layout: `:left`, `:center`, `:right` (default: :left)
 
-**Slots:** `with_tag_header(text:, color:)` (badge separators) and `with_tag_item(heading:, icon:, color:)` with block content.
+**Slots:** `with_header(text:, color:, custom_color:, class:)` (badge separators) and `with_item(heading:, icon:, color:, custom_color:)` with block content.
+
+`color:` takes a semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`); `custom_color:` takes a hex. An item defaults to `:ghost`, which leaves the marker and the connecting line their DaisyUI colour — in v2 that value was spelled `:default`. `color: :outline` is gone from headers: it named a style, not a colour, so pass `color: :primary, class: 'badge-outline'`.
+
+Every entry renders exactly once. Which side of the line an item lands on is decided in Ruby, and for `position: :center` it alternates across items, so a header between two items does not flip the alternation.
 
 #### TreeView
 
@@ -1200,6 +1751,28 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 ### Interactive Components
 
+#### The shared button taxonomy
+
+`Button`, `Link` (in button dress), `DeleteLink` and `BulkActions::Action` all render
+DaisyUI's `.btn`, and they take the same three keywords for it. The three are independent
+axes and they compose:
+
+| Keyword | Means | Values |
+|---|---|---|
+| `variant:` | the colour | `:neutral :primary :secondary :accent :info :success :warning :error :ghost :link` |
+| `style:` | the fill | `:outline`, `:soft` |
+| `size:` | the scale | `:xs :sm :md :lg :xl` |
+
+```erb
+<%= render Bali::Button::Component.new(name: 'Discard', variant: :error, style: :outline, size: :sm) %>
+<%= render Bali::Link::Component.new(name: 'Discard', href: path, variant: :error, style: :outline, size: :sm) %>
+```
+
+A value outside its table raises `ArgumentError` at construction rather than rendering a
+button with no colour at all. The message names the keyword that does take it, so
+`variant: :outline` is told to become `style: :outline`. The tables live in
+`Bali::ButtonTaxonomy`.
+
 #### Button
 
 Primary interactive element for actions.
@@ -1209,10 +1782,10 @@ Primary interactive element for actions.
 <%= render Bali::Button::Component.new(name: 'Save', variant: :primary) %>
 
 <%# With icon %>
-<%= render Bali::Button::Component.new(name: 'Add', variant: :success, icon_name: 'plus') %>
+<%= render Bali::Button::Component.new(name: 'Add', variant: :success, icon: 'plus') %>
 
-<%# Loading state %>
-<%= render Bali::Button::Component.new(name: 'Processing...', loading: true, disabled: true) %>
+<%# Loading state — `loading:` already disables the button, no second keyword needed %>
+<%= render Bali::Button::Component.new(name: 'Processing...', loading: true) %>
 
 <%# Icon slots %>
 <%= render Bali::Button::Component.new(name: 'Next', variant: :primary) do |btn| %>
@@ -1222,12 +1795,13 @@ Primary interactive element for actions.
 
 **Options:**
 - `name` - Button text
-- `variant` - Style variant
+- `variant` - Colour (see the shared taxonomy above)
+- `style` - `:outline` or `:soft`
 - `size` - Size modifier
-- `icon_name` - Left icon name
-- `type` - `:button`, `:submit`, `:reset`
+- `icon` - Left icon name. `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
+- `type` - The HTML attribute: `:button`, `:submit`, `:reset`. Never a look
 - `disabled` - Disable button
-- `loading` - Show loading spinner
+- `loading` - Draw a spinner beside the label and disable the button (`disabled` plus `aria-busy`). A button that is waiting is not one you can press, and it keeps its box: `loading` on the `<button>` itself is a daisyUI 5 spinner, not a modifier
 
 #### Link
 
@@ -1241,7 +1815,7 @@ Navigation links, optionally styled as buttons.
 <%= render Bali::Link::Component.new(
   name: 'Create New',
   href: new_item_path,
-  type: :primary  # Button styling
+  variant: :primary  # Button styling
 ) %>
 ```
 
@@ -1251,13 +1825,38 @@ Navigation links, optionally styled as buttons.
 
 #### Tooltip
 
-Contextual information on hover.
+Contextual information on hover or focus. The block is the balloon; the `trigger` slot is
+what opens it.
 
 ```erb
-<%= render Bali::Tooltip::Component.new(content: "More information", position: :top) do %>
-  Hover over me
+<%= render Bali::Tooltip::Component.new(placement: :top) do |c| %>
+  <% c.with_trigger do %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost) %>
+  <% end %>
+  <p>Downloads the current slice as CSV.</p>
 <% end %>
 ```
+
+**Options:**
+- `placement` - `:top` (default), `:bottom`, `:left`, `:right`
+- `trigger_event` - tippy trigger string, `"mouseenter focusin"` by default. `"click"` and
+  `"manual"` are the other useful values.
+- `append_to` - `:parent` (default), `:body`, or a CSS selector, to portal the balloon out
+  of an ancestor whose `overflow` would clip it.
+
+**Keyboard.** The default trigger is `focusin` rather than tippy's `focus` because the
+element tippy watches is the wrapper around the slot, and a `focus` on the caller's own
+control inside the slot does not reach it — `focusin` bubbles and does. When the slot holds
+nothing focusable (the classic `?` help tip), the controller gives the wrapper `tabindex="0"`
+so the balloon has a keyboard route at all; when the slot brought its own button or link it
+does not, so there is no second, unnamed tab stop in front of it.
+
+**The balloon takes markup, including markup with no text in it.** The block is rendered
+into a `<template>` and handed to tippy with `allowHTML`, so an image preview, an icon
+legend or a small inline chart is a supported balloon — the `markup_content` preview shows
+two. The one case that builds nothing is a tooltip with *no* content: `with_trigger` and no
+block. That one gets no tippy instance and no `tabindex`, because a balloon that will never
+open should not claim a stop in the tab order.
 
 #### Kanban
 
@@ -1269,13 +1868,35 @@ the classic "+ add card" action.
 ```erb
 <%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "board") do |k| %>
   <% k.with_column(title: "To Do", status: "todo", color: :ghost) do |col| %>
-    <% col.with_card(update_url: task_path(task)) { render TaskCard.new(task:) } %>
+    <% col.with_card(update_url: task_path(task), label: task.title) { render TaskCard.new(task:) } %>
     <% col.with_footer do %>
       <%= link_to "+ Add card", new_task_path(status: :todo) %>
     <% end %>
   <% end %>
+  <% k.with_column(title: "Brand", status: "brand", custom_color: "#7c3aed") %>
 <% end %>
 ```
+
+A column's header indicator is a `Bali::Tag`, so `color:` takes the same semantic names it does (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`) and `custom_color:` takes a hex. A name outside that list raises — the private `BADGE_COLORS` table this component used to keep answered `:ghost` to anything it did not recognise.
+
+**A drop is announced.** Moving a card changes the DOM and nothing else — focus stays put, no
+text changes — so the board renders a `role="status" aria-live="polite"` region and writes
+into it on every drop: *"Design landing page moved to Done, position 1 of 2"*. The sentence
+comes from `bali_view.kanban.card_moved` and is interpolated in the browser.
+
+`label:` on a card is what the announcement calls it. The default is the card's own text,
+truncated to 60 characters, which reads badly on a card that leads with a date or an avatar
+rather than a title.
+
+Each column's card stack is `role="list"` with an `aria-label` carrying the count
+(`bali_view.kanban.column_label`), including `"Backlog, 0 cards"` — an empty column used to
+have no badge, no cards and no name at all. Each card is `role="listitem"`. That label is
+rendered on the server, so after a client-side drop it is as stale as the count badge next to
+it; both refresh when the page does.
+
+The `kanban` Stimulus controller ships in the core bundle and `registerAll` picks it up. An
+app that registers controllers one at a time needs `application.register('kanban',
+KanbanController)`.
 
 #### ConfirmDialog
 
@@ -1301,27 +1922,6 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
 Opt out globally with `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
 `registerAll` runs.
 
-#### ActionsDropdown
-
-Dropdown menu for row-level actions with an ellipsis icon trigger. Items with `method: :delete` automatically render a DeleteLink with confirmation.
-
-```erb
-<%= render Bali::ActionsDropdown::Component.new(align: :end) do |c| %>
-  <% c.with_item(name: 'Edit', icon_name: 'edit', href: edit_movie_path(movie)) %>
-  <% c.with_item(name: 'Export', icon_name: 'file-export', href: export_movie_path(movie)) %>
-  <% c.with_item(name: 'Delete', icon_name: 'trash', href: movie_path(movie), method: :delete) %>
-<% end %>
-```
-
-**Options:**
-- `align` - Horizontal alignment: `:start`, `:center`, `:end` (default: `:start`)
-- `direction` - Menu direction: `:top`, `:bottom`, `:left`, `:right` (default: `nil`)
-- `icon` - Trigger icon name (default: `"ellipsis-h"`)
-- `width` - Menu width: `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
-- `popover` - Use Tippy.js popover to escape overflow containers like scrollable tables (default: `false`)
-
-Use `with_trigger` to replace the default icon button with a custom trigger element.
-
 #### BulkActions
 
 Selectable item list with a floating action bar that appears when items are selected, showing a counter and bulk action buttons.
@@ -1341,7 +1941,20 @@ Selectable item list with a floating action bar that appears when items are sele
 ```
 
 **Options:**
+- `variant` - `:floating` (default, fixed bar at the bottom) or `:toolbar` (contextual row
+  with a counter, the actions and a clear button — what `DataTable#with_bulk_actions` uses).
+  `:floating` wrapped around a `Bali::Table(selectable: true)` is the standalone replacement
+  for the `Bali::Table(bulk_actions:)` array removed in v3.
+- `standalone` - Emit the `data-controller="bulk-actions"` (default: `true`). `false` when
+  the controller already lives on an ancestor, as inside a `DataTable`. Two nested
+  `bulk-actions` controllers split the targets between them and the bar stops seeing the
+  items, silently.
 - `**options` - HTML attributes for the wrapper (e.g. `class`, `data`)
+
+Selection is **per page**: the controller only knows the DOM it was rendered with, so
+paginating, filtering or switching display mode clears it (all of those re-render the node
+that carries the controller). Record ids go through `parseInt`, so non-numeric ids (UUIDs)
+serialize as `null` in the `selected_ids` payload.
 
 #### Carousel
 
@@ -1391,6 +2004,7 @@ Delete button that submits a DELETE request and automatically triggers the style
 ```erb
 <%= render Bali::DeleteLink::Component.new(model: @movie) %>
 <%= render Bali::DeleteLink::Component.new(href: movie_path(@movie), name: 'Remove', size: :sm, icon: true) %>
+<%= render Bali::DeleteLink::Component.new(href: movie_path(@movie), style: :outline, icon: 'circle-x') %>
 ```
 
 **Options:**
@@ -1398,15 +2012,24 @@ Delete button that submits a DELETE request and automatically triggers the style
 - `href` - Explicit URL; either `model` or `href` is required (default: `nil`)
 - `name` - Button label (default: translated "Delete")
 - `confirm` - Custom confirmation message (default: `nil`, generated from model)
-- `size` - `:xs`, `:sm`, `:md`, `:lg` (default: `nil`)
+- `variant` - Colour, from the shared taxonomy (default: `:ghost`)
+- `style` - `:outline` or `:soft` (default: `nil`)
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `nil`)
 - `disabled` - Disable the button (default: `false`)
 - `disabled_hover_url` - URL for a hover card explaining why deletion is disabled (default: `nil`)
 - `skip_confirm` - Skip the confirmation dialog (default: `false`)
-- `icon` - Show a trash icon (default: `false`)
-- `icon_name` - Custom icon name (default: `nil`)
+- `icon` - `true` for the trash icon, or the name of any other icon (default: `false`)
 - `authorized` - When `false`, the component does not render (default: `true`)
 - `plain` - Render as a plain text link instead of a button (default: `false`)
 - `form_class` - Extra classes for the wrapping form (default: `nil`)
+
+The destructive red is `text-error` on top of `variant: :ghost`, the default. It also
+applies to `variant: :link`; those two are the variants with no colour of their own. Name
+any other colour and it owns the button.
+
+Disabled renders `<button aria-disabled="true">`, focusable and inert, not the `<a disabled>`
+it used to be — HTML has no `disabled` attribute on an anchor. It stays in the tab order on
+purpose, because the hover card is where the reason lives.
 
 #### HoverCard
 
@@ -1496,7 +2119,13 @@ Advanced filter controls for data tables with Ransack integration.
 - Multiple filter groups with AND/OR combinators
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
-- Filter persistence with bookmark toggle
+- Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
+  by the toolbar as its own control and the panel receives `persistence_toggle: false`:
+  two `filter-persistence` controllers over one `storage_id` fight over localStorage and
+  the cookie. The panel's "Auto-saved" hint does not depend on the toggle. Persistence
+  reads and writes `Rails.cache`, so it needs a real cache store: under `:null_store` —
+  which is what a generated `development.rb` uses unless `tmp/caching-dev.txt` exists —
+  every write is silently dropped and nothing is ever restored.
 - Date range "between" operator with Flatpickr
 
 **Modes:**
@@ -1519,18 +2148,41 @@ The search input includes a clear button (x) that appears when text is entered. 
 | `available_attributes` | Array | `[]` | Filterable attributes |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
+| `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
 
-#### SearchInput
+#### Quick search (`search:`)
 
-Search field with icon.
+Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same
+`search:` hash. You declare the **columns**; Bali derives the Ransack parameter from them
+(`[:name, :email]` becomes `q[name_or_email_cont]`), so a listing that moves from one surface
+to the other keeps searching the same thing.
+
+| Key | Type | Description |
+|--------|------|-------------|
+| `fields` | Array&lt;Symbol&gt; | Columns to search. Absent or empty, no search box renders |
+| `value` | String | Current search value, rendered back into the box |
+| `placeholder` | String | Placeholder text |
+| `label` | String | Accessible name for the input |
+| `icon` | String | Icon name — the submit button in `Filters`, a leading addon in `SimpleFilters` |
+| `width` | String | Tailwind width classes for the box |
 
 ```erb
-<%= render Bali::SearchInput::Component.new(
-  name: 'q',
-  placeholder: 'Search...',
-  value: params[:q]
+<%= render Bali::Filters::Component.new(
+  url: movies_path,
+  available_attributes: [...],
+  search: { fields: %i[name genre], value: params.dig(:q, :name_or_genre_cont) }
 ) %>
 ```
+
+A `FilterForm` that declares `search_fields` fills this in on its own, so inside a `DataTable`
+the hash is only for overrides:
+
+```erb
+<% dt.with_simple_filters(search: { placeholder: 'Search movies...' }) %>
+```
+
+Any key outside that table raises `ArgumentError`. For a standalone search box not attached to
+a filter panel, use the FormBuilder's `search_group`.
 
 #### Calendar
 
@@ -1556,10 +2208,18 @@ Month, week, or day calendar that displays events grouped by date, with optional
 - `start_attribute` - Method called on each event for its start date (default: `:start_time`)
 - `end_attribute` - Method called on each event for its end date, enables multi-day events (default: `:end_time`)
 - `weekdays_only` - Show only Monday-Friday (default: false)
-- `all_week` - DEPRECATED: use `weekdays_only` instead
 - `show_date` - Display the day number in each cell (default: true)
+- `weekly_title_class` - Extra classes for the day number, aimed at week view (default: nil)
 
 **Slots:** `header` (navigation with period switch, accepts `route_path:` and `period_switch:`), `footer`.
+
+`start_date` and `period` normally arrive from the query string — the header's prev/next
+and period links write them back to `route_path` — so both degrade rather than raise:
+anything `Date.parse` cannot read becomes `Date.current`, and any period outside
+`:month`/`:week`/`:day` becomes `:month`. Handing `params[:start_time]` straight to the
+component is safe.
+
+The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
@@ -1646,7 +2306,7 @@ Form control for building RFC 5545 RRULE strings (e.g. `FREQ=WEEKLY;BYDAY=MO,WE,
 <% end %>
 ```
 
-Also available through the form builder as `form.recurrent_event_rule_field :schedule` or `form.recurrent_event_rule_field_group :schedule`.
+Also available through the form builder as `form.recurrent_event_rule_field :schedule` or `form.recurrent_event_rule_group :schedule`.
 
 **Options:**
 - `form` - The form builder instance (required)
@@ -1660,22 +2320,28 @@ Also available through the form builder as `form.recurrent_event_rule_field :sch
 
 ### Feedback Components
 
-#### Notification
+#### Toast
 
-Alert messages and feedback.
+An `Alert` that closes itself. Put it inside a `ToastContainer` to float it over the
+page — positioning is the container's job.
 
 ```erb
-<%= render Bali::Notification::Component.new(
-  type: :success,
-  message: "Changes saved successfully!"
-) %>
+<%= render Bali::Toast::Component.new(color: :success) do %>
+  Changes saved successfully!
+<% end %>
 
-<%= render Bali::Notification::Component.new(type: :error, dismissible: true) do %>
+<%= render Bali::Toast::Component.new(color: :error, duration: nil) do %>
   <strong>Error:</strong> Please fix the following issues.
 <% end %>
 ```
 
-**Types:** `:info`, `:success`, `:warning`, `:error`
+**Options:**
+- `color` - `:neutral`, `:info`, `:success`, `:warning`, `:error` (default: `:info`)
+- `duration` - Milliseconds before it closes itself; `nil` never does (default: `3000`)
+- `closable` - Render the close button (default: `true`)
+- `icon` - `true` for the icon that goes with the colour, a name for a specific one,
+  `nil` for none (default: `true`)
+- `title`, `style`, `role` - forwarded to `Bali::Alert`
 
 #### Loader
 
@@ -1685,27 +2351,32 @@ Loading indicator.
 <%= render Bali::Loader::Component.new(size: :lg, color: :primary) %>
 ```
 
-#### FlashNotifications
+#### ToastContainer
 
-Renders Rails flash messages as auto-stacking notifications at the bottom-right of the screen.
+The fixed stack a `Toast` lives in. Give it the whole flash hash and every key it
+recognises comes out as a toast; `Bali::AppLayout` renders one for you.
 
 ```erb
-<%= render Bali::FlashNotifications::Component.new(
-  notice: flash[:notice],
-  alert: flash[:alert]
-) %>
+<%= render Bali::ToastContainer::Component.new(flash: flash) %>
+
+<%= render Bali::ToastContainer::Component.new(position: :top_end) do |c| %>
+  <% c.with_toast(color: :info) { 'One toast.' } %>
+<% end %>
 ```
 
 **Options:**
-- `notice` - Success message to display (default: `nil`)
-- `alert` - Error/warning message to display (default: `nil`)
+- `flash` - The flash hash. `notice`/`success` render as success, `alert`/`error`/`danger`
+  as error, and `warning`/`info` as themselves; any other key is ignored (default: `nil`)
+- `position` - One of `top`/`middle`/`bottom` crossed with `start`/`center`/`end`,
+  e.g. `:top_end` (default: `:bottom_end`)
+- `duration` - Passed down to every toast it builds from the flash (default: `3000`)
 
-#### Message
+#### Alert
 
 Inline alert box (DaisyUI `alert`) with an optional title or custom header slot.
 
 ```erb
-<%= render Bali::Message::Component.new(title: 'Heads up', color: :warning, style: :soft) do %>
+<%= render Bali::Alert::Component.new(title: 'Heads up', color: :warning, style: :soft) do %>
   Your subscription expires in 3 days.
 <% end %>
 ```
@@ -1713,8 +2384,16 @@ Inline alert box (DaisyUI `alert`) with an optional title or custom header slot.
 **Options:**
 - `title` - Header text shortcut; use the `with_header` slot for custom markup (default: `nil`)
 - `size` - Text size: `:small`, `:regular`, `:medium`, `:large` (default: `:regular`)
-- `color` - Alert color: `:primary`, `:success`, `:danger`, `:warning`, `:info` (default: `:primary`)
+- `color` - Alert color: `:neutral`, `:info`, `:success`, `:warning`, `:error` (default: `:info`).
+  daisyUI has no other alert colours; an unknown name raises
 - `style` - Alert style: `:soft`, `:outline`, `:dash` (default: `nil`, solid)
+- `icon` - `true` for the icon that goes with the colour, a name for a specific one,
+  `nil` for none (default: `nil`)
+- `closable` - Render a close button wired to the `alert` Stimulus controller (default: `false`)
+- `dismiss_id` - Remember the dismissal in localStorage under this key (default: `nil`)
+- `duration` - Milliseconds before it closes itself; this is what makes a `Toast` (default: `nil`)
+- `role` - `:alert`, `:status` or `:note`. Without it, `:alert` for `color: :error` and
+  `:status` for everything else
 
 #### EmptyState
 
@@ -1728,7 +2407,7 @@ Standard empty state: a centered block with an optional icon in a soft circle, a
   <% empty_state.with_cta do %>
     <%= render Bali::Link::Component.new(
           name: t('.new'), href: new_thing_path,
-          icon_name: 'plus', variant: :primary, size: :sm) %>
+          icon: 'plus', variant: :primary, size: :sm) %>
   <% end %>
 <% end %>
 ```
@@ -1745,7 +2424,14 @@ Standard empty state: a centered block with an optional icon in a soft circle, a
 
 #### FeedbackWidget
 
-Floating feedback button that opens a drawer with an embedded Opina iframe and polls a badge endpoint for unread count.
+Floating feedback button that opens a `Bali::Drawer` with an embedded Opina iframe, and
+polls a badge endpoint for the unread count.
+
+The embed's JWT is **not** passed in the frame's URL — a bearer credential in a URL is
+written to the server's access log, offered in the `Referer` of anything the embed loads,
+and kept in browser history. The widget sends it to the frame with `postMessage` once it
+has loaded, as `{ type: 'bali:feedback:token', token }`, addressed to the Opina origin and
+never to `*`. The Opina instance has to listen for that message; see the migration guide.
 
 ```erb
 <%= render Bali::FeedbackWidget::Component.new(
@@ -1847,7 +2533,7 @@ Document-centric page with a three-panel layout: table of contents, read-only Bl
     <%= render Bali::Tag::Component.new(text: 'Published', color: :success, size: :sm) %>
   <% end %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_document_path(@document), variant: :ghost, icon_name: 'pencil') %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_document_path(@document), variant: :ghost, icon: 'pencil') %>
   <% end %>
   <% page.with_metadata do %>
     <p>Owner: Ana</p>
@@ -1855,17 +2541,55 @@ Document-centric page with a three-panel layout: table of contents, read-only Bl
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
+**On top of [the shared surface](#the-shared-surface)** (`DocumentPage` is a page template;
+its options live there too):
 - `initial_content` - BlockNote JSON; renders the editor and TOC when present (default: nil)
 - `toc_open` / `metadata_open` - Initial panel visibility (default: true)
+- `with_metadata` / `with_subheader` slots, plus any leftover keyword becoming an HTML
+  attribute on the container
+
+The content slot is `with_body`, like the other four. It was called `with_preview` in v2 —
+that name still works and warns through `Bali.deprecator` until 4.0. With `initial_content`
+the three-panel layout takes over and `body` is not rendered; the `sidebar` slot is the
+simple layout's only, since the panels are the wide layout's own columns.
 
 ---
 
 ### Page Templates
+
+#### The shared surface
+
+The five page templates (`DashboardPage`, `DocumentPage`, `FormPage`, `IndexPage`,
+`ShowPage`) include `Bali::PageComponents::Shared`, which is where every option and slot
+below is defined. Learn it once; the per-component sections that follow only list what each
+one adds.
+
+**Options:**
+- `title` - Page title (required)
+- `subtitle` - Text under the title (default: nil)
+- `breadcrumbs` - Array of `{ name:, href:, icon: }` hashes (default: [])
+- `back` - Back link, e.g. `{ href: path }` (default: nil)
+- `max_width` - Content width: `:sm` (`max-w-xl`), `:md` (`max-w-3xl`), `:lg`
+  (`max-w-5xl`), `:xl` (`max-w-7xl`), `:"2xl"` (`max-w-screen-2xl`) or `:full`. The default
+  is `:full` — a no-op, so the page is as wide as the container the app already put it in —
+  except `FormPage` (`:md`), because a single column of fields stretched across a wide
+  screen is the wrong shape. An unknown value raises `ArgumentError`.
+- `sidebar_width` - Share of the grid the sidebar takes when the `sidebar` slot is filled:
+  `:default` (a third), `:narrow` (a quarter) or `:wide` (a half). Below `lg` the sidebar
+  always stacks under the body.
+- `context` - Where the page is rendering: `:auto` (default), `:page` or `:drawer`. See
+  [One view for the page and the drawer](#one-view-for-the-page-and-the-drawer).
+
+**Slots:**
+- `with_action` (many) - Primary actions, top right
+- `with_secondary_action` (many) - Actions that live in the `⋯` menu next to them; see
+  [Secondary page actions and export](#secondary-page-actions-and-export)
+- `with_export(url:, formats:, params:)` - Export section inside that same `⋯`
+- `with_title_tag` (many) - Badges rendered beside the title
+- `with_nav` - Second-level navigation between the header and the body; see
+  [Two-level navigation](#two-level-navigation-nav-slot)
+- `with_body` - The page content, `mt-6` under whatever precedes it
+- `with_sidebar` - Right-hand column; turns the body into the two-column grid
 
 #### DashboardPage
 
@@ -1874,7 +2598,7 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 ```erb
 <%= render Bali::DashboardPage::Component.new(title: 'Dashboard', subtitle: 'Welcome back, Ana') do |page| %>
   <% page.with_action do %>
-    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon_name: 'download') %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon: 'download') %>
   <% end %>
   <% page.with_stat(label: 'Total Movies', value: '1,234', icon: 'film', color: :primary) %>
   <% page.with_stat(label: 'Revenue', value: '$45.2K', icon: 'dollar-sign', color: :success, change: '+12.5%') %>
@@ -1884,14 +2608,12 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
+**On top of [the shared surface](#the-shared-surface):**
 - `stats_columns` - Stat cards per row: 2, 3, or 4 (default: 4)
-- `max_width` - Content width: `:lg`, `:xl`, `:"2xl"`, or `:full` (default: :"2xl")
+- `with_stat(label:, value:, icon:, change:, color:)` - One `Bali::StatCard` per call.
+  `change` becomes the card's footer.
 
-Also accepts a `nav` slot for second-level navigation, rendered between the header and the stats — see [Two-level navigation](#two-level-navigation-nav-slot).
+The `nav` slot lands between the header and the stats.
 
 #### IndexPage
 
@@ -1901,10 +2623,10 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 <%= render Bali::IndexPage::Component.new(
   title: 'Movies',
   subtitle: '24 movies total',
-  breadcrumbs: [{ name: 'Dashboard', href: root_path, icon_name: 'home' }, { name: 'Movies' }]
+  breadcrumbs: [{ name: 'Dashboard', href: root_path, icon: 'home' }, { name: 'Movies' }]
 ) do |page| %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary, icon_name: 'plus') %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary, icon: 'plus') %>
   <% end %>
   <% page.with_body do %>
     <%# DataTable goes here %>
@@ -1912,13 +2634,13 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
+Nothing beyond [the shared surface](#the-shared-surface).
 
-Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
+The body takes the DataTable **bare**: the surface travels with the DataTable's content
+slot, so wrapping it in a `Bali::Card` produces a card inside a card in grid mode. The
+canonical composition — page chrome plus a DataTable with the seven toolbar control
+families, row selection and pagination — is the `Complete` scenario of the IndexPage
+preview (`bali/index_page/complete` in Lookbook). Copy that.
 
 #### ShowPage
 
@@ -1935,7 +2657,7 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
     <%= render Bali::Tag::Component.new(text: 'Released', color: :success, size: :sm) %>
   <% end %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_movie_path(@movie), variant: :ghost, icon_name: 'pencil') %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_movie_path(@movie), variant: :ghost, icon: 'pencil') %>
   <% end %>
   <% page.with_body do %>
     <%= render Bali::Card::Component.new(style: :bordered) { 'Details...' } %>
@@ -1946,13 +2668,7 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
-
-Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
+Nothing beyond [the shared surface](#the-shared-surface).
 
 #### FormPage
 
@@ -1975,19 +2691,124 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
-- `max_width` - Form width: `:sm`, `:md`, `:lg`, `:xl`, or `:full` (default: :md)
-- `card` - Wrap the body in a Card (default: true)
+**On top of [the shared surface](#the-shared-surface):**
+- `card` - Wrap the body in a Card. Defaults to `nil`, which lets `context` decide: a page
+  gets the Card, a drawer does not. An explicit `true`/`false` always wins. `max_width`
+  defaults to `:md` here.
+
+#### One view for the page and the drawer
+
+`context:` lets one template serve a full page and a Modal/Drawer, so a `new`/`edit`/`show`
+view does not need an `if drawer_request?` around two nearly identical renders.
+
+```erb
+<%= render Bali::FormPage::Component.new(
+  title: t('.title'),
+  back: { href: movies_path }
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', movie: @movie, drawer: page.drawer? %>
+  <% end %>
+<% end %>
+```
+
+| value | meaning |
+|---|---|
+| `:auto` | the default: ask the request |
+| `:page` | full page chrome, whatever the request says |
+| `:drawer` | overlay chrome, whatever the request says |
+
+In a drawer the component drops the **breadcrumbs**, the **back button** and — on `FormPage`
+— the **Card**. The first two are ways out of a page, and a drawer is closed rather than
+left; the Card is the panel the drawer already draws. They are dropped even when passed,
+which is the point: the one surviving call site passes `back:`.
+
+**How `:auto` decides.** It asks the view context for `drawer_request?`, which
+`Bali::LayoutConcern` defines as `params[:layout] == "false"` and exposes as a helper — so
+the component never reads `params` itself. An app that already declares its own
+`drawer_request?` helper is detected with no change to its controllers; a view context with
+no such helper (a Lookbook preview, a unit test) renders a page.
+
+```ruby
+class ApplicationController < ActionController::Base
+  include Bali::LayoutConcern
+end
+
+module Admin
+  class BaseController < ApplicationController
+    # NOT `layout 'admin'` — a `layout` call in a subclass overrides the concern's and
+    # takes the layout skipping with it.
+    self.conditional_layout = 'admin'
+  end
+end
+```
+
+**Escape hatches.** `card:` always wins, `card: true` inside a drawer included. For the
+breadcrumbs and the back button the hatch is `context: :page`, which restores the whole page
+chrome inside a drawer request; `context: :page, card: false` combines them.
+
+**When you still have to branch.** `page.drawer?` is public and yielded with the component,
+for differences that are behavioural rather than chrome — a Cancel that closes an overlay and
+a Cancel that navigates are two different elements. Pass it into partials rather than reading
+`params` there.
+
+#### Secondary page actions and export
+
+All five page components (`IndexPage`, `ShowPage`, `FormPage`, `DashboardPage`,
+`DocumentPage`) share one hole for **secondary** actions: a `⋯` menu rendered next to the
+primary action, inside the same group. Use it for what acts ON the page but does not
+deserve a button of its own — export, import, print.
+
+```erb
+<%= render Bali::IndexPage::Component.new(title: 'Movies') do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary) %>
+  <% end %>
+
+  <% page.with_export(url: movies_path) %>
+  <% page.with_secondary_action(name: 'Import', icon: 'upload', href: import_movies_path) %>
+
+  <% page.with_body do %>
+    <%# DataTable goes here %>
+  <% end %>
+<% end %>
+```
+
+`with_secondary_action(**options, &block)` takes the same options as
+`Bali::Dropdown#with_item` (`href:`, `icon:`, `method:`, `tag: :link | :button |
+:title`, `authorized:`), because it *is* an item of that dropdown. The `⋯` is not rendered
+when nothing is declared — a button that opens an empty menu is a bug.
+
+**`with_export(url:, formats: %i[csv excel pdf], params: nil)`** renders a section titled
+*Export filtered* with one item per format. The name is a promise the links keep: each href
+carries the same slice of data the user is looking at — filters, search, sort, grouping and the applied
+saved view — merged from the current query string. Two parameters are deliberately dropped
+(`Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`): `page`, because exporting page 3 of a
+listing is never what "export" means, and `clear_filters`, which on the server *deletes* the
+user's stored filters as a side effect of the click. Pass `params: {}` to opt out and export
+everything on purpose, or an explicit hash to override.
+
+Export is **not** a DataTable toolbar control. It acts on the page, not on how the listing
+looks, which is also what gives import and print somewhere to land later. Because the `⋯`
+lives in the PageHeader — outside the node a filter submit's turbo-stream replaces — the
+links carry an `export-links` Stimulus controller that re-syncs their hrefs from
+`window.location`, on connect and on `turbo:load` / `turbo:before-stream-render` /
+`turbo:submit-end`. A stream render is not a visit, so `turbo:load` alone never fires for
+the case that matters and the first filter would freeze the links on the slice of the
+initial page load — the exact bug they exist to fix. The re-sync **merges** over the link's
+own query string rather than replacing it, so params baked into `url:` survive, and it is
+switched off entirely when you passed `params:` yourself: that href is your decision, not a
+photo of the URL.
+
+The host still has to answer the format: a controller whose `respond_to` only declares
+`html` returns **406** for `?format=csv`.
 
 #### Two-level navigation (`nav` slot)
 
-`IndexPage`, `ShowPage` and `DashboardPage` accept a `nav` slot rendered **between the
-PageHeader and the body** (in `DashboardPage`, before the stat cards) with standardized
-spacing (`mt-4`), so section navigation no longer needs to be embedded in the body by hand.
+All five page templates accept a `nav` slot rendered **between the PageHeader and the body**
+(in `DashboardPage`, before the stat cards) with standardized spacing (`mt-4`), so section
+navigation no longer needs to be embedded in the body by hand. `FormPage` and `DocumentPage`
+gained it in v3, when the slot moved into `PageComponents::Shared`.
 
 The recommended recipe for hubs with two navigation levels:
 

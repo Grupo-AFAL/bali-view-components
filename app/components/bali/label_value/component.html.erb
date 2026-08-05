@@ -1,6 +1,6 @@
-<%= tag.div(**component_attributes) do %>
-  <label class="<%= LABEL_CLASSES %>"><%= label %></label>
-  <div class="<%= VALUE_CLASSES %>">
+<%= tag.dl(**component_attributes) do %>
+  <dt class="<%= LABEL_CLASSES %>"><%= label %></dt>
+  <dd class="<%= VALUE_CLASSES %>">
     <%= value || content %>
-  </div>
+  </dd>
 <% end %>

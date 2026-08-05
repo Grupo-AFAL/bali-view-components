@@ -11,18 +11,21 @@ module Bali
       MAP_CLASSES = "map h-[400px]"
       BUTTON_WRAPPER_CLASSES = "flex justify-end items-center mb-3"
 
-      def coordinates_polygon_field_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+      # The caption stays a `<legend>`: the only form control here is a hidden
+      # field the map writes into, and a hidden input is not labelable.
+      def coordinates_polygon_group(method, **options)
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
           coordinates_polygon_field(method, options)
         end
       end
 
       def coordinates_polygon_field(method, options = {})
-        options = setup_options(options)
         value = serialize_value(options.fetch(:value, []))
-        options = options.except(:value)
+        attributes = setup_options(widget_attributes(dup_options(options)).except(:value))
 
-        tag.div(**options) do
+        tag.div(**attributes) do
           safe_join(
             [
               clear_buttons,
@@ -44,13 +47,9 @@ module Bali
         opts = prepend_data_attribute(
           opts,
           "drawing-maps-confirmation-message-to-clear-value",
-          I18n.t("helpers.generic_confirm_message.text")
+          I18n.t("bali_view.form_builder.coordinates_polygon.confirm")
         )
-        prepend_data_attribute(opts, "drawing-maps-key", google_maps_key)
-      end
-
-      def google_maps_key
-        ENV.fetch("GOOGLE_MAPS_KEY", "")
+        prepend_data_attribute(opts, "drawing-maps-key", Bali.google_maps_key.to_s)
       end
 
       def clear_buttons
@@ -61,7 +60,7 @@ module Bali
 
       def clear_holes_button
         tag.button(
-          I18n.t("helpers.clear_holes.text"),
+          I18n.t("bali_view.form_builder.coordinates_polygon.clear_holes"),
           type: "button",
           class: BUTTON_CLASSES[:clear_holes],
           data: { action: "drawing-maps#clearHoles" }
@@ -70,7 +69,7 @@ module Bali
 
       def clear_all_button
         tag.button(
-          I18n.t("helpers.clear.text"),
+          I18n.t("bali_view.form_builder.coordinates_polygon.clear"),
           type: "button",
           class: BUTTON_CLASSES[:clear_all],
           data: { action: "drawing-maps#clear" }

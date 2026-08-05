@@ -33,11 +33,11 @@ Tailwind needs to scan Bali component files to include their classes in the buil
 
 #### 2. Bali CSS Not Imported
 
-**Fix:** Import Bali's CSS files:
+**Fix:** Import Bali's CSS. A single import covers everything, component
+sheets included:
 
 ```css
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 ```
 
 #### 3. Wrong Tailwind Version
@@ -156,9 +156,14 @@ registerControllers(application)
 
 2. **Event not reaching controller:**
 
-   **Debug:** Add this to console and try clicking:
+   **Debug:** Paste this in the console and try clicking. Every Bali event is named
+   `bali:<component>:<event>`, so opening a modal should log `bali:modal:open`:
    ```javascript
-   baliDispatchDebugEnabled = true
+   const dispatchEvent = EventTarget.prototype.dispatchEvent
+   EventTarget.prototype.dispatchEvent = function (event) {
+     if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+     return dispatchEvent.call(this, event)
+   }
    ```
 
 3. **Turbo interference:** Turbo Drive might be intercepting clicks
@@ -211,7 +216,7 @@ registerControllers(application)
 ### FormBuilder Methods Not Found
 
 **Symptoms:**
-- `undefined method 'text_field_group' for #<ActionView::Helpers::FormBuilder>`
+- `undefined method 'text_group' for #<ActionView::Helpers::FormBuilder>`
 
 **Cause:** Not using Bali's FormBuilder.
 
@@ -219,7 +224,7 @@ registerControllers(application)
 
 ```erb
 <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
-  <%= f.text_field_group :name %>
+  <%= f.text_group :name %>
 <% end %>
 ```
 
@@ -244,7 +249,7 @@ ActionView::Base.default_form_builder = Bali::FormBuilder
 
    ```erb
    <%# This shows errors %>
-   <%= f.text_field_group :email %>
+   <%= f.text_group :email %>
 
    <%# This does NOT show errors %>
    <%= f.text_field :email %>
@@ -272,7 +277,7 @@ ActionView::Base.default_form_builder = Bali::FormBuilder
 **Fix:** Use the `modal: true` option on submit:
 
 ```erb
-<%= f.submit_actions "Save", modal: true %>
+<%= f.submit_group "Save", modal: true %>
 ```
 
 This adds the correct Stimulus actions for modal integration.

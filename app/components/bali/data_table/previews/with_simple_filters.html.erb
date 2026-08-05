@@ -16,10 +16,13 @@
       <% studios.each do |studio| %>
         <% t.with_row do %>
           <td class="font-medium"><%= studio.name %></td>
-          <td><%= render Bali::Tag::Component.new(text: studio.country, size: :sm, variant: :outline) %></td>
+          <td><%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %></td>
           <td>
+            <%# `&.`, como la celda de Size dos líneas más abajo: un Studio sin status —el
+                que deja cualquier alta hecha desde el drawer sin elegirlo— tiraba el preview
+                entero con `undefined method 'humanize' for nil`. %>
             <%= render Bali::Tag::Component.new(
-              text: studio.status.humanize,
+              text: studio.status&.humanize,
               color: case studio.status
                      when 'active' then :success
                      when 'inactive' then :error

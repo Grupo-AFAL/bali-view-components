@@ -20,26 +20,40 @@
               q[...search...] y el server tomaba "attributes vacíos" como estado nuevo — borraba
               los filtros aplicados (y, con persistencia, también los guardados). %>
           <%= active_filter_hidden_fields %>
-          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
-            <label class="input input-bordered input-sm join-item w-full sm:w-64 flex items-center gap-2">
-              <input type="text"
-                     name="<%= search_field_name %>"
-                     value="<%= search_value %>"
-                     placeholder="<%= search_placeholder %>"
-                     class="grow bg-transparent outline-none"
-                     data-filters-target="searchInput"
-                     data-action="input->filters#toggleSearchClear">
+          <%# `min-w-0` en los tres niveles: `sm:w-64` es el ancho que la búsqueda QUIERE, no
+              un piso. Sin esto no podía encogerse, y en una toolbar apretada (un DataTable
+              con sidebar) el campo se pintaba fuera de su caja, encima de los controles de
+              al lado, en vez de cederles ancho. %>
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
+            <label class="input input-bordered input-sm join-item <%= search_width %> min-w-0 flex items-center gap-2">
+              <%# tag.input rather than literal markup: `label` is optional, and an empty
+                  aria-label is worse than none — it names the field the empty string. %>
+              <%= tag.input(
+                    type: "text",
+                    name: search_field_name,
+                    value: search_value,
+                    placeholder: search_placeholder,
+                    "aria-label": search_label,
+                    class: "grow min-w-0 bg-transparent outline-none",
+                    data: {
+                      filters_target: "searchInput",
+                      action: "input->filters#toggleSearchClear"
+                    }
+                  ) %>
               <%# Clear button - shown when search has value %>
               <button type="button"
                       class="cursor-pointer p-0 w-4 h-4 flex items-center justify-center text-base-content/40 hover:text-base-content/70 <%= 'hidden' if search_value.blank? %>"
                       data-filters-target="searchClearButton"
                       data-action="click->filters#clearSearch"
-                aria-label="<%= t('bali.filters.clear_search', default: 'Clear search') %>">
+                aria-label="<%= t('bali_view.filters.clear_search') %>">
                 <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
               </button>
             </label>
-            <button type="submit" class="btn btn-primary btn-sm join-item" data-action="click->filters#submitSearch">
-              <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
+            <%# An icon contributes no text, so without this the submit button was announced
+                as a bare "button". %>
+            <button type="submit" class="btn btn-primary btn-sm join-item" data-action="click->filters#submitSearch"
+                    aria-label="<%= t('bali_view.filters.submit_search') %>">
+              <%= render Bali::Icon::Component.new(search_icon, class: 'w-4 h-4') %>
             </button>
           </div>
         <% end %>
@@ -59,7 +73,7 @@
           </button>
 
           <%# Dropdown content - hidden by default, shown via JS %>
-          <div class="hidden z-50
+          <div class="hidden z-[var(--bali-z-dropdown)]
                       max-sm:fixed max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0
                       sm:absolute sm:top-full sm:left-0 sm:mt-2"
              data-filters-target="dropdownContent">
@@ -70,9 +84,9 @@
             <div class="max-sm:flex items-center justify-between p-4 border-b border-base-200 sm:hidden">
               <h3 class="text-lg font-semibold flex items-center gap-2">
                 <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
-                <%= t('bali.filters.title', default: 'Filters') %>
+                <%= t('bali_view.filters.title') %>
               </h3>
-              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="Close">
+              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="<%= t('.close_panel') %>">
                 <%= render Bali::Icon::Component.new('x', class: 'w-5 h-5') %>
               </button>
             </div>
@@ -99,13 +113,13 @@
                                 class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="and">
-                            <%= t('bali.filters.combinators.and', default: 'AND') %>
+                            <%= t('bali_view.filters.combinators.and') %>
                           </button>
                           <button type="button"
                                 class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="or">
-                            <%= t('bali.filters.combinators.or', default: 'OR') %>
+                            <%= t('bali_view.filters.combinators.or') %>
                           </button>
                         </div>
                         <div class="flex-1 border-t border-base-300"></div>
@@ -129,13 +143,13 @@
                   <button type="button"
                         class="btn btn-ghost btn-sm flex-1 sm:flex-initial"
                         data-action="filters#reset">
-                    <%= t('bali.filters.reset', default: 'Reset') %>
+                    <%= t('bali_view.filters.reset') %>
                   </button>
                   <button type="submit"
                         class="btn btn-primary btn-sm flex-1 sm:flex-initial"
                         data-action="filters#apply">
                     <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-                    <%= t('bali.filters.apply', default: 'Apply') %>
+                    <%= t('bali_view.filters.apply') %>
                   </button>
                 </div>
 
@@ -146,19 +160,19 @@
                         data-action="filters#addGroup"
                         data-filters-target="addGroupButton">
                     <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-                    <%= t('bali.filters.add_group', default: 'Add filter group') %>
+                    <%= t('bali_view.filters.add_group') %>
                   </button>
                   <% if persistence_available? && persist_enabled? %>
                     <span class="text-xs text-base-content/50 flex items-center gap-1">
                       <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
-                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
+                      <%= t('bali_view.filters.auto_saved') %>
                     </span>
                   <% end %>
                   <button type="button"
                         class="btn btn-ghost btn-xs text-error"
                         data-action="filters#clearAll"
                         data-filters-target="clearButton">
-                    <%= t('bali.filters.clear_all', default: 'Clear all') %>
+                    <%= t('bali_view.filters.clear_all') %>
                   </button>
                 </div>
               </div>
@@ -167,31 +181,12 @@
           </div>
         </div>
 
-        <%# Persistence toggle (bookmark icon) %>
-        <% if persistence_available? %>
-          <%# Los tooltips van como VALUES en el elemento del controller: el Stimulus los lee
-              con this.data.get / values sobre this.element — puestos en el botón hijo eran
-              invisibles y el texto caía al fallback en inglés. %>
-          <div class="max-sm:overflow-hidden" data-controller="filter-persistence"
-               data-filter-persistence-storage-id-value="<%= storage_id %>"
-               data-filter-persistence-enabled-value="<%= persist_enabled? %>"
-               data-filter-persistence-enabled-tooltip-value="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
-               data-filter-persistence-disabled-tooltip-value="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
-            <button type="button"
-                    class="tooltip tooltip-bottom btn btn-ghost btn-sm btn-square"
-                    data-action="filter-persistence#toggle"
-                    data-filter-persistence-target="button"
-                    data-tip="<%= persist_enabled? ? t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') : t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
-              <%# Filled bookmark when enabled %>
-              <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless persist_enabled? %>">
-                <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
-              </span>
-              <%# Outline bookmark when disabled %>
-              <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if persist_enabled? %>">
-                <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/40') %>
-              </span>
-            </button>
-          </div>
+        <%# Persistence toggle (bookmark icon). Dentro de un DataTable el marcador lo pinta la
+            toolbar como control propio y acá llega apagado: dos controladores
+            `filter-persistence` sobre el mismo storage_id se pisan el localStorage. %>
+        <% if persistence_toggle? %>
+          <%= render Bali::Filters::PersistenceToggle::Component.new(
+                storage_id: storage_id, enabled: persist_enabled?) %>
         <% end %>
       </div>
 
@@ -225,13 +220,13 @@
         <div class="flex justify-between items-center">
           <h3 class="font-semibold text-lg flex items-center gap-2">
             <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
-            <%= t('bali.filters.title', default: 'Filters') %>
+            <%= t('bali_view.filters.title') %>
           </h3>
           <button type="button"
                     class="btn btn-ghost btn-sm text-error"
                     data-action="filters#clearAll"
                     data-filters-target="clearButton">
-            <%= t('bali.filters.clear_all', default: 'Clear all') %>
+            <%= t('bali_view.filters.clear_all') %>
           </button>
         </div>
 
@@ -250,13 +245,13 @@
                                 class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="and">
-                    <%= t('bali.filters.combinators.and', default: 'AND') %>
+                    <%= t('bali_view.filters.combinators.and') %>
                   </button>
                   <button type="button"
                                 class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="or">
-                    <%= t('bali.filters.combinators.or', default: 'OR') %>
+                    <%= t('bali_view.filters.combinators.or') %>
                   </button>
                 </div>
                 <div class="flex-1 border-t border-base-300"></div>
@@ -278,7 +273,7 @@
                   data-action="filters#addGroup"
                   data-filters-target="addGroupButton">
           <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-          <%= t('bali.filters.add_group', default: 'Add filter group') %>
+          <%= t('bali_view.filters.add_group') %>
         </button>
 
         <div class="divider my-0"></div>
@@ -288,14 +283,14 @@
           <button type="button"
                     class="btn btn-ghost order-2 sm:order-1"
                     data-action="filters#reset">
-            <%= t('bali.filters.reset', default: 'Reset') %>
+            <%= t('bali_view.filters.reset') %>
           </button>
           <button type="submit"
                     class="btn btn-primary order-1 sm:order-2"
                     data-action="filters#apply"
                     data-filters-target="applyButton">
             <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-            <%= t('bali.filters.apply', default: 'Apply Filters') %>
+            <%= t('bali_view.filters.apply_filters') %>
           </button>
         </div>
       <% end %>

@@ -1,5 +1,14 @@
-<div class="<%= grid_classes %>">
-  <% columns.each do |column| %>
-    <%= column %>
-  <% end %>
-</div>
+<%= tag.div(**board_attributes) do %>
+  <div class="<%= grid_classes %>">
+    <% columns.each do |column| %>
+      <%= column %>
+    <% end %>
+  </div>
+
+  <%= tag.div('',
+        class: 'sr-only',
+        role: 'status',
+        'aria-live': 'polite',
+        'aria-atomic': 'true',
+        data: { kanban_target: 'liveRegion' }) %>
+<% end %>

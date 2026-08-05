@@ -38,6 +38,20 @@ autoloader.do_not_eager_load(Dir[root.join('app/components/**/preview.rb')])
 - `ignore` = completely invisible to Zeitwerk → breaks Lookbook on-demand autoloading → 500 errors on preview URLs
 - `do_not_eager_load` = skips during `eager_load!` but still autoloads on demand ✓
 
+### Constants inside a preview file go written in full
+
+A `preview.rb` must name its sibling constants completely — `Bali::Icon::LucideMapping`, never
+`LucideMapping` — even though the short form reads fine and works on a cold server.
+
+`Module.nesting` is captured at parse time and holds a reference to the module *object*. Lookbook
+loads every preview at boot to build its navigation and keeps the class in its own registry, so a
+later `reload!` leaves that class resolving sibling constants against a `Bali::Icon` Zeitwerk has
+already discarded: `uninitialized constant Bali::Icon::Preview::LucideMapping` over the request
+path, on a constant `bin/rails runner` resolves without complaint (#843). Ordinary component files
+do not have this problem — they are re-parsed by the same reload that replaces the namespace.
+
+`test/requests/icon_previews_test.rb` fails the build if any `preview.rb` reintroduces the pattern.
+
 ### Preview file base class
 
 All preview files must inherit from `ApplicationViewComponentPreview`. Do NOT use `Lookbook::Preview` (unavailable in consuming apps without Lookbook) or `ViewComponent::Preview` (inconsistent with the rest of the codebase).
@@ -57,14 +71,47 @@ changes if either is behind, then run the full test suite.
 Rubocop and Minitest run automatically via `.githooks` (pre-commit and pre-push). Cypress does
 not — run `yarn run cy:run` yourself when you touch JS, and confirm the Lookbook preview renders.
 
-## Tailwind v4 CSS Layer Gotcha
+## Which CSS layer a rule belongs in
 
-Component CSS files (`index.css`) are **unlayered** — they beat Tailwind utility classes in `@layer utilities`.
-If a component sets `@apply flex` on `.menu-item`, utility classes like `lg:hidden` will NOT override it.
-Use `!important` variants instead: `lg:!hidden`, `max-lg:!hidden`.
+Since v3 the package's CSS sits in three deliberate positions. Put a new rule in the wrong
+one and it either loses to daisyUI or becomes impossible for a host to override.
+
+| Position | What goes there | Why |
+|---|---|---|
+| `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so a real theme *in that layer* wins. They are fallbacks, not overrides. |
+| `@layer components` | Bali's own look — nearly every `index.css` and global sheet | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. |
+| unlayered | Only rules whose job is to outrank daisyUI (or Tailwind itself) | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
+
+Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
+`bali/container-overrides.css`, `breadcrumb/index.css`, `data_table/index.css`,
+`side_menu/daisyui-overrides.css`, `calendar/daisyui-overrides.css`,
+`rich_text_editor/daisyui-overrides.css`. Each file's header names the rule it has to beat and
+the measurement that put it there — read it before adding to one.
+
+Rule of thumb for a new unlayered rule: the right-most compound is a daisyUI class, and you
+are only setting declarations daisyUI also sets. Anything else belongs in `@layer components`.
+`container-overrides.css` is the same shape against Tailwind's `.container` utility — the
+reason is the layer, not the vendor.
+
+**Specificity only settles ties inside a layer.** Across layers the later one wins outright,
+so a `:where()` selector in `base` is not "weak" against `@layer theme` — it beats it. The
+practical consequence: a host cannot override Bali's eight structural tokens from `@theme {}`,
+because that compiles to `@layer theme`, which comes before `base`. Measured; the table is in
+the header of `bali/theme-fallbacks.css`.
+
+**A default and the state that overrides it must share a layer.** A static utility on a
+template beats anything in `@layer components`, so the moment Bali's own CSS declares a
+`:hover`, an `.is-active` or a density variant for that property, the default has to move into
+the sheet next to it or the variant is dead. `command/index.css` carries the worked example.
+
+Careful with `!important` in an unlayered file: it is the *weakest* important in the author
+origin, so a host escapes it with `lg:!hidden`. Move that same rule into a layer and it
+becomes nearly unbeatable — the opposite of what you usually want.
 
 ### CSS Rebuild
-After editing component CSS files, rebuild with: `bundle exec rails tailwindcss:build`
+After editing component CSS files, rebuild with: `bundle exec rails app:tailwindcss:build`
+(`rails tailwindcss:build` is the app's own task and does not exist here — the engine
+namespaces it under `app:`.)
 Compiled output: `spec/dummy/app/assets/builds/tailwind.css`
 
 ## DaisyUI Tooltip Mobile Gotcha
@@ -132,7 +179,7 @@ Use the correct component based on **what the element does**, not how it looks:
 |----------|-----------|---------|---------|
 | **Navigation** (goes to URL) | `Bali::Link::Component` | `<a>` | "View Details", "Go Back" |
 | **Action** (triggers behavior) | `Bali::Button::Component` | `<button>` | "Submit", "Cancel", "Close Modal" |
-| **Link styled as button** | `Bali::Link::Component` with `type:` | `<a class="btn">` | "Create New" (navigates to /new) |
+| **Link styled as button** | `Bali::Link::Component` with `variant:` | `<a class="btn">` | "Create New" (navigates to /new) |
 
 ```erb
 <%# ✅ CORRECT: Button for actions %>
@@ -140,7 +187,7 @@ Use the correct component based on **what the element does**, not how it looks:
 <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
 
 <%# ✅ CORRECT: Link for navigation %>
-<%= render Bali::Link::Component.new(name: 'View Users', href: '/users', type: :primary) %>
+<%= render Bali::Link::Component.new(name: 'View Users', href: '/users', variant: :primary) %>
 
 <%# ❌ WRONG: Link for action (accessibility issue) %>
 <%= render Bali::Link::Component.new(name: 'Cancel', href: '#', data: { action: 'modal#close' }) %>
@@ -157,11 +204,36 @@ Use the correct component based on **what the element does**, not how it looks:
 |-----------|-------|---------|
 | `PageHeader` back | `back: path` | `back: { href: path }` |
 | `Table` rows | `with_body_row` / `with_cell` | `with_row do` + raw `<td>` tags |
-| `FormBuilder` select | `select_field_group` | `select_group` |
-| `FormBuilder` textarea | `text_area_field_group` | `text_area_group` |
 | `SlimSelect` HTML | inline HTML | `data-inner-html` attribute on options |
 | Non-model form select param key | expecting `name:` to namespace | `input_name:`/`input_id:` in `select_group`/`slim_select_group` options |
 | Drawer/Modal form partial updates | full-page redirect only | respond with `text/vnd.turbo-stream.html` + `data-turbo="true"` on the form — streams are applied and the drawer/modal closes on success |
+
+## FormBuilder naming
+
+There is nothing to look up: **`<type>_group`** renders the control inside its fieldset,
+**`<type>_field`** renders the bare control, and everything after the attribute is a
+keyword. `text_group`/`text_field`, `select_group`/`select_field`,
+`text_area_group`/`text_area_field`. Attributes for the element itself go in `html:` on
+the four families that have two hashes (`select_*`, `slim_select_*`,
+`time_zone_select_*`, `radio_*`).
+
+The submit pair follows the same rule: `submit_group` is the actions row, `submit_field`
+the button on its own.
+
+One exception, which needs no lookup table: `f.text_area`, `f.rich_text_area`,
+`f.time_zone_select` and `f.submit` are Rails' names, kept as overrides so they keep
+rendering Bali's markup. Not deprecated; prefer the `<type>_field` spelling in new code.
+`search_group` has no bare half at all — Rails' `search_field` is left alone, because
+overriding it would change what host call sites already using it render.
+
+The v2 `*_field_group` names and `submit_actions` still resolve for one cycle where a host
+app actually used them, warning through `Bali.deprecator` — see
+`lib/bali/form_builder/deprecated_names.rb`. Do not write them in new code.
+
+`required:` is a plain HTML attribute passthrough, not a Bali option: it reaches the
+control on the families that render one, and is dropped by the ones whose control is a
+widget over a hidden field. `test/bali/form_builder/required_option_test.rb` names which
+is which, and fails if a new family lands in neither list.
 
 ## Icons
 

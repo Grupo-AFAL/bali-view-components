@@ -36,25 +36,44 @@ class SearchableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, options: [ %w[Action action], %w[Comedy comedy] ]
 end
 
-# Test form with simple_filter DSL
-class SimpleFilterableMovieFilterForm < Bali::FilterForm
-  simple_filter :genre,
-                collection: [ %w[Action action], %w[Comedy comedy], %w[Drama drama] ],
-                blank: "All Genres"
+# El listado que reportó #852: búsqueda rápida y filtros simplificados sobre el mismo form,
+# que es donde los dos mecanismos de "estado" (la persistencia y las vistas guardadas) se
+# cruzan. Las opciones valen lo mismo que la columna para poder afirmar sobre el recorte.
+class SearchableSimpleFilterForm < Bali::FilterForm
+  search_fields :name, :genre
 
-  simple_filter :status,
-                collection: [ %w[Done done], %w[Draft draft] ],
-                blank: "All",
-                label: "Movie Status",
-                default: "done"
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action Action], %w[Comedy Comedy] ], blank: "All Genres"
 end
 
-# Test simple_filter inheritance
+# Test form declaring simple-UI-only filters
+class SimpleFilterableMovieFilterForm < Bali::FilterForm
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action action], %w[Comedy comedy], %w[Drama drama] ],
+                   blank: "All Genres"
+
+  filter_attribute :status, type: :select, simple: true, advanced: false,
+                   options: [ %w[Done done], %w[Draft draft] ],
+                   blank: "All",
+                   label: "Movie Status",
+                   default: "done"
+end
+
+# El caso de #882 escrito con la API que v3 promueve: un filtro cuyo control ya se nombra
+# solo con su opción en blanco, declarado con `label: false` para que no lleve caption.
+class UncaptionedSimpleFilterForm < Bali::FilterForm
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action action] ],
+                   blank: "Todos los géneros",
+                   label: false
+end
+
+# Test simple filter inheritance
 class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
-  simple_filter :indie,
-                collection: [ [ true, true ], [ false, false ] ],
-                blank: "Any",
-                label: "Indie Film"
+  filter_attribute :indie, type: :select, simple: true, advanced: false,
+                   options: [ [ true, true ], [ false, false ] ],
+                   blank: "Any",
+                   label: "Indie Film"
 end
 
 # Unified DSL: one filter_attribute declaration feeding BOTH filter UIs (#644)
@@ -68,10 +87,11 @@ class UnifiedMovieFilterForm < Bali::FilterForm
                    label: -> { "Estado" }, default: "draft", input: :slim_select
 end
 
-# Legacy alias declaring a :date filter with an explicit predicate (bug fix:
-# the declared predicate used to be silently discarded and replaced with :eq)
+# A :date simple filter with an explicit predicate (regression: the declared
+# predicate used to be silently discarded and replaced with :eq)
 class DatePredicateFilterForm < Bali::FilterForm
-  simple_filter :created_at, type: :date, predicate: :gteq, label: "Created after"
+  filter_attribute :created_at, type: :date, simple: true, advanced: false,
+                   predicate: :gteq, label: "Created after"
 end
 
 # Test form with group_by_attribute DSL. No custom scope order so the
@@ -81,6 +101,35 @@ class GroupableMovieFilterForm < Bali::FilterForm
   group_by_attribute :status
 
   attribute :genre_eq
+end
+
+# Enum-label casting (#670): las opciones del select son las ETIQUETAS del enum, que es lo
+# que sale de `Movie.statuses.keys` — el caso que Ransack rompía casteando con el tipo crudo
+# de la columna.
+class EnumMovieFilterForm < Bali::FilterForm
+  filter_attribute :status, type: :select,
+                   options: -> { Movie.statuses.keys.map { |key| [ key.humanize, key ] } }
+
+  attribute :status_eq
+  attribute :status_not_eq
+  attribute :status_cont
+  attribute :status_gteq
+end
+
+class EnumSimpleFilterMovieForm < Bali::FilterForm
+  filter_attribute :status, type: :select, simple: true, advanced: false,
+                   options: [ %w[Done done], %w[Draft draft] ], blank: "All"
+end
+
+# Enum de STRING: nunca estuvo roto (Ransack no destruye la etiqueta y el EnumType la
+# resuelve después). Está acá para clavar que la traducción es IDEMPOTENTE, no un cambio de
+# comportamiento.
+class StringEnumMovie < ActiveRecord::Base
+  self.table_name = "movies"
+
+  enum :genre, { action: "Action", comedy: "Comedy" }
+
+  def self.ransackable_attributes(_auth_object = nil) = column_names
 end
 
 class BaliFilterFormTest < ActiveSupport::TestCase
@@ -129,6 +178,43 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
   def test_active_filters_returns_false_without_any_filters
     @form = MovieFilterForm.new(@tenant.movies, params({}))
+    refute(@form.active_filters?)
+  end
+
+  # #817 — three surfaces narrow a listing and only one was represented here. A plain
+  # FilterForm declares no attributes, so `attribute_names` is `["s"]` and this answered
+  # `{}` no matter what the user had chosen; `Table` then read `active_filters?` as false
+  # and offered "No records yet — create one" over a result the filters had emptied.
+  def test_active_filters_counts_a_simple_filter_a_plain_form_never_declares
+    simple_filters_config = [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    @form = Bali::FilterForm.new(Movie.all, params({ category_eq: "a" }),
+                                 simple_filters: simple_filters_config)
+
+    assert(@form.active_filters?)
+    assert_equal(1, @form.active_filters_count)
+    assert_equal({ "category_eq" => "a" }, @form.active_filters)
+  end
+
+  def test_active_filters_counts_the_quick_search
+    @form = Bali::FilterForm.new(Movie.all, params({ name_or_genre_cont: "Iron" }),
+                                 search_fields: %i[name genre])
+
+    assert(@form.active_filters?)
+    assert_equal(1, @form.active_filters_count)
+  end
+
+  def test_active_filters_stays_false_on_a_plain_form_with_nothing_chosen
+    simple_filters_config = [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    @form = Bali::FilterForm.new(Movie.all, params({}), simple_filters: simple_filters_config,
+                                                        search_fields: %i[name])
+
+    refute(@form.active_filters?)
+    assert_equal(0, @form.active_filters_count)
+  end
+
+  # `s` is Ransack's sort param. Sorting is not narrowing.
+  def test_active_filters_ignores_the_sort_param
+    @form = MovieFilterForm.new(@tenant.movies, params({ s: "name asc" }))
     refute(@form.active_filters?)
   end
 
@@ -475,6 +561,96 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     assert_equal("genre", restored.group_by.to_s)
   end
 
+  def test_persists_the_group_by_even_while_it_is_suspended
+    # La suspensión fuera del modo tabla es un predicado DERIVADO, nunca `@group_by = nil`:
+    # anulando el ivar, entrar al listado en tarjetas envenenaba la caché con nil y volver a
+    # la tabla ya no encontraba la agrupación.
+    suspended = ActionController::Parameters.new(
+      q: { genre_eq: "action" }, group_by: "genre", view: "grid"
+    )
+    form = GroupableMovieFilterForm.new(Movie.all, suspended, storage_id: "movies")
+    assert(form.group_by_suspended?)
+
+    stored = Rails.cache.read(cache_key_for(GroupableMovieFilterForm))
+    assert_equal("genre", stored[:group_by].to_s)
+  end
+
+  def test_a_group_by_from_the_url_beats_the_persisted_one
+    # Elegir una agrupación llega SOLO como `?group_by=`: los filtros viven en la caché, así
+    # que la URL no los trae y corre el branch de restaurar, que pisaba el click recién hecho
+    # con la agrupación vieja. El control no hacía nada y el viaje tarjetas↔tabla la perdía.
+    GroupableMovieFilterForm.new(Movie.all, params(genre_eq: "action"), storage_id: "movies")
+    assert_nil(Rails.cache.read(cache_key_for(GroupableMovieFilterForm))[:group_by])
+
+    clicked = GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: "genre"),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_equal(:genre, clicked.group_by)
+  end
+
+  # El estado que se RENDERIZA y el que se GUARDA tienen que ser el mismo, o la caché termina
+  # contando otra historia: el click llega SIN `q` (los filtros ya viven en la caché), corre el
+  # branch de restaurar, y renderizar la elección nueva sin escribirla dejaba el mismo render
+  # bien y el siguiente request sin el param resucitando la agrupación vieja.
+  def test_a_group_by_chosen_while_restoring_is_persisted
+    GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { genre_eq: "action" }, group_by: "genre"),
+      storage_id: "movies"
+    )
+
+    clicked = GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: "status"),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_equal(:status, clicked.group_by)
+
+    returning = GroupableMovieFilterForm.new(Movie.all, ActionController::Parameters.new,
+                                             storage_id: "movies", persist_enabled: true)
+    assert_equal(:status, returning.group_by)
+    assert_equal("action", returning.genre_eq, "guardar la agrupación no puede perder los filtros")
+  end
+
+  def test_turning_the_grouping_off_survives_the_next_request
+    GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { genre_eq: "action" }, group_by: "genre"),
+      storage_id: "movies"
+    )
+    GroupableMovieFilterForm.new(Movie.all, ActionController::Parameters.new(group_by: ""),
+                                 storage_id: "movies", persist_enabled: true)
+
+    returning = GroupableMovieFilterForm.new(Movie.all, ActionController::Parameters.new,
+                                             storage_id: "movies", persist_enabled: true)
+    assert_nil(returning.group_by)
+  end
+
+  # Sin filtros previos no hay nada en la caché, y elegir una agrupación tampoco escribía nada:
+  # la elección duraba un solo render.
+  def test_a_group_by_chosen_without_any_stored_state_is_persisted
+    GroupableMovieFilterForm.new(Movie.all, ActionController::Parameters.new(group_by: "genre"),
+                                 storage_id: "movies", persist_enabled: true)
+
+    returning = GroupableMovieFilterForm.new(Movie.all, ActionController::Parameters.new,
+                                             storage_id: "movies", persist_enabled: true)
+    assert_equal(:genre, returning.group_by)
+  end
+
+  def test_turning_the_grouping_off_is_not_undone_by_the_persisted_one
+    # `?group_by=` vacío es "sin agrupación", y tiene que ser distinguible de "no vino nada":
+    # con la persistencia encendida, un param ausente significa restaurar la caché — o sea que
+    # apagar la agrupación la resucitaba en el mismo render.
+    GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { genre_eq: "action" }, group_by: "genre"),
+      storage_id: "movies"
+    )
+
+    cleared = GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: ""),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.group_by)
+  end
+
   def test_clearing_the_search_does_not_restore_state_when_persistence_is_off
     # Con la persistencia apagada el usuario pidió que el server NO le devuelva estado:
     # limpiar la búsqueda no puede ser la puerta trasera por la que reaparecen filtros.
@@ -572,6 +748,121 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     assert_nil(@form.search_value, "la vista vacía debe ganarle a la búsqueda vieja en caché")
     assert_equal([], @form.filter_groups)
   end
+
+  # --- #852: la persistencia cubre los filtros simplificados, igual que las vistas guardadas ---
+  #
+  # El marcador "Recordar filtros" no estaba muerto —gobierna la búsqueda rápida—, y por eso
+  # era peor: el usuario volvía al listado y la búsqueda aparecía, pero sus selects no. Una
+  # vista guardada SOBRE EL MISMO LISTADO sí los restauraba (`PAYLOAD_KEYS` los incluye), o
+  # sea que el mismo componente tenía dos definiciones de "el estado de los filtros".
+
+  def test_persists_and_restores_an_active_simple_filter
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+
+    stored = Rails.cache.read(cache_key_for(SearchableSimpleFilterForm))
+    assert_equal({ "genre_eq" => "Action" }, stored[:simple_filters])
+
+    restored = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: true
+    )
+    assert_equal({ "genre_eq" => "Action" }, restored.active_simple_filters)
+    assert_equal("Action", restored.ransack_params["genre_eq"],
+                 "restaurar tiene que llegar hasta Ransack, no solo pintar el select")
+  end
+
+  def test_a_restored_simple_filter_narrows_the_result
+    tenant = Tenant.create(name: "Restore Studio")
+    tenant.movies.create(name: "Iron Man", genre: "Action")
+    tenant.movies.create(name: "Snatch", genre: "Comedy")
+
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+    restored = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: true
+    )
+
+    names = restored.result.pluck(:name)
+    assert_includes(names, "Iron Man")
+    refute_includes(names, "Snatch")
+  end
+
+  def test_a_simple_filter_is_not_restored_when_persistence_is_off
+    # El marcador gobierna: si apagado restaurase, el arreglo habría cambiado lo que el
+    # marcador significa en vez de ampliar lo que cubre.
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+
+    restored = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: false
+    )
+    assert_empty(restored.active_simple_filters)
+  end
+
+  def test_a_simple_filter_from_the_url_beats_the_persisted_state
+    # La otra mitad, y la más grave: como `has_filter_params` no contaba los simplificados,
+    # una URL que solo pedía uno caía en el branch de RESTAURAR y la caché le ganaba a la URL.
+    # Medido en /admin/studios sobre `?q[country_eq]=USA`: 9 filas con la cookie de
+    # persistencia en 1 —se colaba una búsqueda guardada que la URL no menciona— contra 10 con
+    # la cookie en 0. Un enlace compartido rendía distinto según una cookie de quien lo abría.
+    SearchableSimpleFilterForm.new(Movie.all, params(name_or_genre_cont: "iron"), storage_id: "movies")
+
+    deep_link = SearchableSimpleFilterForm.new(
+      Movie.all, params(genre_eq: "Action"), storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(deep_link.search_value, "la URL manda: no puede colarse una búsqueda que no nombra")
+    assert_equal({ "genre_eq" => "Action" }, deep_link.active_simple_filters)
+  end
+
+  def test_clearing_a_simple_filter_is_not_undone_by_the_persisted_one
+    # El form de SimpleFilters manda TODOS sus controles, así que vaciar el select llega como
+    # `q[genre_eq]=`: valor vacío, elección explícita. Sin distinguir eso de "no vino nada"
+    # —la misma distinción que `@group_by_requested`—, restaurar le devolvía al usuario el
+    # filtro que acababa de limpiar.
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+
+    cleared = SearchableSimpleFilterForm.new(
+      Movie.all, params(genre_eq: ""), storage_id: "movies", persist_enabled: true
+    )
+    assert_empty(cleared.active_simple_filters)
+
+    returning = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: true
+    )
+    assert_empty(returning.active_simple_filters, "limpiar tiene que sobrevivir al próximo request")
+  end
+
+  def test_clearing_the_search_keeps_the_simple_filters
+    # `clearSearch` navega descartando TODOS los `q[...]` (ver preservedParamsUrl), así que la
+    # caché es la única fuente de lo que había elegido: si el merge o la tupla se los lleva,
+    # limpiar la búsqueda limpia también los selects.
+    SearchableSimpleFilterForm.new(
+      Movie.all, params(genre_eq: "Action", name_or_genre_cont: "iron"), storage_id: "movies"
+    )
+
+    cleared = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.search_value)
+    assert_equal({ "genre_eq" => "Action" }, cleared.active_simple_filters)
+
+    stored = Rails.cache.read(cache_key_for(SearchableSimpleFilterForm))
+    assert_equal({ "genre_eq" => "Action" }, stored[:simple_filters],
+                 "y tienen que sobrevivir al merge que anula la búsqueda")
+  end
+
+  def test_a_form_without_simple_filters_stores_an_empty_simple_filter_state
+    # El payload crece para todos, y el branch de restaurar lo lee sin condicionar: un form
+    # sin simplificados no puede quedar leyendo una llave que nunca se escribió.
+    SearchableMovieFilterForm.new(
+      Movie.all, params(name_or_genre_or_tenant_name_cont: "Iron"), storage_id: "movies"
+    )
+
+    stored = Rails.cache.read(cache_key_for(SearchableMovieFilterForm))
+    assert_empty(stored[:simple_filters])
+
+    restored = SearchableMovieFilterForm.new(Movie.all, params({}), storage_id: "movies",
+                                             persist_enabled: true)
+    assert_equal("Iron", restored.search_value)
+  end
 end
 
 class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
@@ -667,6 +958,49 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_equal("Movie Status", status_config[:label])
   end
 
+  # `label: false` es "no quiero rótulo". Antes no existía la distinción: `nil` y `false`
+  # son los dos falsy, así que el `||` mandaba a los dos a la derivación y no había forma
+  # de pedir un filtro sin caption. La plantilla ya sabía no pintarlo.
+  def test_simple_filters_config_honours_an_explicit_label_false
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[A a] ], blank: "All", label: false } ]
+    )
+
+    assert_nil(form.simple_filters_config.first[:label])
+  end
+
+  # Y lo derivado sigue llegando cuando no se pide nada, que es el caso de siempre.
+  def test_simple_filters_config_still_infers_when_no_label_is_given
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[A a] ], blank: "All" } ]
+    )
+
+    assert_equal("Genre", form.simple_filters_config.first[:label])
+  end
+
+  # El mismo caso por la API que v3 promueve, `filter_attribute`, que es por donde va a
+  # llegar de un host.
+  def test_filter_attribute_honours_an_explicit_label_false_for_the_simple_row
+    form = UncaptionedSimpleFilterForm.new(Movie.all, params({}))
+
+    assert_nil(form.simple_filters_config.first[:label])
+    assert_equal("Todos los géneros", form.simple_filters_config.first[:blank])
+  end
+
+  # El centinela NO puede ser la ausencia de la clave: `simple_filter` delega en
+  # `filter_attribute`, que guarda `explicit_label:` siempre, así que `defined_simple_filters`
+  # devuelve la clave `:label` puesta aunque nadie la haya escrito. Con `key?` como
+  # condición, TODOS los filtros declarados por el DSL se quedarían sin rótulo.
+  def test_the_dsl_always_carries_the_label_key_so_key_presence_cannot_be_the_sentinel
+    genre = SimpleFilterableMovieFilterForm.defined_simple_filters
+                                           .find { |f| f[:attribute] == :genre }
+
+    assert(genre.key?(:label), "la clave viene puesta")
+    assert_nil(genre[:label], "y sin valor, porque el DSL no recibió ninguno")
+  end
+
   def test_simple_filters_config_returns_nil_when_simple_filters_not_enabled
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.simple_filters_config)
@@ -727,32 +1061,33 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_equal([ %w[Dynamic dynamic] ], config.first[:collection])
   end
 
-  def test_simple_search_config_returns_search_config_hash_when_search_fields_configured
+  # `search_config` is the single builder both filter surfaces consume; there used to
+  # be a second one (`simple_search_config`) emitting a different shape for SimpleFilters.
+  def test_search_config_declares_the_columns_not_the_ransack_param
     @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name genre])
-    config = @form.simple_search_config
+    config = @form.search_config
     assert_kind_of(Hash, config)
-    assert_equal("q[name_or_genre_cont]", config[:field_name])
+    assert_equal(%i[name genre], config[:fields])
     assert_equal("Search by name, genre...", config[:placeholder])
+    assert_equal("q[name_or_genre_cont]", Bali::SearchConfig.wrap(config).param_name)
   end
 
-  def test_simple_search_config_includes_current_search_value_from_params
+  def test_search_config_carries_the_search_icon
+    @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name], search_icon: "search")
+    assert_equal("search", @form.search_config[:icon])
+  end
+
+  def test_search_config_includes_current_search_value_from_params
     filter_params = { name_or_genre_cont: "SAP" }
     @form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: %i[name genre])
-    config = @form.simple_search_config
-    assert_equal("SAP", config[:value])
+    assert_equal("SAP", @form.search_config[:value])
   end
 
-  def test_simple_search_config_returns_nil_when_search_fields_not_configured
-    @form = Bali::FilterForm.new(Movie.all, params({}))
-    assert_nil(@form.simple_search_config)
-  end
-
-  def test_simple_search_config_uses_custom_placeholder_when_provided
+  def test_search_config_uses_custom_placeholder_when_provided
     @form = Bali::FilterForm.new(
     Movie.all, params({}), search_fields: %i[name], search_placeholder: "Find movies..."
     )
-    config = @form.simple_search_config
-    assert_equal("Find movies...", config[:placeholder])
+    assert_equal("Find movies...", @form.search_config[:placeholder])
   end
 end
 
@@ -768,8 +1103,12 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
     @tenant.movies.create(name: "Fargo", genre: "Drama", status: :draft)
   end
 
-  def group_params(group_by, q: {})
-    ActionController::Parameters.new(q: ActionController::Parameters.new(q), group_by: group_by)
+  # `view:` es el modo de visualización tal cual llega de la URL; `extra` deja escribir el
+  # param con otro nombre para los tests de `view_param:`.
+  def group_params(group_by, q: {}, view: nil, **extra)
+    ActionController::Parameters.new(
+      { q: ActionController::Parameters.new(q), group_by: group_by, view: view }.merge(extra)
+    )
   end
 
   # --- Whitelist / security boundary ---
@@ -859,6 +1198,121 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
     assert_equal("name asc", form.ransack_params["s"])
   end
 
+  # --- Suspensión fuera del modo tabla: el ESTADO sobrevive, la APLICACIÓN se apaga ---
+  #
+  # Una tabla es la única superficie donde una banda de grupo significa algo. En tarjetas el
+  # mismo ordenamiento reacomodaba el contenido sin que nada en pantalla lo explicara, así
+  # que ahí la agrupación se SUSPENDE — pero el param tiene que sobrevivir, o volver a la
+  # tabla ya no la encuentra.
+
+  def test_group_by_ordering_is_suspended_outside_table_mode
+    form = GroupableMovieFilterForm.new(
+      @tenant.movies, group_params("genre", q: { s: "name desc" }, view: "grid")
+    )
+
+    assert_equal("name desc", form.ransack_params["s"])
+    refute_match(/genre/i, form.result.to_sql[/ORDER BY(.*)\z/i, 1].to_s)
+  end
+
+  def test_group_counts_are_empty_when_grouping_is_suspended
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
+    assert_equal({}, form.group_counts)
+  end
+
+  def test_group_by_state_survives_suspension
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
+
+    # ESTADO: intacto — es lo que preserva el hidden field del form de filtros.
+    assert_equal(:genre, form.group_by)
+    assert(form.group_by_active?)
+    # MODO y APLICACIÓN: apagados.
+    refute(form.group_by_applies?)
+    assert_nil(form.group_by_applied)
+    refute(form.group_by_applied?)
+    assert(form.group_by_suspended?)
+  end
+
+  def test_group_by_applies_in_table_mode
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "table"))
+
+    assert(form.group_by_applies?)
+    assert_equal(:genre, form.group_by_applied)
+    refute(form.group_by_suspended?)
+    assert_equal([ "genre asc" ], form.ransack_params["s"])
+    assert_equal({ "Action" => 3, "Comedy" => 2, "Drama" => 1 }, form.group_counts)
+  end
+
+  def test_group_by_applies_when_the_listing_has_no_view_switch
+    # El caso de la enorme mayoría de los listados: sin `?view=` en la URL no hay modo que
+    # pueda suspender nada.
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"))
+
+    assert(form.group_by_applies?)
+    assert_equal(:genre, form.group_by_applied)
+  end
+
+  def test_group_by_modes_lets_the_host_declare_which_modes_apply_it
+    kanban = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "kanban"),
+                                          group_by_modes: %i[table kanban])
+    assert(kanban.group_by_applied?)
+
+    grid = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"),
+                                        group_by_modes: %i[table kanban])
+    assert(grid.group_by_suspended?)
+  end
+
+  def test_group_by_modes_can_be_emptied_to_mean_no_mode_applies_it
+    # `[]` NO es "no me dijeron nada": es el host declarando que ningún modo la aplica (quiere
+    # el param preservado y guardado en una vista, nunca aplicado). Colapsándolo al default le
+    # daba justo lo contrario, en silencio.
+    never = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "table"),
+                                         group_by_modes: [])
+
+    assert(never.group_by_active?)
+    refute(never.group_by_applies?)
+    assert_nil(never.group_by_applied)
+    assert_nil(never.ransack_params["s"])
+
+    # Y tampoco por la puerta de atrás: sin `?view=` el escape de "sin modo aplica" la habría
+    # vuelto a encender.
+    bare = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"), group_by_modes: [])
+    refute(bare.group_by_applies?)
+  end
+
+  def test_display_mode_from_the_host_beats_the_url
+    # Un listado cuya vista por default no es la tabla aterriza SIN `?view=`, y el form —que
+    # solo mira la URL— daba por hecho que aplicaba: las tarjetas volvían ordenadas por grupo
+    # sin ninguna banda que lo explicara.
+    cards = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"), display_mode: :grid)
+
+    assert_equal(:grid, cards.display_mode)
+    assert(cards.group_by_suspended?)
+    assert_nil(cards.ransack_params["s"])
+
+    # Con el modo en la URL el host igual manda: es el único que sabe qué está renderizando.
+    forced = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "table"),
+                                          display_mode: :grid)
+    assert(forced.group_by_suspended?)
+  end
+
+  def test_view_param_selects_which_param_carries_the_display_mode
+    custom = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", modo: "grid"),
+                                          view_param: :modo)
+    assert(custom.group_by_suspended?)
+
+    # `view` dejó de ser el param que este form mira, así que no suspende nada.
+    ignored = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"),
+                                           view_param: :modo)
+    assert(ignored.group_by_applied?)
+  end
+
+  def test_a_view_saved_from_cards_still_carries_the_suspended_grouping
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
+    # String y no Symbol: este payload se compara contra uno que ya volvió de un jsonb, donde
+    # todo es String, y `comparable_view_state` normaliza llaves pero no valores.
+    assert_equal("genre", form.current_view_payload["group_by"])
+  end
+
   # --- Options / configuration ---
 
   def test_group_by_options_returns_attributes_with_labels
@@ -936,7 +1390,7 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
     assert_equal("Estado", status[:label])
   end
 
-  def test_legacy_simple_filter_stays_out_of_the_advanced_popover
+  def test_simple_only_filter_stays_out_of_the_advanced_popover
     form = SimpleFilterableMovieFilterForm.new(@tenant.movies, params({}))
     assert_equal([], form.available_attributes)
   end
@@ -1060,5 +1514,252 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
                                saved_views_store: store)
 
     assert_equal [ 0, 2 ], form.saved_view_columns
+  end
+
+  # #823 — a simple filter's value is never an ActiveModel attribute (it lives in q_params
+  # and goes straight to Ransack), so `attributes` could not see it and a view saved from a
+  # simplified index was born without its own cut.
+  def test_current_view_payload_carries_the_simple_filters
+    form = Bali::FilterForm.new(
+      Movie.all, params({ category_eq: "a" }),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    )
+
+    assert_equal({ "category_eq" => "a" }, form.current_view_payload["simple_filters"])
+  end
+
+  def test_current_view_payload_omits_the_key_with_no_simple_filter_chosen
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    )
+
+    assert_not form.current_view_payload.key?("simple_filters")
+  end
+
+  def test_applying_a_view_restores_its_simple_filters
+    store = store_with_view({ "simple_filters" => { "category_eq" => "a" } })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ],
+      saved_views_store: store
+    )
+
+    assert_equal("a", form.simple_filters_config.first[:value])
+    assert(form.active_filters?)
+  end
+
+  # Una vista es un estado COMPLETO, no un merge: el mismo contrato que ya rige para
+  # `attributes`. Un payload viejo, guardado antes de que la llave existiera, limpia.
+  def test_applying_a_view_without_simple_filters_clears_the_ones_in_the_url
+    store = store_with_view({ "attributes" => {} })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { category_eq: "a" }, saved_view: "1"),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ],
+      saved_views_store: store
+    )
+
+    assert_nil(form.simple_filters_config.first[:value])
+  end
+end
+
+# Enum-label casting (#670). Síntoma: filtrar Status = "Done" devolvía exactamente los
+# registros contrarios. Causa: Ransack castea con el tipo CRUDO de la columna, así que sobre
+# un enum entero "done".to_i es 0 — el valor de `draft`.
+class EnumCastingFilterFormTest < ActiveSupport::TestCase
+  def setup
+    @tenant = Tenant.create(name: "Test")
+    @done = @tenant.movies.create(name: "Iron man 3", status: :done)
+    @draft = @tenant.movies.create(name: "Iron man 2", status: :draft)
+    Rails.cache.clear
+  end
+
+  def params(filter_attributes)
+    ActionController::Parameters.new(q: filter_attributes)
+  end
+
+  # LA reproducción: el shape exacto que emite el builder de Bali::Filters. Se afirma sobre
+  # el CONJUNTO y no sobre el conteo — con dos registros, un conteo de 1 pasa igual de bien
+  # filtrando por el estado equivocado.
+  def test_an_enum_label_in_a_grouping_filters_by_the_right_records
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_in: [ "done" ], m: "and" } } }))
+
+    assert_equal [ "done" ], form.result.pluck(:status).uniq
+    assert_equal [ @done.name ], form.result.pluck(:name)
+  end
+
+  def test_an_enum_label_in_a_declared_attribute_filters_by_the_right_records
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "done" }))
+
+    assert_equal 1, form.ransack_params["status_eq"]
+    assert_equal [ "done" ], form.result.pluck(:status).uniq
+  end
+
+  def test_an_enum_label_in_a_simple_filter_filters_by_the_right_records
+    form = EnumSimpleFilterMovieForm.new(@tenant.movies, params({ status_eq: "done" }))
+
+    assert_equal 1, form.ransack_params["status_eq"]
+    assert_equal [ "done" ], form.result.pluck(:status).uniq
+  end
+
+  # Los predicados NEGADOS son donde una traducción rota es invisible: la negación devuelve el
+  # COMPLEMENTO, un conjunto plausible y no vacío. Por eso se afirma el set, no el param.
+  def test_a_negated_enum_label_filters_by_the_right_records
+    excluded = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_not_in: [ "done" ] } } }))
+    different = EnumMovieFilterForm.new(@tenant.movies, params({ status_not_eq: "done" }))
+
+    assert_equal [ "draft" ], excluded.result.pluck(:status).uniq
+    assert_equal [ "draft" ], different.result.pluck(:status).uniq
+  end
+
+  # Un valor CRUDO conocido pasa intacto: una app que ya mandaba 0/1 sigue andando igual.
+  def test_a_raw_enum_value_is_left_alone
+    raw = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "1" }))
+
+    assert_equal "1", raw.ransack_params["status_eq"]
+    assert_equal [ "done" ], raw.result.pluck(:status).uniq
+  end
+
+  # Un valor que no es NI etiqueta NI valor crudo no puede pasar intacto: Ransack lo castea
+  # con el tipo crudo de la columna y `"Done".to_i` es 0, o sea el PRIMER miembro del enum —
+  # el bug original, de vuelta, invertido y en silencio. El centinela hace que la igualdad no
+  # devuelva nada y la negación devuelva todo, que es la respuesta honesta.
+  def test_a_value_that_is_neither_a_label_nor_a_raw_value_matches_nothing
+    humanized = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "Done" }))
+    renamed = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_in: [ "completed" ] } } }))
+    negated = EnumMovieFilterForm.new(@tenant.movies, params({ status_not_eq: "completed" }))
+
+    assert_empty humanized.result
+    assert_empty renamed.result
+    assert_equal %w[done draft].sort, negated.result.pluck(:status).sort
+  end
+
+  # Ransack ignora las condiciones en blanco: mapear el vacío convertiría un select sin elegir
+  # en "no muestres nada" — cambiar un bug de datos equivocados por otro.
+  def test_a_blank_value_does_not_filter
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "" }))
+
+    assert_equal %w[done draft].sort, form.result.pluck(:status).sort
+  end
+
+  # `FilterForm.new(Movie, params)` —la forma que enseña la propia API de Ransack— no responde
+  # a `model`: preguntando por ahí la traducción entera era un no-op silencioso y el filtro
+  # devolvía los registros contrarios, sin una sola señal.
+  def test_the_model_class_as_scope_casts_like_a_relation
+    from_class = EnumMovieFilterForm.new(Movie, params({ g: { "0" => { status_in: [ "done" ] } } }))
+    from_relation = EnumMovieFilterForm.new(Movie.all, params({ g: { "0" => { status_in: [ "done" ] } } }))
+
+    assert_equal [ "done" ], from_class.result.pluck(:status).uniq
+    assert_equal from_relation.result.pluck(:id), from_class.result.pluck(:id)
+  end
+
+  def test_enum_labels_are_cast_inside_nested_groupings
+    filter_params = { g: { "0" => { g: { "0" => { status_eq: "done" } }, m: "or" } } }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal 1, form.ransack_params[:g]["0"]["g"]["0"]["status_eq"]
+    # Ransack DESCARTA una condición que no entiende sin levantar nada, así que el param solo
+    # no distingue "filtró bien" de "tiró la condición y devolvió todo".
+    assert_equal [ @done.name ], form.result.pluck(:name)
+  end
+
+  # `q[g][]` (groupings como ARRAY) es una forma válida de Ransack que Bali no emite: llegaba
+  # a `to_unsafe_h` como Array y devolvía un 500 en cualquier index desde una URL a mano.
+  # Normalizarla a la forma indexada la mete además DENTRO de la traducción de enums, en vez
+  # de esquivarla y devolver los registros contrarios.
+  def test_groupings_sent_as_an_array_are_normalized_and_cast
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ g: [ { status_in: [ "done" ], m: "and" } ] }))
+
+    assert_equal 1, form.ransack_params[:g]["0"]["status_in"].first
+    assert_equal [ @done.name ], form.result.pluck(:name)
+  end
+
+  # La normalización de la entrada solo alcanza al nivel de arriba, así que un `g` ANIDADO
+  # todavía puede llegar como array: sin cubrirlo, el grupo interno esquiva la traducción.
+  def test_enum_labels_are_cast_inside_a_nested_array_grouping
+    filter_params = { g: { "0" => { g: [ { status_eq: "done" } ], m: "or" } } }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal 1, form.ransack_params[:g]["0"]["g"].first["status_eq"]
+    assert_equal [ @done.name ], form.result.pluck(:name)
+  end
+
+  # Un grupo que no es un hash (`q[g][0]=x`, `q[g][]=x`) reventaba en Ransack: se descarta.
+  def test_a_grouping_that_is_not_a_hash_is_discarded_instead_of_raising
+    scalar = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => "x" } }))
+    listed = EnumMovieFilterForm.new(@tenant.movies, params({ g: [ "x" ] }))
+
+    assert_equal 2, scalar.result.count
+    assert_equal 2, listed.result.count
+  end
+
+  def test_the_grouping_combinator_is_not_treated_as_an_attribute
+    filter_params = { g: { "0" => { status_in: [ "done" ], m: "and" } }, m: "or" }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal "and", form.ransack_params[:g]["0"]["m"]
+    assert_equal "or", form.ransack_params[:m]
+  end
+
+  # Fuera de la igualdad el valor no es una pertenencia: `_cont` pide un SUBSTRING y `_gteq`
+  # un ORDEN sobre los códigos crudos. Traducir ahí cambiaría la pregunta.
+  def test_only_equality_predicates_translate_enum_labels
+    contains = EnumMovieFilterForm.new(@tenant.movies, params({ status_cont: "done" }))
+    ordered = EnumMovieFilterForm.new(@tenant.movies, params({ status_gteq: "done" }))
+    nulls = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_null: "1" } } }))
+
+    assert_equal "done", contains.ransack_params["status_cont"]
+    assert_equal "done", ordered.ransack_params["status_gteq"]
+    assert_equal "1", nulls.ransack_params[:g]["0"]["status_null"]
+  end
+
+  # @groupings es EL MISMO objeto que renderiza el popover y que viaja en el payload de una
+  # vista guardada: castear en el lugar dejaría un `1` donde la UI espera "done".
+  def test_casting_does_not_mutate_the_state_the_ui_renders
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_in: [ "done" ], m: "and" } } }))
+
+    form.ransack_params
+
+    assert_equal [ "done" ], form.filter_groups.first[:conditions].first[:value]
+    assert_equal [ "done" ], form.current_view_payload["groupings"]["0"]["status_in"]
+  end
+
+  # Un enum de string nunca estuvo roto: traducir ahí produce el MISMO SQL, así que la
+  # traducción es idempotente y no un cambio de comportamiento.
+  def test_a_string_enum_label_maps_to_its_value
+    action = StringEnumMovie.create!(name: "Mad Max", genre: :action, tenant_id: @tenant.id)
+    StringEnumMovie.create!(name: "Airplane!", genre: :comedy, tenant_id: @tenant.id)
+
+    by_label = Bali::FilterForm.new(StringEnumMovie.all, params({ g: { "0" => { genre_eq: "action" } } }))
+    by_value = Bali::FilterForm.new(StringEnumMovie.all, params({ g: { "0" => { genre_eq: "Action" } } }))
+
+    assert_equal "Action", by_label.ransack_params[:g]["0"]["genre_eq"]
+    assert_equal "Action", by_value.ransack_params[:g]["0"]["genre_eq"]
+    # Afirmar el set y no la igualdad entre los dos: los dos caminos se rompen JUNTOS, así que
+    # comparar uno con otro pasa igual de bien con ambos vacíos.
+    assert_equal [ action.name ], by_label.result.pluck(:name)
+    assert_equal [ action.name ], by_value.result.pluck(:name)
+  end
+
+  def test_compound_predicates_translate_every_member
+    filter_params = { g: { "0" => { status_eq_any: %w[done draft] } } }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal [ 1, 0 ], form.ransack_params[:g]["0"]["status_eq_any"]
+  end
+
+  # Los tests del repo usan dobles como scope. Sin `defined_enums` no hay nada que traducir y
+  # el módulo es un no-op: no puede reventar. No se llama a #result — eso sería `[].ransack`.
+  def test_a_scope_without_a_model_does_not_raise
+    form = Bali::FilterForm.new([], params({ g: { "0" => { status_eq: "done" } } }))
+
+    assert_equal "done", form.ransack_params[:g]["0"]["status_eq"]
+  end
+
+  # Anti-drift: los predicados que traducimos son EXACTAMENTE los que la UI de select ofrece.
+  # Si alguien agrega un operador al select, esto falla y fuerza la decisión.
+  def test_the_translated_predicates_are_the_ones_the_select_ui_offers
+    assert_equal Bali::Filters::Operators.for_type(:select).pluck(:value).sort,
+                 Bali::FilterForm::EnumCasting::EQUALITY_PREDICATES.sort
   end
 end

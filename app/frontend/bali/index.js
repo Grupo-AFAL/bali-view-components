@@ -12,11 +12,10 @@
  * ## Selective Imports (tree-shaking)
  *
  * Core controllers:
- *   import { DatepickerController, TableController } from 'bali-view-components'
+ *   import { DatepickerController, ModalController } from 'bali-view-components'
  *
  * Optional modules (import separately to reduce bundle size):
  *   import { ChartController, registerCharts } from 'bali-view-components/charts'
- *   import { GanttChartController, registerGantt } from 'bali-view-components/gantt'
  *   import { RichTextEditorController } from 'bali-view-components/rich-text-editor'
  *
  * ## Setup in consuming app
@@ -45,9 +44,7 @@
  *
  *   // Add optional modules as needed
  *   import { registerCharts } from 'bali-view-components/charts'
- *   import { registerGantt } from 'bali-view-components/gantt'
  *   registerCharts(application)
- *   registerGantt(application)
  */
 
 // Re-export all utility controllers
@@ -66,6 +63,7 @@ export {
   DynamicFieldsController,
   ElementsOverlapController,
   FileInputController,
+  FilterPersistenceController,
   FocusOnConnectController,
   GeocoderMapsController,
   InputOnChangeController,
@@ -85,40 +83,45 @@ export { registerAll as registerAllControllers } from './controllers/index'
 
 // Re-export all core component controllers (excludes heavy modules)
 export {
-  FiltersController,
+  AlertController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,
   CarouselController,
   ClipboardController,
+  ColumnSelectorController,
+  CommandController,
   ConditionController,
   DirectUploadController,
   DocumentEditorController,
   DocumentPageController,
   DrawerController,
   DropdownController,
+  ExportLinksController,
+  FeedbackWidgetController,
   FilterGroupController,
+  FiltersController,
   HovercardController,
   ImageExpanderController,
   ImageFieldController,
+  KanbanController,
   LocationsMapController,
-  MessageController,
   ModalController,
   MultiSelectController,
   NavbarController,
-  NotificationController,
   RateController,
-  ColumnSelectorController,
   RecurrentEventRuleController,
   RevealController,
   SavedViewsController,
   SideMenuController,
   SideMenuFlyoutController,
+  SideMenuTriggerController,
   SortableListController,
   StatusController,
   TabsController,
-  TableController,
   TimeagoController,
+  ToastContainerController,
+  ToolbarOverflowController,
   TooltipController,
   TreeViewItemController
 } from './components/index'
@@ -135,7 +138,6 @@ export { confirmDialog, installConfirmDialog } from '../../assets/javascripts/ba
  *
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
  *   - import { registerCharts } from 'bali-view-components/charts'
- *   - import { registerGantt } from 'bali-view-components/gantt'
  *   - import { registerBlockEditor } from 'bali-view-components/block-editor'
  *   - import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *

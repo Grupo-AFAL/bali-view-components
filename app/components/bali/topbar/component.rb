@@ -8,9 +8,13 @@ module Bali
     # the bottom border forms one continuous chrome divider.
     #
     # Composes 4 zones — brand (left, optional), search (center), actions
-    # (right, many icon buttons), user_menu (far right). Pair with a sidebar
-    # by passing the sidebar's `mobile_trigger_id` to render the hamburger on
-    # small screens.
+    # (right, many icon buttons), user_menu (far right).
+    #
+    # The root element is a `<header>`: it is the page's banner region, which
+    # is what lets a screen-reader user jump to it by landmark. It is not
+    # nested in `<main>` (AppLayout renders it as its sibling), so it maps to
+    # `role="banner"` without an explicit role. Navbar is the page's `<nav>`,
+    # so the two do not collide when a layout has both.
     class Component < ApplicationViewComponent
       BASE_CLASSES = "bali-topbar flex items-center gap-3 px-4 md:px-6 " \
                      "bali-chrome-height bg-base-100 border-b border-base-300"
@@ -20,20 +24,19 @@ module Bali
       renders_many :actions
       renders_one :user_menu
 
-      # @param mobile_trigger_id [String, nil] When set, renders a hamburger label
-      #   (lg:hidden) that toggles the matching sidebar checkbox. Defaults to the
-      #   value of `Bali::SideMenu::Component::MOBILE_TRIGGER_ID` so the standard
-      #   AppLayout pairing works without configuration. Pass `nil` to skip the
-      #   hamburger — useful for layouts without a sidebar.
-      def initialize(mobile_trigger_id: SideMenu::Component::MOBILE_TRIGGER_ID,
-                     **options)
-        @mobile_trigger_id = mobile_trigger_id
+      # @param menu_id [String, nil] id of the SideMenu the hamburger opens.
+      #   Renders a `Bali::SideMenu::Trigger::Component` (lg:hidden) wired to
+      #   that sidebar. Defaults to `SideMenu::Component::DEFAULT_ID` so the
+      #   standard AppLayout pairing works without configuration. Pass `nil` to
+      #   skip the hamburger — useful for layouts without a sidebar.
+      def initialize(menu_id: SideMenu::Component::DEFAULT_ID, **options)
+        @menu_id = menu_id
         @options = options
       end
 
       private
 
-      attr_reader :mobile_trigger_id
+      attr_reader :menu_id
 
       def container_classes
         class_names(BASE_CLASSES, @options[:class])
@@ -41,10 +44,6 @@ module Bali
 
       def container_attributes
         @options.except(:class)
-      end
-
-      def toggle_mobile_label
-        I18n.t("bali.side_menu.toggle_mobile", default: "Toggle sidebar")
       end
     end
   end

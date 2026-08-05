@@ -48,12 +48,12 @@ _No major issues - Tabs, PropertiesTable, Timeline, and Rate components worked w
 
 #### Learning 3: FormBuilder API Variety
 - **Component(s)**: `Bali::FormBuilder`
-- **Issue/Learning**: The FormBuilder has a rich set of field helpers (`text_field_group`, `select_group`, `switch_field_group`, `radio_field_group`, `text_area_group`, `date_field_group`, `currency_field_group`, `email_field_group`, `url_field_group`, `time_zone_select_group`, `number_field_group`).
+- **Issue/Learning**: The FormBuilder has a rich set of field helpers (`text_group`, `select_group`, `switch_group`, `radio_group`, `text_area_group`, `date_group`, `currency_group`, `email_group`, `url_group`, `time_zone_select_group`, `number_group`).
 - **Impact**: Positive - comprehensive coverage
 - **Suggestion**: A quick reference guide listing all available field helpers with examples would be valuable
 
 #### Learning 4: Radio Field Orientation
-- **Component(s)**: `radio_field_group`
+- **Component(s)**: `radio_group`
 - **Issue/Learning**: Radio fields support `orientation: :horizontal` or `:vertical` via html_options (4th argument), not via the options hash.
 - **Impact**: Minor confusion about which argument hash to use
 - **Suggestion**: Consider documenting the parameter order clearly: `method, values, options, html_options`
@@ -93,6 +93,7 @@ _No major issues - Tabs, PropertiesTable, Timeline, and Rate components worked w
 - **Issue/Learning**: DataTable has rich slot composition: `with_filters_panel`, `with_table`, `with_actions_panel`, `with_toolbar_buttons`, etc.
 - **Impact**: Positive - highly customizable
 - **Suggestion**: The DataTable is powerful but complex - a dedicated usage guide would help
+- **Superseded (v3.0)**: `with_actions_panel` no longer exists — see `docs/guides/migration-v2-to-v3.md`. The usage guide asked for here now exists: the canonical composition is the `Complete` preview scenario, documented in `docs/guides/components.md` and `.claude/skills/filterform-datatable/SKILL.md`.
 
 #### Learning 9: Consistent Component Composition
 - **Component(s)**: All
@@ -115,6 +116,7 @@ _No major issues - Tabs, PropertiesTable, Timeline, and Rate components worked w
 - **Issue/Learning**: Passed `bulk_actions: true` expecting to enable bulk action checkboxes, but the Table component doesn't have this parameter anymore. The DataTable handles bulk actions separately via `with_actions_panel` slot.
 - **Impact**: Blocker - caused 500 error (`undefined method 'any?' for true`)
 - **Suggestion**: Document that bulk actions are now handled at the DataTable level, not Table
+- **Superseded (v3.0)**: `Bali::Table` does take a selection option again — `selectable: true` — and the DataTable side is `with_bulk_actions`, not `with_actions_panel`.
 
 #### Learning 12: FormBuilder Requires ActiveModel-Compatible Object
 - **Component(s)**: `Bali::FormBuilder`
@@ -169,7 +171,7 @@ _No major issues - Tabs, PropertiesTable, Timeline, and Rate components worked w
 
 | Page | Components Used |
 |------|----------------|
-| **Dashboard** | Navbar, PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, Link, Avatar, Dropdown, Timeago, InfoLevel, GanttChart, Heatmap, BulkActions |
+| **Dashboard** | Navbar, PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, Link, Avatar, Dropdown, Timeago, InfoLevel, Heatmap, BulkActions |
 | **Movies List** | Breadcrumb, PageHeader, DataTable, Filters, Table, Tag, BooleanIcon, ActionsDropdown, Link, Message, Timeago |
 | **Movie Detail** | Breadcrumb, PageHeader, Tabs, Card, PropertiesTable, Avatar, Progress, Rate, SortableList, Timeline, Tag, BooleanIcon, Timeago, DeleteLink, ActionsDropdown, Message, Link, HoverCard, ImageGrid, LabelValue |
 | **Movie Form** | Breadcrumb, PageHeader, Stepper, Card, FormBuilder (10+ field types), Button, Link, Message, Icon, DirectUpload |

@@ -372,7 +372,7 @@ export class FiltersController extends Controller {
     this.closeDropdown()
 
     // Navigate to URL without filters (use Turbo.visit for proper navigation)
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.preservedParamsUrl()
     url.searchParams.set('clear_filters', 'true')
 
     if (window.Turbo) {
@@ -383,12 +383,41 @@ export class FiltersController extends Controller {
   }
 
   /**
+   * URL base del listado CON los params que tienen que sobrevivir a limpiar (el modo de
+   * visualización, la agrupación, y cualquier `preserved_params` del host). `urlValue` llega
+   * sin query string, así que armar la URL solo con él tiraba esos params: limpiar la
+   * búsqueda estando en tarjetas devolvía al usuario a la tabla. Viven como hidden fields del
+   * form; los `q[...]` quedan afuera porque son justo lo que se está limpiando.
+   */
+  preservedParamsUrl () {
+    const url = new URL(this.urlValue, window.location.origin)
+    const form = this.hasSearchFormTarget
+      ? this.searchFormTarget
+      : (this.hasFormTarget ? this.formTarget : null)
+    if (!form) return url
+
+    for (const [key, value] of new FormData(form)) {
+      if (key.startsWith('q[')) continue
+      if (value && String(value).trim() !== '') url.searchParams.set(key, value)
+    }
+
+    return url
+  }
+
+  /**
    * Build the current URL with all filter params
    */
   buildUrl () {
     const url = new URL(this.urlValue, window.location.origin)
     const formData = new FormData(this.formTarget)
-    const searchFormData = new FormData(this.searchFormTarget)
+    // The quick-search form is only painted when the host passed `search:`. Reading the
+    // target unguarded threw "Missing target element" right here, and since `_submit()`
+    // builds the URL BEFORE calling `requestSubmit()`, that exception took the whole
+    // submission with it: on a Filters without a search — every inline panel, by design —
+    // Apply did nothing at all, silently (#799).
+    const searchFormData = this.hasSearchFormTarget
+      ? new FormData(this.searchFormTarget)
+      : new FormData()
 
     // Clear existing q params
     for (const key of [...url.searchParams.keys()]) {
@@ -397,11 +426,25 @@ export class FiltersController extends Controller {
       }
     }
 
+    // `urlValue` is the listing's URL and can already carry the very params both forms
+    // paint as hidden fields (`locale`, `group_by`, `view`), so appending them left the
+    // pushed URL saying `?locale=es&locale=es`. The server keeps one, but that URL is the
+    // one the user copies. The FIRST write of a key drops whatever the base URL held for
+    // it; the writes after it append, so a multi-value field keeps all of its values.
+    const written = new Set()
+    const append = (key, value) => {
+      if (!value || value.trim() === '') return
+
+      if (!written.has(key)) {
+        url.searchParams.delete(key)
+        written.add(key)
+      }
+      url.searchParams.append(key, value)
+    }
+
     // Add form params (only non-empty values)
     for (const [key, value] of formData) {
-      if (value && value.trim() !== '') {
-        url.searchParams.append(key, value)
-      }
+      append(key, value)
     }
 
     // Add search-form params (only non-empty values). The applied filter state (q[g]/q[m])
@@ -409,12 +452,15 @@ export class FiltersController extends Controller {
     // popover form above is the authority when BOTH are present: appending the hidden copy
     // too made the pushed URL describe the PREVIOUS filter (last key wins on nested parse),
     // so an edited or removed condition came back on reload.
-    const filterKeys = new Set([...formData.keys()].filter(key => key.startsWith('q[')))
+    //
+    // El set se arma con TODAS las claves del form de arriba, no solo las `q[`: el estado del
+    // listado (`group_by`, `view`) se pinta como hidden en los DOS forms, así que filtrando
+    // solo las de filtro cada uno se agregaba dos veces y la URL que queda en la barra —la que
+    // el usuario copia— decía `?group_by=genre&view=grid&group_by=genre&view=grid`.
+    const filterKeys = new Set(formData.keys())
     for (const [key, value] of searchFormData) {
       if (filterKeys.has(key) || key.startsWith('q[g]') || key === 'q[m]') continue
-      if (value && value.trim() !== '') {
-        url.searchParams.append(key, value)
-      }
+      append(key, value)
     }
 
     return url
@@ -529,7 +575,7 @@ export class FiltersController extends Controller {
 
     // Navigate to URL with clear_search param (bypasses persistence restore)
     // Use standard navigation to ensure fresh server response
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.preservedParamsUrl()
     url.searchParams.set('clear_search', 'true')
 
     // Use window.location for reliable navigation that avoids Turbo caching
@@ -540,12 +586,59 @@ export class FiltersController extends Controller {
    * Private: Submit a form, updating URL and history
    */
   _submit (form) {
-    // Update URL for history
-    const url = this.buildUrl()
-    this.pushHistory(url)
+    const restore = this._withoutUnsubmittableConditions()
 
-    // Submit the form (Turbo will handle the response with morphing)
-    form.requestSubmit()
+    try {
+      // Update URL for history
+      const url = this.buildUrl()
+      this.pushHistory(url)
+
+      // Submit the form (Turbo will handle the response with morphing)
+      form.requestSubmit()
+    } finally {
+      restore()
+    }
+  }
+
+  /**
+   * Private: keep the conditions that would filter nothing out of this submission, and
+   * let each of them say so on screen.
+   *
+   * A condition with no value serializes as `q[g][0][genre_not_eq]=`, which Ransack drops
+   * in silence: the list comes back complete, no error, no hint, and the user concludes
+   * the filter is broken (#652). Disabling the inputs keeps them out of the request AND
+   * out of the URL that is pushed alongside it, so the address bar and the response
+   * finally describe the same query.
+   *
+   * The group combinator (`q[g][0][m]`) stays: it is not a predicate, and it is what tells
+   * the server the user DID submit a filter set that happens to be empty. Dropping it too
+   * would make an emptied panel look like a request that carried no filter state at all,
+   * which a host with persistence on answers by restoring the previous filters.
+   *
+   * The inputs are restored right after `requestSubmit()` because both Turbo and the
+   * browser build the form's entry list synchronously while the submit event is being
+   * dispatched — and the panel is still on screen afterwards for the user to fix.
+   *
+   * @returns {Function} restores every input this disabled
+   */
+  _withoutUnsubmittableConditions () {
+    const disabled = []
+    const disable = (input) => {
+      if (input.disabled) return
+      input.disabled = true
+      disabled.push(input)
+    }
+
+    this.element.querySelectorAll('[data-controller~="condition"]').forEach((element) => {
+      const controller = this.application.getControllerForElementAndIdentifier(
+        element,
+        'condition'
+      )
+      controller?.validate()
+      controller?.unsubmittableInputs().forEach(disable)
+    })
+
+    return () => disabled.forEach((input) => { input.disabled = false })
   }
 
   /**

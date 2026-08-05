@@ -18,11 +18,11 @@
   <% end %>
 
   <% page.with_action do %>
-    <%= render Bali::Button::Component.new(name: "Edit", variant: :primary, size: :sm, icon_name: "pencil") %>
+    <%= render Bali::Button::Component.new(name: "Edit", variant: :primary, size: :sm, icon: "pencil") %>
   <% end %>
 
   <% page.with_subheader do %>
-    <%= render Bali::Message::Component.new(color: :info, style: :soft) do %>
+    <%= render Bali::Alert::Component.new(color: :info, style: :soft) do %>
       This document is pending approval from <strong>2 reviewers</strong>. You will be notified once all approvals are received.
     <% end %>
   <% end %>

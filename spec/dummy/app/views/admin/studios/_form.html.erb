@@ -1,38 +1,37 @@
-<%= form_with model: studio, url: studio.persisted? ? admin_studio_path(studio) : admin_studios_path, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
+<%# `url:` explícito: el recurso vive bajo `admin`, y `form_with model:` a secas deriva
+    `studios_path`, que ya no existe.
+
+    `data: { turbo: true }` es lo que hace que un 200 con `text/vnd.turbo-stream.html` se aplique
+    en vez de navegar: sin él el drawer se va con la página en lugar de cerrarse. %>
+<%= form_with model: studio,
+               url: studio.persisted? ? admin_studio_path(studio) : admin_studios_path,
+               class: 'space-y-4', builder: Bali::FormBuilder,
+               data: { turbo: true } do |f| %>
   <%= f.error_summary %>
 
   <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
-    <%= f.text_field_group :name, required: true %>
+    <%= f.text_group :name, required: true %>
     <%= f.select_group :country,
           Studio::COUNTRIES.map { |c| [c, c] },
-          { include_blank: t('studios.form.select_country') } %>
+          include_blank: t('studios.form.select_country') %>
     <%= f.select_group :status,
           Studio.statuses.keys.map { |s| [s.humanize, s] },
-          { include_blank: t('studios.form.select_status') } %>
+          include_blank: t('studios.form.select_status') %>
     <%= f.select_group :size,
           Studio::SIZES.map { |s| [s.humanize, s] },
-          { include_blank: t('studios.form.select_size') } %>
-    <%= f.number_field_group :founded_year, min: 1800, max: Date.current.year %>
+          include_blank: t('studios.form.select_size') %>
+    <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
   <% end %>
 
-  <div class="flex gap-2 justify-end mt-6">
-    <% if params[:layout] == 'false' %>
-      <%= render Bali::Button::Component.new(
-        name: t('common.cancel'),
-        variant: :ghost,
-        data: { action: 'drawer#close' }
-      ) %>
-    <% else %>
-      <%= render Bali::Link::Component.new(
-        name: t('common.cancel'),
-        href: studio.persisted? ? admin_studio_path(studio) : admin_studios_path,
-        variant: :ghost
-      ) %>
-    <% end %>
-    <%= render Bali::Button::Component.new(
-      name: studio.persisted? ? t('studios.form.update') : t('studios.form.create'),
-      type: :submit,
-      variant: :primary
-    ) %>
-  </div>
+  <%# Por `submit_group` y no por una fila de botones a mano: es el helper el que cablea
+      `drawer#submit` en el submit y `drawer#close` en el Cancel cuando el formulario se está
+      pintando dentro del drawer, y el que resuelve el Cancel a link o a botón según haya un
+      `cancel_path`. El contexto llega desde el componente, no desde `params` — la vista pasa
+      `drawer: page.drawer?`. %>
+  <%= f.submit_group(
+    studio.persisted? ? t('studios.form.update') : t('studios.form.create'),
+    cancel_path: local_assigns.fetch(:drawer, false) ? nil : (studio.persisted? ? admin_studio_path(studio) : admin_studios_path),
+    drawer: local_assigns.fetch(:drawer, false),
+    variant: :primary
+  ) %>
 <% end %>

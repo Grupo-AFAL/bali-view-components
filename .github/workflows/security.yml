@@ -1,9 +1,9 @@
 name: Security
 on:
   push:
-    branches: [main]
+    branches: [main, "3.1"]
   pull_request:
-    branches: [main]
+    branches: [main, "3.1"]
 
 jobs:
   scan:
