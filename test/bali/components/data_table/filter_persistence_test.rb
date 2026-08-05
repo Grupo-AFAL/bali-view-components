@@ -82,3 +82,63 @@ class BaliDataTableFilterPersistenceTest < ComponentTestCase
     assert_selector('[data-filter-persistence-storage-id-value="explicit_movies"]', count: 1)
   end
 end
+
+class ClearLinkMovieFilterForm < Bali::FilterForm
+  filter_attribute :genre, type: :select, options: [ %w[Drama drama] ], simple: true
+  attribute :genre_eq
+end
+
+# El link "Limpiar" de los filtros simples se SIGUE, no se mira: asertar sólo su href deja
+# pasar un link que no limpia nada, que es exactamente como este bug llegó a producción (dos
+# tests fijaban la URL pelada como si fuera el contrato). Acá el href renderizado se parsea y
+# se le entrega al FilterForm igual que haría el server con el request del click: lo que se
+# aserta es el ESTADO RESULTANTE del listado, no la forma de la URL.
+class BaliDataTableSimpleFiltersClearTest < ComponentTestCase
+  CACHE_KEY = "clear_link_movie_filter_forms;;movies"
+
+  def setup
+    @original_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    Rails.cache.clear
+  end
+
+  def teardown
+    Rails.cache = @original_cache
+  end
+
+  def sample_filters
+    [ { attribute: :genre, collection: [ %w[Drama drama] ], blank: "All", label: "Genre" } ]
+  end
+
+  # Los params que el server recibiría al seguir el href del link "Limpiar".
+  def params_from_clear_link
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+                    url: "/movies", filters: sample_filters, show_clear: true))
+    href = page.find("a[aria-label='Clear'], a[aria-label='Limpiar']")[:href]
+    ActionController::Parameters.new(Rack::Utils.parse_nested_query(URI(href).query.to_s))
+  end
+
+  def test_following_the_clear_link_leaves_the_listing_unfiltered
+    ClearLinkMovieFilterForm.new(Movie.all, ActionController::Parameters.new(q: { genre_eq: "drama" }),
+                                 storage_id: "movies")
+
+    cleared = ClearLinkMovieFilterForm.new(Movie.all, params_from_clear_link,
+                                           storage_id: "movies", persist_enabled: true)
+
+    assert_empty(cleared.attributes.to_h.compact_blank,
+                 "limpiar dejó filtros vivos: el listado sigue filtrado después del click")
+  end
+
+  def test_following_the_clear_link_drops_the_stored_state
+    ClearLinkMovieFilterForm.new(Movie.all, ActionController::Parameters.new(q: { genre_eq: "drama" }),
+                                 storage_id: "movies")
+    assert(Rails.cache.read(CACHE_KEY), "premisa: el filtro quedó guardado")
+
+    ClearLinkMovieFilterForm.new(Movie.all, params_from_clear_link,
+                                 storage_id: "movies", persist_enabled: true)
+
+    # Sin borrar la caché el filtro reaparece en la visita SIGUIENTE, no en ésta: el síntoma
+    # se corre un request y el test de arriba solo lo dejaría pasar.
+    assert_nil(Rails.cache.read(CACHE_KEY))
+  end
+end

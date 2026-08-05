@@ -17,6 +17,8 @@ module Bali
       #   ])
       #
       class Component < ApplicationViewComponent
+        include Utils::Url
+
         # Min-width for slim_select dropdowns. Triggers in SimpleFilters are narrow
         # (~13rem), so we let the dropdown grow past the trigger to fit long labels
         # without wrapping.
@@ -210,6 +212,20 @@ module Bali
 
         def clear_button_text
           I18n.t("bali_view.simple_filters.clear")
+        end
+
+        # Navegar a la URL pelada NO limpia: para el server es indistinguible de "no vino
+        # ningún filtro", y con la persistencia encendida ese es justo el caso que RESTAURA
+        # lo guardado — el usuario limpiaba y el listado le devolvía el filtro. `clear_filters`
+        # es lo único que dispara el borrado de la caché (`FilterForm`: `Rails.cache.delete`).
+        # Las otras dos rutas de limpieza ya lo mandaban (`AppliedTags#clear_all_url` y
+        # `clearFiltersAndClose` del JS); ésta se había quedado afuera.
+        #
+        # Se AGREGA al query string en vez de reemplazarlo: la `url:` del listado puede traer
+        # params propios del host (`request.fullpath`, un scope), y perderlos al limpiar
+        # mandaría al usuario a otra vista.
+        def clear_href
+          add_query_param(@url, :clear_filters, true)
         end
       end
     end
