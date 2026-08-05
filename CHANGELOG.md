@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-> La línea **v3.0** vive en la rama `3.0`. Lo de abajo sale en `v3.0.0.beta.N`; las
-> versiones `v2.x` de más abajo son la línea estable de `main`. Ver
-> [Release channels](docs/guides/release-channels.md).
+## [v3.0.0] - 2026-08-05
+
+**v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
+the stable channel: `3.0` merges into `main`, `main` becomes the v3 line, and the next
+line of work continues on the `3.1` branch (CI now covers `main` and `3.1`). Everything
+the v3 line changed since `v2.x` is recorded in the `v3.0.0.beta.N` entries below.
+Upgrading from v2: read the [migration guide](docs/guides/migration-v2-to-v3.md); how the
+channels work is in [Release channels](docs/guides/release-channels.md).
 
 ## [v3.0.0.beta.6] - 2026-08-05
 
