@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+## [v3.0.0.beta.6] - 2026-08-05
+
 ### Fixed
 
 - **El link "Limpiar" de los filtros simples no limpiaba nada con la persistencia encendida.** Navegaba a la URL pelada, y para el server eso es indistinguible de "no vino ningún filtro" — con `persist_enabled` ese es justo el caso que RESTAURA lo guardado, así que el listado le devolvía al usuario el filtro que acababa de limpiar, con el select repoblado. Ahora manda `clear_filters=true`, el único param que dispara el borrado de la caché (`Rails.cache.delete(cache_key)`); las otras dos rutas de limpieza (`Filters::AppliedTags#clear_all_url` y `clearFiltersAndClose` del JS) ya lo mandaban y ésta se había quedado afuera. El param se AGREGA al query string en vez de reemplazarlo, así una `url:` con params propios del host los conserva.
