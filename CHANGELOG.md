@@ -7,14 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Dependencies
-
-- Updated daisyUI to 5.7.16 in the dummy app. The package's peer range (`>=5.7.0`) is unchanged.
 ### Added
 
 - **Troubleshooting entry for the BlockNote <= 0.52.1 render loop (#908).** The BlockEditor guide (`docs/api/block-editor.md`) now documents the `Maximum update depth exceeded` console error: it appears while typing (or when closing a drawer/modal holding the editor) when a browser extension that rewrites the page's DOM (Dark Reader, Grammarly, page translators) is active, because BlockNote <= 0.52.1 node views do not ignore non-content mutations (TypeCellOS/BlockNote#2818, fixed upstream by #2912 — merged but not yet released). No data is lost; the `@blocknote/*` bump lands separately once upstream publishes a release containing the fix.
-### Added
-
 - **Stimulus utility controllers catalog.** New guide `docs/guides/controllers.md`
   (mirrored as a Lookbook guide page) documenting all 24 standalone controllers in
   `app/assets/javascripts/bali/controllers/` — Stimulus identifier, what each does, and a
@@ -41,8 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The skeleton states the upgrade policy — five announced markup/behaviour changes admitted
   as a block (#903, #641, #722, #729, #902) — and reserves one section per change; each
   section's details land with its PR.
-### Added
-
 - **`Bali::Tabs` tabs take a `count:` badge.** `with_tab(count: 12)` renders a `badge badge-sm` after the title, in both modes — navigation tabs (the scopes pattern: Mine / Team, statuses, the inbox counter case) and panel tabs. `nil` renders nothing; `0` renders, because an empty scope is information. A string works too (`"99+"`). The badge is not `aria-hidden`: the number belongs in the link's accessible name ("Mine 12"). (#722)
 - **Navigation-mode tab links emit `data-turbo-action="advance"` by default.** A no-op on full-page visits (advance is already Turbo's default); inside a `turbo_frame` it promotes the visit to the URL, which is what makes URL-driven scope tabs addressable and back-button friendly. `turbo_action: false` omits the attribute; another symbol (e.g. `:replace`) passes through. Ignored in panel mode. (#722)
 
@@ -52,8 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Avatar derives initials and a deterministic color from `name:`.** `Bali::Avatar::Component.new(name: 'Ana García López')` now renders an initials placeholder — first letter of the first and the last word ("AL", unicode-aware upcase; one word yields one letter) — over a background hashed from the name into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style: the same person gets the same color on every render, process and DaisyUI theme. The hash is the new `Bali::Utils::ColorCalculator#deterministic_color(seed)` (`Zlib.crc32`, not the per-process-randomized `String#hash`); collisions between names are expected and fine. `initials:` overrides the derivation, and images keep winning: picture slot > `src:` > manual `placeholder` slot (which keeps its static neutral background) > `name:`/`initials:`. With `name:` present the avatar also stops being invisible to assistive tech: initials avatars get `role="img"`, `aria-label` and `title` with the full name, and image avatars use it as the `alt` (an explicit `alt:` wins). Groundwork for `Topbar::UserMenu` (#713). (#712)
-### Added
-
 - **`Bali::DescriptionList::Component` — a set of label/value pairs in the component's own responsive grid** (#727). The middle ground between `Bali::LabelValue` (one pair the caller places) and `Bali::PropertiesTable` (one set read top to bottom as a table): `columns:` 1/2/3 with responsive collapse, `layout:` `:stacked` (default) or `:horizontal` (term and value side by side inside each cell), and `with_item(label:, value:)` accepting block content for rich values such as a `Bali::Tag`. Markup is one `<dl>` of `<div><dt/><dd/></div>` cells, and `dt`/`dd` reuse LabelValue's typography so the three options read as one family; the guide now carries the three-way comparison under DescriptionList.
 ### Fixed
 
@@ -65,21 +56,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`react-island`: the official React-island infrastructure** (#703). The block editor's mounting mechanics, extracted into a reusable module so new islands (the upcoming Gantt) do not re-implement them. One npm subpath, `bali-view-components/react-island`, exports `ReactIslandController` (a Stimulus base class: subclass and implement `loadComponent()`; the base handles `createRoot`, values→props, a built-in React ErrorBoundary, Turbo cache exclusion and unmount on disconnect), `registerIsland(name, Controller)` (the whole body of an island's bundler entry — registers on `window.Stimulus`, idempotently, never a second Application) and `startIslandLoader(name)` (main-bundle lazy loader driven by `<meta>` tags). The new `react_island_meta_tags(name, js:, css: nil)` helper publishes the digested bundle paths those metas carry; `block_editor_meta_tags` is now its block-editor spelling (same output, not deprecated). Errors from both phases (load and render) funnel through the configurable `ReactIslandController.onError` static hook, so a host plugs Sentry in once for every island without the gem depending on any tracker. Guide with the full wiring and the extraction criteria: `docs/api/react-island.md`; working toy island in the dummy app with Lookbook previews (`bali/react_island/*`) and a Cypress contract spec. `BlockEditorController` itself migrates to the base in a follow-up PR.
-
-## [v3.0.0] - 2026-08-05
-### Added
-
 - **`Bali.engine_controller_concerns` — the official way for a host to teach its context to the engine's controllers.** `isolate_namespace` means `Bali::ApplicationController` inherits from `ActionController::Base`, not from the host's `ApplicationController`, so `current_user` and friends never existed inside the engine — every host worked around it by monkey-patching `Bali::SavedViewsController` from a `to_prepare` initializer, once per controller, once per app. Every module in the new array is now included into `Bali::ApplicationController` (and therefore into every engine controller at once) on each `to_prepare`, idempotently and surviving code reloads. The concern must stay passive — identity, not access: the gate remains the `Bali.*_authorize` lambdas. The new [Engines guide](docs/guides/engines.md) documents the `isolate_namespace` gotcha in one place, the authorize-lambdas doctrine, and the bali-auth recipe (`include BaliAuth::Authentication` + `allow_unauthenticated_access`). (#710)
-### Added
-
 - **`Bali::BlockNote::Text`, `Bali::BlockNote::Diff` and `Bali::BlockNote::Chunker` — pure-Ruby BlockNote content libs** (#708, PR 1 of 2). Ported from gobierno-corporativo's `Document::BlockNoteText` / `Document::ContentDiff` / `Document::Chunker` and generalized under the engine so every host shares one walker for BlockNote JSON:
   - `Text` extracts plain text from BlockNote block structures — inline `text` and `entityReference` nodes, table blocks in both the legacy `tableRow` and current `tableContent` shapes, nested children — and `Text.normalize` accepts Array/Hash/JSON-string content, unwrapping legacy v1 `blockGroup`/`blockContainer` layers.
   - `Diff` compares two contents at section level (`changed_sections` / `summary`, grouped by heading with an id-stripped structural fingerprint) and at block level (`annotated_blocks` marks each block `added`/`removed`/`modified`/`unchanged` by BlockNote UUID; modified blocks carry `_diff_spans` from a word-level LCS diff). Removed blocks and sections appear inline at their original position.
   - `Chunker` splits a document into heading-delimited chunks for search indexing / RAG (target 1600 chars, 300-char overlap, ~4 chars/token estimate). Embeddings and vector storage stay host-side on purpose — no pgvector in the engine.
 
   The libs live in `app/lib/` (autoloaded, no new eager-load path) and are deliberately free of ActiveSupport core extensions: they load and run under plain Ruby. New runtime dependency: `diff-lcs` (~> 1.5, MIT, no transitive deps) for the word-level spans. Entity-reference extraction, registry and controller arrive in PR 2.
-### Added
-
 - **Cypress coverage for `dynamic-fields-controller`** (#715 PR1, closes the TODO from #155).
   `cypress/e2e/dynamic-fields-controller.cy.js` freezes the controller's current JS contract
   before the #715 feature work touches it: `addFields` clones the `<template>` replacing the
@@ -91,6 +74,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   too — re-enabling it when a row is removed. Two new Lookbook previews back the parts the Ruby
   helper does not emit yet (`sortable`, `remove_duplicates`), wired by hand the way host apps
   do today; the add/remove specs run against the existing `default`/`empty` previews.
+
+### Dependencies
+
+- Updated daisyUI to 5.7.16 in the dummy app. The package's peer range (`>=5.7.0`) is unchanged.
+
+## [v3.0.0] - 2026-08-05
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
 the stable channel: `3.0` merges into `main`, `main` becomes the v3 line, and the next
