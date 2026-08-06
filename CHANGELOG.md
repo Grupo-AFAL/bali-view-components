@@ -7,20 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- **`BlockEditorController` now inherits from `ReactIslandController`** (#703). No API change
-  and nothing to do in a host app: the controller identifier, its Stimulus values, the entry
-  and `block_editor_meta_tags` are all untouched. What changed is where the mechanics live —
-  the `_disconnected` guard, `createRoot` over its own mount point, the `turbo-cache-control`
-  meta, the unmount on disconnect and the error fallback now come from the base the editor
-  was extracted from, and the controller keeps only what makes it the block editor: the
-  BlockNote wrapper, the props, the submit flush, the ProseMirror teardown (moved to the
-  base's `beforeUnmount` hook, which runs while the DOM is still attached) and the PDF/DOCX
-  exports. The editor is the first real subclass, so this is what proves the base's hooks fit
-  a demanding island rather than only the toy preview. It also gains the base's
-  ErrorBoundary, which it never had: a render error inside the editor now shows the fallback
-  message instead of tearing down the React tree.
+## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added
 
@@ -77,7 +64,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`char_counter:` works on a text field, not just a textarea** (#723). `f.text_group :headline, char_counter: { max: 80 }` renders the same live count under the control that `text_area_group` has had, because it is the same thing: the Stimulus controller behind it only reads `value.length`, so an `<input>` and a `<textarea>` are indistinguishable to it. `{ max: n }` counts against a maximum and turns the counter red past it; `true` just counts. The typing is never stopped — the count is an advisory, so pair it with `maxlength:` and a model validation when the limit has to hold. New preview **Form / Text → With Character Counter**, a `char-counter.cy.js` spec that runs the same expectations against both controls, and the option finally documented in the FormBuilder guide.
 
 
+
 ### Changed
+
+- **`BlockEditorController` now inherits from `ReactIslandController`** (#703). No API change
+  and nothing to do in a host app: the controller identifier, its Stimulus values, the entry
+  and `block_editor_meta_tags` are all untouched. What changed is where the mechanics live —
+  the `_disconnected` guard, `createRoot` over its own mount point, the `turbo-cache-control`
+  meta, the unmount on disconnect and the error fallback now come from the base the editor
+  was extracted from, and the controller keeps only what makes it the block editor: the
+  BlockNote wrapper, the props, the submit flush, the ProseMirror teardown (moved to the
+  base's `beforeUnmount` hook, which runs while the DOM is still attached) and the PDF/DOCX
+  exports. The editor is the first real subclass, so this is what proves the base's hooks fit
+  a demanding island rather than only the toy preview. It also gains the base's
+  ErrorBoundary, which it never had: a render error inside the editor now shows the fallback
+  message instead of tearing down the React tree.
 
 - **Removing an unsaved row deletes it from the DOM** (#715). `dynamic-fields#removeFields` used to
   hide every removed row and flag it `_destroy`, whether or not there was anything to destroy. It
@@ -93,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **One wrapper builds the counter for every family that can have one** (#723). `text_area_field` used to build its own `.control` div next to a second copy of the error and help paragraphs — the arrangement that once made a textarea with a counter render neither. The controller, its values and the counter element now come from `field_helper`, the one place that decides how a control is wrapped, so the two spellings cannot drift apart again. No markup change: the textarea's existing tests pass untouched. `TextAreaFields::COUNTER_CLASS` is now an alias of `HtmlUtils::COUNTER_CLASS`.
 
 - **The `Bali::AppLayout` banner no longer clears the fixed sidebar horizontally** (#726). A beta gave `.app-layout-banner` the same `padding-left: var(--bali-side-menu-width)` as the navbar and the content, because the sidebar was pinned at `top: 0` and painted over the strip's left edge. The sidebar now starts *below* the banner instead, so there is nothing left to clear: keeping the padding would indent a full-width strip into the content column and leave a band of empty page above the sidebar. The navbar and the content keep their offset — that half of the fix is untouched. A host that styled around the indented banner (a background that started at 16rem, a left-aligned logo inside the strip) will see the strip move left to the viewport edge.
+
 
 
 ### Fixed
@@ -119,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`rich_text_group`, `block_editor_group`, `coordinates_polygon_group`, `time_period_group`)
   painted `<div size="sm">` for the same reason `<div required>` used to appear there; `size`
   joins `required` in `CONTROL_ONLY_OPTIONS`.
+
 
 
 ## [v3.1.0.beta.4] - 2026-08-06
