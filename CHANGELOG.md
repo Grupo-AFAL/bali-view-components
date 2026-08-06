@@ -55,6 +55,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`Bali::DescriptionList::Component` — a set of label/value pairs in the component's own responsive grid** (#727). The middle ground between `Bali::LabelValue` (one pair the caller places) and `Bali::PropertiesTable` (one set read top to bottom as a table): `columns:` 1/2/3 with responsive collapse, `layout:` `:stacked` (default) or `:horizontal` (term and value side by side inside each cell), and `with_item(label:, value:)` accepting block content for rich values such as a `Bali::Tag`. Markup is one `<dl>` of `<div><dt/><dd/></div>` cells, and `dt`/`dd` reuse LabelValue's typography so the three options read as one family; the guide now carries the three-way comparison under DescriptionList.
+### Fixed
+
+- **SimpleFilters lost the listing URL's own query params on every submit.** A GET submit replaces the action's query string with the form's fields, so a host passing `url:` with params of its own (a scope such as `status=historico`) saw them silently dropped each time the simple form was applied — the "Clear" link preserved them (beta.6), the submit did not. The form now re-emits the non-filter query params of its `url:` as hidden fields with the exact semantics `Bali::Filters::Component` always had: `q`, `clear_filters`, `clear_search` and `saved_view` stay out, and on a key collision the explicit `preserved_params:` hash wins, so a host already passing the param by hand does not emit it twice. (Refs #725)
+
+### Changed
+
+- **Filters/SimpleFilters internal dedup — no rendered-output change for the full panel.** The preserved-params semantics above now live in one shared `Bali::Filters::PreservedParams` module; the `storage_id`/`persist_enabled?`/`persistence_toggle?` persistence trio both components copied is now the `Bali::Filters::Persistable` concern; and the AND/OR combinator divider the panel template carried twice (popover and inline branches) is the `Bali::Filters::CombinatorDivider::Component` subcomponent. (Refs #725)
 
 ## [v3.0.0] - 2026-08-05
 

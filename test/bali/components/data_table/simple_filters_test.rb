@@ -47,6 +47,41 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector("input[type=hidden][name=group_by]", visible: :all)
   end
 
+  # Misma semántica que Filters::Component (módulo compartido PreservedParams): el browser
+  # descarta el query de la action en un submit GET, así que un host que pasa `url:` con
+  # params propios (un scope como `status=historico`) los perdía en cada submit del form
+  # simple. El link Limpiar ya los conservaba (clear_href); el submit no.
+  def test_reemits_non_filter_query_params_from_url_as_hidden_fields
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test?status=historico&page=2", filters: @filters
+    ))
+    assert_selector("form input[type=hidden][name=status][value=historico]", visible: :all)
+    assert_selector("form input[type=hidden][name=page][value='2']", visible: :all)
+  end
+
+  def test_does_not_reemit_filter_or_clearing_params_from_url
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test?q%5Bstatus_eq%5D=active&clear_filters=true&clear_search=true&saved_view=5&page=2",
+      filters: @filters
+    ))
+    assert_no_selector("input[type=hidden][name='q[status_eq]']", visible: :all)
+    assert_no_selector("input[type=hidden][name=clear_filters]", visible: :all)
+    assert_no_selector("input[type=hidden][name=clear_search]", visible: :all)
+    assert_no_selector("input[type=hidden][name=saved_view]", visible: :all)
+    assert_selector("form input[type=hidden][name=page][value='2']", visible: :all)
+  end
+
+  # Regla de deduplicación heredada de Filters: en colisión de key, el hash explícito gana
+  # sobre el query de la URL — sin esto un host que ya pasaba el param a mano por
+  # `preserved_params:` lo emitiría dos veces.
+  def test_explicit_preserved_params_win_over_url_query_params
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test?group_by=status", filters: @filters, preserved_params: { "group_by" => "genre" }
+    ))
+    assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all)
+    assert_no_selector("input[type=hidden][name=group_by][value=status]", visible: :all)
+  end
+
   def test_renders_visible_filter_label
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters))
     assert_selector("label", text: "Status")
