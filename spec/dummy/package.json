@@ -36,6 +36,7 @@
     "flatpickr": "^4.6.13",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
+    "qr-scanner": "^1.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rrule": "^2.8.1",
