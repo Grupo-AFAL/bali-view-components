@@ -146,9 +146,13 @@ module Bali
       end
 
       # `name_prefix` ends in the empty brackets Rails reads as "next element of
-      # the array", so the partial names its inputs `#{name_prefix}[role]`. The
-      # partial gets the outer builder as `f` — there is no nested object to
-      # build one from — which is why a Bali group needs `input_name:` here.
+      # the array", so the partial names its inputs `#{name_prefix}[role]`.
+      #
+      # The partial gets the outer builder as `f` — there is no nested object to
+      # build one from — so a Bali group takes that name through `name:`, which
+      # Rails' `add_default_name_and_id` leaves alone when it is present. Not
+      # `input_name:`: that escape hatch is only read by `select_group` and
+      # `slim_select_group`, and elsewhere it lands as a literal HTML attribute.
       def render_array_fields(partial, method, item:, index:)
         @template.render(partial, f: self, object: object, item: item, index: index,
                                   name_prefix: array_name_prefix(method))

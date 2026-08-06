@@ -1,10 +1,19 @@
-/* WorkflowSteps component — vertical flow with a verdict per step.
+/* WorkflowSteps component — a flow with a verdict per step, in two shapes.
  *
- * Two-column grid per step: marker (connector + circle) and body. The
+ * `.workflow-steps` is the root in both, and carries whatever is shared: the
+ * body typography every step renders the same way. The structure hangs off the
+ * variant class next to it, because the two shapes agree on almost nothing
+ * above the title.
+ *
+ * Vertical: two-column grid per step, marker (connector + circle) and body. The
  * connector is absolutely positioned from the circle's centre down through the
  * row's bottom padding, so it bridges to the next circle whatever the body's
  * height — the marker column is a grid item and stretches to the row, which is
  * exactly where hand-rolled versions of this layout break on long comments.
+ *
+ * Horizontal: the N/M bar over a row of cards that wrap. `auto-fit` rather than
+ * a fixed column count, so a three-step chain fills the width and a nine-step
+ * one wraps instead of shrinking each card past reading width.
  *
  * State colours (bg-success, bg-error, …) come from the literal tables in
  * step/component.rb; only structure lives here. Imported in
@@ -13,7 +22,31 @@
  */
 
 .workflow-steps {
-  @apply relative w-full list-none;
+  @apply relative w-full;
+
+  .workflow-step-body {
+    @apply min-w-0;
+  }
+
+  .workflow-step-title {
+    @apply font-semibold;
+  }
+
+  .workflow-step-assignee {
+    @apply mt-0.5 flex items-center gap-1.5 text-sm text-base-content/70;
+  }
+
+  .workflow-step-date {
+    @apply mt-0.5 text-xs text-base-content/50;
+  }
+
+  .workflow-step-comment {
+    @apply mt-1 text-sm text-base-content/70;
+  }
+}
+
+.workflow-steps-vertical {
+  @apply list-none;
 
   .workflow-step {
     @apply grid grid-cols-[2.5rem_1fr] gap-x-3;
@@ -38,22 +71,34 @@
   }
 
   .workflow-step-body {
-    @apply min-w-0 pt-1;
+    @apply pt-1;
+  }
+}
+
+.workflow-steps-horizontal {
+  .workflow-steps-progress {
+    @apply mb-4 flex items-center gap-3;
   }
 
-  .workflow-step-title {
-    @apply font-semibold;
+  .workflow-steps-count {
+    @apply shrink-0 text-sm font-semibold tabular-nums text-base-content/70;
   }
 
-  .workflow-step-assignee {
-    @apply mt-0.5 flex items-center gap-1.5 text-sm text-base-content/70;
+  .workflow-steps-list {
+    @apply grid list-none gap-3 grid-cols-[repeat(auto-fit,minmax(11rem,1fr))];
   }
 
-  .workflow-step-date {
-    @apply mt-0.5 text-xs text-base-content/50;
+  .workflow-step {
+    @apply grid grid-cols-[auto_1fr] gap-x-2 rounded-box border border-base-300 p-3;
   }
 
-  .workflow-step-comment {
-    @apply mt-1 text-sm text-base-content/70;
+  .workflow-step-marker {
+    /* The marker box is the title's own line box, so the dot centres against
+       the first line of a title however many lines it wraps to. */
+    @apply flex h-6 items-center justify-center;
+  }
+
+  .workflow-step-dot {
+    @apply h-2.5 w-2.5 shrink-0 rounded-full;
   }
 }
