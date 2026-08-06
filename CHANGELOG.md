@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::SplitView` — the inbox shape, as a component** (#728). A master list on the left, the
+  detail of the selected row on the right inside a Turbo Frame, so a row click swaps only the
+  right column and the list keeps its scroll position and its highlight. `frame_id:` names the
+  frame, `master_width:` sets the left column from `lg` up (default `420px`; below `lg` the panes
+  stack, master on top, with no extra JavaScript), and `advance: true` puts
+  `data-turbo-action="advance"` on the frame so the selection is deep-linkable. Three slots:
+  `master`, `detail`, and `empty_detail` for when nothing is selected.
+
+  **It is deliberately thin.** The component owns the responsive grid, the frame and the
+  highlight controller — the three things that are identical in every master-detail screen — and
+  claims nothing else. Tabs, filter chips, pagination and the rows themselves go inside `master`
+  in whatever shape the screen needs, because the app this was extracted from puts all four there
+  and no two screens agree on their arrangement. The grouped "InboxList" the issue also asks for
+  is **not** in this release: one app has one, and one anatomy is not enough to triangulate an API.
+
+  **The selection is an attribute, not a class list.** The `split-view` Stimulus controller moves
+  `aria-current` between rows and the look follows from `.split-view-row[aria-current]` in the
+  package stylesheet, so the selected state cannot fall out of a Tailwind build the way class
+  names toggled from JavaScript can. It is drawn with an inset `box-shadow` rather than a left
+  border, measured: rows are separated with `border-b border-base-200/70`, and that colour utility
+  claims all four sides from Tailwind's utilities layer, which beats `@layer components` outright
+  — a `border-l-primary` in the component sheet rendered base-200 and the highlight was invisible.
+  The shadow also paints inside the padding box, so the selection moves between rows without
+  shifting a pixel of text. `data-split-view-selected-class` is there for a host that wants more.
+
+  **Back and forward behave.** A row click promotes the frame swap to a Turbo visit, and the
+  snapshot Turbo caches for the page being left is taken between the click and the frame's
+  response — so it holds the highlight the controller had just moved next to the detail pane from
+  *before* the swap, and pressing back restored a master pointing at one row with an empty detail
+  beside it. On a history traversal the controller now re-derives the highlight from the URL
+  instead of trusting that snapshot, which it can do because each row's href *is* the URL that
+  selects it. Only on a traversal: on a first paint the server's markup wins, since a master can
+  live on a page whose URL is not in its rows' URL space at all.
+
+  `.split-view-scroll` is an opt-in class for whichever part of the master should scroll — usually
+  the list alone, so tabs above it and pagination below it stay put — reading
+  `--bali-split-master-max-h` (default `calc(100vh - 20rem)`) so each screen can tune it to its own
+  chrome. `--bali-split-master-width` carries `master_width:` for the same reason a Tailwind
+  arbitrary value cannot: the width is a runtime value the build never sees.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added

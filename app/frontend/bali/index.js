@@ -118,6 +118,7 @@ export {
   SideMenuFlyoutController,
   SideMenuTriggerController,
   SortableListController,
+  SplitViewController,
   StatusController,
   TabsController,
   TimeagoController,

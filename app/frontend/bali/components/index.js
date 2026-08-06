@@ -61,6 +61,7 @@ import { FeedbackWidgetController } from '../../../components/bali/feedback_widg
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
 import { ToastContainerController } from '../../../components/bali/toast_container/index'
+import { SplitViewController } from '../../../components/bali/split_view/index'
 
 export {
   AlertController,
@@ -98,6 +99,7 @@ export {
   SideMenuFlyoutController,
   SideMenuTriggerController,
   SortableListController,
+  SplitViewController,
   StatusController,
   TabsController,
   TimeagoController,
@@ -187,7 +189,10 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'feedback-widget': FeedbackWidgetController,
 
   // Command palette
-  command: CommandController
+  command: CommandController,
+
+  // Master-detail
+  'split-view': SplitViewController
 })
 
 /**

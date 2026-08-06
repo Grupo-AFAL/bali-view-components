@@ -1,0 +1,12 @@
+<%# `tag.turbo_frame` and not `turbo_frame_tag`: turbo-rails is a development
+    dependency here, not a runtime one, so the component builds the element
+    itself instead of reaching for a helper a host may not have loaded. %>
+<%= tag.div(**container_attributes) do %>
+  <div class="split-view-master" data-controller="split-view">
+    <%= master %>
+  </div>
+
+  <%= tag.turbo_frame(**frame_attributes) do %>
+    <%= detail? ? detail : empty_detail %>
+  <% end %>
+<% end %>

@@ -1,0 +1,66 @@
+/* SplitView Component
+ *
+ * Three things live here rather than as utilities on the template:
+ *
+ *   1. The grid tracks. The master width is a runtime value, so
+ *      `lg:grid-cols-[420px_1fr]` cannot work — Tailwind only emits arbitrary
+ *      values it can read in the source at build time. The component writes
+ *      `--bali-split-master-width` into a style attribute and this rule reads it.
+ *   2. The scroll helper. `--bali-split-master-max-h` is the knob a host turns
+ *      when its own chrome is taller or shorter than the default assumption.
+ *   3. The row highlight, keyed on `aria-current`. The Stimulus controller only
+ *      moves the attribute; the look follows from here, so the selected style
+ *      cannot fall out of the Tailwind build the way a class list toggled from
+ *      JavaScript can.
+ *
+ * `@layer components` on purpose: a host utility on the container (`gap-6`,
+ * `lg:items-stretch`) beats everything below, which is the point.
+ */
+
+.split-view-component {
+  @apply grid grid-cols-1 gap-4 items-start;
+}
+
+/* `lg` — the breakpoint gc's inbox splits at, and the one the stacked mobile
+   behaviour is documented against. */
+@media (width >= 64rem) {
+  .split-view-component {
+    grid-template-columns: var(--bali-split-master-width, 420px) 1fr;
+  }
+}
+
+/* Opt-in, applied by the host to whatever part of the master should scroll —
+   usually the list alone, so tabs above it and pagination below it stay put.
+   The component cannot place this itself without dictating the master's
+   anatomy. */
+.split-view-scroll {
+  overflow-y: auto;
+  max-height: var(--bali-split-master-max-h, calc(100vh - 20rem));
+}
+
+/* ── Row states ───────────────────────────────────────────────────────────
+   The selection bar is an INSET BOX-SHADOW and not a left border, measured:
+   a row separator is written `border-b border-base-200/70`, and Tailwind's
+   `border-<color>` utility sets the colour of all four sides, not just the one
+   the `border-b` drew. That utility lives in Tailwind's utilities layer, which
+   beats `@layer components` outright — so a `border-l-primary` here rendered
+   base-200 on the selected row and the highlight was invisible. box-shadow is
+   a property no border utility claims, it paints inside the padding box so it
+   needs no transparent border reserved for it, and the selection therefore
+   moves between rows without shifting any text.
+
+   The tint is still a background, which a host CAN override with a utility of
+   its own — that one is deliberate: a row with its own background is a host
+   saying so. */
+.split-view-row {
+  @apply block transition-[background-color,box-shadow];
+}
+
+.split-view-row:hover {
+  @apply bg-base-200/50;
+}
+
+.split-view-row[aria-current] {
+  @apply bg-primary/5;
+  box-shadow: inset 3px 0 0 0 var(--color-primary);
+}
