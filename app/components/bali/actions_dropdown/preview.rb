@@ -31,6 +31,17 @@ module Bali
         })
       end
 
+      # POST and local-overlay items
+      # ---------------
+      # `method: :post` (also `:patch`/`:put`) renders a real `button_to` styled as an
+      # item, so the transition survives without JavaScript. `modal: { id:, local: true }`
+      # opens the modal rendered on this page WITHOUT a fetch — `drawer:` likewise — and
+      # without an `href:` the item is a real `<button>`. The page carries a second, decoy
+      # modal on purpose: a click on "Edit health" must open only the one it names (#854).
+      def local_overlays
+        render_with_template
+      end
+
       # With Custom Trigger
       # ---------------
       # Replace the default ellipsis with a labelled trigger. The `with_trigger` slot

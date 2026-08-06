@@ -238,4 +238,36 @@ class BaliModalComponentTest < ComponentTestCase
     render_inline(Bali::Modal::Component.new(confirm_on_close: true, confirm_close_message: "Discard?"))
     assert_selector('[data-modal-confirm-close-message-value="Discard?"]')
   end
+
+  # `shared: false` needs both halves: the value (so a broadcast — an open event naming no
+  # modal — never opens this one alongside the shared `#main-modal`, #854) and its own
+  # controller instance (under the page-level controller the `template` target is whichever
+  # dialog comes first in the DOM, so an event naming THIS modal would be compared against
+  # that one's id and dropped).
+  def test_shared_false_scopes_its_own_controller_and_opts_out_of_broadcasts
+    render_inline(Bali::Modal::Component.new(id: "health-modal", active: false, shared: false))
+
+    assert_selector("dialog#health-modal[data-controller='modal'][data-modal-shared-value='false']")
+  end
+
+  def test_shared_defaults_to_true_and_adds_no_attributes
+    render_inline(Bali::Modal::Component.new(active: false))
+
+    assert_no_selector("dialog[data-controller]")
+    assert_no_selector("dialog[data-modal-shared-value]")
+  end
+
+  # An unshared modal only ever opens when an event names it, so without a knowable id
+  # nothing can — and the auto-generated fallback id is not knowable.
+  def test_shared_false_requires_an_explicit_id
+    error = assert_raises(ArgumentError) { Bali::Modal::Component.new(shared: false) }
+    assert_match(/requires an explicit `id:`/, error.message)
+  end
+
+  def test_shared_false_composes_with_confirm_on_close
+    render_inline(Bali::Modal::Component.new(id: "m", shared: false, confirm_on_close: true))
+
+    assert_selector("dialog[data-controller='modal'][data-modal-shared-value='false']" \
+                    "[data-modal-confirm-close-message-value]")
+  end
 end

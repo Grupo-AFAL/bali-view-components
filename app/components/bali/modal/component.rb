@@ -34,14 +34,28 @@ module Bali
         Actions::Component.new(**options)
       end
 
-      def initialize(active: true, size: nil, id: nil, confirm_on_close: false, confirm_close_message: nil, **options)
+      SHARED_FALSE_REQUIRES_ID = "Bali::Modal::Component: `shared: false` requires an " \
+                                 "explicit `id:` — an unshared modal only ever opens when " \
+                                 "an open event names it (`modal: { id:, local: true }` " \
+                                 "on the trigger), so without a knowable id nothing can."
+
+      # @param shared [Boolean] Whether this modal answers an open event that names no
+      #   modal. See {#shared?} — `shared: false` is what a pre-rendered (local) modal
+      #   wants, and it requires an explicit `id:`.
+      # rubocop:disable Metrics/ParameterLists
+      def initialize(active: true, size: nil, id: nil, shared: true, confirm_on_close: false,
+                     confirm_close_message: nil, **options)
+        # rubocop:enable Metrics/ParameterLists
         @active = active
         @size = size&.to_sym
         @wrapper_class = options.delete(:wrapper_class)
         @id = id
+        @shared = shared
         @confirm_on_close = confirm_on_close
         @confirm_close_message = confirm_close_message
         @options = options
+
+        raise ArgumentError, SHARED_FALSE_REQUIRES_ID if !@shared && @id.blank?
       end
 
       def modal_id
@@ -106,6 +120,26 @@ module Bali
       # (the shared body/main-level controller ignores the nested subtree).
       def confirm_on_close?
         @confirm_on_close
+      end
+
+      # A shared modal answers open events that name no modal — the broadcasts the
+      # page-level `modal#open` triggers emit against the layout's `#main-modal`.
+      # A modal that belongs to one feature and is opened by name (`modal:
+      # { id:, local: true }` on its trigger) sets `shared: false`: it only answers
+      # events carrying its id, so a broadcast can never open it alongside the shared
+      # one and leave it stranded in the top layer (#854, the drawer's lesson).
+      def shared?
+        @shared
+      end
+
+      # `shared: false` also needs its own controller instance, not just the value:
+      # under the page-level controller the `template` target is whichever dialog comes
+      # first in the DOM (usually the layout's `#main-modal`), so an event naming THIS
+      # modal would be compared against that one's id and dropped. With the controller
+      # on the dialog itself, its template target is itself and the id comparison is
+      # against the right element. Same mechanics as `confirm_on_close:`.
+      def own_controller?
+        confirm_on_close? || !shared?
       end
 
       def confirm_close_message

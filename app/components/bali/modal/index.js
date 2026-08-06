@@ -588,6 +588,32 @@ export class ModalController extends Controller {
     this._dispatchOpen({ id, content: body, options })
   }
 
+  /**
+   * Opens an overlay that is already rendered on the page, by name — no fetch.
+   * The trigger names it (`data-modal-id` / `data-drawer-id` — see `idAttribute`)
+   * and the open event carries `content: null`, which `openModal` reads as "keep
+   * the content the server rendered". Inherited unchanged by DrawerController.
+   *
+   * The id is mandatory. An open event without one is a broadcast, and a
+   * broadcast is answered by every shared overlay on the page — the one nobody
+   * closes afterwards stays in the top layer and leaves the document inert
+   * (#854). The Ruby side raises before emitting a local trigger with no id;
+   * this guard covers the hand-written one.
+   */
+  openLocal = event => {
+    event.preventDefault()
+    const target = event.currentTarget
+    const id = target.getAttribute(this.idAttribute)
+
+    if (!id) {
+      console.warn(`${this.identifier}#openLocal ignored: the trigger has no ${this.idAttribute}`)
+      return
+    }
+
+    const options = { [this.sizeOptionKey]: target.getAttribute(this.sizeAttribute) }
+    this._dispatchOpen({ id, content: null, options })
+  }
+
   get idAttribute () {
     return 'data-modal-id'
   }

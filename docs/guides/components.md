@@ -288,6 +288,28 @@ anything you render over it.
 <% end %>
 ```
 
+**A pre-rendered ("local") modal** — content already on the page, opened by name with no
+fetch — is declared with an explicit `id:` and `shared: false`, and opened from any
+trigger carrying `modal: { id:, local: true }` (`Bali::Link`, `Bali::Button`, or a
+dropdown item):
+
+```erb
+<%= render Bali::Button::Component.new(name: 'Edit health',
+                                       modal: { id: 'health-modal', local: true }) %>
+
+<%= render Bali::Modal::Component.new(id: 'health-modal', active: false, shared: false) do |m| %>
+  <% m.with_header(title: 'Edit health') %>
+  <% m.with_body do %>
+    <%# server-rendered content; opening does not fetch anything %>
+  <% end %>
+<% end %>
+```
+
+`shared: false` (which requires the `id:`) keeps the modal out of broadcast opens — an
+open event that names no modal must never open this one alongside the layout's shared
+`#main-modal` (#854) — and gives it its own controller instance so the event naming it is
+answered by this dialog and not the first one in the DOM.
+
 #### Drawer
 
 Slide-in panel from edge of screen. Like `Modal`, a native `<dialog>` opened with
@@ -725,15 +747,35 @@ is a preset of this one, not a second implementation.
   a form or checkboxes rather than menu items: `role="menu"` exposes children it does not
   allow and puts a screen reader into menu mode over a form.
 
-**Items.** `with_item` builds one of three things, and `icon:` means the same in all of them:
+**Items.** `with_item` builds the right element from what the item does, and `icon:`
+means the same in all of them:
+
+| The item… | Write | Renders |
+|---|---|---|
+| navigates | `href:` | `<a>` (`Bali::Link`) |
+| mutates state | `href:` + `method: :post/:patch/:put` | a real `button_to` styled as an item — the transition survives without JavaScript (#641) |
+| deletes | `href:` + `method: :delete` | `button_to` via `DeleteLink`, with the confirm dialog |
+| opens a remote modal/drawer | `href:` + `modal: true` (or `{ id: }`) / `drawer:` | `<a>` that fetches the href into the overlay |
+| opens an overlay already on the page | `modal: { id:, local: true }` / `drawer:` — no `href:` | a real `<button>` that opens the named overlay as it is; nothing is fetched |
+| runs JavaScript | `tag: :button` + `data: { action: }` | a real `<button>` |
+| heads a section | `tag: :title` | a heading, not a menuitem |
 
 ```erb
 <% dd.with_item(tag: :title, name: "Export") %>            <%# section heading %>
 <% dd.with_item(name: "CSV", href: "/x.csv", icon: "download") %>
+<% dd.with_item(name: "Approve", href: "/x/approval", method: :post, icon: "check") %>
 <% dd.with_item(name: "Delete", href: "/x", method: :delete) %>   <%# DeleteLink + confirm %>
+<% dd.with_item(name: "Edit health", icon: "heart-pulse",
+                modal: { id: "health-modal", local: true }) %>    <%# no fetch %>
 <% dd.with_item(tag: :button, name: "Duplicate", icon: "copy",
                 data: { action: "thing#duplicate" }) %>    <%# a real <button> %>
 ```
+
+The local mode requires the `id:` — an open event that names no overlay is a broadcast,
+and a broadcast opens every shared overlay on the page (#854). Render the modal it names
+on the same page with a matching `id:` and `shared: false` (a drawer with `drawer_id:` and
+`shared: false`), so it only ever answers by name. See
+[Overlays and the top layer](overlays-and-the-top-layer.md) for the full contract.
 
 **Keyboard**, and it is the same in both modes. Tab reaches the trigger, Enter or Space
 opens it, `↓` / `↑` walk the items, Escape closes it and puts the focus back on the trigger,
@@ -1979,6 +2021,7 @@ Primary interactive element for actions.
 - `type` - The HTML attribute: `:button`, `:submit`, `:reset`. Never a look
 - `disabled` - Disable button
 - `loading` - Draw a spinner beside the label and disable the button (`disabled` plus `aria-busy`). A button that is waiting is not one you can press, and it keeps its box: `loading` on the `<button>` itself is a daisyUI 5 spinner, not a modifier
+- `modal` / `drawer` - `{ id:, local: true }` opens an overlay already rendered on the page, by name and with no fetch (`id:` is mandatory). Only the local mode: a button has no href to fetch, so the remote mode stays on `Link`
 
 #### Link
 
@@ -1999,6 +2042,11 @@ Navigation links, optionally styled as buttons.
 **When to use Button vs Link:**
 - Use `Button` for **actions** (submit, click handlers)
 - Use `Link` for **navigation** (goes to a URL)
+
+**Overlay triggers.** `modal: true` fetches the href into the shared modal;
+`modal: { id: }` addresses the modal with that id; `modal: { id:, local: true }` opens a
+modal already rendered on the page as it is — no fetch, and the `id:` is mandatory.
+`{ size: }` composes with all three, and `drawer:` has the same contract.
 
 #### Tooltip
 

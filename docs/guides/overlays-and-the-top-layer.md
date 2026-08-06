@@ -121,6 +121,43 @@ drawer covers it, and so would a drawer opened over a modal. `--bali-z-drawer: 3
 the server rendered `active:` in the moment before its controller promotes it, and in a
 browser with no `<dialog>` support at all.
 
+## Opening an overlay by name, and the local mode
+
+`Modal` and `Drawer` open on one event each (`bali:modal:open` / `bali:drawer:open`,
+dispatched on `document`), and the event comes in two shapes:
+
+- **A broadcast** — no `detail.id`. Every *shared* overlay on the page answers. This is the
+  ordinary `modal: true` / `drawer: true` trigger against the layout's `#main-modal` /
+  `#main-drawer`, and it is why an overlay that belongs to one feature must opt out with
+  `shared: false`: with two overlays answering the same broadcast, the one nobody closes
+  afterwards stays `showModal()`-ed and the whole document behind it goes inert (#854).
+- **An addressed open** — `detail.id` names the overlay, and only the one whose `<dialog>`
+  has that id answers.
+
+On top of that, a trigger can open an overlay in two modes:
+
+| Mode | Trigger | What happens |
+| --- | --- | --- |
+| Remote | `modal: true` or `modal: { id: }` on a `Bali::Link` (needs the href) | `modal#open` fetches the href and swaps it into the overlay, skeleton first |
+| Local | `modal: { id:, local: true }` on `Link`, `Button` or a dropdown item | `modal#openLocal` dispatches the addressed open with no content: the overlay keeps what the server rendered — no fetch |
+
+The local mode is for the overlay whose content is already on the page — an edit form
+rendered next to the row it edits. Declare that overlay addressable and unshared:
+
+```erb
+<%= render Bali::Modal::Component.new(id: 'health-modal', active: false, shared: false) do %>
+  ...
+<% end %>
+```
+
+`shared: false` requires the explicit `id:` (an unshared overlay only ever opens when an
+event names it) and, on the modal, also renders the controller on the `<dialog>` itself —
+under the page-level controller the `template` target is whichever dialog comes first in
+the DOM, so an addressed open would be compared against the wrong id. The drawer always
+carries its own controller; it only needs `drawer_id:` and `shared: false`. In both, the
+`id:` on the trigger is mandatory — `local: true` without one raises, because the only
+thing it could do is the #854 broadcast.
+
 ## What has to follow them up there
 
 Anything the scale ranks **above** those four, because no z-index reaches over the top
