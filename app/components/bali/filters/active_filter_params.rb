@@ -51,9 +51,17 @@ module Bali
       # (`active_simple_filters` los incluye), así que se descartan por nombre: emitirlos dos
       # veces dejaría dos hidden con el mismo `name` y el servidor se quedaría con uno solo.
       #
-      # NOTA: se congela el valor RESUELTO. Un preset (`this_month`) viaja como el rango que
-      # el listado tenía a la vista, no como el token: el bulk actúa sobre lo que el usuario
-      # vio al hacer click, y no sobre lo que "este mes" signifique cuando el job corra.
+      # Los dos caminos mandan valores DISTINTOS, y conviene saber cuál te tocó:
+      #
+      #   - como `attribute`, acá, viaja el rango RESUELTO (`inicio..fin`) — congelado;
+      #   - como filtro simple viaja el valor CRUDO que sirve `active_filters`, y por eso un
+      #     preset (`this_month`) viaja como TOKEN y el servidor lo vuelve a resolver contra
+      #     su propio reloj. Los `presets:` solo existen sobre date_range simple, así que
+      #     **todo preset viaja como token**; este método no los ve nunca.
+      #
+      # Medido en `test_a_simple_date_range_is_emitted_exactly_once`, que además es el que
+      # avisa si la clave de `active_simple_filters` deja de coincidir con `q[<atributo>]` y
+      # el de-dup empieza a fallar en silencio.
       def date_range_pairs(filter_form, already: [])
         Array(filter_form.try(:date_range_attributes)).filter_map do |attribute|
           name = "q[#{attribute}]"
