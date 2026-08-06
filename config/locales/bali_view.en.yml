@@ -614,3 +614,5 @@ en:
       user_menu:
         trigger_label: "User menu for %{name}"
         sign_out: "Sign out"
+    qr_code:
+      label: "QR code"

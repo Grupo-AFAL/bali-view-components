@@ -18,6 +18,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Bali::DocumentEditor::Component` accepts `versions_url: :auto` / `restore_version_url: :auto` plus `record:`, resolving to the mounted engine's endpoints. Without a record the history panel does not render, rather than rendering one whose every request would 404. Plain string URLs keep working untouched.
   - Adoption guide in `docs/guides/engines.md`, including the explicit note that a host with an existing history table **does not have to migrate** — the contract is JSON.
   - The dummy app now consumes the engine instead of its own `DocumentVersion`, which is what proves the adoption path works.
+## [v3.1.0.beta.3] - 2026-08-06
+
+### Changed
+
+- **The Gantt island follows the viewport without re-rendering** (#705). Panning, dragging a bar,
+  selecting and typing in the search box each used to re-reconcile the island's entire React tree;
+  on a 300-item document (20 groups, 150 dependencies) a single pan frame rebuilt every row of the
+  left table, every tick of the axis and every bar of the minimap. No public API, markup, CSS or
+  data-contract change — only how the components subscribe to the canvas:
+  - The layers that shift as a block with the pan (time header, grid + weekend bands, row bands,
+    group summary bars, today line, left table, minimap viewport rectangle) no longer subscribe to
+    the React Flow transform with `useStore`. They take it from the store imperatively (new
+    `useViewportFollow` hook) and write `style.transform` on a ref, so a pan frame costs **zero**
+    React renders instead of one per layer plus all of its children. Measured over 20 pan frames:
+    horizontal 100 component renders → 0; vertical 20 renders + 6.400 table rows → 0.
+  - `React.memo` on the chrome (`GanttTable` and its `Row`, `Toolbar`, `TimeHeader`, `GridBands`,
+    `RowBands`, `SummaryBars`, `Minimap`, `GanttFooter`), with the toolbar's toggle callbacks
+    given stable identities so the memo actually holds. Dragging a bar re-rendered the whole
+    chrome once per pointer frame (3.200 row renders over 20 frames); it now re-renders only the
+    dragged bar. Same for the table splitter: 6.080 row renders → 0.
+  - Node decoration runs in two passes, so the `selected` bit no longer rebuilds every bar's `data`
+    object: React Flow keeps its internal node for the bars whose bit did not change and only the
+    affected ones re-render. A selection click went from 300 bar renders + 640 row renders to 1
+    and 1.
+  - `useDeferredValue` on search and status filter: the input echoes the keystroke immediately
+    while the model rebuild is deferred, so a burst of keystrokes rebuilds the filtered document
+    once instead of once per letter (9 letters: 5.760 row renders + 2.700 bar renders → 320 + 300).
+### Added
+
+- **`Bali::QrCode` — QR codes generated server-side, with `rqrcode` as an optional dependency** (#926). `render Bali::QrCode::Component.new(payload: movie_url(@movie))` emits inline SVG: no JavaScript, no image request, nothing to serve. `payload:` is required; `size:` (pixels, default 200) and `level:` (error correction `:l`/`:m`/`:q`/`:h`, default `:m`) are the whole API. The gem it encodes with is **not** in the gemspec — three apps in the org render QR codes and the rest would carry it for nothing — so it is required lazily and its absence raises `Bali::QrCode::Component::MissingDependency`, a `LoadError` subclass whose message names the line to add (`gem "rqrcode", "~> 3.1"`) instead of leaving a host with `cannot load such file`. Same contract as the optional npm peers in `package.json`. Black on white with the spec's four-module quiet zone, neither configurable: a scanner reads dark-on-light, so theme colours would leave the code unreadable under a dark theme while still looking like a QR code. The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size:`; `role="img"` plus an `aria-label` that defaults to the generic `bali_view.qr_code.label` ("QR code" / "Código QR") and takes a `label:` for the context the markup does not supply.
 
 ## [v3.1.0.beta.2] - 2026-08-06
 
