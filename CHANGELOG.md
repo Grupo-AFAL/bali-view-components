@@ -116,6 +116,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **The cast is additive, measured token by token.** Three of the five (`today`, `this_week`, `last_7_days`) used to reach `Time.zone.parse`, come back `nil` and raise `NoMethodError`. The other two did produce a range and both were nonsense: `Date._parse` reads the "mon" inside `this_month` as a weekday and yields today, and pulls `mday: 30` out of `last_30_days` and yields the 30th of the current month. Those two literal strings are the only inputs whose result changes, from a silently wrong day to the period they name. Every other form the type accepts — `a..b`, the beginless and endless halves, the localized `2026-01-01 to 2026-03-31`, a bare date widening to its whole day — is covered by the new `test/bali/types/date_range_value_test.rb` and unchanged.
 
   **No second Stimulus controller.** The widget is `time-period-field`, the one `f.time_period_group` has always built, given a `custom-value` so the option that reveals the picker can be named. It defaults to the empty string — what the form builder uses, since its blank option is spent on "custom" — while a filter row needs its blank for "any date" and passes `custom`. Two fixes came with it: the container named by `date-input-container-class` is now resolved before the first toggle rather than after, so it is hidden on the initial render instead of one interaction later; and the hidden field is the only control in the widget with a `name`, since two inputs sharing one submit the param twice and the server keeps the last, not the one on screen.
+- **`dynamic_fields_group` grows a table mode and an array mode** (#715). The same helper, the
+  same anatomy — header, container, `<template>` — with two shapes it could not produce before,
+  both opt-in and both leaving existing call sites byte-for-byte unchanged:
+  - `table: true` renders the container as the `<tbody>` of a table the helper emits, so the row
+    partial writes `<tr>`. `columns:` fills the `<thead>` and `table_class:` overrides the default
+    `table`. The header and its `<template>` render *outside* the `<table>`, which is the only
+    place they survive: the HTML parser hoists a `<div>` sitting between `<table>` and `<tbody>`
+    out of the table, which used to strand the add button and its template. A `<tr>` inside the
+    `<template>` is fine — the HTML5 parser switches to "in table body" for exactly that case.
+  - `array: true` names the rows `movie[steps][][role]` for an attribute that is a plain array of
+    hashes rather than an association: no `fields_for`, no `_destroy`, no
+    `reflect_on_association` to explode on. Rows come from the attribute or from `values:`, and
+    the partial receives `name_prefix:`, `item:` and `index:` alongside `f`. Checkboxes are not
+    supported in this mode — Rails' paired hidden field repeats a key inside the element and
+    splits the array — see the guide.
+  - `partial:` on both `dynamic_fields_group` and `link_to_add_fields` names the row partial
+    explicitly instead of deriving `_<singular>_fields`, and `destroy_flag: false` on
+    `link_to_remove_fields` drops the hidden `_destroy` for rows that have nothing to destroy.
+- **`dynamic-fields` renumbers a visible ordinal** (#715). A `data-dynamic-fields-target="ordinal"`
+  element inside a row gets the row's 1-based number written into it after every add, remove and
+  reorder, counting only the rows still in play. The target holds the number alone, so punctuation
+  around it ("1.", "#1") lives in the markup and survives renumbering. Absent target, nothing
+  happens — this is the piece host apps were each writing a controller for.
+
+### Changed
+
+- **Removing an unsaved row deletes it from the DOM** (#715). `dynamic-fields#removeFields` used to
+  hide every removed row and flag it `_destroy`, whether or not there was anything to destroy. It
+  now looks for the `[id]` hidden field `fields_for` emits only for a persisted record: with one,
+  the old behaviour (hide, strip the visible inputs, flag) so the server still learns which record
+  to delete; without one, the row simply leaves the DOM. What gets submitted is unchanged —
+  `_destroy` on a nested hash with no `id` was already a no-op — but the DOM stops accumulating
+  dead rows. `resetPositionValues` skips hidden rows for the same reason, so `[data-position]`
+  stays contiguous over the rows that will actually be saved, and it now tolerates a row without a
+  position input instead of raising.
 - **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
 - **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
 
