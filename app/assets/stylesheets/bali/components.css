@@ -23,6 +23,7 @@
 @import "../../../components/bali/status/index.css" layer(components);
 @import "../../../components/bali/hover_card/index.css" layer(components);
 @import "../../../components/bali/tag/index.css" layer(components);
+@import "../../../components/bali/kanban/index.css" layer(components);
 
 /* Form Components */
 @import "../../../components/bali/delete_link/index.css" layer(components);

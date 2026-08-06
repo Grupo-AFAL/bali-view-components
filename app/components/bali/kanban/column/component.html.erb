@@ -1,5 +1,5 @@
-<div class="bg-base-100 rounded-xl shadow-sm border border-base-200 p-4 <%= options[:class] %>">
-  <h3 class="font-semibold mb-3 flex items-center gap-2">
+<div class="<%= column_classes %>">
+  <h3 class="shrink-0 font-semibold mb-3 flex items-center gap-2">
     <%= render Bali::Tag::Component.new(**indicator_options) %>
     <%= title %>
     <% if display_count > 0 %>
@@ -10,10 +10,17 @@
   <%# The stack of cards is a list, and its accessible name carries the count so
       an empty column announces as empty instead of as a list of nothing. The
       count badge above stays hidden at zero — there is nothing to look at — but
-      the announcement says "0 cards" either way. %>
+      the announcement says "0 cards" either way.
+
+      `flex-1` makes the list claim the column's remaining height, so on a
+      height-capped board the list (not the column, not the page) is what
+      scrolls, and the whole body of an empty column is a drop target. The
+      list's min-height lives in ../index.css next to the empty-column
+      affordance that overrides it — a `min-h-*` utility here would beat both
+      (utilities layer wins over components) and kill the affordance. %>
   <%= render Bali::SortableList::Component.new(
         **sortable_options,
-        class: "space-y-2 min-h-[100px]",
+        class: "kanban-column-list space-y-2 overflow-y-auto flex-1",
         role: "list",
         'aria-label': list_label,
         data: { kanban_column_title: title }
@@ -24,7 +31,7 @@
   <% end %>
 
   <% if footer? %>
-    <div class="kanban-column-footer mt-2 pt-2 border-t border-base-200">
+    <div class="kanban-column-footer shrink-0 mt-2 pt-2 border-t border-base-200">
       <%= footer %>
     </div>
   <% end %>

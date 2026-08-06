@@ -15,10 +15,12 @@ module Bali
         # @param color [Symbol] Semantic colour of the header indicator (Bali::Color::NAMES)
         # @param custom_color [String, nil] Hex colour for the header indicator
         # @param count [Integer, nil] Item count badge (auto-counted from cards if nil)
+        # @param disabled [Boolean] Disable dragging cards out of this column
         # @param sortable_config [Hash] SortableList options passed from parent Kanban
+        # @param layout [Symbol] Board layout, passed from parent Kanban (:grid or :flow)
         # rubocop:disable Metrics/ParameterLists
         def initialize(title:, status:, color: :ghost, custom_color: nil, count: nil,
-                       sortable_config: {}, **options)
+                       disabled: false, sortable_config: {}, layout: :grid, **options)
           # rubocop:enable Metrics/ParameterLists
           @title = title
           @status = status
@@ -27,13 +29,16 @@ module Bali
           @custom_color = Bali::Color.hex!(self.class, custom_color)
           @color = @custom_color ? nil : Bali::Color.name!(self.class, color)
           @count = count
+          @disabled = disabled
           @sortable_config = sortable_config
+          @layout = layout
           @options = options
         end
 
         private
 
-        attr_reader :title, :status, :color, :custom_color, :count, :sortable_config, :options
+        attr_reader :title, :status, :color, :custom_color, :count, :disabled,
+                    :sortable_config, :layout, :options
 
         def display_count
           count || cards.size
@@ -57,8 +62,21 @@ module Bali
             list_param_name: sortable_config[:list_param_name] || "status",
             resource_name: sortable_config[:resource_name],
             response_kind: sortable_config[:response_kind] || :html,
+            disabled: disabled,
             animation: 150
           }
+        end
+
+        # `min-h-0` lets the column shrink below its content when the board caps
+        # its height — without it the flex item refuses to shrink and the list
+        # inside never overflows, so nothing ever scrolls.
+        def column_classes
+          class_names(
+            "kanban-column bg-base-100 rounded-xl shadow-sm border border-base-200 p-4",
+            "flex flex-col min-h-0",
+            { "w-72 shrink-0" => layout == :flow },
+            options[:class]
+          )
         end
       end
     end
