@@ -144,4 +144,81 @@ class BaliTagComponentTest < ComponentTestCase
     render_inline(Bali::Tag::Component.new(text: "Tag", class: "my-custom-class"))
     assert_selector("div.badge.my-custom-class")
   end
+
+  def test_icon_keyword_renders_the_icon_before_the_text
+    render_inline(Bali::Tag::Component.new(text: "Done", icon: "check"))
+    assert_selector("div.badge span.icon-component svg")
+    html = page.native.to_html
+    assert_operator html.index("icon-component"), :<, html.index("Done")
+  end
+
+  # The keyword glyph is drawn at the pill's font-size: a default 16px icon is
+  # as tall as the whole `badge-xs` pill, so it would touch both edges.
+  def test_icon_keyword_sizes_the_glyph_to_the_pill
+    render_inline(Bali::Tag::Component.new(text: "Done", icon: "check", size: :xs))
+    assert_selector('.icon-component[style*="--bali-icon-size: 10px"]')
+  end
+
+  def test_icon_keyword_without_a_size_uses_the_md_glyph
+    render_inline(Bali::Tag::Component.new(text: "Done", icon: "check"))
+    assert_selector('.icon-component[style*="--bali-icon-size: 14px"]')
+  end
+
+  def test_icon_slot_wins_over_the_keyword
+    render_inline(Bali::Tag::Component.new(text: "Done", icon: "check")) do |tag|
+      tag.with_icon("star", class: "slot-icon")
+    end
+    assert_selector("span.icon-component.slot-icon", count: 1)
+    assert_selector("span.icon-component", count: 1)
+  end
+
+  def test_for_resolves_color_icon_and_i18n_label_from_the_map
+    I18n.backend.store_translations(:en, tickets: { statuses: { active: "Active!" } })
+    render_inline(Bali::Tag.for(:active,
+                                map: { active: { color: :success, icon: "check" } },
+                                i18n_scope: "tickets.statuses"))
+    assert_selector("div.badge.badge-success span.icon-component svg")
+    assert_selector("div.badge", text: "Active!")
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_for_humanizes_the_value_without_an_i18n_scope
+    render_inline(Bali::Tag.for(:in_review, map: { in_review: :info }))
+    assert_selector("div.badge.badge-info", text: "In review")
+  end
+
+  def test_for_matches_string_map_keys_and_string_values
+    render_inline(Bali::Tag.for(:urgent, map: { "urgent" => :error }))
+    assert_selector("div.badge.badge-error", text: "Urgent")
+
+    render_inline(Bali::Tag.for("urgent", map: { urgent: :error }))
+    assert_selector("div.badge.badge-error", text: "Urgent")
+  end
+
+  def test_for_raises_on_an_unmapped_value_without_a_default
+    error = assert_raises(ArgumentError) do
+      Bali::Tag.for(:unknown, map: { active: :success })
+    end
+    assert_includes error.message, ":unknown"
+    assert_includes error.message, "default"
+  end
+
+  def test_for_uses_the_default_entry_for_an_unmapped_value
+    render_inline(Bali::Tag.for(:legacy, map: { active: :success }, default: :ghost))
+    assert_selector("div.badge.badge-ghost", text: "Legacy")
+  end
+
+  def test_for_entry_text_overrides_the_label
+    render_inline(Bali::Tag.for(nil, map: {}, default: { color: :ghost, text: "—" }))
+    assert_selector("div.badge.badge-ghost", text: "—")
+  end
+
+  def test_for_passes_tag_options_through_and_the_entry_wins_on_conflict
+    render_inline(Bali::Tag.for(:active,
+                                map: { active: { color: :success } },
+                                size: :xs, rounded: true, color: :error))
+    assert_selector("div.badge.badge-success.badge-xs.rounded-full")
+    assert_no_selector(".badge-error")
+  end
 end
