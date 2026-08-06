@@ -280,4 +280,100 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector('[role="tablist"]')
     assert_no_selector("nav")
   end
+
+  def test_count_renders_a_badge_after_the_title
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Inbox", active: true, count: 12) { "Content" }
+    end
+
+    assert_selector("a.tab span.badge", text: "12")
+    # The count is information, not decoration: it stays in the accessible name.
+    assert_selector("a.tab", text: /Inbox\s+12/)
+  end
+
+  def test_count_of_zero_still_renders
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Done", active: true, count: 0) { "Content" }
+    end
+
+    assert_selector("a.tab span.badge", text: "0")
+  end
+
+  def test_count_accepts_a_string
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Inbox", active: true, count: "99+") { "Content" }
+    end
+
+    assert_selector("a.tab span.badge", text: "99+")
+  end
+
+  def test_without_count_there_is_no_badge
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", active: true) { "Content" }
+    end
+
+    assert_no_selector("a.tab .badge")
+  end
+
+  def test_count_renders_in_navigation_mode
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Mine", href: "/mine", count: 3)
+      c.with_tab(title: "Team", href: "/team", count: 12)
+    end
+
+    assert_selector('nav a[href="/mine"] span.badge', text: "3")
+    assert_selector('nav a[href="/team"] span.badge', text: "12")
+  end
+
+  # In navigation mode there is no panel div for the tab options to land on,
+  # so they used to vanish. They belong to the `<a>`.
+  def test_navigation_mode_passes_tab_options_to_the_link
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one", class: "custom-tab", data: { bali_test: "tab-link" })
+    end
+
+    assert_selector('nav a.tab.custom-tab[href="/one"][data-bali-test="tab-link"]')
+  end
+
+  def test_navigation_mode_link_does_not_inherit_the_hidden_panel_class
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab 1", href: "/one")
+      c.with_tab(title: "Tab 2", href: "/two")
+    end
+
+    assert_no_selector("nav a.hidden", visible: :all)
+  end
+
+  def test_navigation_mode_emits_turbo_action_advance_by_default
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one")
+    end
+
+    assert_selector('nav a[href="/one"][data-turbo-action="advance"]')
+  end
+
+  def test_navigation_mode_turbo_action_false_omits_the_attribute
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one", turbo_action: false)
+    end
+
+    assert_selector('nav a[href="/one"]')
+    assert_no_selector("nav a[data-turbo-action]")
+  end
+
+  def test_navigation_mode_passes_a_custom_turbo_action_through
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one", turbo_action: :replace)
+    end
+
+    assert_selector('nav a[href="/one"][data-turbo-action="replace"]')
+  end
+
+  def test_panel_mode_does_not_emit_turbo_action
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", active: true) { "Content" }
+    end
+
+    assert_no_selector("a.tab[data-turbo-action]")
+  end
 end
