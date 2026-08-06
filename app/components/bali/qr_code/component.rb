@@ -56,13 +56,13 @@ module Bali
       #   whenever the surrounding markup does not
       # @param options [Hash] Additional HTML attributes for the svg element
       def initialize(payload:, size: DEFAULT_SIZE, level: DEFAULT_LEVEL, label: nil, **options)
+        raise ArgumentError, "Bali::QrCode::Component: payload is required" if payload.blank?
+
         @payload = payload.to_s
         @size = size
         @level = validated_level(level)
         @label = label
         @options = prepend_class_name(options, "qr-code-component")
-
-        raise ArgumentError, "Bali::QrCode::Component: payload is required" if @payload.empty?
       end
 
       def call

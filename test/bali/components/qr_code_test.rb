@@ -26,9 +26,13 @@ class BaliQrCodeComponentTest < ComponentTestCase
     refute_equal first, rendered_content
   end
 
+  # A code with nothing in it still scans — it just resolves to an empty string,
+  # which is a bug that ships looking like a feature.
   def test_payload_is_required
-    error = assert_raises(ArgumentError) { Bali::QrCode::Component.new(payload: "") }
-    assert_match(/payload is required/, error.message)
+    [ "", "   ", nil ].each do |blank|
+      error = assert_raises(ArgumentError) { Bali::QrCode::Component.new(payload: blank) }
+      assert_match(/payload is required/, error.message)
+    end
   end
 
   # A code flush against its neighbours is a code some scanners never find, so
