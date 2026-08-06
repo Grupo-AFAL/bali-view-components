@@ -1956,7 +1956,8 @@ optional `footer` slot rendered outside the sortable list (never draggable) —
 the classic "+ add card" action.
 
 ```erb
-<%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "board") do |k| %>
+<%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "board",
+      layout: :flow, height: :viewport) do |k| %>
   <% k.with_column(title: "To Do", status: "todo", color: :ghost) do |col| %>
     <% col.with_card(update_url: task_path(task), label: task.title) { render TaskCard.new(task:) } %>
     <% col.with_footer do %>
@@ -1964,8 +1965,73 @@ the classic "+ add card" action.
     <% end %>
   <% end %>
   <% k.with_column(title: "Brand", status: "brand", custom_color: "#7c3aed") %>
+  <% k.with_column(title: "Blocked", status: "blocked", disabled: true) %>
 <% end %>
 ```
+
+**Layout and height are board-level.** `layout: :grid` (the default) places up
+to 4 columns side by side and stacks on mobile; `layout: :flow` puts every
+column on a single horizontally scrolling row (`w-72` each) — the shape for
+boards with 5+ status columns. `height:` is opt-in: `nil` (default) lets the
+board grow with its content; `:viewport` caps it to
+`calc(100vh - var(--bali-kanban-offset, 17rem))` — override
+`--bali-kanban-offset` on any ancestor to match your app's header chrome — and
+any string is taken as a height utility class (`height: "h-[40rem]"`). On a
+height-capped board each column's card list scrolls internally; there is no
+separate `scrollable:` knob, and no per-column `max_height:` — bound the board,
+not the columns (a one-off column cap is a `max-h-*` utility via the column's
+`class:` option).
+
+**An empty column stays a visible drop target.** When a column has no cards its
+list keeps a 100px floor and a dashed border. The affordance is CSS `:has()`,
+not a render-time `cards.empty?` flag, so it tracks the drag live: drag the
+last card out and it appears, hover a drag over the empty column and it yields
+to SortableJS's preview. Both rules live in `kanban/index.css` inside
+`@layer components` — a host utility on the list still wins.
+
+`disabled: true` on `with_column` freezes that column (forwarded to the
+underlying SortableList): its cards cannot be dragged out and it stops
+accepting drops. To only stop specific cards from *leaving* a live column,
+render those cards with `data: { sortable_item_pull: "false" }` instead.
+
+##### Wiring the drop PATCH
+
+A drop sends one `PATCH` to the dragged card's `update_url` — there is no
+board-level endpoint. With `resource_name: "task"` and the default
+`list_param_name: "status"` the body is:
+
+```
+task[position] = 3        # 1-based position within the target column
+task[status]   = "done"   # the target column's `status:`
+```
+
+`position` is **1-based** (SortableJS's `newIndex + 1`), which is what
+`acts_as_list` and `positioning` expect for `insert_at`. Without
+`resource_name:` the params arrive unnamespaced (`position`, `status`). The
+Rails side is one member route and a permit:
+
+```ruby
+# config/routes.rb
+resources :tasks, only: [] do
+  patch :move, on: :member
+end
+
+# app/controllers/tasks_controller.rb
+def move
+  task = Task.find(params[:id])
+  task.update!(status: params.require(:task)[:status])
+  task.insert_at(params.require(:task)[:position].to_i) # acts_as_list
+
+  head :ok # the board already moved the card client-side
+end
+```
+
+`response_kind: :html` (default) expects any successful response and leaves the
+DOM as the drop left it. Use `response_kind: :turbo_stream` when the server
+re-renders — e.g. to refresh the per-column count badges and `aria-label`s,
+which are server-rendered and go stale after a client-side drop. Cards without
+`update_url:` still drag (the DOM moves) but send nothing — fine for a demo,
+wrong for persistence.
 
 A column's header indicator is a `Bali::Tag`, so `color:` takes the same semantic names it does (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`) and `custom_color:` takes a hex. A name outside that list raises — the private `BADGE_COLORS` table this component used to keep answered `:ghost` to anything it did not recognise.
 
