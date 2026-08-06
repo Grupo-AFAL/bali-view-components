@@ -1,0 +1,5 @@
+<div class="max-w-xs">
+  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+    <%= render 'bali/form/sizes/previews/fields', form: form, size: :sm %>
+  <% end %>
+</div>

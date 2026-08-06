@@ -26,7 +26,8 @@ module Bali
         xs: "radio-xs",
         sm: "radio-sm",
         md: "radio-md",
-        lg: "radio-lg"
+        lg: "radio-lg",
+        xl: "radio-xl"
       }.freeze
 
       COLORS = {
@@ -109,13 +110,12 @@ module Bali
       # `html_options`, so the pair of hashes has to be read together to know
       # which ids `aria-describedby` may name.
       def build_radio_input_options(method, html_options, options = {})
-        size = html_options[:size]
         color = html_options[:color]
         custom_class = html_options[:class]
 
         radio_class = [
           RADIO_CLASS,
-          SIZES[size],
+          size_variant(html_options, SIZES),
           COLORS[color],
           (errors?(method, options) ? "radio-error" : nil),
           custom_class

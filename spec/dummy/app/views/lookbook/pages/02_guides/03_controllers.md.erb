@@ -45,7 +45,7 @@ controller by hand.
 | [`slim-select`](#slim-select) | SlimSelect widget: search, remote options, addable items | `f.slim_select_group` |
 | [`step-number-input`](#step-number-input) | Number input with +/− buttons respecting min/max/step | `f.step_number_group` |
 | [`submit-button`](#submit-button) | Loading state on the submitter during a Turbo submission | Bali's `form_with` |
-| [`submit-on-change`](#submit-on-change) | Auto-submits the form when a control changes | hand markup |
+| [`submit-on-change`](#submit-on-change) | Auto-submits the form when a control changes, immediately or debounced | hand markup |
 | [`textarea`](#textarea) | Character counter and auto-grow for a textarea | `f.text_area_group` |
 | [`time-period-field`](#time-period-field) | Period select that reveals a custom date input | `f.time_period_group` |
 | [`trix-attachments`](#trix-attachments) | Caps the total attachment size in a Trix editor | `f.rich_text_area` |
@@ -203,10 +203,23 @@ The helper wires the whole contract: the `<template>` (`template` target) holdin
 blank row with the `new_record` child-index placeholder, the `container` target the
 rows append into, the `button` target that disables at the maximum, the
 `fields-selector` value (`.item-fields` — the association name singularized), and
-the hidden `destroy-flag` input `removeFields` flips. `moveUp`/`moveDown` actions
-reorder rows and renumber their `[data-position]` inputs;
+the hidden `destroy-flag` input.
+
+Removing a row does one of two things, decided by the `[id]` hidden field Rails
+emits only for a record it already stores: a **persisted** row is hidden, its
+visible inputs stripped and its `destroy-flag` flipped, so the server learns which
+record to delete; an **unsaved** row is removed from the DOM outright, since there
+is nothing to destroy.
+
+`moveUp`/`moveDown` actions reorder rows. Positions and ordinals are renumbered
+after every add, remove and reorder, counting only the rows still on screen: the
+`[data-position]` inputs that carry the order to the server, and any element with
+the `ordinal` target, which receives the row's 1-based number as its text.
 `remove-duplicates` removes already-selected `<select>` options from new rows and
 caps the row count at the number of options.
+
+`table: true` and `array: true` on the helper change where the container sits and
+how the rows are named — see the FormBuilder guide.
 
 ## `elements-overlap`
 
@@ -493,7 +506,8 @@ form it builds, so host apps using it get the loading state for free.
 ## `submit-on-change`
 
 Submits the form whenever one of its controls changes — the backbone of
-filter forms.
+filter forms. Two actions, so a select and a search box can share one controller:
+`submit` fires right away, `debouncedSubmit` waits for the typing to stop.
 
 ```html
 <form action="/movies" method="get" data-controller="submit-on-change">
@@ -501,11 +515,16 @@ filter forms.
     <option value="drama">Drama</option>
     <option value="comedy">Comedy</option>
   </select>
-  <input type="search" name="q" data-action="input->submit-on-change#submit">
+  <input type="search" name="q" data-action="submit-on-change#debouncedSubmit">
 </form>
 ```
 
-- `delay` (ms) debounces the submit — set it when text inputs trigger it.
+- `delay` (ms) debounces **both** actions. Without it, `submit` is immediate and
+  `debouncedSubmit` waits 300 ms.
+- `skip-initial` (default `true`) drops change events fired in the first frame after
+  connecting. SlimSelect emits one on the native `<select>` while it builds its
+  widget, which used to submit a form nobody had touched. Set it to `false` only if
+  your app relies on that submit.
 - `action` / `method` submit somewhere other than the form's own target, via a
   hidden submitter with `formaction`/`formmethod` (the form's normal submit button
   keeps its own destination).
@@ -513,11 +532,14 @@ filter forms.
 ```html
 <form action="/movies" data-controller="submit-on-change"
       data-submit-on-change-delay-value="300"
+      data-submit-on-change-skip-initial-value="false"
       data-submit-on-change-action-value="/movies/preview"
       data-submit-on-change-method-value="get">
   …
 </form>
 ```
+
+Both actions and the guard are live in the `bali/submit_on_change/default` preview.
 
 If your app carries a local `auto_submit_controller.js`, this controller replaces
 it — see [Do you have a local copy?](#do-you-have-a-local-copy)
@@ -597,7 +619,7 @@ gem byte for byte or lag behind fixes it has since received:
 
 | App(s) | Local file | Replace with |
 |---|---|---|
-| gobierno-corporativo, afal-apps, centinela-web | `auto_submit_controller.js` | [`submit-on-change`](#submit-on-change) — it has debounce via `delay`; rename `data-controller="auto-submit"` and its actions at each call site |
+| gobierno-corporativo, afal-apps, centinela-web | `auto_submit_controller.js` | [`submit-on-change`](#submit-on-change) — same two actions (`submit`, `debouncedSubmit`) and the same first-frame guard; rename `data-controller="auto-submit"` and the action prefix at each call site |
 | centinela-web, costa-norte | `notification_controller.js` (centinela also keeps the `fadeOutRight` keyframe CSS for it) | `Bali::ToastContainer::Component` + its `toast-container` controller — `Bali::Notification` is deprecated in v3, see the v2→v3 migration guide |
 | identity | `clipboard_controller.js` | Bali's `clipboard` component controller |
 | identity, costa-norte | `bulk_select_controller.js` | Candidates to review against v3's `bulk-actions` — the replacement is not 1:1 yet (identity's "select all N filtered" is not covered), so evaluate before deleting |

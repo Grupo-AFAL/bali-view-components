@@ -97,6 +97,14 @@ es:
     simple_filters:
       apply: "Filtrar"
       clear: "Limpiar"
+      presets:
+        any: "Cualquier fecha"
+        custom: "Personalizado…"
+        today: "Hoy"
+        this_week: "Esta semana"
+        this_month: "Este mes"
+        last_7_days: "Últimos 7 días"
+        last_30_days: "Últimos 30 días"
 
     # File input
     file_input:
@@ -217,6 +225,12 @@ es:
       renamed: "Vista renombrada."
       updated: "Vista actualizada."
       deleted: "Vista borrada."
+
+    # Versiones de contenido (#707) — se escriben en el `summary` de la versión al crearla,
+    # así que quedan guardadas como dato, no resueltas al render.
+    content_versions:
+      restored_from: "Restaurado desde la v%{number}"
+      unknown_author: "Desconocido"
 
     # Status
     status:
@@ -527,7 +541,7 @@ es:
       versions_empty: "Todavía no hay versiones."
 
       # Confirmación de restaurar, mostrada con el diálogo de confirmación de Bali.
-      restore_confirm: "¿Restaurar esta versión? El contenido actual se guardará antes como una versión nueva."
+      restore_confirm: "¿Restaurar esta versión? Se agregará como la versión más reciente, así que no se pierde nada de lo que ya está en el historial."
       confirm_title: "Restaurar versión"
       confirm_accept: "Restaurar"
       confirm_cancel: "Cancelar"

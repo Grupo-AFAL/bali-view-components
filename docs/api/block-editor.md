@@ -603,7 +603,14 @@ Entity references let users type `#` to reference domain objects like tasks, pro
 
 ### Setup
 
-Entity references require two endpoints:
+Entity references require two endpoints. **The engine ships both** — declare your
+referenceable types once in `Bali.entity_reference_types` and point the editor at
+`bali.entity_references_path` / `bali.resolve_entity_references_path`. That registry also
+feeds `references_config`, so the chips get their icon, label and color without a second
+declaration. See the entity references section of `docs/guides/engines.md`.
+
+The rest of this section documents the wire contract, which is what you implement yourself
+if you don't mount the engine:
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
@@ -780,7 +787,8 @@ Comments are configured through a single `comments:` **Hash**:
 | `user` | `Hash` | Current user authoring comments: `{ id:, username:, avatar_url: }`. `id` and `username` are required, `avatar_url` optional |
 | `users` | `Array` | Static user list for resolution: `[{ id:, username:, avatar_url: }, ...]` |
 | `users_url` | `String` | Remote endpoint for user resolution |
-| `url` | `String` | REST API base URL for persistent thread storage (in-memory when omitted) |
+| `url` | `String` or `:auto` | REST API base URL for persistent thread storage (in-memory when omitted). `:auto` points at the engine's own endpoints and requires `commentable:` |
+| `commentable` | Active Record | The host record the threads belong to. Only read when `url: :auto` |
 
 > **Comments are on only when `comments:` is a non-empty Hash.** `comments: true` and `comments: {}` both leave them off, silently -- a truthy non-Hash is not a configuration. There is no separate `comments_user:` / `comments_url:` / `comments_users:` / `comments_users_url:` argument: passing those at the top level does not configure anything, they fall through to `**options` and end up as HTML attributes on the wrapper `div`.
 
@@ -849,7 +857,35 @@ end
 
 When `comments[:url]` is not provided, comments are stored **in-memory** -- they exist only for the duration of the editor session and are lost on page reload. This is suitable for previews, demos, and single-session review workflows.
 
-#### REST Persistence
+#### The engine's own storage (`url: :auto`)
+
+Since v3.1 the engine ships the storage itself -- three tables, three controllers and the
+nine endpoints below. Point the editor at them with `:auto` plus the record the threads
+belong to:
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    url: :auto,
+    commentable: @document,
+    user: { id: current_user.id.to_s, username: current_user.name },
+    users_url: users_path
+  }
+) %>
+```
+
+It resolves to `bali.block_editor_threads_path(commentable_type:, commentable_id:)` for that
+record; `RESTThreadStore` keeps the query string on all nine sub-requests, so the scope
+travels for free. Passing `:auto` without a `commentable:` raises -- there is no unscoped
+thread list.
+
+Installing the migration and configuring who may comment on what
+(`Bali.block_editor_commentables`, `Bali.block_editor_comments_user`,
+`Bali.block_editor_comments_authorize`) is covered in
+[docs/guides/engines.md](../guides/engines.md), together with the permission matrix and the
+migration path for apps that already had their own tables.
+
+#### REST Persistence (your own endpoints)
 
 Pass `comments[:url]` to persist comments to a database via REST API:
 

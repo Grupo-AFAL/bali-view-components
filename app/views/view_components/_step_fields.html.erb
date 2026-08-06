@@ -1,0 +1,40 @@
+<%# Array mode (`array: true`): there is no nested record, so `f` is the outer
+    builder and the names come from `name_prefix` — which already ends in the
+    empty brackets Rails reads as "next element of the array".
+
+    A Bali group takes that name through `name:`, and `control_id` keeps the
+    caption's `for` pointing at this row's own control once the row repeats.
+    `new_record` in the ids is the placeholder the controller swaps for a
+    timestamp when it clones the template, so cloned rows get unique ids too.
+
+    No `destroy_flag`: an array row always leaves the DOM on remove, so there is
+    nothing for the server to be told about. %>
+<% row_key = index || Bali::FormBuilder::DynamicFields::CHILD_INDEX_PLACEHOLDER %>
+<% role_id = "movie_steps_#{row_key}_role" %>
+<% days_id = "movie_steps_#{row_key}_days" %>
+<div class="step-fields card bg-base-200 p-4 mb-2">
+  <div class="flex items-end gap-4">
+    <div class="flex-none pb-3">
+      <span class="badge badge-neutral" data-dynamic-fields-target="ordinal"><%= index.to_i + 1 %></span>
+    </div>
+    <div class="flex-1">
+      <%= f.text_group :role,
+            label: 'Role',
+            name: "#{name_prefix}[role]",
+            id: role_id,
+            control_id: role_id,
+            value: item&.dig('role') %>
+    </div>
+    <div class="flex-none w-28">
+      <%= f.text_group :days,
+            label: 'Days',
+            name: "#{name_prefix}[days]",
+            id: days_id,
+            control_id: days_id,
+            value: item&.dig('days') %>
+    </div>
+    <div class="flex-none pb-3">
+      <%= f.link_to_remove_fields 'Remove', class: 'btn btn-error btn-sm', destroy_flag: false %>
+    </div>
+  </div>
+</div>

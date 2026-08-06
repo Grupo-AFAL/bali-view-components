@@ -44,6 +44,32 @@ module Bali
           )
         end
 
+        # @label With Character Counter
+        # @param max_length number
+        # `char_counter:` on a text field — the same option, controller and
+        # counter element the textarea has: an `<input>` and a `<textarea>` are
+        # the same thing to a controller that only reads `value.length`.
+        # `{ max: n }` counts against a maximum, `true` just counts.
+        def with_char_counter(max_length: 40)
+          render_with_template(
+            template: 'bali/form/text/previews/with_char_counter',
+            locals: { model: form_record, max_length: max_length.to_i }
+          )
+        end
+
+        # @label With Auto Grow
+        # `auto_grow:` belongs to the textarea — an `<input>` has no height to
+        # grow into. A text field written with it gets the shared controller on
+        # its wrapper and no input target, so the option is inert; this scenario
+        # exists to hold it to being inert *quietly*, rather than throwing on
+        # connect.
+        def with_auto_grow
+          render_with_template(
+            template: 'bali/form/text/previews/with_auto_grow',
+            locals: { model: form_record }
+          )
+        end
+
         # @label With Help Text
         # Shows text field with help text below the input.
         def with_help_text
