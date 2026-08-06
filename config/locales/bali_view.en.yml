@@ -371,6 +371,7 @@ en:
       name_column: Name
       today: Today
       empty: Nothing to plot yet
+      loading: Loading the timeline
       truncated: "Showing %{shown} of %{total} scheduled items"
       undated_title: No dates
       undated_hint: "These items have no dates yet, so they can't be placed on the timeline."

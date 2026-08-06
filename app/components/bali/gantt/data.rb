@@ -118,6 +118,13 @@ module Bali
       def truncated? = @limit.present? && dated_total > @limit
       def any? = (dated_total + undated_total).positive?
 
+      # The document as it was handed in — validated, symbolized, UNCAPPED.
+      # This is what `mode: :interactive` serializes into the island's `data`
+      # value: `limit:` is a static-render concern (it decides how many bars
+      # ERB emits), while the island renders the whole schedule and reconciles
+      # against the same shape the server returns after a mutation.
+      def to_h = @payload
+
       # Window bounds as Dates. Explicit `window:` wins; otherwise derived from
       # the rendered items plus the groups' own dates (like `build_window`).
       def window_starts_on = window_bounds.first

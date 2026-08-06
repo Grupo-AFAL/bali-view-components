@@ -237,7 +237,7 @@ function GanttCanvas (props) {
   const paneH = useStore((s) => s.height)
 
   // --- VIEW STATE (never touches the server's schedule) ---
-  const [zoom, setZoom] = useState(() => initialZoomFromUrl(zoomParam))
+  const [zoom, setZoom] = useState(() => initialZoomFromUrl(zoomParam, props.initialZoom))
   const pxPerDay = pxPerDayFor(zoom)
   const [collapsedIds, setCollapsedIds] = useState(() => new Set())
   const [search, setSearch] = useState('')
