@@ -34,6 +34,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Bali::Modal::Component` now takes `shared: false` (requires an explicit `id:`), mirroring the drawer's keyword: the dialog renders its own controller instance and answers only open events that name it — under the page-level controller the `template` target is whichever dialog comes first in the DOM, so an addressed open was compared against the wrong id and dropped.
   - `Bali::Link`'s `modal: { id: }` / `drawer: { id: }` (without `local:`) now emits `data-modal-id` / `data-drawer-id` for the addressed *remote* open — the attribute the controller always read but every call site had to write by hand.
   - Docs: item-shape table in `components.md`, "Opening an overlay by name, and the local mode" in `docs/guides/overlays-and-the-top-layer.md`, `local_overlays` Lookbook preview (with a decoy modal so the #854 regression stays measurable) and a Cypress spec asserting only the named dialog enters the top layer.
+- **`Bali::Topbar::UserMenu` — the prefabricated user dropdown** (#713). A preset of
+  `Bali::Dropdown` (the ActionsDropdown move), so keyboard navigation, Escape,
+  `aria-expanded` and `popover:` come with it — everything the hand-rolled
+  `<details class="dropdown">` menus in the apps never had. Trigger: `Bali::Avatar` with
+  `name:` (photo via `avatar_url:`, or derived initials with a deterministic colour, #712),
+  the name hidden on mobile, and a chevron. Panel: a non-actionable name/email header
+  (`Dropdown::Title`), the host's `with_item`s, then sign-out. `sign_out:` has **no default
+  route** — the item only renders when the call site passes `sign_out: { href: ... }`, so
+  the gem stays uncoupled from bali-auth; `method:` defaults to `:delete` and submits a
+  real form (`button_to`) that cannot degrade to a GET without JavaScript, with the
+  delete-confirm dialog off (pass `confirm:` to opt in). New `bali_view.topbar.user_menu.*`
+  locales (en/es).
+- **`Bali::Topbar::IconAction` — one icon button for the Topbar's `with_action` slot**
+  (#713). The notification bell packaged: a `<button>` (or `<a>` with `href:`) that
+  requires an accessible `label:`, with an optional badge — `badge: true` draws the dot, a
+  number draws a count pill (`Bali::Tag`), and `badge_id:` names the indicator `<span>` so
+  the host can `turbo_stream.replace` it (with `badge_id:` alone the span renders empty
+  and hidden, ready for a stream to light up). The component brings no polling and no
+  channel — only the target. The Topbar/AppLayout previews and the dummy admin topbar now
+  compose both components instead of hand-rolling the markup.
 
 - **`Bali::Gantt` — phase 1: the shared data contract and the server-rendered `:static` mode** (#704). One component, two renderers; this phase ships the foundation the React island (phases 2-3, #705/#719) will plug into:
   - `Bali::Gantt::Data` parses and validates the frozen contract — `{ window, groups[], items[], dependencies[], critical_ids[] }` with two-level group/item nesting (`parent_id`), ISO8601 dates, and the optional fields the real island already consumes: `assignee`, `percent_complete`, `slack_days`, `priority`, plus `milestone:` (rendered as a diamond) and `href`. Single-date items draw as minimum-width bars, inverted ranges clamp to their start, and structural errors raise instead of silently dropping bars. A frozen sample of `TDFlow::GanttSerializer` output validates the rename mapping (`test/fixtures/gantt/`).

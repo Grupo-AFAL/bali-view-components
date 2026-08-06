@@ -547,3 +547,7 @@ es:
       card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
     tabs:
       navigation: "Navegación de secciones"
+    topbar:
+      user_menu:
+        trigger_label: "Menú de usuario de %{name}"
+        sign_out: "Cerrar sesión"

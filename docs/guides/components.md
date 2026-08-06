@@ -224,14 +224,18 @@ The AppLayout previews model both: "Topbar + Sidebar + Content" and
   <% end %>
 
   <% topbar.with_action do %>
-    <button class="btn btn-ghost btn-sm btn-square" aria-label="Notifications">
-      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
-    </button>
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'bell', label: 'Notifications', badge: true, badge_id: 'notifications-badge'
+    ) %>
   <% end %>
 
   <% topbar.with_user_menu do %>
-    <%= render Bali::Dropdown::Component.new do |d| %>
-      <%# avatar + dropdown items %>
+    <%= render Bali::Topbar::UserMenu::Component.new(
+      name: current_user.name,
+      email: current_user.email,
+      sign_out: { href: sign_out_path }
+    ) do |menu| %>
+      <% menu.with_item(name: 'Profile', href: profile_path, icon: 'user') %>
     <% end %>
   <% end %>
 <% end %>
@@ -241,6 +245,45 @@ The AppLayout previews model both: "Topbar + Sidebar + Content" and
 - `menu_id` - DOM id of the sidebar the `lg:hidden` hamburger opens. Defaults to `Bali::SideMenu::Component::DEFAULT_ID`. Pass `nil` for layouts without a sidebar
 
 The root element is a `<header>` (the page's banner landmark) and the hamburger is a `Bali::SideMenu::Trigger::Component`.
+
+##### Topbar::UserMenu
+
+The prefabricated user dropdown for the `with_user_menu` slot — a preset of
+`Bali::Dropdown` (like `ActionsDropdown`), so keyboard navigation, Escape,
+`aria-expanded` and `popover:` come with it. The trigger is an avatar (photo
+via `avatar_url:`, or initials with a deterministic colour derived from
+`name:` — see Avatar), the name (hidden on mobile) and a chevron. The panel
+opens with a non-actionable name/email header, then your `with_item`s, then
+the sign-out entry.
+
+**Options:**
+- `name` (required) - the user's full name; feeds avatar, header and the trigger's `aria-label`
+- `email` - second line of the header; omitted when absent
+- `avatar_url` - photo for the avatar; wins over the derived initials
+- `sign_out` - `{ href:, method: :delete }`. **No default route**: without this hash the item is not rendered, so the gem stays uncoupled from bali-auth and from the host's route names. With bali-auth: `sign_out: { href: bali_auth.sign_out_path }`. The default `:delete` submits a real form (`button_to`) that cannot degrade to a GET; extra keys (`name:`, `confirm:`, `data:`, ...) reach the item
+- Everything else is `Bali::Dropdown::Component`'s (`align:` defaults to `:end` here)
+
+`with_item` is Dropdown's items lambda: `method:`, `icon:`, `modal:`, `drawer:`
+all work. A UserMenu with no items and no `sign_out:` renders nothing — a menu
+with nothing actionable in it is not a menu.
+
+##### Topbar::IconAction
+
+One icon button for the `with_action` slot — the notification bell packaged. A
+`<button>` by default, an `<a>` when given `href:`.
+
+```erb
+<%= render Bali::Topbar::IconAction::Component.new(
+  icon: 'bell', label: 'Notifications', badge: 3, badge_id: 'notifications-badge'
+) %>
+```
+
+**Options:**
+- `icon` (required) - icon name (Bali::Icon pipeline)
+- `label` (required) - accessible name (`aria-label` + `title`); an icon-only control without one has no name
+- `href` - renders an `<a>` (navigation) instead of a `<button>` (action)
+- `badge` - `true` draws the small dot; a number or string draws a count pill; `nil` draws nothing
+- `badge_id` - DOM id of the indicator `<span>`, so the host can `turbo_stream.replace` it. Alone (no `badge:`) it renders the span empty and hidden — a stream can light it up later. The component brings no polling and no channel, only the target
 
 #### Card
 
