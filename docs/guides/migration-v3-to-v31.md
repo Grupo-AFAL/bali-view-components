@@ -74,3 +74,49 @@ instead: the name keeps working, the glyph changes. The full before/after table 
 migrating from v1/v2 as well.
 
 *Lands with the #902 PR; details land with it.*
+
+---
+
+## Adoption notes (additive — not part of the five)
+
+Everything below is opt-in housekeeping: nothing renders differently until you act.
+
+### Adopt the gem-shipped AFAL theme (#718)
+
+v3.1 publishes the AFAL brand theme in the gem — `css/themes/afal.css`, plus a **draft**
+`afal-dark` — so the `[data-theme="afal"]` block your app carries by hand can finally be
+deleted.
+
+**Every app, in the SAME commit** (while both copies exist, whichever comes later in the
+compiled CSS silently wins):
+
+1. Add the import to your Tailwind entry point:
+
+   ```css
+   @import "bali-view-components/css/themes/afal.css";
+   ```
+
+2. Delete your local copy:
+   - **gobierno-corporativo, afal-apps, identity, opina**: delete the
+     `[data-theme="afal"]` block from `app/assets/tailwind/application.css`. The gem file
+     is byte-identical to it, so nothing changes visually.
+   - **centinela-web**: delete `app/assets/tailwind/themes/afal.css` (and its import).
+     **Expect a visible delta** — centinela's copy came from an independent OKLCH
+     conversion of the same hex values, so its secondary (a darker, differently-hued
+     violet), accent, neutral and the five status pairs all shift to the canonical
+     values. Screenshot before/after in the adoption PR.
+
+3. Optionally clean the phantom declaration: `afal --default, afal-dark` inside
+   `@plugin "daisyui" { themes: ... }` never registered anything (daisyUI does not know
+   those names — the unlayered `[data-theme]` block does all the work). Keep or drop it;
+   dropping it removes the implication that daisyUI defines these themes.
+
+`afal-dark` remains **draft/experimental**: no app activates it today, and its tokens may
+change before it is announced as stable. If you want to try it, see
+[Custom Themes](custom-themes.md) — including the `@custom-variant dark` extension needed
+for `dark:` utilities to fire under it.
+
+While migrating, also fix your `@source` glob if it scans only `{rb,erb}`: Bali writes
+some classes from JavaScript (the drawer submit spinner among them), so the canonical glob
+is `node_modules/bali-view-components/app/**/*.{rb,erb,js}` — see
+[Installation](installation.md).

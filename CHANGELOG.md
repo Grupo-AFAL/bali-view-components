@@ -15,6 +15,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Bali::Gantt::Colors` — the exact `color-mix`/oklch formulas of the island's `ganttColors.js` (verbatim-asserted in tests) so both renderers are visually identical; default status map plus support for host status catalogs.
   - `Bali::Gantt::Component` `mode: :static` — sticky two-tier header, collapsible `<details>` groups (with their own rollup bars), today line, grid, `color_by: :status/:none`, zoom by links on a namespaced `gantt_zoom` param, `group_label:`, an announced `limit:` cap (never silent) and a "No dates" section. This closes the `color_by:` promise made to #667. `mode: :interactive` is part of the signature already and raises with a clear message until phase 3.
   - Structural `--gantt-*` tokens in `@layer components`, `bali_view.gantt.*` locales (en/es), Lookbook previews, and a full dummy reference: `/admin/projects/:id?view=timeline` renders the timeline from seeded schedule data through `ProjectGantt`, a host-side reference implementation of the contract.
+- **The AFAL brand theme ships in the gem: `css/themes/afal.css`** (#718). Canonical copy
+  of the `[data-theme="afal"]` block that gobierno-corporativo, afal-apps, identity and
+  opina carried byte-identically in their own CSS — same plain unlayered `[data-theme]`
+  format as `costa-norte.css`, importable via
+  `@import "bali-view-components/css/themes/afal.css"` with no `package.json` change (the
+  `./css/themes/*.css` export wildcard already covered it). Hosts should delete their
+  local block in the same commit that adds the import — see the
+  [v3 → v3.1 migration guide](docs/guides/migration-v3-to-v31.md). Note for adopters:
+  from now on a color change in this file propagates to every host on its next bump;
+  such changes will always be announced as a visual change in this file.
+- **A `css/themes/afal-dark.css` DRAFT** (#718). All four AFAL hosts have long declared
+  `afal-dark` in their daisyUI plugin config without any definition existing anywhere;
+  this is the first actual design — derived from the light theme (same gray ramp
+  inverted, brand hues lifted one Tailwind step with `-950` content pairs, status colors
+  unchanged, every pair measured >= 4.5:1 WCAG AA). **Experimental**: no app activates it
+  and tokens may change before it is announced stable. Preview both themes in Lookbook
+  under *Theme Sampler* (new `afal` and `afal_dark` previews with their own layouts).
+- **Custom themes guide covers AFAL** (`docs/guides/custom-themes.md`): the adoption
+  path, the phantom `themes: afal --default, afal-dark` plugin note, and the
+  `@custom-variant dark` extension `afal-dark` needs for `dark:` utilities to fire.
+- **Theme regression tests**: every file in `app/assets/stylesheets/bali/themes/` is
+  asserted complete (the 26 required variables plus `color-scheme` and the
+  `[data-theme]` selector matching its filename), and the ThemeSampler previews get a
+  request test so a broken theme preview fails the build.
+
+### Fixed
+
+- **`docs/guides/installation.md` documented an incomplete `@source` glob** (#718): it
+  scanned `*.{rb,erb}` but not `.js`, and some Tailwind classes are written from
+  JavaScript (`modal/index.js` swaps a drawer's submit button for
+  `loading loading-spinner loading-sm`), so the spinner rendered unstyled in apps that
+  copied the documented glob. The canonical glob is now `*.{rb,erb,js}`, and the guide
+  also documents the optional vendor/bundle glob that only matches on CI with a vendored
+  bundle (and why a non-matching `@source` is harmless).
 
 ## [v3.1.0.beta.1] - 2026-08-05
 

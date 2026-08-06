@@ -6,6 +6,8 @@ Bali ships optional DaisyUI themes that you can import alongside the default `li
 
 | Theme | File | Description |
 |-------|------|-------------|
+| `afal` | `css/themes/afal.css` | Grupo AFAL brand - light variant with blue/violet/amber palette |
+| `afal-dark` | `css/themes/afal-dark.css` | **Draft / experimental** - dark variant derived from `afal`, pending visual approval |
 | `costa-norte` | `css/themes/costa-norte.css` | Costa Norte brand - light variant with teal/gold palette |
 
 ## Installation
@@ -39,6 +41,44 @@ Or apply it to a specific section:
   <!-- This section uses Costa Norte colors -->
 </div>
 ```
+
+## The AFAL Theme
+
+`afal` is the canonical copy of the `[data-theme="afal"]` block that gobierno-corporativo,
+afal-apps, identity and opina used to carry byte-identically in their own CSS. If your app
+still has a local copy, delete it **in the same commit** that adds the import — while both
+exist, whichever appears later in the compiled CSS wins, silently.
+
+```css
+@import "bali-view-components/css/themes/afal.css";
+@import "bali-view-components/css/themes/afal-dark.css"; /* optional, draft */
+```
+
+```html
+<html data-theme="afal">
+```
+
+Listing `afal` in your `@plugin "daisyui" { themes: ... }` block is **not** what makes the
+theme work — daisyUI does not know these names, and listing an unknown name registers
+nothing. The theming comes entirely from the unlayered `[data-theme="afal"]` block, which
+wins over daisyUI's own themes by layer order. You can drop `afal` and `afal-dark` from the
+plugin's `themes:` list when you adopt the imports.
+
+### `afal-dark` (draft) and the `dark:` variant
+
+`afal-dark` is an experimental first design — no app activates it yet, and its tokens may
+change before it is announced as stable. Preview it in Lookbook under
+*Theme Sampler → Afal Dark*.
+
+If your app defines a `@custom-variant dark` so `dark:` utilities follow the theme (all
+AFAL hosts do), `dark:` will **not** fire under `afal-dark` unless you extend the variant:
+
+```css
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, [data-theme=afal-dark], [data-theme=afal-dark] *));
+```
+
+Without this, components styled with `dark:` utilities keep their light-theme styling even
+though the daisyUI palette around them has gone dark.
 
 ## Creating Your Own Theme
 
