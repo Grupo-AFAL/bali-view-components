@@ -1,44 +1,30 @@
 import { Controller } from '@hotwired/stimulus'
 
 /**
- * Shows different elements based on the value of a radio button
+ * Toggler buttons that reveal one content pane each, where the panes contain
+ * radio groups. A pane is shown when its data-radio-buttons-group-value list
+ * (comma-separated) includes the active toggler's value; hiding a pane
+ * unchecks its radios, and keep-selection re-checks the remembered one.
  *
- * <div data-controller="radio-buttons-grouped" data-radio-buttons-grouped-current-value="one">
- *   <input type="radio" data-action="radio-buttons-grouped#change" value="one">
- *   <input type="radio" data-action="radio-buttons-grouped#change" value="two">
+ * <div data-controller="radio-buttons-group" data-radio-buttons-group-current-value="one">
+ *   <button type="button" value="one" data-radio-buttons-group-target="toggler"
+ *           data-action="radio-buttons-group#change">One</button>
+ *   <button type="button" value="two" data-radio-buttons-group-target="toggler"
+ *           data-action="radio-buttons-group#change">Two</button>
  *
- *   <div data-radio-buttons-grouped-target="element" data-radio-buttons-grouped-value="one">
- *     <input type="radio" value="a">
- *     <input type="radio" value="b">
+ *   <div data-radio-buttons-group-target="element" data-radio-buttons-group-value="one">
+ *     <label><input type="radio" value="a" data-action="radio-buttons-group#select"> A</label>
  *   </div>
  *
- *   <div data-radio-buttons-grouped-target="element" data-radio-buttons-grouped-value="two">
- *     <input type="radio" value="c">
- *     <input type="radio" value="d">
- *   </div>
- * </div>
- *
- *
- * Shows the same result with multiple radio buttons value
- *
- * <div data-controller="radio-buttons-grouped" data-radio-buttons-grouped-current-value="one">
- *   <input type="radio" data-action="radio-buttons-grouped#change" value="one">
- *   <input type="radio" data-action="radio-buttons-grouped#change" value="two">
- *
- *   <div data-radio-buttons-grouped-target="element" data-radio-buttons-grouped-value="one">
- *     <input type="radio" value="a">
- *     <input type="radio" value="b">
- *   </div>
- *
- *   <div data-radio-buttons-grouped-target="element" data-radio-buttons-grouped-value="one,two">
- *     <input type="radio" value="c">
- *     <input type="radio" value="d">
+ *   <div data-radio-buttons-group-target="element" data-radio-buttons-group-value="one,two">
+ *     <label><input type="radio" value="b" data-action="radio-buttons-group#select"> B</label>
  *   </div>
  * </div>
  *
+ * `f.radio_buttons_group` renders this markup; the catalog entry is
+ * docs/guides/controllers.md#radio-buttons-group.
  */
 
-// TODO: Add tests (Issue: #253)
 export class RadioButtonsGroupController extends Controller {
   static targets = ['element', 'toggler']
   static values = {

@@ -13,6 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Troubleshooting entry for the BlockNote <= 0.52.1 render loop (#908).** The BlockEditor guide (`docs/api/block-editor.md`) now documents the `Maximum update depth exceeded` console error: it appears while typing (or when closing a drawer/modal holding the editor) when a browser extension that rewrites the page's DOM (Dark Reader, Grammarly, page translators) is active, because BlockNote <= 0.52.1 node views do not ignore non-content mutations (TypeCellOS/BlockNote#2818, fixed upstream by #2912 — merged but not yet released). No data is lost; the `@blocknote/*` bump lands separately once upstream publishes a release containing the fix.
+### Added
+
+- **Stimulus utility controllers catalog.** New guide `docs/guides/controllers.md`
+  (mirrored as a Lookbook guide page) documenting all 24 standalone controllers in
+  `app/assets/javascripts/bali/controllers/` — Stimulus identifier, what each does, and a
+  minimal markup example per controller — plus a "Do you have a local copy?" section
+  listing the known per-app copies to delete or review, referenced from the migration
+  guide. `docs/guides/javascript-integration.md` now links to the catalog instead of
+  keeping its own partial table (it listed 12 of the 24, and still offered the deprecated
+  `NotificationController`), and `scripts/check-controller-manifest.mjs` gained a fifth
+  check: the build fails if a registered utility identifier is missing from the catalog
+  or its Lookbook mirror. (#717)
+
+### Changed
+
+- Deleted the 15 stale `// TODO: Add tests (Issue: #NNN)` comments from the utility
+  controllers — all 15 referenced issues (#136–#144, #154–#157, #225, #253) are closed on
+  GitHub, so the comments only misled readers into thinking the work was still tracked.
+  Two stale header comments were corrected along the way: `radio-buttons-group`'s example
+  used a `radio-buttons-grouped` identifier that never connects, and `radio-toggle`'s used
+  `data-toggle-radio-current-value` instead of `data-radio-toggle-current-value`. (#717)
 
 ## [v3.0.0] - 2026-08-05
 
