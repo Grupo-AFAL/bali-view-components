@@ -39,14 +39,16 @@
 
   <% if selected %>
     <% split.with_detail do %>
-      <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <div class="card-body">
-          <h2 class="card-title text-lg" data-testid="detail-title"><%= selected.name %></h2>
-          <%= render Bali::DescriptionList::Component.new(columns: 2) do |list| %>
-            <% list.with_item(label: "Género", value: selected.genre) %>
-            <% list.with_item(label: "Estudio", value: selected.studio&.name) %>
-          <% end %>
-        </div>
+      <%# Card writes its own body wrapper; a second one by hand nests two and
+          doubles the padding (#833). `test/requests/nested_card_body_test.rb`
+          fails on any preview that writes one — the extra class goes in
+          `body_class:`, and the heading in the `title` slot. %>
+      <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+        <% card.with_title(selected.name, class: "text-lg", data: { testid: "detail-title" }) %>
+        <%= render Bali::DescriptionList::Component.new(columns: 2) do |list| %>
+          <% list.with_item(label: "Género", value: selected.genre) %>
+          <% list.with_item(label: "Estudio", value: selected.studio&.name) %>
+        <% end %>
       <% end %>
     <% end %>
   <% else %>
