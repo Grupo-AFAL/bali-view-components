@@ -1,0 +1,29 @@
+<li <%= tag.attributes(**step_options) %>>
+  <div class="workflow-step-marker">
+    <% if connector_state %>
+      <span class="<%= connector_classes %>" aria-hidden="true"></span>
+    <% end %>
+    <span class="<%= circle_classes %>">
+      <% if number.present? %>
+        <%= number %>
+      <% else %>
+        <%= render Bali::Icon::Component.new("minus", size: 16) %>
+      <% end %>
+    </span>
+  </div>
+  <div class="workflow-step-body">
+    <p class="<%= title_classes %>"><%= title %></p>
+    <% if assignee.present? %>
+      <p class="workflow-step-assignee">
+        <%= render Bali::Icon::Component.new("user", size: 14) %>
+        <%= assignee %>
+      </p>
+    <% end %>
+    <% if date.present? %>
+      <p class="workflow-step-date"><%= date %></p>
+    <% end %>
+    <% if content? %>
+      <div class="workflow-step-comment"><%= content %></div>
+    <% end %>
+  </div>
+</li>
