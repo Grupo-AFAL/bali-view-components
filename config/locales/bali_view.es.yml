@@ -620,3 +620,11 @@ es:
         sign_out: "Cerrar sesión"
     qr_code:
       label: "Código QR"
+    workflow_steps:
+      states:
+        success: "Completado"
+        error: "Rechazado"
+        warning: "Requiere atención"
+        pending: "Pendiente"
+        skipped: "Omitido"
+        current: "En curso"
