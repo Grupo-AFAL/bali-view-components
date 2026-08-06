@@ -155,6 +155,40 @@ module Bali
           toggle_group?(filter) || radio_group?(filter) || number_range?(filter)
         end
 
+        # Pills that filter on click instead of waiting for the Filter button.
+        # Restricted to the two pill widgets here as well as in the DSL, because the
+        # instance-level `simple_filters:` hashes come in unvalidated.
+        def auto_submit?(filter)
+          return false unless filter[:auto_submit]
+
+          toggle_group?(filter) || radio_group?(filter)
+        end
+
+        def any_auto_submit?
+          @filters.any? { |filter| auto_submit?(filter) }
+        end
+
+        # `submit-on-change` is only mounted when a filter asked for it, so a row
+        # without pills keeps the exact markup it had.
+        def form_data_attributes
+          data = { turbo_frame: "_top" }
+          data[:controller] = "submit-on-change" if any_auto_submit?
+          data
+        end
+
+        # `#submit` and not `#debouncedSubmit`: a pill click is a finished choice, and
+        # the phantom submit that immediacy used to risk is what the controller's own
+        # connect guard now absorbs.
+        #
+        # `change->` spelled out because Stimulus's default event for an `<input>` is
+        # `input`, not `change`. Both fire on a checkbox or radio click, so the two
+        # behave the same here — but the one that reads right is the one written.
+        def auto_submit_attributes(filter)
+          return {} unless auto_submit?(filter)
+
+          { data: { action: "change->submit-on-change#submit" } }
+        end
+
         # Derived from the Ransack param name, not from the attribute: the
         # predicate is what tells two filters over the same column apart, and it
         # is already assumed unique — two filters sharing a name would be

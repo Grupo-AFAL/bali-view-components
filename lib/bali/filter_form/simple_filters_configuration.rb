@@ -52,7 +52,8 @@ module Bali
               icon: attr[:icon],
               step: attr[:step],
               placeholder_min: attr[:placeholder_min],
-              placeholder_max: attr[:placeholder_max]
+              placeholder_max: attr[:placeholder_max],
+              auto_submit: attr[:auto_submit]
             }
           end
         end
@@ -125,6 +126,9 @@ module Bali
             type: type,
             predicate: predicate,
             icon: filter[:icon],
+            # Instance-level `simple_filters:` hashes reach the component through here
+            # too, so `auto_submit: true` works in both shapes of the configuration.
+            auto_submit: filter[:auto_submit],
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
 

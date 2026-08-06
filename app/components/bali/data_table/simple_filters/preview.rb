@@ -184,6 +184,29 @@ module Bali
           )
         end
 
+        STATUS_CHOICES = [%w[Draft draft], %w[Published published], %w[Archived archived]].freeze
+        KIND_CHOICES = [%w[Public public], %w[Private private]].freeze
+
+        # @label Auto Submit
+        # Pills that filter on click. `auto_submit: true` per filter mounts
+        # `submit-on-change` on the row and wires that filter's controls to it, so
+        # there is nothing left to press — the Filter button stays for the filters
+        # that did not opt in.
+        #
+        # The form GETs this same URL and the template reads the values back out of the
+        # `q` params, so the row really round-trips: the query string below is what the
+        # last click sent, and the pills come back showing it. No Lookbook `@param`s
+        # here for that reason — the state of this preview is the query string.
+        def auto_submit
+          render_with_template(
+            template: 'bali/data_table/simple_filters/previews/auto_submit',
+            locals: {
+              status_choices: Bali::DataTable::SimpleFilters::Preview::STATUS_CHOICES,
+              kind_choices: Bali::DataTable::SimpleFilters::Preview::KIND_CHOICES
+            }
+          )
+        end
+
         # @label Date Range
         # Single date picker that selects a range of dates.
         #

@@ -188,6 +188,32 @@ Ransack association path) skips the translation, so a select built on its labels
 OPPOSITE records, silently. Declare those options with the raw values
 (`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
 
+### Pills that filter on click (`auto_submit:`)
+
+`auto_submit: true` makes a SimpleFilters filter submit the row as soon as it changes, with no
+trip through the Filter button:
+
+```ruby
+filter_attribute :status, type: :select, simple: true, advanced: false,
+  options: [['Draft', 'draft'], ['Published', 'published']],
+  input: :radio_group, auto_submit: true
+```
+
+It is **opt-in per filter and off by default**, so no existing row changes behaviour, and the
+button stays for the filters that did not opt in. The row mounts `submit-on-change` only when
+at least one filter asked for it, and only that filter's controls get the action.
+
+Only `:toggle_group` and `:radio_group` accept it (`AUTO_SUBMIT_INPUTS` in
+`lib/bali/filter_form.rb` — it lives on the singleton class next to `SIMPLE_INPUTS`, so it is
+not reachable as `Bali::FilterForm::AUTO_SUBMIT_INPUTS`).
+Anything else **raises at class-definition time**: one click is the whole interaction on a
+pill, whereas a date or number range would submit between the two halves of its value. The
+instance-level `simple_filters:` hashes take the same key and are filtered by the component
+instead of raising, since they never go through the DSL's validation.
+
+There is no phantom submit on load: `submit-on-change` drops change events fired in the frame
+it connects in (see `docs/guides/controllers.md`).
+
 ## FilterForm Architecture
 
 FilterForm is organized into focused concerns for maintainability:

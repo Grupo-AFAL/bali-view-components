@@ -657,4 +657,73 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
     assert_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
   end
+
+  # --- auto_submit: pills que filtran al click (#725) ---
+  #
+  # El cableado es todo `data-`: el form monta `submit-on-change` y cada control del
+  # filtro que opta le manda la acción. Los asserts son sobre esos atributos porque son
+  # el contrato — el comportamiento en sí lo cubre cypress/e2e/simple-filters-auto-submit.
+
+  def auto_submit_pill_filters(auto_submit:)
+    [
+      {
+        attribute: :status,
+        collection: [ %w[Draft draft], %w[Published published] ],
+        label: "Status",
+        type: :radio_group,
+        auto_submit: auto_submit
+      },
+      {
+        attribute: :kind,
+        collection: [ %w[Public public], %w[Private private] ],
+        label: "Kind",
+        type: :toggle_group,
+        predicate: :in,
+        auto_submit: auto_submit
+      }
+    ]
+  end
+
+  def test_auto_submit_mounts_the_controller_and_wires_every_pill
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: auto_submit_pill_filters(auto_submit: true)
+    ))
+
+    assert_selector('form[data-controller="submit-on-change"]')
+    assert_selector('input[type="radio"][data-action="change->submit-on-change#submit"]', count: 2)
+    assert_selector('input[type="checkbox"][data-action="change->submit-on-change#submit"]', count: 2)
+  end
+
+  # El default es off, y eso es lo que deja intacta cualquier fila que ya existía.
+  def test_without_auto_submit_the_row_carries_no_wiring_at_all
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: auto_submit_pill_filters(auto_submit: false)
+    ))
+
+    assert_no_selector('form[data-controller="submit-on-change"]')
+    assert_no_selector("[data-action*='submit-on-change']")
+    assert_selector('form[data-turbo-frame="_top"]')
+  end
+
+  def test_auto_submit_wires_only_the_filters_that_asked_for_it
+    filters = auto_submit_pill_filters(auto_submit: false)
+    filters[0][:auto_submit] = true
+
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: filters))
+
+    assert_selector('form[data-controller="submit-on-change"]')
+    assert_selector('input[type="radio"][data-action="change->submit-on-change#submit"]', count: 2)
+    assert_no_selector('input[type="checkbox"][data-action]')
+  end
+
+  # Un rango se manda entre una mitad del valor y la otra, así que el componente lo
+  # ignora aunque el hash de instancia (que no pasa por la validación del DSL) lo pida.
+  def test_auto_submit_is_ignored_outside_the_pill_widgets
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [
+      { attribute: :founded_year, label: "Founded", type: :number_range, auto_submit: true }
+    ]))
+
+    assert_no_selector('form[data-controller="submit-on-change"]')
+    assert_no_selector("[data-action*='submit-on-change']")
+  end
 end

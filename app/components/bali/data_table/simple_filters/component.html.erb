@@ -1,4 +1,4 @@
-<%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
+<%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: form_data_attributes do |f| %>
   <%# Preserve top-level params across the GET submit: el browser descarta el query de la
       action en un submit GET, así que tanto los params propios de la `url:` del host (un
       scope como `status=historico`) como los explícitos (`preserved_params`, p. ej. un
@@ -78,6 +78,7 @@
                      value="<%= value %>"
                      class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
                      aria-label="<%= label %>"
+                     <%= tag.attributes(auto_submit_attributes(filter)) %>
                      <%= "checked" if is_checked %> />
             <% end %>
           </div>
@@ -90,6 +91,7 @@
                      value="<%= value %>"
                      class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
                      aria-label="<%= label %>"
+                     <%= tag.attributes(auto_submit_attributes(filter)) %>
                      <%= "checked" if current_value == value.to_s %> />
             <% end %>
           </div>
