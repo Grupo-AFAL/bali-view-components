@@ -13,6 +13,36 @@ module Bali
         )
       end
 
+      # @param theme select { choices: [dark, ~] }
+      # @label Dark chrome
+      # A dark sidebar next to a light page — the shape every AFAL app
+      # hand-rolls. `theme:` emits `data-theme` on the `<nav>`, and daisyUI
+      # resolves its colour variables against the nearest ancestor that carries
+      # one, so the rest of the page keeps the document's theme.
+      #
+      # ```erb
+      # <%= render Bali::SideMenu::Component.new(current_path: request.path,
+      #                                          theme: 'costa-norte-dark') do |menu| %>
+      # ```
+      #
+      # The theme here is daisyUI's own `dark`, on purpose: **the gem ships the
+      # mechanism, not the colours.** A brand's teal-and-gold chrome is not
+      # something every app wants, so the token list to define your own is in
+      # the [custom themes guide](../../../../docs/guides/custom-themes.md).
+      #
+      # Switch the param to `~` to compare against an unthemed sidebar. Open
+      # **Configuration** in both: on a dark surface daisyUI's soft shadow is
+      # invisible and a `base-100` panel is the same colour as the rail it opens
+      # from, so a themed sidebar gets a lighter panel, a real border and a
+      # stronger shadow. That fix comes with the theme; nothing changes for a
+      # sidebar without one.
+      def dark_chrome(theme: "dark")
+        render_with_template(
+          template: "bali/side_menu/previews/dark_chrome",
+          locals: { theme: theme.to_s }
+        )
+      end
+
       # @label Expandable Groups
       # Nested menu items that expand/collapse on click using DaisyUI collapse component.
       # This is the default behavior.
