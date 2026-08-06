@@ -782,13 +782,15 @@
       <div>
         <h4 class="font-medium mb-2"><%= t('showcase.auto_submit') %></h4>
         <%# Dropping the addon is what turns the submit button off; the form submits
-            on input instead, through the submit-on-change controller. %>
-        <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
+            on input instead, through the submit-on-change controller. `debouncedSubmit`
+            and not `submit`, so a typed word is one request and not one per letter. %>
+        <%# `/showcase`, which is the route (`/pages/showcase` 404s), so the demo really submits. %>
+        <%= form_with url: '/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
           <div class="max-w-md">
             <%= f.search_group :query,
                   placeholder: t('showcase.start_typing'),
                   addon_right: nil,
-                  data: { action: 'submit-on-change#submit' } %>
+                  data: { action: 'submit-on-change#debouncedSubmit' } %>
           </div>
         <% end %>
       </div>

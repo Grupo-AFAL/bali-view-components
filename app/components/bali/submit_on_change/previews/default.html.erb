@@ -1,0 +1,23 @@
+<%# The form submits to its own URL so the preview survives every submit and the query
+    string below is the visible record of what was sent. No `delay` value on the form:
+    the select submits immediately, the text input through the debounced action. %>
+<% model.assign_attributes(params.fetch(:form_record, {}).permit(:select, :text)) %>
+<%= form_with(model: model, url: request.path, method: :get, builder: Bali::FormBuilder,
+              data: { controller: 'submit-on-change' }) do |form| %>
+  <div class="flex flex-wrap gap-4 items-end">
+    <div class="w-64">
+      <%= form.slim_select_group :select, options, label: 'Genre',
+            html: { data: { action: 'submit-on-change#submit' } } %>
+    </div>
+
+    <div class="w-64">
+      <%= form.text_group :text, label: 'Search',
+            data: { action: 'submit-on-change#debouncedSubmit' } %>
+    </div>
+  </div>
+<% end %>
+
+<p class="mt-6 text-sm" data-testid="query">
+  Query string:
+  <code><%= request.query_string.presence || '(empty)' %></code>
+</p>

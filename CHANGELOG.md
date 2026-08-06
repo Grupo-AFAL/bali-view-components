@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`submit-on-change#debouncedSubmit`, so one form can mix immediate and debounced controls** (#717). The controller has always had a `delay` value, but it applied to the whole form: either every control waited or none did, which is why a filter row with a select and a search box needed two controllers (or, in three AFAL apps, a local `auto_submit_controller.js` copy that had grown the pair on its own). `submit` stays as it was and `debouncedSubmit` is always debounced, so `<select data-action="submit-on-change#submit">` next to `<input type="search" data-action="submit-on-change#debouncedSubmit">` is now the whole wiring. `delay` still governs both actions when set; without it `debouncedSubmit` waits 300 ms. New `bali/submit_on_change/default` preview and `cypress/e2e/submit-on-change.cy.js` cover both actions, and `docs/guides/controllers.md` has the markup.
+
+### Changed
+
+- **`submit-on-change` ignores change events fired in the frame it connects in** (#717). SlimSelect dispatches a `change` on the native `<select>` while it builds its widget over it — measurable whenever the options carry `data-inner-html`, which makes it rewrite the element — and a form carrying `submit-on-change` submitted on that event, before the user had touched anything. Measured against the new preview with the guard off: the page navigates to `?form_record[select]=1&form_record[text]=` on its own. This is a behavior change, not only a fix: any change event in the first frame after `connect()` is now dropped, including one your own code dispatches there. `data-submit-on-change-skip-initial-value="false"` restores the old behavior. Two incidental fixes ride along: a pending debounced submit is cancelled on `disconnect()` instead of firing at a detached form, and reconnecting the controller no longer wraps the debounce around itself (a form that connected twice used to wait `delay` twice).
+
 ## [v3.1.0.beta.3] - 2026-08-06
 
 ### Changed
