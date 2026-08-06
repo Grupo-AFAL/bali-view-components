@@ -123,17 +123,127 @@ class BaliGanttComponentTest < ComponentTestCase
     assert_no_selector(".bali-gantt-canvas")
   end
 
-  def test_interactive_mode_is_signed_but_not_available_yet
-    error = assert_raises(ArgumentError) do
-      Bali::Gantt::Component.new(data: payload, mode: :interactive)
-    end
-
-    assert_match(/phases 2-3/, error.message)
-  end
-
-  def test_unknown_mode_and_color_by_raise
+  def test_unknown_mode_fallback_and_color_by_raise
     assert_raises(ArgumentError) { Bali::Gantt::Component.new(data: payload, mode: :flying) }
     assert_raises(ArgumentError) { Bali::Gantt::Component.new(data: payload, color_by: :phase) }
+    assert_raises(ArgumentError) { Bali::Gantt::Component.new(data: payload, fallback: :spinner) }
+  end
+
+  # --- mode: :interactive (#719) ---
+
+  # THE line of the D16 gate. Every other interactive test passes `fallback:`
+  # explicitly, so flipping the default to :skeleton is this constant plus this
+  # assertion — and the flip stays honest instead of quietly rewriting what a
+  # dozen other tests were proving.
+  def test_the_default_fallback_is_static
+    assert_equal :static, Bali::Gantt::Component::DEFAULT_FALLBACK
+
+    render_inline(component(mode: :interactive))
+    assert_selector("[data-controller='gantt'] .bali-gantt-canvas")
+  end
+
+  def test_interactive_mounts_the_island_on_the_component_element
+    render_inline(component(mode: :interactive))
+
+    island = page.find(".bali-gantt")
+    assert_equal "gantt", island["data-controller"]
+    assert_equal "interactive", island["data-gantt-mode"]
+    assert_equal({ "groups" => 2, "items" => 4 },
+                 JSON.parse(island["data-gantt-data-value"])
+                     .slice("groups", "items").transform_values(&:size))
+  end
+
+  # The promise of the phase: the same board, inside the mount, so React has
+  # something to replace instead of a hole.
+  #
+  # `fallback:` is explicit in every test that proves a MECHANISM, so flipping
+  # DEFAULT_FALLBACK never rewrites them. The default itself is pinned once, in
+  # test_the_default_fallback_is_static — that pair of lines is the whole flip.
+  def test_interactive_renders_the_static_board_inside_the_mount
+    render_inline(component(mode: :interactive, fallback: :static))
+
+    assert_selector("[data-controller='gantt'] .bali-gantt-canvas")
+    assert_selector("[data-controller='gantt'] .bali-gantt-row", count: 3)
+    assert_selector("[data-controller='gantt'] a.bali-gantt-bar")
+    assert_no_selector(".bali-gantt-skeleton")
+  end
+
+  # Both renderers must open at the same density or the swap rescales every
+  # bar under the visitor: the island's initial zoom IS the static's resolved
+  # one (`:auto` → :day for this window).
+  def test_interactive_hands_the_island_the_zoom_its_fallback_resolved
+    render_inline(component(mode: :interactive))
+
+    island = page.find(".bali-gantt")
+    assert_equal "day", island["data-gantt-initial-zoom-value"]
+    assert_equal island["data-gantt-zoom"], island["data-gantt-initial-zoom-value"]
+    assert_equal "gantt_zoom", island["data-gantt-zoom-param-value"]
+  end
+
+  def test_interactive_serializes_catalogs_i18n_and_authorization
+    render_inline(component(mode: :interactive, editable: true, manageable: false))
+
+    island = page.find(".bali-gantt")
+    assert_equal "true", island["data-gantt-editable-value"]
+    assert_equal "false", island["data-gantt-manageable-value"]
+    # Catalogs default to the same status vocabulary the static legend uses.
+    catalogs = JSON.parse(island["data-gantt-catalogs-value"])
+    assert_equal component.statuses.map { |s| s[:value].to_s },
+                 catalogs.fetch("statuses").map { |s| s.fetch("value") }
+    assert_equal Bali::Gantt::Translations::KEYS.sort,
+                 JSON.parse(island["data-gantt-i18n-value"]).keys.sort
+  end
+
+  def test_interactive_emits_only_the_urls_it_was_given
+    render_inline(component(mode: :interactive,
+                            urls: { patch: "/p/1/schedule", dependencies: "/p/1/deps" }))
+
+    island = page.find(".bali-gantt")
+    assert_equal "/p/1/schedule", island["data-gantt-patch-url-value"]
+    assert_equal "/p/1/deps", island["data-gantt-dependencies-url-value"]
+    assert_nil island["data-gantt-schedule-url-value"]
+    assert_nil island["data-gantt-new-item-url-value"]
+  end
+
+  def test_unknown_url_keys_raise_rather_than_ship_a_silent_viewer
+    error = assert_raises(ArgumentError) do
+      Bali::Gantt::Component.new(data: payload, mode: :interactive, urls: { pacth: "/typo" })
+    end
+
+    assert_match(/unknown urls/, error.message)
+  end
+
+  # `limit:` caps the ERB the static fallback emits; the island gets the whole
+  # schedule and renders it itself.
+  def test_the_island_receives_the_uncapped_document
+    render_inline(component(mode: :interactive, fallback: :static, limit: 1))
+
+    assert_selector("[data-controller='gantt'] .bali-gantt-row", count: 1)
+    assert_equal 4, JSON.parse(page.find(".bali-gantt")["data-gantt-data-value"])
+                        .fetch("items").size
+  end
+
+  def test_skeleton_fallback_replaces_the_board_and_keeps_the_mount
+    render_inline(component(mode: :interactive, fallback: :skeleton))
+
+    assert_equal "gantt", page.find(".bali-gantt")["data-controller"]
+    assert_selector("[data-controller='gantt'] .bali-gantt-skeleton[aria-busy='true']")
+    assert_selector(".bali-gantt-skeleton .skeleton",
+                    count: 2 + (Bali::Gantt::Component::SKELETON_ROWS * 2))
+    assert_no_selector(".bali-gantt-canvas")
+    # Nothing of the real schedule leaks into the placeholder.
+    assert_no_text("Interviews")
+  end
+
+  # A host that toggles `mode:` from a policy passes `fallback:` unconditionally;
+  # the static renderer ignores it rather than punishing the call site.
+  def test_static_mode_ignores_fallback_and_mounts_nothing
+    render_inline(component(fallback: :skeleton))
+
+    assert_selector(".bali-gantt-canvas")
+    assert_no_selector(".bali-gantt-skeleton")
+    assert_nil page.find(".bali-gantt")["data-controller"]
+    assert_nil page.find(".bali-gantt")["data-gantt-data-value"]
   end
 
   def test_accepts_a_prebuilt_data_document

@@ -20,15 +20,21 @@ export function pxPerDayFor (zoomKey) {
   return (ZOOM_LEVELS.find((z) => z.key === zoomKey) || ZOOM_LEVELS[1]).pxPerDay
 }
 
-export function normalizeZoom (value) {
-  return ZOOM_LEVELS.some((z) => z.key === value) ? value : 'week'
+export function normalizeZoom (value, fallback = 'week') {
+  if (ZOOM_LEVELS.some((z) => z.key === value)) return value
+
+  return ZOOM_LEVELS.some((z) => z.key === fallback) ? fallback : 'week'
 }
 
-// Reads the initial zoom from the URL (?gantt_zoom=...), falling back to "week".
-export function initialZoomFromUrl (param = DEFAULT_ZOOM_PARAM) {
-  if (typeof window === 'undefined') return 'week'
+// Reads the initial zoom from the URL (?gantt_zoom=...). With no param it
+// takes `fallback` — which `mode: :interactive` fills with the zoom the STATIC
+// fallback already resolved (Bali::Gantt::TimeScale's `:auto`), so the island
+// opens at the density the visitor is looking at instead of rescaling every
+// bar the moment it mounts. Without either, "week".
+export function initialZoomFromUrl (param = DEFAULT_ZOOM_PARAM, fallback = 'week') {
+  if (typeof window === 'undefined') return normalizeZoom(null, fallback)
   const params = new URLSearchParams(window.location.search)
-  return normalizeZoom(params.get(param))
+  return normalizeZoom(params.get(param), fallback)
 }
 
 // Persists the zoom in the URL without navigating (replaceState): keeps every

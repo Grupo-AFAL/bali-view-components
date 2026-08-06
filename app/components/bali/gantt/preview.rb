@@ -9,9 +9,8 @@ module Bali
       # diamond on the item's date, and items without dates land in the "No dates"
       # section instead of disappearing. `critical_ids` marks CPM-critical items.
       #
-      # `mode: :interactive` (the React Flow island) raises until phases 2-3
-      # (#705/#719) — the option is already part of the signature so host call
-      # sites will not need rewriting.
+      # `mode: :interactive` (#719) renders this same board inside the React
+      # island's mount element — see the Interactive previews below.
       #
       # The zoom links rewrite only the `gantt_zoom` query param (namespaced, so it
       # can coexist with other controls); inside Lookbook they reload the preview.
@@ -76,19 +75,96 @@ module Bali
       # POST dependency (cycles → 422 → rollback); double-click an edge →
       # DELETE. Requires the seeded project (`bin/rails db:seed`). Edits
       # PERSIST in the dummy database — re-seed to reset.
+      #
+      # Mounted through `Bali::Gantt::Component` `mode: :interactive` (#719):
+      # the same call a host writes, `urls:` and all. The call itself lives in
+      # the template because that is where route helpers belong.
       def island
         project = Project.order(:id).first
         render_with_template(
           template: "bali/gantt/previews/island",
+          locals: { project: project, gantt: project && ProjectGantt.new(project) }
+        )
+      end
+
+      # @label Interactive (readonly)
+      # `mode: :interactive` with the default `fallback: :static`: the board
+      # below is server-rendered INSIDE the island's mount element, with the
+      # island's own TimeScale densities and colors, and React replaces it when
+      # the bundle lands. Disable JavaScript and the board is what stays — it
+      # is the real no-JS rendering, not a placeholder.
+      def interactive_readonly
+        # `fallback:` explícito A PROPÓSITO, aunque hoy coincida con el default:
+        # este preview es la mitad "tablero" de la comparación del gate D16, y
+        # si el gate flipa DEFAULT_FALLBACK esta pareja pasaría a comparar
+        # esqueleto contra esqueleto con los rótulos al revés.
+        interactive(data: sample_data, fallback: :static, group_label: "Stage")
+      end
+
+      # @label Interactive (skeleton fallback)
+      # The same island with `fallback: :skeleton`: a neutral placeholder
+      # instead of the board. This is the escape hatch of D16 — if the swap
+      # from a real board ever reads as a flicker, hosts (or Bali's default)
+      # move here without touching anything else in the call.
+      def interactive_skeleton
+        interactive(data: sample_data, fallback: :skeleton, group_label: "Stage")
+      end
+
+      # @label Interactive stress (300 items, static fallback)
+      # The dataset the D16 gate measures: 300 items over 12 groups, generated
+      # from a fixed seed so every run draws the identical board. Watch the
+      # moment React takes over — bars should stay where the server put them.
+      def interactive_stress
+        # `fallback:` explícito por la misma razón que interactive_readonly:
+        # es la variante A del A/B del gate y tiene que seguir siendo el
+        # tablero pase lo que pase con el default.
+        interactive(data: large_data, fallback: :static, group_label: "Workstream")
+      end
+
+      # @label Interactive stress (300 items, skeleton fallback)
+      # The A/B partner of the preview above: same 300 items, skeleton instead
+      # of the board. Compare the two to decide whether Bali's default
+      # `fallback:` should stay `:static`.
+      def interactive_stress_skeleton
+        interactive(data: large_data, fallback: :skeleton, group_label: "Workstream")
+      end
+
+      private
+
+      # Every interactive preview goes through the shared template: the
+      # component renders the mount element, the template publishes the metas
+      # the loader needs (a host layout does that part).
+      def interactive(**options)
+        render_with_template(
+          template: "bali/gantt/previews/interactive",
           locals: {
-            project: project,
-            gantt: project && ProjectGantt.new(project),
-            i18n: Bali::Gantt::Translations.island
+            component: Bali::Gantt::Component.new(mode: :interactive, **options)
           }
         )
       end
 
-      private
+      # 300 items across 12 groups from a FIXED seed: the board must be
+      # byte-identical between the `:static` and `:skeleton` runs of the gate,
+      # and between one run and the next. Offsets are relative to today so the
+      # today marker still lands inside the window.
+      def large_data
+        rng = Random.new(719)
+        today = Date.current
+        statuses = %w[backlog in_progress ready_for_review complete cancelled]
+
+        {
+          groups: 12.times.map { |i| { id: i + 1, name: "Workstream #{i + 1}" } },
+          items: 300.times.map do |i|
+            start_offset = rng.rand(-120..150)
+            length = rng.rand(2..25)
+            { id: 1000 + i, group_id: (i % 12) + 1, name: "Task #{i + 1}",
+              status: statuses[rng.rand(statuses.size)],
+              starts_on: (today + start_offset).iso8601,
+              ends_on: (today + start_offset + length).iso8601,
+              percent_complete: rng.rand(0..100) }
+          end
+        }
+      end
 
       def sample_data
         today = Date.current

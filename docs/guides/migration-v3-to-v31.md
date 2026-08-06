@@ -210,3 +210,24 @@ While migrating, also fix your `@source` glob if it scans only `{rb,erb}`: Bali 
 some classes from JavaScript (the drawer submit spinner among them), so the canonical glob
 is `node_modules/bali-view-components/app/**/*.{rb,erb,js}` — see
 [Installation](installation.md).
+
+### The Gantt gained `mode: :interactive` (#719)
+
+`Bali::Gantt` shipped in v3.1 in three steps, and this is the last of them: the component
+now renders the React Flow island as well as the static board. **Nothing changes for
+existing call sites** — `mode:` still defaults to `:static`, and every option it took
+before means the same thing.
+
+What is new is that `mode: :interactive` no longer raises. It renders the static board
+*inside* the island's mount element and React replaces it on connect, so an interactive
+Gantt is also a working one before the bundle lands and with JavaScript off. `fallback:
+:skeleton` swaps that board for a neutral placeholder if you would rather not pay for
+rendering it twice.
+
+Going interactive is additive work — the island needs a bundler entry, the loader and the
+meta tags, and the host implements the mutation endpoints the island posts to.
+[../api/gantt.md](../api/gantt.md) is the whole circuit, including the broadcast contract
+and why echo suppression is the host's job.
+
+If you upgraded from v2, note that `bali-view-components/gantt` resolves again in v3.1 —
+see the warning in [migration-v2-to-v3.md](migration-v2-to-v3.md#the-gantt-chart-is-gone).

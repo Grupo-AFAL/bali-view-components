@@ -378,6 +378,7 @@ es:
       name_column: Nombre
       today: Hoy
       empty: Aún no hay nada que graficar
+      loading: Cargando el cronograma
       truncated: "Mostrando %{shown} de %{total} elementos con fechas"
       undated_title: Sin fechas
       undated_hint: "Estos elementos aún no tienen fechas, así que no pueden colocarse en la línea de tiempo."

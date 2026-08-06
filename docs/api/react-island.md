@@ -27,7 +27,7 @@ One npm subpath, `bali-view-components/react-island`, exports three things; one 
 
 | Piece | Where it goes | Job |
 |---|---|---|
-| `ReactIslandController` | your island's controller file | Base class: `createRoot`, values→props, ErrorBoundary, Turbo cache exclusion, unmount on disconnect |
+| `ReactIslandController` | your island's controller file | Base class: `createRoot`, values→props, ErrorBoundary, Turbo cache exclusion, unmount on disconnect, and the fallback swap below |
 | `registerIsland(name, Controller)` | the island's dedicated bundler entry | Registers on `window.Stimulus`, idempotently |
 | `startIslandLoader(name)` | the MAIN bundle | Lazy-loads the island's entry the first time its controller appears in the DOM |
 | `react_island_meta_tags(name, js:, css: nil)` | the host layout's `<head>` | Publishes the digested bundle paths the loader injects |
@@ -115,11 +115,38 @@ Emits `<meta name="bali-gantt-js">` / `<meta name="bali-gantt-css">` — exactly
 
 `block_editor_meta_tags` is this helper's block-editor spelling and is **not** deprecated; both are exposed to host views by the engine.
 
+## Whatever the server rendered inside the mount is the fallback
+
+An island's mount element does not have to be empty. Anything the server
+rendered inside it is what a visitor looks at until React is ready — and Bali
+treats it that way:
+
+- **It survives until the island actually paints.** The base prepends React's
+  container and removes the fallback from inside the first commit
+  (`componentDidMount` — after the DOM carries the island, before the browser
+  paints). One frame shows the fallback, the next shows the island, and none
+  shows an empty box. Clearing the mount up front and letting a concurrent root
+  fill it later looks fine on a fast machine and is a white screen for ~2s on a
+  heavy island with a throttled CPU; that is measured, on `Bali::Gantt`'s
+  300-item board at 6x.
+- **It survives a bundle that never arrives.** The load-error notice is
+  *prepended* to it, not swapped for it — a failed chunk costs the interactive
+  layer, not the page.
+- **It should therefore be worth looking at.** `Bali::Gantt` `mode: :interactive`
+  renders its entire static board there. An island whose mount is empty (the
+  block editor's editor target) loses nothing by it: the base falls back to
+  replacing the mount wholesale.
+
+If your island measures its own viewport space in a layout effect, note that
+layout effects run *before* the parent's `componentDidMount` — which is why the
+container is prepended rather than appended, so the island is first in flow and
+reads its real `getBoundingClientRect().top` while the fallback is still there.
+
 ## Errors: the boundary and the `onError` hook
 
 Two failure modes, one reporting channel:
 
-- **Load failures** (`loadComponent()` rejects — missing optional peer, network): the island renders the `errorFallback(error)` message in place.
+- **Load failures** (`loadComponent()` rejects — missing optional peer, network): the island prepends the `errorFallback(error)` message, keeping any server-rendered fallback underneath it.
 - **Render crashes** (the component throws): a built-in React ErrorBoundary catches it and swaps the island for the same fallback. Bali builds the boundary from the React instance *you* loaded, so the gem itself never imports React.
 
 Both report through one configurable static hook, so an app plugs its tracker in once for every island:

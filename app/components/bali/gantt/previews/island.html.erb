@@ -1,24 +1,25 @@
-<%# locals: project, gantt, i18n %>
+<%# locals: project, gantt %>
 <%# The COMPLETE editable island wired to the dummy's reference endpoints —
-    the executable form of the mutation contract (#705, D15/D17). Phase 3
-    (#719) renders this same element through Bali::Gantt::Component
-    `mode: :interactive` at /admin/projects/:id?view=timeline. %>
+    the executable form of the mutation contract (#705, D15/D17), now through
+    `Bali::Gantt::Component` `mode: :interactive` (#719). This is verbatim what
+    a host writes: one render call, the fallback board underneath it, and the
+    endpoints in `urls:`. `id:` is the broadcast target (docs/api/gantt.md). %>
 <%= react_island_meta_tags('gantt', js: 'gantt-island.js', css: 'gantt-island.css') %>
 <% if project %>
-  <%= tag.div nil,
-        class: 'block w-full',
-        data: {
-          controller: 'gantt',
-          gantt_data_value: gantt.to_h.to_json,
-          gantt_catalogs_value: gantt.catalogs.to_json,
-          gantt_i18n_value: i18n.to_json,
-          gantt_editable_value: 'true',
-          gantt_manageable_value: 'true',
-          gantt_patch_url_value: admin_project_schedule_path(project),
-          gantt_schedule_url_value: admin_project_schedule_path(project),
-          gantt_dependencies_url_value: admin_project_dependencies_path(project),
-          gantt_date_locale_value: I18n.locale.to_s
-        } %>
+  <%= render Bali::Gantt::Component.new(
+        data: gantt.to_h,
+        mode: :interactive,
+        statuses: gantt.statuses,
+        catalogs: gantt.catalogs,
+        editable: true,
+        manageable: true,
+        group_label: 'Phase',
+        urls: {
+          patch: admin_project_schedule_path(project),
+          schedule: admin_project_schedule_path(project),
+          dependencies: admin_project_dependencies_path(project)
+        },
+        id: dom_id(project, :gantt)) %>
 <% else %>
   <p class="p-4 text-sm text-base-content/60">
     This preview mounts the island against the seeded demo project — run

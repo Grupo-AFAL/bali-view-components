@@ -79,6 +79,30 @@ describe('ReactIsland', () => {
     })
   })
 
+  // El caso que se perdía: con las metas presentes y el import() fallando
+  // (digest rotado tras un deploy, red caída, CSP), `replaceChildren` borraba el
+  // contenido server-rendered del mount. Para Bali::Gantt `mode: :interactive`
+  // eso significa perder el tablero navegable y quedarse con un <p>.
+  it('un fallo de carga NO destruye el contenido server-rendered del mount', () => {
+    cy.visit('/bali/react_island/load_error')
+
+    cy.get('#isla-con-fallback [data-testid="fallback-server"]')
+      .should('be.visible')
+      .and('contain.text', 'esto es el fallback de la isla')
+    // Sigue siendo usable, no una captura de pantalla: el link es alcanzable.
+    cy.get('#isla-con-fallback [data-testid="fallback-server"] a')
+      .should('have.attr', 'href')
+      .and('include', '/lookbook')
+
+    // Y el aviso se pone ENCIMA, para que se lea antes que el contenido.
+    cy.get('#isla-con-fallback').children().first().should('have.class', 'text-error')
+
+    // El mount vacío se comporta como antes: el aviso es todo lo que hay.
+    cy.get('[data-controller="react-island-demo"]').first().children()
+      .should('have.length', 1)
+      .and('have.class', 'text-error')
+  })
+
   it('el ErrorBoundary atrapa errores de render y reporta por onError', () => {
     cy.visit('/bali/react_island/default')
     cy.get('[data-testid="counter-island"]').should('be.visible')

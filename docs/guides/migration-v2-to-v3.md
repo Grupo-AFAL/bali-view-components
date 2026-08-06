@@ -500,9 +500,12 @@ had no one to serve.
 
 If you do render it, you have three options:
 
-1. **Wait for v3.1.** A new `Bali::Gantt` is planned there, built for read-only portfolio
-   views, with the per-row `color_by:` that #667 asked for. It is not an API-compatible
-   revival of this one — the drag/resize/dependency editor is not coming back.
+1. **Move to `Bali::Gantt`, which shipped in v3.1.** It is not an API-compatible revival:
+   it is a different component with a different contract, and the section below is the
+   whole of what porting involves. `mode: :static` is the read-only portfolio board with
+   the per-row `color_by:` that #667 asked for; `mode: :interactive` brings back
+   drag/resize/dependency editing, as a React island rather than the old Stimulus
+   controllers. See [../api/gantt.md](../api/gantt.md).
 2. **Server-render the view yourself.** afal-apps#426 did exactly this for a portfolio
    Gantt: `position: sticky` plus `<details>` for the parent/child folding, no JavaScript.
    A read-only chart uses almost none of what the component carried.
@@ -526,6 +529,30 @@ registerGantt(application)
 The export is removed from `package.json` rather than left as a throwing stub, so a stale
 import fails at build time instead of rendering an empty container at runtime. `sortablejs`
 stays an optional peer: Kanban and SortableList still need it.
+
+> **If you are upgrading from v2 straight to v3.1 or later, delete those two lines anyway.**
+> v3.1 reuses the `bali-view-components/gantt` subpath for the new island (it was free —
+> the removal verified zero consumers), so the stale import no longer fails the build. It
+> resolves, and `registerGantt` registers a completely different controller. The build goes
+> green and nothing renders. v3.0 is the only version that catches this for you.
+
+### Porting a `GanttChart` call site to `Bali::Gantt`
+
+The shapes have nothing in common — the old component took nested sub-component slots, the
+new one takes one document:
+
+| v2 `GanttChart` | v3.1 `Gantt` |
+|---|---|
+| Sub-component slots per row/section | A single `data:` document — see `Bali::Gantt::Data` |
+| `Bali::GanttChart::Component.new(...)` + nested renders | One `render Bali::Gantt::Component.new(data: …)` |
+| `gantt-chart` / `gantt-foldable-item` Stimulus controllers | None in `:static`; the `gantt` island controller in `:interactive` |
+| Folding via `GanttFoldableItemController` | Native `<details>`, no JavaScript |
+| Bar colour via CSS classes per status | `color_by: :status` plus a `statuses:` catalog |
+| `bali_view.gantt_chart.*` locale keys | `bali_view.gantt.*` |
+
+The work is in the serializer, not the view: write the object that turns your models into
+the contract (`spec/dummy/app/models/project_gantt.rb` is a complete example), then the
+call site is a single render.
 
 **#667 is closed by this removal, not solved by it.** A portfolio Gantt whose bar colour
 encodes project status has no v3 answer; the workaround recorded on the issue (one CSS class
