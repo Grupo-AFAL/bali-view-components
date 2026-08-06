@@ -263,6 +263,7 @@ Content container with optional header, image, and actions.
 - `side` - Horizontal layout (image on side)
 - `image_full` - Image overlays entire card
 - `shadow` - Enable shadow (default: true)
+- `href` - Renders the card's root element as an `<a class="card">` with a hover shadow affordance, making the whole card one link (drill-downs). The card's content must not contain links or buttons then — interactive content inside an `<a>` is invalid HTML (default: nil)
 
 #### Modal
 
@@ -675,17 +676,25 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
   <% switch.with_view(name: "Board", icon: "grid", href: backlog_view_path("board"),
                       data: { turbo_action: "replace" }) %>
 <% end %>
+
+<%# Selector mode: slicing the data shown, not switching sibling views.
+    No icons (a data-slice selector should not dress up as tabs), usually :xs. %>
+<%= render Bali::ViewSwitch::Component.new(aria_label: "Months window", mode: :selector, size: :xs) do |switch| %>
+  <% switch.with_view(name: "12 months", href: plan_path(months: 12)) %>
+  <% switch.with_view(name: "24 months", href: plan_path(months: 24)) %>
+<% end %>
 ```
 
 **Options:**
 - `aria_label` - Accessible label for the button group (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
 - `icon_only` - `true` for square icon-only buttons at every size, or `:responsive` to collapse only the label below `sm` (what `DataTable` uses: the switch shrinks instead of folding into the `⋯` menu). Either way each view's `name:` becomes the native tooltip (`title`) and the accessible label, so the buttons never lose their accessible name (default: `false`)
+- `mode` - `:navigation` for sibling views of the same content — the active view gets `aria-current="page"`. `:selector` for a control that slices the data shown (year, scenario, months window) — the active view gets `aria-current="true"` ("the current item of a set"). The links navigate either way; only the announced semantics change. Never `aria-pressed`: browsers discard it on links (default: `:navigation`)
 - `**options` - Additional HTML attributes for the container `div`
 
 **Each `with_view`:**
 - `name` - Label of the view (visible text, or tooltip + `aria-label` when `icon_only`)
-- `icon` - Icon name rendered before the label
+- `icon` - Icon name rendered before the label; omit it for text-only views, the norm in `mode: :selector` (default: `nil`)
 - `href` - Path this view links to
 - `active` - Explicit active state; when omitted it is autodetected by matching the request path against `href` (query strings ignored)
 - `**options` - Additional HTML attributes for the link, e.g. `data: { turbo_action: "replace" }`
@@ -1813,6 +1822,7 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 - `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
 - `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
 - `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
+- `href` - Renders the whole card as an `<a>` (KPI drill-down to its listing) with a hover shadow affordance. Don't wrap the card in `link_to` anymore; and the footer must not contain links then — an `<a>` inside an `<a>` is invalid HTML (default: nil)
 
 **Slots:** `with_footer` — optional footer for trends or status text.
 
@@ -2780,8 +2790,9 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 
 **On top of [the shared surface](#the-shared-surface):**
 - `stats_columns` - Stat cards per row: 2, 3, or 4 (default: 4)
-- `with_stat(label:, value:, icon:, change:, color:)` - One `Bali::StatCard` per call.
-  `change` becomes the card's footer.
+- `with_stat(label:, value:, icon:, change:, color:, href:)` - One `Bali::StatCard` per
+  call. `change` becomes the card's footer; `href` makes that whole card a link (the
+  StatCard renders as an `<a>`).
 
 The `nav` slot lands between the header and the stats.
 

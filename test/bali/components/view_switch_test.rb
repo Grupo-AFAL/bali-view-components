@@ -118,6 +118,40 @@ class BaliViewSwitchComponentTest < ComponentTestCase
     assert_selector("a[href='/projects/board'][title='Board'][aria-label='Board']")
   end
 
+  def test_icon_is_optional
+    render_inline(Bali::ViewSwitch::Component.new(aria_label: "Months")) do |switch|
+      switch.with_view(name: "12 months", href: "/plan?months=12", active: true)
+      switch.with_view(name: "24 months", href: "/plan?months=24")
+    end
+    assert_selector("a.btn.join-item", count: 2)
+    assert_no_selector("span.icon-component")
+    assert_selector("a[href='/plan?months=12']", text: "12 months")
+  end
+
+  def test_selector_mode_marks_the_active_view_with_aria_current_true
+    render_inline(Bali::ViewSwitch::Component.new(aria_label: "Months", mode: :selector)) do |switch|
+      switch.with_view(name: "12 months", href: "/plan?months=12", active: true)
+      switch.with_view(name: "24 months", href: "/plan?months=24")
+    end
+    assert_selector("a.btn-active.btn-primary[href='/plan?months=12'][aria-current='true']")
+    assert_selector("a.btn-outline[href='/plan?months=24']:not([aria-current])")
+  end
+
+  def test_selector_mode_never_emits_aria_pressed
+    # aria-pressed sobre un link es el anti-patrón que v3 retiró: el navegador lo
+    # descarta sobre role=link. El modo selector expresa el activo con aria-current.
+    render_inline(Bali::ViewSwitch::Component.new(aria_label: "Months", mode: :selector)) do |switch|
+      switch.with_view(name: "12 months", href: "/plan?months=12", active: true)
+      switch.with_view(name: "24 months", href: "/plan?months=24")
+    end
+    assert_no_selector("[aria-pressed]")
+  end
+
+  def test_navigation_mode_is_the_default_and_keeps_aria_current_page
+    render_switch(mode: :navigation)
+    assert_selector("a[href='/projects/list'][aria-current='page']")
+  end
+
   def test_view_options_passthrough_supports_turbo_action
     render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
       switch.with_view(name: "List", icon: "list", href: "/projects/list",
