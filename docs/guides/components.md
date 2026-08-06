@@ -1433,6 +1433,41 @@ Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table`
 Export is not one of them: `page.with_export` on the surrounding page component puts it in
 the page's `⋯` — see [Secondary page actions](#secondary-page-actions-and-export).
 
+#### DescriptionList
+
+A set of label/value pairs laid out in the component's own responsive grid — the middle ground between `LabelValue` (one pair you place yourself) and `PropertiesTable` (one set read as a table). Renders one `<dl>` whose items are `<div><dt/><dd/></div>` cells, with `dt`/`dd` reusing LabelValue's typography.
+
+```erb
+<%= render Bali::DescriptionList::Component.new(columns: 2) do |c| %>
+  <% c.with_item(label: 'Name', value: 'Juan Perez') %>
+  <% c.with_item(label: 'Email', value: 'juan@example.com') %>
+  <% c.with_item(label: 'Status') do %>
+    <%= render Bali::Tag::Component.new(text: 'Active', color: :success) %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `columns` - Grid columns: `1`, `2`, or `3`; `2` and `3` collapse to one column on small screens (default: 2)
+- `layout` - `:stacked` (label above value) or `:horizontal` (label and value side by side inside each cell) (default: :stacked)
+- `**options` - Additional HTML attributes for the `<dl>`
+
+**Slots:** `with_item(label:, value:)` — items accept block content instead of `value:` for rich values (a `Tag`, a link, any HTML), and pass extra HTML attributes through to the item's `<div>`.
+
+**LabelValue, DescriptionList, or PropertiesTable?** They render the same information and read differently.
+
+| | LabelValue | DescriptionList | PropertiesTable |
+|---|---|---|---|
+| Markup | one `<dl>` per pair | one `<dl>`, a grid cell per pair | one `<table>`, `<th scope="row">` per row |
+| Layout | you place each pair — a grid cell, a card, a column | its own responsive grid | rows, stacked, zebra-striped |
+| Screen reader | a run of them is a run of separate one-pair lists | one list announced once | one set, with table navigation and a row count |
+
+Use `PropertiesTable` when the pairs form **one set read top to bottom**, which is most detail
+pages. Use `DescriptionList` when the pairs form one set but want **a grid, not table rows** —
+the dense header block of a show page, a two-column details card. Use `LabelValue` for a pair
+that stands on its own, or when each pair needs its own placement in a layout neither grid can
+express.
+
 #### Heatmap
 
 Grid visualization that shows magnitude as color intensity across two dimensions, e.g. activity by day and hour.
@@ -1526,17 +1561,11 @@ Displays a small bold label above its value — a common pattern on show pages. 
 - `value` - Value to display; when nil, block content is rendered instead (default: nil)
 - `**options` - Additional HTML attributes
 
-**LabelValue or PropertiesTable?** They render the same information and read differently.
-
-| | LabelValue | PropertiesTable |
-|---|---|---|
-| Markup | one `<dl>` per pair | one `<table>`, `<th scope="row">` per row |
-| Layout | you place each pair — a grid cell, a card, a column | rows, stacked, zebra-striped |
-| Screen reader | a run of them is a run of separate one-pair lists | one set, with table navigation and a row count |
-
-Use `PropertiesTable` when the pairs form **one set read top to bottom**, which is most detail
-pages. Use `LabelValue` for a pair that stands on its own, or when each pair needs its own
-placement in a layout the table cannot express.
+**LabelValue, DescriptionList, or PropertiesTable?** LabelValue is the right call for a pair
+that stands on its own, or when each pair needs its own placement in a layout — every instance
+is its own one-pair list, so a run of them is a run of lists, not one set. When the pairs form
+one set, reach for `DescriptionList` (its own grid) or `PropertiesTable` (table rows) — the
+full comparison lives under [DescriptionList](#descriptionlist).
 
 It was a `<div>` holding a `<label>` through v2. A `<label>` with no control to point at
 labels nothing: the text and the value beside it were two unrelated nodes in the
@@ -1604,6 +1633,8 @@ Displays key-value pairs in a zebra-striped table — useful for showing object 
 - `**options` - Additional HTML attributes for the table (e.g. `class`)
 
 **Slots:** `with_property(label:, value:)` — properties also accept block content for rich values like tags or links.
+
+Prefer this over `LabelValue` or `DescriptionList` when the pairs form one set read top to bottom — the comparison of the three lives under [DescriptionList](#descriptionlist).
 
 #### Rate
 

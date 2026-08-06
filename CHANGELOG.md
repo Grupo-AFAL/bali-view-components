@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::DescriptionList::Component` — a set of label/value pairs in the component's own responsive grid** (#727). The middle ground between `Bali::LabelValue` (one pair the caller places) and `Bali::PropertiesTable` (one set read top to bottom as a table): `columns:` 1/2/3 with responsive collapse, `layout:` `:stacked` (default) or `:horizontal` (term and value side by side inside each cell), and `with_item(label:, value:)` accepting block content for rich values such as a `Bali::Tag`. Markup is one `<dl>` of `<div><dt/><dd/></div>` cells, and `dt`/`dd` reuse LabelValue's typography so the three options read as one family; the guide now carries the three-way comparison under DescriptionList.
+
 ## [v3.0.0] - 2026-08-05
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
