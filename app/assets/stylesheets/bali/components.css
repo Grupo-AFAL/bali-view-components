@@ -29,6 +29,7 @@
 @import "../../../components/bali/filters/index.css" layer(components);
 @import "../../../components/bali/rich_text_editor/index.css" layer(components);
 @import "../../../components/bali/stepper/index.css" layer(components);
+@import "../../../components/bali/workflow_steps/index.css" layer(components);
 
 /* Layout Components */
 @import "../../../components/bali/app_layout/index.css" layer(components);

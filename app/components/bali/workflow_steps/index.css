@@ -1,0 +1,59 @@
+/* WorkflowSteps component — vertical flow with a verdict per step.
+ *
+ * Two-column grid per step: marker (connector + circle) and body. The
+ * connector is absolutely positioned from the circle's centre down through the
+ * row's bottom padding, so it bridges to the next circle whatever the body's
+ * height — the marker column is a grid item and stretches to the row, which is
+ * exactly where hand-rolled versions of this layout break on long comments.
+ *
+ * State colours (bg-success, bg-error, …) come from the literal tables in
+ * step/component.rb; only structure lives here. Imported in
+ * @layer components (see ../../../assets/stylesheets/bali/components.css), so
+ * host utilities on the template win without `!`.
+ */
+
+.workflow-steps {
+  @apply relative w-full list-none;
+
+  .workflow-step {
+    @apply grid grid-cols-[2.5rem_1fr] gap-x-3;
+
+    &:not(:last-child) {
+      @apply pb-6;
+    }
+  }
+
+  .workflow-step-marker {
+    /* `isolate` keeps the circle's z-index above the connector without
+       touching the page's stacking order. */
+    @apply relative isolate flex justify-center;
+  }
+
+  .workflow-step-connector {
+    @apply absolute top-4 -bottom-6 left-1/2 w-1.5 -translate-x-1/2;
+  }
+
+  .workflow-step-circle {
+    @apply relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold;
+  }
+
+  .workflow-step-body {
+    @apply min-w-0 pt-1;
+  }
+
+  .workflow-step-title {
+    @apply font-semibold;
+  }
+
+  .workflow-step-assignee {
+    @apply mt-0.5 flex items-center gap-1.5 text-sm text-base-content/70;
+  }
+
+  .workflow-step-date {
+    @apply mt-0.5 text-xs text-base-content/50;
+  }
+
+  .workflow-step-comment {
+    @apply mt-1 text-sm text-base-content/70;
+  }
+}
