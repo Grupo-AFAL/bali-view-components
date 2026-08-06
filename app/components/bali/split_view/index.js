@@ -59,8 +59,31 @@ export class SplitViewController extends Controller {
   // master can be rendered on a page whose URL is not in the rows' URL space at
   // all and deriving there would erase a correct selection.
   syncFromLocation () {
-    const current = this.rowTargets.find(row => row.href === window.location.href) ?? null
+    const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
+  }
+
+  // Whether this row's href names the location we are on. Not `row.href ===
+  // location.href`: the two are built by different code paths — the row by a
+  // route helper, the location by whatever put it in the history — so
+  // `?a=1&b=2` and `?b=2&a=1` are the same place and a string comparison calls
+  // them different, losing the highlight on back. Query params are compared as
+  // a set for that reason.
+  //
+  // Params the location has and the row does not (a page number, a filter the
+  // href leaves out) do not disqualify it: the question is whether the row's
+  // URL is satisfied here, not whether the two are identical. That also makes
+  // path-based selection work — a row pointing at `/inbox/9` carries no params
+  // and is identified by its path alone.
+  selectsCurrentLocation (row) {
+    const target = new URL(row.href, window.location.href)
+    const here = new URL(window.location.href)
+
+    if (target.origin !== here.origin || target.pathname !== here.pathname) return false
+
+    return [...target.searchParams].every(
+      ([key, value]) => here.searchParams.getAll(key).includes(value)
+    )
   }
 
   select (event) {

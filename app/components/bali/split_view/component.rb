@@ -33,9 +33,12 @@ module Bali
     #         class: "split-view-row",
     #         aria: { current: (item == @selected ? "true" : nil) },
     #         data: { turbo_frame: "inbox-detail",
-    #                 turbo_action: "advance",
     #                 split_view_target: "row",
     #                 action: "click->split-view#select" } do %>
+    #
+    # No `turbo_action:` on the row: `advance:` puts it on the frame, and a
+    # link-level one wins over the frame's — so writing it here would silently
+    # defeat `advance: false`.
     #
     # The server still paints the selection on first render and on full-page
     # navigation; the Stimulus controller only covers the in-page transitions.
