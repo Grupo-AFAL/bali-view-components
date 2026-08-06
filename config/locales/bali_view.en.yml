@@ -608,3 +608,15 @@ en:
       user_menu:
         trigger_label: "User menu for %{name}"
         sign_out: "Sign out"
+    workflow_steps:
+      # The horizontal variant's dot says its state in colour alone; these are
+      # the names a screen reader reads instead. Deliberately generic — the
+      # component covers approval chains, signature rounds and onboarding
+      # alike — so a host with better words for its domain overrides them.
+      states:
+        success: "Completed"
+        error: "Rejected"
+        warning: "Needs attention"
+        pending: "Pending"
+        skipped: "Skipped"
+        current: "In progress"

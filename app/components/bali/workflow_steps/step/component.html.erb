@@ -3,13 +3,17 @@
     <% if connector_state %>
       <span class="<%= connector_classes %>" aria-hidden="true"></span>
     <% end %>
-    <span class="<%= circle_classes %>">
-      <% if number.present? %>
-        <%= number %>
-      <% else %>
-        <%= render Bali::Icon::Component.new("minus", size: 16) %>
-      <% end %>
-    </span>
+    <% if dot? %>
+      <span class="<%= dot_classes %>" role="img" aria-label="<%= state_label %>"></span>
+    <% else %>
+      <span class="<%= circle_classes %>">
+        <% if number.present? %>
+          <%= number %>
+        <% else %>
+          <%= render Bali::Icon::Component.new("minus", size: 16) %>
+        <% end %>
+      </span>
+    <% end %>
   </div>
   <div class="workflow-step-body">
     <p class="<%= title_classes %>"><%= title %></p>

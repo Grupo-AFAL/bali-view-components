@@ -187,9 +187,14 @@ class BaliWorkflowStepsStepComponentTest < ComponentTestCase
   def test_constants_the_class_tables_are_frozen_and_agree_on_the_states
     assert(Bali::WorkflowSteps::Step::Component::CIRCLE_CLASSES.frozen?)
     assert(Bali::WorkflowSteps::Step::Component::CONNECTOR_CLASSES.frozen?)
+    assert(Bali::WorkflowSteps::Step::Component::DOT_CLASSES.frozen?)
     assert_equal(
       Bali::WorkflowSteps::Step::Component::STATES,
       Bali::WorkflowSteps::Step::Component::CONNECTOR_CLASSES.keys
+    )
+    assert_equal(
+      Bali::WorkflowSteps::Step::Component::STATES,
+      Bali::WorkflowSteps::Step::Component::DOT_CLASSES.keys
     )
   end
 
@@ -206,5 +211,246 @@ class BaliWorkflowStepsStepComponentTest < ComponentTestCase
     )
     assert_no_selector(".workflow-step-connector")
     assert_selector(".workflow-step-circle", text: "1")
+  end
+
+  def test_a_dot_step_draws_the_dot_instead_of_the_circle
+    render_inline(
+      Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :success, number: 1, dot: true)
+    )
+    assert_selector(".workflow-step-dot.bg-success")
+    assert_no_selector(".workflow-step-circle")
+  end
+end
+
+class BaliWorkflowStepsHorizontalTest < ComponentTestCase
+  def test_the_root_is_a_div_carrying_the_variant_class
+    render_horizontal do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_selector("div.workflow-steps.workflow-steps-horizontal")
+    assert_selector("div.workflow-steps > ol.workflow-steps-list > li.workflow-step", count: 1)
+  end
+
+  def test_the_vertical_root_keeps_the_list_and_takes_its_own_variant_class
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_selector("ol.workflow-steps.workflow-steps-vertical")
+    assert_no_selector(".workflow-steps-horizontal")
+  end
+
+  def test_html_attributes_land_on_the_root_div
+    render_inline(
+      Bali::WorkflowSteps::Component.new(variant: :horizontal, class: "my-flow", data: { testid: "flow" })
+    ) do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_selector('div.workflow-steps.workflow-steps-horizontal.my-flow[data-testid="flow"]')
+  end
+
+  def test_each_state_paints_its_dot_classes
+    {
+      success: "bg-success",
+      error: "bg-error",
+      warning: "bg-warning",
+      pending: "bg-base-300",
+      skipped: "bg-base-100",
+      current: "bg-primary"
+    }.each do |state, dot_class|
+      render_horizontal do |c|
+        c.with_step(title: "Step", state: state)
+      end
+      assert_selector(".workflow-step-dot.#{dot_class}", count: 1)
+      assert_no_selector(".workflow-step-circle")
+    end
+  end
+
+  # The vertical circle tells these two apart with a dash where the number
+  # would be; the dot has no such room, and two greys at 10px are one grey.
+  def test_the_skipped_dot_is_hollow_where_the_pending_one_is_filled
+    render_horizontal do |c|
+      c.with_step(title: "Skipped", state: :skipped)
+      c.with_step(title: "Later", state: :pending)
+    end
+
+    assert_selector("li:nth-child(1) .workflow-step-dot.ring-1.ring-base-300")
+    assert_no_selector("li:nth-child(2) .workflow-step-dot.ring-1")
+  end
+
+  def test_the_current_dot_gets_the_ring_emphasis
+    render_horizontal do |c|
+      c.with_step(title: "In review", state: :current)
+    end
+    assert_selector(".workflow-step-dot.ring-2", count: 1)
+  end
+
+  # The bar already says how far the flow got; a second line saying the same
+  # thing between the cards is noise, and it has nowhere to run in a wrapped row.
+  def test_no_connectors_are_drawn
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :error)
+      c.with_step(title: "C", state: :pending)
+    end
+    assert_no_selector(".workflow-step-connector")
+  end
+
+  def test_the_step_body_renders_the_same_as_in_the_vertical_variant
+    render_horizontal do |c|
+      c.with_step(title: "Legal review", state: :error,
+                  assignee: "Ana Gutiérrez", date: "Jul 4, 2026") { "Missing appendix B." }
+    end
+
+    assert_selector(".workflow-step-title", text: "Legal review")
+    assert_selector(".workflow-step-assignee", text: "Ana Gutiérrez")
+    assert_selector(".workflow-step-date", text: "Jul 4, 2026")
+    assert_selector(".workflow-step-comment", text: "Missing appendix B.")
+  end
+
+  def test_the_dot_carries_the_state_as_an_accessible_name
+    render_horizontal do |c|
+      c.with_step(title: "Legal review", state: :error)
+    end
+    assert_selector('.workflow-step-dot[role="img"][aria-label="Rejected"]')
+  end
+
+  def test_the_progress_bar_counts_the_steps_with_a_verdict
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :warning)
+      c.with_step(title: "C", state: :current)
+      c.with_step(title: "D", state: :pending)
+    end
+
+    assert_selector('.workflow-steps-progress progress.progress[value="2"][max="4"]')
+    assert_selector(".workflow-steps-count", text: "2/4")
+  end
+
+  # A step the route left out is settled, and it is still one of the dots on
+  # screen: counting it keeps N/M matching what the reader can count.
+  def test_a_skipped_step_counts_as_resolved_on_both_sides_of_the_bar
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :skipped)
+      c.with_step(title: "C", state: :pending)
+    end
+
+    assert_selector('.workflow-steps-progress progress.progress[value="2"][max="3"]')
+    assert_selector(".workflow-steps-count", text: "2/3")
+  end
+
+  def test_neither_pending_nor_current_counts_as_resolved
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :current)
+      c.with_step(title: "B", state: :pending)
+    end
+
+    assert_selector('.workflow-steps-progress progress.progress[value="0"][max="2"]')
+    assert_selector(".workflow-steps-count", text: "0/2")
+  end
+
+  def test_a_flow_with_every_step_resolved_fills_the_bar
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :success)
+    end
+    assert_selector('.workflow-steps-progress progress.progress[value="2"][max="2"]')
+  end
+
+  def test_the_bar_is_neutral_while_nothing_has_gone_wrong
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+    assert_selector("progress.progress-primary")
+  end
+
+  def test_a_rejected_step_turns_the_bar_red
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :error)
+      c.with_step(title: "C", state: :pending)
+    end
+    assert_selector("progress.progress-error")
+  end
+
+  def test_an_error_outranks_a_warning
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :warning)
+      c.with_step(title: "B", state: :error)
+    end
+
+    assert_selector("progress.progress-error")
+    assert_no_selector("progress.progress-warning")
+  end
+
+  def test_a_warning_alone_turns_the_bar_amber
+    render_horizontal do |c|
+      c.with_step(title: "A", state: :warning)
+      c.with_step(title: "B", state: :pending)
+    end
+    assert_selector("progress.progress-warning")
+  end
+
+  def test_the_bar_can_be_turned_off
+    render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal, progress: false)) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_no_selector(".workflow-steps-progress")
+    assert_selector("ol.workflow-steps-list li.workflow-step", count: 1)
+  end
+
+  # `<progress max="0">` is not valid HTML, and a bar over no steps says nothing.
+  def test_a_flow_with_no_steps_draws_no_bar
+    render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal))
+
+    assert_no_selector(".workflow-steps-progress")
+    assert_selector("ol.workflow-steps-list")
+  end
+
+  def test_the_vertical_variant_never_draws_the_bar
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+    assert_no_selector(".workflow-steps-progress")
+  end
+
+  def test_asking_for_the_bar_on_the_vertical_variant_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(progress: true)) do |c|
+        c.with_step(title: "A", state: :success)
+      end
+    end
+
+    assert_includes(error.message, "progress: true needs variant: :horizontal")
+  end
+
+  # `progress: false` asks for nothing, so there is nothing to refuse.
+  def test_turning_the_bar_off_on_the_vertical_variant_is_allowed
+    render_inline(Bali::WorkflowSteps::Component.new(progress: false)) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector("ol.workflow-steps-vertical")
+    assert_no_selector(".workflow-steps-progress")
+  end
+
+  def test_an_unknown_variant_raises_with_the_valid_names
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(variant: :sideways))
+    end
+
+    assert_includes(error.message, "unknown variant :sideways")
+    assert_includes(error.message, ":horizontal")
+  end
+
+  private
+
+  def render_horizontal(&block)
+    render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal), &block)
   end
 end

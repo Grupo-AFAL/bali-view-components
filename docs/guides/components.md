@@ -881,7 +881,11 @@ positional.
 <% end %>
 ```
 
-**Options:** HTML attributes for the `<ol>` container pass through.
+**Options:**
+- `variant` - `:vertical` (default) or `:horizontal`
+- `progress` - The N/M bar. On by default in `:horizontal`; `false` drops it.
+  Asking for one on `:vertical` raises — that shape has no header for it.
+- HTML attributes for the root element pass through.
 
 **Step options:**
 - `title` - The step's name (required)
@@ -898,6 +902,40 @@ line arrives coloured at the step that owns that verdict — the component
 computes this; callers only declare states. Auto-numbering counts the real
 route only: a `:skipped` step renders muted with a dash instead of a number and
 consumes no position (an explicit `number:` always wins).
+
+##### The horizontal quick flow
+
+`variant: :horizontal` renders the same steps as a row of cards with an N/M bar
+on top — the shape for a summary card or a table cell, where the whole chain
+has to fit in a glance.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+  <% c.with_step(title: "Submitted", state: :success, date: "Jul 1") %>
+  <% c.with_step(title: "Legal review", state: :current, assignee: "Carmen Ríos") %>
+  <% c.with_step(title: "Director signature", state: :pending) %>
+<% end %>
+```
+
+Same `with_step` API. What changes:
+
+- **The marker is a dot**, so `number:` and the auto-numbering do not apply.
+  `:skipped` draws a hollow dot rather than the dash — with no number to read,
+  two greys at that size were the same dot.
+- **No connectors.** The bar already says how far the flow got.
+- **N counts the steps with a verdict** — `:success`, `:error`, `:warning` and
+  `:skipped`. A skipped step is settled and it is still one of the dots on
+  screen, so counting it keeps N/M matching what the reader can count.
+  `:pending` and `:current` are the two that have not happened yet.
+- **The bar takes the flow's verdict**: `progress-error` if any step was
+  rejected, `progress-warning` if any came back with observations, neutral
+  otherwise.
+- **The dot carries its state name** as an `aria-label`
+  (`bali_view.workflow_steps.states.*`, overridable like any Bali string),
+  because colour is all that is left saying what happened.
+
+The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
+rows instead of shrinking each card past reading width.
 
 #### Pagination
 

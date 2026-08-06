@@ -610,3 +610,11 @@ es:
       user_menu:
         trigger_label: "Menú de usuario de %{name}"
         sign_out: "Cerrar sesión"
+    workflow_steps:
+      states:
+        success: "Completado"
+        error: "Rechazado"
+        warning: "Requiere atención"
+        pending: "Pendiente"
+        skipped: "Omitido"
+        current: "En curso"
