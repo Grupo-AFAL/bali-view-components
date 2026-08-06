@@ -347,9 +347,15 @@ else
 end
 ```
 
+Cast the flag rather than testing it: it travels on every POST, and outside the mode it is
+the string `"false"`, which is truthy.
+
 Those params come from the RESOLVED state, not from the request URL — which is what keeps
 them right when filter persistence restored the filters from cache and the query string is
-empty. Enqueue a job when N is large, and confirm the destructive actions.
+empty. **Only the `q[...]` travel**, though: a nav tab, `group_by`, or a scope you apply in
+the controller before handing over the relation is invisible to the re-emission, and a bulk
+would act wider than the listing showed. Pass `filter_params:` yourself if your listing is
+cut outside `q`. Enqueue a job when N is large, and confirm the destructive actions.
 
 ### The `search:` shape
 

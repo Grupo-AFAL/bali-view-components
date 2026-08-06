@@ -2668,8 +2668,18 @@ either way — the flag is what tells the server whether to read them or to use 
 are the filters **as applied**, not the query string of the request, which is what makes
 them right when filter persistence restored the state from cache rather than from the URL.
 
+**Only the `q[...]` travel.** What Bali re-emits is the Ransack state its `FilterForm`
+owns: the builder's groups, `filter_attribute` values, simple filters, the quick search and
+date ranges. Anything else narrowing your listing — a nav tab, `group_by`, a `?archived=1`
+of your own, a scope you apply in the controller before handing the relation over — is
+invisible to it and **will not travel**, which is the one way the bulk can still act on a
+wider set than the listing showed. (This is narrower on purpose than `preserved_params`,
+which preserves the whole query string so a GET filter submit does not lose the page you
+were on.) If your listing is cut outside `q`, pass `filter_params:` yourself with those
+params added — the option overrides the auto-population.
+
 **On the server, run the same code the index runs.** There is no second query object to
-write and no risk of the bulk acting on a different set than the listing showed:
+write:
 
 ```ruby
 def bulk_archive
@@ -2683,6 +2693,11 @@ def bulk_archive
   redirect_back fallback_location: movies_path
 end
 ```
+
+Cast the flag; do not just test it for truthiness. It travels on **every** POST, and outside
+the mode it travels as the string `"false"` — which is truthy in Ruby. A plain
+`if params[:select_all_filtered]` acts on the entire filtered result every single time,
+including the POST where the user picked three rows.
 
 Two things to get right at scale:
 
