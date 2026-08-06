@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Bali::QrScanner` — the camera half of the QR pair** (#928). `Bali::QrCode` has printed the label since #941; this reads it. `render Bali::QrScanner::Component.new` is a viewfinder that asks for the camera, decodes frames, and announces every code as `bali:qr-scanner:scan` with `{ value, result }` in the detail — `value` is the decoded string, `result` is qr-scanner's own object, which also carries `cornerPoints`. It decides nothing about what a code *means*: the host listens, fills an input, submits a form, navigates. `bali:qr-scanner:error` carries `{ state, error }` for the two ways it can fail.
 
+### Fixed
+
+- **A React island that fails to load no longer destroys the fallback under it** (#719). `ReactIslandController`'s load-error path called `replaceChildren` on the mount, which was right when the mount was empty and quietly wrong the moment #719 started rendering the whole static Gantt board inside it: with the meta tags present and the `import()` failing — a digest rotated by a deploy, a dropped connection, a CSP that blocks the bundle — the visitor lost a working, navigable, keyboard-reachable schedule and got a single `<p>` in its place. The error notice is now **prepended** to whatever the server rendered, and the mount is only replaced wholesale when it has no element children (which is every island that renders no fallback, including the block editor's editor target — its behaviour is unchanged). Repeated connect/disconnect cycles replace the notice instead of stacking copies of it. The `load_error` preview grew a second mount with server-rendered content, and `cypress/e2e/react-island.cy.js` now asserts that the content survives, that the link inside it is still usable, and that the notice comes first.
+
 ### Changed
 
 - **The events table no longer lists `bali:gantt-foldable-item:toggle`** (#719). `GanttFoldableItemController` was removed with the v2 Gantt chart in 3.0; the row outlived it in `docs/guides/javascript-integration.md`. The new Gantt folds with `<details>` and dispatches nothing.

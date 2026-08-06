@@ -117,6 +117,12 @@ export class ReactIslandController extends Controller {
    * Element whose children are replaced by the React mount point.
    * Default: the controller's element. Override when the island shares its
    * element with server-rendered chrome (e.g. a hidden form input).
+   *
+   * Whatever the server rendered inside this element is the island's FALLBACK:
+   * it is what a visitor sees until React mounts, what a visitor without
+   * JavaScript keeps, and — since the load-error path is non-destructive — what
+   * stays on screen if the bundle never arrives. Render something usable there
+   * when you can.
    */
   mountElement () {
     return this.element
@@ -211,11 +217,28 @@ export class ReactIslandController extends Controller {
     }
   }
 
+  // NON-DESTRUCTIVE when the mount carries server-rendered content: that
+  // content IS the fallback. Bali::Gantt `mode: :interactive` renders its whole
+  // static board inside the mount precisely so something usable is on screen
+  // until React takes over; replacing it with an error message would take a
+  // working, navigable, keyboard-reachable UI away from a visitor whose only
+  // problem is that a JS chunk did not arrive (rotated digest after a deploy,
+  // dropped connection, a CSP that blocks the bundle). The message goes FIRST,
+  // so it is read before the content it is warning about.
+  //
+  // An empty mount (the block editor's editor target, any island that renders
+  // no fallback) still gets the plain replacement — same behaviour as before.
   _renderLoadFallback (error) {
+    const mount = this.mountElement()
+    mount.querySelectorAll(':scope > [data-bali-island-error]').forEach((el) => el.remove())
+
     const message = document.createElement('p')
     message.className = ERROR_FALLBACK_CLASS
     message.textContent = this.errorFallback(error)
-    this.mountElement().replaceChildren(message)
+    message.setAttribute('data-bali-island-error', '')
+
+    if (mount.childElementCount > 0) mount.prepend(message)
+    else mount.replaceChildren(message)
   }
 
   // Tell Turbo not to cache pages with a mounted island. React's internal

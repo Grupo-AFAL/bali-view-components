@@ -1,6 +1,28 @@
 <%= react_island_meta_tags('react-island-demo', js: 'island-demo.js') %>
 
+<%# Dos montajes, porque el fallo de carga tiene dos formas y solo una se veía:
+
+    1. Mount VACÍO: la isla no tenía nada server-rendered que enseñar, así que
+       el aviso de error es todo lo que queda.
+    2. Mount CON CONTENIDO: lo que el servidor pintó dentro ES el fallback
+       (Bali::Gantt `mode: :interactive` mete ahí su tablero entero). Si el
+       bundle no llega, ese contenido tiene que SOBREVIVIR y el aviso ponerse
+       encima — no al revés. %>
+
+<h3 class="mb-2 text-sm font-semibold">Mount vacío</h3>
 <div
   data-controller="react-island-demo"
   data-react-island-demo-fail-load-value="true"
 ></div>
+
+<h3 class="mt-6 mb-2 text-sm font-semibold">Mount con fallback server-rendered</h3>
+<div
+  id="isla-con-fallback"
+  data-controller="react-island-demo"
+  data-react-island-demo-fail-load-value="true"
+>
+  <div data-testid="fallback-server" class="rounded border border-base-300 p-3">
+    <p>Contenido server-rendered: esto es el fallback de la isla.</p>
+    <a href="/lookbook" class="link">Un link que todavía funciona</a>
+  </div>
+</div>
