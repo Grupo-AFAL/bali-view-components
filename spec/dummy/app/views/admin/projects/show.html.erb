@@ -1,4 +1,7 @@
-<%# Admin Project Show - Showcases: PageHeader, Kanban with real drag-and-drop, Tag %>
+<%# Admin Project Show - Showcases: PageHeader, Kanban with real drag-and-drop,
+    Tag, and the Bali::Gantt :static timeline (?view=timeline). The Board |
+    Timeline switch is plain GET links; the gantt's own zoom links preserve the
+    `view` param because they rewrite only `gantt_zoom`. %>
 
 <%= render Bali::PageHeader::Component.new(
   title: @project.name,
@@ -6,33 +9,66 @@
   back: { href: admin_projects_path }
 ) %>
 
-<%= render Bali::Kanban::Component.new(
-  resource_name: 'task',
-  group_name: 'project-board',
-  list_param_name: 'status',
-  response_kind: :html
-) do |kanban| %>
-  <% Task::STATUSES.each do |status| %>
-    <% tasks = @tasks_by_status.fetch(status, []) %>
+<div class="mb-4 flex justify-end">
+  <div class="join">
+    <%= render Bali::Link::Component.new(
+      name: 'Board',
+      href: admin_project_path(@project),
+      icon: 'kanban',
+      variant: :ghost,
+      size: :sm,
+      active: @view == 'board',
+      class: class_names('join-item', 'btn-active' => @view == 'board')
+    ) %>
+    <%= render Bali::Link::Component.new(
+      name: 'Timeline',
+      href: admin_project_path(@project, view: 'timeline'),
+      icon: 'chart-gantt',
+      variant: :ghost,
+      size: :sm,
+      active: @view == 'timeline',
+      class: class_names('join-item', 'btn-active' => @view == 'timeline')
+    ) %>
+  </div>
+</div>
 
-    <% kanban.with_column(
-      title: status.humanize,
-      status: status,
-      color: Task::STATUS_COLORS[status]
-    ) do |col| %>
-      <% tasks.each do |task| %>
-        <% col.with_card(update_url: admin_project_task_path(@project, task)) do %>
-          <p class="font-medium text-sm"><%= task.title %></p>
-          <% if task.description.present? %>
-            <p class="text-xs text-base-content/60 mt-1"><%= truncate(task.description, length: 60) %></p>
+<% if @view == 'timeline' %>
+  <%= render Bali::Gantt::Component.new(
+    data: @gantt.to_h,
+    statuses: @gantt.statuses,
+    zoom: params[:gantt_zoom],
+    group_label: 'Phase',
+    id: "project-#{@project.id}-gantt"
+  ) %>
+<% else %>
+  <%= render Bali::Kanban::Component.new(
+    resource_name: 'task',
+    group_name: 'project-board',
+    list_param_name: 'status',
+    response_kind: :html
+  ) do |kanban| %>
+    <% Task::STATUSES.each do |status| %>
+      <% tasks = @tasks_by_status.fetch(status, []) %>
+
+      <% kanban.with_column(
+        title: status.humanize,
+        status: status,
+        color: Task::STATUS_COLORS[status]
+      ) do |col| %>
+        <% tasks.each do |task| %>
+          <% col.with_card(update_url: admin_project_task_path(@project, task)) do %>
+            <p class="font-medium text-sm"><%= task.title %></p>
+            <% if task.description.present? %>
+              <p class="text-xs text-base-content/60 mt-1"><%= truncate(task.description, length: 60) %></p>
+            <% end %>
+            <div class="mt-2">
+              <%= render Bali::Tag::Component.new(
+                text: task.priority.humanize,
+                color: Task::PRIORITY_COLORS[task.priority],
+                size: :sm
+              ) %>
+            </div>
           <% end %>
-          <div class="mt-2">
-            <%= render Bali::Tag::Component.new(
-              text: task.priority.humanize,
-              color: Task::PRIORITY_COLORS[task.priority],
-              size: :sm
-            ) %>
-          </div>
         <% end %>
       <% end %>
     <% end %>
