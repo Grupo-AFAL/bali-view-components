@@ -1,0 +1,7 @@
+<%= form_with(url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_group :login, error: 'No account with this login', required: true %>
+  <%= form.password_group :password,
+                          error: ['Too short', 'Cannot match the login'],
+                          help: '12 characters minimum' %>
+  <%= form.text_group :nickname, error: nil, help: 'error: nil renders a normal field' %>
+<% end %>

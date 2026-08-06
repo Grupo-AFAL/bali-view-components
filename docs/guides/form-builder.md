@@ -646,11 +646,33 @@ These options work across most field types:
 |--------|-------------|
 | `label` | Custom label text (default: humanized attribute name) |
 | `help` | Help text displayed below input |
+| `error` | Explicit error message(s) for the field — see [External Errors](#external-errors-error) |
 | `placeholder` | Input placeholder |
 | `disabled` | Disable the input |
 | `readonly` | Make input read-only |
 | `class` | Additional CSS classes |
 | `data` | Data attributes hash |
+
+### Density (`size:`)
+
+`size:` is the one option with two meanings on a form control, and both work:
+
+- **Symbol** — the daisyUI density variant: `:xs`, `:sm`, `:md`, `:lg`, `:xl`.
+  The class joins the control's base classes and no `size` attribute is emitted.
+- **Integer** (or String) — the HTML `size` attribute it has always been: width
+  in characters on an `<input>`, visible rows on a `<select>`.
+
+```erb
+<%= f.text_group :code, size: :sm %>   <%# <input class="input input-sm ..."> %>
+<%= f.text_group :code, size: 8 %>     <%# <input size="8" class="input ..."> %>
+<%= f.submit_group "Save", size: :sm %> <%# <button class="btn btn-primary btn-sm"> %>
+```
+
+A Symbol outside the variant list raises `ArgumentError` instead of leaking
+`size="tiny"` into the markup. The text-input families and the submit pair
+resolve the variant today; `select-*`, `textarea-*`, `file-input-*` and
+`range-*` land in a follow-up of #723 (checkbox, switch, radio and slim_select
+already had their own `size:`).
 
 ---
 
@@ -665,13 +687,32 @@ Bali FormBuilder automatically displays validation errors:
 
 The input gets `input-error` class and error messages appear below.
 
-### Manual Error Display
+### External Errors (`error:`)
+
+`error:` carries a message that never lived in `object.errors` — because the
+form has no object (`form_with url:`), or because something other than
+ActiveModel validated the field. It takes a String, an Array of them, or
+nil/false (both render nothing), so the raw return of the validator can be
+passed unconditionally:
 
 ```erb
-<% if @user.errors[:email].any? %>
-  <p class="text-error text-sm"><%= @user.errors[:email].join(", ") %></p>
+<%# A rodauth view: no model, the error comes from rodauth itself %>
+<%= form_with url: rodauth.login_path, builder: Bali::FormBuilder do |f| %>
+  <%= f.email_group :login, error: rodauth.field_error(rodauth.login_param), required: true %>
+  <%= f.password_group :password, error: rodauth.field_error("password") %>
+  <%= f.submit_group rodauth.login_button %>
 <% end %>
 ```
+
+The explicit error rides the same plumbing model errors use: the message
+paragraph, `aria-invalid` + `aria-describedby`, and the family's `*-error`
+class on the control. When the model **also** has errors on the field, the two
+join rather than replace — explicit first — mirroring how an error and a help
+message both render.
+
+On the two-hash families (`select_*`, `slim_select_*`, `time_zone_select_*`,
+`radio_*`) `error:` is a group option: pass it top-level, next to `label:`
+(inside `html:` also works).
 
 ---
 

@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **FormBuilder: `error:` option — external errors per field** (#723). Every field group now
+  accepts `error:` (String, Array, or nil/false for "nothing"), carrying a message that never
+  lived in `object.errors` — a rodauth view rendering `form_with url:` with no object, or any
+  non-ActiveModel validator. The explicit error rides the exact plumbing model errors already
+  use: the `.text-error` message paragraph, the `aria-invalid`/`aria-describedby` pair, and the
+  family's `*-error` class on the control. When the model also has errors on the field the two
+  sources join rather than replace, explicit first. On the two-hash families (`select_*`,
+  `slim_select_*`, `time_zone_select_*`, `radio_*`) it is a group option and works from either
+  hash. A new contract test (`external_error_option_test.rb`) makes every group helper declare
+  its outcome — full dress, message only, or silent — so no family can drift out unnoticed.
+- **FormBuilder: `size:` density variants — foundation** (#723). On the text-input families,
+  `size:` with a Symbol (`:xs`/`:sm`/`:md`/`:lg`/`:xl`) now renders the daisyUI `input-*`
+  density class instead of the attribute; an Integer — or a String, which is what `size: "4"`
+  always meant — keeps meaning the HTML `size` attribute and passes through untouched, and an
+  unknown Symbol raises instead of leaking into the markup (the contract `submit_field`/
+  `submit_group` already enforced through `ButtonTaxonomy`, now asserted for both mechanisms).
+  The per-family maps (`select-*`, `textarea-*`, `file-input-*`, `range-*`) build on this
+  foundation in a follow-up PR.
+
 - **`Bali::Gantt` — phase 1: the shared data contract and the server-rendered `:static` mode** (#704). One component, two renderers; this phase ships the foundation the React island (phases 2-3, #705/#719) will plug into:
   - `Bali::Gantt::Data` parses and validates the frozen contract — `{ window, groups[], items[], dependencies[], critical_ids[] }` with two-level group/item nesting (`parent_id`), ISO8601 dates, and the optional fields the real island already consumes: `assignee`, `percent_complete`, `slack_days`, `priority`, plus `milestone:` (rendered as a diamond) and `href`. Single-date items draw as minimum-width bars, inverted ranges clamp to their start, and structural errors raise instead of silently dropping bars. A frozen sample of `TDFlow::GanttSerializer` output validates the rename mapping (`test/fixtures/gantt/`).
   - `Bali::Gantt::TimeScale` — one day-based coordinate system shared with the future island (`px_per_day` 24/8/2 for day/week/month, exactly `ZoomControls.jsx`), `:auto` density picked from the window span, minimum bar width, inclusive ends, clipped calendar ticks/bands and the today marker.
