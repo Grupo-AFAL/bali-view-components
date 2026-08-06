@@ -1,5 +1,23 @@
-<ol <%= tag.attributes(**container_options) %>>
-  <% paired_steps.each do |step| %>
-    <%= step %>
-  <% end %>
-</ol>
+<% if horizontal? %>
+  <div <%= tag.attributes(**container_options) %>>
+    <% if progress? %>
+      <div class="workflow-steps-progress">
+        <%= render Bali::Progress::Component.new(
+              value: resolved_count, max: total_count, color: progress_color,
+              show_percentage: false, class: "grow") %>
+        <span class="workflow-steps-count"><%= resolved_count %>/<%= total_count %></span>
+      </div>
+    <% end %>
+    <ol class="workflow-steps-list">
+      <% rendered_steps.each do |step| %>
+        <%= step %>
+      <% end %>
+    </ol>
+  </div>
+<% else %>
+  <ol <%= tag.attributes(**container_options) %>>
+    <% rendered_steps.each do |step| %>
+      <%= step %>
+    <% end %>
+  </ol>
+<% end %>

@@ -616,3 +616,17 @@ en:
         sign_out: "Sign out"
     qr_code:
       label: "QR code"
+    workflow_steps:
+      # Neither marker says a step's state in anything but colour — the
+      # circle's number is a position, not a verdict, and the quick flow's dot
+      # has no text at all — so every step renders one of these as an
+      # `sr-only` name. Deliberately generic, since the component covers
+      # approval chains, signature rounds and onboarding alike; a host with
+      # better words for its domain overrides them.
+      states:
+        success: "Completed"
+        error: "Rejected"
+        warning: "Needs attention"
+        pending: "Pending"
+        skipped: "Skipped"
+        current: "In progress"
