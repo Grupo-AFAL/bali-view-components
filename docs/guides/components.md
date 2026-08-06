@@ -599,6 +599,67 @@ Responsive site footer (DaisyUI `footer`) with brand, link sections, and bottom 
 - `color` - Background color preset: `:neutral`, `:base`, `:primary`, `:secondary` (default: `:neutral`)
 - `center` - Center-align footer content (default: `false`)
 
+#### SplitView
+
+The inbox shape: a list on the left, the detail of the selected row on the right
+inside a Turbo Frame, so a row click swaps only the right column and the list
+keeps its scroll position and its highlight.
+
+```erb
+<%= render Bali::SplitView::Component.new(frame_id: "inbox-detail") do |split| %>
+  <% split.with_master do %>
+    <%= render "master_pane", items: @items, selected: @selected %>
+  <% end %>
+
+  <% if @selected %>
+    <% split.with_detail { render "detail_pane", item: @selected } %>
+  <% else %>
+    <% split.with_empty_detail do %>
+      <%= render Bali::EmptyState::Component.new(title: 'Select an item', icon: 'inbox') %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `frame_id` - **Required.** Id of the detail Turbo Frame; rows point at it with `data-turbo-frame`, so it must be unique in the page
+- `master_width` - Width of the left column from `lg` up. A CSS length or percentage (default: `"420px"`); anything more expressive overrides `--bali-split-master-width` in your own stylesheet
+- `advance` - Emit `data-turbo-action="advance"` on the frame, so a row click pushes its URL into the history and the selection is deep-linkable (default: `true`)
+
+**Slots:**
+- `with_master` - The left column, free-form. Wrapped in the `split-view` controller element so rows inside can be its targets
+- `with_detail` - What the server renders for the current selection
+- `with_empty_detail` - Shown inside the frame when there is no selection; ignored when `detail` is present
+
+**Rows are yours**, and they opt in with four attributes:
+
+```erb
+<%= link_to inbox_path(selected: item.id),
+      class: "split-view-row px-4 py-3 border-b border-base-200/70",
+      aria: { current: (item == @selected ? "true" : nil) },
+      data: { turbo_frame: "inbox-detail",
+              split_view_target: "row",
+              action: "click->split-view#select" } do %>
+```
+
+The server paints `aria-current` on the first render and after every full-page
+navigation; the `split-view` controller only moves it between clicks. The look
+follows from `.split-view-row[aria-current]`, so the selected state cannot fall
+out of a Tailwind build. Do **not** add `data-turbo-action` to the row — the
+frame carries it, and a link-level one wins, silently defeating `advance: false`.
+
+`.split-view-scroll` is an opt-in class for whichever part of the master should
+scroll (usually the list alone, so tabs above and pagination below stay put); its
+height is `var(--bali-split-master-max-h, calc(100vh - 20rem))`.
+
+Below `lg` the panes stack, master on top, with no extra JavaScript.
+
+**The component is deliberately thin.** Tabs, filter chips, pagination and the
+rows go inside `master` as content — the screens that need them do not agree on
+where they sit. The full pattern, including the Rails wiring, deep-linking, the
+two empty states a filtered list needs, and the full-page-on-a-phone variant,
+lives in the [master-detail guide](master-detail.md).
+
 ---
 
 ### Navigation Components

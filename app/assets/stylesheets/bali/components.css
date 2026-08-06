@@ -37,6 +37,7 @@
 @import "../../../components/bali/app_layout/index.css" layer(components);
 @import "../../../components/bali/drawer/index.css" layer(components);
 @import "../../../components/bali/image_grid/index.css" layer(components);
+@import "../../../components/bali/split_view/index.css" layer(components);
 
 /* Feedback Components. The toast *stack* is layered; the toast itself is not --
    see the unlayered group below and that sheet's own header. */

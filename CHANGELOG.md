@@ -41,6 +41,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **The params come from the RESOLVED state, not from the request URL**, which is what makes it correct under filter persistence: a listing can arrive with an empty query string and still be filtered by what the cache restored, and re-emitting the URL would claim nothing was filtered while the user is looking at 3 of 200 rows. The serialization now lives in one place, `Bali::Filters::ActiveFilterParams`, shared with the quick-search form that has always had to preserve applied filters — two implementations of "what is this listing narrowed by" would eventually disagree, and the day they did a bulk action would act on a different set than the listing showed. A GET action, which has no hidden fields, carries the same params in its href. The components guide carries the whole recipe: the offer, the exact shape of the POST, the controller that re-derives the scope, why the flag has to be cast rather than tested (it travels on every POST, and outside the mode it is the string `"false"`, which is truthy), and the two things to get right at scale — enqueue a job instead of blocking a request on 12,000 records, and put a confirmation on the destructive ones. It also draws the boundary: only the Ransack `q[...]` travel, so a listing also cut by a nav tab, a `group_by` or a controller-side scope has to pass `filter_params:` itself or the bulk will act wider than the listing showed.
 
   **A date range declared as an attribute travels too, and it took a fix to.** `FilterForm#result` applies `Bali::Types::DateRangeValue` attributes itself, outside Ransack, which is exactly why `active_filters` excludes them by construction — it is built from `query_params`, and that walks `non_date_range_attribute_names`. Re-emitting only what `active_filters` knows meant a listing showing 1 record handed the server enough to re-derive 2: the bulk acting on a superset of what the user could see, which at scale is a `destroy_all` reaching precisely the rows the date filter had excluded. They are now serialized separately, as the resolved `start..end` the same type casts back. The other way of declaring a date range — as a simple filter — was already covered by `active_filters` and is skipped by name, since two hidden fields sharing one `name` mean the server silently keeps one. The two paths send different things, which is worth knowing when you read a bulk request's params: the `attribute` path sends the resolved range, the simple-filter path sends the raw value, so a named period (`this_month`) travels as the token and the server re-resolves it. Since `presets:` only exist on simple date ranges, every preset travels as a token.
+- **`Bali::SplitView` — the inbox shape, as a component** (#728). A master list on the left, the
+  detail of the selected row on the right inside a Turbo Frame, so a row click swaps only the
+  right column and the list keeps its scroll position and its highlight. `frame_id:` names the
+  frame, `master_width:` sets the left column from `lg` up (default `420px`; below `lg` the panes
+  stack, master on top, with no extra JavaScript), and `advance: true` puts
+  `data-turbo-action="advance"` on the frame so the selection is deep-linkable. Three slots:
+  `master`, `detail`, and `empty_detail` for when nothing is selected.
+
+  **It is deliberately thin.** The component owns the responsive grid, the frame and the
+  highlight controller — the three things that are identical in every master-detail screen — and
+  claims nothing else. Tabs, filter chips, pagination and the rows themselves go inside `master`
+  in whatever shape the screen needs, because the app this was extracted from puts all four there
+  and no two screens agree on their arrangement. The grouped "InboxList" the issue also asks for
+  is **not** in this release: one app has one, and one anatomy is not enough to triangulate an API.
+
+  **The selection is an attribute, not a class list.** The `split-view` Stimulus controller moves
+  `aria-current` between rows and the look follows from `.split-view-row[aria-current]` in the
+  package stylesheet, so the selected state cannot fall out of a Tailwind build the way class
+  names toggled from JavaScript can. It is drawn with an inset `box-shadow` rather than a left
+  border, measured: rows are separated with `border-b border-base-200/70`, and that colour utility
+  claims all four sides from Tailwind's utilities layer, which beats `@layer components` outright
+  — a `border-l-primary` in the component sheet rendered base-200 and the highlight was invisible.
+  The shadow also paints inside the padding box, so the selection moves between rows without
+  shifting a pixel of text. `data-split-view-selected-class` is there for a host that wants more.
+
+  **Back and forward behave.** A row click promotes the frame swap to a Turbo visit, and the
+  snapshot Turbo caches for the page being left is taken between the click and the frame's
+  response — so it holds the highlight the controller had just moved next to the detail pane from
+  *before* the swap, and pressing back restored a master pointing at one row with an empty detail
+  beside it. On a history traversal the controller now re-derives the highlight from the URL
+  instead of trusting that snapshot, which it can do because each row's href *is* the URL that
+  selects it. Only on a traversal: on a first paint the server's markup wins, since a master can
+  live on a page whose URL is not in its rows' URL space at all. The href and the location are
+  matched on path plus query params **as a set**, not as one string — the two are built by
+  different code paths, so the location routinely carries params the href never had (a page
+  number, a sort) and lists the shared ones in another order, and a string comparison called
+  those a different place and dropped the highlight.
+
+  `.split-view-scroll` is an opt-in class for whichever part of the master should scroll — usually
+  the list alone, so tabs above it and pagination below it stay put — reading
+  `--bali-split-master-max-h` (default `calc(100vh - 20rem)`) so each screen can tune it to its own
+  chrome. `--bali-split-master-width` carries `master_width:` for the same reason a Tailwind
+  arbitrary value cannot: the width is a runtime value the build never sees.
+
+  The component is half the screen and the other half is the host's, so
+  **`docs/guides/master-detail.md`** carries the rest of the pattern: the whole Rails side in
+  one action, why the row's href has to hold the current filters, the two different empty
+  states a filtered list needs (composed from `Bali::EmptyState`'s `cta` slot, not added as an
+  option — "no results" beside filters the reader set is a dead end, and the useful thing is a
+  way out of them), and the full-page-detail-on-a-phone variant. That last one hinges on a
+  measured Turbo fallback: a frame in the DOM is swapped **even under `display: none`**, and
+  only a frame that is absent turns the row click into a full visit — so whether a phone gets
+  the split view at all is a server-side decision, and `lg:hidden` will not make it. The guide
+  also covers what happens when the detail request **fails**, which splits two ways and is the
+  one corner that looks fine on screen: a response carrying
+  `<meta name="turbo-visit-control" content="reload">` (Rails' own exception page does) becomes
+  a full-page visit, while any other response without a matching frame is *ignored* — the pane
+  keeps its previous detail while the optimistic highlight has already moved, and the two
+  disagree silently until the next click.
 
 ## [v3.1.0.beta.5] - 2026-08-06
 
