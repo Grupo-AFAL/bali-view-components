@@ -1,6 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
 
-// TODO: Add tests (Issue: #136)
 export class AutoPlayAudioController extends Controller {
   static values = {
     delay: { type: Number, default: 100 }
