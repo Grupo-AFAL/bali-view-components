@@ -170,6 +170,11 @@ Ransack drop the whole condition without raising: the search returns 200 and eve
 same rule applies to `with_header(sort:)` on the table. Assert on the result SET, not the
 status code.
 
+**An attribute derived in Ruby (no column) is NOT a reason to bypass Ransack.** Declare a
+`ransacker` over a SQL expression or a cached column and it becomes a normal
+`filter_attribute` — the full pattern, the pagination anti-pattern it avoids, and the two
+real-world worked examples are in `docs/guides/derived-filters.md`.
+
 A `filter_attribute type: :select` over a Rails enum can use the enum LABELS as its option
 values (`Movie.statuses.keys`) — Bali translates label to value before the params reach
 Ransack, which otherwise casts with the raw column type and turns `"done"` into `0`. Only the

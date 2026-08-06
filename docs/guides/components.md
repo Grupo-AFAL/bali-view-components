@@ -2192,7 +2192,10 @@ Drag-and-drop sortable list using SortableJS; supports handles, nested lists, an
 
 #### Filters
 
-Advanced filter controls for data tables with Ransack integration.
+Advanced filter controls for data tables with Ransack integration. Every condition
+compiles to a `q[...]` param — to filter by an attribute that is not a column (a value
+derived in Ruby), see the [derived attributes guide](derived-filters.md): a `ransacker`
+makes it a first-class popover attribute with no new API.
 
 ```erb
 <%= render Bali::Filters::Component.new(
