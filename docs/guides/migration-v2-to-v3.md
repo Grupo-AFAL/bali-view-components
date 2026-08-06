@@ -294,6 +294,15 @@ re-exported from the package root — the seam that had already lost `CommandCon
 `FeedbackWidgetController` and `FilterPersistenceController` once, registered but not
 importable, with nothing failing loudly.
 
+### Delete your local copies while you are here
+
+Several apps copied Bali's utility controllers — or wrote local siblings of them —
+before they were documented: `auto_submit_controller.js`, `notification_controller.js`,
+`clipboard_controller.js`, `bulk_select_controller.js`. All 24 utility controllers now
+have a catalog page with a markup example each, and its
+[Do you have a local copy?](controllers.md#do-you-have-a-local-copy) section names each
+known copy per app: which to delete today and which to keep pending review.
+
 ## The document editor contract changes
 
 Only relevant if you render `Bali::DocumentEditor::Component`, `Bali::DocumentPage::Component`

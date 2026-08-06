@@ -127,7 +127,6 @@ pin "bali/tabs", to: "bali/tabs/index.js"
 pin "bali/tooltip", to: "bali/tooltip/index.js"
 pin "bali/carousel", to: "bali/carousel/index.js"
 pin "bali/clipboard", to: "bali/clipboard/index.js"
-pin "bali/notification", to: "bali/notification/index.js"
 pin "bali/reveal", to: "bali/reveal/index.js"
 pin "bali/drawer", to: "bali/drawer/index.js"
 pin "bali/navbar", to: "bali/navbar/index.js"
@@ -168,20 +167,10 @@ application.register("dropdown", DropdownController)
 
 ### Utility Controllers
 
-| Controller | Description |
-|------------|-------------|
-| `DatepickerController` | Flatpickr date picker |
-| `SubmitButtonController` | Loading state on submit |
-| `SubmitOnChangeController` | Auto-submit on change |
-| `DynamicFieldsController` | Add/remove form fields |
-| `CheckboxToggleController` | Toggle visibility with checkbox |
-| `RadioToggleController` | Toggle visibility with radio |
-| `FileInputController` | File input display |
-| `FocusOnConnectController` | Auto-focus on connect |
-| `PrintController` | Print current page |
-| `SlimSelectController` | Slim Select dropdown |
-| `StepNumberInputController` | Number increment/decrement |
-| `InteractController` | Drag/resize with interact.js |
+All 24 standalone controllers — identifier, what each does, and a minimal markup
+example — are catalogued in the [Stimulus utility controllers guide](controllers.md).
+That page is the single source of truth: `yarn check:manifest` fails if a registered
+utility identifier is missing from it.
 
 ### Component Controllers
 
@@ -195,7 +184,6 @@ application.register("dropdown", DropdownController)
 | `HovercardController` | Hover popups |
 | `CarouselController` | Image carousel (Glide.js) |
 | `ClipboardController` | Copy to clipboard |
-| `NotificationController` | Toast notifications |
 | `RevealController` | Show/hide content |
 | `SortableListController` | Drag-drop sorting |
 | `NavbarController` | Navigation bar |
