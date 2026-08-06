@@ -88,7 +88,14 @@ Note the quotes in `branches: [main, "3.1"]` — unquoted, YAML parses `3.1` as 
 
 Whenever `3.1` reaches a state an app could adopt:
 
-1. Bump `lib/bali/version.rb` and `package.json` to the next `3.1.0.beta.N`.
+1. Bump `lib/bali/version.rb` and `package.json` to the next `3.1.0.beta.N`, then run
+   `bundle install` and commit the regenerated **`Gemfile.lock` in the same commit** — the
+   lock records the PATH gem's version, and CI bundles with a frozen lock, so a bump
+   without the lock fails every Ruby workflow with exit 16 at `setup-ruby` before a single
+   test runs (measured on v3.1.0.beta.6/7: the tag itself carried the stale lock, and a
+   tag cannot be fixed after the fact). Consuming apps are unaffected either way — a host
+   resolves the git-sourced gem from its gemspec, never from this repo's lock — but the
+   release commit should be the one CI can verify.
 2. Move the `## [Unreleased]` entries under `## [v3.1.0.beta.N] - <date>`.
 3. Tag `v3.1.0.beta.N` on `3.1` and publish a GitHub Release marked **pre-release**.
 
