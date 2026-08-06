@@ -1,7 +1,13 @@
 <%# Admin Project Show - Showcases: PageHeader, Kanban with real drag-and-drop,
     Tag, and the Bali::Gantt :static timeline (?view=timeline). The Board |
     Timeline switch is plain GET links; the gantt's own zoom links preserve the
-    `view` param because they rewrite only `gantt_zoom`. %>
+    `view` param because they rewrite only `gantt_zoom`.
+
+    Phase 3 (#719) flips this render to `mode: :interactive`: everything the
+    island needs is already wired — the schedule/dependency endpoints
+    (Admin::Projects::SchedulesController), ProjectGantt#catalogs and
+    Bali::Gantt::Translations.island. Until then the editable island lives in
+    the Lookbook preview bali/gantt/island. %>
 
 <%= render Bali::PageHeader::Component.new(
   title: @project.name,

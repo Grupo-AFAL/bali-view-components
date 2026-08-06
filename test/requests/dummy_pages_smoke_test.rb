@@ -141,6 +141,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "studios" => { "id" => @studio.to_param },
       "admin/studios" => { "id" => @studio.to_param },
       "admin/projects" => { "id" => @project.to_param },
+      "admin/projects/schedules" => { "project_id" => @project.to_param },
       "documents" => { "id" => @document.to_param },
       "document_versions" => { "document_id" => @document.to_param, "id" => @version.to_param }
     }

@@ -34,6 +34,11 @@ Rails.application.routes.draw do
 
     resources :projects, only: %i[index show] do
       resources :tasks, only: :update, module: :projects
+      # Fake Gantt schedule endpoints (#705): the executable reference of the
+      # mutation contract the island's scheduleClient.js implements. Phase 3
+      # (#719) points `mode: :interactive` at these same URLs.
+      resource :schedule, only: %i[show update], module: :projects
+      resources :dependencies, only: %i[create destroy], module: :projects
     end
 
     resources :analytics, only: :index

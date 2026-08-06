@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_05_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -169,6 +169,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_05_000001) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "task_dependencies", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "lag_days", default: 0, null: false
+    t.integer "predecessor_id", null: false
+    t.integer "successor_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["predecessor_id", "successor_id"], name: "index_task_dependencies_on_predecessor_id_and_successor_id", unique: true
+    t.index ["predecessor_id"], name: "index_task_dependencies_on_predecessor_id"
+    t.index ["successor_id"], name: "index_task_dependencies_on_successor_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -214,5 +225,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_05_000001) do
   add_foreign_key "characters", "movies"
   add_foreign_key "document_versions", "documents"
   add_foreign_key "movies", "tenants"
+  add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
+  add_foreign_key "task_dependencies", "tasks", column: "successor_id"
   add_foreign_key "tasks", "projects"
 end

@@ -219,7 +219,23 @@ tasks_data.each do |data|
   task.save!
 end
 
-puts "Created #{Project.count} projects with #{Task.count} tasks"
+# Dependencies chain a critical path through the schedule so the Gantt island
+# (#705) shows arrows and the critical treatment out of the box. The fake CPM
+# (ProjectGantt#critical_ids) marks the longest total-duration chain.
+dependency_pairs = [
+  ["Audit existing icon usage", "Migrate to Lucide icons"],
+  ["Migrate to Lucide icons", "Upgrade to daisyUI 5"],
+  ["Upgrade to daisyUI 5", "Build Kanban component"],
+  ["Add DataTable filter persistence", "Create FeedbackWidget"],
+  ["Build Kanban component", "Cut v3.1.0 beta"]
+]
+dependency_pairs.each do |predecessor_title, successor_title|
+  predecessor = project.tasks.find_by!(title: predecessor_title)
+  successor = project.tasks.find_by!(title: successor_title)
+  TaskDependency.find_or_create_by!(predecessor: predecessor, successor: successor)
+end
+
+puts "Created #{Project.count} projects with #{Task.count} tasks and #{TaskDependency.count} dependencies"
 
 # Dueño de las vistas guardadas: el dummy no autentica, hay un solo usuario y es el que
 # nombra el topbar.
