@@ -40,6 +40,10 @@ end
 
 group :development, :test do
   gem "brakeman", require: false
+  # Deliberately not in the gemspec: Bali::QrCode::Component requires it lazily so
+  # an app that never renders a QR code does not carry the dependency. Here so the
+  # test suite and the Lookbook preview exercise the real thing.
+  gem "rqrcode", "~> 3.1"
   gem "bundler-audit", require: false
   gem "dotenv"
   gem "turbo-rails", "~> 2"

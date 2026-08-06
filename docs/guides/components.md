@@ -881,7 +881,11 @@ positional.
 <% end %>
 ```
 
-**Options:** HTML attributes for the `<ol>` container pass through.
+**Options:**
+- `variant` - `:vertical` (default) or `:horizontal`
+- `progress` - The N/M bar. On by default in `:horizontal`; `false` drops it.
+  Asking for one on `:vertical` raises — that shape has no header for it.
+- HTML attributes for the root element pass through.
 
 **Step options:**
 - `title` - The step's name (required)
@@ -898,6 +902,70 @@ line arrives coloured at the step that owns that verdict — the component
 computes this; callers only declare states. Auto-numbering counts the real
 route only: a `:skipped` step renders muted with a dash instead of a number and
 consumes no position (an explicit `number:` always wins).
+
+Both markers say the state in colour and nothing else — a number is a position,
+not a verdict — so every step also renders an `sr-only` span with the state's
+name next to its marker. The six strings live under
+`bali_view.workflow_steps.states.*` (en/es) and a host overrides them like any
+other Bali key when its domain has better words: "Signed", "Returned",
+"Waiting on legal".
+
+##### The horizontal quick flow
+
+`variant: :horizontal` renders the same steps as a row of cards with an N/M bar
+on top — the shape for a summary card or a table cell, where the whole chain
+has to fit in a glance.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+  <% c.with_step(title: "Submitted", state: :success, date: "Jul 1") %>
+  <% c.with_step(title: "Legal review", state: :current, assignee: "Carmen Ríos") %>
+  <% c.with_step(title: "Director signature", state: :pending) %>
+<% end %>
+```
+
+Same `with_step` API. What changes:
+
+- **The marker is a dot**, so `number:` and the auto-numbering do not apply.
+  `:skipped` draws a hollow dot rather than the dash — with no number to read,
+  two greys at that size were the same dot.
+- **No connectors.** The bar already says how far the flow got.
+- **N counts the steps with a verdict** — `:success`, `:error`, `:warning` and
+  `:skipped`. A skipped step is settled and it is still one of the dots on
+  screen, so counting it keeps N/M matching what the reader can count.
+  `:pending` and `:current` are the two that have not happened yet.
+- **The bar takes the flow's verdict**: `progress-error` if any step was
+  rejected, `progress-warning` if any came back with observations, neutral
+  otherwise.
+- The dot is decorative; the state name is announced by the same `sr-only`
+  span the vertical variant uses (see below).
+
+The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
+rows instead of shrinking each card past reading width.
+
+##### The decision form is the host's
+
+Approving or rejecting a step is not part of this component and is not planned
+to be: it owns the route, the params and the policy. The shape worth copying,
+which is the same in every approval screen, is in the `decision_pattern`
+Lookbook preview:
+
+```erb
+<%= form_with url: decision_path(request), method: :post, builder: Bali::FormBuilder do |f| %>
+  <%= f.text_area_group :notes, label: "Notes", rows: 3, required: true %>
+  <%= f.submit_field "Approve", variant: :success,
+        name: "decision", value: "approve", formnovalidate: true %>
+  <%= f.submit_field "Reject", variant: :error, style: :outline,
+        name: "decision", value: "reject",
+        data: { turbo_confirm: "Reject this request?" } %>
+<% end %>
+```
+
+One form, two submits told apart by `name:`/`value:` — the controller reads
+`params[:decision]` and the notes are typed once whichever way it goes.
+`required: true` plus `formnovalidate` on Approve is what makes the browser
+demand a reason to reject and ask nothing to approve, with no JavaScript and no
+second field. `turbo_confirm` goes on the destructive half only.
 
 #### Pagination
 
@@ -1892,6 +1960,41 @@ Displays key-value pairs in a zebra-striped table — useful for showing object 
 **Slots:** `with_property(label:, value:)` — properties also accept block content for rich values like tags or links.
 
 Prefer this over `LabelValue` or `DescriptionList` when the pairs form one set read top to bottom — the comparison of the three lives under [DescriptionList](#descriptionlist).
+
+#### QrCode
+
+A QR code generated server-side and rendered as inline SVG — no JavaScript, no image request, nothing to serve.
+
+It needs the [`rqrcode`](https://github.com/whomwah/rqrcode) gem, which Bali deliberately does **not** depend on: most apps never render a QR code and would carry the gem for nothing. Add it to the host's Gemfile:
+
+```ruby
+gem 'rqrcode', '~> 3.1'
+```
+
+Without it the first render raises `Bali::QrCode::Component::MissingDependency` — a `LoadError` subclass whose message repeats that line, so an app that forgets is told what to add rather than left with `cannot load such file`.
+
+```erb
+<%= render Bali::QrCode::Component.new(payload: movie_url(@movie)) %>
+
+<%# TOTP enrolment: name it, or the screen reader announces only "QR code" %>
+<%= render Bali::QrCode::Component.new(
+      payload: @totp.provisioning_uri,
+      size: 240,
+      level: :q,
+      label: t('.scan_with_your_authenticator')
+    ) %>
+```
+
+**Options:**
+- `payload` - What the code encodes — a URL, an `otpauth:` URI, plain text (required)
+- `size` - Rendered edge length in pixels (default: 200)
+- `level` - Error correction: `:l`, `:m`, `:q`, `:h`. Denser levels survive a dirtier or partly covered surface and make the code bigger for the same payload (default: :m)
+- `label` - Accessible name. Defaults to `bali_view.qr_code.label` — "QR code", which says nothing about what scanning it does (default: nil)
+- `**options` - Additional HTML attributes for the `svg` element
+
+The code is always black on white and includes the spec's four-module quiet zone. Neither is configurable: a scanner reads dark-on-light, so theme colours would leave the code unreadable under a dark theme — while still looking like a QR code — and one rendered flush against its neighbours is one some scanners never find.
+
+The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size` where a fluid code is wanted.
 
 #### Rate
 
