@@ -238,6 +238,15 @@ frame with grey blocks in it, no schedule data. It is the right choice when the
 static board is expensive enough that rendering it twice is not worth it: at
 300 items it is about 390 KB of extra HTML per response.
 
+> **The skeleton is not a no-JavaScript story.** It says `aria-busy="true"` and
+> means "loading"; without the bundle it means that *forever*, and a visitor
+> with JavaScript off gets grey blocks and no way to read the schedule. Choose
+> it when your audience reliably runs the bundle and the cost of rendering the
+> board twice is the thing you are buying out of. If some of your visitors
+> never get JavaScript, `:static` is the only fallback that serves them — or
+> pair the skeleton with your own `<noscript>` block linking to a page that
+> lists the schedule as text.
+
 afal-apps originally shipped a component fallback, saw it flicker, and replaced
 it with a skeleton. That fallback did **not** share geometry with the island —
 which is the thing this design changed. If a swap ever reads as a flicker in
@@ -292,7 +301,7 @@ GET <urls[:schedule]>
 |---|---|---|
 | `200` | **The complete document** — same shape as `data:` | Replaces its whole schedule with it (reconcile) |
 | `422` | `{ "errors": ["…"] }` | Rolls the optimistic edit back and shows the messages in a toast |
-| `404` | — | Assumes its copy is stale and re-`GET`s `urls[:schedule]` |
+| `404` | — | Assumes its copy is stale and re-`GET`s `urls[:schedule]` — **only if you passed one**; without it the recovery degrades to a rollback and an error toast, and the board stays stale until the visitor reloads |
 | anything else | — | Rolls back and reports `Error <status>` |
 
 **Always answer with the whole document, never a patch.** A move cascades:
@@ -305,9 +314,16 @@ Two behaviours worth knowing about the client (`scheduleClient.js`):
 - **In-flight requests are aborted.** A new edit aborts the previous one, and a
   response whose request id is no longer the latest is discarded. A slow
   recalculation can never overwrite a newer optimistic state.
-- **Validation is yours.** Cycles, self-links, duplicate dependencies and
-  nonsensical durations are all `422` from the server. The island does not
-  pre-validate.
+- **Validation is shared, and the split matters.** The island refuses three
+  things client-side, so they never reach you: a dependency from an item to
+  itself, a dependency that duplicates one already on screen, and a resize
+  below one day (durations are clamped to `>= 1`). Everything else is yours,
+  and the one you cannot skip is **cycles** — the island has no topology check,
+  so a dependency that closes a loop *will* be posted and your `422` is the
+  only thing standing between it and a schedule that cannot be computed.
+  Validate the other three on the server too: the client checks are a courtesy
+  to the user, not a guarantee to you, and a host that trusts them is one
+  crafted request away from bad data.
 
 CSRF stays on: the island posts through `@rails/request.js`, which reads the
 token from `csrf_meta_tags`. (The dummy's controllers skip forgery protection
