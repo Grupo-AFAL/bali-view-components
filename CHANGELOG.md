@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The params come from the RESOLVED state, not from the request URL**, which is what makes it correct under filter persistence: a listing can arrive with an empty query string and still be filtered by what the cache restored, and re-emitting the URL would claim nothing was filtered while the user is looking at 3 of 200 rows. The serialization now lives in one place, `Bali::Filters::ActiveFilterParams`, shared with the quick-search form that has always had to preserve applied filters — two implementations of "what is this listing narrowed by" would eventually disagree, and the day they did a bulk action would act on a different set than the listing showed. A GET action, which has no hidden fields, carries the same params in its href.
 
+  **A date range declared as an attribute travels too, and it took a fix to.** `FilterForm#result` applies `Bali::Types::DateRangeValue` attributes itself, outside Ransack, which is exactly why `active_filters` excludes them by construction — it is built from `query_params`, and that walks `non_date_range_attribute_names`. Re-emitting only what `active_filters` knows meant a listing showing 1 record handed the server enough to re-derive 2: the bulk acting on a superset of what the user could see, which at scale is a `destroy_all` reaching precisely the rows the date filter had excluded. They are now serialized separately, as the resolved `start..end` the same type casts back. A named period (`this_month`) therefore travels frozen as the range that was on screen rather than as the token: the bulk acts on what was clicked, not on whatever "this month" means when the job finally runs.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added

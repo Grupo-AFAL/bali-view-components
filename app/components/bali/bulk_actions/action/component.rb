@@ -51,7 +51,10 @@ module Bali
           @label = label
           @href = href
           @select_all_filtered = select_all_filtered
-          @filter_params = select_all_filtered ? Array(filter_params) : []
+          # Normalizado también acá: una acción montada a mano (fuera de la barra) puede
+          # recibir un hash anidado, y `Array(hash)` lo dejaba como un solo hidden `q` con
+          # el `to_s` del hash adentro — un POST bien formado que no filtra nada.
+          @filter_params = select_all_filtered ? Bali::Filters::ActiveFilterParams.normalize(filter_params) : []
           @method = method.to_sym
           @variant = variant.to_sym
           @size = size.to_sym

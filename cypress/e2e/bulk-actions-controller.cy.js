@@ -109,6 +109,21 @@ describe('BulkActionsController', () => {
       })
     })
 
+    // El cambio de modo no mueve el foco: si la live region solo dice el número, el usuario
+    // de lector de pantalla oye "20 seleccionados" sin nada que le diga que la selección ya
+    // no es la página que está mirando.
+    it('announces the mode change, not just the new number', () => {
+      const announcement = '[data-bulk-actions-target="announcement"]'
+
+      cy.get(selectAll).check()
+      cy.get(announcement).should('contain.text', 'selected')
+
+      cy.get(`${offer} button`).click()
+      cy.get(notice).invoke('text').then((noticeText) => {
+        cy.get(announcement).should('have.text', noticeText.trim())
+      })
+    })
+
     it('leaves the mode when a row is unchecked, without disabling anything', () => {
       cy.get(selectAll).check()
       cy.get(`${offer} button`).click()
