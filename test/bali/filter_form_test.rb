@@ -1409,6 +1409,50 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
     assert_match(/unknown input/, error.message)
   end
 
+  # --- auto_submit (#725) ---
+
+  def test_auto_submit_reaches_the_simple_filters_config
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :status, type: :select, simple: true, advanced: false,
+                       options: [ %w[Draft draft], %w[Published published] ],
+                       input: :radio_group, auto_submit: true
+      filter_attribute :genre, type: :select, simple: true, advanced: false,
+                       options: [ %w[Action action] ]
+    end
+
+    by_attribute = form_class.new(Movie.all, params({})).simple_filters_config.index_by { |f| f[:attribute] }
+
+    assert_equal(true, by_attribute[:status][:auto_submit])
+    assert_equal(false, by_attribute[:genre][:auto_submit])
+  end
+
+  # El default es false y no nil: una fila declarada antes de que existiera la opción no
+  # puede quedar dependiendo de que el template lea un nil como falso.
+  def test_auto_submit_defaults_to_false
+    status = SimpleFilterableMovieFilterForm.filter_attributes.find { |a| a[:key] == :status }
+
+    assert_equal(false, status[:auto_submit])
+  end
+
+  # Falla al definir la clase y no al renderizar, como un `input:` desconocido: un
+  # `auto_submit:` que nadie lee es peor que un error.
+  def test_auto_submit_outside_the_pill_widgets_raises
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        filter_attribute :genre, type: :select, simple: true, options: [], auto_submit: true
+      end
+    end
+    assert_match(/auto_submit: true only applies to the pill widgets/, error.message)
+    assert_match(/this one is :select/, error.message)
+  end
+
+  def test_auto_submit_on_an_advanced_only_attribute_raises
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) { filter_attribute :name, type: :text, auto_submit: true }
+    end
+    assert_match(/not a simple filter/, error.message)
+  end
+
   def test_date_simple_filter_honors_declared_predicate
     form = DatePredicateFilterForm.new(Movie.all, params({ created_at_gteq: "2024-01-01" }))
     assert_includes(form.simple_filters_permitted_keys, "created_at_gteq")

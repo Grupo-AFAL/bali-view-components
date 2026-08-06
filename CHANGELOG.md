@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`auto_submit: true` per filter: SimpleFilters pills that filter on click** (#725). A `:toggle_group` or `:radio_group` declared with `auto_submit: true` submits the row the moment it changes, so a segmented control behaves like the tab strip it looks like instead of asking for a second click on Filter. `filter_attribute :status, type: :select, simple: true, input: :radio_group, auto_submit: true` — and the instance-level `simple_filters:` hashes take the same key. It is **opt-in per filter and off by default**, so no existing row changes: `submit-on-change` is mounted on the form only when some filter asked for it, only that filter's controls carry the action, and the Filter button stays for the filters that did not opt in. Only the two pill widgets accept it and anything else raises at class-definition time, because one click is the whole interaction on a pill while a date or number range would submit between the two halves of its value. No new controller and no new JavaScript: this is the extended `submit-on-change` from #717, whose connect guard is what keeps the row from submitting itself while it is still being built.
 - **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
   foundation shipped the discrimination — a Symbol is daisyUI's variant, an Integer or String
   stays the HTML attribute of the same name, an unknown Symbol raises — and this completes the
