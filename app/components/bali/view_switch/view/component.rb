@@ -12,20 +12,32 @@ module Bali
           xl: "btn-xl"
         }.freeze
 
+        # `aria-current` value per parent mode: the active view of a navigation
+        # switch IS the current page; the active view of a selector is only the
+        # current item of its set.
+        ARIA_CURRENT = {
+          navigation: "page",
+          selector: "true"
+        }.freeze
+
         # @param name [String] Label of the view (visible text, or the native
         #   tooltip + accessible label when the parent is icon_only)
-        # @param icon [String] Icon name rendered before the label
+        # @param icon [String, nil] Icon name rendered before the label; nil renders
+        #   a text-only view (the norm in `mode: :selector`, where the options are
+        #   values — "12 months", "Optimistic" — not views with an iconography)
         # @param href [String] Path this view links to
         # @param active [Boolean, nil] Explicit active state; when nil (default)
         #   it is autodetected by matching the request path against href
         # rubocop:disable Metrics/ParameterLists
-        def initialize(name:, icon:, href:, active: nil, icon_only: false, size: :sm, **options)
+        def initialize(name:, icon: nil, href:, active: nil, icon_only: false, size: :sm,
+                       mode: :navigation, **options)
           @name = name
           @icon = icon
           @href = href
           @active = active
           @icon_only = icon_only
           @size = size&.to_sym
+          @mode = mode&.to_sym
           @options = options
         end
         # rubocop:enable Metrics/ParameterLists
@@ -51,13 +63,16 @@ module Bali
           active_path?(request.fullpath, href)
         end
 
-        # `aria-current="page"` y no `aria-pressed`: esto es un `<a>` que NAVEGA (role=link) y
+        # `aria-current` y no `aria-pressed`: esto es un `<a>` que NAVEGA (role=link) y
         # el navegador descarta `pressed` sobre un link — el modo activo quedaba expresado
         # solo por color y los tres links sonaban idénticos ("Tabla, link / Tarjetas, link").
-        # `aria-current` es un atributo global, permitido en cualquier rol.
+        # `aria-current` es un atributo global, permitido en cualquier rol. Vale también
+        # para `mode: :selector` (sigue siendo un link que navega): cambia el VALOR
+        # (`"true"`, el ítem actual de un set) porque la opción activa de un selector
+        # de recorte no es "la página actual".
         def link_attributes
           attrs = options.except(:class).merge(class: link_classes)
-          attrs[:"aria-current"] = "page" if active?
+          attrs[:"aria-current"] = ARIA_CURRENT.fetch(@mode, "page") if active?
 
           if icon_only? || responsive_icon_only?
             attrs[:title] ||= name
