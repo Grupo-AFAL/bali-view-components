@@ -1,0 +1,44 @@
+/*
+ * AFAL Theme for DaisyUI 5
+ *
+ * Light variant. Canonical copy of the [data-theme="afal"] block that
+ * gobierno-corporativo, afal-apps, identity and opina carried byte-identically
+ * in their own CSS (#718) — the hex comments trace every value back to the
+ * original Tailwind palette. Delete the local copy when importing this file.
+ * Brand: Grupo AFAL
+ *
+ * Usage:
+ *   @import "bali-view-components/css/themes/afal.css";
+ *   <html data-theme="afal">
+ */
+[data-theme="afal"] {
+  color-scheme: light;
+  --color-primary: oklch(62.31% 0.1880 259.815);         /* #3B82F6 */
+  --color-primary-content: oklch(100% 0 0);               /* #FFFFFF */
+  --color-secondary: oklch(60.56% 0.2189 292.717);       /* #8B5CF6 */
+  --color-secondary-content: oklch(100% 0 0);             /* #FFFFFF */
+  --color-accent: oklch(76.86% 0.1647 70.080);           /* #F59E0B */
+  --color-accent-content: oklch(0% 0 0);                  /* #000000 */
+  --color-neutral: oklch(27.81% 0.0296 256.848);         /* #1F2937 */
+  --color-neutral-content: oklch(100% 0 0);               /* #FFFFFF */
+  --color-base-100: oklch(100% 0 0);                      /* #FFFFFF */
+  --color-base-200: oklch(96.70% 0.0029 264.542);        /* #F3F4F6 */
+  --color-base-300: oklch(92.76% 0.0058 264.531);        /* #E5E7EB */
+  --color-base-content: oklch(27.81% 0.0296 256.848);    /* #1F2937 */
+  --color-info: oklch(75.85% 0.1374 231.617);            /* #3ABFF8 */
+  --color-info-content: oklch(27.15% 0.0553 231.935);    /* #002B3D */
+  --color-success: oklch(77.33% 0.1529 163.103);         /* #36D399 */
+  --color-success-content: oklch(28.38% 0.0623 161.934); /* #003320 */
+  --color-warning: oklch(83.30% 0.1642 83.424);          /* #FBBD23 */
+  --color-warning-content: oklch(28.79% 0.0590 85.336);  /* #382800 */
+  --color-error: oklch(71.22% 0.1649 22.151);            /* #F87272 */
+  --color-error-content: oklch(24.99% 0.1025 29.234);    /* #470000 */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
