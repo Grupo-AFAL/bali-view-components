@@ -7,11 +7,22 @@ class BaliGanttTimeScaleTest < ActiveSupport::TestCase
     Bali::Gantt::TimeScale.new(starts_on: starts_on, ends_on: ends_on, zoom: zoom)
   end
 
+  # The anti-flicker promise of `mode: :interactive` (#719) rests entirely on
+  # both renderers agreeing about px/day: a bar that is 288px server-side has to
+  # be 288px once React takes over. That agreement used to be held together by a
+  # comment, which a one-character edit in the JSX could break in silence — so
+  # this reads ZoomControls.jsx and compares the real numbers.
   def test_px_per_day_matches_the_island_zoom_levels
-    # ZoomControls.jsx ZOOM_LEVELS: day 24, week 8, month 2.
-    assert_equal 24, scale(zoom: :day).px_per_day
-    assert_equal 8, scale(zoom: :week).px_per_day
-    assert_equal 2, scale(zoom: :month).px_per_day
+    source = Bali::Engine.root.join("app/components/bali/gantt/ZoomControls.jsx").read
+    levels = source.scan(/\{\s*key:\s*'(\w+)',\s*pxPerDay:\s*(\d+)/)
+                   .to_h { |key, px| [ key.to_sym, px.to_i ] }
+
+    assert_equal Bali::Gantt::TimeScale::PX_PER_DAY.keys.sort, levels.keys.sort,
+                 "ZoomControls.jsx and TimeScale disagree about which zoom levels exist"
+    levels.each do |key, px_per_day|
+      assert_equal px_per_day, scale(zoom: key).px_per_day,
+                   "zoom #{key}: the island draws #{px_per_day} px/day and :static would not"
+    end
   end
 
   def test_unknown_zoom_values_normalize_to_auto

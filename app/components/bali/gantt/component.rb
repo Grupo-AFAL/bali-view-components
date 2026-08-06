@@ -20,8 +20,15 @@ module Bali
     # island, which is what makes the swap unremarkable; `:skeleton` paints a
     # neutral placeholder instead. afal-apps reached for the skeleton because
     # its pre-island fallback flickered, and that fallback did NOT share
-    # geometry with the island (D16). Flipping the default back is a one-line
-    # change: DEFAULT_FALLBACK below. Nothing about the API moves with it.
+    # geometry with the island (D16).
+    #
+    # Flipping the default is DEFAULT_FALLBACK below plus the one assertion in
+    # `test_the_default_fallback_is_static`; every other test and both halves of
+    # the gate's A/B previews pass `fallback:` explicitly so they keep proving
+    # what they say they prove. But it is not a free switch: `:skeleton` says
+    # `aria-busy` and means "loading", so a visitor who never gets the bundle
+    # reads "loading" forever. Flipping the DEFAULT is a decision about hosts
+    # whose audience runs JavaScript — see docs/api/gantt.md.
     #
     # All computed geometry and colors go in inline `style=` attributes — never
     # interpolated Tailwind classes, which v4 purges. Structural sizes are
@@ -59,7 +66,8 @@ module Bali
       # D16's single decision point. `:static` is the bet that a fallback built
       # from the island's own geometry swaps invisibly; measuring a large
       # dataset in the dummy is what settles it. Change this line and every
-      # `mode: :interactive` call site that did not pass `fallback:` moves.
+      # `mode: :interactive` call site that did not pass `fallback:` moves —
+      # including, deliberately, none of Bali's own tests or gate previews.
       DEFAULT_FALLBACK = :static
 
       # URLs the island posts to, all optional: an island with none of them is

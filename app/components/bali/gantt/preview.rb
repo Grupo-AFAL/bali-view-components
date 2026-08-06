@@ -94,7 +94,11 @@ module Bali
       # the bundle lands. Disable JavaScript and the board is what stays — it
       # is the real no-JS rendering, not a placeholder.
       def interactive_readonly
-        interactive(data: sample_data, group_label: "Stage")
+        # `fallback:` explícito A PROPÓSITO, aunque hoy coincida con el default:
+        # este preview es la mitad "tablero" de la comparación del gate D16, y
+        # si el gate flipa DEFAULT_FALLBACK esta pareja pasaría a comparar
+        # esqueleto contra esqueleto con los rótulos al revés.
+        interactive(data: sample_data, fallback: :static, group_label: "Stage")
       end
 
       # @label Interactive (skeleton fallback)
@@ -111,7 +115,10 @@ module Bali
       # from a fixed seed so every run draws the identical board. Watch the
       # moment React takes over — bars should stay where the server put them.
       def interactive_stress
-        interactive(data: large_data, group_label: "Workstream")
+        # `fallback:` explícito por la misma razón que interactive_readonly:
+        # es la variante A del A/B del gate y tiene que seguir siendo el
+        # tablero pase lo que pase con el default.
+        interactive(data: large_data, fallback: :static, group_label: "Workstream")
       end
 
       # @label Interactive stress (300 items, skeleton fallback)

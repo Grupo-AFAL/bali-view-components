@@ -104,13 +104,22 @@ describe('Gantt mode: :interactive', () => {
         })
     )
 
-    cy.get('#medicion-fallback .bali-gantt-bar[title^="Component API"]').then(($barra) => {
-      const anchoFallback = anchoDe($barra[0])
-      expect(anchoFallback).to.be.greaterThan(0)
-      cy.contains('.react-flow__node', 'Component API').should(($nodo) => {
-        expect(anchoDe($nodo[0])).to.equal(anchoFallback)
+    // Sin este primer assert, un cambio en el `title` de la barra hace fallar
+    // el test con "no encontré el elemento", que manda a buscar un problema de
+    // geometría donde solo hay un selector viejo.
+    cy.get('#medicion-fallback .bali-gantt-bar')
+      .should('have.length.greaterThan', 0)
+    cy.get('#medicion-fallback .bali-gantt-bar[title^="Component API"]')
+      .should('have.length', 1)
+      .then(($barra) => {
+        const anchoFallback = anchoDe($barra[0])
+        expect(anchoFallback, 'ancho de la barra en el fallback').to.be.greaterThan(0)
+
+        cy.contains('.react-flow__node', 'Component API').should(($nodo) => {
+          expect(anchoDe($nodo[0]), 'ancho del nodo de la isla vs el del fallback')
+            .to.equal(anchoFallback)
+        })
       })
-    })
   })
 
   // Sin este handoff la isla abriria en su default ("week") mientras el fallback

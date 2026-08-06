@@ -131,6 +131,17 @@ class BaliGanttComponentTest < ComponentTestCase
 
   # --- mode: :interactive (#719) ---
 
+  # THE line of the D16 gate. Every other interactive test passes `fallback:`
+  # explicitly, so flipping the default to :skeleton is this constant plus this
+  # assertion — and the flip stays honest instead of quietly rewriting what a
+  # dozen other tests were proving.
+  def test_the_default_fallback_is_static
+    assert_equal :static, Bali::Gantt::Component::DEFAULT_FALLBACK
+
+    render_inline(component(mode: :interactive))
+    assert_selector("[data-controller='gantt'] .bali-gantt-canvas")
+  end
+
   def test_interactive_mounts_the_island_on_the_component_element
     render_inline(component(mode: :interactive))
 
@@ -144,8 +155,12 @@ class BaliGanttComponentTest < ComponentTestCase
 
   # The promise of the phase: the same board, inside the mount, so React has
   # something to replace instead of a hole.
+  #
+  # `fallback:` is explicit in every test that proves a MECHANISM, so flipping
+  # DEFAULT_FALLBACK never rewrites them. The default itself is pinned once, in
+  # test_the_default_fallback_is_static — that pair of lines is the whole flip.
   def test_interactive_renders_the_static_board_inside_the_mount
-    render_inline(component(mode: :interactive))
+    render_inline(component(mode: :interactive, fallback: :static))
 
     assert_selector("[data-controller='gantt'] .bali-gantt-canvas")
     assert_selector("[data-controller='gantt'] .bali-gantt-row", count: 3)
@@ -201,7 +216,7 @@ class BaliGanttComponentTest < ComponentTestCase
   # `limit:` caps the ERB the static fallback emits; the island gets the whole
   # schedule and renders it itself.
   def test_the_island_receives_the_uncapped_document
-    render_inline(component(mode: :interactive, limit: 1))
+    render_inline(component(mode: :interactive, fallback: :static, limit: 1))
 
     assert_selector("[data-controller='gantt'] .bali-gantt-row", count: 1)
     assert_equal 4, JSON.parse(page.find(".bali-gantt")["data-gantt-data-value"])
