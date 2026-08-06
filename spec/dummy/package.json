@@ -29,7 +29,7 @@
     "ai": "^6.0.5",
     "bali-view-components": "link:../..",
     "chart.js": "^4.5.1",
-    "daisyui": "5.7.15",
+    "daisyui": "5.7.16",
     "date-fns": "^4.1.0",
     "docx": "^9.4.0",
     "flatpickr": "^4.6.13",
