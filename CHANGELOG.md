@@ -39,6 +39,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     copy — that substitution is the adoption test. Adoption, the permission matrix and the
     three-`rename_table` migration for apps that already ran the reference implementation are
     documented in `docs/guides/engines.md`.
+- **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
+- **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
+
+### Fixed
+
+- **`Bali::WorkflowSteps` names each step's state for a screen reader** (#716). Both markers said the state in colour and nothing else — the circle's number is a position, not a verdict, and the quick flow's dot has no text at all — so "3, Legal review" was everything a screen reader got about a rejected step. Every step now renders an `sr-only` span with the state's name next to its marker, **in both variants**, from six new keys under `bali_view.workflow_steps.states.*` (en/es) that a host overrides like any other Bali string when its domain has better words ("Signed", "Returned", "Waiting on legal"). The span sits *outside* the circle, so the number stays the circle's whole content.
+
+## [v3.1.0.beta.3] - 2026-08-06
+
+### Changed
+
+- **The Gantt island follows the viewport without re-rendering** (#705). Panning, dragging a bar,
+  selecting and typing in the search box each used to re-reconcile the island's entire React tree;
+  on a 300-item document (20 groups, 150 dependencies) a single pan frame rebuilt every row of the
+  left table, every tick of the axis and every bar of the minimap. No public API, markup, CSS or
+  data-contract change — only how the components subscribe to the canvas:
+  - The layers that shift as a block with the pan (time header, grid + weekend bands, row bands,
+    group summary bars, today line, left table, minimap viewport rectangle) no longer subscribe to
+    the React Flow transform with `useStore`. They take it from the store imperatively (new
+    `useViewportFollow` hook) and write `style.transform` on a ref, so a pan frame costs **zero**
+    React renders instead of one per layer plus all of its children. Measured over 20 pan frames:
+    horizontal 100 component renders → 0; vertical 20 renders + 6.400 table rows → 0.
+  - `React.memo` on the chrome (`GanttTable` and its `Row`, `Toolbar`, `TimeHeader`, `GridBands`,
+    `RowBands`, `SummaryBars`, `Minimap`, `GanttFooter`), with the toolbar's toggle callbacks
+    given stable identities so the memo actually holds. Dragging a bar re-rendered the whole
+    chrome once per pointer frame (3.200 row renders over 20 frames); it now re-renders only the
+    dragged bar. Same for the table splitter: 6.080 row renders → 0.
+  - Node decoration runs in two passes, so the `selected` bit no longer rebuilds every bar's `data`
+    object: React Flow keeps its internal node for the bars whose bit did not change and only the
+    affected ones re-render. A selection click went from 300 bar renders + 640 row renders to 1
+    and 1.
+  - `useDeferredValue` on search and status filter: the input echoes the keystroke immediately
+    while the model rebuild is deferred, so a burst of keystrokes rebuilds the filtered document
+    once instead of once per letter (9 letters: 5.760 row renders + 2.700 bar renders → 320 + 300).
+### Added
+
+- **`Bali::QrCode` — QR codes generated server-side, with `rqrcode` as an optional dependency** (#926). `render Bali::QrCode::Component.new(payload: movie_url(@movie))` emits inline SVG: no JavaScript, no image request, nothing to serve. `payload:` is required; `size:` (pixels, default 200) and `level:` (error correction `:l`/`:m`/`:q`/`:h`, default `:m`) are the whole API. The gem it encodes with is **not** in the gemspec — three apps in the org render QR codes and the rest would carry it for nothing — so it is required lazily and its absence raises `Bali::QrCode::Component::MissingDependency`, a `LoadError` subclass whose message names the line to add (`gem "rqrcode", "~> 3.1"`) instead of leaving a host with `cannot load such file`. Same contract as the optional npm peers in `package.json`. Black on white with the spec's four-module quiet zone, neither configurable: a scanner reads dark-on-light, so theme colours would leave the code unreadable under a dark theme while still looking like a QR code. The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size:`; `role="img"` plus an `aria-label` that defaults to the generic `bali_view.qr_code.label` ("QR code" / "Código QR") and takes a `label:` for the context the markup does not supply.
 
 ## [v3.1.0.beta.2] - 2026-08-06
 

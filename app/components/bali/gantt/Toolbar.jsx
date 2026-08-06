@@ -5,7 +5,7 @@
 // (they never touch the server's schedule). Icons are inline SVG (no icon-set
 // dependency inside the React island). All texts come from the `t` translator
 // (decision D12) and the status vocabulary from `catalogs` (decision D11).
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import ZoomControls from './ZoomControls'
 import { statusColor } from './ganttColors'
 
@@ -61,7 +61,7 @@ function Segmented ({ options, value, onChange, ariaLabel }) {
   )
 }
 
-export default function Toolbar ({
+export default memo(function Toolbar ({
   search,
   onSearch,
   filterStatus,
@@ -281,4 +281,4 @@ export default function Toolbar ({
       )}
     </div>
   )
-}
+})

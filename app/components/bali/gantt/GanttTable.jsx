@@ -6,10 +6,11 @@
 // the bar at y=rowY(N). It reflects the React Flow viewport's `translateY` to
 // scroll with the bars (scale pinned at zoom=1 → 1px=1px). Must render INSIDE
 // <ReactFlowProvider>.
-import { useStore } from '@xyflow/react'
+import { memo } from 'react'
 import { ROW_H } from './useGanttModel'
 import { statusColor, statusLabel, avatarColor } from './ganttColors'
 import { fmtDayMonth, durationDays } from './timeScale'
+import { useViewportFollow } from './useViewportFollow'
 
 function Caret ({ collapsed }) {
   return (
@@ -37,7 +38,7 @@ function HeaderCell ({ label, style, className = '' }) {
 
 const DEFAULT_COLS = { assignee: true, dates: true, days: true, status: true, progress: true }
 
-export default function GanttTable ({
+export default memo(function GanttTable ({
   rows,
   criticalIds,
   selectedIds,
@@ -50,7 +51,7 @@ export default function GanttTable ({
   width,
   cols = DEFAULT_COLS
 }) {
-  const translateY = useStore((s) => s.transform[1])
+  const followRef = useViewportFollow('y')
   const critical = criticalIds || new Set()
   const selected = selectedIds || new Set()
 
@@ -72,8 +73,9 @@ export default function GanttTable ({
       {/* Body shifted with the viewport (same translateY as the bars). */}
       <div className='relative min-h-0 flex-1 overflow-hidden'>
         <div
+          ref={followRef}
           className='absolute inset-x-0 top-0'
-          style={{ transform: `translateY(${translateY}px)`, willChange: 'transform' }}
+          style={{ willChange: 'transform' }}
         >
           {rows.map((row) => (
             <Row
@@ -93,9 +95,11 @@ export default function GanttTable ({
       </div>
     </div>
   )
-}
+})
 
-function Row ({ row, isCritical, isSelected, onToggle, onSelect, onOpen, catalogs, t, cols }) {
+// Memoized: the canvas re-renders on every drag/splitter/typing frame, and
+// without this each of those frames rebuilt one Row per visible row.
+const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect, onOpen, catalogs, t, cols }) {
   const isGroup = row.kind === 'group'
   const item = row.item
   const label = isGroup ? row.name : item.name
@@ -210,4 +214,4 @@ function Row ({ row, isCritical, isSelected, onToggle, onSelect, onOpen, catalog
       )}
     </div>
   )
-}
+})
