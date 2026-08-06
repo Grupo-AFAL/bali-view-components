@@ -82,12 +82,21 @@ module Bali
         :block_editor_thread_id
       end
 
-      # BlockNote sends a comment body as a JSON array of blocks, and strong
-      # parameters drop non-scalar values silently — `params.permit(:body)` returns
-      # nothing at all here. Everything this reaches is stored as opaque JSON and
-      # never interpolated server-side.
+      # BlockNote sends a comment body as a JSON ARRAY of blocks, and strong parameters
+      # drop non-scalar values silently — `params.permit(:body)` returns nothing at all
+      # here. Everything this reaches is stored as opaque JSON and never interpolated
+      # server-side.
+      #
+      # The array branch is not decoration: Rails wraps each object inside it in its own
+      # `ActionController::Parameters`, and handing those to a json column only works
+      # because `as_json` happens to delegate to the underlying hash. Converting here
+      # means what gets stored is a plain Hash, which is what every reader assumes.
       def permit_json(value)
-        value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
+        case value
+        when Array then value.map { |item| permit_json(item) }
+        when ActionController::Parameters then value.to_unsafe_h
+        else value
+        end
       end
 
       def render_not_found

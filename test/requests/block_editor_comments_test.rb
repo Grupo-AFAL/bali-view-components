@@ -72,6 +72,30 @@ class BaliBlockEditorCommentsRequestTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  # The nested endpoints already carry a thread id, so it would be tempting to let them
+  # skip the scope. They must not: a thread id is guessable and the scope is the only
+  # thing tying the request to a record the host said may be commented on.
+  def test_no_endpoint_answers_without_the_commentable_not_even_the_ones_carrying_a_thread_id
+    thread = create_thread!
+    comment = thread.comments.first
+
+    [
+      -> { patch bali.block_editor_thread_path(thread), as: :json, params: { resolved: true } },
+      -> { delete bali.block_editor_thread_path(thread) },
+      -> { post bali.block_editor_thread_comments_path(thread), as: :json, params: { body: BODY } },
+      -> { patch bali.block_editor_thread_comment_path(thread, comment), as: :json, params: { body: BODY } },
+      -> { delete bali.block_editor_thread_comment_path(thread, comment) },
+      -> { post bali.block_editor_thread_comment_reactions_path(thread, comment), as: :json, params: { emoji: "👍" } },
+      -> { delete bali.block_editor_thread_comment_reactions_path(thread, comment), as: :json, params: { emoji: "👍" } }
+    ].each_with_index do |request, index|
+      request.call
+      assert_response :not_found, "el endpoint #{index} respondió sin commentable"
+    end
+
+    assert_not thread.reload.resolved
+    assert_nil comment.reload.deleted_at
+  end
+
   def test_a_commentable_type_nobody_whitelisted_is_a_404
     get bali.block_editor_threads_path(commentable_type: "User", commentable_id: User.create!(name: "Ana").id)
 
@@ -165,6 +189,20 @@ class BaliBlockEditorCommentsRequestTest < ActionDispatch::IntegrationTest
     assert_equal({ "source" => "toolbar" }, thread.metadata)
     assert_equal AUTHOR, thread.comments.first.user_id
     assert_equal({ "anchor" => "intro" }, thread.comments.first.metadata)
+  end
+
+  # A BlockNote body is an array of block objects. Rails wraps each of those in its own
+  # `ActionController::Parameters`, so what reaches the json column has to be converted
+  # first — otherwise the column stores objects that only serialize correctly by
+  # accident, and a reader gets something that is not a Hash.
+  def test_the_stored_body_is_plain_json_all_the_way_down
+    post bali.block_editor_threads_path(scope), as: :json,
+                                                params: { initial_comment: { body: BODY } }
+
+    body = Bali::BlockEditorComment.last.body
+    assert_equal BODY, body
+    assert_instance_of Hash, body.first
+    assert_instance_of Hash, body.first["content"].first
   end
 
   def test_create_without_an_initial_comment_is_refused
