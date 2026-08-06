@@ -1,0 +1,18 @@
+<%# The map lives in ONE place in a real app (a host helper); each entry is a
+    color name or a hash of Tag options. Without `i18n_scope:` labels are the
+    humanized value. %>
+<% map = {
+     draft: :neutral,
+     in_review: { color: :info, icon: 'eye' },
+     published: { color: :success, icon: 'check' },
+     archived: :ghost
+   } %>
+
+<div class="flex flex-wrap items-center gap-2">
+  <% %i[draft in_review published archived].each do |state| %>
+    <%= render Bali::Tag.for(state, map: map, style: :soft) %>
+  <% end %>
+
+  <%# An unmapped value raises unless a `default:` entry is given. %>
+  <%= render Bali::Tag.for(:imported, map: map, default: { color: :warning, text: 'Unmapped' }) %>
+</div>
