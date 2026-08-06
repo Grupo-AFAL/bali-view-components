@@ -41,7 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   beside it. On a history traversal the controller now re-derives the highlight from the URL
   instead of trusting that snapshot, which it can do because each row's href *is* the URL that
   selects it. Only on a traversal: on a first paint the server's markup wins, since a master can
-  live on a page whose URL is not in its rows' URL space at all.
+  live on a page whose URL is not in its rows' URL space at all. The href and the location are
+  matched on path plus query params **as a set**, not as one string — the two are built by
+  different code paths, so the location routinely carries params the href never had (a page
+  number, a sort) and lists the shared ones in another order, and a string comparison called
+  those a different place and dropped the highlight.
 
   `.split-view-scroll` is an opt-in class for whichever part of the master should scroll — usually
   the list alone, so tabs above it and pagination below it stay put — reading

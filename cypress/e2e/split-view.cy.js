@@ -122,6 +122,48 @@ describe('SplitView', () => {
     })
   })
 
+  // Which row a location selects, driven straight at the controller with a
+  // history entry and a popstate. Deliberately not through `cy.go('back')`:
+  // that also exercises Turbo's snapshot cache, and the rule under test is the
+  // controller's alone — given this URL, which row is current.
+  context('deciding which row a location selects', () => {
+    const traverseTo = search =>
+      cy.window().then((win) => {
+        win.history.pushState({}, '', `/split-view${search}`)
+        win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+      })
+
+    beforeEach(() => {
+      cy.visit('/bali/split_view/default')
+      cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
+        cy.wrap(new URL(href, 'http://example.test').searchParams.get('selected')).as('id')
+      })
+    })
+
+    it('selects the row whose href the location satisfies', function () {
+      traverseTo(`?selected=${this.id}`)
+      cy.get(`#split-view-row-${this.id}`).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+    })
+
+    // The regression this replaced an exact string comparison for: the row href
+    // and the location are built by different code paths, so the location can
+    // carry params the href never had and list them in another order.
+    it('still selects it when the location carries extra params, in any order', function () {
+      traverseTo(`?sort=name&selected=${this.id}&page=2`)
+      cy.get(`#split-view-row-${this.id}`).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+    })
+
+    it('selects nothing when no row href is satisfied', function () {
+      traverseTo(`?selected=${this.id}`)
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+
+      traverseTo('?sort=name')
+      cy.get('.split-view-row[aria-current]').should('not.exist')
+    })
+  })
+
   context('responsive layout', () => {
     it('puts the panes side by side from lg up and stacks them below it', () => {
       cy.visit('/bali/split_view/default')
