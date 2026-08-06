@@ -17,11 +17,17 @@ module Bali
       render json: threads.with_comments.order(updated_at: :desc)
     end
 
+    # Bounds how many threads one commentable can accumulate — without it a script
+    # grows the table, and the index payload every OTHER reader of the document
+    # downloads, without limit.
+    MAX_THREADS_PER_COMMENTABLE = 500
+
     def create
       initial_comment = params[:initial_comment]
       # A thread with no comments is undeletable (nobody is its first author) and
       # invisible in the editor. The store always sends one, so refusing is free.
       return head :unprocessable_content if initial_comment.blank?
+      return head :unprocessable_content if threads.count >= MAX_THREADS_PER_COMMENTABLE
 
       thread = BlockEditorThread.new(commentable: @commentable, metadata: permit_json(params[:metadata]) || {})
       thread.comments.build(
@@ -43,7 +49,11 @@ module Bali
     end
 
     def destroy
-      return head :forbidden unless @thread.author_id == current_comments_user_id
+      # `author.present?` matters: `nil == nil` would let an anonymous caller delete
+      # a thread with no comments — the shape a `rename_table` migration of a
+      # pre-existing host table can leave behind.
+      author = @thread.author_id
+      return head :forbidden unless author.present? && author == current_comments_user_id
 
       @thread.destroy!
       head :no_content

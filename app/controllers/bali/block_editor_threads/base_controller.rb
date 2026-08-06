@@ -47,12 +47,23 @@ module Bali
       # a directory of what the host stores.
       def resolve_commentable
         type = params[:commentable_type].presence
-        id = params[:commentable_id].presence
+        # Scalar ALWAYS: `find_by(id: [...])` would turn one request into a probe
+        # over every id in the array.
+        id = params[:commentable_id]
+        id = nil unless id.is_a?(String)
+        id = id.presence
         return if type.nil? || id.nil?
 
         _, target = Bali.block_editor_commentables.find { |key, _| key.to_s == type }
         return if target.nil?
-        return target.call(id) if target.respond_to?(:call)
+
+        if target.respond_to?(:call)
+          # An arity-2 resolver receives the controller FIRST — the same shape as
+          # `Bali.content_versionables` (#707) — so the host can scope by user and
+          # answer 404 for records that exist but are not theirs, instead of the
+          # 403 the authorize lambda produces (a 403/404 existence oracle otherwise).
+          return target.arity == 2 ? target.call(self, id) : target.call(id)
+        end
 
         # A String is the reload-safe way to name a model from an initializer: storing
         # the class object itself pins the copy Zeitwerk throws away on the next

@@ -385,4 +385,141 @@ class BaliBlockEditorCommentsRequestTest < ActionDispatch::IntegrationTest
     assert_response :not_found
     assert Bali::BlockEditorReaction.exists?(theirs.id)
   end
+
+  # --- Security-review hardening: every guarantee below is pinned by a test -------
+
+  def test_an_emoji_is_a_grapheme_not_a_payload
+    thread = create_thread!
+    comment = thread.comments.first
+
+    assert_no_difference "Bali::BlockEditorReaction.count" do
+      post bali.block_editor_thread_comment_reactions_path(thread, comment, scope),
+           as: :json, params: { emoji: "x" * 33 }
+    end
+    assert_response :unprocessable_content
+  end
+
+  def test_a_user_cannot_pile_unlimited_distinct_emojis_on_one_comment
+    thread = create_thread!
+    comment = thread.comments.first
+    max = Bali::BlockEditorThreads::Comments::ReactionsController::MAX_REACTIONS_PER_USER
+    max.times { |i| comment.reactions.create!(user_id: AUTHOR, emoji: "e#{i}") }
+
+    assert_no_difference "Bali::BlockEditorReaction.count" do
+      post bali.block_editor_thread_comment_reactions_path(thread, comment, scope),
+           as: :json, params: { emoji: "🎉" }
+    end
+    assert_response :too_many_requests
+  end
+
+  def test_an_oversized_comment_body_is_rejected
+    thread = create_thread!
+    huge = [ { "type" => "paragraph", "content" => [ { "type" => "text", "text" => "x" * (Bali::BlockEditorComment::MAX_BODY_BYTES + 1) } ] } ]
+
+    assert_no_difference "Bali::BlockEditorComment.count" do
+      post bali.block_editor_thread_comments_path(thread, scope), as: :json, params: { body: huge }
+    end
+    assert_response :unprocessable_content
+  end
+
+  def test_oversized_metadata_is_rejected_on_comment_and_thread
+    thread = create_thread!
+    pad = { "pad" => "x" * (Bali::BlockEditorComment::MAX_METADATA_BYTES + 1) }
+
+    assert_no_difference "Bali::BlockEditorComment.count" do
+      post bali.block_editor_thread_comments_path(thread, scope), as: :json, params: { body: BODY, metadata: pad }
+    end
+    assert_response :unprocessable_content
+
+    assert_no_difference "Bali::BlockEditorThread.count" do
+      post bali.block_editor_threads_path(scope),
+           as: :json, params: { metadata: pad, initial_comment: { body: BODY } }
+    end
+    assert_response :unprocessable_content
+  end
+
+  def test_a_commentable_cannot_accumulate_unlimited_threads
+    now = Time.current
+    max = Bali::BlockEditorThreadsController::MAX_THREADS_PER_COMMENTABLE
+    Bali::BlockEditorThread.insert_all!(
+      Array.new(max) { { commentable_type: "Document", commentable_id: @document.id, created_at: now, updated_at: now } }
+    )
+
+    assert_no_difference "Bali::BlockEditorThread.count" do
+      post bali.block_editor_threads_path(scope), as: :json, params: { initial_comment: { body: BODY } }
+    end
+    assert_response :unprocessable_content
+  end
+
+  def test_a_tombstone_is_final
+    thread = create_thread!
+    comment = thread.comments.first
+    thread.comments.create!(user_id: STRANGER, body: BODY) # keeps the thread alive
+    delete bali.block_editor_thread_comment_path(thread, comment, scope)
+    assert_response :no_content
+
+    patch bali.block_editor_thread_comment_path(thread, comment, scope), as: :json, params: { body: BODY }
+
+    assert_response :gone
+    assert_nil comment.reload.body
+  end
+
+  def test_a_deleted_comment_takes_no_reactions
+    thread = create_thread!
+    comment = thread.comments.first
+    thread.comments.create!(user_id: STRANGER, body: BODY)
+    comment.soft_delete!
+
+    assert_no_difference "Bali::BlockEditorReaction.count" do
+      post bali.block_editor_thread_comment_reactions_path(thread, comment, scope),
+           as: :json, params: { emoji: "👍" }
+    end
+    assert_response :not_found
+  end
+
+  def test_commentable_id_must_be_a_scalar
+    create_thread!
+
+    get bali.block_editor_threads_path(commentable_type: "Document", commentable_id: [ @document.id ])
+
+    assert_response :not_found
+  end
+
+  def test_an_orphan_thread_is_not_deletable_by_an_anonymous_caller
+    # The shape a `rename_table` migration of a pre-existing host table can leave
+    # behind: a thread with no comments, in a host whose identity lambda returns nil.
+    orphan = Bali::BlockEditorThread.create!(commentable: @document)
+    Bali.block_editor_comments_authorize = ->(_controller, _user_id, _commentable) { true }
+    sign_in_as(nil)
+
+    assert_no_difference "Bali::BlockEditorThread.count" do
+      delete bali.block_editor_thread_path(orphan, scope)
+    end
+    assert_response :forbidden
+  end
+
+  def test_an_arity_two_resolver_receives_the_controller_first
+    seen = nil
+    Bali.block_editor_commentables = {
+      "Document" => lambda { |controller, id|
+        seen = controller
+        Document.find_by(id: id)
+      }
+    }
+    create_thread!
+
+    get bali.block_editor_threads_path(scope)
+
+    assert_response :success
+    assert_kind_of ActionController::Base, seen
+  end
+
+  def test_an_arity_one_resolver_still_works
+    Bali.block_editor_commentables = { "Document" => ->(id) { Document.find_by(id: id) } }
+    create_thread!
+
+    get bali.block_editor_threads_path(scope)
+
+    assert_response :success
+  end
 end

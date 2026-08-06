@@ -147,7 +147,11 @@ module Bali
   #
   # El default VACÍO es la postura de seguridad: montar el engine no habilita
   # comentarios en nada, y el tipo jamás se resuelve por `constantize`.
-  # Example: Bali.block_editor_commentables = { "Document" => Document }
+  # Un lambda de aridad 2 recibe el CONTROLLER primero (misma forma que
+  # `content_versionables`), que es lo que permite scopear por usuario y responder
+  # 404 a lo ajeno en vez del 403 del authorize (el par 403/404 es un oráculo).
+  # Example: Bali.block_editor_commentables =
+  #   { "Document" => ->(c, id) { c.current_user.documents.find_by(id: id) } }
   mattr_accessor :block_editor_commentables, default: {}
 
   # Identidad del autor: callable evaluado con el controller, devuelve el **string**

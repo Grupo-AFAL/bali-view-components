@@ -12,6 +12,10 @@ module Bali
                touch: true
 
     validates :emoji, presence: true
+    # An emoji is a grapheme, not a payload. Without this bound the column is an
+    # unbounded write primitive: the unique index only stops re-tapping the SAME
+    # emoji, and 200 KB of anything else went straight through (measured pre-fix).
+    validates :emoji, length: { maximum: 32 }
     validates :user_id, presence: true
     validates :emoji, uniqueness: { scope: %i[block_editor_comment_id user_id] }
   end

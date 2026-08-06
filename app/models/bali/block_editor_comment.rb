@@ -22,8 +22,16 @@ module Bali
 
     scope :active, -> { where(deleted_at: nil) }
 
+    # Bounds for client-supplied JSON. Real editor payloads are a few KB; the caps
+    # exist so the columns cannot become unbounded write primitives (measured
+    # pre-fix: a 500 KB body and 300 KB of metadata stored verbatim).
+    MAX_BODY_BYTES = 256 * 1024
+    MAX_METADATA_BYTES = 16 * 1024
+
     validates :user_id, presence: true
     validates :body, presence: true, unless: :soft_deleted?
+    validate :body_within_bounds
+    validate :metadata_within_bounds
 
     def soft_deleted?
       deleted_at.present?
@@ -51,6 +59,20 @@ module Bali
     end
 
     private
+
+    def body_within_bounds
+      return if body.nil?
+
+      errors.add(:body, "is too large (maximum is #{MAX_BODY_BYTES} bytes)") if body.to_json.bytesize > MAX_BODY_BYTES
+    end
+
+    def metadata_within_bounds
+      return if metadata.nil?
+
+      return unless metadata.to_json.bytesize > MAX_METADATA_BYTES
+
+      errors.add(:metadata, "is too large (maximum is #{MAX_METADATA_BYTES} bytes)")
+    end
 
     # One row per (comment, user, emoji) in the table, one entry per emoji on the
     # wire: `{ emoji:, created_at:, user_ids: [] }` is what the editor renders.

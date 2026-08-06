@@ -47,7 +47,12 @@ module Bali
       end
 
       def require_comment_author!
-        head :forbidden unless @comment.user_id == current_comments_user_id
+        return head :forbidden unless @comment.user_id == current_comments_user_id
+
+        # A tombstone is final: restoring a body would leave a comment with both
+        # `deleted_at` AND content, a combination the frozen JSON contract declares
+        # impossible (`_normalizeComment` renders deleted comments with a null body).
+        head :gone if @comment.soft_deleted? && action_name == "update"
       end
     end
   end

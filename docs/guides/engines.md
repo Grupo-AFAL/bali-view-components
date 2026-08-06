@@ -161,7 +161,16 @@ That copies `CreateBaliBlockEditorComments`, which creates
 Bali.config do |config|
   # What may carry comment threads. The KEY is what lands in `commentable_type`,
   # i.e. `Document.polymorphic_name`. The value is the model — as a String, a class,
-  # or a lambda that receives the id and returns the record (or nil).
+  # or a lambda. A two-argument lambda receives the CONTROLLER first, then the id —
+  # the same shape as `Bali.content_versionables` — which is what lets you scope the
+  # lookup by user so a record that exists but is not theirs answers 404 instead of
+  # the authorize lambda's 403 (a 403/404 pair is an existence oracle):
+  #
+  #   config.block_editor_commentables = {
+  #     "Document" => ->(controller, id) { controller.current_user.documents.find_by(id: id) }
+  #   }
+  #
+  # A one-argument lambda (`->(id) { ... }`) still works when scoping is not needed.
   config.block_editor_commentables = { "Document" => "Document" }
 
   # Who is writing. Returns a STRING id; the editor resolves the display name on the
@@ -217,7 +226,20 @@ nothing:
 
 Deleting a comment is soft: the body becomes `null`, `deleted_at` is stamped, and the
 editor renders a tombstone. Deleting the last live comment of a thread takes the thread
-with it.
+with it. **A tombstone is final**: editing a deleted comment answers `410 Gone` and it
+takes no new reactions — restoring a body would produce a comment with both
+`deleted_at` and content, a combination the frozen JSON contract declares impossible.
+
+The write surface is bounded, deliberately: an emoji is at most 32 characters, one user
+gets at most 20 distinct reactions per comment (`429`), a comment body tops out at
+256 KB and `metadata` at 16 KB serialized (`422`), and one record accumulates at most
+500 threads (`422`). Real editor payloads sit orders of magnitude below all of these —
+the caps only exist so none of the columns can serve as an unbounded write primitive.
+
+One more thing to know before you render it: **`metadata` is an unfiltered round-trip
+channel**. The engine stores what the client sent and serves it back verbatim to anyone
+the authorize lambda admits. Treat it as untrusted user content — escape it, never
+`html_safe` it, and do not put anything in it server-side that every reader may not see.
 
 Two things the engine deliberately does **not** do:
 

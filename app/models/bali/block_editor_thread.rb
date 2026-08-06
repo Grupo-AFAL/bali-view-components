@@ -25,6 +25,12 @@ module Bali
 
     scope :with_comments, -> { includes(comments: :reactions) }
 
+    # Same bound as BlockEditorComment::MAX_METADATA_BYTES, for the same reason:
+    # `metadata` is a client round-trip channel and must not be an unbounded write.
+    MAX_METADATA_BYTES = 16 * 1024
+
+    validate :metadata_within_bounds
+
     def resolve!(user_id)
       update!(resolved: true, resolved_by: user_id, resolved_updated_at: Time.current)
     end
@@ -56,6 +62,16 @@ module Bali
         updated_at: updated_at.iso8601,
         comments: comments.map(&:as_json)
       }
+    end
+
+    private
+
+    def metadata_within_bounds
+      return if metadata.nil?
+
+      return unless metadata.to_json.bytesize > MAX_METADATA_BYTES
+
+      errors.add(:metadata, "is too large (maximum is #{MAX_METADATA_BYTES} bytes)")
     end
   end
 end
