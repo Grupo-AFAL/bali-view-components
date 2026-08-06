@@ -104,13 +104,16 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
     assert_selector('form[data-turbo-confirm="Leave?"]')
   end
 
-  def test_sign_out_with_another_method_becomes_a_turbo_method_link
+  def test_sign_out_with_another_method_becomes_a_button_to_form
     render_inline(Bali::Topbar::UserMenu::Component.new(
                     name: "Ana García", sign_out: { href: "/logout", method: :post }
                   ))
 
-    assert_selector('a[href="/logout"][data-turbo-method="post"].text-error', text: "Sign out")
-    assert_no_selector("form")
+    # #641 (announced in v3.1): every non-GET item is a real `button_to` form —
+    # an `<a data-turbo-method>` degrades to GET without JS. `:post` keeps the
+    # text-error styling it had as a link.
+    assert_selector('form[action="/logout"] button.text-error', text: "Sign out")
+    assert_no_selector("a[data-turbo-method]")
   end
 
   def test_sign_out_without_href_raises

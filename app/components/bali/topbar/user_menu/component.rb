@@ -107,10 +107,10 @@ module Bali
         end
 
         # Routed through the same `with_item` lambda as everything else, so
-        # `:delete` becomes DeleteLink's `button_to` (real form, text-error and
-        # `form_class: "contents"` for free) and any other verb becomes a Link
-        # with `data-turbo-method`. Signing out is not deleting a record, so the
-        # confirm dialog is off unless the caller asks for one.
+        # every non-GET verb becomes a real `button_to` form (#641): `:delete`
+        # through DeleteLink, `:post`/`:patch`/`:put` through ButtonToItem, all
+        # with `form_class: "contents"` for free. Signing out is not deleting a
+        # record, so the confirm dialog is off unless the caller asks for one.
         def add_sign_out_item
           opts = @sign_out.except(:href, :method)
           method = @sign_out[:method].to_sym
