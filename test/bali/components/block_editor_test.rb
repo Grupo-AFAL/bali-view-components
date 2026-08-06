@@ -422,7 +422,54 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_includes react_translations["user_fallback"], "%{id}"
   end
 
+  # references_config derivado del registry (#708)
+
+  def test_the_registry_display_config_reaches_the_editor_without_declaring_it_again
+    with_entity_reference_types do
+      render_inline(Bali::BlockEditor::Component.new)
+
+      assert_equal({ "icon" => "▧", "label" => "Documento", "color" => "success" },
+                   react_references_config["Document"])
+    end
+  end
+
+  def test_an_explicit_references_config_wins_over_the_registry
+    with_entity_reference_types do
+      render_inline(Bali::BlockEditor::Component.new(
+                      references_config: { "Document" => { icon: "★", label: "Otro", color: "warning" } }
+                    ))
+
+      assert_equal "★", react_references_config.dig("Document", "icon")
+    end
+  end
+
+  def test_a_type_without_display_stays_out_of_the_config
+    with_entity_reference_types do
+      render_inline(Bali::BlockEditor::Component.new)
+
+      assert_not react_references_config.key?("Task"), "sin display: no hay nada que configurar"
+    end
+  end
+
   private
+
+  def with_entity_reference_types
+    original = Bali.entity_reference_types
+    Bali.entity_reference_types = {
+      "Document" => { search_scope: -> { Document.all }, lookup_scope: -> { Document.all },
+                      search_fields: %i[title], display_field: :title,
+                      display: { icon: "▧", label: "Documento", color: "success" } },
+      "Task" => { search_scope: -> { Task.all }, lookup_scope: -> { Task.all },
+                  search_fields: %i[title], display_field: :title }
+    }
+    yield
+  ensure
+    Bali.entity_reference_types = original
+  end
+
+  def react_references_config
+    JSON.parse(page.find("[data-block-editor-references-config-value]", visible: :all)["data-block-editor-references-config-value"])
+  end
 
   def react_translations
     JSON.parse(page.find("[data-block-editor-translations-value]", visible: :all)["data-block-editor-translations-value"])

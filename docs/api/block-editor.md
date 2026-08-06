@@ -603,7 +603,14 @@ Entity references let users type `#` to reference domain objects like tasks, pro
 
 ### Setup
 
-Entity references require two endpoints:
+Entity references require two endpoints. **The engine ships both** — declare your
+referenceable types once in `Bali.entity_reference_types` and point the editor at
+`bali.entity_references_path` / `bali.resolve_entity_references_path`. That registry also
+feeds `references_config`, so the chips get their icon, label and color without a second
+declaration. See the entity references section of `docs/guides/engines.md`.
+
+The rest of this section documents the wire contract, which is what you implement yourself
+if you don't mount the engine:
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(

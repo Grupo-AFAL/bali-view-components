@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Entity references move into the engine, behind one registry per type (#708).** The
+  BlockEditor's `#` menu had a working front end and no server: every host wrote its own
+  search endpoint, its own resolver and its own display config, three parallel declarations
+  that drifted. Now `Bali.entity_reference_types` declares a type once — `search_scope`,
+  `lookup_scope`, `search_fields`, `display_field`, and optionally `url`, `unreachable?`,
+  `extra_payload`, `permission_scope` and `display` — and that single entry powers the
+  search endpoint, the resolution endpoint **and** the editor's `references_config`, which
+  the component now derives when the host doesn't pass one.
+  - `Bali::EntityReferencesController` serves both operations for every registered type at
+    once (`GET bali/entity_references?q=`, `POST bali/entity_references/resolve`), capped at
+    10 results and 5 per type, with the query escaped through `sanitize_sql_like`.
+    `Bali.entity_references_authorize` **denies by default**: mounting the engine publishes
+    no search over your records until you open it, and `permission_scope:` gates each type
+    on both search and resolution, so a record the viewer may not see resolves as broken
+    rather than disclosing its name.
+  - `Bali::EntityReferenceable` materializes the references embedded in a model's BlockNote
+    column into the new `bali_entity_references` table (`record` and `referenceable` both
+    polymorphic, no foreign key on the referenced side so a reference survives the deletion
+    of its target and still renders as a broken chip). The write is a minimal diff guarded
+    by `saved_change_to_<attribute>?`: an autosave that doesn't touch the content costs no
+    queries, and rows that are still there keep their ids. `references_entities_in :body`
+    names the column when it isn't `content`; `incoming_references` and
+    `Model.referencing(record)` walk the relation backwards.
+  - `Bali::BlockNote::Text.entity_references` is the single walker over BlockNote structure
+    (nested children, both table shapes), shared with the text extractor — the reason the
+    hand-rolled versions this replaces drifted apart was having two.
+  - The payload the browser receives — `entityType`, `entityId`, `entityName`, `url`,
+    `broken` — is frozen; `extra_payload` adds host-owned keys on top of it and cannot
+    override those five. Adoption guide: `docs/guides/engines.md`.
+  - Caps on both sides, because the `after_save` runs inside the host's own `update!` and
+    the request body is written by the client: 500 references per record, 500 refs per
+    resolve request, 255 characters of `reference_text`, ids that don't fit a bigint
+    dropped, and no search below two characters.
+
+### Fixed
+
+- **An entity reference chip no longer links to a `javascript:` URL.** The chip's `url` prop
+  lives inside the saved document, so it is written by whoever can edit the content, and it
+  reaches the `href` untouched whenever resolution doesn't run (no `references_resolve_url`,
+  or a failed request). React renders `javascript:` hrefs with nothing but a console
+  warning. The chip now renders as plain text unless the URL is `http(s):`, `mailto:`,
+  root-relative or a fragment.
+
 ## [v3.1.0.beta.2] - 2026-08-06
 
 ### Added

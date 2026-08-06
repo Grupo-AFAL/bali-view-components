@@ -86,14 +86,15 @@ module Bali
       # and returns `[{entityType:, entityId:, entityName:}, ...]`.
       # Pass `references_resolve_url:` for batch name resolution on load.
       #
-      # This preview uses the dummy app's `/entity_references` endpoint.
+      # This preview uses the engine endpoint (Bali::EntityReferencesController); the dummy
+      # declares its types in `Bali.entity_reference_types`.
       # @param placeholder text
       def with_entity_references(placeholder: 'Type # to reference an entity...')
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
-          references_url: '/entity_references',
-          references_resolve_url: '/entity_references/resolve'
+          references_url: '/bali/entity_references',
+          references_resolve_url: '/bali/entity_references/resolve'
         )
       end
 
@@ -129,8 +130,8 @@ module Bali
           export_filename: 'my-document',
           ai_url: '/block_editor/ai',
           mentions_url: '/users',
-          references_url: '/entity_references',
-          references_resolve_url: '/entity_references/resolve',
+          references_url: '/bali/entity_references',
+          references_resolve_url: '/bali/entity_references/resolve',
           initial_content: full_featured_content.to_json
         )
       end

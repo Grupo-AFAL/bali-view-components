@@ -153,6 +153,67 @@ module Bali
   # Example: ->(controller, owner) { owner&.can?("tdflow.access") }
   mattr_accessor :saved_views_authorize, default: ->(_controller, owner) { owner.present? }
 
+  # Referencias de entidades (#708) — UNA declaración por tipo referenciable, que alimenta
+  # las tres cosas que antes se declaraban por separado: el buscador del `#`, la resolución
+  # de los chips y el `references_config` que el BlockEditor le pasa al JS.
+  #
+  # La clave es a la vez el `entityType` que viaja al navegador y el `referenceable_type`
+  # que se guarda en `bali_entity_references`, así que es el nombre de la clase.
+  #
+  #   Bali.entity_reference_types = {
+  #     "Document" => {
+  #       search_scope:  -> { Document.published },      # lo que ofrece el autocompletado
+  #       lookup_scope:  -> { Document.all },            # INCLUYE archivados: un chip roto
+  #       search_fields: %i[title document_number],      #   se pinta, no desaparece
+  #       display_field: :title,
+  #       url:           ->(doc) { Rails.application.routes.url_helpers.document_path(doc) },
+  #       unreachable?:  ->(doc) { doc.nil? || doc.archived? },
+  #       extra_payload: ->(doc) { { entityCode: doc.number } },
+  #       permission_scope: ->(controller, scope) { Pundit.policy_scope!(controller.current_user, scope) },
+  #       display:       { icon: "▧", label: "Documento", color: "success" }
+  #     }
+  #   }
+  #
+  # `url:` es del host A PROPÓSITO: el engine no conoce las rutas de la app y el resolver
+  # corre fuera de una vista, donde `main_app` no existe. Solo `search_scope`,
+  # `lookup_scope`, `search_fields` y `display_field` son obligatorios. Guía completa de
+  # adopción: docs/guides/engines.md.
+  mattr_accessor :entity_reference_types, default: {}
+
+  # Las claves se normalizan a String al asignar. Son a la vez el `entityType` del JSON y el
+  # `referenceable_type` de la tabla, y el registry se lee desde los dos lados: declararlo con
+  # símbolos dejaba al controller resolviendo TODO como roto (compara contra un String de
+  # params) mientras el modelo lo veía TODO alcanzable, sin un error que lo delatara.
+  def self.entity_reference_types=(types)
+    @@entity_reference_types = types.to_h { |type, config| [ type.to_s, config ] } # rubocop:disable Style/ClassVars
+  end
+
+  # Autorización de Bali::EntityReferencesController: callable (controller) — truthy permite,
+  # falsy responde 403. El default DENIEGA: los endpoints exponen nombres de registros del
+  # host, así que hay que abrirlos a mano (y con `permission_scope:` por tipo para el resto).
+  # Example: ->(controller) { controller.current_user.present? }
+  mattr_accessor :entity_references_authorize, default: ->(_controller) { false }
+
+  # El sub-hash `display:` del registry, listo para el `references_config` del BlockEditor.
+  # El componente lo usa como default cuando el host no pasa `references_config:`, que es lo
+  # que hace que declarar un tipo baste para que su chip salga con su icono y su color.
+  def self.entity_references_config
+    entity_reference_types.each_with_object({}) do |(type, config), out|
+      display = config[:display]
+      next if display.blank?
+
+      out[type.to_s] = display.symbolize_keys.slice(:icon, :label, :color)
+    end
+  end
+
+  # Alcanzabilidad de un referido según su tipo en el registry. Un tipo sin registrar cae al
+  # default (presente = alcanzable), que es lo que quiere un panel que lista referencias
+  # viejas de un tipo dado de baja.
+  def self.entity_reference_unreachable?(type, record)
+    gate = entity_reference_types.dig(type.to_s, :unreachable?)
+    (gate || Bali::EntityReference::Resolver::DEFAULT_UNREACHABLE).call(record)
+  end
+
   # Concerns the host injects into every controller of this engine (#710).
   #
   # `isolate_namespace` means `Bali::ApplicationController` inherits from
