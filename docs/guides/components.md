@@ -1682,6 +1682,49 @@ the dense header block of a show page, a two-column details card. Use `LabelValu
 that stands on its own, or when each pair needs its own placement in a layout neither grid can
 express.
 
+#### Gantt
+
+Timeline of scheduled work: groups (one nesting level), items (sub-items, milestones as
+diamonds), dependencies and a server-computed critical path, all described by one frozen data
+contract (`Bali::Gantt::Data`). One component, two renderers: `mode: :static` renders
+server-side (sticky two-tier header, collapsible groups, today line, zoom by links);
+`mode: :interactive` — the React Flow island — ships its JS in the npm package now (#705) and
+gets composed into the component in phase 3 (#719), so the option raises with a clear message
+until then.
+
+```erb
+<%= render Bali::Gantt::Component.new(
+  data: gantt.to_h,                 # the contract — see Bali::Gantt::Data
+  color_by: :status,                # or :none
+  zoom: params[:gantt_zoom],        # :auto/:day/:week/:month via links
+  statuses: gantt.statuses,         # [{ value:, label:, color: }]
+  group_label: 'Phase',
+  id: dom_id(project, :gantt)
+) %>
+```
+
+**Options:**
+- `data` - The Gantt document: `{ window (optional), groups: [], items: [], dependencies: [], critical_ids: [] }`; contract, renames and validation rules documented in `Bali::Gantt::Data`
+- `mode` - `:static` (default). `:interactive` raises until phase 3 (#719)
+- `color_by` - `:status` (bars from the status catalog) or `:none` (default: :status)
+- `zoom` / `zoom_param` / `zoom_links` - Zoom level (`:auto` default), the namespaced query param the links rewrite (default: `gantt_zoom`), and whether to render the switcher
+- `statuses` - Status catalog `[{ value:, label:, color: }]` — `color` is a daisyUI variable name (`'--color-info'`) or `nil` for neutral
+- `group_label` - Header of the sticky name column
+- `limit` - Announced cap on rendered items (default: 300, never silent)
+
+**The interactive island (npm):** `bali-view-components/gantt` exports `GanttController` (a
+`ReactIslandController` subclass — see `docs/api/react-island.md`); `/gantt-entry` is the
+dedicated bundler entry (registers on `window.Stimulus`, emits the island CSS) and
+`/gantt-loader` lazy-loads it on first sight of `data-controller="gantt"`. Optional peers:
+`react`, `react-dom`, `@xyflow/react >= 12`, `date-fns`, `@rails/request.js`. The controller's
+values mirror the props: `data`, `catalogs` (`{ statuses:, priorities: }`), `i18n`
+(`Bali::Gantt::Translations.island`), `editable`/`manageable`, `patchUrl`/`dependenciesUrl`/
+`scheduleUrl`, `itemUrlTemplate`, `newGroupUrl`/`newItemUrl`, `zoomParam`, `dateLocale`. The
+mutation contract (PATCH item / POST-DELETE dependency → always the complete document; 422
+`{errors}` → rollback; 404 → re-GET) has an executable reference in the dummy's
+`Admin::Projects::SchedulesController`, and the Lookbook previews `bali/gantt/island` /
+`island_readonly` exercise the island end to end.
+
 #### Heatmap
 
 Grid visualization that shows magnitude as color intensity across two dimensions, e.g. activity by day and hour.

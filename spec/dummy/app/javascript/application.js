@@ -25,10 +25,12 @@ ActiveStorage.start()
 // Register local controllers
 application.register('theme-switcher', ThemeSwitcherController)
 
-// Lazy-load the demo React island the first time it appears in the DOM.
+// Lazy-load the React islands the first time they appear in the DOM.
 // The digested bundle paths come from the react_island_meta_tags helper in
-// the page (see app/components/bali/react_island/previews/).
+// the page (see app/components/bali/react_island/previews/ and
+// app/components/bali/gantt/previews/).
 startIslandLoader('react-island-demo')
+startIslandLoader('gantt')
 
 // Register all core Bali controllers (utility + component)
 registerAllControllers(application)

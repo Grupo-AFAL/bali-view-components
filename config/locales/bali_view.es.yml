@@ -362,6 +362,65 @@ es:
         day: Día
         week: Semana
         month: Mes
+      # Tabla plana de la isla React (#705, D12) — la sirve
+      # Bali::Gantt::Translations.island como prop `i18n`. Los `%{...}` se
+      # interpolan del lado del CLIENTE; las claves deben coincidir con
+      # Translations::KEYS y con DEFAULT_I18N en
+      # app/components/bali/gantt/i18n.js.
+      island:
+        add_group: Grupo
+        add_group_hint: Agregar grupo
+        add_item: Elemento
+        add_item_hint: Nuevo elemento
+        search_placeholder: Buscar…
+        filter: Filtrar
+        filter_by_status: Filtrar por estado
+        all: Todos
+        columns: Columnas
+        show_columns: Mostrar columnas
+        col_name: Nombre
+        col_assignee_short: Resp
+        col_assignee: Responsable
+        col_dates: Fechas
+        col_days: Días
+        col_status: Estado
+        col_progress: Avance
+        critical: Crítica
+        critical_hint: Resaltar ruta crítica
+        deps: Deps
+        deps_hint: Mostrar dependencias
+        color: Color
+        color_by: Colorear por
+        color_status: Estado
+        color_assignee: Resp
+        color_group: Grupo
+        color_priority: Prioridad
+        zoom_label: Zoom
+        zoom_day: Día
+        zoom_week: Semana
+        zoom_month: Mes
+        today: Hoy
+        go_to_today: Ir a hoy
+        zoom_in: Acercar
+        zoom_out: Alejar
+        fit: Ajustar a la ventana
+        fullscreen: Pantalla completa
+        expand: Expandir
+        collapse: Colapsar
+        selection_none: Sin selección
+        selected: "%{count} en selección"
+        items_count: "%{count} elementos"
+        range_days: "%{count} días"
+        critical_count: "crítica: %{count}"
+        progress_label: "%{percent}% avance"
+        resize_start: Redimensionar (inicio)
+        resize_duration: Redimensionar (duración)
+        drag_dependency: Arrastra a otra barra para crear una dependencia
+        minimap_hint: Minimapa — clic o arrastra para navegar
+        splitter_hint: Arrastra para ajustar el ancho de la tabla
+        schedule_refreshed: El cronograma se actualizó (un elemento había cambiado).
+        change_failed: No se pudo aplicar el cambio
+        load_error: La línea de tiempo no pudo cargar.
     navbar:
       main_navigation: Navegación principal
       toggle_menu: Alternar menú
