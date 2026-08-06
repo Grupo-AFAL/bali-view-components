@@ -537,9 +537,9 @@ it is a plain character count. `min-height` floors the auto-grow.
 
 ## `time-period-field`
 
-A period `<select>` (this week, this month, …) over a hidden field, where the blank
-option means "custom" and reveals a date-range picker. Whichever control the user
-touched last writes the hidden field the form actually submits.
+A period `<select>` (this week, this month, …) over a hidden field, where one option
+means "custom" and reveals a date-range picker. Whichever control the user touched
+last writes the hidden field the form actually submits.
 `f.time_period_group` builds it; the essential wiring is:
 
 ```html
@@ -560,8 +560,21 @@ touched last writes the hidden field the form actually submits.
 </div>
 ```
 
-An optional `date-input-container-class` value names a wrapper element to show/hide
-together with the date input.
+The hidden field is the only control with a `name`: two inputs sharing one would submit
+the param twice and the server would keep the last, which is not necessarily the one on
+screen.
+
+`custom-value` names which option reveals the picker, and defaults to the empty string —
+what `f.time_period_group` uses, because its blank option is spent on exactly that. A
+filter row cannot afford that: its blank option has to mean "no filter", so
+SimpleFilters' `presets:` widget names a real one (`data-time-period-field-custom-value="custom"`)
+and keeps the blank for "any date". See `Bali::DateRangePresets`.
+
+`data-time-period-field-date-input-container-class-value` names a wrapper element to
+show/hide together with the date input — needed whenever the picker runs with `altInput`,
+since then the real input is already hidden and what the user sees is flatpickr's sibling
+inside that wrapper. Spell the `-value` suffix: without it Stimulus reads nothing, the
+controller has no container to reveal and the picker never appears, silently.
 
 ## `trix-attachments`
 

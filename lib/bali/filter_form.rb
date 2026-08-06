@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "date_range_presets"
 require_relative "filter_form/search_configuration"
 require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
@@ -115,6 +116,13 @@ module Bali
       # @param step [Numeric] Step for the :number_range simple widget
       # @param placeholder_min [String] Min placeholder for :number_range
       # @param placeholder_max [String] Max placeholder for :number_range
+      # @param presets [Boolean, Array<Symbol>] Named periods offered by an
+      #   `input: :date_range` widget, which then renders a period select whose
+      #   "Custom…" option reveals the date picker. `true` offers all of
+      #   {Bali::DateRangePresets::TOKENS}; an array picks and orders them. The
+      #   chosen token travels in the same param the explicit range does and is
+      #   resolved against `Time.zone` on every query, so a saved view that says
+      #   "this month" still means this month next month.
       #
       # @example Advanced popover only (same as always)
       #   filter_attribute :name, type: :text
@@ -126,13 +134,18 @@ module Bali
       # @example Simple UI only, custom widget
       #   filter_attribute :priority, type: :select, simple: true, advanced: false,
       #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group
+      #
+      # @example Date range with named periods
+      #   filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+      #     presets: %i[today this_week this_month], blank: 'Any date'
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, options: [], collection: nil,
                            simple: false, advanced: true, input: nil, predicate: :eq,
                            blank: nil, default: nil, icon: nil, step: nil,
-                           placeholder_min: nil, placeholder_max: nil)
+                           placeholder_min: nil, placeholder_max: nil, presets: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
+        resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
         filter_attributes << {
           key: key.to_sym,
           type: type,
@@ -141,14 +154,15 @@ module Bali
           options: options.presence || collection || [],
           simple: simple,
           advanced: advanced,
-          input: simple ? resolve_simple_input(key, type, input) : input&.to_sym,
+          input: resolved_input,
           predicate: predicate&.to_sym,
           blank: blank,
           default: default,
           icon: icon,
           step: step,
           placeholder_min: placeholder_min,
-          placeholder_max: placeholder_max
+          placeholder_max: placeholder_max,
+          presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input)
         }
       end
 

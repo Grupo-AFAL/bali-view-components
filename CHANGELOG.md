@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Date range filters take named periods — "This month" instead of two dates** (#725). `filter_attribute :created_at, type: :date, input: :date_range, simple: true, presets: %i[today this_week this_month]` (or `presets: true` for all five: `today`, `this_week`, `this_month`, `last_7_days`, `last_30_days`, the trailing two inclusive of today) renders a period select whose "Custom…" option reveals the picker that was there before. An instance-level `simple_filters:` hash takes the same key. An unknown token raises at declaration time, and so does `presets:` on anything but `date_range` — "this week" is not a value a single date can hold, and a control that cannot work should not render.
+
+  **The token is what travels, and that is the point.** `q[created_at]=this_month` goes in the SAME param an explicit range does, and `Bali::Types::DateRangeValue` only resolves it to a real range when the query runs. So a saved view or a persisted filter built on one still means this month next month, where a stored `2026-08-01..2026-08-31` means August forever — which is exactly the complaint that produced the issue. The period is the server's `Time.zone`, the zone the rest of the date filtering already speaks; resolving it in the browser would use the visitor's and quietly disagree with the listing it filters.
+
+  **The cast is additive, measured token by token.** Three of the five (`today`, `this_week`, `last_7_days`) used to reach `Time.zone.parse`, come back `nil` and raise `NoMethodError`. The other two did produce a range and both were nonsense: `Date._parse` reads the "mon" inside `this_month` as a weekday and yields today, and pulls `mday: 30` out of `last_30_days` and yields the 30th of the current month. Those two literal strings are the only inputs whose result changes, from a silently wrong day to the period they name. Every other form the type accepts — `a..b`, the beginless and endless halves, the localized `2026-01-01 to 2026-03-31`, a bare date widening to its whole day — is covered by the new `test/bali/types/date_range_value_test.rb` and unchanged.
+
+  **No second Stimulus controller.** The widget is `time-period-field`, the one `f.time_period_group` has always built, given a `custom-value` so the option that reveals the picker can be named. It defaults to the empty string — what the form builder uses, since its blank option is spent on "custom" — while a filter row needs its blank for "any date" and passes `custom`. Two fixes came with it: the container named by `date-input-container-class` is now resolved before the first toggle rather than after, so it is hidden on the initial render instead of one interaction later; and the hidden field is the only control in the widget with a `name`, since two inputs sharing one submit the param twice and the server keeps the last, not the one on screen.
+
 ## [v3.1.0.beta.3] - 2026-08-06
 
 ### Changed
