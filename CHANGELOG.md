@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **SimpleFilters lost the listing URL's own query params on every submit.** A GET submit replaces the action's query string with the form's fields, so a host passing `url:` with params of its own (a scope such as `status=historico`) saw them silently dropped each time the simple form was applied — the "Clear" link preserved them (beta.6), the submit did not. The form now re-emits the non-filter query params of its `url:` as hidden fields with the exact semantics `Bali::Filters::Component` always had: `q`, `clear_filters`, `clear_search` and `saved_view` stay out, and on a key collision the explicit `preserved_params:` hash wins, so a host already passing the param by hand does not emit it twice. (Refs #725)
+
+### Changed
+
+- **Filters/SimpleFilters internal dedup — no rendered-output change for the full panel.** The preserved-params semantics above now live in one shared `Bali::Filters::PreservedParams` module; the `storage_id`/`persist_enabled?`/`persistence_toggle?` persistence trio both components copied is now the `Bali::Filters::Persistable` concern; and the AND/OR combinator divider the panel template carried twice (popover and inline branches) is the `Bali::Filters::CombinatorDivider::Component` subcomponent. (Refs #725)
+
 ## [v3.0.0] - 2026-08-05
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
