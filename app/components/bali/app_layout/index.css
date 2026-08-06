@@ -118,6 +118,36 @@
   min-height: 0;
 }
 
+/* Mobile bottom breathing room — activates via `mobile_bottom_padding: true`.
+ *
+ * Two different problems, one option, because a host hits both at once:
+ *
+ * 1. `env(safe-area-inset-bottom)` — the home indicator on a notched phone.
+ *    Real, reported by the browser, and ZERO everywhere else, so it costs
+ *    nothing on a desktop. It only reports a value when the page opts into the
+ *    display cutout with `viewport-fit=cover`; see the guide.
+ * 2. A flat 4rem under `sm`, which is NOT safe-area. Safari's floating bottom
+ *    bar overlaps the page and is not reflected in `env()` at all: measured in
+ *    costa-norte, where the last row of a list sat behind it and could not be
+ *    tapped without pulling the page. That is why the constant exists next to
+ *    the environment value instead of being replaced by it.
+ *
+ * The padding goes on `<main>`, not on `.app-layout-body-container`. The
+ * container's padding comes from a Tailwind utility (`p-4` and friends, see
+ * BODY_CONTAINERS), and a utility beats anything in @layer components — this
+ * rule would lose. `<main>` carries no padding utility, so the space lands
+ * after the content either way, and under `viewport_locked:` it is scrollable
+ * space at the end of the scroller, which is exactly what is wanted. */
+.app-layout--mobile-bottom-padding .app-layout-content > main {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 640px) {
+  .app-layout--mobile-bottom-padding .app-layout-content > main {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @media (min-width: 1024px) {
   /* Push content right when a fixed sidebar is present.
 

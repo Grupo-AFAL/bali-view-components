@@ -15,8 +15,15 @@ module Bali
       # @param drawer toggle
       # @param body_container select { choices: [wide, contained, narrow, full] }
       # @param app_name text
+      # @param mobile_bottom_padding toggle
+      #
+      # `mobile_bottom_padding` adds room under the content for the phone's own
+      # chrome — Safari's floating bottom bar, which is **not** reported by
+      # `env(safe-area-inset-bottom)`, plus the safe area itself. Off by
+      # default. Narrow the preview window under 640px to see the mobile half.
       def default(collapsible: true, flash_notice: "", modal: true, drawer: true,
-                  body_container: "wide", app_name: "MovieDB")
+                  body_container: "wide", app_name: "MovieDB",
+                  mobile_bottom_padding: false)
         render_with_template(
           template: "bali/app_layout/previews/default",
           locals: {
@@ -26,7 +33,8 @@ module Bali
             drawer: drawer,
             drawer_size: drawer ? :lg : nil,
             body_container: body_container.to_sym,
-            app_name: app_name.presence
+            app_name: app_name.presence,
+            mobile_bottom_padding: mobile_bottom_padding
           }
         )
       end
