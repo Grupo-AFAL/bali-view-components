@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 class Document < ApplicationRecord
+  # El libro de firmas lo pone el engine (#709): `acknowledgments`, `acknowledge(user:)` y
+  # `acknowledged_by?` vienen de aquí. No hay macro que configurar.
+  include Bali::Acknowledgeable
+
+  # Virtual a propósito, sin columna: `Bali::Acknowledgeable` solo pregunta por
+  # `version_label` con `try`, así que basta con que el modelo responda. Es la etiqueta que
+  # se le enseña a la gente ("1.0"), y cambiarla convierte la siguiente confirmación en una
+  # firma nueva. Mismo default que el `version_number` de gobierno-corporativo.
+  attribute :version_label, :string, default: '1.0'
+
   enum :status, { draft: 0, published: 1, archived: 2 }
   has_many :document_versions, dependent: :destroy
   has_many :block_editor_threads, dependent: :destroy
