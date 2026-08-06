@@ -374,3 +374,37 @@
     @apply shrink-0;
   }
 }
+/* ========================================
+   Flyout panels (dropdown-content)
+   ======================================== */
+
+/* The look of every panel the sidebar opens: the collapsed-mode flyouts, the
+ * bottom group's menu and the module switcher.
+ *
+ * It used to be two Tailwind utilities on each of the four templates
+ * (`bg-base-100 shadow-lg`). It lives here now because of the rule this
+ * package keeps learning the hard way: a utility on the element sits in
+ * @layer utilities and beats anything in @layer components, so with the
+ * default written as a utility the themed variant below could never have
+ * overridden it — not with any selector. Default and variant share a layer,
+ * and specificity settles which one wins.
+ *
+ * `.dropdown-content` is a daisyUI class, but these are not daisyUI's
+ * declarations — daisyUI only positions the panel — so this belongs here and
+ * not in ./daisyui-overrides.css. A host utility still beats both rules, which
+ * is exactly what @layer components is for. */
+.side-menu-component .dropdown-content {
+  @apply bg-base-100 shadow-lg;
+}
+
+/* A themed sidebar — `theme:` on the component, usually a dark chrome next to a
+ * light page — needs more than the same panel in different colours. On a dark
+ * surface daisyUI's soft shadow is invisible and a `base-100` panel is the same
+ * colour as the rail it opens from, so the panel loses its edges entirely.
+ * Measured in costa-norte, which hand-rolls this exact fix for its switcher.
+ * One step lighter, a real border, and a shadow dark enough to read against a
+ * dark background put the floating panel back. */
+.side-menu-component[data-theme] .dropdown-content {
+  @apply bg-base-200 border border-base-300;
+  box-shadow: 0 12px 32px -10px oklch(0 0 0 / 0.55);
+}

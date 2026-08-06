@@ -49,9 +49,17 @@ module Bali
       # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
       # @param aria_label [String] Accessible name of the <nav> landmark
+      # @param theme [String, Symbol, nil] A daisyUI theme name, emitted as
+      #   `data-theme` on the `<nav>`. This is how an app gives the sidebar a
+      #   different skin from the page it sits next to — the dark chrome over a
+      #   light content area that every AFAL app hand-rolls. The theme itself is
+      #   the host's: its colours are brand, so the gem ships the mechanism and
+      #   documents the token list (see docs/guides/custom-themes.md), not the
+      #   values.
       def initialize(current_path:, id: DEFAULT_ID, fixed: true, collapsible: false,
                      group_behavior: :expandable,
-                     brand: nil, aria_label: nil, **options)
+                     brand: nil, aria_label: nil, theme: nil, **options)
+        @theme = theme.presence&.to_s
         @current_path = current_path
         @id = id
         @fixed = fixed
@@ -112,6 +120,10 @@ module Bali
         opts[:class] = container_classes
         opts[:data] = container_data
         opts["aria-label"] = aria_label
+        # daisyUI resolves its colour variables against the nearest ancestor
+        # carrying `data-theme`, so putting it here — and not on <html> — is the
+        # whole of "the sidebar is dark and the page is not".
+        opts["data-theme"] = @theme if @theme
         # A pinned sidebar starts closed and off-screen, so it starts out of the
         # tab order too. SideMenuController takes ownership on connect and drops
         # the attribute immediately at desktop widths, where the sidebar is
