@@ -626,6 +626,23 @@ es:
         sign_out: "Cerrar sesión"
     qr_code:
       label: "Código QR"
+    qr_scanner:
+      hint: "Apunta la cámara al código QR."
+      idle:
+        title: "Listo para escanear"
+        start: "Activar cámara"
+      requesting:
+        title: "Solicitando acceso a la cámara…"
+      scanned:
+        title: "Código detectado"
+        restart: "Escanear otra vez"
+      denied:
+        title: "Acceso a la cámara bloqueado"
+        description: "Permite el uso de la cámara para este sitio en la configuración de tu navegador e inténtalo de nuevo."
+        retry: "Reintentar"
+      unavailable:
+        title: "Cámara no disponible"
+        description: "No hay ninguna cámara disponible en este dispositivo, o este navegador no puede usarla aquí."
     workflow_steps:
       states:
         success: "Completado"
