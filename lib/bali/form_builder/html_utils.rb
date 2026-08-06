@@ -10,6 +10,16 @@ module Bali
       INPUT_ADDON_BASE_CLASS = "input join-item grow"
       TEXTAREA_BASE_CLASS = "textarea w-full"
 
+      # `size:` is the one key with two legitimate meanings on a form control:
+      # daisyUI's density variant and the HTML attribute of the same name (width
+      # in characters on an `<input>`, visible rows on a `<select>`). A Symbol
+      # out of the family's map is the variant; an Integer — or a String, which
+      # is what `size: "4"` has always meant — keeps meaning the attribute and
+      # passes through untouched. See `size_variant`.
+      INPUT_SIZES = {
+        xs: "input-xs", sm: "input-sm", md: "input-md", lg: "input-lg", xl: "input-xl"
+      }.freeze
+
       # daisyUI 5 dropped `label-text-alt`; `fieldset-label` is its successor for
       # the messages under a control. Unlike `.label` — the other candidate — it
       # is a block-level flex container with no `white-space: nowrap`, so a long
@@ -29,9 +39,11 @@ module Bali
       # Options the wrapper markup consumes: the fieldset caption, the help text
       # under the control, the `.control` div and the addons around the input.
       # `control_id` is the id the caption's `for` points at — read by
-      # FieldGroupWrapper, never an attribute of the input itself.
+      # FieldGroupWrapper, never an attribute of the input itself. `error` is
+      # the caller's own message for the field — rendered by `error_and_help`
+      # next to the model's, never an attribute.
       WRAPPER_OPTIONS = %i[
-        label help control_class control_data addon_left addon_right addon_class
+        label help error control_class control_data addon_left addon_right addon_class
         field_class field_data control_id
       ].freeze
 
@@ -186,13 +198,13 @@ module Bali
       # from what the field *could* have.
       def aria_attributes(method, options = {})
         described_by = [
-          (error_message_id(method) if errors?(method)),
+          (error_message_id(method) if errors?(method, options)),
           (help_message_id(method) if options[:help].present?)
         ].compact
 
         {
           "aria-describedby": described_by.presence&.join(" "),
-          "aria-invalid": ("true" if errors?(method))
+          "aria-invalid": ("true" if errors?(method, options))
         }.compact
       end
 
@@ -230,13 +242,14 @@ module Bali
 
       def field_options(method, options)
         attributes = html_attributes(options)
+        attributes.delete(:size) if size_variant(options)
 
         if PATTERN_TYPES.include?(options[:pattern_type])
           attributes[:pattern] = localized_number_pattern
         end
 
         attributes[:class] = field_class_name(
-          method, "#{input_base_class(options)} #{options[:class]}"
+          method, "#{input_base_class(options)} #{options[:class]}", options: options
         )
         merge_aria_attributes(attributes, method, options)
       end
@@ -244,7 +257,8 @@ module Bali
       def textarea_field_options(method, options, stimulus: false)
         attributes = html_attributes(options)
         attributes[:class] = field_class_name(
-          method, "#{TEXTAREA_BASE_CLASS} #{options[:class]}", error_class: "textarea-error"
+          method, "#{TEXTAREA_BASE_CLASS} #{options[:class]}",
+          error_class: "textarea-error", options: options
         )
 
         if stimulus
@@ -297,14 +311,15 @@ module Bali
       # control's `aria-describedby` at them. Emitting the id is all that
       # happens here; wiring it onto the input belongs to that issue.
       def error_and_help(method, options = {})
-        safe_join([ error_message(method), help_message(method, options) ].compact)
+        safe_join([ error_message(method, options), help_message(method, options) ].compact)
       end
 
-      def error_message(method)
-        return unless errors?(method)
+      def error_message(method, options = {})
+        return unless errors?(method, options)
 
         content_tag(
-          :p, full_errors(method), class: ERROR_MESSAGE_CLASS, id: error_message_id(method)
+          :p, full_errors(method, options),
+          class: ERROR_MESSAGE_CLASS, id: error_message_id(method)
         )
       end
 
@@ -325,20 +340,27 @@ module Bali
         field_id(method, "help")
       end
 
-      def field_class_name(method, class_name = "input", error_class: "input-error")
-        return class_name unless errors?(method)
+      def field_class_name(method, class_name = "input", error_class: "input-error", options: {})
+        return class_name unless errors?(method, options)
 
         "#{class_name} #{error_class}"
       end
 
-      def errors?(method)
-        object.respond_to?(:errors) && object.errors.key?(method)
+      # A field is in error when the model says so or the caller does. `error:`
+      # is the caller's channel (#723): the message rodauth or any other
+      # non-ActiveModel validator produced, on a form that may not even have an
+      # object. String or Array of them; nil and false both mean "nothing", so
+      # `error: rodauth.field_error(param)` can be written unconditionally.
+      def errors?(method, options = {})
+        explicit_errors(options).any? ||
+          (object.respond_to?(:errors) && object.errors.key?(method))
       end
 
-      def full_errors(method)
-        return "" unless object.respond_to?(:errors)
-
-        safe_join(object.errors.full_messages_for(method), ", ")
+      # The two sources join rather than replace, explicit first — the mirror
+      # of the error+help decision above: both are true, so both render, and
+      # the caller's message is the more specific one.
+      def full_errors(method, options = {})
+        safe_join(explicit_errors(options) + model_errors(method), ", ")
       end
 
       # rubocop:disable Style/OptionalBooleanParameter
@@ -375,11 +397,44 @@ module Bali
 
       private
 
+      # The caller's `error:`, normalized to the array of messages worth
+      # rendering. nil disappears on its own; `false` and `""` are dropped by
+      # the presence check, which is what lets a call site pass the raw return
+      # of its validator without guarding it first.
+      def explicit_errors(options)
+        Array(options[:error]).select(&:present?)
+      end
+
+      def model_errors(method)
+        return [] unless object.respond_to?(:errors)
+
+        object.errors.full_messages_for(method)
+      end
+
+      # The daisyUI class `size:` names, or nil when the option means the HTML
+      # attribute (see INPUT_SIZES). Only Symbols are read as variants —
+      # `size: 4` and `size: "4"` keep their attribute meaning untouched — and
+      # a Symbol the map does not know raises instead of leaking `size="tiny"`
+      # into the markup, the same contract ButtonTaxonomy already enforces for
+      # the submit button.
+      def size_variant(options, map = INPUT_SIZES)
+        size = options[:size]
+        return unless size.is_a?(Symbol)
+
+        map.fetch(size) do
+          raise ArgumentError,
+                "size: #{size.inspect} is not a size variant. " \
+                "Valid: #{map.keys.map(&:inspect).join(', ')}. " \
+                "An Integer passes through as the HTML size attribute."
+        end
+      end
+
       # Add join-item class when addons are present for proper DaisyUI join pattern
       def input_base_class(options)
         has_addons = options[:addon_left].present? || options[:addon_right].present?
+        base = has_addons ? INPUT_ADDON_BASE_CLASS : INPUT_BASE_CLASS
 
-        has_addons ? INPUT_ADDON_BASE_CLASS : INPUT_BASE_CLASS
+        [ base, size_variant(options) ].compact.join(" ")
       end
 
       def field_with_addons(field, left:, right:)

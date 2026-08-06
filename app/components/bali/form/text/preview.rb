@@ -64,6 +64,26 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        # @label With External Error
+        # A model-less form (`form_with url:` — the rodauth shape): `error:`
+        # carries the message a non-ActiveModel validator produced. Strings and
+        # arrays both work; nil/false render nothing, so the raw return of the
+        # validator can be passed unconditionally.
+        def with_external_error
+          render_with_template(
+            template: 'bali/form/text/previews/with_external_error'
+          )
+        end
+
+        # @label Sizes
+        # `size:` with a Symbol is the daisyUI density variant; an Integer keeps
+        # meaning the HTML `size` attribute (width in characters).
+        def sizes
+          render_with_template(
+            template: 'bali/form/text/previews/sizes'
+          )
+        end
       end
     end
   end

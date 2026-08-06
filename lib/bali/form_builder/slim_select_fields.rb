@@ -47,7 +47,7 @@ module Bali
         attributes = widget_attributes(merged_html)
         attributes[:class] = field_class_name(
           method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
-          error_class: "select-error"
+          error_class: "select-error", options: group
         )
         merge_aria_attributes(attributes, method, group)
 

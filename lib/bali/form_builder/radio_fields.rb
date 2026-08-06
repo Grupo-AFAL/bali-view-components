@@ -117,7 +117,7 @@ module Bali
           RADIO_CLASS,
           SIZES[size],
           COLORS[color],
-          (errors?(method) ? "radio-error" : nil),
+          (errors?(method, options) ? "radio-error" : nil),
           custom_class
         ].compact.join(" ")
 
