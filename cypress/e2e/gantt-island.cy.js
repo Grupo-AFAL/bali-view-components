@@ -16,6 +16,9 @@ const instancias = (win) =>
 
 const anchoDe = ($el) => $el[0].getBoundingClientRect().width
 
+// Fila de la tabla de un item, por su nombre (el `title` de la fila).
+const filaDe = (nombre) => cy.get(`div[title="${nombre}"]`).filter('[class*="cursor-pointer"]')
+
 // Arrastra un nodo de React Flow `dx` px en horizontal. d3-drag escucha
 // mousedown en el nodo y sigue mousemove/mouseup en la window del AUT — los
 // eventos sinteticos necesitan `view: win` (d3 hace select(event.view)) o
@@ -119,22 +122,57 @@ describe('Gantt island', () => {
     // Editable: los handles de resize existen (aparecen en hover).
     cy.get('.cursor-ew-resize').should('exist')
 
-    // Ida: +10 dias en zoom week (8 px/dia).
-    arrastrarNodo('.react-flow__node', 80)
-    cy.wait('@patch').then(({ request, response }) => {
-      expect(request.body.item.id).to.be.a('number')
-      expect(request.body.item.starts_on).to.match(/^\d{4}-\d{2}-\d{2}$/)
-      expect(request.body.item.duration_days).to.be.greaterThan(0)
-      expect(response.statusCode).to.equal(200)
-      // Reconcile: el documento COMPLETO, no un parche.
-      expect(response.body).to.have.all.keys('groups', 'items', 'dependencies', 'critical_ids')
+    // Las ediciones PERSISTEN en la DB del dummy y este spec corre una y otra
+    // vez contra la misma. Se guarda el estado del item para devolverlo por el
+    // mismo endpoint del contrato al final.
+    //
+    // Antes la vuelta se hacia con un segundo drag de la misma distancia, y NO
+    // funciona: el arrastre de vuelta no es el inverso del de ida (medido: la
+    // ida mueve 5 dias, la vuelta 0), asi que la fecha derivaba ~5 dias por
+    // corrida hasta que el item pasaba al siguiente y el `cy.wait` del segundo
+    // PATCH moria por timeout. En CI nunca se vio porque cada corrida hace
+    // `db:schema:load db:seed`; en local aparecia a las pocas repeticiones.
+    cy.get('[data-controller="gantt"]').then(($isla) => {
+      const items = JSON.parse($isla.attr('data-gantt-data-value')).items
+      const id = Number(Cypress.$('.react-flow__node').first().attr('data-id'))
+      const item = items.find((i) => Number(i.id) === id)
+      cy.wrap({
+        // Absoluta: `cy.request` resuelve una relativa contra el baseUrl, que
+        // aqui apunta dentro de Lookbook y no al endpoint.
+        url: `${window.location.origin}${$isla.attr('data-gantt-patch-url-value')}`,
+        id,
+        nombre: item.name,
+        startsOn: item.starts_on,
+        dias: Math.round((Date.parse(item.ends_on) - Date.parse(item.starts_on)) / 86400000) + 1
+      }).as('itemArrastrado')
     })
-    cy.get('.react-flow__node').should('have.length.greaterThan', 0).and('be.visible')
-    cy.get('.alert-error').should('not.exist')
 
-    // Vuelta: restaura las fechas del seed (misma distancia, snap identico).
-    arrastrarNodo('.react-flow__node', -80)
-    cy.wait('@patch').its('response.statusCode').should('equal', 200)
-    cy.get('.alert-error').should('not.exist')
+    // La fila del item ARRASTRADO (por su nombre, no por posicion: el orden de
+    // las filas depende de las fechas) es el testigo del reconcile — tabla y
+    // barras salen del MISMO `rows`, y el 200 del PATCH llega antes de que
+    // React reposicione nada.
+    cy.get('@itemArrastrado').then(({ nombre }) => {
+      filaDe(nombre).invoke('text').then((textoInicial) => {
+        arrastrarNodo('.react-flow__node', 80)
+        cy.wait('@patch').then(({ request, response }) => {
+          expect(request.body.item.id).to.be.a('number')
+          expect(request.body.item.starts_on).to.match(/^\d{4}-\d{2}-\d{2}$/)
+          expect(request.body.item.duration_days).to.be.greaterThan(0)
+          expect(response.statusCode).to.equal(200)
+          // Reconcile: el documento COMPLETO, no un parche.
+          expect(response.body).to.have.all.keys('groups', 'items', 'dependencies', 'critical_ids')
+        })
+        filaDe(nombre).should('not.have.text', textoInicial)
+        cy.get('.react-flow__node').should('have.length.greaterThan', 0).and('be.visible')
+        cy.get('.alert-error').should('not.exist')
+      })
+    })
+
+    // Restaura por API: determinista, y deja la DB como la encontro.
+    cy.get('@itemArrastrado').then(({ url, id, startsOn, dias }) => {
+      cy.request('PATCH', url, { item: { id, starts_on: startsOn, duration_days: dias } })
+        .its('status')
+        .should('equal', 200)
+    })
   })
 })

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Gantt island's drag spec no longer degrades the dummy database it runs against** (#705).
+  `gantt-island.cy.js` dragged a bar forward and then dragged it back "the same distance" to
+  restore the seeded dates. The return drag is not the inverse of the outbound one — measured on
+  the seeded fixture, the outbound drag moves the item 5 days and the return drag moves it 0 — so
+  every local run left the item ~5 days later than it found it. Once the item drifted past the
+  start of the next one, the return drag landed on the date the item already had,
+  `onNodeDragStop` short-circuited before posting, and `cy.wait('@patch')` timed out waiting for a
+  second request that never came. CI never saw it because every CI run does
+  `db:schema:load db:seed` first; locally it surfaced after a handful of repetitions and looked
+  like a race in the island. The spec now waits for the reconcile to land in the table before
+  asserting, and restores the item through the contract's own PATCH endpoint instead of through a
+  second drag — deterministic, and it leaves the database exactly as it found it. Verified with 8
+  consecutive runs: 8/8 green with the seeded dates unchanged (before: 0/8 from a drifted
+  database).
+
 ### Added
 
 - **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
