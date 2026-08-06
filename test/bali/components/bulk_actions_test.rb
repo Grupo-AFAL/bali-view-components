@@ -10,6 +10,10 @@ class BulkActionsRoundTripFilterForm < Bali::FilterForm
 
   attribute :name_cont
   attribute :status_eq
+  # Un date_range declarado como attribute: `result` lo aplica FUERA de Ransack, y por eso
+  # `query_params` —y con él `active_filters`— lo excluye por construcción. Si la re-emisión
+  # se apoyara solo en `active_filters`, el bulk actuaría sobre un superconjunto.
+  attribute :created_at, Bali::Types::DateRangeValue.new
 end
 
 class BaliBulkActionsComponentTest < ComponentTestCase
@@ -457,6 +461,36 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_equal(listing.result.pluck(:id).sort, rebuilt.result.pluck(:id).sort)
   end
 
+  # Un `date_range` declarado como attribute NO pasa por Ransack: `result` lo aplica aparte,
+  # y por eso `query_params` —y con él `active_filters`— lo excluye por construcción. Si la
+  # re-emisión se apoyara solo en `active_filters`, el listado mostraría 1 registro y el
+  # servidor re-derivaría 2: el bulk actuaría sobre un SUPERCONJUNTO de lo que se ve, que a
+  # escala es un destroy_all tocando lo que el filtro de fecha excluía.
+  def test_a_date_range_filter_survives_the_round_trip
+    tenant = Tenant.create(name: "Date range")
+    reciente = tenant.movies.create(name: "Iron man 3", status: 0)
+    reciente.update_column(:created_at, Time.zone.parse("2026-03-15 12:00"))
+    vieja = tenant.movies.create(name: "Iron man 1", status: 0)
+    vieja.update_column(:created_at, Time.zone.parse("2020-01-05 12:00"))
+
+    listing_params = ActionController::Parameters.new(
+      q: { name_cont: "Iron", created_at: "2026-01-01..2026-12-31" }
+    )
+    listing = BulkActionsRoundTripFilterForm.new(tenant.movies, listing_params)
+    assert_equal([ reciente.id ], listing.result.pluck(:id))
+
+    pairs = Bali::Filters::ActiveFilterParams.for_filter_form(listing)
+    posted = Rack::Utils.parse_nested_query(
+      pairs.map { |name, value| "#{CGI.escape(name.to_s)}=#{CGI.escape(value.to_s)}" }.join("&")
+    )
+    rebuilt = BulkActionsRoundTripFilterForm.new(
+      tenant.movies, ActionController::Parameters.new(posted)
+    )
+
+    assert_equal(listing.result.pluck(:id), rebuilt.result.pluck(:id),
+                 "los pares re-emitidos tienen que reproducir el recorte por fecha")
+  end
+
   # --- El DataTable lo cablea solo --------------------------------------------------------
 
   def test_a_data_table_feeds_n_from_its_pagy_and_the_filters_from_its_filter_form
@@ -498,5 +532,29 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     ) { |c| c.with_action(label: "Borrar", href: "/borrar") }
 
     assert_selector("input[name='q[name_cont]'][value='Iron']", visible: :all)
+  end
+
+  # Una acción montada a mano, fuera de la barra, normaliza igual: `Array(hash)` la dejaba
+  # como UN hidden llamado `q` con el `to_s` del hash adentro — un POST que parece bien
+  # formado y no filtra nada.
+  def test_an_action_mounted_on_its_own_normalizes_a_nested_hash_too
+    render_inline(
+      Bali::BulkActions::Action::Component.new(
+        label: "Borrar", href: "/borrar",
+        select_all_filtered: true, filter_params: { q: { name_cont: "Iron" } }
+      )
+    )
+
+    assert_selector("input[name='q[name_cont]'][value='Iron']", visible: :all)
+    assert_no_selector("input[name='q']", visible: :all)
+  end
+
+  def test_a_filter_params_shape_that_cannot_be_serialized_says_so
+    error = assert_raises(ArgumentError) do
+      Bali::BulkActions::Component.new(total_count: 5, filter_params: "q[name_cont]=Iron")
+    end
+
+    assert_match(/filter_params/, error.message)
+    assert_match(/nested hash/, error.message)
   end
 end

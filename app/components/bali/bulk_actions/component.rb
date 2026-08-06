@@ -83,7 +83,7 @@ module Bali
         @variant = VARIANTS.include?(variant&.to_sym) ? variant.to_sym : :floating
         @standalone = standalone
         @total_count = total_count&.to_i
-        @filter_params = normalize_filter_params(filter_params)
+        @filter_params = Bali::Filters::ActiveFilterParams.normalize(filter_params)
         @options = options
       end
 
@@ -105,15 +105,6 @@ module Bali
       end
 
       private
-
-      # Pares `[name, value]` tal cual, o un hash anidado que se aplana con el mismo
-      # serializador que usa el form de filtros.
-      def normalize_filter_params(value)
-        return [] if value.blank?
-        return value.to_a if value.is_a?(Array)
-
-        Bali::Filters::ActiveFilterParams.flatten(value)
-      end
 
       def bar_classes
         CLASSES[toolbar? ? :toolbar_bar : :floating_bar]

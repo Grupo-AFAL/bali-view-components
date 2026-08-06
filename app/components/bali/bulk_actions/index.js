@@ -251,6 +251,15 @@ export class BulkActionsController extends Controller {
       return
     }
 
+    // Entrar al modo "todos los filtrados" es un cambio de MODO, no un conteo más. Anunciando
+    // solo el número, el lector de pantalla pasaba de "5 seleccionados" a "1248 seleccionados"
+    // sin nada que dijera que la selección ya no es la página que se está mirando. La frase
+    // completa la sirve el servidor en el aviso, así que se reusa en vez de armarla en JS.
+    if (this.selectAllFilteredValue && this.hasSelectAllNoticeTarget) {
+      this.announcementTarget.textContent = this.selectAllNoticeTarget.textContent.trim()
+      return
+    }
+
     const { selectedOne, selectedOther } = this.announcementTarget.dataset
     this.announcementTarget.textContent = `${count} ${count === 1 ? selectedOne : selectedOther}`.trim()
   }
