@@ -57,8 +57,18 @@ module Bali
       # `**options` va PRIMERO: lo que el componente posee no se puede pisar desde el host.
       # Splateado al final, un `standalone: true` del host anidaba un segundo controlador y
       # rompía en silencio la invariante que este comentario acaba de documentar.
+      #
+      # `total_count:` y `filter_params:` van ANTES del splat: son un default derivado del
+      # listado (el `pagy` y el `filter_form` que este DataTable ya tiene), no una invariante
+      # del componente, así que el host puede pisarlos — para acotar la oferta a otra cuenta,
+      # o para apagarla con `total_count: nil` en un listado donde una acción sobre todo el
+      # resultado no tiene sentido.
       renders_one :bulk_actions, ->(**options) do
-        Bali::BulkActions::Component.new(**options, variant: :toolbar, standalone: false)
+        Bali::BulkActions::Component.new(
+          total_count: bulk_actions_total_count,
+          filter_params: Bali::Filters::ActiveFilterParams.for_filter_form(@filter_form),
+          **options, variant: :toolbar, standalone: false
+        )
       end
 
       # Filters panel using Filters component.
@@ -817,6 +827,15 @@ module Bali
 
       def pagy_adapter
         @pagy_adapter ||= Bali::Pagination::PagyAdapter.new(@pagy)
+      end
+
+      # N para la oferta "seleccionar los N resultados": el total del resultado FILTRADO, que
+      # es exactamente lo que el pagy del listado cuenta. Sin pagy, o con paginación countless
+      # (donde `count` es nil por diseño), no hay N que ofrecer y la barra no ofrece nada.
+      def bulk_actions_total_count
+        return unless @pagy && pagy_adapter.summarizable?
+
+        pagy_adapter.count
       end
 
       def summary_position?(position)

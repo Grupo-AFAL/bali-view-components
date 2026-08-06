@@ -66,6 +66,34 @@ module Bali
         end
       end
 
+      # @label Select all filtered
+      # Select every row and the bar offers to extend the selection to the whole filtered
+      # result — the Gmail move. Two options make it appear:
+      #
+      # - **`total_count:`** is N, the size of the FILTERED result (not of the page). A
+      #   `DataTable` fills it from its own `pagy` and needs nothing declared.
+      # - **`filter_params:`** are the `q[...]` in effect, re-emitted as hidden fields inside
+      #   every action's form so the server can rebuild the same scope with the same code the
+      #   index uses: `MyFilterForm.new(scope, params).result`. A `DataTable` fills this one
+      #   from its `filter_form`; here they are written by hand to make them visible.
+      #
+      # While the mode is on, `selected_ids` goes out EMPTY and `select_all_filtered=true`
+      # travels instead — the ids of the visible page could only contradict the scope the
+      # server is about to re-derive. Unchecking any row leaves the mode and goes back to
+      # page selection; the checkboxes are never disabled.
+      def select_all_filtered
+        render Bali::BulkActions::Component.new(
+          variant: :toolbar,
+          total_count: 128,
+          filter_params: { q: { status_eq: 'draft', name_cont: 'o' } }
+        ) do |c|
+          c.with_action(label: 'Archive', href: '/users/bulk_archive', variant: :info)
+          c.with_action(label: 'Delete', href: '/users/bulk_delete', variant: :error)
+
+          RECORDS.each { |record| item_for(c, record) }
+        end
+      end
+
       private
 
       def item_for(component, record)

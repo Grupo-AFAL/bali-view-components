@@ -2,6 +2,16 @@
 
 require "test_helper"
 
+# Un form con las dos formas de recortar a la vez: el builder avanzado (que viaja anidado en
+# `q[g][...]`) y un atributo plano. El round-trip del bulk tiene que reproducir las dos.
+class BulkActionsRoundTripFilterForm < Bali::FilterForm
+  filter_attribute :name, type: :text
+  filter_attribute :status, type: :select, options: [ %w[Draft draft], %w[Done done] ]
+
+  attribute :name_cont
+  attribute :status_eq
+end
+
 class BaliBulkActionsComponentTest < ComponentTestCase
   def setup
     @component = Bali::BulkActions::Component.new
@@ -310,5 +320,173 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_includes(classes, "ring-1")
     refute_match(/\bborder\b/, classes)
     refute_match(/\bpy-\d/, classes)
+  end
+end
+
+# El contrato "actuar sobre los N filtrados" (#724): qué se pinta, qué viaja en el POST y que
+# lo que viaja reproduce el MISMO scope que el listado.
+class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
+  FILTER_PAIRS = [
+    [ "q[g][0][m]", "or" ],
+    [ "q[g][0][name_cont]", "Iron" ],
+    [ "q[status_eq]", "draft" ]
+  ].freeze
+
+  def bar(total_count: 120, filter_params: FILTER_PAIRS, **options)
+    Bali::BulkActions::Component.new(total_count: total_count, filter_params: filter_params,
+                                     **options)
+  end
+
+  # --- Lo que se pinta -------------------------------------------------------------------
+
+  def test_without_a_total_count_nothing_of_the_mode_exists
+    render_inline(Bali::BulkActions::Component.new(filter_params: FILTER_PAIRS)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+
+    assert_no_selector("[data-bulk-actions-target='selectAllOffer']", visible: :all)
+    assert_no_selector("input[name='select_all_filtered']", visible: :all)
+    # Los filtros tampoco: sin flag que los active, solo serían ruido en el POST.
+    assert_no_selector("input[name='q[status_eq]']", visible: :all)
+  end
+
+  def test_the_offer_and_the_notice_carry_n_from_the_server
+    render_inline(bar) { |c| c.with_action(label: "Borrar", href: "/borrar") }
+
+    offer = page.find("[data-bulk-actions-target='selectAllOffer']", visible: :all)
+    assert_equal("120", offer["data-total-count"])
+    assert_selector("[data-bulk-actions-target='selectAllOffer'] button", text: "Select all 120 results",
+                    visible: :all)
+    assert_selector("[data-bulk-actions-target='selectAllNotice']",
+                    text: "All 120 results are selected", visible: :all)
+  end
+
+  # Ambos arrancan ocultos: la oferta solo aplica con la página entera marcada, y el aviso
+  # solo dentro del modo. El JS decide; el servidor no puede saber ninguna de las dos cosas.
+  def test_the_offer_and_the_notice_start_hidden
+    render_inline(bar) { |c| c.with_action(label: "Borrar", href: "/borrar") }
+
+    assert_selector("[data-bulk-actions-target='selectAllOffer'].hidden", visible: :all)
+    assert_selector("[data-bulk-actions-target='selectAllNotice'].hidden", visible: :all)
+  end
+
+  def test_the_offer_is_a_button_because_it_changes_state_instead_of_navigating
+    render_inline(bar) { |c| c.with_action(label: "Borrar", href: "/borrar") }
+
+    assert_selector("button[data-action='bulk-actions#selectAllFiltered']", visible: :all)
+    assert_no_selector("a[data-action='bulk-actions#selectAllFiltered']", visible: :all)
+  end
+
+  # --- Lo que viaja en el POST -----------------------------------------------------------
+
+  def test_every_action_form_carries_the_flag_off_and_the_active_filters
+    render_inline(bar) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+      c.with_action(label: "Archivar", href: "/archivar")
+    end
+
+    flags = page.all("input[name='select_all_filtered']", visible: :all)
+    assert_equal(2, flags.size)
+    assert(flags.all? { |flag| flag.value == "false" }, "el flag arranca apagado")
+    assert(flags.all? { |flag| flag[:id].blank? }, "el flag no debe llevar id: se repite por form")
+    assert_selector("[data-bulk-actions-target='selectAllFilteredField']", count: 2, visible: :all)
+
+    FILTER_PAIRS.each do |name, value|
+      assert_selector("form[action='/borrar'] input[name='#{name}'][value='#{value}']", visible: :all)
+      assert_selector("form[action='/archivar'] input[name='#{name}'][value='#{value}']", visible: :all)
+    end
+  end
+
+  # Una acción GET no tiene hidden fields, así que los filtros viajan en su href — y los que
+  # el href ya trajera se descartan: el estado vigente del listado es el que manda.
+  def test_a_get_action_carries_the_filters_in_its_href
+    render_inline(bar) do |c|
+      c.with_action(label: "Exportar", href: "/exportar?format=csv&q%5Bname_cont%5D=viejo",
+                    method: :get)
+    end
+
+    query = Rack::Utils.parse_nested_query(URI.parse(page.find("a")[:href]).query)
+    assert_equal("csv", query["format"])
+    assert_equal("Iron", query.dig("q", "g", "0", "name_cont"))
+    assert_equal("draft", query.dig("q", "status_eq"))
+  end
+
+  # --- El round-trip: lo que viaja reproduce el listado ------------------------------------
+
+  def test_the_filters_a_data_table_emits_rebuild_the_very_same_scope
+    tenant = Tenant.create(name: "Round trip")
+    iron_1 = tenant.movies.create(name: "Iron man 1", status: 0)
+    iron_2 = tenant.movies.create(name: "Iron man 2", status: 0)
+    tenant.movies.create(name: "Snatch", status: 0)
+
+    listing_params = ActionController::Parameters.new(
+      q: { g: { "0" => { m: "or", name_cont: "Iron" } }, status_eq: "draft" }
+    )
+    listing = BulkActionsRoundTripFilterForm.new(tenant.movies, listing_params)
+    assert_equal([ iron_1.id, iron_2.id ].sort, listing.result.pluck(:id).sort)
+
+    render_inline(
+      Bali::BulkActions::Component.new(
+        total_count: listing.result.count,
+        filter_params: Bali::Filters::ActiveFilterParams.for_filter_form(listing)
+      )
+    ) { |c| c.with_action(label: "Borrar", href: "/borrar") }
+
+    # Exactamente lo que el navegador postearía de ese form.
+    posted = Rack::Utils.parse_nested_query(
+      page.all("form[action='/borrar'] input[type=hidden]", visible: :all)
+          .reject { |input| %w[authenticity_token selected_ids].include?(input[:name]) }
+          .map { |input| "#{CGI.escape(input[:name])}=#{CGI.escape(input.value.to_s)}" }
+          .join("&")
+    )
+    assert_equal("false", posted["select_all_filtered"])
+
+    rebuilt = BulkActionsRoundTripFilterForm.new(
+      tenant.movies, ActionController::Parameters.new(posted)
+    )
+    assert_equal(listing.result.pluck(:id).sort, rebuilt.result.pluck(:id).sort)
+  end
+
+  # --- El DataTable lo cablea solo --------------------------------------------------------
+
+  def test_a_data_table_feeds_n_from_its_pagy_and_the_filters_from_its_filter_form
+    filter_form = BulkActionsRoundTripFilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { name_cont: "Iron" })
+    )
+
+    render_inline(
+      Bali::DataTable::Component.new(url: "/movies", filter_form: filter_form,
+                                     pagy: Pagy::Offset.new(count: 47, page: 1, limit: 10))
+    ) do |c|
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Borrar", href: "/borrar") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_equal("47", page.find("[data-bulk-actions-target='selectAllOffer']",
+                                 visible: :all)["data-total-count"])
+    assert_selector("form[action='/borrar'] input[name='q[name_cont]'][value='Iron']", visible: :all)
+  end
+
+  # Paginación countless: `count` es nil por diseño, así que no hay N que ofrecer. Ofrecer
+  # "seleccionar los resultados" sin saber cuántos son es prometer algo que no se puede medir.
+  def test_a_countless_pagy_offers_nothing
+    render_inline(
+      Bali::DataTable::Component.new(url: "/movies", pagy: Pagy::Offset.new(count: 0, page: 1, limit: 10))
+    ) do |c|
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Borrar", href: "/borrar") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_no_selector("[data-bulk-actions-target='selectAllOffer']", visible: :all)
+    assert_no_selector("input[name='select_all_filtered']", visible: :all)
+  end
+
+  # Un hash anidado es la otra forma de escribir los mismos pares.
+  def test_filter_params_accepts_a_nested_hash
+    render_inline(
+      Bali::BulkActions::Component.new(total_count: 5, filter_params: { q: { name_cont: "Iron" } })
+    ) { |c| c.with_action(label: "Borrar", href: "/borrar") }
+
+    assert_selector("input[name='q[name_cont]'][value='Iron']", visible: :all)
   end
 end
