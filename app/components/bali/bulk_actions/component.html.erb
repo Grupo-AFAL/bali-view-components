@@ -29,6 +29,26 @@
         <% end %>
 
         <%= tag.div class: actions_wrapper_classes do %>
+          <% if select_all_filtered? %>
+            <%# La oferta aparece cuando la selección ya cubre la página entera y hay más
+                resultados detrás (el JS compara N contra las filas que ve). N viaja en un
+                data attribute y el texto ya viene pluralizado por el servidor: el mismo
+                trato que la live region le da a `selected_one/other`, para no interpolar
+                i18n en JS. %>
+            <%= tag.div class: CLASSES[:select_all_offer],
+                        data: { bulk_actions_target: 'selectAllOffer', total_count: total_count } do %>
+              <%= render Bali::Button::Component.new(
+                    name: t('.select_all_filtered', count: total_count),
+                    variant: :link, size: :xs, responsive: false,
+                    data: { action: 'bulk-actions#selectAllFiltered' }
+                  ) %>
+            <% end %>
+
+            <%= tag.span t('.all_filtered_selected', count: total_count),
+                         class: CLASSES[:select_all_notice],
+                         data: { bulk_actions_target: 'selectAllNotice' } %>
+          <% end %>
+
           <% actions.each do |action| %>
             <%= action %>
           <% end %>

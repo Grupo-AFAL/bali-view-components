@@ -258,6 +258,12 @@ en:
       selected_one: selected
       selected_other: selected
       clear: Clear selection
+      select_all_filtered:
+        one: Select the only result
+        other: Select all %{count} results
+      all_filtered_selected:
+        one: The only result is selected
+        other: All %{count} results are selected
     tree_view:
       toggle_branch: "Toggle %{name}"
     timeago:

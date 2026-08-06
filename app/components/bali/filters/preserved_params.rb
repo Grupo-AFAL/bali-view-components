@@ -48,18 +48,10 @@ module Bali
 
       private
 
-      # Recursively flatten nested params hash into [name, value] pairs.
+      # Nested params hash into [name, value] pairs.
       # e.g., {"sort" => {"column" => "name"}} becomes [["sort[column]", "name"]]
       def flatten_params(params, prefix = nil)
-        params.flat_map do |key, value|
-          field_name = prefix ? "#{prefix}[#{key}]" : key.to_s
-
-          case value
-          when Hash  then flatten_params(value, field_name)
-          when Array then value.map { |v| [ "#{field_name}[]", v ] }
-          else            [ [ field_name, value ] ]
-          end
-        end
+        ActiveFilterParams.flatten(params, prefix)
       end
     end
   end

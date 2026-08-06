@@ -254,6 +254,12 @@ es:
       selected_one: seleccionado
       selected_other: seleccionados
       clear: Limpiar selección
+      select_all_filtered:
+        one: Seleccionar el único resultado
+        other: Seleccionar los %{count} resultados
+      all_filtered_selected:
+        one: El único resultado está seleccionado
+        other: Los %{count} resultados están seleccionados
     tree_view:
       toggle_branch: "Alternar %{name}"
     timeago:
