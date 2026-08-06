@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::QrScanner` — the camera half of the QR pair** (#928). `Bali::QrCode` has printed the label since #941; this reads it. `render Bali::QrScanner::Component.new` is a viewfinder that asks for the camera, decodes frames, and announces every code as `bali:qr-scanner:scan` with `{ value, result }` in the detail — `value` is the decoded string, `result` is qr-scanner's own object, which also carries `cornerPoints`. It decides nothing about what a code *means*: the host listens, fills an input, submits a form, navigates. `bali:qr-scanner:error` carries `{ state, error }` for the two ways it can fail.
+
+  **The decoder is an optional peer, not a dependency.** `qr-scanner` (MIT, ~14 kB) is loaded with a dynamic `import()` the first time a scanner connects, so an app that never renders one never pays for it — the same contract `rqrcode` has on `Bali::QrCode`. Without it the component renders its "unavailable" state and the console names the line to run, instead of throwing an unresolved-module error into a page that otherwise works.
+
+  **Six states, all of them in the document from the first render.** `idle`, `requesting`, `scanning`, `scanned`, `denied`, `unavailable`; the controller shows one by taking `hidden` off it and publishes the current one as `data-qr-scanner-state` on the container. A state built on demand is a state no host can restyle and no spec can find, so they are all there and the tests measure visibility rather than text.
+
+  **Telling "blocked" from "no camera" took a second call, and it is the reason the states are worth having.** qr-scanner tries `getUserMedia` six times with different constraints, swallows every rejection (`catch(f){}`), and rethrows the single string `'Camera not found.'` — so its own error cannot distinguish a refused permission from absent hardware, and a component built on it alone can only ever say one thing. On the failure path only, the controller asks the browser once more and reads the real `DOMException`: `NotAllowedError`/`SecurityError` mean `denied` and come with a retry button, everything else means `unavailable`. The probe is deliberately *after* the failure and not in front of the camera — opening a stream only to close it and let the library open its own costs latency on every success and blinks the camera light for nothing.
+
+  **`autostart: false` renders an idle state with a button instead of prompting on connect.** The default is `true`, which is what a dedicated scan screen wants, but a scanner inside a modal or an unopened tab must not fire a permission prompt the visitor never asked for — and a prompt that follows a deliberate press is one people say yes to. It is also what makes the Lookbook previews usable, since the alternative is a camera prompt on every reload.
+
+  `stop_on_scan: true` (the default) releases the camera on the first code and offers "scan again" — `disconnect()` stops **and** destroys the scanner, which is the difference between a camera light that goes out and one that does not. `camera:` picks the rear (`:environment`, the default) or front lens, `highlight:` draws qr-scanner's scan-region frame, `hint:` overrides or drops the line underneath. Documented with the requirement that catches everyone out: a camera is only reachable over **https or http on localhost**, and on any other host over plain http the browser exposes none at all — which arrives indistinguishable from a device that has none, so the controller says so in the console.
+
+  Cypress covers it without a camera by replacing `getUserMedia`: rejections for the two error states, and — for the happy path — a real `MediaStream` from a canvas with a QR code painted on it, so the decode, the event and its payload are exercised end to end. The module matrix comes from the same `rqrcode` gem `Bali::QrCode` encodes with.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added
