@@ -1189,6 +1189,7 @@ The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/r
 | Comments never appear | `comments:` was given something other than a non-empty Hash | See [Comments](#comments) |
 | `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.52.1`, the declared and tested range |
 | A menu never opens, or content silently fails to serialise, with no error | `@blocknote/*` packages installed at different versions | Pin them all to the same version -- see [Step 1](#step-1----npm-packages) |
+| Console: `Maximum update depth exceeded` while typing, or when closing a drawer/modal that holds the editor -- yet the content saves correctly | A browser extension that rewrites the editor's DOM (Dark Reader, Grammarly, page translators) feeds attribute mutations into ProseMirror's DOM observer, and in BlockNote <= 0.52.1 the node views do not ignore non-content mutations, so the side menus re-render in a loop until React cuts it off ([TypeCellOS/BlockNote#2818](https://github.com/TypeCellOS/BlockNote/issues/2818); fixed upstream by [#2912](https://github.com/TypeCellOS/BlockNote/pull/2912), merged but not yet released) | No data is lost -- the hidden input is written outside React. Disable the extension for the app, or upgrade every `@blocknote/*` package (same version, as always) once a release containing the fix ships |
 
 ---
 

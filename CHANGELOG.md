@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dependencies
 
 - Updated daisyUI to 5.7.16 in the dummy app. The package's peer range (`>=5.7.0`) is unchanged.
+### Added
+
+- **Troubleshooting entry for the BlockNote <= 0.52.1 render loop (#908).** The BlockEditor guide (`docs/api/block-editor.md`) now documents the `Maximum update depth exceeded` console error: it appears while typing (or when closing a drawer/modal holding the editor) when a browser extension that rewrites the page's DOM (Dark Reader, Grammarly, page translators) is active, because BlockNote <= 0.52.1 node views do not ignore non-content mutations (TypeCellOS/BlockNote#2818, fixed upstream by #2912 — merged but not yet released). No data is lost; the `@blocknote/*` bump lands separately once upstream publishes a release containing the fix.
 
 ## [v3.0.0] - 2026-08-05
 
