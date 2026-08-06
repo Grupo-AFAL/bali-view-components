@@ -49,6 +49,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **`Bali::Tabs` navigation mode: the tab's `**options` now land on the `<a>`.** They used to be merged into the attributes of a panel `<div>` that navigation mode never renders, so they silently vanished — there was no way to put a `data:` attribute on a tab link. `class` composes with the tab classes instead of replacing them. Only a call site that passed options to an `href:` tab *and* relied on them being ignored changes behaviour; none exists among the pinned hosts. One of the five announced v3.1 changes — see [the migration guide](docs/guides/migration-v3-to-v31.md). (#722)
+### Added
+
+- **Avatar derives initials and a deterministic color from `name:`.** `Bali::Avatar::Component.new(name: 'Ana García López')` now renders an initials placeholder — first letter of the first and the last word ("AL", unicode-aware upcase; one word yields one letter) — over a background hashed from the name into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style: the same person gets the same color on every render, process and DaisyUI theme. The hash is the new `Bali::Utils::ColorCalculator#deterministic_color(seed)` (`Zlib.crc32`, not the per-process-randomized `String#hash`); collisions between names are expected and fine. `initials:` overrides the derivation, and images keep winning: picture slot > `src:` > manual `placeholder` slot (which keeps its static neutral background) > `name:`/`initials:`. With `name:` present the avatar also stops being invisible to assistive tech: initials avatars get `role="img"`, `aria-label` and `title` with the full name, and image avatars use it as the `alt` (an explicit `alt:` wins). Groundwork for `Topbar::UserMenu` (#713). (#712)
 
 ## [v3.0.0] - 2026-08-05
 

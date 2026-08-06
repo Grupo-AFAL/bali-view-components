@@ -1051,16 +1051,47 @@ Constraints:
 
 #### Avatar
 
-User avatar display.
+User avatar display: an image when there is one, derived initials when there is not.
 
 ```erb
+<%# Image avatar %>
 <%= render Bali::Avatar::Component.new(
   src: user.avatar_url,
-  alt: user.name,
+  name: user.name,
   size: :md,
   shape: :circle
 ) %>
+
+<%# No image: `name:` derives the initials and a stable background color %>
+<%= render Bali::Avatar::Component.new(name: 'Ana García López') %>
+
+<%# Explicit initials override the derivation %>
+<%= render Bali::Avatar::Component.new(initials: 'AG') %>
 ```
+
+**Options:**
+- `src` - Image URL (default: nil)
+- `name` - Full name; derives two initials and a deterministic background when no image renders (default: nil)
+- `initials` - Explicit initials, overriding the `name:` derivation (default: nil)
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
+- `shape` - `:square`, `:rounded`, `:circle` (default: `:circle`)
+- `mask` - `:heart`, `:squircle`, `:hexagon`, `:triangle`, `:diamond`, `:pentagon`, `:star` (default: nil)
+- `status` - `:online`, `:offline` presence indicator (default: nil)
+- `ring` - Ring color: `:primary`, `:secondary`, `:accent`, `:neutral`, `:success`, `:warning`, `:error`, `:info` (default: nil)
+
+**Initials rule:** first letter of the *first* and the *last* word — "Ana García López" → AL,
+"María de la Luz" → ML; a single word yields one letter. Unicode-aware upcase.
+
+**Deterministic color:** the name is hashed (`Bali::Utils::ColorCalculator#deterministic_color`)
+into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style — the same
+person gets the same color on every render, process and DaisyUI theme. Collisions (two people, one
+color) are expected. The manual `placeholder` slot still exists for fully custom content and keeps
+the static neutral background.
+
+**Precedence:** picture slot > `src:` > `placeholder` slot > `name:`/`initials:`.
+
+**Accessibility:** with `name:`, an initials avatar gets `role="img"`, `aria-label` and `title`
+with the full name; an image avatar uses the name as `alt` (explicit `alt:` wins) plus `title`.
 
 #### Tag (Badge)
 
