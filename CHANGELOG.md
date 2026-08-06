@@ -80,6 +80,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dependencies
 
 - Updated daisyUI to 5.7.16 in the dummy app. The package's peer range (`>=5.7.0`) is unchanged.
+### Added
+
+- **`Bali::Gantt` — phase 1: the shared data contract and the server-rendered `:static` mode** (#704). One component, two renderers; this phase ships the foundation the React island (phases 2-3, #705/#719) will plug into:
+  - `Bali::Gantt::Data` parses and validates the frozen contract — `{ window, groups[], items[], dependencies[], critical_ids[] }` with two-level group/item nesting (`parent_id`), ISO8601 dates, and the optional fields the real island already consumes: `assignee`, `percent_complete`, `slack_days`, `priority`, plus `milestone:` (rendered as a diamond) and `href`. Single-date items draw as minimum-width bars, inverted ranges clamp to their start, and structural errors raise instead of silently dropping bars. A frozen sample of `TDFlow::GanttSerializer` output validates the rename mapping (`test/fixtures/gantt/`).
+  - `Bali::Gantt::TimeScale` — one day-based coordinate system shared with the future island (`px_per_day` 24/8/2 for day/week/month, exactly `ZoomControls.jsx`), `:auto` density picked from the window span, minimum bar width, inclusive ends, clipped calendar ticks/bands and the today marker.
+  - `Bali::Gantt::Colors` — the exact `color-mix`/oklch formulas of the island's `ganttColors.js` (verbatim-asserted in tests) so both renderers are visually identical; default status map plus support for host status catalogs.
+  - `Bali::Gantt::Component` `mode: :static` — sticky two-tier header, collapsible `<details>` groups (with their own rollup bars), today line, grid, `color_by: :status/:none`, zoom by links on a namespaced `gantt_zoom` param, `group_label:`, an announced `limit:` cap (never silent) and a "No dates" section. This closes the `color_by:` promise made to #667. `mode: :interactive` is part of the signature already and raises with a clear message until phase 3.
+  - Structural `--gantt-*` tokens in `@layer components`, `bali_view.gantt.*` locales (en/es), Lookbook previews, and a full dummy reference: `/admin/projects/:id?view=timeline` renders the timeline from seeded schedule data through `ProjectGantt`, a host-side reference implementation of the contract.
 
 ## [v3.0.0] - 2026-08-05
 

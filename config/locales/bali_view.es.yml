@@ -348,6 +348,20 @@ es:
         month: Mes
         previous: Anterior
         next: Siguiente
+    gantt:
+      label: Diagrama de Gantt
+      name_column: Nombre
+      today: Hoy
+      empty: Aún no hay nada que graficar
+      truncated: "Mostrando %{shown} de %{total} elementos con fechas"
+      undated_title: Sin fechas
+      undated_hint: "Estos elementos aún no tienen fechas, así que no pueden colocarse en la línea de tiempo."
+      undated_truncated: "Mostrando %{shown} de %{total}"
+      zoom:
+        label: Zoom
+        day: Día
+        week: Semana
+        month: Mes
     navbar:
       main_navigation: Navegación principal
       toggle_menu: Alternar menú

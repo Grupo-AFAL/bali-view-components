@@ -1,0 +1,93 @@
+/* Bali::Gantt (#704) — structural tokens and the pieces of the static board
+ * whose geometry is fixed (not computed): row/bar heights, the name column
+ * width, grid lines, the today marker, milestones and the assignee chip.
+ * Computed geometry (left/width of every bar and tick) rides inline styles.
+ *
+ * Imported from bali/components.css with layer(components) on purpose (D7):
+ * the gantt's markup is its own — nothing here fights daisyUI, and host
+ * utility classes must keep winning. */
+.bali-gantt {
+  --gantt-name-col: 256px;
+  --gantt-row-h: 32px;
+  --gantt-bar-h: 14px;
+  --gantt-group-bar-h: 6px;
+  --gantt-milestone: 12px;
+}
+
+.bali-gantt-name-cell {
+  width: var(--gantt-name-col);
+}
+
+.bali-gantt-row {
+  height: var(--gantt-row-h);
+}
+
+.bali-gantt-row .bali-gantt-name-cell {
+  height: var(--gantt-row-h);
+}
+
+.bali-gantt-gridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 1px;
+  pointer-events: none;
+  background: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+}
+
+.bali-gantt-today {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 1px;
+  pointer-events: none;
+  background: color-mix(in oklch, var(--color-error) 60%, transparent);
+}
+
+.bali-gantt-bar {
+  height: var(--gantt-bar-h);
+  border-width: 1px;
+}
+
+.bali-gantt-group-bar {
+  height: var(--gantt-group-bar-h);
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* CPM criticality marker: information the data already carries; one ring. */
+.bali-gantt-bar[data-critical="true"],
+.bali-gantt-milestone[data-critical="true"] {
+  box-shadow: 0 0 0 1px var(--color-error);
+}
+
+/* Diamond on the item's date (D6): a rotated square centered on its x. */
+.bali-gantt-milestone {
+  width: var(--gantt-milestone);
+  height: var(--gantt-milestone);
+  margin-left: calc(var(--gantt-milestone) / -2);
+  transform: translateY(-50%) rotate(45deg);
+  border-radius: 2px;
+}
+
+.bali-gantt-swatch {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 0.125rem;
+}
+
+.bali-gantt-assignee {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: white;
+}

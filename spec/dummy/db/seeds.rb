@@ -182,27 +182,41 @@ project = Project.find_or_create_by!(name: "Bali Component Library") do |p|
   p.description = "Open-source ViewComponent library for Rails applications"
 end
 
+# Schedule fields (phase/dates/milestone/percent_complete) feed the Bali::Gantt
+# timeline at /admin/projects/:id?view=timeline (#704). Dates are relative to
+# Date.current so the today marker always lands inside the window; tasks without
+# dates exercise the "No dates" section on purpose.
+today = Date.current
 tasks_data = [
-  { title: "Audit existing icon usage", description: "Map all icon names used across AFAL apps", status: :done, priority: :low, position: 0 },
-  { title: "Migrate to Lucide icons", description: "Replace custom SVGs with Lucide equivalents", status: :done, priority: :medium, position: 1 },
-  { title: "Upgrade to daisyUI 5", description: "Update class names and verify all component previews", status: :in_progress, priority: :high, position: 0 },
-  { title: "Add DataTable filter persistence", description: "Save active filters to cookies for page reload", status: :in_progress, priority: :medium, position: 1 },
-  { title: "Build Kanban component", description: "Drag-and-drop board composing SortableList", status: :in_progress, priority: :high, position: 2 },
-  { title: "Create FeedbackWidget", description: "Floating button with iframe drawer for Opina", status: :todo, priority: :medium, position: 0 },
-  { title: "Add Carousel accessibility", description: "Keyboard navigation and ARIA labels for slides", status: :todo, priority: :high, position: 1 },
-  { title: "Document FilterForm DSL", description: "Write guide for search_fields and filter_attribute", status: :todo, priority: :low, position: 2 },
+  { title: "Audit existing icon usage", description: "Map all icon names used across AFAL apps", status: :done, priority: :low, position: 0,
+    phase: "Foundations", start_date: today - 60, due_date: today - 50, percent_complete: 100 },
+  { title: "Migrate to Lucide icons", description: "Replace custom SVGs with Lucide equivalents", status: :done, priority: :medium, position: 1,
+    phase: "Foundations", start_date: today - 49, due_date: today - 35, percent_complete: 100 },
+  { title: "Upgrade to daisyUI 5", description: "Update class names and verify all component previews", status: :in_progress, priority: :high, position: 0,
+    phase: "Components", start_date: today - 14, due_date: today + 7, percent_complete: 70 },
+  { title: "Add DataTable filter persistence", description: "Save active filters to cookies for page reload", status: :in_progress, priority: :medium, position: 1,
+    phase: "Components", start_date: today - 7, due_date: today + 10, percent_complete: 40 },
+  { title: "Build Kanban component", description: "Drag-and-drop board composing SortableList", status: :in_progress, priority: :high, position: 2,
+    phase: "Components", start_date: today - 10, due_date: today + 14, percent_complete: 55 },
+  { title: "Create FeedbackWidget", description: "Floating button with iframe drawer for Opina", status: :todo, priority: :medium, position: 0,
+    phase: "Components", start_date: today + 7, due_date: today + 21 },
+  { title: "Add Carousel accessibility", description: "Keyboard navigation and ARIA labels for slides", status: :todo, priority: :high, position: 1,
+    phase: "Quality", start_date: today + 14, due_date: today + 24 },
+  { title: "Document FilterForm DSL", description: "Write guide for search_fields and filter_attribute", status: :todo, priority: :low, position: 2,
+    phase: "Quality", start_date: today + 18, due_date: today + 28 },
   { title: "Explore Turbo Mount for charts", description: "Evaluate React-based charting via islands architecture", status: :backlog, priority: :low, position: 0 },
-  { title: "Add dark mode support", description: "Verify all components render correctly with dark theme", status: :backlog, priority: :medium, position: 1 },
-  { title: "Performance benchmark suite", description: "Measure render times for complex components", status: :backlog, priority: :low, position: 2 }
+  { title: "Add dark mode support", description: "Verify all components render correctly with dark theme", status: :backlog, priority: :medium, position: 1,
+    phase: "Quality", start_date: today + 25, due_date: today + 35 },
+  { title: "Performance benchmark suite", description: "Measure render times for complex components", status: :backlog, priority: :low, position: 2,
+    phase: "Quality" },
+  { title: "Cut v3.1.0 beta", description: "Tag the release once the timeline components land", status: :todo, priority: :high, position: 3,
+    phase: "Release", start_date: today + 42, due_date: today + 42, milestone: true }
 ]
 
 tasks_data.each do |data|
-  project.tasks.find_or_create_by!(title: data[:title]) do |task|
-    task.description = data[:description]
-    task.status = data[:status]
-    task.priority = data[:priority]
-    task.position = data[:position]
-  end
+  task = project.tasks.find_or_initialize_by(title: data[:title])
+  task.assign_attributes(data.except(:title))
+  task.save!
 end
 
 puts "Created #{Project.count} projects with #{Task.count} tasks"
