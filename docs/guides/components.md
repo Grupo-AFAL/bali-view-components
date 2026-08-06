@@ -1961,6 +1961,41 @@ Displays key-value pairs in a zebra-striped table — useful for showing object 
 
 Prefer this over `LabelValue` or `DescriptionList` when the pairs form one set read top to bottom — the comparison of the three lives under [DescriptionList](#descriptionlist).
 
+#### QrCode
+
+A QR code generated server-side and rendered as inline SVG — no JavaScript, no image request, nothing to serve.
+
+It needs the [`rqrcode`](https://github.com/whomwah/rqrcode) gem, which Bali deliberately does **not** depend on: most apps never render a QR code and would carry the gem for nothing. Add it to the host's Gemfile:
+
+```ruby
+gem 'rqrcode', '~> 3.1'
+```
+
+Without it the first render raises `Bali::QrCode::Component::MissingDependency` — a `LoadError` subclass whose message repeats that line, so an app that forgets is told what to add rather than left with `cannot load such file`.
+
+```erb
+<%= render Bali::QrCode::Component.new(payload: movie_url(@movie)) %>
+
+<%# TOTP enrolment: name it, or the screen reader announces only "QR code" %>
+<%= render Bali::QrCode::Component.new(
+      payload: @totp.provisioning_uri,
+      size: 240,
+      level: :q,
+      label: t('.scan_with_your_authenticator')
+    ) %>
+```
+
+**Options:**
+- `payload` - What the code encodes — a URL, an `otpauth:` URI, plain text (required)
+- `size` - Rendered edge length in pixels (default: 200)
+- `level` - Error correction: `:l`, `:m`, `:q`, `:h`. Denser levels survive a dirtier or partly covered surface and make the code bigger for the same payload (default: :m)
+- `label` - Accessible name. Defaults to `bali_view.qr_code.label` — "QR code", which says nothing about what scanning it does (default: nil)
+- `**options` - Additional HTML attributes for the `svg` element
+
+The code is always black on white and includes the spec's four-module quiet zone. Neither is configurable: a scanner reads dark-on-light, so theme colours would leave the code unreadable under a dark theme — while still looking like a QR code — and one rendered flush against its neighbours is one some scanners never find.
+
+The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size` where a fluid code is wanted.
+
 #### Rate
 
 Star rating built on DaisyUI's rating classes, with Rails form integration, auto-submit, and readonly display modes.
