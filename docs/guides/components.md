@@ -766,6 +766,45 @@ title, or a free content block for arbitrary markup.
 - `orientation` - `:horizontal` (default) or `:vertical`
 - `color` - DaisyUI step color for completed/active steps
 
+#### WorkflowSteps
+
+Steps of a flow with a verdict per step. Stepper is a wizard by index — one
+`current:` and every step's look derives from its position; WorkflowSteps gives
+every step its own semantic state, which is the shape of an approval chain, a
+signature round or an onboarding checklist. Timeline is chronological; this is
+positional.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new do |c| %>
+  <% c.with_step(title: "Submitted", state: :success,
+                 assignee: "Luis Pérez", date: "Jul 1, 2026") %>
+  <% c.with_step(title: "Legal review", state: :error,
+                 assignee: "Ana Gutiérrez", date: "Jul 4, 2026") do %>
+    Rejected: missing appendix B.
+  <% end %>
+  <% c.with_step(title: "Finance sign-off", state: :skipped) %>
+  <% c.with_step(title: "Director signature", state: :pending) %>
+<% end %>
+```
+
+**Options:** HTML attributes for the `<ol>` container pass through.
+
+**Step options:**
+- `title` - The step's name (required)
+- `state` - `:success`, `:error`, `:warning`, `:current` (ring emphasis),
+  `:pending`, or `:skipped` (required)
+- `assignee` - Who the step belongs to, rendered with a user icon
+- `date` - Preformatted date/time text; the component does not format
+- `number` - Circle content, overriding the automatic numbering
+- Content block - Free markup rendered under the meta lines (a rejection
+  comment, a `Bali::Tag`, links)
+
+The connector under each circle takes the state of the **next** step, so the
+line arrives coloured at the step that owns that verdict — the component
+computes this; callers only declare states. Auto-numbering counts the real
+route only: a `:skipped` step renders muted with a dash instead of a number and
+consumes no position (an explicit `number:` always wins).
+
 #### Pagination
 
 Pagination controls (DaisyUI `join` buttons) built from a Pagy object; renders nothing when there is only one page.
