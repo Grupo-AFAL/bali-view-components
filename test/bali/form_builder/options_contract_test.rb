@@ -12,7 +12,8 @@ require "test_helper"
 class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
   # One value per reserved key, so a leak shows up as an attribute in the markup.
   RESERVED_VALUES = {
-    label: "Leaked label", help: "Leaked help", control_class: "leaked-control",
+    label: "Leaked label", help: "Leaked help", error: "Leaked error",
+    control_class: "leaked-control",
     control_data: { leaked: "control" }, addon_class: "leaked-addon",
     field_class: "leaked-field", field_data: { leaked: "field" },
     control_id: "leaked-control-id",

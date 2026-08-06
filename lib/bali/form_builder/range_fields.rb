@@ -97,7 +97,7 @@ module Bali
           "w-full",
           SIZES[options[:size]],
           COLORS[options[:color]],
-          (errors?(method) ? "range-error" : nil),
+          (errors?(method, options) ? "range-error" : nil),
           options[:class]
         ].compact.join(" ")
 

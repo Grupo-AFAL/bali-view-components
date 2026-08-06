@@ -42,7 +42,8 @@ module Bali
       # not carry it points the control at nothing while the paragraph renders
       # anyway — a description that exists on screen and not in the a11y tree.
       def time_zone_html_options(method, html_options, group = html_options)
-        base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
+        base = field_class_name(method, BASE_CLASSES, error_class: "select-error",
+                                        options: group)
 
         attributes = html_attributes(html_options).except(:class).merge(
           class: [ base, html_options[:class] ].compact.join(" ")

@@ -148,7 +148,7 @@ module Bali
 
       def alt_input_class(method, options)
         base_class = options[:alt_input_class] || HtmlUtils::INPUT_BASE_CLASS
-        field_class_name(method, base_class)
+        field_class_name(method, base_class, options: options)
       end
 
       def previous_date_button

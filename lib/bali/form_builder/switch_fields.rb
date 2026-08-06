@@ -81,7 +81,7 @@ module Bali
           TOGGLE_CLASS,
           SIZES[options[:size]],
           COLORS[options[:color]],
-          (errors?(method) ? "toggle-error" : nil),
+          (errors?(method, options) ? "toggle-error" : nil),
           options[:class]
         ].compact.join(" ")
 

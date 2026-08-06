@@ -90,7 +90,7 @@ module Bali
           CHECKBOX_CLASS,
           SIZES[options[:size]],
           COLORS[options[:color]],
-          (errors?(method) ? "checkbox-error" : nil),
+          (errors?(method, options) ? "checkbox-error" : nil),
           options[:class]
         ].compact.join(" ")
 
