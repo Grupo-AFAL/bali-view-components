@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A bulk action can carry an input of its own, and can open in another tab** (#724). `with_control` mounts host markup — a driver select, a date field, a `slim_select` — INSIDE that action's own `<form>`, immediately before the submit, so its value is posted alongside `selected_ids` with no JavaScript in between. This is the "assign a driver to the 12 selected shipments" shape costa-norte hand-rolled around a single form with `formaction` per button; in Bali each action is already its own form, so the control simply belongs to one of them. Declaring a control on a `method: :get` action raises `ArgumentError` at render: a GET action renders a link, a link has no form, and the value the user picked would go nowhere — the same fail-fast the filter DSL applies to an impossible `input:`. The second half is `target:`, a first-class option rather than a passthrough, because `form_with` only honours a short list of loose options (`id`, `class`, `data`, …) and swallowed a `target:` handed to it through `**options` without a word; it reaches the `<form target>` of a form action and the `<a target>` of a GET one, which is the "print the selection in a new tab and keep the selection" case. Two cautions carried by the new **Control and target** preview: ids are per-document, so two actions mounting the same widget need distinct `id:`s (or `id: nil`) — the hidden `selected_ids` field Bali itself emits stopped carrying one for the same reason, since a bar with three actions repeated `id="selected_ids"` three times; and every action being its own form means a listing already wrapped in a form of yours gets the inner ones hoisted out by the parser, so render that form outside the listing and point a submit at it with the HTML `form="its-id"` attribute.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added

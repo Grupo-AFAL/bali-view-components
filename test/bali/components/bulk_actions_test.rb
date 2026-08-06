@@ -186,6 +186,82 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_button("Bulk Update")
   end
 
+  # --- Control por acción (#724) ---------------------------------------------------------
+
+  def test_a_control_renders_inside_the_actions_own_form_before_the_submit
+    render_inline(@component) do |c|
+      c.with_action(label: "Assign", href: "/assign") do |action|
+        action.with_control do
+          %(<select name="driver_id" class="select"><option value="1">Ana</option></select>).html_safe
+        end
+      end
+    end
+
+    assert_selector("form[action='/assign'] select[name='driver_id']", visible: :all)
+    # El orden importa: el submit va último para que el control quede antes en el tab order.
+    inputs = page.find("form[action='/assign']").all("select, input", visible: :all).map { |n| n[:name] }
+    assert_equal(%w[selected_ids driver_id commit], inputs.compact.reject(&:empty?))
+  end
+
+  def test_a_control_on_a_get_action_raises_instead_of_dropping_the_value
+    error = assert_raises(ArgumentError) do
+      render_inline(@component) do |c|
+        c.with_action(label: "Export", href: "/export", method: :get) do |action|
+          action.with_control { %(<input type="text" name="format">).html_safe }
+        end
+      end
+    end
+
+    assert_match(/with_control/, error.message)
+    assert_match(/method: :get/, error.message)
+    assert_match(/Export/, error.message)
+  end
+
+  def test_a_get_action_without_a_control_still_renders_as_a_link
+    render_inline(@component) do |c|
+      c.with_action(label: "Export", href: "/export", method: :get)
+    end
+    assert_link("Export", href: "/export")
+  end
+
+  # Cada acción es su propio form y todas emiten el mismo campo: con el id derivado del name,
+  # una barra de tres acciones repetía `id="selected_ids"` tres veces en el documento.
+  def test_the_selected_ids_field_carries_no_id_so_several_actions_can_coexist
+    render_inline(@component) do |c|
+      c.with_action(label: "Archive", href: "/archive")
+      c.with_action(label: "Delete", href: "/delete")
+    end
+
+    fields = page.all("input[name='selected_ids']", visible: :all)
+    assert_equal(2, fields.size)
+    assert(fields.none? { |field| field[:id].present? }, "el hidden de ids no debe llevar id")
+  end
+
+  # --- target: (#724) --------------------------------------------------------------------
+
+  def test_target_reaches_the_form_of_a_post_action
+    render_inline(@component) do |c|
+      c.with_action(label: "Print", href: "/print", target: "_blank")
+    end
+    assert_selector("form[action='/print'][target='_blank']", visible: :all)
+  end
+
+  # `form_with` solo respeta un puñado de opciones sueltas: un `target:` por **options se
+  # perdía sin avisar, que es la razón de que sea opción de primera clase.
+  def test_target_is_not_swallowed_the_way_a_bare_passthrough_was
+    render_inline(@component) do |c|
+      c.with_action(label: "Print", href: "/print")
+    end
+    assert_no_selector("form[target]", visible: :all)
+  end
+
+  def test_target_reaches_the_anchor_of_a_get_action
+    render_inline(@component) do |c|
+      c.with_action(label: "Export", href: "/export", method: :get, target: "_blank")
+    end
+    assert_selector("a[href='/export'][target='_blank']")
+  end
+
   # La fila contextual REEMPLAZA a la toolbar del DataTable en su mismo hueco: si miden
   # distinto, seleccionar una fila empuja el listado. Antes pasaba (18px: `py-2` + `border`).
   def test_the_toolbar_row_declares_the_same_minimum_height_as_the_datatable_toolbar
