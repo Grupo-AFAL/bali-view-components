@@ -103,6 +103,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 | [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
 | [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
 | [Overlays and the top layer](docs/guides/overlays-and-the-top-layer.md) | What the z-index scale orders, and what it cannot |
+| [Engines](docs/guides/engines.md) | Host integration for Bali's controllers (`Bali.engine_controller_concerns`) |
 | [Migrating v2 → v3](docs/guides/migration-v2-to-v3.md) | Breaking changes to the index page (DataTable) |
 | [Troubleshooting](docs/guides/troubleshooting.md) | Common issues and solutions |
 
