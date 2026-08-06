@@ -152,4 +152,59 @@ class BaliStatusComponentTest < ComponentTestCase
     render_inline(Bali::Status::Component.new(selected: "ghost", options: OPTIONS))
     assert_selector('.status-pill.status-pill--static[style*="background-color: #64748b"]', text: "ghost")
   end
+
+  # `PALETTE` is public API as of v3.1 (#711): hosts paint non-pill things (a
+  # Gantt bar) with the pill's colour through this accessor.
+  def test_palette_returns_the_bg_fg_pair_for_a_name
+    assert_equal({ bg: "#16a34a", fg: "#fff" }, Bali::Status.palette(:green))
+    assert_equal({ bg: "#64748b", fg: "#fff" }, Bali::Status.palette("slate"))
+  end
+
+  def test_palette_rejects_an_unknown_name_and_lists_the_valid_ones
+    error = assert_raises(ArgumentError) { Bali::Status.palette(:magenta) }
+    assert_includes error.message, ":magenta"
+    assert_includes error.message, ":slate"
+  end
+
+  def test_for_builds_the_options_from_the_map_and_selects_the_value
+    render_inline(Bali::Status.for("in_progress", map: { pending: :slate, in_progress: :blue }))
+    assert_selector('.status-pill.status-pill--static[style*="background-color: #2563eb"]',
+                    text: "In progress")
+  end
+
+  def test_for_resolves_labels_through_the_i18n_scope
+    I18n.backend.store_translations(:en, tasks: { statuses: { done: "Finished" } })
+    render_inline(Bali::Status.for(:done, map: { done: :green }, i18n_scope: "tasks.statuses"))
+    assert_selector(".status-pill", text: "Finished")
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_for_passes_component_options_through_including_form
+    render_inline(Bali::Status.for("pending",
+                                   map: { pending: :slate, done: { color: :green, label: "Done!" } },
+                                   form: { url: "/t", method: :patch, param: "t[s]" },
+                                   size: :md, id: "task_1_status"))
+    assert_selector('span.status-component[id="task_1_status"]')
+    assert_selector('button.status-option[value="done"]', text: "Done!", visible: false)
+    assert_selector("button.status-option", count: 2, visible: false)
+  end
+
+  def test_for_raises_on_an_unmapped_selected_value_without_a_default
+    error = assert_raises(ArgumentError) do
+      Bali::Status.for("archived", map: { pending: :slate })
+    end
+    assert_includes error.message, '"archived"'
+    assert_includes error.message, "default"
+  end
+
+  def test_for_appends_the_default_entry_for_an_unmapped_selected_value
+    render_inline(Bali::Status.for("archived", map: { pending: :slate }, default: :gray))
+    assert_selector('.status-pill[style*="background-color: #d1d5db"]', text: "Archived")
+  end
+
+  def test_for_with_a_nil_value_renders_the_placeholder
+    render_inline(Bali::Status.for(nil, map: { pending: :slate }))
+    assert_selector(".status-pill.status-pill--none")
+  end
 end
