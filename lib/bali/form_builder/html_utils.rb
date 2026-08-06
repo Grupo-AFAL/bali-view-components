@@ -16,8 +16,26 @@ module Bali
       # out of the family's map is the variant; an Integer — or a String, which
       # is what `size: "4"` has always meant — keeps meaning the attribute and
       # passes through untouched. See `size_variant`.
+      #
+      # One map per daisyUI component, spelled out rather than interpolated:
+      # Tailwind scans `lib/bali/**/*.rb` for class names, and a class it only
+      # ever sees assembled at runtime is a class it does not compile.
+      # The families whose control is its own daisyUI component keep their map
+      # next to the family (`RangeFields::SIZES`, `BooleanFields::SIZES`,
+      # `SwitchFields::SIZES`, `RadioFields::SIZES`, `SlimSelectFields::SIZES`,
+      # `FileFields::CTA_SIZES`); these three are the ones `html_utils` itself
+      # resolves for every family that shares the base classes above.
       INPUT_SIZES = {
         xs: "input-xs", sm: "input-sm", md: "input-md", lg: "input-lg", xl: "input-xl"
+      }.freeze
+
+      SELECT_SIZES = {
+        xs: "select-xs", sm: "select-sm", md: "select-md", lg: "select-lg", xl: "select-xl"
+      }.freeze
+
+      TEXTAREA_SIZES = {
+        xs: "textarea-xs", sm: "textarea-sm", md: "textarea-md",
+        lg: "textarea-lg", xl: "textarea-xl"
       }.freeze
 
       # daisyUI 5 dropped `label-text-alt`; `fieldset-label` is its successor for
@@ -26,6 +44,12 @@ module Bali
       # validation message wraps instead of overflowing the fieldset.
       MESSAGE_CLASS = "fieldset-label"
       ERROR_MESSAGE_CLASS = "fieldset-label text-error"
+
+      # The character counter's own class. It lives here rather than next to the
+      # textarea because the counter is no longer a textarea feature: `<input>`
+      # and `<textarea>` are the same element to the controller, which only reads
+      # `value.length` (#723).
+      COUNTER_CLASS = "text-base-content/70 text-end w-full"
 
       # `number_with_commas` keeps its old name — it is the value hosts already
       # pass — but it no longer means "commas". Both separators are read from the
@@ -77,21 +101,25 @@ module Bali
       # those are stripped next to the helper that gives them that meaning.
       RESERVED_OPTIONS = (WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS).freeze
 
-      # Attributes that only mean something on a validatable form control,
-      # dropped by the families that render something else. `required` reached
-      # them because it is a real attribute on an `<input>` and therefore
-      # deliberately absent from the list above — but a block editor, a Trix
-      # editor, a polygon map and a period picker are each a widget over a hidden
-      # field, and a hidden input is barred from constraint validation to begin
-      # with; a submit button is a control the browser never validates.
+      # Attributes that only mean something on a native form control, dropped by
+      # the families that render something else. Both reached them because both
+      # are real attributes on an `<input>` and therefore deliberately absent
+      # from the list above — but a block editor, a Trix editor, a polygon map
+      # and a period picker are each a widget over a hidden field.
       #
+      # `required`: a hidden input is barred from constraint validation to begin
+      # with, and a submit button is a control the browser never validates.
       # Measured helper by helper before this list existed: `<div required>` on
       # two of them and `<trix-editor required>` on a third — none of which is
       # valid or does anything — and silence on the rest. Every outcome reads as
-      # "this field is required" at the call site and none of them made it so,
-      # which is the reason the drop is named once here instead of living in one
-      # family's private constant.
-      CONTROL_ONLY_OPTIONS = %i[required].freeze
+      # "this field is required" at the call site and none of them made it so.
+      #
+      # `size`: valid on `<input>` and `<select>` only, so on those same widgets
+      # it painted `<div size="sm">` — measured on four of them while the sweep
+      # in `size_option_test.rb` was written (#723). SlimSelect drops it for the
+      # reason it drops `required`: its `<select>` is clipped to 1x1, so visible
+      # rows are as meaningless there as a validation bubble.
+      CONTROL_ONLY_OPTIONS = %i[required size].freeze
 
       # The single extraction point. Everything that delegates to Rails goes
       # through here, so no module needs its own `delete`/`except` for the keys
@@ -251,21 +279,21 @@ module Bali
         attributes[:class] = field_class_name(
           method, "#{input_base_class(options)} #{options[:class]}", options: options
         )
+
+        counter_attributes(attributes) if char_counter?(options)
+
         merge_aria_attributes(attributes, method, options)
       end
 
-      def textarea_field_options(method, options, stimulus: false)
+      def textarea_field_options(method, options)
         attributes = html_attributes(options)
+        attributes.delete(:size) if size_variant(options, TEXTAREA_SIZES)
         attributes[:class] = field_class_name(
-          method, "#{TEXTAREA_BASE_CLASS} #{options[:class]}",
+          method, "#{textarea_base_class(options)} #{options[:class]}",
           error_class: "textarea-error", options: options
         )
 
-        if stimulus
-          attributes[:data] = (attributes[:data] || {}).merge(
-            "textarea-target" => "input", action: "input->textarea#onInput"
-          )
-        end
+        counter_attributes(attributes) if stimulus_counter?(options)
 
         merge_aria_attributes(attributes, method, options)
       end
@@ -284,15 +312,18 @@ module Bali
 
         left_addon = options[:addon_left]
         right_addon = options[:addon_right]
+        addons = left_addon.present? || right_addon.present?
+        control = addons ? field_with_addons(field, left: left_addon, right: right_addon) : field
 
-        # When addons exist, don't wrap in control div - use join pattern directly
-        if left_addon.present? || right_addon.present?
-          return field_with_addons(field, left: left_addon, right: right_addon) + messages
-        end
+        # When addons exist, don't wrap in control div - use join pattern directly.
+        # A counter is the exception: it has to live inside the element carrying
+        # the controller, so the join goes in the control div with it.
+        return control + messages if addons && !char_counter?(options)
 
         control_class = [ "control", options[:control_class] ].compact.join(" ")
         wrapped_field = content_tag(
-          :div, field, class: control_class, data: options[:control_data]
+          :div, safe_join([ control, counter_element(options) ].compact),
+          class: control_class, data: control_data(options)
         )
 
         wrapped_field + messages
@@ -397,6 +428,64 @@ module Bali
 
       private
 
+      # The `data` of the `.control` div. It is the caller's own `control_data:`
+      # until a counter or auto-grow is asked for, and then it is also where the
+      # `textarea` controller and its values are declared — the controller has to
+      # sit on an element that contains both the control and the counter, and the
+      # control div is the only one that does.
+      def control_data(options)
+        return options[:control_data] unless stimulus_counter?(options)
+
+        counter = options[:char_counter]
+        max_length = counter.is_a?(Hash) ? counter[:max] : 0
+
+        (options[:control_data] || {}).merge(
+          controller: "textarea",
+          'textarea-max-length-value': max_length,
+          'textarea-auto-grow-value': options[:auto_grow].present?
+        )
+      end
+
+      # The pair of attributes that make a control the counter's subject. Both
+      # families hand them to the element they render — a `<textarea>` and an
+      # `<input>` are the same thing to the controller, which only reads
+      # `value.length`.
+      #
+      # `prepend_action` and not `merge`: a call site that already wired its own
+      # `data: { action: }` keeps it, with this one added in front.
+      #
+      # The `:data` hash is copied first because those two helpers mutate in
+      # place, and `html_attributes` hands back the caller's very object under
+      # that key — writing through it is how one field ends up carrying the
+      # previous field's Stimulus wiring. Same reason `dup_options` exists.
+      def counter_attributes(attributes)
+        attributes[:data] = attributes[:data].dup if attributes[:data].is_a?(Hash)
+
+        prepend_action(
+          prepend_data_attribute(attributes, :'textarea-target', "input"),
+          "input->textarea#onInput"
+        )
+      end
+
+      def char_counter?(options)
+        options[:char_counter].present?
+      end
+
+      # Auto-grow is a textarea's own option and does not imply a counter, but it
+      # needs the same controller on the same wrapper.
+      def stimulus_counter?(options)
+        char_counter?(options) || options[:auto_grow].present?
+      end
+
+      # Not `fieldset-label` like the help and error messages: that class is a
+      # flex container, and the counter needs `text-end` on a block to sit on the
+      # right. It inherits the fieldset's small type the way it always did.
+      def counter_element(options)
+        return unless char_counter?(options)
+
+        content_tag(:p, "", class: COUNTER_CLASS, data: { 'textarea-target': "counter" })
+      end
+
       # The caller's `error:`, normalized to the array of messages worth
       # rendering. nil disappears on its own; `false` and `""` are dropped by
       # the presence check, which is what lets a call site pass the raw return
@@ -429,12 +518,30 @@ module Bali
         end
       end
 
+      # The variant for a family that takes its element attributes in a second
+      # `html:` hash. `size:` reads naturally in either one — next to `label:`,
+      # where every other family's variant is written, or inside `html:`, where
+      # the HTML attribute of the same name lives — so both are looked at, and
+      # a Symbol the map does not know raises from whichever hash it was in.
+      #
+      # The caller then has to drop `:size` from BOTH hashes: Rails'
+      # `select_content_tag` copies `:size` out of the select's own options and
+      # onto the element when the element does not already carry one, so
+      # stripping the element hash alone still emits `size="sm"`.
+      def select_size_variant(options, html_options, map = SELECT_SIZES)
+        size_variant(options, map) || size_variant(html_options, map)
+      end
+
       # Add join-item class when addons are present for proper DaisyUI join pattern
       def input_base_class(options)
         has_addons = options[:addon_left].present? || options[:addon_right].present?
         base = has_addons ? INPUT_ADDON_BASE_CLASS : INPUT_BASE_CLASS
 
         [ base, size_variant(options) ].compact.join(" ")
+      end
+
+      def textarea_base_class(options)
+        [ TEXTAREA_BASE_CLASS, size_variant(options, TEXTAREA_SIZES) ].compact.join(" ")
       end
 
       def field_with_addons(field, left:, right:)

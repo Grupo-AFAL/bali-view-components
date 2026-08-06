@@ -203,10 +203,23 @@ The helper wires the whole contract: the `<template>` (`template` target) holdin
 blank row with the `new_record` child-index placeholder, the `container` target the
 rows append into, the `button` target that disables at the maximum, the
 `fields-selector` value (`.item-fields` — the association name singularized), and
-the hidden `destroy-flag` input `removeFields` flips. `moveUp`/`moveDown` actions
-reorder rows and renumber their `[data-position]` inputs;
+the hidden `destroy-flag` input.
+
+Removing a row does one of two things, decided by the `[id]` hidden field Rails
+emits only for a record it already stores: a **persisted** row is hidden, its
+visible inputs stripped and its `destroy-flag` flipped, so the server learns which
+record to delete; an **unsaved** row is removed from the DOM outright, since there
+is nothing to destroy.
+
+`moveUp`/`moveDown` actions reorder rows. Positions and ordinals are renumbered
+after every add, remove and reorder, counting only the rows still on screen: the
+`[data-position]` inputs that carry the order to the server, and any element with
+the `ordinal` target, which receives the row's 1-based number as its text.
 `remove-duplicates` removes already-selected `<select>` options from new rows and
 caps the row count at the number of options.
+
+`table: true` and `array: true` on the helper change where the container sits and
+how the rows are named — see the FormBuilder guide.
 
 ## `elements-overlap`
 

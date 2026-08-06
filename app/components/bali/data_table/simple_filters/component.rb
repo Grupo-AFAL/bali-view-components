@@ -117,6 +117,13 @@ module Bali
           date?(filter) || date_range?(filter)
         end
 
+        # A date range offered as named periods ("This month") with the picker behind a
+        # "Custom…" option. Only `date_range` gets them: "this week" is not a value a
+        # single date can hold.
+        def presets?(filter)
+          date_range?(filter) && filter[:presets].present?
+        end
+
         def boolean?(filter)
           filter_type(filter) == :boolean
         end
@@ -133,6 +140,42 @@ module Bali
           predicate = filter[:predicate] || (date_range?(filter) ? nil : :eq)
           name = predicate.present? ? "q[#{filter[:attribute]}_#{predicate}]" : "q[#{filter[:attribute]}]"
           toggle_group?(filter) ? "#{name}[]" : name
+        end
+
+        # The period select's options: "no filter", the declared presets, "Custom…".
+        # The picker itself is a fourth state of the same control, not a fifth option.
+        def preset_options(filter)
+          [ [ preset_blank_label(filter), "" ] ] +
+            Bali::DateRangePresets.options(filter[:presets]) +
+            [ [ t("bali_view.simple_filters.presets.custom"), Bali::DateRangePresets::CUSTOM ] ]
+        end
+
+        # A date range filter has no blank option to name today, so `blank:` is free for it
+        # and most call sites will not have bothered.
+        def preset_blank_label(filter)
+          filter[:blank].presence || t("bali_view.simple_filters.presets.any")
+        end
+
+        # Which option the request came back on. Anything that is not a token but is set is
+        # a range the user typed or picked, so the select lands on "Custom…" and the picker
+        # comes back holding it.
+        def preset_select_value(filter)
+          value = preset_current_value(filter)
+          return "" if value.blank?
+
+          Bali::DateRangePresets.token?(value) ? value : Bali::DateRangePresets::CUSTOM
+        end
+
+        def preset_custom_value(filter)
+          value = preset_current_value(filter)
+          Bali::DateRangePresets.token?(value) ? nil : value
+        end
+
+        # The one control that submits. Rendered with the value the request carried so the
+        # form is correct before Stimulus connects — the controller rewrites it from
+        # whichever control the user touches afterwards.
+        def preset_current_value(filter)
+          (filter[:value] || filter[:default]).presence&.to_s
         end
 
         def number_range_field_names(filter)

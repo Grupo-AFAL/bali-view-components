@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "date_range_presets"
 require_relative "filter_form/search_configuration"
 require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
@@ -125,6 +126,13 @@ module Bali
       #   no existing row changes behaviour. Only for the pill widgets — `:toggle_group`
       #   and `:radio_group`, see AUTO_SUBMIT_INPUTS above — where one click is the whole
       #   interaction; a range would submit between the two halves of its value.
+      # @param presets [Boolean, Array<Symbol>] Named periods offered by an
+      #   `input: :date_range` widget, which then renders a period select whose
+      #   "Custom…" option reveals the date picker. `true` offers all of
+      #   {Bali::DateRangePresets::TOKENS}; an array picks and orders them. The
+      #   chosen token travels in the same param the explicit range does and is
+      #   resolved against `Time.zone` on every query, so a saved view that says
+      #   "this month" still means this month next month.
       #
       # @example Advanced popover only (same as always)
       #   filter_attribute :name, type: :text
@@ -141,15 +149,20 @@ module Bali
       #   filter_attribute :status, type: :select, simple: true, advanced: false,
       #     options: [['Draft', 'draft'], ['Published', 'published']],
       #     input: :radio_group, auto_submit: true
+      #
+      # @example Date range with named periods
+      #   filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+      #     presets: %i[today this_week this_month], blank: 'Any date'
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, options: [], collection: nil,
                            simple: false, advanced: true, input: nil, predicate: :eq,
                            blank: nil, default: nil, icon: nil, step: nil,
-                           placeholder_min: nil, placeholder_max: nil, auto_submit: false)
+                           placeholder_min: nil, placeholder_max: nil, auto_submit: false,
+                           presets: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
-        widget = simple ? resolve_simple_input(key, type, input) : input&.to_sym
-        validate_auto_submit(key, widget, auto_submit)
+        resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
+        validate_auto_submit(key, resolved_input, auto_submit)
 
         filter_attributes << {
           key: key.to_sym,
@@ -159,7 +172,7 @@ module Bali
           options: options.presence || collection || [],
           simple: simple,
           advanced: advanced,
-          input: widget,
+          input: resolved_input,
           predicate: predicate&.to_sym,
           blank: blank,
           default: default,
@@ -167,7 +180,8 @@ module Bali
           step: step,
           placeholder_min: placeholder_min,
           placeholder_max: placeholder_max,
-          auto_submit: auto_submit
+          auto_submit: auto_submit,
+          presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input)
         }
       end
 

@@ -1807,3 +1807,158 @@ class EnumCastingFilterFormTest < ActiveSupport::TestCase
                  Bali::FilterForm::EnumCasting::EQUALITY_PREDICATES.sort
   end
 end
+
+# --- Presets de periodo (#725): un token simbólico en el MISMO param que el rango ---
+class DateRangePresetsFilterFormTest < ActiveSupport::TestCase
+  class PresetsFilterForm < Bali::FilterForm
+    filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                     advanced: false, label: "Created",
+                     presets: %i[today this_week this_month]
+  end
+
+  class AllPresetsFilterForm < Bali::FilterForm
+    filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                     advanced: false, presets: true
+  end
+
+  def setup
+    @tenant = Tenant.create(name: "Tenant")
+    travel_to Time.zone.parse("2026-08-06 12:00:00") do
+      @today = @tenant.movies.create(name: "Today", status: 0)
+      @this_week = @tenant.movies.create(name: "Monday", status: 0, created_at: 3.days.ago)
+      @this_month = @tenant.movies.create(name: "First", status: 0, created_at: Time.zone.parse("2026-08-01 09:00"))
+      @last_month = @tenant.movies.create(name: "July", status: 0, created_at: Time.zone.parse("2026-07-15 09:00"))
+    end
+  end
+
+  def params(filter_attributes)
+    ActionController::Parameters.new(q: filter_attributes)
+  end
+
+  # El corazón de la decisión 725-D1: el token se resuelve contra Time.zone EN LA CONSULTA,
+  # no al declararlo, así que el mismo valor guardado recorta distinto en otra fecha.
+  def test_a_token_narrows_the_result_to_the_period_it_names
+    travel_to Time.zone.parse("2026-08-06 18:00:00") do
+      form = PresetsFilterForm.new(@tenant.movies, params(created_at: "today"))
+      assert_equal [ "Today" ], form.result.pluck(:name)
+    end
+  end
+
+  def test_this_week_and_this_month_widen_the_same_way_the_calendar_does
+    travel_to Time.zone.parse("2026-08-06 18:00:00") do
+      week = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_week"))
+      assert_equal %w[Monday Today], week.result.pluck(:name).sort
+
+      month = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month"))
+      assert_equal %w[First Monday Today], month.result.pluck(:name).sort
+    end
+  end
+
+  # Lo que un rango literal en una vista guardada NO hace: seguir significando lo mismo.
+  def test_the_same_token_means_the_new_month_a_month_later
+    august = travel_to(Time.zone.parse("2026-08-06 18:00:00")) do
+      PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month")).result.count
+    end
+    september = travel_to(Time.zone.parse("2026-09-06 18:00:00")) do
+      PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month")).result.count
+    end
+
+    assert_equal 3, august
+    assert_equal 0, september
+  end
+
+  # Un preset no reemplaza al rango explícito: viajan por el MISMO param y los dos filtran.
+  def test_an_explicit_range_still_travels_in_the_same_param
+    form = PresetsFilterForm.new(@tenant.movies, params(created_at: "2026-07-01 to 2026-07-31"))
+
+    assert_equal [ "July" ], form.result.pluck(:name)
+  end
+
+  def test_a_token_counts_as_an_active_filter
+    form = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month"))
+
+    assert form.active_filters?
+    assert_equal({ "created_at" => "this_month" }, form.active_filters)
+  end
+
+  # DSL
+
+  def test_presets_reach_the_simple_filters_config_in_the_declared_order
+    config = PresetsFilterForm.new(@tenant.movies, params({}))
+                              .simple_filters_config.find { |c| c[:attribute] == :created_at }
+
+    assert_equal %w[today this_week this_month], config[:presets]
+  end
+
+  def test_presets_true_offers_every_token
+    config = AllPresetsFilterForm.new(@tenant.movies, params({}))
+                                 .simple_filters_config.find { |c| c[:attribute] == :created_at }
+
+    assert_equal Bali::DateRangePresets::TOKENS, config[:presets]
+  end
+
+  def test_a_filter_without_presets_carries_none
+    config = Bali::FilterForm.new(
+      @tenant.movies, params({}),
+      simple_filters: [ { attribute: :created_at, type: :date_range, label: "Created" } ]
+    ).simple_filters_config.first
+
+    assert_nil config[:presets]
+  end
+
+  def test_instance_level_simple_filters_take_presets_too
+    config = Bali::FilterForm.new(
+      @tenant.movies, params({}),
+      simple_filters: [ { attribute: :created_at, type: :date_range, presets: true } ]
+    ).simple_filters_config.first
+
+    assert_equal Bali::DateRangePresets::TOKENS, config[:presets]
+  end
+
+  def test_an_unknown_preset_raises_at_declaration_time
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                         presets: %i[this_millennium]
+      end
+    end
+    assert_match(/unknown date range preset/, error.message)
+  end
+
+  # 725-D4: "esta semana" no es un valor que una fecha suelta pueda tener.
+  def test_presets_on_a_single_date_filter_raise
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        filter_attribute :release_date, type: :date, simple: true, presets: %i[today]
+      end
+    end
+    assert_match(/needs input: :date_range/, error.message)
+  end
+
+  def test_an_unknown_preset_from_an_instance_level_hash_raises_too
+    form = Bali::FilterForm.new(
+      @tenant.movies, params({}),
+      simple_filters: [ { attribute: :created_at, type: :date_range, presets: %i[whenever] } ]
+    )
+
+    assert_raises(ArgumentError) { form.simple_filters_config }
+  end
+
+  # Round-trip por el form RENDERIZADO: el token tiene que sobrevivir el viaje por el hidden
+  # que el widget emite, no solo por un hash escrito a mano en el test.
+  def test_the_token_survives_the_round_trip_through_the_rendered_form
+    config = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month"))
+                              .simple_filters_config
+
+    html = ApplicationController.render(
+      Bali::DataTable::SimpleFilters::Component.new(url: "/movies", filters: config),
+      layout: false
+    )
+    hidden = Capybara.string(html).find("input[type=hidden][name='q[created_at]']", visible: :all)
+
+    resubmitted = PresetsFilterForm.new(@tenant.movies, params(created_at: hidden[:value]))
+    travel_to(Time.zone.parse("2026-08-06 18:00:00")) do
+      assert_equal 3, resubmitted.result.count
+    end
+  end
+end

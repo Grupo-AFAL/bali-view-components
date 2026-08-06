@@ -218,9 +218,55 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     )) do |layout|
       layout.with_body { "Content" }
     end
-    # theme-switcher should be on the container, modal/drawer on main
-    assert_selector(".app-layout[data-controller='theme-switcher']")
+    # The host's controller keeps the container, next to the layout's own;
+    # modal/drawer stay on main.
+    assert_selector(".app-layout[data-controller='app-layout theme-switcher']")
     assert_selector("main[data-controller='modal drawer']")
+  end
+
+  def test_the_layout_controller_is_attached_even_without_a_banner
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+
+    assert_selector("body.app-layout[data-controller='app-layout']")
+    assert_no_selector("[data-app-layout-target='banner']")
+  end
+
+  def test_the_banner_is_the_target_the_controller_measures
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner { "You are impersonating John" }
+      layout.with_body { "Content" }
+    end
+
+    assert_selector(".app-layout-banner[data-app-layout-target='banner']",
+                    text: "You are impersonating John")
+  end
+
+  # One slot, one target, whatever the host stacks inside it: the controller
+  # measures the strip, not the banners, so two banners need no second target.
+  def test_stacked_banners_share_the_one_target
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner do
+        %(<div>Impersonating</div><div>Maintenance at 9pm</div>).html_safe
+      end
+      layout.with_body { "Content" }
+    end
+
+    assert_selector("[data-app-layout-target='banner']", count: 1)
+    assert_selector(".app-layout-banner div", count: 2)
+  end
+
+  # The strip is a sibling above the main area, not a child of the content
+  # column: that is what lets it span the full width with the sidebar below it.
+  def test_the_banner_sits_above_the_main_area_and_outside_the_content_column
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner { "Impersonating" }
+      layout.with_body { "Content" }
+    end
+
+    assert_selector(".app-layout-banner + .app-layout-main")
+    assert_no_selector(".app-layout-content .app-layout-banner")
   end
 
   def test_renders_body_tag_as_root

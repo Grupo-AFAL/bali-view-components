@@ -168,14 +168,14 @@ documents_data.each do |data|
     content: data[:content]
   )
 
-  if doc.document_versions.empty?
+  if doc.content_versions.empty?
     doc.create_version!(author_name: data[:author_name], summary: "Initial draft")
     doc.create_version!(author_name: data[:author_name], summary: "Added key sections")
     doc.create_version!(author_name: "Jane Smith", summary: "Reviewed and edited") if data[:status].to_s == "published"
   end
 end
 
-puts "Created #{Document.count} documents with #{DocumentVersion.count} versions"
+puts "Created #{Document.count} documents with #{Bali::ContentVersion.count} versions"
 
 # Create projects and tasks for Kanban demo
 project = Project.find_or_create_by!(name: "Bali Component Library") do |p|
@@ -236,6 +236,44 @@ dependency_pairs.each do |predecessor_title, successor_title|
 end
 
 puts "Created #{Project.count} projects with #{Task.count} tasks and #{TaskDependency.count} dependencies"
+
+# #708 — un párrafo con referencias reales en el primer documento, para que /documents/:id
+# tenga qué resolver al cargar (y qué materializar en bali_entity_references). Va aquí y no
+# con el resto del contenido porque las entidades referidas se crean más arriba: una
+# referencia solo demuestra algo si apunta a un registro que existe.
+roadmap = Document.find_by(title: "Q2 2026 Product Roadmap")
+if roadmap
+  referenced_task = project.tasks.find_by(title: "Build Kanban component")
+  archived = Document.find_by(title: "Archived: Legacy Migration Plan")
+
+  references_paragraph = {
+    "id" => "refs-1",
+    "type" => "paragraph",
+    "content" => [
+      { "type" => "text", "text" => "Seguimiento en ", "styles" => {} },
+      { "type" => "entityReference",
+        "props" => { "entityType" => "Project", "entityId" => project.id.to_s,
+                     "entityName" => project.name } },
+      { "type" => "text", "text" => ", con ", "styles" => {} },
+      { "type" => "entityReference",
+        "props" => { "entityType" => "Task", "entityId" => referenced_task.id.to_s,
+                     "entityName" => referenced_task.title } },
+      { "type" => "text", "text" => " en curso. Reemplaza a ", "styles" => {} },
+      # A un documento archivado: el chip se pinta roto, que es la señal que se perdería
+      # si el resolver simplemente omitiera lo inalcanzable.
+      { "type" => "entityReference",
+        "props" => { "entityType" => "Document", "entityId" => archived.id.to_s,
+                     "entityName" => archived.title } },
+      { "type" => "text", "text" => ".", "styles" => {} }
+    ]
+  }
+
+  unless roadmap.content.any? { |block| block["id"] == "refs-1" }
+    roadmap.update!(content: roadmap.content + [ references_paragraph ])
+  end
+
+  puts "Document '#{roadmap.title}' references #{roadmap.entity_references.count} entities"
+end
 
 # Dueño de las vistas guardadas: el dummy no autentica, hay un solo usuario y es el que
 # nombra el topbar.

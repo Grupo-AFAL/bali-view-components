@@ -7,20 +7,223 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`BlockEditorController` now inherits from `ReactIslandController`** (#703). No API change
+  and nothing to do in a host app: the controller identifier, its Stimulus values, the entry
+  and `block_editor_meta_tags` are all untouched. What changed is where the mechanics live —
+  the `_disconnected` guard, `createRoot` over its own mount point, the `turbo-cache-control`
+  meta, the unmount on disconnect and the error fallback now come from the base the editor
+  was extracted from, and the controller keeps only what makes it the block editor: the
+  BlockNote wrapper, the props, the submit flush, the ProseMirror teardown (moved to the
+  base's `beforeUnmount` hook, which runs while the DOM is still attached) and the PDF/DOCX
+  exports. The editor is the first real subclass, so this is what proves the base's hooks fit
+  a demanding island rather than only the toy preview. It also gains the base's
+  ErrorBoundary, which it never had: a render error inside the editor now shows the fallback
+  message instead of tearing down the React tree.
+
 ### Added
 
 - **`auto_submit: true` per filter: SimpleFilters pills that filter on click** (#725). A `:toggle_group` or `:radio_group` declared with `auto_submit: true` submits the row the moment it changes, so a segmented control behaves like the tab strip it looks like instead of asking for a second click on Filter. `filter_attribute :status, type: :select, simple: true, input: :radio_group, auto_submit: true` — and the instance-level `simple_filters:` hashes take the same key. It is **opt-in per filter and off by default**, so no existing row changes: `submit-on-change` is mounted on the form only when some filter asked for it, only that filter's controls carry the action, and the Filter button stays for the filters that did not opt in. Only the two pill widgets accept it and anything else raises at class-definition time, because one click is the whole interaction on a pill while a date or number range would submit between the two halves of its value. No new controller and no new JavaScript: this is the extended `submit-on-change` from #717, whose connect guard is what keeps the row from submitting itself while it is still being built.
+- **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
+  foundation shipped the discrimination — a Symbol is daisyUI's variant, an Integer or String
+  stays the HTML attribute of the same name, an unknown Symbol raises — and this completes the
+  rollout, so a form written entirely at one density comes out at that density:
+  `select_group`/`time_zone_select_group` → `select-*`, `text_area_group` → `textarea-*`,
+  `range_group` → `range-*`, `file_group` → `btn-*` on its CTA, and `checkbox-*`/`toggle-*`/
+  `radio-*` gain the `:xl` daisyUI 5 added. `slim_select_group` keeps `:sm`, the one density its
+  widget has CSS for, and now raises on the others instead of silently rendering full-size.
+  Captions, help text and error messages need no variant of their own — daisyUI scales them with
+  the fieldset. New preview **Form / Sizes** (compact form, and the same fields side by side with
+  and without the option). Every family declares its outcome in
+  `test/bali/form_builder/size_option_test.rb`, which fails if a new one lands in neither list.
+- **`f.date_group :on, alt_input: true, size: :sm`** now sizes the input the user actually sees.
+  With `alt_input:` flatpickr hides the real input and draws a second one from
+  `alt_input_class`, which the density never reached.
+- **Date range filters take named periods — "This month" instead of two dates** (#725). `filter_attribute :created_at, type: :date, input: :date_range, simple: true, presets: %i[today this_week this_month]` (or `presets: true` for all five: `today`, `this_week`, `this_month`, `last_7_days`, `last_30_days`, the trailing two inclusive of today) renders a period select whose "Custom…" option reveals the picker that was there before. An instance-level `simple_filters:` hash takes the same key. An unknown token raises at declaration time, and so does `presets:` on anything but `date_range` — "this week" is not a value a single date can hold, and a control that cannot work should not render.
+
+  **The token is what travels, and that is the point.** `q[created_at]=this_month` goes in the SAME param an explicit range does, and `Bali::Types::DateRangeValue` only resolves it to a real range when the query runs. So a saved view or a persisted filter built on one still means this month next month, where a stored `2026-08-01..2026-08-31` means August forever — which is exactly the complaint that produced the issue. The period is the server's `Time.zone`, the zone the rest of the date filtering already speaks; resolving it in the browser would use the visitor's and quietly disagree with the listing it filters.
+
+  **The cast is additive, measured token by token.** Three of the five (`today`, `this_week`, `last_7_days`) used to reach `Time.zone.parse`, come back `nil` and raise `NoMethodError`. The other two did produce a range and both were nonsense: `Date._parse` reads the "mon" inside `this_month` as a weekday and yields today, and pulls `mday: 30` out of `last_30_days` and yields the 30th of the current month. Those two literal strings are the only inputs whose result changes, from a silently wrong day to the period they name. Every other form the type accepts — `a..b`, the beginless and endless halves, the localized `2026-01-01 to 2026-03-31`, a bare date widening to its whole day — is covered by the new `test/bali/types/date_range_value_test.rb` and unchanged.
+
+  **No second Stimulus controller.** The widget is `time-period-field`, the one `f.time_period_group` has always built, given a `custom-value` so the option that reveals the picker can be named. It defaults to the empty string — what the form builder uses, since its blank option is spent on "custom" — while a filter row needs its blank for "any date" and passes `custom`. Two fixes came with it: the container named by `date-input-container-class` is now resolved before the first toggle rather than after, so it is hidden on the initial render instead of one interaction later; and the hidden field is the only control in the widget with a `name`, since two inputs sharing one submit the param twice and the server keeps the last, not the one on screen.
+- **`dynamic_fields_group` grows a table mode and an array mode** (#715). The same helper, the
+  same anatomy — header, container, `<template>` — with two shapes it could not produce before,
+  both opt-in and both leaving existing call sites byte-for-byte unchanged:
+  - `table: true` renders the container as the `<tbody>` of a table the helper emits, so the row
+    partial writes `<tr>`. `columns:` fills the `<thead>` and `table_class:` overrides the default
+    `table`. The header and its `<template>` render *outside* the `<table>`, which is the only
+    place they survive: the HTML parser hoists a `<div>` sitting between `<table>` and `<tbody>`
+    out of the table, which used to strand the add button and its template. A `<tr>` inside the
+    `<template>` is fine — the HTML5 parser switches to "in table body" for exactly that case.
+  - `array: true` names the rows `movie[steps][][role]` for an attribute that is a plain array of
+    hashes rather than an association: no `fields_for`, no `_destroy`, no
+    `reflect_on_association` to explode on. Rows come from the attribute or from `values:`, and
+    the partial receives `name_prefix:`, `item:` and `index:` alongside `f`. Checkboxes are not
+    supported in this mode — Rails' paired hidden field repeats a key inside the element and
+    splits the array — see the guide.
+  - `partial:` on both `dynamic_fields_group` and `link_to_add_fields` names the row partial
+    explicitly instead of deriving `_<singular>_fields`, and `destroy_flag: false` on
+    `link_to_remove_fields` drops the hidden `_destroy` for rows that have nothing to destroy.
+- **`dynamic-fields` renumbers a visible ordinal** (#715). A `data-dynamic-fields-target="ordinal"`
+  element inside a row gets the row's 1-based number written into it after every add, remove and
+  reorder, counting only the rows still in play. The target holds the number alone, so punctuation
+  around it ("1.", "#1") lives in the markup and survives renumbering. Absent target, nothing
+  happens — this is the piece host apps were each writing a controller for.
+
+
 - **`submit-on-change#debouncedSubmit`, so one form can mix immediate and debounced controls** (#717). The controller has always had a `delay` value, but it applied to the whole form: either every control waited or none did, which is why a filter row with a select and a search box needed two controllers (or, in three AFAL apps, a local `auto_submit_controller.js` copy that had grown the pair on its own). `submit` stays as it was and `debouncedSubmit` is always debounced, so `<select data-action="submit-on-change#submit">` next to `<input type="search" data-action="submit-on-change#debouncedSubmit">` is now the whole wiring. `delay` still governs both actions when set; without it `debouncedSubmit` waits 300 ms. New `bali/submit_on_change/default` preview and `cypress/e2e/submit-on-change.cy.js` cover both actions, and `docs/guides/controllers.md` has the markup.
+
+- **`char_counter:` works on a text field, not just a textarea** (#723). `f.text_group :headline, char_counter: { max: 80 }` renders the same live count under the control that `text_area_group` has had, because it is the same thing: the Stimulus controller behind it only reads `value.length`, so an `<input>` and a `<textarea>` are indistinguishable to it. `{ max: n }` counts against a maximum and turns the counter red past it; `true` just counts. The typing is never stopped — the count is an advisory, so pair it with `maxlength:` and a model validation when the limit has to hold. New preview **Form / Text → With Character Counter**, a `char-counter.cy.js` spec that runs the same expectations against both controls, and the option finally documented in the FormBuilder guide.
+
 
 ### Changed
 
+- **Removing an unsaved row deletes it from the DOM** (#715). `dynamic-fields#removeFields` used to
+  hide every removed row and flag it `_destroy`, whether or not there was anything to destroy. It
+  now looks for the `[id]` hidden field `fields_for` emits only for a persisted record: with one,
+  the old behaviour (hide, strip the visible inputs, flag) so the server still learns which record
+  to delete; without one, the row simply leaves the DOM. What gets submitted is unchanged —
+  `_destroy` on a nested hash with no `id` was already a no-op — but the DOM stops accumulating
+  dead rows. `resetPositionValues` skips hidden rows for the same reason, so `[data-position]`
+  stays contiguous over the rows that will actually be saved, and it now tolerates a row without a
+  position input instead of raising.
 - **`submit-on-change` ignores change events fired in the frame it connects in** (#717). SlimSelect dispatches a `change` on the native `<select>` while it builds its widget over it — measurable whenever the options carry `data-inner-html`, which makes it rewrite the element — and a form carrying `submit-on-change` submitted on that event, before the user had touched anything. Measured against the new preview with the guard off: the page navigates to `?form_record[select]=1&form_record[text]=` on its own. This is a behavior change, not only a fix: any change event in the first frame after `connect()` is now dropped, including one your own code dispatches there. `data-submit-on-change-skip-initial-value="false"` restores the old behavior. Two incidental fixes ride along: a pending debounced submit is cancelled on `disconnect()` instead of firing at a detached form, and reconnecting the controller no longer wraps the debounce around itself (a form that connected twice used to wait `delay` twice).
-- **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
-- **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
+- **`Bali::AppLayout` offsets the pinned sidebar under the banner, by measurement** (#726). A banner — impersonation, maintenance, "you are in beta" — is a full-width strip, and the fixed sidebar now starts below it instead of painting over it. Nothing has to be declared: the new `app-layout` Stimulus controller keeps a `ResizeObserver` on the strip and publishes its height as `--bali-banner-height` on `<body>`, which the sidebar's `top` and `height` read. That covers the cases a constant cannot — two banners stacked (gc hardcodes `top: 5.5rem !important` for exactly that pair), a banner the user dismisses, one a Turbo Stream adds later, one that wraps to two lines on a phone — and it removes the `--banner-height` TODO the apps have been carrying. The strip is `position: sticky` so an impersonation warning survives scrolling; under `viewport_locked: true` the body does not scroll and sticky is inert. Only the height is JavaScript: the offset is one CSS rule reading `var(--bali-banner-height, 0px)`, so a page whose JS has not run, or a host that never registers the controller, renders exactly as before. New `with_banner` Lookbook preview (two stacked banners, the second dismissible) and a Cypress spec that measures the rail's computed `top`/`height` against the strip.
+- **One wrapper builds the counter for every family that can have one** (#723). `text_area_field` used to build its own `.control` div next to a second copy of the error and help paragraphs — the arrangement that once made a textarea with a counter render neither. The controller, its values and the counter element now come from `field_helper`, the one place that decides how a control is wrapped, so the two spellings cannot drift apart again. No markup change: the textarea's existing tests pass untouched. `TextAreaFields::COUNTER_CLASS` is now an alias of `HtmlUtils::COUNTER_CLASS`.
+
+- **The `Bali::AppLayout` banner no longer clears the fixed sidebar horizontally** (#726). A beta gave `.app-layout-banner` the same `padding-left: var(--bali-side-menu-width)` as the navbar and the content, because the sidebar was pinned at `top: 0` and painted over the strip's left edge. The sidebar now starts *below* the banner instead, so there is nothing left to clear: keeping the padding would indent a full-width strip into the content column and leave a band of empty page above the sidebar. The navbar and the content keep their offset — that half of the fix is untouched. A host that styled around the indented banner (a background that started at 16rem, a left-aligned logo inside the strip) will see the strip move left to the viewport edge.
+
 
 ### Fixed
 
+- **The Gantt island's drag spec no longer degrades the dummy database it runs against** (#705).
+  `gantt-island.cy.js` dragged a bar forward and then dragged it back "the same distance" to
+  restore the seeded dates. The return drag is not the inverse of the outbound one — measured on
+  the seeded fixture, the outbound drag moves the item 5 days and the return drag moves it 0 — so
+  every local run left the item ~5 days later than it found it. Once the item drifted past the
+  start of the next one, the return drag landed on the date the item already had,
+  `onNodeDragStop` short-circuited before posting, and `cy.wait('@patch')` timed out waiting for a
+  second request that never came. CI never saw it because every CI run does
+  `db:schema:load db:seed` first; locally it surfaced after a handful of repetitions and looked
+  like a race in the island. The spec now waits for the reconcile to land in the table before
+  asserting, and restores the item through the contract's own PATCH endpoint instead of through a
+  second drag — deterministic, and it leaves the database exactly as it found it. Verified with 8
+  consecutive runs: 8/8 green with the seeded dates unchanged (before: 0/8 from a drifted
+  database).
+
+- **`size:` no longer leaks into the markup as an attribute where it means nothing** (#723).
+  `slim_select_group(size: :sm)` emitted `<select size="sm">` next to the wrapper class — Rails'
+  `select_content_tag` copies `:size` out of a select's options and onto the element, so closing
+  one route was not enough. The families whose control is a widget over a hidden field
+  (`rich_text_group`, `block_editor_group`, `coordinates_polygon_group`, `time_period_group`)
+  painted `<div size="sm">` for the same reason `<div required>` used to appear there; `size`
+  joins `required` in `CONTROL_ONLY_OPTIONS`.
+
+
+## [v3.1.0.beta.4] - 2026-08-06
+
+### Added
+
+- **Acknowledgments and read coverage: `Bali::Acknowledgeable` + `Bali::ReadCoverage`** (#709). "I read and confirm this" is the same ledger in every app that has ever needed it, so the engine now ships it:
+  - New table `bali_acknowledgments`. **Both** halves are polymorphic — the signer (`user`) and the thing signed (`acknowledgeable`) — so one table serves documents signed by `User`s and agreements signed by `Member`s without Bali knowing either class. Unique on `[acknowledgeable_type, acknowledgeable_id, user_type, user_id]`: one signature per person per record, always.
+  - `include Bali::Acknowledgeable` gives a model `acknowledge(user:)`, `acknowledged_by?(user)` and `acknowledgments`. No macro to configure: the only thing the concern asks the model is `version_label`, and it asks with `try`, so a model without versions works unchanged.
+  - `acknowledge` is **idempotent for the same version** — confirming twice returns the existing signature untouched, which is what makes `acknowledged_at` usable as evidence. When `version_label` has changed the person is signing a different text, so the label **and** the date move together on the same row, rather than leaving a record that claims someone signed v2.0 before v2.0 existed.
+  - `content_version_id` is nullable and carries **no foreign key**, so installing the signature book never forces installing the content-versions table; it fills itself in when both are present, and a caller can always name it.
+  - `Bali::ReadCoverage.new(record, audience:, threshold: 80)` answers how much of an audience has signed: `total_count`, `confirmed_count`, `pending_count`, `confirmed_users`, `pending_users`, `coverage_percentage`, `below_threshold?`. The audience is **injected**, because where it comes from — a department, a role, an explicit reader list — is the part every app does differently. One query for the signatures regardless of audience size, and no grouping by area: that is the host's domain.
+  - **An empty audience has no coverage, not zero coverage**: `coverage_percentage` returns `nil` and `below_threshold?` returns `false`. `0/0` is not `0`; reporting 0% would paint a dashboard red over records nobody has to read, and 100% would claim a coverage nobody confirmed.
+  - No acknowledgments controller in the engine, on purpose — the valuable part of one is a `turbo_stream` that renders a partial *of the host*. The twenty-line recipe, whitelist included, is in the new guide.
+  - New guide `docs/guides/engine-models.md`: the adoption path for every table the engine ships (saved views and acknowledgments today, the rest of the documents engine as it lands), plus what to change when porting the schema from gobierno-corporativo.
+- **Entity references move into the engine, behind one registry per type (#708).** The
+  BlockEditor's `#` menu had a working front end and no server: every host wrote its own
+  search endpoint, its own resolver and its own display config, three parallel declarations
+  that drifted. Now `Bali.entity_reference_types` declares a type once — `search_scope`,
+  `lookup_scope`, `search_fields`, `display_field`, and optionally `url`, `unreachable?`,
+  `extra_payload`, `permission_scope` and `display` — and that single entry powers the
+  search endpoint, the resolution endpoint **and** the editor's `references_config`, which
+  the component now derives when the host doesn't pass one.
+  - `Bali::EntityReferencesController` serves both operations for every registered type at
+    once (`GET bali/entity_references?q=`, `POST bali/entity_references/resolve`), capped at
+    10 results and 5 per type, with the query escaped through `sanitize_sql_like`.
+    `Bali.entity_references_authorize` **denies by default**: mounting the engine publishes
+    no search over your records until you open it, and `permission_scope:` gates each type
+    on both search and resolution, so a record the viewer may not see resolves as broken
+    rather than disclosing its name.
+  - `Bali::EntityReferenceable` materializes the references embedded in a model's BlockNote
+    column into the new `bali_entity_references` table (`record` and `referenceable` both
+    polymorphic, no foreign key on the referenced side so a reference survives the deletion
+    of its target and still renders as a broken chip). The write is a minimal diff guarded
+    by `saved_change_to_<attribute>?`: an autosave that doesn't touch the content costs no
+    queries, and rows that are still there keep their ids. `references_entities_in :body`
+    names the column when it isn't `content`; `incoming_references` and
+    `Model.referencing(record)` walk the relation backwards.
+  - `Bali::BlockNote::Text.entity_references` is the single walker over BlockNote structure
+    (nested children, both table shapes), shared with the text extractor — the reason the
+    hand-rolled versions this replaces drifted apart was having two.
+  - The payload the browser receives — `entityType`, `entityId`, `entityName`, `url`,
+    `broken` — is frozen; `extra_payload` adds host-owned keys on top of it and cannot
+    override those five. Adoption guide: `docs/guides/engines.md`.
+  - Caps on both sides, because the `after_save` runs inside the host's own `update!` and
+    the request body is written by the client: 500 references per record, 500 refs per
+    resolve request, 255 characters of `reference_text`, ids that don't fit a bigint
+    dropped, and no search below two characters.
+
+- **Polymorphic content versions: `Bali::ContentVersionable` + `Bali::ContentVersionsController`** (#707). The `DocumentEditor`'s history panel has been a JSON contract with no server behind it — every host reimplemented the same `create_version!` / `create_or_coalesce_version!` pair, the same numbering, the same restore, and the dummy's copy did it without the row lock (which is the bug, not the pattern). The engine now ships all of it:
+  - New table `bali_content_versions`: a polymorphic `record`, so a document, a policy and a note share one history table without Bali knowing any of those models. `version_number` is unique per record, `content` is jsonb on Postgres and json everywhere else, and `has_one_attached :file` is there (no presence validation) for the "version of a file" case.
+  - `include Bali::ContentVersionable` gives a model `content_versions`, `create_version!`, `create_or_coalesce_version!`, `content_at_version` and `restore_content_version!`. `content_versionable attribute: :content, coalesce_window: 5.minutes` configures it — the window is a property of the model, not of the app, because how long one editing session lasts depends on what is being edited. A burst of auto-saves by one author inside the window updates the last version instead of creating twelve, under a row lock so two concurrent saves cannot claim the same `version_number`.
+  - The author is a polymorphic **optional** association plus a required denormalized `author_name`: the JSON the editor consumes serves the name, so a host with no user model loses nothing, while the foreign key makes "my versions" and auditing possible without a later migration. Coalescing compares by `(author_type, author_id)` when there is an author record, so two people with the same name never collapse into one version.
+  - `Bali::ContentVersionsController` serves index, show and restore. The record travels in the query string (`?record_type=&record_id=`) because the engine cannot nest routes under models it does not know, and each version carries its own `url` — the shape the JavaScript already prefers over interpolating one.
+  - Two default-deny gates: `Bali.content_versionables` is a whitelist of `record_type` → resolver, empty by default, so every type is a 404 until a host names one (without it, `record_type` would be a `constantize` over user input); `Bali.content_versions_authorize` receives the action, so reading and restoring can be gated apart, and returns falsy by default → 403. `Bali.content_versions_author` names who signs the version a restore creates.
+  - `Bali::DocumentEditor::Component` accepts `versions_url: :auto` / `restore_version_url: :auto` plus `record:`, resolving to the mounted engine's endpoints. Without a record the history panel does not render, rather than rendering one whose every request would 404. Plain string URLs keep working untouched.
+  - Adoption guide in `docs/guides/engines.md`, including the explicit note that a host with an existing history table **does not have to migrate** — the contract is JSON.
+  - The dummy app now consumes the engine instead of its own `DocumentVersion`, which is what proves the adoption path works.
+  - Both `create_version!` and `create_or_coalesce_version!` take a row lock, so they must be called **after** the record is saved: Rails refuses to lock a record with unsaved attributes, which means versioning mid-edit raises instead of recording a snapshot the database never held. `summary` is capped at 255 characters in the column and in the model, and `restore_content_version!` re-scopes the version to the record it is called on even when handed a `Bali::ContentVersion` object, so one record can never be restored from another's history.
+- **The engine now stores the Block Editor's inline comments** (#706). Three tables
+  (`bali_block_editor_threads` / `_comments` / `_reactions`, installed with
+  `bin/rails bali:install:migrations`), three controllers, and the nine endpoints
+  `RESTThreadStore` has always called — so a host stops re-implementing the reference
+  controllers by hand. Point the editor at them with `comments: { url: :auto, commentable: record }`:
+  it resolves `bali.block_editor_threads_path(commentable_type:, commentable_id:)` for that
+  record, and `_buildUrl` carries the scope to all nine sub-requests for free. Passing `:auto`
+  without a `commentable:` raises — there is no unscoped thread list, deliberately.
+  - Three lambdas are the whole configuration, and all three deny by default:
+    `Bali.block_editor_commentables` (default `{}`, so mounting the engine grants nothing;
+    a type nobody listed and a record that does not exist are both `404`, and
+    `commentable_type` is never `constantize`d), `Bali.block_editor_comments_user`
+    (returns the string author id) and `Bali.block_editor_comments_authorize`
+    (`403` when it says no).
+  - Permissions replay BlockNote's own `DefaultThreadStoreAuth` server-side, because the
+    client-side copy stops nothing: anyone admitted may list, open a thread, comment, resolve
+    and react; only a comment's author may edit or delete it; only the author of a thread's
+    **first** comment may delete the thread. Deleting a comment is soft (null body plus
+    `deleted_at`), and deleting the last live comment takes the thread with it.
+  - `commentable_type`/`commentable_id` are **required on every action**, including the ones
+    that already carry a thread id. That is what keeps `GET /` from being "every thread in the
+    database" — the leak the reference implementation shipped with.
+  - The `X-User-Id` header the store sends is ignored on purpose; identity comes only from
+    `Bali.block_editor_comments_user`. There is no user-directory endpoint either: display
+    names stay the host's business through `comments[:users]` / `users_url`.
+  - `as_json` is a frozen wire contract (`test/bali/block_editor_json_contract_test.rb` fails
+    the build on a renamed key), and the dummy app now consumes the engine instead of its own
+    copy — that substitution is the adoption test. Adoption, the permission matrix and the
+    three-`rename_table` migration for apps that already ran the reference implementation are
+    documented in `docs/guides/engines.md`.
+- **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
+- **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
+
+
+### Fixed
+
+- **An entity reference chip no longer links to a `javascript:` URL.** The chip's `url` prop
+  lives inside the saved document, so it is written by whoever can edit the content, and it
+  reaches the `href` untouched whenever resolution doesn't run (no `references_resolve_url`,
+  or a failed request). React renders `javascript:` hrefs with nothing but a console
+  warning. The chip now renders as plain text unless the URL is `http(s):`, `mailto:`,
+  root-relative or a fragment.
 - **`Bali::WorkflowSteps` names each step's state for a screen reader** (#716). Both markers said the state in colour and nothing else — the circle's number is a position, not a verdict, and the quick flow's dot has no text at all — so "3, Legal review" was everything a screen reader got about a rejected step. Every step now renders an `sr-only` span with the state's name next to its marker, **in both variants**, from six new keys under `bali_view.workflow_steps.states.*` (en/es) that a host overrides like any other Bali string when its domain has better words ("Signed", "Returned", "Waiting on legal"). The span sits *outside* the circle, so the number stays the circle's whole content.
+- **A field with `char_counter:` no longer writes its Stimulus wiring into the caller's options hash** (#723). The two helpers that add `data-` attributes mutate in place, and the `:data` key they reach is the caller's own object — so reusing one options hash across two fields would have carried the first field's target and action into the second. Caught by `options_contract_test.rb`, which exists for exactly this.
+- **The textarea controller stays quiet when it has no control to act on** (#723). `auto_grow:` belongs to the textarea — an `<input>` has no height to grow into — so a text field written with it now gets a controller and no input target. Before the guard that would have thrown "Missing target element" on connect, where it used to do nothing at all; doing nothing is the right answer, and it is now the measured one.
+
 
 ## [v3.1.0.beta.3] - 2026-08-06
 
