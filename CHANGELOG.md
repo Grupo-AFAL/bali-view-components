@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Gantt` composes the React island: `mode: :interactive`** (#719, phase 3 of the Gantt). The option was signed in phase 1 and raised until now; it renders. The element the component already emitted becomes the island's mount point — `data-controller="gantt"` plus the values that map 1:1 to `GanttFlow`'s props — and **the static board renders inside it**. React calls `replaceChildren` when it connects, so the fallback is three things at once: what a visitor sees while a React-plus-React-Flow bundle is in flight, what a visitor without JavaScript keeps forever, and what a reader mode indexes. An interactive Gantt is now a working Gantt before any JavaScript runs.
+
+  **That the swap is unremarkable is measured, not asserted.** `Bali::Gantt::TimeScale` and the island's `timeScale.js` already shared their densities (day 24 px/day, week 8, month 2), and `cypress/e2e/gantt-interactive.cy.js` now pins it: it measures a bar in the server-rendered fallback and the same bar as a React Flow node, and requires the two widths to be **equal**, not close. The one thing that did not line up was the zoom — the island opened at its own default (`week`) while the fallback had resolved `:auto` against the window, so mounting rescaled the whole board in front of the visitor. The component now hands the island the density its fallback resolved (`data-gantt-initial-zoom-value`, read only when the URL carries no `gantt_zoom`), and after mount the island owns the zoom as before.
+
+  This is the position afal-apps could not take: it shipped a component fallback, saw it flicker, and replaced it with a neutral skeleton — but that fallback did not share geometry with the island, which is precisely what changed here.
+
+- **`fallback: :skeleton` for the interactive Gantt** (#719). A neutral placeholder — the island's own frame with grey blocks in it, no schedule data — instead of the static board inside the mount. It exists for the case where rendering the board twice is not worth what it costs: at 300 items the static fallback is about 390 KB of extra HTML per response, and the skeleton is a fixed ten rows regardless of dataset size. `:static` remains the default, and moving between them is one keyword: nothing else about the call site changes. The placeholder announces itself as `role="status"` with `aria-busy`, and carries none of the real names or dates.
+
+- **`docs/api/gantt.md`** (#719, decision D17) — the page a host needs to run the island, and the two contracts Bali documents but deliberately does not implement:
+  - **The mutation contract.** `PATCH` an item, `POST`/`DELETE` a dependency, `GET` to re-sync — and always answer with the **complete** document, never a patch. A move cascades into successors, group rollups and the critical path, and the island has no scheduler to work that out; returning only the edited item leaves the board wrong until the next reload. `422 {errors}` rolls the optimistic edit back, `404` makes the client re-`GET`. The dummy's `Admin::Projects::SchedulesController` and `DependenciesController` are the executable form of all of it.
+  - **The broadcast contract.** `broadcast_replace_to(target: dom_id(project, :gantt))` — which is what the component's `id:` is for. Replacing the whole element is the right mechanism, because the island reads its `data` value **once, at mount**: changing the attribute in place would do nothing. The page also documents the part that is easy to get wrong — **echo suppression is the host's job**. A remount costs a React mount and resets scroll, selection and collapsed groups; that is a fair price for someone else's edit and a bad one for your own, whose authoritative answer already arrived as the `200` of your own `PATCH`.
+
+  Also documented: the four-step install (npm peers, dedicated entry, loader, meta tags), the full parameter table, why the island's canvas is a mouse-first surface that must not be the only path to an action, and a troubleshooting list that names the symptom each mistake actually produces.
+
+- **Four new Lookbook previews of the interactive Gantt** (#719): `interactive_readonly` and `interactive_skeleton` for the two fallbacks, and `interactive_stress` / `interactive_stress_skeleton` — 300 items over 12 groups from a fixed seed (`Random.new(719)`), so the board is identical between runs and between the two variants, which is what makes them usable as an A/B measurement rather than an illustration. The existing editable `island` preview now mounts through `Bali::Gantt::Component` instead of hand-written markup: it is the reference call site, `urls:` and all.
+
+### Changed
+
+- **The events table no longer lists `bali:gantt-foldable-item:toggle`** (#719). `GanttFoldableItemController` was removed with the v2 Gantt chart in 3.0; the row outlived it in `docs/guides/javascript-integration.md`. The new Gantt folds with `<details>` and dispatches nothing.
+
+- **`bali-view-components/gantt` resolves again** — worth knowing if you are upgrading from v2 *straight* to v3.1. v3.0 removed that npm subpath so a stale `import { registerGantt } from 'bali-view-components/gantt'` would fail the build; v3.1 reuses the name for the island (it was free — the removal verified zero consumers). The stale import now resolves and registers a completely different controller: the build goes green and nothing renders. `docs/guides/migration-v2-to-v3.md` says so where the removal is documented, and gained a table for porting a `GanttChart` call site to `Bali::Gantt`.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added
