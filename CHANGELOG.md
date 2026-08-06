@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`BlockEditorController` now inherits from `ReactIslandController`** (#703). No API change
+  and nothing to do in a host app: the controller identifier, its Stimulus values, the entry
+  and `block_editor_meta_tags` are all untouched. What changed is where the mechanics live —
+  the `_disconnected` guard, `createRoot` over its own mount point, the `turbo-cache-control`
+  meta, the unmount on disconnect and the error fallback now come from the base the editor
+  was extracted from, and the controller keeps only what makes it the block editor: the
+  BlockNote wrapper, the props, the submit flush, the ProseMirror teardown (moved to the
+  base's `beforeUnmount` hook, which runs while the DOM is still attached) and the PDF/DOCX
+  exports. The editor is the first real subclass, so this is what proves the base's hooks fit
+  a demanding island rather than only the toy preview. It also gains the base's
+  ErrorBoundary, which it never had: a render error inside the editor now shows the fallback
+  message instead of tearing down the React tree.
+
 ### Added
 
 - **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
