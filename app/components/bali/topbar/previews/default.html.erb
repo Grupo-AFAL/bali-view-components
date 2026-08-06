@@ -8,31 +8,23 @@
   <% end %>
 
   <% topbar.with_action do %>
-    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications">
-      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
-      <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100"></span>
-    </button>
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'bell', label: 'Notifications', badge: true, badge_id: 'preview-notifications-badge'
+    ) %>
   <% end %>
 
   <% topbar.with_action do %>
-    <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help">
-      <%= render Bali::Icon::Component.new('circle-help', class: 'size-5') %>
-    </button>
+    <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', label: 'Help') %>
   <% end %>
 
   <% topbar.with_user_menu do %>
-    <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
-      <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
-        <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
-          <% avatar.with_placeholder { 'AG' } %>
-        <% end %>
-        <span class="hidden md:inline">Ana García</span>
-        <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
-      <% end %>
-      <% dropdown.with_item(href: '#') { 'Profile' } %>
-      <% dropdown.with_item(href: '#') { 'Settings' } %>
-      <li class="divider my-1"></li>
-      <% dropdown.with_item(href: '#', class: 'text-error') { 'Sign out' } %>
+    <%= render Bali::Topbar::UserMenu::Component.new(
+      name: 'Ana García',
+      email: 'ana@example.com',
+      sign_out: { href: '#' }
+    ) do |menu| %>
+      <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+      <% menu.with_item(name: 'Settings', href: '#', icon: 'settings') %>
     <% end %>
   <% end %>
 <% end %>
