@@ -1,0 +1,17 @@
+/* CSS of the Gantt ISLAND (#705). Bundled by the host's bundler through the
+ * `bali-view-components/gantt` entry chain (GanttFlow.jsx imports this file
+ * right after @xyflow/react/dist/style.css) and emitted as the island's own
+ * stylesheet — it is NOT part of the Tailwind build and must never be
+ * imported from app/assets/stylesheets/bali/components.css (that sheet only
+ * carries the `:static` renderer's index.css).
+ *
+ * Critical-path edges (decision D10): useGanttModel has always tagged
+ * critical edges with className "critical", but no stylesheet ever styled
+ * them — a critical dependency arrow looked identical to a normal one and
+ * the CPM information was lost. Ratified as a FEATURE: one rule, painted
+ * with the daisyUI error color like every other critical treatment in the
+ * island (bar borders, summary bars, minimap).
+ */
+.react-flow__edge.critical path {
+  stroke: var(--color-error);
+}

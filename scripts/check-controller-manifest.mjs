@@ -48,6 +48,7 @@ const PACKAGE_ROOT_ENTRY = 'app/frontend/bali/index.js'
 const OPTIONAL_ENTRY_CONTROLLERS = {
   BlockEditorController: 'app/frontend/bali/block-editor.js',
   ChartController: 'app/frontend/bali/charts.js',
+  GanttController: 'app/frontend/bali/gantt.js',
   RichTextEditorController: 'app/frontend/bali/rich-text-editor.js'
 }
 

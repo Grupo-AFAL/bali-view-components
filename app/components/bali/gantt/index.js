@@ -1,0 +1,58 @@
+// Stimulus controller of the Gantt island (#705): a ReactIslandController
+// subclass — the base handles createRoot, values→props, the ErrorBoundary,
+// Turbo cache exclusion and unmount on disconnect (see
+// docs/api/react-island.md). This file only declares the values and loads the
+// component; react/react-dom/@xyflow/react are imported HERE so the bundler
+// attributes them to the island's entry and the main bundle stays React-free.
+//
+// The element a host renders:
+//
+//   <div data-controller="gantt"
+//        data-gantt-data-value="<%= gantt.to_json %>"
+//        data-gantt-catalogs-value="..." data-gantt-i18n-value="..."
+//        data-gantt-editable-value="true" data-gantt-patch-url-value="..."></div>
+//
+// Values map 1:1 to GanttFlow props (the base's componentProps default).
+import { ReactIslandController } from '../../../frontend/bali/react-island'
+
+export class GanttController extends ReactIslandController {
+  static values = {
+    // The Bali::Gantt data contract: { window, groups, items, dependencies,
+    // critical_ids } — documented in Bali::Gantt::Data.
+    data: Object,
+    // { statuses: [{ value, label, color }], priorities: [{ value, label,
+    // hue }] } (D11). color is a daisyUI variable name or null; hue is an
+    // oklch hue or null. Defaults live in ganttColors.js.
+    catalogs: { type: Object, default: {} },
+    // Flat strings table from bali_view.gantt.island.* (D12); English
+    // defaults in i18n.js fill any missing key.
+    i18n: { type: Object, default: {} },
+    editable: { type: Boolean, default: false },
+    manageable: { type: Boolean, default: false },
+    patchUrl: { type: String, default: '' },
+    dependenciesUrl: { type: String, default: '' },
+    scheduleUrl: { type: String, default: '' },
+    // Opens the item in the Bali drawer; "__ID__" is replaced by the item id.
+    itemUrlTemplate: { type: String, default: '' },
+    newGroupUrl: { type: String, default: '' },
+    newItemUrl: { type: String, default: '' },
+    // Namespaced query param the zoom persists into (D14).
+    zoomParam: { type: String, default: 'gantt_zoom' },
+    // date-fns display locale: 'en' (default) or 'es'.
+    dateLocale: { type: String, default: 'en' }
+  }
+
+  async loadComponent () {
+    const [react, reactDom, { default: GanttFlow }] = await Promise.all([
+      import('react'),
+      import('react-dom/client'),
+      import('./GanttFlow.jsx')
+    ])
+
+    return { react, reactDom, Component: GanttFlow }
+  }
+
+  errorFallback () {
+    return this.i18nValue.load_error || 'The timeline failed to load.'
+  }
+}
