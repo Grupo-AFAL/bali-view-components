@@ -205,6 +205,39 @@ module Bali
           )
         end
 
+        # @label Date Range Presets
+        # `presets:` turns the range picker into a period select — "This month" instead of
+        # two dates — with the picker behind its "Custom…" option.
+        #
+        # The chosen token travels in the SAME param the explicit range does
+        # (`q[created_at]=this_month`) and `Bali::Types::DateRangeValue` resolves it against
+        # `Time.zone` on every query. That is why a saved view built on one still means
+        # "this month" next month, which a stored pair of dates cannot.
+        #
+        # Pass `presets: true` for every token in `Bali::DateRangePresets::TOKENS`, or an
+        # array to pick and order them. Only `date_range` takes them: "this week" is not a
+        # value a single date can hold.
+        #
+        # @param created_at select { choices: ["", today, this_week, this_month, last_7_days, last_30_days, "2026-01-01 to 2026-03-31"] }
+        def date_range_presets(created_at: '')
+          filters = [
+            {
+              attribute: :created_at,
+              label: 'Created between',
+              type: :date_range,
+              icon: 'calendar',
+              presets: %i[today this_week this_month last_7_days last_30_days],
+              value: created_at.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: created_at.present?
+          )
+        end
+
         # @label Boolean Toggle
         # On/off toggle for boolean columns like "active", "published", or "featured".
         #

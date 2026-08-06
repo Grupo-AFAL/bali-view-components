@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "bali/ransack_param_name"
+require "bali/date_range_presets"
 require "bali/search_config"
 require "bali/filter_form"
 require "bali/form_builder/html_utils"
