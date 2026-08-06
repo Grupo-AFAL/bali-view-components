@@ -24,7 +24,7 @@
             </div>
           </div>
           <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
-            <% dropdown.with_item(href: movie_character_path(movie, character), method: :delete, icon: 'trash', class: 'text-error') { 'Remove' } %>
+            <% dropdown.with_item(href: movie_character_path(movie, character), method: :delete, icon: 'trash-2', class: 'text-error') { 'Remove' } %>
           <% end %>
         </div>
       <% end %>

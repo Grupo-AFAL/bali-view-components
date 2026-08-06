@@ -27,6 +27,19 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :name, :tag_name, :options
 
+      # Every name the direct-Lucide step can serve, enumerated from the SVG
+      # files the gem ships (lucide-rails has no list API). Only the error
+      # path reads it — it feeds "did you mean" for names the mapping no
+      # longer carries, e.g. `arrow_left` → `arrow-left` (#902 removed the
+      # identity entries that used to cover those). Memoized: the set is
+      # fixed for the life of the process.
+      def self.lucide_icon_names
+        @lucide_icon_names ||= LucideRails::GEM_ROOT
+                               .glob("icons/stripped/*.svg")
+                               .map { |file| file.basename(".svg").to_s }
+                               .sort.freeze
+      end
+
       SIZES = {
         small: "size-4",
         medium: "size-8",
@@ -166,13 +179,15 @@ module Bali
       # Matching ignores the difference between dashes and underscores, because
       # the removed legacy step accepted both spellings of every name it
       # served — without that, `arrow_left` suggests nothing at all instead of
-      # the `arrow-left` that replaces it.
+      # the `arrow-left` that replaces it. Candidates cover everything the
+      # pipeline can actually serve: the mapping's keys, the full Lucide set,
+      # and the kept icons.
       #
       # @param name [String] the icon name that wasn't found
       # @return [Array<String>] up to 3 similar icon names
       def find_similar_icons(name)
         needle = comparable_name(name)
-        all_names = LucideMapping.bali_names + KeptIcons::ALL
+        all_names = LucideMapping.bali_names + self.class.lucide_icon_names + KeptIcons::ALL
 
         all_names.select do |candidate|
           comparable = comparable_name(candidate)

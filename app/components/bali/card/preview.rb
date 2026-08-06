@@ -60,7 +60,7 @@ module Bali
       # Add an icon to draw attention to the card's purpose.
       def header_with_icon
         render Card::Component.new(class: 'w-96') do |c|
-          c.with_header(title: 'Settings', subtitle: 'Manage your preferences', icon: 'cog')
+          c.with_header(title: 'Settings', subtitle: 'Manage your preferences', icon: 'settings')
 
           tag.p('Icons help users quickly identify the card\'s purpose.')
         end

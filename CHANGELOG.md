@@ -46,6 +46,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Bali::Timeline`: the line below an item now takes the colour of the item that *follows* it, so a coloured line reads as "travelled this far" — the exact look the hand-rolled tracking timelines draw. Only timelines whose consecutive items mix different explicit colours render differently (the boundary used to be half each colour); uniform and default-coloured timelines are untouched. The line below the last item keeps its own colour. (#714)
 - `Bali::Timeline::Item` extra options now land on the content box as HTML attributes. They were documented as forwarded but silently dropped, so no existing markup changes — `data: { action: ... }` on an item simply starts working, which is what makes the box clickable without an `href:`. (#714)
 
+### Changed
+
+- **Five icon names stop being shadowed and now draw their real Lucide glyph** (#902). `trash`, `cog`, `expand`, `indent` and `outdent` were `LucideMapping` keys redirecting to a different drawing (`trash-2`, `settings`, `maximize`, `indent-increase`, `indent-decrease`), which made the glyph lucide.dev shows for those names unreachable — silently. The entries are removed; each name keeps resolving through the direct-Lucide step. Write the old target name to keep the previous drawing — the before/after table is in the [v3 → v3.1 migration guide](docs/guides/migration-v3-to-v31.md) (and, because it reaches v1/v2 hosts on their jump, in the [v2 → v3 guide](docs/guides/migration-v2-to-v3.md)). Measured across all pinned v3 hosts: zero call sites of the five. Related, in the same change:
+  - `check-circle => circle-check`, `edit => pencil` and `plus-circle => circle-plus` stay mapped as documented exceptions — their "honest" spellings are deprecated Lucide aliases (a legacy glyph, and a name whose real rename is `square-pen`), so removal would make drawings worse, not truer. The shadowing test freezes the surviving set and pins the removed names to the direct-Lucide step.
+  - The 60 identity entries (`"check" => "check"`, …) are gone — verified no-op, the direct-Lucide step resolves every one of them identically. "Did you mean" suggestions now draw from the full Lucide set instead of the mapping's keys, so `arrow_left` still suggests `arrow-left` (and any Lucide name typo gets suggestions, which it previously did not).
+  - `Bali::DeleteLink`'s default icon is now spelled `trash-2` internally — same drawing as always.
+
 ## [v3.1.0.beta.1] - 2026-08-05
 
 ### Added
