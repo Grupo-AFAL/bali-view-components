@@ -16,8 +16,26 @@ module Bali
       # out of the family's map is the variant; an Integer — or a String, which
       # is what `size: "4"` has always meant — keeps meaning the attribute and
       # passes through untouched. See `size_variant`.
+      #
+      # One map per daisyUI component, spelled out rather than interpolated:
+      # Tailwind scans `lib/bali/**/*.rb` for class names, and a class it only
+      # ever sees assembled at runtime is a class it does not compile.
+      # The families whose control is its own daisyUI component keep their map
+      # next to the family (`RangeFields::SIZES`, `BooleanFields::SIZES`,
+      # `SwitchFields::SIZES`, `RadioFields::SIZES`, `SlimSelectFields::SIZES`,
+      # `FileFields::CTA_SIZES`); these three are the ones `html_utils` itself
+      # resolves for every family that shares the base classes above.
       INPUT_SIZES = {
         xs: "input-xs", sm: "input-sm", md: "input-md", lg: "input-lg", xl: "input-xl"
+      }.freeze
+
+      SELECT_SIZES = {
+        xs: "select-xs", sm: "select-sm", md: "select-md", lg: "select-lg", xl: "select-xl"
+      }.freeze
+
+      TEXTAREA_SIZES = {
+        xs: "textarea-xs", sm: "textarea-sm", md: "textarea-md",
+        lg: "textarea-lg", xl: "textarea-xl"
       }.freeze
 
       # daisyUI 5 dropped `label-text-alt`; `fieldset-label` is its successor for
@@ -77,21 +95,25 @@ module Bali
       # those are stripped next to the helper that gives them that meaning.
       RESERVED_OPTIONS = (WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS).freeze
 
-      # Attributes that only mean something on a validatable form control,
-      # dropped by the families that render something else. `required` reached
-      # them because it is a real attribute on an `<input>` and therefore
-      # deliberately absent from the list above — but a block editor, a Trix
-      # editor, a polygon map and a period picker are each a widget over a hidden
-      # field, and a hidden input is barred from constraint validation to begin
-      # with; a submit button is a control the browser never validates.
+      # Attributes that only mean something on a native form control, dropped by
+      # the families that render something else. Both reached them because both
+      # are real attributes on an `<input>` and therefore deliberately absent
+      # from the list above — but a block editor, a Trix editor, a polygon map
+      # and a period picker are each a widget over a hidden field.
       #
+      # `required`: a hidden input is barred from constraint validation to begin
+      # with, and a submit button is a control the browser never validates.
       # Measured helper by helper before this list existed: `<div required>` on
       # two of them and `<trix-editor required>` on a third — none of which is
       # valid or does anything — and silence on the rest. Every outcome reads as
-      # "this field is required" at the call site and none of them made it so,
-      # which is the reason the drop is named once here instead of living in one
-      # family's private constant.
-      CONTROL_ONLY_OPTIONS = %i[required].freeze
+      # "this field is required" at the call site and none of them made it so.
+      #
+      # `size`: valid on `<input>` and `<select>` only, so on those same widgets
+      # it painted `<div size="sm">` — measured on four of them while the sweep
+      # in `size_option_test.rb` was written (#723). SlimSelect drops it for the
+      # reason it drops `required`: its `<select>` is clipped to 1x1, so visible
+      # rows are as meaningless there as a validation bubble.
+      CONTROL_ONLY_OPTIONS = %i[required size].freeze
 
       # The single extraction point. Everything that delegates to Rails goes
       # through here, so no module needs its own `delete`/`except` for the keys
@@ -256,8 +278,9 @@ module Bali
 
       def textarea_field_options(method, options, stimulus: false)
         attributes = html_attributes(options)
+        attributes.delete(:size) if size_variant(options, TEXTAREA_SIZES)
         attributes[:class] = field_class_name(
-          method, "#{TEXTAREA_BASE_CLASS} #{options[:class]}",
+          method, "#{textarea_base_class(options)} #{options[:class]}",
           error_class: "textarea-error", options: options
         )
 
@@ -429,12 +452,30 @@ module Bali
         end
       end
 
+      # The variant for a family that takes its element attributes in a second
+      # `html:` hash. `size:` reads naturally in either one — next to `label:`,
+      # where every other family's variant is written, or inside `html:`, where
+      # the HTML attribute of the same name lives — so both are looked at, and
+      # a Symbol the map does not know raises from whichever hash it was in.
+      #
+      # The caller then has to drop `:size` from BOTH hashes: Rails'
+      # `select_content_tag` copies `:size` out of the select's own options and
+      # onto the element when the element does not already carry one, so
+      # stripping the element hash alone still emits `size="sm"`.
+      def select_size_variant(options, html_options, map = SELECT_SIZES)
+        size_variant(options, map) || size_variant(html_options, map)
+      end
+
       # Add join-item class when addons are present for proper DaisyUI join pattern
       def input_base_class(options)
         has_addons = options[:addon_left].present? || options[:addon_right].present?
         base = has_addons ? INPUT_ADDON_BASE_CLASS : INPUT_BASE_CLASS
 
         [ base, size_variant(options) ].compact.join(" ")
+      end
+
+      def textarea_base_class(options)
+        [ TEXTAREA_BASE_CLASS, size_variant(options, TEXTAREA_SIZES) ].compact.join(" ")
       end
 
       def field_with_addons(field, left:, right:)

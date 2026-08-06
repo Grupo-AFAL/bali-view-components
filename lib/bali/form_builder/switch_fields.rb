@@ -15,7 +15,8 @@ module Bali
         xs: "toggle-xs",
         sm: "toggle-sm",
         md: "toggle-md",
-        lg: "toggle-lg"
+        lg: "toggle-lg",
+        xl: "toggle-xl"
       }.freeze
 
       COLORS = {
@@ -79,7 +80,7 @@ module Bali
       def build_toggle_options(method, options)
         toggle_class = [
           TOGGLE_CLASS,
-          SIZES[options[:size]],
+          size_variant(options, SIZES),
           COLORS[options[:color]],
           (errors?(method, options) ? "toggle-error" : nil),
           options[:class]

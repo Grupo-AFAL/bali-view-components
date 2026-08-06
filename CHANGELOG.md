@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
+  foundation shipped the discrimination — a Symbol is daisyUI's variant, an Integer or String
+  stays the HTML attribute of the same name, an unknown Symbol raises — and this completes the
+  rollout, so a form written entirely at one density comes out at that density:
+  `select_group`/`time_zone_select_group` → `select-*`, `text_area_group` → `textarea-*`,
+  `range_group` → `range-*`, `file_group` → `btn-*` on its CTA, and `checkbox-*`/`toggle-*`/
+  `radio-*` gain the `:xl` daisyUI 5 added. `slim_select_group` keeps `:sm`, the one density its
+  widget has CSS for, and now raises on the others instead of silently rendering full-size.
+  Captions, help text and error messages need no variant of their own — daisyUI scales them with
+  the fieldset. New preview **Form / Sizes** (compact form, and the same fields side by side with
+  and without the option). Every family declares its outcome in
+  `test/bali/form_builder/size_option_test.rb`, which fails if a new one lands in neither list.
+- **`f.date_group :on, alt_input: true, size: :sm`** now sizes the input the user actually sees.
+  With `alt_input:` flatpickr hides the real input and draws a second one from
+  `alt_input_class`, which the density never reached.
+
+### Fixed
+
+- **`size:` no longer leaks into the markup as an attribute where it means nothing** (#723).
+  `slim_select_group(size: :sm)` emitted `<select size="sm">` next to the wrapper class — Rails'
+  `select_content_tag` copies `:size` out of a select's options and onto the element, so closing
+  one route was not enough. The families whose control is a widget over a hidden field
+  (`rich_text_group`, `block_editor_group`, `coordinates_polygon_group`, `time_period_group`)
+  painted `<div size="sm">` for the same reason `<div required>` used to appear there; `size`
+  joins `required` in `CONTROL_ONLY_OPTIONS`.
+
 ## [v3.1.0.beta.3] - 2026-08-06
 
 ### Changed

@@ -238,7 +238,7 @@ Slider input with optional tick marks.
 - `min` - Minimum value (default: 0)
 - `max` - Maximum value (default: 100)
 - `step` - Step increment (default: 1)
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
 - `show_ticks` - Show tick marks below slider
 - `ticks` - Number of tick marks
@@ -437,7 +437,7 @@ Checkbox input.
 ```
 
 **Options:**
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
 - `text` - The caption **beside the checkbox** (default: the translated attribute name).
   `false` renders none.
@@ -453,7 +453,7 @@ Toggle switch (styled checkbox).
 ```
 
 **Options:**
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
 - `text` - The caption **beside the toggle** (default: the translated attribute name)
 - `label` - A `<legend>` **over the group**, with no default
@@ -669,10 +669,47 @@ These options work across most field types:
 ```
 
 A Symbol outside the variant list raises `ArgumentError` instead of leaking
-`size="tiny"` into the markup. The text-input families and the submit pair
-resolve the variant today; `select-*`, `textarea-*`, `file-input-*` and
-`range-*` land in a follow-up of #723 (checkbox, switch, radio and slim_select
-already had their own `size:`).
+`size="tiny"` into the markup.
+
+Every family takes it, and each one puts the variant on the element it actually
+has:
+
+| Family | Class | Notes |
+|--------|-------|-------|
+| text, email, url, password, number, currency, percentage, numeric, step_number, date, datetime, time, month, search | `input-*` | |
+| `select_group`, `time_zone_select_group` | `select-*` | |
+| `text_area_group` | `textarea-*` | |
+| `range_group` | `range-*` | |
+| `boolean_group` | `checkbox-*` | |
+| `switch_group` | `toggle-*` | |
+| `radio_group` | `radio-*` | in `html:`, like its other input attributes |
+| `slim_select_group` | `slim-select-sm` | `:sm` only — the one density the widget has CSS for; the others raise |
+| `file_group` | `btn-*` | the native input is hidden, so the density is the CTA button's |
+| `submit_group` / `submit_field` | `btn-*` | |
+
+The families whose control is a widget over a hidden field — `rich_text_group`,
+`block_editor_group`, `rich_text_area_group`, `coordinates_polygon_group`,
+`time_period_group`, `recurrent_event_rule_group`, `direct_upload_group`,
+`radio_buttons_group` — ignore the option entirely; there is no daisyUI
+component underneath to give a density to.
+
+Captions, help text and error messages take no variant of their own, and need
+none: `fieldset-legend` and `fieldset-label` are 12px at every density —
+measured on both columns of the **Form / Sizes → Default vs compact** preview.
+A validation message is the last thing that should get smaller anyway.
+
+One daisyUI behaviour worth knowing before filing it as a bug: `textarea-sm`
+sets the **type size**, not the height. `.textarea` carries `min-height: 5rem`
+at every density, so a compact textarea keeps its box and changes its text. Use
+`rows:` for the height.
+
+Two spellings the discrimination is worth knowing about:
+
+- `select_group` reads `size:` from either hash (next to `label:` or inside
+  `html:`), because Rails copies `:size` out of a select's options onto the
+  element and both routes had to be closed.
+- `text_area_group` keeps Rails' `size: "20x40"` String, which sets `cols` and
+  `rows` — the String half of the rule, doing exactly what it always did.
 
 ---
 

@@ -170,8 +170,12 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_equal "text-sm text-base-content/60 truncate", Bali::FormBuilder::FileFields::FILENAME_CLASS
   end
 
+  # The density left the constant when `size:` started choosing it (#723); it is
+  # appended at render time, and `DEFAULT_CTA_SIZE` is what a call site that says
+  # nothing still gets.
   def test_constants_has_cta_class_constant
-    assert_equal "btn btn-soft btn-primary btn-sm gap-2", Bali::FormBuilder::FileFields::CTA_CLASS
+    assert_equal "btn btn-soft btn-primary gap-2", Bali::FormBuilder::FileFields::CTA_CLASS
+    assert_equal "btn-sm", Bali::FormBuilder::FileFields::DEFAULT_CTA_SIZE
   end
 
   def test_constants_has_label_class_constant
