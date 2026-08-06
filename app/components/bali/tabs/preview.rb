@@ -108,6 +108,36 @@ module Bali
       end
 
       # @!endgroup
+
+      # @!group Navigation
+
+      # Navigation with counters
+      # ------------------------
+      # The scopes pattern: tabs that navigate between filtered views of the
+      # same listing (Mine / Team, statuses), each showing how many records
+      # wait behind it. `count:` renders a badge after the title — `0` renders
+      # too, an empty scope is information. Every link carries
+      # `data-turbo-action="advance"` by default.
+      # @param style [Symbol] select [default, border, box, lift]
+      def navigation_with_counts(style: :border)
+        render(Bali::Tabs::Component.new(style: style, label: 'Inbox scopes')) do |c|
+          c.with_tab(title: 'Mine', count: 12, href: '/tab1', active: true)
+          c.with_tab(title: 'Team', count: 3, href: '/tab2')
+          c.with_tab(title: 'Done', count: 0, href: '/tab3')
+        end
+      end
+
+      # Tabs with panels and counters
+      # -----------------------------
+      # `count:` renders in panel mode too, with the same badge.
+      def panels_with_counts
+        render(Bali::Tabs::Component.new(style: :border)) do |c|
+          c.with_tab(title: 'Open', count: 7, active: true) { tag.p('Seven open items') }
+          c.with_tab(title: 'Closed', count: 42) { tag.p('Forty-two closed items') }
+        end
+      end
+
+      # @!endgroup
     end
   end
 end

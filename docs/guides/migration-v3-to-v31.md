@@ -31,10 +31,33 @@ Dropdown items that trigger a non-GET request (POST/PATCH/DELETE) stop being lin
 
 ## Tabs: `options` reach the `<a>` (#722)
 
-Options passed to a tab item start landing on the `<a>` element itself instead of its
-wrapper, alongside the rest of what #722 adds to `Bali::Tabs`.
+**What changes.** In navigation mode — every tab has an `href:`, the component renders a
+`<nav>` of links — the `**options` passed to `with_tab` now land on the `<a>` element
+itself. In v3.0 they were merged into the attributes of a panel `<div>` that navigation
+mode never renders, so they silently vanished. `class` composes with the tab classes
+(`tab`, `tab-active`) instead of replacing them.
 
-*Lands with the #722 PR; details land with it.*
+Panel mode is untouched: without `href:`, the tab's `**options` keep going to its
+`role="tabpanel"` div, hidden-until-active as always.
+
+**Who is affected.** Only a call site that passes extra options to an `href:` tab *and*
+depends on them being ignored — measured across the pinned hosts, no such call site
+exists; what does exist is the opposite (gc needs `data:` attributes on its tab links and
+had no way to get them there). If you migrate hand-rolled tab markup, this is what makes
+`data-bali-test`, tracking attributes, or an extra utility class on a tab link possible:
+
+```erb
+<%= render Bali::Tabs::Component.new(label: "Inbox scopes") do |tabs| %>
+  <% tabs.with_tab(title: "Mine", href: inbox_path(scope: :mine),
+                   data: { bali_test: "inbox-mine" }) %>
+<% end %>
+```
+
+**Also new in the same PR (additive).** `with_tab` gains `count:` (a badge after the
+title; `nil` renders nothing, `0` renders) and `turbo_action:` — in navigation mode every
+link now emits `data-turbo-action="advance"` by default. On full-page visits that is a
+no-op (advance is Turbo's default); inside a `turbo_frame` it promotes the visit to the
+URL. If a tab must not touch the URL, pass `turbo_action: false`.
 
 ## Card root becomes an `<a>` when given `href:` (#729)
 
