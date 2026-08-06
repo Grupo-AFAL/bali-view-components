@@ -106,6 +106,7 @@ Standard text input with DaisyUI styling.
 - `help` - Help text displayed below input
 - `addon_left` - Content to prepend (e.g., "$" for currency)
 - `addon_right` - Content to append (e.g., ".com")
+- `char_counter` - A live character count under the field — see below
 
 ### email_group / email_field
 
@@ -255,7 +256,34 @@ Slider input with optional tick marks.
 ```erb
 <%= f.text_area_group :description %>
 <%= f.text_area_group :description, rows: 5 %>
+<%= f.text_area_group :description, auto_grow: true %>
 ```
+
+**Options:**
+- `char_counter` - A live character count — see below
+- `auto_grow` - Grow the box to fit its content. Textarea only: an `<input>` has
+  no height to grow into
+
+### char_counter
+
+`char_counter:` renders a live count under the control and works the same on a
+text field and a textarea — the Stimulus controller behind it only reads
+`value.length`, so the element it counts makes no difference:
+
+```erb
+<%= f.text_group :headline, char_counter: { max: 80 } %>   <%# "12 / 80" %>
+<%= f.text_area_group :bio, char_counter: { max: 500 } %>
+<%= f.text_group :slug, char_counter: true %>              <%# "12" — no maximum %>
+```
+
+Past the maximum the counter turns red (`text-error`) and **the typing is not
+stopped**: the count is an advisory, not a constraint. Pair it with `maxlength:`
+if the input really has to be cut off, and with a model validation either way —
+nothing here reaches the server.
+
+The controller lives on the field's `.control` div and the counter is the last
+element inside it, which is why the two travel together: it counts the control
+it wraps.
 
 ### rich_text_area_group / rich_text_area
 

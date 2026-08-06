@@ -45,6 +45,12 @@ module Bali
       MESSAGE_CLASS = "fieldset-label"
       ERROR_MESSAGE_CLASS = "fieldset-label text-error"
 
+      # The character counter's own class. It lives here rather than next to the
+      # textarea because the counter is no longer a textarea feature: `<input>`
+      # and `<textarea>` are the same element to the controller, which only reads
+      # `value.length` (#723).
+      COUNTER_CLASS = "text-base-content/70 text-end w-full"
+
       # `number_with_commas` keeps its old name — it is the value hosts already
       # pass — but it no longer means "commas". Both separators are read from the
       # active locale at render time, so the same option yields `1,234.56` in
@@ -273,10 +279,13 @@ module Bali
         attributes[:class] = field_class_name(
           method, "#{input_base_class(options)} #{options[:class]}", options: options
         )
+
+        counter_attributes(attributes) if char_counter?(options)
+
         merge_aria_attributes(attributes, method, options)
       end
 
-      def textarea_field_options(method, options, stimulus: false)
+      def textarea_field_options(method, options)
         attributes = html_attributes(options)
         attributes.delete(:size) if size_variant(options, TEXTAREA_SIZES)
         attributes[:class] = field_class_name(
@@ -284,11 +293,7 @@ module Bali
           error_class: "textarea-error", options: options
         )
 
-        if stimulus
-          attributes[:data] = (attributes[:data] || {}).merge(
-            "textarea-target" => "input", action: "input->textarea#onInput"
-          )
-        end
+        counter_attributes(attributes) if stimulus_counter?(options)
 
         merge_aria_attributes(attributes, method, options)
       end
@@ -307,15 +312,18 @@ module Bali
 
         left_addon = options[:addon_left]
         right_addon = options[:addon_right]
+        addons = left_addon.present? || right_addon.present?
+        control = addons ? field_with_addons(field, left: left_addon, right: right_addon) : field
 
-        # When addons exist, don't wrap in control div - use join pattern directly
-        if left_addon.present? || right_addon.present?
-          return field_with_addons(field, left: left_addon, right: right_addon) + messages
-        end
+        # When addons exist, don't wrap in control div - use join pattern directly.
+        # A counter is the exception: it has to live inside the element carrying
+        # the controller, so the join goes in the control div with it.
+        return control + messages if addons && !char_counter?(options)
 
         control_class = [ "control", options[:control_class] ].compact.join(" ")
         wrapped_field = content_tag(
-          :div, field, class: control_class, data: options[:control_data]
+          :div, safe_join([ control, counter_element(options) ].compact),
+          class: control_class, data: control_data(options)
         )
 
         wrapped_field + messages
@@ -419,6 +427,64 @@ module Bali
       end
 
       private
+
+      # The `data` of the `.control` div. It is the caller's own `control_data:`
+      # until a counter or auto-grow is asked for, and then it is also where the
+      # `textarea` controller and its values are declared — the controller has to
+      # sit on an element that contains both the control and the counter, and the
+      # control div is the only one that does.
+      def control_data(options)
+        return options[:control_data] unless stimulus_counter?(options)
+
+        counter = options[:char_counter]
+        max_length = counter.is_a?(Hash) ? counter[:max] : 0
+
+        (options[:control_data] || {}).merge(
+          controller: "textarea",
+          'textarea-max-length-value': max_length,
+          'textarea-auto-grow-value': options[:auto_grow].present?
+        )
+      end
+
+      # The pair of attributes that make a control the counter's subject. Both
+      # families hand them to the element they render — a `<textarea>` and an
+      # `<input>` are the same thing to the controller, which only reads
+      # `value.length`.
+      #
+      # `prepend_action` and not `merge`: a call site that already wired its own
+      # `data: { action: }` keeps it, with this one added in front.
+      #
+      # The `:data` hash is copied first because those two helpers mutate in
+      # place, and `html_attributes` hands back the caller's very object under
+      # that key — writing through it is how one field ends up carrying the
+      # previous field's Stimulus wiring. Same reason `dup_options` exists.
+      def counter_attributes(attributes)
+        attributes[:data] = attributes[:data].dup if attributes[:data].is_a?(Hash)
+
+        prepend_action(
+          prepend_data_attribute(attributes, :'textarea-target', "input"),
+          "input->textarea#onInput"
+        )
+      end
+
+      def char_counter?(options)
+        options[:char_counter].present?
+      end
+
+      # Auto-grow is a textarea's own option and does not imply a counter, but it
+      # needs the same controller on the same wrapper.
+      def stimulus_counter?(options)
+        char_counter?(options) || options[:auto_grow].present?
+      end
+
+      # Not `fieldset-label` like the help and error messages: that class is a
+      # flex container, and the counter needs `text-end` on a block to sit on the
+      # right. It inherits the fieldset's small type the way it always did.
+      def counter_element(options)
+        return unless char_counter?(options)
+
+        content_tag(:p, "", class: COUNTER_CLASS, data: { 'textarea-target': "counter" })
+      end
 
       # The caller's `error:`, normalized to the array of messages worth
       # rendering. nil disappears on its own; `false` and `""` are dropped by
