@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Two stale header comments were corrected along the way: `radio-buttons-group`'s example
   used a `radio-buttons-grouped` identifier that never connects, and `radio-toggle`'s used
   `data-toggle-radio-current-value` instead of `data-radio-toggle-current-value`. (#717)
+### Added
+
+- **New migration guide skeleton: `docs/guides/migration-v3-to-v31.md`.** Migration notes
+  for the 3.1 line live in a new per-release document instead of growing the v2 → v3 guide.
+  The skeleton states the upgrade policy — five announced markup/behaviour changes admitted
+  as a block (#903, #641, #722, #729, #902) — and reserves one section per change; each
+  section's details land with its PR.
 
 ## [v3.0.0] - 2026-08-05
 
