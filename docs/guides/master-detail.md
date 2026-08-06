@@ -274,6 +274,47 @@ is pushed into the history, and none of this applies.
 On a first render the server's markup always wins, since a master can perfectly
 well live on a page whose URL is not in its rows' URL space.
 
+The href and the location are matched on path plus query params **as a set**.
+The location routinely carries params a row's href never had — a page number, a
+sort — and lists the shared ones in another order, and comparing the two as
+strings would call that a different place and drop the highlight.
+
+---
+
+## When the detail request fails
+
+Two different things happen, and the error response decides which. Both are
+measured against the dummy app:
+
+- **A response that says to reload** — Rails' own exception page, or any page
+  carrying `<meta name="turbo-visit-control" content="reload">` — makes Turbo
+  abandon the frame and visit the URL as a whole page. The user lands on the
+  error page. Loud, and usually what you want for a bug.
+- **Anything else with no matching frame** — a bare 500 body, a JSON error, a
+  custom error page that does not contain `<turbo-frame id="inbox-detail">` — is
+  **ignored**. Turbo rejects with *"The response (500) did not contain the
+  expected `<turbo-frame id="inbox-detail">` and will be ignored"*, and the pane
+  keeps the detail it already had.
+
+The second one is the case to decide about, because the screen does not look
+broken: the highlight has already moved optimistically to the row that failed,
+so the master says "you are on row 7" beside row 3's detail, and they disagree
+until the next click. Three ways out, cheapest first:
+
+1. **Render the error inside the frame.** If the response contains
+   `<turbo-frame id="inbox-detail">` with the message in it, Turbo swaps it like
+   any other reply and the pane says what went wrong. This is the only option
+   that keeps the user on the screen they were on, and it is usually right when
+   a failed detail is an expected outcome (gone, forbidden).
+2. **Add `<meta name="turbo-visit-control" content="reload">`** to the error
+   page's `<head>` — Turbo names this in the message itself — to get the
+   full-page behaviour of the first case for a genuine bug.
+3. **Handle `turbo:frame-missing` yourself**: `event.preventDefault()` in a
+   listener and then decide (a toast, a retry, a redirect).
+
+Bali does not choose for you, because the right answer depends on whether a
+failing detail is an expected outcome on that screen or a defect.
+
 ---
 
 ## Styling the rows

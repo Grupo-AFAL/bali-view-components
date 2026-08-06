@@ -61,7 +61,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   way out of them), and the full-page-detail-on-a-phone variant. That last one hinges on a
   measured Turbo fallback: a frame in the DOM is swapped **even under `display: none`**, and
   only a frame that is absent turns the row click into a full visit — so whether a phone gets
-  the split view at all is a server-side decision, and `lg:hidden` will not make it.
+  the split view at all is a server-side decision, and `lg:hidden` will not make it. The guide
+  also covers what happens when the detail request **fails**, which splits two ways and is the
+  one corner that looks fine on screen: a response carrying
+  `<meta name="turbo-visit-control" content="reload">` (Rails' own exception page does) becomes
+  a full-page visit, while any other response without a matching frame is *ignored* — the pane
+  keeps its previous detail while the optimistic highlight has already moved, and the two
+  disagree silently until the next click.
 
 ## [v3.1.0.beta.5] - 2026-08-06
 

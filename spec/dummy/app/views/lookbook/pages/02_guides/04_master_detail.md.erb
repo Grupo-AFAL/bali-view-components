@@ -108,6 +108,23 @@ To add to the look rather than replace it:
 <div data-controller="split-view" data-split-view-selected-class="ring-2 ring-primary">
 ```
 
+## When the detail request fails
+
+Two different things happen, and the error response decides which:
+
+- **A response that says to reload** — Rails' own exception page, or any page with
+  `<meta name="turbo-visit-control" content="reload">` — makes Turbo abandon the
+  frame and visit the URL as a whole page.
+- **Anything else with no matching frame** is **ignored**: the pane keeps the
+  detail it already had, while the highlight has already moved to the row that
+  failed. The two disagree until the next click, and nothing looks broken.
+
+Three ways out of the second, cheapest first: render the error *inside* the frame
+(the only one that keeps the user where they were); add the `turbo-visit-control`
+meta to the error page to get the first behaviour; or handle `turbo:frame-missing`
+yourself with `event.preventDefault()`. Which is right depends on whether a failed
+detail is an expected outcome on that screen or a defect.
+
 ## What this is not
 
 - **Not a list component** — the rows are yours.
