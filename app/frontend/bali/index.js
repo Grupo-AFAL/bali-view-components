@@ -110,6 +110,7 @@ export {
   ModalController,
   MultiSelectController,
   NavbarController,
+  QrScannerController,
   RateController,
   RecurrentEventRuleController,
   RevealController,

@@ -628,6 +628,31 @@ en:
         sign_out: "Sign out"
     qr_code:
       label: "QR code"
+    qr_scanner:
+      hint: "Point the camera at the QR code."
+      idle:
+        title: "Ready to scan"
+        start: "Start camera"
+      requesting:
+        title: "Requesting camera access…"
+      scanned:
+        title: "Code detected"
+        restart: "Scan again"
+      # Deliberately does not say "grant permission here": the browser's own
+      # affordance for a blocked camera is a lock or camera icon in the address
+      # bar, and where it is depends on the browser, so naming the wrong place
+      # is worse than naming none.
+      denied:
+        title: "Camera access blocked"
+        description: "Allow this site to use the camera in your browser settings, then try again."
+        retry: "Try again"
+      # Covers a device with no camera, one another application is holding, and
+      # a page served over plain http — the last of which the browser reports
+      # as no camera at all. The console message from the controller is the one
+      # that can afford to be specific.
+      unavailable:
+        title: "Camera unavailable"
+        description: "No camera is available on this device, or this browser cannot use one here."
     workflow_steps:
       # Neither marker says a step's state in anything but colour — the
       # circle's number is a position, not a verdict, and the quick flow's dot
