@@ -1811,12 +1811,28 @@ Vertical timeline for chronological sequences of events, using DaisyUI's timelin
 
 **Options:**
 - `position` - Timeline layout: `:left`, `:center`, `:right` (default: :left)
+- `compact` - Collapse to a single column (DaisyUI `timeline-compact`); every content box lands on the end side, so `position:` no longer alternates (default: false)
 
-**Slots:** `with_header(text:, color:, custom_color:, class:)` (badge separators) and `with_item(heading:, icon:, color:, custom_color:)` with block content.
+**Slots:** `with_header(text:, color:, custom_color:, class:)` (badge separators) and `with_item(heading:, icon:, color:, custom_color:, state:, timestamp:, href:)` with block content. Any other `with_item` option becomes an HTML attribute of the content box — `data: { action: 'click->drawer#open' }` makes the box Stimulus-clickable.
 
 `color:` takes a semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`); `custom_color:` takes a hex. An item defaults to `:ghost`, which leaves the marker and the connecting line their DaisyUI colour — in v2 that value was spelled `:default`. `color: :outline` is gone from headers: it named a style, not a colour, so pass `color: :primary, class: 'badge-outline'`.
 
+`state:` is tracking sugar over `icon:`/`color:`: `:done` renders a `circle-check` primary marker, `:current` a `circle-dot` primary marker, and `:pending` the plain circle with a muted heading. Explicit `icon:`/`color:` win over the state's defaults (`state: :done, color: :success` for the green check). The line below an item takes the colour of the item that follows it, so the coloured line runs exactly as far as the journey has. `timestamp:` (a string, or anything `l`-localizable; the `with_timestamp` slot replaces it when the metadata needs markup) renders muted on the free side of the line — or inside the box when compact. `href:` renders the content box as a link with hover feedback.
+
 Every entry renders exactly once. Which side of the line an item lands on is decided in Ruby, and for `position: :center` it alternates across items, so a header between two items does not flip the alternation.
+
+**Tracking preset** — the custody-chain / itinerary look (event + date + author per entry):
+
+```erb
+<%= render Bali::Timeline::Component.new(compact: true) do |c| %>
+  <% c.with_item(state: :done, heading: 'Package received',
+                 timestamp: 'Jul 28, 09:14 · A. García') %>
+  <% c.with_item(state: :done, heading: 'Left warehouse',
+                 timestamp: 'Jul 28, 11:02 · R. Ortiz') %>
+  <% c.with_item(state: :current, heading: 'In transit', href: shipment_path(@shipment)) %>
+  <% c.with_item(state: :pending, heading: 'Delivered') %>
+<% end %>
+```
 
 #### TreeView
 
