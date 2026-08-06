@@ -88,6 +88,59 @@ module Bali
         end
       end
 
+      # States
+      # --------
+      # `state:` is sugar over `icon:`/`color:` for tracking timelines:
+      # `:done` renders a `circle-check` primary marker, `:current` a
+      # `circle-dot` primary marker, and `:pending` the plain circle with a
+      # muted heading. Explicit `icon:`/`color:` win over the state's defaults —
+      # `color: :success` turns the check green.
+      #
+      # The line below each item takes the colour of the item that follows, so
+      # the coloured line runs exactly as far as the journey has.
+      #
+      # `timestamp:` renders on the free side of the line (a string, or anything
+      # `l`-localizable), and `href:` turns the content box into a link.
+      #
+      # @param position select [left, center, right]
+      def states(position: :left)
+        render Bali::Timeline::Component.new(position: position) do |c|
+          c.with_item(state: :done, heading: 'Order placed', timestamp: 'Jul 28, 09:14')
+          c.with_item(state: :done, heading: 'Payment confirmed', timestamp: 'Jul 28, 09:20')
+          c.with_item(state: :current, heading: 'In transit', timestamp: 'Jul 29, 08:40',
+                      href: '/lookbook') do
+            tag.p 'Estimated arrival: tomorrow'
+          end
+          c.with_item(state: :pending, heading: 'Customs')
+          c.with_item(state: :done, heading: 'Delivered (explicit green)', color: :success,
+                      timestamp: 'Jul 30, 13:05')
+        end
+      end
+
+      # Tracking preset
+      # -----------------
+      # The custody-chain / itinerary look: `compact: true` collapses the
+      # timeline to a single column, every box lands on the end side, and the
+      # timestamp becomes a muted line inside the box — event, date and author
+      # in one glance. An `href:` makes an entry clickable (hover feedback
+      # included); a `with_timestamp` block replaces the keyword when the
+      # metadata needs markup.
+      def tracking
+        render Bali::Timeline::Component.new(compact: true) do |c|
+          c.with_item(state: :done, heading: 'Package received',
+                      timestamp: 'Jul 28, 09:14 · A. García')
+          c.with_item(state: :done, heading: 'Left warehouse',
+                      timestamp: 'Jul 28, 11:02 · R. Ortiz')
+          c.with_item(state: :current, heading: 'In transit', href: '/lookbook') do |item|
+            item.with_timestamp do
+              safe_join([tag.time('Jul 29, 08:40', datetime: '2026-07-29T08:40'), ' · Unit 12'])
+            end
+          end
+          c.with_item(state: :pending, heading: 'Customs')
+          c.with_item(state: :pending, heading: 'Delivered')
+        end
+      end
+
       # Custom Header Styles
       # ----------------------
       # Headers use DaisyUI badge colors. Use `color:` for the semantic variant
