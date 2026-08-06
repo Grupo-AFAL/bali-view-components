@@ -8,20 +8,19 @@
 // (minZoom=maxZoom=1) the zoom factor never enters: 1 canvas px = 1 header
 // px, and the bands (in window coords × pxPerDay) stay aligned with the bars
 // while panning. Must render INSIDE <ReactFlowProvider> for the store.
-import { useMemo } from 'react'
-import { useStore } from '@xyflow/react'
+import { memo, useMemo } from 'react'
 import { timeTicks, timeBands } from './timeScale'
+import { useViewportFollow } from './useViewportFollow'
 
 const BAND_H = 20 // upper tier (month/year context).
 const TICK_H = 28 // lower tier (day/week/month).
 export const HEADER_H = BAND_H + TICK_H // total two-tier header height (px).
 
-export default function TimeHeader ({ windowStart, windowEnd, pxPerDay, unit, origin = windowStart }) {
-  // transform = [translateX, translateY, zoom]. Only X matters (time axis).
-  const translateX = useStore((s) => s.transform[0])
-  // The translateX subscription re-renders every pan frame; ticks/bands only
-  // depend on window/scale (stable during pans), so they memoize to avoid
-  // being rebuilt per frame (same as gridTicks/weekend in GanttFlow).
+export default memo(function TimeHeader ({ windowStart, windowEnd, pxPerDay, unit, origin = windowStart }) {
+  // transform = [translateX, translateY, zoom]. Only X matters (time axis),
+  // and only the band WRAPPER uses it — `useViewportFollow` writes it
+  // imperatively so a pan frame does not re-render the ticks at all.
+  const followRef = useViewportFollow('x')
   const ticks = useMemo(
     () => timeTicks(windowStart, windowEnd, pxPerDay, unit, origin),
     [windowStart, windowEnd, pxPerDay, unit, origin]
@@ -39,8 +38,9 @@ export default function TimeHeader ({ windowStart, windowEnd, pxPerDay, unit, or
     >
       {/* Band shifted with the viewport (same translateX as the bars). */}
       <div
+        ref={followRef}
         className='absolute inset-y-0 left-0'
-        style={{ transform: `translateX(${translateX}px)`, willChange: 'transform' }}
+        style={{ willChange: 'transform' }}
       >
         {/* Upper tier: month/year context. */}
         {bands.map((band) => (
@@ -67,4 +67,4 @@ export default function TimeHeader ({ windowStart, windowEnd, pxPerDay, unit, or
       </div>
     </div>
   )
-}
+})
