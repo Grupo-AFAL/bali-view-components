@@ -613,12 +613,183 @@ Pass a block to replace the whole header:
 - `label` - Header caption (default: the translated association name)
 - `button_text` - Add-button text (default: `bali_view.form_builder.dynamic_fields.add`)
 - `button_class` - Add-button classes (default: `btn btn-primary`)
+- `partial` - Row partial (default: `_<singular>_fields`)
+- `table` - Render the container as a `<tbody>` — see [Table mode](#table-mode)
+- `columns` / `table_class` - Table mode only
+- `array` - Name the rows `[][key]` — see [Array mode](#array-mode)
+- `values` - Rows to render in array mode (default: `object.send(method)`)
 
 `link_to_add_fields` and `link_to_remove_fields` render `<button type="button">`.
 The names are historical — they emitted `<a href="#">` until v3 — but nothing
 here navigates, so an anchor was announced by screen readers as a link going
 nowhere. The `type="button"` matters: these sit inside a `<form>`, where a button
 without one submits it.
+
+#### Which mode
+
+| Your rows are… | Mode | Names |
+|---|---|---|
+| An association with `accepts_nested_attributes_for` | default | `invoice[line_items_attributes][0][price]` |
+| The same, but they have to be table rows | `table: true` | same as above |
+| A JSON/array attribute — no association, no model per row | `array: true` | `chain[steps][][role]` |
+
+The first two round-trip through `accepts_nested_attributes_for`, so a removed
+row that the server already stores is flagged `_destroy` and the record is
+deleted on save. Array mode has no records to destroy: the whole array is
+replaced by what the form submits.
+
+#### Removing a row
+
+What happens on remove depends on whether the server already knows about the
+row, and the marker is the `[id]` hidden field Rails emits only for a persisted
+record:
+
+- **Persisted row** — hidden, its visible inputs stripped, and its `_destroy`
+  flag set to `true`. It stays in the DOM because the server needs its `id` back
+  to know which record to delete.
+- **Unsaved row** — removed from the DOM outright. There is nothing to destroy,
+  and `_destroy` on a nested hash with no `id` was always a no-op.
+
+Nothing about this needs configuring; it follows from the markup Rails already
+emits.
+
+#### Ordinals
+
+Give an element inside the row the `ordinal` target and the controller writes the
+row's 1-based number into it after every add, remove and reorder, counting only
+the rows still on screen:
+
+```erb
+<div class="step-fields">
+  <span class="badge" data-dynamic-fields-target="ordinal">1</span>
+  …
+</div>
+```
+
+The target holds the number **alone**. Punctuation around it belongs to the
+markup outside the target, so it survives renumbering:
+
+```erb
+<span><span data-dynamic-fields-target="ordinal">1</span>.</span>
+```
+
+#### Table mode
+
+`table: true` renders the container as the `<tbody>` of a table the helper emits,
+so the row partial writes a `<tr>`:
+
+```erb
+<%= f.dynamic_fields_group :monetary_lines,
+      table: true,
+      columns: ["#", "Concept", "Amount", ""],
+      table_class: "table table-sm",
+      button_text: "Add line" %>
+```
+
+```erb
+<%# app/views/business_cases/_monetary_line_fields.html.erb %>
+<tr class="monetary_line-fields">
+  <td><span data-dynamic-fields-target="ordinal">1</span></td>
+  <td><%= f.text_field :concept %></td>
+  <td><%= f.currency_field :amount %></td>
+  <td><%= f.link_to_remove_fields "Remove", class: "btn btn-error btn-sm" %></td>
+</tr>
+```
+
+`columns:` fills the `<thead>` and is optional — omit it and no `<thead>` is
+rendered. `table_class:` defaults to `table`.
+
+The header and its `<template>` render **outside** the `<table>`, which is the
+only place they survive. A `<div>` sitting between `<table>` and `<tbody>` is
+hoisted out of the table by the HTML parser, and the add button and its template
+would go with it. A `<tr>` *inside* the `<template>` is fine: the HTML5 parser
+switches to "in table body" for exactly that case, wherever the template sits.
+
+That last point is worth remembering when you write tests. Nokogiri parses HTML4,
+where `<template>` is an unknown element and the `<tr>` inside one is dropped, so
+a Ruby-level assertion on the parsed document sees an empty template even though
+the browser does not. Assert on the rendered string in Minitest and leave the
+parsed-DOM half to a system or Cypress test.
+
+#### Array mode
+
+`array: true` is for an attribute that is a plain array of hashes rather than an
+association — a JSON column, a serialized attribute, anything with no record per
+row. No `fields_for`, no `_destroy`, and no association to reflect on:
+
+```erb
+<%= f.dynamic_fields_group :steps,
+      array: true,
+      partial: "step_fields",
+      button_text: "Add step" %>
+```
+
+The row partial receives `name_prefix:`, `item:` and `index:` alongside `f`.
+`name_prefix` already ends in the empty brackets Rails reads as "next element of
+the array", so the partial appends its own key:
+
+```erb
+<%# app/views/approval_chains/_step_fields.html.erb %>
+<% row_key = index || "new_record" %>
+<div class="step-fields">
+  <span data-dynamic-fields-target="ordinal"><%= index.to_i + 1 %></span>
+
+  <%= f.text_group :role,
+        name: "#{name_prefix}[role]",
+        id: "chain_steps_#{row_key}_role",
+        control_id: "chain_steps_#{row_key}_role",
+        value: item&.dig("role") %>
+
+  <%= f.link_to_remove_fields "Remove", destroy_flag: false %>
+</div>
+```
+
+Three things about that partial:
+
+- `f` is the **outer** builder. There is no nested record to build a scoped one
+  from, so the names come from `name_prefix`, not from `f`. A Bali group takes
+  its name through `name:` and its value through `value:`; `input_name:` is a
+  different escape hatch that only `select_group` and `slim_select_group`
+  understand.
+- `control_id:` points the caption's `for` at this row's own control. Without it
+  every row's label targets the same id. `new_record` is the placeholder the
+  controller swaps for a timestamp when it clones the template, so cloned rows
+  get unique ids for free.
+- `destroy_flag: false` on the remove button. An array row always leaves the DOM
+  on remove, so a `_destroy` key would only add noise to the hash the array
+  submits.
+
+Rows come from `object.send(method)` when the object answers to it, or from
+`values:` when it does not.
+
+##### Checkboxes do not work in array mode
+
+Rails parses `a[][x]=1&a[][y]=2` by filling one hash until a key repeats, at
+which point it starts a new element. A Rails checkbox renders **two** inputs with
+the same name — a hidden `0` and the box itself — so a checked box repeats its
+key inside the element and splits the array in two, silently, putting the
+following fields on the wrong row.
+
+With two rows and one checked box:
+
+```ruby
+Rack::Utils.parse_nested_query(
+  "c[steps][][role]=Author&c[steps][][active]=0&c[steps][][active]=1" \
+  "&c[steps][][role]=Reviewer&c[steps][][active]=0"
+)["c"]["steps"]
+# => [{"role" => "Author", "active" => "0"},
+#     {"active" => "1", "role" => "Reviewer"},
+#     {"active" => "0"}]
+```
+
+Two rows in, three out, and `active` landed on the wrong one. There is no fix on
+the Bali side — it is how the query string is parsed — so **do not put a checkbox
+in an array-mode row.** If you need a boolean, either use a `select_group` with
+explicit options (one input, one key) or move the collection to a real
+association and use the default mode.
+
+The same hazard applies to any control that renders a paired hidden input, which
+is why `link_to_remove_fields` takes `destroy_flag: false` here.
 
 ### coordinates_polygon_group
 
