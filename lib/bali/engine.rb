@@ -53,15 +53,16 @@ module Bali
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end
 
-    # isolate_namespace keeps engine helpers out of the host app, but
-    # block_editor_meta_tags is meant for the HOST layout (it publishes the
-    # digested paths of the app's own editor bundle), so expose just that one.
+    # isolate_namespace keeps engine helpers out of the host app, but the
+    # island meta-tag helpers are meant for the HOST layout (they publish the
+    # digested paths of the app's own island bundles), so expose just those.
     #
     # to_prepare, NOT on_load(:action_controller_base): a host that loads
     # ActionController::Base during boot (any gem requiring it does) fires that
     # hook before Zeitwerk is set up, and the constant raises NameError. The
     # dummy app never loads it that early, so only real hosts crashed.
     config.to_prepare do
+      ActionController::Base.helper(Bali::ReactIslandHelper)
       ActionController::Base.helper(Bali::BlockEditorHelper)
     end
 

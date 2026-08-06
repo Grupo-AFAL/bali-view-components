@@ -8,6 +8,7 @@ import {
   registerAllControllers,
   registerAllComponents
 } from 'bali'
+import { startIslandLoader } from 'bali/react-island'
 
 // Local controllers
 import ThemeSwitcherController from './controllers/theme_switcher_controller'
@@ -23,6 +24,11 @@ ActiveStorage.start()
 
 // Register local controllers
 application.register('theme-switcher', ThemeSwitcherController)
+
+// Lazy-load the demo React island the first time it appears in the DOM.
+// The digested bundle paths come from the react_island_meta_tags helper in
+// the page (see app/components/bali/react_island/previews/).
+startIslandLoader('react-island-demo')
 
 // Register all core Bali controllers (utility + component)
 registerAllControllers(application)
