@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Guide: filtering on derived attributes (`docs/guides/derived-filters.md`)** (#642). How to
+  filter by a value that exists only in Ruby — a computed status, a health traffic light, an
+  accent-folded name — without leaving Ransack: declare a `ransacker` over a SQL expression or a
+  cached column and the attribute joins the Filters popover as a first-class citizen (operators,
+  AND/OR groups, persistence, saved views), with no new Bali API. Documents the two worked
+  patterns that resolved the motivating real-world case, the pagination anti-pattern they avoid
+  (filtering in Ruby after `pagy` breaks the count and the summary), why the popover cannot host
+  non-Ransack params (its OR groups resolve in SQL), and the honest host-side escape hatch for a
+  value that truly cannot reach SQL. Cross-linked from the components guide and the
+  `filterform-datatable` skill. Closes #642 in favor of this pattern; to be reopened only if a
+  derived attribute that can be neither expressed in SQL nor cached in a column shows up.
 - **`Bali::Gantt` — phase 1: the shared data contract and the server-rendered `:static` mode** (#704). One component, two renderers; this phase ships the foundation the React island (phases 2-3, #705/#719) will plug into:
   - `Bali::Gantt::Data` parses and validates the frozen contract — `{ window, groups[], items[], dependencies[], critical_ids[] }` with two-level group/item nesting (`parent_id`), ISO8601 dates, and the optional fields the real island already consumes: `assignee`, `percent_complete`, `slack_days`, `priority`, plus `milestone:` (rendered as a diamond) and `href`. Single-date items draw as minimum-width bars, inverted ranges clamp to their start, and structural errors raise instead of silently dropping bars. A frozen sample of `TDFlow::GanttSerializer` output validates the rename mapping (`test/fixtures/gantt/`).
   - `Bali::Gantt::TimeScale` — one day-based coordinate system shared with the future island (`px_per_day` 24/8/2 for day/week/month, exactly `ZoomControls.jsx`), `:auto` density picked from the window span, minimum bar width, inclusive ends, clipped calendar ticks/bands and the today marker.
