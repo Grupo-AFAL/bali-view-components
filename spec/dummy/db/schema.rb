@@ -48,9 +48,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_120001) do
     t.json "metadata", default: {}, null: false
     t.integer "record_id", null: false
     t.string "record_type", null: false
-    t.string "summary"
+    t.string "summary", limit: 255
     t.datetime "updated_at", null: false
     t.integer "version_number", null: false
+    t.index ["author_type", "author_id"], name: "index_bali_content_versions_on_author"
     t.index ["record_type", "record_id", "version_number"], name: "index_bali_content_versions_uniqueness", unique: true
   end
 

@@ -19,9 +19,15 @@ module Bali
     # (el content_kind de gc), no para exigirla.
     has_one_attached :file if respond_to?(:has_one_attached)
 
+    # El mismo límite que la columna. Estar en los dos lados es deliberado: la validación
+    # convierte un resumen larguísimo en un error de modelo que el host puede mostrar, y la
+    # columna lo sostiene aunque alguien escriba por fuera del modelo.
+    SUMMARY_MAX_LENGTH = 255
+
     validates :version_number, presence: true,
                                uniqueness: { scope: %i[record_type record_id] }
     validates :author_name, presence: true
+    validates :summary, length: { maximum: SUMMARY_MAX_LENGTH }, allow_nil: true
 
     # `reorder`, no `order`: la asociación `content_versions` ya ordena ascendente y un
     # `order` encadenado se APILA detrás, así que la primera cláusula seguiría ganando y

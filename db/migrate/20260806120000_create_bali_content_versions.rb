@@ -28,10 +28,18 @@ class CreateBaliContentVersions < ActiveRecord::Migration[7.0]
       t.integer :version_number, null: false
       t.references :author, polymorphic: true, null: true, index: false
       t.string :author_name, null: false
-      t.string :summary
+      # Un resumen es una línea. El límite es el cinturón del tirante que ya pone el modelo
+      # (`Bali::ContentVersion::SUMMARY_MAX_LENGTH`): sin él, `summary` es texto ilimitado
+      # que llega de un formulario del host.
+      t.string :summary, limit: 255
 
       t.timestamps
     end
+
+    # La auditoría que promete el comentario de arriba ("mis versiones") filtra por el par
+    # del autor, y sin este índice sería un full scan de toda la tabla.
+    add_index :bali_content_versions, %i[author_type author_id],
+              name: "index_bali_content_versions_on_author"
 
     # Nombre corto: el autogenerado con estas tres columnas rebasa el límite de
     # identificadores de PG.

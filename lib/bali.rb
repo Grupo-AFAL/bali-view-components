@@ -165,7 +165,9 @@ module Bali
   # El resolver es el lugar del scoping: devolver solo lo que ese usuario puede ver
   # (`controller.current_user.documents.find_by(id: id)`) hace que lo ajeno sea un 404 en
   # vez de un 403 que confirme que existe.
-  # Example: Bali.content_versionables = { "Document" => ->(_c, id) { Document.find_by(id: id) } }
+  # Example: Bali.content_versionables = {
+  #   "Document" => ->(controller, id) { controller.current_user.documents.find_by(id: id) }
+  # }
   mattr_accessor :content_versionables, default: {}
 
   # Autorización de Bali::ContentVersionsController: callable (controller, record, action)

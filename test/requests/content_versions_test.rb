@@ -54,6 +54,37 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_equal @document.content_versions.last.created_at.iso8601, newest["created_at"]
   end
 
+  # Hallazgo del security review (MEDIUM-2): el index hacía SELECT * y traía el `content` de
+  # cada versión —el documento entero— sin servirlo. Con 200 versiones eran 31.5 MB leídos
+  # para un body de 22.6 KB. Lo que este test fija es que recortar columnas NO cambió el
+  # contrato: exactamente las mismas claves, y ninguna de ellas es el contenido.
+  def test_index_serves_no_content_and_only_the_columns_it_needs
+    3.times { @document.create_version!(author_name: "Ana", summary: "s") }
+
+    get bali.content_versions_path(record_params), as: :json
+    assert_response :success
+
+    payload = response.parsed_body
+    assert_equal 3, payload.size
+    payload.each do |version|
+      assert_equal %w[author_name created_at id summary url version_number], version.keys.sort
+      refute_includes version.keys, "content"
+      refute_includes version.keys, "metadata"
+    end
+  end
+
+  # La otra mitad de MEDIUM-2: recortar columnas no puede dejar a `version_json` leyendo un
+  # atributo que ya no se seleccionó (sería un MissingAttributeError en producción).
+  def test_index_does_not_load_the_content_column_at_all
+    @document.create_version!(author_name: "Ana")
+
+    loaded = @document.content_versions.newest_first
+                      .select(*Bali::ContentVersionsController::INDEX_COLUMNS).first
+
+    refute loaded.has_attribute?(:content)
+    assert_raises(ActiveModel::MissingAttributeError) { loaded.content }
+  end
+
   def test_index_is_empty_for_a_record_without_versions
     get bali.content_versions_path(record_params), as: :json
     assert_response :success
@@ -110,6 +141,22 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
 
   def test_an_unknown_record_type_is_not_found_even_with_a_whitelist
     get bali.content_versions_path(record_type: "User", record_id: @user.id), as: :json
+    assert_response :not_found
+  end
+
+  # Hallazgo del security review (LOW-4): whitelistear un modelo que nunca incluyó el concern
+  # es un error de configuración del host, y respondía 500 (NoMethodError sobre
+  # `content_versions`) en vez de 404.
+  def test_a_whitelisted_model_without_the_concern_is_not_found
+    studio = Studio.create!(name: "Sin historial", country: "USA", status: :active)
+    refute_kind_of Bali::ContentVersionable, studio
+    Bali.content_versionables = { "Studio" => ->(_controller, id) { Studio.find_by(id: id) } }
+
+    get bali.content_versions_path(record_type: "Studio", record_id: studio.id), as: :json
+    assert_response :not_found
+
+    post bali.restore_content_versions_path(record_type: "Studio", record_id: studio.id),
+         params: { version_id: 1 }, as: :json
     assert_response :not_found
   end
 

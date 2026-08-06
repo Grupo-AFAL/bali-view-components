@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Bali::DocumentEditor::Component` accepts `versions_url: :auto` / `restore_version_url: :auto` plus `record:`, resolving to the mounted engine's endpoints. Without a record the history panel does not render, rather than rendering one whose every request would 404. Plain string URLs keep working untouched.
   - Adoption guide in `docs/guides/engines.md`, including the explicit note that a host with an existing history table **does not have to migrate** — the contract is JSON.
   - The dummy app now consumes the engine instead of its own `DocumentVersion`, which is what proves the adoption path works.
+  - Both `create_version!` and `create_or_coalesce_version!` take a row lock, so they must be called **after** the record is saved: Rails refuses to lock a record with unsaved attributes, which means versioning mid-edit raises instead of recording a snapshot the database never held. `summary` is capped at 255 characters in the column and in the model, and `restore_content_version!` re-scopes the version to the record it is called on even when handed a `Bali::ContentVersion` object, so one record can never be restored from another's history.
 
 ## [v3.1.0.beta.3] - 2026-08-06
 

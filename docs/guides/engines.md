@@ -179,9 +179,25 @@ consumes serves `author_name`. When an author record is present, coalescing comp
 `(author_type, author_id)`, so two people with the same name never collapse into one
 version.
 
+> **If you rely on the `author_name` fallback, the history is not tamper-evident.** With no
+> author record, coalescing can only compare the displayed name, so two people whose names
+> render identically are treated as the same author and their edits collapse into one
+> version inside the window — the second person's changes end up recorded under the first
+> person's signature. That is fine for a changelog and **not** fine as evidence. If the
+> history has to hold up to scrutiny, pass `author:`.
+
+**Schema limitation:** `record_id` and `author_id` are `bigint`, so an app whose primary
+keys are UUIDs cannot use this table as shipped. Copy the migration and change the column
+types before `db:migrate`; nothing in the model or the controller assumes integers.
+
 **Creating versions stays with the host.** The editor's auto-save PATCHes *your* URL, so
 your `update` action is where `create_or_coalesce_version!` belongs. The engine only
-reads the history and restores it:
+reads the history and restores it.
+
+Call either method **after** the record is saved. Both take a row lock so two concurrent
+saves cannot claim the same `version_number`, and Rails refuses to lock a record with
+unsaved attributes — so versioning mid-edit raises rather than recording a snapshot the
+database never held.
 
 ```ruby
 def update

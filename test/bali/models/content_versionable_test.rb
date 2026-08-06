@@ -140,6 +140,31 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_equal @beto, restored.author
   end
 
+  # Hallazgo del security review (MEDIUM-1): pasar un OBJETO se aceptaba tal cual, sin
+  # comprobar de quién era, así que se podía copiar el contenido de la versión de cualquier
+  # otro registro sobre este. Ahora se re-scopea también por esa vía.
+  def test_restore_refuses_a_version_object_belonging_to_another_record
+    other = Document.create!(title: "Ajena", author_name: "Beto",
+                             content: [ { "type" => "paragraph", "id" => "secreto" } ])
+    foreign_version = other.create_version!(author_name: "Beto")
+
+    assert_raises ActiveRecord::RecordNotFound do
+      @document.restore_content_version!(foreign_version, author_name: "Ana")
+    end
+
+    assert_equal [ { "type" => "paragraph", "id" => "a" } ], @document.reload.content
+    assert_empty @document.content_versions
+  end
+
+  def test_restore_refuses_a_version_id_belonging_to_another_record
+    other = Document.create!(title: "Ajena", author_name: "Beto")
+    foreign_version = other.create_version!(author_name: "Beto")
+
+    assert_raises ActiveRecord::RecordNotFound do
+      @document.restore_content_version!(foreign_version.id, author_name: "Ana")
+    end
+  end
+
   def test_restore_accepts_a_version_id
     @document.create_version!(author_name: "Ana")
     @document.update!(content: [])
@@ -168,6 +193,49 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     version.file.attach(io: StringIO.new("acta"), filename: "acta.txt", content_type: "text/plain")
 
     assert_predicate version.reload.file, :attached?
+  end
+
+  # Hallazgo del security review (LOW-6): `create_version!` tenía la misma carrera que el
+  # coalescing entre leer el número más alto y escribir el siguiente.
+  def test_create_version_reads_and_writes_under_a_row_lock
+    locked = false
+    @document.define_singleton_method(:with_lock) do |&block|
+      locked = true
+      super(&block)
+    end
+
+    @document.create_version!(author_name: "Ana")
+
+    assert locked, "create_version! debe correr dentro de with_lock"
+  end
+
+  # Consecuencia del lock, y la mejor de las posibles: versionar con cambios sin guardar
+  # falla RUIDOSAMENTE. Rails se niega a lockear un registro sucio, así que en vez de
+  # decidir en silencio entre el valor en memoria y el guardado —una versión que afirma un
+  # contenido que la base nunca vio es falsa— el llamador se entera y guarda primero.
+  # `create_or_coalesce_version!` ya se comportaba así; ahora los dos coinciden.
+  def test_versioning_a_record_with_unsaved_changes_fails_loudly
+    @document.content = [ { "type" => "paragraph", "id" => "sin-guardar" } ]
+
+    error = assert_raises RuntimeError do
+      @document.create_version!(author_name: "Ana")
+    end
+
+    assert_match(/unpersisted changes/, error.message)
+    assert_empty @document.content_versions
+  end
+
+  # Cinturón y tirantes del review: el modelo rechaza el resumen largo con un error que el
+  # host puede mostrar, y la columna lo sostiene por debajo.
+  def test_a_summary_longer_than_the_limit_is_rejected_by_the_model
+    error = assert_raises ActiveRecord::RecordInvalid do
+      @document.create_version!(author_name: "Ana", summary: "x" * 256)
+    end
+
+    assert_match(/summary/i, error.message)
+    assert_nothing_raised do
+      @document.create_version!(author_name: "Ana", summary: "x" * 255)
+    end
   end
 
   def test_the_macro_configures_the_attribute_and_the_window

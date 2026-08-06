@@ -44,15 +44,28 @@ module Bali
       content_versions.maximum(:version_number) || 0
     end
 
+    # Bajo el mismo lock que el coalescing, y por la misma razón: entre leer el número más
+    # alto y escribir el siguiente cabe otra escritura. Sin lock falla cerrado (el índice
+    # único rechaza el duplicado), pero este es el método que los hosts llaman desde su
+    # `create`/`update`, así que el modo de fallo era un 500 en una carrera.
+    #
+    # Efecto secundario, y es el deseable: Rails se niega a lockear un registro con cambios
+    # sin guardar, así que versionar en medio de una edición sin persistir ahora falla
+    # ruidosamente en vez de guardar una versión que afirma un contenido que la base nunca
+    # vio. Hay que llamar esto DESPUÉS del `save`, que es lo que ya hacían el dummy y
+    # gobierno-corporativo. `create_or_coalesce_version!` se comportaba así desde el
+    # principio; ahora los dos coinciden.
     def create_version!(author_name:, author: nil, summary: nil, metadata: nil)
-      content_versions.create!(
-        content: versioned_content,
-        version_number: current_content_version_number + 1,
-        author: author,
-        author_name: author_name,
-        summary: summary,
-        metadata: metadata || {}
-      )
+      with_lock do
+        content_versions.create!(
+          content: versioned_content,
+          version_number: current_content_version_number + 1,
+          author: author,
+          author_name: author_name,
+          summary: summary,
+          metadata: metadata || {}
+        )
+      end
     end
 
     # Una ráfaga de autosaves del mismo autor produce UNA versión, no doce: dentro de la
@@ -95,7 +108,12 @@ module Bali
     # histórico, no una vista. Un host que sirva varios idiomas y prefiera resolverlo al
     # render pasa el suyo.
     def restore_content_version!(version, author_name:, author: nil, summary: nil)
-      version = content_versions.find(version) unless version.is_a?(Bali::ContentVersion)
+      # Se re-scopea SIEMPRE, también cuando llega un objeto: aceptarlo tal cual dejaba
+      # copiar el contenido de la versión de CUALQUIER otro registro sobre este. El
+      # controller ya buscaba dentro de `@record.content_versions`, pero esto es una API
+      # pública del modelo y un host que traiga la versión de otro lado merecía un
+      # RecordNotFound, no una restauración silenciosa de contenido ajeno.
+      version = content_versions.find(version.is_a?(Bali::ContentVersion) ? version.id : version)
 
       with_lock do
         update!(content_version_attribute => version.content)
