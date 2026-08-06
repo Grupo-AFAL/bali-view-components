@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Polymorphic content versions: `Bali::ContentVersionable` + `Bali::ContentVersionsController`** (#707). The `DocumentEditor`'s history panel has been a JSON contract with no server behind it — every host reimplemented the same `create_version!` / `create_or_coalesce_version!` pair, the same numbering, the same restore, and the dummy's copy did it without the row lock (which is the bug, not the pattern). The engine now ships all of it:
+  - New table `bali_content_versions`: a polymorphic `record`, so a document, a policy and a note share one history table without Bali knowing any of those models. `version_number` is unique per record, `content` is jsonb on Postgres and json everywhere else, and `has_one_attached :file` is there (no presence validation) for the "version of a file" case.
+  - `include Bali::ContentVersionable` gives a model `content_versions`, `create_version!`, `create_or_coalesce_version!`, `content_at_version` and `restore_content_version!`. `content_versionable attribute: :content, coalesce_window: 5.minutes` configures it — the window is a property of the model, not of the app, because how long one editing session lasts depends on what is being edited. A burst of auto-saves by one author inside the window updates the last version instead of creating twelve, under a row lock so two concurrent saves cannot claim the same `version_number`.
+  - The author is a polymorphic **optional** association plus a required denormalized `author_name`: the JSON the editor consumes serves the name, so a host with no user model loses nothing, while the foreign key makes "my versions" and auditing possible without a later migration. Coalescing compares by `(author_type, author_id)` when there is an author record, so two people with the same name never collapse into one version.
+  - `Bali::ContentVersionsController` serves index, show and restore. The record travels in the query string (`?record_type=&record_id=`) because the engine cannot nest routes under models it does not know, and each version carries its own `url` — the shape the JavaScript already prefers over interpolating one.
+  - Two default-deny gates: `Bali.content_versionables` is a whitelist of `record_type` → resolver, empty by default, so every type is a 404 until a host names one (without it, `record_type` would be a `constantize` over user input); `Bali.content_versions_authorize` receives the action, so reading and restoring can be gated apart, and returns falsy by default → 403. `Bali.content_versions_author` names who signs the version a restore creates.
+  - `Bali::DocumentEditor::Component` accepts `versions_url: :auto` / `restore_version_url: :auto` plus `record:`, resolving to the mounted engine's endpoints. Without a record the history panel does not render, rather than rendering one whose every request would 404. Plain string URLs keep working untouched.
+  - Adoption guide in `docs/guides/engines.md`, including the explicit note that a host with an existing history table **does not have to migrate** — the contract is JSON.
+  - The dummy app now consumes the engine instead of its own `DocumentVersion`, which is what proves the adoption path works.
+
 ## [v3.1.0.beta.2] - 2026-08-06
 
 ### Added

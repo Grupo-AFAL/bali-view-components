@@ -2891,7 +2891,9 @@ Full-screen document editing overlay wrapping BlockEditor with app bar, table of
 - `initial_content` - Document content as BlockNote JSON (required)
 - `document_url` - URL where saves are PATCHed (required)
 - `close_url` - URL for the close button (default: document_url)
-- `versions_url` - Version history endpoint; enables the versions panel with preview/restore (default: nil)
+- `versions_url` - Version history endpoint; enables the versions panel with preview/restore (default: nil). Pass `:auto` to use the mounted engine's own endpoint (see the content versions section of `engines.md`), which also requires `record:`
+- `restore_version_url` - Where a restore is POSTed; also accepts `:auto` (default: `"#{document_url}/restore_version"`)
+- `record` - The versioned record, used only to resolve the `:auto` URLs. Without it the history panel does not render
 - `editable` - Read-only when false (default: true)
 - `auto_save` - Save automatically while editing (default: true)
 - `auto_save_delay` - Auto-save debounce in ms (default: 30000)

@@ -96,15 +96,13 @@ Rails.application.routes.draw do
   # No `edit`: editing a document happens in the overlay `documents#show` opens, not on a
   # page of its own, so `DocumentsController` implements six of the seven actions and the
   # seventh route answered 404 to anyone who followed it.
+  # Las versiones ya NO son rutas de esta app: `versions_url: :auto` en el DocumentEditor
+  # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707).
   resources :documents, except: :edit do
-    resources :versions, only: [:index, :show], controller: 'document_versions'
     resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
       resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
         resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
       end
-    end
-    member do
-      post :restore_version
     end
   end
 

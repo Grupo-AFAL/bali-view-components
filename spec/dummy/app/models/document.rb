@@ -1,34 +1,17 @@
 # frozen_string_literal: true
 
 class Document < ApplicationRecord
+  # El historial lo pone el engine (#707): `content_versions`, `create_version!`,
+  # `create_or_coalesce_version!` y `restore_content_version!` vienen de aquí. Esta app
+  # tenía su propio `DocumentVersion` con la misma pareja de métodos —sin `with_lock`, que
+  # era el bug— y adoptar el concern es lo que prueba que el engine sirve para un host.
+  include Bali::ContentVersionable
+  content_versionable attribute: :content, coalesce_window: 5.minutes
+
   enum :status, { draft: 0, published: 1, archived: 2 }
-  has_many :document_versions, dependent: :destroy
   has_many :block_editor_threads, dependent: :destroy
   validates :title, presence: true
   validates :author_name, presence: true
-
-  def current_version_number
-    document_versions.maximum(:version_number) || 0
-  end
-
-  def create_version!(author_name:, summary: nil)
-    document_versions.create!(
-      content: content,
-      version_number: current_version_number + 1,
-      author_name: author_name,
-      summary: summary
-    )
-  end
-
-  def create_or_coalesce_version!(author_name:, summary: nil)
-    last_version = document_versions.order(created_at: :desc).first
-    if last_version && last_version.author_name == author_name && last_version.created_at > 5.minutes.ago
-      last_version.update!(content: content, summary: summary)
-      last_version
-    else
-      create_version!(author_name: author_name, summary: summary)
-    end
-  end
 
   def word_count
     return 0 if content.blank?

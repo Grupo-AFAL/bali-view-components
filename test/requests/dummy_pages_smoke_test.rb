@@ -47,7 +47,6 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     @studio = Studio.create!(name: "Smoke Studio", country: "USA", status: :active)
     @project = Project.create!(name: "Smoke Project")
     @document = Document.create!(title: "Smoke Document", author_name: "Smoke Author")
-    @version = @document.create_version!(author_name: "Smoke Author")
   end
 
   # Two assertions off one walk rather than two test methods, because the walk is the
@@ -142,8 +141,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "admin/studios" => { "id" => @studio.to_param },
       "admin/projects" => { "id" => @project.to_param },
       "admin/projects/schedules" => { "project_id" => @project.to_param },
-      "documents" => { "id" => @document.to_param },
-      "document_versions" => { "document_id" => @document.to_param, "id" => @version.to_param }
+      "documents" => { "id" => @document.to_param }
     }
   end
 
