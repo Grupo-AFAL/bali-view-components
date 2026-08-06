@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.4] - 2026-08-06
+
 ### Added
 
 - **Acknowledgments and read coverage: `Bali::Acknowledgeable` + `Bali::ReadCoverage`** (#709). "I read and confirm this" is the same ledger in every app that has ever needed it, so the engine now ships it:
@@ -52,14 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     resolve request, 255 characters of `reference_text`, ids that don't fit a bigint
     dropped, and no search below two characters.
 
-### Fixed
-
-- **An entity reference chip no longer links to a `javascript:` URL.** The chip's `url` prop
-  lives inside the saved document, so it is written by whoever can edit the content, and it
-  reaches the `href` untouched whenever resolution doesn't run (no `references_resolve_url`,
-  or a failed request). React renders `javascript:` hrefs with nothing but a console
-  warning. The chip now renders as plain text unless the URL is `http(s):`, `mailto:`,
-  root-relative or a fragment.
 - **Polymorphic content versions: `Bali::ContentVersionable` + `Bali::ContentVersionsController`** (#707). The `DocumentEditor`'s history panel has been a JSON contract with no server behind it — every host reimplemented the same `create_version!` / `create_or_coalesce_version!` pair, the same numbering, the same restore, and the dummy's copy did it without the row lock (which is the bug, not the pattern). The engine now ships all of it:
   - New table `bali_content_versions`: a polymorphic `record`, so a document, a policy and a note share one history table without Bali knowing any of those models. `version_number` is unique per record, `content` is jsonb on Postgres and json everywhere else, and `has_one_attached :file` is there (no presence validation) for the "version of a file" case.
   - `include Bali::ContentVersionable` gives a model `content_versions`, `create_version!`, `create_or_coalesce_version!`, `content_at_version` and `restore_content_version!`. `content_versionable attribute: :content, coalesce_window: 5.minutes` configures it — the window is a property of the model, not of the app, because how long one editing session lasts depends on what is being edited. A burst of auto-saves by one author inside the window updates the last version instead of creating twelve, under a row lock so two concurrent saves cannot claim the same `version_number`.
@@ -105,6 +99,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **An entity reference chip no longer links to a `javascript:` URL.** The chip's `url` prop
+  lives inside the saved document, so it is written by whoever can edit the content, and it
+  reaches the `href` untouched whenever resolution doesn't run (no `references_resolve_url`,
+  or a failed request). React renders `javascript:` hrefs with nothing but a console
+  warning. The chip now renders as plain text unless the URL is `http(s):`, `mailto:`,
+  root-relative or a fragment.
 - **`Bali::WorkflowSteps` names each step's state for a screen reader** (#716). Both markers said the state in colour and nothing else — the circle's number is a position, not a verdict, and the quick flow's dot has no text at all — so "3, Legal review" was everything a screen reader got about a rejected step. Every step now renders an `sr-only` span with the state's name next to its marker, **in both variants**, from six new keys under `bali_view.workflow_steps.states.*` (en/es) that a host overrides like any other Bali string when its domain has better words ("Signed", "Returned", "Waiting on legal"). The span sits *outside* the circle, so the number stays the circle's whole content.
 
 ## [v3.1.0.beta.3] - 2026-08-06
