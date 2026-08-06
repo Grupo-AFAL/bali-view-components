@@ -36,21 +36,32 @@ module Bali
 
       renders_many :actions, Action::Component
 
+      # @param href [String, nil] Renders the card's root element as an `<a>` (daisyUI
+      #   supports `<a class="card">`) with a hover shadow affordance. The card's content
+      #   must not contain links or buttons then — interactive content inside an `<a>`
+      #   is invalid HTML.
       def initialize(style: :default, size: :md, side: false, image_full: false, shadow: true,
-                     body_class: nil, **options)
+                     body_class: nil, href: nil, **options)
         @style = style&.to_sym
         @size = size&.to_sym
         @side = side
         @image_full = image_full
         @shadow = shadow
         @body_class = body_class
+        @href = href
         @options = options
       end
 
       private
 
+      def root_tag
+        @href.present? ? :a : :div
+      end
+
       def card_attributes
-        @options.merge(class: class_names(card_classes, @options[:class]))
+        attrs = @options.merge(class: class_names(card_classes, @options[:class]))
+        attrs[:href] = @href if @href.present?
+        attrs
       end
 
       def card_classes
@@ -61,7 +72,8 @@ module Bali
           SIZES[@size],
           "card-side" => @side,
           "image-full" => @image_full,
-          "shadow-sm" => @shadow
+          "shadow-sm" => @shadow,
+          "transition-shadow hover:shadow-md" => @href.present?
         )
       end
 
