@@ -1,21 +1,49 @@
 // Minimap of the Gantt: miniature bars + "today" mark + viewport rectangle;
 // click/drag to navigate. Syncs with the React Flow viewport by reading its
-// transform from the store and moving it with setViewport (scale pinned at
-// zoom=1). Must render INSIDE <ReactFlowProvider>.
-import { useCallback, useRef } from 'react'
-import { useStore, useReactFlow } from '@xyflow/react'
+// transform from the store (imperatively — see below) and moving it with
+// setViewport (scale pinned at zoom=1). Must render INSIDE
+// <ReactFlowProvider>.
+import { memo, useCallback, useLayoutEffect, useRef } from 'react'
+import { useStore, useStoreApi, useReactFlow } from '@xyflow/react'
 import { ROW_H } from './useGanttModel'
 
 const MINI_W = 204
 const MINI_H = 96
 
-export default function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0, canvasHeight, todayXValue, hint }) {
+export default memo(function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0, canvasHeight, todayXValue, hint }) {
   const { setViewport } = useReactFlow()
-  const tx = useStore((s) => s.transform[0])
-  const ty = useStore((s) => s.transform[1])
+  const store = useStoreApi()
+  // Pane size changes on RESIZE only, so it stays a render-time subscription;
+  // the transform does not (see the viewport rectangle effect below).
   const paneW = useStore((s) => s.width)
   const paneH = useStore((s) => s.height)
   const boxRef = useRef(null)
+  const viewportRef = useRef(null)
+
+  const sx = MINI_W / canvasWidth
+  const sy = MINI_H / Math.max(canvasHeight, 1)
+
+  // Only the viewport RECTANGLE follows the pan; the miniature bars do not.
+  // Writing its position imperatively keeps a pan frame from re-rendering the
+  // one mini bar per item this map draws. No dependency array on purpose: the
+  // map now renders so rarely that re-subscribing each time is cheaper than
+  // getting the dependency list wrong (the scales and the mount of the rect
+  // itself all have to re-place it).
+  useLayoutEffect(() => {
+    const place = ([tx, ty]) => {
+      const el = viewportRef.current
+      if (!el || !canvasWidth || !canvasHeight) return
+      el.style.left = `${Math.max(0, (-tx - canvasMinX) * sx)}px`
+      el.style.top = `${Math.max(0, -ty * sy)}px`
+    }
+    place(store.getState().transform)
+    let previous = store.getState().transform
+    return store.subscribe((state) => {
+      if (state.transform === previous) return
+      previous = state.transform
+      place(state.transform)
+    })
+  })
 
   const seek = useCallback(
     (clientX, clientY) => {
@@ -48,10 +76,6 @@ export default function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0, canv
 
   if (!canvasWidth || !canvasHeight) return null
 
-  const sx = MINI_W / canvasWidth
-  const sy = MINI_H / Math.max(canvasHeight, 1)
-  const vpLeft = Math.max(0, (-tx - canvasMinX) * sx)
-  const vpTop = Math.max(0, -ty * sy)
   const vpW = Math.min(MINI_W, (paneW || 0) * sx)
   const vpH = Math.min(MINI_H, (paneH || 0) * sy)
 
@@ -88,9 +112,10 @@ export default function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0, canv
         />
       )}
       <div
+        ref={viewportRef}
         className='absolute rounded-sm border-[1.5px] border-primary bg-primary/10'
-        style={{ left: vpLeft, top: vpTop, width: vpW, height: vpH }}
+        style={{ width: vpW, height: vpH }}
       />
     </div>
   )
-}
+})

@@ -16,7 +16,7 @@
 // Data arrives in the Bali::Gantt contract (see Bali::Gantt::Data):
 // { window, groups[], items[], dependencies[], critical_ids[] } — groups nest
 // one level via parent_id, items carry group_id/parent_id/name/milestone.
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -42,6 +42,7 @@ import {
   ZOOM_LEVELS
 } from './ZoomControls'
 import { useGanttModel, ROW_H, rowY, groupKey, itemKey, drawnEndsOn, DEP_PREFIX } from './useGanttModel'
+import { useViewportFollow } from './useViewportFollow'
 import { xToDate, daysBetween, durationDays, fmtDayMonth, weekendBands, timeTicks, addDaysIso, setDateLocale } from './timeScale'
 import { legendFor, normalizeCatalogs } from './ganttColors'
 import { translator } from './i18n'
@@ -103,11 +104,11 @@ function openItemDrawer (itemUrlTemplate, itemId) {
 // ---- Canvas overlays (siblings of <ReactFlow>, synced by transform) ----
 
 // Vertical grid + weekend bands. Reflect translateX (follow horizontal pans).
-function GridBands ({ ticks, weekend, height }) {
-  const translateX = useStore((s) => s.transform[0])
+const GridBands = memo(function GridBands ({ ticks, weekend, height }) {
+  const followRef = useViewportFollow('x')
   return (
     <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
-      <div className='absolute inset-y-0 left-0' style={{ transform: `translateX(${translateX}px)`, willChange: 'transform' }}>
+      <div ref={followRef} className='absolute inset-y-0 left-0' style={{ willChange: 'transform' }}>
         {weekend.map((w) => (
           <div key={`we-${w.key}`} className='absolute top-0 bg-base-content/[0.035]' style={{ left: w.x, width: w.width, height }} />
         ))}
@@ -117,15 +118,15 @@ function GridBands ({ ticks, weekend, height }) {
       </div>
     </div>
   )
-}
+})
 
 // Row bands: background + label of each group, and tint of selected rows.
 // Reflect translateY (follow vertical scrolls).
-function RowBands ({ rows, selection }) {
-  const translateY = useStore((s) => s.transform[1])
+const RowBands = memo(function RowBands ({ rows, selection }) {
+  const followRef = useViewportFollow('y')
   return (
     <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
-      <div className='absolute inset-x-0 top-0' style={{ transform: `translateY(${translateY}px)`, willChange: 'transform' }}>
+      <div ref={followRef} className='absolute inset-x-0 top-0' style={{ willChange: 'transform' }}>
         {rows.map((row) => {
           if (row.kind === 'group') {
             // Background band only; the group's name lives in the left table
@@ -152,16 +153,15 @@ function RowBands ({ rows, selection }) {
       </div>
     </div>
   )
-}
+})
 
 // Group summary bars (rollup with triangular caps). Reflect translateX+Y.
-function SummaryBars ({ bars, showCritical }) {
-  const tx = useStore((s) => s.transform[0])
-  const ty = useStore((s) => s.transform[1])
+const SummaryBars = memo(function SummaryBars ({ bars, showCritical }) {
+  const followRef = useViewportFollow('xy')
   if (!bars.length) return null
   return (
     <div className='pointer-events-none absolute inset-0 z-[1] overflow-hidden'>
-      <div className='absolute left-0 top-0' style={{ transform: `translate(${tx}px, ${ty}px)`, willChange: 'transform' }}>
+      <div ref={followRef} className='absolute left-0 top-0' style={{ willChange: 'transform' }}>
         {bars.map((b) => {
           const color =
             b.critical && showCritical
@@ -179,15 +179,15 @@ function SummaryBars ({ bars, showCritical }) {
       </div>
     </div>
   )
-}
+})
 
 // "Today" line + pill. Reflect translateX.
-function TodayOverlay ({ todayXValue, label }) {
-  const translateX = useStore((s) => s.transform[0])
+const TodayOverlay = memo(function TodayOverlay ({ todayXValue, label }) {
+  const followRef = useViewportFollow('x', todayXValue || 0)
   if (todayXValue == null) return null
   return (
     <div className='pointer-events-none absolute inset-0 z-20 overflow-hidden'>
-      <div className='absolute inset-y-0 left-0 w-0' style={{ transform: `translateX(${translateX + todayXValue}px)` }}>
+      <div ref={followRef} className='absolute inset-y-0 left-0 w-0'>
         <div className='absolute inset-y-0 left-0 w-0.5 bg-warning/85' />
         <div className='absolute left-0 top-0.5 grid h-4 -translate-x-1/2 place-items-center whitespace-nowrap rounded bg-warning px-1.5 text-[9px] font-bold text-warning-content'>
           {label}
@@ -195,7 +195,7 @@ function TodayOverlay ({ todayXValue, label }) {
       </div>
     </div>
   )
-}
+})
 
 // Floating buttons (bottom-left): zoom in / zoom out / fit / today.
 function FloatingControls ({ onZoomIn, onZoomOut, onFit, onToday, t }) {
@@ -242,6 +242,12 @@ function GanttCanvas (props) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set())
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  // The TOOLBAR reads the immediate values (the field echoes the keystroke at
+  // once); the MODEL reads the deferred ones, so rebuilding rows/nodes/edges
+  // for a 300-item document never blocks the keystroke. Same final result —
+  // only the priority differs.
+  const deferredSearch = useDeferredValue(search)
+  const deferredFilterStatus = useDeferredValue(filterStatus)
   const [colorBy, setColorBy] = useState('status')
   const [showCritical, setShowCritical] = useState(true)
   const [showDeps, setShowDeps] = useState(true)
@@ -392,8 +398,8 @@ function GanttCanvas (props) {
     pixelsPerDay: pxPerDay,
     criticalIds: schedule.critical_ids,
     collapsedIds,
-    search,
-    filterStatus
+    search: deferredSearch,
+    filterStatus: deferredFilterStatus
   })
 
   // X of "today" relative to windowStart (same origin as the bars). The axis
@@ -418,13 +424,15 @@ function GanttCanvas (props) {
     [t]
   )
 
-  const decoratedNodes = useMemo(
+  // Decoration in TWO passes, because they change at very different rates.
+  // (a) everything that belongs to the bar itself — rebuilt only when the
+  // schedule or a view option changes.
+  const baseNodes = useMemo(
     () =>
       model.nodes.map((n) => ({
         ...n,
         draggable: editable,
         selectable: false,
-        selected: selection.has(String(n.id)),
         data: {
           ...n.data,
           editable,
@@ -436,8 +444,28 @@ function GanttCanvas (props) {
           onResize: editable ? (side, deltaDays) => handleResize(n.data, side, deltaDays) : undefined
         }
       })),
-    [model.nodes, editable, pxPerDay, colorBy, catalogs, nodeLabels, showCritical, selection, handleResize]
+    [model.nodes, editable, pxPerDay, colorBy, catalogs, nodeLabels, showCritical, handleResize]
   )
+
+  // (b) the `selected` BIT, which changes on every click. Rebuilding `data`
+  // here too would hand React Flow a new object for all 300 bars per click
+  // and re-render every one of them; instead the previous node object is
+  // REUSED whenever its bit did not change (RF's `adoptUserNodes` keeps its
+  // internal node when the user node is identical, so those bars never
+  // re-render). When `baseNodes` itself changed there is nothing to reuse —
+  // every node object is new anyway.
+  const decoratedRef = useRef({ base: null, nodes: [] })
+  const decoratedNodes = useMemo(() => {
+    const previous = decoratedRef.current
+    const reusable = previous.base === baseNodes ? previous.nodes : null
+    const nodes = baseNodes.map((base, i) => {
+      const selected = selection.has(String(base.id))
+      const cached = reusable && reusable[i]
+      return cached && cached.selected === selected ? cached : { ...base, selected }
+    })
+    decoratedRef.current = { base: baseNodes, nodes }
+    return nodes
+  }, [baseNodes, selection])
 
   const displayEdges = useMemo(() => {
     if (!showDeps) return []
@@ -640,6 +668,11 @@ function GanttCanvas (props) {
     [effTableW]
   )
 
+  // Stable identities: an inline arrow here would give `Toolbar` a new prop on
+  // every canvas render and defeat its memo.
+  const toggleCritical = useCallback(() => setShowCritical((v) => !v), [])
+  const toggleDeps = useCallback(() => setShowDeps((v) => !v), [])
+
   const toggleCol = useCallback((key) => {
     setHiddenCols((prev) => {
       const next = new Set(prev)
@@ -759,9 +792,9 @@ function GanttCanvas (props) {
         zoom={zoom}
         onZoom={handleZoomChange}
         showCritical={showCritical}
-        onToggleCritical={() => setShowCritical((v) => !v)}
+        onToggleCritical={toggleCritical}
         showDeps={showDeps}
-        onToggleDeps={() => setShowDeps((v) => !v)}
+        onToggleDeps={toggleDeps}
         onToday={scrollToday}
         onFullscreen={onFullscreen}
         catalogs={catalogs}

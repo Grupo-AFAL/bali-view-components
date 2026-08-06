@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The Gantt island follows the viewport without re-rendering** (#705). Panning, dragging a bar,
+  selecting and typing in the search box each used to re-reconcile the island's entire React tree;
+  on a 300-item document (20 groups, 150 dependencies) a single pan frame rebuilt every row of the
+  left table, every tick of the axis and every bar of the minimap. No public API, markup, CSS or
+  data-contract change — only how the components subscribe to the canvas:
+  - The layers that shift as a block with the pan (time header, grid + weekend bands, row bands,
+    group summary bars, today line, left table, minimap viewport rectangle) no longer subscribe to
+    the React Flow transform with `useStore`. They take it from the store imperatively (new
+    `useViewportFollow` hook) and write `style.transform` on a ref, so a pan frame costs **zero**
+    React renders instead of one per layer plus all of its children. Measured over 20 pan frames:
+    horizontal 100 component renders → 0; vertical 20 renders + 6.400 table rows → 0.
+  - `React.memo` on the chrome (`GanttTable` and its `Row`, `Toolbar`, `TimeHeader`, `GridBands`,
+    `RowBands`, `SummaryBars`, `Minimap`, `GanttFooter`), with the toolbar's toggle callbacks
+    given stable identities so the memo actually holds. Dragging a bar re-rendered the whole
+    chrome once per pointer frame (3.200 row renders over 20 frames); it now re-renders only the
+    dragged bar. Same for the table splitter: 6.080 row renders → 0.
+  - Node decoration runs in two passes, so the `selected` bit no longer rebuilds every bar's `data`
+    object: React Flow keeps its internal node for the bars whose bit did not change and only the
+    affected ones re-render. A selection click went from 300 bar renders + 640 row renders to 1
+    and 1.
+  - `useDeferredValue` on search and status filter: the input echoes the keystroke immediately
+    while the model rebuild is deferred, so a burst of keystrokes rebuilds the filtered document
+    once instead of once per letter (9 letters: 5.760 row renders + 2.700 bar renders → 320 + 300).
+
 ## [v3.1.0.beta.2] - 2026-08-06
 
 ### Added

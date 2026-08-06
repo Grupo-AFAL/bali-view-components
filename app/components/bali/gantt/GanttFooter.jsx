@@ -1,6 +1,7 @@
 // Bottom status bar of the Gantt: selection · counts · legend (per color-by)
 // · range · duration · critical path · progress. Purely presentational: the
 // metrics are computed in GanttFlow (already localized) and arrive as props.
+import { memo } from 'react'
 
 // Separator ("·") between metrics. At module level so React reconciles it
 // instead of remounting (defining it inside render creates a new type per
@@ -9,7 +10,7 @@ function Sep () {
   return <span className='text-base-content/30'>·</span>
 }
 
-export default function GanttFooter ({
+export default memo(function GanttFooter ({
   selectionLabel = '',
   countLabel = '',
   legend = [],
@@ -58,4 +59,4 @@ export default function GanttFooter ({
       )}
     </div>
   )
-}
+})
