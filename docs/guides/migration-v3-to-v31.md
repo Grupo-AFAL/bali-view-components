@@ -61,10 +61,48 @@ URL. If a tab must not touch the URL, pass `turbo_action: false`.
 
 ## Card root becomes an `<a>` when given `href:` (#729)
 
-A `Bali::Card` (and `Bali::StatCard`) constructed with `href:` renders its root element as
-an `<a>` instead of wrapping a link inside a `<div>`.
+**What changes.** `Bali::Card` gains `href:`. When present, the card's root element renders
+as `<a class="card">` instead of `<div class="card">`, with a hover affordance
+(`transition-shadow hover:shadow-md`). `Bali::StatCard` gains the same `href:` and
+propagates it to its inner Card, and `DashboardPage#with_stat` gains `href:` so a stat in
+the grid drills down to its listing. Without `href:` nothing changes: the root stays a
+`<div>` and the markup is byte-identical to v3.0.
 
-*Lands with the #729 PR; details land with it.*
+```erb
+<%# v3.0 — the wrapper pattern (still works, but stop writing it) %>
+<%= link_to dashboard_orders_path do %>
+  <%= render Bali::StatCard::Component.new(title: 'Open Orders', value: '87', icon: 'shopping-cart') %>
+<% end %>
+
+<%# v3.1 %>
+<%= render Bali::StatCard::Component.new(
+  title: 'Open Orders', value: '87', icon: 'shopping-cart',
+  href: dashboard_orders_path
+) %>
+```
+
+**Who is affected.** The change only activates at call sites that pass `href:`, so nothing
+breaks on upgrade day. What the announcement covers is the *adoption*:
+
+- **Host test selectors.** A spec that asserts `div.card` (or wraps the card in `link_to`
+  and asserts `a > div.card`) breaks the moment that call site adopts `href:` — the
+  wrapper `<a>` is gone and the card root itself is the `<a>`. Measured against the pinned
+  hosts, the wrapper pattern exists in costa-norte's dashboard
+  (`app/views/dashboard/show.html.erb`); that is the call site this exists for.
+- **`DashboardPage::Stat` grows from five members to six.** The v3 migration guide
+  promised "Stat still exists with the same five members"; `href` is the sixth. Keyword
+  construction (`Stat.new(label:, value:, icon:, change:, color:)`) keeps working —
+  `Data.define` fills the missing member only through `with_stat`, which is the only
+  constructor Bali itself calls — but *positional* construction of the Data class outside
+  Bali (`Stat.new("Users", "1,234", "users", nil, :primary)`) now raises `ArgumentError:
+  missing keyword`. No pinned host constructs the Data directly.
+
+**One rule the browser enforces, not Bali.** An `<a>` must not contain interactive
+content: with `href:`, the card's body, actions, and StatCard's `footer` must not contain
+links or buttons — browsers recover from `<a><a></a></a>` by splitting the outer link,
+and the card stops being one target. If a card needs its own inner actions, keep the card
+a `<div>` and link the parts instead (the deliberately rejected alternative was a
+stretched-link pseudo-element — complexity without a consumer).
 
 ## Five shadowed icons change their drawing (#902)
 
