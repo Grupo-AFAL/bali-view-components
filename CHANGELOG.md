@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`BlockEditorController` now inherits from `ReactIslandController`** (#703). No API change
+  and nothing to do in a host app: the controller identifier, its Stimulus values, the entry
+  and `block_editor_meta_tags` are all untouched. What changed is where the mechanics live —
+  the `_disconnected` guard, `createRoot` over its own mount point, the `turbo-cache-control`
+  meta, the unmount on disconnect and the error fallback now come from the base the editor
+  was extracted from, and the controller keeps only what makes it the block editor: the
+  BlockNote wrapper, the props, the submit flush, the ProseMirror teardown (moved to the
+  base's `beforeUnmount` hook, which runs while the DOM is still attached) and the PDF/DOCX
+  exports. The editor is the first real subclass, so this is what proves the base's hooks fit
+  a demanding island rather than only the toy preview. It also gains the base's
+  ErrorBoundary, which it never had: a render error inside the editor now shows the fallback
+  message instead of tearing down the React tree.
+
 ### Added
 
 - **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
