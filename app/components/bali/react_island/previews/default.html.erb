@@ -1,0 +1,17 @@
+<%# In a host app these meta tags go in the layout's <head>; a preview cannot
+    edit the layout, and the loader finds them anywhere in the document. %>
+<%= react_island_meta_tags('react-island-demo', js: 'island-demo.js') %>
+
+<div class="flex flex-col gap-6">
+  <div
+    data-controller="react-island-demo"
+    data-react-island-demo-label-value="<%= label %>"
+    data-react-island-demo-start-value="<%= start %>"
+  ></div>
+
+  <%= render Bali::Link::Component.new(
+        name: 'Two islands',
+        href: '/lookbook/preview/bali/react_island/two_islands',
+        data: { testid: 'goto-two-islands' }
+      ) %>
+</div>

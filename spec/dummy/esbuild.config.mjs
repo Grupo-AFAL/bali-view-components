@@ -42,7 +42,9 @@ const resolveGemImports = {
 }
 
 const config = {
-  entryPoints: ['app/javascript/application.js'],
+  // island-demo.js is the demo React island's dedicated entry: the loader in
+  // application.js injects it on demand (see docs/api/react-island.md).
+  entryPoints: ['app/javascript/application.js', 'app/javascript/island-demo.js'],
   bundle: true,
   sourcemap: true,
   format: 'esm',
@@ -58,6 +60,7 @@ const config = {
     bali: path.join(baliGemPath, 'app/frontend/bali'),
     'bali/charts': path.join(baliGemPath, 'app/frontend/bali/charts.js'),
     'bali/block-editor': path.join(baliGemPath, 'app/frontend/bali/block-editor.js'),
+    'bali/react-island': path.join(baliGemPath, 'app/frontend/bali/react-island.js'),
     'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js'),
     // Force a single React instance — @blocknote/xl-ai bundles react 19 as a
     // direct dependency which creates a duplicate nested copy. Without these
