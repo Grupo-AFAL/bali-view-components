@@ -7,7 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v3.1.0.beta.3] - 2026-08-06
+### Added
+
+- **`dynamic_fields_group` grows a table mode and an array mode** (#715). The same helper, the
+  same anatomy — header, container, `<template>` — with two shapes it could not produce before,
+  both opt-in and both leaving existing call sites byte-for-byte unchanged:
+  - `table: true` renders the container as the `<tbody>` of a table the helper emits, so the row
+    partial writes `<tr>`. `columns:` fills the `<thead>` and `table_class:` overrides the default
+    `table`. The header and its `<template>` render *outside* the `<table>`, which is the only
+    place they survive: the HTML parser hoists a `<div>` sitting between `<table>` and `<tbody>`
+    out of the table, which used to strand the add button and its template. A `<tr>` inside the
+    `<template>` is fine — the HTML5 parser switches to "in table body" for exactly that case.
+  - `array: true` names the rows `movie[steps][][role]` for an attribute that is a plain array of
+    hashes rather than an association: no `fields_for`, no `_destroy`, no
+    `reflect_on_association` to explode on. Rows come from the attribute or from `values:`, and
+    the partial receives `name_prefix:`, `item:` and `index:` alongside `f`. Checkboxes are not
+    supported in this mode — Rails' paired hidden field repeats a key inside the element and
+    splits the array — see the guide.
+  - `partial:` on both `dynamic_fields_group` and `link_to_add_fields` names the row partial
+    explicitly instead of deriving `_<singular>_fields`, and `destroy_flag: false` on
+    `link_to_remove_fields` drops the hidden `_destroy` for rows that have nothing to destroy.
+- **`dynamic-fields` renumbers a visible ordinal** (#715). A `data-dynamic-fields-target="ordinal"`
+  element inside a row gets the row's 1-based number written into it after every add, remove and
+  reorder, counting only the rows still in play. The target holds the number alone, so punctuation
+  around it ("1.", "#1") lives in the markup and survives renumbering. Absent target, nothing
+  happens — this is the piece host apps were each writing a controller for.
+
+### Changed
+
+- **Removing an unsaved row deletes it from the DOM** (#715). `dynamic-fields#removeFields` used to
+  hide every removed row and flag it `_destroy`, whether or not there was anything to destroy. It
+  now looks for the `[id]` hidden field `fields_for` emits only for a persisted record: with one,
+  the old behaviour (hide, strip the visible inputs, flag) so the server still learns which record
+  to delete; without one, the row simply leaves the DOM. What gets submitted is unchanged —
+  `_destroy` on a nested hash with no `id` was already a no-op — but the DOM stops accumulating
+  dead rows. `resetPositionValues` skips hidden rows for the same reason, so `[data-position]`
+  stays contiguous over the rows that will actually be saved, and it now tolerates a row without a
+  position input instead of raising.
 
 ### Changed
 
