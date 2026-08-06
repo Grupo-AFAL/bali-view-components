@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Tabs` tabs take a `count:` badge.** `with_tab(count: 12)` renders a `badge badge-sm` after the title, in both modes — navigation tabs (the scopes pattern: Mine / Team, statuses, the inbox counter case) and panel tabs. `nil` renders nothing; `0` renders, because an empty scope is information. A string works too (`"99+"`). The badge is not `aria-hidden`: the number belongs in the link's accessible name ("Mine 12"). (#722)
+- **Navigation-mode tab links emit `data-turbo-action="advance"` by default.** A no-op on full-page visits (advance is already Turbo's default); inside a `turbo_frame` it promotes the visit to the URL, which is what makes URL-driven scope tabs addressable and back-button friendly. `turbo_action: false` omits the attribute; another symbol (e.g. `:replace`) passes through. Ignored in panel mode. (#722)
+
+### Changed
+
+- **`Bali::Tabs` navigation mode: the tab's `**options` now land on the `<a>`.** They used to be merged into the attributes of a panel `<div>` that navigation mode never renders, so they silently vanished — there was no way to put a `data:` attribute on a tab link. `class` composes with the tab classes instead of replacing them. Only a call site that passed options to an `href:` tab *and* relied on them being ignored changes behaviour; none exists among the pinned hosts. One of the five announced v3.1 changes — see [the migration guide](docs/guides/migration-v3-to-v31.md). (#722)
+
 ## [v3.0.0] - 2026-08-05
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to

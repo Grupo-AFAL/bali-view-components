@@ -616,6 +616,31 @@ no panel to control, so this renders `<nav aria-label>` with plain links and
 Without `active:`, an `href:` tab decides for itself by comparing the URL against the current
 path; pass `active:` to override that.
 
+In navigation mode each link carries `data-turbo-action="advance"` by default. On a full-page
+visit that is a no-op (advance is already Turbo's default); the value shows when the tabs
+navigate inside a `turbo_frame`, where it promotes the visit to the URL so each scope stays
+addressable and the back button works. Pass `turbo_action: false` on a tab to omit the
+attribute, or another symbol (e.g. `:replace`) to pass it through. The tab's `**options` land
+on the `<a>` itself — there is no panel div to receive them — with `class` composing with the
+tab classes.
+
+**The scopes pattern** — tabs as filtered views of one listing (Mine / Team, statuses), each
+with a `count:` badge showing how many records wait behind it. `nil` renders no badge; `0`
+renders — an empty scope is information. The count stays in the link's accessible name
+("Mine 12"), which is what a screen reader user needs.
+
+```erb
+<%= render Bali::Tabs::Component.new(label: "Inbox scopes") do |tabs| %>
+  <% tabs.with_tab(title: "Mine", count: @counts[:mine], href: inbox_path(scope: :mine)) %>
+  <% tabs.with_tab(title: "Team", count: @counts[:team], href: inbox_path(scope: :team)) %>
+  <% tabs.with_tab(title: "Done", count: @counts[:done], href: inbox_path(scope: :done)) %>
+<% end %>
+```
+
+`count:` also takes a string (`"99+"`), and renders in panel mode too. When a page has two of
+these navs (a hub page plus a sub-navigation), give each its own `label:` — it is the only
+thing telling them apart in the rotor.
+
 **Mixing the two raises `ArgumentError`.** A `role="tablist"` where half the children are
 links leaving the page and half own a panel is not a widget ARIA describes, and it used to
 render in silence. Split it into two components, or drop `href:` from all of them.
@@ -626,7 +651,10 @@ render in silence. Split it into two components, or drop `href:` from all of the
 - `label` - Accessible name for the `<nav>` in navigation mode. Pass it whenever a page has more than one; defaults to `bali_view.tabs.navigation`. Ignored when the tabs have panels (default: nil)
 - `**options` - Additional HTML attributes for the wrapper
 
-**Slots:** `with_tab(title:, icon:, active:, src:, reload:, href:, **options)`.
+**Slots:** `with_tab(title:, icon:, active:, src:, reload:, href:, count:, turbo_action:, **options)`.
+In panel mode the tab's `**options` go to its `role="tabpanel"` div; in navigation mode they
+go to the `<a>`. `turbo_action:` only applies in navigation mode (default `:advance`,
+`false` omits it).
 
 #### ViewSwitch
 
