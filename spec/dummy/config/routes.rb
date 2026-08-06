@@ -93,20 +93,10 @@ Rails.application.routes.draw do
   # page of its own, so `DocumentsController` implements six of the seven actions and the
   # seventh route answered 404 to anyone who followed it.
   # Las versiones ya NO son rutas de esta app: `versions_url: :auto` en el DocumentEditor
-  # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707).
-  resources :documents, except: :edit do
-<<<<<<< HEAD
-    resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
-      resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
-        resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
-      end
-=======
-    resources :versions, only: [:index, :show], controller: 'document_versions'
-    member do
-      post :restore_version
->>>>>>> origin/feat/706-comments-engine
-    end
-  end
+  # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707). Los
+  # comentarios tampoco (#706): `comments: { url: :auto, commentable: }` apunta a los
+  # nueve endpoints del engine.
+  resources :documents, except: :edit
 
   mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'

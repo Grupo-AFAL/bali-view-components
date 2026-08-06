@@ -8,10 +8,12 @@ require "test_helper"
 # walker propio se equivoca.
 class BaliEntityReferenceableTest < ActiveSupport::TestCase
   # Un modelo con la columna JSON en otro nombre, para el macro `references_entities_in`.
-  # BlockEditorThread sirve porque su `metadata` es json y no exige asociaciones.
-  class ReferencingThread < BlockEditorThread
+  # FormRecord sirve porque su `polygon_data` es json y no exige asociaciones. (Antes era
+  # el BlockEditorThread del dummy, que #706 sustituyó por el modelo del engine — y ese
+  # exige un commentable.)
+  class ReferencingRecord < FormRecord
     include Bali::EntityReferenceable
-    references_entities_in :metadata
+    references_entities_in :polygon_data
   end
 
   def setup
@@ -139,11 +141,11 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
   end
 
   test "reads the attribute named by references_entities_in" do
-    thread = ReferencingThread.create!(
-      metadata: { "content" => [ paragraph(reference_node("Project", 4, "Otra columna")) ] }
+    record = ReferencingRecord.create!(
+      polygon_data: { "content" => [ paragraph(reference_node("Project", 4, "Otra columna")) ] }
     )
 
-    assert_equal [ [ "Project", 4 ] ], thread.entity_references.pluck(:referenceable_type, :referenceable_id)
+    assert_equal [ [ "Project", 4 ] ], record.entity_references.pluck(:referenceable_type, :referenceable_id)
   end
 
   # Diff mínimo — el editor autosalva, así que esto corre en cada guardado
