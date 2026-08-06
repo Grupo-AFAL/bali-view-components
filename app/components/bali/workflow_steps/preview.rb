@@ -27,6 +27,11 @@ module Bali
       # States: `:success`, `:error`, `:warning`, `:current` (ring emphasis),
       # `:pending`, and `:skipped` — muted, no number, and it consumes no
       # position in the auto-numbering (an explicit `number:` always wins).
+      #
+      # The circle says the state in colour and the number says a position, so
+      # each step also renders an `sr-only` name for it
+      # (`bali_view.workflow_steps.states.*`, overridable like any Bali string
+      # when the host's domain has better words: "Signed", "Returned").
       def default
         render_with_template
       end
@@ -54,10 +59,10 @@ module Bali
       # happened yet. **The bar takes the flow's verdict**: red if any step was
       # rejected, amber if any came back with observations, neutral otherwise.
       #
-      # The dot carries its state name as an `aria-label`
+      # The dot is decorative: the state name is announced by the same
+      # `sr-only` span the vertical variant renders next to its circle
       # (`bali_view.workflow_steps.states.*`, overridable like any Bali
-      # string), because with no number left in the marker, colour is the only
-      # thing saying what happened.
+      # string).
       #
       # `progress: false` drops the bar. Asking for one on the vertical variant
       # raises: that shape has no header to hang it on.

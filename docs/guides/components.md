@@ -903,6 +903,13 @@ computes this; callers only declare states. Auto-numbering counts the real
 route only: a `:skipped` step renders muted with a dash instead of a number and
 consumes no position (an explicit `number:` always wins).
 
+Both markers say the state in colour and nothing else — a number is a position,
+not a verdict — so every step also renders an `sr-only` span with the state's
+name next to its marker. The six strings live under
+`bali_view.workflow_steps.states.*` (en/es) and a host overrides them like any
+other Bali key when its domain has better words: "Signed", "Returned",
+"Waiting on legal".
+
 ##### The horizontal quick flow
 
 `variant: :horizontal` renders the same steps as a row of cards with an N/M bar
@@ -930,9 +937,8 @@ Same `with_step` API. What changes:
 - **The bar takes the flow's verdict**: `progress-error` if any step was
   rejected, `progress-warning` if any came back with observations, neutral
   otherwise.
-- **The dot carries its state name** as an `aria-label`
-  (`bali_view.workflow_steps.states.*`, overridable like any Bali string),
-  because colour is all that is left saying what happened.
+- The dot is decorative; the state name is announced by the same `sr-only`
+  span the vertical variant uses (see below).
 
 The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
 rows instead of shrinking each card past reading width.

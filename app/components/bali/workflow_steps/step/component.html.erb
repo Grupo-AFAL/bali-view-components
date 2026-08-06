@@ -4,7 +4,7 @@
       <span class="<%= connector_classes %>" aria-hidden="true"></span>
     <% end %>
     <% if dot? %>
-      <span class="<%= dot_classes %>" role="img" aria-label="<%= state_label %>"></span>
+      <span class="<%= dot_classes %>" aria-hidden="true"></span>
     <% else %>
       <span class="<%= circle_classes %>">
         <% if number.present? %>
@@ -14,6 +14,11 @@
         <% end %>
       </span>
     <% end %>
+    <%# Both markers say the state in colour and nothing else — the number is a
+        position, not a verdict, and the dot has no text at all. This is the one
+        place that says it in words, and it sits outside the circle so the
+        number stays the circle's whole content. %>
+    <span class="sr-only"><%= state_label %></span>
   </div>
   <div class="workflow-step-body">
     <p class="<%= title_classes %>"><%= title %></p>

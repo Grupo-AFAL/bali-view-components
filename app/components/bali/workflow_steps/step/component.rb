@@ -9,7 +9,8 @@ module Bali
       # The marker is the only thing the two variants disagree on — a numbered
       # circle with a connector to the next step, or the bare dot of the quick
       # flow (`dot: true`). Everything below it is the same markup, which is
-      # why one template covers both.
+      # why one template covers both; so is the `sr-only` state name beside it,
+      # since neither marker says the state in anything but colour.
       #
       # `connector_state` is written by the parent once every step is declared
       # — it is the state of the step that FOLLOWS this one, or nil on the last
@@ -117,10 +118,11 @@ module Bali
           class_names("workflow-step-dot", DOT_CLASSES.fetch(state))
         end
 
-        # The dot has no number to fall back on, so colour is the only thing
-        # left saying what happened to the step — and colour alone is nothing
-        # to a screen reader. Hosts override these six strings like any other
-        # Bali key when their domain has better words for them.
+        # Read into the `sr-only` span next to the marker, in both variants:
+        # colour is the only thing either marker uses to say what happened, and
+        # colour is nothing to a screen reader. The circle's number does not
+        # cover it — a position is not a verdict. Hosts override these six
+        # strings like any other Bali key when their domain has better words.
         def state_label
           I18n.t("bali_view.workflow_steps.states.#{state}")
         end

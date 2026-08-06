@@ -33,6 +33,36 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     end
   end
 
+  # The circle says the state in colour and the number says a position, so
+  # without this a screen reader hears "3, Legal review" and never learns the
+  # step was rejected.
+  def test_every_state_is_named_for_a_screen_reader
+    {
+      success: "Completed",
+      error: "Rejected",
+      warning: "Needs attention",
+      pending: "Pending",
+      skipped: "Skipped",
+      current: "In progress"
+    }.each do |state, label|
+      render_inline(Bali::WorkflowSteps::Component.new) do |c|
+        c.with_step(title: "Step", state: state)
+      end
+      assert_selector(".workflow-step-marker .sr-only", text: label, visible: :all)
+    end
+  end
+
+  # Inside the circle it would be announced as part of the number and would
+  # break every assertion about what the circle contains.
+  def test_the_state_name_sits_outside_the_circle
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal review", state: :error)
+    end
+
+    assert_no_selector(".workflow-step-circle .sr-only", visible: :all)
+    assert_equal(%w[1], circle_texts)
+  end
+
   def test_current_state_gets_the_ring_emphasis
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "In review", state: :current)
@@ -310,11 +340,13 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
     assert_selector(".workflow-step-comment", text: "Missing appendix B.")
   end
 
-  def test_the_dot_carries_the_state_as_an_accessible_name
+  def test_the_dot_is_decorative_and_the_state_is_read_from_the_sr_only_name
     render_horizontal do |c|
       c.with_step(title: "Legal review", state: :error)
     end
-    assert_selector('.workflow-step-dot[role="img"][aria-label="Rejected"]')
+
+    assert_selector('.workflow-step-dot[aria-hidden="true"]', visible: :all)
+    assert_selector(".workflow-step-marker .sr-only", text: "Rejected", visible: :all)
   end
 
   def test_the_progress_bar_counts_the_steps_with_a_verdict
