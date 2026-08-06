@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`react-island`: the official React-island infrastructure** (#703). The block editor's mounting mechanics, extracted into a reusable module so new islands (the upcoming Gantt) do not re-implement them. One npm subpath, `bali-view-components/react-island`, exports `ReactIslandController` (a Stimulus base class: subclass and implement `loadComponent()`; the base handles `createRoot`, values→props, a built-in React ErrorBoundary, Turbo cache exclusion and unmount on disconnect), `registerIsland(name, Controller)` (the whole body of an island's bundler entry — registers on `window.Stimulus`, idempotently, never a second Application) and `startIslandLoader(name)` (main-bundle lazy loader driven by `<meta>` tags). The new `react_island_meta_tags(name, js:, css: nil)` helper publishes the digested bundle paths those metas carry; `block_editor_meta_tags` is now its block-editor spelling (same output, not deprecated). Errors from both phases (load and render) funnel through the configurable `ReactIslandController.onError` static hook, so a host plugs Sentry in once for every island without the gem depending on any tracker. Guide with the full wiring and the extraction criteria: `docs/api/react-island.md`; working toy island in the dummy app with Lookbook previews (`bali/react_island/*`) and a Cypress contract spec. `BlockEditorController` itself migrates to the base in a follow-up PR.
+
 ## [v3.0.0] - 2026-08-05
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
