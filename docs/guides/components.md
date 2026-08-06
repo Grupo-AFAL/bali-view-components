@@ -1102,6 +1102,7 @@ Labels and status indicators.
 <%= render Bali::Tag::Component.new(text: "Pending", color: :warning, style: :outline) %>
 <%= render Bali::Tag::Component.new(text: "Docs", href: "/docs", color: :info, size: :sm) %>
 <%= render Bali::Tag::Component.new(text: "Custom", custom_color: "#3b82f6") %>
+<%= render Bali::Tag::Component.new(text: "Done", icon: "check", color: :success) %>
 ```
 
 **Options:**
@@ -1112,6 +1113,16 @@ Labels and status indicators.
 - `style` - `:outline`, `:soft`, `:dash` (default: nil)
 - `custom_color` - Hex string applied as an inline background, with the text color picked for contrast (default: nil)
 - `rounded` - Fully rounded pill (default: false)
+- `icon` - Icon name, drawn before the text at the pill's own font-size so it fits every badge size (default: nil)
+
+**Slots:** `with_icon(name, **options)` — the `icon:` keyword written as a slot; it takes
+`Bali::Icon` options (`size:`, `class:`, …) and wins over the keyword when both are given.
+
+**Enum sugar:** `Bali::Tag.for(value, map:, i18n_scope:, default:, **tag_options)` turns a
+domain value plus a host-owned `value => color/options` map into a ready-to-render Tag,
+resolving the label through i18n. An unmapped value raises unless `default:` is given. The
+full recipe — and when to reach for `Status.for` instead — is in the
+[enum badges guide](enum-badges.md).
 
 An unknown `color:` or `size:` raises `ArgumentError` naming the valid values. The Bulma
 names v2 accepted (`:danger`, `:small`, `light: true`, …) are gone; the error names their
@@ -1154,6 +1165,17 @@ Colorful, SmartSuite-style status pill with optional inline editing. Presentatio
 - `**html_options` - Additional HTML attributes for the wrapper `span`; the consumer owns the Turbo target id via `id:` passthrough
 
 The consuming controller responds with a Turbo Stream replacing the element identified by the `id:` you pass.
+
+**Enum sugar:** `Bali::Status.for(value, map:, i18n_scope:, default:, **status_options)`
+mirrors `Bali::Tag.for`: one host-owned `value => color/options` map builds the whole
+`options:` array (labels through i18n), so the same map powers the editable panel too. An
+unmapped selected value raises unless `default:` is given. Recipe and the Tag vs Status
+criterion: [enum badges guide](enum-badges.md).
+
+**Public palette:** the twelve fixed pairs are public API — `Bali::Status.palette(:green)`
+returns `{ bg: "#16a34a", fg: "#fff" }` (raising on an unknown name), for painting
+something that is *not* a pill (a Gantt bar, a chart slice) in the same colour as the
+pill for the same state. Public means frozen: changing a hex is a breaking change.
 
 #### Progress
 

@@ -100,6 +100,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 |-------|-------------|
 | [Installation](docs/guides/installation.md) | Complete setup including Tailwind v4 |
 | [Components](docs/guides/components.md) | Component usage patterns and slots |
+| [Enum badges](docs/guides/enum-badges.md) | `Bali::Tag.for` / `Bali::Status.for` — one map per enum, and the Tag vs Status criterion |
 | [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
 | [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
 | [Overlays and the top layer](docs/guides/overlays-and-the-top-layer.md) | What the z-index scale orders, and what it cannot |
