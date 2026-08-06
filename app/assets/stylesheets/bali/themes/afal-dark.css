@@ -1,0 +1,57 @@
+/*
+ * AFAL Dark Theme for DaisyUI 5 — DRAFT / EXPERIMENTAL
+ *
+ * Dark variant derived from themes/afal.css (#718). The four host apps have
+ * declared `afal-dark` in their daisyUI plugin config without a definition
+ * existing anywhere — this file is the first actual design, pending visual
+ * approval in the ThemeSampler; expect token adjustments before it is
+ * announced as stable. No app activates it today.
+ *
+ * Derivation rules (from the light theme):
+ * - Surfaces invert down the same gray ramp: base-100/200/300 become
+ *   gray-900/800/700 and base-content becomes gray-200.
+ * - Brand hues are kept but lifted one Tailwind step (500 -> 400) so they
+ *   hold contrast on dark surfaces, paired with -950 content colors.
+ *   Every pair measures >= 4.5:1 (WCAG AA).
+ * - Status colors are identical to the light theme: those pastels already
+ *   sit on dark content colors that pass AA on both schemes.
+ * - Structural tokens (radius/size/border/depth/noise) are identical.
+ *
+ * Usage:
+ *   @import "bali-view-components/css/themes/afal-dark.css";
+ *   <html data-theme="afal-dark">
+ *
+ * If your app uses `dark:` utilities, extend your @custom-variant so they
+ * also fire under this theme (see docs/guides/custom-themes.md).
+ */
+[data-theme="afal-dark"] {
+  color-scheme: dark;
+  --color-primary: oklch(71.37% 0.1434 254.624);           /* #60A5FA (blue-400) */
+  --color-primary-content: oklch(28.23% 0.0874 267.935);   /* #172554 (blue-950) */
+  --color-secondary: oklch(70.90% 0.1592 293.541);         /* #A78BFA (violet-400) */
+  --color-secondary-content: oklch(28.27% 0.1351 291.089); /* #2E1065 (violet-950) */
+  --color-accent: oklch(83.69% 0.1644 84.429);             /* #FBBF24 (amber-400) */
+  --color-accent-content: oklch(27.91% 0.0742 45.635);     /* #451A03 (amber-950) */
+  --color-neutral: oklch(37.29% 0.0306 259.733);           /* #374151 (gray-700) */
+  --color-neutral-content: oklch(96.70% 0.0029 264.542);   /* #F3F4F6 (gray-100) */
+  --color-base-100: oklch(21.01% 0.0318 264.665);          /* #111827 (gray-900) */
+  --color-base-200: oklch(27.81% 0.0296 256.848);          /* #1F2937 (gray-800) */
+  --color-base-300: oklch(37.29% 0.0306 259.733);          /* #374151 (gray-700) */
+  --color-base-content: oklch(92.76% 0.0058 264.531);      /* #E5E7EB (gray-200) */
+  --color-info: oklch(75.85% 0.1374 231.617);              /* #3ABFF8 */
+  --color-info-content: oklch(27.15% 0.0553 231.935);      /* #002B3D */
+  --color-success: oklch(77.33% 0.1529 163.103);           /* #36D399 */
+  --color-success-content: oklch(28.38% 0.0623 161.934);   /* #003320 */
+  --color-warning: oklch(83.30% 0.1642 83.424);            /* #FBBD23 */
+  --color-warning-content: oklch(28.79% 0.0590 85.336);    /* #382800 */
+  --color-error: oklch(71.22% 0.1649 22.151);              /* #F87272 */
+  --color-error-content: oklch(24.99% 0.1025 29.234);      /* #470000 */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}

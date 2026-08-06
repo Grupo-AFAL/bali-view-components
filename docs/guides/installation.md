@@ -69,12 +69,27 @@ Create `app/assets/tailwind/application.css` (or similar):
 /* =============================================
    Bali ViewComponents - Tailwind class scanning
    =============================================
-   IMPORTANT: Tailwind v4 needs to scan Bali's Ruby and ERB files
+   IMPORTANT: Tailwind v4 needs to scan Bali's Ruby, ERB *and JS* files
    to detect utility classes used in components. The gem installs
    to a system directory outside your project, but the npm package
    mirrors all source files in node_modules.
+
+   `.js` is not optional: some controllers write class names from
+   JavaScript (e.g. `modal/index.js` swaps the submit button for
+   `loading loading-spinner loading-sm` while a drawer form is in
+   flight). Without scanning `.js`, those classes never reach your
+   compiled CSS and the spinner renders unstyled.
 */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+
+/* Optional - CI with a vendored bundle only. `ruby/setup-ruby` with
+   `bundler-cache: true` vendors gems into vendor/bundle, so this glob
+   scans the *gem's* copy of the same tree. It does not match in local
+   (rbenv/rvm) or Docker (BUNDLE_PATH) setups, and that is fine: a
+   @source with no matches adds no classes and raises no error. With
+   both globs, CI scans gem and npm copies alike, so if the two ever
+   skew, the union of classes keeps the build complete. */
+@source "../../../vendor/bundle/ruby/*/bundler/gems/bali-view-components-*/**/*.{erb,rb}";
 
 /* =============================================
    Bali CSS Import
@@ -101,7 +116,7 @@ Create `app/assets/tailwind/application.css` (or similar):
 }
 ```
 
-> **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). Without it, Tailwind won't detect these classes and components will appear unstyled.
+> **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript. Without it, Tailwind won't detect these classes and components will appear unstyled.
 
 ### Overriding Bali styles
 
@@ -327,7 +342,10 @@ Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-pr
 **Fix:** Ensure your `@source` directive scans Bali's source files in node_modules:
 
 ```css
-/* Correct - scans all Ruby and ERB files */
+/* Correct - scans Ruby, ERB and JS files */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+
+/* Wrong - misses JS-written classes (the drawer submit spinner, for one) */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
 /* Wrong - only scans ERB, misses Ruby files where most classes are defined */
@@ -340,7 +358,7 @@ Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-pr
 
 The Tailwind build isn't scanning Bali component files.
 
-**Fix:** Ensure `@source` paths in your CSS point to `node_modules/bali-view-components/app/**/*.{rb,erb}`.
+**Fix:** Ensure `@source` paths in your CSS point to `node_modules/bali-view-components/app/**/*.{rb,erb,js}`.
 
 ### "Unknown Stimulus controller"
 
