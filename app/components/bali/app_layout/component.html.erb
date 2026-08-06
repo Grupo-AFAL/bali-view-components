@@ -8,9 +8,11 @@
     <a href="#<%= main_id %>" class="bali-skip-link"><%= skip_link_label %></a>
   <% end %>
 
-  <%# 1. Banner (impersonation, maintenance, beta) %>
+  <%# 1. Banner (impersonation, maintenance, beta) — a full-width strip above
+      everything, including the pinned sidebar, which starts below it. The
+      target is what the controller measures; the offset itself is CSS. %>
   <% if banner? %>
-    <div class="app-layout-banner"><%= banner %></div>
+    <div class="app-layout-banner" data-app-layout-target="banner"><%= banner %></div>
   <% end %>
 
   <%# 2. Navbar (full-width) %>

@@ -41,6 +41,49 @@
   outline-offset: 2px;
 }
 
+/* Banner strip — impersonation, maintenance, "you are in beta".
+ *
+ * A FULL-WIDTH strip that the pinned sidebar starts below, not a bar that sits
+ * to the right of it. That is the shape every impersonation banner has, and the
+ * one the apps hand-roll: gc pins `.side-menu-component--fixed` to `top: 3rem`
+ * for one banner and `top: 5.5rem !important` for its two stacked ones.
+ *
+ * The height is not a constant here because it cannot be: the strip is whatever
+ * the host put in the slot, one banner or three, dismissible or not, one line on
+ * a desktop and two on a phone. `--bali-banner-height` is written on <body> by
+ * the controller in ./index.js, which measures it; every rule that needs the
+ * number reads it from there, with `0px` as the fallback so a layout with no
+ * banner — and a page whose JavaScript has not run yet — behaves exactly as it
+ * did before.
+ *
+ * z-index 50 puts it over the sidebar's fixed rail (40) for the frames before
+ * the measurement lands, and stays below the overlay scale, which starts at 200
+ * on purpose: page chrome an overlay cannot cover is a bug. See bali/z_index.css.
+ *
+ * Sticky, so a banner that says "you are impersonating someone" is still on
+ * screen after scrolling. Under `viewport_locked: true` the body does not
+ * scroll, so this is inert there — which is the correct amount of nothing. */
+.app-layout-banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* The pinned sidebar starts under the banner and gives back the height it took.
+ *
+ * `height: 100%` on a fixed element resolves against the viewport, so
+ * `calc(100% - …)` is the rest of the screen, not the rest of some parent.
+ *
+ * This overrides `top`/`height` from `.side-menu-component--fixed`
+ * (side_menu/index.css). Both files are imported into @layer components
+ * (bali/components.css), so the layer is a tie and specificity settles it: two
+ * classes here against one there. Measured in the browser rather than assumed —
+ * the file order agrees anyway, app_layout imports after side_menu. */
+.app-layout--has-fixed-sidebar .side-menu-component--fixed {
+  top: var(--bali-banner-height, 0px);
+  height: calc(100% - var(--bali-banner-height, 0px));
+}
+
 /* Viewport-locked scroll model — activates via `viewport_locked: true`.
  * Body locks to viewport height; only the inner <main> scrolls. This keeps
  * sidebar AND topbar pinned naturally (no position: sticky needed) and
@@ -78,16 +121,20 @@
 @media (min-width: 1024px) {
   /* Push content right when a fixed sidebar is present.
 
-     The banner and the navbar are full-width siblings ABOVE `.app-layout-main`,
-     but a pinned sidebar is `position: fixed; top: 0; height: 100%`
-     (`.side-menu-component--fixed`, side_menu/index.css), so it paints over their
+     The navbar is a full-width sibling ABOVE `.app-layout-main`, but a pinned
+     sidebar is `position: fixed; left: 0; height: 100%`
+     (`.side-menu-component--fixed`, side_menu/index.css), so it paints over its
      left `--bali-side-menu-width`. Measured on
      /lookbook/preview/bali/app_layout/with_navbar: the navbar's brand was invisible
-     and its first link rendered as "hboard"; with the impersonation banner on, its
-     icon and half its text went under the sidebar too. They take the same offset,
-     from the same variable, as the content — `<body>` already carried
-     `app-layout--has-navbar` with nothing reading it. */
-  .app-layout--has-fixed-sidebar .app-layout-banner,
+     and its first link rendered as "hboard". It takes the same offset, from the
+     same variable, as the content — `<body>` already carried
+     `app-layout--has-navbar` with nothing reading it.
+
+     The BANNER is deliberately not in this list any more. It was, and it had to
+     be while the sidebar started at `top: 0` and painted over it. Now the sidebar
+     starts below the banner instead, so the banner has nothing to clear: giving
+     it the offset too would indent a full-width strip into the content column and
+     leave a gap of page above the sidebar. */
   .app-layout--has-fixed-sidebar .app-layout-navbar,
   .app-layout--has-fixed-sidebar .app-layout-content {
     padding-left: var(--bali-side-menu-width);
@@ -98,7 +145,6 @@
      SideMenuController owns — it used to read a hidden checkbox
      (`:has(.side-menu-collapse-trigger:checked)`), which is gone with the
      checkbox. */
-  .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-banner,
   .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-navbar,
   .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-content {
     padding-left: var(--bali-side-menu-collapsed-width);

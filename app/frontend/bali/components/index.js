@@ -15,6 +15,7 @@
  */
 
 import { installConfirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog'
+import { AppLayoutController } from '../../../components/bali/app_layout/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
 import { DropdownController } from '../../../components/bali/dropdown/index'
@@ -63,6 +64,7 @@ import { ToastContainerController } from '../../../components/bali/toast_contain
 
 export {
   AlertController,
+  AppLayoutController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,
@@ -122,6 +124,7 @@ export {
  */
 export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   // Core
+  'app-layout': AppLayoutController,
   modal: ModalController,
   drawer: DrawerController,
   dropdown: DropdownController,
