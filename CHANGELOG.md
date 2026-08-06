@@ -67,6 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`Bali.engine_controller_concerns` — the official way for a host to teach its context to the engine's controllers.** `isolate_namespace` means `Bali::ApplicationController` inherits from `ActionController::Base`, not from the host's `ApplicationController`, so `current_user` and friends never existed inside the engine — every host worked around it by monkey-patching `Bali::SavedViewsController` from a `to_prepare` initializer, once per controller, once per app. Every module in the new array is now included into `Bali::ApplicationController` (and therefore into every engine controller at once) on each `to_prepare`, idempotently and surviving code reloads. The concern must stay passive — identity, not access: the gate remains the `Bali.*_authorize` lambdas. The new [Engines guide](docs/guides/engines.md) documents the `isolate_namespace` gotcha in one place, the authorize-lambdas doctrine, and the bali-auth recipe (`include BaliAuth::Authentication` + `allow_unauthenticated_access`). (#710)
+### Added
+
+- **`Bali::BlockNote::Text`, `Bali::BlockNote::Diff` and `Bali::BlockNote::Chunker` — pure-Ruby BlockNote content libs** (#708, PR 1 of 2). Ported from gobierno-corporativo's `Document::BlockNoteText` / `Document::ContentDiff` / `Document::Chunker` and generalized under the engine so every host shares one walker for BlockNote JSON:
+  - `Text` extracts plain text from BlockNote block structures — inline `text` and `entityReference` nodes, table blocks in both the legacy `tableRow` and current `tableContent` shapes, nested children — and `Text.normalize` accepts Array/Hash/JSON-string content, unwrapping legacy v1 `blockGroup`/`blockContainer` layers.
+  - `Diff` compares two contents at section level (`changed_sections` / `summary`, grouped by heading with an id-stripped structural fingerprint) and at block level (`annotated_blocks` marks each block `added`/`removed`/`modified`/`unchanged` by BlockNote UUID; modified blocks carry `_diff_spans` from a word-level LCS diff). Removed blocks and sections appear inline at their original position.
+  - `Chunker` splits a document into heading-delimited chunks for search indexing / RAG (target 1600 chars, 300-char overlap, ~4 chars/token estimate). Embeddings and vector storage stay host-side on purpose — no pgvector in the engine.
+
+  The libs live in `app/lib/` (autoloaded, no new eager-load path) and are deliberately free of ActiveSupport core extensions: they load and run under plain Ruby. New runtime dependency: `diff-lcs` (~> 1.5, MIT, no transitive deps) for the word-level spans. Entity-reference extraction, registry and controller arrive in PR 2.
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
 the stable channel: `3.0` merges into `main`, `main` becomes the v3 line, and the next
