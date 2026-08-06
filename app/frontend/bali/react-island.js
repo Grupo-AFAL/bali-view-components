@@ -63,6 +63,26 @@ const errorBoundaryFor = (react) => {
   return boundaries.get(react)
 }
 
+// Retires the server-rendered fallback from inside React's first commit.
+// `componentDidMount` is the hook that runs after the commit has written the
+// island into the DOM and before the browser paints, which is the only moment
+// where removing the fallback costs zero frames: paint N shows the fallback,
+// paint N+1 shows the island, and there is no paint in between showing an empty
+// mount. One class per React instance, same reason as the boundary.
+const swappers = new WeakMap()
+
+const swapOnMountFor = (react) => {
+  if (!swappers.has(react)) {
+    swappers.set(react, class ReactIslandSwap extends react.Component {
+      componentDidMount () { this.props.onMounted() }
+
+      render () { return this.props.children }
+    })
+  }
+
+  return swappers.get(react)
+}
+
 export class ReactIslandController extends Controller {
   // Global error hook for every island: `(error, context) => {}` where context
   // carries { identifier, element, phase: 'load' | 'render' }. Assign it ONCE
@@ -153,17 +173,42 @@ export class ReactIslandController extends Controller {
 
       this._react = react
       this._mountPoint = document.createElement('div')
-      this.mountElement().replaceChildren(this._mountPoint)
+
+      // The fallback is NOT cleared here. This used to be
+      // `replaceChildren(this._mountPoint)`, which emptied the mount
+      // synchronously and left React to fill it whenever it got around to
+      // rendering — a concurrent root does not render inside `render()`. On a
+      // fast machine that gap is invisible; measured on the 300-item Gantt with
+      // the CPU throttled 6x it was a fully WHITE screen for ~2 seconds, which
+      // is the flicker the fallback exists to prevent.
+      //
+      // Instead the mount point is PREPENDED and the fallback is retired from
+      // inside React's commit (see swapOnMountFor): `componentDidMount` runs
+      // after the DOM mutations of the first commit and BEFORE the browser
+      // paints, so exactly one frame separates "fallback" from "island" and no
+      // frame shows either nothing or both.
+      //
+      // Prepended, not appended, because an island that measures its own
+      // viewport space reads `getBoundingClientRect().top` in a layout effect —
+      // and layout effects run before the parent's componentDidMount, i.e.
+      // while the fallback is still in the DOM. First in flow, that top is the
+      // real one (Bali::Gantt's island sizes itself exactly this way).
+      const mount = this.mountElement()
+      const fallbackNodes = Array.from(mount.childNodes)
+      mount.prepend(this._mountPoint)
       this.root = reactDom.createRoot(this._mountPoint)
 
       const { createElement } = react
       const Boundary = errorBoundaryFor(react)
+      const SwapOnMount = swapOnMountFor(react)
       this.root.render(
         createElement(Boundary, {
           fallback: (error) =>
             createElement('p', { className: ERROR_FALLBACK_CLASS }, this.errorFallback(error)),
           onError: (error, info) => this._reportError(error, { phase: 'render', ...info })
-        }, createElement(Component, this.componentProps()))
+        }, createElement(SwapOnMount, {
+          onMounted: () => this._retireFallback(fallbackNodes)
+        }, createElement(Component, this.componentProps())))
       )
     } catch (error) {
       this._reportError(error, { phase: 'load' })
@@ -173,6 +218,7 @@ export class ReactIslandController extends Controller {
 
   disconnect () {
     this._disconnected = true
+    this._fallbackRetired = false
     this._removeTurboCacheMeta()
 
     try {
@@ -202,6 +248,16 @@ export class ReactIslandController extends Controller {
     }
 
     return names
+  }
+
+  // Called from the island's first commit. Removing the nodes is enough — they
+  // are the server-rendered fallback and nothing else references them. If the
+  // island never mounts (a failed chunk, a render the boundary caught) this
+  // never runs, which is exactly why a broken island leaves a usable page.
+  _retireFallback (nodes) {
+    if (this._fallbackRetired) return
+    this._fallbackRetired = true
+    for (const node of nodes) node.remove()
   }
 
   _reportError (error, context = {}) {

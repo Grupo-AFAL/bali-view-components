@@ -215,10 +215,17 @@ under the board.
 </div>
 ```
 
-When the island connects it calls `replaceChildren` on that element. So the
-fallback is three things at once: what a visitor sees while the bundle is in
-flight, what a visitor without JavaScript keeps forever, and what search
-engines and reader modes index.
+The island mounts into a container prepended to that element and removes the
+fallback from inside React's first commit — after the DOM carries the island,
+before the browser paints. One frame shows the board, the next shows the
+island, and no frame shows an empty box. (It used to clear the mount up front
+and let React fill it later; on the 300-item board with the CPU throttled 6x
+that was a white screen for about two seconds.)
+
+So the fallback is three things at once: what a visitor sees while the bundle
+is in flight, what a visitor without JavaScript keeps forever, and what search
+engines and reader modes index. If the bundle never arrives at all, it simply
+stays — the error notice is prepended to it rather than replacing it.
 
 **`fallback: :static` (default)** renders the real board. The swap is meant to
 be unremarkable, and that rests on both renderers agreeing about geometry:
