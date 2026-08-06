@@ -546,3 +546,7 @@ en:
       card_moved: "%{card} moved to %{column}, position %{position} of %{total}"
     tabs:
       navigation: "Section navigation"
+    topbar:
+      user_menu:
+        trigger_label: "User menu for %{name}"
+        sign_out: "Sign out"
