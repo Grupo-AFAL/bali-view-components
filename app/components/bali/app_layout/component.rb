@@ -45,11 +45,17 @@ module Bali
       # @param app_name [String, nil] Title shown next to the hamburger in the
       #   auto-rendered mobile topbar. Only used when `fixed_sidebar:` is true,
       #   a sidebar is present, and no `topbar` slot was provided.
+      # @param mobile_bottom_padding [Boolean] Keep the end of the page reachable
+      #   on a phone: room under the content for the browser's own floating bar,
+      #   plus the device's bottom safe area. Off by default — see the guide, it
+      #   is not something every app wants.
       def initialize(fixed_sidebar: true, viewport_locked: nil,
                      flash: nil, modal: true, drawer: true,
                      modal_size: nil, drawer_size: nil,
                      body_container: :wide, app_name: nil, skip_link: true,
+                     mobile_bottom_padding: false,
                      **options)
+        @mobile_bottom_padding = mobile_bottom_padding
         @fixed_sidebar = fixed_sidebar
         @viewport_locked = viewport_locked
         @flash = flash
@@ -136,6 +142,7 @@ module Bali
           { "app-layout--has-navbar" => navbar? },
           { "app-layout--has-sidebar" => sidebar? },
           { "app-layout--viewport-locked" => viewport_locked? },
+          { "app-layout--mobile-bottom-padding" => @mobile_bottom_padding },
           @options[:class]
         )
       end

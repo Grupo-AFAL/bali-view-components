@@ -269,6 +269,35 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector(".app-layout-content .app-layout-banner")
   end
 
+  # Off by default: 4rem of air under every mobile page is a visual change no
+  # host asked for.
+  def test_mobile_bottom_padding_is_opt_in
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--mobile-bottom-padding")
+  end
+
+  def test_mobile_bottom_padding_marks_the_layout_when_asked_for
+    render_inline(Bali::AppLayout::Component.new(mobile_bottom_padding: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body.app-layout.app-layout--mobile-bottom-padding")
+  end
+
+  # The class goes on the root and the padding lands on <main>, because the
+  # body container's own padding is a Tailwind utility and a utility beats
+  # @layer components — a rule on the container would never apply.
+  def test_mobile_bottom_padding_leaves_the_body_container_untouched
+    render_inline(Bali::AppLayout::Component.new(mobile_bottom_padding: true,
+                                                 body_container: :wide)) do |layout|
+      layout.with_body { "Content" }
+    end
+
+    assert_selector(".app-layout-body-container.p-4")
+    assert_no_selector(".app-layout-body-container[style]")
+  end
+
   def test_renders_body_tag_as_root
     render_inline(Bali::AppLayout::Component.new) do |layout|
       layout.with_body { "Content" }

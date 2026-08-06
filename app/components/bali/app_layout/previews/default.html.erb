@@ -4,7 +4,8 @@
   flash: flash_notice.present? ? { notice: flash_notice } : nil,
   modal: modal,
   drawer: drawer,
-  drawer_size: drawer_size
+  drawer_size: drawer_size,
+  mobile_bottom_padding: mobile_bottom_padding
 ) do |layout|
   layout.with_sidebar do %>
     <%= render Bali::SideMenu::Component.new(current_path: '/admin', collapsible: collapsible, brand: 'MovieDB') do |menu|
