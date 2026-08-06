@@ -219,6 +219,12 @@ en:
       updated: "View updated."
       deleted: "View deleted."
 
+    # Content versions (#707) — written into the version's `summary` when it is created,
+    # so these are stored as data, not resolved at render.
+    content_versions:
+      restored_from: "Restored from v%{number}"
+      unknown_author: "Unknown"
+
     # Status
     status:
       no_status: "No status"
@@ -526,7 +532,7 @@ en:
       versions_empty: "No versions yet."
 
       # Restore confirmation, shown through Bali's confirm dialog.
-      restore_confirm: "Restore this version? Current content will be saved as a new version first."
+      restore_confirm: "Restore this version? It will be added as the newest version, so nothing already in the history is lost."
       confirm_title: "Restore version"
       confirm_accept: "Restore"
       confirm_cancel: "Cancel"

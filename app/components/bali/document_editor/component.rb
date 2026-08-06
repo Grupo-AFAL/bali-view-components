@@ -17,6 +17,7 @@ module Bali
         close_url: nil,
         versions_url: nil,
         restore_version_url: nil,
+        record: nil,
         param_key: :document,
         editable: true,
         auto_save: true,
@@ -29,12 +30,25 @@ module Bali
         @initial_content = initial_content
         @document_url = document_url
         @close_url = close_url || document_url
-        @versions_url = versions_url
         @param_key = param_key.to_s
+
+        # `:auto` means "the mounted engine's own endpoints" (#707) and needs the record
+        # to name in the query string, since those routes are not nested. Same shape as
+        # BlockEditor's `upload_url: :auto`; resolved in `before_render`, where the view
+        # context that owns the route helpers finally exists.
+        @record = record
+        @versions_url_auto = (versions_url == :auto)
+        @versions_url = @versions_url_auto ? nil : versions_url
+        @restore_version_url_auto = (restore_version_url == :auto)
         # Kept derivable so an app whose routes already match does not have to
         # declare it, but it is now a value the host can name rather than one the
         # controller invents.
-        @restore_version_url = restore_version_url || "#{document_url}/restore_version"
+        @restore_version_url =
+          if @restore_version_url_auto
+            nil
+          else
+            restore_version_url || "#{document_url}/restore_version"
+          end
         @editable = editable
         @auto_save = auto_save
         @auto_save_delay = auto_save_delay
@@ -47,6 +61,12 @@ module Bali
 
         @options = options
         @instance_id = SecureRandom.hex(4)
+      end
+
+      # Engine route helpers need a view context, which does not exist in `initialize`.
+      # Same reason `BlockEditor::Component#before_render` resolves its upload URL there.
+      def before_render
+        resolve_auto_version_urls
       end
 
       def editable?
@@ -71,6 +91,32 @@ module Bali
                   :versions_url, :restore_version_url, :param_key,
                   :auto_save, :auto_save_delay, :input_name,
                   :config, :options, :instance_id
+
+      # Without a record there is nothing to name in the query string, so `:auto` resolves
+      # to nothing and the history panel simply does not render: an off switch beats a
+      # panel whose every request 404s. The engine also has to be mounted -- if it is not,
+      # the route helper raises and the same silence applies.
+      def resolve_auto_version_urls
+        return unless @versions_url_auto || @restore_version_url_auto
+        return if @record.nil?
+
+        record_params = {
+          record_type: @record.class.polymorphic_name,
+          record_id: @record.id
+        }
+
+        @versions_url = engine_path(:content_versions_path, record_params) if @versions_url_auto
+        return unless @restore_version_url_auto
+
+        @restore_version_url = engine_path(:restore_content_versions_path, record_params) ||
+                               "#{document_url}/restore_version"
+      end
+
+      def engine_path(helper, params)
+        helpers.bali.public_send(helper, params)
+      rescue NoMethodError
+        nil
+      end
 
       def toc_container_id
         "document-editor-toc-#{instance_id}"

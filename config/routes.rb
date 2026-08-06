@@ -12,4 +12,11 @@ Bali::Engine.routes.draw do
   # porque la lista de refs no cabe cómodamente en una URL.
   get 'entity_references', to: 'entity_references#index', as: :entity_references
   post 'entity_references/resolve', to: 'entity_references#resolve', as: :resolve_entity_references
+
+  # #707 — el registro versionado va en el query string (`?record_type=&record_id=`), no en
+  # la ruta: el engine no conoce los modelos del host. Por eso `restore` es de colección y
+  # recibe el `version_id` en el body, tal como lo manda document_editor/index.js.
+  resources :content_versions, only: %i[index show] do
+    post :restore, on: :collection
+  end
 end

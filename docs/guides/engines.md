@@ -48,6 +48,8 @@ inside each controller and respond `403 Forbidden` on their own:
 | `Bali.saved_views_authorize` | saved views mutations | owner present, else 403 |
 | `Bali.block_editor_upload_authorize` | editor uploads | unset — uploads allowed; configure it |
 | `Bali.entity_references_authorize` | entity reference search and resolution | **denies** — mounting the engine publishes nothing until you open it |
+| `Bali.content_versionables` | which models expose a history at all | `{}` — every `record_type` is a 404 |
+| `Bali.content_versions_authorize` | reading and restoring versions | falsy — 403 |
 
 New engine controllers follow the same doctrine: a whitelist plus an authorize lambda
 is the defense, and it works even for a request that carries no session at all. The
@@ -276,7 +278,136 @@ add_index :documents, :title, using: :gin, opclass: :gin_trgm_ops
 The editor queries once per keystroke, so the number of registered types multiplies every
 search. Ordering the registry by how often a type is actually referenced helps: the search
 stops as soon as it has ten results.
+## Content versions (#707)
 
+`bali_content_versions` is a generic history table: one polymorphic `record`, so a
+document, a policy and a note share it without Bali knowing any of those models. It
+backs `Bali::ContentVersionsController`, which serves the three endpoints the
+`DocumentEditor` history panel calls — list, preview one version, restore one.
+
+Install the table once (it ships with the engine's migrations):
+
+```bash
+bin/rails bali:install:migrations
+bin/rails db:migrate
+```
+
+### Teaching a model to keep history
+
+```ruby
+class Document < ApplicationRecord
+  include Bali::ContentVersionable
+  content_versionable attribute: :content, coalesce_window: 5.minutes
+end
+```
+
+The macro is optional — including the module already applies those defaults. The
+coalescing window is a property of the **model**, not of the app: how long one editing
+session lasts depends on what is being edited.
+
+You get:
+
+| Method | What it does |
+|---|---|
+| `create_version!(author_name:, author: nil, summary: nil, metadata: nil)` | Snapshots the versioned attribute as the next version |
+| `create_or_coalesce_version!(...)` | Same, but **updates** the last version instead when the same author saved inside the window |
+| `content_at_version(number)` | The content that version holds, or `nil` |
+| `restore_content_version!(version, author_name:, author: nil, summary: nil)` | Puts the content back and records a version naming where it came from |
+| `content_versions`, `current_content_version_number` | The history itself |
+
+`author` is a polymorphic **optional** association and `author_name` a required string.
+A host with no user model passes only the name and loses nothing: the JSON the editor
+consumes serves `author_name`. When an author record is present, coalescing compares by
+`(author_type, author_id)`, so two people with the same name never collapse into one
+version.
+
+> **If you rely on the `author_name` fallback, the history is not tamper-evident.** With no
+> author record, coalescing can only compare the displayed name, so two people whose names
+> render identically are treated as the same author and their edits collapse into one
+> version inside the window — the second person's changes end up recorded under the first
+> person's signature. That is fine for a changelog and **not** fine as evidence. If the
+> history has to hold up to scrutiny, pass `author:`.
+
+**Schema limitation:** `record_id` and `author_id` are `bigint`, so an app whose primary
+keys are UUIDs cannot use this table as shipped. Copy the migration and change the column
+types before `db:migrate`; nothing in the model or the controller assumes integers.
+
+**Creating versions stays with the host.** The editor's auto-save PATCHes *your* URL, so
+your `update` action is where `create_or_coalesce_version!` belongs. The engine only
+reads the history and restores it.
+
+Call either method **after** the record is saved. Both take a row lock so two concurrent
+saves cannot claim the same `version_number`, and Rails refuses to lock a record with
+unsaved attributes — so versioning mid-edit raises rather than recording a snapshot the
+database never held.
+
+```ruby
+def update
+  if @document.update(document_params)
+    @document.create_or_coalesce_version!(author: current_user, author_name: current_user.name)
+    # ...
+  end
+end
+```
+
+### Exposing the history over HTTP
+
+Two layers, both default-deny:
+
+```ruby
+# config/initializers/bali.rb
+Bali.content_versionables = {
+  'Document' => ->(controller, id) { controller.current_user.documents.find_by(id: id) }
+}
+
+Bali.content_versions_authorize = lambda do |controller, record, action|
+  action == 'restore' ? record.editable_by?(controller.current_user) : true
+end
+
+Bali.content_versions_author = ->(controller) { [controller.current_user, controller.current_user.name] }
+```
+
+`content_versionables` is a whitelist of `record_type` → resolver. It is empty by
+default, so **every** `record_type` answers 404 until you name one. Without it,
+`record_type` would be a `constantize` over user input — any model in your app readable
+over HTTP. Scope inside the resolver: returning only what this user may see makes
+someone else's document a 404 rather than a 403 that confirms it exists.
+
+`content_versions_authorize` receives the action (`"index"`, `"show"`, `"restore"`), so
+reading and restoring can be gated separately. It returns falsy by default → 403.
+
+`content_versions_author` names who signs the version the **restore** creates.
+
+### Wiring the editor
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+      title: @document.title,
+      initial_content: @document.content,
+      document_url: document_path(@document),
+      versions_url: :auto,
+      restore_version_url: :auto,
+      record: @document
+    ) %>
+```
+
+`:auto` resolves to the mounted engine's endpoints. It needs `record:` because those
+routes are not nested under yours — the record travels in the query string. Pass no
+record and the history panel simply does not render, rather than rendering one whose
+every request 404s. Both URLs still accept a plain string, so a host that serves
+versions itself keeps working untouched.
+
+### Migrating an existing history table
+
+If you already have your own `document_versions` (or similar), **you do not have to
+migrate**. The `versions_url` contract is JSON, and a host can keep serving it. That is
+the recommended path for gobierno-corporativo in particular: **do not migrate
+`document_versions` yet** — its rows are pinned by sealed-revision references and
+change-log foreign keys, which this generic table does not model.
+
+Adopt the engine's table when the history is plain content history. The dummy app's own
+`Document` is the worked example: it had exactly this pair of methods (without the row
+lock, which was the bug) and now includes the concern instead.
 ## Testing with an injected concern
 
 In the engine's own suite, `test/requests/engine_controller_concerns_test.rb` shows the

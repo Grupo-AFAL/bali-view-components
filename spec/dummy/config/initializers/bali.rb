@@ -59,4 +59,20 @@ Bali.config do |config|
   # autentica, así que abre; una app real exigiría sesión aquí y scopearía por tipo con
   # `permission_scope:`.
   config.entity_references_authorize = ->(_controller) { true }
+
+  # Historial de contenido (#707). La whitelist es lo que hace que `Document` sea legible
+  # por `Bali::ContentVersionsController`: sin esta línea el engine responde 404 a
+  # cualquier `record_type`, que es el default deliberado.
+  config.content_versionables = {
+    'Document' => ->(_controller, id) { Document.find_by(id: id) }
+  }
+
+  # El dummy no autentica, así que aquí solo se pinta el gate: un host real decide con su
+  # `current_user` (y puede permitir leer a todos y restaurar solo a algunos, mirando
+  # `action`).
+  config.content_versions_authorize = ->(_controller, record, _action) { record.present? }
+
+  # El default resuelve `controller.current_user`, que en el engine no existe: sin esto la
+  # versión que crea el restore se firmaría "Unknown".
+  config.content_versions_author = ->(_controller) { [User.demo, User.demo.name] }
 end

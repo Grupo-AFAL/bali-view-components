@@ -214,6 +214,41 @@ module Bali
     (gate || Bali::EntityReference::Resolver::DEFAULT_UNREACHABLE).call(record)
   end
 
+  # Content versions (#707) — historial polimórfico del engine documental (tabla
+  # `bali_content_versions`, instalada con `bin/rails bali:install:migrations`).
+  #
+  # Whitelist de modelos versionables que `Bali::ContentVersionsController` acepta por
+  # HTTP: `{ "Document" => ->(controller, id) { ... } }`. La llave es el `record_type` que
+  # viaja en el query string (el `polymorphic_name` del modelo) y el valor un callable que
+  # devuelve el registro o nil. El default `{}` es DEFAULT-DENY: sin whitelist, cualquier
+  # `record_type` responde 404 — la única forma de exponer un modelo es nombrarlo aquí.
+  #
+  # El resolver es el lugar del scoping: devolver solo lo que ese usuario puede ver
+  # (`controller.current_user.documents.find_by(id: id)`) hace que lo ajeno sea un 404 en
+  # vez de un 403 que confirme que existe.
+  # Example: Bali.content_versionables = {
+  #   "Document" => ->(controller, id) { controller.current_user.documents.find_by(id: id) }
+  # }
+  mattr_accessor :content_versionables, default: {}
+
+  # Autorización de Bali::ContentVersionsController: callable (controller, record, action)
+  # — truthy permite, falsy responde 403. El default NIEGA todo: leer el historial de un
+  # modelo del host es una decisión del host, y los hooks de su ApplicationController no
+  # aplican en el controller del engine. `action` es "index", "show" o "restore", así que
+  # se puede dejar leer a todos y restaurar solo a algunos.
+  # Example: ->(controller, record, action) { action == "restore" ? record.editable_by?(controller.current_user) : true }
+  mattr_accessor :content_versions_authorize, default: ->(_controller, _record, _action) { false }
+
+  # Autor de las versiones que CREA el engine (hoy solo la del restore): callable
+  # (controller) que devuelve `[author, author_name]`. `author` es opcional —un host sin
+  # modelo de usuario devuelve nil y solo nombra—; `author_name` se guarda siempre porque
+  # es lo único que el JSON del panel de versiones sirve.
+  # Example: ->(controller) { u = controller.current_user; [u, u.full_name] }
+  mattr_accessor :content_versions_author, default: lambda { |controller|
+    user = controller.try(:current_user)
+    [ user, user.try(:name).presence || I18n.t("bali_view.content_versions.unknown_author") ]
+  }
+
   # Concerns the host injects into every controller of this engine (#710).
   #
   # `isolate_namespace` means `Bali::ApplicationController` inherits from

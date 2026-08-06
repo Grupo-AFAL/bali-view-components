@@ -53,6 +53,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_140000) do
     t.index ["user_type", "user_id"], name: "index_bali_acknowledgments_on_user"
   end
 
+  create_table "bali_content_versions", force: :cascade do |t|
+    t.integer "author_id"
+    t.string "author_name", null: false
+    t.string "author_type"
+    t.json "content"
+    t.datetime "created_at", null: false
+    t.json "metadata", default: {}, null: false
+    t.integer "record_id", null: false
+    t.string "record_type", null: false
+    t.string "summary", limit: 255
+    t.datetime "updated_at", null: false
+    t.integer "version_number", null: false
+    t.index ["author_type", "author_id"], name: "index_bali_content_versions_on_author"
+    t.index ["record_type", "record_id", "version_number"], name: "index_bali_content_versions_uniqueness", unique: true
+  end
+
   create_table "bali_entity_references", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "record_id", null: false
@@ -115,17 +131,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_140000) do
     t.integer "position", default: 0
     t.datetime "updated_at", null: false
     t.index ["movie_id"], name: "index_characters_on_movie_id"
-  end
-
-  create_table "document_versions", force: :cascade do |t|
-    t.string "author_name", null: false
-    t.json "content", default: []
-    t.datetime "created_at", null: false
-    t.integer "document_id", null: false
-    t.string "summary"
-    t.integer "version_number", null: false
-    t.index ["document_id", "version_number"], name: "index_document_versions_on_document_id_and_version_number", unique: true
-    t.index ["document_id"], name: "index_document_versions_on_document_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -249,7 +254,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_140000) do
   add_foreign_key "block_editor_reactions", "block_editor_comments"
   add_foreign_key "block_editor_threads", "documents"
   add_foreign_key "characters", "movies"
-  add_foreign_key "document_versions", "documents"
   add_foreign_key "movies", "tenants"
   add_foreign_key "task_dependencies", "tasks", column: "predecessor_id"
   add_foreign_key "task_dependencies", "tasks", column: "successor_id"

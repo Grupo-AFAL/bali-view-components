@@ -62,7 +62,7 @@
       </div>
       <div>
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Versions</p>
-        <p class="text-sm"><%= @document.document_versions.count %></p>
+        <p class="text-sm"><%= @document.content_versions.count %></p>
       </div>
       <div>
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Word Count</p>
@@ -79,7 +79,9 @@
     initial_content: @document.content,
     document_url: document_path(@document),
     close_url: document_path(@document),
-    versions_url: document_versions_path(@document),
+    versions_url: :auto,
+    restore_version_url: :auto,
+    record: @document,
     editable: true,
     config: {
       comments: {
@@ -106,7 +108,9 @@
     initial_content: @document.content,
     document_url: document_path(@document),
     close_url: document_path(@document),
-    versions_url: document_versions_path(@document),
+    versions_url: :auto,
+    restore_version_url: :auto,
+    record: @document,
     editable: false,
     config: {
       comments: {

@@ -168,14 +168,14 @@ documents_data.each do |data|
     content: data[:content]
   )
 
-  if doc.document_versions.empty?
+  if doc.content_versions.empty?
     doc.create_version!(author_name: data[:author_name], summary: "Initial draft")
     doc.create_version!(author_name: data[:author_name], summary: "Added key sections")
     doc.create_version!(author_name: "Jane Smith", summary: "Reviewed and edited") if data[:status].to_s == "published"
   end
 end
 
-puts "Created #{Document.count} documents with #{DocumentVersion.count} versions"
+puts "Created #{Document.count} documents with #{Bali::ContentVersion.count} versions"
 
 # Create projects and tasks for Kanban demo
 project = Project.find_or_create_by!(name: "Bali Component Library") do |p|
