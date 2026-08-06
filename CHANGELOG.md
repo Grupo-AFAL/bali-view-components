@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Chat` — the conversation surface, extracted from the two apps that had already built it twice** (#927). Three components that compose: `Bali::Chat::Component` is the scrollable region and the Turbo Stream append target, `Bali::Chat::Message::Component` is one bubble over daisyUI's `chat` grid, and `Bali::Chat::TypingIndicator::Component` is the "…is typing" placeholder. They ship no CSS at all — daisyUI's `chat`, `chat-start`/`chat-end`, `chat-bubble-*` and `loading-dots` already draw every part of this, and the bubble colour map is written out longhand so Tailwind's scanner can see the class names it has to emit.
+
+  **The container follows a new message only when the reader was already at the bottom.** Both source implementations force-scroll on every DOM mutation, so an answer arriving while you are up in the history yanks you back down mid-sentence; `threshold:` (64px by default) says how close to the bottom still counts as following along. The decision is taken from the position recorded by the last real `scroll` event rather than measured when the message lands: an append grows `scrollHeight` while `scrollTop` stays put, so a check made afterwards reads "at the bottom" as "scrolled up by exactly the height of what just arrived" — which is why the naive version of this is always subtly wrong.
+
+  **The typing indicator lives in the DOM permanently and hides behind a class**, which is the repo's pattern and also a fix. One of the two apps anchors its Turbo Streams to a bare `<div id="typing-indicator">` and then `broadcast_remove_to`s it, destroying the anchor: from the second message on, the `turbo_stream.replace` that should bring the indicator back silently does nothing. A node that is never removed cannot lose its anchor. Toggle it from the server by replacing it with `visible: true`/`false`, or from the page through `chat#showTyping` / `chat#hideTyping` — the indicator registers itself as a target of the container's controller, so `data: { action: 'turbo:submit-end->chat#showTyping' }` on the composer is the whole wiring.
+
+  **The API is daisyUI's vocabulary, not either app's role enum.** The two implementations both compute a side and a colour from their own `user`/`assistant` roles and then disagree on the colour, so `position:` (`:start`/`:end`) and `color:` are what the component takes, and each host keeps its own names. It also means a support chat between two humans reads no worse than an AI one. `author:`/`timestamp:` fill the header (the timestamp as a `<time>` with a machine-readable `datetime`), and the `avatar`, `header` and `footer` slots fill the rest of daisyUI's grid — the footer is where one app hangs the source documents an answer was drawn from.
+
+  **The bubble body is passed through untouched — no escaping, no sanitising, no `raw`.** Both apps render Markdown a language model produced, and clean it, through their own helper; which of those a host wants is a policy decision that belongs with the host, and a `raw` here would quietly take it away. Lookbook previews for the live conversation, every bubble shape, and the indicator, plus a Cypress spec that measures `scrollTop`/`scrollHeight` through all four autoscroll cases.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added

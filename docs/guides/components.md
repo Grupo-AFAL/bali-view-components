@@ -2542,6 +2542,103 @@ Image/content carousel powered by Glide.js with optional arrows, bullets, autopl
 - `breakpoints` - Hash of responsive settings passed to Glide.js (default: `nil`)
 - `peek` - Pixels of adjacent slides to show at the edges (default: `nil`)
 
+#### Chat
+
+Conversation surface: a scrollable container, a bubble, and a typing indicator. Three
+components that compose, so a host that only wants bubbles never mounts the controller.
+
+```erb
+<%= turbo_stream_from @conversation %>
+
+<%= render Bali::Chat::Component.new(id: 'messages', class: 'h-[60vh]') do |chat| %>
+  <% @messages.each do |message| %>
+    <%= render Bali::Chat::Message::Component.new(
+          id: dom_id(message),
+          position: message.mine? ? :end : :start,
+          color: message.mine? ? :primary : nil,
+          author: message.author_name,
+          timestamp: message.created_at
+        ) do |bubble| %>
+      <% bubble.with_avatar { render Bali::Avatar::Component.new(initials: message.initials, size: :xs) } %>
+      <%= markdown(message.content) %>
+    <% end %>
+  <% end %>
+
+  <%= render Bali::Chat::TypingIndicator::Component.new %>
+
+  <% chat.with_footer do %>
+    <%= render 'form' %>
+  <% end %>
+<% end %>
+```
+
+and the append is an ordinary Turbo Stream against the container's `id`:
+
+```ruby
+turbo_stream.append 'messages', partial: 'messages/message', locals: { message: }
+```
+
+**`Bali::Chat::Component`** — the scroll region and the append target.
+
+- `id` - DOM id of the scrollable region; what a Turbo Stream appends into (default:
+  `'chat-messages'`). One per chat on the page.
+- `threshold` - Pixels short of the bottom that still count as "at the bottom"
+  (default: `64`)
+- `messages_class` - Extra classes for the scrollable region — its padding and the gap
+  between messages
+- `**options` - HTML attributes for the wrapper. **The height goes here**: the wrapper is a
+  flex column with no size of its own, so `class: 'h-[60vh]'` (or a max-height, or a flex
+  parent) is what makes the region scroll.
+- `with_footer` slot - The composer, rendered below the scroll region with a top border
+
+**The container follows a new message only when the reader was already at the bottom.**
+Scrolled up in the history, their position is left alone; back at the bottom, it follows
+again. That decision is taken from the position recorded by the last real `scroll` event,
+because an append grows `scrollHeight` while `scrollTop` stays put — measuring after the
+fact reads "at the bottom" as "scrolled up by exactly the new message".
+
+**`Bali::Chat::Message::Component`** — one bubble, over daisyUI's `chat` grid.
+
+- `position` - `:start` (the other party, left) or `:end` (the reader, right). daisyUI's
+  own names, so they flip under `dir="rtl"` without help.
+- `color` - daisyUI bubble colour (`:primary`, `:neutral`, `:accent`, …). `nil` keeps the
+  default `base-300` bubble.
+- `author` / `timestamp` - Fill the header. The timestamp renders as a `<time>` with a
+  machine-readable `datetime`; `timestamp_format:` is the `I18n.l` format (default: `:short`).
+- `bubble_class` - Extra classes for the bubble: a width cap (`max-w-[82%]`), a border, or
+  the `prose` wrapper a Markdown body wants
+- `with_avatar` / `with_header` / `with_footer` slots - The `chat-image`, `chat-header` and
+  `chat-footer` cells. `with_header` replaces the `author`/`timestamp` pair.
+
+**The body is passed through untouched — no escaping, no sanitising.** Rendering Markdown
+from a language model, and cleaning it, stays with the host, which is where the policy
+belongs. Pass content you have already made safe.
+
+**`Bali::Chat::TypingIndicator::Component`** — the "…is typing" bubble.
+
+- `id` - DOM id and Turbo Stream target (default: `'chat-typing-indicator'`)
+- `visible` - Whether it starts shown (default: `false`)
+- `position` / `color` / `author` / `bubble_class` / `with_avatar` - As on the bubble, so
+  the indicator matches the message it stands in for
+- `label` - What it announces; read by screen readers whether or not it is drawn, since
+  three dots say nothing (default: from the locale files)
+- `show_label` - Also draw the label next to the dots (default: `false`)
+
+**It stays in the DOM and hides behind a class.** Toggle it from the server by replacing it
+with itself:
+
+```erb
+<%= turbo_stream.replace 'chat-typing-indicator' do %>
+  <%= render Bali::Chat::TypingIndicator::Component.new(visible: true) %>
+<% end %>
+```
+
+Removing it instead would destroy the very id the next stream targets, and every later
+replace would silently do nothing. From the page, the container's controller toggles it —
+the indicator registers itself as a `chat` target, so a composer can do
+`data: { action: 'turbo:submit-end->chat#showTyping' }`. `chat#showTyping` also scrolls
+down unconditionally: sending is participating, not reading.
+
 #### Clipboard
 
 Copy-to-clipboard button with visual success feedback (shown for 2 seconds after copying).
