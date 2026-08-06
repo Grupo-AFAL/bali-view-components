@@ -397,6 +397,17 @@
   @apply bg-base-100 shadow-lg;
 }
 
+/* A themed sidebar OWNS its surface. The inline variant is transparent on
+ * purpose — it blends into whatever the host renders it on — but with a
+ * `theme:` the variables flip while a transparent rail keeps showing the
+ * page behind it: near-white text over the host's light background.
+ * (Measured: that exact failure, `data-theme="dark"` with computed
+ * background rgba(0,0,0,0).) Class+attribute outranks the one-class
+ * `--inline` rule, so this wins in either source order. */
+.side-menu-component[data-theme] {
+  @apply bg-base-100 text-base-content;
+}
+
 /* A themed sidebar — `theme:` on the component, usually a dark chrome next to a
  * light page — needs more than the same panel in different colours. On a dark
  * surface daisyUI's soft shadow is invisible and a `base-100` panel is the same
