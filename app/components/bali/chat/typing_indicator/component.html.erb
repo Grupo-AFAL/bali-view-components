@@ -1,0 +1,27 @@
+<%# The `hidden` toggle lives on this plain wrapper, not on the `.chat` element
+    inside it. daisyUI emits `.chat { display: grid }` into @layer utilities, which
+    is where Tailwind's own `.hidden` lands too: two single-class selectors in one
+    layer, so the winner is whichever the build wrote last. Measured against
+    spec/dummy's compiled sheet, `.hidden` comes ~24kB after `.chat` and does win —
+    but that margin is an artefact of how one app's entry point happens to order
+    Tailwind and the daisyUI plugin, and this component ships to apps whose entry
+    points we never see. An element with no display rule of its own cannot lose. %>
+<%= tag.div(**wrapper_attributes) do %>
+  <%= render Bali::Chat::Message::Component.new(
+        position: position, color: color, author: author, bubble_class: bubble_class
+      ) do |message| %>
+    <%# `.to_s` is load-bearing: the slot reader hands back a ViewComponent::Slot,
+        and Rails' `capture` keeps only a String or a SafeBuffer — anything else it
+        returns as nil, so a bare `{ avatar }` forwards an empty avatar. %>
+    <% message.with_avatar { avatar.to_s } if avatar? %>
+    <span class="flex items-center gap-2">
+      <% if show_label %>
+        <span class="text-xs opacity-60"><%= label %></span>
+      <% end %>
+      <span class="loading loading-dots loading-sm" aria-hidden="true"></span>
+    </span>
+    <% unless show_label %>
+      <span class="sr-only"><%= label %></span>
+    <% end %>
+  <% end %>
+<% end %>

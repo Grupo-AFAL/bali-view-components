@@ -1,0 +1,21 @@
+<%= tag.div(**message_attributes) do %>
+  <% if avatar? %>
+    <div class="chat-image"><%= avatar %></div>
+  <% end %>
+  <% if render_header? %>
+    <div class="chat-header">
+      <% if header? %>
+        <%= header %>
+      <% else %>
+        <%= author %>
+        <% if timestamp_text %>
+          <%= tag.time(timestamp_text, class: "text-xs opacity-50", datetime: timestamp_datetime) %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+  <div class="<%= bubble_classes %>"><%= content %></div>
+  <% if footer? %>
+    <div class="chat-footer"><%= footer %></div>
+  <% end %>
+<% end %>

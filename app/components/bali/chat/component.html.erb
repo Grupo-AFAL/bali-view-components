@@ -1,0 +1,12 @@
+<%= tag.div(**wrapper_attributes) do %>
+  <%# `scroll->chat#trackPosition` has to sit on the element that scrolls: scroll
+      events do not bubble, so the same action on the wrapper would never fire and
+      the controller would think the reader never left the bottom. %>
+  <%= tag.div(id: id, class: messages_classes,
+              data: { chat_target: "messages", action: "scroll->chat#trackPosition" }) do %>
+    <%= content %>
+  <% end %>
+  <% if footer? %>
+    <div class="shrink-0 border-t border-base-300 p-4"><%= footer %></div>
+  <% end %>
+<% end %>
