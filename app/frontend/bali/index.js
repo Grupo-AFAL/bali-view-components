@@ -84,6 +84,7 @@ export { registerAll as registerAllControllers } from './controllers/index'
 // Re-export all core component controllers (excludes heavy modules)
 export {
   AlertController,
+  AppLayoutController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,

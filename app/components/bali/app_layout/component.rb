@@ -23,6 +23,13 @@ module Bali
       # continues inside the content instead of restarting at the top.
       MAIN_ID = "main-content"
 
+      # Measures the banner strip and publishes its height as
+      # `--bali-banner-height`, which is what pushes the pinned sidebar below it.
+      # Attached whether or not a banner is in the slot: a strip that arrives
+      # later, over a Turbo Stream, has to be measured on arrival, and with no
+      # banner the controller does nothing at all.
+      LAYOUT_CONTROLLER = "app-layout"
+
       # @param fixed_sidebar [Boolean] Sidebar is pinned to the viewport and the content
       #   is offset to clear it. Must agree with the `fixed:` of the SideMenu rendered in
       #   the slot — they share a default (both true) and a mismatch raises in development.
@@ -133,8 +140,16 @@ module Bali
         )
       end
 
+      # A host that puts its own `data: { controller: ... }` on the layout keeps
+      # it: Stimulus reads one attribute per element, so the two identifiers are
+      # joined rather than one silently replacing the other.
       def container_attributes
-        @options.except(:class)
+        attributes = @options.except(:class)
+        data = (attributes[:data] || {}).symbolize_keys
+
+        attributes.merge(
+          data: data.merge(controller: [ LAYOUT_CONTROLLER, data[:controller] ].compact_blank.join(" "))
+        )
       end
 
       # An empty container is a fixed, zero-height div in every page's DOM, so the
