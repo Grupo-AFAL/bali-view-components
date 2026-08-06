@@ -657,4 +657,164 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
     assert_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
   end
+
+  # --- auto_submit: pills que filtran al click (#725) ---
+  #
+  # El cableado es todo `data-`: el form monta `submit-on-change` y cada control del
+  # filtro que opta le manda la acción. Los asserts son sobre esos atributos porque son
+  # el contrato — el comportamiento en sí lo cubre cypress/e2e/simple-filters-auto-submit.
+
+  def auto_submit_pill_filters(auto_submit:)
+    [
+      {
+        attribute: :status,
+        collection: [ %w[Draft draft], %w[Published published] ],
+        label: "Status",
+        type: :radio_group,
+        auto_submit: auto_submit
+      },
+      {
+        attribute: :kind,
+        collection: [ %w[Public public], %w[Private private] ],
+        label: "Kind",
+        type: :toggle_group,
+        predicate: :in,
+        auto_submit: auto_submit
+      }
+    ]
+  end
+
+  def test_auto_submit_mounts_the_controller_and_wires_every_pill
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: auto_submit_pill_filters(auto_submit: true)
+    ))
+
+    assert_selector('form[data-controller="submit-on-change"]')
+    assert_selector('input[type="radio"][data-action="change->submit-on-change#submit"]', count: 2)
+    assert_selector('input[type="checkbox"][data-action="change->submit-on-change#submit"]', count: 2)
+  end
+
+  # El default es off, y eso es lo que deja intacta cualquier fila que ya existía.
+  def test_without_auto_submit_the_row_carries_no_wiring_at_all
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: auto_submit_pill_filters(auto_submit: false)
+    ))
+
+    assert_no_selector('form[data-controller="submit-on-change"]')
+    assert_no_selector("[data-action*='submit-on-change']")
+    assert_selector('form[data-turbo-frame="_top"]')
+  end
+
+  def test_auto_submit_wires_only_the_filters_that_asked_for_it
+    filters = auto_submit_pill_filters(auto_submit: false)
+    filters[0][:auto_submit] = true
+
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: filters))
+
+    assert_selector('form[data-controller="submit-on-change"]')
+    assert_selector('input[type="radio"][data-action="change->submit-on-change#submit"]', count: 2)
+    assert_no_selector('input[type="checkbox"][data-action]')
+  end
+
+  # Un rango se manda entre una mitad del valor y la otra, así que el componente lo
+  # ignora aunque el hash de instancia (que no pasa por la validación del DSL) lo pida.
+  def test_auto_submit_is_ignored_outside_the_pill_widgets
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [
+      { attribute: :founded_year, label: "Founded", type: :number_range, auto_submit: true }
+    ]))
+
+    assert_no_selector('form[data-controller="submit-on-change"]')
+    assert_no_selector("[data-action*='submit-on-change']")
+  end
+
+  # --- Presets de periodo en un date_range (#725) ---
+
+  def preset_filter(**overrides)
+    [ { attribute: :created_at, type: :date_range, label: "Created",
+        presets: %w[today this_week this_month] }.merge(overrides) ]
+  end
+
+  def render_presets(**overrides)
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: preset_filter(**overrides)
+    ))
+  end
+
+  def test_a_date_range_with_presets_renders_a_period_select
+    render_presets
+
+    assert_selector("select[data-time-period-field-target=select] option[value=today]",
+                    text: I18n.t("bali_view.simple_filters.presets.today"), visible: :all)
+    assert_selector("select[data-time-period-field-target=select] option[value=this_month]",
+                    text: I18n.t("bali_view.simple_filters.presets.this_month"), visible: :all)
+  end
+
+  # 725-D6: el widget REUSA el controller de `f.time_period_group`, no uno propio.
+  def test_the_widget_wires_the_shared_time_period_field_controller
+    render_presets
+
+    assert_selector('[data-controller="time-period-field"]', visible: :all)
+    assert_selector('[data-time-period-field-custom-value="custom"]', visible: :all)
+    # El sufijo `-value` va deletreado a propósito: sin él Stimulus no lee nada, el
+    # controller se queda sin contenedor que mostrar y "Personalizado…" no revela el
+    # picker — un silencio que sólo se ve en el browser.
+    assert_selector('[data-time-period-field-date-input-container-class-value="flatpickr"]',
+                    visible: :all)
+  end
+
+  # Un solo control con `name`: dos mandarían el param dos veces y ganaría el último, que no
+  # es necesariamente el que el usuario ve.
+  def test_only_the_hidden_field_carries_the_param_name
+    render_presets
+
+    assert_selector("input[type=hidden][name='q[created_at]'][data-time-period-field-target=input]",
+                    count: 1, visible: :all)
+    assert_no_selector("select[name='q[created_at]']", visible: :all)
+    assert_no_selector("input[type=text][name='q[created_at]']", visible: :all)
+  end
+
+  def test_a_date_range_without_presets_keeps_the_bare_picker
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: [ { attribute: :created_at, type: :date_range, label: "Created" } ]
+    ))
+
+    assert_no_selector('[data-controller="time-period-field"]', visible: :all)
+    assert_selector("input[name='q[created_at]']", visible: :all)
+  end
+
+  def test_the_chosen_token_comes_back_selected_and_the_picker_stays_hidden
+    render_presets(value: "this_month")
+
+    assert_selector("option[value=this_month][selected]", visible: :all)
+    assert_selector("input[type=hidden][name='q[created_at]'][value=this_month]", visible: :all)
+    assert_selector(".flatpickr.hidden", visible: :all)
+  end
+
+  # Un valor que no es token es un rango que el usuario eligió: el select cae en
+  # "Personalizado…" y el picker vuelve mostrándolo.
+  def test_an_explicit_range_lands_on_custom_with_the_picker_showing
+    render_presets(value: "2026-08-01 to 2026-08-06")
+
+    assert_selector("option[value=custom][selected]", visible: :all)
+    assert_selector(".flatpickr:not(.hidden)", visible: :all)
+    assert_selector("input[value='2026-08-01 to 2026-08-06']", visible: :all)
+  end
+
+  def test_the_blank_option_says_any_date_unless_the_filter_names_it
+    render_presets
+    assert_selector("option[value='']", text: I18n.t("bali_view.simple_filters.presets.any"),
+                    visible: :all)
+
+    render_presets(blank: "Whenever")
+    assert_selector("option[value='']", text: "Whenever", visible: :all)
+  end
+
+  # El caption apunta al SELECT, que es el control que el usuario opera — el picker es el
+  # cuarto estado de ese mismo control, no un segundo filtro.
+  def test_the_caption_names_the_period_select
+    render_presets
+
+    assert_selector("label[for='simple-filter-q-created_at']", text: "Created")
+    assert_selector("select#simple-filter-q-created_at", visible: :all)
+  end
 end

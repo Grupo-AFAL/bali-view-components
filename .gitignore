@@ -48,7 +48,9 @@ firebase-debug.log
 # Claude Code / oh-my-claudecode runtime
 .omc/
 docs/plans/
-spec/dummy/log/test.log.0
+# Los logs rotados: `*.log` no casa con `development.log.0`, así que se colaban al stage
+# de a 28 mil líneas. Antes aquí había una línea suelta solo para test.log.0.
+spec/dummy/log/*.log.*
 /screenshots
 
 # AI session memory (local, not committed)

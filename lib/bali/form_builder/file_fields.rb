@@ -21,9 +21,20 @@ module Bali
       INPUT_CLASS = "hidden"
       WRAPPER_CLASS = "flex items-center gap-3"
       FILENAME_CLASS = "text-sm text-base-content/60 truncate"
-      CTA_CLASS = "btn btn-soft btn-primary btn-sm gap-2"
+      CTA_CLASS = "btn btn-soft btn-primary gap-2"
       LABEL_CLASS = "cursor-pointer inline-flex"
       DEFAULT_ICON = "upload"
+
+      # `size:` lands on the button, not on `file-input-*`: this family hides the
+      # native input and the only thing the user sees or clicks is the CTA. The
+      # daisyUI classes are the button's for the same reason.
+      CTA_SIZES = {
+        xs: "btn-xs", sm: "btn-sm", md: "btn-md", lg: "btn-lg", xl: "btn-xl"
+      }.freeze
+
+      # What the CTA has always been, kept as the default so the control does not
+      # grow under call sites that never asked for a size.
+      DEFAULT_CTA_SIZE = "btn-sm"
 
       def file_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -46,16 +57,18 @@ module Bali
 
         input_options = build_file_input_options(field_options(method, options))
 
+        cta_size = size_variant(options, CTA_SIZES) || DEFAULT_CTA_SIZE
+
         @template.content_tag(:div, wrapper_options(non_selected_text, multiple, file_class)) do
-          file_label(method, input_options, file_icon_name, choose_file_text) +
+          file_label(method, input_options, file_icon_name, choose_file_text, cta_size) +
             filename_display(non_selected_text)
         end
       end
 
-      def file_label(method, input_options, file_icon_name, choose_file_text)
+      def file_label(method, input_options, file_icon_name, choose_file_text, cta_size)
         @template.content_tag(:label, class: LABEL_CLASS) do
           rails_file_field(method, input_options) +
-            file_cta(file_icon_name, choose_file_text)
+            file_cta(file_icon_name, choose_file_text, cta_size)
         end
       end
 
@@ -86,8 +99,8 @@ module Bali
         )
       end
 
-      def file_cta(icon_name, label_text)
-        @template.content_tag(:span, class: CTA_CLASS) do
+      def file_cta(icon_name, label_text, cta_size)
+        @template.content_tag(:span, class: "#{CTA_CLASS} #{cta_size}") do
           icon = @template.render(Bali::Icon::Component.new(icon_name))
           label = label_text && @template.content_tag(:span, label_text)
           icon + (label || "".html_safe)

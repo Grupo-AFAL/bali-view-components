@@ -275,6 +275,42 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
     assert_selector("[data-document-editor-restore-version-url-value='/documents/1/revisions/restore']")
   end
 
+  # --- `:auto`, the mounted engine's endpoints (#707) -------------------------
+
+  # `:auto` points both URLs at Bali::ContentVersionsController, which needs the record
+  # named in the query string because its routes are not nested under the host's.
+  def test_auto_urls_resolve_to_the_mounted_engine_for_the_given_record
+    document = Document.create!(title: "Acta", author_name: "Ana")
+
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "Acta",
+      initial_content: [],
+      document_url: "/documents/#{document.id}",
+      versions_url: :auto,
+      restore_version_url: :auto,
+      record: document
+    ))
+
+    assert_selector("[data-document-editor-versions-url-value='" \
+                    "/bali/content_versions?record_id=#{document.id}&record_type=Document']")
+    assert_selector("[data-document-editor-restore-version-url-value='" \
+                    "/bali/content_versions/restore?record_id=#{document.id}&record_type=Document']")
+  end
+
+  # Without a record there is nothing to name, so the panel stays off instead of
+  # rendering one whose every request would 404.
+  def test_auto_without_a_record_leaves_the_history_panel_off
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "Acta",
+      initial_content: [],
+      document_url: "/documents/1",
+      versions_url: :auto
+    ))
+
+    assert_no_selector("[data-action*='document-editor#toggleHistory']")
+    assert_selector("[data-document-editor-versions-url-value='']")
+  end
+
   # The PATCH payload root and the hidden input name both used to hardcode
   # "document", which assumed every host named its model Document.
   def test_param_key_defaults_to_document_and_drives_the_input_name

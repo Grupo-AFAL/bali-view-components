@@ -15,8 +15,15 @@ module Bali
       # @param drawer toggle
       # @param body_container select { choices: [wide, contained, narrow, full] }
       # @param app_name text
+      # @param mobile_bottom_padding toggle
+      #
+      # `mobile_bottom_padding` adds room under the content for the phone's own
+      # chrome — Safari's floating bottom bar, which is **not** reported by
+      # `env(safe-area-inset-bottom)`, plus the safe area itself. Off by
+      # default. Narrow the preview window under 640px to see the mobile half.
       def default(collapsible: true, flash_notice: "", modal: true, drawer: true,
-                  body_container: "wide", app_name: "MovieDB")
+                  body_container: "wide", app_name: "MovieDB",
+                  mobile_bottom_padding: false)
         render_with_template(
           template: "bali/app_layout/previews/default",
           locals: {
@@ -26,7 +33,8 @@ module Bali
             drawer: drawer,
             drawer_size: drawer ? :lg : nil,
             body_container: body_container.to_sym,
-            app_name: app_name.presence
+            app_name: app_name.presence,
+            mobile_bottom_padding: mobile_bottom_padding
           }
         )
       end
@@ -56,6 +64,39 @@ module Bali
             drawer_size: drawer ? :lg : nil,
             body_container: body_container.to_sym
           }
+        )
+      end
+
+      # @param banners select { choices: [1, 2] }
+      # @param collapsible toggle
+      # @label Banner + Sidebar
+      # A banner is a FULL-WIDTH strip — impersonation, maintenance, "you are in
+      # beta" — and the pinned sidebar starts below it instead of painting over
+      # it. Nothing has to be declared for that: `--bali-banner-height` is
+      # measured from whatever the slot renders and published on `<body>` by the
+      # `app-layout` controller, so one banner, two stacked ones, and a banner
+      # the user dismisses all land on the right offset.
+      #
+      # ```erb
+      # <%= render Bali::AppLayout::Component.new do |layout| %>
+      #   <% layout.with_banner do %>
+      #     <div class="bg-warning text-warning-content px-4 py-2">Viewing as John Doe</div>
+      #   <% end %>
+      # <% end %>
+      # ```
+      #
+      # The slot takes one element or several: stack them and the offset follows
+      # the total. Try it with the **banners** param, and dismiss the second one
+      # — the sidebar rises to meet it.
+      #
+      # The strip is `sticky` so a "you are impersonating someone" warning is
+      # still on screen after scrolling. Under `viewport_locked: true` the body
+      # does not scroll and sticky is inert, which is the correct amount of
+      # nothing.
+      def with_banner(banners: "2", collapsible: true)
+        render_with_template(
+          template: "bali/app_layout/previews/with_banner",
+          locals: { banners: banners.to_i, collapsible: collapsible }
         )
       end
 

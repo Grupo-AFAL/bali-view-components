@@ -289,4 +289,75 @@ class BaliBlockNoteTextTest < ActiveSupport::TestCase
     result = Bali::BlockNote::Text.normalize(mixed)
     assert_equal [ HEADING, PARAGRAPH ], result
   end
+
+  # entity_references — el walker de referencias (#708)
+
+  def reference_node(type, id, name)
+    { "type" => "entityReference",
+      "props" => { "entityType" => type, "entityId" => id, "entityName" => name } }
+  end
+
+  def paragraph_with(*nodes, id: "p")
+    { "id" => id, "type" => "paragraph", "content" => nodes, "children" => [] }
+  end
+
+  test "collects entity references from inline content" do
+    refs = Bali::BlockNote::Text.entity_references([ ENTITY_REFERENCE_BLOCK ])
+
+    assert_equal [ { type: "GlossaryTerm", id: "42", name: "Cliente prospecto" } ], refs
+  end
+
+  test "collects entity references from tableContent cells" do
+    table = TABLE_CONTENT_BLOCK.deep_dup
+    table["content"]["rows"][1]["cells"][0]["content"] = [ reference_node("Document", "7", "POL-001") ]
+
+    refs = Bali::BlockNote::Text.entity_references([ table ])
+
+    assert_equal [ { type: "Document", id: "7", name: "POL-001" } ], refs
+  end
+
+  test "collects entity references from legacy tableRow cells" do
+    row = TABLE_ROW.deep_dup
+    row["cells"] = [ [ reference_node("User", "3", "Ana") ] ]
+
+    refs = Bali::BlockNote::Text.entity_references([ row ])
+
+    assert_equal [ { type: "User", id: "3", name: "Ana" } ], refs
+  end
+
+  test "descends into nested children collecting references" do
+    nested = paragraph_with(reference_node("Task", "1", "Superficie"), id: "outer")
+    nested["children"] = [ paragraph_with(reference_node("Task", "2", "Profundidad"), id: "inner") ]
+
+    refs = Bali::BlockNote::Text.entity_references([ nested ])
+
+    assert_equal %w[1 2], refs.map { |ref| ref[:id] }
+  end
+
+  test "deduplicates by type and id keeping the first occurrence" do
+    blocks = [
+      paragraph_with(reference_node("Task", "1", "Primero"), id: "a"),
+      paragraph_with(reference_node("Task", "1", "Renombrado"), id: "b"),
+      paragraph_with(reference_node("Project", "1", "Mismo id, otro tipo"), id: "c")
+    ]
+
+    refs = Bali::BlockNote::Text.entity_references(blocks)
+
+    assert_equal [ %w[Task 1], %w[Project 1] ], refs.map { |ref| [ ref[:type], ref[:id] ] }
+    assert_equal "Primero", refs.first[:name]
+  end
+
+  test "skips entity reference nodes without type or id" do
+    blocks = [
+      paragraph_with(reference_node("Task", "", "Sin id"), id: "a"),
+      paragraph_with(reference_node("", "1", "Sin tipo"), id: "b"),
+      paragraph_with({ "type" => "entityReference" }, id: "c")
+    ]
+
+    assert_empty Bali::BlockNote::Text.entity_references(blocks)
+  end
+
+  test "returns no references for content without any" do
+    assert_empty Bali::BlockNote::Text.entity_references([ HEADING, PARAGRAPH, TABLE_CONTENT_BLOCK ])
+  end
 end

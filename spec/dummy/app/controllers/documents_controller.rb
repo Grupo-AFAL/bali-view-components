@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[show update destroy restore_version]
+  before_action :set_document, only: %i[show update destroy]
 
   DEMO_USER = "Demo User"
   DEMO_USERS = [
@@ -25,20 +25,22 @@ class DocumentsController < ApplicationController
     @document.author_name = DEMO_USER
 
     if @document.save
-      @document.create_version!(author_name: DEMO_USER, summary: "Initial version")
+      @document.create_version!(author: author, author_name: author.name, summary: "Initial version")
       redirect_to document_path(@document), notice: "Document created."
     else
       render :new, status: :unprocessable_content
     end
   end
 
+  # Crear la versión sigue siendo del HOST: el PATCH del autosave llega aquí, no al engine.
+  # El engine solo lee el historial y lo restaura.
   def update
     if @document.update(document_params)
-      @document.create_or_coalesce_version!(author_name: DEMO_USER)
+      @document.create_or_coalesce_version!(author: author, author_name: author.name)
 
       respond_to do |format|
         format.html { redirect_to document_path(@document), notice: "Document updated." }
-        format.json { render json: { status: "ok", version: @document.current_version_number } }
+        format.json { render json: { status: "ok", version: @document.current_content_version_number } }
       end
     else
       respond_to do |format|
@@ -53,23 +55,16 @@ class DocumentsController < ApplicationController
     redirect_to documents_path, notice: "Document deleted."
   end
 
-  def restore_version
-    version = @document.document_versions.find(params[:version_id])
-    @document.create_version!(author_name: DEMO_USER, summary: "Before restore to v#{version.version_number}")
-    @document.update!(content: version.content)
-    @document.create_version!(author_name: DEMO_USER, summary: "Restored from v#{version.version_number}")
-
-    respond_to do |format|
-      format.html { redirect_to document_path(@document), notice: "Version restored." }
-      format.json { render json: { status: "ok" } }
-    end
-  end
-
   private
 
   def set_document
     @document = Document.find(params[:id])
   end
+
+  # El autor de una versión es un REGISTRO, no un string: así se ejercita el FK polimórfico
+  # opcional del engine. El `author_name` denormalizado sale del mismo usuario para que el
+  # panel de historial y el topbar nombren a la misma persona.
+  def author = User.demo
 
   def document_params
     params.expect(document: [ :title, :content, :status ])

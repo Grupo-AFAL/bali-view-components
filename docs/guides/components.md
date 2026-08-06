@@ -184,6 +184,7 @@ slots are independent so non-shell layouts work too.
 - `body_container` - `:wide` (default), `:contained`, `:narrow`, `:full`
 - `flash` - Pass `flash` for built-in toast notifications
 - `modal` / `drawer` - Render shared modal/drawer slots (default: true)
+- `mobile_bottom_padding` - Room under the content on a phone, for the browser's floating bar plus the device safe area (default: false) — see below
 
 The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
 
@@ -194,6 +195,85 @@ The layout renders `<main id="main-content" tabindex="-1">` so the skip link lan
 | `true` | `false` | Fixed sidebar but page scrolls (long forms) |
 | `false` | `true` | Topbar pinned, no sidebar |
 | `false` | `false` | Marketing-style page scroll |
+
+##### The banner strip
+
+`with_banner` is the full-width strip a host puts an impersonation warning, a
+maintenance notice or a "you are in beta" note in. It spans the whole viewport
+and the pinned sidebar starts **below** it — nothing to configure, and nothing
+to declare about its height:
+
+```erb
+<% layout.with_banner do %>
+  <div class="bg-warning text-warning-content px-4 py-2">
+    Viewing as <strong>John Doe</strong>
+  </div>
+<% end %>
+```
+
+The `app-layout` Stimulus controller measures the strip with a `ResizeObserver`
+and publishes `--bali-banner-height` on `<body>`; the sidebar's `top` and
+`height` read it. That is what makes the cases apps hand-roll work for free:
+
+- **Several banners at once.** The slot takes as many elements as you put in
+  it, and the offset follows the total — no need to add up heights.
+- **A banner the user dismisses**, or one a Turbo Stream adds later: measured
+  when it changes, measured when it arrives.
+- **A banner that wraps to two lines** on a narrow screen, or grows when a font
+  finishes loading.
+
+With no banner the variable is never written and the layout is byte-for-byte
+what it was, so nothing changes for a page that does not use the slot.
+
+The strip is `position: sticky`, so a warning that the session is impersonated
+stays on screen while the page scrolls. Under `viewport_locked: true` the body
+does not scroll and sticky does nothing, which is correct.
+
+Only the *height* is JavaScript. The offset itself is one CSS rule, so a page
+whose JavaScript has not run yet — or a host that never registers the
+controller — renders exactly as it did before: the fallback in
+`var(--bali-banner-height, 0px)` is the old behaviour.
+
+##### Reaching the bottom of the page on a phone
+
+`mobile_bottom_padding: true` puts breathing room under the content so the last
+row of a list, or the submit button of a long form, is not stuck behind the
+phone's own chrome. It is **off by default**: 4rem of air on every mobile page
+is a visual change no one asked for except the apps that need it.
+
+```erb
+<%= render Bali::AppLayout::Component.new(mobile_bottom_padding: true) do |layout| %>
+```
+
+It covers two different problems at once, and the difference matters when you
+are debugging one of them:
+
+| | What it is | How it is handled |
+|---|---|---|
+| Home indicator | The bar on a notched phone. Real, reported by the browser. | `env(safe-area-inset-bottom)`, which is `0px` everywhere else — free on desktop |
+| Safari's floating bar | The translucent address/tab bar that hovers **over** the page in mobile Safari | A flat `4rem` under `sm`. It is **not** reported by `env()` — see below |
+
+**The gotcha: Safari's floating bar is not safe-area.** `env(safe-area-inset-*)`
+describes the *display cutout*, not browser UI painted over the viewport. In
+mobile Safari the bottom bar overlaps the page and `env(safe-area-inset-bottom)`
+stays `0px`, so a layout that trusts `env()` alone still hides its last row
+behind the bar. That is why the constant sits next to the environment value
+instead of being replaced by it.
+
+**`env()` only reports anything if the page opts in.** The insets are `0px`
+until the document declares it wants the full display:
+
+```erb
+<%# In your layout's <head> %>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+```
+
+`viewport-fit=cover` is what turns the insets on — without it the safe-area half
+of this option is a no-op. `theme-color` is unrelated to layout but belongs to
+the same five-minute setup: it paints the browser's own chrome to match the app
+instead of leaving a white strip above a dark page. Neither meta tag is Bali's
+to render — they live in the host's layout `<head>`, outside the component.
 
 #### Topbar
 
@@ -2994,7 +3074,9 @@ Full-screen document editing overlay wrapping BlockEditor with app bar, table of
 - `initial_content` - Document content as BlockNote JSON (required)
 - `document_url` - URL where saves are PATCHed (required)
 - `close_url` - URL for the close button (default: document_url)
-- `versions_url` - Version history endpoint; enables the versions panel with preview/restore (default: nil)
+- `versions_url` - Version history endpoint; enables the versions panel with preview/restore (default: nil). Pass `:auto` to use the mounted engine's own endpoint (see the content versions section of `engines.md`), which also requires `record:`
+- `restore_version_url` - Where a restore is POSTed; also accepts `:auto` (default: `"#{document_url}/restore_version"`)
+- `record` - The versioned record, used only to resolve the `:auto` URLs. Without it the history panel does not render
 - `editable` - Read-only when false (default: true)
 - `auto_save` - Save automatically while editing (default: true)
 - `auto_save_delay` - Auto-save debounce in ms (default: 30000)
