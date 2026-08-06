@@ -94,6 +94,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     copy — that substitution is the adoption test. Adoption, the permission matrix and the
     three-`rename_table` migration for apps that already ran the reference implementation are
     documented in `docs/guides/engines.md`.
+- **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
+  foundation shipped the discrimination — a Symbol is daisyUI's variant, an Integer or String
+  stays the HTML attribute of the same name, an unknown Symbol raises — and this completes the
+  rollout, so a form written entirely at one density comes out at that density:
+  `select_group`/`time_zone_select_group` → `select-*`, `text_area_group` → `textarea-*`,
+  `range_group` → `range-*`, `file_group` → `btn-*` on its CTA, and `checkbox-*`/`toggle-*`/
+  `radio-*` gain the `:xl` daisyUI 5 added. `slim_select_group` keeps `:sm`, the one density its
+  widget has CSS for, and now raises on the others instead of silently rendering full-size.
+  Captions, help text and error messages need no variant of their own — daisyUI scales them with
+  the fieldset. New preview **Form / Sizes** (compact form, and the same fields side by side with
+  and without the option). Every family declares its outcome in
+  `test/bali/form_builder/size_option_test.rb`, which fails if a new one lands in neither list.
+- **`f.date_group :on, alt_input: true, size: :sm`** now sizes the input the user actually sees.
+  With `alt_input:` flatpickr hides the real input and draws a second one from
+  `alt_input_class`, which the density never reached.
 - **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
 - **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
 
@@ -105,6 +120,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or a failed request). React renders `javascript:` hrefs with nothing but a console
   warning. The chip now renders as plain text unless the URL is `http(s):`, `mailto:`,
   root-relative or a fragment.
+- **`size:` no longer leaks into the markup as an attribute where it means nothing** (#723).
+  `slim_select_group(size: :sm)` emitted `<select size="sm">` next to the wrapper class — Rails'
+  `select_content_tag` copies `:size` out of a select's options and onto the element, so closing
+  one route was not enough. The families whose control is a widget over a hidden field
+  (`rich_text_group`, `block_editor_group`, `coordinates_polygon_group`, `time_period_group`)
+  painted `<div size="sm">` for the same reason `<div required>` used to appear there; `size`
+  joins `required` in `CONTROL_ONLY_OPTIONS`.
 - **`Bali::WorkflowSteps` names each step's state for a screen reader** (#716). Both markers said the state in colour and nothing else — the circle's number is a position, not a verdict, and the quick flow's dot has no text at all — so "3, Legal review" was everything a screen reader got about a rejected step. Every step now renders an `sr-only` span with the state's name next to its marker, **in both variants**, from six new keys under `bali_view.workflow_steps.states.*` (en/es) that a host overrides like any other Bali string when its domain has better words ("Signed", "Returned", "Waiting on legal"). The span sits *outside* the circle, so the number stays the circle's whole content.
 
 ## [v3.1.0.beta.3] - 2026-08-06
