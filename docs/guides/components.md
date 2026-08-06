@@ -1786,9 +1786,11 @@ entries.
 `with_bulk_actions` renders a `Bali::BulkActions(variant: :toolbar)` contextual row that
 **replaces the toolbar** while a selection exists and restores it when it is cleared. The
 `bulk-actions` Stimulus controller goes on the DataTable container, so the bar and the
-table rows share one scope. Each action is its own form whose only hidden field is
-`selected_ids` (a JSON array injected by the controller) — extra parameters travel in the
-action's query string.
+table rows share one scope. Each action is its own form carrying `selected_ids` (a JSON
+array injected by the controller); a parameter of your own goes in the action's
+`with_control` slot, or in its query string. When the DataTable has a `pagy`, the bar also
+offers to act on the whole filtered result and re-emits the `filter_form`'s `q[...]` so the
+server can rebuild the same scope — see [BulkActions](#bulkactions).
 
 Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
 
@@ -2509,12 +2511,117 @@ Selectable item list with a floating action bar that appears when items are sele
   the controller already lives on an ancestor, as inside a `DataTable`. Two nested
   `bulk-actions` controllers split the targets between them and the bar stops seeing the
   items, silently.
+- `total_count` - Size of the **filtered result**, not of the page. Turns on the "select all
+  N results" offer described below (default: `nil`, no offer). A `DataTable` fills it from
+  its own `pagy`.
+- `filter_params` - The `q[...]` in effect, re-emitted as hidden fields inside every action's
+  form. Accepts `[name, value]` pairs or a nested hash (`{ q: { name_cont: 'Iron' } }`). Only
+  used together with `total_count`. A `DataTable` fills it from its `filter_form`.
 - `**options` - HTML attributes for the wrapper (e.g. `class`, `data`)
 
-Selection is **per page**: the controller only knows the DOM it was rendered with, so
-paginating, filtering or switching display mode clears it (all of those re-render the node
-that carries the controller). Record ids go through `parseInt`, so non-numeric ids (UUIDs)
-serialize as `null` in the `selected_ids` payload.
+**Action options** (`with_action`): `label:`, `href:`, `method:` (default `:post`;
+`:get` renders a link instead of a form), `variant:`, `size:`, `target:`, plus a
+`with_control` slot. The two below.
+
+Selection is **per page** unless you opt into `total_count:`: the controller only knows the
+DOM it was rendered with, so paginating, filtering or switching display mode clears it (all
+of those re-render the node that carries the controller). Record ids go through `parseInt`,
+so non-numeric ids (UUIDs) serialize as `null` in the `selected_ids` payload.
+
+##### An input that travels with one action
+
+`with_control` mounts your own markup **inside that action's form**, right before the
+submit, so its value is posted alongside `selected_ids` with no JavaScript in between —
+"assign this driver to the 12 selected shipments" in one submit.
+
+```erb
+<% c.with_action(label: 'Assign driver', href: bulk_assign_shipments_path) do |action| %>
+  <% action.with_control do %>
+    <%= select_tag :driver_id, options_from_collection_for_select(@drivers, :id, :name),
+                   class: 'select select-xs', id: nil %>
+  <% end %>
+<% end %>
+```
+
+- A control on a `method: :get` action raises `ArgumentError`: a GET action renders a link,
+  and a link has no form to carry the value anywhere.
+- **Ids are per document.** Two actions mounting the same widget repeat its id, and the
+  `<label for>` of the first one wins. Give each an explicit `id:`, or `id: nil` when there
+  is no label pointing at it.
+
+`target:` picks the browsing context — `target: '_blank'` on a "Print" action opens the
+result in a new tab and the page keeps its selection, because it never navigates. It reaches
+the `<form target>` of a form action and the `<a target>` of a GET one.
+
+##### Nested forms
+
+Every action is its own `<form>`. If the listing already lives inside a form of yours, the
+HTML parser hoists the inner ones out and the action silently stops working. Render that
+action's form **outside** the listing and point a plain submit at it with the HTML `form`
+attribute:
+
+```erb
+<%= form_with url: bulk_archive_movies_path, id: 'bulk-archive', class: 'hidden' %>
+
+<%= form_with model: @report do |f| %>
+  <%# ... the DataTable lives here ... %>
+  <%= render Bali::Button::Component.new(name: 'Archive', form: 'bulk-archive',
+                                         type: :submit) %>
+<% end %>
+```
+
+##### Acting on the whole filtered result
+
+Pass `total_count:` and, once the selection covers the whole page, the bar offers to extend
+it to every record the current filters match. Inside a `DataTable` nothing is declared: N
+comes from its `pagy` and the filters from its `filter_form`.
+
+Unchecking any row leaves the mode and goes back to page selection (the Gmail behaviour);
+the checkboxes are never disabled.
+
+**What the POST carries.** While the mode is on, `selected_ids` goes out **empty** and this
+travels instead:
+
+```
+select_all_filtered=true
+q[g][0][m]=or
+q[g][0][name_cont]=Iron
+q[status_eq]=draft
+```
+
+`select_all_filtered` is `"false"` outside the mode, and the `q[...]` fields are present
+either way — the flag is what tells the server whether to read them or to use the ids. They
+are the filters **as applied**, not the query string of the request, which is what makes
+them right when filter persistence restored the state from cache rather than from the URL.
+
+**On the server, run the same code the index runs.** There is no second query object to
+write and no risk of the bulk acting on a different set than the listing showed:
+
+```ruby
+def bulk_archive
+  movies = if ActiveModel::Type::Boolean.new.cast(params[:select_all_filtered])
+    MovieFilterForm.new(policy_scope(Movie), params).result
+  else
+    policy_scope(Movie).where(id: JSON.parse(params[:selected_ids]))
+  end
+
+  movies.update_all(archived_at: Time.current)
+  redirect_back fallback_location: movies_path
+end
+```
+
+Two things to get right at scale:
+
+- **Enqueue instead of blocking.** "All 12,480 results" is not a request-cycle amount of
+  work. Pass the params to a job (`BulkArchiveJob.perform_later(current_user, params[:q])`),
+  have it rebuild the same scope, and answer immediately with "we are working on it".
+- **Confirm the destructive ones.** `data: { turbo_confirm: '...' }` on the action goes
+  through Bali's confirm dialog. A mis-click that hits 12,480 records is not undoable by
+  reloading.
+
+A GET action has no hidden fields, so it carries the same params in its href; any `q[...]`
+the href already had is dropped first, because the listing's current state is the one that
+counts.
 
 #### Carousel
 

@@ -247,6 +247,16 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert(fields.none? { |field| field[:id].present? }, "el hidden de ids no debe llevar id")
   end
 
+  # La guía promete que `data: { turbo_confirm: }` en la acción pasa por el diálogo de Bali:
+  # eso solo funciona si el atributo aterriza en el `<form>`, que es donde Turbo lo lee.
+  def test_data_attributes_reach_the_form_so_turbo_confirm_works
+    render_inline(@component) do |c|
+      c.with_action(label: "Borrar", href: "/borrar", data: { turbo_confirm: "¿Seguro?" })
+    end
+
+    assert_selector("form[action='/borrar'][data-turbo-confirm='¿Seguro?']", visible: :all)
+  end
+
   # --- target: (#724) --------------------------------------------------------------------
 
   def test_target_reaches_the_form_of_a_post_action

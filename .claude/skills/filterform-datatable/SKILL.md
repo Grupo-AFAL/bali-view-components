@@ -329,6 +329,28 @@ When a `filter_form` is provided to DataTable, `with_filters_panel` auto-populat
 
 `with_simple_filters` resolves `search:` the same way, from the same `search_config`.
 
+`with_bulk_actions` auto-populates two more, from the `pagy` and the `filter_form`:
+
+- `total_count` from `pagy.count` — with it, the bar offers "select all N results" once the
+  selection covers the page (nothing to declare; `nil` on countless pagination);
+- `filter_params` from `Bali::Filters::ActiveFilterParams.for_filter_form(filter_form)` —
+  the `q[...]` as APPLIED (groups, flat attributes, simple filters and quick search), which
+  every action re-emits as hidden fields.
+
+The bulk controller then re-derives the scope with the same object the index built:
+
+```ruby
+movies = if ActiveModel::Type::Boolean.new.cast(params[:select_all_filtered])
+  MovieFilterForm.new(policy_scope(Movie), params).result
+else
+  policy_scope(Movie).where(id: JSON.parse(params[:selected_ids]))
+end
+```
+
+Those params come from the RESOLVED state, not from the request URL — which is what keeps
+them right when filter persistence restored the filters from cache and the query string is
+empty. Enqueue a job when N is large, and confirm the destructive actions.
+
 ### The `search:` shape
 
 One hash, both surfaces (`Bali::SearchConfig`). Declare the **columns**; Bali derives the
