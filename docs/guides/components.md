@@ -2078,6 +2078,80 @@ The code is always black on white and includes the spec's four-module quiet zone
 
 The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size` where a fluid code is wanted.
 
+#### QrScanner
+
+The other half of [QrCode](#qrcode): a camera viewfinder that decodes QR codes in the browser and announces each one as a DOM event. One app prints the label, another reads it.
+
+It needs the [`qr-scanner`](https://github.com/nimiq/qr-scanner) npm package, an **optional** peer Bali does not bundle — loaded with a dynamic `import()` the first time a scanner connects:
+
+```sh
+yarn add qr-scanner
+```
+
+Without it the component renders its "unavailable" state and the console names the line to run, rather than failing silently.
+
+```erb
+<%= render Bali::QrScanner::Component.new %>
+
+<%# Inside a modal, or anywhere the prompt should follow a deliberate press %>
+<%= render Bali::QrScanner::Component.new(autostart: false) %>
+
+<%# Keep reading, front camera, own wording under the viewfinder %>
+<%= render Bali::QrScanner::Component.new(
+      camera: :user,
+      stop_on_scan: false,
+      hint: t('.scan_the_label_on_the_box')
+    ) %>
+```
+
+**Options:**
+- `camera` - `:environment` (rear — the one pointed at the thing being scanned) or `:user` (front) (default: :environment)
+- `autostart` - Ask for the camera as soon as the component connects. `false` renders an idle state with a button instead (default: true)
+- `stop_on_scan` - Release the camera after the first code and show the "scan again" state. `false` keeps reading and keeps emitting (default: true)
+- `highlight` - Draw qr-scanner's scan-region frame and code outline over the picture (default: true)
+- `hint` - The line under the viewfinder. `false` drops it (default: the localized "Point the camera at the QR code.")
+- `**options` - Additional HTML attributes for the container
+
+##### Reading a code
+
+The component decodes and announces; it never decides what a code means. Everything past that is one listener:
+
+```js
+document.addEventListener('bali:qr-scanner:scan', ({ detail }) => {
+  const input = document.querySelector('#token')
+  input.value = detail.value
+  input.form.requestSubmit()
+})
+```
+
+| Event | `detail` |
+|---|---|
+| `bali:qr-scanner:scan` | `{ value, result }` — `value` is the decoded string; `result` is qr-scanner's own result object, which also carries `cornerPoints` |
+| `bali:qr-scanner:error` | `{ state, error }` — `state` is `'denied'` or `'unavailable'`; `error` is what the browser threw |
+
+Both bubble from the component's own element, so a listener can sit on it or on `document`.
+
+##### A camera needs a secure context
+
+`getUserMedia` is only exposed over **https, or http on `localhost`**. On any other host over plain http the browser exposes no camera at all — and it arrives looking exactly like a device that has none, which is why the controller says so in the console rather than leaving you to check the hardware. Testing from a phone against a dev machine means https or a tunnel; the IP address on your LAN will not do.
+
+##### The states
+
+Six, and every one of them is in the document from the first render — the controller shows one by taking `hidden` off it. A host restyles `denied` from a stylesheet, and a test asserts on visibility rather than on text that was never there.
+
+| State | When |
+|---|---|
+| `idle` | `autostart: false`, before the button is pressed |
+| `requesting` | The permission prompt is up |
+| `scanning` | The camera is live. The only state with no panel — the picture is the state |
+| `scanned` | A code was read and `stop_on_scan` released the camera |
+| `denied` | The visitor, or a policy, refused |
+| `unavailable` | No camera, one another application is holding, or no secure context |
+
+The current one is on the container as `data-qr-scanner-state`, so `.qr-scanner-component[data-qr-scanner-state="scanning"]` is a selector a host can hang its own rules on.
+
+The panels are white on a dark scrim under every theme, deliberately: what they sit on is the camera preview — black before the stream arrives, arbitrary photography after — not a themed surface. Same reasoning as the always-black-on-white [QrCode](#qrcode).
+
 #### Rate
 
 Star rating built on DaisyUI's rating classes, with Rails form integration, auto-submit, and readonly display modes.
