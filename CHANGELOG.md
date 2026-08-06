@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.3] - 2026-08-06
+
 ### Changed
 
 - **The Gantt island follows the viewport without re-rendering** (#705). Panning, dragging a bar,
