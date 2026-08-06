@@ -60,6 +60,7 @@ import { TreeViewItemController } from '../../../components/bali/tree_view/item/
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
+import { QrScannerController } from '../../../components/bali/qr_scanner/index'
 import { ToastContainerController } from '../../../components/bali/toast_container/index'
 
 export {
@@ -90,6 +91,7 @@ export {
   ModalController,
   MultiSelectController,
   NavbarController,
+  QrScannerController,
   RateController,
   RecurrentEventRuleController,
   RevealController,
@@ -149,6 +151,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'sortable-list': SortableListController,
   tooltip: TooltipController,
   status: StatusController,
+  'qr-scanner': QrScannerController,
 
   // Form
   'image-field': ImageFieldController,
