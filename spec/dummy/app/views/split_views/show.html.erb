@@ -1,0 +1,28 @@
+<% content_for(:title) { 'SplitView' } %>
+
+<%= render Bali::ShowPage::Component.new(
+  title: 'SplitView',
+  subtitle: 'Master-detail con el detalle dentro de un Turbo Frame'
+) do |page| %>
+  <% page.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail') do |split| %>
+      <% split.with_master do %>
+        <%= render 'split_views/master', movies: @movies, selected: @selected %>
+      <% end %>
+
+      <% if @selected %>
+        <% split.with_detail do %>
+          <%= render 'split_views/detail', movie: @selected %>
+        <% end %>
+      <% else %>
+        <% split.with_empty_detail do %>
+          <%= render Bali::EmptyState::Component.new(
+            title: 'Selecciona una película',
+            description: 'Elige una fila de la izquierda para ver su ficha aquí.',
+            icon: 'inbox'
+          ) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

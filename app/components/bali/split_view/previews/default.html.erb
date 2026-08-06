@@ -1,0 +1,61 @@
+<%# Rows point at the dummy app's `/split-view` page, which renders the same
+    `split-view-detail` frame, so the swap here is a real frame navigation and
+    not a preview-only illusion. %>
+<%= render Bali::SplitView::Component.new(
+  frame_id: "split-view-detail",
+  master_width: master_width,
+  advance: local_assigns.fetch(:advance, true)
+) do |split| %>
+  <% split.with_master do %>
+    <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-0") do %>
+      <div class="px-4 py-3 border-b border-base-200 text-sm font-medium">
+        Catálogo
+        <span class="text-base-content/50 font-normal ml-1"><%= movies.size %></span>
+      </div>
+
+      <%# The scroll wrapper sits around the list alone so the header above it
+          stays put. --bali-split-master-max-h is the per-screen knob. %>
+      <div class="split-view-scroll" style="--bali-split-master-max-h: 22rem" data-testid="master-list">
+        <% movies.each do |movie| %>
+          <%= link_to "/split-view?selected=#{movie.id}",
+                id: "split-view-row-#{movie.id}",
+                class: "split-view-row px-4 py-3 border-b border-base-200/70",
+                aria: { current: (movie == selected ? "true" : nil) },
+                data: {
+                  turbo_frame: "split-view-detail",
+                  split_view_target: "row",
+                  action: "click->split-view#select"
+                } do %>
+            <div class="font-medium text-sm leading-snug truncate"><%= movie.name %></div>
+            <div class="flex items-center gap-2 mt-1">
+              <%= render Bali::Tag::Component.new(text: movie.genre, color: :info, size: :sm) %>
+              <span class="text-[11px] text-base-content/60 truncate"><%= movie.studio&.name %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if selected %>
+    <% split.with_detail do %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body">
+          <h2 class="card-title text-lg" data-testid="detail-title"><%= selected.name %></h2>
+          <%= render Bali::DescriptionList::Component.new(columns: 2) do |list| %>
+            <% list.with_item(label: "Género", value: selected.genre) %>
+            <% list.with_item(label: "Estudio", value: selected.studio&.name) %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  <% else %>
+    <% split.with_empty_detail do %>
+      <%= render Bali::EmptyState::Component.new(
+        title: "Selecciona una película",
+        description: "Elige una fila de la izquierda para ver su ficha aquí.",
+        icon: "inbox"
+      ) %>
+    <% end %>
+  <% end %>
+<% end %>

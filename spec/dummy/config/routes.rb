@@ -64,6 +64,9 @@ Rails.application.routes.draw do
   get 'sidemenu-example', to: 'pages#sidemenu_example'
   get 'z-stack', to: 'pages#z_stack' # Manual check for the overlay z-index scale
   get 'feedback-widget-demo', to: 'pages#feedback_widget_demo'
+  # SplitView reference page. `?selected=<id>` is the deep link; the Lookbook
+  # preview of the component navigates its detail frame here.
+  get 'split-view', to: 'split_views#show', as: :split_view
   get 'embed/feedback_posts', to: 'pages#feedback_embed' # Stand-in for Opina's embed page
 
   # Modal/Drawer content routes (for remote loading)
