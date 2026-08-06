@@ -16,6 +16,14 @@ class BulkActionsRoundTripFilterForm < Bali::FilterForm
   attribute :created_at, Bali::Types::DateRangeValue.new
 end
 
+# La otra forma de declarar un date_range: como filtro SIMPLE. Ese camino ya viaja dentro de
+# `active_filters`, así que la re-emisión no tiene que agregarlo — y no puede agregarlo dos
+# veces. Solo aquí existen los `presets:`.
+class BulkActionsSimpleDateRangeFilterForm < Bali::FilterForm
+  filter_attribute :created_at, type: :date, input: :date_range, simple: true, advanced: false,
+                   presets: %i[today this_month]
+end
+
 class BaliBulkActionsComponentTest < ComponentTestCase
   def setup
     @component = Bali::BulkActions::Component.new
@@ -479,6 +487,25 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
 
     assert_equal(listing.result.pluck(:id), rebuilt.result.pluck(:id),
                  "los pares re-emitidos tienen que reproducir el recorte por fecha")
+  end
+
+  # Un date_range declarado como filtro SIMPLE ya viaja dentro de `active_filters`. La
+  # re-emisión no puede agregarlo otra vez: dos hidden con el mismo `name` y el servidor se
+  # queda con uno, en silencio. Hoy eso se sostiene porque `active_simple_filters` guarda la
+  # clave exactamente como el atributo y `"q[#{atributo}]"` coincide — si esa forma cambia,
+  # este test es el que avisa.
+  def test_a_simple_date_range_is_emitted_exactly_once
+    listing = BulkActionsSimpleDateRangeFilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { created_at: "this_month" })
+    )
+
+    pairs = Bali::Filters::ActiveFilterParams.for_filter_form(listing)
+    created_at = pairs.select { |name, _| name == "q[created_at]" }
+
+    assert_equal(1, created_at.size, "un date_range simple se emite UNA vez: #{pairs.inspect}")
+    # Y viaja como TOKEN, no como el rango ya resuelto: este camino lo sirve `active_filters`
+    # con el valor crudo, así que el servidor lo vuelve a resolver contra su propio reloj.
+    assert_equal("this_month", created_at.first.last)
   end
 
   # --- El DataTable lo cablea solo --------------------------------------------------------
