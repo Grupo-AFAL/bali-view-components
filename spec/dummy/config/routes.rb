@@ -81,8 +81,6 @@ Rails.application.routes.draw do
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
   get 'users', to: 'users#index'
-  get 'entity_references', to: 'entity_references#index'
-  post 'entity_references/resolve', to: 'entity_references#resolve'
 
   # BlockEditor
   resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do

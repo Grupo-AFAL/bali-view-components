@@ -47,6 +47,7 @@ inside each controller and respond `403 Forbidden` on their own:
 | `Bali.saved_views_owner` | who owns a saved view | `->(controller) { controller.try(:current_user) }` |
 | `Bali.saved_views_authorize` | saved views mutations | owner present, else 403 |
 | `Bali.block_editor_upload_authorize` | editor uploads | unset — uploads allowed; configure it |
+| `Bali.entity_references_authorize` | entity reference search and resolution | **denies** — mounting the engine publishes nothing until you open it |
 
 New engine controllers follow the same doctrine: a whitelist plus an authorize lambda
 is the defense, and it works even for a request that carries no session at all. The
@@ -136,6 +137,145 @@ Bali.saved_views_owner = ->(controller) {
   User.find_by(id: controller.session[:user_id])
 }
 ```
+
+## Entity references: one declaration per type
+
+The BlockEditor's `#` menu lets an author embed a reference to any record of your app,
+and the chip re-resolves its name and URL every time the document loads. Two things make
+that work: `Bali::EntityReferencesController` (search and resolution) and
+`Bali::EntityReferenceable` (materializing the references embedded in the content into
+the `bali_entity_references` table, so you can ask "who mentions this record?" without
+scanning JSON).
+
+Both read the same registry. Declaring a type once is what powers search, resolution and
+the editor's own display config — before this registry those were three parallel
+declarations that drifted.
+
+### 1. Install the table
+
+```bash
+bin/rails bali:install:migrations
+bin/rails db:migrate
+```
+
+### 2. Declare your referenceable types
+
+```ruby
+# config/initializers/bali.rb
+routes = Rails.application.routes.url_helpers
+
+Bali.entity_reference_types = {
+  "Document" => {
+    search_scope:  -> { Document.published },
+    lookup_scope:  -> { Document.all },
+    search_fields: %i[title document_number],
+    display_field: :title,
+    url:           ->(doc) { routes.document_path(doc) },
+    unreachable?:  ->(doc) { doc.nil? || doc.archived? },
+    extra_payload: ->(doc) { { entityCode: doc.number } },
+    permission_scope: ->(controller, scope) { Pundit.policy_scope!(controller.current_user, scope) },
+    display:       { icon: "▧", label: "Document", color: "success" }
+  }
+}
+
+Bali.entity_references_authorize = ->(controller) { controller.current_user.present? }
+```
+
+| Key | Required | What it does |
+|---|---|---|
+| `search_scope` | yes | What the `#` autocomplete offers. Filter out what an author should not be able to link. |
+| `lookup_scope` | yes | What resolution looks in. Deliberately **wider** than `search_scope`: it must include archived and deactivated records, or an existing reference silently loses its name instead of rendering broken. |
+| `search_fields` | yes | Columns matched with `LIKE` (already escaped and parameterized). |
+| `display_field` | yes | The attribute read for `entityName`. |
+| `url` | no | `->(record) { … }` returning the href of the chip. |
+| `unreachable?` | no | `->(record) { … }` deciding `broken`. Defaults to "the record is gone". |
+| `extra_payload` | no | `->(record) { … }` returning extra keys for the chip. |
+| `permission_scope` | no | `->(controller, scope) { scope }` — your own gating, no Pundit coupling. |
+| `display` | no | `{icon:, label:, color:}` for the chip. |
+
+The **key is both** the `entityType` that travels to the browser **and** the
+`referenceable_type` stored in the table, so it is the model's class name.
+
+`bali_entity_references.referenceable_id` is a bigint, so referenceable models need integer
+primary keys. A reference to a record whose id isn't numeric is dropped when the content is
+saved rather than stored as a truncated integer.
+
+### 3. Mark the models whose content carries references
+
+```ruby
+class Document < ApplicationRecord
+  include Bali::EntityReferenceable
+  references_entities_in :body # optional; defaults to :content
+end
+```
+
+Saving re-materializes the references with a **minimal diff**: rows that are still there
+keep their ids, so the editor's autosave does not churn the table. `document.entity_references`
+walks forward, `record.incoming_references` and `Document.referencing(record)` walk back.
+
+### 4. Point the editor at the engine endpoints
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+      references_url: bali.entity_references_path,
+      references_resolve_url: bali.resolve_entity_references_path
+    ) %>
+```
+
+`references_config:` is no longer needed: without it the component serializes the
+registry's `display:` entries. Pass it only to make one editor render a type differently
+from the rest.
+
+### What the browser receives
+
+Every payload carries exactly these five keys, and they cannot be overridden:
+
+```json
+{ "entityType": "Document", "entityId": "42", "entityName": "Onboarding Guide",
+  "url": "/documents/42", "broken": false }
+```
+
+`extra_payload` adds keys **on top** of them — and those extra keys are yours, not
+Bali's: the engine passes them through untouched and never reads them, so their names and
+meaning are your contract with your own front end. A key that collides with the five above
+is dropped, so an `extra_payload` can never turn a broken reference into a reachable one.
+
+A reference whose record is gone, whose type is not registered, or which falls outside
+`permission_scope` resolves to the same shape with `entityName` and `url` null and
+`broken: true` — the chip renders broken instead of disappearing from the text, and a
+record the viewer may not see never discloses its name.
+
+### Security notes
+
+- The default `entity_references_authorize` **denies**. Until you set it, both endpoints
+  answer `403` — mounting the engine does not publish a search over your records.
+- `permission_scope` runs on **both** search and resolution.
+- Search is capped at 10 results overall and 5 per type, ignores queries shorter than two
+  characters, and escapes the query with `sanitize_sql_like`, so `%` matches a literal
+  percent sign. Resolution accepts at most 500 refs per request.
+- **`reference_text` is the one column outside `permission_scope`.** It stores the name the
+  editor had for the entity when the content was saved — client-supplied, never re-checked
+  against the record, capped at 255 characters. It exists so a "referenced by" panel can
+  list references without resolving every type, but treat it as untrusted user input:
+  never mark it `html_safe`, and read the name from the record itself when the viewer's
+  permissions matter.
+- A record materializes at most 500 references, and references whose id doesn't fit a
+  bigint are dropped. Both caps live in the `after_save`, which runs inside the host's own
+  `update!` — without them a crafted document makes the record unsaveable.
+
+### Performance
+
+`search_fields` are matched with a leading-wildcard `LIKE`, which no btree index can serve.
+At any real table size give those columns a trigram index on PostgreSQL:
+
+```ruby
+enable_extension "pg_trgm"
+add_index :documents, :title, using: :gin, opclass: :gin_trgm_ops
+```
+
+The editor queries once per keystroke, so the number of registered types multiplies every
+search. Ordering the registry by how often a type is actually referenced helps: the search
+stops as soon as it has ten results.
 
 ## Testing with an injected concern
 

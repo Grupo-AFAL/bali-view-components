@@ -53,6 +53,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_140000) do
     t.index ["user_type", "user_id"], name: "index_bali_acknowledgments_on_user"
   end
 
+  create_table "bali_entity_references", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "record_id", null: false
+    t.string "record_type", null: false
+    t.string "reference_text"
+    t.integer "referenceable_id", null: false
+    t.string "referenceable_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["record_type", "record_id", "referenceable_type", "referenceable_id"], name: "index_bali_entity_references_uniqueness", unique: true
+    t.index ["referenceable_type", "referenceable_id"], name: "index_bali_entity_references_on_referenceable"
+  end
+
   create_table "bali_saved_views", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false

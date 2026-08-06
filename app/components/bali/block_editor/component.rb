@@ -271,10 +271,15 @@ module Bali
         end
       end
 
+      # Sin `references_config:` explícito manda el registry (#708): declarar un tipo en
+      # `Bali.entity_reference_types` con su `display:` basta para que su chip salga con su
+      # icono, su etiqueta y su color, sin repetir la declaración en cada editor. Un hash
+      # explícito sigue ganando — un editor puede pintar un tipo distinto al del registry.
       def serialized_references_config
-        return "{}" if @references_config.blank?
+        config = @references_config.presence || Bali.entity_references_config
+        return "{}" if config.blank?
 
-        @references_config.transform_keys(&:to_s).to_json
+        config.transform_keys(&:to_s).to_json
       end
 
       def serialized_mentions

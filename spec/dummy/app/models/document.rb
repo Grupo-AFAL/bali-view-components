@@ -11,6 +11,10 @@ class Document < ApplicationRecord
   # firma nueva. Mismo default que el `version_number` de gobierno-corporativo.
   attribute :version_label, :string, default: '1.0'
 
+  # #708 — materializa las referencias embebidas en `content` al guardar. El dummy declara
+  # los tipos referenciables en config/initializers/bali.rb.
+  include Bali::EntityReferenceable
+
   enum :status, { draft: 0, published: 1, archived: 2 }
   has_many :document_versions, dependent: :destroy
   has_many :block_editor_threads, dependent: :destroy
