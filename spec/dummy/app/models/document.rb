@@ -3,7 +3,10 @@
 class Document < ApplicationRecord
   enum :status, { draft: 0, published: 1, archived: 2 }
   has_many :document_versions, dependent: :destroy
-  has_many :block_editor_threads, dependent: :destroy
+  # #706 — the engine owns the threads now. A host only needs this association to
+  # clean up after itself; the editor never goes through it (it reads the engine's
+  # endpoints, scoped by `commentable_type`/`commentable_id`).
+  has_many :comment_threads, as: :commentable, class_name: 'Bali::BlockEditorThread', dependent: :destroy
   validates :title, presence: true
   validates :author_name, presence: true
 

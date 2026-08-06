@@ -172,6 +172,28 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_selector('[data-block-editor-comments-url-value="/block_editor_comments"]')
   end
 
+  # #706 — `:auto` points the store at the engine's endpoints for one record. The
+  # commentable travels in the query string, which is what scopes all nine of them:
+  # RESTThreadStore._buildUrl keeps it on every sub-request.
+  def test_with_comments_auto_url_resolves_the_engine_path_scoped_to_the_commentable
+    document = Document.create!(title: "Contrato", author_name: "Ana", content: [])
+    render_inline(Bali::BlockEditor::Component.new(
+                    comments: { url: :auto, commentable: document, user: { id: "1", username: "Alice" } }
+                  ))
+
+    url = page.find("[data-block-editor-comments-url-value]")[:"data-block-editor-comments-url-value"]
+    assert_equal "/bali/block_editor_comments?commentable_id=#{document.id}&commentable_type=Document", url
+  end
+
+  # Failing loudly beats an editor that silently reads someone else's threads, or none.
+  def test_with_comments_auto_url_without_a_commentable_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::BlockEditor::Component.new(comments: { url: :auto, user: { id: "1", username: "Alice" } }))
+    end
+
+    assert_match(/commentable/, error.message)
+  end
+
   def test_with_comments_defaults_comments_url_to_empty_string
     render_inline(Bali::BlockEditor::Component.new(comments: { user: { id: "1", username: "Alice" } }))
     assert_selector('[data-block-editor-comments-url-value=""]')

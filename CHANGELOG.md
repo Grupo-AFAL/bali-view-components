@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The engine now stores the Block Editor's inline comments** (#706). Three tables
+  (`bali_block_editor_threads` / `_comments` / `_reactions`, installed with
+  `bin/rails bali:install:migrations`), three controllers, and the nine endpoints
+  `RESTThreadStore` has always called — so a host stops re-implementing the reference
+  controllers by hand. Point the editor at them with `comments: { url: :auto, commentable: record }`:
+  it resolves `bali.block_editor_threads_path(commentable_type:, commentable_id:)` for that
+  record, and `_buildUrl` carries the scope to all nine sub-requests for free. Passing `:auto`
+  without a `commentable:` raises — there is no unscoped thread list, deliberately.
+  - Three lambdas are the whole configuration, and all three deny by default:
+    `Bali.block_editor_commentables` (default `{}`, so mounting the engine grants nothing;
+    a type nobody listed and a record that does not exist are both `404`, and
+    `commentable_type` is never `constantize`d), `Bali.block_editor_comments_user`
+    (returns the string author id) and `Bali.block_editor_comments_authorize`
+    (`403` when it says no).
+  - Permissions replay BlockNote's own `DefaultThreadStoreAuth` server-side, because the
+    client-side copy stops nothing: anyone admitted may list, open a thread, comment, resolve
+    and react; only a comment's author may edit or delete it; only the author of a thread's
+    **first** comment may delete the thread. Deleting a comment is soft (null body plus
+    `deleted_at`), and deleting the last live comment takes the thread with it.
+  - `commentable_type`/`commentable_id` are **required on every action**, including the ones
+    that already carry a thread id. That is what keeps `GET /` from being "every thread in the
+    database" — the leak the reference implementation shipped with.
+  - The `X-User-Id` header the store sends is ignored on purpose; identity comes only from
+    `Bali.block_editor_comments_user`. There is no user-directory endpoint either: display
+    names stay the host's business through `comments[:users]` / `users_url`.
+  - `as_json` is a frozen wire contract (`test/bali/block_editor_json_contract_test.rb` fails
+    the build on a renamed key), and the dummy app now consumes the engine instead of its own
+    copy — that substitution is the adoption test. Adoption, the permission matrix and the
+    three-`rename_table` migration for apps that already ran the reference implementation are
+    documented in `docs/guides/engines.md`.
+
 ## [v3.1.0.beta.2] - 2026-08-06
 
 ### Added

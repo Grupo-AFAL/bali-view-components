@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_06_140000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -39,6 +39,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "bali_block_editor_comments", force: :cascade do |t|
+    t.integer "block_editor_thread_id", null: false
+    t.json "body"
+    t.datetime "created_at", null: false
+    t.datetime "deleted_at"
+    t.json "metadata", default: {}
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["block_editor_thread_id"], name: "index_bali_block_editor_comments_on_thread_id"
+  end
+
+  create_table "bali_block_editor_reactions", force: :cascade do |t|
+    t.integer "block_editor_comment_id", null: false
+    t.datetime "created_at", null: false
+    t.string "emoji", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["block_editor_comment_id", "user_id", "emoji"], name: "idx_bali_reactions_comment_user_emoji", unique: true
+  end
+
+  create_table "bali_block_editor_threads", force: :cascade do |t|
+    t.integer "commentable_id", null: false
+    t.string "commentable_type", null: false
+    t.datetime "created_at", null: false
+    t.json "metadata", default: {}
+    t.boolean "resolved", default: false, null: false
+    t.string "resolved_by"
+    t.datetime "resolved_updated_at"
+    t.datetime "updated_at", null: false
+    t.index ["commentable_type", "commentable_id"], name: "index_bali_block_editor_threads_on_commentable"
+  end
+
   create_table "bali_saved_views", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -48,38 +80,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
     t.string "storage_id", null: false
     t.datetime "updated_at", null: false
     t.index ["owner_type", "owner_id", "storage_id", "name"], name: "index_bali_saved_views_uniqueness", unique: true
-  end
-
-  create_table "block_editor_comments", force: :cascade do |t|
-    t.integer "block_editor_thread_id", null: false
-    t.json "body"
-    t.datetime "created_at", null: false
-    t.datetime "deleted_at"
-    t.json "metadata", default: {}
-    t.datetime "updated_at", null: false
-    t.string "user_id", null: false
-    t.index ["block_editor_thread_id"], name: "index_block_editor_comments_on_block_editor_thread_id"
-  end
-
-  create_table "block_editor_reactions", force: :cascade do |t|
-    t.integer "block_editor_comment_id", null: false
-    t.datetime "created_at", null: false
-    t.string "emoji", null: false
-    t.datetime "updated_at", null: false
-    t.string "user_id", null: false
-    t.index ["block_editor_comment_id", "user_id", "emoji"], name: "idx_reactions_comment_user_emoji", unique: true
-    t.index ["block_editor_comment_id"], name: "index_block_editor_reactions_on_block_editor_comment_id"
-  end
-
-  create_table "block_editor_threads", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "document_id"
-    t.json "metadata", default: {}
-    t.boolean "resolved", default: false, null: false
-    t.string "resolved_by"
-    t.datetime "resolved_updated_at"
-    t.datetime "updated_at", null: false
-    t.index ["document_id"], name: "index_block_editor_threads_on_document_id"
   end
 
   create_table "characters", force: :cascade do |t|
@@ -219,9 +219,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "block_editor_comments", "block_editor_threads"
-  add_foreign_key "block_editor_reactions", "block_editor_comments"
-  add_foreign_key "block_editor_threads", "documents"
+  add_foreign_key "bali_block_editor_comments", "bali_block_editor_threads", column: "block_editor_thread_id"
+  add_foreign_key "bali_block_editor_reactions", "bali_block_editor_comments", column: "block_editor_comment_id"
   add_foreign_key "characters", "movies"
   add_foreign_key "document_versions", "documents"
   add_foreign_key "movies", "tenants"

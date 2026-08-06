@@ -83,7 +83,8 @@
     editable: true,
     config: {
       comments: {
-        url: document_comment_threads_path(@document),
+        url: :auto,
+        commentable: @document,
         user: { id: "user-1", username: "Demo User" },
         users: [
           { id: "user-1", username: "Demo User" },
@@ -110,7 +111,8 @@
     editable: false,
     config: {
       comments: {
-        url: document_comment_threads_path(@document),
+        url: :auto,
+        commentable: @document,
         user: { id: "user-1", username: "Demo User" },
         users: [
           { id: "user-1", username: "Demo User" },

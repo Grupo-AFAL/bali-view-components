@@ -84,12 +84,10 @@ Rails.application.routes.draw do
   get 'entity_references', to: 'entity_references#index'
   post 'entity_references/resolve', to: 'entity_references#resolve'
 
-  # BlockEditor
-  resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
-    resources :comments, controller: 'block_editor_threads/comments', only: %i[create update destroy] do
-      resource :reactions, controller: 'block_editor_threads/comments/reactions', only: %i[create destroy]
-    end
-  end
+  # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine
+  # endpoints (`mount Bali::Engine` below), and `config/initializers/bali.rb` says
+  # which records may carry threads. That substitution is the adoption test — the
+  # dummy consumes the engine the same way a host app does.
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
   # Documents (full editing experience reference)
@@ -98,11 +96,6 @@ Rails.application.routes.draw do
   # seventh route answered 404 to anyone who followed it.
   resources :documents, except: :edit do
     resources :versions, only: [:index, :show], controller: 'document_versions'
-    resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
-      resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
-        resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
-      end
-    end
     member do
       post :restore_version
     end
