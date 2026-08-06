@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v3.0.0] - 2026-08-05
+### Added
+
+- **Cypress coverage for `dynamic-fields-controller`** (#715 PR1, closes the TODO from #155).
+  `cypress/e2e/dynamic-fields-controller.cy.js` freezes the controller's current JS contract
+  before the #715 feature work touches it: `addFields` clones the `<template>` replacing the
+  `new_record` placeholder with a numeric child index, `removeFields` hides the row (it stays
+  in the DOM), sets `.destroy-flag` to `true` and strips the non-hidden form elements while
+  keeping the hidden ones, `moveUp`/`moveDown` swap rows and renumber every `[data-position]`
+  input (and are no-ops at the edges), and the `remove-duplicates` mode drops already-selected
+  options from the cloned template and disables the add button at maximum size — on `connect()`
+  too — re-enabling it when a row is removed. Two new Lookbook previews back the parts the Ruby
+  helper does not emit yet (`sortable`, `remove_duplicates`), wired by hand the way host apps
+  do today; the add/remove specs run against the existing `default`/`empty` previews.
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
 the stable channel: `3.0` merges into `main`, `main` becomes the v3 line, and the next

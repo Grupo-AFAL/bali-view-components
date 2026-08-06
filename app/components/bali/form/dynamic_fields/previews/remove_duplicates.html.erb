@@ -1,0 +1,132 @@
+<%# Freezes the remove-duplicates contract of dynamic-fields-controller
+    (#715 PR1, covered by cypress/e2e/dynamic-fields-controller.cy.js).
+
+    `f.dynamic_fields_group` does not emit `remove-duplicates-value` — the
+    mode is JS-only today and host apps wire it by hand, so this preview
+    does too.
+
+    Two independent controller instances:
+    - #genre-picker starts below the maximum (1 of 3 options in use).
+    - #genre-picker-full starts AT the maximum, so connect() must disable
+      its add button on page load. %>
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Genres (no duplicates)</h3>
+
+  <div id="genre-picker"
+       data-controller="dynamic-fields"
+       data-dynamic-fields-size-value="1"
+       data-dynamic-fields-remove-duplicates-value="true"
+       data-dynamic-fields-fields-selector-value=".genre-fields">
+    <div class="flex justify-between items-center">
+      <label class="label">Genres</label>
+      <div class="flex items-center">
+        <button type="button"
+                class="btn btn-primary"
+                data-dynamic-fields-target="button"
+                data-action="dynamic-fields#addFields">Add Genre</button>
+        <template data-dynamic-fields-target="template">
+          <div class="genre-fields card bg-base-200 p-4 mb-2">
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <select class="select w-full" name="movie[genres][new_record][name]">
+                  <option value="action">Action</option>
+                  <option value="comedy">Comedy</option>
+                  <option value="drama">Drama</option>
+                </select>
+              </div>
+              <div class="flex-none">
+                <button type="button" class="btn btn-error btn-sm"
+                        data-action="dynamic-fields#removeFields">Remove</button>
+                <input type="hidden"
+                       name="movie[genres][new_record][_destroy]"
+                       class="destroy-flag">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div data-dynamic-fields-target="container">
+      <div class="genre-fields card bg-base-200 p-4 mb-2">
+        <div class="flex items-center gap-4">
+          <div class="flex-1">
+            <select class="select w-full" name="movie[genres][0][name]">
+              <option value="action" selected>Action</option>
+              <option value="comedy">Comedy</option>
+              <option value="drama">Drama</option>
+            </select>
+          </div>
+          <div class="flex-none">
+            <button type="button" class="btn btn-error btn-sm"
+                    data-action="dynamic-fields#removeFields">Remove</button>
+            <input type="hidden"
+                   name="movie[genres][0][_destroy]"
+                   class="destroy-flag">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="text-lg font-semibold my-4">Already at maximum</h3>
+
+  <div id="genre-picker-full"
+       data-controller="dynamic-fields"
+       data-dynamic-fields-size-value="3"
+       data-dynamic-fields-remove-duplicates-value="true"
+       data-dynamic-fields-fields-selector-value=".genre-fields">
+    <div class="flex justify-between items-center">
+      <label class="label">Genres</label>
+      <div class="flex items-center">
+        <button type="button"
+                class="btn btn-primary"
+                data-dynamic-fields-target="button"
+                data-action="dynamic-fields#addFields">Add Genre</button>
+        <template data-dynamic-fields-target="template">
+          <div class="genre-fields card bg-base-200 p-4 mb-2">
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <select class="select w-full" name="movie[all_genres][new_record][name]">
+                  <option value="action">Action</option>
+                  <option value="comedy">Comedy</option>
+                  <option value="drama">Drama</option>
+                </select>
+              </div>
+              <div class="flex-none">
+                <button type="button" class="btn btn-error btn-sm"
+                        data-action="dynamic-fields#removeFields">Remove</button>
+                <input type="hidden"
+                       name="movie[all_genres][new_record][_destroy]"
+                       class="destroy-flag">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div data-dynamic-fields-target="container">
+      <% %w[action comedy drama].each_with_index do |genre, index| %>
+        <div class="genre-fields card bg-base-200 p-4 mb-2">
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <select class="select w-full" name="movie[all_genres][<%= index %>][name]">
+                <option value="action" <%= 'selected' if genre == 'action' %>>Action</option>
+                <option value="comedy" <%= 'selected' if genre == 'comedy' %>>Comedy</option>
+                <option value="drama" <%= 'selected' if genre == 'drama' %>>Drama</option>
+              </select>
+            </div>
+            <div class="flex-none">
+              <button type="button" class="btn btn-error btn-sm"
+                      data-action="dynamic-fields#removeFields">Remove</button>
+              <input type="hidden"
+                     name="movie[all_genres][<%= index %>][_destroy]"
+                     class="destroy-flag">
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
