@@ -1,0 +1,33 @@
+<div class="flex justify-center items-start min-h-[320px] p-8">
+  <%= render Bali::ActionsDropdown::Component.new do |c|
+    c.with_item(name: 'Edit', icon: 'edit', href: '#')
+    c.with_item(name: 'Approve', icon: 'check', href: '/approve', method: :post)
+    c.with_item(name: 'Edit health', icon: 'heart-pulse',
+                modal: { id: 'health-modal', local: true })
+    c.with_item(name: 'Notes', icon: 'file', drawer: { id: 'notes-drawer', local: true })
+    c.with_item(name: 'Delete', icon: 'trash', href: '#', method: :delete)
+  end %>
+</div>
+
+<%# The overlay "Edit health" opens: pre-rendered, addressable, and NOT shared — it only
+    answers events naming it. %>
+<%= render Bali::Modal::Component.new(id: 'health-modal', active: false, shared: false) do |m| %>
+  <% m.with_header(title: 'Edit health') %>
+  <% m.with_body do %>
+    <p>Server-rendered content — no fetch happened to show this.</p>
+  <% end %>
+<% end %>
+
+<%# A decoy: if a click on "Edit health" opens this one too, the broadcast bug (#854)
+    is back. Cypress asserts exactly that. %>
+<%= render Bali::Modal::Component.new(id: 'decoy-modal', active: false, shared: false) do |m| %>
+  <% m.with_header(title: 'Decoy modal') %>
+  <% m.with_body do %>
+    <p>This modal must never open from the menu.</p>
+  <% end %>
+<% end %>
+
+<%= render Bali::Drawer::Component.new(drawer_id: 'notes-drawer', shared: false,
+                                       title: 'Notes') do %>
+  <p>Server-rendered drawer content.</p>
+<% end %>

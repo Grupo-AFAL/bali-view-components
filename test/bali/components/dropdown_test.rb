@@ -333,4 +333,79 @@ class BaliDropdownComponentTest < ComponentTestCase
 
     assert_no_selector(".dropdown")
   end
+
+  # A POST item is a real `button_to`, like the `:delete` item and for the reason #829
+  # already paid for: an `<a data-turbo-method>` degrades to GET without JS and is a link
+  # that mutates state. Announced markup change in v3.1 (#641).
+  def test_a_post_item_renders_a_button_to_with_the_item_classes
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Approve", href: "/approve", method: :post, icon: "check")
+    end
+
+    assert_selector("li > form.contents[action='/approve'][method='post']", visible: :all)
+    assert_selector("form > button[type='submit'][role='menuitem']", text: "Approve")
+    assert_selector("button[role='menuitem'] svg")
+    assert_no_selector("a[data-turbo-method]")
+  end
+
+  # Same trick as the delete item: the verb travels as the `_method` override inside the
+  # form `button_to` builds, never as a `method="patch"` attribute a browser ignores.
+  def test_a_patch_item_travels_as_a_method_override
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Advance", href: "/advance", method: :patch)
+    end
+
+    assert_selector("form[method='post'] input[name='_method'][value='patch']", visible: :all)
+    assert_no_selector("[method='patch']")
+  end
+
+  # An item that only opens a local overlay navigates nowhere: without an href the `<a>`
+  # is not even focusable, so the item is a real `<button>` (the ActionItem).
+  def test_a_local_modal_item_without_href_is_a_real_button
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Edit health", icon: "heart-pulse",
+                  modal: { id: "health-modal", local: true })
+    end
+
+    assert_selector("button[role='menuitem'][type='button']" \
+                    "[data-action~='modal#openLocal'][data-modal-id='health-modal']",
+                    text: "Edit health")
+    assert_selector("button[role='menuitem'] svg")
+  end
+
+  def test_a_local_drawer_item_without_href_is_a_real_button
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Notes", drawer: { id: "notes-drawer", local: true })
+    end
+
+    assert_selector("button[role='menuitem']" \
+                    "[data-action~='drawer#openLocal'][data-drawer-id='notes-drawer']")
+  end
+
+  # With an href the item stays a link — the local overlay rides on top of the navigation
+  # fallback, exactly as `modal:` has always ridden on a Link.
+  def test_a_local_modal_item_with_href_stays_a_link
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Edit health", href: "/health/edit",
+                  modal: { id: "health-modal", local: true })
+    end
+
+    assert_selector("a[href='/health/edit']" \
+                    "[data-action~='modal#openLocal'][data-modal-id='health-modal']")
+  end
+
+  # A local open without an id would broadcast to every overlay on the page (#854).
+  def test_a_local_item_without_id_raises
+    assert_raises(ArgumentError) do
+      render_inline(Bali::Dropdown::Component.new) do |c|
+        c.with_trigger { "Trigger" }
+        c.with_item(name: "x", modal: { local: true })
+      end
+    end
+  end
 end

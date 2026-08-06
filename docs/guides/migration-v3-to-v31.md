@@ -24,10 +24,34 @@ outside the FormBuilder. v3.1 removes them.
 
 ## `ActionsDropdown` POST items become `button_to` (#641)
 
-Dropdown items that trigger a non-GET request (POST/PATCH/DELETE) stop being links with
-`data-turbo-method` and become real `button_to` forms.
+**What changes.** A `Dropdown` / `ActionsDropdown` item with `method: :post`, `:patch` or
+`:put` used to render `<a data-turbo-method="...">`. It now renders a real `button_to` —
+`<form class="contents" method="post"><button type="submit">` (with the `_method` override
+for `:patch`/`:put`) — the exact shape the `:delete` item has had since #829, form out of
+the box tree and the button as the menu item.
 
-*Lands with the #641 PR; details land with it.*
+**Why.** `<a data-turbo-method>` degrades to a GET *navigation* when Turbo is not running,
+and a control that mutates state is a button, not a link — assistive tech announces the
+two differently, and Space activates only the button. The `:delete` item already paid for
+the `button_to` pattern; this closes the inconsistency between two items of the same menu.
+
+**What to do.** For behaviour, nothing: the click submits the same request. Update
+anything that *selects* those items as anchors — CSS on `.menu a`, Capybara `click_link`,
+Cypress `get('a[data-turbo-method]')` — to target the button (`form.contents > button` is
+the stable shape). `data:` passed to `with_item` still lands on the button, so
+`data: { turbo_confirm: }` keeps working; form-level attributes go through `form: {}`.
+
+**Blast radius, measured** (grep over every consuming app, six-line window after each
+`with_item`): 6 call sites total. One in afal-apps — the "Activar" item of
+`prodigia/credentials/index.html.erb`, on v3.0.0 today, which changes markup on the bump
+to v3.1 and keeps its behaviour (Turbo submits the same POST). Five in enjoykitchen's
+flamingOS, all the same "archive" action, and that host is locked to a v2-era revision —
+they change whenever it takes the v2→v3 migration. Zero in the dummy and zero anywhere
+else: the apps the issue was opened for hand-rolled their menus precisely because v2's
+`with_item` rejected non-GET/DELETE verbs.
+
+Plain `Bali::Link::Component.new(method: :post)` outside a dropdown is untouched: it keeps
+emitting `data-turbo-method`.
 
 ## Tabs: `options` reach the `<a>` (#722)
 
