@@ -134,6 +134,11 @@ es:
       open_action: "abrir"
       close: "cerrar"
 
+    # Chat conversacional
+    chat:
+      typing_indicator:
+        label: "Escribiendo…"
+
     # Modal
     modal:
       close: "Cerrar modal"

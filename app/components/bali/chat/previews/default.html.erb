@@ -1,0 +1,71 @@
+<%
+  now = Time.zone.parse('2026-08-06 10:00')
+  conversation = [
+    ['assistant', 'Good morning. I have the September board pack open — what would you like to go through?', 0],
+    ['user',      'Start with the audit committee minutes. Were they signed?', 2],
+    ['assistant', 'Yes: signed on 3 September by all four members. The scanned copy is attached to folio ACT-2026-0311.', 3],
+    ['user',      'And the conflict of interest declarations?', 7],
+    ['assistant', 'Eleven of twelve are in. The outstanding one is from the alternate director appointed last month; his first declaration is due within thirty days of taking office.', 8],
+    ['user',      'When does that window close?', 12],
+    ['assistant', 'On 19 September. I can set a reminder for the fifteenth if that helps.', 13],
+    ['user',      'Please do. Anything else pending before the session?', 18],
+    ['assistant', 'Two things: the anti-money-laundering policy is due for its annual review, and last quarter’s risk matrix has not been circulated yet.', 19],
+    ['user',      'Circulate the matrix today and put the policy review on the agenda.', 24],
+    ['assistant', 'Done. The matrix is on its way and the policy review is item 6.', 25]
+  ]
+%>
+
+<div class="p-6 bg-base-200 min-h-[560px]">
+  <%= render Bali::Chat::Component.new(
+        id: 'chat-messages',
+        threshold: threshold,
+        class: 'h-[480px] max-w-2xl mx-auto rounded-box border border-base-300 bg-base-100'
+      ) do |chat| %>
+
+    <% conversation.each do |role, body, minutes| %>
+      <% assistant = role == 'assistant' %>
+      <%= render Bali::Chat::Message::Component.new(
+            position: assistant ? :start : :end,
+            color: assistant ? nil : :primary,
+            author: assistant ? 'Assistant' : 'Ada Lovelace',
+            timestamp: now + minutes.minutes,
+            bubble_class: 'max-w-[82%]'
+          ) do |message| %>
+        <% message.with_avatar do %>
+          <%= render Bali::Avatar::Component.new(
+                initials: assistant ? 'AI' : 'AL', size: :xs
+              ) %>
+        <% end %>
+        <%= body %>
+      <% end %>
+    <% end %>
+
+    <%# Always in the DOM, hidden by a class — a Turbo Stream (or the buttons below)
+        toggles it without ever destroying the node it targets. %>
+    <%= render Bali::Chat::TypingIndicator::Component.new(author: 'Assistant') do |indicator| %>
+      <% indicator.with_avatar do %>
+        <%= render Bali::Avatar::Component.new(initials: 'AI', size: :xs) %>
+      <% end %>
+    <% end %>
+
+    <% chat.with_footer do %>
+      <div class="flex items-center gap-2">
+        <%# A chat composer is one unlabelled field in a row; both apps this came
+            from reach for `text_field_tag` here rather than a full form group. %>
+        <%= text_field_tag :message, nil,
+              placeholder: 'Write a message…',
+              class: 'input input-bordered flex-1',
+              autocomplete: 'off',
+              aria: { label: 'Write a message' } %>
+        <%= render Bali::Button::Component.new(
+              name: 'Send', variant: :primary, icon: 'send',
+              data: { action: 'click->chat#showTyping' }
+            ) %>
+        <%= render Bali::Button::Component.new(
+              name: 'Stop typing', variant: :ghost, size: :sm,
+              data: { action: 'click->chat#hideTyping' }
+            ) %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

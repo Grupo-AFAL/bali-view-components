@@ -89,6 +89,7 @@ export {
   AvatarController,
   BulkActionsController,
   CarouselController,
+  ChatController,
   ClipboardController,
   ColumnSelectorController,
   CommandController,

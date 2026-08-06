@@ -29,6 +29,7 @@ import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
 import { BulkActionsController } from '../../../components/bali/bulk_actions/index'
 import { CarouselController } from '../../../components/bali/carousel/index'
+import { ChatController } from '../../../components/bali/chat/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
@@ -70,6 +71,7 @@ export {
   AvatarController,
   BulkActionsController,
   CarouselController,
+  ChatController,
   ClipboardController,
   ColumnSelectorController,
   CommandController,
@@ -144,6 +146,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   // Interactive
   'bulk-actions': BulkActionsController,
   carousel: CarouselController,
+  chat: ChatController,
   clipboard: ClipboardController,
   hovercard: HovercardController,
   kanban: KanbanController,
