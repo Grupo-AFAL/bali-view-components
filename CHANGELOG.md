@@ -26,6 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Bali::Gantt::Colors` — the exact `color-mix`/oklch formulas of the island's `ganttColors.js` (verbatim-asserted in tests) so both renderers are visually identical; default status map plus support for host status catalogs.
   - `Bali::Gantt::Component` `mode: :static` — sticky two-tier header, collapsible `<details>` groups (with their own rollup bars), today line, grid, `color_by: :status/:none`, zoom by links on a namespaced `gantt_zoom` param, `group_label:`, an announced `limit:` cap (never silent) and a "No dates" section. This closes the `color_by:` promise made to #667. `mode: :interactive` is part of the signature already and raises with a clear message until phase 3.
   - Structural `--gantt-*` tokens in `@layer components`, `bali_view.gantt.*` locales (en/es), Lookbook previews, and a full dummy reference: `/admin/projects/:id?view=timeline` renders the timeline from seeded schedule data through `ProjectGantt`, a host-side reference implementation of the contract.
+- **`Bali::Timeline` learns the tracking look: `compact:`, `state:`, `timestamp:` and a clickable box** (#714). What three apps hand-rolled with raw daisyUI timelines (custody chains, itineraries, patrol logs) is now the component:
+  - `compact: true` on the container adds daisyUI's `timeline-compact`: one column, every content box on the end side (`position:` no longer alternates there).
+  - `with_item(state: :done | :current | :pending)` is sugar over `icon:`/`color:`: `:done` renders a `circle-check` primary marker, `:current` a `circle-dot` primary marker, and `:pending` the plain circle with a muted heading. Explicit `icon:`/`color:` win (`state: :done, color: :success` for the green check); an unknown state raises with the valid names.
+  - `timestamp:` (a string, or anything `l`-localizable) renders muted on the free side of the line — or as a line inside the box when compact, the custody-chain layout. A `with_timestamp` slot replaces the keyword when the metadata needs markup (`<time>`, a tooltip).
+  - `href:` renders the content box as an `<a>` with hover feedback, same tag decision as `Bali::Tag`.
+  - The "tracking" preset (event + date + author) is documented in the component guide and has its own Lookbook preview.
+
+### Changed
+
+- `Bali::Timeline`: the line below an item now takes the colour of the item that *follows* it, so a coloured line reads as "travelled this far" — the exact look the hand-rolled tracking timelines draw. Only timelines whose consecutive items mix different explicit colours render differently (the boundary used to be half each colour); uniform and default-coloured timelines are untouched. The line below the last item keeps its own colour. (#714)
+- `Bali::Timeline::Item` extra options now land on the content box as HTML attributes. They were documented as forwarded but silently dropped, so no existing markup changes — `data: { action: ... }` on an item simply starts working, which is what makes the box clickable without an `href:`. (#714)
 
 ## [v3.1.0.beta.1] - 2026-08-05
 
