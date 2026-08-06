@@ -7,6 +7,9 @@ documents engine grows. This guide explains why your app's authentication does n
 reach those controllers on its own, and the one supported way to teach it to them:
 `Bali.engine_controller_concerns`.
 
+For the **tables** the engine ships and how one of your models opts into them, see
+[Engine models](engine-models.md).
+
 ## Why your `ApplicationController` hooks don't apply
 
 `Bali::ApplicationController` inherits from `ActionController::Base`, **not** from your

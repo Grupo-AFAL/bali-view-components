@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_06_140000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -37,6 +37,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000001) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "bali_acknowledgments", force: :cascade do |t|
+    t.integer "acknowledgeable_id", null: false
+    t.string "acknowledgeable_type", null: false
+    t.datetime "acknowledged_at", null: false
+    t.bigint "content_version_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.string "user_type", null: false
+    t.string "version_label"
+    t.index ["acknowledgeable_type", "acknowledgeable_id", "user_type", "user_id"], name: "index_bali_acknowledgments_uniqueness", unique: true
+    t.index ["user_type", "user_id"], name: "index_bali_acknowledgments_on_user"
   end
 
   create_table "bali_saved_views", force: :cascade do |t|
