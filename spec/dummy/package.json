@@ -26,6 +26,7 @@
     "@rails/activestorage": "^8.1.200",
     "@rails/request.js": "^0.0.13",
     "@react-pdf/renderer": "^4.3.0",
+    "@xyflow/react": "^12.11.2",
     "ai": "^6.0.5",
     "bali-view-components": "link:../..",
     "chart.js": "^4.5.1",

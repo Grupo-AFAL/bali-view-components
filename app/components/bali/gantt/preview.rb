@@ -52,6 +52,42 @@ module Bali
         render Bali::Gantt::Component.new(data: { items: [] })
       end
 
+      # @label Island (readonly)
+      # The React Flow island (#705) mounted through the full host circuit:
+      # `startIslandLoader('gantt')` in the main bundle reads the metas
+      # emitted by `react_island_meta_tags`, injects the dedicated
+      # gantt-island.js entry, and the GanttController (a
+      # ReactIslandController subclass) mounts GanttFlow with values→props.
+      # Readonly: no URLs, `editable`/`manageable` false — zoom, collapse,
+      # search, filter and color-by are pure view state and work without a
+      # server.
+      def island_readonly
+        render_with_template(
+          template: "bali/gantt/previews/island_readonly",
+          locals: { data: sample_data, i18n: Bali::Gantt::Translations.island }
+        )
+      end
+
+      # @label Island (editable, dummy endpoints)
+      # The COMPLETE editable island against the dummy's reference schedule
+      # endpoints (Admin::Projects::SchedulesController /
+      # DependenciesController): drag a bar → PATCH → the server answers the
+      # full document and React reconciles; draw an edge between two bars →
+      # POST dependency (cycles → 422 → rollback); double-click an edge →
+      # DELETE. Requires the seeded project (`bin/rails db:seed`). Edits
+      # PERSIST in the dummy database — re-seed to reset.
+      def island
+        project = Project.order(:id).first
+        render_with_template(
+          template: "bali/gantt/previews/island",
+          locals: {
+            project: project,
+            gantt: project && ProjectGantt.new(project),
+            i18n: Bali::Gantt::Translations.island
+          }
+        )
+      end
+
       private
 
       def sample_data
@@ -97,7 +133,7 @@ module Bali
             { id: 1, predecessor_id: 20, successor_id: 30, dependency_type: "finish_to_start" },
             { id: 2, predecessor_id: 21, successor_id: 40, dependency_type: "finish_to_start" }
           ],
-          critical_ids: [20, 21, 40]
+          critical_ids: [ 20, 21, 40 ]
         }
       end
     end

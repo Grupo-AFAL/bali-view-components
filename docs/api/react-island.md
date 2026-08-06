@@ -4,6 +4,8 @@ The official mechanism for mounting React inside a Hotwire app. An **island** is
 
 Bali deliberately does **not** use [turbo-mount](https://github.com/skryukov/turbo_mount). Islands ride the Stimulus lifecycle the rest of the library already uses: `connect` mounts, `disconnect` unmounts, Turbo Streams and drawers/modals that inject content with `innerHTML` all work because Stimulus observes the DOM.
 
+The Gantt used as the running example below is no longer hypothetical: Bali ships it as a ready-made island (#705). A host that wants the interactive Gantt writes **no controller at all** — its dedicated entry is one line, `import 'bali-view-components/gantt-entry'`, its main bundle imports `bali-view-components/gantt-loader`, and the shipped `GanttController` (a `ReactIslandController` subclass, `app/components/bali/gantt/index.js`) is the reference implementation of everything this page describes. The example remains as written because it shows what building a NEW island takes.
+
 ## Never start a second Stimulus Application
 
 The one hard rule. An island registers on the application the host exposes as `window.Stimulus` — never on an `Application.start()` of its own. Two applications scanning the same DOM mount **every** controller twice: double drawers, double editors, double event handlers. This is not hypothetical; afal-apps shipped exactly this bug in its `gantt.js`:
