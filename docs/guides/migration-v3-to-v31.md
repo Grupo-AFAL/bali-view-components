@@ -68,9 +68,37 @@ an `<a>` instead of wrapping a link inside a `<div>`.
 
 ## Five shadowed icons change their drawing (#902)
 
-Five icon names that Bali's legacy SVGs were shadowing resolve to their Lucide drawing
-instead: the name keeps working, the glyph changes. The full before/after table lands here
-— and also in [the v2 → v3 guide](migration-v2-to-v3.md), because it affects anyone
-migrating from v1/v2 as well.
+**What changes.** `Bali::Icon` consults the legacy name map (`LucideMapping`) *before*
+trying a name as a Lucide icon, so a map key that is itself a current Lucide name and
+points at a different glyph made the honest drawing of that name unreachable — you read
+lucide.dev, wrote the name, and Bali silently drew something else. Five such entries are
+removed. The names keep resolving; what they draw changes:
 
-*Lands with the #902 PR; details land with it.*
+| Name | Drew until v3.0 | Draws in v3.1 | Want the old drawing? |
+|---|---|---|---|
+| `trash` | `trash-2` — bin with two inner vertical lines | Lucide `trash` — plain bin | write `trash-2` |
+| `cog` | `settings` — gear with a single toothed outline | Lucide `cog` — double cog wheel | write `settings` |
+| `expand` | `maximize` — four corner brackets | Lucide `expand` — diagonal out-pointing arrows | write `maximize` |
+| `indent` | `indent-increase` | Lucide `indent` — same shape, legacy encoding | write `indent-increase` |
+| `outdent` | `indent-decrease` | Lucide `outdent` — same shape, legacy encoding | write `indent-decrease` |
+
+**Who is affected.** Measured across every host in the org (124 one-line call sites of all
+shadowed names): the pinned v3 hosts have **zero** call sites of these five — the visible
+delta lands on v1/v2 hosts the day they migrate, which is why the same table also sits in
+[the v2 → v3 guide](migration-v2-to-v3.md). `indent`/`outdent` have zero call sites
+anywhere and draw the same shape anyway; `trash` is the only name with real surface, and
+its delta is the two lines inside the bin. `Bali::DeleteLink`'s default icon is unchanged
+visually — it now spells its default `trash-2` internally.
+
+**What deliberately does not change.** `check-circle => circle-check` and `edit => pencil`
+stay mapped, documented as exceptions in `lucide_mapping.rb`: their "honest" spellings are
+deprecated Lucide aliases — `check-circle` ships as a legacy glyph (the check overflowing
+the circle), and `edit`'s real rename is `square-pen`, so dropping either entry would make
+drawings worse, not truer. `plus-circle => circle-plus` also stays: it draws the same
+thing and only protects against the alias file disappearing. The 60 identity entries
+(`"check" => "check"`, …) were removed too — a no-op, since the direct-Lucide step
+resolves those names identically.
+
+The shadowing test (`test/bali/components/icon/lucide_mapping_test.rb`) freezes the three
+surviving entries and pins the five removed names to the direct-Lucide step, so the set
+can only shrink from here.

@@ -611,6 +611,28 @@ Icon 'money-bill-wave' is not available. Check available icons at: https://lucid
 `money-bill-wave` is the one that still gets no suggestion, and correctly so — no surviving
 name resembles it. Take the alternative from the table above.
 
+### Five names now draw their real Lucide glyph (v3.1)
+
+This one lands in v3.1, not v3.0, but if you are migrating from v1/v2 you will jump
+straight past the boundary, so it belongs in your sweep. Five legacy map entries used to
+shadow current Lucide names with a *different* drawing — you read lucide.dev, wrote the
+name, and got another glyph. The entries are gone (#902); the names keep resolving, as the
+icon lucide.dev actually shows:
+
+| Name | Drew in v2/v3.0 | Draws since v3.1 | Want the old drawing? |
+|---|---|---|---|
+| `trash` | `trash-2` — bin with two inner vertical lines | Lucide `trash` — plain bin | write `trash-2` |
+| `cog` | `settings` — gear with a single toothed outline | Lucide `cog` — double cog wheel | write `settings` |
+| `expand` | `maximize` — four corner brackets | Lucide `expand` — diagonal out-pointing arrows | write `maximize` |
+| `indent` | `indent-increase` | Lucide `indent` — same shape, legacy encoding | write `indent-increase` |
+| `outdent` | `indent-decrease` | Lucide `outdent` — same shape, legacy encoding | write `indent-decrease` |
+
+Two shadowing entries stay on purpose, so grep for these five only: `check-circle` still
+draws `circle-check` and `edit` still draws `pencil` — their "honest" spellings are
+deprecated Lucide aliases (a legacy glyph, and a name whose real rename is `square-pen`),
+so removing them would make drawings worse, not truer. The full reasoning lives in
+`lucide_mapping.rb` and in [the v3 → v3.1 guide](migration-v3-to-v31.md).
+
 ### `Bali::Icon::Options` only lists what ships as SVG
 
 `Options.icons` used to be the 166 legacy SVGs merged with `Bali.custom_icons`. It is now the
