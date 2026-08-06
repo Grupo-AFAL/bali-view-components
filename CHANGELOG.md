@@ -7,23 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **The Gantt island's drag spec no longer degrades the dummy database it runs against** (#705).
-  `gantt-island.cy.js` dragged a bar forward and then dragged it back "the same distance" to
-  restore the seeded dates. The return drag is not the inverse of the outbound one — measured on
-  the seeded fixture, the outbound drag moves the item 5 days and the return drag moves it 0 — so
-  every local run left the item ~5 days later than it found it. Once the item drifted past the
-  start of the next one, the return drag landed on the date the item already had,
-  `onNodeDragStop` short-circuited before posting, and `cy.wait('@patch')` timed out waiting for a
-  second request that never came. CI never saw it because every CI run does
-  `db:schema:load db:seed` first; locally it surfaced after a handful of repetitions and looked
-  like a race in the island. The spec now waits for the reconcile to land in the table before
-  asserting, and restores the item through the contract's own PATCH endpoint instead of through a
-  second drag — deterministic, and it leaves the database exactly as it found it. Verified with 8
-  consecutive runs: 8/8 green with the seeded dates unchanged (before: 0/8 from a drifted
-  database).
-
 ### Added
 
 - **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
@@ -73,6 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   happens — this is the piece host apps were each writing a controller for.
 
 
+- **`submit-on-change#debouncedSubmit`, so one form can mix immediate and debounced controls** (#717). The controller has always had a `delay` value, but it applied to the whole form: either every control waited or none did, which is why a filter row with a select and a search box needed two controllers (or, in three AFAL apps, a local `auto_submit_controller.js` copy that had grown the pair on its own). `submit` stays as it was and `debouncedSubmit` is always debounced, so `<select data-action="submit-on-change#submit">` next to `<input type="search" data-action="submit-on-change#debouncedSubmit">` is now the whole wiring. `delay` still governs both actions when set; without it `debouncedSubmit` waits 300 ms. New `bali/submit_on_change/default` preview and `cypress/e2e/submit-on-change.cy.js` cover both actions, and `docs/guides/controllers.md` has the markup.
+
+- **`char_counter:` works on a text field, not just a textarea** (#723). `f.text_group :headline, char_counter: { max: 80 }` renders the same live count under the control that `text_area_group` has had, because it is the same thing: the Stimulus controller behind it only reads `value.length`, so an `<input>` and a `<textarea>` are indistinguishable to it. `{ max: n }` counts against a maximum and turns the counter red past it; `true` just counts. The typing is never stopped — the count is an advisory, so pair it with `maxlength:` and a model validation when the limit has to hold. New preview **Form / Text → With Character Counter**, a `char-counter.cy.js` spec that runs the same expectations against both controls, and the option finally documented in the FormBuilder guide.
+
+
 ### Changed
 
 - **Removing an unsaved row deletes it from the DOM** (#715). `dynamic-fields#removeFields` used to
@@ -84,25 +72,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dead rows. `resetPositionValues` skips hidden rows for the same reason, so `[data-position]`
   stays contiguous over the rows that will actually be saved, and it now tolerates a row without a
   position input instead of raising.
-- **`submit-on-change#debouncedSubmit`, so one form can mix immediate and debounced controls** (#717). The controller has always had a `delay` value, but it applied to the whole form: either every control waited or none did, which is why a filter row with a select and a search box needed two controllers (or, in three AFAL apps, a local `auto_submit_controller.js` copy that had grown the pair on its own). `submit` stays as it was and `debouncedSubmit` is always debounced, so `<select data-action="submit-on-change#submit">` next to `<input type="search" data-action="submit-on-change#debouncedSubmit">` is now the whole wiring. `delay` still governs both actions when set; without it `debouncedSubmit` waits 300 ms. New `bali/submit_on_change/default` preview and `cypress/e2e/submit-on-change.cy.js` cover both actions, and `docs/guides/controllers.md` has the markup.
-
-### Changed
-
 - **`submit-on-change` ignores change events fired in the frame it connects in** (#717). SlimSelect dispatches a `change` on the native `<select>` while it builds its widget over it — measurable whenever the options carry `data-inner-html`, which makes it rewrite the element — and a form carrying `submit-on-change` submitted on that event, before the user had touched anything. Measured against the new preview with the guard off: the page navigates to `?form_record[select]=1&form_record[text]=` on its own. This is a behavior change, not only a fix: any change event in the first frame after `connect()` is now dropped, including one your own code dispatches there. `data-submit-on-change-skip-initial-value="false"` restores the old behavior. Two incidental fixes ride along: a pending debounced submit is cancelled on `disconnect()` instead of firing at a detached form, and reconnecting the controller no longer wraps the debounce around itself (a form that connected twice used to wait `delay` twice).
 - **`Bali::AppLayout` offsets the pinned sidebar under the banner, by measurement** (#726). A banner — impersonation, maintenance, "you are in beta" — is a full-width strip, and the fixed sidebar now starts below it instead of painting over it. Nothing has to be declared: the new `app-layout` Stimulus controller keeps a `ResizeObserver` on the strip and publishes its height as `--bali-banner-height` on `<body>`, which the sidebar's `top` and `height` read. That covers the cases a constant cannot — two banners stacked (gc hardcodes `top: 5.5rem !important` for exactly that pair), a banner the user dismisses, one a Turbo Stream adds later, one that wraps to two lines on a phone — and it removes the `--banner-height` TODO the apps have been carrying. The strip is `position: sticky` so an impersonation warning survives scrolling; under `viewport_locked: true` the body does not scroll and sticky is inert. Only the height is JavaScript: the offset is one CSS rule reading `var(--bali-banner-height, 0px)`, so a page whose JS has not run, or a host that never registers the controller, renders exactly as before. New `with_banner` Lookbook preview (two stacked banners, the second dismissible) and a Cypress spec that measures the rail's computed `top`/`height` against the strip.
-- **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
-- **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
-- **`char_counter:` works on a text field, not just a textarea** (#723). `f.text_group :headline, char_counter: { max: 80 }` renders the same live count under the control that `text_area_group` has had, because it is the same thing: the Stimulus controller behind it only reads `value.length`, so an `<input>` and a `<textarea>` are indistinguishable to it. `{ max: n }` counts against a maximum and turns the counter red past it; `true` just counts. The typing is never stopped — the count is an advisory, so pair it with `maxlength:` and a model validation when the limit has to hold. New preview **Form / Text → With Character Counter**, a `char-counter.cy.js` spec that runs the same expectations against both controls, and the option finally documented in the FormBuilder guide.
-
-### Changed
-
 - **One wrapper builds the counter for every family that can have one** (#723). `text_area_field` used to build its own `.control` div next to a second copy of the error and help paragraphs — the arrangement that once made a textarea with a counter render neither. The controller, its values and the counter element now come from `field_helper`, the one place that decides how a control is wrapped, so the two spellings cannot drift apart again. No markup change: the textarea's existing tests pass untouched. `TextAreaFields::COUNTER_CLASS` is now an alias of `HtmlUtils::COUNTER_CLASS`.
-
-### Changed
 
 - **The `Bali::AppLayout` banner no longer clears the fixed sidebar horizontally** (#726). A beta gave `.app-layout-banner` the same `padding-left: var(--bali-side-menu-width)` as the navbar and the content, because the sidebar was pinned at `top: 0` and painted over the strip's left edge. The sidebar now starts *below* the banner instead, so there is nothing left to clear: keeping the padding would indent a full-width strip into the content column and leave a band of empty page above the sidebar. The navbar and the content keep their offset — that half of the fix is untouched. A host that styled around the indented banner (a background that started at 16rem, a left-aligned logo inside the strip) will see the strip move left to the viewport edge.
 
+
 ### Fixed
+
+- **The Gantt island's drag spec no longer degrades the dummy database it runs against** (#705).
+  `gantt-island.cy.js` dragged a bar forward and then dragged it back "the same distance" to
+  restore the seeded dates. The return drag is not the inverse of the outbound one — measured on
+  the seeded fixture, the outbound drag moves the item 5 days and the return drag moves it 0 — so
+  every local run left the item ~5 days later than it found it. Once the item drifted past the
+  start of the next one, the return drag landed on the date the item already had,
+  `onNodeDragStop` short-circuited before posting, and `cy.wait('@patch')` timed out waiting for a
+  second request that never came. CI never saw it because every CI run does
+  `db:schema:load db:seed` first; locally it surfaced after a handful of repetitions and looked
+  like a race in the island. The spec now waits for the reconcile to land in the table before
+  asserting, and restores the item through the contract's own PATCH endpoint instead of through a
+  second drag — deterministic, and it leaves the database exactly as it found it. Verified with 8
+  consecutive runs: 8/8 green with the seeded dates unchanged (before: 0/8 from a drifted
+  database).
 
 - **`size:` no longer leaks into the markup as an attribute where it means nothing** (#723).
   `slim_select_group(size: :sm)` emitted `<select size="sm">` next to the wrapper class — Rails'
@@ -111,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`rich_text_group`, `block_editor_group`, `coordinates_polygon_group`, `time_period_group`)
   painted `<div size="sm">` for the same reason `<div required>` used to appear there; `size`
   joins `required` in `CONTROL_ONLY_OPTIONS`.
+
 
 ## [v3.1.0.beta.4] - 2026-08-06
 
