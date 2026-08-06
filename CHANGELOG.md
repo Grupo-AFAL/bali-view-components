@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `useDeferredValue` on search and status filter: the input echoes the keystroke immediately
     while the model rebuild is deferred, so a burst of keystrokes rebuilds the filtered document
     once instead of once per letter (9 letters: 5.760 row renders + 2.700 bar renders → 320 + 300).
+### Added
+
+- **`Bali::QrCode` — QR codes generated server-side, with `rqrcode` as an optional dependency** (#926). `render Bali::QrCode::Component.new(payload: movie_url(@movie))` emits inline SVG: no JavaScript, no image request, nothing to serve. `payload:` is required; `size:` (pixels, default 200) and `level:` (error correction `:l`/`:m`/`:q`/`:h`, default `:m`) are the whole API. The gem it encodes with is **not** in the gemspec — three apps in the org render QR codes and the rest would carry it for nothing — so it is required lazily and its absence raises `Bali::QrCode::Component::MissingDependency`, a `LoadError` subclass whose message names the line to add (`gem "rqrcode", "~> 3.1"`) instead of leaving a host with `cannot load such file`. Same contract as the optional npm peers in `package.json`. Black on white with the spec's four-module quiet zone, neither configurable: a scanner reads dark-on-light, so theme colours would leave the code unreadable under a dark theme while still looking like a QR code. The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size:`; `role="img"` plus an `aria-label` that defaults to the generic `bali_view.qr_code.label` ("QR code" / "Código QR") and takes a `label:` for the context the markup does not supply.
 
 ## [v3.1.0.beta.2] - 2026-08-06
 
