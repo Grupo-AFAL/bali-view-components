@@ -969,8 +969,10 @@
       mentions_url: '/users',
       references_url: '/bali/entity_references',
       references_resolve_url: '/bali/entity_references/resolve',
+      # Comments are stored in memory here. The persistent store hangs threads off a
+      # host record (`url` :auto plus `commentable`), and the showcase is not one —
+      # /documents/:id is the page that demonstrates the real thing.
       comments: {
-        url: '/block_editor_comments',
         user: { id: '1', username: 'Demo User' },
         users_url: '/users'
       }

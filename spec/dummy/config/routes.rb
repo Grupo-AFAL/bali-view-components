@@ -82,12 +82,10 @@ Rails.application.routes.draw do
   patch 'sortable_list', to: 'sortable_list#update'
   get 'users', to: 'users#index'
 
-  # BlockEditor
-  resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
-    resources :comments, controller: 'block_editor_threads/comments', only: %i[create update destroy] do
-      resource :reactions, controller: 'block_editor_threads/comments/reactions', only: %i[create destroy]
-    end
-  end
+  # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine
+  # endpoints (`mount Bali::Engine` below), and `config/initializers/bali.rb` says
+  # which records may carry threads. That substitution is the adoption test — the
+  # dummy consumes the engine the same way a host app does.
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
   # Documents (full editing experience reference)
@@ -97,10 +95,16 @@ Rails.application.routes.draw do
   # Las versiones ya NO son rutas de esta app: `versions_url: :auto` en el DocumentEditor
   # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707).
   resources :documents, except: :edit do
+<<<<<<< HEAD
     resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
       resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
         resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
       end
+=======
+    resources :versions, only: [:index, :show], controller: 'document_versions'
+    member do
+      post :restore_version
+>>>>>>> origin/feat/706-comments-engine
     end
   end
 

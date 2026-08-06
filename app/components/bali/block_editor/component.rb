@@ -92,6 +92,14 @@ module Bali
         comments_config = @config.comments.is_a?(Hash) ? @config.comments.transform_keys(&:to_sym) : nil
         @comments       = comments_config.present?
         @comments_url   = comments_config&.fetch(:url, nil)
+        # `url: :auto` (#706) points the editor at the engine's own endpoints for one
+        # host record. It needs the view context to build the path, so all initialize
+        # does is remember the intent and check the record is usable -- raising here
+        # rather than in before_render puts the error on the call site.
+        @comments_url_auto = (@comments_url == :auto)
+        @comments_url = nil if @comments_url_auto
+        @comments_commentable = comments_config&.fetch(:commentable, nil)
+        validate_comments_commentable! if @comments_url_auto
         @comments_user  = comments_config&.fetch(:user, nil)
         @comments_users = comments_config&.fetch(:users, nil)
         @comments_users_url = comments_config&.fetch(:users_url, nil)
@@ -113,6 +121,7 @@ module Bali
         @options = prepend_values(@options, "block-editor", { translations: translations_json })
 
         resolve_auto_upload_url
+        resolve_auto_comments_url
       end
 
       def editable?
@@ -243,8 +252,39 @@ module Bali
         return unless resolved
 
         @upload_url = resolved
+        # Same string key `prepend_values` uses -- see resolve_auto_comments_url. This
+        # one happened to work with a symbol only because `prepend_values` skips nil
+        # values, so there was nothing to collide with.
         @options[:data] ||= {}
-        @options[:data][:'block-editor-upload-url-value'] = resolved
+        @options[:data]["block-editor-upload-url-value"] = resolved
+      end
+
+      # The commentable is the whole point of `:auto`: the engine scopes every one of
+      # the nine endpoints to it, and `RESTThreadStore._buildUrl` carries the query
+      # string from this base URL to all of them.
+      def resolve_auto_comments_url
+        return unless @comments_url_auto
+
+        resolved = resolve_engine_threads_path
+        return unless resolved
+
+        @comments_url = resolved
+        # The STRING key is the one `prepend_values` already wrote in initialize (with
+        # `""`, since the URL was not known yet). A symbol key here would add a second
+        # data attribute instead of replacing that one, and the empty one -- being
+        # first -- is the one the browser reads.
+        @options[:data] ||= {}
+        @options[:data]["block-editor-comments-url-value"] = resolved
+      end
+
+      def validate_comments_commentable!
+        return if @comments_commentable.respond_to?(:id) &&
+                  @comments_commentable.class.respond_to?(:polymorphic_name)
+
+        raise ArgumentError,
+              "comments: { url: :auto } requires `commentable:` to be an Active Record " \
+              "record (got #{@comments_commentable.inspect}). The engine scopes threads " \
+              "to it; there is no unscoped thread list."
       end
 
       def export_values
@@ -256,6 +296,17 @@ module Bali
 
       def resolve_engine_upload_path
         helpers.bali.block_editor_uploads_path
+      rescue NoMethodError
+        nil
+      end
+
+      # nil when the host did not mount the engine, same as uploads: the editor falls
+      # back to the in-memory store instead of pointing at a URL that answers 404.
+      def resolve_engine_threads_path
+        helpers.bali.block_editor_threads_path(
+          commentable_type: @comments_commentable.class.polymorphic_name,
+          commentable_id: @comments_commentable.id
+        )
       rescue NoMethodError
         nil
       end

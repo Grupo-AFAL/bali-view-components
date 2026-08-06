@@ -75,4 +75,18 @@ Bali.config do |config|
   # El default resuelve `controller.current_user`, que en el engine no existe: sin esto la
   # versión que crea el restore se firmaría "Unknown".
   config.content_versions_author = ->(_controller) { [User.demo, User.demo.name] }
+
+  # #706 — qué registros del dummy pueden llevar hilos de comentarios. El default es
+  # `{}`, o sea 404 para todo: montar el engine no habilita comentarios en nada.
+  #
+  # La clave es lo que se guarda en `commentable_type` (`Document.polymorphic_name`).
+  # El valor va como STRING y no como la clase: una clase guardada acá se queda con la
+  # copia que Zeitwerk descarta en el próximo reload, y Lookbook recarga todo el día.
+  config.block_editor_commentables = { 'Document' => 'Document' }
+
+  # Misma razón que `saved_views_owner`: el controller del engine no hereda el del
+  # dummy. El id del usuario es un STRING y tiene que ser uno de los que las vistas
+  # declaran en `comments[:users]` (DocumentsController::DEMO_USERS), o el editor solo
+  # sabe rotular "User <id>".
+  config.block_editor_comments_user = ->(_controller) { 'user-1' }
 end

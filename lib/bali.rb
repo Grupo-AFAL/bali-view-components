@@ -135,6 +135,45 @@ module Bali
   # Example: '/api/block_editor/uploads'
   mattr_accessor :block_editor_upload_url, default: nil
 
+  # Comentarios del Block Editor (#706) — storage default de threads/comentarios/
+  # reacciones (tablas `bali_block_editor_*`, instaladas con
+  # `bin/rails bali:install:migrations`). Los tres callables de abajo son TODA la
+  # configuración: sin ellos el engine responde 404 a cualquier petición.
+  #
+  # A qué modelos del host se les puede colgar un thread. Hash
+  # `"Document" => Document` (usa `.find_by(id:)`) o `"Document" => ->(id) { ... }`
+  # para scopear a mano. La clave es lo que guarda `commentable_type`, o sea
+  # `record.class.polymorphic_name`.
+  #
+  # El default VACÍO es la postura de seguridad: montar el engine no habilita
+  # comentarios en nada, y el tipo jamás se resuelve por `constantize`.
+  # Un lambda de aridad 2 recibe el CONTROLLER primero (misma forma que
+  # `content_versionables`), que es lo que permite scopear por usuario y responder
+  # 404 a lo ajeno en vez del 403 del authorize (el par 403/404 es un oráculo).
+  # Example: Bali.block_editor_commentables =
+  #   { "Document" => ->(c, id) { c.current_user.documents.find_by(id: id) } }
+  mattr_accessor :block_editor_commentables, default: {}
+
+  # Identidad del autor: callable evaluado con el controller, devuelve el **string**
+  # del userId (el contrato del JS es string; el nombre a mostrar lo resuelve el
+  # cliente con `comments[:users]`/`users_url`). Mismo aviso que saved_views: el
+  # controller del engine no hereda el del host — ver docs/guides/engines.md.
+  #
+  # OJO: `RESTThreadStore` manda un header `X-User-Id`, y el engine lo IGNORA a
+  # propósito. Es informativo; confiar en él dejaría comentar como cualquiera.
+  # Example: ->(controller) { controller.current_member&.id&.to_s }
+  mattr_accessor :block_editor_comments_user,
+                 default: ->(controller) { controller.try(:current_user)&.id&.to_s }
+
+  # Gate de acceso general: callable (controller, user_id, commentable) — truthy
+  # permite, falsy responde 403. Es el permiso de ENTRADA; las reglas por acción
+  # (solo el autor edita su comentario, solo el autor del primer comentario borra el
+  # thread) están cableadas en los controllers replicando a `DefaultThreadStoreAuth`,
+  # que es lo que la UI ya promete.
+  # Example: ->(controller, user_id, commentable) { commentable.readable_by?(user_id) }
+  mattr_accessor :block_editor_comments_authorize,
+                 default: ->(_controller, user_id, _commentable) { user_id.present? }
+
   # Saved views (B2) — storage default que trae el engine (tabla `bali_saved_views`,
   # instalada con `bin/rails bali:install:migrations`).
   #

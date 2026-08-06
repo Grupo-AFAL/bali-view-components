@@ -50,6 +50,9 @@ inside each controller and respond `403 Forbidden` on their own:
 | `Bali.entity_references_authorize` | entity reference search and resolution | **denies** — mounting the engine publishes nothing until you open it |
 | `Bali.content_versionables` | which models expose a history at all | `{}` — every `record_type` is a 404 |
 | `Bali.content_versions_authorize` | reading and restoring versions | falsy — 403 |
+| `Bali.block_editor_commentables` | what may carry comment threads | `{}` — everything 404s |
+| `Bali.block_editor_comments_user` | who authors a comment | `->(controller) { controller.try(:current_user)&.id&.to_s }` |
+| `Bali.block_editor_comments_authorize` | reaching the comments at all | user id present, else 403 |
 
 New engine controllers follow the same doctrine: a whitelist plus an authorize lambda
 is the defense, and it works even for a request that carries no session at all. The
@@ -278,6 +281,7 @@ add_index :documents, :title, using: :gin, opclass: :gin_trgm_ops
 The editor queries once per keystroke, so the number of registered types multiplies every
 search. Ordering the registry by how often a type is actually referenced helps: the search
 stops as soon as it has ten results.
+
 ## Content versions (#707)
 
 `bali_content_versions` is a generic history table: one polymorphic `record`, so a
@@ -408,6 +412,154 @@ change-log foreign keys, which this generic table does not model.
 Adopt the engine's table when the history is plain content history. The dummy app's own
 `Document` is the worked example: it had exactly this pair of methods (without the row
 lock, which was the bug) and now includes the concern instead.
+
+## Block Editor comments (#706)
+
+The engine ships the storage behind the editor's inline comments: three tables, three
+controllers, and the nine endpoints `RESTThreadStore` calls. Adopting it is a
+migration, three lines of configuration, and one keyword in the view.
+
+### 1. Install the tables
+
+```bash
+bin/rails bali:install:migrations
+bin/rails db:migrate
+```
+
+That copies `CreateBaliBlockEditorComments`, which creates
+`bali_block_editor_threads`, `bali_block_editor_comments` and
+`bali_block_editor_reactions`.
+
+### 2. Configure the three lambdas
+
+```ruby
+# config/initializers/bali.rb
+Bali.config do |config|
+  # What may carry comment threads. The KEY is what lands in `commentable_type`,
+  # i.e. `Document.polymorphic_name`. The value is the model — as a String, a class,
+  # or a lambda. A two-argument lambda receives the CONTROLLER first, then the id —
+  # the same shape as `Bali.content_versionables` — which is what lets you scope the
+  # lookup by user so a record that exists but is not theirs answers 404 instead of
+  # the authorize lambda's 403 (a 403/404 pair is an existence oracle):
+  #
+  #   config.block_editor_commentables = {
+  #     "Document" => ->(controller, id) { controller.current_user.documents.find_by(id: id) }
+  #   }
+  #
+  # A one-argument lambda (`->(id) { ... }`) still works when scoping is not needed.
+  config.block_editor_commentables = { "Document" => "Document" }
+
+  # Who is writing. Returns a STRING id; the editor resolves the display name on the
+  # client from `comments[:users]` / `comments[:users_url]`.
+  config.block_editor_comments_user = ->(controller) { controller.current_user&.id&.to_s }
+
+  # Whether this request may reach the comments of this record at all.
+  config.block_editor_comments_authorize = lambda do |_controller, user_id, commentable|
+    user_id.present? && commentable.readable_by?(user_id)
+  end
+end
+```
+
+Prefer the **String** form over the class in the whitelist: an initializer that holds
+the class object holds the copy Zeitwerk discards on the next reload, and comments
+start 404ing in development after the first edit.
+
+The default whitelist is `{}`, so mounting the engine grants nothing. Both the missing
+type and the missing record answer `404` — telling them apart would turn the whitelist
+into a directory of what you store.
+
+### 3. Point the editor at it
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  initial_content: @document.content,
+  comments: { url: :auto, commentable: @document,
+              user: { id: current_user.id.to_s, username: current_user.name },
+              users_url: users_path }
+) %>
+```
+
+`url: :auto` resolves `bali.block_editor_threads_path(commentable_type:,
+commentable_id:)` for that record. The commentable travels in the base URL's query
+string and `RESTThreadStore._buildUrl` keeps it on all nine endpoints, so nothing else
+has to carry it. Passing `:auto` without a `commentable:` raises — an editor pointed at
+an unscoped thread list is not a thing this engine offers.
+
+You can still pass an explicit `url:` and implement the contract yourself; `:auto` is
+only a shortcut to the engine's own endpoints.
+
+### What the engine decides, and what it leaves to you
+
+Permissions replay BlockNote's client-side `DefaultThreadStoreAuth` on the server,
+because that matrix is what the UI already promises — and the client-side copy stops
+nothing:
+
+| Action | Who |
+|---|---|
+| list threads, open a thread, add a comment, resolve/unresolve, react | anyone the authorize lambda admits |
+| edit or delete a comment | its author, and nobody else (`403`) |
+| delete a thread | the author of its **first** comment (`403` for anyone else) |
+
+Deleting a comment is soft: the body becomes `null`, `deleted_at` is stamped, and the
+editor renders a tombstone. Deleting the last live comment of a thread takes the thread
+with it. **A tombstone is final**: editing a deleted comment answers `410 Gone` and it
+takes no new reactions — restoring a body would produce a comment with both
+`deleted_at` and content, a combination the frozen JSON contract declares impossible.
+
+The write surface is bounded, deliberately: an emoji is at most 32 characters, one user
+gets at most 20 distinct reactions per comment (`429`), a comment body tops out at
+256 KB and `metadata` at 16 KB serialized (`422`), and one record accumulates at most
+500 threads (`422`). Real editor payloads sit orders of magnitude below all of these —
+the caps only exist so none of the columns can serve as an unbounded write primitive.
+
+One more thing to know before you render it: **`metadata` is an unfiltered round-trip
+channel**. The engine stores what the client sent and serves it back verbatim to anyone
+the authorize lambda admits. Treat it as untrusted user content — escape it, never
+`html_safe` it, and do not put anything in it server-side that every reader may not see.
+
+Two things the engine deliberately does **not** do:
+
+- **No user directory endpoint.** Who exists and what they are called is the host's
+  business — `comments[:users]` and `comments[:users_url]` already cover it, and it is
+  the same doctrine as the injected audience elsewhere in the engine.
+- **No trust in `X-User-Id`.** `RESTThreadStore` sends that header, and the engine
+  ignores it. Identity comes from `Bali.block_editor_comments_user` and nowhere else.
+
+### Migrating an app that already had its own tables
+
+Apps that ran the reference implementation before this shipped
+(`block_editor_threads` / `block_editor_comments` / `block_editor_reactions` with the
+same columns — this is the case for gobierno-corporativo) do not need to copy any data.
+Every column keeps the name it had, so a rename is enough:
+
+```ruby
+class MoveBlockEditorCommentsIntoBali < ActiveRecord::Migration[8.0]
+  def change
+    rename_table :block_editor_threads,   :bali_block_editor_threads
+    rename_table :block_editor_comments,  :bali_block_editor_comments
+    rename_table :block_editor_reactions, :bali_block_editor_reactions
+  end
+end
+```
+
+Then delete the app's own `BlockEditorThread` / `BlockEditorComment` /
+`BlockEditorReaction` models, its threads/comments/reactions controllers and their
+routes, and replace the view's `comments: { url: ... }` with `url: :auto, commentable:`.
+
+Three details the rename does not cover:
+
+- **`commentable` is `null: false` in the engine.** If your `commentable_type` /
+  `commentable_id` were nullable — the reference implementation left them so — backfill
+  the orphans (or delete them; a thread that belongs to nothing was never reachable
+  from a document) and add the `NOT NULL` in the same migration.
+- **A hand-named index keeps its old name.** `rename_table` renames indexes Rails named
+  itself, not one you named explicitly, so the reactions uniqueness index stays
+  `idx_reactions_comment_user_emoji` instead of `idx_bali_reactions_comment_user_emoji`.
+  Cosmetic — it constrains the same three columns — but a schema diff will show it.
+- **Do not reach for `self.table_name`** on the engine's models to keep the old names.
+  It would leave every other host carrying a knob nobody else needs, and the next engine
+  migration would target a table name that no longer matches.
+
 ## Testing with an injected concern
 
 In the engine's own suite, `test/requests/engine_controller_concerns_test.rb` shows the
