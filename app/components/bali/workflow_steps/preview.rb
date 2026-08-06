@@ -65,6 +65,44 @@ module Bali
         render_with_template(locals: { progress: progress })
       end
 
+      # Decision pattern (approve / reject)
+      # -----------------------------------
+      # The form that goes next to the flow is **the host's**, not a Bali
+      # component: it owns the route, the params and the policy. What is worth
+      # copying is its shape, which is the same in every approval screen:
+      #
+      # ```erb
+      # <%= form_with url: decision_path(request), method: :post, builder: Bali::FormBuilder do |f| %>
+      #   <%= f.text_area_group :notes, label: 'Notes', rows: 3, required: true %>
+      #   <%= f.submit_field 'Approve', variant: :success,
+      #         name: 'decision', value: 'approve', formnovalidate: true %>
+      #   <%= f.submit_field 'Reject', variant: :error, style: :outline,
+      #         name: 'decision', value: 'reject',
+      #         data: { turbo_confirm: 'Reject this request?' } %>
+      # <% end %>
+      # ```
+      #
+      # Three things carry it:
+      #
+      # - **One form, two submits told apart by `name:`/`value:`.** The
+      #   controller reads `params[:decision]`, and the notes are typed once
+      #   whichever way it goes.
+      # - **`required: true` on the notes + `formnovalidate` on Approve.** The
+      #   browser demands a reason to reject and asks nothing to approve — no
+      #   JavaScript, no second field, no server-side branch to keep in sync
+      #   with the markup.
+      # - **`turbo_confirm` on the destructive half only.** A rejection usually
+      #   ends the route; an approval moves it along and is undone by the next
+      #   step.
+      #
+      # Nothing here is a component and nothing here is planned to become one:
+      # `formnovalidate` is a property of *this* form, and packaging it would
+      # be the first step towards the workflow engine this component
+      # deliberately is not.
+      def decision_pattern
+        render_with_template
+      end
+
       # Provisional route
       # -----------------
       # Before a request is typed, the whole step definition is shown and an

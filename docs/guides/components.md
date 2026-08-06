@@ -937,6 +937,30 @@ Same `with_step` API. What changes:
 The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
 rows instead of shrinking each card past reading width.
 
+##### The decision form is the host's
+
+Approving or rejecting a step is not part of this component and is not planned
+to be: it owns the route, the params and the policy. The shape worth copying,
+which is the same in every approval screen, is in the `decision_pattern`
+Lookbook preview:
+
+```erb
+<%= form_with url: decision_path(request), method: :post, builder: Bali::FormBuilder do |f| %>
+  <%= f.text_area_group :notes, label: "Notes", rows: 3, required: true %>
+  <%= f.submit_field "Approve", variant: :success,
+        name: "decision", value: "approve", formnovalidate: true %>
+  <%= f.submit_field "Reject", variant: :error, style: :outline,
+        name: "decision", value: "reject",
+        data: { turbo_confirm: "Reject this request?" } %>
+<% end %>
+```
+
+One form, two submits told apart by `name:`/`value:` — the controller reads
+`params[:decision]` and the notes are typed once whichever way it goes.
+`required: true` plus `formnovalidate` on Approve is what makes the browser
+demand a reason to reject and ask nothing to approve, with no JavaScript and no
+second field. `turbo_confirm` goes on the destructive half only.
+
 #### Pagination
 
 Pagination controls (DaisyUI `join` buttons) built from a Pagy object; renders nothing when there is only one page.
