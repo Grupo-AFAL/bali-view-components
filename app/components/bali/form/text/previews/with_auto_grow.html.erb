@@ -1,0 +1,4 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_group :text, label: 'Headline', auto_grow: true,
+                      help: 'auto_grow: is a textarea option — inert here, and quiet about it' %>
+<% end %>
