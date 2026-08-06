@@ -75,6 +75,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Chunker` splits a document into heading-delimited chunks for search indexing / RAG (target 1600 chars, 300-char overlap, ~4 chars/token estimate). Embeddings and vector storage stay host-side on purpose — no pgvector in the engine.
 
   The libs live in `app/lib/` (autoloaded, no new eager-load path) and are deliberately free of ActiveSupport core extensions: they load and run under plain Ruby. New runtime dependency: `diff-lcs` (~> 1.5, MIT, no transitive deps) for the word-level spans. Entity-reference extraction, registry and controller arrive in PR 2.
+### Added
+
+- **Cypress coverage for `dynamic-fields-controller`** (#715 PR1, closes the TODO from #155).
+  `cypress/e2e/dynamic-fields-controller.cy.js` freezes the controller's current JS contract
+  before the #715 feature work touches it: `addFields` clones the `<template>` replacing the
+  `new_record` placeholder with a numeric child index, `removeFields` hides the row (it stays
+  in the DOM), sets `.destroy-flag` to `true` and strips the non-hidden form elements while
+  keeping the hidden ones, `moveUp`/`moveDown` swap rows and renumber every `[data-position]`
+  input (and are no-ops at the edges), and the `remove-duplicates` mode drops already-selected
+  options from the cloned template and disables the add button at maximum size — on `connect()`
+  too — re-enabling it when a row is removed. Two new Lookbook previews back the parts the Ruby
+  helper does not emit yet (`sortable`, `remove_duplicates`), wired by hand the way host apps
+  do today; the add/remove specs run against the existing `default`/`empty` previews.
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
 the stable channel: `3.0` merges into `main`, `main` becomes the v3 line, and the next

@@ -7,6 +7,8 @@ import {
   nextSibling
 } from '../utils/domHelpers.js'
 
+// Contract frozen by cypress/e2e/dynamic-fields-controller.cy.js (#155/#715).
+
 export class DynamicFieldsController extends Controller {
   static targets = ['template', 'container', 'button']
   static values = {
