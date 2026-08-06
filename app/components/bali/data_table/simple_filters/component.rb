@@ -18,6 +18,8 @@ module Bali
       #
       class Component < ApplicationViewComponent
         include Utils::Url
+        include Bali::Filters::PreservedParams
+        include Bali::Filters::Persistable
 
         # Min-width for slim_select dropdowns. Triggers in SimpleFilters are narrow
         # (~13rem), so we let the dropdown grow past the trigger to fit long labels
@@ -40,7 +42,10 @@ module Bali
         # @param persistence_toggle [Boolean] Render the bookmark toggle inline (default: true).
         #   DataTable turns it off and paints it as its own toolbar control.
         # @param preserved_params [Hash] Extra top-level params (e.g. an active
-        #   `group_by`) rendered as hidden fields so the GET submit keeps them
+        #   `group_by`) rendered as hidden fields so the GET submit keeps them.
+        #   Non-filter params already in the `url:` query string travel too
+        #   (same semantics as Filters::Component); on a key collision the
+        #   explicit hash wins.
         # rubocop:disable Metrics/ParameterLists
         def initialize(url:, filters: [], show_clear: false, search: nil, storage_id: nil,
                        persist_enabled: false, persistence_toggle: true, preserved_params: {})
@@ -55,32 +60,12 @@ module Bali
           @preserved_params = preserved_params || {}
         end
 
-        attr_reader :storage_id
-
-        # Top-level params to carry through the GET submit as hidden fields.
-        # Blank values are dropped so no empty inputs are emitted.
-        def preserved_params
-          @preserved_params.reject { |_, value| value.to_s.blank? }
-        end
-
         def render?
           @filters.any? || search_enabled?
         end
 
         def show_clear?
           @show_clear
-        end
-
-        # Returns true if user has enabled persistence
-        def persist_enabled?
-          @persist_enabled
-        end
-
-        # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
-        # controladores `filter-persistence` sobre el mismo storage_id se pisan el
-        # localStorage y la cookie.
-        def persistence_toggle?
-          @persistence_toggle
         end
 
         def search_enabled?

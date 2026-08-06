@@ -1,8 +1,9 @@
 <%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
-  <%# Preserve top-level params (e.g. an active group_by) across the GET submit %>
-  <% preserved_params.each do |name, value| %>
-    <%= tag.input(type: "hidden", name: name, value: value) %>
-  <% end %>
+  <%# Preserve top-level params across the GET submit: el browser descarta el query de la
+      action en un submit GET, así que tanto los params propios de la `url:` del host (un
+      scope como `status=historico`) como los explícitos (`preserved_params`, p. ej. un
+      `group_by` activo) se re-emiten como hidden fields — misma semántica que Filters. %>
+  <%= preserved_params_hidden_fields %>
   <%# El scroll horizontal es del teléfono: arriba de `sm` la fila envuelve
       (`sm:flex-wrap`) y no scrollea nunca. Pero `overflow-x-auto` seguía puesto en todos
       los anchos, y eso hace de la fila un contenedor de scroll, que RECORTA en su caja de

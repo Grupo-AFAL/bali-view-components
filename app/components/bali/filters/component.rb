@@ -3,13 +3,11 @@
 module Bali
   module Filters
     class Component < ApplicationViewComponent
-      # `saved_view` NO se preserva: re-enviarlo hace que el server re-aplique el payload de
-      # la vista, pisando en silencio los filtros o la búsqueda que el usuario acaba de
-      # escribir. (`page` sí viaja: preservarlo es comportamiento deliberado de Bali.)
-      EXCLUDED_PARAMS = %w[q clear_filters clear_search saved_view].freeze
+      include Bali::Filters::PreservedParams
+      include Bali::Filters::Persistable
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
-                  :filter_groups, :max_groups, :storage_id, :persist_enabled, :turbo_stream
+                  :filter_groups, :max_groups, :turbo_stream
 
       # Renders the applied filter pills above the filter builder
       renders_one :applied_tags, ->(**options) do
@@ -84,24 +82,6 @@ module Bali
         @id = options[:id] || "filters-#{SecureRandom.hex(4)}"
       end
       # rubocop:enable Metrics/ParameterLists
-
-      # Returns true if persistence is available (storage_id is configured)
-      def persistence_available?
-        @storage_id.present?
-      end
-
-      # Returns true if user has enabled persistence
-      def persist_enabled?
-        @persist_enabled
-      end
-
-      # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
-      # controladores `filter-persistence` sobre el mismo storage_id se pisan el localStorage
-      # y la cookie. Apaga SOLO el toggle — el panel sigue necesitando storage_id y
-      # persist_enabled para su leyenda "Auto-guardado".
-      def persistence_toggle?
-        @persistence_toggle
-      end
 
       def button_text
         @button_text || I18n.t("bali_view.filters.filters_button")
@@ -179,34 +159,6 @@ module Bali
         }.to_json
       end
 
-      # Extract non-filter query params to preserve them when submitting.
-      # Combines params parsed from the URL with any explicitly-passed
-      # `preserved_params` (e.g. an active `group_by`), which win on key
-      # collisions. Returns an array of [name, value] pairs for hidden_field_tag.
-      def preserved_query_params
-        query_string = URI.parse(url).query
-        from_url = if query_string.blank?
-                     []
-        else
-                     params = Rack::Utils.parse_nested_query(query_string)
-                     flatten_params(params.except(*EXCLUDED_PARAMS))
-        end
-
-        explicit = flatten_params(@preserved_params.stringify_keys).reject { |_, value| value.to_s.blank? }
-        explicit_keys = explicit.map(&:first)
-        from_url.reject { |name, _| explicit_keys.include?(name) } + explicit
-      end
-
-      # Render hidden fields for preserved params (call from template).
-      # `id: nil` como en active_filter_hidden_fields: en modo popover estos campos se pintan
-      # en los DOS forms (búsqueda rápida y panel), y con id derivado del name quedaban ids
-      # duplicados en el documento.
-      def preserved_params_hidden_fields
-        safe_join(
-          preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value, id: nil) }
-        )
-      end
-
       # Hidden fields carrying the APPLIED filter state (q[g][...]/q[m]), so the quick-search
       # form preserves active filters instead of clearing them. Serializes `filter_groups`
       # back into the same Ransack param shape the filter form submits; the consolidated
@@ -251,20 +203,6 @@ module Bali
           condition[:value].map { |v| [ "#{base}_#{condition[:operator]}][]", v ] }
         else
           [ [ "#{base}_#{condition[:operator]}]", condition[:value] ] ]
-        end
-      end
-
-      # Recursively flatten nested params hash into [name, value] pairs.
-      # e.g., {"sort" => {"column" => "name"}} becomes [["sort[column]", "name"]]
-      def flatten_params(params, prefix = nil)
-        params.flat_map do |key, value|
-          field_name = prefix ? "#{prefix}[#{key}]" : key.to_s
-
-          case value
-          when Hash  then flatten_params(value, field_name)
-          when Array then value.map { |v| [ "#{field_name}[]", v ] }
-          else            [ [ field_name, value ] ]
-          end
         end
       end
 
