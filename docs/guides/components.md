@@ -699,7 +699,7 @@ is a preset of this one, not a second implementation.
 <%= render Bali::Dropdown::Component.new(align: :end) do |dd| %>
   <% dd.with_trigger { "Options" } %>
   <% dd.with_item(name: "Edit", href: "/edit", icon: "pencil") %>
-  <% dd.with_item(name: "Delete", href: "/things/1", method: :delete, icon: "trash") %>
+  <% dd.with_item(name: "Delete", href: "/things/1", method: :delete, icon: "trash-2") %>
 <% end %>
 ```
 
@@ -740,7 +740,7 @@ Dropdown keyword plus `icon:` for the trigger (default `"ellipsis-h"`).
 ```erb
 <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |c| %>
   <% c.with_item(name: "Edit", icon: "pencil", href: edit_movie_path(movie)) %>
-  <% c.with_item(name: "Delete", icon: "trash", href: movie_path(movie), method: :delete) %>
+  <% c.with_item(name: "Delete", icon: "trash-2", href: movie_path(movie), method: :delete) %>
 <% end %>
 ```
 
@@ -1640,7 +1640,7 @@ Vertical list of rows (DaisyUI `list`) where each item has a title, subtitle, op
     <% i.with_title('First item') %>
     <% i.with_subtitle('Description of the first item') %>
     <% i.with_action do %>
-      <%= render Bali::Button::Component.new(name: 'Delete', variant: :error, size: :sm, icon: 'trash') %>
+      <%= render Bali::Button::Component.new(name: 'Delete', variant: :error, size: :sm, icon: 'trash-2') %>
     <% end %>
   <% end %>
 <% end %>
