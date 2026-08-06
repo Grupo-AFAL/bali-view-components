@@ -51,26 +51,80 @@ module Bali
         extractor&.call(node)
       end
 
-      # Pulls plain text out of every cell in a table block, supporting both:
+      # Every table cell as its own array of inline nodes, supporting both:
       #   - Legacy `tableRow` shape: block["cells"] = [[ inline_node, ... ], ...]
       #   - Current `table` block:   block["content"] = { type: "tableContent",
       #       rows: [{ cells: [{ content: [...] }] }] }
-      def table_cell_text(block)
+      #
+      # The only place either table shape is spelled out. Both the text fold below
+      # and the entity reference walker read cells through here, so a third BlockNote
+      # table shape lands in one method.
+      def table_cells(block)
         case block["type"]
         when "tableRow"
-          Array(block["cells"]).flat_map { |row| Array(row).filter_map { |c| inline_node_text(c) } }
+          Array(block["cells"]).map { |cell| Array(cell) }
         when "table"
           table = block["content"]
           return [] unless table.is_a?(Hash) && table["type"] == "tableContent"
 
           Array(table["rows"]).flat_map { |row|
             Array(row["cells"]).map { |cell|
-              cell_content = cell.is_a?(Hash) ? cell["content"] : cell
-              inline_text(cell_content)
+              Array(cell.is_a?(Hash) ? cell["content"] : cell)
             }
           }
         else
           []
+        end
+      end
+
+      # Pulls plain text out of every cell in a table block. The two shapes join
+      # differently on purpose: a legacy `tableRow` cell keeps one text per inline
+      # node (they end up space-joined by `extract_text`), while a `table` cell is a
+      # single run of styled spans and joins with nothing between them.
+      def table_cell_text(block)
+        cells = table_cells(block)
+
+        case block["type"]
+        when "tableRow" then cells.flat_map { |cell| cell.filter_map { |node| inline_node_text(node) } }
+        when "table"    then cells.map { |cell| inline_text(cell) }
+        else []
+        end
+      end
+
+      # Collects every `entityReference` inline node in a document, in reading
+      # order, deduplicated by type+id. Descends into nested children and both
+      # table shapes — THE walker for references: `Bali::EntityReferenceable`
+      # calls this instead of carrying its own copy of BlockNote's structure,
+      # which is how the two walkers this library replaces drifted apart.
+      #
+      # No whitelist here: which types are referenceable is the registry's
+      # business (`Bali.entity_reference_types`), and this file stays pure.
+      def entity_references(blocks)
+        collect_entity_references(Array(blocks)).uniq { |ref| [ ref[:type], ref[:id] ] }
+      end
+
+      def collect_entity_references(blocks)
+        blocks.flat_map do |block|
+          next [] unless block.is_a?(Hash)
+
+          inline = entity_reference_nodes(block["content"])
+          cells = table_cells(block).flat_map { |cell| entity_reference_nodes(cell) }
+          inline + cells + collect_entity_references(Array(block["children"]))
+        end
+      end
+
+      def entity_reference_nodes(inline)
+        return [] unless inline.is_a?(Array)
+
+        inline.filter_map do |node|
+          next unless node.is_a?(Hash) && node["type"] == "entityReference"
+
+          props = node["props"] || {}
+          type = props["entityType"].to_s
+          id = props["entityId"].to_s
+          next if type.empty? || id.empty?
+
+          { type: type, id: id, name: props["entityName"] }
         end
       end
 

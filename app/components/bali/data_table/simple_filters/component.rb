@@ -117,6 +117,13 @@ module Bali
           date?(filter) || date_range?(filter)
         end
 
+        # A date range offered as named periods ("This month") with the picker behind a
+        # "Custom…" option. Only `date_range` gets them: "this week" is not a value a
+        # single date can hold.
+        def presets?(filter)
+          date_range?(filter) && filter[:presets].present?
+        end
+
         def boolean?(filter)
           filter_type(filter) == :boolean
         end
@@ -133,6 +140,42 @@ module Bali
           predicate = filter[:predicate] || (date_range?(filter) ? nil : :eq)
           name = predicate.present? ? "q[#{filter[:attribute]}_#{predicate}]" : "q[#{filter[:attribute]}]"
           toggle_group?(filter) ? "#{name}[]" : name
+        end
+
+        # The period select's options: "no filter", the declared presets, "Custom…".
+        # The picker itself is a fourth state of the same control, not a fifth option.
+        def preset_options(filter)
+          [ [ preset_blank_label(filter), "" ] ] +
+            Bali::DateRangePresets.options(filter[:presets]) +
+            [ [ t("bali_view.simple_filters.presets.custom"), Bali::DateRangePresets::CUSTOM ] ]
+        end
+
+        # A date range filter has no blank option to name today, so `blank:` is free for it
+        # and most call sites will not have bothered.
+        def preset_blank_label(filter)
+          filter[:blank].presence || t("bali_view.simple_filters.presets.any")
+        end
+
+        # Which option the request came back on. Anything that is not a token but is set is
+        # a range the user typed or picked, so the select lands on "Custom…" and the picker
+        # comes back holding it.
+        def preset_select_value(filter)
+          value = preset_current_value(filter)
+          return "" if value.blank?
+
+          Bali::DateRangePresets.token?(value) ? value : Bali::DateRangePresets::CUSTOM
+        end
+
+        def preset_custom_value(filter)
+          value = preset_current_value(filter)
+          Bali::DateRangePresets.token?(value) ? nil : value
+        end
+
+        # The one control that submits. Rendered with the value the request carried so the
+        # form is correct before Stimulus connects — the controller rewrites it from
+        # whichever control the user touches afterwards.
+        def preset_current_value(filter)
+          (filter[:value] || filter[:default]).presence&.to_s
         end
 
         def number_range_field_names(filter)
@@ -153,6 +196,40 @@ module Bali
         # caption instead, which is what a caption over several controls is.
         def multi_control?(filter)
           toggle_group?(filter) || radio_group?(filter) || number_range?(filter)
+        end
+
+        # Pills that filter on click instead of waiting for the Filter button.
+        # Restricted to the two pill widgets here as well as in the DSL, because the
+        # instance-level `simple_filters:` hashes come in unvalidated.
+        def auto_submit?(filter)
+          return false unless filter[:auto_submit]
+
+          toggle_group?(filter) || radio_group?(filter)
+        end
+
+        def any_auto_submit?
+          @filters.any? { |filter| auto_submit?(filter) }
+        end
+
+        # `submit-on-change` is only mounted when a filter asked for it, so a row
+        # without pills keeps the exact markup it had.
+        def form_data_attributes
+          data = { turbo_frame: "_top" }
+          data[:controller] = "submit-on-change" if any_auto_submit?
+          data
+        end
+
+        # `#submit` and not `#debouncedSubmit`: a pill click is a finished choice, and
+        # the phantom submit that immediacy used to risk is what the controller's own
+        # connect guard now absorbs.
+        #
+        # `change->` spelled out because Stimulus's default event for an `<input>` is
+        # `input`, not `change`. Both fire on a checkbox or radio click, so the two
+        # behave the same here — but the one that reads right is the one written.
+        def auto_submit_attributes(filter)
+          return {} unless auto_submit?(filter)
+
+          { data: { action: "change->submit-on-change#submit" } }
         end
 
         # Derived from the Ransack param name, not from the attribute: the

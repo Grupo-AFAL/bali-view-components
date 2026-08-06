@@ -1,4 +1,4 @@
-<%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
+<%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: form_data_attributes do |f| %>
   <%# Preserve top-level params across the GET submit: el browser descarta el query de la
       action en un submit GET, así que tanto los params propios de la `url:` del host (un
       scope como `status=historico`) como los explícitos (`preserved_params`, p. ej. un
@@ -78,6 +78,7 @@
                      value="<%= value %>"
                      class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
                      aria-label="<%= label %>"
+                     <%= tag.attributes(auto_submit_attributes(filter)) %>
                      <%= "checked" if is_checked %> />
             <% end %>
           </div>
@@ -90,6 +91,7 @@
                      value="<%= value %>"
                      class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
                      aria-label="<%= label %>"
+                     <%= tag.attributes(auto_submit_attributes(filter)) %>
                      <%= "checked" if current_value == value.to_s %> />
             <% end %>
           </div>
@@ -131,6 +133,62 @@
                      class="input input-bordered input-sm w-20"
                      step="<%= filter[:step] || 'any' %>" />
             </div>
+          </div>
+        <% elsif presets?(filter) %>
+          <%# Un solo param, dos controles: el hidden es el ÚNICO con `name`, y el
+              `time-period-field` le escribe el token del select o el rango del picker según
+              cuál tocó el usuario. Dos inputs con el mismo name mandarían el param dos veces
+              y el server se quedaría con el último, que no es necesariamente el que se ve.
+
+              El controller es el mismo de `f.time_period_group`, con el centinela de
+              "Personalizado…" pasado como value: ahí el vacío significa custom porque el
+              widget no filtra nada; acá el vacío tiene que significar "sin filtro". %>
+          <div class="flex items-end gap-1"
+               data-controller="time-period-field"
+               data-time-period-field-custom-value="<%= Bali::DateRangePresets::CUSTOM %>"
+               data-time-period-field-date-input-container-class-value="flatpickr">
+            <input type="hidden"
+                   name="<%= filter_field_name(filter) %>"
+                   value="<%= preset_current_value(filter) %>"
+                   data-time-period-field-target="input" />
+
+            <div class="<%= 'join' if filter[:icon] %>">
+              <%= icon_addon(filter[:icon]) %>
+
+              <%# `tag.select` y no `select_tag`/`f.select`: los dos emiten un `name` y este
+                  control no manda nada — el hidden de arriba es el que viaja. %>
+              <%= tag.select(
+                    options_for_select(preset_options(filter), preset_select_value(filter)),
+                    id: filter_control_id(filter),
+                    class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}",
+                    data: {
+                      "time-period-field-target": "select",
+                      action: "time-period-field#toggleDateInput time-period-field#setInputValue"
+                    }
+                  ) %>
+            </div>
+
+            <%# `name: nil` deja al input sin atributo `name`, o sea fuera del submit.
+                El `hidden` inicial va en el WRAPPER (`.flatpickr`), que es el que esconde el
+                controller: con `alt_input` el input real ya está oculto y lo que se ve es el
+                alt input que flatpickr crea a su lado, dentro de ese mismo wrapper. %>
+            <%= f.date_field(
+                  filter_field_name(filter),
+                  name: nil,
+                  id: "#{filter_control_id(filter)}-custom",
+                  value: preset_custom_value(filter),
+                  mode: "range",
+                  placeholder: filter[:placeholder] || filter[:label],
+                  "aria-label": filter[:label],
+                  alt_input_class: "input input-bordered input-sm w-full",
+                  wrapper_options: {
+                    class: class_names("flatpickr", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
+                  },
+                  data: {
+                    "time-period-field-target": "dateInput",
+                    action: "time-period-field#setInputValue"
+                  }
+                ) %>
           </div>
         <% elsif date_filter?(filter) %>
           <div class="<%= 'join' if filter[:icon] %>">

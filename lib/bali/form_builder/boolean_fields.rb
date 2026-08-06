@@ -15,7 +15,8 @@ module Bali
         xs: "checkbox-xs",
         sm: "checkbox-sm",
         md: "checkbox-md",
-        lg: "checkbox-lg"
+        lg: "checkbox-lg",
+        xl: "checkbox-xl"
       }.freeze
 
       COLORS = {
@@ -88,7 +89,7 @@ module Bali
       def build_checkbox_options(method, options)
         checkbox_class = [
           CHECKBOX_CLASS,
-          SIZES[options[:size]],
+          size_variant(options, SIZES),
           COLORS[options[:color]],
           (errors?(method, options) ? "checkbox-error" : nil),
           options[:class]

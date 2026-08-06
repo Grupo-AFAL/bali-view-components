@@ -39,7 +39,7 @@ controller by hand.
 | [`slim-select`](#slim-select) | SlimSelect widget: search, remote options, addable items | `f.slim_select_group` |
 | [`step-number-input`](#step-number-input) | Number input with +/− buttons respecting min/max/step | `f.step_number_group` |
 | [`submit-button`](#submit-button) | Loading state on the submitter during a Turbo submission | Bali's `form_with` |
-| [`submit-on-change`](#submit-on-change) | Auto-submits the form when a control changes | hand markup |
+| [`submit-on-change`](#submit-on-change) | Auto-submits the form when a control changes, immediately or debounced | hand markup |
 | [`textarea`](#textarea) | Character counter and auto-grow for a textarea | `f.text_area_group` |
 | [`time-period-field`](#time-period-field) | Period select that reveals a custom date input | `f.time_period_group` |
 | [`trix-attachments`](#trix-attachments) | Caps the total attachment size in a Trix editor | `f.rich_text_area` |
@@ -487,7 +487,8 @@ form it builds, so host apps using it get the loading state for free.
 ## `submit-on-change`
 
 Submits the form whenever one of its controls changes — the backbone of
-filter forms.
+filter forms. Two actions, so a select and a search box can share one controller:
+`submit` fires right away, `debouncedSubmit` waits for the typing to stop.
 
 ```html
 <form action="/movies" method="get" data-controller="submit-on-change">
@@ -495,11 +496,16 @@ filter forms.
     <option value="drama">Drama</option>
     <option value="comedy">Comedy</option>
   </select>
-  <input type="search" name="q" data-action="input->submit-on-change#submit">
+  <input type="search" name="q" data-action="submit-on-change#debouncedSubmit">
 </form>
 ```
 
-- `delay` (ms) debounces the submit — set it when text inputs trigger it.
+- `delay` (ms) debounces **both** actions. Without it, `submit` is immediate and
+  `debouncedSubmit` waits 300 ms.
+- `skip-initial` (default `true`) drops change events fired in the first frame after
+  connecting. SlimSelect emits one on the native `<select>` while it builds its
+  widget, which used to submit a form nobody had touched. Set it to `false` only if
+  your app relies on that submit.
 - `action` / `method` submit somewhere other than the form's own target, via a
   hidden submitter with `formaction`/`formmethod` (the form's normal submit button
   keeps its own destination).
@@ -507,11 +513,14 @@ filter forms.
 ```html
 <form action="/movies" data-controller="submit-on-change"
       data-submit-on-change-delay-value="300"
+      data-submit-on-change-skip-initial-value="false"
       data-submit-on-change-action-value="/movies/preview"
       data-submit-on-change-method-value="get">
   …
 </form>
 ```
+
+Both actions and the guard are live in the `bali/submit_on_change/default` preview.
 
 If your app carries a local `auto_submit_controller.js`, this controller replaces
 it — see [Do you have a local copy?](#do-you-have-a-local-copy)
@@ -537,9 +546,9 @@ it is a plain character count. `min-height` floors the auto-grow.
 
 ## `time-period-field`
 
-A period `<select>` (this week, this month, …) over a hidden field, where the blank
-option means "custom" and reveals a date-range picker. Whichever control the user
-touched last writes the hidden field the form actually submits.
+A period `<select>` (this week, this month, …) over a hidden field, where one option
+means "custom" and reveals a date-range picker. Whichever control the user touched
+last writes the hidden field the form actually submits.
 `f.time_period_group` builds it; the essential wiring is:
 
 ```html
@@ -560,8 +569,21 @@ touched last writes the hidden field the form actually submits.
 </div>
 ```
 
-An optional `date-input-container-class` value names a wrapper element to show/hide
-together with the date input.
+The hidden field is the only control with a `name`: two inputs sharing one would submit
+the param twice and the server would keep the last, which is not necessarily the one on
+screen.
+
+`custom-value` names which option reveals the picker, and defaults to the empty string —
+what `f.time_period_group` uses, because its blank option is spent on exactly that. A
+filter row cannot afford that: its blank option has to mean "no filter", so
+SimpleFilters' `presets:` widget names a real one (`data-time-period-field-custom-value="custom"`)
+and keeps the blank for "any date". See `Bali::DateRangePresets`.
+
+`data-time-period-field-date-input-container-class-value` names a wrapper element to
+show/hide together with the date input — needed whenever the picker runs with `altInput`,
+since then the real input is already hidden and what the user sees is flatpickr's sibling
+inside that wrapper. Spell the `-value` suffix: without it Stimulus reads nothing, the
+controller has no container to reveal and the picker never appears, silently.
 
 ## `trix-attachments`
 
@@ -591,7 +613,7 @@ gem byte for byte or lag behind fixes it has since received:
 
 | App(s) | Local file | Replace with |
 |---|---|---|
-| gobierno-corporativo, afal-apps, centinela-web | `auto_submit_controller.js` | [`submit-on-change`](#submit-on-change) — it has debounce via `delay`; rename `data-controller="auto-submit"` and its actions at each call site |
+| gobierno-corporativo, afal-apps, centinela-web | `auto_submit_controller.js` | [`submit-on-change`](#submit-on-change) — same two actions (`submit`, `debouncedSubmit`) and the same first-frame guard; rename `data-controller="auto-submit"` and the action prefix at each call site |
 | centinela-web, costa-norte | `notification_controller.js` (centinela also keeps the `fadeOutRight` keyframe CSS for it) | `Bali::ToastContainer::Component` + its `toast-container` controller — `Bali::Notification` is deprecated in v3, see the [migration guide](migration-v2-to-v3.md) |
 | identity | `clipboard_controller.js` | Bali's `clipboard` component controller |
 | identity, costa-norte | `bulk_select_controller.js` | Candidates to review against v3's `bulk-actions` — the replacement is not 1:1 yet (identity's "select all N filtered" is not covered), so evaluate before deleting |

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "date_range_presets"
 require_relative "filter_form/search_configuration"
 require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
@@ -67,6 +68,11 @@ module Bali
       SIMPLE_INPUTS = %i[select slim_select toggle_group radio_group boolean date
                          date_range number_range].freeze
 
+      # Widgets that may carry `auto_submit: true`. The pills are the ones where a
+      # single click is the whole interaction, so filtering on it cannot cut the user
+      # off mid-value the way it would on a date or a number range.
+      AUTO_SUBMIT_INPUTS = %i[toggle_group radio_group].freeze
+
       # Default SimpleFilters widget derived from the declared data type.
       # :text has no entry on purpose — quick text search belongs to search_fields.
       DEFAULT_SIMPLE_INPUT_FOR_TYPE = {
@@ -115,6 +121,18 @@ module Bali
       # @param step [Numeric] Step for the :number_range simple widget
       # @param placeholder_min [String] Min placeholder for :number_range
       # @param placeholder_max [String] Max placeholder for :number_range
+      # @param auto_submit [Boolean] Filter as soon as this control changes, instead
+      #   of waiting for the Filter button. Opt-in per filter and off by default, so
+      #   no existing row changes behaviour. Only for the pill widgets — `:toggle_group`
+      #   and `:radio_group`, see AUTO_SUBMIT_INPUTS above — where one click is the whole
+      #   interaction; a range would submit between the two halves of its value.
+      # @param presets [Boolean, Array<Symbol>] Named periods offered by an
+      #   `input: :date_range` widget, which then renders a period select whose
+      #   "Custom…" option reveals the date picker. `true` offers all of
+      #   {Bali::DateRangePresets::TOKENS}; an array picks and orders them. The
+      #   chosen token travels in the same param the explicit range does and is
+      #   resolved against `Time.zone` on every query, so a saved view that says
+      #   "this month" still means this month next month.
       #
       # @example Advanced popover only (same as always)
       #   filter_attribute :name, type: :text
@@ -126,13 +144,26 @@ module Bali
       # @example Simple UI only, custom widget
       #   filter_attribute :priority, type: :select, simple: true, advanced: false,
       #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group
+      #
+      # @example Pills that filter on click
+      #   filter_attribute :status, type: :select, simple: true, advanced: false,
+      #     options: [['Draft', 'draft'], ['Published', 'published']],
+      #     input: :radio_group, auto_submit: true
+      #
+      # @example Date range with named periods
+      #   filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+      #     presets: %i[today this_week this_month], blank: 'Any date'
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, options: [], collection: nil,
                            simple: false, advanced: true, input: nil, predicate: :eq,
                            blank: nil, default: nil, icon: nil, step: nil,
-                           placeholder_min: nil, placeholder_max: nil)
+                           placeholder_min: nil, placeholder_max: nil, auto_submit: false,
+                           presets: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
+        resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
+        validate_auto_submit(key, resolved_input, auto_submit)
+
         filter_attributes << {
           key: key.to_sym,
           type: type,
@@ -141,14 +172,16 @@ module Bali
           options: options.presence || collection || [],
           simple: simple,
           advanced: advanced,
-          input: simple ? resolve_simple_input(key, type, input) : input&.to_sym,
+          input: resolved_input,
           predicate: predicate&.to_sym,
           blank: blank,
           default: default,
           icon: icon,
           step: step,
           placeholder_min: placeholder_min,
-          placeholder_max: placeholder_max
+          placeholder_max: placeholder_max,
+          auto_submit: auto_submit,
+          presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input)
         }
       end
 
@@ -178,6 +211,18 @@ module Bali
                                "widget; pass input: (one of #{SIMPLE_INPUTS.join(', ')}) or " \
                                "declare quick text search with search_fields"
         end
+      end
+
+      # Fails at class-definition time rather than rendering a row whose `auto_submit:`
+      # nothing reads — the same contract as an unknown `input:`.
+      def validate_auto_submit(key, widget, auto_submit)
+        return unless auto_submit
+        return if AUTO_SUBMIT_INPUTS.include?(widget)
+
+        raise ArgumentError,
+              "filter_attribute #{key}: auto_submit: true only applies to the pill widgets " \
+              "(#{AUTO_SUBMIT_INPUTS.join(', ')}) declared with simple: true; this one is " \
+              "#{widget ? ":#{widget}" : 'not a simple filter'}"
       end
     end
 

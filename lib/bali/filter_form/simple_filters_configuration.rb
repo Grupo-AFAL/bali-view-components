@@ -52,7 +52,9 @@ module Bali
               icon: attr[:icon],
               step: attr[:step],
               placeholder_min: attr[:placeholder_min],
-              placeholder_max: attr[:placeholder_max]
+              placeholder_max: attr[:placeholder_max],
+              auto_submit: attr[:auto_submit],
+              presets: attr[:presets]
             }
           end
         end
@@ -125,6 +127,9 @@ module Bali
             type: type,
             predicate: predicate,
             icon: filter[:icon],
+            # Instance-level `simple_filters:` hashes reach the component through here
+            # too, so `auto_submit: true` works in both shapes of the configuration.
+            auto_submit: filter[:auto_submit],
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
 
@@ -133,6 +138,14 @@ module Bali
             config[:step] = filter[:step]
             config[:placeholder_min] = filter[:placeholder_min]
             config[:placeholder_max] = filter[:placeholder_max]
+          end
+
+          # Normalized here and not only in `filter_attribute` because an instance-level
+          # `simple_filters: [{ presets: true }]` hash never passes through the DSL.
+          if filter[:presets].present?
+            config[:presets] = Bali::DateRangePresets.normalize(
+              filter[:presets], key: filter[:attribute], input: type
+            )
           end
 
           config

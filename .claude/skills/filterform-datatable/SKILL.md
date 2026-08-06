@@ -188,6 +188,66 @@ Ransack association path) skips the translation, so a select built on its labels
 OPPOSITE records, silently. Declare those options with the raw values
 (`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
 
+### Pills that filter on click (`auto_submit:`)
+
+`auto_submit: true` makes a SimpleFilters filter submit the row as soon as it changes, with no
+trip through the Filter button:
+
+```ruby
+filter_attribute :status, type: :select, simple: true, advanced: false,
+  options: [['Draft', 'draft'], ['Published', 'published']],
+  input: :radio_group, auto_submit: true
+```
+
+It is **opt-in per filter and off by default**, so no existing row changes behaviour, and the
+button stays for the filters that did not opt in. The row mounts `submit-on-change` only when
+at least one filter asked for it, and only that filter's controls get the action.
+
+Only `:toggle_group` and `:radio_group` accept it (`AUTO_SUBMIT_INPUTS` in
+`lib/bali/filter_form.rb` — it lives on the singleton class next to `SIMPLE_INPUTS`, so it is
+not reachable as `Bali::FilterForm::AUTO_SUBMIT_INPUTS`).
+Anything else **raises at class-definition time**: one click is the whole interaction on a
+pill, whereas a date or number range would submit between the two halves of its value. The
+instance-level `simple_filters:` hashes take the same key and are filtered by the component
+instead of raising, since they never go through the DSL's validation.
+
+There is no phantom submit on load: `submit-on-change` drops change events fired in the frame
+it connects in (see `docs/guides/controllers.md`).
+
+### Date range presets ("This month" instead of two dates)
+
+`presets:` turns an `input: :date_range` simple filter into a period select whose "Custom…"
+option reveals the picker. It takes `true` for every token, or an array to pick and order
+them:
+
+```ruby
+filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                 presets: %i[today this_week this_month], blank: 'Any date'
+
+# or, from an instance-level simple_filters: hash
+{ attribute: :created_at, type: :date_range, label: 'Created', presets: true }
+```
+
+The tokens are `today`, `this_week`, `this_month`, `last_7_days`, `last_30_days`
+(`Bali::DateRangePresets::TOKENS`); the trailing two include today. An unknown one raises at
+declaration time.
+
+**The token itself is what travels.** `q[created_at]=this_month` goes in the same param an
+explicit range would, and `Bali::Types::DateRangeValue` resolves it to a real range only when
+the query runs. That is the whole reason to prefer it over filling in two dates: a saved view
+or a persisted filter holding `this_month` still means this month next month, while one
+holding `2026-08-01..2026-08-31` means August forever.
+
+It also means the period is the SERVER's — `Time.zone`, the same zone the rest of the date
+filtering already speaks. A visitor in another zone sees the boundaries their listing is
+actually filtered by, which is the honest answer; computing them in the browser would make
+the two disagree.
+
+Presets are `date_range`-only, by design: "this week" is not a value a single `date` filter
+can hold, so declaring them on one raises rather than rendering a control that cannot work.
+The widget is the shared `time-period-field` Stimulus controller — the same one
+`f.time_period_group` builds — so a period select behaves the same wherever it appears.
+
 ## FilterForm Architecture
 
 FilterForm is organized into focused concerns for maintainability:

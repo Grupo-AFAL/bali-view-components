@@ -81,32 +81,22 @@ Rails.application.routes.draw do
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
   get 'users', to: 'users#index'
-  get 'entity_references', to: 'entity_references#index'
-  post 'entity_references/resolve', to: 'entity_references#resolve'
 
-  # BlockEditor
-  resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
-    resources :comments, controller: 'block_editor_threads/comments', only: %i[create update destroy] do
-      resource :reactions, controller: 'block_editor_threads/comments/reactions', only: %i[create destroy]
-    end
-  end
+  # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine
+  # endpoints (`mount Bali::Engine` below), and `config/initializers/bali.rb` says
+  # which records may carry threads. That substitution is the adoption test — the
+  # dummy consumes the engine the same way a host app does.
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
   # Documents (full editing experience reference)
   # No `edit`: editing a document happens in the overlay `documents#show` opens, not on a
   # page of its own, so `DocumentsController` implements six of the seven actions and the
   # seventh route answered 404 to anyone who followed it.
-  resources :documents, except: :edit do
-    resources :versions, only: [:index, :show], controller: 'document_versions'
-    resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
-      resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
-        resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
-      end
-    end
-    member do
-      post :restore_version
-    end
-  end
+  # Las versiones ya NO son rutas de esta app: `versions_url: :auto` en el DocumentEditor
+  # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707). Los
+  # comentarios tampoco (#706): `comments: { url: :auto, commentable: }` apunta a los
+  # nueve endpoints del engine.
+  resources :documents, except: :edit
 
   mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'

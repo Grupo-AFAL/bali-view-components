@@ -97,6 +97,17 @@ en:
     simple_filters:
       apply: "Filter"
       clear: "Clear"
+      # Named periods for a date_range filter (see Bali::DateRangePresets). `custom`
+      # reveals the date picker; `any` is the blank option when the filter declares no
+      # `blank:` of its own.
+      presets:
+        any: "Any date"
+        custom: "Custom…"
+        today: "Today"
+        this_week: "This week"
+        this_month: "This month"
+        last_7_days: "Last 7 days"
+        last_30_days: "Last 30 days"
 
     # File input
     file_input:
@@ -218,6 +229,12 @@ en:
       renamed: "View renamed."
       updated: "View updated."
       deleted: "View deleted."
+
+    # Content versions (#707) — written into the version's `summary` when it is created,
+    # so these are stored as data, not resolved at render.
+    content_versions:
+      restored_from: "Restored from v%{number}"
+      unknown_author: "Unknown"
 
     # Status
     status:
@@ -526,7 +543,7 @@ en:
       versions_empty: "No versions yet."
 
       # Restore confirmation, shown through Bali's confirm dialog.
-      restore_confirm: "Restore this version? Current content will be saved as a new version first."
+      restore_confirm: "Restore this version? It will be added as the newest version, so nothing already in the history is lost."
       confirm_title: "Restore version"
       confirm_accept: "Restore"
       confirm_cancel: "Cancel"
