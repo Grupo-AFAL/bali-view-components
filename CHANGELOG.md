@@ -64,6 +64,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Filters/SimpleFilters internal dedup — no rendered-output change for the full panel.** The preserved-params semantics above now live in one shared `Bali::Filters::PreservedParams` module; the `storage_id`/`persist_enabled?`/`persistence_toggle?` persistence trio both components copied is now the `Bali::Filters::Persistable` concern; and the AND/OR combinator divider the panel template carried twice (popover and inline branches) is the `Bali::Filters::CombinatorDivider::Component` subcomponent. (Refs #725)
 
 ## [v3.0.0] - 2026-08-05
+### Added
+
+- **`Bali.engine_controller_concerns` — the official way for a host to teach its context to the engine's controllers.** `isolate_namespace` means `Bali::ApplicationController` inherits from `ActionController::Base`, not from the host's `ApplicationController`, so `current_user` and friends never existed inside the engine — every host worked around it by monkey-patching `Bali::SavedViewsController` from a `to_prepare` initializer, once per controller, once per app. Every module in the new array is now included into `Bali::ApplicationController` (and therefore into every engine controller at once) on each `to_prepare`, idempotently and surviving code reloads. The concern must stay passive — identity, not access: the gate remains the `Bali.*_authorize` lambdas. The new [Engines guide](docs/guides/engines.md) documents the `isolate_namespace` gotcha in one place, the authorize-lambdas doctrine, and the bali-auth recipe (`include BaliAuth::Authentication` + `allow_unauthenticated_access`). (#710)
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to
 the stable channel: `3.0` merges into `main`, `main` becomes the v3 line, and the next

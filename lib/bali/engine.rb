@@ -65,6 +65,18 @@ module Bali
       ActionController::Base.helper(Bali::BlockEditorHelper)
     end
 
+    # Host-injected controller concerns (#710) — see docs/guides/engines.md. In a
+    # to_prepare the constant resolves to the freshly-loaded class, so the include
+    # survives code reloads in development; the `<` guard keeps a repeated prepare
+    # pass from re-firing a plain module's `included` hook on the same class. Rails
+    # runs :run_prepare_callbacks BEFORE :eager_load!, so engine controllers defined
+    # later inherit whatever the concern registered on the base class.
+    config.to_prepare do
+      Bali.engine_controller_concerns.each do |concern|
+        Bali::ApplicationController.include(concern) unless Bali::ApplicationController < concern
+      end
+    end
+
     # No initializer adds config/locales here on purpose. Rails::Engine already
     # registers it through `paths["config/locales"]`, in an order that puts every
     # engine BEFORE the app — which is what lets a host override a Bali string.

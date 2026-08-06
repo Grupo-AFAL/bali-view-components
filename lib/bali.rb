@@ -153,6 +153,25 @@ module Bali
   # Example: ->(controller, owner) { owner&.can?("tdflow.access") }
   mattr_accessor :saved_views_authorize, default: ->(_controller, owner) { owner.present? }
 
+  # Concerns the host injects into every controller of this engine (#710).
+  #
+  # `isolate_namespace` means `Bali::ApplicationController` inherits from
+  # `ActionController::Base`, NOT from the host's `ApplicationController` — so the
+  # host's authentication (`current_user`, session helpers, `Current`) does not
+  # exist inside the engine's controllers unless the host teaches it. Every module
+  # in this array is included into `Bali::ApplicationController` on each
+  # `to_prepare` (idempotent, and it survives code reloads in development), which
+  # covers saved views, block editor uploads and every controller the engine grows
+  # later, all at once.
+  #
+  # Keep the injected concern PASSIVE: it should teach context (`current_user`),
+  # not enforce access — an active `authenticate_user!` before_action would
+  # redirect to login and shadow the engine's own 403s. The real gate stays in the
+  # `Bali.*_authorize` lambdas. Full guide, including the bali-auth recipe:
+  # docs/guides/engines.md.
+  # Example: Bali.engine_controller_concerns = [EngineAuthentication]
+  mattr_accessor :engine_controller_concerns, default: []
+
   # Every deprecation this gem emits goes through here. The engine registers it
   # as `app.deprecators[:bali]`, so a host silences, logs or raises Bali's
   # warnings with the same `config.active_support.deprecation` it already uses
