@@ -67,6 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Dropdown/ActionsDropdown items with `method: :post/:patch/:put` are now real `button_to` forms** (#641 — announced change, see `docs/guides/migration-v3-to-v31.md`). They rendered `<a data-turbo-method>`, which degrades to a GET *navigation* without Turbo and announces as a link while mutating state; they now render `<form class="contents" method="post">` + `<button type="submit">` styled as the item — the exact shape the `:delete` item has had since #829, form out of the box tree, `_method` override for `:patch`/`:put`, `data:` still landing on the button. Measured blast radius: 6 call sites across all consuming apps (1 in afal-apps on v3 today, 5 in a v2-locked host), behaviour identical for all of them. Plain `Bali::Link` with `method:` outside a dropdown keeps `data-turbo-method`.
+- **`Bali::Kanban` learns the board-level anatomy real boards use** (#643). The API is deliberately board-level — the reference boards in afal-apps proved the height and the scroll live on the board, not on each column:
+  - `layout:` on the board — `:grid` (default, unchanged: caps at 4 columns) or `:flow`, a single horizontally scrolling row with `w-72` columns, which is what a 5+ column board needs.
+  - `height:` on the board (opt-in, default `nil`) — `:viewport` caps the board to `calc(100vh - var(--bali-kanban-offset, 17rem))` (override the CSS variable to match the host's header chrome) and any string is taken as a height utility class. On a bounded board each column's card list scrolls internally; there is no separate `scrollable:` knob and no per-column `max_height:`.
+  - Columns are now `flex flex-col min-h-0` with the card list as `flex-1 overflow-y-auto`, so the list (not the page) is what scrolls and the whole body of a column is a drop target.
+  - **Empty columns keep a visible drop area**: a 100px floor with a dashed border, driven by CSS `:has()` in the new `kanban/index.css` (`@layer components`) rather than a render-time `cards.empty?` flag — it appears live when the last card is dragged out and yields to SortableJS's ghost while a drag hovers.
+  - `with_column` accepts `disabled: true`, forwarded to the underlying SortableList (the option existed there but the column never passed it through).
+  - The Kanban section of `docs/guides/components.md` gained a "Wiring the drop PATCH" guide with the Rails side of the contract: member route, 1-based `resource[position]` + `list_param_name` params, and when to answer with `:html` vs `:turbo_stream`.
+  - New Lookbook preview `kanban/scrollable_board` (flow layout, viewport height, an empty column, a disabled column) and a Cypress spec covering per-column scroll, the live empty-column affordance and the PATCH payload.
 
 ## [v3.1.0.beta.1] - 2026-08-05
 
