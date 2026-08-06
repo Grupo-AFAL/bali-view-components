@@ -49,6 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   chrome. `--bali-split-master-width` carries `master_width:` for the same reason a Tailwind
   arbitrary value cannot: the width is a runtime value the build never sees.
 
+  The component is half the screen and the other half is the host's, so
+  **`docs/guides/master-detail.md`** carries the rest of the pattern: the whole Rails side in
+  one action, why the row's href has to hold the current filters, the two different empty
+  states a filtered list needs (composed from `Bali::EmptyState`'s `cta` slot, not added as an
+  option — "no results" beside filters the reader set is a dead end, and the useful thing is a
+  way out of them), and the full-page-detail-on-a-phone variant. That last one hinges on a
+  measured Turbo fallback: a frame in the DOM is swapped **even under `display: none`**, and
+  only a frame that is absent turns the row click into a full visit — so whether a phone gets
+  the split view at all is a server-side decision, and `lg:hidden` will not make it.
+
 ## [v3.1.0.beta.5] - 2026-08-06
 
 ### Added

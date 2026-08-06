@@ -1,0 +1,116 @@
+---
+title: Master-Detail Screens
+label: Master-Detail
+---
+
+# Master-Detail Screens
+
+The inbox shape: a list on the left, the detail of the selected row on the right.
+Clicking a row swaps only the right column, so the list keeps its scroll position
+and its highlight.
+
+`Bali::SplitView::Component` owns the three parts that are identical in every such
+screen — the responsive grid, the Turbo Frame around the detail, and the Stimulus
+controller that moves the highlight. Tabs, filter chips, pagination and the rows
+themselves are content and go inside the `master` slot.
+
+- Preview: [SplitView](/lookbook/inspect/bali/split_view/default)
+- Working reference in this app: [/split-view](/split-view)
+- Full guide, with the recipes this page leaves out: `docs/guides/master-detail.md`
+
+## The shape
+
+```erb
+<%%= render Bali::SplitView::Component.new(frame_id: "inbox-detail") do |split| %>
+  <%% split.with_master do %>
+    <%%= render "master_pane", items: @items, selected: @selected %>
+  <%% end %>
+
+  <%% if @selected %>
+    <%% split.with_detail { render "detail_pane", item: @selected } %>
+  <%% else %>
+    <%% split.with_empty_detail do %>
+      <%%= render Bali::EmptyState::Component.new(title: "Select an item", icon: "inbox") %>
+    <%% end %>
+  <%% end %>
+<%% end %>
+```
+
+`frame_id:` is required. `master_width:` (default `"420px"`) sets the left column
+from `lg` up; below `lg` the panes stack, master on top. `advance:` (default
+`true`) makes the selection deep-linkable.
+
+## The Rails side
+
+One action renders both the full page and the frame response — no second
+controller, no `respond_to`:
+
+```ruby
+class InboxController < ApplicationController
+  def show
+    @items    = filter(current_user.inbox_items)
+    @selected = @items.find_by(id: params[:selected])
+  end
+end
+```
+
+Loaded cold, `/inbox?selected=42` renders the whole page with row 42 highlighted.
+Reached by a row click, Turbo fetches the same URL and takes only the frame out
+of the reply.
+
+Order the list deterministically: the master is not re-rendered on a row click,
+so an `updated_at` ordering will disagree with itself once the detail writes.
+
+## The row
+
+```erb
+<%%= link_to inbox_path(selected: item.id, **@filters),
+      class: "split-view-row px-4 py-3 border-b border-base-200/70",
+      aria: { current: (item == @selected ? "true" : nil) },
+      data: { turbo_frame: "inbox-detail",
+              split_view_target: "row",
+              action: "click->split-view#select" } do %>
+  <div class="font-medium text-sm truncate"><%%= item.title %></div>
+<%% end %>
+```
+
+- **`split-view-row`** carries the look, including the selected state.
+- **`aria-current` from the server** paints the selection on first render and
+  after every full-page navigation. The controller only covers clicks in between.
+- **Carry the current filters in the href** — it is the URL the selection
+  deep-links to.
+- **Do not add `data-turbo-action` to the row.** The frame has it, and a
+  link-level one wins, silently defeating `advance: false`.
+
+## Making the list scroll
+
+`.split-view-scroll` is opt-in and goes around the part of the master that should
+scroll — usually the list alone, so tabs above it and pagination below it stay
+put. Its height is `var(--bali-split-master-max-h, calc(100vh - 20rem))`; set the
+variable on the element when your chrome is taller or shorter.
+
+```erb
+<div class="split-view-scroll" style="--bali-split-master-max-h: 26rem">
+```
+
+## Styling the selected row
+
+The selected row is `.split-view-row[aria-current]` — a tint plus an inset
+`box-shadow` bar down the left edge. It is a shadow and not a left border on
+purpose: rows are separated with `border-b border-base-200/70`, and Tailwind's
+`border-<color>` utility sets all four sides from the utilities layer, which beats
+`@layer components`. A `border-l-primary` in Bali's sheet renders base-200 under
+it and the highlight disappears.
+
+To add to the look rather than replace it:
+
+```erb
+<div data-controller="split-view" data-split-view-selected-class="ring-2 ring-primary">
+```
+
+## What this is not
+
+- **Not a list component** — the rows are yours.
+- **Not a filter or pagination host** — those go in `master` as content.
+- **Not a re-render** — never answer a row click by re-rendering the master; it
+  loses the scroll position, which is what the pattern exists to keep.
