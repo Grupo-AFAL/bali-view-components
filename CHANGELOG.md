@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.7] - 2026-08-06
+
 ### Added
 
 - **`Bali::Gantt` composes the React island: `mode: :interactive`** (#719, phase 3 of the Gantt). The option was signed in phase 1 and raised until now; it renders. The element the component already emitted becomes the island's mount point — `data-controller="gantt"` plus the values that map 1:1 to `GanttFlow`'s props — and **the static board renders inside it**. React calls `replaceChildren` when it connects, so the fallback is three things at once: what a visitor sees while a React-plus-React-Flow bundle is in flight, what a visitor without JavaScript keeps forever, and what a reader mode indexes. An interactive Gantt is now a working Gantt before any JavaScript runs.
