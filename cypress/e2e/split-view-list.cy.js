@@ -158,9 +158,13 @@ describe('SplitView structured list', () => {
   // component resets the infinite scroll, because a full-page navigation already
   // does. These run against the dummy's page, where the filter is a real
   // SimpleFilters row over a real Ransack scope.
+  // Filtering is links, not a form: no submit, no clear, no machinery. A pill
+  // click is an ordinary GET, which is what makes the rest behave — the server
+  // renders page one and the filter rides into the sentinel's fetches on its own.
   context('filtering the list', () => {
     const app = path =>
       `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+    const pill = label => cy.get('[data-testid="list-filters"] a.split-view-filter').contains(label)
 
     beforeEach(() => cy.visit(app('/split-view')))
 
@@ -170,33 +174,65 @@ describe('SplitView structured list', () => {
         .should('not.exist')
     })
 
-    // The pill submits on click (`auto_submit: true`), which is a full-page
-    // navigation and therefore renders page one — no reset to perform.
+    // The bug that produced this design: the band used to hold a filter form
+    // whose controls laid out in a row and ran off a ~420px column. Pills wrap.
+    it('wraps the pills inside the master column instead of overflowing it', () => {
+      cy.get('[data-testid="list-filters"]').should('have.css', 'flex-wrap', 'wrap')
+
+      cy.get('[data-testid="list-filters"]').then(($band) => {
+        const band = $band[0].getBoundingClientRect()
+        cy.get('[data-testid="list-filters"] a.split-view-filter').each(($pill) => {
+          const rect = $pill[0].getBoundingClientRect()
+          expect(rect.right, `${$pill.text().trim()} stays inside the band`)
+            .to.be.at.most(band.right + 1)
+        })
+        expect($band[0].scrollWidth, 'the band does not scroll sideways')
+          .to.be.at.most($band[0].clientWidth + 1)
+      })
+    })
+
+    it('has no form, no submit and no clear button', () => {
+      cy.get('[data-testid="list-filters"] form').should('not.exist')
+      cy.get('[data-testid="list-filters"] input').should('not.exist')
+      cy.get('[data-testid="list-filters"] button').should('not.exist')
+    })
+
     it('filters on a pill click and comes back on page one', () => {
       rows().should('have.length', 5)
       scrollToBottom()
       rows().should('have.length', 10)
 
-      // The pill IS the radio: daisyUI styles `input[type=radio].btn` and takes its
-      // text from `aria-label`, so there is no <label> element to click.
-      cy.get('[data-testid="list-filters"] input[name="q[status_eq]"][aria-label^="Done"]')
-        .check()
-      cy.location('search').should('contain', 'status_eq')
+      pill('Done').click()
+      cy.location('search').should('eq', '?status=done')
       rows().should('have.length', 5)
       cy.get('[data-testid="list-count"]').should('have.text', '17')
+      pill('Done').should('have.attr', 'aria-current', 'true')
+    })
+
+    // What replaces a Clear button: the active pill points at the URL without
+    // its param, so the same click that switched it on switches it off.
+    it('clears the filter when the active pill is clicked again', () => {
+      pill('Done').click()
+      cy.location('search').should('eq', '?status=done')
+
+      pill('Done').should('have.attr', 'href', '/split-view')
+      pill('Done').click()
+      cy.location('search').should('eq', '')
+      cy.get('[data-testid="list-count"]').should('have.text', '20')
+      cy.get('.split-view-filter[aria-current]').should('not.exist')
     })
 
     // The sentinel fetches the URL the server handed it, so the filter travels
     // without the controller knowing anything about filters. Measured, because
     // "it should inherit them" is exactly the kind of thing that silently does not.
     it('carries the filter into the pages the sentinel fetches', () => {
-      cy.visit(app('/split-view?q%5Bstatus_eq%5D=1'))
+      cy.visit(app('/split-view?status=done'))
       cy.get('[data-testid="list-count"]').should('have.text', '17')
       rows().should('have.length', 5)
 
       cy.intercept('GET', '/split-view*').as('nextPage')
       scrollToBottom()
-      cy.wait('@nextPage').its('request.url').should('include', 'status_eq')
+      cy.wait('@nextPage').its('request.url').should('include', 'status=done')
       rows().should('have.length', 10)
 
       // And the rows that arrived really are the filtered ones: 17 of 20 movies
@@ -208,7 +244,7 @@ describe('SplitView structured list', () => {
     })
 
     it('keeps selecting a row while a filter is on', () => {
-      cy.visit(app('/split-view?q%5Bstatus_eq%5D=1'))
+      cy.visit(app('/split-view?status=done'))
       rows().eq(2).click()
       cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
       cy.location('search').should('contain', 'selected=')

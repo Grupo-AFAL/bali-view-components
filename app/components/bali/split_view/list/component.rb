@@ -49,18 +49,28 @@ module Bali
         # stay the caller's words — see docs/guides/master-detail.md.
         renders_one :empty_state
 
-        # The filtering band, between the header and the rows. Its position is the
-        # whole of what this slot buys: **outside** the scroll area so the controls
-        # stay put while the rows move under them, and **inside** the card so they
-        # read as part of the listing rather than as page chrome.
+        # The filter pills, in a band between the header and the rows — outside the
+        # scroll area so they stay put while the rows move under them, inside the
+        # card so they read as part of the listing.
         #
-        # Bali does not grow a second filtering system for it. Put
-        # `Bali::DataTable::SimpleFilters::Component` here — a `:radio_group` with
-        # `auto_submit: true` is the pill that filters on click — or a FilterForm of
-        # your own. Filtering is an ordinary full-page navigation, which is what
-        # resets the infinite scroll: the server renders page one and the sentinel
-        # picks up the new URL with the filter params already on it.
-        renders_one :filters
+        #   <% list.with_filter(label: "Todas", href: inbox_path, active: bucket.nil?) %>
+        #   <% list.with_filter(label: "Aprobaciones", count: 12,
+        #                       href: inbox_path(bucket: "aprobaciones"),
+        #                       active: bucket == "aprobaciones") %>
+        #
+        # Each one is a **link**, and the band is not a form: no submit button, no
+        # clear button, no filtering machinery at all. That is what makes the rest
+        # behave for free — a click is a full-page GET, so the server renders page
+        # one, the infinite scroll resets, and the params ride into every page the
+        # sentinel fetches next.
+        #
+        # Clearing is a URL, not a control: give the active pill an href without
+        # its param and clicking it again drops the filter, or render an explicit
+        # "all" pill pointing at the bare listing. Both are one ternary in the
+        # caller, which is where the meaning of a param lives.
+        renders_many :filters, lambda { |**options|
+          Bali::SplitView::List::Filter::Component.new(**options)
+        }
 
         attr_reader :header, :count, :pagy
 

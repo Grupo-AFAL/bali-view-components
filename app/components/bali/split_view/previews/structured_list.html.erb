@@ -12,6 +12,14 @@
   <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
                      pagy: pagy, item_name: "películas", max_height: "22rem",
                      next_url: ["/split-view?page=2", ("selected=#{selected.id}" if selected)].compact.join("&")) do |list| %>
+    <%# Filter pills: plain links, no form. They point at the dummy's own
+        `/split-view`, so clicking one is the real full-page GET the pattern
+        relies on — the server renders page one and the infinite scroll starts
+        over with the filter already in the next-page URL. %>
+    <% Movie.statuses.each_key do |status| %>
+      <% list.with_filter(label: status.humanize, count: Movie.where(status: status).count,
+                          href: "/split-view?status=#{status}") %>
+    <% end %>
     <% movies.each do |movie| %>
       <% list.with_item(
         id: movie.id,

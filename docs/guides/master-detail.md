@@ -218,72 +218,89 @@ running out, which is how the end of the list is detected.
 ## Filtering the list
 
 Tabs, buckets and filter chips belong to the listing, so `with_list` has a place
-for them: `with_filters` renders a band between the header and the rows —
-**outside** the scroll area, so the controls stay put while the rows move under
+for them: `with_filter` adds a pill to a band between the header and the rows —
+**outside** the scroll area, so the pills stay put while the rows move under
 them, and **inside** the card, so they read as part of the listing.
 
-That position is all the slot provides. **Bali does not grow a second filtering
-system for it**: put the one it already has in the band.
+**Every pill is a link.** There is no form around the band, no submit button and
+no clear button, because a filter is a URL:
 
 ```erb
 <% split.with_list(header: t("inbox.title"), count: @pagy.count,
                    selected: params[:selected], pagy: @pagy) do |list| %>
-  <% list.with_filters do %>
-    <%= render Bali::DataTable::SimpleFilters::Component.new(
-      url: inbox_path,
-      filters: @filter_form.simple_filters_config,
-      show_clear: true
-    ) %>
+  <% list.with_filter(label: t("inbox.buckets.all"),
+                      href: inbox_path,
+                      active: @bucket.nil?) %>
+  <% Inbox::BUCKETS.each do |bucket| %>
+    <% list.with_filter(label: t("inbox.buckets.#{bucket}"),
+                        count: @bucket_counts[bucket],
+                        href: inbox_path(bucket: (@bucket == bucket ? nil : bucket)),
+                        active: @bucket == bucket) %>
   <% end %>
   <%# … items … %>
 <% end %>
 ```
 
 ```ruby
-@filter_form = Bali::FilterForm.new(
-  Inbox::Item.all, params,
-  simple_filters: [
-    { attribute: :bucket, collection: bucket_options, label: t("inbox.bucket"),
-      type: :radio_group, auto_submit: true }
-  ]
-)
-@pagy, @items = pagy(@filter_form.result, limit: 20)
+def show
+  @bucket = params[:bucket].presence_in(Inbox::BUCKETS)
+  @pagy, @items = pagy(filter(current_user.inbox_items, @bucket), limit: 20)
+end
 ```
 
-`type: :radio_group` with `auto_submit: true` is **the pill that filters on
-click** — one active value, submitted the moment it changes, which is the bucket
-strip a master-detail listing usually wants. daisyUI styles the radio itself as
-the pill and takes its text from `aria-label`, so there is no `<label>` element:
-the thing you click is the `input`.
+That controller is the whole server side. No FilterForm, no Ransack, no form
+object — the filter is a query param you read.
 
-**Counts on the pills are yours.** `"Aprobaciones (12)"` goes in the collection's
-label. SimpleFilters does not count, and teaching it to would be the second
-filtering system this is avoiding.
+**Options on `with_filter`**
+
+| | |
+|---|---|
+| `label` | **Required.** The pill's text. |
+| `href` | **Required.** Where clicking it goes. |
+| `active` | Whether this is the current filter. Drives `aria-current="true"` and the styling. |
+| `count` | Optional number after the label. `0` renders — "Revisiones 0" is information. |
+
+### Clearing is a URL, not a button
+
+The ternary in the `href` above is what replaces a Clear control: the **active**
+pill points at the listing *without* its param, so clicking it again turns the
+filter off. Rendering an explicit "All" pill that points at the bare listing
+works too, and the two compose — the example above does both.
+
+The component does not build these URLs for you, and that is deliberate: only
+the caller knows what its params mean, whether the filter is exclusive, and
+whether "off" means dropping the param or setting it to something else.
 
 ### What filtering does to everything else
 
-Nothing, and that is the design. A filter submit is an **ordinary full-page GET**:
+Nothing, and that is the design. A pill click is an **ordinary full-page GET**:
 
 - **The infinite scroll resets for free.** The server renders page one; there is
   no reset to perform and no state in the browser to clear.
 - **The filter travels into the pages the sentinel fetches**, because the next
-  URL is derived from the request the server answered and Pagy keeps its params.
-  Nothing in the controller knows what a filter is. Measured in
-  `cypress/e2e/split-view-list.cy.js`, not assumed.
+  URL is derived from the request the server answered. Nothing in the controller
+  knows what a filter is. Measured in `cypress/e2e/split-view-list.cy.js`.
 - **Back still works**, because the highlight is re-derived from the URL and
-  matches on the params a row's href actually carries, ignoring the filter params
-  it does not.
+  matches on the params a row's href actually carries, ignoring the filter
+  params it does not.
 
-**The submit button stays even when every filter auto-submits, and should.**
-Without JavaScript `auto_submit` does nothing, so the button is how a reader
-without it applies the filter — the same progressive enhancement as the
-pagination controls.
+**Selection and filters are independent.** A row's href carries the filters, so
+the selection deep-links back into the filtered listing. Filtering does not clear
+the selection; if the selected record is filtered out, its detail stays and no row
+is highlighted — the same state as a deep link to a record on a later page.
 
-**Selection and filters are independent.** A row's href carries the filters (see
-[the row](#when-list-does-not-fit)), so the selection deep-links back into the
-filtered listing. Filtering does not clear the selection; if the selected record
-is filtered out, its detail stays and no row is highlighted — the same state as a
-deep link to a record on a later page.
+### One group, and why it wraps
+
+The band is a single set of pills with one active value. It is not a filter
+panel: several groups, ranges and free-text search are a different screen, and a
+master column ~420px wide is the wrong place for them. A listing that needs that
+much filtering wants it above the split view, or wants the `master` slot.
+
+The band is `flex-wrap`, so pills spill onto a second line instead of running off
+the edge — which is the bug that produced this design. The band it replaced held
+a filter form whose controls laid out in a row, and in a 420px column they
+overflowed. Eight pills in a 418px band wrap onto four lines with nothing
+overflowing; measured, and pinned in the Cypress spec.
 
 ---
 

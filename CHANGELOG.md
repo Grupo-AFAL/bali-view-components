@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`Bali::SplitView`: the filter band is pills that are links** (#977, breaking against
+  v3.1.0.beta.8 only). `with_list` gains `with_filter(label:, href:, active:, count:)`, and the
+  free-form `with_filters` slot beta.8 shipped is **gone**. Only beta.8 had it, nothing adopted it,
+  and leaving it would have meant two escape hatches for the same thing — the `master` slot is
+  already the one that takes any markup at all.
+
+  **What Fede saw:** the pills did not fit. The band held a `DataTable::SimpleFilters` row, whose
+  controls lay out horizontally with a search box, a Filter button and a Clear button, and a master
+  column is about 420px wide — so they ran off the edge. The diagnosis is worth keeping: that
+  component is built to render in the DataTable's own toolbar, and putting it somewhere narrower
+  did not make it narrower. Reaching for the machinery that already existed was the right instinct
+  and the wrong component.
+
+  **What replaced it is not a smaller filtering system but none at all.** Each pill is an `<a>`
+  with an href, and the band is not a form: no submit, no clear, no Ransack, no FilterForm, no
+  `q[...]`. A filter is a query param the action reads. The active pill takes `aria-current="true"`
+  and, by convention, an href pointing at the listing *without* its param — so clicking it again
+  clears the filter, which is what a Clear button was for. The component does not build those URLs:
+  only the caller knows what its params mean and what "off" is.
+
+  This is the shape of the inbox the whole component was generalised from, down to the count inside
+  the pill after the label. Two things about that source are worth naming: it uses `flex-wrap`, so
+  pills spill onto a second line rather than overflow — which is why it never had the bug — and it
+  marks the active bucket by colour alone, with no `aria-current` anywhere. The pills here carry
+  the attribute, and the styling hangs off it rather than off a class, so the two cannot disagree.
+
+  Measured under stress rather than at the two pills the dummy shows: eight pills in a 418px band
+  wrap onto four lines, none of them crossing the band's right edge, with neither the band nor the
+  page scrolling sideways.
+
 ## [v3.1.0.beta.8] - 2026-08-07
 
 ### Removed

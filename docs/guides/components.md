@@ -648,8 +648,8 @@ takes the id of the selected record and each item its own `id:`.
 
 **`with_list` options:** `header`, `count`, `selected`, `pagy`, `next_url`,
 `infinite_scroll` (default `true`), `item_name`, `max_height`. `with_empty_state`
-replaces the rows when there are none, and `with_filters` renders a filtering band
-between the header and the rows.
+replaces the rows when there are none, and `with_filter` adds a pill to the filter
+band between the header and the rows.
 
 **`with_item` options:** `title` and `href` are required; `id`, `subtitle`,
 `icon`, `meta`, `meta_color` (`:error`, `:warning`, `:success`, `:primary`) are
@@ -663,13 +663,17 @@ sentinel comes into view, appending the rows. No endpoint, no Turbo Stream and
 no partial of its own — and a reader without JavaScript keeps working controls,
 because enhancement removes them rather than summoning them.
 
-**Filtering has a place, not a system.** `with_filters` puts a band between the
-header and the rows — outside the scroll area so the controls stay put, inside the
-card so they read as part of the listing. Put `Bali::DataTable::SimpleFilters` in
-it; a `:radio_group` with `auto_submit: true` is the pill that filters on click.
-Filtering is an ordinary full-page GET, so the infinite scroll resets to page one
-by itself and the filter params travel into the pages the sentinel fetches without
-the controller knowing what a filter is.
+**Filtering is links, not a system.** `with_filter(label:, href:, active:, count:)`
+adds a pill to a band between the header and the rows — outside the scroll area so
+the pills stay put, inside the card so they read as part of the listing. There is
+no form, no submit and no clear button: a filter is a URL. The active pill gets
+`aria-current="true"`, and pointing its `href` at the listing without its param is
+what replaces a Clear control. The band is a single group and wraps, because a
+master column is ~420px wide and a filter panel does not belong in one.
+
+A pill click is an ordinary full-page GET, so the infinite scroll resets to page
+one by itself and the filter params travel into the pages the sentinel fetches
+without the controller knowing what a filter is.
 
 Below `lg` the panes stack, master on top, with no extra JavaScript.
 

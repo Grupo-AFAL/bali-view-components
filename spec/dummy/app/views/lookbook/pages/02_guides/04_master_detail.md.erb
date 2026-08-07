@@ -171,32 +171,42 @@ detail is an expected outcome on that screen or a defect.
 
 ## Filtering the list
 
-`with_filters` renders a band between the header and the rows — **outside** the
-scroll area so the controls stay put while the rows move under them, **inside** the
-card so they read as part of the listing. That position is all the slot provides:
-Bali does not grow a second filtering system, you put the one it already has in the
-band.
+`with_filter` adds a pill to a band between the header and the rows — **outside**
+the scroll area so the pills stay put while the rows move under them, **inside** the
+card so they read as part of the listing.
+
+**Every pill is a link.** No form, no submit button, no clear button — a filter is
+a URL:
 
 ```erb
-<%% list.with_filters do %>
-  <%%= render Bali::DataTable::SimpleFilters::Component.new(
-    url: inbox_path, filters: @filter_form.simple_filters_config, show_clear: true
-  ) %>
+<%% list.with_filter(label: "Todas", href: inbox_path, active: @bucket.nil?) %>
+<%% Inbox::BUCKETS.each do |bucket| %>
+  <%% list.with_filter(label: t("inbox.buckets.#{bucket}"),
+                      count: @bucket_counts[bucket],
+                      href: inbox_path(bucket: (@bucket == bucket ? nil : bucket)),
+                      active: @bucket == bucket) %>
 <%% end %>
 ```
 
-`type: :radio_group` with `auto_submit: true` is the pill that filters on click.
-daisyUI styles the radio itself as the pill and takes its text from `aria-label`,
-so the thing you click is the `input` — there is no `<label>`. Counts in the pill
-labels are yours; SimpleFilters does not count.
+`label:` and `href:` are required; `active:` drives `aria-current="true"` and the
+styling, `count:` renders after the label (`0` included — "Revisiones 0" is
+information).
 
-Filtering is an **ordinary full-page GET**, and that is the whole design: the
-infinite scroll resets because the server renders page one, and the filter params
-travel into the pages the sentinel fetches because the next URL comes from the
-request the server answered. The submit button stays even when every filter
-auto-submits — without JavaScript it is how the filter gets applied.
+**Clearing is a URL, not a button.** The ternary above points the *active* pill at
+the listing without its param, so clicking it again turns the filter off. An
+explicit "All" pill works too, and the two compose.
 
-## What this is not
+**Filtering does nothing to the rest, and that is the design.** A pill click is an
+ordinary full-page GET: the server renders page one so the infinite scroll resets,
+and the filter travels into the pages the sentinel fetches because the next URL comes
+from the request the server answered.
+
+**One group, and it wraps.** The band is a single set of pills with one active value
+— not a filter panel. Several groups, ranges and free-text search want a different
+screen: a master column is ~420px wide, and the band this replaced held a form whose
+controls ran off that edge. Pills wrap onto a second line instead.
+
+## What this is not## What this is not
 
 - **Not a list component** — the rows are yours.
 - **Not a filter or pagination host** — those go in `master` as content.

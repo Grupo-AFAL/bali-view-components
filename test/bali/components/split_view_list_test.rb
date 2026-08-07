@@ -133,44 +133,96 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector(".split-view-item")
   end
 
-  # --- the filtering band -----------------------------------------------------------------
+  # --- the filter pills -------------------------------------------------------------------
 
-  def render_with_filters(list_options = {})
+  def render_with_filters(list_options = {}, filters: [ { label: "Todas", href: "/inbox" } ])
     render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
       split.with_list(**list_options) do |list|
-        list.with_filters { "FILTER CONTROLS" }
+        filters.each { |filter| list.with_filter(**filter) }
         list.with_item(id: 1, title: "First", href: "/inbox?selected=1")
       end
     end
   end
 
-  def test_filters_render_when_given
+  def test_a_pill_is_a_link_to_its_href
     render_with_filters
-    assert_selector('[data-testid="list-filters"]', text: "FILTER CONTROLS")
+    assert_selector('.split-view-list-filters a.split-view-filter[href="/inbox"]', text: "Todas")
   end
 
-  def test_no_filters_band_without_the_slot
+  # A link and not a form control, which is the whole design: a click is a plain
+  # GET, so the server resets the paging and the params travel on their own.
+  def test_the_band_is_not_a_form
+    render_with_filters
+    assert_no_selector('[data-testid="list-filters"] form')
+    assert_no_selector('[data-testid="list-filters"] input')
+    assert_no_selector('[data-testid="list-filters"] button')
+  end
+
+  def test_no_band_without_pills
     render_list
     assert_no_selector('[data-testid="list-filters"]')
   end
 
-  # The position is the whole of what the slot buys. Outside the scroll area the
-  # controls stay put while the rows move under them; inside it they would scroll
+  def test_the_active_pill_is_marked_current_and_no_other
+    render_with_filters(
+      {},
+      filters: [
+        { label: "Todas", href: "/inbox" },
+        { label: "Aprobaciones", href: "/inbox?bucket=aprobaciones", active: true },
+        { label: "Revisiones", href: "/inbox?bucket=revisiones" }
+      ]
+    )
+
+    assert_selector('.split-view-filter[aria-current="true"]', count: 1)
+    assert_selector('.split-view-filter[aria-current="true"]', text: "Aprobaciones")
+  end
+
+  def test_nothing_is_current_when_no_pill_is_active
+    render_with_filters
+    assert_no_selector(".split-view-filter[aria-current]")
+  end
+
+  # The href of the active pill is what replaces a Clear button, so the caller's
+  # deactivating URL has to survive intact.
+  def test_the_active_pill_keeps_the_href_it_was_given
+    render_with_filters({}, filters: [ { label: "Done", href: "/inbox", active: true } ])
+    assert_selector('.split-view-filter[aria-current="true"][href="/inbox"]')
+  end
+
+  def test_the_count_renders_after_the_label
+    render_with_filters({}, filters: [ { label: "Aprobaciones", href: "/x", count: 12 } ])
+    assert_selector(".split-view-filter .split-view-filter-count", text: "12")
+  end
+
+  def test_no_count_element_without_a_count
+    render_with_filters
+    assert_no_selector(".split-view-filter-count")
+  end
+
+  # Zero is a count worth showing — "Revisiones 0" is information, and `if count`
+  # would have swallowed it.
+  def test_a_zero_count_still_renders
+    render_with_filters({}, filters: [ { label: "Revisiones", href: "/x", count: 0 } ])
+    assert_selector(".split-view-filter-count", text: "0")
+  end
+
+  # The position is the whole of what the band buys. Outside the scroll area the
+  # pills stay put while the rows move under them; inside it they would scroll
   # away with the first flick.
-  def test_filters_sit_outside_the_scroll_area
+  def test_the_band_sits_outside_the_scroll_area
     render_with_filters
     assert_no_selector('[data-split-view-list-target="scroller"] [data-testid="list-filters"]')
   end
 
-  def test_filters_sit_inside_the_list_and_after_the_header
+  def test_the_band_sits_inside_the_list_and_after_the_header
     render_with_filters({ header: "Inbox" })
     assert_selector('.split-view-list [data-testid="list-filters"]')
 
     html = rendered_content
-    assert_operator html.index("Inbox"), :<, html.index("FILTER CONTROLS"),
-      "the filtering band renders after the header"
-    assert_operator html.index("FILTER CONTROLS"), :<, html.index("split-view-scroll"),
-      "the filtering band renders before the rows"
+    assert_operator html.index("Inbox"), :<, html.index("split-view-list-filters"),
+      "the band renders after the header"
+    assert_operator html.index("split-view-list-filters"), :<, html.index("split-view-scroll"),
+      "the band renders before the rows"
   end
 
   # --- paging ---------------------------------------------------------------------------
