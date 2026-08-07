@@ -234,6 +234,43 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_selector('[data-split-view-list-target="scroller"][style*="--bali-split-master-max-h: 26rem"]')
   end
 
+  # The sentinel's three strings ship translated and WITHOUT a `default:`. The
+  # defaults were what hid the fact that the scope did not exist at all: they
+  # rendered, in Spanish, for every host on earth, and nothing failed. Parity
+  # between the two locale files is `BaliI18nScopeTest`'s job; that the keys are
+  # there in the first place is this one's.
+  def test_the_sentinel_strings_are_translated_in_every_locale
+    keys = %w[end_of_list load_error retry]
+
+    I18n.available_locales.each do |locale|
+      keys.each do |key|
+        assert I18n.exists?("bali_view.split_view.#{key}", locale),
+          "falta bali_view.split_view.#{key} en #{locale}"
+      end
+    end
+  end
+
+  def test_the_sentinel_renders_no_missing_translation
+    render_list({ next_url: "/x?page=2" })
+    assert_no_text(/translation missing/i)
+  end
+
+  # --- host attributes survive ------------------------------------------------------------
+
+  # Merging and not replacing: the previous version dropped a caller's `data:`,
+  # and only while there was a next page — so it came and went with the paging.
+  def test_a_host_data_attribute_survives_infinite_scroll
+    render_list({ next_url: "/x?page=2", data: { testid: "inbox-list" } })
+    assert_selector('.split-view-list[data-testid="inbox-list"]')
+    assert_selector('.split-view-list[data-controller="split-view-list"]')
+  end
+
+  def test_a_host_data_attribute_survives_without_infinite_scroll
+    render_list({ data: { testid: "inbox-list" } })
+    assert_selector('.split-view-list[data-testid="inbox-list"]')
+    assert_no_selector(".split-view-list[data-controller]")
+  end
+
   # --- the escape hatch is untouched ------------------------------------------------------
 
   def test_the_free_master_slot_still_renders

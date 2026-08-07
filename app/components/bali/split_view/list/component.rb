@@ -111,18 +111,21 @@ module Bali
         def dom_id = [ @frame_id, "list" ].compact.join("-")
 
         def container_attributes
-          attributes = options.except(:class).merge(
+          attributes = options.except(:class, :data).merge(
             id: dom_id,
             class: class_names("split-view-list", options[:class])
           )
-          return attributes unless infinite_scroll?
+          return attributes.merge(data: options[:data]).compact unless infinite_scroll?
 
+          # Merged into the host's `data:` and not over it: replacing the hash
+          # dropped a caller's `data: { testid: }` — and only on the pages that
+          # had a next one, so it came and went with the pagination.
           attributes.merge(
-            data: {
+            data: (options[:data] || {}).merge(
               controller: "split-view-list",
               split_view_list_next_url_value: next_url,
               split_view_list_rows_id_value: dom_id
-            }
+            )
           )
         end
 

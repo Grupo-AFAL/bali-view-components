@@ -39,12 +39,12 @@
             <%= render Bali::Loader::Component.new(size: :sm) %>
           </span>
           <span data-split-view-list-target="end" class="split-view-sentinel-end" hidden>
-            <%= t("bali_view.split_view.end_of_list", default: "No hay más resultados") %>
+            <%= t("bali_view.split_view.end_of_list") %>
           </span>
           <span data-split-view-list-target="error" class="split-view-sentinel-error" hidden>
-            <%= t("bali_view.split_view.load_error", default: "No se pudieron cargar más resultados.") %>
+            <%= t("bali_view.split_view.load_error") %>
             <%= render Bali::Button::Component.new(
-              name: t("bali_view.split_view.retry", default: "Reintentar"),
+              name: t("bali_view.split_view.retry"),
               variant: :ghost, size: :xs,
               data: { action: "split-view-list#retry" }
             ) %>
