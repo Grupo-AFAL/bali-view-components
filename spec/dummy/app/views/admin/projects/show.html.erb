@@ -1,13 +1,12 @@
 <%# Admin Project Show - Showcases: PageHeader, Kanban with real drag-and-drop,
-    Tag, and the Bali::Gantt :static timeline (?view=timeline). The Board |
-    Timeline switch is plain GET links; the gantt's own zoom links preserve the
-    `view` param because they rewrite only `gantt_zoom`.
+    Tag, and the Bali::Gantt timeline (?view=timeline). The Board | Timeline
+    switch is plain GET links.
 
-    Phase 3 (#719) flips this render to `mode: :interactive`: everything the
-    island needs is already wired — the schedule/dependency endpoints
-    (Admin::Projects::SchedulesController), ProjectGantt#catalogs and
-    Bali::Gantt::Translations.island. Until then the editable island lives in
-    the Lookbook preview bali/gantt/island. %>
+    This is the Gantt's full host circuit in a real layout, which the Lookbook
+    previews cannot show: the island's asset paths go up through
+    `content_for :head` (step 4 of docs/api/gantt.md), the schedule and
+    dependency endpoints are the dummy's own reference controllers, and the
+    edits persist. %>
 
 <%= render Bali::PageHeader::Component.new(
   title: @project.name,
@@ -39,12 +38,23 @@
 </div>
 
 <% if @view == 'timeline' %>
+  <% content_for :head do %>
+    <%= react_island_meta_tags('gantt', js: 'gantt-island.js', css: 'gantt-island.css') %>
+  <% end %>
+
   <%= render Bali::Gantt::Component.new(
     data: @gantt.to_h,
     statuses: @gantt.statuses,
+    catalogs: @gantt.catalogs,
     zoom: params[:gantt_zoom],
-    group_label: 'Phase',
-    id: "project-#{@project.id}-gantt"
+    editable: true,
+    manageable: true,
+    urls: {
+      patch: admin_project_schedule_path(@project),
+      schedule: admin_project_schedule_path(@project),
+      dependencies: admin_project_dependencies_path(@project)
+    },
+    id: dom_id(@project, :gantt)
   ) %>
 <% else %>
   <%= render Bali::Kanban::Component.new(

@@ -4,6 +4,10 @@
 // registra sobre window.Stimulus con guard, y GanttController (subclase de
 // ReactIslandController) monta React Flow con values→props.
 //
+// Desde #970 la isla es el unico renderer, asi que estos previews son los del
+// componente: `default` (readonly) y `editable`. El swap esqueleto→isla se mide
+// aparte, en gantt-swap.cy.js.
+//
 // Se mide visibilidad/estructura, no textContent suelto (memoria del repo).
 // El preview editable pega contra los endpoints de referencia del dummy
 // (Admin::Projects::SchedulesController) sobre el proyecto seedeado: las
@@ -43,7 +47,7 @@ const arrastrarNodo = (selector, dx) => {
 
 describe('Gantt island', () => {
   it('monta la isla via el loader lazy sobre el Stimulus del host', () => {
-    cy.visit('/bali/gantt/island_readonly')
+    cy.visit('/bali/gantt/default')
 
     cy.get('.react-flow').should('be.visible')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0).and('be.visible')
@@ -54,7 +58,13 @@ describe('Gantt island', () => {
   })
 
   it('pinta el milestone como diamante y la arista critica con el color de error (D10)', () => {
-    cy.visit('/bali/gantt/island_readonly')
+    cy.visit('/bali/gantt/default')
+
+    // React Flow monta con onlyRenderVisibleElements: a la densidad con la que
+    // abre este preview (`:auto` → day, 24 px/dia sobre una ventana de 43 dias)
+    // el milestone cae fuera del viewport de Cypress y no existe como nodo. En
+    // "month" la ventana entera entra y se puede medir.
+    cy.get('[role="group"][aria-label="Zoom"]').contains('button', 'Month').click()
 
     cy.get('[data-milestone]').should('exist')
 
@@ -70,18 +80,22 @@ describe('Gantt island', () => {
   })
 
   it('el zoom escribe el param namespaceado gantt_zoom sin navegar y reescala', () => {
-    cy.visit('/bali/gantt/island_readonly')
+    cy.visit('/bali/gantt/default')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
 
+    // El preview abre en "day": es el zoom que el servidor resolvio de `:auto`
+    // contra la ventana y le paso a la isla en initial-zoom (#970).
+    cy.get('[data-controller="gantt"]').should('have.attr', 'data-gantt-initial-zoom-value', 'day')
+
     cy.get('.react-flow__node').first().then(($bar) => {
-      const weekWidth = anchoDe($bar)
-      // Scoped al grupo de zoom: un contains('Day') suelto matchea el boton
-      // oculto "Days" del dropdown de columnas.
-      cy.get('[role="group"][aria-label="Zoom"]').contains('button', 'Day').click()
-      cy.location('search').should('include', 'gantt_zoom=day')
-      // day = 24 px/dia vs week = 8: la misma barra se ensancha 3x.
+      const dayWidth = anchoDe($bar)
+      // Scoped al grupo de zoom: un contains('Week') suelto matchea el boton
+      // oculto del dropdown de columnas.
+      cy.get('[role="group"][aria-label="Zoom"]').contains('button', 'Week').click()
+      cy.location('search').should('include', 'gantt_zoom=week')
+      // day = 24 px/dia vs week = 8: la misma barra se encoge 3x.
       cy.get('.react-flow__node').first().should(($after) => {
-        expect(anchoDe($after)).to.be.greaterThan(weekWidth * 2)
+        expect(anchoDe($after)).to.be.lessThan(dayWidth / 2)
       })
     })
 
@@ -90,7 +104,7 @@ describe('Gantt island', () => {
   })
 
   it('colapsar un grupo esconde sus barras y color-by cambia el pintado', () => {
-    cy.visit('/bali/gantt/island_readonly')
+    cy.visit('/bali/gantt/default')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
 
     // Color-by: el fondo inline del cuerpo de la primera barra cambia de
@@ -115,7 +129,7 @@ describe('Gantt island', () => {
 
   it('arrastrar una barra postea el PATCH del contrato y reconcilia', () => {
     cy.intercept('PATCH', '/admin/projects/*/schedule').as('patch')
-    cy.visit('/bali/gantt/island')
+    cy.visit('/bali/gantt/editable')
 
     cy.get('.react-flow').should('be.visible')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)

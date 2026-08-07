@@ -274,12 +274,12 @@ export class ReactIslandController extends Controller {
   }
 
   // NON-DESTRUCTIVE when the mount carries server-rendered content: that
-  // content IS the fallback. Bali::Gantt `mode: :interactive` renders its whole
-  // static board inside the mount precisely so something usable is on screen
-  // until React takes over; replacing it with an error message would take a
-  // working, navigable, keyboard-reachable UI away from a visitor whose only
-  // problem is that a JS chunk did not arrive (rotated digest after a deploy,
-  // dropped connection, a CSP that blocks the bundle). The message goes FIRST,
+  // content IS the fallback. Bali::Gantt renders its loading skeleton inside
+  // the mount, and an island whose bundle never arrives should look like a
+  // failure with a message on it, not like an emptied region — the visitor's
+  // only problem is that a JS chunk did not arrive (rotated digest after a
+  // deploy, dropped connection, a CSP that blocks the bundle), and a host that
+  // renders something usable there must keep it. The message goes FIRST,
   // so it is read before the content it is warning about.
   //
   // An empty mount (the block editor's editor target, any island that renders

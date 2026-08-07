@@ -2,72 +2,37 @@
 
 require "test_helper"
 
-# Visual-parity contract with the React island's ganttColors.js: every string
-# here is asserted VERBATIM. If a formula must change, change it in both
-# runtimes (phase 2 ports the island) or bars will differ between renderers.
+# The default status vocabulary is the last piece of colour the SERVER decides
+# (#970 moved the rest into the island, which computes every bar from the
+# `catalogs` prop). It is still a frontier: a host that configures no catalog
+# gets Bali's defaults from Ruby, and the island's own defaults from JS, and the
+# two have to name the same daisyUI variable for the same status.
+#
+# So this reads ganttColors.js instead of restating it — a one-character edit on
+# either side used to be invisible until someone compared two screenshots.
 class BaliGanttColorsTest < ActiveSupport::TestCase
-  def test_neutral_matches_gantt_colors_js
-    assert_equal(
-      {
-        solid: "color-mix(in oklch, var(--color-base-content) 42%, transparent)",
-        fill: "color-mix(in oklch, var(--color-base-content) 10%, transparent)",
-        border: "color-mix(in oklch, var(--color-base-content) 30%, transparent)",
-        text: "color-mix(in oklch, var(--color-base-content) 62%, transparent)"
-      },
-      Bali::Gantt::Colors.neutral
-    )
+  def island_status_vars
+    source = Bali::Engine.root.join("app/components/bali/gantt/ganttColors.js").read
+    statuses = source[/statuses:\s*\[(.*?)\]/m, 1]
+    refute_nil statuses, "ganttColors.js no longer declares defaultCatalogs.statuses"
+
+    statuses.scan(/value:\s*'(\w+)'.*?color:\s*(null|'([^']+)')/m)
+            .to_h { |value, raw, var| [ value, raw == "null" ? nil : var ] }
   end
 
-  def test_var_color_matches_gantt_colors_js
-    assert_equal(
-      {
-        solid: "var(--color-info)",
-        fill: "color-mix(in oklch, var(--color-info) 16%, transparent)",
-        border: "color-mix(in oklch, var(--color-info) 50%, transparent)",
-        text: "var(--color-info)"
-      },
-      Bali::Gantt::Colors.var_color("--color-info")
-    )
+  def test_default_status_vars_match_the_island_defaults
+    assert_equal island_status_vars, Bali::Gantt::Colors::DEFAULT_STATUS_VARS.to_h,
+                 "Bali::Gantt::Colors and ganttColors.js disagree about the default status colours"
   end
 
-  def test_default_status_map_matches_the_island
-    assert_equal "var(--color-info)", Bali::Gantt::Colors.status_color("in_progress")[:solid]
-    assert_equal "var(--color-warning)", Bali::Gantt::Colors.status_color("ready_for_review")[:solid]
-    assert_equal "var(--color-success)", Bali::Gantt::Colors.status_color(:complete)[:solid]
-    assert_equal Bali::Gantt::Colors.neutral, Bali::Gantt::Colors.status_color("backlog")
-    assert_equal Bali::Gantt::Colors.neutral, Bali::Gantt::Colors.status_color("cancelled")
-    assert_equal Bali::Gantt::Colors.neutral, Bali::Gantt::Colors.status_color("unknown")
-  end
+  # The component turns this map into the `statuses` catalog a host inherits, so
+  # order and nil-means-neutral are part of the contract, not incidental.
+  def test_the_default_catalog_keeps_the_map_order_and_neutral_entries
+    catalog = Bali::Gantt::Component.new(data: { items: [] }).statuses
 
-  def test_custom_status_vocabularies_map_through_vars
-    vars = { "done" => "--color-success" }
-
-    assert_equal "var(--color-success)", Bali::Gantt::Colors.status_color("done", vars: vars)[:solid]
-    assert_equal Bali::Gantt::Colors.neutral, Bali::Gantt::Colors.status_color("todo", vars: vars)
-  end
-
-  def test_hue_color_matches_gantt_colors_js
-    assert_equal(
-      {
-        solid: "oklch(0.62 0.15 25)",
-        fill: "oklch(0.62 0.15 25 / 0.15)",
-        border: "oklch(0.6 0.15 25 / 0.5)",
-        text: "oklch(0.46 0.16 25)"
-      },
-      Bali::Gantt::Colors.hue_color(25)
-    )
-    assert_equal Bali::Gantt::Colors.neutral, Bali::Gantt::Colors.hue_color(nil)
-  end
-
-  def test_hash_hue_matches_the_js_algorithm
-    # h = (h * 31 + charCode) % 360 over the string — hand-computed references.
-    assert_equal 0, Bali::Gantt::Colors.hash_hue("")
-    assert_equal 97 % 360, Bali::Gantt::Colors.hash_hue("a")
-    assert_equal ((97 * 31) + 98) % 360, Bali::Gantt::Colors.hash_hue("ab")
-    assert_equal Bali::Gantt::Colors.hash_hue("7"), Bali::Gantt::Colors.hash_hue(7)
-  end
-
-  def test_hash_hue_stays_in_range
-    assert_includes 0...360, Bali::Gantt::Colors.hash_hue("Ana Luz Durán")
+    assert_equal Bali::Gantt::Colors::DEFAULT_STATUS_VARS.keys, catalog.map { |s| s[:value] }
+    assert_nil catalog.first[:color]
+    assert_equal "Backlog", catalog.first[:label]
+    assert_equal "--color-info", catalog.second[:color]
   end
 end

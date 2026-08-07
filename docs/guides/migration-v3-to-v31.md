@@ -211,23 +211,47 @@ some classes from JavaScript (the drawer submit spinner among them), so the cano
 is `node_modules/bali-view-components/app/**/*.{rb,erb,js}` — see
 [Installation](installation.md).
 
-### The Gantt gained `mode: :interactive` (#719)
+### The Gantt is the React island, and only that (#719, #970)
 
-`Bali::Gantt` shipped in v3.1 in three steps, and this is the last of them: the component
-now renders the React Flow island as well as the static board. **Nothing changes for
-existing call sites** — `mode:` still defaults to `:static`, and every option it took
-before means the same thing.
+`Bali::Gantt` arrived in v3.1 as one component with two renderers — a server-rendered
+`:static` board and a React Flow island — and leaves v3.1 with one. **#970 removed the
+static renderer.** The component always mounts the island now, and the skeleton it renders
+inside the mount is the loading state rather than a choice.
 
-What is new is that `mode: :interactive` no longer raises. It renders the static board
-*inside* the island's mount element and React replaces it on connect, so an interactive
-Gantt is also a working one before the bundle lands and with JavaScript off. `fallback:
-:skeleton` swaps that board for a neutral placeholder if you would rather not pay for
-rendering it twice.
+Holding the two in parity turned out to be a promise Bali could not keep cheaply: the
+static board never gained the minimap, the colour selector, dependencies, the critical
+path, fullscreen, the design alignment, filtering or the column selector — eight features
+the read-only portfolio case wants as much as the editable one does. That case now mounts
+the same island with `editable: false, manageable: false` and no `urls:`, and gains all
+eight.
 
-Going interactive is additive work — the island needs a bundler entry, the loader and the
-meta tags, and the host implements the mutation endpoints the island posts to.
-[../api/gantt.md](../api/gantt.md) is the whole circuit, including the broadcast contract
-and why echo suppression is the host's job.
+**If you pinned `v3.1.0.beta.6` or `beta.7`, remove these six options.** They no longer
+exist, and passing one raises `ArgumentError` at render time rather than travelling to the
+browser as a stray HTML attribute:
+
+| Removed | Why, and what to do |
+|---|---|
+| `mode:` | There is one renderer. Drop it — `mode: :interactive` and `mode: :static` are both gone |
+| `fallback:` | The skeleton is the only loading state. Drop it |
+| `limit:` | It capped how many bars the ERB emitted; the island always received the whole document and still does. Drop it — the island renders and virtualizes the schedule itself |
+| `zoom_links:` | The static board's GET-link zoom switcher. The island's toolbar owns zoom and persists it to `zoom_param:`. Drop it |
+| `group_label:` | The header of the static sticky name column. The island labels its own. Drop it |
+| `color_by:` | The static bars' colour rule. The island's toolbar owns colour-by (status, assignee, group, priority) as view state. Drop it |
+
+Everything else means what it meant: `data:`, `zoom:`/`zoom_param:`, `statuses:`,
+`catalogs:`, `i18n:`, `editable:`, `manageable:`, `urls:`, `date_locale:` and `id:`.
+`zoom: :auto` is still resolved server-side against the window, which is what stops the
+island from opening at its own default and rescaling the board on mount.
+
+Two consequences worth planning for:
+
+- **The Gantt needs JavaScript.** There is no server-rendered board behind it any more. The
+  component renders a translated `<noscript>` notice inside the mount, but if some of your
+  visitors need the plan without the bundle, give them a non-canvas path to it.
+- **The island needs its assets.** A bundler entry, the loader and the meta tags in your
+  layout — four steps, all of them required now. [../api/gantt.md](../api/gantt.md) is the
+  whole circuit, including the mutation and broadcast contracts (both unchanged) and why
+  echo suppression is the host's job.
 
 If you upgraded from v2, note that `bali-view-components/gantt` resolves again in v3.1 —
 see the warning in [migration-v2-to-v3.md](migration-v2-to-v3.md#the-gantt-chart-is-gone).

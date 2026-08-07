@@ -502,10 +502,10 @@ If you do render it, you have three options:
 
 1. **Move to `Bali::Gantt`, which shipped in v3.1.** It is not an API-compatible revival:
    it is a different component with a different contract, and the section below is the
-   whole of what porting involves. `mode: :static` is the read-only portfolio board with
-   the per-row `color_by:` that #667 asked for; `mode: :interactive` brings back
-   drag/resize/dependency editing, as a React island rather than the old Stimulus
-   controllers. See [../api/gantt.md](../api/gantt.md).
+   whole of what porting involves. It is a React island — drag/resize/dependency editing
+   are back, as is colour-by, but through the island's own toolbar rather than the old
+   Stimulus controllers, and a read-only board is the same island with no endpoints. It
+   needs JavaScript. See [../api/gantt.md](../api/gantt.md).
 2. **Server-render the view yourself.** afal-apps#426 did exactly this for a portfolio
    Gantt: `position: sticky` plus `<details>` for the parent/child folding, no JavaScript.
    A read-only chart uses almost none of what the component carried.
@@ -545,9 +545,9 @@ new one takes one document:
 |---|---|
 | Sub-component slots per row/section | A single `data:` document — see `Bali::Gantt::Data` |
 | `Bali::GanttChart::Component.new(...)` + nested renders | One `render Bali::Gantt::Component.new(data: …)` |
-| `gantt-chart` / `gantt-foldable-item` Stimulus controllers | None in `:static`; the `gantt` island controller in `:interactive` |
-| Folding via `GanttFoldableItemController` | Native `<details>`, no JavaScript |
-| Bar colour via CSS classes per status | `color_by: :status` plus a `statuses:` catalog |
+| `gantt-chart` / `gantt-foldable-item` Stimulus controllers | The `gantt` island controller, lazy-loaded |
+| Folding via `GanttFoldableItemController` | The island's own group rows |
+| Bar colour via CSS classes per status | A `statuses:` catalog; the island's toolbar picks what to colour by |
 | `bali_view.gantt_chart.*` locale keys | `bali_view.gantt.*` |
 
 The work is in the serializer, not the view: write the object that turns your models into

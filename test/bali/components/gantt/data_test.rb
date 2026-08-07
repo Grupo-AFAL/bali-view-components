@@ -23,8 +23,8 @@ class BaliGanttDataTest < ActiveSupport::TestCase
     }
   end
 
-  def data(payload = base_payload, **kwargs)
-    Bali::Gantt::Data.new(payload, **kwargs)
+  def data(payload = base_payload)
+    Bali::Gantt::Data.new(payload)
   end
 
   def test_rejects_non_hash_payloads
@@ -102,26 +102,12 @@ class BaliGanttDataTest < ActiveSupport::TestCase
     assert_equal 1, parsed.undated_total
   end
 
-  def test_limit_caps_dated_items_and_announces
-    parsed = data(base_payload, limit: 2)
-
-    assert_predicate parsed, :truncated?
-    assert_equal 3, parsed.dated_total
-    assert_equal [ 10, 11 ], parsed.dated_items.map(&:id)
-  end
-
-  def test_limit_drops_sub_items_whose_parent_fell_over_the_cap
-    payload = base_payload
-    # Reorder so the sub-item would survive while its parent does not.
-    payload[:items] = [
-      payload[:items][2],                                     # 12
-      payload[:items][0],                                     # 10 (parent)
-      payload[:items][1]                                      # 11 (sub of 10)
-    ]
-
-    parsed = data(payload, limit: 1)
-
-    assert_equal [ 12 ], parsed.dated_items.map(&:id)
+  # #970 removed `limit:` with the static board it capped. The island renders
+  # the whole schedule, so the document that reaches it is the one handed in.
+  def test_the_document_is_never_capped
+    assert_raises(ArgumentError) { Bali::Gantt::Data.new(base_payload, limit: 2) }
+    assert_equal [ 10, 11, 12 ], data.dated_items.map(&:id)
+    assert_equal base_payload[:items].size, data.to_h.fetch(:items).size
   end
 
   def test_milestone_and_optional_fields_parse

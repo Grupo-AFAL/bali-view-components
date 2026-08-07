@@ -378,20 +378,8 @@ en:
         previous: Previous
         next: Next
     gantt:
-      label: Gantt chart
-      name_column: Name
-      today: Today
-      empty: Nothing to plot yet
       loading: Loading the timeline
-      truncated: "Showing %{shown} of %{total} scheduled items"
-      undated_title: No dates
-      undated_hint: "These items have no dates yet, so they can't be placed on the timeline."
-      undated_truncated: "Showing %{shown} of %{total}"
-      zoom:
-        label: Zoom
-        day: Day
-        week: Week
-        month: Month
+      noscript: This timeline needs JavaScript to be displayed.
       # Flat strings table of the React island (#705, D12) — served by
       # Bali::Gantt::Translations.island as the `i18n` prop. `%{...}` are
       # interpolated CLIENT-side; keys must match Translations::KEYS and the

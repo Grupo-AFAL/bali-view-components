@@ -4,9 +4,10 @@
 // the zoom as a DATA transform, not React Flow's 2D zoom (which scales both
 // axes and is pinned to 1 by the canvas).
 //
-// The same numbers live server-side in Bali::Gantt::TimeScale (day 24 / week 8
-// / month 2 px per day) so the `:static` renderer and the island agree bar for
-// bar — do not change one without the other.
+// These densities are the island's alone since #970 removed the server-rendered
+// board: Ruby no longer computes a pixel. What still crosses the boundary is the
+// zoom NAMES — Bali::Gantt::TimeScale resolves `:auto` to one of them and hands
+// it over as `initialZoom`, and a test compares both lists.
 import {
   differenceInCalendarDays,
   parseISO,

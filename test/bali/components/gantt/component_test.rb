@@ -27,166 +27,80 @@ class BaliGanttComponentTest < ComponentTestCase
     Bali::Gantt::Component.new(data: payload, **overrides)
   end
 
-  def test_renders_the_static_board
+  # --- the mount ---
+
+  def test_the_component_element_is_the_islands_mount_point
     render_inline(component)
-
-    assert_selector(".bali-gantt[data-gantt-mode='static']")
-    assert_selector(".bali-gantt-canvas")
-    assert_selector("details.bali-gantt-group", count: 2)
-    assert_selector("summary", text: "Discovery")
-    assert_selector(".bali-gantt-row", count: 3)
-    assert_selector(".bali-gantt-gridline", minimum: 1)
-  end
-
-  def test_bars_carry_inline_geometry_and_status_colors
-    render_inline(component)
-
-    bar = page.find("a.bali-gantt-bar", match: :first)
-    assert_match(/left: 0px/, bar[:style])
-    assert_match(/width: 288px/, bar[:style]) # 12 days × 24 px/day (auto→day for this 33-day span)
-    assert_match(/color-mix\(in oklch, var\(--color-info\) 16%, transparent\)/, bar[:style])
-    assert_equal "true", bar["data-critical"]
-    assert_selector("a.bali-gantt-bar .bali-gantt-progress")
-  end
-
-  def test_group_own_dates_render_a_group_bar
-    render_inline(component)
-
-    assert_selector("summary .bali-gantt-group-bar", count: 1)
-  end
-
-  def test_milestones_render_as_diamonds_not_bars
-    render_inline(component)
-
-    assert_selector(".bali-gantt-milestone", count: 1)
-  end
-
-  def test_color_by_none_neutralizes_every_bar
-    render_inline(component(color_by: :none))
-
-    page.all(".bali-gantt-bar").each do |bar|
-      assert_match(/var\(--color-base-content\) 10%/, bar[:style])
-    end
-    assert_no_selector(".bali-gantt-swatch")
-  end
-
-  def test_legend_lists_only_present_statuses_in_catalog_order
-    render_inline(component)
-
-    labels = page.all(".bali-gantt-swatch").map { |swatch| swatch.find(:xpath, "..").text.strip }
-    assert_equal [ "In progress", "Complete" ], labels
-  end
-
-  def test_custom_status_catalog_drives_colors_and_labels
-    render_inline(component(statuses: [
-                              { value: "in_progress", label: "En curso", color: "--color-warning" },
-                              { value: "complete", label: "Hecho", color: "--color-success" }
-                            ]))
-
-    assert_text "En curso"
-    bar = page.find("a.bali-gantt-bar", match: :first)
-    assert_match(/var\(--color-warning\)/, bar[:style])
-  end
-
-  def test_zoom_links_rewrite_only_the_namespaced_param
-    with_request_url "/admin/projects/1?view=timeline&gantt_zoom=day" do
-      render_inline(component(zoom: "day"))
-    end
-
-    assert_link "Week", href: "/admin/projects/1?gantt_zoom=week&view=timeline"
-    assert_selector("a.btn-active", text: "Day")
-  end
-
-  def test_zoom_links_can_be_hidden
-    render_inline(component(zoom_links: false))
-
-    assert_no_selector(".join")
-  end
-
-  def test_truncation_is_announced_never_silent
-    render_inline(component(limit: 1))
-
-    assert_selector("[role='status'].alert-warning", text: /1 of 3|1 de 3/)
-  end
-
-  def test_undated_items_get_their_own_section
-    render_inline(component)
-
-    assert_selector(".bali-gantt-undated", text: "Unscheduled")
-    assert_selector(".bali-gantt-undated", text: /No dates/i)
-  end
-
-  def test_empty_data_renders_the_empty_state
-    render_inline(Bali::Gantt::Component.new(data: { items: [] }))
-
-    assert_selector(".empty-state-component")
-    assert_no_selector(".bali-gantt-canvas")
-  end
-
-  def test_unknown_mode_fallback_and_color_by_raise
-    assert_raises(ArgumentError) { Bali::Gantt::Component.new(data: payload, mode: :flying) }
-    assert_raises(ArgumentError) { Bali::Gantt::Component.new(data: payload, color_by: :phase) }
-    assert_raises(ArgumentError) { Bali::Gantt::Component.new(data: payload, fallback: :spinner) }
-  end
-
-  # --- mode: :interactive (#719) ---
-
-  # THE line of the D16 gate. Every other interactive test passes `fallback:`
-  # explicitly, so flipping the default to :skeleton is this constant plus this
-  # assertion — and the flip stays honest instead of quietly rewriting what a
-  # dozen other tests were proving.
-  def test_the_default_fallback_is_static
-    assert_equal :static, Bali::Gantt::Component::DEFAULT_FALLBACK
-
-    render_inline(component(mode: :interactive))
-    assert_selector("[data-controller='gantt'] .bali-gantt-canvas")
-  end
-
-  def test_interactive_mounts_the_island_on_the_component_element
-    render_inline(component(mode: :interactive))
 
     island = page.find(".bali-gantt")
     assert_equal "gantt", island["data-controller"]
-    assert_equal "interactive", island["data-gantt-mode"]
     assert_equal({ "groups" => 2, "items" => 4 },
                  JSON.parse(island["data-gantt-data-value"])
                      .slice("groups", "items").transform_values(&:size))
   end
 
-  # The promise of the phase: the same board, inside the mount, so React has
-  # something to replace instead of a hole.
-  #
-  # `fallback:` is explicit in every test that proves a MECHANISM, so flipping
-  # DEFAULT_FALLBACK never rewrites them. The default itself is pinned once, in
-  # test_the_default_fallback_is_static — that pair of lines is the whole flip.
-  def test_interactive_renders_the_static_board_inside_the_mount
-    render_inline(component(mode: :interactive, fallback: :static))
+  # The island is the only renderer (#970), so nothing about the schedule is
+  # painted server-side: no board, and no `mode`/`color_by` attributes left over
+  # from the renderer that used to choose between them.
+  def test_no_board_is_rendered_server_side
+    render_inline(component)
 
-    assert_selector("[data-controller='gantt'] .bali-gantt-canvas")
-    assert_selector("[data-controller='gantt'] .bali-gantt-row", count: 3)
-    assert_selector("[data-controller='gantt'] a.bali-gantt-bar")
-    assert_no_selector(".bali-gantt-skeleton")
+    assert_no_selector(".bali-gantt-canvas")
+    assert_no_selector(".bali-gantt-row")
+    assert_no_selector(".bali-gantt-bar")
+    assert_nil page.find(".bali-gantt")["data-gantt-mode"]
+    assert_nil page.find(".bali-gantt")["data-gantt-color-by"]
   end
 
-  # Both renderers must open at the same density or the swap rescales every
-  # bar under the visitor: the island's initial zoom IS the static's resolved
-  # one (`:auto` → :day for this window).
-  def test_interactive_hands_the_island_the_zoom_its_fallback_resolved
-    render_inline(component(mode: :interactive))
+  # --- the skeleton, which is the loading state, not an option ---
 
-    island = page.find(".bali-gantt")
-    assert_equal "day", island["data-gantt-initial-zoom-value"]
-    assert_equal island["data-gantt-zoom"], island["data-gantt-initial-zoom-value"]
-    assert_equal "gantt_zoom", island["data-gantt-zoom-param-value"]
+  def test_the_skeleton_renders_inside_the_mount
+    render_inline(component)
+
+    assert_selector("[data-controller='gantt'] .bali-gantt-skeleton[aria-busy='true'][role='status']")
+    assert_selector(".bali-gantt-skeleton .skeleton",
+                    count: 2 + (Bali::Gantt::Component::SKELETON_ROWS * 2))
   end
 
-  def test_interactive_serializes_catalogs_i18n_and_authorization
-    render_inline(component(mode: :interactive, editable: true, manageable: false))
+  # A placeholder that leaked the real schedule would be a second renderer by
+  # accident — the thing #970 removed.
+  def test_the_skeleton_carries_nothing_of_the_real_schedule
+    render_inline(component)
+
+    assert_no_text("Interviews")
+    assert_no_text("Discovery")
+    assert_no_text("Ana Luz")
+  end
+
+  # --- the no-JavaScript story ---
+
+  # Without the bundle the skeleton shimmers forever, which reads as "loading"
+  # and never resolves. The <noscript> is what stops that from being a lie.
+  def test_a_noscript_notice_explains_that_the_island_needs_javascript
+    render_inline(component)
+
+    assert_selector("[data-controller='gantt'] noscript", count: 1)
+    assert_includes page.find("noscript", visible: :all).native.to_html,
+                    "This timeline needs JavaScript"
+  end
+
+  def test_the_noscript_notice_is_translated
+    I18n.with_locale(:es) do
+      render_inline(component)
+
+      assert_includes page.find("noscript", visible: :all).native.to_html,
+                      "necesita JavaScript"
+    end
+  end
+
+  # --- island values ---
+
+  def test_it_serializes_catalogs_i18n_and_authorization
+    render_inline(component(editable: true, manageable: false))
 
     island = page.find(".bali-gantt")
     assert_equal "true", island["data-gantt-editable-value"]
     assert_equal "false", island["data-gantt-manageable-value"]
-    # Catalogs default to the same status vocabulary the static legend uses.
     catalogs = JSON.parse(island["data-gantt-catalogs-value"])
     assert_equal component.statuses.map { |s| s[:value].to_s },
                  catalogs.fetch("statuses").map { |s| s.fetch("value") }
@@ -194,9 +108,27 @@ class BaliGanttComponentTest < ComponentTestCase
                  JSON.parse(island["data-gantt-i18n-value"]).keys.sort
   end
 
-  def test_interactive_emits_only_the_urls_it_was_given
-    render_inline(component(mode: :interactive,
-                            urls: { patch: "/p/1/schedule", dependencies: "/p/1/deps" }))
+  # The one thing the server still decides about the axis: `:auto` resolved
+  # against the window, so the island does not open at its own default (`week`)
+  # and rescale the board the moment it mounts.
+  def test_it_hands_the_island_the_zoom_it_resolved_from_the_window
+    render_inline(component)
+
+    island = page.find(".bali-gantt")
+    assert_equal "day", island["data-gantt-initial-zoom-value"] # 33-day window → :auto → :day
+    assert_equal "gantt_zoom", island["data-gantt-zoom-param-value"]
+  end
+
+  def test_an_explicit_zoom_wins_over_auto
+    render_inline(component(zoom: "month", zoom_param: "roadmap_zoom"))
+
+    island = page.find(".bali-gantt")
+    assert_equal "month", island["data-gantt-initial-zoom-value"]
+    assert_equal "roadmap_zoom", island["data-gantt-zoom-param-value"]
+  end
+
+  def test_it_emits_only_the_urls_it_was_given
+    render_inline(component(urls: { patch: "/p/1/schedule", dependencies: "/p/1/deps" }))
 
     island = page.find(".bali-gantt")
     assert_equal "/p/1/schedule", island["data-gantt-patch-url-value"]
@@ -206,56 +138,87 @@ class BaliGanttComponentTest < ComponentTestCase
   end
 
   def test_unknown_url_keys_raise_rather_than_ship_a_silent_viewer
-    error = assert_raises(ArgumentError) do
-      Bali::Gantt::Component.new(data: payload, mode: :interactive, urls: { pacth: "/typo" })
-    end
+    error = assert_raises(ArgumentError) { component(urls: { pacth: "/typo" }) }
 
     assert_match(/unknown urls/, error.message)
   end
 
-  # `limit:` caps the ERB the static fallback emits; the island gets the whole
-  # schedule and renders it itself.
-  def test_the_island_receives_the_uncapped_document
-    render_inline(component(mode: :interactive, fallback: :static, limit: 1))
-
-    assert_selector("[data-controller='gantt'] .bali-gantt-row", count: 1)
-    assert_equal 4, JSON.parse(page.find(".bali-gantt")["data-gantt-data-value"])
-                        .fetch("items").size
-  end
-
-  def test_skeleton_fallback_replaces_the_board_and_keeps_the_mount
-    render_inline(component(mode: :interactive, fallback: :skeleton))
-
-    assert_equal "gantt", page.find(".bali-gantt")["data-controller"]
-    assert_selector("[data-controller='gantt'] .bali-gantt-skeleton[aria-busy='true']")
-    assert_selector(".bali-gantt-skeleton .skeleton",
-                    count: 2 + (Bali::Gantt::Component::SKELETON_ROWS * 2))
-    assert_no_selector(".bali-gantt-canvas")
-    # Nothing of the real schedule leaks into the placeholder.
-    assert_no_text("Interviews")
-  end
-
-  # A host that toggles `mode:` from a policy passes `fallback:` unconditionally;
-  # the static renderer ignores it rather than punishing the call site.
-  def test_static_mode_ignores_fallback_and_mounts_nothing
-    render_inline(component(fallback: :skeleton))
-
-    assert_selector(".bali-gantt-canvas")
-    assert_no_selector(".bali-gantt-skeleton")
-    assert_nil page.find(".bali-gantt")["data-controller"]
-    assert_nil page.find(".bali-gantt")["data-gantt-data-value"]
-  end
-
-  def test_accepts_a_prebuilt_data_document
-    doc = Bali::Gantt::Data.new(payload)
-    render_inline(Bali::Gantt::Component.new(data: doc))
-
-    assert_selector(".bali-gantt-canvas")
-  end
-
-  def test_assignee_chip_renders_initials
+  def test_the_island_receives_the_whole_document_including_undated_items
     render_inline(component)
 
-    assert_selector(".bali-gantt-assignee", text: "AL")
+    document = JSON.parse(page.find(".bali-gantt")["data-gantt-data-value"])
+    assert_equal 4, document.fetch("items").size
+    assert_equal [ 10 ], document.fetch("critical_ids")
+  end
+
+  def test_a_custom_status_catalog_reaches_the_island
+    render_inline(component(statuses: [
+                              { value: "in_progress", label: "En curso", color: "--color-warning" }
+                            ]))
+
+    catalogs = JSON.parse(page.find(".bali-gantt")["data-gantt-catalogs-value"])
+    assert_equal [ { "value" => "in_progress", "label" => "En curso", "color" => "--color-warning" } ],
+                 catalogs.fetch("statuses")
+  end
+
+  def test_date_locale_defaults_to_the_current_locale
+    render_inline(component)
+    assert_equal "en", page.find(".bali-gantt")["data-gantt-date-locale-value"]
+
+    render_inline(component(date_locale: "es"))
+    assert_equal "es", page.find(".bali-gantt")["data-gantt-date-locale-value"]
+  end
+
+  # --- what #970 removed ---
+
+  # A host pinned to beta.6/7 finds out at render time instead of shipping the
+  # option as a stray HTML attribute: `**options` would have swallowed every one
+  # of these in silence.
+  Bali::Gantt::Component::REMOVED_OPTIONS.each_key do |option|
+    define_method("test_#{option}_raises_because_the_static_renderer_is_gone") do
+      error = assert_raises(ArgumentError) { component(option => :anything) }
+
+      assert_match(/#{option}/, error.message)
+      assert_match(/#970/, error.message)
+      assert_match(%r{migration-v3-to-v31}, error.message)
+    end
+  end
+
+  def test_several_removed_options_are_reported_together
+    error = assert_raises(ArgumentError) { component(mode: :static, limit: 300) }
+
+    assert_match(/mode/, error.message)
+    assert_match(/limit/, error.message)
+  end
+
+  # --- the rest of the surface ---
+
+  def test_it_accepts_a_prebuilt_data_document
+    render_inline(Bali::Gantt::Component.new(data: Bali::Gantt::Data.new(payload)))
+
+    assert_selector("[data-controller='gantt'][data-gantt-data-value]")
+  end
+
+  # An empty schedule is the island's problem to draw, not a reason to render
+  # something else: the mount and its values are identical.
+  def test_an_empty_document_still_mounts_the_island
+    render_inline(Bali::Gantt::Component.new(data: { items: [] }))
+
+    island = page.find(".bali-gantt")
+    assert_equal "gantt", island["data-controller"]
+    assert_equal "week", island["data-gantt-initial-zoom-value"]
+    assert_selector(".bali-gantt-skeleton")
+  end
+
+  # `data:` is the Gantt document, so it can never double as a bag of HTML data
+  # attributes — everything else passes through to the wrapper untouched.
+  def test_options_and_id_land_on_the_wrapper
+    render_inline(component(id: "project-1-gantt", class: "mt-6", aria: { label: "Roadmap" }))
+
+    island = page.find("#project-1-gantt")
+    assert island[:class].include?("mt-6")
+    assert island[:class].include?("bali-gantt")
+    assert_equal "Roadmap", island["aria-label"]
+    assert_equal "gantt", island["data-controller"]
   end
 end

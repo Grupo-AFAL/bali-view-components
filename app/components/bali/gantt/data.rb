@@ -22,7 +22,7 @@ module Bali
     #         starts_on: "2026-01-02", ends_on: "2026-01-15",           # ISO8601 dates
     #         parent_id: nil,          # sub-item (subtask); one level, like row_kind
     #         status: "in_progress", priority: "high",                  # optional
-    #         milestone: false,        # D6: boolean, rendered as a diamond in :static
+    #         milestone: false,        # D6: boolean, drawn as a diamond by the island
     #         percent_complete: 40,    # 0..100
     #         assignee: { id: 7, name: "Ana Luz", initials: "AL" },
     #         slack_days: 3,
@@ -71,16 +71,12 @@ module Bali
       Dependency = Struct.new(:id, :predecessor_id, :successor_id,
                               :dependency_type, :lag_days, keyword_init: true)
 
-      attr_reader :dependencies, :critical_ids, :limit, :dated_total, :undated_total
+      attr_reader :dependencies, :critical_ids, :dated_total, :undated_total
 
-      # `limit` caps the DATED items (in document order) BEFORE the window is
-      # derived, so the time axis is fixed by the bars that actually render —
-      # same rule as TDFlow::PortfolioGantt. nil = no cap.
-      def initialize(payload, limit: nil)
+      def initialize(payload)
         raise InvalidError, "Gantt data must be a Hash, got #{payload.class}" unless payload.is_a?(Hash)
 
         @payload = payload.deep_symbolize_keys
-        @limit = limit
         parse!
       end
 
@@ -94,7 +90,7 @@ module Bali
       end
 
       # Dated items of a group: top-level items in document order, each followed
-      # by its sub-items. Only items that survived the cap.
+      # by its sub-items.
       def items_for(group_id)
         rows = @dated_items.select { |item| item.group_id == group_id }
         rows.reject(&:parent_id).flat_map do |item|
@@ -115,18 +111,17 @@ module Bali
         critical_ids.include?(id)
       end
 
-      def truncated? = @limit.present? && dated_total > @limit
       def any? = (dated_total + undated_total).positive?
 
-      # The document as it was handed in — validated, symbolized, UNCAPPED.
-      # This is what `mode: :interactive` serializes into the island's `data`
-      # value: `limit:` is a static-render concern (it decides how many bars
-      # ERB emits), while the island renders the whole schedule and reconciles
-      # against the same shape the server returns after a mutation.
+      # The document as it was handed in — validated and symbolized. This is
+      # what the component serializes into the island's `data` value: the island
+      # renders the whole schedule and reconciles against the same shape the
+      # server returns after a mutation, so it is never capped or filtered here.
       def to_h = @payload
 
       # Window bounds as Dates. Explicit `window:` wins; otherwise derived from
-      # the rendered items plus the groups' own dates (like `build_window`).
+      # the dated items plus the groups' own dates (like `build_window`). The
+      # component resolves `zoom: :auto` against them.
       def window_starts_on = window_bounds.first
       def window_ends_on = window_bounds.last
 
@@ -142,8 +137,8 @@ module Bali
         dated, undated = items.partition(&:dated?)
         @dated_total = dated.size
         @undated_total = undated.size
-        @dated_items = @limit ? cap_preserving_parents(dated) : dated
-        @undated_items = @limit ? undated.first(@limit) : undated
+        @dated_items = dated
+        @undated_items = undated
 
         @dependencies = Array(@payload[:dependencies]).map { |raw| build_dependency(raw) }
         @critical_ids = Array(@payload[:critical_ids])
@@ -245,14 +240,6 @@ module Bali
             raise InvalidError, "item #{item.id} must live in its parent's group"
           end
         end
-      end
-
-      # Caps dated items in document order. A surviving sub-item whose parent
-      # fell over the cap would render orphaned, so parents count first.
-      def cap_preserving_parents(dated)
-        kept = dated.first(@limit)
-        kept_ids = kept.map(&:id).to_set
-        kept.select { |item| item.parent_id.nil? || kept_ids.include?(item.parent_id) }
       end
 
       def group_ids

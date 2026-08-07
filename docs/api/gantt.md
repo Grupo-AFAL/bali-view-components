@@ -1,19 +1,27 @@
 # Bali::Gantt::Component
 
-A Gantt chart with **two renderers over one data contract**. Both draw the same
-schedule with the same geometry and the same colours; what differs is who does
-the drawing.
+A Gantt chart: a React Flow island that draws the schedule you hand it as a
+plain data document. Drag a bar to move it, resize it to change its duration,
+draw an edge to create a dependency; the toolbar carries zoom, search,
+filtering, the column selector, colour-by, the minimap, the critical path and
+fullscreen. A board that only reads passes no `urls:` and no `editable:` — the
+same island, with the editing controls gone.
 
-| Mode | What renders | Needs JavaScript | Use it for |
-|---|---|---|---|
-| `:static` (default) | Server-rendered HTML board: sticky two-tier header, collapsible groups, today marker | No | Portfolio and read-only views, printing, e-mail-adjacent pages, anything that must work everywhere |
-| `:interactive` | A React Flow island: drag to move, resize to change duration, draw dependencies, live critical path | Yes (plus the island bundle) | The editable schedule of a single project |
+**The island is the only renderer.** Bali shipped a server-rendered `:static`
+board alongside it through v3.1's betas and removed it in #970: keeping two
+renderers of the same schedule in parity was a permanent tax on every feature,
+and the static one had already fallen eight behind (minimap, colour selector,
+dependencies, critical path, fullscreen, design alignment, filtering, column
+selector) — features the read-only portfolio case wants too. If you pinned
+`v3.1.0.beta.6`/`beta.7` and passed `mode:`, `fallback:`, `limit:`,
+`zoom_links:`, `group_label:` or `color_by:`, see
+[migration-v3-to-v31.md](../guides/migration-v3-to-v31.md).
 
-`:interactive` is `:static` plus an island: the component renders the static
-board **inside the island's mount element** and React replaces it when the
-bundle arrives. That is why an interactive Gantt still shows a schedule with
-JavaScript disabled, and why the moment React takes over is not a flash of
-empty space.
+**This means the Gantt needs JavaScript.** The component renders a loading
+skeleton inside the island's mount and a `<noscript>` notice beside it; a
+visitor who never runs the bundle gets the notice, not a schedule. If some of
+your visitors need the plan without JavaScript, give them a non-canvas path to
+it — a table of the same items on the item's own page, for instance.
 
 - Data contract, renames and validation rules: `Bali::Gantt::Data` (start there).
 - Island mechanics (`ReactIslandController`, entries, loaders): [react-island.md](react-island.md).
@@ -24,8 +32,8 @@ empty space.
 
 ## Installation
 
-**`mode: :static` needs nothing.** It is plain server-rendered HTML — skip this
-whole section. The four steps below are only for `mode: :interactive`.
+All four steps are required — without the bundle the component renders its
+skeleton and nothing else.
 
 ### Step 1 — npm packages
 
@@ -86,38 +94,21 @@ loader through meta tags:
 ```
 
 Miss this step and the loader logs a precise error naming the tag it wanted;
-the fallback stays on screen and nothing else breaks.
+the skeleton stays on screen and nothing else breaks.
 
 ---
 
 ## Basic usage
 
-### Static
+### Editable
 
 ```erb
 <% gantt = ProjectGantt.new(@project) %>
 <%= render Bali::Gantt::Component.new(
       data: gantt.to_h,
-      color_by: :status,
-      zoom: params[:gantt_zoom],
-      statuses: gantt.statuses,
-      group_label: 'Phase',
-      limit: 300) %>
-```
-
-`ProjectGantt` here is **your** serializer — the object that turns your models
-into the contract. `spec/dummy/app/models/project_gantt.rb` is a complete one to
-copy from.
-
-### Interactive
-
-```erb
-<% gantt = ProjectGantt.new(@project) %>
-<%= render Bali::Gantt::Component.new(
-      data: gantt.to_h,
-      mode: :interactive,
       statuses: gantt.statuses,
       catalogs: gantt.catalogs,
+      zoom: params[:gantt_zoom],
       editable: policy(@project).reschedule?,
       manageable: policy(@project).manage?,
       urls: {
@@ -128,9 +119,26 @@ copy from.
       id: dom_id(@project, :gantt)) %>
 ```
 
+`ProjectGantt` here is **your** serializer — the object that turns your models
+into the contract. `spec/dummy/app/models/project_gantt.rb` is a complete one to
+copy from.
+
 `editable` and `manageable` are yours to decide — the island only hides the
 controls. **Authorize every endpoint server-side anyway**; a value in a data
 attribute is a suggestion, not a permission.
+
+### Read-only
+
+```erb
+<%= render Bali::Gantt::Component.new(
+      data: PortfolioGantt.new(@programme).to_h,
+      statuses: PortfolioGantt::STATUSES,
+      zoom: params[:gantt_zoom]) %>
+```
+
+The same island with nothing to post to: no `urls:`, `editable`/`manageable`
+left `false`. Zoom, collapse, search, filter, colour-by, the column selector and
+the minimap are pure view state, so a viewer needs no endpoints at all.
 
 ---
 
@@ -139,25 +147,26 @@ attribute is a suggestion, not a permission.
 | Parameter | Default | Description |
 |---|---|---|
 | `data:` | required | The Gantt document (`Hash` or a prebuilt `Bali::Gantt::Data`) |
-| `mode:` | `:static` | `:static` or `:interactive` |
-| `fallback:` | `:static` | What renders inside the island's mount: `:static` or `:skeleton`. Ignored by `mode: :static` |
-| `color_by:` | `:status` | `:status` paints bars from the status catalog; `:none` is all-neutral |
-| `zoom:` | `:auto` | `:auto`, `:day`, `:week` or `:month` — usually `params[:gantt_zoom]` |
-| `zoom_param:` | `"gantt_zoom"` | Namespaced query param the zoom writes. Never a bare `zoom`, which collides with any other control on the page |
-| `zoom_links:` | `true` | Render the static zoom switcher (plain GET links) |
-| `group_label:` | `t('.name_column')` | Header of the sticky name column |
+| `zoom:` | `:auto` | `:auto`, `:day`, `:week` or `:month` — usually `params[:gantt_zoom]`. `:auto` is resolved **server-side** against the window and handed to the island, so it opens at the right density instead of rescaling on mount |
+| `zoom_param:` | `"gantt_zoom"` | Namespaced query param the island persists the zoom into. Never a bare `zoom`, which collides with any other control on the page |
 | `statuses:` | humanized defaults | Status catalog `[{ value:, label:, color: }]`; `color` is a daisyUI variable name (`"--color-info"`) or `nil` for neutral. **Cover the group statuses too**: groups render as bars and feed the same legend, and any value the catalog misses falls back to `value.humanize` — an untranslated English label is how the gap shows up (measured in afal-apps#462, where stage statuses leaked "Not started" into a Spanish UI) |
-| `limit:` | `300` | Announced cap on rendered items. **Caps the static board only** — the island receives the whole document |
-| `id:` | `nil` | DOM id. Give it one if you broadcast (see below) |
-| **Interactive only** | | |
-| `catalogs:` | `{ statuses: statuses }` | Island catalogs: `{ statuses: [{value, label, color}], priorities: [{value, label, hue}] }` |
+| `catalogs:` | `{ statuses: statuses }` | Island catalogs: `{ statuses: [{value, label, color}], priorities: [{value, label, hue}] }`. A key you leave out falls back to the island's own defaults |
 | `i18n:` | `Bali::Gantt::Translations.island` | Flat string table for the island |
 | `editable:` | `false` | May move and resize items |
 | `manageable:` | `false` | May add/remove dependencies and create records |
 | `urls:` | `{}` | `patch:`, `dependencies:`, `schedule:`, `item_template:`, `new_group:`, `new_item:`. An unknown key raises |
 | `date_locale:` | `I18n.locale` | date-fns locale for axis labels (`"en"` / `"es"`) |
+| `id:` | `nil` | DOM id. Give it one if you broadcast (see below) |
 
-Any other option (`class:`, `data:`, …) lands on the wrapper element.
+Any other option (`class:`, `aria:`, …) lands on the wrapper element. `data:` is
+the schedule, so it is not available for HTML data attributes — put those on
+your own wrapper.
+
+**Removed in #970**, and refused by name rather than silently emitted as an HTML
+attribute: `mode:`, `fallback:`, `limit:`, `zoom_links:`, `group_label:` and
+`color_by:`. All six configured the server-rendered board; the island owns the
+zoom switcher, the name column, colour-by and how much of the document it
+draws.
 
 ---
 
@@ -203,61 +212,47 @@ under the board.
 
 ---
 
-## Fallbacks and the swap
+## The skeleton and the swap
 
-`mode: :interactive` renders the mount element and puts the fallback inside it:
+The component renders the mount element with the skeleton inside it:
 
 ```html
 <div id="gantt_project_1" class="bali-gantt" data-controller="gantt"
      data-gantt-data-value='{"groups":[…],"items":[…]}'
      data-gantt-initial-zoom-value="day" …>
-  <!-- the fallback: the whole static board, or the skeleton -->
+  <noscript>…this timeline needs JavaScript…</noscript>
+  <div class="bali-gantt-skeleton" role="status" aria-busy="true">…</div>
 </div>
 ```
 
 The island mounts into a container prepended to that element and removes the
-fallback from inside React's first commit — after the DOM carries the island,
-before the browser paints. One frame shows the board, the next shows the
+skeleton from inside React's first commit — after the DOM carries the island,
+before the browser paints. One frame shows the skeleton, the next shows the
 island, and no frame shows an empty box. (It used to clear the mount up front
-and let React fill it later; on the 300-item board with the CPU throttled 6x
-that was a white screen for about two seconds.)
+and let React fill it later; on a 300-item board with the CPU throttled 6x that
+was a white screen for about two seconds.) `cypress/e2e/gantt-swap.cy.js`
+measures exactly that ordering from inside the page.
 
-So the fallback is three things at once: what a visitor sees while the bundle
-is in flight, what a visitor without JavaScript keeps forever, and what search
-engines and reader modes index. If the bundle never arrives at all, it simply
-stays — the error notice is prepended to it rather than replacing it.
+The skeleton is **not** a configuration choice — it is the mechanism, and there
+is no option to turn it off. It is fixed-size and carries none of the real
+schedule: the point is to hold the box without rendering anything expensive, and
+a placeholder built from real data would be a second renderer by accident.
 
-**`fallback: :static` (default)** renders the real board. The swap is meant to
-be unremarkable, and that rests on both renderers agreeing about geometry:
+Two things ride with it:
 
-- `Bali::Gantt::TimeScale` and the island's `timeScale.js` share the pixel
-  densities (day 24 px/day, week 8, month 2), so a 12-day bar is 288 px wide on
-  both sides — measured, not asserted: `cypress/e2e/gantt-interactive.cy.js`
-  compares the fallback bar and the React node and requires them equal.
-- The component hands the island the zoom its fallback resolved, in
-  `data-gantt-initial-zoom-value`. Without it the island would open at its own
-  default (`week`) while the fallback had resolved `:auto` to something else,
-  and mounting would rescale the whole board in front of the visitor. Once
-  mounted the island owns the zoom and writes it to the URL.
+- **`data-gantt-initial-zoom-value`**, the one piece of geometry the server
+  still decides. Without it the island opens at its own default (`week`)
+  whatever the window says, and a board that should have opened at day zoom
+  rescales the moment it mounts. Once mounted the island owns the zoom and
+  writes it to the URL.
+- **A `<noscript>` notice.** The skeleton says `aria-busy="true"` and means
+  "loading"; to a visitor who will never run the bundle that would be a lie held
+  forever, so the notice says plainly that the timeline needs JavaScript. It is
+  translated (`bali_view.gantt.noscript`).
 
-**`fallback: :skeleton`** renders a neutral placeholder instead — the island's
-frame with grey blocks in it, no schedule data. It is the right choice when the
-static board is expensive enough that rendering it twice is not worth it: at
-300 items it is about 390 KB of extra HTML per response.
-
-> **The skeleton is not a no-JavaScript story.** It says `aria-busy="true"` and
-> means "loading"; without the bundle it means that *forever*, and a visitor
-> with JavaScript off gets grey blocks and no way to read the schedule. Choose
-> it when your audience reliably runs the bundle and the cost of rendering the
-> board twice is the thing you are buying out of. If some of your visitors
-> never get JavaScript, `:static` is the only fallback that serves them — or
-> pair the skeleton with your own `<noscript>` block linking to a page that
-> lists the schedule as text.
-
-afal-apps originally shipped a component fallback, saw it flicker, and replaced
-it with a skeleton. That fallback did **not** share geometry with the island —
-which is the thing this design changed. If a swap ever reads as a flicker in
-your app, move to `:skeleton`: nothing else in the call site changes.
+**If the bundle never arrives, the mount is not emptied.** The island's error
+notice is prepended to the skeleton rather than replacing it, so a failed load
+looks like a failure with a message, not a blank region.
 
 ---
 
@@ -349,7 +344,6 @@ gives you the one thing a broadcast needs, a stable target:
 <%= turbo_stream_from [@project, :gantt] %>
 <%= render Bali::Gantt::Component.new(
       data: ProjectGantt.new(@project).to_h,
-      mode: :interactive,
       id: dom_id(@project, :gantt), …) %>
 ```
 
@@ -396,23 +390,23 @@ already landed — the schedule is correct, and the interface still feels broken
 
 ## Accessibility
 
-`mode: :static`, which is also the default fallback, is the accessible surface:
+Read this before you make the Gantt the only way to do something.
 
-- The scrolling canvas is a labelled `role="region"` with `tabindex="0"`, so it
-  is reachable and scrollable from the keyboard without a mouse.
-- Groups collapse with `<details>`/`<summary>` — native disclosure semantics,
-  no ARIA to get wrong, works with JavaScript off.
-- Zoom is a group of plain `<a>` links that rewrite one query param. They work
-  without JavaScript and they are real navigation, so they are links, not
-  buttons.
-- Every bar carries a `title` with its name and dates, and a bar that links
-  somewhere carries `aria-label` with the item name.
-- `fallback: :skeleton` announces itself as `role="status"` with `aria-busy`.
+The island's canvas is a **mouse-first surface** — React Flow drag-and-drop has
+no keyboard equivalent, and #970 removed the server-rendered board that used to
+sit behind it. So:
 
-The island's own canvas is a mouse-first surface — React Flow drag-and-drop has
-no keyboard equivalent. **If your Gantt is the only way to do something, keep a
-non-canvas path to it** (a form on the item's own page, for instance). The
-island is a faster way to reschedule, not the only way.
+- **Keep a non-canvas path to every action.** A form on the item's own page that
+  sets its dates, a table of the schedule, a list view. The island is a faster
+  way to reschedule, not the only way it may be possible.
+- **Without JavaScript there is no board.** The `<noscript>` notice inside the
+  mount says so rather than leaving a placeholder claiming "loading" forever.
+  Point it at that alternate path if you have one.
+
+What the island itself does carry: the toolbar is real `<button>`s in labelled
+`role="group"`s (zoom, colour-by, columns), group rows collapse from buttons
+carrying `aria-expanded`, the table half is keyboard-reachable, and the loading
+skeleton announces itself as `role="status"` with `aria-busy="true"`.
 
 ---
 
@@ -420,32 +414,33 @@ island is a faster way to reschedule, not the only way.
 
 | Preview | What it shows |
 |---|---|
-| `bali/gantt/default` | The static board, with `color_by` and `zoom` as live params |
-| `bali/gantt/custom_status_catalog` | A host's own status vocabulary driving legend and colours |
-| `bali/gantt/truncated` | `limit:` and its announcement |
-| `bali/gantt/empty` | The empty state |
-| `bali/gantt/interactive_readonly` | `mode: :interactive` with the default static fallback |
-| `bali/gantt/interactive_skeleton` | The same island with `fallback: :skeleton` |
-| `bali/gantt/interactive_stress` | 300 items from a fixed seed, static fallback |
-| `bali/gantt/interactive_stress_skeleton` | 300 items, skeleton fallback (A/B partner of the above) |
-| `bali/gantt/island_readonly` | The island mounted from hand-written markup, without the Ruby component |
-| `bali/gantt/island` | The complete editable island against the dummy's endpoints — needs `bin/rails db:seed`, and edits persist |
+| `bali/gantt/default` | The read-only island, with `zoom` as a live param |
+| `bali/gantt/editable` | The complete editable island against the dummy's endpoints — needs `bin/rails db:seed`, and edits persist |
+| `bali/gantt/stress` | 300 items from a fixed seed: watch the skeleton hand over without a gap |
+| `bali/gantt/empty` | An empty document — the island still mounts and draws its own empty canvas |
+
+`spec/dummy/app/views/admin/projects/show.html.erb` (`?view=timeline`) is the
+same island in a **real layout** rather than a preview: the asset paths go up
+through `content_for :head`, which is the step a Lookbook preview cannot show.
 
 ---
 
 ## Troubleshooting
 
-**The fallback never goes away.** The island bundle never arrived. Check the
+**The skeleton never goes away.** The island bundle never arrived. Check the
 console: a missing `react_island_meta_tags` says so by name. Otherwise confirm
-`gantt-island.js` is in `entryPoints` and that the built file exists.
+`gantt-island.js` is in `entryPoints` and that the built file exists. The error
+notice is prepended to the skeleton, so look above it before assuming nothing
+happened.
 
 **Everything mounts twice.** Something started a second Stimulus `Application`.
 Register on the one you expose as `window.Stimulus`; see
 [react-island.md](react-island.md).
 
-**The board jumps when the island mounts.** The two renderers disagree about
-zoom. Check that `data-gantt-initial-zoom-value` is on the element and that
-your page is not passing a different `zoom:` than the one in `gantt_zoom`.
+**The board rescales the moment it appears.** The island opened at its own
+default instead of the zoom the server resolved. Check that
+`data-gantt-initial-zoom-value` is on the element and that your page is not
+passing a different `zoom:` than the one in `gantt_zoom`.
 
 **Dragging does nothing and no request is made.** `editable:` is false, or
 `urls[:patch]` is missing. An unknown key in `urls:` raises at render time
@@ -467,7 +462,8 @@ yourself, Bali leaves yours alone — make sure it is not `cache`.
 
 - [react-island.md](react-island.md) — the island mechanism itself
 - `Bali::Gantt::Data` — the contract, with every validation rule
-- `Bali::Gantt::TimeScale` / `Bali::Gantt::Colors` — the geometry and colour
-  formulas both renderers share
+- `Bali::Gantt::TimeScale` — how `zoom: :auto` resolves against the window
+- `Bali::Gantt::Colors` — the default status → daisyUI colour map a host
+  inherits when it passes no catalog
 - [../guides/migration-v2-to-v3.md](../guides/migration-v2-to-v3.md) — moving
   off the removed `Bali::GanttChart`

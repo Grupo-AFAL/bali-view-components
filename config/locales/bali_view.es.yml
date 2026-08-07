@@ -374,20 +374,8 @@ es:
         previous: Anterior
         next: Siguiente
     gantt:
-      label: Diagrama de Gantt
-      name_column: Nombre
-      today: Hoy
-      empty: Aún no hay nada que graficar
       loading: Cargando el cronograma
-      truncated: "Mostrando %{shown} de %{total} elementos con fechas"
-      undated_title: Sin fechas
-      undated_hint: "Estos elementos aún no tienen fechas, así que no pueden colocarse en la línea de tiempo."
-      undated_truncated: "Mostrando %{shown} de %{total}"
-      zoom:
-        label: Zoom
-        day: Día
-        week: Semana
-        month: Mes
+      noscript: Este cronograma necesita JavaScript para mostrarse.
       # Tabla plana de la isla React (#705, D12) — la sirve
       # Bali::Gantt::Translations.island como prop `i18n`. Los `%{...}` se
       # interpolan del lado del CLIENTE; las claves deben coincidir con

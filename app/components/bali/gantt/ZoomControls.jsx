@@ -1,7 +1,8 @@
 // Zoom controls of the Gantt island. The zoom is a DATA TRANSFORM, not React
 // Flow's zoom (which scales both axes). Each level fixes `pxPerDay`: day 24 /
-// week 8 / month 2 px per day — the same densities as Bali::Gantt::TimeScale
-// so `:static` and the island agree. The choice persists in the URL under a
+// week 8 / month 2 px per day. The KEYS are shared with
+// Bali::Gantt::TimeScale, which resolves `zoom: :auto` server-side into one of
+// them (a test compares the two lists). The choice persists in the URL under a
 // NAMESPACED param (default `gantt_zoom`, decision D14 — never a bare `zoom`,
 // which collides with any other control on the page) via history.replaceState,
 // without navigating.
@@ -26,11 +27,11 @@ export function normalizeZoom (value, fallback = 'week') {
   return ZOOM_LEVELS.some((z) => z.key === fallback) ? fallback : 'week'
 }
 
-// Reads the initial zoom from the URL (?gantt_zoom=...). With no param it
-// takes `fallback` — which `mode: :interactive` fills with the zoom the STATIC
-// fallback already resolved (Bali::Gantt::TimeScale's `:auto`), so the island
-// opens at the density the visitor is looking at instead of rescaling every
-// bar the moment it mounts. Without either, "week".
+// Reads the initial zoom from the URL (?gantt_zoom=...). With no param it takes
+// `fallback`, which Bali::Gantt::Component fills with the zoom it resolved from
+// the window (TimeScale's `:auto`), so the island opens at the density the
+// schedule calls for instead of rescaling every bar the moment it mounts.
+// Without either, "week".
 export function initialZoomFromUrl (param = DEFAULT_ZOOM_PARAM, fallback = 'week') {
   if (typeof window === 'undefined') return normalizeZoom(null, fallback)
   const params = new URLSearchParams(window.location.search)

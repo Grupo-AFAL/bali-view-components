@@ -2,8 +2,8 @@
  * `bali-view-components/gantt` entry chain (GanttFlow.jsx imports this file
  * right after @xyflow/react/dist/style.css) and emitted as the island's own
  * stylesheet — it is NOT part of the Tailwind build and must never be
- * imported from app/assets/stylesheets/bali/components.css (that sheet only
- * carries the `:static` renderer's index.css).
+ * imported from app/assets/stylesheets/bali/components.css (that sheet carries
+ * index.css, which since #970 is only the loading skeleton's name column).
  *
  * Critical-path edges (decision D10): useGanttModel has always tagged
  * critical edges with className "critical", but no stylesheet ever styled

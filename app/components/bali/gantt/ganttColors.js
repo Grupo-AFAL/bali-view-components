@@ -5,8 +5,10 @@
 // paint bar (fill+border), progress overlay (solid) and badges/legend
 // uniformly across the color-by modes.
 //
-// The formulas are duplicated on purpose in Bali::Gantt::Colors (Ruby) so the
-// `:static` renderer produces identical colors — change both or neither.
+// The formulas live here alone since #970: Ruby's copy went with the renderer
+// that used them. What Bali::Gantt::Colors still keeps is the DEFAULT STATUS
+// MAP below, which a host inherits when it passes no catalog — a test reads
+// this file and compares the two.
 
 // Default catalogs: the island's historical status vocabulary (mirrors
 // Bali::Gantt::Colors::DEFAULT_STATUS_VARS) and priority hues. Hosts pass

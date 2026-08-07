@@ -2,54 +2,34 @@
 
 module Bali
   module Gantt
-    # Gantt chart (#704/#705/#719). One component, two renderers over ONE data
-    # contract (Bali::Gantt::Data):
+    # Gantt chart (#704/#705/#719). ONE renderer: the React Flow island.
     #
-    # - `mode: :static` — server-rendered board, a generalized port of
-    #   TDFlow::PortfolioGantt: sticky two-tier header, collapsible `<details>`
-    #   groups, today marker, month/week/day grid, an announced cap (never a
-    #   silent one) and a "no dates" section for items off the axis.
-    # - `mode: :interactive` (#719) — the element becomes the React Flow
-    #   island's mount point (`data-controller="gantt"`, values→props) and the
-    #   FALLBACK renders inside it. The island replaces those children when it
-    #   mounts, so the fallback is what a visitor sees before the bundle lands
-    #   and what a visitor without JavaScript keeps forever.
+    # The component renders the island's mount point — `data-controller="gantt"`
+    # and the values that ARE the island's props — with the SKELETON inside it.
+    # The skeleton stopped being an option in #970 and became the mechanism: it
+    # occupies the box until React's first commit retires it, and because the
+    # island mounts from inside that commit, no frame shows an empty box.
     #
-    # `fallback:` picks what goes inside the mount: `:static` (default) paints
-    # the real board — same TimeScale, same Colors, same resolved zoom as the
-    # island, which is what makes the swap unremarkable; `:skeleton` paints a
-    # neutral placeholder instead. afal-apps reached for the skeleton because
-    # its pre-island fallback flickered, and that fallback did NOT share
-    # geometry with the island (D16).
+    # #970 removed the server-rendered `:static` board. Holding two renderers of
+    # the same schedule in parity was a permanent tax on every feature, and the
+    # static one had already fallen behind on eight of them (minimap, colour
+    # selector, dependencies, critical path, fullscreen, design alignment,
+    # filtering, column selector). The read-only portfolio case those features
+    # also serve now mounts the same island with `editable:`/`manageable:` false.
     #
-    # Flipping the default is DEFAULT_FALLBACK below plus the one assertion in
-    # `test_the_default_fallback_is_static`; every other test and both halves of
-    # the gate's A/B previews pass `fallback:` explicitly so they keep proving
-    # what they say they prove. But it is not a free switch: `:skeleton` says
-    # `aria-busy` and means "loading", so a visitor who never gets the bundle
-    # reads "loading" forever. Flipping the DEFAULT is a decision about hosts
-    # whose audience runs JavaScript — see docs/api/gantt.md.
-    #
-    # All computed geometry and colors go in inline `style=` attributes — never
-    # interpolated Tailwind classes, which v4 purges. Structural sizes are
-    # `--gantt-*` tokens in index.css (@layer components) so hosts can retheme.
+    # Without JavaScript there is no Gantt. The `<noscript>` inside the mount
+    # says so, instead of leaving a placeholder shimmering forever.
     #
     #   render Bali::Gantt::Component.new(
     #     data: serializer.as_json,     # the contract — see Bali::Gantt::Data
-    #     color_by: :status,            # or :none (D9)
-    #     zoom: params[:gantt_zoom],    # :auto/:day/:week/:month, via links
-    #     statuses: [                   # status catalog: legend + colors
+    #     zoom: params[:gantt_zoom],    # :auto/:day/:week/:month
+    #     statuses: [                   # status catalog the island paints with
     #       { value: 'in_progress', label: t('...'), color: '--color-info' }
     #     ],
-    #     group_label: 'Stage', limit: 300, id: dom_id(project, :gantt)
-    #   )
-    #
-    #   render Bali::Gantt::Component.new(          # interactive (#719)
-    #     data: serializer.as_json, mode: :interactive,
     #     editable: policy.update?, manageable: policy.manage?,
     #     urls: { patch: schedule_path(project), schedule: schedule_path(project),
     #             dependencies: dependencies_path(project) },
-    #     id: dom_id(project, :gantt)               # broadcast target
+    #     id: dom_id(project, :gantt)   # broadcast target
     #   )
     #
     # The island needs its bundle: `react_island_meta_tags('gantt', js:, css:)`
@@ -57,27 +37,29 @@ module Bali
     # docs/api/gantt.md walks the whole circuit, including the mutation and
     # broadcast contracts the host implements.
     class Component < ApplicationViewComponent
-      MODES = %i[static interactive].freeze
-      FALLBACKS = %i[static skeleton].freeze
-      COLOR_BYS = %i[status none].freeze
-      DEFAULT_LIMIT = 300
       DEFAULT_ZOOM_PARAM = "gantt_zoom"
 
-      # D16's single decision point. `:static` is the bet that a fallback built
-      # from the island's own geometry swaps invisibly; measuring a large
-      # dataset in the dummy is what settles it. Change this line and every
-      # `mode: :interactive` call site that did not pass `fallback:` moves —
-      # including, deliberately, none of Bali's own tests or gate previews.
-      DEFAULT_FALLBACK = :static
+      # Options the `:static` renderer owned, removed with it in #970. They
+      # would otherwise fall into `**options` and be emitted as HTML attributes
+      # in silence, so each is refused by name with what replaced it — a host
+      # pinned to beta.6/7 finds out at render time, not in production.
+      REMOVED_OPTIONS = {
+        mode: "the island is the only renderer; drop it",
+        fallback: "the skeleton is the only loading state; drop it",
+        limit: "the island renders the whole document; drop it",
+        zoom_links: "the island's own toolbar owns the zoom; drop it",
+        group_label: "the island labels its own name column; drop it",
+        color_by: "the island's own toolbar owns colour-by; drop it"
+      }.freeze
 
       # URLs the island posts to, all optional: an island with none of them is
       # a viewer. Reference implementation of every endpoint:
       # spec/dummy/app/controllers/admin/projects/.
       URL_KEYS = %i[patch dependencies schedule item_template new_group new_item].freeze
 
-      # Rows of the `:skeleton` fallback. Fixed, not derived from the data: the
-      # point of the skeleton is to render nothing expensive, and the island
-      # sizes itself (min 360px, then the viewport) regardless of row count.
+      # Rows of the skeleton. Fixed, not derived from the data: the point of the
+      # skeleton is to render nothing expensive, and the island sizes itself
+      # (min 360px, then the viewport) regardless of row count.
       SKELETON_ROWS = 10
 
       # Neutral bar placeholders: literal Tailwind pairs (offset, width) so
@@ -89,43 +71,30 @@ module Bali
         %w[ml-28 w-1/5], %w[ml-20 w-2/5]
       ].freeze
 
-      attr_reader :data, :mode, :fallback, :color_by, :zoom_param, :limit
+      attr_reader :data, :zoom_param
 
       # @param data [Hash, Bali::Gantt::Data] the Gantt document (contract in Bali::Gantt::Data)
-      # @param mode [Symbol] :static (server-rendered) or :interactive (React island, #719).
-      # @param fallback [Symbol] what renders inside the island's mount until it takes over:
-      #   :static (the real board — default) or :skeleton. Ignored by mode: :static.
-      # @param color_by [Symbol] :status paints bars from the status catalog; :none is all-neutral.
-      # @param zoom [Symbol, String] :auto (default), :day, :week or :month — usually params[zoom_param].
-      # @param zoom_param [String] query param the zoom links write (namespaced, like gantt_group_by).
-      # @param zoom_links [Boolean] render the zoom switcher links.
-      # @param group_label [String] header of the sticky name column.
+      # @param zoom [Symbol, String] :auto (default), :day, :week or :month — usually
+      #   params[zoom_param]. Resolved server-side so the island opens at the right density.
+      # @param zoom_param [String] query param the island persists the zoom into (namespaced).
       # @param statuses [Array<Hash>] status catalog [{ value:, label:, color: }] — color is a
       #   daisyUI variable name ("--color-info") or nil for the neutral treatment.
-      # @param limit [Integer] announced cap on rendered items (nil = no cap). Caps the STATIC
-      #   board only: the island receives the whole document and renders it.
       # @param catalogs [Hash] island catalogs (D11) { statuses: [...], priorities: [{ value:,
-      #   label:, hue: }] }. Defaults to the `statuses` catalog the static legend already uses.
+      #   label:, hue: }] }. Defaults to the `statuses` catalog.
       # @param i18n [Hash] island strings (D12). Defaults to Bali::Gantt::Translations.island.
       # @param editable [Boolean] the island may move/resize items (host authorizes).
       # @param manageable [Boolean] the island may add/remove dependencies and create records.
       # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/gantt.md.
       # @param date_locale [String] date-fns locale for the island ("en"/"es"); defaults to I18n.locale.
-      def initialize(data:, mode: :static, fallback: DEFAULT_FALLBACK, color_by: :status,
-                     zoom: nil, zoom_param: DEFAULT_ZOOM_PARAM, zoom_links: true,
-                     group_label: nil, statuses: nil, limit: DEFAULT_LIMIT,
+      # @param id [String] DOM id — the broadcast target (see docs/api/gantt.md).
+      def initialize(data:, zoom: nil, zoom_param: DEFAULT_ZOOM_PARAM, statuses: nil,
                      catalogs: nil, i18n: nil, editable: false, manageable: false,
                      urls: {}, date_locale: nil, id: nil, **options)
-        @mode = validate_mode!(mode)
-        @fallback = validate_fallback!(fallback)
-        @color_by = validate_color_by!(color_by)
-        @data = data.is_a?(Data) ? data : Data.new(data, limit: limit)
+        reject_removed_options!(options)
+        @data = data.is_a?(Data) ? data : Data.new(data)
         @zoom = zoom
         @zoom_param = zoom_param.to_s
-        @zoom_links = zoom_links
-        @group_label = group_label
         @statuses = statuses
-        @limit = limit
         @catalogs = catalogs
         @i18n = i18n
         @editable = editable
@@ -136,6 +105,9 @@ module Bali
         @options = options
       end
 
+      # All that survives of the server-side geometry: resolving `:auto` against
+      # the window so the island does not open at its own default and rescale
+      # the board under the visitor. Pixels live in JS.
       def time_scale
         @time_scale ||= TimeScale.new(starts_on: data.window_starts_on,
                                       ends_on: data.window_ends_on,
@@ -150,97 +122,8 @@ module Bali
         end
       end
 
-      def group_label
-        @group_label.presence || t(".name_column")
-      end
-
-      def renderable? = time_scale.valid? && (data.dated_items.any? || dated_groups.any?)
-
-      def dated_groups
-        @dated_groups ||= data.ordered_groups.select(&:dated?)
-      end
-
-      # Legend: only the statuses actually on screen, in catalog order —
-      # offering states nobody is seeing would invent information. Statuses
-      # outside the catalog close the list with the neutral treatment.
-      def legend_entries
-        return [] unless color_by == :status
-
-        present = (data.dated_items.map(&:status) + dated_groups.map(&:status)).compact.uniq
-        catalog = statuses.select { |entry| present.include?(entry[:value].to_s) }
-        extras = (present - statuses.map { |entry| entry[:value].to_s })
-                 .map { |value| { value: value, label: value.humanize, color: nil } }
-        (catalog + extras).map do |entry|
-          { label: entry[:label], color: color_set(entry[:value])[:solid] }
-        end
-      end
-
-      # Render order: the implicit ungrouped section first, then every group in
-      # document order (sub-groups indented). Groups render flat — each
-      # `<details>` collapses its own rows; a parent does not swallow its
-      # sub-groups, which matches how the portfolio board reads.
-      def sections
-        @sections ||= begin
-          list = []
-          list << { group: nil, depth: 0, items: data.ungrouped_items } if data.ungrouped_items.any?
-          data.ordered_groups.each do |group|
-            list << { group: group, depth: group.parent_id ? 1 : 0, items: data.items_for(group.id) }
-          end
-          list
-        end
-      end
-
-      def zoom_links? = @zoom_links
-
-      def zoom_link_options
-        TimeScale::ZOOMS.map do |key|
-          { zoom: key, label: t(".zoom.#{key}"), href: zoom_href(key),
-            active: time_scale.resolved_zoom == key }
-        end
-      end
-
-      # { solid:, fill:, border:, text: } for a status value under the current
-      # color_by mode.
-      def color_set(status)
-        return Colors.neutral if color_by == :none || status.nil?
-
-        Colors.status_color(status, vars: status_vars)
-      end
-
-      def bar_style(record)
-        geometry = time_scale.bar_geometry(record.starts_on, record.ends_on)
-        colors = color_set(record.status)
-        "left: #{geometry[:left]}px; width: #{geometry[:width]}px; " \
-          "background-color: #{colors[:fill]}; border-color: #{colors[:border]};"
-      end
-
-      def milestone_style(item)
-        colors = color_set(item.status)
-        "left: #{time_scale.x_for(item.starts_on)}px; background-color: #{colors[:solid]};"
-      end
-
-      def progress_style(item)
-        colors = color_set(item.status)
-        "width: #{item.percent_complete}%; background-color: #{colors[:solid]};"
-      end
-
-      def bar_title(record)
-        [ record.name, "#{helpers.l(record.starts_on)} – #{helpers.l(record.ends_on)}" ].join(" · ")
-      end
-
-      def avatar_style(assignee)
-        "background-color: oklch(0.6 0.14 #{Colors.hash_hue(assignee.id || assignee.name)});"
-      end
-
-      def canvas_width_css = "width: calc(var(--gantt-name-col) + #{time_scale.total_width}px)"
-      def lane_width_css = "width: #{time_scale.total_width}px"
-
-      def interactive? = mode == :interactive
-      def skeleton? = interactive? && fallback == :skeleton
-
-      # Catalogs the island paints with (D11). Defaults to the same status
-      # catalog the static legend uses, so a host that only configured
-      # `statuses:` gets one vocabulary in both renderers.
+      # Catalogs the island paints with (D11). Defaults to the status catalog,
+      # so a host that only configured `statuses:` gets one vocabulary.
       def catalogs
         @catalogs ||= { statuses: statuses }
       end
@@ -254,25 +137,27 @@ module Bali
       def skeleton_rows = SKELETON_ROWS
       def skeleton_bars = SKELETON_BARS.first(SKELETON_ROWS)
 
-      # In `:interactive` mode the component's own element is the island's
-      # mount point: the values below ARE the island's props (the
-      # ReactIslandController base maps them 1:1), and everything the template
-      # renders inside is the fallback the island replaces on mount.
+      # The component's element IS the island's mount point: the values below
+      # ARE the island's props (the ReactIslandController base maps them 1:1),
+      # and the skeleton the template renders inside is what React retires from
+      # inside its first commit.
+      #
+      # `data:` is the Gantt document, so it never reaches `**options` — an
+      # element that needs extra data attributes gets them from the host's own
+      # wrapper, not from here.
       def wrapper_attributes
-        @options.except(:class).merge(
+        @options.except(:class, :data).merge(
           id: @id,
           class: class_names("bali-gantt space-y-3", @options[:class]),
-          data: (@options[:data] || {}).merge(
-            gantt_mode: mode, gantt_color_by: color_by, gantt_zoom: time_scale.resolved_zoom
-          ).merge(interactive? ? island_values : {})
+          data: island_values
         ).compact
       end
 
       private
 
       # `initial_zoom` is the anti-flicker detail: without it the island starts
-      # at its own default (week) while the static fallback resolved `:auto`
-      # against the window, and the swap visibly rescales every bar. With the
+      # at its own default (week) whatever the window says, and a board that
+      # should have opened at day zoom rescales the moment it mounts. With the
       # URL param present both already agree — this covers the case where it is
       # not. After mount the island owns the zoom and writes it to the URL.
       def island_values
@@ -295,25 +180,15 @@ module Bali
         }.compact
       end
 
-      def validate_mode!(mode)
-        mode = mode&.to_sym
-        return mode if MODES.include?(mode)
+      def reject_removed_options!(options)
+        removed = options.keys.map(&:to_sym) & REMOVED_OPTIONS.keys
+        return if removed.empty?
 
-        raise ArgumentError, "mode must be one of #{MODES.inspect}, got #{mode.inspect}"
-      end
-
-      def validate_fallback!(fallback)
-        fallback = fallback&.to_sym
-        return fallback if FALLBACKS.include?(fallback)
-
-        raise ArgumentError, "fallback must be one of #{FALLBACKS.inspect}, got #{fallback.inspect}"
-      end
-
-      def validate_color_by!(color_by)
-        color_by = color_by&.to_sym
-        return color_by if COLOR_BYS.include?(color_by)
-
-        raise ArgumentError, "color_by must be one of #{COLOR_BYS.inspect}, got #{color_by.inspect}"
+        details = removed.map { |key| "#{key}: #{REMOVED_OPTIONS.fetch(key)}" }.join("; ")
+        raise ArgumentError,
+              "Bali::Gantt::Component no longer accepts #{removed.inspect} — the :static " \
+              "renderer was removed in #970 and the island is the only renderer (#{details}). " \
+              "Migration: docs/guides/migration-v3-to-v31.md"
       end
 
       # A misspelled URL key would silently ship a viewer where the host meant
@@ -324,17 +199,6 @@ module Bali
         return urls if unknown.empty?
 
         raise ArgumentError, "unknown urls: keys #{unknown.inspect}; expected #{URL_KEYS.inspect}"
-      end
-
-      def status_vars
-        @status_vars ||= statuses.to_h { |entry| [ entry[:value].to_s, entry[:color] ] }
-      end
-
-      # Zoom by links (read-only mode): plain GET links that rewrite only the
-      # namespaced zoom param and keep every other filter on the URL.
-      def zoom_href(key)
-        params = helpers.request.query_parameters.merge(zoom_param => key.to_s)
-        "#{helpers.request.path}?#{params.to_query}"
       end
     end
   end

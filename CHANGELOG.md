@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`Bali::Gantt`: the `:static` renderer is gone — the React island is the only renderer** (#970, breaking against the v3.1 betas). One component with two renderers over one data contract was the design signed in #704 and completed in #719; validating it in the betas is what settled that it was a promise Bali could not keep cheaply. Parity was never reached and the gap was growing: measured preview against preview, the static board lacked the **minimap, the colour selector, dependencies, the critical path, fullscreen, the design alignment, filtering and the column selector** — eight features, and every one of them serves the read-only portfolio case as much as the editable one. Two renderers of the same board meant paying that tax again on each new feature, and the two defects found the same week (an axis that did not fill its width, chrome that had drifted apart) were the tax being collected. The portfolio case moves to the island with `editable: false, manageable: false` and no `urls:`, and gains all eight.
+
+  Six options went with the renderer they configured, and each is **refused by name** with an `ArgumentError` naming its replacement rather than travelling on to the browser as a stray HTML attribute — the component takes `**options`, so silence was the alternative:
+
+  | Removed | The island's answer |
+  |---|---|
+  | `mode:` | There is one renderer |
+  | `fallback:` | The skeleton is the only loading state |
+  | `limit:` | The island always received the whole document and renders it |
+  | `zoom_links:` | The island's toolbar owns zoom, and persists it to `zoom_param:` |
+  | `group_label:` | The island labels its own name column |
+  | `color_by:` | The island's toolbar owns colour-by (status, assignee, group, priority) as view state |
+
+  `Bali::Gantt::TimeScale` shrank to the one decision the client cannot make in time — resolving `zoom: :auto` against the window, so the island opens at the right density instead of rescaling on mount — and `Bali::Gantt::Colors` to the default status → daisyUI colour map a host inherits when it passes no catalog. Every pixel now lives in JavaScript, so the Ruby↔JS parity tests changed shape with it: instead of comparing px/day and colour formulas that Ruby no longer computes, they read `ZoomControls.jsx` and `ganttColors.js` and compare the **names** — the zoom levels and the default status colours — which is what still crosses the boundary. `Bali::Gantt::Data` lost `limit:` and `truncated?` with the cap; validation, parsing and the derived window are unchanged.
+
+  Closed by obsolescence: #969 (pale bars in the static board).
+
+### Changed
+
+- **`Bali::Gantt`: the skeleton is the loading state, not an option, and a `<noscript>` says what happens without JavaScript** (#970). `fallback: :skeleton` was one of two choices; it is now the mechanism, and the only thing the component renders inside the island's mount. What that buys is unchanged from #719 and stays measured: React's container is prepended and the skeleton is retired from inside the first commit, so one frame shows the skeleton, the next the island, and none an empty box; and a bundle that never arrives leaves the skeleton in place with the error notice prepended to it, rather than an emptied mount. What is new is the honesty: a skeleton says `aria-busy="true"` and means "loading", which for a visitor who will never run the bundle would be a claim held forever. The `<noscript>` beside it says the timeline needs JavaScript, in both shipped locales (`bali_view.gantt.noscript`). If some of your visitors need the plan without the bundle, give them a non-canvas path to it — `docs/api/gantt.md` now leads its accessibility section with that, because removing the static board removed the answer Bali used to have.
+
+- **The Gantt's Lookbook previews are the island's four faces** (#970): `default` (read-only, `zoom` as a live param), `editable` (the dummy's real endpoints, edits persist), `stress` (300 items from a fixed seed — the swap under load) and `empty` (an empty document still mounts; drawing it is the island's job). The static previews and the A/B pairs that existed to settle the fallback default are gone with the question they were asked to answer. The dummy's own `admin/projects/:id?view=timeline` now mounts the editable island through `content_for :head` — the host circuit in a real layout, which is the one step a Lookbook preview cannot demonstrate.
+
 ### Fixed
 
 - **`docs/api/gantt.md`: `statuses:` must cover group statuses too** (#720 adoption finding, afal-apps#462). Groups render as bars and feed the same legend as items, and any status the catalog misses falls back to `value.humanize` — which is how an untranslated "Not started" leaked into a Spanish UI. One sentence in the option table now says so.
