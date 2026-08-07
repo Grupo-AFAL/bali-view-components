@@ -100,7 +100,7 @@ module Bali
         @frame_id = frame_id
         @master_width = validated_master_width(master_width)
         @advance = advance
-        @height = HEIGHTS.include?(height&.to_sym) ? height.to_sym : :content
+        @height = validated_height(height)
         @options = options
       end
 
@@ -110,6 +110,19 @@ module Bali
 
       def advance? = @advance
       def full_height? = @height == :full
+
+      # Raises rather than falling back, like `master_width:` two lines up. A
+      # silent fallback on the option that IS this feature turns `height: :fill`
+      # into a component that renders the default and says nothing — and the
+      # symptom (a split that does not fill) is exactly what a reader would go
+      # hunting for in the CSS. Free to demand now, breaking to demand later.
+      def validated_height(value)
+        height = value&.to_sym
+        return height if HEIGHTS.include?(height)
+
+        raise ArgumentError,
+              "height must be one of #{HEIGHTS.map(&:inspect).join(', ')}, got #{value.inspect}."
+      end
 
       def validated_master_width(value)
         width = value.to_s.strip

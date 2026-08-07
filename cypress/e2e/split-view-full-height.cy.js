@@ -63,10 +63,63 @@ describe('SplitView height: :full', () => {
     cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
   })
 
+  // The two rules that make the pairing work reach OUT of the component, into
+  // AppLayout's `<main>` and body container. `:has(> …)` is what keeps them from
+  // touching anything else — but that guarantee lives entirely in a selector, so
+  // relaxing a `>` some day would widen it with nothing to say so. These two
+  // assertions are the alarm.
+  it('applies the layout fix only where a full-height split actually is', () => {
+    cy.get('main').should('have.css', 'display', 'flex')
+    cy.get('.app-layout-body-container')
+      .should('have.css', 'flex-grow', '1')
+      .and('have.css', 'flex-shrink', '0')
+  })
+
   it('still swaps only the detail frame when a row is clicked', () => {
     cy.get('.split-view-item').eq(2).click()
     cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
     cy.get('.split-view-item').eq(2).should('have.attr', 'aria-current', 'true')
+  })
+
+  // The alarm that actually fires on a relaxed selector. The test above only
+  // catches the rules being made unconditional, because a page with no split
+  // anywhere is unaffected either way. THIS one moves the split behind a wrapper
+  // at runtime: `:has(> …)` stops matching and the layout reverts, so if someone
+  // widens the combinator to a descendant one, `main` stays flex and this fails.
+  //
+  // It doubles as the executable version of the documented limit — `:full` has
+  // to be a direct child of the body container, because a wrapper is another
+  // link in the chain with `height: auto` and the fill dies there.
+  it('stops applying when the split is not a direct child', () => {
+    cy.get('main').should('have.css', 'display', 'flex')
+
+    cy.document().then((doc) => {
+      const split = doc.querySelector('.split-view-component')
+      const wrapper = doc.createElement('div')
+      split.parentElement.appendChild(wrapper)
+      wrapper.appendChild(split)
+    })
+
+    cy.get('main').should('have.css', 'display', 'block')
+    cy.get('.app-layout-body-container').should('have.css', 'flex-grow', '0')
+  })
+
+  // The other half of the alarm: a locked layout with no split in it must be
+  // byte-for-byte what it was. `main` stays a block, the body container stays
+  // `height: auto` and grows with its content — exactly as before #979.
+  it('leaves a locked layout without a split alone', () => {
+    cy.visit('/bali/app_layout/default')
+    cy.get('body').should('have.class', 'app-layout--viewport-locked')
+    cy.get('.split-view-component').should('not.exist')
+
+    cy.get('main').should('have.css', 'display', 'block')
+    cy.get('.app-layout-body-container').then(($container) => {
+      const container = $container[0].getBoundingClientRect()
+      cy.get('main').then(($main) => {
+        expect(container.height, 'the container still wraps its content')
+          .to.be.lessThan($main[0].getBoundingClientRect().height)
+      })
+    })
   })
 
   // Two stacked panes cannot both fill one screen, so below `lg` the modifier is

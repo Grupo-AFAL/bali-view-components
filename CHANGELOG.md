@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is byte-for-byte what it was, and `flex: 1 0 auto` so a page taller than the viewport keeps its
   height and `<main>` scrolls as before.
 
+  An unrecognised `height:` **raises**, like `master_width:` beside it: a silent fallback on the
+  option that is this whole feature turns a typo into a component that renders the default and
+  says nothing, and the symptom — a split that does not fill — sends the reader hunting through
+  CSS. Free to demand now, breaking to demand later.
+
   **Inert below `lg`**, on purpose: the panes are stacked there, and two stacked panes cannot both
   fill one screen — a master and a detail would fight over the same viewport. `max_height:` belongs
   to `:content`; in `:full` the flex chain decides, so the cap is dropped rather than fighting it.

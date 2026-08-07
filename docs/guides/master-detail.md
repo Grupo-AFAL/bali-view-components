@@ -128,7 +128,9 @@ be would only make it shorter.
 **Infinite scroll gets bigger, not different.** A full-height pane is taller than
 a capped one, so one page of rows often does not fill it; the sentinel stays in
 view and keeps asking until it does. The scroll container changed size, not
-identity, and the observer is rooted on it either way.
+identity, and the observer is rooted on it either way — but it does mean a small
+`limit:` turns the first paint into a chain of serial fetches, so size it to the
+pane rather than to the capped list it used to be.
 
 ---
 
@@ -294,6 +296,13 @@ def show
   @pagy, @items = pagy(filter(current_user.inbox_items, @bucket), limit: 20)
 end
 ```
+
+**Size `limit:` to the height of the pane.** Infinite scroll keeps fetching while
+the sentinel is in view, so a page that does not fill the pane is followed
+immediately by another — with `limit: 3` the first paint is a chain of serial
+fetches before the reader has scrolled anything. A page worth roughly a screenful
+costs one request; this matters most with `height: :full`, where the pane is as
+tall as the window.
 
 That controller is the whole server side. No FilterForm, no Ransack, no form
 object — the filter is a query param you read.

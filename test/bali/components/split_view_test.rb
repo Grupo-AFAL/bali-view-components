@@ -129,12 +129,17 @@ class BaliSplitViewComponentTest < ComponentTestCase
     refute_match(/height/, page.find(".split-view-component")["style"])
   end
 
-  def test_an_unknown_height_falls_back_to_content
-    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :tall)) do |split|
-      split.with_master { "MASTER" }
+  # Raises rather than falling back, like `master_width:`. A typo in the option
+  # that IS this feature would otherwise render the default in silence, and the
+  # symptom — a split that does not fill — sends the reader hunting in the CSS.
+  def test_an_unknown_height_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :tall)) do |split|
+        split.with_master { "MASTER" }
+      end
     end
 
-    assert_no_selector(".split-view-component--full")
+    assert_match(/height must be one of/, error.message)
   end
 
   def test_host_class_is_merged_and_host_style_is_kept
