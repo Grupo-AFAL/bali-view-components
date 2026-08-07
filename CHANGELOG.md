@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.9] - 2026-08-07
+
 ### Added
 
 - **`Bali::SplitView` takes `height: :full`** (#979). The default, `:content`, grows with its
