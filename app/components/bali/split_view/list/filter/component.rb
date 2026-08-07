@@ -84,11 +84,16 @@ module Bali
             @mode = MODES.include?(mode&.to_sym) ? mode.to_sym : :single
             @options = options
 
-            return if @href || @param
+            return if @href || (@param && !@value.nil?)
 
+            # `param:` alone built `?bucket=`, which is not "no filter" — it is a
+            # filter for the empty string, and a listing that honours it comes back
+            # empty. The pill that clears a filter is an href one (an explicit
+            # "All", or the active pill's own URL), which is what the guide shows.
             raise ArgumentError,
-                  "with_filter needs either `param:` (and `value:`) so the pill can build its " \
-                  "own URL, or an explicit `href:`."
+                  "with_filter needs `param:` AND `value:` so the pill can build its own URL, " \
+                  "or an explicit `href:`. `param:` on its own would link to " \
+                  "`?#{@param}=`, which filters to nothing rather than to everything."
           end
 
           def multi? = @mode == :multi

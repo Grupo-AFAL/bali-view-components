@@ -94,7 +94,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `"q[status_in]"`, each pill adding or removing **its** value and leaving the rest alone). Since
   the two disagree about what a click means, the pill is declared rather than linked:
   `with_filter(label:, param:, value:, count:)`, and the href comes from the current request.
-  `href:`/`active:` remain as escapes.
+  `href:`/`active:` remain as escapes. **`param:` requires `value:`** and raises without it: on its
+  own it built `?bucket=`, which is not "no filter" but a filter for the empty string — a listing
+  that honours it comes back empty, the opposite of what writing it suggests. The pill that clears
+  a filter is an `href:` one, which is what the guide shows.
 
   Every other param survives a pill click — a selection, a scope, a sort — but **`page` does not**:
   filtering starts the listing over, and carrying page 4 into a filter with two pages of results is

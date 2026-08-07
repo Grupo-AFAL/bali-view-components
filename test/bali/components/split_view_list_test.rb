@@ -172,12 +172,35 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector('[data-testid="list-filters"]')
   end
 
-  def test_a_pill_needs_either_a_param_or_an_href
+  def test_a_pill_needs_either_a_param_and_value_or_an_href
     error = assert_raises(ArgumentError) do
       render_with_filters({}, filters: [ { label: "Broken" } ])
     end
 
-    assert_match(/needs either `param:`/, error.message)
+    assert_match(/needs `param:` AND `value:`/, error.message)
+  end
+
+  # `param:` alone built `?bucket=` — a filter for the empty string, which a
+  # listing that honours it answers with nothing. Not "no filter": the opposite
+  # of what someone writing it would expect.
+  def test_a_pill_with_a_param_but_no_value_raises
+    error = assert_raises(ArgumentError) do
+      render_with_filters({}, filters: [ { label: "Todas", param: :bucket } ])
+    end
+
+    assert_match(/filters to nothing rather than to everything/, error.message)
+  end
+
+  # An explicit "clear" pill is an href one, which is what the guide shows.
+  def test_the_clearing_pill_is_an_href_pill
+    render_with_filters({}, filters: [ { label: "Todas", href: "/inbox" } ])
+    assert_selector('.split-view-filter[href="/inbox"]', text: "Todas")
+  end
+
+  # `value: false` and `value: 0` are values, not absences.
+  def test_a_falsey_value_is_still_a_value
+    render_with_filters({}, filters: [ { label: "Borradores", param: :draft, value: false } ])
+    assert_selector(".split-view-filter", text: "Borradores")
   end
 
   # --- the URLs the component builds: single mode -------------------------------------------
@@ -325,6 +348,16 @@ class BaliSplitViewListComponentTest < ComponentTestCase
   def test_the_count_renders_after_the_label
     render_with_filters({}, filters: [ { label: "Aprobaciones", href: "/x", count: 12 } ])
     assert_selector(".split-view-filter .split-view-filter-count", text: "12")
+  end
+
+  # Reading order: the state qualifies the whole pill, so it comes after the
+  # count — "Aprobaciones 12, activo, quitar filtro", not "…activo… 12".
+  def test_the_state_text_reads_after_the_count
+    pill_at("/split-view?status=done", param: :status, value: "done", count: 17)
+
+    html = rendered_content
+    assert_operator html.index("split-view-filter-count"), :<,
+      html.index("sr-only"), "el contador se lee antes que el estado"
   end
 
   def test_no_count_element_without_a_count
