@@ -91,10 +91,11 @@
 
 /* `hidden` is how the controller switches between loading, end-of-list and
    error, and how the sentinel stays out of sight until JavaScript connects. It
-   works by `display: none` in the UA stylesheet, which ANY author `display`
-   loses to it — measured: the sentinel above computed `flex` with the attribute
-   set, so a reader without JavaScript saw a spinner that would never resolve.
-   These two rules are what make the attribute mean what it says. */
+   works by `display: none` in the UA stylesheet — the weakest origin there is,
+   so ANY author `display` beats it, including the `@apply flex` two rules up.
+   Measured: the sentinel computed `flex` with the attribute set, so a reader
+   without JavaScript saw a spinner that would never resolve. These two rules
+   are what make the attribute mean what it says. */
 .split-view-sentinel[hidden],
 .split-view-sentinel-error[hidden] {
   display: none;

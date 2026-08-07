@@ -155,6 +155,26 @@ describe('SplitView structured list', () => {
   })
 
   context('when a page fails to load', () => {
+    // The other failure shape, and the one a status code does not describe: a
+    // perfectly good 200 that is not this listing — a redirect to a login page,
+    // or an index that stopped rendering the component. Appending nothing
+    // silently would be indistinguishable from reaching the end of the list, so
+    // it has to land on the error state like any other failure.
+    it('treats a 200 without the list in it as a failure, not as the end', () => {
+      cy.visit('/bali/split_view/structured_list')
+      cy.intercept('GET', '/split-view*', {
+        statusCode: 200,
+        body: '<html><body><h1>Please sign in</h1></body></html>'
+      }).as('wrongPage')
+
+      scrollToBottom()
+      cy.wait('@wrongPage')
+
+      cy.get('[data-split-view-list-target="error"]').should('not.have.attr', 'hidden')
+      cy.get('[data-split-view-list-target="end"]').should('have.attr', 'hidden')
+      rows().should('have.length', 5)
+    })
+
     it('offers a retry that resumes from the same page', () => {
       cy.visit('/bali/split_view/structured_list')
       // `times: 1` so only the first attempt fails and the retry reaches the real
