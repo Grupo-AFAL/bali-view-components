@@ -66,6 +66,21 @@ describe('Gantt island', () => {
     // "month" la ventana entera entra y se puede medir.
     cy.get('[role="group"][aria-label="Zoom"]').contains('button', 'Month').click()
 
+    // Primero se comprueba que la ventana ENTERA esta dentro del viewport, y el
+    // numero sale del propio documento en vez de una constante: si sample_data
+    // crece hasta no caber ni a densidad month, el fallo dice eso y no "D10
+    // roto", que es adonde manda un `[data-milestone]` que no matchea.
+    cy.get('[data-controller="gantt"]').then(($mount) => {
+      const conFechas = JSON.parse($mount.attr('data-gantt-data-value'))
+        .items.filter((item) => item.starts_on).length
+
+      cy.get('.react-flow__node').should(($nodos) => {
+        expect($nodos.length, 'nodos visibles a densidad month: si son menos que los items con ' +
+          'fechas, el dataset del preview crecio y el culling se esta comiendo la parte derecha')
+          .to.be.at.least(conFechas)
+      })
+    })
+
     cy.get('[data-milestone]').should('exist')
 
     // La dependencia 21→40 une dos items criticos → arista .critical. Su
