@@ -6,8 +6,8 @@
 // never interpolated Tailwind classes (v4 purges them).
 //
 // A `milestone: true` item (contract decision D6) renders as a DIAMOND
-// anchored on its date with the name outside, mirroring the `:static`
-// renderer. Milestones have no duration, so the resize handles are dropped;
+// anchored on its date with the name outside. Milestones have no duration,
+// so the resize handles are dropped;
 // dragging (moving the date) and dependency handles remain.
 import { useState } from 'react'
 import { Handle, Position } from '@xyflow/react'

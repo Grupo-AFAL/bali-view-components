@@ -38,9 +38,9 @@ export class GanttController extends ReactIslandController {
     newItemUrl: { type: String, default: '' },
     // Namespaced query param the zoom persists into (D14).
     zoomParam: { type: String, default: 'gantt_zoom' },
-    // Zoom to open at when the URL carries no param — `mode: :interactive`
-    // fills it with the density its `:static` fallback resolved, so mounting
-    // does not rescale the board under the visitor (#719). Empty = "week".
+    // Zoom to open at when the URL carries no param — Bali::Gantt::Component
+    // fills it with the density it resolved from the window, so mounting does
+    // not rescale the board under the visitor (#719). Empty = "week".
     initialZoom: { type: String, default: '' },
     // date-fns display locale: 'en' (default) or 'es'.
     dateLocale: { type: String, default: 'en' }

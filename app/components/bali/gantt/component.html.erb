@@ -1,208 +1,38 @@
-<%# Static Gantt (#704): generalized port of afal-apps' portfolio board. One scroll
-    container gives the sticky two-tier header (sticky top) and the sticky name
-    column (sticky left) without JavaScript; groups collapse with `<details>`.
-    Grid lines and the today marker are absolute divs spanning the full content
-    height — one node per tick, exact at true month widths (the gradient trick the
-    portfolio used assumes a fixed period, which day-based month columns don't have).
-    Computed geometry/colors ride inline styles; every class here is literal.
+<%# The island's mount element, with the skeleton inside it (#970). The
+    skeleton is not a choice any more, it is the loading state: React prepends
+    its own container and retires these nodes from inside its first commit, so
+    exactly one frame separates "skeleton" from "island" and none shows an
+    empty box. If the bundle never arrives, the error notice is prepended and
+    the skeleton stays where it was — the mount is never emptied.
 
-    In `mode: :interactive` (#719) this same markup renders INSIDE the island's
-    mount element and the island replaces it on connect — so it is also the
-    no-JavaScript rendering, and stays keyboard-reachable and labelled for a
-    visitor who never gets the bundle. `fallback: :skeleton` swaps it for the
-    neutral placeholder below. %>
+    The <noscript> is the honest part: without JavaScript there is no board at
+    all, and a shimmering placeholder that never resolves would say "loading"
+    forever. It renders first so the explanation precedes the placeholder. %>
 <%= tag.div(**wrapper_attributes) do %>
-  <% if skeleton? %>
-    <%# Neutral placeholder: the island's frame (same border/radius/shadow and
-        name-column width) with nothing of the real schedule in it. %>
-    <div class="bali-gantt-skeleton flex min-h-[360px] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
-         role="status" aria-busy="true" aria-label="<%= t('.loading') %>">
-      <div class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2">
-        <div class="w-48"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
-        <div class="w-32"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
+  <noscript>
+    <p class="alert alert-warning py-2 text-sm" role="status"><%= t(".noscript") %></p>
+  </noscript>
+  <%# Neutral placeholder: the island's frame (same border/radius/shadow and
+      name-column width) with nothing of the real schedule in it. %>
+  <div class="bali-gantt-skeleton flex min-h-[360px] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
+       role="status" aria-busy="true" aria-label="<%= t('.loading') %>">
+    <div class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2">
+      <div class="w-48"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
+      <div class="w-32"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
+    </div>
+    <div class="flex flex-1">
+      <div class="bali-gantt-name-cell shrink-0 space-y-3 border-r border-base-300 p-3">
+        <% skeleton_rows.times do %>
+          <div class="w-3/4"><%= render Bali::Skeleton::Component.new(size: :xs) %></div>
+        <% end %>
       </div>
-      <div class="flex flex-1">
-        <div class="bali-gantt-name-cell shrink-0 space-y-3 border-r border-base-300 p-3">
-          <% skeleton_rows.times do %>
-            <div class="w-3/4"><%= render Bali::Skeleton::Component.new(size: :xs) %></div>
-          <% end %>
-        </div>
-        <div class="min-w-0 flex-1 space-y-3 p-3">
-          <% skeleton_bars.each do |offset, width| %>
-            <div class="<%= offset %> <%= width %>">
-              <%= render Bali::Skeleton::Component.new(size: :xs) %>
-            </div>
-          <% end %>
-        </div>
+      <div class="min-w-0 flex-1 space-y-3 p-3">
+        <% skeleton_bars.each do |offset, width| %>
+          <div class="<%= offset %> <%= width %>">
+            <%= render Bali::Skeleton::Component.new(size: :xs) %>
+          </div>
+        <% end %>
       </div>
     </div>
-  <% else %>
-    <% if renderable? && (legend_entries.any? || zoom_links?) %>
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <% legend_entries.each do |entry| %>
-            <span class="flex items-center gap-1.5 text-xs text-base-content/70">
-              <span class="bali-gantt-swatch" style="background-color: <%= entry[:color] %>"></span>
-              <%= entry[:label] %>
-            </span>
-          <% end %>
-        </div>
-        <% if zoom_links? %>
-          <div class="join" role="group" aria-label="<%= t('.zoom.label') %>">
-            <% zoom_link_options.each do |option| %>
-              <%= render Bali::Link::Component.new(
-                    name: option[:label],
-                    href: option[:href],
-                    variant: :ghost,
-                    size: :xs,
-                    class: class_names("join-item", "btn-active" => option[:active])) %>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
-
-    <% if data.truncated? %>
-      <div class="alert alert-warning py-2 text-sm" role="status">
-        <%= t(".truncated", shown: data.dated_items.size, total: data.dated_total) %>
-      </div>
-    <% end %>
-
-    <% if renderable? %>
-      <div class="bali-gantt-canvas relative max-h-[70vh] overflow-auto rounded-lg border border-base-300 bg-base-100"
-           role="region" aria-label="<%= t('.label') %>" tabindex="0">
-        <div class="relative" style="<%= canvas_width_css %>">
-          <% time_scale.ticks.each do |tick| %>
-            <div class="bali-gantt-gridline" style="left: calc(var(--gantt-name-col) + <%= tick[:x] %>px)"></div>
-          <% end %>
-          <% if time_scale.today_x %>
-            <div class="bali-gantt-today" style="left: calc(var(--gantt-name-col) + <%= time_scale.today_x %>px)"
-                 title="<%= t('.today') %>"></div>
-          <% end %>
-
-          <div class="sticky top-0 z-30 flex border-b border-base-300 bg-base-100" style="<%= canvas_width_css %>">
-            <div class="bali-gantt-name-cell sticky left-0 z-10 flex shrink-0 items-end border-r border-base-300 bg-base-100 px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-              <%= group_label %>
-            </div>
-            <div class="relative shrink-0" style="<%= lane_width_css %>">
-              <div class="relative h-5">
-                <% time_scale.bands.each do |band| %>
-                  <div class="absolute top-0 h-5 overflow-hidden border-l border-base-300 px-1 text-xs font-semibold whitespace-nowrap text-base-content/70"
-                       style="left: <%= band[:x] %>px; width: <%= band[:width] %>px"><%= band[:label] %></div>
-                <% end %>
-              </div>
-              <div class="relative h-5">
-                <% time_scale.ticks.each do |tick| %>
-                  <div class="absolute top-0 h-5 overflow-hidden border-l border-base-200 px-1 text-[10px] leading-5 text-base-content/50"
-                       style="left: <%= tick[:x] %>px; width: <%= tick[:width] %>px"><%= tick[:label] %></div>
-                <% end %>
-              </div>
-            </div>
-          </div>
-
-          <% sections.each do |section| %>
-            <% group = section[:group] %>
-            <% if group %>
-              <details class="bali-gantt-group group" open>
-                <summary class="flex cursor-pointer list-none items-center border-b border-base-200 bg-base-200/40 hover:bg-base-200"
-                         style="<%= canvas_width_css %>">
-                  <span class="<%= class_names('bali-gantt-name-cell sticky left-0 z-10 flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-base-content/80', 'pl-6' => section[:depth].positive?) %>">
-                    <%= render Bali::Icon::Component.new("chevron-right", size: :small,
-                          class: "transition-transform group-open:rotate-90") %>
-                    <span class="truncate"><%= group.name %></span>
-                    <span class="font-normal text-base-content/50">(<%= section[:items].size %>)</span>
-                  </span>
-                  <span class="relative shrink-0 self-stretch" style="<%= lane_width_css %>">
-                    <% if group.dated? %>
-                      <span class="bali-gantt-group-bar absolute top-1/2 block -translate-y-1/2 rounded-full"
-                            style="<%= bar_style(group) %>"
-                            title="<%= bar_title(group) %>"></span>
-                    <% end %>
-                  </span>
-                </summary>
-            <% end %>
-
-            <% section[:items].each do |item| %>
-              <div class="bali-gantt-row flex items-center border-b border-base-200 last:border-b-0 hover:bg-base-200/40"
-                   style="<%= canvas_width_css %>">
-                <div class="bali-gantt-name-cell sticky left-0 z-10 flex shrink-0 items-center gap-2 border-r border-base-300 bg-base-100 px-3 py-1">
-                  <span class="<%= class_names('flex min-w-0 flex-1 items-center gap-2', 'pl-4' => item.sub_item?) %>">
-                    <% if item.href.present? %>
-                      <%= link_to item.name, item.href, class: "link link-hover truncate text-sm", title: item.name %>
-                    <% else %>
-                      <span class="truncate text-sm" title="<%= item.name %>"><%= item.name %></span>
-                    <% end %>
-                  </span>
-                  <% if item.assignee %>
-                    <span class="bali-gantt-assignee" style="<%= avatar_style(item.assignee) %>"
-                          title="<%= item.assignee.name %>"><%= item.assignee.initials %></span>
-                  <% end %>
-                </div>
-                <div class="relative h-full shrink-0" style="<%= lane_width_css %>">
-                  <% if item.milestone? %>
-                    <span class="bali-gantt-milestone absolute top-1/2 block"
-                          style="<%= milestone_style(item) %>"
-                          title="<%= bar_title(item) %>"
-                          data-critical="<%= data.critical?(item) %>"></span>
-                  <% elsif item.href.present? %>
-                    <%= link_to item.href,
-                          class: "bali-gantt-bar absolute top-1/2 block -translate-y-1/2 rounded-sm border hover:brightness-110",
-                          style: bar_style(item),
-                          title: bar_title(item),
-                          "aria-label": item.name,
-                          data: { critical: data.critical?(item) } do %>
-                      <% if item.percent_complete.present? %>
-                        <span class="bali-gantt-progress block h-full rounded-sm" style="<%= progress_style(item) %>"></span>
-                      <% end %>
-                    <% end %>
-                  <% else %>
-                    <span class="bali-gantt-bar absolute top-1/2 block -translate-y-1/2 rounded-sm border"
-                          style="<%= bar_style(item) %>"
-                          title="<%= bar_title(item) %>"
-                          data-critical="<%= data.critical?(item) %>">
-                      <% if item.percent_complete.present? %>
-                        <span class="bali-gantt-progress block h-full rounded-sm" style="<%= progress_style(item) %>"></span>
-                      <% end %>
-                    </span>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-
-            <% if group %>
-              </details>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
-    <% else %>
-      <%= render Bali::EmptyState::Component.new(title: t(".empty"), icon: "chart-gantt") %>
-    <% end %>
-
-    <% if data.undated_total.positive? %>
-      <%= render Bali::Card::Component.new(style: :bordered, class: "bali-gantt-undated") do %>
-        <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-          <%= t(".undated_title") %>
-          <span class="font-normal normal-case text-base-content/50">(<%= data.undated_total %>)</span>
-        </div>
-        <p class="mb-3 text-sm text-base-content/60"><%= t(".undated_hint") %></p>
-        <ul class="grid grid-cols-1 gap-x-6 gap-y-1 md:grid-cols-2 lg:grid-cols-3">
-          <% data.undated_items.each do |item| %>
-            <li class="flex items-center gap-2 truncate text-sm">
-              <% if item.href.present? %>
-                <%= link_to item.name, item.href, class: "link link-hover truncate" %>
-              <% else %>
-                <span class="truncate"><%= item.name %></span>
-              <% end %>
-            </li>
-          <% end %>
-        </ul>
-        <% if data.undated_items.size < data.undated_total %>
-          <p class="mt-3 text-sm text-warning">
-            <%= t(".undated_truncated", shown: data.undated_items.size, total: data.undated_total) %>
-          </p>
-        <% end %>
-      <% end %>
-    <% end %>
-  <% end %>
+  </div>
 <% end %>

@@ -1897,46 +1897,36 @@ express.
 
 Timeline of scheduled work: groups (one nesting level), items (sub-items, milestones as
 diamonds), dependencies and a server-computed critical path, all described by one frozen data
-contract (`Bali::Gantt::Data`). One component, two renderers: `mode: :static` renders
-server-side (sticky two-tier header, collapsible groups, today line, zoom by links);
-`mode: :interactive` mounts the React Flow island — and renders the static board *inside*
-the mount, so React has a real schedule to replace and a visitor without JavaScript keeps
-one. Both renderers share `TimeScale` and `Colors`, so a bar is the same width on either
-side of the swap.
+contract (`Bali::Gantt::Data`). **One renderer:** the React Flow island — drag to move,
+resize to change duration, draw dependencies, plus zoom, search, filtering, the column
+selector, colour-by, the minimap and fullscreen. A read-only board is the same island with
+no `urls:` and `editable`/`manageable` left false. The server-rendered `:static` renderer
+was removed in #970; the component always mounts the island, and the skeleton it renders
+inside the mount is the loading state (React retires it from inside its first commit, so no
+frame shows an empty box). **It needs JavaScript** — a `<noscript>` notice inside the mount
+says so.
 
 ```erb
 <%= render Bali::Gantt::Component.new(
   data: gantt.to_h,                 # the contract — see Bali::Gantt::Data
-  color_by: :status,                # or :none
-  zoom: params[:gantt_zoom],        # :auto/:day/:week/:month via links
+  zoom: params[:gantt_zoom],        # :auto/:day/:week/:month; :auto resolves server-side
   statuses: gantt.statuses,         # [{ value:, label:, color: }]
-  group_label: 'Phase',
-  id: dom_id(project, :gantt)
-) %>
-
-<%= render Bali::Gantt::Component.new(   # interactive: the island + its fallback
-  data: gantt.to_h,
-  mode: :interactive,
   catalogs: gantt.catalogs,
-  editable: true, manageable: true,
+  editable: true, manageable: true, # a viewer passes neither, and no urls
   urls: { patch: schedule_path(project), schedule: schedule_path(project),
           dependencies: dependencies_path(project) },
-  id: dom_id(project, :gantt)        # also the broadcast target
+  id: dom_id(project, :gantt)       # also the broadcast target
 ) %>
 ```
 
 **Options:**
 - `data` - The Gantt document: `{ window (optional), groups: [], items: [], dependencies: [], critical_ids: [] }`; contract, renames and validation rules documented in `Bali::Gantt::Data`
-- `mode` - `:static` (default) or `:interactive` (the React island)
-- `fallback` - What renders inside the island's mount until React takes over: `:static` (default, the real board) or `:skeleton` (neutral placeholder). Ignored by `mode: :static`
-- `color_by` - `:status` (bars from the status catalog) or `:none` (default: :status)
-- `zoom` / `zoom_param` / `zoom_links` - Zoom level (`:auto` default), the namespaced query param the links rewrite (default: `gantt_zoom`), and whether to render the switcher
+- `zoom` / `zoom_param` - Zoom level (`:auto` default, resolved server-side against the window so the island does not rescale on mount) and the namespaced query param it persists into (default: `gantt_zoom`)
 - `statuses` - Status catalog `[{ value:, label:, color: }]` — `color` is a daisyUI variable name (`'--color-info'`) or `nil` for neutral
-- `group_label` - Header of the sticky name column
-- `limit` - Announced cap on rendered items (default: 300, never silent). Caps the static board only — the island gets the whole document
-- `catalogs` / `i18n` / `editable` / `manageable` / `urls` / `date_locale` - Interactive only: island catalogs (`{ statuses:, priorities: }`, defaults to `statuses`), its string table (defaults to `Bali::Gantt::Translations.island`), what the visitor may do, the endpoints (`patch:`, `dependencies:`, `schedule:`, `item_template:`, `new_group:`, `new_item:` — an unknown key raises) and the date-fns locale
+- `catalogs` / `i18n` / `editable` / `manageable` / `urls` / `date_locale` - Island catalogs (`{ statuses:, priorities: }`, defaults to `statuses`), its string table (defaults to `Bali::Gantt::Translations.island`), what the visitor may do, the endpoints (`patch:`, `dependencies:`, `schedule:`, `item_template:`, `new_group:`, `new_item:` — an unknown key raises) and the date-fns locale
+- Removed in #970 and refused by name: `mode`, `fallback`, `limit`, `zoom_links`, `group_label`, `color_by`
 
-**The interactive island (npm):** `bali-view-components/gantt` exports `GanttController` (a
+**The island (npm):** `bali-view-components/gantt` exports `GanttController` (a
 `ReactIslandController` subclass — see `docs/api/react-island.md`); `/gantt-entry` is the
 dedicated bundler entry (registers on `window.Stimulus`, emits the island CSS) and
 `/gantt-loader` lazy-loads it on first sight of `data-controller="gantt"`. Optional peers:
@@ -1946,8 +1936,8 @@ values mirror the props: `data`, `catalogs` (`{ statuses:, priorities: }`), `i18
 `scheduleUrl`, `itemUrlTemplate`, `newGroupUrl`/`newItemUrl`, `zoomParam`, `dateLocale`. The
 mutation contract (PATCH item / POST-DELETE dependency → always the complete document; 422
 `{errors}` → rollback; 404 → re-GET) has an executable reference in the dummy's
-`Admin::Projects::SchedulesController`, and the Lookbook previews `bali/gantt/island` /
-`island_readonly` / `interactive_readonly` exercise the island end to end.
+`Admin::Projects::SchedulesController`, and the Lookbook previews `bali/gantt/default` /
+`editable` / `stress` / `empty` exercise the island end to end.
 
 **Full API, including the mutation and broadcast contracts a host implements:**
 `docs/api/gantt.md`.

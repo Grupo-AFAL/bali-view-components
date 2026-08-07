@@ -114,4 +114,22 @@ class AdminGanttScheduleTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  # The timeline view is the only place in the dummy that publishes an island's
+  # assets the way a host does — `content_for :head` in the view, `yield(:head)`
+  # in the layout (step 4 of docs/api/gantt.md). The Lookbook previews emit the
+  # metas inline, so nothing else exercises that circuit, and it fails SILENTLY:
+  # drop either half and the loader has nothing to inject, the island never
+  # mounts, and the visitor is left with a skeleton announcing `aria-busy`
+  # forever. The page answers 200 either way, so only these assertions catch it.
+  def test_the_timeline_view_publishes_the_island_assets_through_the_layout
+    get "/admin/projects/#{@project.id}?view=timeline"
+
+    assert_response :ok
+    assert_select "head meta[name=?]", "bali-gantt-js", { count: 1 },
+      "content_for :head → yield(:head) roto: el loader no sabría qué inyectar"
+    assert_select "head meta[name=?]", "bali-gantt-css", { count: 1 }
+    assert_select "[data-controller='gantt'][data-gantt-patch-url-value=?]",
+      "/admin/projects/#{@project.id}/schedule"
+  end
 end

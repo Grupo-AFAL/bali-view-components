@@ -1,19 +1,16 @@
 <%# locals: project, gantt %>
 <%# The COMPLETE editable island wired to the dummy's reference endpoints —
-    the executable form of the mutation contract (#705, D15/D17), now through
-    `Bali::Gantt::Component` `mode: :interactive` (#719). This is verbatim what
-    a host writes: one render call, the fallback board underneath it, and the
-    endpoints in `urls:`. `id:` is the broadcast target (docs/api/gantt.md). %>
+    the executable form of the mutation contract (#705, D15/D17). This is
+    verbatim what a host writes: one render call and the endpoints in `urls:`.
+    `id:` is the broadcast target (docs/api/gantt.md). %>
 <%= react_island_meta_tags('gantt', js: 'gantt-island.js', css: 'gantt-island.css') %>
 <% if project %>
   <%= render Bali::Gantt::Component.new(
         data: gantt.to_h,
-        mode: :interactive,
         statuses: gantt.statuses,
         catalogs: gantt.catalogs,
         editable: true,
         manageable: true,
-        group_label: 'Phase',
         urls: {
           patch: admin_project_schedule_path(project),
           schedule: admin_project_schedule_path(project),
