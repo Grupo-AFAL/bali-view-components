@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`docs/api/gantt.md`: `statuses:` must cover group statuses too** (#720 adoption finding, afal-apps#462). Groups render as bars and feed the same legend as items, and any status the catalog misses falls back to `value.humanize` — which is how an untranslated "Not started" leaked into a Spanish UI. One sentence in the option table now says so.
+
 ## [v3.1.0.beta.7] - 2026-08-06
 
 ### Added

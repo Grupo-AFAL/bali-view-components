@@ -146,7 +146,7 @@ attribute is a suggestion, not a permission.
 | `zoom_param:` | `"gantt_zoom"` | Namespaced query param the zoom writes. Never a bare `zoom`, which collides with any other control on the page |
 | `zoom_links:` | `true` | Render the static zoom switcher (plain GET links) |
 | `group_label:` | `t('.name_column')` | Header of the sticky name column |
-| `statuses:` | humanized defaults | Status catalog `[{ value:, label:, color: }]`; `color` is a daisyUI variable name (`"--color-info"`) or `nil` for neutral |
+| `statuses:` | humanized defaults | Status catalog `[{ value:, label:, color: }]`; `color` is a daisyUI variable name (`"--color-info"`) or `nil` for neutral. **Cover the group statuses too**: groups render as bars and feed the same legend, and any value the catalog misses falls back to `value.humanize` — an untranslated English label is how the gap shows up (measured in afal-apps#462, where stage statuses leaked "Not started" into a Spanish UI) |
 | `limit:` | `300` | Announced cap on rendered items. **Caps the static board only** — the island receives the whole document |
 | `id:` | `nil` | DOM id. Give it one if you broadcast (see below) |
 | **Interactive only** | | |
