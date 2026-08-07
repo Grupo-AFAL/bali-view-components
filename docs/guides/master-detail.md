@@ -215,6 +215,78 @@ running out, which is how the end of the list is detected.
 
 ---
 
+## Filtering the list
+
+Tabs, buckets and filter chips belong to the listing, so `with_list` has a place
+for them: `with_filters` renders a band between the header and the rows —
+**outside** the scroll area, so the controls stay put while the rows move under
+them, and **inside** the card, so they read as part of the listing.
+
+That position is all the slot provides. **Bali does not grow a second filtering
+system for it**: put the one it already has in the band.
+
+```erb
+<% split.with_list(header: t("inbox.title"), count: @pagy.count,
+                   selected: params[:selected], pagy: @pagy) do |list| %>
+  <% list.with_filters do %>
+    <%= render Bali::DataTable::SimpleFilters::Component.new(
+      url: inbox_path,
+      filters: @filter_form.simple_filters_config,
+      show_clear: true
+    ) %>
+  <% end %>
+  <%# … items … %>
+<% end %>
+```
+
+```ruby
+@filter_form = Bali::FilterForm.new(
+  Inbox::Item.all, params,
+  simple_filters: [
+    { attribute: :bucket, collection: bucket_options, label: t("inbox.bucket"),
+      type: :radio_group, auto_submit: true }
+  ]
+)
+@pagy, @items = pagy(@filter_form.result, limit: 20)
+```
+
+`type: :radio_group` with `auto_submit: true` is **the pill that filters on
+click** — one active value, submitted the moment it changes, which is the bucket
+strip a master-detail listing usually wants. daisyUI styles the radio itself as
+the pill and takes its text from `aria-label`, so there is no `<label>` element:
+the thing you click is the `input`.
+
+**Counts on the pills are yours.** `"Aprobaciones (12)"` goes in the collection's
+label. SimpleFilters does not count, and teaching it to would be the second
+filtering system this is avoiding.
+
+### What filtering does to everything else
+
+Nothing, and that is the design. A filter submit is an **ordinary full-page GET**:
+
+- **The infinite scroll resets for free.** The server renders page one; there is
+  no reset to perform and no state in the browser to clear.
+- **The filter travels into the pages the sentinel fetches**, because the next
+  URL is derived from the request the server answered and Pagy keeps its params.
+  Nothing in the controller knows what a filter is. Measured in
+  `cypress/e2e/split-view-list.cy.js`, not assumed.
+- **Back still works**, because the highlight is re-derived from the URL and
+  matches on the params a row's href actually carries, ignoring the filter params
+  it does not.
+
+**The submit button stays even when every filter auto-submits, and should.**
+Without JavaScript `auto_submit` does nothing, so the button is how a reader
+without it applies the filter — the same progressive enhancement as the
+pagination controls.
+
+**Selection and filters are independent.** A row's href carries the filters (see
+[the row](#when-list-does-not-fit)), so the selection deep-links back into the
+filtered listing. Filtering does not clear the selection; if the selected record
+is filtered out, its detail stays and no row is highlighted — the same state as a
+deep link to a record on a later page.
+
+---
+
 ## When `list` does not fit
 
 The `master` slot takes any markup at all, and is what a listing the structured

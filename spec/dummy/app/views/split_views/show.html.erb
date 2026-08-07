@@ -8,6 +8,16 @@
     <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail') do |split| %>
       <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
                          pagy: @pagy, item_name: 'películas', max_height: '26rem') do |list| %>
+        <%# Filtrar es una navegación normal: el servidor vuelve a pintar la página 1
+            y el sentinel arranca de una URL que ya trae el `q`. No hay nada que
+            resetear a mano. %>
+        <% list.with_filters do %>
+          <%= render Bali::DataTable::SimpleFilters::Component.new(
+            url: split_view_path,
+            filters: @filter_form.simple_filters_config,
+            show_clear: true
+          ) %>
+        <% end %>
         <% @movies.each do |movie| %>
           <% list.with_item(
             id: movie.id,

@@ -50,6 +50,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   own: the attribute works by `display: none` in the UA stylesheet, which any author `display`
   beats, so the spinner was visible to exactly the readers it was hidden from.
 
+- **`with_filters`: the listing's tabs and chips get a place, not a system** (#971). Buckets and
+  filter chips belong to the listing — the inbox this was generalised from puts them inside the
+  master — so `with_list` has a slot for them. It renders a band between the header and the rows:
+  **outside** the scroll area, so the controls stay put while the rows move under them, and
+  **inside** the card, so they read as part of the listing instead of as page chrome. That
+  position is the whole of what the slot provides.
+
+  **Bali grows no second filtering system for it.** Put `Bali::DataTable::SimpleFilters` in the
+  band, which already has the control this pattern wants: `type: :radio_group` with
+  `auto_submit: true` (#725) is the pill that filters on click — one active value, submitted the
+  moment it changes. Counts in the pill labels stay the caller's, because SimpleFilters does not
+  count and teaching it to would be the second system. Worth knowing when you go looking for the
+  click target: daisyUI styles the radio *itself* as the pill and takes its text from
+  `aria-label`, so there is no `<label>` element.
+
+  **Filtering does nothing to the infinite scroll, and that is the design.** A filter submit is an
+  ordinary full-page GET, so the server renders page one and there is no reset to perform, no
+  browser state to clear and no coupling between the two features. The filter then travels into
+  every page the sentinel fetches on its own, because the next URL is derived from the request the
+  server answered and Pagy keeps its params — nothing in the controller knows what a filter is.
+  Measured rather than assumed; the spec asserts the fetched URL carries the filter and that the
+  appended rows really are the filtered ones. The submit button stays even when every filter
+  auto-submits, and should: without JavaScript `auto_submit` does nothing, so the button is how
+  the filter gets applied — the same progressive enhancement as the pagination controls.
+
 ### Fixed
 
 - **`docs/api/gantt.md`: `statuses:` must cover group statuses too** (#720 adoption finding, afal-apps#462). Groups render as bars and feed the same legend as items, and any status the catalog misses falls back to `value.humanize` — which is how an untranslated "Not started" leaked into a Spanish UI. One sentence in the option table now says so.

@@ -133,6 +133,46 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector(".split-view-item")
   end
 
+  # --- the filtering band -----------------------------------------------------------------
+
+  def render_with_filters(list_options = {})
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_list(**list_options) do |list|
+        list.with_filters { "FILTER CONTROLS" }
+        list.with_item(id: 1, title: "First", href: "/inbox?selected=1")
+      end
+    end
+  end
+
+  def test_filters_render_when_given
+    render_with_filters
+    assert_selector('[data-testid="list-filters"]', text: "FILTER CONTROLS")
+  end
+
+  def test_no_filters_band_without_the_slot
+    render_list
+    assert_no_selector('[data-testid="list-filters"]')
+  end
+
+  # The position is the whole of what the slot buys. Outside the scroll area the
+  # controls stay put while the rows move under them; inside it they would scroll
+  # away with the first flick.
+  def test_filters_sit_outside_the_scroll_area
+    render_with_filters
+    assert_no_selector('[data-split-view-list-target="scroller"] [data-testid="list-filters"]')
+  end
+
+  def test_filters_sit_inside_the_list_and_after_the_header
+    render_with_filters({ header: "Inbox" })
+    assert_selector('.split-view-list [data-testid="list-filters"]')
+
+    html = rendered_content
+    assert_operator html.index("Inbox"), :<, html.index("FILTER CONTROLS"),
+      "the filtering band renders after the header"
+    assert_operator html.index("FILTER CONTROLS"), :<, html.index("split-view-scroll"),
+      "the filtering band renders before the rows"
+  end
+
   # --- paging ---------------------------------------------------------------------------
 
   def pagy(page: 1, count: 30, limit: 10)

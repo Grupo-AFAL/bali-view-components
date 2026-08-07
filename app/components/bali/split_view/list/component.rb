@@ -49,6 +49,19 @@ module Bali
         # stay the caller's words — see docs/guides/master-detail.md.
         renders_one :empty_state
 
+        # The filtering band, between the header and the rows. Its position is the
+        # whole of what this slot buys: **outside** the scroll area so the controls
+        # stay put while the rows move under them, and **inside** the card so they
+        # read as part of the listing rather than as page chrome.
+        #
+        # Bali does not grow a second filtering system for it. Put
+        # `Bali::DataTable::SimpleFilters::Component` here — a `:radio_group` with
+        # `auto_submit: true` is the pill that filters on click — or a FilterForm of
+        # your own. Filtering is an ordinary full-page navigation, which is what
+        # resets the infinite scroll: the server renders page one and the sentinel
+        # picks up the new URL with the filter params already on it.
+        renders_one :filters
+
         attr_reader :header, :count, :pagy
 
         # frame_id is injected by the SplitView; a caller never passes it.

@@ -12,6 +12,12 @@
       </div>
     <% end %>
 
+    <% if filters? %>
+      <div class="split-view-list-filters" data-testid="list-filters">
+        <%= filters %>
+      </div>
+    <% end %>
+
     <%= tag.div(**scroll_attributes) do %>
       <div data-split-view-list-target="rows">
         <% items.each do |item| %>

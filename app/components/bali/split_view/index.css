@@ -81,6 +81,15 @@
   @apply px-4;
 }
 
+/* The filtering band. Sits between the header and the scroll area — outside the
+   part that moves, inside the card — and carries the separator so the controls
+   read as a band rather than as loose markup above the rows. Whatever the host
+   puts in it (SimpleFilters, a FilterForm) brings its own controls; this only
+   places them. */
+.split-view-list-filters {
+  @apply px-4 py-3 border-b border-b-base-200;
+}
+
 .split-view-sentinel {
   @apply flex items-center justify-center gap-2 px-4 py-6 text-xs text-base-content/60;
 }
