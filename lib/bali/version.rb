@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Bali
-  VERSION = "3.1.0.beta.7"
+  VERSION = "3.1.0.beta.8"
 end

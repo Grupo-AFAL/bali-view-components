@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.8] - 2026-08-07
+
 ### Removed
 
 - **`Bali::Gantt`: the `:static` renderer is gone — the React island is the only renderer** (#970, breaking against the v3.1 betas). One component with two renderers over one data contract was the design signed in #704 and completed in #719; validating it in the betas is what settled that it was a promise Bali could not keep cheaply. Parity was never reached and the gap was growing: measured preview against preview, the static board lacked the **minimap, the colour selector, dependencies, the critical path, fullscreen, the design alignment, filtering and the column selector** — eight features, and every one of them serves the read-only portfolio case as much as the editable one. Two renderers of the same board meant paying that tax again on each new feature, and the two defects found the same week (an axis that did not fill its width, chrome that had drifted apart) were the tax being collected. The portfolio case moves to the island with `editable: false, manageable: false` and no `urls:`, and gains all eight.
