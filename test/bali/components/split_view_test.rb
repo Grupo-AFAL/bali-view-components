@@ -99,6 +99,44 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_match(/master_width must be a CSS length/, error.message)
   end
 
+  # --- height ---------------------------------------------------------------------------
+
+  def test_height_content_is_the_default_and_adds_no_modifier
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector(".split-view-component")
+    assert_no_selector(".split-view-component--full")
+  end
+
+  def test_height_full_adds_the_modifier
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full)) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector(".split-view-component.split-view-component--full")
+  end
+
+  # The modifier is the whole of `:full` — there is no inline height, no
+  # `calc()` and no measured offset anywhere, which is what lets it fill a
+  # bounded parent and honestly fill nothing without one.
+  def test_height_full_adds_no_inline_height
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full)) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    refute_match(/height/, page.find(".split-view-component")["style"])
+  end
+
+  def test_an_unknown_height_falls_back_to_content
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :tall)) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_no_selector(".split-view-component--full")
+  end
+
   def test_host_class_is_merged_and_host_style_is_kept
     render_inline(
       Bali::SplitView::Component.new(frame_id: "inbox-detail", class: "gap-6", style: "--bali-split-master-max-h: 30rem")

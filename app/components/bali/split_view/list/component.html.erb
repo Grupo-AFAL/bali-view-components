@@ -4,7 +4,7 @@
 <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-0 overflow-hidden") do %>
   <%= tag.div(**container_attributes) do %>
     <% if header.present? || count.present? %>
-      <div class="<%= HEADER_CLASSES %>">
+      <div class="split-view-list-header <%= HEADER_CLASSES %>">
         <% if header.present? %><span><%= header %></span><% end %>
         <% if count.present? %>
           <span class="text-base-content/50 font-normal" data-testid="list-count"><%= count %></span>

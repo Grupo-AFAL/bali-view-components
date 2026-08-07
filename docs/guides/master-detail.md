@@ -81,6 +81,55 @@ want the other mobile behaviour.
 
 ---
 
+## Filling the screen: `height: :full`
+
+By default (`height: :content`) the split grows with its content and the page
+scrolls — fine for a listing embedded in a longer page. `height: :full` gives you
+the other shape, the one an inbox wants: the split fills the screen and **each
+pane scrolls on its own**, so the list and the detail move independently and
+neither takes the page with it.
+
+```erb
+<%= render Bali::AppLayout::Component.new(viewport_locked: true) do |layout| %>
+  <% layout.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full) do |split| %>
+      <%# … %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+**That pairing is the recipe, not a suggestion.** `:full` is `height: 100%` and a
+flex chain — there is no measured offset, no `calc(100vh - 17rem)` and no
+JavaScript anywhere in it. A percentage height needs an ancestor with a definite
+one, and `AppLayout viewport_locked: true` is what provides it: the body stops
+scrolling and `<main>` becomes the bounded box. **Without a bounded ancestor
+there is nothing to fill and `:full` does nothing** — visibly, not subtly. That
+is the honest failure, and it is deliberate: a component that guessed at the
+height of your chrome would be wrong on every screen that does not look like the
+one it was written for.
+
+The split must be a **direct child** of the layout's body container. A wrapper in
+between is another link with `height: auto`, and the fill dies there — give that
+wrapper `h-full min-h-0` if you need one.
+
+**Below `lg` it does nothing**, on purpose. The panes are stacked one above the
+other there, and two stacked panes cannot both fill one screen: a master and a
+detail would fight over the same viewport. Stacked keeps the ordinary page
+scroll, which is what a phone wants anyway.
+
+**`max_height:` is for `:content`.** In `:full` the flex chain decides the list's
+height, so `--bali-split-master-max-h` is dropped — a cap of
+`calc(100vh - 20rem)` inside a pane that is already exactly as tall as it should
+be would only make it shorter.
+
+**Infinite scroll gets bigger, not different.** A full-height pane is taller than
+a capped one, so one page of rows often does not fill it; the sentinel stays in
+view and keeps asking until it does. The scroll container changed size, not
+identity, and the observer is rooted on it either way.
+
+---
+
 ## The list
 
 **Options on `with_list`**

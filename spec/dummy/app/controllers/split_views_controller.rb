@@ -23,6 +23,9 @@
 class SplitViewsController < ApplicationController
   PER_PAGE = 5
 
+  # AppLayout renders its own <body>, so the shell around it must not have one.
+  layout "app_layout_preview", only: :full
+
   def show
     # A real screen picks one semantics and stays there. This page takes it from
     # a param so the reference can show both: `:single` is the bucket strip
@@ -32,6 +35,14 @@ class SplitViewsController < ApplicationController
 
     @pagy, @movies = pagy(filtered.includes(:studio).order(:name), limit: PER_PAGE)
     @selected = Movie.find_by(id: params[:selected])
+  end
+
+  # The same listing, in the arrangement `height: :full` is built for: inside an
+  # AppLayout that locks the viewport, so the split fills the screen and each
+  # pane scrolls on its own instead of the page scrolling as a whole.
+  def full
+    show
+    render :full
   end
 
   private

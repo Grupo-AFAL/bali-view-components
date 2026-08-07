@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::SplitView` takes `height: :full`** (#979). The default, `:content`, grows with its
+  content and lets the page scroll. `:full` gives the other shape — the inbox one: the split fills
+  the screen and **each pane scrolls on its own**, so the list and the detail move independently
+  and neither takes the page with it.
+
+  **There is no number in it anywhere.** It is `height: 100%` plus a flex chain: no measured
+  offset, no `calc(100vh - 17rem)`, no JavaScript reading the top of anything. That means it fills
+  whatever bounded box you put it in — and fills **nothing** without one, visibly rather than
+  subtly. Deliberate, and the same reasoning that kept a magic offset out of the Kanban: a
+  component that guessed at the height of your chrome would be wrong on every screen that does not
+  look like the one it was written for.
+
+  So the pairing is the recipe: `AppLayout viewport_locked: true` stops the body scrolling and
+  makes `<main>` the bounded box. Making that pairing *actually* pair took two rules, because
+  AppLayout's body container is `height: auto` and wraps its content — measured, the split stopped
+  at 629px inside a 1086px `<main>`, filling nothing while claiming to fill everything. Those rules
+  ship with `:full` rather than with AppLayout, scoped by `:has()` so that every other locked page
+  is byte-for-byte what it was, and `flex: 1 0 auto` so a page taller than the viewport keeps its
+  height and `<main>` scrolls as before.
+
+  **Inert below `lg`**, on purpose: the panes are stacked there, and two stacked panes cannot both
+  fill one screen — a master and a detail would fight over the same viewport. `max_height:` belongs
+  to `:content`; in `:full` the flex chain decides, so the cap is dropped rather than fighting it.
+  Infinite scroll simply gets a taller container: one page of rows often does not fill it, so the
+  sentinel stays in view and keeps loading until it does — the container changed size, not
+  identity. `/split-view/full` in the dummy is the whole arrangement, and the spec measures it.
+
 ### Changed
 
 - **`Bali::SplitView`: the filter band is pills that are links** (#977, breaking against

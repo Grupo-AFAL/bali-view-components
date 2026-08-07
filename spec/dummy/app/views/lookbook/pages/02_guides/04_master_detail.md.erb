@@ -63,6 +63,32 @@ in `docs/guides/master-detail.md`.
 The free `master` slot is still there, unchanged, for a listing this shape does not
 fit.
 
+## Filling the screen: `height: :full`
+
+`height: :content` (default) grows with the content and lets the page scroll.
+`height: :full` fills the screen and gives **each pane its own scrollbar** — the
+inbox shape.
+
+```erb
+<%%= render Bali::AppLayout::Component.new(viewport_locked: true) do |layout| %>
+  <%% layout.with_body do %>
+    <%%= render Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full) do |split| %>
+```
+
+**That pairing is the recipe.** `:full` is `height: 100%` plus a flex chain — no
+measured offsets, no `calc(100vh - …)`, no JavaScript — and a percentage height
+needs an ancestor with a definite one. `viewport_locked: true` is what makes
+`<main>` that box. Without a bounded ancestor `:full` fills nothing, visibly; a
+component that guessed at your chrome's height would be wrong on every screen it
+was not written for. The split has to be a **direct child** of the body container.
+
+Below `lg` it is inert: the panes are stacked, and two stacked panes cannot both
+fill one screen. `max_height:` belongs to `:content` — in `:full` the flex chain
+decides. And infinite scroll simply gets a taller container: the sentinel stays in
+view and keeps loading until the pane is full.
+
+Reference page: [/split-view/full](/split-view/full).
+
 ## Paging: infinite by default
 
 Give `with_list` a `pagy:` and the listing pages itself:
