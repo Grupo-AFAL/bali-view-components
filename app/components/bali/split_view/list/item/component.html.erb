@@ -1,0 +1,32 @@
+<%= link_to(href, **link_attributes) do %>
+  <div class="flex items-start gap-3">
+    <% if icon.present? %>
+      <span class="shrink-0 text-base-content/60 mt-0.5">
+        <%= render Bali::Icon::Component.new(icon, size: 18) %>
+      </span>
+    <% end %>
+
+    <div class="min-w-0 grow">
+      <% if tags.any? %>
+        <div class="flex items-center flex-wrap gap-1.5 mb-1">
+          <% tags.each do |tag| %>
+            <%= tag %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="<%= TITLE_CLASSES %>"><%= title %></div>
+
+      <% if subtitle.present? %>
+        <div class="<%= SUBTITLE_CLASSES %>"><%= subtitle %></div>
+      <% end %>
+
+      <%# Free content: whatever the row needs that the fields do not name. %>
+      <%= content %>
+    </div>
+
+    <% if meta.present? %>
+      <span class="<%= meta_classes %>"><%= meta %></span>
+    <% end %>
+  </div>
+<% end %>

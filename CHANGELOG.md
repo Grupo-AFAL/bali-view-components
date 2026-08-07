@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::SplitView` gets a structured listing, and pages itself** (#971). `with_list` +
+  `with_item` replace the hand-built master: the component writes `data-turbo-frame`,
+  `data-split-view-target`, `data-action` and `aria-current` itself. Those four attributes were
+  copied into every host template that used the component, and a row missing one of them looks
+  right and silently reloads the whole page instead of swapping the frame. Selection is decided
+  once too — `with_list(selected:)` takes the id of the selected record and each item its own
+  `id:`, in place of the same comparison written per row.
+
+  **The fields are the union of the two production listings this was drawn from**, not a copy of
+  either: `title` and `href` required, then `subtitle`, `icon`, `meta` with a `meta_color` for the
+  overdue date both of them paint red, any number of `with_tag`, and a block for whatever the
+  fields do not name (gc's urgency dot and requester avatar live there). The two rows agree on
+  almost nothing except the title and the subtitle, which is why the rest is optional. Grouping is
+  the one thing both listings do that this does **not** ship: it pulls against infinite scroll,
+  since an appended page arrives as a flat list of rows and merging it into existing group headers
+  needs the server to say which group each row belongs to. The free `master` slot is untouched and
+  still the answer for a listing this shape does not fit.
+
+  **Paging is infinite by default, by fetch-and-extract.** Given a `pagy:`, the list renders
+  ordinary pagination controls plus a sentinel; the new `split-view-list` controller hides the
+  controls on connect and, as the sentinel comes into view, fetches **the same index URL one page
+  further on**, lifts the rows out of the reply and appends them. Nothing is added on the server:
+  no `respond_to`, no Turbo Stream, no partial extracted for the purpose — and the rows arrive
+  wired because the server is what rendered them. The next URL is read back out of each fetched
+  page rather than incremented in the browser, so the server stays in charge of what "next" means,
+  including running out. That order is deliberate: the pagination controls are in the markup and
+  enhancement removes them, so a reader without JavaScript gets working pagination rather than a
+  spinner that never resolves.
+
+  Four corners, all measured rather than assumed: an appended page is fetched from a URL that
+  predates any click, so its markup can carry a stale selection — `rowTargetConnected` re-derives
+  it, and leaves the server's alone when nothing is selected in-page, which is what makes a deep
+  link to a record on page four light up when its page arrives. Going back after scrolling
+  **keeps** the pages already appended, because Turbo caches the page as it was when you left it,
+  and Stimulus reflects the controller's next-page value back to its attribute so the restored
+  list does not re-append a page it already has. An `IntersectionObserver` only reports a *change*
+  in intersection, so a sentinel still on screen after the rows land is asked again explicitly —
+  without that the list stalled one page in. And `hidden` on the sentinel needed a CSS rule of its
+  own: the attribute works by `display: none` in the UA stylesheet, which any author `display`
+  beats, so the spinner was visible to exactly the readers it was hidden from.
+
 ### Fixed
 
 - **`docs/api/gantt.md`: `statuses:` must cover group statuses too** (#720 adoption finding, afal-apps#462). Groups render as bars and feed the same legend as items, and any status the catalog misses falls back to `value.humanize` — which is how an untranslated "Not started" leaked into a Spanish UI. One sentence in the option table now says so.

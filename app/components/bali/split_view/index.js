@@ -37,6 +37,28 @@ export class SplitViewController extends Controller {
     window.addEventListener('popstate', this.syncFromLocation)
     // A restore that DID replace the body lands here, on the new instance.
     if (restoringHistory) this.syncFromLocation()
+    // Whatever is marked right now is the selection, however it got marked.
+    // Set after the restore above so it records the corrected state.
+    this.selectedHref = this.rowTargets.find(row => row.hasAttribute('aria-current'))?.href ?? null
+  }
+
+  // Rows appended by infinite scroll. They arrive carrying whatever selection the
+  // server painted for the page they came from, which goes stale the moment the
+  // reader clicks something: the page is fetched from a URL that predates the
+  // click. Enforcing the live selection is what stops a second row lighting up.
+  //
+  // Two cases are deliberately left alone:
+  //   - `selectedHref === undefined`, i.e. connect() has not run. Stimulus fires
+  //     this for the rows already in the markup before connecting the controller,
+  //     and those are the ones the server certainly got right.
+  //   - `selectedHref === null`, i.e. nothing is selected in-page. Then the server
+  //     is the only one who knows anything, and a deep link to a record on a later
+  //     page depends on that: its row arrives already marked, and overruling it
+  //     here would erase the highlight the appended page was fetched to deliver.
+  rowTargetConnected (row) {
+    if (!this.selectedHref) return
+
+    this.applySelection(row, row.href === this.selectedHref)
   }
 
   disconnect () {
@@ -60,6 +82,7 @@ export class SplitViewController extends Controller {
   // all and deriving there would erase a correct selection.
   syncFromLocation () {
     const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
+    this.selectedHref = current?.href ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
   }
 
@@ -88,6 +111,7 @@ export class SplitViewController extends Controller {
 
   select (event) {
     const clicked = event.currentTarget
+    this.selectedHref = clicked.href
     this.rowTargets.forEach(row => this.applySelection(row, row === clicked))
   }
 

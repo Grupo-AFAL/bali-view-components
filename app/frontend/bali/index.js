@@ -121,6 +121,7 @@ export {
   SideMenuTriggerController,
   SortableListController,
   SplitViewController,
+  SplitViewListController,
   StatusController,
   TabsController,
   TimeagoController,

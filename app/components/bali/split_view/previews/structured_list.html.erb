@@ -1,0 +1,49 @@
+<%# The structured listing. Every row attribute that makes the frame swap work is
+    written by the component; the template below says what a row *is*, not how it
+    is wired.
+
+    `next_url` points at the dummy's own `/split-view`, which renders this same
+    list — so scrolling to the bottom performs a real fetch against a real
+    paginated index, the way a host app's would. %>
+<%= render Bali::SplitView::Component.new(frame_id: "split-view-detail") do |split| %>
+  <%# `next_url` spells out what a Pagy-derived one carries on its own: the current
+      selection travels with the page number, so the server can paint the row of a
+      deep-linked record when its page finally arrives. %>
+  <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
+                     pagy: pagy, item_name: "películas", max_height: "22rem",
+                     next_url: ["/split-view?page=2", ("selected=#{selected.id}" if selected)].compact.join("&")) do |list| %>
+    <% movies.each do |movie| %>
+      <% list.with_item(
+        id: movie.id,
+        href: "/split-view?selected=#{movie.id}",
+        title: movie.name,
+        subtitle: movie.studio&.name,
+        meta: movie.production_ends_on && l(movie.production_ends_on, format: :short),
+        meta_color: (:error if movie.production_ends_on&.past?)
+      ) do |row| %>
+        <% row.with_tag(text: movie.genre, color: :info) %>
+        <% row.with_tag(text: movie.status.humanize, color: movie.status_color) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if selected %>
+    <% split.with_detail do %>
+      <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+        <% card.with_title(selected.name, class: "text-lg", data: { testid: "detail-title" }) %>
+        <%= render Bali::DescriptionList::Component.new(columns: 2) do |items| %>
+          <% items.with_item(label: "Género", value: selected.genre) %>
+          <% items.with_item(label: "Estudio", value: selected.studio&.name) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <% split.with_empty_detail do %>
+      <%= render Bali::EmptyState::Component.new(
+        title: "Selecciona una película",
+        description: "Elige una fila de la izquierda para ver su ficha aquí.",
+        icon: "inbox"
+      ) %>
+    <% end %>
+  <% end %>
+<% end %>
