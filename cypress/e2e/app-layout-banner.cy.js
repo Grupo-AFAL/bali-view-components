@@ -93,8 +93,13 @@ describe('AppLayout: el sidebar fijo arranca debajo del banner', () => {
       const franja = $banner[0].getBoundingClientRect()
 
       expect(franja.left, 'pegada al borde izquierdo').to.be.closeTo(0, 1)
-      expect(franja.width, 'ancho completo del viewport').to.be.closeTo(
-        $banner[0].ownerDocument.defaultView.innerWidth, 1
+      // clientWidth y no innerWidth: la pagina del preview desborda en vertical, y en
+      // Linux la scrollbar clasica resta ~15px al ancho de layout mientras innerWidth
+      // la sigue incluyendo — el test fallaba en CI y pasaba en macOS (overlay). Lo
+      // vigilado es "todo el ancho de layout, no la columna de contenido" (~la mitad),
+      // y eso es exactamente documentElement.clientWidth.
+      expect(franja.width, 'ancho completo de layout').to.be.closeTo(
+        $banner[0].ownerDocument.documentElement.clientWidth, 1
       )
     })
   })
