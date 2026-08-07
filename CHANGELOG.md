@@ -36,6 +36,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sentinel stays in view and keeps loading until it does — the container changed size, not
   identity. `/split-view/full` in the dummy is the whole arrangement, and the spec measures it.
 
+- **The SplitView previews now teach the API the component actually has** (#977/#979 follow-up). A
+  preview is the first documentation anyone copies, so what the default scenario shows is what
+  hosts will write — and it was still showing a master built by hand, from before `with_list`
+  existed. The set is now: **`default`** (the structured listing, with **live** filter pills — they
+  build their own URLs from the request, so clicking one really filters the list below),
+  **`multi_filters`** (several pills active at once), `with_selection`,
+  `deep_link_beyond_the_first_page`, `without_advance`, **`full_height/default`** (inside a locked
+  AppLayout), and **`custom_master`** — the old default, kept and relabelled as the escape hatch it
+  always was.
+
+  Two things worth knowing beyond this component. **A preview method has no `params`, but the
+  template it renders runs inside a real request** — which is what lets the pills be live rather
+  than posed. And **`@layout` is not a tag Lookbook 2.3 knows**: annotating a scenario with it does
+  nothing, silently. The full-height scenario needs the layout that omits `<body>` (AppLayout
+  renders its own, and nesting them makes the parser discard the inner one along with
+  `app-layout--viewport-locked`), so it moved to a preview class of its own where `layout` is a
+  class-level declaration that works. Measured before the move: the scenario filled a 769px
+  `<main>` inside an 1151px viewport and looked perfectly plausible while demonstrating nothing.
+  `test/requests/split_view_previews_test.rb` now fails if either regresses.
+
 ### Changed
 
 - **`Bali::SplitView`: the filter band is pills that are links** (#977, breaking against

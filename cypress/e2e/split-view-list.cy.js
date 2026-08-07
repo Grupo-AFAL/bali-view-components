@@ -10,7 +10,7 @@ describe('SplitView structured list', () => {
   const scrollToBottom = () => scroller().scrollTo('bottom', { ensureScrollable: false })
 
   context('progressive enhancement', () => {
-    beforeEach(() => cy.visit('/bali/split_view/structured_list'))
+    beforeEach(() => cy.visit('/bali/split_view/default'))
 
     // The controls are in the markup and the controller removes them, rather than
     // the other way round — that is what makes the no-JS case the default.
@@ -39,7 +39,7 @@ describe('SplitView structured list', () => {
   })
 
   context('appending pages', () => {
-    beforeEach(() => cy.visit('/bali/split_view/structured_list'))
+    beforeEach(() => cy.visit('/bali/split_view/default'))
 
     it('appends the next page when the sentinel comes into view', () => {
       rows().should('have.length', 5)
@@ -306,7 +306,7 @@ describe('SplitView structured list', () => {
     // silently would be indistinguishable from reaching the end of the list, so
     // it has to land on the error state like any other failure.
     it('treats a 200 without the list in it as a failure, not as the end', () => {
-      cy.visit('/bali/split_view/structured_list')
+      cy.visit('/bali/split_view/default')
       cy.intercept('GET', '/split-view*', {
         statusCode: 200,
         body: '<html><body><h1>Please sign in</h1></body></html>'
@@ -321,7 +321,7 @@ describe('SplitView structured list', () => {
     })
 
     it('offers a retry that resumes from the same page', () => {
-      cy.visit('/bali/split_view/structured_list')
+      cy.visit('/bali/split_view/default')
       // `times: 1` so only the first attempt fails and the retry reaches the real
       // server. Registering a second, pass-through intercept instead does not
       // reliably unstub the first.

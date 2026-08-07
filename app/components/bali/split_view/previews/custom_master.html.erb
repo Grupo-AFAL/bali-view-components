@@ -1,4 +1,10 @@
-<%# Rows point at the dummy app's `/split-view` page, which renders the same
+<%# The ESCAPE HATCH, not the recommended shape. Everything below the `master`
+    slot is markup a host wrote by hand — including the four attributes
+    `with_item` would have written for it. Reach for this when a listing cannot
+    be expressed as rows of title/subtitle/tags/meta: a tree, a calendar, a
+    grouped inbox. For anything that can, see the `default` scenario.
+
+    Rows point at the dummy app's `/split-view` page, which renders the same
     `split-view-detail` frame, so the swap here is a real frame navigation and
     not a preview-only illusion. %>
 <%= render Bali::SplitView::Component.new(

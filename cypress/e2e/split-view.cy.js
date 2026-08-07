@@ -1,3 +1,8 @@
+// Against `custom_master`, the free-slot escape hatch: these are the base
+// component's guarantees — frame swap, highlight, history — and they have to
+// hold for a listing a host wired by hand, not only for `with_list`. The
+// structured API has its own spec.
+//
 // The point of SplitView is what does NOT happen on a row click: the master
 // pane must survive untouched, keeping its scroll position and its DOM, while
 // only the detail frame is replaced. Every assertion here is about that, so the
@@ -7,7 +12,7 @@ describe('SplitView', () => {
 
   context('default (no selection, advance on)', () => {
     beforeEach(() => {
-      cy.visit('/bali/split_view/default')
+      cy.visit('/bali/split_view/custom_master')
       // Stamped on the live node: a re-render of the master would replace it and
       // the attribute would be gone.
       masterList().invoke('attr', 'data-sentinel', 'kept')
@@ -92,7 +97,7 @@ describe('SplitView', () => {
         cy.location('search').should('eq', href.split('?')[1] ? `?${href.split('?')[1]}` : '')
 
         cy.go('back')
-        cy.location('pathname').should('include', '/lookbook/preview/bali/split_view/default')
+        cy.location('pathname').should('include', '/lookbook/preview/bali/split_view/custom_master')
         cy.get('.split-view-detail .empty-state-component').should('be.visible')
         // The highlight has to rewind with the frame. Turbo caches the snapshot
         // of the page it leaves, and it takes it AFTER the controller has moved
@@ -134,7 +139,7 @@ describe('SplitView', () => {
       })
 
     beforeEach(() => {
-      cy.visit('/bali/split_view/default')
+      cy.visit('/bali/split_view/custom_master')
       cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
         cy.wrap(new URL(href, 'http://example.test').searchParams.get('selected')).as('id')
       })
@@ -166,7 +171,7 @@ describe('SplitView', () => {
 
   context('responsive layout', () => {
     it('puts the panes side by side from lg up and stacks them below it', () => {
-      cy.visit('/bali/split_view/default')
+      cy.visit('/bali/split_view/custom_master')
 
       cy.viewport(1280, 800)
       cy.get('.split-view-component')
@@ -183,7 +188,7 @@ describe('SplitView', () => {
 
     it('honours a custom master_width through the CSS custom property', () => {
       cy.viewport(1280, 800)
-      cy.visit('/bali/split_view/default?master_width=320px')
+      cy.visit('/bali/split_view/custom_master?master_width=320px')
       cy.get('.split-view-component')
         .should('have.css', 'grid-template-columns')
         .and('match', /^320px /)

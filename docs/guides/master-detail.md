@@ -9,7 +9,9 @@ screen this way instead of navigating to a detail page.
 the Stimulus controller that moves the highlight — **and the listing**. The
 detail pane stays completely yours.
 
-- Live example: `/lookbook/preview/bali/split_view/structured_list`
+- Live examples: `/lookbook/preview/bali/split_view/default` (the structured
+  listing, with live filter pills), `.../multi_filters`, `.../full_height/default`
+  (inside a locked AppLayout) and `.../custom_master` (the escape hatch)
 - Working reference in the dummy app: `spec/dummy/app/controllers/split_views_controller.rb`
   and `spec/dummy/app/views/split_views/` — the whole Rails side in one action.
 
