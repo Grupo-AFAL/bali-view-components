@@ -167,6 +167,39 @@ can only shrink from here.
 
 ---
 
+## `SplitView`'s filter band: `with_filters` becomes `with_filter` (#977)
+
+**Only affects you if you pinned `v3.1.0.beta.8`** and used the free-form
+`with_filters` slot. It shipped in that one beta and is gone; the five breaking
+changes above are about v3.0, this is about a beta.
+
+```erb
+<%# beta.8 %>
+<% list.with_filters do %>
+  <%= render Bali::DataTable::SimpleFilters::Component.new(
+        url: inbox_path, filters: @filter_form.simple_filters_config) %>
+<% end %>
+
+<%# now %>
+<% Inbox::BUCKETS.each do |bucket| %>
+  <% list.with_filter(label: t("inbox.buckets.#{bucket}"),
+                      param: :bucket, value: bucket,
+                      count: @bucket_counts[bucket]) %>
+<% end %>
+```
+
+The FilterForm behind it goes too, if it existed only for this: a pill is a link,
+so the action reads a plain query param (`params[:bucket]`) and the component
+builds the URLs. `with_list(filter_mode: :multi)` gives the other semantics —
+independent toggles over a multi-valued param like `"q[status_in]"`, each pill
+adding or removing its own value.
+
+The reason for the change is worth knowing before you reach for SimpleFilters
+somewhere else: it is built to render in the DataTable's toolbar, and in a master
+column of ~420px its row of controls overflowed. The band now wraps.
+
+Full recipe: [master-detail.md](master-detail.md#filtering-the-list).
+
 ## Adoption notes (additive — not part of the five)
 
 Everything below is opt-in housekeeping: nothing renders differently until you act.

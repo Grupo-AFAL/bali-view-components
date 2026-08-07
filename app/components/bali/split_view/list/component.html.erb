@@ -12,9 +12,11 @@
       </div>
     <% end %>
 
-    <% if filters? %>
+    <% if filters.any? %>
       <div class="split-view-list-filters" data-testid="list-filters">
-        <%= filters %>
+        <% filters.each do |filter| %>
+          <%= filter %>
+        <% end %>
       </div>
     <% end %>
 

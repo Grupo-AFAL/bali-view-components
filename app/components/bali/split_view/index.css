@@ -81,13 +81,40 @@
   @apply px-4;
 }
 
-/* The filtering band. Sits between the header and the scroll area — outside the
-   part that moves, inside the card — and carries the separator so the controls
-   read as a band rather than as loose markup above the rows. Whatever the host
-   puts in it (SimpleFilters, a FilterForm) brings its own controls; this only
-   places them. */
+/* ── The filter band ──────────────────────────────────────────────────────
+   `flex-wrap` is the fix for the bug that produced this design: the band used
+   to host a filter form whose controls laid out in a row, and a master column
+   is ~420px wide, so they ran off the edge. Pills wrap onto a second line
+   instead — which is what the inbox this was generalised from does, and the
+   reason it never had the problem.
+
+   Everything below is a state or a default a state overrides, so all of it has
+   to live in this sheet rather than as utilities on the template: a utility
+   would beat `[aria-current]` from the utilities layer and the active pill
+   would look like an inactive one. */
 .split-view-list-filters {
-  @apply px-4 py-3 border-b border-b-base-200;
+  @apply flex flex-wrap gap-2 px-4 py-3 border-b border-b-base-200;
+}
+
+.split-view-filter {
+  @apply px-2.5 py-1 rounded text-xs font-medium transition-colors
+         bg-base-200 text-base-content/70;
+}
+
+.split-view-filter:hover {
+  @apply bg-base-300;
+}
+
+/* `data-active` and not `[aria-current]`: in `filter_mode: :multi` several pills
+   are active at once, and `aria-current` cannot mean "all of these" — so only
+   :single emits it. Hanging the look off the data attribute keeps the two pills
+   identical on screen while their semantics differ, which is the point. */
+.split-view-filter[data-active="true"] {
+  @apply bg-primary text-primary-content;
+}
+
+.split-view-filter-count {
+  @apply opacity-70 ml-1;
 }
 
 .split-view-sentinel {

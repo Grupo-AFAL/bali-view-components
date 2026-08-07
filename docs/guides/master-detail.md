@@ -218,72 +218,131 @@ running out, which is how the end of the list is detected.
 ## Filtering the list
 
 Tabs, buckets and filter chips belong to the listing, so `with_list` has a place
-for them: `with_filters` renders a band between the header and the rows —
-**outside** the scroll area, so the controls stay put while the rows move under
+for them: `with_filter` adds a pill to a band between the header and the rows —
+**outside** the scroll area, so the pills stay put while the rows move under
 them, and **inside** the card, so they read as part of the listing.
 
-That position is all the slot provides. **Bali does not grow a second filtering
-system for it**: put the one it already has in the band.
+**Every pill is a link, and the component builds the URL.** There is no form
+around the band, no submit button and no clear button, because a filter is a URL:
 
 ```erb
 <% split.with_list(header: t("inbox.title"), count: @pagy.count,
                    selected: params[:selected], pagy: @pagy) do |list| %>
-  <% list.with_filters do %>
-    <%= render Bali::DataTable::SimpleFilters::Component.new(
-      url: inbox_path,
-      filters: @filter_form.simple_filters_config,
-      show_clear: true
-    ) %>
+  <% Inbox::BUCKETS.each do |bucket| %>
+    <% list.with_filter(label: t("inbox.buckets.#{bucket}"),
+                        param: :bucket, value: bucket,
+                        count: @bucket_counts[bucket]) %>
   <% end %>
   <%# … items … %>
 <% end %>
 ```
 
 ```ruby
-@filter_form = Bali::FilterForm.new(
-  Inbox::Item.all, params,
-  simple_filters: [
-    { attribute: :bucket, collection: bucket_options, label: t("inbox.bucket"),
-      type: :radio_group, auto_submit: true }
-  ]
-)
-@pagy, @items = pagy(@filter_form.result, limit: 20)
+def show
+  @bucket = params[:bucket].presence_in(Inbox::BUCKETS)
+  @pagy, @items = pagy(filter(current_user.inbox_items, @bucket), limit: 20)
+end
 ```
 
-`type: :radio_group` with `auto_submit: true` is **the pill that filters on
-click** — one active value, submitted the moment it changes, which is the bucket
-strip a master-detail listing usually wants. daisyUI styles the radio itself as
-the pill and takes its text from `aria-label`, so there is no `<label>` element:
-the thing you click is the `input`.
+That controller is the whole server side. No FilterForm, no Ransack, no form
+object — the filter is a query param you read.
 
-**Counts on the pills are yours.** `"Aprobaciones (12)"` goes in the collection's
-label. SimpleFilters does not count, and teaching it to would be the second
-filtering system this is avoiding.
+**Options on `with_filter`**
+
+| | |
+|---|---|
+| `label` | **Required.** The pill's text. |
+| `param` | The query param this pill filters by. `:bucket`, or a nested `"q[status_in]"`. |
+| `value` | The value it stands for. |
+| `count` | Optional number after the label. `0` renders — "Revisiones 0" is information. |
+| `href` | Escape hatch: a URL this cannot express. Wins over the built one. |
+| `active` | Escape hatch: a "current" this cannot infer. Wins over the derived one. |
+
+Either `param:` or `href:` is required; a pill with neither raises rather than
+linking nowhere.
+
+### Two modes
+
+`with_list(filter_mode:)` decides what clicking a pill means. Both are one
+active-value semantics away from each other, and neither needs a line of JavaScript.
+
+**`:single` (default)** — a bucket strip. One value at a time; clicking another
+pill replaces it, and clicking the active one drops the param. That last part is
+what replaces a Clear button.
+
+**`:multi`** — independent toggles over a multi-valued param. Each pill adds or
+removes **its** value and leaves the others alone:
+
+```erb
+<% split.with_list(filter_mode: :multi, ...) do |list| %>
+  <% Movie::GENRES.each do |genre| %>
+    <% list.with_filter(label: genre, param: "q[genre_in]", value: genre) %>
+  <% end %>
+<% end %>
+```
+
+```ruby
+@genres = Array(params.dig(:q, :genre_in)) & Movie::GENRES
+```
+
+### What the URLs keep, and what they drop
+
+Every other param in the request survives a pill click — a selection, a scope, a
+sort. **`page` does not**, on purpose: filtering starts the listing over, and
+carrying page 4 into a filter with two pages of results is a blank screen.
+
+Removing the last value of a nested param prunes the empty parent, so turning the
+last genre off gives you `/movies`, not `/movies?q=`.
 
 ### What filtering does to everything else
 
-Nothing, and that is the design. A filter submit is an **ordinary full-page GET**:
+Nothing, and that is the design. A pill click is an **ordinary full-page GET**:
 
 - **The infinite scroll resets for free.** The server renders page one; there is
   no reset to perform and no state in the browser to clear.
 - **The filter travels into the pages the sentinel fetches**, because the next
-  URL is derived from the request the server answered and Pagy keeps its params.
-  Nothing in the controller knows what a filter is. Measured in
-  `cypress/e2e/split-view-list.cy.js`, not assumed.
+  URL is derived from the request the server answered. Nothing in the controller
+  knows what a filter is. Measured in `cypress/e2e/split-view-list.cy.js`.
 - **Back still works**, because the highlight is re-derived from the URL and
-  matches on the params a row's href actually carries, ignoring the filter params
-  it does not.
+  matches on the params a row's href actually carries, ignoring the filter ones.
 
-**The submit button stays even when every filter auto-submits, and should.**
-Without JavaScript `auto_submit` does nothing, so the button is how a reader
-without it applies the filter — the same progressive enhancement as the
-pagination controls.
+**Selection and filters are independent.** A row's href carries the filters, so
+the selection deep-links back into the filtered listing. Filtering does not clear
+the selection; if the selected record is filtered out, its detail stays and no row
+is highlighted — the same state as a deep link to a record on a later page.
 
-**Selection and filters are independent.** A row's href carries the filters (see
-[the row](#when-list-does-not-fit)), so the selection deep-links back into the
-filtered listing. Filtering does not clear the selection; if the selected record
-is filtered out, its detail stays and no row is highlighted — the same state as a
-deep link to a record on a later page.
+### How the active state reaches a screen reader
+
+A toggle that is a link cannot say so in ARIA. Browsers **drop `aria-pressed` on
+`role=link`** — the reason `Bali::ViewSwitch` stopped emitting it — so an
+attribute there announces nothing at all. What the pills do instead:
+
+- **`:single`** marks the active pill `aria-current="true"`: a global attribute,
+  valid on any role, meaning "the current item of this set". There is exactly one,
+  which is what `aria-current` is for.
+- **`:multi`** does not use it. Several pills are active at once, and
+  `aria-current` on all of them says "these are all the current one", which is not
+  a sentence.
+- **Both modes** put an `sr-only` note inside the active pill saying it is on and
+  that clicking removes it. That is the part a sighted reader gets from the colour
+  and everyone else got nothing from — and it doubles as the link's purpose, which
+  is what a screen reader most needs from a link whose visible text is one word.
+
+The styling hangs off `data-active`, not off either ARIA attribute, so the two
+modes look identical while their semantics differ.
+
+### One group, and why it wraps
+
+The band is one set of pills. It is not a filter panel: several groups, ranges and
+free-text search are a different screen, and a master column ~420px wide is the
+wrong place for them. A listing that needs that much filtering wants it above the
+split view, or wants the `master` slot.
+
+The band is `flex-wrap`, so pills spill onto a second line instead of running off
+the edge — which is the bug that produced this design. The band it replaced held a
+filter form whose controls laid out in a row, and in a 420px column they
+overflowed. Eight pills in a 418px band wrap onto four lines with nothing
+overflowing; measured, and pinned in the Cypress spec.
 
 ---
 
