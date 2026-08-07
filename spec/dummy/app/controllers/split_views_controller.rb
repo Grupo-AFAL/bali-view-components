@@ -10,11 +10,12 @@
 # action one page further on. There is nothing here for it: no `respond_to`, no
 # format branch, no endpoint of its own. That is the point of fetch-and-extract.
 #
-# Filtering is a plain `?status=` in the query string, read straight off params.
-# No FilterForm, no Ransack, no form object — the filter pills are links, so a
-# filter is just a URL. Nothing here resets the infinite scroll either: a pill
-# click is a full-page navigation, so the server renders page one and the
-# sentinel picks up a next-page URL that already carries the filter.
+# Filtering is query params read straight off `params`. No FilterForm, no
+# Ransack, no form object — the pills are links, so a filter is a URL, and the
+# component builds those URLs itself from the current request. Nothing here
+# resets the infinite scroll either: a pill click is a full-page navigation, so
+# the server renders page one and the sentinel picks up a next-page URL that
+# already carries the filter.
 #
 # `@selected` is looked up against the whole table and not the current page, so a
 # deep link to a record on page 4 renders its detail immediately. Its row is not
@@ -23,19 +24,31 @@ class SplitViewsController < ApplicationController
   PER_PAGE = 5
 
   def show
-    @status = params[:status].presence_in(Movie.statuses.keys)
-    scope = @status ? Movie.where(status: @status) : Movie.all
+    # A real screen picks one semantics and stays there. This page takes it from
+    # a param so the reference can show both: `:single` is the bucket strip
+    # (status, one value at a time) and `:multi` the independent toggles (genre,
+    # several at once over `q[genre_in][]`).
+    @filter_mode = params[:filter_mode] == "multi" ? :multi : :single
 
-    @counts = Movie.group(:status).count
-    @pagy, @movies = pagy(scope.includes(:studio).order(:name), limit: PER_PAGE)
+    @pagy, @movies = pagy(filtered.includes(:studio).order(:name), limit: PER_PAGE)
     @selected = Movie.find_by(id: params[:selected])
   end
 
   private
 
-  # The href a pill points at. The active one drops the param, so clicking it
-  # again clears the filter — which is what replaces a Clear button.
-  helper_method def split_view_filter_path(status)
-    split_view_path(status: (@status == status ? nil : status))
+  def filtered
+    @filter_mode == :multi ? by_genres : by_status
+  end
+
+  def by_status
+    @status = params[:status].presence_in(Movie.statuses.keys)
+    @counts = Movie.group(:status).count
+    @status ? Movie.where(status: @status) : Movie.all
+  end
+
+  def by_genres
+    @genres = Array(params.dig(:q, :genre_in)).select { |g| g.in?(Movie::GENRES) }
+    @counts = Movie.group(:genre).count
+    @genres.any? ? Movie.where(genre: @genres) : Movie.all
   end
 end

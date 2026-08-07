@@ -39,6 +39,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wrap onto four lines, none of them crossing the band's right edge, with neither the band nor the
   page scrolling sideways.
 
+  **Two semantics, and the component builds the URLs.** `with_list(filter_mode:)` picks between
+  `:single` (default — a bucket strip: one value active, clicking another replaces it, clicking
+  the active one drops the param) and `:multi` (independent toggles over a multi-valued param like
+  `"q[status_in]"`, each pill adding or removing **its** value and leaving the rest alone). Since
+  the two disagree about what a click means, the pill is declared rather than linked:
+  `with_filter(label:, param:, value:, count:)`, and the href comes from the current request.
+  `href:`/`active:` remain as escapes.
+
+  Every other param survives a pill click — a selection, a scope, a sort — but **`page` does not**:
+  filtering starts the listing over, and carrying page 4 into a filter with two pages of results is
+  a blank screen. Removing the last value of a nested param prunes the empty parent, so the last
+  genre turning off gives `/movies` and not `/movies?q=`.
+
+  **The active state without `aria-pressed`.** Browsers drop it on `role=link` — the reason
+  `ViewSwitch` stopped emitting it — so it would announce nothing. `:single` marks its one active
+  pill `aria-current="true"`, which is exactly what that attribute is for. `:multi` cannot:
+  several pills are current at once and `aria-current` on all of them says "these are all the
+  current one". Both modes put an `sr-only` note in the active pill saying it is on and that
+  clicking removes it — the part a sighted reader gets from the colour and everyone else got
+  nothing from, and which doubles as the link's purpose. The styling hangs off `data-active`, so
+  the two modes look identical while their semantics differ.
+
 ## [v3.1.0.beta.8] - 2026-08-07
 
 ### Removed

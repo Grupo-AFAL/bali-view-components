@@ -655,3 +655,5 @@ es:
       end_of_list: "No hay más resultados"
       load_error: "No se pudieron cargar más resultados."
       retry: "Reintentar"
+
+      filter_active: "activo, quitar filtro"

@@ -1,5 +1,12 @@
 <%= link_to(href, **link_attributes) do %>
   <%= label %>
+  <%# The state, as text. In :multi it is the only thing that carries it — several
+      pills are active at once and `aria-current` cannot mean "all of these" — and
+      in both modes it says what the click will do, which is what a screen reader
+      most needs from a link whose visible text is one word. %>
+  <% if active? %>
+    <span class="sr-only"><%= t("bali_view.split_view.filter_active") %></span>
+  <% end %>
   <% if count.present? %>
     <span class="<%= COUNT_CLASSES %>"><%= count %></span>
   <% end %>

@@ -181,19 +181,18 @@ changes above are about v3.0, this is about a beta.
 <% end %>
 
 <%# now %>
-<% list.with_filter(label: "Todas", href: inbox_path, active: @bucket.nil?) %>
 <% Inbox::BUCKETS.each do |bucket| %>
   <% list.with_filter(label: t("inbox.buckets.#{bucket}"),
-                      count: @bucket_counts[bucket],
-                      href: inbox_path(bucket: (@bucket == bucket ? nil : bucket)),
-                      active: @bucket == bucket) %>
+                      param: :bucket, value: bucket,
+                      count: @bucket_counts[bucket]) %>
 <% end %>
 ```
 
 The FilterForm behind it goes too, if it existed only for this: a pill is a link,
-so the action reads a plain query param. `active:` is yours to compute, and
-pointing the active pill's `href` at the listing without its param is what
-replaces the Clear button.
+so the action reads a plain query param (`params[:bucket]`) and the component
+builds the URLs. `with_list(filter_mode: :multi)` gives the other semantics —
+independent toggles over a multi-valued param like `"q[status_in]"`, each pill
+adding or removing its own value.
 
 The reason for the change is worth knowing before you reach for SimpleFilters
 somewhere else: it is built to render in the DataTable's toolbar, and in a master

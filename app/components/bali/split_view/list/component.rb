@@ -69,7 +69,7 @@ module Bali
         # "all" pill pointing at the bare listing. Both are one ternary in the
         # caller, which is where the meaning of a param lives.
         renders_many :filters, lambda { |**options|
-          Bali::SplitView::List::Filter::Component.new(**options)
+          Bali::SplitView::List::Filter::Component.new(mode: @filter_mode, **options)
         }
 
         attr_reader :header, :count, :pagy
@@ -84,9 +84,14 @@ module Bali
         # infinite_scroll - false leaves the pagination controls alone and mounts no
         #             observer, for a listing short enough that paging is a click.
         # max_height - value for `--bali-split-master-max-h` on the scroll area.
+        # filter_mode - `:single` (default) for a bucket strip where one value is
+        #             active at a time, `:multi` for pills that toggle independently
+        #             over a multi-valued param. It only decides what a pill's URL
+        #             does and how its state is announced; see
+        #             Bali::SplitView::List::Filter::Component.
         def initialize(frame_id: nil, header: nil, count: nil, selected: nil, pagy: nil,
                        next_url: nil, infinite_scroll: true, item_name: nil, max_height: nil,
-                       **options)
+                       filter_mode: :single, **options)
           @frame_id = frame_id
           @header = header
           @count = count
@@ -96,6 +101,7 @@ module Bali
           @infinite_scroll = infinite_scroll
           @item_name = item_name
           @max_height = max_height
+          @filter_mode = filter_mode
           @options = options
         end
 

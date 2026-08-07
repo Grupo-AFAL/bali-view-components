@@ -674,3 +674,5 @@ en:
       end_of_list: "No more results"
       load_error: "Could not load more results."
       retry: "Retry"
+
+      filter_active: "active, click to remove"

@@ -105,7 +105,11 @@
   @apply bg-base-300;
 }
 
-.split-view-filter[aria-current] {
+/* `data-active` and not `[aria-current]`: in `filter_mode: :multi` several pills
+   are active at once, and `aria-current` cannot mean "all of these" — so only
+   :single emits it. Hanging the look off the data attribute keeps the two pills
+   identical on screen while their semantics differ, which is the point. */
+.split-view-filter[data-active="true"] {
   @apply bg-primary text-primary-content;
 }
 

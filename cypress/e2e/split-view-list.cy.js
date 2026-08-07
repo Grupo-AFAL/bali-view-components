@@ -207,6 +207,7 @@ describe('SplitView structured list', () => {
       rows().should('have.length', 5)
       cy.get('[data-testid="list-count"]').should('have.text', '17')
       pill('Done').should('have.attr', 'aria-current', 'true')
+      pill('Done').should('have.attr', 'data-active', 'true')
     })
 
     // What replaces a Clear button: the active pill points at the URL without
@@ -220,6 +221,7 @@ describe('SplitView structured list', () => {
       cy.location('search').should('eq', '')
       cy.get('[data-testid="list-count"]').should('have.text', '20')
       cy.get('.split-view-filter[aria-current]').should('not.exist')
+      cy.get('.split-view-filter[data-active="true"]').should('not.exist')
     })
 
     // The sentinel fetches the URL the server handed it, so the filter travels
@@ -241,6 +243,51 @@ describe('SplitView structured list', () => {
       scrollToBottom()
       rows().should('have.length', 17)
       cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
+    })
+
+    // Multi mode: several pills on at once, each one removing only its own value.
+    // Against the dummy page, which renders `filter_mode: :multi` over a
+    // multi-valued param when asked for it.
+    context('multi mode', () => {
+      const multi = query => app(`/split-view?filter_mode=multi${query}`)
+
+      it('turns pills on independently and keeps the others', () => {
+        cy.visit(multi(''))
+        cy.get('.split-view-filter[data-active="true"]').should('not.exist')
+
+        pill('Action').click()
+        cy.get('.split-view-filter[data-active="true"]').should('have.length', 1)
+
+        pill('Comedy').click()
+        // Both on — which is the whole difference from :single, where the second
+        // click would have replaced the first.
+        cy.get('.split-view-filter[data-active="true"]').should('have.length', 2)
+        pill('Action').should('have.attr', 'data-active', 'true')
+        pill('Comedy').should('have.attr', 'data-active', 'true')
+      })
+
+      it('removes only its own value when an active pill is clicked', () => {
+        cy.visit(multi('&q%5Bgenre_in%5D%5B%5D=Action&q%5Bgenre_in%5D%5B%5D=Comedy'))
+        cy.get('.split-view-filter[data-active="true"]').should('have.length', 2)
+
+        pill('Action').click()
+        cy.get('.split-view-filter[data-active="true"]').should('have.length', 1)
+        pill('Comedy').should('have.attr', 'data-active', 'true')
+        cy.location('search').should('contain', 'Comedy')
+        cy.location('search').should('not.contain', 'Action')
+      })
+
+      // Several are current at once, and `aria-current` cannot mean "all of
+      // these" — so the state is text, and `aria-pressed` is out because
+      // browsers drop it on a link.
+      it('announces the state in text rather than in ARIA', () => {
+        cy.visit(multi('&q%5Bgenre_in%5D%5B%5D=Action'))
+
+        cy.get('.split-view-filter[aria-current]').should('not.exist')
+        cy.get('.split-view-filter[aria-pressed]').should('not.exist')
+        pill('Action').find('.sr-only').should('exist')
+        pill('Comedy').find('.sr-only').should('not.exist')
+      })
     })
 
     it('keeps selecting a row while a filter is on', () => {

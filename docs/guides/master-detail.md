@@ -222,20 +222,16 @@ for them: `with_filter` adds a pill to a band between the header and the rows �
 **outside** the scroll area, so the pills stay put while the rows move under
 them, and **inside** the card, so they read as part of the listing.
 
-**Every pill is a link.** There is no form around the band, no submit button and
-no clear button, because a filter is a URL:
+**Every pill is a link, and the component builds the URL.** There is no form
+around the band, no submit button and no clear button, because a filter is a URL:
 
 ```erb
 <% split.with_list(header: t("inbox.title"), count: @pagy.count,
                    selected: params[:selected], pagy: @pagy) do |list| %>
-  <% list.with_filter(label: t("inbox.buckets.all"),
-                      href: inbox_path,
-                      active: @bucket.nil?) %>
   <% Inbox::BUCKETS.each do |bucket| %>
     <% list.with_filter(label: t("inbox.buckets.#{bucket}"),
-                        count: @bucket_counts[bucket],
-                        href: inbox_path(bucket: (@bucket == bucket ? nil : bucket)),
-                        active: @bucket == bucket) %>
+                        param: :bucket, value: bucket,
+                        count: @bucket_counts[bucket]) %>
   <% end %>
   <%# … items … %>
 <% end %>
@@ -256,20 +252,47 @@ object — the filter is a query param you read.
 | | |
 |---|---|
 | `label` | **Required.** The pill's text. |
-| `href` | **Required.** Where clicking it goes. |
-| `active` | Whether this is the current filter. Drives `aria-current="true"` and the styling. |
+| `param` | The query param this pill filters by. `:bucket`, or a nested `"q[status_in]"`. |
+| `value` | The value it stands for. |
 | `count` | Optional number after the label. `0` renders — "Revisiones 0" is information. |
+| `href` | Escape hatch: a URL this cannot express. Wins over the built one. |
+| `active` | Escape hatch: a "current" this cannot infer. Wins over the derived one. |
 
-### Clearing is a URL, not a button
+Either `param:` or `href:` is required; a pill with neither raises rather than
+linking nowhere.
 
-The ternary in the `href` above is what replaces a Clear control: the **active**
-pill points at the listing *without* its param, so clicking it again turns the
-filter off. Rendering an explicit "All" pill that points at the bare listing
-works too, and the two compose — the example above does both.
+### Two modes
 
-The component does not build these URLs for you, and that is deliberate: only
-the caller knows what its params mean, whether the filter is exclusive, and
-whether "off" means dropping the param or setting it to something else.
+`with_list(filter_mode:)` decides what clicking a pill means. Both are one
+active-value semantics away from each other, and neither needs a line of JavaScript.
+
+**`:single` (default)** — a bucket strip. One value at a time; clicking another
+pill replaces it, and clicking the active one drops the param. That last part is
+what replaces a Clear button.
+
+**`:multi`** — independent toggles over a multi-valued param. Each pill adds or
+removes **its** value and leaves the others alone:
+
+```erb
+<% split.with_list(filter_mode: :multi, ...) do |list| %>
+  <% Movie::GENRES.each do |genre| %>
+    <% list.with_filter(label: genre, param: "q[genre_in]", value: genre) %>
+  <% end %>
+<% end %>
+```
+
+```ruby
+@genres = Array(params.dig(:q, :genre_in)) & Movie::GENRES
+```
+
+### What the URLs keep, and what they drop
+
+Every other param in the request survives a pill click — a selection, a scope, a
+sort. **`page` does not**, on purpose: filtering starts the listing over, and
+carrying page 4 into a filter with two pages of results is a blank screen.
+
+Removing the last value of a nested param prunes the empty parent, so turning the
+last genre off gives you `/movies`, not `/movies?q=`.
 
 ### What filtering does to everything else
 
@@ -281,24 +304,43 @@ Nothing, and that is the design. A pill click is an **ordinary full-page GET**:
   URL is derived from the request the server answered. Nothing in the controller
   knows what a filter is. Measured in `cypress/e2e/split-view-list.cy.js`.
 - **Back still works**, because the highlight is re-derived from the URL and
-  matches on the params a row's href actually carries, ignoring the filter
-  params it does not.
+  matches on the params a row's href actually carries, ignoring the filter ones.
 
 **Selection and filters are independent.** A row's href carries the filters, so
 the selection deep-links back into the filtered listing. Filtering does not clear
 the selection; if the selected record is filtered out, its detail stays and no row
 is highlighted — the same state as a deep link to a record on a later page.
 
+### How the active state reaches a screen reader
+
+A toggle that is a link cannot say so in ARIA. Browsers **drop `aria-pressed` on
+`role=link`** — the reason `Bali::ViewSwitch` stopped emitting it — so an
+attribute there announces nothing at all. What the pills do instead:
+
+- **`:single`** marks the active pill `aria-current="true"`: a global attribute,
+  valid on any role, meaning "the current item of this set". There is exactly one,
+  which is what `aria-current` is for.
+- **`:multi`** does not use it. Several pills are active at once, and
+  `aria-current` on all of them says "these are all the current one", which is not
+  a sentence.
+- **Both modes** put an `sr-only` note inside the active pill saying it is on and
+  that clicking removes it. That is the part a sighted reader gets from the colour
+  and everyone else got nothing from — and it doubles as the link's purpose, which
+  is what a screen reader most needs from a link whose visible text is one word.
+
+The styling hangs off `data-active`, not off either ARIA attribute, so the two
+modes look identical while their semantics differ.
+
 ### One group, and why it wraps
 
-The band is a single set of pills with one active value. It is not a filter
-panel: several groups, ranges and free-text search are a different screen, and a
-master column ~420px wide is the wrong place for them. A listing that needs that
-much filtering wants it above the split view, or wants the `master` slot.
+The band is one set of pills. It is not a filter panel: several groups, ranges and
+free-text search are a different screen, and a master column ~420px wide is the
+wrong place for them. A listing that needs that much filtering wants it above the
+split view, or wants the `master` slot.
 
 The band is `flex-wrap`, so pills spill onto a second line instead of running off
-the edge — which is the bug that produced this design. The band it replaced held
-a filter form whose controls laid out in a row, and in a 420px column they
+the edge — which is the bug that produced this design. The band it replaced held a
+filter form whose controls laid out in a row, and in a 420px column they
 overflowed. Eight pills in a 418px band wrap onto four lines with nothing
 overflowing; measured, and pinned in the Cypress spec.
 

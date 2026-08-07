@@ -175,38 +175,46 @@ detail is an expected outcome on that screen or a defect.
 the scroll area so the pills stay put while the rows move under them, **inside** the
 card so they read as part of the listing.
 
-**Every pill is a link.** No form, no submit button, no clear button — a filter is
-a URL:
+**Every pill is a link, and the component builds the URL** from the current request:
 
 ```erb
-<%% list.with_filter(label: "Todas", href: inbox_path, active: @bucket.nil?) %>
 <%% Inbox::BUCKETS.each do |bucket| %>
   <%% list.with_filter(label: t("inbox.buckets.#{bucket}"),
-                      count: @bucket_counts[bucket],
-                      href: inbox_path(bucket: (@bucket == bucket ? nil : bucket)),
-                      active: @bucket == bucket) %>
+                      param: :bucket, value: bucket,
+                      count: @bucket_counts[bucket]) %>
 <%% end %>
 ```
 
-`label:` and `href:` are required; `active:` drives `aria-current="true"` and the
-styling, `count:` renders after the label (`0` included — "Revisiones 0" is
-information).
+No form, no submit button, no clear button — a filter is a query param the action
+reads (`params[:bucket]`). `label:` is required, plus either `param:`/`value:` or an
+explicit `href:`; `count:` renders after the label (`0` included).
 
-**Clearing is a URL, not a button.** The ternary above points the *active* pill at
-the listing without its param, so clicking it again turns the filter off. An
-explicit "All" pill works too, and the two compose.
+**Two modes**, picked with `with_list(filter_mode:)`:
+
+- `:single` (default) — a bucket strip. One value at a time; clicking another pill
+  replaces it, clicking the active one drops the param. That is what replaces Clear.
+- `:multi` — independent toggles over a multi-valued param (`"q[status_in]"`). Each
+  pill adds or removes **its** value and leaves the others alone.
+
+Every other param survives a click. **`page` does not**: filtering starts the listing
+over, and page 4 of an unfiltered list is nowhere in a filtered one.
 
 **Filtering does nothing to the rest, and that is the design.** A pill click is an
 ordinary full-page GET: the server renders page one so the infinite scroll resets,
 and the filter travels into the pages the sentinel fetches because the next URL comes
 from the request the server answered.
 
-**One group, and it wraps.** The band is a single set of pills with one active value
-— not a filter panel. Several groups, ranges and free-text search want a different
-screen: a master column is ~420px wide, and the band this replaced held a form whose
-controls ran off that edge. Pills wrap onto a second line instead.
+**The state without `aria-pressed`**, which browsers drop on `role=link`: `:single`
+marks the one active pill `aria-current="true"`; `:multi` cannot, since several are
+current at once; and both put an `sr-only` note in the active pill saying clicking
+removes it. The look hangs off `data-active`, so the modes look identical while the
+semantics differ.
 
-## What this is not## What this is not
+**One group, and it wraps.** The band is a single set of pills — not a filter panel.
+A master column is ~420px wide, and the band this replaced held a form whose controls
+ran off that edge.
+
+## What this is not## What this is not## What this is not
 
 - **Not a list component** — the rows are yours.
 - **Not a filter or pagination host** — those go in `master` as content.

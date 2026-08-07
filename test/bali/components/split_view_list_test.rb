@@ -144,6 +144,15 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     end
   end
 
+  # Renders one pill at `url` and hands back its `<a>`, which is what almost every
+  # assertion below is about.
+  def pill_at(url, mode: :single, **filter)
+    with_request_url(url) do
+      render_with_filters({ filter_mode: mode }, filters: [ { label: "P" }.merge(filter) ])
+    end
+    page.find("a.split-view-filter")
+  end
+
   def test_a_pill_is_a_link_to_its_href
     render_with_filters
     assert_selector('.split-view-list-filters a.split-view-filter[href="/inbox"]', text: "Todas")
@@ -163,31 +172,155 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector('[data-testid="list-filters"]')
   end
 
-  def test_the_active_pill_is_marked_current_and_no_other
-    render_with_filters(
-      {},
-      filters: [
-        { label: "Todas", href: "/inbox" },
-        { label: "Aprobaciones", href: "/inbox?bucket=aprobaciones", active: true },
-        { label: "Revisiones", href: "/inbox?bucket=revisiones" }
-      ]
-    )
+  def test_a_pill_needs_either_a_param_or_an_href
+    error = assert_raises(ArgumentError) do
+      render_with_filters({}, filters: [ { label: "Broken" } ])
+    end
 
-    assert_selector('.split-view-filter[aria-current="true"]', count: 1)
-    assert_selector('.split-view-filter[aria-current="true"]', text: "Aprobaciones")
+    assert_match(/needs either `param:`/, error.message)
   end
 
-  def test_nothing_is_current_when_no_pill_is_active
-    render_with_filters
+  # --- the URLs the component builds: single mode -------------------------------------------
+
+  def test_single_an_inactive_pill_sets_the_param
+    assert_equal "/split-view?status=done",
+      pill_at("/split-view", param: :status, value: "done")["href"]
+  end
+
+  # What replaces a Clear button.
+  def test_single_the_active_pill_drops_the_param
+    assert_equal "/split-view", pill_at("/split-view?status=done", param: :status, value: "done")["href"]
+  end
+
+  def test_single_clicking_another_pill_replaces_the_value
+    assert_equal "/split-view?status=draft",
+      pill_at("/split-view?status=done", param: :status, value: "draft")["href"]
+  end
+
+  def test_single_marks_the_active_pill
+    active = pill_at("/split-view?status=done", param: :status, value: "done")
+    assert_equal "true", active["data-active"]
+    assert_equal "true", active["aria-current"]
+  end
+
+  def test_single_leaves_an_inactive_pill_unmarked
+    inactive = pill_at("/split-view", param: :status, value: "done")
+    assert_equal "false", inactive["data-active"]
+    assert_nil inactive["aria-current"]
+  end
+
+  # --- the URLs the component builds: multi mode --------------------------------------------
+
+  # The case the other multi tests missed: nothing filtered yet, so the param does
+  # not exist and the component has to create the whole nested structure. It got
+  # this wrong — `request.query_parameters` is a HashWithIndifferentAccess, which
+  # converts a Hash on write, so building the nesting through `||=` mutated a copy
+  # that was never stored and the pill linked to an unfiltered listing.
+  def test_multi_creates_the_param_when_nothing_is_filtered_yet
+    assert_equal "/split-view?q%5Bstatus_in%5D%5B%5D=done",
+      pill_at("/split-view", mode: :multi, param: "q[status_in]", value: "done")["href"]
+  end
+
+  def test_single_creates_a_nested_param_when_nothing_is_filtered_yet
+    assert_equal "/split-view?q%5Bstatus%5D=done",
+      pill_at("/split-view", param: "q[status]", value: "done")["href"]
+  end
+
+  def test_multi_an_inactive_pill_adds_its_value_to_the_others
+    href = pill_at("/split-view?q%5Bstatus_in%5D%5B%5D=done", mode: :multi,
+                   param: "q[status_in]", value: "draft")["href"]
+
+    assert_equal "/split-view?q%5Bstatus_in%5D%5B%5D=done&q%5Bstatus_in%5D%5B%5D=draft", href
+  end
+
+  # The point of multi: a pill removes ITS value and leaves the rest alone.
+  def test_multi_an_active_pill_removes_only_its_own_value
+    url = "/split-view?q%5Bstatus_in%5D%5B%5D=done&q%5Bstatus_in%5D%5B%5D=draft"
+
+    assert_equal "/split-view?q%5Bstatus_in%5D%5B%5D=draft",
+      pill_at(url, mode: :multi, param: "q[status_in]", value: "done")["href"]
+    assert_equal "/split-view?q%5Bstatus_in%5D%5B%5D=done",
+      pill_at(url, mode: :multi, param: "q[status_in]", value: "draft")["href"]
+  end
+
+  # Dropping the last value must not leave `?q=` behind.
+  def test_multi_removing_the_last_value_prunes_the_empty_parent
+    assert_equal "/split-view",
+      pill_at("/split-view?q%5Bstatus_in%5D%5B%5D=done", mode: :multi,
+              param: "q[status_in]", value: "done")["href"]
+  end
+
+  def test_multi_marks_every_active_pill_without_aria_current
+    with_request_url("/split-view?q%5Bstatus_in%5D%5B%5D=done&q%5Bstatus_in%5D%5B%5D=draft") do
+      render_with_filters(
+        { filter_mode: :multi },
+        filters: [
+          { label: "Done", param: "q[status_in]", value: "done" },
+          { label: "Draft", param: "q[status_in]", value: "draft" },
+          { label: "Other", param: "q[status_in]", value: "other" }
+        ]
+      )
+    end
+
+    # Several are current at once, which is precisely what `aria-current` cannot say.
+    assert_selector('.split-view-filter[data-active="true"]', count: 2)
     assert_no_selector(".split-view-filter[aria-current]")
   end
 
-  # The href of the active pill is what replaces a Clear button, so the caller's
-  # deactivating URL has to survive intact.
-  def test_the_active_pill_keeps_the_href_it_was_given
-    render_with_filters({}, filters: [ { label: "Done", href: "/inbox", active: true } ])
-    assert_selector('.split-view-filter[aria-current="true"][href="/inbox"]')
+  # --- what a pill's URL keeps and what it throws away --------------------------------------
+
+  # Filtering starts the listing over, and page 4 of an unfiltered list is nowhere
+  # in a filtered one.
+  def test_a_pill_url_drops_the_page
+    assert_equal "/split-view?status=done",
+      pill_at("/split-view?page=4", param: :status, value: "done")["href"]
   end
+
+  def test_a_pill_url_keeps_every_other_param
+    href = pill_at("/split-view?selected=7&scope=team&page=2", param: :status, value: "done")["href"]
+
+    assert_equal "/split-view?selected=7&scope=team&status=done", href
+  end
+
+  # --- the escapes --------------------------------------------------------------------------
+
+  def test_an_explicit_href_wins_over_the_built_one
+    assert_equal "/somewhere/else",
+      pill_at("/split-view?status=done", param: :status, value: "done", href: "/somewhere/else")["href"]
+  end
+
+  def test_an_explicit_active_wins_over_the_inferred_one
+    assert_equal "true", pill_at("/split-view", param: :status, value: "done", active: true)["data-active"]
+    assert_equal "false",
+      pill_at("/split-view?status=done", param: :status, value: "done", active: false)["data-active"]
+  end
+
+  # --- how the state reaches a screen reader ------------------------------------------------
+
+  # `aria-pressed` is out: browsers drop it on role=link, which is why ViewSwitch
+  # stopped emitting it. The state is text instead, and it says what the click does.
+  def test_the_active_pill_says_so_in_text
+    pill_at("/split-view?status=done", param: :status, value: "done")
+
+    assert_selector(".split-view-filter .sr-only",
+      text: I18n.t("bali_view.split_view.filter_active"))
+  end
+
+  def test_an_inactive_pill_has_no_state_text
+    pill_at("/split-view", param: :status, value: "done")
+    assert_no_selector(".split-view-filter .sr-only")
+  end
+
+  def test_no_pill_ever_emits_aria_pressed
+    pill_at("/split-view?status=done", param: :status, value: "done")
+    assert_no_selector(".split-view-filter[aria-pressed]")
+
+    pill_at("/split-view?q%5Bstatus_in%5D%5B%5D=done", mode: :multi,
+            param: "q[status_in]", value: "done")
+    assert_no_selector(".split-view-filter[aria-pressed]")
+  end
+
+  # --- label, count and position ------------------------------------------------------------
 
   def test_the_count_renders_after_the_label
     render_with_filters({}, filters: [ { label: "Aprobaciones", href: "/x", count: 12 } ])

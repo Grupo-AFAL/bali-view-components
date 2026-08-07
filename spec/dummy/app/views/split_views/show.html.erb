@@ -7,19 +7,22 @@
   <% page.with_body do %>
     <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail') do |split| %>
       <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
-                         pagy: @pagy, item_name: 'películas', max_height: '26rem') do |list| %>
-        <%# Las pills son links: un click es una navegación normal, así que el
-            servidor vuelve a pintar la página 1 y el sentinel arranca de una URL
-            que ya trae el filtro. No hay form, ni botón Filter, ni Clear — la
-            pill activa apunta a la URL sin el param, y volver a hacerle click lo
-            quita. %>
-        <% Movie.statuses.each_key do |status| %>
-          <% list.with_filter(
-            label: status.humanize,
-            count: @counts[status].to_i,
-            href: split_view_filter_path(status),
-            active: @status == status
-          ) %>
+                         pagy: @pagy, item_name: 'películas', max_height: '26rem',
+                         filter_mode: @filter_mode) do |list| %>
+        <%# Las pills son links y el componente arma sus URLs: acá solo se declara
+            por qué param filtra cada una. Un click es una navegación normal, así
+            que el servidor vuelve a pintar la página 1 y el sentinel arranca de
+            una URL que ya trae el filtro. No hay form, ni Filter, ni Clear. %>
+        <% if @filter_mode == :multi %>
+          <% Movie::GENRES.first(6).each do |genre| %>
+            <% list.with_filter(label: genre, param: 'q[genre_in]', value: genre,
+                                count: @counts[genre].to_i) %>
+          <% end %>
+        <% else %>
+          <% Movie.statuses.each_key do |status| %>
+            <% list.with_filter(label: status.humanize, param: :status, value: status,
+                                count: @counts[status].to_i) %>
+          <% end %>
         <% end %>
         <% @movies.each do |movie| %>
           <% list.with_item(

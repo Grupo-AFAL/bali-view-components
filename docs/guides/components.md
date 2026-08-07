@@ -663,13 +663,24 @@ sentinel comes into view, appending the rows. No endpoint, no Turbo Stream and
 no partial of its own — and a reader without JavaScript keeps working controls,
 because enhancement removes them rather than summoning them.
 
-**Filtering is links, not a system.** `with_filter(label:, href:, active:, count:)`
+**Filtering is links, not a system.** `with_filter(label:, param:, value:, count:)`
 adds a pill to a band between the header and the rows — outside the scroll area so
 the pills stay put, inside the card so they read as part of the listing. There is
-no form, no submit and no clear button: a filter is a URL. The active pill gets
-`aria-current="true"`, and pointing its `href` at the listing without its param is
-what replaces a Clear control. The band is a single group and wraps, because a
-master column is ~420px wide and a filter panel does not belong in one.
+no form, no submit and no clear button: a filter is a URL, and **the component
+builds it** from the current request. `with_list(filter_mode:)` picks the
+semantics: `:single` (default) is a bucket strip where one value is active and
+clicking the active pill drops the param — what replaces a Clear control — and
+`:multi` toggles each pill independently over a multi-valued param
+(`"q[status_in]"`), adding or removing its own value and leaving the rest alone.
+Every other param survives the click; `page` is dropped, because filtering starts
+the listing over. `href:`/`active:` are the escapes.
+
+State reaches a screen reader without `aria-pressed`, which browsers drop on
+`role=link`: `:single` marks the one active pill `aria-current="true"`, `:multi`
+cannot (several are current at once) and both put an `sr-only` note in the active
+pill saying clicking removes it. The look hangs off `data-active`, so the modes
+look identical while their semantics differ. The band is one group and wraps,
+because a master column is ~420px wide and a filter panel does not belong in one.
 
 A pill click is an ordinary full-page GET, so the infinite scroll resets to page
 one by itself and the filter params travel into the pages the sentinel fetches
