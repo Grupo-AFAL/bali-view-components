@@ -98,7 +98,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   appended rows really are the filtered ones. The submit button stays even when every filter
   auto-submits, and should: without JavaScript `auto_submit` does nothing, so the button is how
   the filter gets applied — the same progressive enhancement as the pagination controls.
-### Added
 
 - **A test that fails when the library asks for a `bali_view.*` string nobody wrote.** `i18n_scope_test.rb` compares the two locale files against each other, so it catches a key translated into one and not the other; it cannot catch a component reaching for a key that was never written down, which renders the humanized key to the visitor and fails nothing. `test/bali/i18n_usage_test.rb` scans every `t(`/`I18n.t(` in `app/components` and `lib/bali`, resolves relative keys against the component's own scope, and requires the result to exist in **both** locales — naming file, line and key when it does not. The filter is by PREFIX, not an allowlist: `default:` on somebody else's key (`number.*`, `activerecord.*`) is depending correctly on another namespace and is left alone, while `default:` on one of ours was hiding a hole. With the guard in place those own-key `default:`s can be deleted — the string going missing now breaks the suite instead of quietly rendering something hardcoded. No debt to pay: it passes as written.
 

@@ -28,7 +28,7 @@ module Admin
         context: filter_context,
         persist_enabled: cookies['bali_persist_admin_movies'] == '1'
       )
-      @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)
+      @pagy, @movies = pagy(@filter_form.result.includes(:studio), limit: 10)
 
       respond_to do |format|
         format.html

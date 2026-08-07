@@ -103,7 +103,7 @@ module Admin
 
       # `.order(:name)` se apendea DESPUÉS del orden de Ransack, así que un clic en un
       # encabezado sigue mandando; esto solo fija el desempate.
-      @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
+      @pagy, @studios = pagy(@filter_form.result.order(:name), limit: 10)
     end
   end
 end
