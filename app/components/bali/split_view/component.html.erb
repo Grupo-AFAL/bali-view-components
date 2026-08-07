@@ -3,7 +3,7 @@
     itself instead of reaching for a helper a host may not have loaded. %>
 <%= tag.div(**container_attributes) do %>
   <div class="split-view-master" data-controller="split-view">
-    <%= master %>
+    <%= list? ? list : master %>
   </div>
 
   <%= tag.turbo_frame(**frame_attributes) do %>

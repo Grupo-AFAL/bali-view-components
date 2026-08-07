@@ -5,14 +5,11 @@ the right. Clicking a row swaps only the right column, so the list keeps its
 scroll position and its highlight — which is the whole reason to build the
 screen this way instead of navigating to a detail page.
 
-`Bali::SplitView::Component` gives you the three parts that are identical in
-every such screen — the responsive grid, the Turbo Frame around the detail, and
-the Stimulus controller that moves the highlight. **Everything else is yours.**
-Tabs, filter chips, pagination and the rows themselves go inside the `master`
-slot in whatever shape the screen needs; no two master-detail screens agree on
-that arrangement, so the component does not try to own it.
+`Bali::SplitView::Component` owns the grid, the Turbo Frame around the detail,
+the Stimulus controller that moves the highlight — **and the listing**. The
+detail pane stays completely yours.
 
-- Live example: `/lookbook/preview/bali/split_view/default`
+- Live example: `/lookbook/preview/bali/split_view/structured_list`
 - Working reference in the dummy app: `spec/dummy/app/controllers/split_views_controller.rb`
   and `spec/dummy/app/views/split_views/` — the whole Rails side in one action.
 
@@ -22,8 +19,19 @@ that arrangement, so the component does not try to own it.
 
 ```erb
 <%= render Bali::SplitView::Component.new(frame_id: "inbox-detail") do |split| %>
-  <% split.with_master do %>
-    <%= render "master_pane", items: @items, selected: @selected %>
+  <% split.with_list(header: t("inbox.title"), count: @pagy.count,
+                     selected: params[:selected], pagy: @pagy) do |list| %>
+    <% @items.each do |item| %>
+      <% list.with_item(id: item.id,
+                        href: inbox_path(selected: item.id, **@filters),
+                        title: item.title,
+                        subtitle: item.subtitle,
+                        icon: item.icon,
+                        meta: l(item.due_on, format: :short),
+                        meta_color: (:error if item.overdue?)) do |row| %>
+        <% row.with_tag(text: item.kind_label, color: :info) %>
+      <% end %>
+    <% end %>
   <% end %>
 
   <% if @selected %>
@@ -42,7 +50,12 @@ that arrangement, so the component does not try to own it.
 <% end %>
 ```
 
-**Options**
+**Nothing above says how a row is wired.** `data-turbo-frame`,
+`data-split-view-target`, `data-action` and `aria-current` are written by the
+component — they were the same four attributes in every host template, and one
+of them missing meant a row that silently reloaded the whole page.
+
+**Options on the SplitView**
 
 - `frame_id` (required) — id of the detail Turbo Frame. Rows point at it with
   `data-turbo-frame`, so it has to be unique in the page.
@@ -53,10 +66,11 @@ that arrangement, so the component does not try to own it.
   pushes its URL into the history and the selection is deep-linkable
   (default: `true`).
 
-**Slots**
+**Slots on the SplitView**
 
-- `master` — the left column, free-form. Wrapped in the `split-view` controller
-  element, so rows inside it can be its targets.
+- `list` — the structured listing. **The way to build a master.**
+- `master` — the free-form left column. The escape hatch, unchanged and still
+  supported; see [When `list` does not fit](#when-list-does-not-fit).
 - `detail` — what the server renders for the current selection.
 - `empty_detail` — shown inside the frame when there is no selection. Ignored
   when `detail` is present.
@@ -64,6 +78,71 @@ that arrangement, so the component does not try to own it.
 Below `lg` the two panes stack, master on top. That needs no JavaScript and no
 option; see [Full-page detail on a phone](#full-page-detail-on-a-phone) if you
 want the other mobile behaviour.
+
+---
+
+## The list
+
+**Options on `with_list`**
+
+- `header` / `count` — the listing's own title and counter.
+- `selected` — the id of the selected record. Compared against each item's `id:`,
+  so the "is this the current row?" expression is written once instead of per row.
+- `pagy` — a Pagy object. Drives both the no-JS pagination controls and the page
+  infinite scroll fetches next.
+- `next_url` — an explicit next page, for a listing that pages without Pagy. Wins
+  over the one derived from `pagy`.
+- `infinite_scroll` — `false` keeps the pagination controls and mounts no
+  observer, for a listing short enough that paging is a click.
+- `item_name` / `max_height` — passed to the pagination summary, and to
+  `--bali-split-master-max-h` on the scroll area.
+
+`with_empty_state` replaces the rows when there are none — see
+[Two empty states, not one](#two-empty-states-not-one) for why the words are
+yours and not the component's.
+
+**Options on `with_item`**
+
+| | |
+|---|---|
+| `title` | **Required.** The row's line of text. |
+| `href` | **Required.** The URL that selects this row, and the one the selection deep-links to. |
+| `id` | Compared with the list's `selected:`; also the row's DOM id. Without it a row can never be current. |
+| `subtitle` | Second line, truncated. |
+| `icon` | Leading icon. |
+| `meta` | Trailing column — a date, a count. |
+| `meta_color` | `:error`, `:warning`, `:success`, `:primary`. The overdue case both source listings paint red. |
+| `with_tag(text:, color:)` | Any number of badges above the title. |
+| a block | Free content under the subtitle, for whatever the fields do not name. |
+
+### Where these fields come from
+
+The set is the union of the two production listings this was generalised from —
+gobierno-corporativo's inbox and afal-apps' inbox widget — rather than a copy of
+either:
+
+| Element | gc inbox | afal-apps widget | In the API |
+|---|---|---|---|
+| Title | yes | yes | `title:`, required |
+| Subtitle | yes | yes | `subtitle:` |
+| Leading icon | no — tags carry the kind | yes | `icon:`, optional |
+| Tags | two (kind + urgency) | none | `with_tag`, any number |
+| Trailing date | yes, neutral | yes, **red when overdue** | `meta:` + `meta_color:` |
+| Header + count | yes | yes | `header:` + `count:` |
+| Bordered card around it | yes | yes | rendered by the component |
+| Urgency dot | yes | no | the block |
+| Requester avatar | yes | no | the block |
+| Grouping with a per-group count | yes (by urgency) | yes (by kind) | **not yet — see below** |
+
+The two rows disagree about almost everything except the title and the subtitle,
+which is why the rest is optional and why the block exists at all.
+
+**Grouping is deliberately absent.** Both listings group, so unlike in the first
+release the pattern is now triangulable — but grouping and infinite scroll pull
+against each other: an appended page arrives as a flat list of rows, and merging
+it into existing group headers needs the server to say which group each row
+belongs to. That is its own design, and shipping half of it would produce
+listings that break on the second page.
 
 ---
 
@@ -94,30 +173,159 @@ end
 click, so a list whose order depends on `updated_at` will disagree with itself
 after the detail pane writes to a record.
 
-### The row
+### Paging: infinite by default
+
+Give `with_list` a `pagy:` and the listing pages itself. There is no control to
+click and no endpoint to add:
+
+- The list renders **ordinary pagination controls** and a sentinel below the rows.
+- The `split-view-list` controller hides the controls on connect and watches the
+  sentinel with an `IntersectionObserver` rooted on the scroll area.
+- As the sentinel comes into view it fetches **the same index URL, one page
+  further on**, lifts the rows out of the reply and appends them.
+
+That order is the point: the controls are in the markup and enhancement removes
+them, so a reader without JavaScript gets working pagination rather than a
+spinner that never resolves.
+
+**Why fetch-and-extract and not a Turbo Stream.** The next page is rendered by
+the action that already renders the list, so there is nothing to add on the
+server: no `respond_to`, no `page.turbo_stream.append`, no partial extracted for
+the purpose. The rows arrive with their wiring because the component rendered
+them, and any index that can render this list can already answer the request.
+The cost is transferring a whole page and discarding the parts we do not need,
+which for a listing of this size is not worth a second code path.
+
+The next URL is read back out of each fetched page rather than incremented in
+the browser, so the server stays in charge of what "next" means — including
+running out, which is how the end of the list is detected.
+
+**Corners worth knowing:**
+
+- **Deep link to a record on a later page.** The detail renders immediately (your
+  action looks the record up against the whole table, not the current page), but
+  its row is simply not on screen. The highlight appears when infinite scroll
+  reaches its page. For that to work the next URL has to carry the selection —
+  a Pagy-derived one does, since Pagy keeps the request's params.
+- **Back after scrolling.** Turbo caches the page as it was when you left it, so
+  going back keeps the pages you had already appended instead of resetting to
+  page one. Measured, and pinned in `cypress/e2e/split-view-list.cy.js`.
+- **A page that fails to load** leaves the rows untouched and offers a retry that
+  asks for the same page again, rather than skipping it.
+
+---
+
+## Filtering the list
+
+Tabs, buckets and filter chips belong to the listing, so `with_list` has a place
+for them: `with_filters` renders a band between the header and the rows —
+**outside** the scroll area, so the controls stay put while the rows move under
+them, and **inside** the card, so they read as part of the listing.
+
+That position is all the slot provides. **Bali does not grow a second filtering
+system for it**: put the one it already has in the band.
 
 ```erb
-<%= link_to inbox_path(selected: item.id, **@filters),
-      id: dom_id(item, :inbox_row),
-      class: "split-view-row px-4 py-3 border-b border-base-200/70",
-      aria: { current: (item == @selected ? "true" : nil) },
-      data: {
-        turbo_frame: "inbox-detail",
-        split_view_target: "row",
-        action: "click->split-view#select"
-      } do %>
-  <div class="font-medium text-sm truncate"><%= item.title %></div>
-  <div class="text-xs text-base-content/60 truncate"><%= item.subtitle %></div>
+<% split.with_list(header: t("inbox.title"), count: @pagy.count,
+                   selected: params[:selected], pagy: @pagy) do |list| %>
+  <% list.with_filters do %>
+    <%= render Bali::DataTable::SimpleFilters::Component.new(
+      url: inbox_path,
+      filters: @filter_form.simple_filters_config,
+      show_clear: true
+    ) %>
+  <% end %>
+  <%# … items … %>
 <% end %>
 ```
 
-Four things are load-bearing:
+```ruby
+@filter_form = Bali::FilterForm.new(
+  Inbox::Item.all, params,
+  simple_filters: [
+    { attribute: :bucket, collection: bucket_options, label: t("inbox.bucket"),
+      type: :radio_group, auto_submit: true }
+  ]
+)
+@pagy, @items = pagy(@filter_form.result, limit: 20)
+```
+
+`type: :radio_group` with `auto_submit: true` is **the pill that filters on
+click** — one active value, submitted the moment it changes, which is the bucket
+strip a master-detail listing usually wants. daisyUI styles the radio itself as
+the pill and takes its text from `aria-label`, so there is no `<label>` element:
+the thing you click is the `input`.
+
+**Counts on the pills are yours.** `"Aprobaciones (12)"` goes in the collection's
+label. SimpleFilters does not count, and teaching it to would be the second
+filtering system this is avoiding.
+
+### What filtering does to everything else
+
+Nothing, and that is the design. A filter submit is an **ordinary full-page GET**:
+
+- **The infinite scroll resets for free.** The server renders page one; there is
+  no reset to perform and no state in the browser to clear.
+- **The filter travels into the pages the sentinel fetches**, because the next
+  URL is derived from the request the server answered and Pagy keeps its params.
+  Nothing in the controller knows what a filter is. Measured in
+  `cypress/e2e/split-view-list.cy.js`, not assumed.
+- **Back still works**, because the highlight is re-derived from the URL and
+  matches on the params a row's href actually carries, ignoring the filter params
+  it does not.
+
+**The submit button stays even when every filter auto-submits, and should.**
+Without JavaScript `auto_submit` does nothing, so the button is how a reader
+without it applies the filter — the same progressive enhancement as the
+pagination controls.
+
+**Selection and filters are independent.** A row's href carries the filters (see
+[the row](#when-list-does-not-fit)), so the selection deep-links back into the
+filtered listing. Filtering does not clear the selection; if the selected record
+is filtered out, its detail stays and no row is highlighted — the same state as a
+deep link to a record on a later page.
+
+---
+
+## When `list` does not fit
+
+The `master` slot takes any markup at all, and is what a listing the structured
+API cannot express should use — a tree, a calendar, rows with a shape of their
+own. It is the same component either way: the free slot sits inside the same
+controller element, so hand-written rows are its targets too.
+
+The four attributes `with_item` writes for you become yours to write:
+
+```erb
+<% split.with_master do %>
+  <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-0") do %>
+    <%= render "bucket_tabs" %>
+
+    <div class="split-view-scroll">
+      <% @items.each do |item| %>
+        <%= link_to inbox_path(selected: item.id, **@filters),
+              class: "split-view-row px-4 py-3 border-b border-b-base-200/70",
+              aria: { current: (item == @selected ? "true" : nil) },
+              data: {
+                turbo_frame: "inbox-detail",
+                split_view_target: "row",
+                action: "click->split-view#select"
+              } do %>
+          <div class="font-medium text-sm truncate"><%= item.title %></div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%= render Bali::PaginationFooter::Component.new(pagy: @pagy) %>
+  <% end %>
+<% end %>
+```
 
 - **`class: "split-view-row"`** — the look of a row, including its selected
-  state, comes from this class. Add your own padding and separators next to it.
-- **`aria-current` from the server** — this is what paints the selection on the
-  first render and after any full-page navigation (a filter tab, another page
-  of results). The controller only covers the clicks in between.
+  state, comes from this class.
+- **`aria-current` from the server** — what paints the selection on the first
+  render and after any full-page navigation. The controller only covers the
+  clicks in between.
 - **`data-turbo-frame`** — what makes the click swap the frame instead of the
   page.
 - **`data-split-view-target` + `data-action`** — what lets the controller move
@@ -125,19 +333,24 @@ Four things are load-bearing:
 
 **Carry the current filters in the row's href.** The href is the URL the
 selection deep-links to; drop the filters and reloading that URL gives an
-unfiltered list with a mysteriously selected row.
+unfiltered list with a mysteriously selected row. `with_item` does not save you
+from this one — the href is yours in both APIs.
 
 **Do not put `data-turbo-action="advance"` on the row.** The frame already
 carries it, and a link-level one wins over the frame — so it silently defeats
 `advance: false`.
 
+Infinite scroll is not available here: it is the list component that renders the
+sentinel and knows where the rows go.
+
 ---
 
 ## Making the list scroll
 
-`.split-view-scroll` is opt-in and goes around **the part of the master that
-should scroll**, usually the list alone, so tabs above it and pagination below
-it stay put:
+`with_list` scrolls its own rows and takes `max_height:`. The rest of this
+section is for the `master` slot, where `.split-view-scroll` is opt-in and goes
+around **the part of the master that should scroll** — usually the list alone,
+so tabs above it and pagination below it stay put:
 
 ```erb
 <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-0") do %>
@@ -168,7 +381,8 @@ words and different offers. "No results" next to filters the user set is a dead
 end; the useful thing is a way out of them.
 
 `Bali::EmptyState::Component` already has the `cta` slot for exactly this, so
-this is composition, not a component option:
+this is composition, not a component option. In a structured list it goes in
+`list.with_empty_state`; in a `master` slot, wherever the rows would have been:
 
 ```erb
 <% if @items.none? %>
@@ -345,12 +559,16 @@ if the server renders the same selected state.
 
 ## What this is not
 
-- **Not a list component.** The rows are yours. If they all look the same across
-  your app, that is a partial in your app, not an option here.
-- **Not a filter or pagination host.** Those go in `master` as content, because
-  the screens that need them do not agree on where they sit.
+- **Not a row designer.** `with_item` names the fields the two listings it was
+  drawn from agree on. A row that wants a different anatomy uses the block, and
+  one that wants a different *shape* uses the `master` slot — neither is a reason
+  to grow another keyword.
+- **Not a filter host.** Tabs and filter chips are not part of `with_list`; they
+  go above the split view, or in `master` alongside a hand-rolled listing. The
+  screens that need them do not agree on where they sit.
 - **Not a re-render.** Never answer a row click by re-rendering the master — it
   loses the scroll position, which is the one thing this pattern exists to keep.
+  That is also why infinite scroll appends rows instead of replacing the list.
 
 ---
 
@@ -358,4 +576,5 @@ if the server renders the same selected state.
 
 - [Components guide](components.md#splitview) — the API reference.
 - `Bali::EmptyState` — the empty states above.
-- `Bali::PaginationFooter` — pagination inside the master.
+- `Bali::PaginationFooter` — what the list renders for a reader without
+  JavaScript, and what a hand-rolled master should render itself.

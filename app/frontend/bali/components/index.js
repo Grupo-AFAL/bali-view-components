@@ -64,6 +64,7 @@ import { StatusController } from '../../../components/bali/status/index'
 import { QrScannerController } from '../../../components/bali/qr_scanner/index'
 import { ToastContainerController } from '../../../components/bali/toast_container/index'
 import { SplitViewController } from '../../../components/bali/split_view/index'
+import { SplitViewListController } from '../../../components/bali/split_view/list/index'
 
 export {
   AlertController,
@@ -104,6 +105,7 @@ export {
   SideMenuTriggerController,
   SortableListController,
   SplitViewController,
+  SplitViewListController,
   StatusController,
   TabsController,
   TimeagoController,
@@ -198,7 +200,8 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   command: CommandController,
 
   // Master-detail
-  'split-view': SplitViewController
+  'split-view': SplitViewController,
+  'split-view-list': SplitViewListController
 })
 
 /**

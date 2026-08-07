@@ -64,3 +64,48 @@
   @apply bg-primary/5;
   box-shadow: inset 3px 0 0 0 var(--color-primary);
 }
+
+/* ── The structured list ──────────────────────────────────────────────────
+   Padding and the separator live here, not as utilities on the row template,
+   so a host can still change them from a utility class — which is the whole
+   reason component CSS sits in this layer.
+
+   The separator is `border-b-base-200/70` and NOT `border-base-200/70`: the
+   all-sides colour utility would set the left border too, and the selection
+   bar's history (see the row rules above) is exactly that collision. */
+.split-view-item {
+  @apply px-4 py-3 border-b border-b-base-200/70;
+}
+
+.split-view-list-empty {
+  @apply px-4;
+}
+
+/* The filtering band. Sits between the header and the scroll area — outside the
+   part that moves, inside the card — and carries the separator so the controls
+   read as a band rather than as loose markup above the rows. Whatever the host
+   puts in it (SimpleFilters, a FilterForm) brings its own controls; this only
+   places them. */
+.split-view-list-filters {
+  @apply px-4 py-3 border-b border-b-base-200;
+}
+
+.split-view-sentinel {
+  @apply flex items-center justify-center gap-2 px-4 py-6 text-xs text-base-content/60;
+}
+
+.split-view-sentinel-error {
+  @apply flex items-center gap-2 text-error;
+}
+
+/* `hidden` is how the controller switches between loading, end-of-list and
+   error, and how the sentinel stays out of sight until JavaScript connects. It
+   works by `display: none` in the UA stylesheet — the weakest origin there is,
+   so ANY author `display` beats it, including the `@apply flex` two rules up.
+   Measured: the sentinel computed `flex` with the attribute set, so a reader
+   without JavaScript saw a spinner that would never resolve. These two rules
+   are what make the attribute mean what it says. */
+.split-view-sentinel[hidden],
+.split-view-sentinel-error[hidden] {
+  display: none;
+}

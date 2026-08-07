@@ -607,8 +607,16 @@ keeps its scroll position and its highlight.
 
 ```erb
 <%= render Bali::SplitView::Component.new(frame_id: "inbox-detail") do |split| %>
-  <% split.with_master do %>
-    <%= render "master_pane", items: @items, selected: @selected %>
+  <% split.with_list(header: "Inbox", count: @pagy.count,
+                     selected: params[:selected], pagy: @pagy) do |list| %>
+    <% @items.each do |item| %>
+      <% list.with_item(id: item.id, href: inbox_path(selected: item.id),
+                        title: item.title, subtitle: item.subtitle,
+                        icon: item.icon, meta: item.due_label,
+                        meta_color: (:error if item.overdue?)) do |row| %>
+        <% row.with_tag(text: item.kind_label, color: :info) %>
+      <% end %>
+    <% end %>
   <% end %>
 
   <% if @selected %>
@@ -627,38 +635,48 @@ keeps its scroll position and its highlight.
 - `advance` - Emit `data-turbo-action="advance"` on the frame, so a row click pushes its URL into the history and the selection is deep-linkable (default: `true`)
 
 **Slots:**
-- `with_master` - The left column, free-form. Wrapped in the `split-view` controller element so rows inside can be its targets
+- `with_list` - The structured listing, and the way to build a master
+- `with_master` - Free-form left column: the escape hatch for a listing `with_list` does not fit
 - `with_detail` - What the server renders for the current selection
 - `with_empty_detail` - Shown inside the frame when there is no selection; ignored when `detail` is present
 
-**Rows are yours**, and they opt in with four attributes:
+**The list writes the row wiring.** `data-turbo-frame`, `data-split-view-target`,
+`data-action` and `aria-current` come from the component — they were the same
+four attributes in every host template, and one of them missing meant a row that
+silently reloaded the page. Selection is decided once: `with_list(selected:)`
+takes the id of the selected record and each item its own `id:`.
 
-```erb
-<%= link_to inbox_path(selected: item.id),
-      class: "split-view-row px-4 py-3 border-b border-base-200/70",
-      aria: { current: (item == @selected ? "true" : nil) },
-      data: { turbo_frame: "inbox-detail",
-              split_view_target: "row",
-              action: "click->split-view#select" } do %>
-```
+**`with_list` options:** `header`, `count`, `selected`, `pagy`, `next_url`,
+`infinite_scroll` (default `true`), `item_name`, `max_height`. `with_empty_state`
+replaces the rows when there are none, and `with_filters` renders a filtering band
+between the header and the rows.
 
-The server paints `aria-current` on the first render and after every full-page
-navigation; the `split-view` controller only moves it between clicks. The look
-follows from `.split-view-row[aria-current]`, so the selected state cannot fall
-out of a Tailwind build. Do **not** add `data-turbo-action` to the row — the
-frame carries it, and a link-level one wins, silently defeating `advance: false`.
+**`with_item` options:** `title` and `href` are required; `id`, `subtitle`,
+`icon`, `meta`, `meta_color` (`:error`, `:warning`, `:success`, `:primary`) are
+optional, `with_tag(text:, color:)` adds any number of badges, and a block
+renders free content under the subtitle.
 
-`.split-view-scroll` is an opt-in class for whichever part of the master should
-scroll (usually the list alone, so tabs above and pagination below stay put); its
-height is `var(--bali-split-master-max-h, calc(100vh - 20rem))`.
+**Paging is infinite by default.** Given a `pagy:`, the list renders ordinary
+pagination controls plus a sentinel; the `split-view-list` controller hides the
+controls on connect and fetches the same index URL one page further on as the
+sentinel comes into view, appending the rows. No endpoint, no Turbo Stream and
+no partial of its own — and a reader without JavaScript keeps working controls,
+because enhancement removes them rather than summoning them.
+
+**Filtering has a place, not a system.** `with_filters` puts a band between the
+header and the rows — outside the scroll area so the controls stay put, inside the
+card so they read as part of the listing. Put `Bali::DataTable::SimpleFilters` in
+it; a `:radio_group` with `auto_submit: true` is the pill that filters on click.
+Filtering is an ordinary full-page GET, so the infinite scroll resets to page one
+by itself and the filter params travel into the pages the sentinel fetches without
+the controller knowing what a filter is.
 
 Below `lg` the panes stack, master on top, with no extra JavaScript.
 
-**The component is deliberately thin.** Tabs, filter chips, pagination and the
-rows go inside `master` as content — the screens that need them do not agree on
-where they sit. The full pattern, including the Rails wiring, deep-linking, the
-two empty states a filtered list needs, and the full-page-on-a-phone variant,
-lives in the [master-detail guide](master-detail.md).
+The full pattern — the Rails wiring, deep-linking, the two empty states a
+filtered list needs, what happens when the detail request fails, and the
+full-page-on-a-phone variant — lives in the
+[master-detail guide](master-detail.md).
 
 ---
 

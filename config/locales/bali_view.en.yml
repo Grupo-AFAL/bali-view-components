@@ -666,3 +666,11 @@ en:
         pending: "Pending"
         skipped: "Skipped"
         current: "In progress"
+    split_view:
+      # The three states of the infinite-scroll sentinel. They ship translated
+      # because a `default:` in the template is exactly what hid the missing
+      # scope: the fallback rendered, in Spanish, for every host on earth, and
+      # nothing failed. Without one, a missing key says "translation missing".
+      end_of_list: "No more results"
+      load_error: "Could not load more results."
+      retry: "Retry"

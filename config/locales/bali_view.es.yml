@@ -651,3 +651,7 @@ es:
         pending: "Pendiente"
         skipped: "Omitido"
         current: "En curso"
+    split_view:
+      end_of_list: "No hay más resultados"
+      load_error: "No se pudieron cargar más resultados."
+      retry: "Reintentar"

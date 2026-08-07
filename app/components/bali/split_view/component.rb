@@ -44,8 +44,18 @@ module Bali
     # navigation; the Stimulus controller only covers the in-page transitions.
     # Below `lg` the two panes stack (master on top), which needs no extra JS.
     class Component < ApplicationViewComponent
-      # Free-form left column. Wrapped in the `split-view` controller element so
-      # rows inside it can be its targets.
+      # The structured listing, and the way to build a master. It writes the row
+      # wiring itself — `data-turbo-frame`, `data-split-view-target`,
+      # `data-action` and `aria-current` — and pages by infinite scroll when
+      # given a `pagy:`. See Bali::SplitView::List::Component.
+      renders_one :list, lambda { |**options, &block|
+        Bali::SplitView::List::Component.new(frame_id: @frame_id, **options)
+      }
+
+      # Free-form left column: the escape hatch for a listing `list` does not
+      # fit. Wrapped in the same `split-view` controller element, so rows written
+      # by hand are still its targets — the two are interchangeable, not two
+      # different components.
       renders_one :master
 
       # Initial contents of the frame — what the server renders for the current

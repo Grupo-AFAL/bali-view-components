@@ -31,6 +31,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Gantt`: the skeleton is the loading state, not an option, and a `<noscript>` says what happens without JavaScript** (#970). `fallback: :skeleton` was one of two choices; it is now the mechanism, and the only thing the component renders inside the island's mount. What that buys is unchanged from #719 and stays measured: React's container is prepended and the skeleton is retired from inside the first commit, so one frame shows the skeleton, the next the island, and none an empty box; and a bundle that never arrives leaves the skeleton in place with the error notice prepended to it, rather than an emptied mount. What is new is the honesty: a skeleton says `aria-busy="true"` and means "loading", which for a visitor who will never run the bundle would be a claim held forever. The `<noscript>` beside it says the timeline needs JavaScript, in both shipped locales (`bali_view.gantt.noscript`). If some of your visitors need the plan without the bundle, give them a non-canvas path to it — `docs/api/gantt.md` now leads its accessibility section with that, because removing the static board removed the answer Bali used to have.
 
 - **The Gantt's Lookbook previews are the island's four faces** (#970): `default` (read-only, `zoom` as a live param), `editable` (the dummy's real endpoints, edits persist), `stress` (300 items from a fixed seed — the swap under load) and `empty` (an empty document still mounts; drawing it is the island's job). The static previews and the A/B pairs that existed to settle the fallback default are gone with the question they were asked to answer. The dummy's own `admin/projects/:id?view=timeline` now mounts the editable island through `content_for :head` — the host circuit in a real layout, which is the one step a Lookbook preview cannot demonstrate.
+### Added
+
+- **`Bali::SplitView` gets a structured listing, and pages itself** (#971). `with_list` +
+  `with_item` replace the hand-built master: the component writes `data-turbo-frame`,
+  `data-split-view-target`, `data-action` and `aria-current` itself. Those four attributes were
+  copied into every host template that used the component, and a row missing one of them looks
+  right and silently reloads the whole page instead of swapping the frame. Selection is decided
+  once too — `with_list(selected:)` takes the id of the selected record and each item its own
+  `id:`, in place of the same comparison written per row.
+
+  **The fields are the union of the two production listings this was drawn from**, not a copy of
+  either: `title` and `href` required, then `subtitle`, `icon`, `meta` with a `meta_color` for the
+  overdue date both of them paint red, any number of `with_tag`, and a block for whatever the
+  fields do not name (gc's urgency dot and requester avatar live there). The two rows agree on
+  almost nothing except the title and the subtitle, which is why the rest is optional. Grouping is
+  the one thing both listings do that this does **not** ship: it pulls against infinite scroll,
+  since an appended page arrives as a flat list of rows and merging it into existing group headers
+  needs the server to say which group each row belongs to. The free `master` slot is untouched and
+  still the answer for a listing this shape does not fit.
+
+  **Paging is infinite by default, by fetch-and-extract.** Given a `pagy:`, the list renders
+  ordinary pagination controls plus a sentinel; the new `split-view-list` controller hides the
+  controls on connect and, as the sentinel comes into view, fetches **the same index URL one page
+  further on**, lifts the rows out of the reply and appends them. Nothing is added on the server:
+  no `respond_to`, no Turbo Stream, no partial extracted for the purpose — and the rows arrive
+  wired because the server is what rendered them. The next URL is read back out of each fetched
+  page rather than incremented in the browser, so the server stays in charge of what "next" means,
+  including running out. That order is deliberate: the pagination controls are in the markup and
+  enhancement removes them, so a reader without JavaScript gets working pagination rather than a
+  spinner that never resolves.
+
+  Four corners, all measured rather than assumed: an appended page is fetched from a URL that
+  predates any click, so its markup can carry a stale selection — `rowTargetConnected` re-derives
+  it, and leaves the server's alone when nothing is selected in-page, which is what makes a deep
+  link to a record on page four light up when its page arrives. Going back after scrolling
+  **keeps** the pages already appended, because Turbo caches the page as it was when you left it,
+  and Stimulus reflects the controller's next-page value back to its attribute so the restored
+  list does not re-append a page it already has. An `IntersectionObserver` only reports a *change*
+  in intersection, so a sentinel still on screen after the rows land is asked again explicitly —
+  without that the list stalled one page in. And `hidden` on the sentinel needed a CSS rule of its
+  own: the attribute works by `display: none` in the UA stylesheet, which any author `display`
+  beats, so the spinner was visible to exactly the readers it was hidden from.
+
+- **`with_filters`: the listing's tabs and chips get a place, not a system** (#971). Buckets and
+  filter chips belong to the listing — the inbox this was generalised from puts them inside the
+  master — so `with_list` has a slot for them. It renders a band between the header and the rows:
+  **outside** the scroll area, so the controls stay put while the rows move under them, and
+  **inside** the card, so they read as part of the listing instead of as page chrome. That
+  position is the whole of what the slot provides.
+
+  **Bali grows no second filtering system for it.** Put `Bali::DataTable::SimpleFilters` in the
+  band, which already has the control this pattern wants: `type: :radio_group` with
+  `auto_submit: true` (#725) is the pill that filters on click — one active value, submitted the
+  moment it changes. Counts in the pill labels stay the caller's, because SimpleFilters does not
+  count and teaching it to would be the second system. Worth knowing when you go looking for the
+  click target: daisyUI styles the radio *itself* as the pill and takes its text from
+  `aria-label`, so there is no `<label>` element.
+
+  **Filtering does nothing to the infinite scroll, and that is the design.** A filter submit is an
+  ordinary full-page GET, so the server renders page one and there is no reset to perform, no
+  browser state to clear and no coupling between the two features. The filter then travels into
+  every page the sentinel fetches on its own, because the next URL is derived from the request the
+  server answered and Pagy keeps its params — nothing in the controller knows what a filter is.
+  Measured rather than assumed; the spec asserts the fetched URL carries the filter and that the
+  appended rows really are the filtered ones. The submit button stays even when every filter
+  auto-submits, and should: without JavaScript `auto_submit` does nothing, so the button is how
+  the filter gets applied — the same progressive enhancement as the pagination controls.
 
 ### Fixed
 
