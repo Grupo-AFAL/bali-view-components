@@ -103,14 +103,29 @@ class BaliI18nUsageTest < ActiveSupport::TestCase
     assert_includes keys, "bali_view.demo.relative_key"
     # Interpolation in the tail degrades to the static parent scope...
     assert_includes keys, "bali_view.filters.operators"
-    # ...and a key interpolated from the start has nothing to check.
-    refute_includes keys, "bali_view.filters.title.\#{value}"
+    # ...and one interpolated from the start leaves nothing behind: no extracted
+    # key carries the raw fragment.
+    assert_empty keys.grep(/scope/), "el escáner leyó un fragmento interpolado como texto"
     # A symbol key is still a key.
     assert_includes keys, "bali_view.filters.title"
     # THE design decision: foreign namespaces are a dependency, not our debt.
     refute_includes keys, "number.human.storage_units"
     assert_empty keys.grep(/from_a_comment/), "el escáner leyó un comentario"
     assert_empty keys.grep(/some_variable/), "el escáner inventó una clave dinámica"
+
+    # The four lines that must contribute NOTHING — the comment, the dynamic
+    # key, the foreign namespace and the wholly interpolated key — are only
+    # PROVEN skipped if nothing else slipped through, so the set is pinned
+    # whole. Absence is the assertion; a `refute_includes` on a shape the
+    # extractor cannot produce would pass no matter what the scanner did.
+    assert_equal %w[
+      bali_view.demo.inside_a_call
+      bali_view.demo.relative_key
+      bali_view.filters.no
+      bali_view.filters.operators
+      bali_view.filters.title
+      bali_view.filters.yes
+    ], keys.sort
   end
 
   private
