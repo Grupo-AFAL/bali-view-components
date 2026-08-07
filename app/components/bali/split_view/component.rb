@@ -68,6 +68,8 @@ module Bali
 
       DEFAULT_MASTER_WIDTH = "420px"
 
+      HEIGHTS = %i[content full].freeze
+
       # A single CSS length or percentage. Anything more expressive (`minmax()`,
       # `clamp()`) belongs in the host's own stylesheet overriding
       # `--bali-split-master-width`, not in an inline style attribute built from
@@ -80,14 +82,25 @@ module Bali
       #             `data-turbo-frame`, so it has to be unique in the page.
       # master_width - width of the master column from `lg` up. CSS length or
       #             percentage; drives `--bali-split-master-width`.
+      # height    - `:content` (default) lets the split grow with its content and
+      #             the page scroll do the work. `:full` makes it fill the nearest
+      #             ancestor with a definite height and gives EACH pane its own
+      #             scrollbar — the inbox shape. It is `height: 100%` and a flex
+      #             chain, nothing measured: with no bounded ancestor there is
+      #             nothing to fill, so pair it with
+      #             `Bali::AppLayout::Component.new(viewport_locked: true)`.
+      #             Only from `lg` up; stacked panes cannot both fill one screen,
+      #             so below that the page scrolls as usual.
       # advance   - emit `data-turbo-action="advance"` on the frame so a row click
       #             pushes its URL into the history and the selection is
       #             deep-linkable. Turn it off for a split view that is not a
       #             navigable location of its own.
-      def initialize(frame_id:, master_width: DEFAULT_MASTER_WIDTH, advance: true, **options)
+      def initialize(frame_id:, master_width: DEFAULT_MASTER_WIDTH, advance: true,
+                     height: :content, **options)
         @frame_id = frame_id
         @master_width = validated_master_width(master_width)
         @advance = advance
+        @height = validated_height(height)
         @options = options
       end
 
@@ -96,6 +109,20 @@ module Bali
       attr_reader :options
 
       def advance? = @advance
+      def full_height? = @height == :full
+
+      # Raises rather than falling back, like `master_width:` two lines up. A
+      # silent fallback on the option that IS this feature turns `height: :fill`
+      # into a component that renders the default and says nothing — and the
+      # symptom (a split that does not fill) is exactly what a reader would go
+      # hunting for in the CSS. Free to demand now, breaking to demand later.
+      def validated_height(value)
+        height = value&.to_sym
+        return height if HEIGHTS.include?(height)
+
+        raise ArgumentError,
+              "height must be one of #{HEIGHTS.map(&:inspect).join(', ')}, got #{value.inspect}."
+      end
 
       def validated_master_width(value)
         width = value.to_s.strip
@@ -109,7 +136,9 @@ module Bali
       def container_attributes
         options.except(:class, :style)
                .merge(
-                 class: class_names("split-view-component", options[:class]),
+                 class: class_names("split-view-component",
+                                    ("split-view-component--full" if full_height?),
+                                    options[:class]),
                  # The only inline declaration is the custom property the grid
                  # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an
                  # arbitrary value Tailwind never sees at build time, so it would

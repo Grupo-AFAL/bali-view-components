@@ -1,0 +1,48 @@
+<% content_for(:title) { 'SplitView · height: :full' } %>
+
+<%# The documented pairing: `viewport_locked: true` makes <main> a bounded box,
+    and `height: :full` fills it. Neither knows anything about the other's
+    numbers — there are none. %>
+<%= render Bali::AppLayout::Component.new(viewport_locked: true, app_name: 'MovieDB') do |layout| %>
+  <% layout.with_navbar do %>
+    <%= render 'layouts/navbar' %>
+  <% end %>
+
+  <% layout.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail', height: :full) do |split| %>
+      <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
+                         pagy: @pagy, item_name: 'películas', filter_mode: @filter_mode) do |list| %>
+        <% Movie.statuses.each_key do |status| %>
+          <% list.with_filter(label: status.humanize, param: :status, value: status,
+                              count: @counts[status].to_i) %>
+        <% end %>
+        <% @movies.each do |movie| %>
+          <% list.with_item(
+            id: movie.id,
+            href: split_view_full_path(selected: movie.id),
+            title: movie.name,
+            subtitle: movie.studio&.name,
+            meta: movie.production_ends_on && l(movie.production_ends_on, format: :short),
+            meta_color: (:error if movie.production_ends_on&.past?)
+          ) do |row| %>
+            <% row.with_tag(text: movie.genre, color: :info) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if @selected %>
+        <% split.with_detail do %>
+          <%= render 'split_views/detail', movie: @selected %>
+        <% end %>
+      <% else %>
+        <% split.with_empty_detail do %>
+          <%= render Bali::EmptyState::Component.new(
+            title: 'Selecciona una película',
+            description: 'Elige una fila de la izquierda para ver su ficha aquí.',
+            icon: 'inbox'
+          ) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

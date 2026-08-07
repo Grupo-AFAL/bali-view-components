@@ -1,27 +1,33 @@
-<%# The structured listing. Every row attribute that makes the frame swap work is
-    written by the component; the template below says what a row *is*, not how it
-    is wired.
+<%# The recommended shape. Locals: `scope` (a Movie relation), `selected`,
+    `filter_mode`, `filters`, and an optional `advance`.
 
-    `next_url` points at the dummy's own `/split-view`, which renders this same
-    list — so scrolling to the bottom performs a real fetch against a real
-    paginated index, the way a host app's would. %>
-<%= render Bali::SplitView::Component.new(frame_id: "split-view-detail") do |split| %>
-  <%# `next_url` spells out what a Pagy-derived one carries on its own: the current
-      selection travels with the page number, so the server can paint the row of a
-      deep-linked record when its page finally arrives. %>
+    The filter pills take `param:`/`value:` and build their own URLs from the
+    current request, which in Lookbook is the preview's own URL — so they are
+    live: clicking one re-renders this preview with the param and the pill goes
+    active. The listing narrows with them, and THAT part happens here rather than
+    in the preview method: a preview method has no `params`, but the template it
+    renders runs inside a real request and can read the same place the pills do.
+
+    The full flow — frame swaps, infinite scroll against a real paginated index,
+    deep links, back and forward — lives at `/split-view` in the dummy app. A
+    preview cannot page against itself. %>
+<% active_genres = Array(request.query_parameters.dig("q", "genre_in")) %>
+<% scope = scope.where(genre: active_genres) if active_genres.any? %>
+<% movies = scope.includes(:studio).order(:name).limit(5) %>
+<% total = scope.count %>
+<% pagy = Pagy::Offset.new(count: [ total, 1 ].max, page: 1, limit: 5) %>
+<%= render Bali::SplitView::Component.new(
+  frame_id: "split-view-detail",
+  advance: local_assigns.fetch(:advance, true)
+) do |split| %>
   <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
                      pagy: pagy, item_name: "películas", max_height: "22rem",
+                     filter_mode: filter_mode,
                      next_url: ["/split-view?page=2", ("selected=#{selected.id}" if selected)].compact.join("&")) do |list| %>
-    <%# Filter pills: plain links, no form. `href:` on purpose — the override, not
-        the usual way. A pill normally takes `param:`/`value:` and builds its URL
-        from the current request, but a preview's request is the Lookbook path,
-        so the pills would filter the preview instead of the listing. Pointing
-        them at the dummy's own `/split-view` makes clicking one the real
-        full-page GET the pattern relies on. Both modes filter for real there. %>
-    <% Movie.statuses.each_key do |status| %>
-      <% list.with_filter(label: status.humanize, count: Movie.where(status: status).count,
-                          href: "/split-view?status=#{status}") %>
+    <% filters.each do |filter| %>
+      <% list.with_filter(**filter) %>
     <% end %>
+
     <% movies.each do |movie| %>
       <% list.with_item(
         id: movie.id,
@@ -33,6 +39,17 @@
       ) do |row| %>
         <% row.with_tag(text: movie.genre, color: :info) %>
         <% row.with_tag(text: movie.status.humanize, color: movie.status_color) %>
+      <% end %>
+    <% end %>
+
+    <% if movies.none? %>
+      <% list.with_empty_state do %>
+        <%= render Bali::EmptyState::Component.new(
+          title: "Sin resultados",
+          description: "Ningún título coincide con este filtro.",
+          icon: "filter-x",
+          size: :sm
+        ) %>
       <% end %>
     <% end %>
   <% end %>

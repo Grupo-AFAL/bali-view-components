@@ -633,6 +633,7 @@ keeps its scroll position and its highlight.
 - `frame_id` - **Required.** Id of the detail Turbo Frame; rows point at it with `data-turbo-frame`, so it must be unique in the page
 - `master_width` - Width of the left column from `lg` up. A CSS length or percentage (default: `"420px"`); anything more expressive overrides `--bali-split-master-width` in your own stylesheet
 - `advance` - Emit `data-turbo-action="advance"` on the frame, so a row click pushes its URL into the history and the selection is deep-linkable (default: `true`)
+- `height` - `:content` (default) grows with the content and lets the page scroll; `:full` fills the nearest ancestor with a definite height and gives **each pane its own scrollbar**. `:full` is `height: 100%` plus a flex chain — no measured offsets, no JavaScript — so pair it with `Bali::AppLayout::Component.new(viewport_locked: true)`, which is what makes `<main>` a bounded box. With no bounded ancestor it fills nothing, visibly. Inert below `lg`, where the panes are stacked and cannot both fill one screen
 
 **Slots:**
 - `with_list` - The structured listing, and the way to build a master

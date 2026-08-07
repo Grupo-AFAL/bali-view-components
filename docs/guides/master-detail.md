@@ -9,7 +9,9 @@ screen this way instead of navigating to a detail page.
 the Stimulus controller that moves the highlight — **and the listing**. The
 detail pane stays completely yours.
 
-- Live example: `/lookbook/preview/bali/split_view/structured_list`
+- Live examples: `/lookbook/preview/bali/split_view/default` (the structured
+  listing, with live filter pills), `.../multi_filters`, `.../full_height/default`
+  (inside a locked AppLayout) and `.../custom_master` (the escape hatch)
 - Working reference in the dummy app: `spec/dummy/app/controllers/split_views_controller.rb`
   and `spec/dummy/app/views/split_views/` — the whole Rails side in one action.
 
@@ -78,6 +80,57 @@ of them missing meant a row that silently reloaded the whole page.
 Below `lg` the two panes stack, master on top. That needs no JavaScript and no
 option; see [Full-page detail on a phone](#full-page-detail-on-a-phone) if you
 want the other mobile behaviour.
+
+---
+
+## Filling the screen: `height: :full`
+
+By default (`height: :content`) the split grows with its content and the page
+scrolls — fine for a listing embedded in a longer page. `height: :full` gives you
+the other shape, the one an inbox wants: the split fills the screen and **each
+pane scrolls on its own**, so the list and the detail move independently and
+neither takes the page with it.
+
+```erb
+<%= render Bali::AppLayout::Component.new(viewport_locked: true) do |layout| %>
+  <% layout.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full) do |split| %>
+      <%# … %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+**That pairing is the recipe, not a suggestion.** `:full` is `height: 100%` and a
+flex chain — there is no measured offset, no `calc(100vh - 17rem)` and no
+JavaScript anywhere in it. A percentage height needs an ancestor with a definite
+one, and `AppLayout viewport_locked: true` is what provides it: the body stops
+scrolling and `<main>` becomes the bounded box. **Without a bounded ancestor
+there is nothing to fill and `:full` does nothing** — visibly, not subtly. That
+is the honest failure, and it is deliberate: a component that guessed at the
+height of your chrome would be wrong on every screen that does not look like the
+one it was written for.
+
+The split must be a **direct child** of the layout's body container. A wrapper in
+between is another link with `height: auto`, and the fill dies there — give that
+wrapper `h-full min-h-0` if you need one.
+
+**Below `lg` it does nothing**, on purpose. The panes are stacked one above the
+other there, and two stacked panes cannot both fill one screen: a master and a
+detail would fight over the same viewport. Stacked keeps the ordinary page
+scroll, which is what a phone wants anyway.
+
+**`max_height:` is for `:content`.** In `:full` the flex chain decides the list's
+height, so `--bali-split-master-max-h` is dropped — a cap of
+`calc(100vh - 20rem)` inside a pane that is already exactly as tall as it should
+be would only make it shorter.
+
+**Infinite scroll gets bigger, not different.** A full-height pane is taller than
+a capped one, so one page of rows often does not fill it; the sentinel stays in
+view and keeps asking until it does. The scroll container changed size, not
+identity, and the observer is rooted on it either way — but it does mean a small
+`limit:` turns the first paint into a chain of serial fetches, so size it to the
+pane rather than to the capped list it used to be.
 
 ---
 
@@ -243,6 +296,13 @@ def show
   @pagy, @items = pagy(filter(current_user.inbox_items, @bucket), limit: 20)
 end
 ```
+
+**Size `limit:` to the height of the pane.** Infinite scroll keeps fetching while
+the sentinel is in view, so a page that does not fill the pane is followed
+immediately by another — with `limit: 3` the first paint is a chain of serial
+fetches before the reader has scrolled anything. A page worth roughly a screenful
+costs one request; this matters most with `height: :full`, where the pane is as
+tall as the window.
 
 That controller is the whole server side. No FilterForm, no Ransack, no form
 object — the filter is a query param you read.

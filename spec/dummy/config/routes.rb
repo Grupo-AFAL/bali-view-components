@@ -67,6 +67,9 @@ Rails.application.routes.draw do
   # SplitView reference page. `?selected=<id>` is the deep link; the Lookbook
   # preview of the component navigates its detail frame here.
   get 'split-view', to: 'split_views#show', as: :split_view
+  # `height: :full` needs a bounded parent to fill, so its reference page is the
+  # pairing the guide documents: an AppLayout with `viewport_locked: true`.
+  get 'split-view/full', to: 'split_views#full', as: :split_view_full
   get 'embed/feedback_posts', to: 'pages#feedback_embed' # Stand-in for Opina's embed page
 
   # Modal/Drawer content routes (for remote loading)

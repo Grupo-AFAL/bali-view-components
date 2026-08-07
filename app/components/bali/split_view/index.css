@@ -136,3 +136,89 @@
 .split-view-sentinel-error[hidden] {
   display: none;
 }
+
+/* ── height: :full ────────────────────────────────────────────────────────
+   The split fills the nearest ancestor with a definite height, and each pane
+   scrolls on its own — the inbox shape. There is no measurement and no magic
+   offset anywhere in it: `height: 100%` plus a flex chain, so it fills whatever
+   bounded box you put it in and fills NOTHING if there is no such box. That is
+   the honest failure mode, and the reason the pairing with
+   `AppLayout viewport_locked: true` is documented rather than guessed at (the
+   same reasoning that kept a `calc(100vh - 17rem)` out of the Kanban).
+
+   Only from `lg` up. Below it the panes are stacked one above the other, and
+   two stacked panes cannot both fill one screen — `:full` there would be a
+   master and a detail fighting over the same viewport. Stacked keeps the
+   ordinary page scroll, which is what a phone wants anyway. */
+@media (width >= 64rem) {
+  .split-view-component--full {
+    @apply h-full min-h-0 items-stretch;
+  }
+
+  /* The chain from the grid cell down to the scrolling list. Every link needs
+     `min-h-0`: a flex item defaults to `min-height: auto`, which refuses to
+     shrink below its content, and one link missing it is enough for the scroll
+     never to engage and the whole thing to overflow instead. */
+  .split-view-component--full .split-view-master,
+  .split-view-component--full .split-view-master > .card,
+  .split-view-component--full .split-view-master > .card > .card-body,
+  .split-view-component--full .split-view-list {
+    @apply flex flex-col min-h-0;
+  }
+
+  .split-view-component--full .split-view-master > .card,
+  .split-view-component--full .split-view-master > .card > .card-body,
+  .split-view-component--full .split-view-list {
+    @apply flex-1;
+  }
+
+  /* The bands above and below the rows keep their height; the rows take the rest. */
+  .split-view-component--full .split-view-list-header,
+  .split-view-component--full .split-view-list-filters,
+  .split-view-component--full [data-split-view-list-target="pagination"] {
+    @apply shrink-0;
+  }
+
+  /* `max-height: none` because the flex chain governs the height now. Leaving
+     the var in place would cap the list at `calc(100vh - 20rem)` inside a pane
+     that is already exactly as tall as it should be. */
+  .split-view-component--full .split-view-scroll {
+    @apply flex-1 min-h-0;
+    max-height: none;
+  }
+
+  .split-view-component--full .split-view-detail {
+    @apply overflow-y-auto min-h-0;
+  }
+}
+
+/* ── Making the documented pairing actually pair ──────────────────────────
+   `height: :full` resolves `height: 100%` against its parent, and AppLayout's
+   body container is `height: auto` — it wraps its content. So under a locked
+   viewport the container stopped at the split's own height and the split
+   stopped with it: measured at 629px inside a 1086px `<main>`, i.e. filling
+   nothing while claiming to fill everything.
+
+   These two rules close that gap, and they live HERE rather than in
+   `app_layout/index.css` because they exist for `:full` and nothing else. The
+   `:has()` is what keeps them off every other locked page: a layout with
+   ordinary content is byte-for-byte what it was.
+
+   `flex: 1 0 auto` and not `flex: 1`: grow to fill the screen, but never shrink
+   below the content. A page taller than the viewport keeps its height and
+   `<main>` scrolls, which is what `:content` inside a locked layout still wants.
+
+   The split has to be a DIRECT child of the body container. A wrapper in
+   between is a link in the chain with `height: auto`, and the fill dies there —
+   give that wrapper `h-full min-h-0` if you need one. */
+@media (width >= 64rem) {
+  .app-layout--viewport-locked
+    main:has(> .app-layout-body-container > .split-view-component--full) {
+    @apply flex flex-col;
+  }
+
+  .app-layout--viewport-locked
+    .app-layout-body-container:has(> .split-view-component--full) {
+    flex: 1 0 auto;
+  }
+}

@@ -99,6 +99,49 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_match(/master_width must be a CSS length/, error.message)
   end
 
+  # --- height ---------------------------------------------------------------------------
+
+  def test_height_content_is_the_default_and_adds_no_modifier
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector(".split-view-component")
+    assert_no_selector(".split-view-component--full")
+  end
+
+  def test_height_full_adds_the_modifier
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full)) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector(".split-view-component.split-view-component--full")
+  end
+
+  # The modifier is the whole of `:full` — there is no inline height, no
+  # `calc()` and no measured offset anywhere, which is what lets it fill a
+  # bounded parent and honestly fill nothing without one.
+  def test_height_full_adds_no_inline_height
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full)) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    refute_match(/height/, page.find(".split-view-component")["style"])
+  end
+
+  # Raises rather than falling back, like `master_width:`. A typo in the option
+  # that IS this feature would otherwise render the default in silence, and the
+  # symptom — a split that does not fill — sends the reader hunting in the CSS.
+  def test_an_unknown_height_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :tall)) do |split|
+        split.with_master { "MASTER" }
+      end
+    end
+
+    assert_match(/height must be one of/, error.message)
+  end
+
   def test_host_class_is_merged_and_host_style_is_kept
     render_inline(
       Bali::SplitView::Component.new(frame_id: "inbox-detail", class: "gap-6", style: "--bali-split-master-max-h: 30rem")
