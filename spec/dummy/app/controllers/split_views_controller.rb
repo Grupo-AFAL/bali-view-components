@@ -22,30 +22,42 @@
 # on screen to highlight yet — it lights up when infinite scroll reaches its page.
 class SplitViewsController < ApplicationController
   PER_PAGE = 5
+  # `:full`'s page one must be TALLER than its pane. Clamping under a long list
+  # is precisely what the first version of bali#979 got wrong — `flex: 1 0 auto`
+  # on the body container never came back down from the content's height, the
+  # page scrolled as a whole and the pane scroll never engaged — and a short
+  # page one is why this reference couldn't catch it: five rows fit the screen,
+  # flex-grow stretched them, and everything looked right for a whole beta.
+  # Twelve rows overflow the pane at 1280x800 AND leave a second page in the
+  # table, so the sentinel keeps demonstrating infinite scroll inside the clamp.
+  FULL_PER_PAGE = 12
 
   # AppLayout renders its own <body>, so the shell around it must not have one.
   layout "app_layout_preview", only: :full
 
   def show
-    # A real screen picks one semantics and stays there. This page takes it from
-    # a param so the reference can show both: `:single` is the bucket strip
-    # (status, one value at a time) and `:multi` the independent toggles (genre,
-    # several at once over `q[genre_in][]`).
-    @filter_mode = params[:filter_mode] == "multi" ? :multi : :single
-
-    @pagy, @movies = pagy(filtered.includes(:studio).order(:name), limit: PER_PAGE)
-    @selected = Movie.find_by(id: params[:selected])
+    load_listing(limit: PER_PAGE)
   end
 
   # The same listing, in the arrangement `height: :full` is built for: inside an
   # AppLayout that locks the viewport, so the split fills the screen and each
   # pane scrolls on its own instead of the page scrolling as a whole.
   def full
-    show
+    load_listing(limit: FULL_PER_PAGE)
     render :full
   end
 
   private
+
+  # A real screen picks one semantics and stays there. This page takes it from
+  # a param so the reference can show both: `:single` is the bucket strip
+  # (status, one value at a time) and `:multi` the independent toggles (genre,
+  # several at once over `q[genre_in][]`).
+  def load_listing(limit:)
+    @filter_mode = params[:filter_mode] == "multi" ? :multi : :single
+    @pagy, @movies = pagy(filtered.includes(:studio).order(:name), limit: limit)
+    @selected = Movie.find_by(id: params[:selected])
+  end
 
   def filtered
     @filter_mode == :multi ? by_genres : by_status
