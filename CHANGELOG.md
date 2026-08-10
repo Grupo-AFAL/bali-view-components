@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`Bali::FilterForm`: `search_fields` takes `label:` and `width:`, and `search_config` emits
+  all six `SearchConfig` keys** (#982). Both filter surfaces render `label:` as the search box's
+  `aria-label` — the only accessible name that survives typing — but the producer only emitted 4
+  of the 6 keys, so the auto-configured route (a bare `with_simple_filters` over a FilterForm)
+  could never express it and the box stayed named by its placeholder alone. The DSL now carries
+  them (`search_fields :name, :email, icon: 'search', label: t('.search_label')`), the
+  initializer accepts `search_label:`/`search_width:` overrides, and subclasses inherit both.
+
 ### Fixed
 - **`Bali::Pagination::PagyAdapter#summary` returns nil when there is nothing to summarize**
   (#988). With a countless Pagy — `count` nil by design — the method interpolated the nil into

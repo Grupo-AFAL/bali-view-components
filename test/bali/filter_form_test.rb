@@ -46,6 +46,16 @@ class SearchableSimpleFilterForm < Bali::FilterForm
                    options: [ %w[Action Action], %w[Comedy Comedy] ], blank: "All Genres"
 end
 
+# Test form with the full search_fields signature (#982): label: is the box's
+# aria-label — the only accessible name that survives typing — and width: the
+# per-listing width override. Both were renderable by the components but
+# unreachable from the DSL.
+class LabelledSearchMovieFilterForm < Bali::FilterForm
+  search_fields :name, icon: "search", label: "Search movies", width: "w-64"
+
+  filter_attribute :name, type: :text
+end
+
 # Test form declaring simple-UI-only filters
 class SimpleFilterableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, simple: true, advanced: false,
@@ -449,6 +459,38 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_search_config_returns_nil_when_search_not_enabled
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.search_config)
+  end
+
+  # --- search_fields label:/width: (#982) ---
+
+  def test_search_fields_dsl_stores_label_and_width
+    assert_equal("Search movies", LabelledSearchMovieFilterForm.defined_search_label)
+    assert_equal("w-64", LabelledSearchMovieFilterForm.defined_search_width)
+  end
+
+  # The producer emits every key the components render: a key search_config
+  # cannot emit is an option the auto-configured route cannot express, which is
+  # how the search box lost its aria-label on every bare `with_simple_filters`.
+  def test_search_config_emits_every_search_config_key
+    @form = LabelledSearchMovieFilterForm.new(Movie.all, params({}))
+    config = @form.search_config
+    assert_equal(Bali::SearchConfig::KEYS.sort, config.keys.sort)
+    assert_equal("Search movies", config[:label])
+    assert_equal("w-64", config[:width])
+    assert_equal("search", config[:icon])
+  end
+
+  def test_search_label_and_width_instance_kwargs_override_the_dsl
+    @form = LabelledSearchMovieFilterForm.new(Movie.all, params({}),
+                                              search_label: "Find", search_width: "w-96")
+    assert_equal("Find", @form.search_label)
+    assert_equal("w-96", @form.search_width)
+  end
+
+  def test_search_label_and_width_are_inherited_by_subclasses
+    subclass = Class.new(LabelledSearchMovieFilterForm)
+    assert_equal("Search movies", subclass.defined_search_label)
+    assert_equal("w-64", subclass.defined_search_width)
   end
 
   def test_search_fields_via_initialize_parameter_accepts_search_fields_as_initialize_parameter

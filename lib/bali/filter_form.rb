@@ -253,7 +253,8 @@ module Bali
     #   tarjetas. Pasá lo MISMO que le pasás al DataTable (p.ej. `params[:view] || :grid`)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
+                   search_placeholder: nil, search_icon: nil, search_label: nil, search_width: nil,
+                   persist_enabled: false, simple_filters: nil,
                    group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
                    saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
@@ -262,6 +263,8 @@ module Bali
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
       @instance_search_icon = search_icon
+      @instance_search_label = search_label
+      @instance_search_width = search_width
       @instance_simple_filters = simple_filters
       @instance_group_by_attributes = group_by_attributes
       @instance_group_by_modes = group_by_modes

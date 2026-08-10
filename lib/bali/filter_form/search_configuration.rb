@@ -31,16 +31,31 @@ module Bali
           @defined_search_icon
         end
 
+        def defined_search_label
+          @defined_search_label
+        end
+
+        def defined_search_width
+          @defined_search_width
+        end
+
         # Define quick search fields for text search across multiple columns.
         # This generates a Ransack predicate like "name_or_email_cont".
         #
         # @param fields [Array<Symbol>] Field names to search across
         # @param icon [String, nil] Icon name for search input
+        # @param label [String, nil] Accessible name (`aria-label`) for the search
+        #   box. Without it the box is named by its placeholder alone, which
+        #   disappears as soon as the user types (#982)
+        # @param width [String, nil] Width classes for the search box; each
+        #   component keeps its own default when absent
         #
         # @example
-        #   search_fields :name, :email, icon: 'search'
-        def search_fields(*fields, icon: nil)
+        #   search_fields :name, :email, icon: 'search', label: 'Search users'
+        def search_fields(*fields, icon: nil, label: nil, width: nil)
           @defined_search_icon = icon
+          @defined_search_label = label
+          @defined_search_width = width
           @defined_search_fields = fields.flatten.map(&:to_sym)
         end
 
@@ -49,6 +64,8 @@ module Bali
           super
           subclass.instance_variable_set(:@defined_search_fields, defined_search_fields.dup)
           subclass.instance_variable_set(:@defined_search_icon, defined_search_icon)
+          subclass.instance_variable_set(:@defined_search_label, defined_search_label)
+          subclass.instance_variable_set(:@defined_search_width, defined_search_width)
         end
       end
 
@@ -63,6 +80,16 @@ module Bali
       # Get the search icon name.
       def search_icon
         @instance_search_icon || self.class.defined_search_icon
+      end
+
+      # Accessible name (`aria-label`) for the search box.
+      def search_label
+        @instance_search_label || self.class.defined_search_label
+      end
+
+      # Width classes for the search box.
+      def search_width
+        @instance_search_width || self.class.defined_search_width
       end
 
       # Check if quick search is enabled
@@ -94,6 +121,11 @@ module Bali
       # (`simple_search_config`) because the two components disagreed on the
       # shape; they no longer do.
       #
+      # Emits every key in `Bali::SearchConfig::KEYS`: both components render
+      # all six, and a key the producer cannot emit is an option the
+      # auto-configured route cannot express -- `label:` (the box's
+      # `aria-label`) was unreachable from the DSL until #982.
+      #
       # @return [Hash, nil] Search configuration or nil if not enabled
       def search_config
         return nil unless search_enabled?
@@ -102,7 +134,9 @@ module Bali
           fields: search_fields,
           value: search_value,
           placeholder: search_placeholder,
-          icon: search_icon
+          label: search_label,
+          icon: search_icon,
+          width: search_width
         }
       end
 
