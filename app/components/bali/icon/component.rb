@@ -122,9 +122,13 @@ module Bali
       def render_lucide_icon(lucide_name)
         svg_content = LucideRails::IconProvider.icon(lucide_name)
 
+        # `default_options` carries "width"/"height" as String keys (24); the
+        # Symbol overrides below would serialize as a SECOND pair, and HTML
+        # parsers keep the first — so 24 always won and `size:` never reached
+        # the SVG (#986).
         tag.svg(
           svg_content.html_safe,
-          **LucideRails.default_options,
+          **LucideRails.default_options.except("width", "height"),
           width: pixel_size,
           height: pixel_size,
           class: "lucide-icon"
@@ -192,7 +196,18 @@ module Bali
         all_names.select do |candidate|
           comparable = comparable_name(candidate)
           comparable.include?(needle) || needle.include?(comparable)
-        end.first(3)
+        end.uniq.sort_by { |candidate| [ suggestion_rank(candidate, needle), candidate ] }.first(3)
+      end
+
+      # Exact match (modulo dash/underscore) first, then prefix, then the rest.
+      # Without the ranking, `first(3)` truncates in pool order and `panel_left`
+      # loses `panel-left` itself to `layout-panel-left` (#985).
+      def suggestion_rank(candidate, needle)
+        comparable = comparable_name(candidate)
+        return 0 if comparable == needle
+        return 1 if comparable.start_with?(needle)
+
+        2
       end
 
       def comparable_name(name)

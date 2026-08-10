@@ -95,6 +95,22 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
                  "resolves these names: #{identity.inspect}")
   end
 
+  # #987: the one underscored key (a v1-hash leftover) made the "Did you mean"
+  # suggest exactly the spelling the migration guide tells hosts not to adopt.
+  # Keys are dashed like every name the pipeline serves; the underscore was
+  # the accident, not the contract.
+  def test_mapping_keys_carry_no_underscores
+    underscored = Bali::Icon::LucideMapping::MAPPING.keys.grep(/_/)
+    assert_empty(underscored,
+                 "mapping keys are dashed — an underscored key turns the error " \
+                 "message into a rename trap (#987): #{underscored.inspect}")
+  end
+
+  def test_question_circle_resolves_via_the_dashed_key
+    assert_equal("circle-help", Bali::Icon::LucideMapping.find("question-circle"))
+    refute(Bali::Icon::LucideMapping.mapped?("question_circle"))
+  end
+
   def test_mapping_constant_is_frozen
     assert(Bali::Icon::LucideMapping::MAPPING.frozen?)
   end
