@@ -5,9 +5,15 @@ module Admin
     before_action :set_movie, only: %i[show edit update destroy]
 
     def index
-      @filter_form = Bali::FilterForm.new(
+      # `Bali::Filterable#filter_form` cierra el circuito de la persistencia (#999):
+      # `context:` sale de `Bali.filter_context` (ver config/initializers/bali.rb) y
+      # `persist_enabled:` de la cookie `bali_persist_admin_movies` que escribe el toggle —
+      # los dos kwargs que antes iban a mano acá, con el formato de la cookie filtrado al
+      # host. `storage_id:` va explícito porque este listado ya tenía identidad publicada
+      # ('admin_movies', con guion bajo); derivado del controller sería 'admin-movies'.
+      @filter_form = filter_form(
+        Bali::FilterForm,
         Movie.all,
-        params,
         # `studio_name` y no `tenant_name`: `alias_method :tenant, :studio` es un método Ruby
         # que Ransack no ve, y un campo inválido dentro de un predicado combinado hace que
         # Ransack descarte la condición ENTERA sin levantar nada — la búsqueda rápida
@@ -22,11 +28,7 @@ module Admin
         # el FilterForm vive en el host; las mutaciones las resuelve el controller del engine
         # por `Bali.saved_views_owner` (ver config/initializers/bali.rb).
         saved_views_store: :default,
-        saved_views_owner: current_user,
-        # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
-        # ApplicationController#filter_context): dos visitantes se pisan los filtros.
-        context: filter_context,
-        persist_enabled: cookies['bali_persist_admin_movies'] == '1'
+        saved_views_owner: current_user
       )
       @pagy, @movies = pagy(@filter_form.result.includes(:studio), limit: 10)
 

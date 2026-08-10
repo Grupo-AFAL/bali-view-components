@@ -14,6 +14,12 @@ Bali.config do |config|
   # devuelve nil, así que sin esto guardar una vista responde 403.
   config.saved_views_owner = ->(_controller) { User.demo }
 
+  # A quién pertenecen los filtros persistidos (#999): `Bali::Filterable#filter_form` lo
+  # evalúa contra el controller y lo pasa como `context:`. El default del engine usa
+  # `current_user&.id`, pero el demo tiene UN usuario — la identidad que separa acá es el
+  # navegador (ver ApplicationController#filter_context).
+  config.filter_context = ->(controller) { controller.send(:filter_context) }
+
   # #708 — los tipos que el `#` del BlockEditor puede referenciar. UNA declaración por tipo:
   # de aquí salen el buscador, la resolución de los chips y el `references_config` que el
   # componente le pasa al JS (el `display:`), que antes eran tres declaraciones paralelas.
