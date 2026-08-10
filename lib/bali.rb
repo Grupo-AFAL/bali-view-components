@@ -8,6 +8,7 @@ require "bali/form_builder/html_utils"
 require "bali/form_builder/shared_utils"
 require "bali/form_builder/shared_date_utils"
 require "bali/layout_concern"
+require "bali/filterable"
 require "bali/types/time_value"
 require "bali/types/month_value"
 require "bali/types/date_range_value"
@@ -185,6 +186,17 @@ module Bali
   # skipeando los before_action del concern) o configura este callable.
   # Example: ->(controller) { controller.current_member }
   mattr_accessor :saved_views_owner, default: ->(controller) { controller.try(:current_user) }
+
+  # Whose filters a listing persists (#999): `Bali::Filterable#filter_form`
+  # evaluates this against the controller and passes the result as the form's
+  # `context:`. Without a context the persistence cache_key is ONE for the
+  # whole process and two users overwrite each other's restored filters — the
+  # default keeps that from being the out-of-the-box behaviour in any app with
+  # a `current_user`. Same shape as `saved_views_owner`; override for other
+  # identities (an account, a visitor token), or set to `nil`/a nil-returning
+  # lambda to opt out globally.
+  # Example: Bali.filter_context = ->(controller) { controller.current_account&.id }
+  mattr_accessor :filter_context, default: ->(controller) { controller.try(:current_user)&.id }
 
   # Autorización de Bali::SavedViewsController: callable (controller, owner) — truthy
   # permite, falsy responde 403. El default exige owner presente; una app puede endurecerlo

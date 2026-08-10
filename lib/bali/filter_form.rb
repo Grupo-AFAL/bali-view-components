@@ -258,7 +258,7 @@ module Bali
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
                    search_placeholder: nil, search_icon: nil, search_label: nil, search_width: nil,
-                   persist_enabled: false, simple_filters: nil,
+                   persist_enabled: nil, simple_filters: nil,
                    group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
                    saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
@@ -274,7 +274,14 @@ module Bali
       @instance_group_by_modes = group_by_modes
       @view_param = (view_param || DEFAULT_VIEW_PARAM).to_sym
       @search_placeholder = search_placeholder
-      @persist_enabled = persist_enabled
+      # nil vs false matters (#999): an explicit `persist_enabled: false` is a
+      # read opt-in ("this browser said no"); nil means NOBODY read the cookie,
+      # which with a storage_id present is the silent failure mode — the toggle
+      # renders, the state saves, and it never restores. DataTable warns on it
+      # in dev/test; `Bali::Filterable#filter_form` is the wiring that cannot
+      # forget.
+      @persist_enabled_read = !persist_enabled.nil?
+      @persist_enabled = persist_enabled.nil? ? false : persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
       @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
@@ -349,6 +356,13 @@ module Bali
     # Check if user has opted into filter persistence
     def persist_enabled?
       @persist_enabled
+    end
+
+    # Whether the persistence opt-in was actually read when this form was built
+    # (an explicit true OR false — as opposed to nobody having looked). See the
+    # initializer note; DataTable's dev/test warning keys off this.
+    def persistence_opt_in_read?
+      @persist_enabled_read
     end
 
     def permitted_attributes
