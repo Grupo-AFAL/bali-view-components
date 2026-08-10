@@ -67,6 +67,16 @@ class BaliPaginationPagyAdapterTest < ActiveSupport::TestCase
     refute_predicate adapter(countless), :summarizable?
   end
 
+  # #988: `summary` on a Pagy it cannot summarize returned "Showing 11-20 of
+  # {one: "item", other: "items"}" — nil count skips pluralization, so the
+  # i18n plural hash landed in the sentence verbatim.
+  def test_summary_is_nil_when_there_is_nothing_to_summarize
+    countless = Pagy::Offset::Countless.new(page: 2, limit: 10, last: 3)
+    assert_nil adapter(countless).summary
+    assert_nil adapter(countless).summary("things")
+    assert_nil adapter(Pagy::Offset.new(count: 0, page: 1, limit: 10)).summary
+  end
+
   def test_summary_uses_the_default_item_name
     assert_equal "Showing 21-30 of 100 items", adapter.summary
   end
