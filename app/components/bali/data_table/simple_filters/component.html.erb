@@ -233,7 +233,8 @@
               ),
               { include_blank: filter[:blank] },
               id: filter_control_id(filter),
-              class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}"
+              class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}",
+              **auto_submit_attributes(filter)
             ) %>
           </div>
         <% end %>

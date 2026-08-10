@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **SimpleFilters: `auto_submit: true` now also applies to the native `:select` widget**
+  (#996). The restriction to the pill widgets left the most common filter control unable to
+  auto-submit, so a listing migrated to `SimpleFilters` traded its filter-on-change selects for
+  an extra click on the Filter button — the package shipped `SubmitOnChangeController` and no
+  way to connect it. A native select's `change` fires when the menu closes on a selection,
+  which is as completed a choice as a pill click; date and number-range widgets stay excluded
+  (they would submit between the two halves of a value), and `slim_select` stays out until its
+  change semantics are verified. Same opt-in per filter, off by default — no existing row
+  changes behaviour.
+
 ### Changed
 - **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
   underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident

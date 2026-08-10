@@ -46,6 +46,16 @@ describe('SimpleFilters con auto_submit', () => {
     cy.get('input[type="checkbox"][value="public"]').should('be.checked')
   })
 
+  // #996 — el select nativo también auto-envía: su change dispara al cerrar el menú con
+  // una selección, que es una elección tan terminada como el click de una pill.
+  it('filtra al elegir en el select, sin tocar Filtrar', () => {
+    cy.get('select[name="q[genre_eq]"]').select('comedy')
+
+    cy.wait('@submit').its('request.url').should('include', 'q%5Bgenre_eq%5D=comedy')
+    cy.location('search').should('include', 'q%5Bgenre_eq%5D=comedy')
+    cy.get('select[name="q[genre_eq]"]').should('have.value', 'comedy')
+  })
+
   // El opt-in no se lleva puesto el botón: los filtros que no optaron lo siguen necesitando.
   it('deja el botón Filtrar en su lugar', () => {
     cy.get('form[data-controller="submit-on-change"] button[type="submit"]').should('exist')

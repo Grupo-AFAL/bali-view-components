@@ -716,9 +716,21 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector('input[type="checkbox"][data-action]')
   end
 
+  # #996: un select nativo también es una elección terminada — su change dispara al
+  # cerrar el menú con una selección — así que auto-envía igual que las pills.
+  def test_auto_submit_wires_a_native_select
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [
+      { attribute: :genre, label: "Genre", type: :select, auto_submit: true,
+        collection: [ %w[Action action], %w[Comedy comedy] ], blank: "All" }
+    ]))
+
+    assert_selector('form[data-controller="submit-on-change"]')
+    assert_selector('select[data-action="change->submit-on-change#submit"]', count: 1)
+  end
+
   # Un rango se manda entre una mitad del valor y la otra, así que el componente lo
   # ignora aunque el hash de instancia (que no pasa por la validación del DSL) lo pida.
-  def test_auto_submit_is_ignored_outside_the_pill_widgets
+  def test_auto_submit_is_ignored_outside_the_single_choice_widgets
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [
       { attribute: :founded_year, label: "Founded", type: :number_range, auto_submit: true }
     ]))

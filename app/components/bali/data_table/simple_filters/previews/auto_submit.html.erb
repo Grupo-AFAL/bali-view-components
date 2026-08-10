@@ -4,6 +4,7 @@
   q = params.fetch(:q, {})
   status = q[:status_eq].presence
   kinds = Array(q[:kind_in]).compact_blank
+  genre = q[:genre_eq].presence
 
   filters = [
     {
@@ -22,6 +23,15 @@
       predicate: :in,
       auto_submit: true,
       value: kinds.presence
+    },
+    {
+      attribute: :genre,
+      collection: genre_choices,
+      label: 'Genre',
+      type: :select,
+      blank: 'All genres',
+      auto_submit: true,
+      value: genre
     }
   ]
 %>
@@ -30,7 +40,7 @@
 <%= render Bali::DataTable::SimpleFilters::Component.new(
       url: request.path,
       filters: filters,
-      show_clear: status.present? || kinds.any?
+      show_clear: status.present? || kinds.any? || genre.present?
     ) %>
 
 <p class="mt-6 text-sm" data-testid="query">
