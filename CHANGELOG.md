@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the page, and the next flake should not be.
 
 ### Added
+- **`Bali::HelpTip`: the help icon with a tooltip, packaged** (#993). The "?" next to a
+  heading, a label or a domain term was a pattern every host rebuilt — one app had 49 copies
+  across two helpers, one of them with the Lucide SVG pasted inline. It is one component now:
+  `render Bali::HelpTip::Component.new(t('.sipoc_help'))`, with `icon:`, `placement:`, a block
+  form for rich content, and passthrough to `Bali::Tooltip` for the rest.
+  `FieldGroupWrapper` renders a field's `tooltip:` option through it, so the form-field "?"
+  and the table-header "?" are the same drawing — and both inherit Tooltip's `:body` portal
+  default (#992) and the keyboard-reachable trigger.
 - **`Bali::Filterable`: the controller concern that closes the persistence circuit** (#999).
   Filter persistence needed three kwargs from every host controller — `storage_id`, `context:`
   and `persist_enabled:` — and each was an engine internal leaking out: the `bali_persist_*`
@@ -50,7 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   could never express it and the box stayed named by its placeholder alone. The DSL now carries
   them (`search_fields :name, :email, icon: 'search', label: t('.search_label')`), the
   initializer accepts `search_label:`/`search_width:` overrides, and subclasses inherit both.
-### Added
 - **`Bali::Topbar::IconAction` takes `active:` and `max_count:`** (#995). `active: true` paints
   daisyUI's `btn-active` state and, on a link, announces it with `aria-current="page"` — the
   current-section highlight every hand-written topbar action re-implemented with its own class

@@ -2532,6 +2532,32 @@ two. The one case that builds nothing is a tooltip with *no* content: `with_trig
 block. That one gets no tippy instance and no `tabindex`, because a balloon that will never
 open should not claim a stop in the tab order.
 
+#### HelpTip
+
+The help icon with a tooltip, packaged (#993): the "?" next to a heading, a label or a
+domain term. `FieldGroupWrapper` renders a field's `tooltip:` option through this same
+component, so the icon on a form field and the one in a table header are one drawing — no
+hand-rolled Tooltip + Icon pair per call site.
+
+```erb
+<%= render Bali::HelpTip::Component.new(t('.sipoc_help')) %>
+<%= render Bali::HelpTip::Component.new(text, icon: 'circle-help', placement: :right) %>
+
+<%# Rich content, as a block %>
+<%= render Bali::HelpTip::Component.new do %>
+  <p>SIPOC: suppliers, inputs, process, outputs, customers.</p>
+<% end %>
+```
+
+**Options:**
+- First positional: the balloon text (or pass a content block instead)
+- `icon` - icon name, `"info-circle"` by default (Bali::Icon pipeline)
+- `placement` - `:top` (default), `:bottom`, `:left`, `:right`
+- Everything else passes through to `Bali::Tooltip` (`append_to:`, `class:`, `data:`, …)
+
+The trigger is keyboard-reachable out of the box, and the balloon inherits Tooltip's
+`:body` portal default, so it escapes clipping ancestors without per-call opt-ins.
+
 #### Kanban
 
 Kanban board built on SortableList with drag-and-drop between columns. Each
