@@ -93,11 +93,16 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("#toast-notifications")
   end
 
-  def test_does_not_render_toast_container_when_flash_is_empty_hash
+  # #991: the container's id is a documented Turbo Stream target — a host's
+  # `turbo_stream.append "toast-notifications"` must find it on pages without a
+  # flash, which is exactly where async toasts land. Empty flash still renders
+  # the (empty) container; only omitting `flash:` altogether skips it.
+  def test_renders_an_empty_toast_container_when_flash_is_empty_hash
     render_inline(Bali::AppLayout::Component.new(flash: {})) do |layout|
       layout.with_body { "Content" }
     end
-    assert_no_selector("#toast-notifications")
+    assert_selector("#toast-notifications")
+    assert_no_selector("#toast-notifications .toast-component")
   end
 
   def test_renders_modal_shell_by_default
@@ -374,12 +379,14 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("#toast-notifications")
   end
 
-  # `flash[:timedout]` and friends are state, not messages.
-  def test_no_container_for_flash_keys_that_are_not_messages
+  # `flash[:timedout]` and friends are state, not messages: no toast renders.
+  # The container itself still does — it is a Turbo Stream target (#991).
+  def test_no_toasts_for_flash_keys_that_are_not_messages
     render_inline(Bali::AppLayout::Component.new(flash: { timedout: true })) do |layout|
       layout.with_body { "Content" }
     end
-    assert_no_selector("#toast-notifications")
+    assert_selector("#toast-notifications")
+    assert_no_selector("#toast-notifications .toast-component")
   end
 
   def test_uses_flex_col_direction

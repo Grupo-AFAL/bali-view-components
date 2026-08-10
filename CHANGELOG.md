@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **`Bali::AppLayout` renders the toast container whenever `flash:` is passed — empty
+  included** (#991). The container's id is a documented Turbo Stream target
+  (`turbo_stream.append "toast-notifications"`), but the node only existed when the flash had a
+  toast-able entry — so on the pages async toasts actually land on (no flash), Turbo resolved
+  the target to nothing and silently discarded the append. Two hosts rebuilt the node by hand
+  and reached opposite conclusions about when to paint it, one of them shipping duplicate DOM
+  ids. Passing `flash:` (any flash, even empty) now guarantees the target exists; omitting it
+  still renders no container. The cost is an empty, zero-height, non-interactive div.
 - **Install docs: the documented `@source` glob omitted `lib/`** (#983). The FormBuilder lives
   entirely under `lib/bali/form_builder/` and is the only place that writes daisyUI's state
   classes — `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`,
