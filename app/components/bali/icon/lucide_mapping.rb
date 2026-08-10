@@ -51,7 +51,7 @@ module Bali
         "check-circle" => "circle-check",
         "times" => "x",
         "times-circle" => "circle-x",
-        "question_circle" => "circle-help",
+        "question-circle" => "circle-help",
 
         # Arrows & Navigation
         "arrow-right-up" => "arrow-up-right",

@@ -580,13 +580,16 @@ it, and only those two lose their glyph:
 | Name that stops resolving | What it drew | Use instead |
 |---|---|---|
 | `money-bill-wave` | a filled FontAwesome banknote | `banknote`, or `hand-coins` if the point was payment rather than cash |
-| `question-circle` | a filled question mark in a circle | `circle-help` |
+| `question-circle` | a filled question mark in a circle | `circle-help` (resolves again since v3.1 — see below) |
 
-`question-circle` is the one worth grepping for: the Lucide map *does* carry an entry for this
-icon, but under the key `question_circle` — the single underscored key in the whole table, a
-leftover from the v1 hash. So `question_circle` keeps working and `question-circle`, the
-spelling that matches every other name in the library, does not. Rename it to `circle-help`
-rather than to the underscored form; the underscore is the accident here, not the fix.
+`question-circle` had a twist in v3.0: the Lucide map *did* carry an entry for this icon, but
+under the key `question_circle` — the single underscored key in the whole table, a leftover
+from the v1 hash. So the underscored accident kept working while `question-circle`, the
+spelling that matches every other name in the library, did not — and the error's "Did you
+mean" pointed at the accident. Since v3.1 (#987) the key is dashed: `question-circle`
+resolves to `circle-help` directly, and `question_circle` raises suggesting
+`question-circle`, consistent with every other snake_case spelling below. Rename it to
+`circle-help` either way; that is the name lucide.dev shows.
 
 ### Every alternative spelling of a name stops resolving too
 
