@@ -35,4 +35,13 @@
     ) %>
     <span class="text-sm text-base-content/60"><code>href:</code> — renders an <code>&lt;a&gt;</code></span>
   </div>
+
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'inbox', label: 'Inbox, 128 pending', href: '/lookbook', badge: 128, active: true
+    ) %>
+    <span class="text-sm text-base-content/60">
+      <code>active: true, badge: 128</code> — current section (<code>aria-current="page"</code>) and the capped pill (<code>max_count:</code> defaults to 99)
+    </span>
+  </div>
 </div>
