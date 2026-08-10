@@ -38,6 +38,61 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
                     text: "3")
   end
 
+  # #995: the "> 99 ? '99+'" every host wrote by hand, packaged. Only Integer
+  # badges are capped — a String is a count the host already formatted.
+  def test_numeric_badge_above_max_count_renders_the_capped_form
+    render_inline(Bali::Topbar::IconAction::Component.new(
+                    icon: "inbox", label: "Inbox", badge: 128
+                  ))
+
+    assert_selector("span.bali-topbar-badge .badge", text: "99+")
+    assert_no_selector("span.bali-topbar-badge .badge", text: "128")
+  end
+
+  def test_max_count_is_configurable
+    render_inline(Bali::Topbar::IconAction::Component.new(
+                    icon: "inbox", label: "Inbox", badge: 12, max_count: 9
+                  ))
+
+    assert_selector("span.bali-topbar-badge .badge", text: "9+")
+  end
+
+  def test_string_badge_is_never_capped
+    render_inline(Bali::Topbar::IconAction::Component.new(
+                    icon: "inbox", label: "Inbox", badge: "999"
+                  ))
+
+    assert_selector("span.bali-topbar-badge .badge", text: "999")
+  end
+
+  # #995: the current-section state. On a link it is also announced
+  # (`aria-current="page"`); a button gets the visual state alone.
+  def test_active_paints_the_active_state_and_announces_it_on_a_link
+    render_inline(Bali::Topbar::IconAction::Component.new(
+                    icon: "inbox", label: "Inbox", href: "/inbox", active: true
+                  ))
+
+    assert_selector('a.btn-active[aria-current="page"]')
+  end
+
+  def test_active_on_a_button_has_no_aria_current
+    render_inline(Bali::Topbar::IconAction::Component.new(
+                    icon: "inbox", label: "Inbox", active: true
+                  ))
+
+    assert_selector("button.btn-active")
+    assert_no_selector("[aria-current]")
+  end
+
+  def test_inactive_carries_no_active_state
+    render_inline(Bali::Topbar::IconAction::Component.new(
+                    icon: "inbox", label: "Inbox", href: "/inbox"
+                  ))
+
+    assert_no_selector(".btn-active")
+    assert_no_selector("[aria-current]")
+  end
+
   def test_badge_id_names_the_turbo_stream_target
     render_inline(Bali::Topbar::IconAction::Component.new(
                     icon: "bell", label: "Notifications", badge: true,

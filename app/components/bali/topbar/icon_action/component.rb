@@ -31,14 +31,24 @@ module Bali
         #   a number or string draws a count pill; `nil` draws nothing.
         # @param badge_id [String, nil] DOM id of the indicator span, so a Turbo
         #   Stream can replace it.
+        # @param active [Boolean] marks this as the current section (#995):
+        #   daisyUI's `btn-active` state, plus `aria-current="page"` when the
+        #   control is a link.
+        # @param max_count [Integer] cap for an Integer `badge:` (default 99):
+        #   anything above renders as "99+" — the design decision every host
+        #   was re-writing by hand. Strings pass through untouched, so a host
+        #   that formats its own count keeps full control.
         # rubocop:disable Metrics/ParameterLists
-        def initialize(icon:, label:, href: nil, badge: nil, badge_id: nil, **options)
+        def initialize(icon:, label:, href: nil, badge: nil, badge_id: nil,
+                       active: false, max_count: 99, **options)
           # rubocop:enable Metrics/ParameterLists
           @icon = icon
           @label = label
           @href = href
           @badge = badge
           @badge_id = badge_id
+          @active = active
+          @max_count = max_count
           @options = options
         end
 
@@ -59,9 +69,11 @@ module Bali
 
         def root_attributes
           attrs = @options.except(:class)
-          attrs[:class] = class_names(BUTTON_CLASSES, ("relative" if badge?), @options[:class])
+          attrs[:class] = class_names(BUTTON_CLASSES, ("relative" if badge?),
+                                      ("btn-active" if @active), @options[:class])
           attrs[:"aria-label"] ||= @label
           attrs[:title] ||= @label
+          attrs[:"aria-current"] ||= "page" if @active && @href.present?
           @href.present? ? attrs.merge(href: @href) : { type: "button" }.merge(attrs)
         end
 
@@ -83,9 +95,17 @@ module Bali
           else
             # Rendered into a local first — a block that calls `render` itself
             # comes back empty under `capture` (see ActionsDropdown's note).
-            pill = render(Bali::Tag::Component.new(text: @badge.to_s, color: :error, size: :xs))
+            pill = render(Bali::Tag::Component.new(text: badge_text, color: :error, size: :xs))
             tag.span(pill, id: @badge_id, class: COUNT_CLASSES, "aria-hidden": true)
           end
+        end
+
+        # The cap only reads an Integer badge: a String is a count the host
+        # already formatted, and capping it would double-apply the decision.
+        def badge_text
+          return "#{@max_count}+" if @badge.is_a?(Integer) && @badge > @max_count
+
+          @badge.to_s
         end
       end
     end

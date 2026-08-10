@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   could never express it and the box stayed named by its placeholder alone. The DSL now carries
   them (`search_fields :name, :email, icon: 'search', label: t('.search_label')`), the
   initializer accepts `search_label:`/`search_width:` overrides, and subclasses inherit both.
+### Added
+- **`Bali::Topbar::IconAction` takes `active:` and `max_count:`** (#995). `active: true` paints
+  daisyUI's `btn-active` state and, on a link, announces it with `aria-current="page"` — the
+  current-section highlight every hand-written topbar action re-implemented with its own class
+  string. `max_count:` (default 99) caps an Integer `badge:` as "99+", packaging the design
+  decision hosts repeated at each call site; String badges pass through untouched. The count
+  stays out of the accessible name by design — put it in `label:` ("Inbox, 3 pending"), which is
+  what a screen reader should announce.
+
 ### Changed
 - **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
   underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
