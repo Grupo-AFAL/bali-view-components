@@ -49,7 +49,13 @@ module Bali
       # sentence either, and the old code interpolated it into one.
       def summarizable? = count.to_i.positive?
 
+      # nil when there is nothing to summarize. The components already gate on
+      # `summarizable?`, but the class is public and takes any Pagy: called bare
+      # with a countless one, the nil count interpolated into "Showing 11-20
+      # of  {one:, other:}" — a broken sentence with a Ruby Hash in it (#988).
       def summary(item_name = nil)
+        return unless summarizable?
+
         I18n.t(
           "bali_view.pagination.summary",
           from: from,

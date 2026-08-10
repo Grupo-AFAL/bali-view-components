@@ -29,6 +29,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so `panel_left` could lose `panel-left` itself to `layout-panel-left`. Candidates now rank
   exact (dash/underscore-normalized) match, then prefix, then substring, alphabetical within
   each tier.
+- **`Bali::Pagination::PagyAdapter#summary` returns nil when there is nothing to summarize**
+  (#988). With a countless Pagy — `count` nil by design — the method interpolated the nil into
+  "Showing 11-20 of  …" and, worse, the default `item_name` resolved to the i18n plural hash
+  verbatim, printing `{one: "item", other: "items"}` inside the sentence. The components were
+  never affected (both call sites gate on `summarizable?`); this hardens the public method for
+  hosts that call it bare, and the countless test now asserts what `summary` returns.
+- **Install docs: the documented `@source` glob omitted `lib/`** (#983). The FormBuilder lives
+  entirely under `lib/bali/form_builder/` and is the only place that writes daisyUI's state
+  classes — `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`,
+  `toggle-error`, `fieldset-label`, the whole `range-*` family. A host copying the README or
+  installation guide compiled a CSS missing all 51 of them (measured in a real host: -51 distinct
+  classes, 0 gained), so invalid fields rendered with no error border — and the troubleshooting
+  section prescribed the same broken glob as the cure. README, installation guide (including its
+  troubleshooting section) and troubleshooting guide now all hand out the same two-line pair, and
+  the dummy app compiles against exactly those globs so the documented pair is the one CI
+  exercises.
+- **Migration guide: the i18n grep recipe couldn't find the `helpers.*` keys its own section
+  migrates** (#989). None of the recipe's four alternatives matched a YAML `helpers:` subtree, so
+  a host carrying any of the six v2 keys ran the recipe, got a clean result, and never renamed —
+  keeping dead YAML exactly one release after the override would finally have worked. The recipe
+  now includes a `helpers:` alternative and a note on telling Bali's six keys apart from Rails'
+  own `helpers.*`.
+- **Stimulus patterns reference: the "preferred" `bali:modal:open` snippet threw instead of
+  opening** (#981). The snippet omitted `detail.options`, which the controller requires —
+  `Object.keys(undefined)` raised a `TypeError` before `openModal` ran, an unhandled no-op with a
+  stack pointing at Bali rather than the dispatching code. The snippet now passes `options: {}`
+  and documents that `content` is optional.
 - **`Bali::SplitView height: :full` now clamps when page one is taller than the viewport** (#979
   follow-up; found adopting the component in afal-apps' inbox — the adoption run these betas exist
   for). The pairing rule gave AppLayout's body container `flex: 1 0 auto`: basis `auto` makes the

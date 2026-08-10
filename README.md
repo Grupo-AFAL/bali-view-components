@@ -55,8 +55,11 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Scan Bali ViewComponents for Tailwind classes */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+/* Scan Bali ViewComponents for Tailwind classes — BOTH lines. app/ has the
+   components (including the JS that writes class names at runtime); lib/ has
+   the FormBuilder, which is where every *-error class comes from. */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 
 /* Import Bali CSS — one line, component sheets included */
 @import "bali-view-components/css/bali.css";
@@ -73,7 +76,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 }
 ```
 
-> **Important**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files. Without it, Tailwind won't detect these classes and they won't be included in your CSS build.
+> **Important**: Both `@source` directives are required. Bali defines Tailwind classes in Ruby, ERB and JS files under `app/`, and the FormBuilder defines its own — `input-error`, `select-error`, `fieldset-label`, the whole `range-*` family — under `lib/bali/`. Scanning only `app/` compiles without any warning and silently drops every form error style: invalid fields render with no red border.
 
 ### 4. Use Components
 
