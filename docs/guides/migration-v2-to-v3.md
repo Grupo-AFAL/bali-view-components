@@ -782,8 +782,13 @@ and not under `pagination_footer`. Rename yours or delete it; leaving it under t
 is silently dead.
 
 ```
-grep -rn "^\s*bali:\|view_components:\|bali\.\|view_components\.bali\." config/locales app/
+grep -rnE "^\s*(bali|view_components|helpers):|bali\.|view_components\.bali\." config/locales app/
 ```
+
+The `helpers:` alternative is what surfaces the six `helpers.*` keys from the table above —
+without it this recipe returns clean on a host that has all six, and the rename never happens.
+It also matches Rails' own `helpers.submit.*`/`helpers.label.*` keys; those are fine where they
+are, so only move the six Bali ones.
 
 ### Strings that had no key at all
 

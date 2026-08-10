@@ -79,16 +79,25 @@ Create `app/assets/tailwind/application.css` (or similar):
    `loading loading-spinner loading-sm` while a drawer form is in
    flight). Without scanning `.js`, those classes never reach your
    compiled CSS and the spinner renders unstyled.
+
+   `lib/` is not optional either: the FormBuilder lives entirely under
+   lib/bali/form_builder/ and is the only place that writes the error
+   and state classes — input-error, select-error, textarea-error,
+   checkbox-error, radio-error, toggle-error, fieldset-label, the whole
+   range-* family. Scanning only app/ compiles without any warning and
+   silently drops all of them: invalid fields render with no red border.
 */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 
 /* Optional - CI with a vendored bundle only. `ruby/setup-ruby` with
    `bundler-cache: true` vendors gems into vendor/bundle, so this glob
    scans the *gem's* copy of the same tree. It does not match in local
    (rbenv/rvm) or Docker (BUNDLE_PATH) setups, and that is fine: a
    @source with no matches adds no classes and raises no error. With
-   both globs, CI scans gem and npm copies alike, so if the two ever
-   skew, the union of classes keeps the build complete. */
+   all three globs, CI scans gem and npm copies alike, so if the two
+   ever skew, the union of classes keeps the build complete. It
+   complements the two npm globs above — it never replaces them. */
 @source "../../../vendor/bundle/ruby/*/bundler/gems/bali-view-components-*/**/*.{erb,rb}";
 
 /* =============================================
@@ -337,12 +346,18 @@ Open browser console and look for:
 
 ### Components unstyled or classes missing
 
-Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). If components appear unstyled or specific classes aren't working, Tailwind isn't scanning the component files.
+Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) — under `app/` **and** under `lib/` (the FormBuilder). If components appear unstyled or specific classes aren't working, Tailwind isn't scanning the component files.
 
-**Fix:** Ensure your `@source` directive scans Bali's source files in node_modules:
+**Fix:** Ensure your `@source` directives scan Bali's source files in node_modules — both lines:
 
 ```css
-/* Correct - scans Ruby, ERB and JS files */
+/* Correct - scans the components (app/) AND the FormBuilder (lib/) */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+
+/* Wrong - misses lib/: every FormBuilder state class (input-error, select-error,
+   fieldset-label, the range-* family) is silently absent from the build, so
+   invalid fields render with no error border */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
 
 /* Wrong - misses JS-written classes (the drawer submit spinner, for one) */
@@ -358,7 +373,7 @@ Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-pr
 
 The Tailwind build isn't scanning Bali component files.
 
-**Fix:** Ensure `@source` paths in your CSS point to `node_modules/bali-view-components/app/**/*.{rb,erb,js}`.
+**Fix:** Ensure your CSS has both `@source` globs: `node_modules/bali-view-components/app/**/*.{rb,erb,js}` and `node_modules/bali-view-components/lib/bali/**/*.rb`.
 
 ### "Unknown Stimulus controller"
 
