@@ -153,6 +153,18 @@ module Bali
           }
         )
       end
+
+      # @label Orphan Drawer Form (#984)
+      # A full page whose form hardcodes `submit_group(..., drawer: true)`. The
+      # button's `drawer#submit` and the Cancel's `drawer#close` land on the
+      # controller AppLayout mounts on `<main>` — an instance with no targets —
+      # so both must leave the events to the browser: the submit degrades to the
+      # form's own GET (the query string below proves it round-trips) and Cancel
+      # navigates. Before the #984 guards this page was the dead-button repro:
+      # spinner forever, 422 eaten, Cancel swallowed.
+      def orphan_drawer_form
+        render_with_template(template: "bali/app_layout/previews/orphan_drawer_form")
+      end
     end
   end
 end
