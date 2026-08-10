@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   change semantics are verified. Same opt-in per filter, off by default — no existing row
   changes behaviour.
 
+- **`Bali::FilterForm`: `search_fields` takes `label:` and `width:`, and `search_config` emits
+  all six `SearchConfig` keys** (#982). Both filter surfaces render `label:` as the search box's
+  `aria-label` — the only accessible name that survives typing — but the producer only emitted 4
+  of the 6 keys, so the auto-configured route (a bare `with_simple_filters` over a FilterForm)
+  could never express it and the box stayed named by its placeholder alone. The DSL now carries
+  them (`search_fields :name, :email, icon: 'search', label: t('.search_label')`), the
+  initializer accepts `search_label:`/`search_width:` overrides, and subclasses inherit both.
 ### Changed
 - **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
   underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
