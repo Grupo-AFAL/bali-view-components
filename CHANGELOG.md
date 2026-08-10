@@ -7,16 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- **CI: the split-view Cypress specs no longer flake** (6 occurrences across 5 PRs in one day).
-  Two mechanisms: the structured-list preview's scroll container (`22rem`) was borderline
-  against page one's height — with the CI runner's fonts, 5 rows no longer overflowed it, the
-  infinite-scroll sentinel was visible at load and fetched every page ("Found 20, expected 10");
-  it is `16rem` now, so page one overflows under any font metrics. And the cold-load
-  empty-state assertion ran against Cypress's 4s default timeout, which the preview's first
-  render in CI has exceeded; it gets 10s. The workflow also uploads Cypress's failure
-  screenshots as artifacts — the recurring "never found it" was undiagnosable without seeing
-  the page, and the next flake should not be.
+## [v3.1.0.beta.10] - 2026-08-10
 
 ### Added
 - **`Bali::HelpTip`: the help icon with a tooltip, packaged** (#993). The "?" next to a
@@ -86,6 +77,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no-underscored-keys invariant so the trap cannot return.
 
 ### Fixed
+- **CI: split-view Cypress spec hardening, and failure screenshots as artifacts** (#1009). The
+  structured-list preview's scroll container was borderline against page one's height under the
+  CI runner's fonts (`22rem` → `16rem`, so page one always overflows and the infinite-scroll
+  sentinel starts below the fold), and the cold-load empty-state assertions ran against
+  Cypress's 4s default timeout (now 10s). The recurring failures turned out to be deeper — an
+  intermittent SplitView back-restoration race that re-fires the frame's advance, filed as
+  #1012 with the evidence — and the workflow now uploads Cypress's failure screenshots as
+  artifacts, which is exactly what made that diagnosis possible.
 - **`ModalController`/`DrawerController`: a `submit_group(..., drawer: true)` on a full page
   degrades to a working form instead of a dead button** (#984). AppLayout mounts
   `data-controller="modal drawer"` on `<main>` by default, and Stimulus scopes the panel's
