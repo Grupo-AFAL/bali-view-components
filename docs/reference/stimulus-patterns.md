@@ -439,9 +439,11 @@ handleSelect(event) {
 ### Cross-Controller Communication
 
 ```javascript
-// Via custom events (preferred)
+// Via custom events (preferred). `detail.options` is required — pass `{}` when
+// there is nothing to set; omitting it throws inside the controller before the
+// modal opens. `content` is optional: without it the template's markup is kept.
 document.dispatchEvent(new CustomEvent("bali:modal:open", {
-  detail: { id: "confirm-dialog" }
+  detail: { id: "confirm-dialog", options: {} }
 }))
 
 // Via Stimulus outlets (for direct connections)

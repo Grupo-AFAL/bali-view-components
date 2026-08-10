@@ -26,8 +26,9 @@ Tailwind needs to scan Bali component files to include their classes in the buil
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Add these source paths */
-@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
+/* Add these source paths — app/ has the components (incl. class names
+   written from JS), lib/ has the FormBuilder's error/state classes */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
 @source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 ```
 
