@@ -26,6 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   them (`search_fields :name, :email, icon: 'search', label: t('.search_label')`), the
   initializer accepts `search_label:`/`search_width:` overrides, and subclasses inherit both.
 ### Changed
+- **`Bali::Tooltip` defaults to `append_to: :body`** (#992, the follow-up #611 asked for). The
+  old `:parent` default was wrong exactly in the composition the library promotes: under
+  `viewport_locked` (which follows `fixed_sidebar`, `true` since v3) AppLayout's own `<main>`
+  carries `overflow-y: auto`, so every balloon rendered in place was born clipped — one host
+  accumulated 49 `append_to: :body` workarounds across 19 files, plus helpers and a retreat to
+  the native `title` attribute, to escape it. The balloon now portals to `<body>` by default
+  (`FieldGroupWrapper`'s help icon inherits it), `append_to: :parent` is the opt-in for keeping
+  it in the trigger's subtree, and the JS controller's own value default matches. Inside an open
+  modal/drawer the top-layer host wins regardless, as before. Hosts can delete their per-call
+  `append_to: :body` — it is now a no-op restating the default.
 - **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
   underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
   resolved while `question-circle`, the spelling consistent with every other name, raised with a

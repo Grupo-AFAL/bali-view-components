@@ -26,9 +26,15 @@ module Bali
       # NOTE: The `trigger_event` parameter is named to avoid collision with the `trigger` slot
       #
       # `append_to` controls where the balloon is portaled in the DOM. Defaults to
-      # `:parent` (rendered inside the trigger). Pass `:body` or a CSS-selector String
-      # to portal the balloon out of ancestors with `overflow` that would clip it.
-      def initialize(placement: :top, trigger_event: DEFAULT_TRIGGER, append_to: :parent, **options)
+      # `:body` (#992): the `<main>` AppLayout mounts under `viewport_locked` carries
+      # `overflow-y: auto`, so in the composition the library itself promotes, a
+      # balloon rendered in place was born clipped — hosts were writing
+      # `append_to: :body` at every call site (49 times in one app) to escape it.
+      # Pass `:parent` to keep the balloon inside the trigger's subtree, or a
+      # CSS-selector String for a specific portal. Inside an open modal/drawer the
+      # controller portals to the top-layer host regardless, so the balloon never
+      # paints under an overlay.
+      def initialize(placement: :top, trigger_event: DEFAULT_TRIGGER, append_to: :body, **options)
         @placement = placement&.to_sym
         @trigger_event = trigger_event
         @append_to = append_to

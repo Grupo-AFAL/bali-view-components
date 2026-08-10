@@ -2512,8 +2512,11 @@ what opens it.
 - `placement` - `:top` (default), `:bottom`, `:left`, `:right`
 - `trigger_event` - tippy trigger string, `"mouseenter focusin"` by default. `"click"` and
   `"manual"` are the other useful values.
-- `append_to` - `:parent` (default), `:body`, or a CSS selector, to portal the balloon out
-  of an ancestor whose `overflow` would clip it.
+- `append_to` - `:body` (default since v3.1, #992), `:parent`, or a CSS selector. The default
+  portals the balloon to `<body>` so it escapes ancestors whose `overflow` would clip it —
+  AppLayout's own `<main>` under `viewport_locked` is one. Pass `:parent` to keep the balloon
+  inside the trigger's subtree. Inside an open modal/drawer the balloon goes to the top-layer
+  host regardless, so it never paints under an overlay.
 
 **Keyboard.** The default trigger is `focusin` rather than tippy's `focus` because the
 element tippy watches is the wrapper around the slot, and a `focus` on the caller's own
