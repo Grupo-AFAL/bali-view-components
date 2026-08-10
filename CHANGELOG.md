@@ -25,6 +25,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no-underscored-keys invariant so the trap cannot return.
 
 ### Fixed
+- **`ModalController`/`DrawerController`: a `submit_group(..., drawer: true)` on a full page
+  degrades to a working form instead of a dead button** (#984). AppLayout mounts
+  `data-controller="modal drawer"` on `<main>` by default, and Stimulus scopes the panel's
+  targets to the `<dialog>`'s own controller — so that `<main>` instance owns no targets, yet it
+  is the closest `drawer` controller of every form on every page. A form that hardcoded
+  `drawer: true` and rendered as a full page sent its 422 into `_replaceContent`, which threw on
+  the missing target: no validation errors, the button stuck disabled with its spinner on, and
+  the Cancel link's navigation swallowed by `preventDefault`. `submit` and `close` now return
+  *before* `preventDefault` when the instance has no panel — the browser and Turbo keep the
+  submit — and `openModal`, `_showOverlay`, `_hideOverlay`, `_replaceContent`, `_closeModal` and
+  `trapFocus` guard their targets like the rest of the file already did. `setOptions` also
+  tolerates a missing `detail.options` (#981's belt-and-braces). A new
+  `bali/app_layout/orphan_drawer_form` preview reproduces the page and
+  `cypress/e2e/modal-orphan-form.cy.js` pins the degraded-to-normal behaviour.
 - **`Bali::Icon`: every Lucide `<svg>` carried two `width`/`height` pairs, and the wrong one
   won** (#986). `LucideRails.default_options` holds `"width"`/`"height"` as String keys; the
   Symbol overrides serialized as a second pair, and HTML parsers keep the first — so the SVG was
