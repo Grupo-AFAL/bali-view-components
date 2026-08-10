@@ -159,15 +159,17 @@ module Bali
         )
       end
 
-      # An empty container is a fixed, zero-height div in every page's DOM, so the
-      # guard stays here rather than inside the component: only the caller knows
-      # whether a slot is coming.
-      def flash_toasts?
-        return false if @flash.blank?
-
-        @flash.any? do |key, message|
-          Bali::ToastContainer::Component::FLASH_COLORS.key?(key.to_sym) && message.present?
-        end
+      # The container renders whenever the caller passes `flash:` — even an empty
+      # one. Its id is a documented Turbo Stream target (the controller promises
+      # `turbo_stream.append "toast-notifications"` keeps landing in the same
+      # place), and a target that only exists when a flash happens to be set is a
+      # contract broken on exactly the pages async toasts land on: Turbo resolves
+      # the target with getElementById and silently discards the append (#991).
+      # Two hosts rebuilt the node by hand and reached opposite conclusions about
+      # when to paint it — one of them shipping duplicate ids. What the old guard
+      # bought was avoiding an empty, zero-height, non-interactive div.
+      def toast_container?
+        !@flash.nil?
       end
 
       def body_container_classes

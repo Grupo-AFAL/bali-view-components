@@ -65,8 +65,10 @@
       is that markup, and it reads every flash key it recognises. The wrapper also
       used to be an `aria-live` region containing alerts that were live regions
       themselves — nesting that made announcements unreliable. The toasts keep
-      their roles; the container is now plain furniture. %>
-  <% if flash_toasts? %>
+      their roles; the container is now plain furniture. Rendered whenever the
+      caller passes `flash:` — empty included — because the id is a Turbo Stream
+      target (#991, see toast_container?). %>
+  <% if toast_container? %>
     <%= render Bali::ToastContainer::Component.new(id: "toast-notifications", flash: flash_hash) %>
   <% end %>
 </body>
