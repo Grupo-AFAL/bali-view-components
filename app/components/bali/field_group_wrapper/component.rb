@@ -93,13 +93,11 @@ module Bali
         @label_options[:text] || @form.translate_attribute(@method)
       end
 
+      # Through Bali::HelpTip (#993), so the help icon on a form field and the
+      # one a host renders next to a table header are the same component — this
+      # used to build the Tooltip+Icon pair privately, and hosts rewrote it.
       def tooltip_icon
-        render(Bali::Tooltip::Component.new) do |tooltip|
-          tooltip.with_trigger do
-            render(Bali::Icon::Component.new("info-circle", class: "size-4 text-base-content/60"))
-          end
-          @label_options[:tooltip]
-        end
+        render(Bali::HelpTip::Component.new(@label_options[:tooltip]))
       end
 
       def legend_classes

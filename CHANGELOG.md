@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`Bali::HelpTip`: the help icon with a tooltip, packaged** (#993). The "?" next to a
+  heading, a label or a domain term was a pattern every host rebuilt — one app had 49 copies
+  across two helpers, one of them with the Lucide SVG pasted inline. It is one component now:
+  `render Bali::HelpTip::Component.new(t('.sipoc_help'))`, with `icon:`, `placement:`, a block
+  form for rich content, and passthrough to `Bali::Tooltip` for the rest.
+  `FieldGroupWrapper` renders a field's `tooltip:` option through it, so the form-field "?"
+  and the table-header "?" are the same drawing — and both inherit Tooltip's `:body` portal
+  default (#992) and the keyboard-reachable trigger.
 - **SimpleFilters: `auto_submit: true` now also applies to the native `:select` widget**
   (#996). The restriction to the pill widgets left the most common filter control unable to
   auto-submit, so a listing migrated to `SimpleFilters` traded its filter-on-change selects for
