@@ -146,8 +146,9 @@ For reusable filter forms, use the class-level DSL:
 
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
-  # Quick search across multiple columns
-  search_fields :name, :genre, :studio_name
+  # Quick search across multiple columns. `label:` is the box's aria-label
+  # (#982); `icon:`/`width:` style it. All optional.
+  search_fields :name, :genre, :studio_name, label: 'Search movies'
 
   # Filterable attributes for advanced filters UI
   filter_attribute :name, type: :text
@@ -266,7 +267,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `search_enabled?` | `Boolean` | True if search is configured |
 | `search_value` | `String` | Current search value from params |
 | `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
-| `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take (`fields`, `value`, `placeholder`, `icon`) |
+| `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take — every `Bali::SearchConfig::KEYS` entry (`fields`, `value`, `placeholder`, `label`, `icon`, `width`) |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
 | `combinator` | `String` | Top-level combinator ('and' or 'or') |

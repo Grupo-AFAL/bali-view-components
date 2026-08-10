@@ -3131,8 +3131,10 @@ to the other keeps searching the same thing.
 ) %>
 ```
 
-A `FilterForm` that declares `search_fields` fills this in on its own, so inside a `DataTable`
-the hash is only for overrides:
+A `FilterForm` that declares `search_fields` fills this in on its own — including `label:`
+(the box's `aria-label`, the only accessible name that survives typing) and `width:` since
+v3.1 (#982): `search_fields :name, :email, icon: 'search', label: t('.search_label')`. Inside
+a `DataTable` the hash is only for overrides:
 
 ```erb
 <% dt.with_simple_filters(search: { placeholder: 'Search movies...' }) %>
