@@ -3112,6 +3112,25 @@ makes it a first-class popover attribute with no new API.
   reads and writes `Rails.cache`, so it needs a real cache store: under `:null_store` —
   which is what a generated `development.rb` uses unless `tmp/caching-dev.txt` exists —
   every write is silently dropped and nothing is ever restored.
+
+  **Wire it with `Bali::Filterable` (#999).** Persistence needs three things only the
+  request can answer — `storage_id`, `context:` and `persist_enabled:` — and forgetting any
+  of them renders perfectly and never restores. The concern closes the circuit:
+
+  ```ruby
+  class ApplicationController < ActionController::Base
+    include Bali::Filterable
+  end
+
+  # In the action — storage_id derives from controller_path, persist_enabled from the
+  # toggle's cookie, context from Bali.filter_context (current_user&.id by default):
+  @filter_form = filter_form(AccountsFilterForm, policy_scope(Account))
+  ```
+
+  Every explicit kwarg still wins (`storage_id: "bulk_provision_#{@app.id}"`, `context:`,
+  `persist_enabled:`, and anything the form takes). Configure the identity once:
+  `Bali.filter_context = ->(controller) { controller.current_account&.id }`. A DataTable
+  whose toggle is about to render over a form nobody wired warns in dev/test.
 - Date range "between" operator with Flatpickr
 
 **Modes:**

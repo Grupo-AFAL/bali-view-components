@@ -27,6 +27,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `FieldGroupWrapper` renders a field's `tooltip:` option through it, so the form-field "?"
   and the table-header "?" are the same drawing — and both inherit Tooltip's `:body` portal
   default (#992) and the keyboard-reachable trigger.
+- **`Bali::Filterable`: the controller concern that closes the persistence circuit** (#999).
+  Filter persistence needed three kwargs from every host controller — `storage_id`, `context:`
+  and `persist_enabled:` — and each was an engine internal leaking out: the `bali_persist_*`
+  cookie format, the "no context = process-global cache" trap, and a storage id that is always
+  a derivation of the controller. Forgetting any of the three renders perfectly and never
+  restores; it happened to two apps in a row, silently.
+  `include Bali::Filterable` + `@filter_form = filter_form(AccountsFilterForm, policy_scope(Account))`
+  derives all three (storage id from `controller_path`, opt-in from the toggle's cookie,
+  context from the new `Bali.filter_context` — `current_user&.id` by default, same shape as
+  `saved_views_owner`). Explicit kwargs still win, so it is fully additive. As the safety net,
+  a DataTable about to render the persistence toggle over a form nobody wired — or with a nil
+  context — warns in dev/test, once per storage id; `FilterForm#persistence_opt_in_read?`
+  distinguishes an explicit `persist_enabled: false` (a read opt-in) from nobody having looked.
+  The dummy's canonical controllers now go through the concern.
 - **SimpleFilters: `auto_submit: true` now also applies to the native `:select` widget**
   (#996). The restriction to the pill widgets left the most common filter control unable to
   auto-submit, so a listing migrated to `SimpleFilters` traded its filter-on-change selects for
