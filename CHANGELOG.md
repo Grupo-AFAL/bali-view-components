@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **`Bali::Pagination::PagyAdapter#summary` returns nil when there is nothing to summarize**
+  (#988). With a countless Pagy — `count` nil by design — the method interpolated the nil into
+  "Showing 11-20 of  …" and, worse, the default `item_name` resolved to the i18n plural hash
+  verbatim, printing `{one: "item", other: "items"}` inside the sentence. The components were
+  never affected (both call sites gate on `summarizable?`); this hardens the public method for
+  hosts that call it bare, and the countless test now asserts what `summary` returns.
 - **Install docs: the documented `@source` glob omitted `lib/`** (#983). The FormBuilder lives
   entirely under `lib/bali/form_builder/` and is the only place that writes daisyUI's state
   classes — `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`,
