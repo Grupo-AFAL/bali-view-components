@@ -50,15 +50,33 @@ describe('SplitView height: :full', () => {
     })
   })
 
-  // The interaction the issue asks about: in `:full` the scroll container is
-  // taller than it was, so one page of rows no longer fills it. The sentinel
-  // stays in view and has to keep asking — the container changed size, not
-  // identity, and the observer is rooted on it either way.
-  it('keeps the infinite scroll loading until the taller pane is full', () => {
-    // 5 rows a page, 20 in the table. A pane this tall does not stop at one
-    // page: the sentinel stays in view after each append and keeps asking, so
-    // the listing runs to the end without anybody scrolling.
-    cy.get('.split-view-item').should('have.length.greaterThan', 5)
+  // The bali#979 regression, reproduced by construction: page one (12 rows) is
+  // TALLER than the pane. The first shipped version used `flex: 1 0 auto` on
+  // the body container — basis `auto` made its hypothetical size the CONTENT
+  // size and shrink 0 never brought it back down, so exactly this arrangement
+  // scrolled the page as a whole and the pane scroll never engaged. Measured in
+  // afal-apps' inbox (87 items): a 7537px container inside a 1061px <main>.
+  it('clamps even when page one is taller than the pane (bali#979 regression)', () => {
+    cy.get('[data-split-view-list-target="scroller"]').then(($s) => {
+      const el = $s[0]
+      expect(el.scrollHeight, 'the fixture really overflows the pane')
+        .to.be.greaterThan(el.clientHeight + 100)
+      expect(el.clientHeight, 'the pane is bounded by the viewport, not the content')
+        .to.be.lessThan(800)
+    })
+    cy.document().then((doc) => {
+      expect(doc.documentElement.scrollHeight, 'the page still does not scroll')
+        .to.be.at.most(doc.documentElement.clientHeight + 1)
+    })
+  })
+
+  // Infinite scroll inside the clamp: page one overfills the pane, so the
+  // sentinel starts OUT of view and nothing auto-loads — reaching the bottom of
+  // the pane is what asks for page two. The observer is rooted on the scroller,
+  // and the scroller is the thing the clamp finally bounded.
+  it('keeps the infinite scroll working inside the clamped pane', () => {
+    cy.get('.split-view-item').should('have.length', 12)
+    cy.get('[data-split-view-list-target="scroller"]').scrollTo('bottom')
     cy.get('.split-view-item').should('have.length', 20)
     cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
   })
@@ -70,9 +88,13 @@ describe('SplitView height: :full', () => {
   // assertions are the alarm.
   it('applies the layout fix only where a full-height split actually is', () => {
     cy.get('main').should('have.css', 'display', 'flex')
+    // basis 0% + shrink 1: the container is exactly the leftover space. With
+    // basis auto/shrink 0 (the first version) a long list re-inflated it — the
+    // bali#979 regression above is the symptom this pair prevents.
     cy.get('.app-layout-body-container')
       .should('have.css', 'flex-grow', '1')
-      .and('have.css', 'flex-shrink', '0')
+      .and('have.css', 'flex-shrink', '1')
+      .and('have.css', 'flex-basis', '0%')
   })
 
   it('still swaps only the detail frame when a row is clicked', () => {

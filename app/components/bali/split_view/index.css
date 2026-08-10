@@ -204,9 +204,20 @@
    `:has()` is what keeps them off every other locked page: a layout with
    ordinary content is byte-for-byte what it was.
 
-   `flex: 1 0 auto` and not `flex: 1`: grow to fill the screen, but never shrink
-   below the content. A page taller than the viewport keeps its height and
-   `<main>` scrolls, which is what `:content` inside a locked layout still wants.
+   `flex: 1 1 0%` and not `flex: 1 0 auto`. The first shipped version used
+   `1 0 auto` — "grow to fill the screen, never shrink below the content" — but
+   basis `auto` makes the container's hypothetical size its CONTENT size, and
+   shrink `0` means it never comes back down: with a list taller than the
+   viewport (a real inbox's normal state) the container never clamps, the page
+   scrolls as a whole, each pane's own scroll never engages, and the
+   infinite-scroll sentinel — permanently visible — fetches every page at once.
+   Measured in afal-apps' inbox with 87 items: a 7537px container inside a
+   1061px `<main>`. Basis `0%` sizes the container purely by grow — exactly the
+   leftover space — and `min-height: 0` lets it hand that bound down. The
+   `:content` case never hits this rule (no `--full` child), so nothing else
+   changes. The dummy's reference page missed this for a whole beta because its
+   page ONE was shorter than the viewport; it now paginates large enough to
+   reproduce (see `SplitViewsController::FULL_PER_PAGE`).
 
    The split has to be a DIRECT child of the body container. A wrapper in
    between is a link in the chain with `height: auto`, and the fill dies there —
@@ -219,6 +230,7 @@
 
   .app-layout--viewport-locked
     .app-layout-body-container:has(> .split-view-component--full) {
-    flex: 1 0 auto;
+    flex: 1 1 0%;
+    min-height: 0;
   }
 }

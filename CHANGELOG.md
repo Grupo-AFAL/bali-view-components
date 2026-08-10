@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`Bali::SplitView height: :full` now clamps when page one is taller than the viewport** (#979
+  follow-up; found adopting the component in afal-apps' inbox — the adoption run these betas exist
+  for). The pairing rule gave AppLayout's body container `flex: 1 0 auto`: basis `auto` makes the
+  container's hypothetical size its **content** size, and shrink `0` means it never comes back
+  down — so with a list taller than the screen (a real inbox's normal state) the container never
+  clamped, the page scrolled as a whole, each pane's own scroll never engaged, and the
+  infinite-scroll sentinel — permanently in view — fetched every page at once. Measured in
+  afal-apps with 87 pending items: a 7,537px container inside a 1,061px `<main>`. The rule is now
+  `flex: 1 1 0%` plus `min-height: 0`: the container is exactly the leftover space, the split fills
+  it, each pane scrolls. The `:content` case never matched this `:has()` rule, so nothing else
+  changes. The reference page missed this for a whole beta because its page one (5 rows) was
+  shorter than the viewport and flex-grow stretched it into looking right; `/split-view/full` now
+  paginates 12 per page — taller than the pane by construction, with a second page left so the
+  sentinel still demonstrates infinite scroll inside the clamp — and
+  `cypress/e2e/split-view-full-height.cy.js` reproduces the regression explicitly and pins the new
+  flex pair (a `flex-shrink: 0` assertion was the old value's alarm; it now guards the fix).
+
 ## [v3.1.0.beta.9] - 2026-08-07
 
 ### Added
