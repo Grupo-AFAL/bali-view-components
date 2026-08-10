@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **CI: the split-view Cypress specs no longer flake** (6 occurrences across 5 PRs in one day).
+  Two mechanisms: the structured-list preview's scroll container (`22rem`) was borderline
+  against page one's height — with the CI runner's fonts, 5 rows no longer overflowed it, the
+  infinite-scroll sentinel was visible at load and fetched every page ("Found 20, expected 10");
+  it is `16rem` now, so page one overflows under any font metrics. And the cold-load
+  empty-state assertion ran against Cypress's 4s default timeout, which the preview's first
+  render in CI has exceeded; it gets 10s. The workflow also uploads Cypress's failure
+  screenshots as artifacts — the recurring "never found it" was undiagnosable without seeing
+  the page, and the next flake should not be.
+
 ### Added
 - **`Bali::FilterForm`: `search_fields` takes `label:` and `width:`, and `search_config` emits
   all six `SearchConfig` keys** (#982). Both filter surfaces render `label:` as the search box's

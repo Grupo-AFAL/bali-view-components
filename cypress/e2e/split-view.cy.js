@@ -19,7 +19,12 @@ describe('SplitView', () => {
     })
 
     it('starts on the empty detail with no row selected', () => {
-      cy.get('.split-view-detail .empty-state-component').should('be.visible')
+      // 10s y no los 4s default: primera consulta tras un visit frío — en CI el
+      // primer render del preview (dev mode, templates sin compilar, runner
+      // cargado) ha tardado más que el timeout y este assert era el flake más
+      // frecuente de la suite. Si vuelve a fallar con 10s, ya no es timing: el
+      // workflow ahora sube screenshots para verlo.
+      cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
       cy.get('.split-view-row[aria-current]').should('not.exist')
     })
 
@@ -98,7 +103,9 @@ describe('SplitView', () => {
 
         cy.go('back')
         cy.location('pathname').should('include', '/lookbook/preview/bali/split_view/custom_master')
-        cy.get('.split-view-detail .empty-state-component').should('be.visible')
+        // Mismo margen que el assert de carga fría: la restauración del back
+        // puede rerenderizar el preview completo en CI.
+        cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
         // The highlight has to rewind with the frame. Turbo caches the snapshot
         // of the page it leaves, and it takes it AFTER the controller has moved
         // aria-current — so without the `turbo:before-cache` rewind this page
