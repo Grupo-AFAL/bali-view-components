@@ -7,7 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
+  underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
+  resolved while `question-circle`, the spelling consistent with every other name, raised with a
+  "Did you mean: `question_circle`?" — the exact rename the migration guide tells hosts not to
+  adopt. Now `question-circle` resolves to `circle-help` directly and `question_circle` raises
+  suggesting `question-circle`, like every other snake_case spelling. A test freezes the
+  no-underscored-keys invariant so the trap cannot return.
+
 ### Fixed
+- **`Bali::Icon`: every Lucide `<svg>` carried two `width`/`height` pairs, and the wrong one
+  won** (#986). `LucideRails.default_options` holds `"width"`/`"height"` as String keys; the
+  Symbol overrides serialized as a second pair, and HTML parsers keep the first — so the SVG was
+  always 24x24 outside Bali's CSS (email HTML, extracted SVGs, strict XML parsers fail outright
+  on the duplicate). The default pair is now excluded before the override, leaving a single pair
+  with the real size. The size test fixture moved off 24 — Lucide's own default, which is what
+  let the bug pass its test — and a new assertion pins the single-pair output.
+- **`Bali::Icon`: "Did you mean" suggestions rank the exact match first** (#985). The pool
+  already covered the full Lucide catalog (since #902), but `first(3)` truncated in pool order,
+  so `panel_left` could lose `panel-left` itself to `layout-panel-left`. Candidates now rank
+  exact (dash/underscore-normalized) match, then prefix, then substring, alphabetical within
+  each tier.
 - **`Bali::SplitView height: :full` now clamps when page one is taller than the viewport** (#979
   follow-up; found adopting the component in afal-apps' inbox — the adoption run these betas exist
   for). The pairing rule gave AppLayout's body container `flex: 1 0 auto`: basis `auto` makes the
