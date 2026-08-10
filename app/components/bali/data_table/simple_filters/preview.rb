@@ -186,12 +186,14 @@ module Bali
 
         STATUS_CHOICES = [%w[Draft draft], %w[Published published], %w[Archived archived]].freeze
         KIND_CHOICES = [%w[Public public], %w[Private private]].freeze
+        GENRE_CHOICES = [%w[Action action], %w[Comedy comedy], %w[Drama drama]].freeze
 
         # @label Auto Submit
-        # Pills that filter on click. `auto_submit: true` per filter mounts
-        # `submit-on-change` on the row and wires that filter's controls to it, so
-        # there is nothing left to press — the Filter button stays for the filters
-        # that did not opt in.
+        # Pills and selects that filter on change. `auto_submit: true` per filter
+        # mounts `submit-on-change` on the row and wires that filter's controls to
+        # it, so there is nothing left to press — the Filter button stays for the
+        # filters that did not opt in (#996 added the native select: its change
+        # fires when the menu closes on a selection, a completed choice).
         #
         # The form GETs this same URL and the template reads the values back out of the
         # `q` params, so the row really round-trips: the query string below is what the
@@ -202,7 +204,8 @@ module Bali
             template: 'bali/data_table/simple_filters/previews/auto_submit',
             locals: {
               status_choices: Bali::DataTable::SimpleFilters::Preview::STATUS_CHOICES,
-              kind_choices: Bali::DataTable::SimpleFilters::Preview::KIND_CHOICES
+              kind_choices: Bali::DataTable::SimpleFilters::Preview::KIND_CHOICES,
+              genre_choices: Bali::DataTable::SimpleFilters::Preview::GENRE_CHOICES
             }
           )
         end

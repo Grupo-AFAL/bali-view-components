@@ -68,10 +68,13 @@ module Bali
       SIMPLE_INPUTS = %i[select slim_select toggle_group radio_group boolean date
                          date_range number_range].freeze
 
-      # Widgets that may carry `auto_submit: true`. The pills are the ones where a
-      # single click is the whole interaction, so filtering on it cannot cut the user
-      # off mid-value the way it would on a date or a number range.
-      AUTO_SUBMIT_INPUTS = %i[toggle_group radio_group].freeze
+      # Widgets that may carry `auto_submit: true`: the ones where a change event is
+      # a completed choice. A pill click is the whole interaction, and a native
+      # select only fires `change` when the menu closes on a selection (#996) — so
+      # neither can cut the user off mid-value the way a date or a number range
+      # would. `slim_select` stays out until its change semantics are verified
+      # against the SlimSelect controller.
+      AUTO_SUBMIT_INPUTS = %i[toggle_group radio_group select].freeze
 
       # Default SimpleFilters widget derived from the declared data type.
       # :text has no entry on purpose — quick text search belongs to search_fields.
@@ -123,9 +126,10 @@ module Bali
       # @param placeholder_max [String] Max placeholder for :number_range
       # @param auto_submit [Boolean] Filter as soon as this control changes, instead
       #   of waiting for the Filter button. Opt-in per filter and off by default, so
-      #   no existing row changes behaviour. Only for the pill widgets — `:toggle_group`
-      #   and `:radio_group`, see AUTO_SUBMIT_INPUTS above — where one click is the whole
-      #   interaction; a range would submit between the two halves of its value.
+      #   no existing row changes behaviour. Only for widgets whose change is a
+      #   completed choice — `:toggle_group`, `:radio_group` and `:select`, see
+      #   AUTO_SUBMIT_INPUTS above; a range would submit between the two halves of
+      #   its value.
       # @param presets [Boolean, Array<Symbol>] Named periods offered by an
       #   `input: :date_range` widget, which then renders a period select whose
       #   "Custom…" option reveals the date picker. `true` offers all of
@@ -220,9 +224,9 @@ module Bali
         return if AUTO_SUBMIT_INPUTS.include?(widget)
 
         raise ArgumentError,
-              "filter_attribute #{key}: auto_submit: true only applies to the pill widgets " \
-              "(#{AUTO_SUBMIT_INPUTS.join(', ')}) declared with simple: true; this one is " \
-              "#{widget ? ":#{widget}" : 'not a simple filter'}"
+              "filter_attribute #{key}: auto_submit: true only applies to single-choice " \
+              "widgets (#{AUTO_SUBMIT_INPUTS.join(', ')}) declared with simple: true; " \
+              "this one is #{widget ? ":#{widget}" : 'not a simple filter'}"
       end
     end
 

@@ -1476,16 +1476,28 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
     assert_equal(false, status[:auto_submit])
   end
 
+  # #996: un select nativo también es una elección terminada — el change dispara al
+  # cerrar el menú con una selección — así que puede auto-enviar igual que las pills.
+  def test_auto_submit_on_a_select_reaches_the_simple_filters_config
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :genre, type: :select, simple: true, advanced: false,
+                       options: [ %w[Action action] ], auto_submit: true
+    end
+
+    genre = form_class.new(Movie.all, params({})).simple_filters_config.first
+    assert_equal(true, genre[:auto_submit])
+  end
+
   # Falla al definir la clase y no al renderizar, como un `input:` desconocido: un
   # `auto_submit:` que nadie lee es peor que un error.
-  def test_auto_submit_outside_the_pill_widgets_raises
+  def test_auto_submit_outside_the_single_choice_widgets_raises
     error = assert_raises(ArgumentError) do
       Class.new(Bali::FilterForm) do
-        filter_attribute :genre, type: :select, simple: true, options: [], auto_submit: true
+        filter_attribute :created_at, type: :date, simple: true, auto_submit: true
       end
     end
-    assert_match(/auto_submit: true only applies to the pill widgets/, error.message)
-    assert_match(/this one is :select/, error.message)
+    assert_match(/auto_submit: true only applies to single-choice widgets/, error.message)
+    assert_match(/this one is :date/, error.message)
   end
 
   def test_auto_submit_on_an_advanced_only_attribute_raises
