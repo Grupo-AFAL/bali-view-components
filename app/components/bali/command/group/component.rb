@@ -20,12 +20,24 @@ module Bali
         #     was: the list showed up and then never filtered
         #   - :recent — items only show when the query is empty
         #   - :action — items always show (used as a fallback for no-results)
-        def initialize(name:, mode: :searchable)
+        # @param options [Hash] Extra HTML attributes (class, data, id) merged
+        #   onto the group wrapper — the passthrough the slot lambda promises.
+        def initialize(name:, mode: :searchable, **options)
           @name = name
           @mode = MODES.include?(mode) ? mode : :searchable
+          @options = options
         end
 
         attr_reader :name, :mode
+
+        # The wrapper's attributes with the host's `**options` merged: `data`
+        # merges over the group's own command-target/mode data, `class` and the
+        # rest pass through.
+        def wrapper_options
+          options = @options.dup
+          data = { command_target: "group", mode: mode }.merge(options.delete(:data) || {})
+          { data: data }.merge(options)
+        end
       end
     end
   end

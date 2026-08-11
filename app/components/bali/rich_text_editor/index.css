@@ -297,7 +297,7 @@
     @apply border-r-0;
   }
 
-  a.toolbar-link {
+  .toolbar-link {
     @apply inline-block text-base-content bg-base-100 border-r border-base-200;
     @apply py-1 px-1;
 

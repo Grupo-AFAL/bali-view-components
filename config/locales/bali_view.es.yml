@@ -576,6 +576,16 @@ es:
       placeholder: "Empieza a escribir..."
 
       bubble_menu:
+        # Accessible names for the icon-only formatting buttons (no visible text)
+        actions:
+          bold: "Negrita"
+          italic: "Cursiva"
+          underline: "Subrayado"
+          strikethrough: "Tachado"
+          align_left: "Alinear a la izquierda"
+          align_center: "Centrar"
+          align_right: "Alinear a la derecha"
+          text_color: "Color de texto"
         # Node type dropdown; `text` doubles as the trigger's default label
         nodes:
           text: "Texto"

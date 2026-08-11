@@ -31,12 +31,12 @@
 
   <% topbar.with_action do %>
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'bell', label: 'Notifications', badge: true, badge_id: 'admin-notifications-badge'
+      icon: 'bell', aria_label: 'Notifications', badge: true, badge_id: 'admin-notifications-badge'
     ) %>
   <% end %>
 
   <% topbar.with_action do %>
-    <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', label: 'Help') %>
+    <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', aria_label: 'Help') %>
   <% end %>
 
   <% topbar.with_user_menu do %>

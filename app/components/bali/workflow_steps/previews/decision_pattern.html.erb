@@ -8,7 +8,7 @@
 
   <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
     <% card.with_title('Purchase request #4821') %>
-    <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
       <% c.with_step(title: 'Submitted', state: :success, date: 'Jul 1') %>
       <% c.with_step(title: 'Area manager', state: :success, date: 'Jul 2') %>
       <% c.with_step(title: 'Legal review', state: :current, assignee: 'Carmen Ríos') %>

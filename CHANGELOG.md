@@ -20,6 +20,123 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (magic-byte type detection, blocked-extension list, size cap) are unchanged; what changed is
   that reaching them now requires the host to have decided who may upload. See the migration
   guide.
+### Changed (breaking)
+- **`Bali::Topbar::IconAction` renames `label:` to `aria_label:`** (pre-GA API audit). The
+  accessible name is spelled `aria_label:` on every other icon-only Bali control
+  (`ViewSwitch`, `SideMenu`, `Chart`); `label:` here was the odd one out and, worse, a host
+  reaching for the majority spelling got a silent stray `label=""` attribute with no accessible
+  name applied. Passing the old `label:` now raises with the new name. **Only affects hosts
+  pinned to a v3.1 beta** — the component is new in 3.1. No pinned host uses it.
+- **`Bali::WorkflowSteps` renames `variant:` to `orientation:`** (pre-GA API audit). The
+  horizontal/vertical axis is `orientation:` on its sibling `Bali::Stepper`, and `variant:` is
+  what the button taxonomy reserves for colour. Passing the old `variant:` now raises. **Only
+  affects a call site that passed `variant: :horizontal`**; the default vertical call takes no
+  keyword. The one pinned host (afal-apps) renders it vertically without the keyword, so it is
+  unaffected.
+### Added
+- **`Bali::Command::Group` and `Command::Item` accept HTML attributes** (pre-GA API audit).
+  The slot lambda (`command/component.rb`) always advertised a `**opts` passthrough, but the
+  two components' initializers did not accept it, so `with_group(class:)` or `with_item(data:)`
+  raised `ArgumentError`. They now merge `**options` onto the root element: `class` composes
+  with the component's own classes and `data` merges over its `command-target`/`mode` without
+  clobbering them.
+
+### Changed
+- **`Bali::Alert` moves to the shared `xs`/`sm`/`md`/`lg`/`xl` size scale** (pre-GA API audit).
+  It was the only live component still on v2's `small`/`regular`/`medium`/`large` vocabulary,
+  and — because it resolved sizes with a silent `fetch` default — `size: :sm` (the spelling
+  every other component takes) rendered no size class at all, with no warning. The scale is now
+  the standard one, `:md` is the default and carries no class, and an unknown size **raises**
+  instead of defaulting silently, matching `Bali::Tag`. The old names still resolve as
+  deprecated aliases (`small`→`sm`, `regular`/`medium`→`md`, `large`→`lg`), so existing call
+  sites render as before — `size: :medium` now renders base (no `text-base` class), which is
+  visually identical in an alert.
+
+### Fixed
+- **`Bali::RichTextEditor` bubble menu: the formatting controls are keyboard-reachable and
+  named** (pre-GA accessibility audit). The seven icon-only toolbar controls (bold, italic,
+  underline, strikethrough, and the three alignments) were `<a>` elements with no `href`, no
+  `tabindex` and no accessible name — unreachable by keyboard (WCAG 2.1.1) and nameless to a
+  screen reader (4.1.2). They are now `<button type="button">` with an `aria-label` from new
+  `rich_text_editor.bubble_menu.actions.*` keys (en/es), and the colour input gains a label
+  too. The `.toolbar-link` stylesheet rule dropped its `a` qualifier so the buttons keep the
+  same look.
+### Fixed
+- **Documentation: the blocking copy-paste errors an adopter hits first** (pre-GA audit).
+  Each correction was checked against the source before writing:
+  - **README** Quick Start: the Gemfile pin moves off the stale `v2.18.0` to the current
+    tag; the Card example used a `with_body`/`with_actions` API that does not exist (the
+    slots are `with_header(title:)`, plain block content for the body, and `with_action`
+    singular); `Bali::Link` `type:` (which now raises) becomes `variant:`; `f.submit_button`
+    (no such method) becomes `f.submit_group`; and the `bundle exec rspec` commands become
+    `bin/rails test` — the repository is Minitest-only.
+  - **installation.md / troubleshooting.md**: `import { registerControllers }` (not exported)
+    becomes `registerAll`; the "icons via Iconify" claim is corrected to inline `lucide-rails`
+    SVGs, which is the actual resolution pipeline; the hardcoded `Bali::VERSION` example is
+    refreshed.
+  - **migration-v2-to-v3.md**: the `@blocknote/*` floor and every `yarn add` example move from
+    `0.52.1` to the real `>= 0.53.0` (#908); a dated investigation note about a checkout that no
+    longer mismatches is removed rather than left contradicting itself.
+  - **master-detail.md**: the snippet that told hosts to add their own
+    `data-controller="split-view"` is replaced — since #1012 the component renders that
+    controller itself, so the snippet created a second, unwired instance; the supported way to
+    extend the selected-row look (a CSS rule on `.split-view-row[aria-current]`) is documented
+    instead.
+- **`Bali::SplitView`: a row click no longer wipes the detail it just opened** (regression
+  from #1020). #1020 fixed #1012 by rewinding the detail frame on `turbo:before-cache` —
+  stripping its `src` and restoring the pristine empty pane — so a navigated frame could not
+  reach Turbo's snapshot cache still carrying a `src` that reloads and re-advances on back.
+  But a row click's own advance visit (`data-turbo-action="advance"`, `willRender: false`)
+  fires `turbo:before-cache` against the page that **stays on screen**, so the rewind erased
+  the detail the reader had just opened — on every click, in the default `advance: true`
+  configuration (`custom_master`, `with_list`, and worst of all `with_selection`, which came
+  back showing the previously selected record). Cypress missed it: the wipe lands about a
+  frame after the detail renders, and the assertions resolved in the same tick. The rewind
+  now strips only the `src`, never the content — which is all #1012 needs (a src-less frame
+  is not reloaded on restore) — and `syncFrameFromLocation` resets the pane to its pristine
+  empty state when a history traversal lands on a URL that selects no row, so back to the
+  list still shows the empty pane and no stale record. `advance: false` was never affected.
+### Security
+- **Stored XSS in the Filters combinator is closed** (pre-GA audit). Ransack's `q[m]`
+  combinator arrived raw from the params and was re-emitted across the stack — a hidden
+  field, the filter-persistence cache, and the saved-view payload — and the Filters
+  Stimulus controller rebuilds that hidden field with `innerHTML`. A `q[m]` value that was
+  not `and`/`or` broke out of the attribute and executed; because the value is persisted,
+  a poisoned combinator saved into a shared view kept executing on later visits. `q[m]` is
+  now validated against `%w[and or]` at every entry point — top-level and per-group, on
+  read and when restoring an older saved view — collapsing anything else to the default.
+  Defense in depth on the JS side: the combinator divider normalizes the value before
+  interpolating it, the operator `<option>`s in the condition controller now run through
+  the same `escapeHtml` the rest of that file already used, and `Bali::Timeago` writes its
+  value with `textContent` instead of `innerHTML`.
+- **`@tiptap/extension-link` peer floor moves from `>= 2.0.0` to `>= 2.5.0`** (pre-GA
+  audit). `RichTextEditor` (deprecated, removed in v4) passes a user-typed URL to
+  `setLink` without a protocol filter; TipTap's protocol validation that blocks
+  `javascript:` links first shipped in 2.5. A host pinned to 2.0–2.4 could store a
+  `javascript:` href that executes when the content renders in read mode. Raising the peer
+  floor closes it without touching the deprecated component.
+### Fixed
+- **The v3.0 → v3.1 migration guide no longer promises #903** (residual daisyUI 4 class
+  names outside the FormBuilder). The change was announced as part of the v3.1 block and
+  then deferred to v4, but the guide's placeholder section kept telling hosts to expect
+  it in this release — a host reading it before upgrading would wait for, or hunt down, a
+  change that never happened. The block is now described as the four changes that
+  actually shipped (#641, #722, #729, #902), with an explicit note that #903 is
+  scheduled for v4. The beta.1 entry below carries an editor's note to the same effect.
+- **CHANGELOG corrections ahead of the GA consolidation.** Four duplicated entries left
+  behind by merge trains are gone (`Bali::QrScanner` repeated in beta.7 after shipping in
+  beta.6, the two `Bali::WorkflowSteps` entries repeated in beta.5 after shipping in
+  beta.4, and `Bali::AppLayout`'s sidebar offset listed twice within beta.5); the beta.12
+  section is translated to English like the rest of the file; and the `Bali::Tooltip`
+  `append_to: :body` default (#992, beta.10) moved under `### Changed (breaking)` — it
+  breaks against v3.0.0, not only against earlier 3.1 betas.
+- **Gemspec metadata**: `homepage` points at the repository's current name
+  (`bali-view-components`, not the pre-rename `bali`), and `summary`/`description`
+  describe the library instead of repeating the "View Components" placeholder.
+- **`docs/guides/engines.md` documents the `saved_views_owner` misconfiguration trap**:
+  a host that hardens `saved_views_authorize` while leaving the owner lambda returning
+  `nil` ends up with every anonymous view shared — readable and writable — among all
+  visitors.
 
 ## [v3.1.0.beta.13] - 2026-08-10
 
@@ -87,32 +204,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v3.1.0.beta.12] - 2026-08-10
 
 ### Added
-- **`Command`: `mode: :navigation`, el modo que le faltaba a un directorio de páginas** (#1016).
-  Los tres modos cubrían tres de las cuatro combinaciones de (¿visible con la query vacía?) ×
-  (¿filtra al teclear?), y la que faltaba era justo la del caso más común: una lista de
-  secciones que se pueda explorar apenas abre el palette **y** que se acote conforme el usuario
-  escribe. Sin ella el host elegía entre abrir con el panel vacío (`:searchable`) o abrir
-  poblado y no filtrar nunca (`:action`) — que es lo que se encontró en el admin de un
-  consumidor: ⌘K abría, navegaba con flechas y Enter, y teclear no recortaba nada. `:action` no
-  cambia: su contrato sigue siendo sobrevivir a cualquier query para quedar accesible bajo el
-  mensaje de "sin resultados" (el caso "crear X llamado «lo que escribiste»"), y por eso sigue
-  fuera del conteo que decide ese mensaje. Una fila `:navigation` que coincide sí cuenta como
-  resultado y recibe su `<mark>`, igual que una `:searchable`. Aditivo: ningún host existente
-  cambia de comportamiento.
+- **`Command`: `mode: :navigation`, the mode a directory of pages was missing** (#1016).
+  The three modes covered three of the four combinations of (visible with an empty query?) ×
+  (filters as you type?), and the missing one was exactly the most common case: a list of
+  sections that can be explored the moment the palette opens **and** that narrows as the user
+  types. Without it a host chose between opening with an empty panel (`:searchable`) or
+  opening populated and never filtering (`:action`) — which is what a consumer's admin was
+  found doing: ⌘K opened, arrows and Enter navigated, and typing trimmed nothing. `:action`
+  does not change: its contract is still to survive any query so it stays reachable under the
+  "no results" message (the "create X named «what you typed»" case), which is why it stays
+  out of the count that decides that message. A matching `:navigation` row does count as a
+  result and gets its `<mark>`, same as a `:searchable` one. Additive: no existing host
+  changes behaviour.
 
 ### Fixed
-- **`FilterForm`: limpiar la búsqueda dejaba el filtro vivo —y pegado— cuando el predicado
-  también estaba declarado como atributo** (#1017). El término entra a la caché por dos puertas
-  en cuanto el form declara el predicado de Ransack además de `search_fields` (la forma natural
-  cuando el buscador rápido también participa de los filtros avanzados): `extract_search_value`
-  lo levanta en `search_value` y, como la clave está en `attribute_names`, entra igual en
-  `attributes`. El branch de `clear_search` anulaba solo la primera, así que la X vaciaba la
-  caja y devolvía el listado **todavía recortado** por un término que ya no se veía en ningún
-  lado — y como la caché se reescribía con el predicado adentro, el recorte volvía en cada
-  visita limpia posterior, sin nada en la URL ni en la pantalla que lo explicara. Ahora se
-  cierran las dos puertas: el campo de búsqueda sale también de los atributos guardados. Un
-  form que solo usa `search_fields` no estaba afectado, y los demás filtros siguen sobreviviendo
-  a la X — para llevárselos está "Limpiar filtros".
+- **`FilterForm`: clearing the search left the filter alive — and sticky — when the predicate
+  was also declared as an attribute** (#1017). The term enters the cache through two doors as
+  soon as the form declares the Ransack predicate in addition to `search_fields` (the natural
+  shape when the quick search also participates in the advanced filters):
+  `extract_search_value` picks it up as `search_value` and, because the key is in
+  `attribute_names`, it also lands in `attributes`. The `clear_search` branch nulled only the
+  first one, so the X emptied the box and returned a listing **still trimmed** by a term no
+  longer visible anywhere — and since the cache was rewritten with the predicate inside, the
+  trim came back on every later clean visit, with nothing in the URL or on screen to explain
+  it. Both doors are closed now: the search field also leaves the stored attributes. A form
+  using only `search_fields` was not affected, and the other filters still survive the X —
+  removing them is what "Clear filters" is for.
 
 ## [v3.1.0.beta.11] - 2026-08-10
 
@@ -189,7 +306,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stays out of the accessible name by design — put it in `label:` ("Inbox, 3 pending"), which is
   what a screen reader should announce.
 
-### Changed
+### Changed (breaking)
 - **`Bali::Tooltip` defaults to `append_to: :body`** (#992, the follow-up #611 asked for). The
   old `:parent` default was wrong exactly in the composition the library promotes: under
   `viewport_locked` (which follows `fixed_sidebar`, `true` since v3) AppLayout's own `<main>`
@@ -200,6 +317,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it in the trigger's subtree, and the JS controller's own value default matches. Inside an open
   modal/drawer the top-layer host wins regardless, as before. Hosts can delete their per-call
   `append_to: :body` — it is now a no-op restating the default.
+
+### Changed
 - **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
   underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
   resolved while `question-circle`, the spelling consistent with every other name, raised with a
@@ -528,8 +647,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Four new Lookbook previews of the interactive Gantt** (#719): `interactive_readonly` and `interactive_skeleton` for the two fallbacks, and `interactive_stress` / `interactive_stress_skeleton` — 300 items over 12 groups from a fixed seed (`Random.new(719)`), so the board is identical between runs and between the two variants, which is what makes them usable as an A/B measurement rather than an illustration. The existing editable `island` preview now mounts through `Bali::Gantt::Component` instead of hand-written markup: it is the reference call site, `urls:` and all.
 
-- **`Bali::QrScanner` — the camera half of the QR pair** (#928). `Bali::QrCode` has printed the label since #941; this reads it. `render Bali::QrScanner::Component.new` is a viewfinder that asks for the camera, decodes frames, and announces every code as `bali:qr-scanner:scan` with `{ value, result }` in the detail — `value` is the decoded string, `result` is qr-scanner's own object, which also carries `cornerPoints`. It decides nothing about what a code *means*: the host listens, fills an input, submits a form, navigates. `bali:qr-scanner:error` carries `{ state, error }` for the two ways it can fail.
-
 ### Fixed
 
 - **The island swap no longer flashes an empty box** (#719). `ReactIslandController` cleared the mount with `replaceChildren` *before* calling `createRoot`, and a concurrent root does not render inside `render()` — so between "fallback gone" and "island painted" there was nothing on screen. On a fast machine that is invisible; measured on the 300-item Gantt with the CPU throttled 6x it was a **fully white page for ~1.9 seconds**, which is precisely the flicker the fallback exists to prevent. React's container is now *prepended* and the fallback is retired from inside the first commit (`componentDidMount`, which runs after the DOM carries the island and before the browser paints), so one frame shows the fallback, the next shows the island, and none shows either nothing or both. Prepended rather than appended because an island that measures its own viewport space does so in a layout effect, and layout effects run before the parent's `componentDidMount` — first in flow, that measurement is the real one. Re-measured after the change: the gap is **0 ms with zero frames painted in between**, in three runs of each fallback variant.
@@ -658,8 +775,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::AppLayout` takes `mobile_bottom_padding:` for the bottom of a phone screen** (#726). Off by default; when on, it puts room under the content so the last row of a list or the submit button of a long form is not stuck behind the phone's own chrome. It covers two problems that are easy to confuse: the home indicator, which is real and comes from `env(safe-area-inset-bottom)` (and is `0px` everywhere else, so it costs nothing on a desktop), and Safari's floating bottom bar, which hovers **over** the page and is **not** reported by `env()` at all — hence a flat `4rem` under `sm` next to the environment value rather than instead of it. Documented with the setup the insets need to report anything in the first place (`viewport-fit=cover`, plus `theme-color` while you are in there), which is the host's `<head>` and not Bali's to render. The padding lands on `<main>`: the body container's own padding is a Tailwind utility, and a utility beats `@layer components`, so a rule on the container would never have applied.
 
 - **`Bali::AppLayout` offsets the pinned sidebar under the banner, by measurement** (#726). A banner — impersonation, maintenance, "you are in beta" — is a full-width strip, and the fixed sidebar now starts below it instead of painting over it. Nothing has to be declared: the new `app-layout` Stimulus controller keeps a `ResizeObserver` on the strip and publishes its height as `--bali-banner-height` on `<body>`, which the sidebar's `top` and `height` read. That covers the cases a constant cannot — two banners stacked (gc hardcodes `top: 5.5rem !important` for exactly that pair), a banner the user dismisses, one a Turbo Stream adds later, one that wraps to two lines on a phone — and it removes the `--banner-height` TODO the apps have been carrying. The strip is `position: sticky` so an impersonation warning survives scrolling; under `viewport_locked: true` the body does not scroll and sticky is inert. Only the height is JavaScript: the offset is one CSS rule reading `var(--bali-banner-height, 0px)`, so a page whose JS has not run, or a host that never registers the controller, renders exactly as before. New `with_banner` Lookbook preview (two stacked banners, the second dismissible) and a Cypress spec that measures the rail's computed `top`/`height` against the strip.
-- **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
-- **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
 - **`auto_submit: true` per filter: SimpleFilters pills that filter on click** (#725). A `:toggle_group` or `:radio_group` declared with `auto_submit: true` submits the row the moment it changes, so a segmented control behaves like the tab strip it looks like instead of asking for a second click on Filter. `filter_attribute :status, type: :select, simple: true, input: :radio_group, auto_submit: true` — and the instance-level `simple_filters:` hashes take the same key. It is **opt-in per filter and off by default**, so no existing row changes: `submit-on-change` is mounted on the form only when some filter asked for it, only that filter's controls carry the action, and the Filter button stays for the filters that did not opt in. Only the two pill widgets accept it and anything else raises at class-definition time, because one click is the whole interaction on a pill while a date or number range would submit between the two halves of its value. No new controller and no new JavaScript: this is the extended `submit-on-change` from #717, whose connect guard is what keeps the row from submitting itself while it is still being built.
 - **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
   foundation shipped the discrimination — a Symbol is daisyUI's variant, an Integer or String
@@ -739,7 +854,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stays contiguous over the rows that will actually be saved, and it now tolerates a row without a
   position input instead of raising.
 - **`submit-on-change` ignores change events fired in the frame it connects in** (#717). SlimSelect dispatches a `change` on the native `<select>` while it builds its widget over it — measurable whenever the options carry `data-inner-html`, which makes it rewrite the element — and a form carrying `submit-on-change` submitted on that event, before the user had touched anything. Measured against the new preview with the guard off: the page navigates to `?form_record[select]=1&form_record[text]=` on its own. This is a behavior change, not only a fix: any change event in the first frame after `connect()` is now dropped, including one your own code dispatches there. `data-submit-on-change-skip-initial-value="false"` restores the old behavior. Two incidental fixes ride along: a pending debounced submit is cancelled on `disconnect()` instead of firing at a detached form, and reconnecting the controller no longer wraps the debounce around itself (a form that connected twice used to wait `delay` twice).
-- **`Bali::AppLayout` offsets the pinned sidebar under the banner, by measurement** (#726). A banner — impersonation, maintenance, "you are in beta" — is a full-width strip, and the fixed sidebar now starts below it instead of painting over it. Nothing has to be declared: the new `app-layout` Stimulus controller keeps a `ResizeObserver` on the strip and publishes its height as `--bali-banner-height` on `<body>`, which the sidebar's `top` and `height` read. That covers the cases a constant cannot — two banners stacked (gc hardcodes `top: 5.5rem !important` for exactly that pair), a banner the user dismisses, one a Turbo Stream adds later, one that wraps to two lines on a phone — and it removes the `--banner-height` TODO the apps have been carrying. The strip is `position: sticky` so an impersonation warning survives scrolling; under `viewport_locked: true` the body does not scroll and sticky is inert. Only the height is JavaScript: the offset is one CSS rule reading `var(--bali-banner-height, 0px)`, so a page whose JS has not run, or a host that never registers the controller, renders exactly as before. New `with_banner` Lookbook preview (two stacked banners, the second dismissible) and a Cypress spec that measures the rail's computed `top`/`height` against the strip.
 - **One wrapper builds the counter for every family that can have one** (#723). `text_area_field` used to build its own `.control` div next to a second copy of the error and help paragraphs — the arrangement that once made a textarea with a counter render neither. The controller, its values and the counter element now come from `field_helper`, the one place that decides how a control is wrapped, so the two spellings cannot drift apart again. No markup change: the textarea's existing tests pass untouched. `TextAreaFields::COUNTER_CLASS` is now an alias of `HtmlUtils::COUNTER_CLASS`.
 
 - **The `Bali::AppLayout` banner no longer clears the fixed sidebar horizontally** (#726). A beta gave `.app-layout-banner` the same `padding-left: var(--bali-side-menu-width)` as the navbar and the content, because the sidebar was pinned at `top: 0` and painted over the strip's left edge. The sidebar now starts *below* the banner instead, so there is nothing left to clear: keeping the padding would indent a full-width strip into the content column and leave a band of empty page above the sidebar. The navbar and the content keep their offset — that half of the fix is untouched. A host that styled around the indented banner (a background that started at 16rem, a left-aligned logo inside the strip) will see the strip move left to the viewport edge.
@@ -1086,13 +1200,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for the 3.1 line live in a new per-release document instead of growing the v2 → v3 guide.
   The skeleton states the upgrade policy — five announced markup/behaviour changes admitted
   as a block (#903, #641, #722, #729, #902) — and reserves one section per change; each
-  section's details land with its PR.
+  section's details land with its PR. (Editor's note: #903 was later deferred to v4 and
+  never landed in 3.1; four of the five shipped.)
 - **`Bali::Tabs` tabs take a `count:` badge.** `with_tab(count: 12)` renders a `badge badge-sm` after the title, in both modes — navigation tabs (the scopes pattern: Mine / Team, statuses, the inbox counter case) and panel tabs. `nil` renders nothing; `0` renders, because an empty scope is information. A string works too (`"99+"`). The badge is not `aria-hidden`: the number belongs in the link's accessible name ("Mine 12"). (#722)
 - **Navigation-mode tab links emit `data-turbo-action="advance"` by default.** A no-op on full-page visits (advance is already Turbo's default); inside a `turbo_frame` it promotes the visit to the URL, which is what makes URL-driven scope tabs addressable and back-button friendly. `turbo_action: false` omits the attribute; another symbol (e.g. `:replace`) passes through. Ignored in panel mode. (#722)
 
 ### Changed
 
-- **`Bali::Tabs` navigation mode: the tab's `**options` now land on the `<a>`.** They used to be merged into the attributes of a panel `<div>` that navigation mode never renders, so they silently vanished — there was no way to put a `data:` attribute on a tab link. `class` composes with the tab classes instead of replacing them. Only a call site that passed options to an `href:` tab *and* relied on them being ignored changes behaviour; none exists among the pinned hosts. One of the five announced v3.1 changes — see [the migration guide](docs/guides/migration-v3-to-v31.md). (#722)
+- **`Bali::Tabs` navigation mode: the tab's `**options` now land on the `<a>`.** They used to be merged into the attributes of a panel `<div>` that navigation mode never renders, so they silently vanished — there was no way to put a `data:` attribute on a tab link. `class` composes with the tab classes instead of replacing them. Only a call site that passed options to an `href:` tab *and* relied on them being ignored changes behaviour; none exists among the pinned hosts. One of the announced v3.1 changes — see [the migration guide](docs/guides/migration-v3-to-v31.md). (#722)
 ### Added
 
 - **Avatar derives initials and a deterministic color from `name:`.** `Bali::Avatar::Component.new(name: 'Ana García López')` now renders an initials placeholder — first letter of the first and the last word ("AL", unicode-aware upcase; one word yields one letter) — over a background hashed from the name into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style: the same person gets the same color on every render, process and DaisyUI theme. The hash is the new `Bali::Utils::ColorCalculator#deterministic_color(seed)` (`Zlib.crc32`, not the per-process-randomized `String#hash`); collisions between names are expected and fine. `initials:` overrides the derivation, and images keep winning: picture slot > `src:` > manual `placeholder` slot (which keeps its static neutral background) > `name:`/`initials:`. With `name:` present the avatar also stops being invisible to assistive tech: initials avatars get `role="img"`, `aria-label` and `title` with the full name, and image avatars use it as the `alt` (an explicit `alt:` wins). Groundwork for `Topbar::UserMenu` (#713). (#712)

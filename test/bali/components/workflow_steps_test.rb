@@ -273,7 +273,7 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
 
   def test_html_attributes_land_on_the_root_div
     render_inline(
-      Bali::WorkflowSteps::Component.new(variant: :horizontal, class: "my-flow", data: { testid: "flow" })
+      Bali::WorkflowSteps::Component.new(orientation: :horizontal, class: "my-flow", data: { testid: "flow" })
     ) do |c|
       c.with_step(title: "Submitted", state: :success)
     end
@@ -428,7 +428,7 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
   end
 
   def test_the_bar_can_be_turned_off
-    render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal, progress: false)) do |c|
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :horizontal, progress: false)) do |c|
       c.with_step(title: "A", state: :success)
     end
 
@@ -438,7 +438,7 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
 
   # `<progress max="0">` is not valid HTML, and a bar over no steps says nothing.
   def test_a_flow_with_no_steps_draws_no_bar
-    render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal))
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :horizontal))
 
     assert_no_selector(".workflow-steps-progress")
     assert_selector("ol.workflow-steps-list")
@@ -458,7 +458,7 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
       end
     end
 
-    assert_includes(error.message, "progress: true needs variant: :horizontal")
+    assert_includes(error.message, "progress: true needs orientation: :horizontal")
   end
 
   # `progress: false` asks for nothing, so there is nothing to refuse.
@@ -471,18 +471,25 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
     assert_no_selector(".workflow-steps-progress")
   end
 
-  def test_an_unknown_variant_raises_with_the_valid_names
+  def test_the_renamed_variant_keyword_raises_pointing_at_orientation
     error = assert_raises(ArgumentError) do
-      render_inline(Bali::WorkflowSteps::Component.new(variant: :sideways))
+      render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal))
+    end
+    assert_includes(error.message, "`variant:` was renamed to `orientation:`")
+  end
+
+  def test_an_unknown_orientation_raises_with_the_valid_names
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(orientation: :sideways))
     end
 
-    assert_includes(error.message, "unknown variant :sideways")
+    assert_includes(error.message, "unknown orientation :sideways")
     assert_includes(error.message, ":horizontal")
   end
 
   private
 
   def render_horizontal(&block)
-    render_inline(Bali::WorkflowSteps::Component.new(variant: :horizontal), &block)
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :horizontal), &block)
   end
 end

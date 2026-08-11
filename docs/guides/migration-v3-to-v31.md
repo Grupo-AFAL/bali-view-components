@@ -4,23 +4,20 @@ This guide is for hosts on **v3.0.x** upgrading to **v3.1**. If you are coming f
 v1), read [Migrating from Bali v2 to v3](migration-v2-to-v3.md) first — everything there
 still applies, and this guide only covers what changes *after* it.
 
-v3.1 is an additive release with one deliberate exception: **five announced changes of
+v3.1 is an additive release with one deliberate exception: **four announced changes of
 markup or behaviour, admitted as a block**. The policy behind them: the universe of hosts
 on v3 is closed, pinned and measured — every blast radius below was quantified against real
 host code before the change was approved, and each change ships with an explicit CHANGELOG
-entry. The alternative (deferring all five to v4) was considered and rejected once, for all
-five together, so no individual PR relitigates it.
+entry. The alternative (deferring them all to v4) was considered and rejected once, for the
+whole block, so no individual PR relitigates it.
 
-The five sections below are placeholders on purpose. This document is the vehicle; each PR
-brings its own section — what breaks, what replaces it, and the measurement that sized it.
-Until a section says otherwise, the v3.0 behaviour it describes is still what ships.
+A fifth change was announced with the block and then deferred: **#903 (residual daisyUI 4
+class names outside the FormBuilder — `label-text`, `input-bordered`, `form-control`) does
+not land in v3.1**; it is scheduled for v4. If you were waiting for it before upgrading,
+stop waiting — nothing in v3.1 touches those class names.
 
-## Residual daisyUI 4 classes outside the FormBuilder (#903)
-
-v3.0 moved the library to daisyUI 5, but a handful of daisyUI 4 class names survived
-outside the FormBuilder. v3.1 removes them.
-
-*Lands with the #903 PR; details land with it.*
+Each section below covers one of the four — what breaks, what replaces it, and the
+measurement that sized it.
 
 ## `ActionsDropdown` POST items become `button_to` (#641)
 
@@ -170,7 +167,7 @@ can only shrink from here.
 ## `SplitView`'s filter band: `with_filters` becomes `with_filter` (#977)
 
 **Only affects you if you pinned `v3.1.0.beta.8`** and used the free-form
-`with_filters` slot. It shipped in that one beta and is gone; the five breaking
+`with_filters` slot. It shipped in that one beta and is gone; the four breaking
 changes above are about v3.0, this is about a beta.
 
 ```erb
@@ -199,6 +196,34 @@ somewhere else: it is built to render in the DataTable's toolbar, and in a maste
 column of ~420px its row of controls overflowed. The band now wraps.
 
 Full recipe: [master-detail.md](master-detail.md#filtering-the-list).
+
+## `Topbar::IconAction` and `WorkflowSteps`: two keywords renamed for consistency
+
+**Both only affect you if you pinned a v3.1 beta and used the component — these
+components are new in 3.1, so there is nothing to migrate from v3.0.** The
+renames land before the GA so the final API matches the rest of the library.
+
+- **`Topbar::IconAction` takes `aria_label:`, not `label:`.** The accessible
+  name is spelled `aria_label:` on every other icon-only Bali control
+  (`ViewSwitch`, `SideMenu`, `Chart`), and `label:` here silently produced a
+  stray `label=""` attribute if you reached for the majority spelling. Passing
+  the old `label:` now raises with the new name.
+
+  ```erb
+  <%# beta %>   <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', label: 'Notifications') %>
+  <%# now %>    <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', aria_label: 'Notifications') %>
+  ```
+
+- **`WorkflowSteps` takes `orientation:`, not `variant:`.** The horizontal/vertical
+  axis is `orientation:` on `Bali::Stepper`, its sibling; `variant:` is what the
+  button taxonomy reserves for colour. Passing the old `variant:` now raises. Only
+  a call site that passed `variant: :horizontal` is affected — the default
+  (vertical) call takes no keyword and is untouched.
+
+  ```erb
+  <%# beta %>   <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+  <%# now %>    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
+  ```
 
 ## BlockEditor: the `@blocknote/*` floor moves to `>= 0.53.0` (#908)
 
@@ -246,7 +271,7 @@ The uploads themselves were always validated (magic-byte type detection, a block
 list, a size cap); what changes is that *reaching* the validation now requires the host to
 have decided who is allowed in.
 
-## Adoption notes (additive — not part of the five)
+## Adoption notes (additive — not part of the four)
 
 Everything below is opt-in housekeeping: nothing renders differently until you act.
 
