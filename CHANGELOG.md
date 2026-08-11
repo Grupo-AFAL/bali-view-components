@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`Bali::SplitView`: a row click no longer wipes the detail it just opened** (regression
+  from #1020). #1020 fixed #1012 by rewinding the detail frame on `turbo:before-cache` —
+  stripping its `src` and restoring the pristine empty pane — so a navigated frame could not
+  reach Turbo's snapshot cache still carrying a `src` that reloads and re-advances on back.
+  But a row click's own advance visit (`data-turbo-action="advance"`, `willRender: false`)
+  fires `turbo:before-cache` against the page that **stays on screen**, so the rewind erased
+  the detail the reader had just opened — on every click, in the default `advance: true`
+  configuration (`custom_master`, `with_list`, and worst of all `with_selection`, which came
+  back showing the previously selected record). Cypress missed it: the wipe lands about a
+  frame after the detail renders, and the assertions resolved in the same tick. The rewind
+  now strips only the `src`, never the content — which is all #1012 needs (a src-less frame
+  is not reloaded on restore) — and `syncFrameFromLocation` resets the pane to its pristine
+  empty state when a history traversal lands on a URL that selects no row, so back to the
+  list still shows the empty pane and no stale record. `advance: false` was never affected.
+
 ## [v3.1.0.beta.13] - 2026-08-10
 
 ### Added
