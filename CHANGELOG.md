@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it as a close request; it now only answers a `cancel` targeting the dialog itself. The real
   overlay still closes, confirmation included; Cypress pins every half (calendar paging,
   SlimSelect search/pick, the file-picker cancel, and the real overlay as control).
+- **The Filters panel stays open while you use a SlimSelect value** (#1013, same defect in the
+  other surface — found sweeping for it). `closeOnClickOutside` excused flatpickr's calendar by
+  selector from the start, but not SlimSelect's `.ss-content`, which every select-type condition
+  mounts and which portals to `<body>` just the same: clicking the value's search box closed the
+  whole panel and lost the condition being built. Both portaled popups are now one named
+  constant, so the next widget that portals is one entry rather than a third special case, and
+  a Cypress test pins it (with a real outside click as the control).
 
 ## [v3.1.0.beta.10] - 2026-08-10
 

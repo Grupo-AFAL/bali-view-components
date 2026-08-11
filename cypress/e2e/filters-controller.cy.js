@@ -172,3 +172,35 @@ describe('FiltersController', () => {
     })
   })
 })
+
+// #1013 — la misma familia que el drawer, en el panel: el `.ss-content` de un
+// valor de tipo select se portalea a <body>, fuera del dropdown, así que
+// `dropdownTarget.contains(target)` decía "afuera" y cerraba el panel al tocar
+// el buscador del slim select. `closeOnClickOutside` ya excusaba el calendario
+// de flatpickr por selector; el slim select se había quedado fuera de esa lista.
+describe('FiltersController: widgets portaleados dentro del panel', () => {
+  const panel = '[data-filters-target="dropdownContent"]'
+
+  beforeEach(() => {
+    // El widget de valor aparece al elegir un atributo de tipo select, y ahi es
+    // donde el panel monta un slim-select (filters/condition/component.html.erb).
+    cy.visit('/bali/data_table/complete')
+    cy.get('[data-filters-target="dropdown"] > button').click()
+    cy.get('[data-condition-target="attribute"]').select('genre')
+    cy.get(panel).should('not.have.class', 'hidden')
+  })
+
+  it('keeps the panel open while searching in a slim select value', () => {
+    cy.get('[data-condition-target="valueContainer"] .ss-main').click()
+    cy.get('.ss-content .ss-search input').should('be.visible').click().type('a')
+
+    cy.get(panel).should('not.have.class', 'hidden')
+  })
+
+  // El control: un click de verdad afuera sigue cerrando el panel.
+  it('still closes on a real outside click', () => {
+    cy.get('body').click('bottomRight')
+
+    cy.get(panel).should('have.class', 'hidden')
+  })
+})
