@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.12] - 2026-08-10
+
 ### Added
 - **`Command`: `mode: :navigation`, el modo que le faltaba a un directorio de páginas** (#1016).
   Los tres modos cubrían tres de las cuatro combinaciones de (¿visible con la query vacía?) ×
