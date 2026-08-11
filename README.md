@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v2.18.0"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.1.0.beta.13"
 ```
 
 Then run:
@@ -86,15 +86,13 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
 <%# Card with slots %>
 <%= render Bali::Card::Component.new do |c| %>
-  <% c.with_header { "Card Title" } %>
-  <% c.with_body { "Card content goes here" } %>
-  <% c.with_actions do %>
-    <%= render Bali::Button::Component.new(name: 'Action', variant: :ghost) %>
-  <% end %>
+  <% c.with_header(title: 'Card Title') %>
+  <%= tag.p 'Card content goes here' %>
+  <% c.with_action(class: 'btn-ghost') { 'Action' } %>
 <% end %>
 
 <%# Link styled as button %>
-<%= render Bali::Link::Component.new(name: 'View Details', href: '/items/1', type: :primary) %>
+<%= render Bali::Link::Component.new(name: 'View Details', href: '/items/1', variant: :primary) %>
 ```
 
 ## Documentation
@@ -150,7 +148,7 @@ Bali extends Rails' `FormBuilder` with DaisyUI-styled inputs:
   <%= f.switch_field :active, color: :primary %>
   <%= f.date_field_group :birth_date %>
   <%= f.rich_text_area_group :bio %>
-  <%= f.submit_button 'Save', variant: :primary %>
+  <%= f.submit_group 'Save', variant: :primary %>
 <% end %>
 ```
 
@@ -167,8 +165,8 @@ Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook) to browse 
 ### Running Tests
 
 ```bash
-# RSpec tests
-bundle exec rspec
+# Minitest suite
+bin/rails test
 
 # Cypress tests (requires server running on port 3001)
 yarn run cy:run   # Headless
@@ -186,7 +184,7 @@ rails g view_component bali/my_component name
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Write tests for your changes
-4. Ensure all tests pass (`bundle exec rspec`)
+4. Ensure all tests pass (`bin/rails test`)
 5. Create Lookbook preview for new components
 6. Submit a pull request
 

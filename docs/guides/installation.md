@@ -181,8 +181,8 @@ import { Application } from "@hotwired/stimulus"
 const application = Application.start()
 
 // Register Bali controllers
-import { registerControllers } from "bali-view-components"
-registerControllers(application)
+import { registerAll } from "bali-view-components"
+registerAll(application)
 
 export { application }
 ```
@@ -194,7 +194,7 @@ If using Vite or esbuild:
 ```javascript
 // app/javascript/controllers/index.js
 import { Application } from "@hotwired/stimulus"
-import { registerControllers } from "bali-view-components"
+import { registerAll } from "bali-view-components"
 
 const application = Application.start()
 
@@ -203,7 +203,7 @@ import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
 // Register all Bali controllers
-registerControllers(application)
+registerAll(application)
 
 export { application }
 ```
@@ -311,7 +311,7 @@ See [External Services](external-services.md) for the full setup.
 ```bash
 bundle exec rails console
 > Bali::VERSION
-=> "2.0.3"  # or current version
+=> "3.1.0.beta.13"  # or current version
 ```
 
 ### 2. Check Component Rendering
@@ -379,7 +379,7 @@ The Tailwind build isn't scanning Bali component files.
 
 Controllers aren't registered.
 
-**Fix:** Ensure `registerControllers(application)` is called in your JavaScript.
+**Fix:** Ensure `registerAll(application)` is called in your JavaScript.
 
 ### "Can't find bali-view-components CSS"
 
@@ -391,9 +391,9 @@ Package not installed or wrong import path.
 
 ### Icons not showing
 
-Bali uses Lucide icons via Iconify.
+Bali uses Lucide icons, rendered as inline `<svg>` markup via the `lucide-rails` gem — there is no external icon font or CDN to load.
 
-**Fix:** Ensure your app includes Iconify or the icon CSS is loaded. Icons should render as `<span class="iconify lucide--icon-name">`.
+**Fix:** Check the icon name against [lucide.dev/icons](https://lucide.dev/icons) or `Bali::Icon::LucideMapping` (old Bali names). An unresolvable name raises `Bali::Options::IconNotAvailable` instead of rendering silently blank.
 
 ### Modal or Drawer visible on page load
 
