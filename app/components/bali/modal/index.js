@@ -420,16 +420,37 @@ export class ModalController extends Controller {
     })
   }
 
+  // Inside-the-panel, however the panel is composed at that moment: the
+  // wrapper's subtree, or a popup portaled into the dialog NEXT to it —
+  // flatpickr's calendar and SlimSelect's dropdown arrive via `enterTopLayer`,
+  // which leaves them carrying `[popover]`; a tooltip balloon portals itself to
+  // the top-layer host and is `[data-tippy-root]`. Asking only
+  // `wrapperTarget.contains(target)` counted every one of those clicks as a
+  // close gesture: with a dirty form, paging the calendar's month asked "are
+  // you sure you want to close?" (#1013). Day clicks never showed it only
+  // because selecting closes the calendar before the click completes.
+  //
+  // `composedPath()` and not `contains()`: the path is snapshotted at dispatch,
+  // so a target flatpickr detaches mid-gesture (the month arrows redraw the
+  // header) still counts as the inside click it was.
+  _pointerInsidePanel (event) {
+    if (!this.hasWrapperTarget) return false
+
+    return event.composedPath().some(node => {
+      if (node === this.wrapperTarget) return true
+      if (typeof node.hasAttribute !== 'function') return false
+
+      return node.hasAttribute('popover') || node.hasAttribute('data-tippy-root')
+    })
+  }
+
   _onOverlayMousedown = (event) => {
-    const insideWrapper = this.hasWrapperTarget && this.wrapperTarget.contains(event.target)
-    this._mousedownOnOverlay = !insideWrapper
+    this._mousedownOnOverlay = this.hasWrapperTarget && !this._pointerInsidePanel(event)
   }
 
   _onOverlayClick = (event) => {
-    const insideWrapper = this.hasWrapperTarget && this.wrapperTarget.contains(event.target)
-
-    // Close only if both mousedown AND click were outside the wrapper
-    if (this._mousedownOnOverlay && !insideWrapper) {
+    // Close only if both mousedown AND click were outside the panel
+    if (this._mousedownOnOverlay && this.hasWrapperTarget && !this._pointerInsidePanel(event)) {
       this._closeWithConfirmation()
     }
     this._mousedownOnOverlay = false
@@ -446,6 +467,13 @@ export class ModalController extends Controller {
   // the focus sits inside an <iframe> in the panel. Route it through the same
   // guarded path rather than let the browser discard the form.
   _onDialogCancel = event => {
+    // Only the dialog's OWN close request. An `<input type="file">` whose OS
+    // picker was dismissed fires `cancel` too, and unlike the dialog's, that
+    // one BUBBLES — so backing out of a file selection asked "are you sure you
+    // want to close?" (#1013). Declining to pick a file is not a request to
+    // close the panel.
+    if (event.target !== this.templateTarget) return
+
     event.preventDefault()
     this._closeWithConfirmation()
   }

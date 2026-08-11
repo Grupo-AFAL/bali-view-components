@@ -34,6 +34,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cierran las dos puertas: el campo de búsqueda sale también de los atributos guardados. Un
   form que solo usa `search_fields` no estaba afectado, y los demás filtros siguen sobreviviendo
   a la X — para llevárselos está "Limpiar filtros".
+### Fixed
+- **Drawer/Modal: clicks inside a portaled popup no longer count as a close gesture** (#1013).
+  `enterTopLayer` moves flatpickr's calendar (and SlimSelect's dropdown) into the `<dialog>` so
+  they stay clickable over the overlay — but as a *sibling* of the panel wrapper, and the
+  overlay-click detection asked `wrapperTarget.contains(target)`: with a dirty form, paging the
+  calendar's month (arrows, month, year) asked "are you sure you want to close?". Day clicks
+  never showed it only because selecting closes the calendar before the click completes. The
+  detection now walks `event.composedPath()` — snapshotted at dispatch, so targets flatpickr
+  detaches mid-gesture still count — and treats the wrapper's subtree, `[popover]` elements
+  (everything `enterTopLayer` moves in) and `[data-tippy-root]` balloons as inside the panel.
+  Same report, third trigger: dismissing an `<input type="file">`'s OS picker fires a `cancel`
+  event that — unlike the dialog's own — BUBBLES, and the panel's platform-close listener took
+  it as a close request; it now only answers a `cancel` targeting the dialog itself. The real
+  overlay still closes, confirmation included; Cypress pins every half (calendar paging,
+  SlimSelect search/pick, the file-picker cancel, and the real overlay as control).
+- **The Filters panel stays open while you use a SlimSelect value** (#1013, same defect in the
+  other surface — found sweeping for it). `closeOnClickOutside` excused flatpickr's calendar by
+  selector from the start, but not SlimSelect's `.ss-content`, which every select-type condition
+  mounts and which portals to `<body>` just the same: clicking the value's search box closed the
+  whole panel and lost the condition being built. Both portaled popups are now one named
+  constant, so the next widget that portals is one entry rather than a third special case, and
+  a Cypress test pins it (with a real outside click as the control).
 
 ## [v3.1.0.beta.10] - 2026-08-10
 

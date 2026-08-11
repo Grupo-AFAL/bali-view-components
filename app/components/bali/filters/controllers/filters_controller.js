@@ -1,5 +1,14 @@
 import { Controller } from '@hotwired/stimulus'
 
+// Widgets the panel renders whose popup lives OUTSIDE it: flatpickr portals its
+// calendar and SlimSelect its `.ss-content`, both to `<body>`, so
+// `dropdownTarget.contains(target)` answers "outside" about a click the reader
+// made on this panel's own controls. The calendar was excused here from the
+// start; the slim select — which every select-type condition mounts — was not,
+// so typing in its search box closed the panel (#1013, the same defect the
+// Drawer had).
+const PORTALED_POPUPS = '.flatpickr-calendar, .ss-content'
+
 /**
  * Main controller for the Filters component.
  * Handles adding/removing groups, form submission, and URL management.
@@ -198,8 +207,8 @@ export class FiltersController extends Controller {
       return
     }
 
-    // Don't close if clicking on Flatpickr calendar (rendered outside dropdown)
-    if (target.closest && target.closest('.flatpickr-calendar')) {
+    // Don't close on a widget whose popup renders outside the dropdown
+    if (target.closest && target.closest(PORTALED_POPUPS)) {
       return
     }
 
