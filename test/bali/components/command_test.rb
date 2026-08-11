@@ -103,6 +103,16 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_selector("[data-command-target='group'][data-mode='action']")
   end
 
+  def test_group_navigation_mode
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_group(name: "Pages", mode: :navigation) do |g|
+        g.with_item(title: "Accounts")
+      end
+    end
+    assert_selector("[data-command-target='group'][data-mode='navigation']")
+    assert_selector("[data-command-target='row'][data-mode='navigation']")
+  end
+
   def test_invalid_group_mode_falls_back_to_searchable
     render_inline(Bali::Command::Component.new) do |c|
       c.with_group(name: "Bad", mode: :nonsense) do |g|

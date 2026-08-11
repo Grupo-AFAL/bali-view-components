@@ -626,11 +626,15 @@ module Bali
         # por la que reaparecen filtros que la URL ya no describe.
         stored = @persist_enabled ? Rails.cache.fetch(cache_key) : nil
         if stored.is_a?(Hash)
-          # Los simplificados sobreviven al merge —solo `search_value` se anula— y salen por
+          # Los simplificados sobreviven al merge —solo la búsqueda se anula— y salen por
           # el efecto: limpiar la búsqueda no puede llevarse los selects. `clearSearch` navega
           # descartando todos los `q[...]` (ver preservedParamsUrl), así que la caché es la
           # ÚNICA fuente de lo que el usuario tenía elegido.
-          Rails.cache.write(cache_key, stored.merge(search_value: nil))
+          stored = stored.merge(
+            search_value: nil,
+            attributes: attributes_without_search_field(stored[:attributes])
+          )
+          Rails.cache.write(cache_key, stored)
           restore_simple_filter_state(stored)
           [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
         else
@@ -664,6 +668,24 @@ module Bali
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+    # El término de búsqueda entra a la caché por DOS puertas cuando el host declara el
+    # predicado de Ransack como atributo además de `search_fields` —la forma natural cuando
+    # el buscador rápido también participa de los filtros avanzados:
+    #
+    #   search_fields :email, :first_name
+    #   attribute :email_or_first_name_cont      # <- la segunda puerta
+    #
+    # `extract_search_value` lo levanta en `search_value`, y como la clave TAMBIÉN está en
+    # `attribute_names` entra igual en `attributes`. Anular solo la primera dejaba el
+    # predicado dentro de los atributos restaurados: la caja quedaba vacía y el listado
+    # seguía recortado por un término que ya no se veía en ningún lado — y como la caché se
+    # reescribía con él adentro, en cada visita posterior también (#1017).
+    def attributes_without_search_field(attributes)
+      return attributes unless search_enabled? && attributes.is_a?(Hash)
+
+      attributes.except(search_field_name.to_s, search_field_name.to_sym)
+    end
 
     # Los simplificados se restauran por un EFECTO y no por la tupla, porque su valor nunca es
     # un atributo de ActiveModel: vive en `@q_params` y va directo a Ransack. Es exactamente lo

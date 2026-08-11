@@ -769,7 +769,7 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 ```erb
 <%# The search-well trigger is built in — size it via `class:`, no slot needed. %>
 <%= render Bali::Command::Component.new(placeholder: 'Search…', class: 'max-w-md') do |c| %>
-  <% c.with_group(name: 'Pages') do |g| %>
+  <% c.with_group(name: 'Pages', mode: :navigation) do |g| %>
     <% g.with_item(title: 'Dashboard', meta: 'Overview', icon: 'layout-dashboard', href: '/') %>
     <% g.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: movies_path) %>
   <% end %>
@@ -786,8 +786,11 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 
 **Group modes:**
 - `:searchable` (default) - Items only show when the query matches `title + meta`
+- `:navigation` - The whole list while the query is empty, then filtered like `:searchable`. What a directory of pages wants: browsable the moment the palette opens **and** narrowed as the user types
 - `:recent` - Only shown when query is empty (recent activity)
 - `:action` - Always shown (used as a fallback when no matches)
+
+Picking between the last three is about what should happen to the group *as the user types*: `:navigation` narrows, `:recent` steps aside, `:action` survives every query. Reaching for `:action` to get a list on screen at open is what left palettes that never filtered (#1016).
 
 **Options:**
 - `placeholder` - Search input placeholder

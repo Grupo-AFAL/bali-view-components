@@ -127,22 +127,33 @@ export class CommandController extends Controller {
 
     this.rowTargets.forEach(row => {
       const mode = row.dataset.mode || 'searchable'
+      const text = (row.dataset.search || row.textContent).toLowerCase()
+      const matches = !isEmpty && text.includes(query)
       let visible
 
       if (mode === 'action') {
         visible = true
       } else if (mode === 'recent') {
         visible = isEmpty
+      } else if (mode === 'navigation') {
+        // The whole list while the query is empty, narrowed once the user
+        // types. `action` is deliberately NOT this: it survives every query so
+        // its command stays reachable under the no-results message, which is
+        // why a directory of pages declared as `action` never filtered.
+        visible = isEmpty || matches
       } else {
-        const text = (row.dataset.search || row.textContent).toLowerCase()
-        visible = !isEmpty && text.includes(query)
-        if (visible) regularResultsCount++
+        visible = matches
       }
 
       row.classList.toggle('hidden', !visible)
       if (visible) visibleCount++
 
-      if (visible && !isEmpty && mode === 'searchable') {
+      // Both halves of "this row answered the query": it counts against the
+      // no-results message and gets its match highlighted. `action` rows stay
+      // out of the count — they are always on screen, so counting them would
+      // suppress the message for a query that nothing actually matched.
+      if (matches && (mode === 'searchable' || mode === 'navigation')) {
+        regularResultsCount++
         this._highlight(row, query)
       } else {
         this._unhighlight(row)

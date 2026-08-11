@@ -46,6 +46,17 @@ class SearchableSimpleFilterForm < Bali::FilterForm
                    options: [ %w[Action Action], %w[Comedy Comedy] ], blank: "All Genres"
 end
 
+# El form del #1017: `search_fields` Y el predicado declarado como atributo — la forma que
+# toma un listado cuyo buscador rápido también participa de los filtros avanzados. El término
+# viaja por dos puertas (`search_value` y el atributo homónimo) y limpiarlo tiene que cerrar
+# las dos; `genre_eq` está para fijar que la X no se lleva el resto del recorte.
+class DualChannelSearchFilterForm < Bali::FilterForm
+  search_fields :name, :genre
+
+  attribute :name_or_genre_cont
+  attribute :genre_eq
+end
+
 # Test form with the full search_fields signature (#982): label: is the box's
 # aria-label — the only accessible name that survives typing — and width: the
 # per-listing width override. Both were renderable by the components but
@@ -709,6 +720,54 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
       storage_id: "movies", persist_enabled: true
     )
     assert_equal("iron", still_there.name_i_cont)
+  end
+
+  def test_clearing_the_search_also_clears_a_predicate_declared_as_an_attribute
+    # El término entra por dos puertas y la X cerraba solo una, así que la caja quedaba
+    # vacía sobre un listado que seguía recortado por ella (#1017).
+    DualChannelSearchFilterForm.new(
+      Movie.all, params(name_or_genre_cont: "iron"), storage_id: "movies"
+    )
+
+    cleared = DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.search_value)
+    assert_nil(cleared.name_or_genre_cont)
+  end
+
+  def test_a_cleared_search_does_not_come_back_on_the_next_visit
+    # Lo que de verdad dolía: la caché se reescribía CON el predicado adentro, así que el
+    # recorte volvía en cada visita limpia, ya sin término visible que lo explicara.
+    DualChannelSearchFilterForm.new(
+      Movie.all, params(name_or_genre_cont: "iron"), storage_id: "movies"
+    )
+    DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+
+    revisited = DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new,
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(revisited.name_or_genre_cont)
+    assert_nil(revisited.search_value)
+  end
+
+  def test_clearing_the_search_keeps_the_other_filters
+    # La X limpia la búsqueda, no el recorte entero: para eso está "Limpiar filtros".
+    DualChannelSearchFilterForm.new(
+      Movie.all, params(name_or_genre_cont: "iron", genre_eq: "action"), storage_id: "movies"
+    )
+
+    cleared = DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.name_or_genre_cont)
+    assert_equal("action", cleared.genre_eq)
   end
 
   def test_stores_complete_filter_state_including_groupings

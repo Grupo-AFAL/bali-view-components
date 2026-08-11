@@ -76,6 +76,24 @@ describe('CommandController', () => {
         .should('not.have.class', 'hidden')
       cy.contains('[data-command-target="group"]', 'Actions').should('be.visible')
     })
+
+    it('shows navigation rows on open and narrows them as the query is typed', () => {
+      // Browsable the moment the palette opens — what :searchable cannot do
+      cy.contains('.cmd-row', 'Policies').should('not.have.class', 'hidden')
+      cy.contains('.cmd-row', 'Committees').should('not.have.class', 'hidden')
+
+      cy.get('[data-command-target="input"]').type('Committees')
+
+      // ...and filtered once there is a query — what :action cannot do
+      cy.contains('.cmd-row', 'Committees').should('not.have.class', 'hidden')
+      cy.contains('.cmd-row', 'Policies').should('have.class', 'hidden')
+    })
+
+    it('counts a matching navigation row as a result, so no empty state shows', () => {
+      cy.get('[data-command-target="input"]').type('Committees')
+
+      cy.get('[data-command-target="noResults"]').should('have.class', 'hidden')
+    })
   })
 
   context('keyboard navigation', () => {
