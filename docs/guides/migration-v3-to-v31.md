@@ -220,6 +220,32 @@ Apps that build their own editor bundle (afal-apps' `editor.js`) rebuild it afte
 upgrade. Staying on 0.52.1 keeps working — nothing in the component calls a 0.53-only
 API — but it keeps the loop and an unmet-peer warning.
 
+## BlockEditor uploads deny by default (#1029)
+
+**Affects any host that mounts the engine, renders the BlockEditor with uploads, and left
+`Bali.block_editor_upload_authorize` unset.** In v3.0 an unset lambda meant *uploads
+allowed* — the one engine controller that was open by default. v3.1 closes it: an unset
+lambda now returns `403` (and logs a one-line warning naming this change), so the endpoint
+matches the deny-by-default posture of every other engine gate.
+
+Set the lambda to decide who may upload:
+
+```ruby
+# config/initializers/bali.rb
+Bali.block_editor_upload_authorize = ->(controller) { controller.current_user.present? }
+```
+
+If a host genuinely wants the endpoint open — a fully-internal app behind other
+authentication — say so explicitly:
+
+```ruby
+Bali.block_editor_upload_authorize = ->(_controller) { true }
+```
+
+The uploads themselves were always validated (magic-byte type detection, a blocked-extension
+list, a size cap); what changes is that *reaching* the validation now requires the host to
+have decided who is allowed in.
+
 ## Adoption notes (additive — not part of the five)
 
 Everything below is opt-in housekeeping: nothing renders differently until you act.

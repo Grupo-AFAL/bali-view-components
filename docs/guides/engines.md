@@ -46,7 +46,7 @@ inside each controller and respond `403 Forbidden` on their own:
 |---|---|---|
 | `Bali.saved_views_owner` | who owns a saved view | `->(controller) { controller.try(:current_user) }` |
 | `Bali.saved_views_authorize` | saved views mutations | owner present, else 403 |
-| `Bali.block_editor_upload_authorize` | editor uploads | unset — uploads allowed; configure it |
+| `Bali.block_editor_upload_authorize` | editor uploads | **denies** — set the lambda to open it (`->(_) { true }` for a fully-internal app) |
 | `Bali.entity_references_authorize` | entity reference search and resolution | **denies** — mounting the engine publishes nothing until you open it |
 | `Bali.content_versionables` | which models expose a history at all | `{}` — every `record_type` is a 404 |
 | `Bali.content_versions_authorize` | reading and restoring versions | falsy — 403 |

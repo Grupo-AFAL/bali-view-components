@@ -113,6 +113,8 @@ module Bali
   # Block Editor upload configuration
   # Authorization lambda: receives the controller instance, must return truthy to allow upload.
   # Example: ->(controller) { controller.current_user.present? }
+  # Default-deny since v3.1: while this is nil the uploads endpoint returns 403 (and logs why),
+  # matching the engine's other gates. Set `->(_) { true }` to keep it open on an internal app.
   mattr_accessor :block_editor_upload_authorize, default: nil
 
   # Custom upload handler lambda: receives (uploaded_file, controller), must return a URL string.
