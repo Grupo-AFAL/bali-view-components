@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.13] - 2026-08-10
+
 ### Added
 - **`Bali::Gantt`: items without dates get the "No dates" surface the docs promised** (#1015).
   An item with `starts_on: null` cannot get a bar or a row, and until now it simply vanished:
