@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`Bali::SplitView`: pressing back no longer throws the reader forward to the detail they just
+  left** (#1012). A row click swaps the detail frame and, through the frame's own
+  `data-turbo-action="advance"`, rewrites the URL. Turbo caches the page it is leaving under the
+  OLD url — but it reads the DOM when it gets around to it, so if the frame's response landed
+  first, the cached snapshot kept the frame's `src`. Restoring that snapshot reloads the frame
+  (Turbo reloads any frame carrying a `src`), the reload fires `advance` again, and back
+  bounced forward. Measured: locally the snapshot is taken before the response and the bug never
+  appears; in CI it did, in about a third of the runs, and it is what made the split-view specs
+  the flakiest in the suite.
+
+  The frame is now rewound on `turbo:before-cache` whenever it was navigated in-page — `src`
+  removed and the server's original detail put back — so no snapshot can carry a re-advance.
+  The rewind keys on the frame having a `src` and **not** on the current location: by then the
+  URL is already the detail's. A server-rendered detail page carries no `src` and is untouched.
+  Symmetrically, a traversal onto a row's own URL now points the frame at that row, which
+  refetches the detail the rewind cleared — the same request Turbo would have made, now made
+  only where it belongs.
+
 ## [v3.1.0.beta.12] - 2026-08-10
 
 ### Added

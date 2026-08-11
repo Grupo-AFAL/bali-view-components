@@ -202,3 +202,51 @@ describe('SplitView', () => {
     })
   })
 })
+
+// #1012 — un frame que el lector navegó en página no puede llegar al caché de
+// snapshots de Turbo todavía con su `src`: al restaurar, Turbo recarga todo
+// frame con `src`, esa recarga vuelve a disparar el `advance` del propio frame,
+// y quien apretó atrás termina empujado de vuelta al detalle que acababa de
+// dejar. En CI pasaba ~1 de cada 3 corridas; local, nunca — el snapshot se toma
+// antes de que llegue la respuesta del frame y sale limpio por casualidad.
+//
+// Por eso el disparo del evento es explícito: el bug no depende de que el
+// usuario haga nada distinto, sino de CUÁNDO Turbo lee el DOM, y eso no se
+// puede pedir desde un test. Lo que sí es determinista —y es el contrato— es
+// qué queda en el DOM cuando `turbo:before-cache` corre.
+describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
+  beforeEach(() => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+    cy.get('.split-view-row').eq(2).click()
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+  })
+
+  it('rewinds the navigated frame so the snapshot cannot re-advance', () => {
+    cy.get('.split-view-detail').should('have.attr', 'src')
+
+    cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
+
+    // Sin `src` no hay recarga al restaurar, y sin recarga no hay advance.
+    cy.get('.split-view-detail').should('not.have.attr', 'src')
+    // Y con el detalle rebobinado, el snapshot describe lo que la URL de la
+    // lista dice: nada seleccionado.
+    cy.get('.split-view-detail .empty-state-component').should('exist')
+  })
+
+  // La otra mitad: ir HACIA una URL que sí selecciona una fila tiene que
+  // devolver el detalle, porque el frame quedó rebobinado al cachearse.
+  it('points the frame back at the row a traversal selects', () => {
+    cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
+      cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+
+      cy.window().then((win) => {
+        win.history.pushState({}, '', href)
+        win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+      })
+
+      cy.get('.split-view-detail').should('have.attr', 'src', href)
+    })
+  })
+})

@@ -13,6 +13,13 @@ if (typeof window !== 'undefined') {
   document.addEventListener('turbo:load', () => { restoringHistory = false })
 }
 
+// The detail frame as the server first painted it, per frame id. Module scope
+// for the same reason `restoringHistory` is: the instance that captured it does
+// not survive the render this has to outlive. Captured only from a frame that
+// has never been navigated in-page (no `src`), which is exactly the state the
+// server sent — so a restore can be rewound to it. See `rewindFrameBeforeCache`.
+const pristineDetail = new Map()
+
 // Moves the master-pane row highlight when a row is clicked, so the detail
 // Turbo Frame can swap without the master re-rendering — which is what keeps
 // its scroll position and its selection intact.
@@ -31,15 +38,62 @@ if (typeof window !== 'undefined') {
 export class SplitViewController extends Controller {
   static targets = ['row']
   static classes = ['selected', 'unselected']
+  // The detail frame's id. Not a target: the frame is the master's SIBLING, and
+  // Stimulus only finds targets inside the controller element.
+  static values = { frame: String }
 
   connect () {
     this.syncFromLocation = this.syncFromLocation.bind(this)
+    this.rewindFrameBeforeCache = this.rewindFrameBeforeCache.bind(this)
     window.addEventListener('popstate', this.syncFromLocation)
+    document.addEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
+    this.capturePristineDetail()
     // A restore that DID replace the body lands here, on the new instance.
     if (restoringHistory) this.syncFromLocation()
     // Whatever is marked right now is the selection, however it got marked.
     // Set after the restore above so it records the corrected state.
     this.selectedHref = this.rowTargets.find(row => row.hasAttribute('aria-current'))?.href ?? null
+  }
+
+  get detailFrame () {
+    return this.hasFrameValue ? document.getElementById(this.frameValue) : null
+  }
+
+  // Only from a frame the server painted and nobody has navigated since: a
+  // `src` means Turbo has already swapped content in, and caching THAT as the
+  // pristine state would defeat the rewind below.
+  capturePristineDetail () {
+    const frame = this.detailFrame
+    if (!frame || frame.hasAttribute('src')) return
+
+    pristineDetail.set(this.frameValue, frame.innerHTML)
+  }
+
+  // A frame the reader navigated in-page must not reach Turbo's snapshot cache
+  // still carrying its `src` (#1012).
+  //
+  // A row click swaps the frame and, through the frame's own
+  // `data-turbo-action="advance"`, rewrites the URL. Turbo caches the page it is
+  // leaving under the OLD url — but it reads the DOM when it gets around to it,
+  // and if the frame's response landed first the snapshot keeps `src` and the
+  // detail. Restoring that snapshot reloads the frame (Turbo reloads any frame
+  // with a `src`), the reload advances again, and the reader who pressed back is
+  // thrown forward to the detail they just left. Measured: locally the snapshot
+  // is taken before the response and the bug never appears; in CI it did, in
+  // about a third of the runs.
+  //
+  // The rewind is keyed on the frame having a `src`, NOT on the current
+  // location: by the time this fires the URL is already the detail's, so a
+  // location test would never match. A server-rendered detail page carries no
+  // `src` and is left alone.
+  rewindFrameBeforeCache () {
+    const frame = this.detailFrame
+    if (!frame || !frame.hasAttribute('src')) return
+
+    frame.removeAttribute('src')
+
+    const pristine = pristineDetail.get(this.frameValue)
+    if (pristine !== undefined) frame.innerHTML = pristine
   }
 
   // Rows appended by infinite scroll. They arrive carrying whatever selection the
@@ -63,6 +117,7 @@ export class SplitViewController extends Controller {
 
   disconnect () {
     window.removeEventListener('popstate', this.syncFromLocation)
+    document.removeEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
   }
 
   // Back and forward, and only those. Measured: a row click promotes the frame
@@ -84,6 +139,23 @@ export class SplitViewController extends Controller {
     const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
     this.selectedHref = current?.href ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
+    this.syncFrameFromLocation(current)
+  }
+
+  // The other half of the rewind. Because a navigated frame is cached without
+  // its `src` and holding the pristine detail, a traversal FORWARD to a row's
+  // own URL would restore that empty pane next to a highlighted row. Pointing
+  // the frame at the row it belongs to refetches it — the same request Turbo
+  // would have made had the `src` survived, now made only where it is right.
+  //
+  // Nothing to do when no row matches: an unnavigated frame showing the
+  // pristine detail is exactly what "no selection at this URL" looks like.
+  syncFrameFromLocation (current) {
+    const frame = this.detailFrame
+    if (!frame || !current) return
+    if (frame.getAttribute('src') === current.getAttribute('href')) return
+
+    frame.setAttribute('src', current.getAttribute('href'))
   }
 
   // Whether this row's href names the location we are on. Not `row.href ===
