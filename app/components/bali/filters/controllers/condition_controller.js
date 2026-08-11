@@ -393,7 +393,7 @@ export class ConditionController extends Controller {
     this.operatorTarget.innerHTML = operators
       .map(
         (op) =>
-          `<option value="${op.value}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" ${op.value === currentValue ? 'selected' : ''}>${op.label}</option>`
+          `<option value="${this.escapeHtml(op.value)}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" ${op.value === currentValue ? 'selected' : ''}>${this.escapeHtml(op.label)}</option>`
       )
       .join('')
 

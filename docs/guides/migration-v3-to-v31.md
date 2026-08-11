@@ -4,23 +4,20 @@ This guide is for hosts on **v3.0.x** upgrading to **v3.1**. If you are coming f
 v1), read [Migrating from Bali v2 to v3](migration-v2-to-v3.md) first — everything there
 still applies, and this guide only covers what changes *after* it.
 
-v3.1 is an additive release with one deliberate exception: **five announced changes of
+v3.1 is an additive release with one deliberate exception: **four announced changes of
 markup or behaviour, admitted as a block**. The policy behind them: the universe of hosts
 on v3 is closed, pinned and measured — every blast radius below was quantified against real
 host code before the change was approved, and each change ships with an explicit CHANGELOG
-entry. The alternative (deferring all five to v4) was considered and rejected once, for all
-five together, so no individual PR relitigates it.
+entry. The alternative (deferring them all to v4) was considered and rejected once, for the
+whole block, so no individual PR relitigates it.
 
-The five sections below are placeholders on purpose. This document is the vehicle; each PR
-brings its own section — what breaks, what replaces it, and the measurement that sized it.
-Until a section says otherwise, the v3.0 behaviour it describes is still what ships.
+A fifth change was announced with the block and then deferred: **#903 (residual daisyUI 4
+class names outside the FormBuilder — `label-text`, `input-bordered`, `form-control`) does
+not land in v3.1**; it is scheduled for v4. If you were waiting for it before upgrading,
+stop waiting — nothing in v3.1 touches those class names.
 
-## Residual daisyUI 4 classes outside the FormBuilder (#903)
-
-v3.0 moved the library to daisyUI 5, but a handful of daisyUI 4 class names survived
-outside the FormBuilder. v3.1 removes them.
-
-*Lands with the #903 PR; details land with it.*
+Each section below covers one of the four — what breaks, what replaces it, and the
+measurement that sized it.
 
 ## `ActionsDropdown` POST items become `button_to` (#641)
 
@@ -170,7 +167,7 @@ can only shrink from here.
 ## `SplitView`'s filter band: `with_filters` becomes `with_filter` (#977)
 
 **Only affects you if you pinned `v3.1.0.beta.8`** and used the free-form
-`with_filters` slot. It shipped in that one beta and is gone; the five breaking
+`with_filters` slot. It shipped in that one beta and is gone; the four breaking
 changes above are about v3.0, this is about a beta.
 
 ```erb
@@ -220,7 +217,7 @@ Apps that build their own editor bundle (afal-apps' `editor.js`) rebuild it afte
 upgrade. Staying on 0.52.1 keeps working — nothing in the component calls a 0.53-only
 API — but it keeps the loop and an unmet-peer warning.
 
-## Adoption notes (additive — not part of the five)
+## Adoption notes (additive — not part of the four)
 
 Everything below is opt-in housekeeping: nothing renders differently until you act.
 

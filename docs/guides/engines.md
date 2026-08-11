@@ -143,6 +143,13 @@ Bali.saved_views_owner = ->(controller) {
 }
 ```
 
+One combination to avoid: hardening `saved_views_authorize` while leaving
+`saved_views_owner` returning `nil`. The controller scopes every query by owner, so a
+`nil` owner means `SavedView.where(owner: nil)` — every anonymous view is shared among
+all visitors, readable and writable by any of them. If your app has no `current_user`,
+wire the owner lambda first; the default authorize (owner present, else 403) is exactly
+what keeps the anonymous case closed, so do not loosen it without replacing the owner.
+
 ## Entity references: one declaration per type
 
 The BlockEditor's `#` menu lets an author embed a reference to any record of your app,

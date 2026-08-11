@@ -12,6 +12,11 @@ module Bali
     #   [{ combinator: 'or', conditions: [{attribute: 'name', ...}, ...] }]
     #
     module FilterGroupParser
+      # The two values Ransack's `m` accepts. `q[m]` arrives from the URL and from stored
+      # payloads (filter cache, saved views), and what lands in @combinator is re-emitted —
+      # hidden fields, cached state, saved-view payloads, and the Filters controller's
+      # innerHTML — so anything outside this list collapses to nil instead of traveling.
+      COMBINATORS = %w[and or].freeze
       extend ActiveSupport::Concern
 
       # Ransack operators ordered by specificity (longer operators first to avoid partial matches)
@@ -85,6 +90,11 @@ module Bali
 
       private
 
+      def sanitized_combinator(value)
+        value = value.to_s
+        COMBINATORS.include?(value) ? value : nil
+      end
+
       # Parse a single filter group from Ransack params into component structure.
       # Consolidates gteq/lteq pairs into 'between' operator for better UX.
       # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -118,7 +128,7 @@ module Bali
         end
 
         {
-          combinator: group_params[:m] || "or",
+          combinator: sanitized_combinator(group_params[:m]) || "or",
           conditions: conditions.presence || [ default_filter_condition ]
         }
       end

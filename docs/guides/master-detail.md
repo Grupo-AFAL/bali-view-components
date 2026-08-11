@@ -662,17 +662,19 @@ the colour of all four sides, not just the one `border-b` drew. Utilities beat
 base-200 under it and the highlight disappears. The shadow also paints inside
 the padding box, so the selection moves between rows without shifting any text.
 
-To add to the selected look rather than replace it, use the Stimulus classes on
-the master element:
+To add to the selected look rather than replace it, target the same attribute
+selector in your own stylesheet:
 
-```erb
-<div data-controller="split-view" data-split-view-selected-class="ring-2 ring-primary">
+```css
+.split-view-row[aria-current] {
+  @apply ring-2 ring-primary;
+}
 ```
 
-Those are applied on top of `aria-current`, so they only need to cover what the
-attribute-driven CSS does not. Remember that a class only present in a JS
-attribute has to appear somewhere Tailwind scans — which your row partial does,
-if the server renders the same selected state.
+**Do not add a second `data-controller="split-view"` by hand.** Since #1012 the
+component itself renders that controller on `.split-view-master` (see
+`component.html.erb`) — a host element carrying its own `data-controller`
+would create a second, unwired instance instead of configuring the real one.
 
 ---
 
