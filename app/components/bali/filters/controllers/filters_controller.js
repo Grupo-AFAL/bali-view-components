@@ -510,9 +510,14 @@ export class FiltersController extends Controller {
    */
   createCombinatorDivider () {
     // Get current combinator value from existing hidden input
-    const currentCombinator = this.hasGroupCombinatorTarget
-      ? this.groupCombinatorTarget.value
-      : 'and'
+    // The combinator is a two-value toggle. Normalize to a known value instead of
+    // trusting the hidden input verbatim: its `.value` is the decoded `q[m]`, which the
+    // server sanitizes but which also reaches this template literal — an unexpected value
+    // would break out of the attribute. Anything that is not 'or' is 'and'.
+    const currentCombinator =
+      this.hasGroupCombinatorTarget && this.groupCombinatorTarget.value === 'or'
+        ? 'or'
+        : 'and'
 
     // Get translated labels with fallbacks
     const andLabel = this.t.combinators?.and || 'AND'
