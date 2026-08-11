@@ -59,26 +59,26 @@
     <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteColumn', 'rich-text-editor-target': 'tableModifier' }) { t('.table.remove_column') } %>
     <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteRow', 'rich-text-editor-target': 'tableModifier' }) { t('.table.remove_row') } %>
   <% end %>
-  <a class="toolbar-link mark bold" data-action="rich-text-editor#toggleBold" data-rich-text-editor-target="bold">
+  <button type="button" class="toolbar-link mark bold" aria-label="<%= t('.actions.bold') %>" data-action="rich-text-editor#toggleBold" data-rich-text-editor-target="bold">
     <%= render Bali::Icon::Component.new('bold') %>
-  </a>
-  <a class="toolbar-link mark italic" data-action="rich-text-editor#toggleItalic" data-rich-text-editor-target="italic">
+  </button>
+  <button type="button" class="toolbar-link mark italic" aria-label="<%= t('.actions.italic') %>" data-action="rich-text-editor#toggleItalic" data-rich-text-editor-target="italic">
     <%= render Bali::Icon::Component.new('italic') %>
-  </a>
-  <a class="toolbar-link mark underline" data-action="rich-text-editor#toggleUnderline" data-rich-text-editor-target="underline">
+  </button>
+  <button type="button" class="toolbar-link mark underline" aria-label="<%= t('.actions.underline') %>" data-action="rich-text-editor#toggleUnderline" data-rich-text-editor-target="underline">
     <%= render Bali::Icon::Component.new('underline') %>
-  </a>
-  <a class="toolbar-link mark strike" data-action="rich-text-editor#toggleStrike" data-rich-text-editor-target="strike">
+  </button>
+  <button type="button" class="toolbar-link mark strike" aria-label="<%= t('.actions.strikethrough') %>" data-action="rich-text-editor#toggleStrike" data-rich-text-editor-target="strike">
     <%= render Bali::Icon::Component.new('strikethrough') %>
-  </a>
-  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignLeft" data-rich-text-editor-target="alignLeft">
+  </button>
+  <button type="button" class="toolbar-link" aria-label="<%= t('.actions.align_left') %>" data-action="rich-text-editor#setTextAlignLeft" data-rich-text-editor-target="alignLeft">
     <%= render Bali::Icon::Component.new('align-left') %>
-  </a>
-  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignCenter" data-rich-text-editor-target="alignCenter">
+  </button>
+  <button type="button" class="toolbar-link" aria-label="<%= t('.actions.align_center') %>" data-action="rich-text-editor#setTextAlignCenter" data-rich-text-editor-target="alignCenter">
     <%= render Bali::Icon::Component.new('align-center') %>
-  </a>
-  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignRight" data-rich-text-editor-target="alignRight">
+  </button>
+  <button type="button" class="toolbar-link" aria-label="<%= t('.actions.align_right') %>" data-action="rich-text-editor#setTextAlignRight" data-rich-text-editor-target="alignRight">
     <%= render Bali::Icon::Component.new('align-right') %>
-  </a>
-  <input type="color" class="color-selector" data-action="rich-text-editor#setColor" data-rich-text-editor-target="color" />
+  </button>
+  <input type="color" class="color-selector" aria-label="<%= t('.actions.text_color') %>" data-action="rich-text-editor#setColor" data-rich-text-editor-target="color" />
 <% end %>
