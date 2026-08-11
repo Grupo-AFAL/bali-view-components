@@ -317,7 +317,7 @@ module Bali
       # Extract Ransack groupings (g) and combinator (m) for complex filters
       # These are used by Filters for AND/OR condition groups
       @groupings = extract_groupings(q_params)
-      @combinator = q_params[:m]
+      @combinator = sanitized_combinator(q_params[:m])
 
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
