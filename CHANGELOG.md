@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **BlockEditor uploads deny by default** (#1029). `Bali.block_editor_upload_authorize` was the
+  one engine gate that was *open* when unset — a host that mounted the engine and rendered the
+  BlockEditor without configuring it exposed `POST /bali/block_editor/uploads` to any visitor
+  (50 MB blobs on a loop, the host's domain as file hosting). It now denies by default, matching
+  every other engine controller (`entity_references`, `content_versions`, comments): an unset
+  lambda returns `403` and logs a one-line warning that names this change, so the denial is
+  diagnosable rather than mysterious. **Every host that renders the BlockEditor with uploads
+  must set the lambda** — `Bali.block_editor_upload_authorize = ->(c) { c.current_user.present? }`,
+  or `->(_) { true }` to keep it open on a fully-internal app. The upload validations
+  (magic-byte type detection, blocked-extension list, size cap) are unchanged; what changed is
+  that reaching them now requires the host to have decided who may upload. See the migration
+  guide.
 ### Changed (breaking)
 - **`Bali::Topbar::IconAction` renames `label:` to `aria_label:`** (pre-GA API audit). The
   accessible name is spelled `aria_label:` on every other icon-only Bali control
