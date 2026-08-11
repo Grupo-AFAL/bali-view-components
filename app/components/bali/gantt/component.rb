@@ -137,6 +137,29 @@ module Bali
       def skeleton_rows = SKELETON_ROWS
       def skeleton_bars = SKELETON_BARS.first(SKELETON_ROWS)
 
+      def undated_items = data.undated_items
+
+      # DOM id of the "no dates" drawer (#1015) — the island's footer opens it
+      # by name (`bali:drawer:open` + `detail.id`). Derived from the
+      # component's own id when it has one, so a host that broadcasts gets a
+      # stable target; random otherwise, so two anonymous gantts on one page
+      # cannot open each other's list. nil when every item is dated: no
+      # drawer, no island value, no footer link.
+      def undated_drawer_id
+        return nil if undated_items.empty?
+
+        @undated_drawer_id ||= @id ? "#{@id}-undated" : "gantt-undated-#{SecureRandom.hex(4)}"
+      end
+
+      # Label of a status in the drawer, resolved against the same catalog the
+      # island paints with — host vocabulary first, humanized fallback.
+      def status_label(status)
+        return nil if status.blank?
+
+        entry = statuses.find { |s| (s[:value] || s["value"]).to_s == status.to_s }
+        entry ? (entry[:label] || entry["label"]) : status.humanize
+      end
+
       # The component's element IS the island's mount point: the values below
       # ARE the island's props (the ReactIslandController base maps them 1:1),
       # and the skeleton the template renders inside is what React retires from
@@ -176,7 +199,8 @@ module Bali
           gantt_schedule_url_value: @urls[:schedule],
           gantt_item_url_template_value: @urls[:item_template],
           gantt_new_group_url_value: @urls[:new_group],
-          gantt_new_item_url_value: @urls[:new_item]
+          gantt_new_item_url_value: @urls[:new_item],
+          gantt_undated_drawer_id_value: undated_drawer_id
         }.compact
       end
 

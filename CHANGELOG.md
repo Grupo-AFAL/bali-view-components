@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`Bali::Gantt`: items without dates get the "No dates" surface the docs promised** (#1015).
+  An item with `starts_on: null` cannot get a bar or a row, and until now it simply vanished:
+  `Data#undated_items` had no consumer left after #970, while the footer count still included
+  the item — "4 items" over 3 visible rows, with nothing to explain the difference. The footer
+  now grows a link right next to the count ("12 items · 3 with no dates", es: "sin fechas")
+  that opens a server-rendered **drawer** listing each undated item — name, status (labelled
+  through the same catalog the island paints with) and a link when the item carries `href:`.
+  The drawer keeps the board visible (the point is comparing against what IS scheduled), is
+  addressed by id (`bali:drawer:open` with `detail.id`, so it never answers a broadcast
+  trigger), and lives inside the component's element so a broadcast replace refreshes it with
+  the board. Structurally the skeleton moved into an inner `.bali-gantt-mount` div the island
+  now mounts into — hosts that select `.bali-gantt > .bali-gantt-skeleton` directly (none
+  known) need the extra level.
+
 ### Fixed
 - **`Bali::SplitView`: pressing back no longer throws the reader forward to the detail they just
   left** (#1012). A row click swaps the detail frame and, through the frame's own

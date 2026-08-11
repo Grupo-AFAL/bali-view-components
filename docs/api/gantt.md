@@ -207,26 +207,39 @@ nesting deeper than one level — raise `Bali::Gantt::Data::InvalidError` instea
 of quietly dropping bars. A typo that silently loses rows would lie about the
 plan.
 
-Items with no dates are not dropped either: they render in a "No dates" section
-under the board.
+Items with no dates are not dropped either (#1015). They cannot get a bar or a
+row, so they live in a **"No dates" drawer**: the footer's item count includes
+them and grows a link right next to it — "12 items · 3 with no dates" — that
+opens a server-rendered drawer listing each undated item (name, status, and a
+link when the item carries `href:`). The drawer is part of the component's own
+element, so a broadcast replace refreshes the list together with the board; a
+mutation applied by the island alone (drag, resize) updates the footer count
+but not the drawer's contents until the next replace — moving an item in or
+out of "no dates" is not something dragging can do anyway.
 
 ---
 
 ## The skeleton and the swap
 
-The component renders the mount element with the skeleton inside it:
+The component renders its element with an inner mount (`.bali-gantt-mount`)
+holding the skeleton — and, when the document carries undated items, the
+"no dates" drawer as the mount's sibling:
 
 ```html
 <div id="gantt_project_1" class="bali-gantt" data-controller="gantt"
      data-gantt-data-value='{"groups":[…],"items":[…]}'
      data-gantt-initial-zoom-value="day" …>
   <noscript>…this timeline needs JavaScript…</noscript>
-  <div class="bali-gantt-skeleton" role="status" aria-busy="true">…</div>
+  <div class="bali-gantt-mount">
+    <div class="bali-gantt-skeleton" role="status" aria-busy="true">…</div>
+  </div>
+  <dialog class="drawer-component" id="gantt_project_1-undated" …>…</dialog>
 </div>
 ```
 
-The island mounts into a container prepended to that element and removes the
-skeleton from inside React's first commit — after the DOM carries the island,
+The island mounts into a container prepended to the INNER `.bali-gantt-mount`
+(React retires every child of the element it mounts into, and the drawer must
+survive that) and removes the skeleton from inside React's first commit — after the DOM carries the island,
 before the browser paints. One frame shows the skeleton, the next shows the
 island, and no frame shows an empty box. (It used to clear the mount up front
 and let React fill it later; on a 300-item board with the CPU throttled 6x that

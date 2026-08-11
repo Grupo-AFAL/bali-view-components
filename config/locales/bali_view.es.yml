@@ -376,6 +376,7 @@ es:
     gantt:
       loading: Cargando el cronograma
       noscript: Este cronograma necesita JavaScript para mostrarse.
+      undated_title: Sin fechas
       # Tabla plana de la isla React (#705, D12) — la sirve
       # Bali::Gantt::Translations.island como prop `i18n`. Los `%{...}` se
       # interpolan del lado del CLIENTE; las claves deben coincidir con
@@ -424,6 +425,7 @@ es:
         selection_none: Sin selección
         selected: "%{count} en selección"
         items_count: "%{count} elementos"
+        undated_count: "%{count} sin fechas"
         range_days: "%{count} días"
         critical_count: "crítica: %{count}"
         progress_label: "%{percent}% avance"

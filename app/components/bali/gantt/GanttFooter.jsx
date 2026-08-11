@@ -13,6 +13,8 @@ function Sep () {
 export default memo(function GanttFooter ({
   selectionLabel = '',
   countLabel = '',
+  undatedLabel = '',
+  onShowUndated = undefined,
   legend = [],
   rangeLabel = '',
   durationLabel = '',
@@ -24,6 +26,20 @@ export default memo(function GanttFooter ({
     <div className='flex h-8 shrink-0 items-center gap-3.5 overflow-hidden whitespace-nowrap border-t border-base-300 bg-base-200/50 px-3.5 font-mono text-[11px] text-base-content/60'>
       <span className={selectionActive ? 'font-semibold text-primary' : ''}>{selectionLabel}</span>
       <span>{countLabel}</span>
+      {undatedLabel && onShowUndated && (
+        <>
+          <Sep />
+          {/* A button, not an anchor: it opens the drawer next to the count
+              that gives these items away ("12 items · 3 with no dates"). */}
+          <button
+            type='button'
+            onClick={onShowUndated}
+            className='cursor-pointer underline decoration-dotted underline-offset-2 hover:text-base-content'
+          >
+            {undatedLabel}
+          </button>
+        </>
+      )}
 
       {legend.length > 0 && (
         <div className='flex items-center gap-2.5'>

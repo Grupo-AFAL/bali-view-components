@@ -36,6 +36,10 @@ export class GanttController extends ReactIslandController {
     itemUrlTemplate: { type: String, default: '' },
     newGroupUrl: { type: String, default: '' },
     newItemUrl: { type: String, default: '' },
+    // DOM id of the server-rendered "no dates" drawer (#1015). Present only
+    // when the document carries undated items; the footer names it through
+    // `bali:drawer:open`. Empty = no drawer, no footer link.
+    undatedDrawerId: { type: String, default: '' },
     // Namespaced query param the zoom persists into (D14).
     zoomParam: { type: String, default: 'gantt_zoom' },
     // Zoom to open at when the URL carries no param — Bali::Gantt::Component
@@ -44,6 +48,14 @@ export class GanttController extends ReactIslandController {
     initialZoom: { type: String, default: '' },
     // date-fns display locale: 'en' (default) or 'es'.
     dateLocale: { type: String, default: 'en' }
+  }
+
+  // The component element carries server-rendered chrome NEXT TO the mount —
+  // the "no dates" drawer (#1015). React retires every child of the mount
+  // element on its first commit, so the island mounts into its own inner div
+  // and the drawer survives the swap.
+  mountElement () {
+    return this.element.querySelector('.bali-gantt-mount') || this.element
   }
 
   async loadComponent () {

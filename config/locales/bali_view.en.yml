@@ -380,6 +380,7 @@ en:
     gantt:
       loading: Loading the timeline
       noscript: This timeline needs JavaScript to be displayed.
+      undated_title: No dates
       # Flat strings table of the React island (#705, D12) — served by
       # Bali::Gantt::Translations.island as the `i18n` prop. `%{...}` are
       # interpolated CLIENT-side; keys must match Translations::KEYS and the
@@ -427,6 +428,7 @@ en:
         selection_none: No selection
         selected: "%{count} selected"
         items_count: "%{count} items"
+        undated_count: "%{count} with no dates"
         range_days: "%{count} days"
         critical_count: "critical: %{count}"
         progress_label: "%{percent}% complete"
