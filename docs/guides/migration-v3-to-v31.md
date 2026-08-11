@@ -200,6 +200,26 @@ column of ~420px its row of controls overflowed. The band now wraps.
 
 Full recipe: [master-detail.md](master-detail.md#filtering-the-list).
 
+## BlockEditor: the `@blocknote/*` floor moves to `>= 0.53.0` (#908)
+
+Only matters if you render the BlockEditor. BlockNote `<= 0.52.1` enters a re-render loop
+(`Maximum update depth exceeded`, a frozen tab in the worst case) whenever a browser
+extension that rewrites the editor's DOM is active — Dark Reader, Grammarly, page
+translators ([TypeCellOS/BlockNote#2818](https://github.com/TypeCellOS/BlockNote/issues/2818)).
+The fix ([#2912](https://github.com/TypeCellOS/BlockNote/pull/2912)) first shipped in
+0.53.0, so the peer floor moves past the bug; the wrapper cannot absorb it from outside.
+
+In the app, upgrade the set together — every `@blocknote/*` package you declare, on the
+same version, including any `xl-*` extras your app added:
+
+```bash
+yarn add @blocknote/core@^0.53.0 @blocknote/react@^0.53.0 @blocknote/mantine@^0.53.0
+```
+
+Apps that build their own editor bundle (afal-apps' `editor.js`) rebuild it after the
+upgrade. Staying on 0.52.1 keeps working — nothing in the component calls a 0.53-only
+API — but it keeps the loop and an unmet-peer warning.
+
 ## Adoption notes (additive — not part of the five)
 
 Everything below is opt-in housekeeping: nothing renders differently until you act.
