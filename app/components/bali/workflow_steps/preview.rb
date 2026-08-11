@@ -45,7 +45,7 @@ module Bali
       # no connectors — the bar already says how far the flow got.
       #
       # ```erb
-      # <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+      # <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
       #   <% c.with_step(title: 'Submitted', state: :success, date: 'Jul 1') %>
       #   <% c.with_step(title: 'Legal review', state: :current) %>
       #   <% c.with_step(title: 'Director signature', state: :pending) %>

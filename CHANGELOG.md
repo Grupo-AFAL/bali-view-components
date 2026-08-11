@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (breaking)
+- **`Bali::Topbar::IconAction` renames `label:` to `aria_label:`** (pre-GA API audit). The
+  accessible name is spelled `aria_label:` on every other icon-only Bali control
+  (`ViewSwitch`, `SideMenu`, `Chart`); `label:` here was the odd one out and, worse, a host
+  reaching for the majority spelling got a silent stray `label=""` attribute with no accessible
+  name applied. Passing the old `label:` now raises with the new name. **Only affects hosts
+  pinned to a v3.1 beta** — the component is new in 3.1. No pinned host uses it.
+- **`Bali::WorkflowSteps` renames `variant:` to `orientation:`** (pre-GA API audit). The
+  horizontal/vertical axis is `orientation:` on its sibling `Bali::Stepper`, and `variant:` is
+  what the button taxonomy reserves for colour. Passing the old `variant:` now raises. **Only
+  affects a call site that passed `variant: :horizontal`**; the default vertical call takes no
+  keyword. The one pinned host (afal-apps) renders it vertically without the keyword, so it is
+  unaffected.
+
 ## [v3.1.0.beta.13] - 2026-08-10
 
 ### Added

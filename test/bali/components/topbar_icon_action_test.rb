@@ -3,8 +3,22 @@
 require "test_helper"
 
 class BaliTopbarIconActionComponentTest < ComponentTestCase
+  def test_the_renamed_label_keyword_raises_pointing_at_aria_label
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Topbar::IconAction::Component.new(icon: "bell", label: "Notifications"))
+    end
+    assert_includes(error.message, "`label:` was renamed to `aria_label:`")
+  end
+
+  def test_a_missing_accessible_name_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Topbar::IconAction::Component.new(icon: "bell"))
+    end
+    assert_includes(error.message, "`aria_label:` is required")
+  end
+
   def test_renders_a_labelled_icon_button
-    render_inline(Bali::Topbar::IconAction::Component.new(icon: "bell", label: "Notifications"))
+    render_inline(Bali::Topbar::IconAction::Component.new(icon: "bell", aria_label: "Notifications"))
 
     assert_selector('button[type="button"].btn.btn-ghost.btn-sm.btn-square' \
                     '[aria-label="Notifications"][title="Notifications"]')
@@ -13,7 +27,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_renders_a_link_when_given_href
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "bell", label: "Notifications", href: "/notifications"
+                    icon: "bell", aria_label: "Notifications", href: "/notifications"
                   ))
 
     assert_selector('a[href="/notifications"].btn.btn-square[aria-label="Notifications"]')
@@ -23,7 +37,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_badge_true_draws_the_dot
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "bell", label: "Notifications", badge: true
+                    icon: "bell", aria_label: "Notifications", badge: true
                   ))
 
     assert_selector("button.relative span.bali-topbar-badge.bg-error[aria-hidden='true']")
@@ -31,7 +45,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_numeric_badge_draws_a_count_pill
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "bell", label: "Notifications", badge: 3
+                    icon: "bell", aria_label: "Notifications", badge: 3
                   ))
 
     assert_selector("button.relative span.bali-topbar-badge .badge.badge-error.badge-xs",
@@ -42,7 +56,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
   # badges are capped — a String is a count the host already formatted.
   def test_numeric_badge_above_max_count_renders_the_capped_form
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "inbox", label: "Inbox", badge: 128
+                    icon: "inbox", aria_label: "Inbox", badge: 128
                   ))
 
     assert_selector("span.bali-topbar-badge .badge", text: "99+")
@@ -51,7 +65,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_max_count_is_configurable
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "inbox", label: "Inbox", badge: 12, max_count: 9
+                    icon: "inbox", aria_label: "Inbox", badge: 12, max_count: 9
                   ))
 
     assert_selector("span.bali-topbar-badge .badge", text: "9+")
@@ -59,7 +73,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_string_badge_is_never_capped
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "inbox", label: "Inbox", badge: "999"
+                    icon: "inbox", aria_label: "Inbox", badge: "999"
                   ))
 
     assert_selector("span.bali-topbar-badge .badge", text: "999")
@@ -69,7 +83,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
   # (`aria-current="page"`); a button gets the visual state alone.
   def test_active_paints_the_active_state_and_announces_it_on_a_link
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "inbox", label: "Inbox", href: "/inbox", active: true
+                    icon: "inbox", aria_label: "Inbox", href: "/inbox", active: true
                   ))
 
     assert_selector('a.btn-active[aria-current="page"]')
@@ -77,7 +91,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_active_on_a_button_has_no_aria_current
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "inbox", label: "Inbox", active: true
+                    icon: "inbox", aria_label: "Inbox", active: true
                   ))
 
     assert_selector("button.btn-active")
@@ -86,7 +100,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_inactive_carries_no_active_state
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "inbox", label: "Inbox", href: "/inbox"
+                    icon: "inbox", aria_label: "Inbox", href: "/inbox"
                   ))
 
     assert_no_selector(".btn-active")
@@ -95,7 +109,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_badge_id_names_the_turbo_stream_target
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "bell", label: "Notifications", badge: true,
+                    icon: "bell", aria_label: "Notifications", badge: true,
                     badge_id: "notifications-badge"
                   ))
 
@@ -104,7 +118,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_badge_id_without_badge_renders_an_empty_hidden_target
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "bell", label: "Notifications", badge_id: "notifications-badge"
+                    icon: "bell", aria_label: "Notifications", badge_id: "notifications-badge"
                   ))
 
     assert_selector("span#notifications-badge[hidden]", visible: false)
@@ -112,7 +126,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
   end
 
   def test_no_badge_no_target_no_relative
-    render_inline(Bali::Topbar::IconAction::Component.new(icon: "bell", label: "Help"))
+    render_inline(Bali::Topbar::IconAction::Component.new(icon: "bell", aria_label: "Help"))
 
     assert_no_selector(".bali-topbar-badge", visible: :all)
     assert_no_selector("button.relative")
@@ -120,7 +134,7 @@ class BaliTopbarIconActionComponentTest < ComponentTestCase
 
   def test_passes_through_options
     render_inline(Bali::Topbar::IconAction::Component.new(
-                    icon: "bell", label: "Notifications",
+                    icon: "bell", aria_label: "Notifications",
                     class: "custom", data: { action: "notifications#open" }
                   ))
 
