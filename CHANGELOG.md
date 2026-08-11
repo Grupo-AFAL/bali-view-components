@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cierran las dos puertas: el campo de búsqueda sale también de los atributos guardados. Un
   form que solo usa `search_fields` no estaba afectado, y los demás filtros siguen sobreviviendo
   a la X — para llevárselos está "Limpiar filtros".
+
 ## [v3.1.0.beta.11] - 2026-08-10
 
 ### Fixed
