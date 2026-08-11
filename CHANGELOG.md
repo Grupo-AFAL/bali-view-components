@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **Stored XSS in the Filters combinator is closed** (pre-GA audit). Ransack's `q[m]`
+  combinator arrived raw from the params and was re-emitted across the stack — a hidden
+  field, the filter-persistence cache, and the saved-view payload — and the Filters
+  Stimulus controller rebuilds that hidden field with `innerHTML`. A `q[m]` value that was
+  not `and`/`or` broke out of the attribute and executed; because the value is persisted,
+  a poisoned combinator saved into a shared view kept executing on later visits. `q[m]` is
+  now validated against `%w[and or]` at every entry point — top-level and per-group, on
+  read and when restoring an older saved view — collapsing anything else to the default.
+  Defense in depth on the JS side: the combinator divider normalizes the value before
+  interpolating it, the operator `<option>`s in the condition controller now run through
+  the same `escapeHtml` the rest of that file already used, and `Bali::Timeago` writes its
+  value with `textContent` instead of `innerHTML`.
+- **`@tiptap/extension-link` peer floor moves from `>= 2.0.0` to `>= 2.5.0`** (pre-GA
+  audit). `RichTextEditor` (deprecated, removed in v4) passes a user-typed URL to
+  `setLink` without a protocol filter; TipTap's protocol validation that blocks
+  `javascript:` links first shipped in 2.5. A host pinned to 2.0–2.4 could store a
+  `javascript:` href that executes when the content renders in read mode. Raising the peer
+  floor closes it without touching the deprecated component.
+
 ## [v3.1.0.beta.13] - 2026-08-10
 
 ### Added
