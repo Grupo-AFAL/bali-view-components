@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Drawer/Modal: clicks inside a portaled popup no longer count as a close gesture** (#1013).
+  `enterTopLayer` moves flatpickr's calendar (and SlimSelect's dropdown) into the `<dialog>` so
+  they stay clickable over the overlay — but as a *sibling* of the panel wrapper, and the
+  overlay-click detection asked `wrapperTarget.contains(target)`: with a dirty form, paging the
+  calendar's month (arrows, month, year) asked "are you sure you want to close?". Day clicks
+  never showed it only because selecting closes the calendar before the click completes. The
+  detection now walks `event.composedPath()` — snapshotted at dispatch, so targets flatpickr
+  detaches mid-gesture still count — and treats the wrapper's subtree, `[popover]` elements
+  (everything `enterTopLayer` moves in) and `[data-tippy-root]` balloons as inside the panel.
+  The real overlay still closes, confirmation included; Cypress pins both halves.
+
 ## [v3.1.0.beta.10] - 2026-08-10
 
 ### Added

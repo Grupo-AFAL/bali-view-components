@@ -240,5 +240,36 @@ describe('DrawerController', () => {
       cy.get('dialog[data-bali-confirm]').should('not.exist')
       cy.get('.drawer-open').should('not.exist')
     })
+
+    // #1013 — el calendario entra al top layer DENTRO del dialog (enterTopLayer),
+    // como hermano del wrapper: para la detección de overlay sus clicks eran
+    // "click afuera" y, con el form sucio, cambiar de mes preguntaba si querías
+    // cerrar el drawer. Los días nunca lo mostraban solo porque seleccionar
+    // cierra el calendario antes de que el click complete su recorrido.
+    it('paging the calendar month does not ask to close the dirty drawer', () => {
+      cy.get('#form_record_text').type('Hello')
+
+      cy.get('.flatpickr input').filter(':visible').first().click()
+      cy.get('.flatpickr-calendar.open').should('exist')
+
+      cy.get('.flatpickr-calendar.open .flatpickr-next-month').click()
+      cy.get('dialog[data-bali-confirm]').should('not.exist')
+      cy.get('.flatpickr-calendar.open').should('exist')
+      cy.get('.drawer-open').should('exist')
+
+      cy.get('.flatpickr-calendar.open .flatpickr-prev-month').click()
+      cy.get('dialog[data-bali-confirm]').should('not.exist')
+      cy.get('.drawer-open').should('exist')
+    })
+
+    // El control del fix: el gesto real de cierre no se puede llevar puesto —
+    // el overlay de verdad sigue preguntando sobre un form sucio.
+    it('clicking the real overlay still asks for confirmation on a dirty form', () => {
+      cy.get('#form_record_text').type('Hello')
+
+      cy.get('[data-drawer-target="background"]').click({ force: true })
+      cy.get('dialog[data-bali-confirm]').should('be.visible')
+      cy.get('.drawer-open').should('exist')
+    })
   })
 })
