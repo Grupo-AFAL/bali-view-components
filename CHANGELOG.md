@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.11] - 2026-08-10
+
 ### Fixed
 - **Drawer/Modal: clicks inside a portaled popup no longer count as a close gesture** (#1013).
   `enterTopLayer` moves flatpickr's calendar (and SlimSelect's dropdown) into the `<dialog>` so
