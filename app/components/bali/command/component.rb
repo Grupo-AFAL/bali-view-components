@@ -16,8 +16,9 @@ module Bali
     # no border of its own, so the focus ring is the only ring.
     #
     # Items can be pre-rendered (server-side) and filtered client-side via the
-    # bundled Stimulus controller. Three group modes:
+    # bundled Stimulus controller. Four group modes:
     #   - :searchable (default) — hidden until the query matches
+    #   - :navigation          — the whole list on open, filtered as you type
     #   - :recent              — shown only when the query is empty
     #   - :action              — always shown (used as a fallback)
     class Component < ApplicationViewComponent

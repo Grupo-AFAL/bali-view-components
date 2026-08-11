@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`Command`: `mode: :navigation`, el modo que le faltaba a un directorio de páginas** (#1016).
+  Los tres modos cubrían tres de las cuatro combinaciones de (¿visible con la query vacía?) ×
+  (¿filtra al teclear?), y la que faltaba era justo la del caso más común: una lista de
+  secciones que se pueda explorar apenas abre el palette **y** que se acote conforme el usuario
+  escribe. Sin ella el host elegía entre abrir con el panel vacío (`:searchable`) o abrir
+  poblado y no filtrar nunca (`:action`) — que es lo que se encontró en el admin de un
+  consumidor: ⌘K abría, navegaba con flechas y Enter, y teclear no recortaba nada. `:action` no
+  cambia: su contrato sigue siendo sobrevivir a cualquier query para quedar accesible bajo el
+  mensaje de "sin resultados" (el caso "crear X llamado «lo que escribiste»"), y por eso sigue
+  fuera del conteo que decide ese mensaje. Una fila `:navigation` que coincide sí cuenta como
+  resultado y recibe su `<mark>`, igual que una `:searchable`. Aditivo: ningún host existente
+  cambia de comportamiento.
+
+### Fixed
+- **`FilterForm`: limpiar la búsqueda dejaba el filtro vivo —y pegado— cuando el predicado
+  también estaba declarado como atributo** (#1017). El término entra a la caché por dos puertas
+  en cuanto el form declara el predicado de Ransack además de `search_fields` (la forma natural
+  cuando el buscador rápido también participa de los filtros avanzados): `extract_search_value`
+  lo levanta en `search_value` y, como la clave está en `attribute_names`, entra igual en
+  `attributes`. El branch de `clear_search` anulaba solo la primera, así que la X vaciaba la
+  caja y devolvía el listado **todavía recortado** por un término que ya no se veía en ningún
+  lado — y como la caché se reescribía con el predicado adentro, el recorte volvía en cada
+  visita limpia posterior, sin nada en la URL ni en la pantalla que lo explicara. Ahora se
+  cierran las dos puertas: el campo de búsqueda sale también de los atributos guardados. Un
+  form que solo usa `search_fields` no estaba afectado, y los demás filtros siguen sobreviviendo
+  a la X — para llevárselos está "Limpiar filtros".
+
 ## [v3.1.0.beta.11] - 2026-08-10
 
 ### Fixed
