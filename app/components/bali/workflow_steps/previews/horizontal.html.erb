@@ -3,7 +3,7 @@
     <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
       The six states
     </p>
-    <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal, progress: progress) do |c| %>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal, progress: progress) do |c| %>
       <% c.with_step(title: 'Request submitted', state: :success, date: 'Jul 1') %>
       <% c.with_step(title: 'Area manager', state: :warning, date: 'Jul 2') %>
       <% c.with_step(title: 'Legal review', state: :error, date: 'Jul 4') %>
@@ -17,7 +17,7 @@
       card, next to the metrics rather than instead of them. %>
   <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
     <% card.with_title('Vendor onboarding · ACME S.A.') %>
-    <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
       <% c.with_step(title: 'Documents received', state: :success, date: 'Jul 1') %>
       <% c.with_step(title: 'Due diligence', state: :success, date: 'Jul 3') %>
       <% c.with_step(title: 'Contract signed', state: :current, assignee: 'Ana Gutiérrez') %>
@@ -30,7 +30,7 @@
     <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
       In a narrow column
     </p>
-    <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
       <% c.with_step(title: 'Drafted', state: :success) %>
       <% c.with_step(title: 'Reviewed', state: :success) %>
       <% c.with_step(title: 'Published', state: :pending) %>

@@ -38,7 +38,7 @@ module Bali
     #   end
     #
     # @example The same chain as a quick flow
-    #   render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c|
+    #   render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c|
     #     c.with_step(title: 'Submitted', state: :success)
     #     c.with_step(title: 'Legal review', state: :current)
     #     c.with_step(title: 'Director signature', state: :pending)
@@ -47,15 +47,18 @@ module Bali
     class Component < ApplicationViewComponent
       BASE_CLASSES = "workflow-steps"
 
-      # The variant is a class on the root rather than a different element
+      # The orientation is a class on the root rather than a different element
       # name: the stylesheet keys the whole structure off it, and a host that
-      # needs to target one shape has something to write.
-      VARIANT_CLASSES = {
+      # needs to target one shape has something to write. The keyword is
+      # `orientation:`, matching `Bali::Stepper` — it was `variant:` in the v3.1
+      # betas, which collided with the `variant:` the button taxonomy reserves
+      # for colour.
+      ORIENTATION_CLASSES = {
         vertical: "workflow-steps-vertical",
         horizontal: "workflow-steps-horizontal"
       }.freeze
 
-      VARIANTS = VARIANT_CLASSES.keys.freeze
+      ORIENTATIONS = ORIENTATION_CLASSES.keys.freeze
 
       # What the N of the N/M bar counts: steps with a verdict, which are not
       # going to change again. `:skipped` is one of them — a step the route
@@ -81,12 +84,13 @@ module Bali
         step
       }
 
-      # @param variant [Symbol] `:vertical` (default) or `:horizontal`
+      # @param orientation [Symbol] `:vertical` (default) or `:horizontal`
       # @param progress [Boolean, nil] The N/M bar. On by default in the
-      #   horizontal variant, which is the only shape with a header for it.
+      #   horizontal orientation, which is the only shape with a header for it.
       # @param options [Hash] HTML attributes for the root element
-      def initialize(variant: :vertical, progress: nil, **options)
-        @variant = validated_variant(variant)
+      def initialize(orientation: :vertical, progress: nil, **options)
+        reject_renamed_variant!(options)
+        @orientation = validated_orientation(orientation)
         @progress = validated_progress(progress)
         @options = options
         @auto_number = 0
@@ -94,10 +98,19 @@ module Bali
 
       private
 
-      attr_reader :variant, :options
+      attr_reader :orientation, :options
+
+      # `variant:` was renamed to `orientation:` in v3.1; without this it would
+      # land in **options and render as a stray `variant="..."` attribute.
+      def reject_renamed_variant!(options)
+        return unless options.key?(:variant)
+
+        raise ArgumentError,
+              "#{self.class.name}: `variant:` was renamed to `orientation:` in v3.1."
+      end
 
       def horizontal?
-        variant == :horizontal
+        orientation == :horizontal
       end
 
       # A bar over no steps says nothing, and `<progress max="0">` is not valid
@@ -106,11 +119,11 @@ module Bali
         @progress && total_count.positive?
       end
 
-      # `Color.name!` reads nil as "not given", which for a variant means the
+      # `Color.name!` reads nil as "not given", which for an orientation means the
       # default rather than an error — unlike a step's state, this one has a
       # sane default to fall back to.
-      def validated_variant(value)
-        Bali::Color.name!(self.class.name, value, param: :variant, allowed: VARIANTS) || :vertical
+      def validated_orientation(value)
+        Bali::Color.name!(self.class.name, value, param: :orientation, allowed: ORIENTATIONS) || :vertical
       end
 
       # The bar is part of the quick-flow header, and the vertical shape has no
@@ -122,8 +135,8 @@ module Bali
         return value if horizontal? || !value
 
         raise ArgumentError,
-              "#{self.class.name}: progress: true needs variant: :horizontal. " \
-              "The N/M bar belongs to the quick-flow header; the vertical variant has none."
+              "#{self.class.name}: progress: true needs orientation: :horizontal. " \
+              "The N/M bar belongs to the quick-flow header; the vertical orientation has none."
       end
 
       # Each connector is painted with the state of the step it leads to, so
@@ -187,7 +200,7 @@ module Bali
       end
 
       def component_classes
-        class_names(BASE_CLASSES, VARIANT_CLASSES.fetch(variant), options[:class])
+        class_names(BASE_CLASSES, ORIENTATION_CLASSES.fetch(orientation), options[:class])
       end
 
       def container_options

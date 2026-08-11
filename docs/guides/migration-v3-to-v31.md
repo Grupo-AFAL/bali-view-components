@@ -197,6 +197,34 @@ column of ~420px its row of controls overflowed. The band now wraps.
 
 Full recipe: [master-detail.md](master-detail.md#filtering-the-list).
 
+## `Topbar::IconAction` and `WorkflowSteps`: two keywords renamed for consistency
+
+**Both only affect you if you pinned a v3.1 beta and used the component — these
+components are new in 3.1, so there is nothing to migrate from v3.0.** The
+renames land before the GA so the final API matches the rest of the library.
+
+- **`Topbar::IconAction` takes `aria_label:`, not `label:`.** The accessible
+  name is spelled `aria_label:` on every other icon-only Bali control
+  (`ViewSwitch`, `SideMenu`, `Chart`), and `label:` here silently produced a
+  stray `label=""` attribute if you reached for the majority spelling. Passing
+  the old `label:` now raises with the new name.
+
+  ```erb
+  <%# beta %>   <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', label: 'Notifications') %>
+  <%# now %>    <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', aria_label: 'Notifications') %>
+  ```
+
+- **`WorkflowSteps` takes `orientation:`, not `variant:`.** The horizontal/vertical
+  axis is `orientation:` on `Bali::Stepper`, its sibling; `variant:` is what the
+  button taxonomy reserves for colour. Passing the old `variant:` now raises. Only
+  a call site that passed `variant: :horizontal` is affected — the default
+  (vertical) call takes no keyword and is untouched.
+
+  ```erb
+  <%# beta %>   <%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+  <%# now %>    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
+  ```
+
 ## BlockEditor: the `@blocknote/*` floor moves to `>= 0.53.0` (#908)
 
 Only matters if you render the BlockEditor. BlockNote `<= 0.52.1` enters a re-render loop

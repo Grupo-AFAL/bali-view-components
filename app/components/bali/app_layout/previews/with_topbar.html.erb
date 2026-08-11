@@ -45,11 +45,11 @@
       <% end
 
       topbar.with_action do %>
-        <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', label: 'Notifications') %>
+        <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', aria_label: 'Notifications') %>
       <% end
 
       topbar.with_action do %>
-        <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', label: 'Help') %>
+        <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', aria_label: 'Help') %>
       <% end
 
       topbar.with_user_menu do %>

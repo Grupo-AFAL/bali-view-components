@@ -5,8 +5,10 @@ module Bali
     module IconAction
       # One icon button for the Topbar's `with_action` slot — the notification
       # bell packaged. A `<button>` by default, an `<a>` when given `href:`,
-      # always with an accessible name (`label:` is required: an icon-only
-      # control without one has no name at all).
+      # always with an accessible name (`aria_label:` is required: an icon-only
+      # control without one has no name at all). The keyword is `aria_label:`,
+      # matching every other icon-only Bali control (ViewSwitch, SideMenu,
+      # Chart) — it was `label:` in the v3.1 betas.
       #
       # The badge is a Turbo-Stream-updatable target and nothing more: pass
       # `badge_id:` and the indicator `<span>` gets that DOM id for the host to
@@ -24,7 +26,7 @@ module Bali
         COUNT_CLASSES = "bali-topbar-badge absolute -top-1 -right-1"
 
         # @param icon [String, Symbol] icon name (Bali::Icon pipeline).
-        # @param label [String] accessible name, e.g. t-ed "Notifications".
+        # @param aria_label [String] accessible name, e.g. t-ed "Notifications".
         # @param href [String, nil] renders an `<a>` (navigation) instead of a
         #   `<button>` (action) — the Button-vs-Link doctrine, one keyword.
         # @param badge [true, Integer, String, nil] `true` draws the small dot;
@@ -39,11 +41,11 @@ module Bali
         #   was re-writing by hand. Strings pass through untouched, so a host
         #   that formats its own count keeps full control.
         # rubocop:disable Metrics/ParameterLists
-        def initialize(icon:, label:, href: nil, badge: nil, badge_id: nil,
+        def initialize(icon:, aria_label: nil, href: nil, badge: nil, badge_id: nil,
                        active: false, max_count: 99, **options)
           # rubocop:enable Metrics/ParameterLists
           @icon = icon
-          @label = label
+          @label = resolve_aria_label(aria_label, options)
           @href = href
           @badge = badge
           @badge_id = badge_id
@@ -62,6 +64,21 @@ module Bali
         end
 
         private
+
+        # `aria_label:` is required, but validated in the body so the old `label:`
+        # (renamed in v3.1) gets a message that names its replacement instead of a
+        # bare "missing keyword".
+        def resolve_aria_label(aria_label, options)
+          if options.key?(:label)
+            raise ArgumentError,
+                  "#{self.class.name}: `label:` was renamed to `aria_label:` in v3.1."
+          end
+          return aria_label if aria_label.present?
+
+          raise ArgumentError,
+                "#{self.class.name}: `aria_label:` is required — an icon-only control " \
+                "needs an accessible name."
+        end
 
         def tag_name
           @href.present? ? :a : :button
