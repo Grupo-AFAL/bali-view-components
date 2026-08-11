@@ -25,7 +25,7 @@ module Bali
         zoom_label zoom_day zoom_week zoom_month
         today go_to_today zoom_in zoom_out fit fullscreen
         expand collapse
-        selection_none selected items_count range_days critical_count progress_label
+        selection_none selected items_count undated_count range_days critical_count progress_label
         resize_start resize_duration drag_dependency
         minimap_hint splitter_hint
         schedule_refreshed change_failed load_error

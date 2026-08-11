@@ -5,6 +5,13 @@
     empty box. If the bundle never arrives, the error notice is prepended and
     the skeleton stays where it was — the mount is never emptied.
 
+    Since #1015 the mount is the INNER `.bali-gantt-mount` div (the controller
+    overrides mountElement), because the component element also carries
+    server-rendered chrome that must survive the swap: the "no dates" drawer.
+    It lives inside the component element so a broadcast replace swaps it
+    together with the board, and next to the mount so React's fallback
+    retirement never touches it.
+
     The <noscript> is the honest part: without JavaScript there is no board at
     all, and a shimmering placeholder that never resolves would say "loading"
     forever. It renders first so the explanation precedes the placeholder. %>
@@ -12,27 +19,58 @@
   <noscript>
     <p class="alert alert-warning py-2 text-sm" role="status"><%= t(".noscript") %></p>
   </noscript>
-  <%# Neutral placeholder: the island's frame (same border/radius/shadow and
-      name-column width) with nothing of the real schedule in it. %>
-  <div class="bali-gantt-skeleton flex min-h-[360px] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
-       role="status" aria-busy="true" aria-label="<%= t('.loading') %>">
-    <div class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2">
-      <div class="w-48"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
-      <div class="w-32"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
-    </div>
-    <div class="flex flex-1">
-      <div class="bali-gantt-name-cell shrink-0 space-y-3 border-r border-base-300 p-3">
-        <% skeleton_rows.times do %>
-          <div class="w-3/4"><%= render Bali::Skeleton::Component.new(size: :xs) %></div>
-        <% end %>
+  <div class="bali-gantt-mount">
+    <%# Neutral placeholder: the island's frame (same border/radius/shadow and
+        name-column width) with nothing of the real schedule in it. %>
+    <div class="bali-gantt-skeleton flex min-h-[360px] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
+         role="status" aria-busy="true" aria-label="<%= t('.loading') %>">
+      <div class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2">
+        <div class="w-48"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
+        <div class="w-32"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
       </div>
-      <div class="min-w-0 flex-1 space-y-3 p-3">
-        <% skeleton_bars.each do |offset, width| %>
-          <div class="<%= offset %> <%= width %>">
-            <%= render Bali::Skeleton::Component.new(size: :xs) %>
-          </div>
-        <% end %>
+      <div class="flex flex-1">
+        <div class="bali-gantt-name-cell shrink-0 space-y-3 border-r border-base-300 p-3">
+          <% skeleton_rows.times do %>
+            <div class="w-3/4"><%= render Bali::Skeleton::Component.new(size: :xs) %></div>
+          <% end %>
+        </div>
+        <div class="min-w-0 flex-1 space-y-3 p-3">
+          <% skeleton_bars.each do |offset, width| %>
+            <div class="<%= offset %> <%= width %>">
+              <%= render Bali::Skeleton::Component.new(size: :xs) %>
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>
+  <% if undated_items.any? %>
+    <%# Items without dates get no bar and no row; this is where they stay
+        consultable, next to the board they are missing from (#1015). The
+        island's footer names this drawer through `bali:drawer:open` —
+        `shared: false` keeps a broadcast trigger from opening it (#854), and
+        with no form inside, closing must never prompt. %>
+    <%= render Bali::Drawer::Component.new(
+          drawer_id: undated_drawer_id,
+          title: t(".undated_title"),
+          shared: false,
+          dismissable_without_confirm: true
+        ) do %>
+      <ul class="divide-y divide-base-200">
+        <% undated_items.each do |item| %>
+          <li class="flex items-center justify-between gap-3 py-2.5">
+            <% if item.href.present? %>
+              <%= render Bali::Link::Component.new(name: item.name, href: item.href,
+                                                   class: "truncate") %>
+            <% else %>
+              <span class="truncate"><%= item.name %></span>
+            <% end %>
+            <% if (label = status_label(item.status)) %>
+              <%= render Bali::Tag::Component.new(text: label, size: :sm) %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
 <% end %>

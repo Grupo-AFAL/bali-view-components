@@ -746,9 +746,22 @@ function GanttCanvas (props) {
     else if (el.requestFullscreen) el.requestFullscreen()
   }, [])
 
+  // Opens the server-rendered "no dates" drawer (#1015) by name. The event
+  // MUST carry the drawer's id — a broadcast would open every shared drawer
+  // on the page (#854) — and `options` is part of the contract even when
+  // empty.
+  const undatedDrawerId = props.undatedDrawerId
+  const onShowUndated = useCallback(() => {
+    if (!undatedDrawerId || typeof document === 'undefined') return
+    document.dispatchEvent(
+      new CustomEvent('bali:drawer:open', { detail: { id: undatedDrawerId, options: {} } })
+    )
+  }, [undatedDrawerId])
+
   // --- Footer metrics ---
   const footer = useMemo(() => {
     const leaves = schedule.items || []
+    const undatedCount = leaves.filter((item) => !item.starts_on).length
     const durOf = (item) => (item.starts_on ? durationDays(item.starts_on, item.ends_on) : 0)
     const totalDur = leaves.reduce((a, item) => a + durOf(item), 0) || 1
     const wprog = Math.round(leaves.reduce((a, item) => a + durOf(item) * (item.percent_complete || 0), 0) / totalDur)
@@ -764,6 +777,7 @@ function GanttCanvas (props) {
     }
     return {
       countLabel: t('items_count', { count: leaves.length }),
+      undatedLabel: undatedCount > 0 ? t('undated_count', { count: undatedCount }) : '',
       progressLabel: t('progress_label', { percent: wprog }),
       criticalLabel: t('critical_count', { count: critCount }),
       rangeLabel: windowStart && windowEnd ? `${fmtDayMonth(windowStart)} → ${fmtDayMonth(windowEnd)}` : '',
@@ -888,6 +902,8 @@ function GanttCanvas (props) {
         selectionActive={selection.size > 0}
         selectionLabel={selection.size > 0 ? t('selected', { count: selection.size }) : t('selection_none')}
         countLabel={footer.countLabel}
+        undatedLabel={footer.undatedLabel}
+        onShowUndated={undatedDrawerId ? onShowUndated : undefined}
         legend={footer.legend}
         rangeLabel={footer.rangeLabel}
         durationLabel={footer.durationLabel}

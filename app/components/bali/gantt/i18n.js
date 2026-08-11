@@ -50,6 +50,7 @@ export const DEFAULT_I18N = {
   selection_none: 'No selection',
   selected: '%{count} selected',
   items_count: '%{count} items',
+  undated_count: '%{count} with no dates',
   range_days: '%{count} days',
   critical_count: 'critical: %{count}',
   progress_label: '%{percent}% complete',

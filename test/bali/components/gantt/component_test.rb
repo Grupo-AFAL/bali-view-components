@@ -221,4 +221,76 @@ class BaliGanttComponentTest < ComponentTestCase
     assert_equal "Roadmap", island["aria-label"]
     assert_equal "gantt", island["data-controller"]
   end
+
+  # --- the "no dates" drawer (#1015) ---
+
+  # An item without dates cannot get a bar or a row, but it must not disappear:
+  # the footer counts it, and this drawer — server-rendered from
+  # Data#undated_items — is where it is consultable next to the board it is
+  # missing from. The island only dispatches `bali:drawer:open` at it.
+  def test_undated_items_render_in_a_server_side_drawer
+    render_inline(component(id: "portfolio-gantt"))
+
+    drawer = page.find("dialog.drawer-component", visible: :all)
+    assert_equal "portfolio-gantt-undated", drawer["id"]
+    assert_equal "portfolio-gantt-undated",
+                 page.find(".bali-gantt")["data-gantt-undated-drawer-id-value"]
+
+    html = drawer.native.to_html
+    assert_includes html, "Unscheduled"
+    refute_includes html, "Interviews", "the drawer lists ONLY the undated items"
+  end
+
+  def test_an_undated_item_links_to_its_href_and_names_its_status
+    data = payload
+    data[:items] << { id: 14, name: "Aprobado sin plan", status: "in_progress",
+                      href: "/projects/14" }
+    render_inline(Bali::Gantt::Component.new(data: data))
+
+    html = page.find("dialog.drawer-component", visible: :all).native.to_html
+    assert_includes html, 'href="/projects/14"'
+    assert_includes html, "In progress"
+  end
+
+  def test_without_undated_items_there_is_no_drawer_and_no_value
+    data = payload
+    data[:items] = data[:items].reject { |item| item[:starts_on].nil? }
+    render_inline(Bali::Gantt::Component.new(data: data))
+
+    assert_no_selector("dialog.drawer-component", visible: :all)
+    assert_nil page.find(".bali-gantt")["data-gantt-undated-drawer-id-value"]
+  end
+
+  # React retires every child of the MOUNT element on its first commit
+  # (react-island.js `_retireFallback`), so the drawer lives NEXT TO the inner
+  # mount, inside the component element — inside the mount it would flash once
+  # and vanish; outside the component element a broadcast replace would orphan
+  # it.
+  def test_the_drawer_survives_the_islands_first_commit
+    render_inline(component)
+
+    assert_selector(".bali-gantt > .bali-gantt-mount .bali-gantt-skeleton")
+    assert_no_selector(".bali-gantt-mount dialog", visible: :all)
+    assert_selector(".bali-gantt > dialog.drawer-component", visible: :all)
+  end
+
+  # A broadcast `drawer#open` that names no drawer opens every SHARED drawer on
+  # the page (#854); a feature-owned drawer opts out and only opens when the
+  # footer names it. And with no form inside, closing must never prompt.
+  def test_the_undated_drawer_answers_only_when_named_and_closes_without_asking
+    render_inline(component)
+
+    drawer = page.find("dialog.drawer-component", visible: :all)
+    assert_equal "false", drawer["data-drawer-shared-value"]
+    assert_nil drawer["data-drawer-confirm-close-message-value"]
+  end
+
+  def test_the_drawer_title_is_translated
+    I18n.with_locale(:es) do
+      render_inline(component)
+
+      assert_includes page.find("dialog.drawer-component", visible: :all).native.to_html,
+                      "Sin fechas"
+    end
+  end
 end

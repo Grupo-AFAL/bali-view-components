@@ -132,7 +132,11 @@ module Bali
             { id: 40, group_id: 4, name: "Beta release", milestone: true,
               status: "backlog", starts_on: (today + 21).iso8601 },
             { id: 41, group_id: 4, name: "Docs", status: "backlog" },
-            { id: 42, group_id: 4, name: "Announcement", status: "cancelled" }
+            { id: 42, group_id: 4, name: "Announcement", status: "cancelled" },
+            # Sin fechas Y sin grupo — la forma exacta del reporte de #1015: no
+            # puede tener barra ni fila, así que solo existe en el conteo del
+            # pie y en el drawer "No dates".
+            { id: 43, name: "Postmortem review", status: "backlog" }
           ],
           dependencies: [
             { id: 1, predecessor_id: 20, successor_id: 30, dependency_type: "finish_to_start" },
