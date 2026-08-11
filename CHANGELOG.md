@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Documentation: the blocking copy-paste errors an adopter hits first** (pre-GA audit).
+  Each correction was checked against the source before writing:
+  - **README** Quick Start: the Gemfile pin moves off the stale `v2.18.0` to the current
+    tag; the Card example used a `with_body`/`with_actions` API that does not exist (the
+    slots are `with_header(title:)`, plain block content for the body, and `with_action`
+    singular); `Bali::Link` `type:` (which now raises) becomes `variant:`; `f.submit_button`
+    (no such method) becomes `f.submit_group`; and the `bundle exec rspec` commands become
+    `bin/rails test` — the repository is Minitest-only.
+  - **installation.md / troubleshooting.md**: `import { registerControllers }` (not exported)
+    becomes `registerAll`; the "icons via Iconify" claim is corrected to inline `lucide-rails`
+    SVGs, which is the actual resolution pipeline; the hardcoded `Bali::VERSION` example is
+    refreshed.
+  - **migration-v2-to-v3.md**: the `@blocknote/*` floor and every `yarn add` example move from
+    `0.52.1` to the real `>= 0.53.0` (#908); a dated investigation note about a checkout that no
+    longer mismatches is removed rather than left contradicting itself.
+  - **master-detail.md**: the snippet that told hosts to add their own
+    `data-controller="split-view"` is replaced — since #1012 the component renders that
+    controller itself, so the snippet created a second, unwired instance; the supported way to
+    extend the selected-row look (a CSS rule on `.split-view-row[aria-current]`) is documented
+    instead.
 - **`Bali::SplitView`: a row click no longer wipes the detail it just opened** (regression
   from #1020). #1020 fixed #1012 by rewinding the detail frame on `turbo:before-cache` —
   stripping its `src` and restoring the pristine empty pane — so a navigated frame could not
