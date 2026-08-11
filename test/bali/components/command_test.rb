@@ -62,6 +62,19 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_selector(".cmd-row-title", text: "Settings")
   end
 
+  def test_group_and_item_pass_html_attributes_through
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_group(name: "Pages", class: "custom-group", data: { role: "nav" }) do |g|
+        g.with_item(title: "Dashboard", href: "/dashboard",
+                    class: "custom-row", data: { testid: "row-dash" })
+      end
+    end
+    # Host class composes with the component's own; host data merges over the
+    # component's command-target/mode without clobbering it.
+    assert_selector("div.custom-group[data-command-target='group'][data-role='nav']")
+    assert_selector("button.cmd-row.custom-row[data-command-target='row'][data-testid='row-dash']")
+  end
+
   def test_item_href_is_html_escaped_in_data_attribute
     # Regression: previously used `html_safe` on a string concatenation, which
     # could let an attacker inject attribute markup if href came from user input.

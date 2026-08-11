@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`Bali::Command::Group` and `Command::Item` accept HTML attributes** (pre-GA API audit).
+  The slot lambda (`command/component.rb`) always advertised a `**opts` passthrough, but the
+  two components' initializers did not accept it, so `with_group(class:)` or `with_item(data:)`
+  raised `ArgumentError`. They now merge `**options` onto the root element: `class` composes
+  with the component's own classes and `data` merges over its `command-target`/`mode` without
+  clobbering them.
+
+### Changed
+- **`Bali::Alert` moves to the shared `xs`/`sm`/`md`/`lg`/`xl` size scale** (pre-GA API audit).
+  It was the only live component still on v2's `small`/`regular`/`medium`/`large` vocabulary,
+  and — because it resolved sizes with a silent `fetch` default — `size: :sm` (the spelling
+  every other component takes) rendered no size class at all, with no warning. The scale is now
+  the standard one, `:md` is the default and carries no class, and an unknown size **raises**
+  instead of defaulting silently, matching `Bali::Tag`. The old names still resolve as
+  deprecated aliases (`small`→`sm`, `regular`/`medium`→`md`, `large`→`lg`), so existing call
+  sites render as before — `size: :medium` now renders base (no `text-base` class), which is
+  visually identical in an alert.
+
+### Fixed
+- **`Bali::RichTextEditor` bubble menu: the formatting controls are keyboard-reachable and
+  named** (pre-GA accessibility audit). The seven icon-only toolbar controls (bold, italic,
+  underline, strikethrough, and the three alignments) were `<a>` elements with no `href`, no
+  `tabindex` and no accessible name — unreachable by keyboard (WCAG 2.1.1) and nameless to a
+  screen reader (4.1.2). They are now `<button type="button">` with an `aria-label` from new
+  `rich_text_editor.bubble_menu.actions.*` keys (en/es), and the colour input gains a label
+  too. The `.toolbar-link` stylesheet rule dropped its `a` qualifier so the buttons keep the
+  same look.
+
 ## [v3.1.0.beta.13] - 2026-08-10
 
 ### Added

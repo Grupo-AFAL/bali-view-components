@@ -577,6 +577,16 @@ en:
       placeholder: "Start typing..."
 
       bubble_menu:
+        # Accessible names for the icon-only formatting buttons (no visible text)
+        actions:
+          bold: "Bold"
+          italic: "Italic"
+          underline: "Underline"
+          strikethrough: "Strikethrough"
+          align_left: "Align left"
+          align_center: "Align center"
+          align_right: "Align right"
+          text_color: "Text color"
         # Node type dropdown; `text` doubles as the trigger's default label
         nodes:
           text: "Text"

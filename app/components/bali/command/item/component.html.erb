@@ -1,9 +1,7 @@
 <%# Padding, the hover background and the body's direction/gap live in
     index.css next to the `.is-active` and `.is-compact` overrides — see the
     comment there before moving them back onto these elements. %>
-<%= tag.button(type: "button",
-               data: { command_target: "row", mode: mode, href: href, search: search.downcase, action: "click->command#select" }.compact,
-               class: "cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer") do %>
+<%= tag.button(**button_options) do %>
   <% if icon %>
     <%# bg / text colour live in index.css next to the `.is-active` override —
         see the comment there before moving them back onto this element. %>

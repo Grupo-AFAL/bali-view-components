@@ -30,11 +30,26 @@ module Bali
         error: "alert-error"
       }.freeze
 
+      # The shared xs/sm/md/lg/xl scale, so `size:` means the same on an Alert as
+      # on every other Bali component. Alert sizes by font-size; `:md` is the
+      # default and carries no class (daisyUI's own base size).
       SIZES = {
-        small: "text-sm",
-        regular: "",
-        medium: "text-base",
-        large: "text-lg"
+        xs: "text-xs",
+        sm: "text-sm",
+        md: "",
+        lg: "text-lg",
+        xl: "text-xl"
+      }.freeze
+
+      # v2's `small`/`regular`/`medium`/`large` mapped to the same rendering, kept
+      # as deprecated aliases so a host on the old spelling is not broken — while
+      # `size: :sm` (which used to silently render nothing) now works, and an
+      # unknown size raises instead of defaulting in silence.
+      LEGACY_SIZES = {
+        small: :sm,
+        regular: :md,
+        medium: :md,
+        large: :lg
       }.freeze
 
       STYLES = {
@@ -72,7 +87,7 @@ module Bali
       # `assertive:` wins over `polite:` when both are given.
       #
       # rubocop:disable Metrics/ParameterLists
-      def initialize(title: nil, color: :info, size: :regular, style: nil, icon: nil,
+      def initialize(title: nil, color: :info, size: :md, style: nil, icon: nil,
                      role: nil, polite: false, assertive: false,
                      closable: false, dismiss_id: nil, duration: nil, **options)
         @title = title
@@ -150,9 +165,23 @@ module Bali
         class_names(
           BASE_CLASSES,
           COLORS.fetch(@color, COLORS[:neutral]),
-          SIZES.fetch(@size, SIZES[:regular]),
+          size_class,
           STYLES[@style]
         )
+      end
+
+      # nil renders the default (md, no class); a legacy name resolves through
+      # the alias table; anything else raises instead of defaulting in silence —
+      # the same contract Bali::Tag uses.
+      def size_class
+        return SIZES[:md] if @size.nil?
+
+        key = LEGACY_SIZES[@size] || @size
+        SIZES.fetch(key) do
+          raise ArgumentError,
+                "#{self.class.name}: unknown size #{@size.inspect}. " \
+                "Valid: #{SIZES.keys.map(&:inspect).join(', ')}."
+        end
       end
     end
   end
