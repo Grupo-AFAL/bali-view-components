@@ -467,6 +467,13 @@ export class ModalController extends Controller {
   // the focus sits inside an <iframe> in the panel. Route it through the same
   // guarded path rather than let the browser discard the form.
   _onDialogCancel = event => {
+    // Only the dialog's OWN close request. An `<input type="file">` whose OS
+    // picker was dismissed fires `cancel` too, and unlike the dialog's, that
+    // one BUBBLES — so backing out of a file selection asked "are you sure you
+    // want to close?" (#1013). Declining to pick a file is not a request to
+    // close the panel.
+    if (event.target !== this.templateTarget) return
+
     event.preventDefault()
     this._closeWithConfirmation()
   }

@@ -17,7 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   detection now walks `event.composedPath()` — snapshotted at dispatch, so targets flatpickr
   detaches mid-gesture still count — and treats the wrapper's subtree, `[popover]` elements
   (everything `enterTopLayer` moves in) and `[data-tippy-root]` balloons as inside the panel.
-  The real overlay still closes, confirmation included; Cypress pins both halves.
+  Same report, third trigger: dismissing an `<input type="file">`'s OS picker fires a `cancel`
+  event that — unlike the dialog's own — BUBBLES, and the panel's platform-close listener took
+  it as a close request; it now only answers a `cancel` targeting the dialog itself. The real
+  overlay still closes, confirmation included; Cypress pins every half (calendar paging,
+  SlimSelect search/pick, the file-picker cancel, and the real overlay as control).
 
 ## [v3.1.0.beta.10] - 2026-08-10
 

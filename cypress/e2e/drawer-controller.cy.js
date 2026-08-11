@@ -262,6 +262,40 @@ describe('DrawerController', () => {
       cy.get('.drawer-open').should('exist')
     })
 
+    // #1013, la otra mitad: el .ss-content de SlimSelect entra al dialog por el
+    // mismo enterTopLayer (queda [popover]) y sus clicks — el campo de búsqueda,
+    // elegir una opción que re-renderiza el contenido — contaban como click
+    // afuera igual que el calendario.
+    it('searching and picking in the slim select does not ask to close the dirty drawer', () => {
+      cy.get('#form_record_text').type('Hello')
+
+      cy.get('.drawer-open .ss-main').first().click()
+      cy.get('.ss-content .ss-search input').should('be.visible').click().type('Com')
+      cy.get('dialog[data-bali-confirm]').should('not.exist')
+      cy.get('.drawer-open').should('exist')
+
+      // Elegir re-renderiza el contenido: el target puede llegar desmontado al
+      // click y composedPath lo sigue contando adentro.
+      cy.get('.ss-content .ss-list .ss-option').contains('Comedy').click()
+      cy.get('dialog[data-bali-confirm]').should('not.exist')
+      cy.get('.drawer-open').should('exist')
+    })
+
+    // #1013, tercera mitad: descartar el file picker del sistema dispara un
+    // evento `cancel` que BUBBLEA desde el input (a diferencia del cancel del
+    // dialog, que no bubblea), y el listener de cancel del drawer lo tomaba
+    // como pedido de cierre de plataforma. Cypress no puede tocar el picker
+    // nativo, así que se despacha el mismo evento que el navegador despacha.
+    it('cancelling the file picker does not ask to close the dirty drawer', () => {
+      cy.get('#form_record_text').type('Hello')
+
+      cy.get('.drawer-open input[type="file"]').then(([input]) => {
+        input.dispatchEvent(new Event('cancel', { bubbles: true }))
+      })
+      cy.get('dialog[data-bali-confirm]').should('not.exist')
+      cy.get('.drawer-open').should('exist')
+    })
+
     // El control del fix: el gesto real de cierre no se puede llevar puesto —
     // el overlay de verdad sigue preguntando sobre un form sucio.
     it('clicking the real overlay still asks for confirmation on a dirty form', () => {
