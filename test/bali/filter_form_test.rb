@@ -409,6 +409,19 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal("or", @form.combinator)
   end
 
+  def test_combinator_collapses_a_value_that_is_not_a_combinator
+    filter_params = { m: '"><img src=x onerror=alert(1)>' }
+    @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+    assert_equal("and", @form.combinator)
+    assert_nil(@form.applied_combinator)
+  end
+
+  def test_group_combinator_collapses_a_value_that_is_not_a_combinator
+    filter_params = { g: { "0" => { name_cont: "Iron", m: "<script>alert(1)</script>" } } }
+    @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+    assert_equal("or", @form.filter_groups.first[:combinator])
+  end
+
   def test_active_filter_details_returns_empty_array_when_no_filters_active
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
     assert_equal([], @form.active_filter_details)

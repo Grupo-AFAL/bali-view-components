@@ -127,10 +127,10 @@ npm install daisyui
 ```javascript
 // app/javascript/controllers/application.js
 import { Application } from "@hotwired/stimulus"
-import { registerControllers } from "bali-view-components"
+import { registerAll } from "bali-view-components"
 
 const application = Application.start()
-registerControllers(application)
+registerAll(application)
 ```
 
 #### 2. JavaScript Not Loading
@@ -312,12 +312,12 @@ This adds the correct Stimulus actions for modal integration.
 ```erb
 <%# WRONG - missing block variable %>
 <%= render Bali::Card::Component.new do %>
-  <% with_header { "Title" } %>  <%# This won't work! %>
+  <% with_header(title: "Title") %>  <%# This won't work! %>
 <% end %>
 
 <%# CORRECT - use block variable %>
 <%= render Bali::Card::Component.new do |card| %>
-  <% card.with_header { "Title" } %>
+  <% card.with_header(title: "Title") %>
 <% end %>
 ```
 
@@ -329,7 +329,7 @@ This adds the correct Stimulus actions for modal integration.
 - Icon placeholders appear but no actual icons
 - Empty space where icons should be
 
-**Context:** Bali uses Lucide icons via Iconify.
+**Context:** Bali uses Lucide icons, rendered as inline `<svg>` markup via the `lucide-rails` gem — there is no external icon font or CDN involved.
 
 **Possible fixes:**
 
@@ -343,7 +343,8 @@ This adds the correct Stimulus actions for modal integration.
    <%= render Bali::Icon::Component.new('edit') %>  <%# maps to 'pencil' %>
    ```
 
-2. **Iconify not loading:** Ensure Iconify CSS/JS is loading if using external icons.
+2. **Unresolvable name:** An icon name that matches neither the Lucide mapping, a direct Lucide name, nor a kept/custom icon raises `Bali::Options::IconNotAvailable` (with "did you mean" suggestions) rather than rendering blank — check the server logs/error page, not just the DOM.
+3. **SVG present but invisible:** If the `<svg>` renders in the DOM but is not visible, it is a CSS sizing issue — check the two `@source` lines from [Installation § Step 3](installation.md#step-3-configure-tailwind-css-v4--daisyui), not a missing icon source.
 
 ---
 

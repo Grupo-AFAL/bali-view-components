@@ -214,6 +214,13 @@ describe('SplitView', () => {
 // usuario haga nada distinto, sino de CUÁNDO Turbo lee el DOM, y eso no se
 // puede pedir desde un test. Lo que sí es determinista —y es el contrato— es
 // qué queda en el DOM cuando `turbo:before-cache` corre.
+//
+// El rebobinado quita SOLO el `src`, no el contenido: el `advance` de un click
+// (`data-turbo-action="advance"`, willRender: false) dispara `turbo:before-cache`
+// contra la página que SIGUE en pantalla, así que borrar el detalle aquí vaciaba
+// el panel que el lector acababa de abrir, en cada click. Quitar el `src` es lo
+// que #1012 necesita; que la lista vuelva vacía al restaurar lo hace
+// `syncFrameFromLocation` según la URL (ver "restores the preview on back").
 describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
   beforeEach(() => {
     cy.visit('/bali/split_view/custom_master')
@@ -229,9 +236,9 @@ describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
 
     // Sin `src` no hay recarga al restaurar, y sin recarga no hay advance.
     cy.get('.split-view-detail').should('not.have.attr', 'src')
-    // Y con el detalle rebobinado, el snapshot describe lo que la URL de la
-    // lista dice: nada seleccionado.
-    cy.get('.split-view-detail .empty-state-component').should('exist')
+    // Y el detalle que el lector está viendo NO se destruye: el before-cache de
+    // un advance corre sobre la página que se queda.
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
   })
 
   // La otra mitad: ir HACIA una URL que sí selecciona una fila tiene que

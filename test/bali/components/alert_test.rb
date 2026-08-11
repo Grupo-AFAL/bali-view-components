@@ -46,31 +46,41 @@ class BaliAlertComponentTest < ComponentTestCase
     assert_match("unknown color :primary", error.message)
   end
 
-  def test_sizes_renders_small_size
-    render_inline(Bali::Alert::Component.new(size: :small)) { "Content" }
-    assert_selector("div.alert.text-sm")
+  def test_sizes_render_the_shared_scale
+    { xs: "text-xs", sm: "text-sm", lg: "text-lg", xl: "text-xl" }.each do |size, klass|
+      render_inline(Bali::Alert::Component.new(size: size)) { "Content" }
+      assert_selector("div.alert.#{klass}")
+    end
   end
 
-  def test_sizes_renders_regular_size_no_extra_class
-    render_inline(Bali::Alert::Component.new(size: :regular)) { "Content" }
+  def test_md_is_the_default_and_carries_no_size_class
+    render_inline(Bali::Alert::Component.new(size: :md)) { "Content" }
     assert_selector("div.alert")
     assert_no_selector("div.text-sm")
     assert_no_selector("div.text-lg")
   end
 
-  def test_sizes_renders_medium_size
-    render_inline(Bali::Alert::Component.new(size: :medium)) { "Content" }
-    assert_selector("div.alert.text-base")
-  end
+  # Legacy small/regular/medium/large still resolve, mapped to the shared scale.
+  def test_legacy_size_names_still_resolve
+    render_inline(Bali::Alert::Component.new(size: :small)) { "Content" }
+    assert_selector("div.alert.text-sm")
 
-  def test_sizes_renders_large_size
     render_inline(Bali::Alert::Component.new(size: :large)) { "Content" }
     assert_selector("div.alert.text-lg")
+
+    # `regular` and `medium` both map to md — base font, no size class.
+    render_inline(Bali::Alert::Component.new(size: :regular)) { "Content" }
+    assert_no_selector("div.text-sm")
+
+    render_inline(Bali::Alert::Component.new(size: :medium)) { "Content" }
+    assert_no_selector("div.text-lg")
   end
 
-  def test_sizes_falls_back_to_regular_for_unknown_size
-    render_inline(Bali::Alert::Component.new(size: :unknown)) { "Content" }
-    assert_selector("div.alert")
+  def test_an_unknown_size_raises_instead_of_defaulting_in_silence
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Alert::Component.new(size: :unknown)) { "Content" }
+    end
+    assert_match(/unknown size :unknown/, error.message)
   end
 
   def test_styles_render_their_daisyui_class
