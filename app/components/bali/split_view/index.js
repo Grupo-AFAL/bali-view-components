@@ -62,7 +62,15 @@ export class SplitViewController extends Controller {
   // Only from a frame the server painted and nobody has navigated since: a
   // `src` means Turbo has already swapped content in, and caching THAT as the
   // pristine state would defeat the rewind below.
+  //
+  // Captured once per frame id and never overwritten. Since the rewind now keeps
+  // the loaded detail in place (only the `src` is dropped), a restored snapshot
+  // can connect with the frame holding a detail and no `src`; recapturing there
+  // would replace the true empty state with that detail, and a later back to the
+  // list would restore a stale record instead of the empty pane.
   capturePristineDetail () {
+    if (pristineDetail.has(this.frameValue)) return
+
     const frame = this.detailFrame
     if (!frame || frame.hasAttribute('src')) return
 
@@ -82,18 +90,23 @@ export class SplitViewController extends Controller {
   // is taken before the response and the bug never appears; in CI it did, in
   // about a third of the runs.
   //
-  // The rewind is keyed on the frame having a `src`, NOT on the current
-  // location: by the time this fires the URL is already the detail's, so a
-  // location test would never match. A server-rendered detail page carries no
-  // `src` and is left alone.
+  // Only the `src` is stripped, NOT the content. A row-click's own advance visit
+  // (`data-turbo-action="advance"`, willRender: false) fires `turbo:before-cache`
+  // against the page that STAYS on screen — so wiping the detail here erased the
+  // pane the reader had just opened, on every click. Dropping the `src` is what
+  // #1012 needs (a src-less frame is not reloaded on restore); the loaded detail
+  // is left in place, both for the surviving live pane and for a cached detail
+  // URL, which restores to the right pane without a refetch. `syncFrameFromLocation`
+  // resets the pane to pristine when a restore lands on a URL that selects no row.
+  //
+  // Keyed on the frame having a `src`, NOT on the current location: by the time
+  // this fires the URL is already the detail's, so a location test would never
+  // match. A server-rendered detail page carries no `src` and is left alone.
   rewindFrameBeforeCache () {
     const frame = this.detailFrame
     if (!frame || !frame.hasAttribute('src')) return
 
     frame.removeAttribute('src')
-
-    const pristine = pristineDetail.get(this.frameValue)
-    if (pristine !== undefined) frame.innerHTML = pristine
   }
 
   // Rows appended by infinite scroll. They arrive carrying whatever selection the
@@ -142,17 +155,30 @@ export class SplitViewController extends Controller {
     this.syncFrameFromLocation(current)
   }
 
-  // The other half of the rewind. Because a navigated frame is cached without
-  // its `src` and holding the pristine detail, a traversal FORWARD to a row's
-  // own URL would restore that empty pane next to a highlighted row. Pointing
-  // the frame at the row it belongs to refetches it — the same request Turbo
-  // would have made had the `src` survived, now made only where it is right.
+  // The other half of the rewind. A navigated frame is cached without its `src`
+  // but still holding the detail it last showed, so a traversal can restore a
+  // pane that no longer matches the URL:
   //
-  // Nothing to do when no row matches: an unnavigated frame showing the
-  // pristine detail is exactly what "no selection at this URL" looks like.
+  //   - Forward to a row's own URL whose cached pane is empty (or another row's
+  //     detail): point the frame at the row it belongs to and let it refetch —
+  //     the request Turbo would have made had the `src` survived, now made only
+  //     where it is right.
+  //   - Back to a URL that selects no row (the list) while the cached pane still
+  //     shows the last detail: reset it to the pristine empty state, so the list
+  //     view is not left showing a stale record.
   syncFrameFromLocation (current) {
     const frame = this.detailFrame
-    if (!frame || !current) return
+    if (!frame) return
+
+    if (!current) {
+      const pristine = pristineDetail.get(this.frameValue)
+      if (pristine !== undefined && frame.innerHTML !== pristine) {
+        frame.removeAttribute('src')
+        frame.innerHTML = pristine
+      }
+      return
+    }
+
     if (frame.getAttribute('src') === current.getAttribute('href')) return
 
     frame.setAttribute('src', current.getAttribute('href'))
