@@ -7,19 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Security
-- **BlockEditor uploads deny by default** (#1029). `Bali.block_editor_upload_authorize` was the
-  one engine gate that was *open* when unset — a host that mounted the engine and rendered the
-  BlockEditor without configuring it exposed `POST /bali/block_editor/uploads` to any visitor
-  (50 MB blobs on a loop, the host's domain as file hosting). It now denies by default, matching
-  every other engine controller (`entity_references`, `content_versions`, comments): an unset
-  lambda returns `403` and logs a one-line warning that names this change, so the denial is
-  diagnosable rather than mysterious. **Every host that renders the BlockEditor with uploads
-  must set the lambda** — `Bali.block_editor_upload_authorize = ->(c) { c.current_user.present? }`,
-  or `->(_) { true }` to keep it open on a fully-internal app. The upload validations
-  (magic-byte type detection, blocked-extension list, size cap) are unchanged; what changed is
-  that reaching them now requires the host to have decided who may upload. See the migration
-  guide.
+## [v3.1.0.beta.14] - 2026-08-11
+
+### Added
+- **`Bali::Command::Group` and `Command::Item` accept HTML attributes** (pre-GA API audit).
+  The slot lambda (`command/component.rb`) always advertised a `**opts` passthrough, but the
+  two components' initializers did not accept it, so `with_group(class:)` or `with_item(data:)`
+  raised `ArgumentError`. They now merge `**options` onto the root element: `class` composes
+  with the component's own classes and `data` merges over its `command-target`/`mode` without
+  clobbering them.
+
 ### Changed (breaking)
 - **`Bali::Topbar::IconAction` renames `label:` to `aria_label:`** (pre-GA API audit). The
   accessible name is spelled `aria_label:` on every other icon-only Bali control
@@ -33,13 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   affects a call site that passed `variant: :horizontal`**; the default vertical call takes no
   keyword. The one pinned host (afal-apps) renders it vertically without the keyword, so it is
   unaffected.
-### Added
-- **`Bali::Command::Group` and `Command::Item` accept HTML attributes** (pre-GA API audit).
-  The slot lambda (`command/component.rb`) always advertised a `**opts` passthrough, but the
-  two components' initializers did not accept it, so `with_group(class:)` or `with_item(data:)`
-  raised `ArgumentError`. They now merge `**options` onto the root element: `class` composes
-  with the component's own classes and `data` merges over its `command-target`/`mode` without
-  clobbering them.
 
 ### Changed
 - **`Bali::Alert` moves to the shared `xs`/`sm`/`md`/`lg`/`xl` size scale** (pre-GA API audit).
@@ -53,6 +43,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   visually identical in an alert.
 
 ### Fixed
+- **`Bali::SplitView`: a row click no longer wipes the detail it just opened** (regression
+  from #1020). #1020 fixed #1012 by rewinding the detail frame on `turbo:before-cache` —
+  stripping its `src` and restoring the pristine empty pane — so a navigated frame could not
+  reach Turbo's snapshot cache still carrying a `src` that reloads and re-advances on back.
+  But a row click's own advance visit (`data-turbo-action="advance"`, `willRender: false`)
+  fires `turbo:before-cache` against the page that **stays on screen**, so the rewind erased
+  the detail the reader had just opened — on every click, in the default `advance: true`
+  configuration (`custom_master`, `with_list`, and worst of all `with_selection`, which came
+  back showing the previously selected record). Cypress missed it: the wipe lands about a
+  frame after the detail renders, and the assertions resolved in the same tick. The rewind
+  now strips only the `src`, never the content — which is all #1012 needs (a src-less frame
+  is not reloaded on restore) — and `syncFrameFromLocation` resets the pane to its pristine
+  empty state when a history traversal lands on a URL that selects no row, so back to the
+  list still shows the empty pane and no stale record. `advance: false` was never affected.
 - **`Bali::RichTextEditor` bubble menu: the formatting controls are keyboard-reachable and
   named** (pre-GA accessibility audit). The seven icon-only toolbar controls (bold, italic,
   underline, strikethrough, and the three alignments) were `<a>` elements with no `href`, no
@@ -61,7 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `rich_text_editor.bubble_menu.actions.*` keys (en/es), and the colour input gains a label
   too. The `.toolbar-link` stylesheet rule dropped its `a` qualifier so the buttons keep the
   same look.
-### Fixed
 - **Documentation: the blocking copy-paste errors an adopter hits first** (pre-GA audit).
   Each correction was checked against the source before writing:
   - **README** Quick Start: the Gemfile pin moves off the stale `v2.18.0` to the current
@@ -82,40 +85,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     controller itself, so the snippet created a second, unwired instance; the supported way to
     extend the selected-row look (a CSS rule on `.split-view-row[aria-current]`) is documented
     instead.
-- **`Bali::SplitView`: a row click no longer wipes the detail it just opened** (regression
-  from #1020). #1020 fixed #1012 by rewinding the detail frame on `turbo:before-cache` —
-  stripping its `src` and restoring the pristine empty pane — so a navigated frame could not
-  reach Turbo's snapshot cache still carrying a `src` that reloads and re-advances on back.
-  But a row click's own advance visit (`data-turbo-action="advance"`, `willRender: false`)
-  fires `turbo:before-cache` against the page that **stays on screen**, so the rewind erased
-  the detail the reader had just opened — on every click, in the default `advance: true`
-  configuration (`custom_master`, `with_list`, and worst of all `with_selection`, which came
-  back showing the previously selected record). Cypress missed it: the wipe lands about a
-  frame after the detail renders, and the assertions resolved in the same tick. The rewind
-  now strips only the `src`, never the content — which is all #1012 needs (a src-less frame
-  is not reloaded on restore) — and `syncFrameFromLocation` resets the pane to its pristine
-  empty state when a history traversal lands on a URL that selects no row, so back to the
-  list still shows the empty pane and no stale record. `advance: false` was never affected.
-### Security
-- **Stored XSS in the Filters combinator is closed** (pre-GA audit). Ransack's `q[m]`
-  combinator arrived raw from the params and was re-emitted across the stack — a hidden
-  field, the filter-persistence cache, and the saved-view payload — and the Filters
-  Stimulus controller rebuilds that hidden field with `innerHTML`. A `q[m]` value that was
-  not `and`/`or` broke out of the attribute and executed; because the value is persisted,
-  a poisoned combinator saved into a shared view kept executing on later visits. `q[m]` is
-  now validated against `%w[and or]` at every entry point — top-level and per-group, on
-  read and when restoring an older saved view — collapsing anything else to the default.
-  Defense in depth on the JS side: the combinator divider normalizes the value before
-  interpolating it, the operator `<option>`s in the condition controller now run through
-  the same `escapeHtml` the rest of that file already used, and `Bali::Timeago` writes its
-  value with `textContent` instead of `innerHTML`.
-- **`@tiptap/extension-link` peer floor moves from `>= 2.0.0` to `>= 2.5.0`** (pre-GA
-  audit). `RichTextEditor` (deprecated, removed in v4) passes a user-typed URL to
-  `setLink` without a protocol filter; TipTap's protocol validation that blocks
-  `javascript:` links first shipped in 2.5. A host pinned to 2.0–2.4 could store a
-  `javascript:` href that executes when the content renders in read mode. Raising the peer
-  floor closes it without touching the deprecated component.
-### Fixed
 - **The v3.0 → v3.1 migration guide no longer promises #903** (residual daisyUI 4 class
   names outside the FormBuilder). The change was announced as part of the v3.1 block and
   then deferred to v4, but the guide's placeholder section kept telling hosts to expect
@@ -137,6 +106,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a host that hardens `saved_views_authorize` while leaving the owner lambda returning
   `nil` ends up with every anonymous view shared — readable and writable — among all
   visitors.
+
+### Security
+- **BlockEditor uploads deny by default** (#1029). `Bali.block_editor_upload_authorize` was the
+  one engine gate that was *open* when unset — a host that mounted the engine and rendered the
+  BlockEditor without configuring it exposed `POST /bali/block_editor/uploads` to any visitor
+  (50 MB blobs on a loop, the host's domain as file hosting). It now denies by default, matching
+  every other engine controller (`entity_references`, `content_versions`, comments): an unset
+  lambda returns `403` and logs a one-line warning that names this change, so the denial is
+  diagnosable rather than mysterious. **Every host that renders the BlockEditor with uploads
+  must set the lambda** — `Bali.block_editor_upload_authorize = ->(c) { c.current_user.present? }`,
+  or `->(_) { true }` to keep it open on a fully-internal app. The upload validations
+  (magic-byte type detection, blocked-extension list, size cap) are unchanged; what changed is
+  that reaching them now requires the host to have decided who may upload. See the migration
+  guide.
+- **Stored XSS in the Filters combinator is closed** (pre-GA audit). Ransack's `q[m]`
+  combinator arrived raw from the params and was re-emitted across the stack — a hidden
+  field, the filter-persistence cache, and the saved-view payload — and the Filters
+  Stimulus controller rebuilds that hidden field with `innerHTML`. A `q[m]` value that was
+  not `and`/`or` broke out of the attribute and executed; because the value is persisted,
+  a poisoned combinator saved into a shared view kept executing on later visits. `q[m]` is
+  now validated against `%w[and or]` at every entry point — top-level and per-group, on
+  read and when restoring an older saved view — collapsing anything else to the default.
+  Defense in depth on the JS side: the combinator divider normalizes the value before
+  interpolating it, the operator `<option>`s in the condition controller now run through
+  the same `escapeHtml` the rest of that file already used, and `Bali::Timeago` writes its
+  value with `textContent` instead of `innerHTML`.
+- **`@tiptap/extension-link` peer floor moves from `>= 2.0.0` to `>= 2.5.0`** (pre-GA
+  audit). `RichTextEditor` (deprecated, removed in v4) passes a user-typed URL to
+  `setLink` without a protocol filter; TipTap's protocol validation that blocks
+  `javascript:` links first shipped in 2.5. A host pinned to 2.0–2.4 could store a
+  `javascript:` href that executes when the content renders in read mode. Raising the peer
+  floor closes it without touching the deprecated component.
 
 ## [v3.1.0.beta.13] - 2026-08-10
 
