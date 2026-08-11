@@ -10,9 +10,9 @@ class BulkActionsRoundTripFilterForm < Bali::FilterForm
 
   attribute :name_cont
   attribute :status_eq
-  # Un date_range declarado como attribute: `result` lo aplica FUERA de Ransack, y por eso
-  # `query_params` —y con él `active_filters`— lo excluye por construcción. Si la re-emisión
-  # se apoyara solo en `active_filters`, el bulk actuaría sobre un superconjunto.
+  # Un date_range declarado como attribute: `result` lo aplica FUERA de Ransack. Desde #966
+  # `active_filters` lo incluye igual (resuelto, `inicio..fin`); si volviera a perderlo, el
+  # bulk actuaría sobre un superconjunto de lo que se ve.
   attribute :created_at, Bali::Types::DateRangeValue.new
 end
 
@@ -469,11 +469,11 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_equal(listing.result.pluck(:id).sort, rebuilt.result.pluck(:id).sort)
   end
 
-  # Un `date_range` declarado como attribute NO pasa por Ransack: `result` lo aplica aparte,
-  # y por eso `query_params` —y con él `active_filters`— lo excluye por construcción. Si la
-  # re-emisión se apoyara solo en `active_filters`, el listado mostraría 1 registro y el
-  # servidor re-derivaría 2: el bulk actuaría sobre un SUPERCONJUNTO de lo que se ve, que a
-  # escala es un destroy_all tocando lo que el filtro de fecha excluía.
+  # Un `date_range` declarado como attribute NO pasa por Ransack: `result` lo aplica aparte.
+  # Antes de #966 `active_filters` lo excluía por construcción y la re-emisión lo perdía: el
+  # listado mostraba 1 registro y el servidor re-derivaba 2 — el bulk actuando sobre un
+  # SUPERCONJUNTO de lo que se ve, que a escala es un destroy_all tocando justo lo que el
+  # filtro de fecha excluía.
   def test_a_date_range_filter_survives_the_round_trip
     tenant = Tenant.create(name: "Date range")
     reciente = tenant.movies.create(name: "Iron man 3", status: 0)
@@ -499,11 +499,11 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
                  "los pares re-emitidos tienen que reproducir el recorte por fecha")
   end
 
-  # Un date_range declarado como filtro SIMPLE ya viaja dentro de `active_filters`. La
-  # re-emisión no puede agregarlo otra vez: dos hidden con el mismo `name` y el servidor se
-  # queda con uno, en silencio. Hoy eso se sostiene porque `active_simple_filters` guarda la
-  # clave exactamente como el atributo y `"q[#{atributo}]"` coincide — si esa forma cambia,
-  # este test es el que avisa.
+  # Un date_range declarado como filtro SIMPLE viaja dentro de `active_filters` con el valor
+  # CRUDO. La re-emisión no puede agregarlo otra vez: dos hidden con el mismo `name` y el
+  # servidor se queda con uno, en silencio. Hoy eso se sostiene porque los dos caminos de
+  # `active_filters` (attribute resuelto y simple crudo) colisionan en la MISMA clave y el
+  # simple gana — si esa forma cambia, este test es el que avisa.
   def test_a_simple_date_range_is_emitted_exactly_once
     listing = BulkActionsSimpleDateRangeFilterForm.new(
       Movie.all, ActionController::Parameters.new(q: { created_at: "this_month" })
