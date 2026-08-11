@@ -445,9 +445,18 @@ module Bali
     # — the listing blamed the data for what the filters had done.
     #
     # `"s"` is Ransack's *sort* param, not a filter, and stays out.
+    #
+    # Date ranges declared as `attribute` (#966) need their own source too: `result`
+    # applies them with a `where` on the relation, outside Ransack, so `query_params`
+    # excludes them by construction — the filter narrowed the listing but did not
+    # exist for anything consulting here. A simple date range wins on key collision:
+    # it travels raw (a preset like `this_month` stays a token the server re-resolves),
+    # while the attribute form travels frozen, already resolved.
     def active_filters
       @active_filters || begin
-        filters = query_params.except("s").compact_blank.merge(active_simple_filters)
+        filters = query_params.except("s").compact_blank
+                              .merge(active_date_range_filters)
+                              .merge(active_simple_filters)
         filters[search_field_name] = search_value if search_enabled? && search_value.present?
         filters
       end
@@ -548,6 +557,23 @@ module Bali
 
     def non_date_range_attribute_names
       attribute_names - date_range_attributes
+    end
+
+    # The date ranges declared as `attribute`, serialized the way a form can re-emit
+    # them as hidden fields: `begin..end` — the exact shape `DateRangeValue` casts
+    # back, with either end blank for an open range. `date_range_attributes` also
+    # lists the simple-filter ones, which never become ActiveModel attributes (no
+    # reader), so `respond_to?` filters them out — same guard `result` uses.
+    def active_date_range_filters
+      date_range_attributes.filter_map do |attr_name|
+        next unless respond_to?(attr_name)
+
+        value = public_send(attr_name)
+        next if value.blank?
+
+        value = "#{value.begin}..#{value.end}" if value.is_a?(Range)
+        [ attr_name, value ]
+      end.to_h
     end
 
     # Extract Ransack groupings from params.

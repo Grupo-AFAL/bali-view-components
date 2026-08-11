@@ -26,6 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   refetches the detail the rewind cleared — the same request Turbo would have made, now made
   only where it belongs.
 
+- **`Bali::FilterForm#active_filters` now includes date ranges declared as `attribute`** (#966).
+  A filter declared `attribute :created_at, Bali::Types::DateRangeValue.new` is applied by
+  `result` with a `where` on the relation, outside Ransack — and `active_filters` was built
+  from the Ransack params only, so the filter narrowed the listing while not existing for
+  anything consulting it: the panel's active-filter badge undercounted, `Table` blamed the
+  data for an empty result the date filter had produced, and the BulkActions re-emission
+  posted a superset of what the user saw. The attribute form now travels resolved
+  (`begin..end`, the shape `DateRangeValue` casts back); a simple date range keeps traveling
+  raw, so presets stay tokens the server re-resolves. `ActiveFilterParams`' local patch for
+  the same hole is gone — `active_filters` is the single source again. Hosts that call
+  `active_filters` / `active_filters_count` directly will now see date-range attributes
+  counted; that is the fix, but review any logic assuming they were absent.
+
 ## [v3.1.0.beta.12] - 2026-08-10
 
 ### Added

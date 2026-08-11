@@ -29,57 +29,19 @@ module Bali
       #
       # @param filter_form [Bali::FilterForm, nil]
       # @return [Array<Array(String, Object)>]
+      # Los date_range vienen adentro de `active_filters` en sus dos formas (#966): el
+      # declarado como `attribute` viaja RESUELTO (`inicio..fin`, congelado — la forma que
+      # `DateRangeValue` vuelve a castear), y el filtro simple viaja CRUDO, por lo que un
+      # preset (`this_month`) va como token y el servidor lo vuelve a resolver contra su
+      # propio reloj. `test_a_simple_date_range_is_emitted_exactly_once` avisa si los dos
+      # caminos vuelven a emitir el mismo `name` por separado.
       def for_filter_form(filter_form)
         return [] if filter_form.nil?
-
-        flat = flatten("q" => filter_form.try(:active_filters) || {})
 
         group_pairs(
           filter_form.try(:filter_groups) || [],
           combinator: filter_form.try(:applied_combinator)
-        ) + flat + date_range_pairs(filter_form, already: flat.map(&:first))
-      end
-
-      # Un date_range declarado como `attribute` NO viaja por Ransack: `FilterForm#result` lo
-      # aplica aparte, sobre la relation, y por eso `active_filters` lo excluye POR
-      # CONSTRUCCIÓN (`query_params` recorre `non_date_range_attribute_names`). Sin este
-      # bloque el listado enseñaba 1 registro y el servidor re-derivaba 2 — el bulk actuando
-      # sobre un superconjunto de lo que se ve, que a escala es un destroy_all tocando justo
-      # lo que el filtro de fecha excluía.
-      #
-      # Los date_range declarados como filtro SIMPLE ya vienen dentro de `active_filters`
-      # (`active_simple_filters` los incluye), así que se descartan por nombre: emitirlos dos
-      # veces dejaría dos hidden con el mismo `name` y el servidor se quedaría con uno solo.
-      #
-      # Los dos caminos mandan valores DISTINTOS, y conviene saber cuál te tocó:
-      #
-      #   - como `attribute`, acá, viaja el rango RESUELTO (`inicio..fin`) — congelado;
-      #   - como filtro simple viaja el valor CRUDO que sirve `active_filters`, y por eso un
-      #     preset (`this_month`) viaja como TOKEN y el servidor lo vuelve a resolver contra
-      #     su propio reloj. Los `presets:` solo existen sobre date_range simple, así que
-      #     **todo preset viaja como token**; este método no los ve nunca.
-      #
-      # Medido en `test_a_simple_date_range_is_emitted_exactly_once`, que además es el que
-      # avisa si la clave de `active_simple_filters` deja de coincidir con `q[<atributo>]` y
-      # el de-dup empieza a fallar en silencio.
-      def date_range_pairs(filter_form, already: [])
-        Array(filter_form.try(:date_range_attributes)).filter_map do |attribute|
-          name = "q[#{attribute}]"
-          next if already.include?(name) || !filter_form.respond_to?(attribute)
-
-          value = filter_form.public_send(attribute)
-          next if value.blank?
-
-          [ name, serialize_date_range(value) ]
-        end
-      end
-
-      # `Bali::Types::DateRangeValue` vuelve a castear esta forma: `inicio..fin`, con
-      # cualquiera de los dos extremos vacío para los rangos abiertos.
-      def serialize_date_range(value)
-        return value unless value.respond_to?(:begin) && value.respond_to?(:end)
-
-        "#{value.begin}..#{value.end}"
+        ) + flatten("q" => filter_form.try(:active_filters) || {})
       end
 
       # The applied state of the advanced builder, back in the Ransack param shape the filter

@@ -46,6 +46,14 @@ class SearchableSimpleFilterForm < Bali::FilterForm
                    options: [ %w[Action Action], %w[Comedy Comedy] ], blank: "All Genres"
 end
 
+# El form de #966: un date_range declarado como `attribute`. `result` lo aplica FUERA de
+# Ransack, así que `query_params` lo excluye por construcción — pero el filtro SÍ está
+# recortando el listado, y `active_filters` tiene que decirlo.
+class DateRangeAttributeFilterForm < Bali::FilterForm
+  attribute :name_cont
+  attribute :created_at, Bali::Types::DateRangeValue.new
+end
+
 # El form del #1017: `search_fields` Y el predicado declarado como atributo — la forma que
 # toma un listado cuyo buscador rápido también participa de los filtros avanzados. El término
 # viaja por dos puertas (`search_value` y el atributo homónimo) y limpiarlo tiene que cerrar
@@ -237,6 +245,38 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_active_filters_ignores_the_sort_param
     @form = MovieFilterForm.new(@tenant.movies, params({ s: "name asc" }))
     refute(@form.active_filters?)
+  end
+
+  # #966 — un date_range declarado como `attribute` no pasa por Ransack (`result` lo aplica
+  # aparte, con un `where` sobre la relation) y `query_params` lo excluye por construcción.
+  # `active_filters` tiene que incluirlo igual: el badge, el empty state de `Table` y la
+  # re-emisión del bulk consultan acá, y sin esto el filtro recorta el listado pero "no
+  # existe" para nadie — el bulk actuaría sobre un superconjunto de lo que se ve.
+  def test_active_filters_includes_a_date_range_declared_as_attribute
+    @form = DateRangeAttributeFilterForm.new(
+      Movie.all, params({ created_at: "2026-01-01..2026-12-31", name_cont: "Iron" })
+    )
+
+    assert_equal(2, @form.active_filters_count)
+    assert_includes(@form.active_filters.keys, "created_at")
+  end
+
+  # Viaja RESUELTO (`inicio..fin`), que es la forma que `DateRangeValue` vuelve a castear:
+  # el par que un form re-emite como hidden tiene que reproducir el mismo recorte.
+  def test_an_active_date_range_attribute_round_trips_through_its_own_cast
+    @form = DateRangeAttributeFilterForm.new(
+      Movie.all, params({ created_at: "2026-01-01..2026-12-31" })
+    )
+
+    reparsed = Bali::Types::DateRangeValue.new.cast(@form.active_filters["created_at"])
+    assert_equal(Time.zone.parse("2026-01-01"), reparsed.begin)
+    assert_equal(Time.zone.parse("2026-12-31"), reparsed.end)
+  end
+
+  def test_active_filters_skips_a_blank_date_range_attribute
+    @form = DateRangeAttributeFilterForm.new(Movie.all, params({ name_cont: "Iron" }))
+
+    assert_equal({ "name_cont" => "Iron" }, @form.active_filters)
   end
 
   def test_query_params_returns_a_hash_of_attributes_and_values
