@@ -21,6 +21,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the board. Structurally the skeleton moved into an inner `.bali-gantt-mount` div the island
   now mounts into — hosts that select `.bali-gantt > .bali-gantt-skeleton` directly (none
   known) need the extra level.
+### Changed
+- **BlockEditor: the `@blocknote/*` peer floor moves from `>= 0.52.1` to `>= 0.53.0`** (#908).
+  BlockNote `<= 0.52.1` enters a re-render loop (`Maximum update depth exceeded`, a frozen tab
+  in the worst case) whenever a browser extension that rewrites the editor's DOM is active —
+  Dark Reader, Grammarly, page translators (TypeCellOS/BlockNote#2818). The fix, upstream
+  #2912, first shipped in 0.53.0; the wrapper cannot absorb it from outside, so the floor
+  moves past the bug. **Hosts that render the BlockEditor (afal-apps, enjoykitchen, flamingOS)
+  must upgrade every `@blocknote/*` package they declare to the same `>= 0.53.0` version when
+  adopting this release** — including the `xl-*` extras an app added on its own, and rebuilding
+  any self-built editor bundle (afal-apps' `editor.js`). Staying on 0.52.1 keeps working (no
+  0.53-only API is called) but keeps the loop and an unmet-peer warning. Verified on 0.53.0:
+  the three editor Cypress specs, every Lookbook preview, and typing/slash-menu/formatting by
+  hand in the browser under a simulated Dark-Reader-style attribute mutator — content intact,
+  no loop.
 
 ### Fixed
 - **`Bali::SplitView`: pressing back no longer throws the reader forward to the detail they just
