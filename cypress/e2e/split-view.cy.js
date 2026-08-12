@@ -241,19 +241,81 @@ describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
     cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
   })
 
-  // La otra mitad: ir HACIA una URL que sí selecciona una fila tiene que
-  // devolver el detalle, porque el frame quedó rebobinado al cachearse.
-  it('points the frame back at the row a traversal selects', () => {
+  // La otra mitad: ir HACIA una URL que selecciona una fila DISTINTA de la que
+  // el panel muestra tiene que refetchear, porque el frame quedó rebobinado al
+  // cachearse y su contenido es de otra fila. (Ir hacia la MISMA fila ya no
+  // refetchea: el stash de #1029 reconoce el panel como correcto — ver el
+  // describe de abajo.)
+  it('points the frame at the row a traversal selects when the pane shows another', () => {
+    cy.get('.split-view-row').eq(1).invoke('attr', 'href').then((otherHref) => {
+      cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+
+      cy.window().then((win) => {
+        win.history.pushState({}, '', otherHref)
+        win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+      })
+
+      cy.get('.split-view-detail').should('have.attr', 'src', otherHref)
+      // Y esperar el detalle: si el test termina con el fetch del frame en
+      // vuelo, el `cy.visit` del test siguiente descarga la página, el fetch
+      // se aborta y Cypress le atribuye el AbortError al test equivocado.
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+    })
+  })
+
+  // El caso simétrico del anterior, y el corazón de #1029: el rebobinado dejó
+  // el panel sin `src` pero MOSTRANDO el detalle correcto; volver a esa misma
+  // URL no debe refetchear nada.
+  it('leaves the frame alone when the traversal lands on what it already shows', () => {
     cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
       cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
       cy.get('.split-view-detail').should('not.have.attr', 'src')
+
+      cy.intercept('GET', '/split-view*').as('detail')
 
       cy.window().then((win) => {
         win.history.pushState({}, '', href)
         win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
       })
 
-      cy.get('.split-view-detail').should('have.attr', 'src', href)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.wait(400)
+      cy.get('@detail.all').should('have.length', 0)
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
     })
+  })
+})
+
+// #1029 — el guard del refetch comparaba el `src` del frame (que Turbo deja
+// ABSOLUTO tras navegar) contra el `href` de la fila (relativo, tal como se
+// escribió), así que nunca coincidían: cada popstate reescribía el `src` y
+// refetcheaba un detalle que ya estaba en pantalla. El guard compara ahora
+// las dos URLs resueltas contra el documento.
+describe('SplitView: a traversal to the URL the frame already shows (#1029)', () => {
+  it('re-derives the highlight without refetching the detail', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+
+    cy.get('.split-view-row').eq(2).click()
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+
+    cy.intercept('GET', '/split-view*').as('detail')
+
+    // La URL no cambia: el popstate llega estando ya en la entrada que el
+    // frame muestra (un back que vuelve exactamente aquí).
+    cy.window().then((win) => {
+      win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+    })
+
+    // El highlight se re-deriva igual (la URL sigue seleccionando la fila)...
+    cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+
+    // ...pero el frame no se vuelve a pedir: ya muestra este detalle. La
+    // espera fija es deliberada — "no hubo request" necesita dejar pasar el
+    // tiempo en el que habría ocurrido.
+    cy.wait(400)
+    cy.get('@detail.all').should('have.length', 0)
   })
 })
