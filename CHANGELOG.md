@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The Topbar previews follow `IconAction`'s `label:` → `aria_label:` rename** (#1035). The
+  beta.14 rename reached the component, its tests and the migration guide, but not the two
+  Lookbook previews that exercise it (`default` and `icon_actions`) — and since the old keyword
+  now raises, both previews 500ed on open. The previews and the `docs/guides/components.md`
+  examples now use `aria_label:`, the doc's option list gains the missing `active:` and
+  `max_count:` entries (added in beta.10, #995), and a new request test renders every Topbar
+  preview over HTTP so a broken preview template turns the build red instead of waiting for a
+  human to open Lookbook.
+
 ## [v3.1.0.beta.14] - 2026-08-11
 
 ### Added

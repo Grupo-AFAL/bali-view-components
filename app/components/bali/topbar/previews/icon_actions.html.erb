@@ -6,14 +6,14 @@
 
   <div class="flex items-center gap-4">
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'bell', label: 'Notifications', badge: true
+      icon: 'bell', aria_label: 'Notifications', badge: true
     ) %>
     <span class="text-sm text-base-content/60"><code>badge: true</code> — the dot</span>
   </div>
 
   <div class="flex items-center gap-4">
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'inbox', label: 'Inbox, 3 unread', badge: 3, badge_id: 'inbox-badge'
+      icon: 'inbox', aria_label: 'Inbox, 3 unread', badge: 3, badge_id: 'inbox-badge'
     ) %>
     <span class="text-sm text-base-content/60">
       <code>badge: 3, badge_id: 'inbox-badge'</code> — count pill, Turbo-Stream-replaceable
@@ -22,7 +22,7 @@
 
   <div class="flex items-center gap-4">
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'mail', label: 'Messages', badge_id: 'messages-badge'
+      icon: 'mail', aria_label: 'Messages', badge_id: 'messages-badge'
     ) %>
     <span class="text-sm text-base-content/60">
       <code>badge_id:</code> alone — hidden empty target a stream can light up later
@@ -31,14 +31,14 @@
 
   <div class="flex items-center gap-4">
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'settings', label: 'Settings', href: '/lookbook'
+      icon: 'settings', aria_label: 'Settings', href: '/lookbook'
     ) %>
     <span class="text-sm text-base-content/60"><code>href:</code> — renders an <code>&lt;a&gt;</code></span>
   </div>
 
   <div class="flex items-center gap-4">
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'inbox', label: 'Inbox, 128 pending', href: '/lookbook', badge: 128, active: true
+      icon: 'inbox', aria_label: 'Inbox, 128 pending', href: '/lookbook', badge: 128, active: true
     ) %>
     <span class="text-sm text-base-content/60">
       <code>active: true, badge: 128</code> — current section (<code>aria-current="page"</code>) and the capped pill (<code>max_count:</code> defaults to 99)
