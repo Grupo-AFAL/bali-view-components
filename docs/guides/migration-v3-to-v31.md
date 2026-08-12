@@ -125,6 +125,45 @@ and the card stops being one target. If a card needs its own inner actions, keep
 a `<div>` and link the parts instead (the deliberately rejected alternative was a
 stretched-link pseudo-element — complexity without a consumer).
 
+## FormBuilder: an unknown `size:` Symbol raises, on every family (#723)
+
+**What changes.** `size:` is a density on every FormBuilder family, discriminated by type:
+a **Symbol** is the daisyUI variant (`:xs`/`:sm`/`:md`/`:lg`/`:xl`), an **Integer or
+String** stays the HTML attribute of the same name, and an **unknown Symbol raises** —
+where v3.0 silently rendered the control at full size. `slim_select_group` accepts only
+`:sm` (the one density its widget has CSS for) and raises on the rest.
+
+**What to do.** Grep your forms for the v2 size vocabulary — `size: :small`,
+`size: :regular`, `size: :medium`, `size: :large` — and move them to the shared scale
+(`:sm`, `:md`, `:lg`). A numeric `size: 30` (the HTML attribute) is untouched.
+
+**Who is affected.** Any host passing a Symbol outside the scale to any `*_group`/
+`*_field` helper. The failure is a loud `ArgumentError` naming the accepted values on the
+first render of the form, not a silent density change.
+
+## `Tooltip` defaults to `append_to: :body` (#992)
+
+**What changes.** The balloon now portals to `<body>` by default instead of rendering in
+place (`append_to: :parent`). The old default was wrong exactly in the composition the
+library promotes: under AppLayout's `viewport_locked` (which follows `fixed_sidebar`,
+`true` since v3), `<main>` carries `overflow-y: auto`, so every balloon rendered in place
+was born clipped — one host accumulated 49 per-call `append_to: :body` workarounds to
+escape it. Inside an open modal/drawer the top-layer host wins regardless, as before.
+
+**What to do.**
+- Delete per-call `append_to: :body` — it now restates the default.
+- Keep a balloon inside the trigger's subtree with the explicit opt-in:
+  `append_to: :parent`.
+- **Check your test selectors and scoped CSS.** This is the part that bites: the balloon
+  element no longer lives under the trigger, so a Capybara/Cypress assertion scoped to the
+  trigger's container (`within('.toolbar') { expect(page).to have_text(tooltip_text) }`)
+  stops finding it, and CSS scoped to an ancestor stops applying. Assert on the balloon
+  globally (it is unique while open), and hang styling on the balloon's own classes.
+
+**Who is affected.** Every call site, because the default changed — most only for the
+better (no more clipped balloons). The ones that need action are tests and styles that
+assumed the balloon was a descendant of its trigger.
+
 ## Five shadowed icons change their drawing (#902)
 
 **What changes.** `Bali::Icon` consults the legacy name map (`LucideMapping`) *before*

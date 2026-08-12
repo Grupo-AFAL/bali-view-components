@@ -852,6 +852,22 @@ These options work across most field types:
 | `class` | Additional CSS classes |
 | `data` | Data attributes hash |
 
+### `required:` is a plain HTML passthrough — and not every family has a control to put it on
+
+`required:` is not a Bali option: it reaches the control as the HTML attribute on the
+families whose control is a native input (`text_*`, `email_*`, `number_*`, `date_*`,
+`select_*`, `boolean_*`, `switch_*`, `file_*`, and the rest of the native-control
+families), and is **dropped silently** by the families whose visible control is a widget
+over a hidden field — `slim_select_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
+`block_editor_*`, `rich_text_area_*`, `coordinates_polygon_*`,
+`recurrent_event_rule_*`, `direct_upload_*`, `time_period_*` and the submit pair. A
+`required` on a `type="hidden"` input would either do nothing or, worse, make the form
+unsubmittable, so those families need a model validation instead of the attribute.
+
+The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
+declares every family in one of the two camps and fails when a new family lands in
+neither.
+
 ### Density (`size:`)
 
 `size:` is the one option with two meanings on a form control, and both work:
@@ -976,9 +992,9 @@ Many fields automatically integrate with Stimulus controllers:
 | Field | Controller | Features |
 |-------|------------|----------|
 | `slim_select_*` | `slim-select` | Search, multi-select, AJAX |
-| `date_field_*` | `datepicker` | Flatpickr integration |
-| `datetime_field_*` | `datepicker` | Date + time picking |
-| `step_number_field_*` | `step-number-input` | Increment/decrement |
+| `date_*` | `datepicker` | Flatpickr integration |
+| `datetime_*` | `datepicker` | Date + time picking |
+| `step_number_*` | `step-number-input` | Increment/decrement |
 | `rich_text_area_*` | `trix-attachments` | File size limits |
 | `submit_field` (with modal) | `modal` | Form submission handling |
 

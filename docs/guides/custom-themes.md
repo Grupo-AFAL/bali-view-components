@@ -129,6 +129,17 @@ Required variables:
 
 All colors must be in OKLCH format. Use the [OKLCH Color Picker](https://oklch.com/) to convert hex values.
 
+### The structural tokens cannot be overridden from `@theme {}`
+
+The eight design tokens at the bottom of the block (`--radius-*`, `--size-*`, `--border`,
+`--depth`, `--noise`) are the ones Bali ships fallbacks for in `bali/theme-fallbacks.css`,
+in `@layer base` — the same layer daisyUI's own themes use. Tailwind v4's idiomatic
+`@theme { --radius-box: 11px }` compiles to `@layer theme`, which comes **before** `base`,
+and across layers the later one wins outright — so an `@theme` declaration of these tokens
+is silently ignored, no matter how specific. Declare them where the example above does
+(a `[data-theme="..."]` block, `@layer base`, or plain unlayered `:root`) — never in
+`@theme {}`. The measured table is in the header of `bali/theme-fallbacks.css`.
+
 ## A dark sidebar next to a light page (chrome theme)
 
 Every AFAL app that wants the "dark chrome" look — a dark sidebar against a light
