@@ -170,6 +170,8 @@ export class FilterGroupController extends Controller {
 
     buttons.forEach((btn) => {
       const btnCombinator = btn.dataset.combinator
+      // aria-pressed mirrors the visual state for screen readers (#1028).
+      btn.setAttribute('aria-pressed', String(btnCombinator === combinator))
       if (btnCombinator === combinator) {
         btn.classList.remove('btn-outline')
         btn.classList.add('btn-primary')

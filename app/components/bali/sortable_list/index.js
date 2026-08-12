@@ -20,6 +20,8 @@ export class SortableListController extends Controller {
   }
 
   async connect () {
+    this.setupKeyboardReordering()
+
     const { default: Sortable } = await import('sortablejs')
 
     this.sortable = new Sortable(this.element, {
@@ -32,6 +34,59 @@ export class SortableListController extends Controller {
       onEnd: this.onEnd,
       onMove: this.onMove
     })
+  }
+
+  disconnect () {
+    this.element.removeEventListener('keydown', this.onKeydown)
+  }
+
+  // Keyboard alternative to the drag (#1028, WCAG 2.1.1): each direct item
+  // becomes focusable, and ArrowUp/ArrowDown moves the focused item one slot —
+  // persisting and dispatching exactly like a drop. Arrows only act when the
+  // ITEM ELEMENT itself has focus, so nested inputs and selects keep their own
+  // arrow behaviour. Cross-list moves stay mouse-only for now.
+  setupKeyboardReordering () {
+    if (this.disabledValue) return
+
+    this.element.querySelectorAll(':scope > .sortable-item').forEach((item) => {
+      if (!item.hasAttribute('tabindex')) item.setAttribute('tabindex', '0')
+    })
+    this.element.addEventListener('keydown', this.onKeydown)
+  }
+
+  onKeydown = (event) => {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
+
+    const item = event.target
+    if (!item.classList || !item.classList.contains('sortable-item')) return
+    if (item.parentElement !== this.element) return
+
+    const up = event.key === 'ArrowUp'
+    const sibling = up ? item.previousElementSibling : item.nextElementSibling
+    if (!sibling || !sibling.classList.contains('sortable-item')) return
+
+    event.preventDefault()
+
+    const itemsBefore = this.items()
+    const oldIndex = itemsBefore.indexOf(item)
+    if (up) {
+      this.element.insertBefore(item, sibling)
+    } else {
+      this.element.insertBefore(sibling, item)
+    }
+    item.focus()
+
+    this.onEnd({
+      item,
+      from: this.element,
+      to: this.element,
+      oldIndex,
+      newIndex: this.items().indexOf(item)
+    })
+  }
+
+  items () {
+    return Array.from(this.element.querySelectorAll(':scope > .sortable-item'))
   }
 
   onEnd = async ({ item, from, to, oldIndex, newIndex }) => {
@@ -54,7 +109,8 @@ export class SortableListController extends Controller {
       // `order` is the *source* list: SortableJS fires onEnd on the instance the
       // item left, so a listener that needs the destination has to read `to`.
       // That is why the moved element and both lists travel with the event.
-      detail: { order: this.sortable.toArray(), toListId, item, from, to, oldIndex, newIndex }
+      // `?.` guards the keyboard path racing SortableJS's async import.
+      detail: { order: this.sortable?.toArray() ?? [], toListId, item, from, to, oldIndex, newIndex }
     })
 
     if (!item.dataset.sortableUpdateUrl) return

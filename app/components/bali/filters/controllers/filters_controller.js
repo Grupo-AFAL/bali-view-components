@@ -355,6 +355,8 @@ export class FiltersController extends Controller {
     const buttons = container.querySelectorAll('[data-combinator]')
     buttons.forEach((btn) => {
       const btnCombinator = btn.dataset.combinator
+      // aria-pressed mirrors the visual state for screen readers (#1028).
+      btn.setAttribute('aria-pressed', String(btnCombinator === combinator))
       if (btnCombinator === combinator) {
         btn.classList.remove('btn-outline')
         btn.classList.add('btn-primary')
@@ -523,20 +525,23 @@ export class FiltersController extends Controller {
     const andLabel = this.t.combinators?.and || 'AND'
     const orLabel = this.t.combinators?.or || 'OR'
 
+    const toggleLabel = this.t.combinator_toggle || 'Combine conditions with'
     const divider = document.createElement('div')
     divider.className = 'flex items-center justify-center gap-2 my-2'
     divider.innerHTML = `
       <div class="flex-1 border-t border-base-300"></div>
       <input type="hidden" name="q[m]" value="${currentCombinator}" data-filters-target="groupCombinator">
-      <div class="join" data-filters-target="groupCombinatorToggle">
+      <div class="join" role="group" aria-label="${toggleLabel}" data-filters-target="groupCombinatorToggle">
         <button type="button"
                 class="join-item btn btn-xs w-10 ${currentCombinator === 'and' ? 'btn-primary' : 'btn-outline'}"
+                aria-pressed="${currentCombinator === 'and'}"
                 data-action="filters#setGroupCombinator"
                 data-combinator="and">
           ${andLabel}
         </button>
         <button type="button"
                 class="join-item btn btn-xs w-10 ${currentCombinator === 'or' ? 'btn-primary' : 'btn-outline'}"
+                aria-pressed="${currentCombinator === 'or'}"
                 data-action="filters#setGroupCombinator"
                 data-combinator="or">
           ${orLabel}

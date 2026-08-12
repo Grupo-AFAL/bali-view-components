@@ -45,6 +45,7 @@ es:
       combinators:
         and: "Y"
         or: "O"
+      combinator_toggle: "Combinar condiciones con"
 
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
@@ -508,6 +509,7 @@ es:
       save: "Guardar"
       toggle_comments: "Alternar comentarios"
       toggle_history: "Alternar historial de versiones"
+      export: "Exportar"
       export_pdf: "Exportar PDF"
       export_docx: "Exportar DOCX"
       close: "Cerrar editor"
@@ -586,6 +588,9 @@ es:
           align_center: "Centrar"
           align_right: "Alinear a la derecha"
           text_color: "Color de texto"
+          link: "Enlace"
+          image: "Insertar imagen"
+          table: "Tabla"
         # Node type dropdown; `text` doubles as the trigger's default label
         nodes:
           text: "Texto"
