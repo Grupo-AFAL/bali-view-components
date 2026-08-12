@@ -305,7 +305,7 @@ The AppLayout previews model both: "Topbar + Sidebar + Content" and
 
   <% topbar.with_action do %>
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'bell', label: 'Notifications', badge: true, badge_id: 'notifications-badge'
+      icon: 'bell', aria_label: 'Notifications', badge: true, badge_id: 'notifications-badge'
     ) %>
   <% end %>
 
@@ -354,16 +354,18 @@ One icon button for the `with_action` slot — the notification bell packaged. A
 
 ```erb
 <%= render Bali::Topbar::IconAction::Component.new(
-  icon: 'bell', label: 'Notifications', badge: 3, badge_id: 'notifications-badge'
+  icon: 'bell', aria_label: 'Notifications', badge: 3, badge_id: 'notifications-badge'
 ) %>
 ```
 
 **Options:**
 - `icon` (required) - icon name (Bali::Icon pipeline)
-- `label` (required) - accessible name (`aria-label` + `title`); an icon-only control without one has no name
+- `aria_label` (required) - accessible name (`aria-label` + `title`); an icon-only control without one has no name. It was `label:` in the v3.1 betas — the old keyword raises with a message naming the replacement
 - `href` - renders an `<a>` (navigation) instead of a `<button>` (action)
 - `badge` - `true` draws the small dot; a number or string draws a count pill; `nil` draws nothing
 - `badge_id` - DOM id of the indicator `<span>`, so the host can `turbo_stream.replace` it. Alone (no `badge:`) it renders the span empty and hidden — a stream can light it up later. The component brings no polling and no channel, only the target
+- `active` - marks this as the current section: daisyUI's `btn-active` state, plus `aria-current="page"` when the control is a link
+- `max_count` - cap for an Integer `badge:` (default 99): anything above renders as "99+". Strings pass through untouched, so a host that formats its own count keeps full control
 
 #### Card
 
