@@ -3203,9 +3203,10 @@ to the other keeps searching the same thing.
 ) %>
 ```
 
-A `FilterForm` that declares `search_fields` fills this in on its own — including `label:`
-(the box's `aria-label`, the only accessible name that survives typing) and `width:` since
-v3.1 (#982): `search_fields :name, :email, icon: 'search', label: t('.search_label')`. Inside
+A `FilterForm` that declares `search_fields` fills this in on its own — including
+`aria_label:` (the box's `aria-label`, the only accessible name that survives typing) and
+`width:` since v3.1 (#982):
+`search_fields :name, :email, icon: 'search', aria_label: t('.search_label')`. Inside
 a `DataTable` the hash is only for overrides:
 
 ```erb

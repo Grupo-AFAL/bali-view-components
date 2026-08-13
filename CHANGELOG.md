@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (breaking)
+- **`FilterForm.search_fields` renames `label:` to `aria_label:`** (#1026, closing the last
+  deviation of the pre-GA API audit). The value is the search box's `aria-label` (#982), and
+  the accessible-name spelling across the library is `aria_label:` — the same rename
+  `Topbar::IconAction` took in beta.14, in the second place the audit flagged. The
+  instance-level mirror moves with it (`search_aria_label:`, was `search_label:`). Both old
+  spellings raise naming their replacement. **Only affects hosts pinned to a v3.1 beta** —
+  the keywords shipped in beta.10.
+
 ### Fixed
 - **Kanban: `with_card` passes host options through — `data:` merges instead of being
   dropped** (#1027). The card built its attributes from scratch and read only `:class`, so

@@ -146,9 +146,9 @@ For reusable filter forms, use the class-level DSL:
 
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
-  # Quick search across multiple columns. `label:` is the box's aria-label
-  # (#982); `icon:`/`width:` style it. All optional.
-  search_fields :name, :genre, :studio_name, label: 'Search movies'
+  # Quick search across multiple columns. `aria_label:` is the box's aria-label
+  # (#982; it was `label:` in the v3.1 betas); `icon:`/`width:` style it. All optional.
+  search_fields :name, :genre, :studio_name, aria_label: 'Search movies'
 
   # Filterable attributes for advanced filters UI
   filter_attribute :name, type: :text

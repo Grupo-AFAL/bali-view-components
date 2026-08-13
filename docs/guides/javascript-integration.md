@@ -210,6 +210,11 @@ Every event the package emits or listens for is named `bali:<component>:<event>`
 and carries its payload on `event.detail`. Nothing else is public: an event without the `bali:`
 prefix does not come from this package.
 
+One deliberate exception: the hover card's events are `bali:hovercard:*` (no hyphen). The
+spelling shipped in v3.0 and the v2→v3 migration guide taught hosts to listen for it, so
+renaming it to match the rule would break exactly the hosts that followed the guide — for
+nothing a user can see (#1026).
+
 ### Emitted by Bali
 
 | Event | Dispatched on | `detail` |

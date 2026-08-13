@@ -44,17 +44,27 @@ module Bali
         #
         # @param fields [Array<Symbol>] Field names to search across
         # @param icon [String, nil] Icon name for search input
-        # @param label [String, nil] Accessible name (`aria-label`) for the search
-        #   box. Without it the box is named by its placeholder alone, which
-        #   disappears as soon as the user types (#982)
+        # @param aria_label [String, nil] Accessible name (`aria-label`) for the
+        #   search box. Without it the box is named by its placeholder alone,
+        #   which disappears as soon as the user types (#982). The keyword is
+        #   `aria_label:`, matching every other accessible-name option in the
+        #   library — it was `label:` in the v3.1 betas (#1026)
         # @param width [String, nil] Width classes for the search box; each
         #   component keeps its own default when absent
         #
         # @example
-        #   search_fields :name, :email, icon: 'search', label: 'Search users'
-        def search_fields(*fields, icon: nil, label: nil, width: nil)
+        #   search_fields :name, :email, icon: 'search', aria_label: 'Search users'
+        def search_fields(*fields, icon: nil, aria_label: nil, width: nil, **options)
+          if options.key?(:label)
+            raise ArgumentError,
+                  "#{name}.search_fields: `label:` was renamed to `aria_label:` in v3.1."
+          end
+          raise ArgumentError, "unknown keywords: #{options.keys.inspect}" if options.any?
+
           @defined_search_icon = icon
-          @defined_search_label = label
+          # Internals (and the `search_label` reader the components consume)
+          # keep the short name; only the host-facing keyword is `aria_label:`.
+          @defined_search_label = aria_label
           @defined_search_width = width
           @defined_search_fields = fields.flatten.map(&:to_sym)
         end
