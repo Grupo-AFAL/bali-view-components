@@ -18,11 +18,15 @@ module Bali
           @explicit_active = tab.explicit_active
           @src = tab.src
           @href = tab.href
+          @count = tab.count
+          @turbo_action = tab.turbo_action
+          @tab_options = tab.options
         end
 
         private
 
-        attr_reader :index, :href, :icon, :title, :src, :reload, :active, :explicit_active
+        attr_reader :index, :href, :icon, :title, :src, :reload, :active, :explicit_active,
+                    :count, :turbo_action, :tab_options
 
         def navigation?
           @navigation
@@ -40,12 +44,24 @@ module Bali
           navigation? ? navigation_attributes : tab_attributes
         end
 
+        # A link has no panel to send the tab's `**options` to, so they belong
+        # here on the `<a>`: `class` composes with the tab classes, and
+        # `turbo_action:` becomes `data-turbo-action` (skipped on `false`, and
+        # an explicit `data: { turbo_action: }` in the options wins).
         def navigation_attributes
-          {
+          attributes = tab_options.merge(
             href: href,
-            class: classes,
             'aria-current': active? ? "page" : nil
-          }.compact
+          ).compact
+          attributes = prepend_class_name(attributes, classes)
+          add_turbo_action(attributes)
+        end
+
+        def add_turbo_action(attributes)
+          return attributes unless turbo_action
+
+          attributes[:data] = { turbo_action: turbo_action }.merge(attributes[:data] || {})
+          attributes
         end
 
         def tab_attributes

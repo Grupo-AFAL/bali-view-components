@@ -1,0 +1,57 @@
+<% content_for(:title) { 'SplitView' } %>
+
+<%= render Bali::ShowPage::Component.new(
+  title: 'SplitView',
+  subtitle: 'Master-detail con listado estructurado e infinite scroll'
+) do |page| %>
+  <% page.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail') do |split| %>
+      <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
+                         pagy: @pagy, item_name: 'películas', max_height: '26rem',
+                         filter_mode: @filter_mode) do |list| %>
+        <%# Las pills son links y el componente arma sus URLs: acá solo se declara
+            por qué param filtra cada una. Un click es una navegación normal, así
+            que el servidor vuelve a pintar la página 1 y el sentinel arranca de
+            una URL que ya trae el filtro. No hay form, ni Filter, ni Clear. %>
+        <% if @filter_mode == :multi %>
+          <% Movie::GENRES.first(6).each do |genre| %>
+            <% list.with_filter(label: genre, param: 'q[genre_in]', value: genre,
+                                count: @counts[genre].to_i) %>
+          <% end %>
+        <% else %>
+          <% Movie.statuses.each_key do |status| %>
+            <% list.with_filter(label: status.humanize, param: :status, value: status,
+                                count: @counts[status].to_i) %>
+          <% end %>
+        <% end %>
+        <% @movies.each do |movie| %>
+          <% list.with_item(
+            id: movie.id,
+            href: split_view_path(selected: movie.id),
+            title: movie.name,
+            subtitle: movie.studio&.name,
+            meta: movie.production_ends_on && l(movie.production_ends_on, format: :short),
+            meta_color: (:error if movie.production_ends_on&.past?)
+          ) do |row| %>
+            <% row.with_tag(text: movie.genre, color: :info) %>
+            <% row.with_tag(text: movie.status.humanize, color: movie.status_color) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if @selected %>
+        <% split.with_detail do %>
+          <%= render 'split_views/detail', movie: @selected %>
+        <% end %>
+      <% else %>
+        <% split.with_empty_detail do %>
+          <%= render Bali::EmptyState::Component.new(
+            title: 'Selecciona una película',
+            description: 'Elige una fila de la izquierda para ver su ficha aquí.',
+            icon: 'inbox'
+          ) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -62,6 +62,19 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_selector(".cmd-row-title", text: "Settings")
   end
 
+  def test_group_and_item_pass_html_attributes_through
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_group(name: "Pages", class: "custom-group", data: { role: "nav" }) do |g|
+        g.with_item(title: "Dashboard", href: "/dashboard",
+                    class: "custom-row", data: { testid: "row-dash" })
+      end
+    end
+    # Host class composes with the component's own; host data merges over the
+    # component's command-target/mode without clobbering it.
+    assert_selector("div.custom-group[data-command-target='group'][data-role='nav']")
+    assert_selector("button.cmd-row.custom-row[data-command-target='row'][data-testid='row-dash']")
+  end
+
   def test_item_href_is_html_escaped_in_data_attribute
     # Regression: previously used `html_safe` on a string concatenation, which
     # could let an attacker inject attribute markup if href came from user input.
@@ -101,6 +114,16 @@ class BaliCommandComponentTest < ComponentTestCase
       end
     end
     assert_selector("[data-command-target='group'][data-mode='action']")
+  end
+
+  def test_group_navigation_mode
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_group(name: "Pages", mode: :navigation) do |g|
+        g.with_item(title: "Accounts")
+      end
+    end
+    assert_selector("[data-command-target='group'][data-mode='navigation']")
+    assert_selector("[data-command-target='row'][data-mode='navigation']")
   end
 
   def test_invalid_group_mode_falls_back_to_searchable

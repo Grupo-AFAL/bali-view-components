@@ -11,6 +11,52 @@ class BaliSideMenuComponentTest < ComponentTestCase
     Bali::SideMenu::Component.new(**@options)
   end
 
+  # The theme goes on the <nav> and nowhere else: daisyUI resolves its colour
+  # variables against the nearest ancestor carrying `data-theme`, which is the
+  # whole of "the sidebar is dark and the page it sits next to is not".
+  def test_theme_is_emitted_on_the_nav
+    @options[:theme] = "costa-norte-dark"
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item", href: "/") }
+    end
+
+    assert_selector('nav.side-menu-component[data-theme="costa-norte-dark"]')
+  end
+
+  def test_no_theme_attribute_without_a_theme
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item", href: "/") }
+    end
+
+    assert_no_selector(".side-menu-component[data-theme]")
+  end
+
+  def test_a_blank_theme_is_not_an_attribute
+    @options[:theme] = ""
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item", href: "/") }
+    end
+
+    assert_no_selector(".side-menu-component[data-theme]")
+  end
+
+  # The panel's look moved out of the templates and into the stylesheet, where
+  # the themed variant can override it — a utility on the element would have
+  # won over any rule in @layer components. See side_menu/index.css.
+  def test_flyout_panels_carry_no_background_or_shadow_utility
+    @options[:collapsible] = true
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item", href: "/", icon: "film") }
+      c.with_bottom_group(name: "Configuration", icon: "settings") do |group|
+        group.with_item(name: "Settings", href: "#")
+      end
+    end
+
+    assert_selector(".dropdown-content")
+    assert_no_selector(".dropdown-content.bg-base-100")
+    assert_no_selector(".dropdown-content.shadow-lg")
+  end
+
   def test_renders_the_side_menu
     render_inline(component) do |c|
       c.with_list(title: "Comedor") do |list|

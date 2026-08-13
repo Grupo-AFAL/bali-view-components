@@ -1,0 +1,107 @@
+<div class="p-6 bg-base-200 space-y-8">
+  <div class="max-w-2xl mx-auto space-y-6">
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Sides</h3>
+      <p class="text-xs text-base-content/50">
+        <code>position: :start</code> is the other party, <code>:end</code> the reader.
+        daisyUI's own names, so they flip under <code>dir="rtl"</code> on their own.
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::Message::Component.new(position: :start) do %>
+          Incoming, with the default bubble.
+        <% end %>
+        <%= render Bali::Chat::Message::Component.new(position: :end, color: :primary) do %>
+          Outgoing, in primary.
+        <% end %>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Colours</h3>
+      <p class="text-xs text-base-content/50">
+        Every daisyUI bubble colour. <code>color: nil</code> keeps the default
+        <code>base-300</code> bubble, which is what a plain incoming message wants.
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <% Bali::Chat::Message::Component::COLORS.each_key do |color| %>
+          <%= render Bali::Chat::Message::Component.new(color: color) do %>
+            <%= color %>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Author, timestamp and avatar</h3>
+      <p class="text-xs text-base-content/50">
+        <code>author:</code> and <code>timestamp:</code> fill the header; the
+        timestamp renders as a <code>&lt;time&gt;</code> with a machine-readable
+        <code>datetime</code>. The <code>avatar</code> slot takes any content.
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::Message::Component.new(
+              author: 'Assistant', timestamp: Time.zone.parse('2026-08-06 09:41')
+            ) do |message| %>
+          <% message.with_avatar do %>
+            <%= render Bali::Avatar::Component.new(initials: 'AI', size: :xs) %>
+          <% end %>
+          The declarations are filed under folio ACT-2026-0311.
+        <% end %>
+        <%= render Bali::Chat::Message::Component.new(
+              position: :end, color: :primary,
+              author: 'Ada Lovelace', timestamp: Time.zone.parse('2026-08-06 09:43')
+            ) do |message| %>
+          <% message.with_avatar do %>
+            <%= render Bali::Avatar::Component.new(initials: 'AL', size: :xs) %>
+          <% end %>
+          Thanks — attach it to the minutes.
+        <% end %>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Footer slot</h3>
+      <p class="text-xs text-base-content/50">
+        Anything that belongs under the bubble: the sources an answer was drawn from,
+        a delivery receipt, a reaction row.
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::Message::Component.new(author: 'Assistant') do |message| %>
+          Both procedures require dual authorisation above 50,000 USD.
+          <% message.with_footer do %>
+            <details class="text-xs">
+              <summary class="cursor-pointer text-base-content/60">2 sources</summary>
+              <ul class="mt-1 space-y-1">
+                <li><%= render Bali::Link::Component.new(name: 'Anti-Money Laundering Policy (POL-2026-0218)', href: '/lookbook', class: 'link-hover text-xs') %></li>
+                <li><%= render Bali::Link::Component.new(name: 'Reinforced KYC Procedure (PRO-2026-0094)', href: '/lookbook', class: 'link-hover text-xs') %></li>
+              </ul>
+            </details>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Rich content</h3>
+      <p class="text-xs text-base-content/50">
+        The body is passed through untouched. Rendering and sanitising Markdown stays
+        with the host — pass the <code>prose</code> wrapper through
+        <code>bubble_class:</code>.
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::Message::Component.new(bubble_class: 'max-w-[82%]') do %>
+          <div class="space-y-2">
+            <p>Three items are outstanding:</p>
+            <ul class="list-disc list-inside space-y-0.5">
+              <li>Conflict of interest declaration — alternate director</li>
+              <li>Annual review of the AML policy</li>
+              <li>Q2 risk matrix, not yet circulated</li>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+  </div>
+</div>

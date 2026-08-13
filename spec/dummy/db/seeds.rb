@@ -168,44 +168,112 @@ documents_data.each do |data|
     content: data[:content]
   )
 
-  if doc.document_versions.empty?
+  if doc.content_versions.empty?
     doc.create_version!(author_name: data[:author_name], summary: "Initial draft")
     doc.create_version!(author_name: data[:author_name], summary: "Added key sections")
     doc.create_version!(author_name: "Jane Smith", summary: "Reviewed and edited") if data[:status].to_s == "published"
   end
 end
 
-puts "Created #{Document.count} documents with #{DocumentVersion.count} versions"
+puts "Created #{Document.count} documents with #{Bali::ContentVersion.count} versions"
 
 # Create projects and tasks for Kanban demo
 project = Project.find_or_create_by!(name: "Bali Component Library") do |p|
   p.description = "Open-source ViewComponent library for Rails applications"
 end
 
+# Schedule fields (phase/dates/milestone/percent_complete) feed the Bali::Gantt
+# timeline at /admin/projects/:id?view=timeline (#704). Dates are relative to
+# Date.current so the today marker always lands inside the window; tasks without
+# dates exercise the "No dates" section on purpose.
+today = Date.current
 tasks_data = [
-  { title: "Audit existing icon usage", description: "Map all icon names used across AFAL apps", status: :done, priority: :low, position: 0 },
-  { title: "Migrate to Lucide icons", description: "Replace custom SVGs with Lucide equivalents", status: :done, priority: :medium, position: 1 },
-  { title: "Upgrade to daisyUI 5", description: "Update class names and verify all component previews", status: :in_progress, priority: :high, position: 0 },
-  { title: "Add DataTable filter persistence", description: "Save active filters to cookies for page reload", status: :in_progress, priority: :medium, position: 1 },
-  { title: "Build Kanban component", description: "Drag-and-drop board composing SortableList", status: :in_progress, priority: :high, position: 2 },
-  { title: "Create FeedbackWidget", description: "Floating button with iframe drawer for Opina", status: :todo, priority: :medium, position: 0 },
-  { title: "Add Carousel accessibility", description: "Keyboard navigation and ARIA labels for slides", status: :todo, priority: :high, position: 1 },
-  { title: "Document FilterForm DSL", description: "Write guide for search_fields and filter_attribute", status: :todo, priority: :low, position: 2 },
+  { title: "Audit existing icon usage", description: "Map all icon names used across AFAL apps", status: :done, priority: :low, position: 0,
+    phase: "Foundations", start_date: today - 60, due_date: today - 50, percent_complete: 100 },
+  { title: "Migrate to Lucide icons", description: "Replace custom SVGs with Lucide equivalents", status: :done, priority: :medium, position: 1,
+    phase: "Foundations", start_date: today - 49, due_date: today - 35, percent_complete: 100 },
+  { title: "Upgrade to daisyUI 5", description: "Update class names and verify all component previews", status: :in_progress, priority: :high, position: 0,
+    phase: "Components", start_date: today - 14, due_date: today + 7, percent_complete: 70 },
+  { title: "Add DataTable filter persistence", description: "Save active filters to cookies for page reload", status: :in_progress, priority: :medium, position: 1,
+    phase: "Components", start_date: today - 7, due_date: today + 10, percent_complete: 40 },
+  { title: "Build Kanban component", description: "Drag-and-drop board composing SortableList", status: :in_progress, priority: :high, position: 2,
+    phase: "Components", start_date: today - 10, due_date: today + 14, percent_complete: 55 },
+  { title: "Create FeedbackWidget", description: "Floating button with iframe drawer for Opina", status: :todo, priority: :medium, position: 0,
+    phase: "Components", start_date: today + 7, due_date: today + 21 },
+  { title: "Add Carousel accessibility", description: "Keyboard navigation and ARIA labels for slides", status: :todo, priority: :high, position: 1,
+    phase: "Quality", start_date: today + 14, due_date: today + 24 },
+  { title: "Document FilterForm DSL", description: "Write guide for search_fields and filter_attribute", status: :todo, priority: :low, position: 2,
+    phase: "Quality", start_date: today + 18, due_date: today + 28 },
   { title: "Explore Turbo Mount for charts", description: "Evaluate React-based charting via islands architecture", status: :backlog, priority: :low, position: 0 },
-  { title: "Add dark mode support", description: "Verify all components render correctly with dark theme", status: :backlog, priority: :medium, position: 1 },
-  { title: "Performance benchmark suite", description: "Measure render times for complex components", status: :backlog, priority: :low, position: 2 }
+  { title: "Add dark mode support", description: "Verify all components render correctly with dark theme", status: :backlog, priority: :medium, position: 1,
+    phase: "Quality", start_date: today + 25, due_date: today + 35 },
+  { title: "Performance benchmark suite", description: "Measure render times for complex components", status: :backlog, priority: :low, position: 2,
+    phase: "Quality" },
+  { title: "Cut v3.1.0 beta", description: "Tag the release once the timeline components land", status: :todo, priority: :high, position: 3,
+    phase: "Release", start_date: today + 42, due_date: today + 42, milestone: true }
 ]
 
 tasks_data.each do |data|
-  project.tasks.find_or_create_by!(title: data[:title]) do |task|
-    task.description = data[:description]
-    task.status = data[:status]
-    task.priority = data[:priority]
-    task.position = data[:position]
-  end
+  task = project.tasks.find_or_initialize_by(title: data[:title])
+  task.assign_attributes(data.except(:title))
+  task.save!
 end
 
-puts "Created #{Project.count} projects with #{Task.count} tasks"
+# Dependencies chain a critical path through the schedule so the Gantt island
+# (#705) shows arrows and the critical treatment out of the box. The fake CPM
+# (ProjectGantt#critical_ids) marks the longest total-duration chain.
+dependency_pairs = [
+  ["Audit existing icon usage", "Migrate to Lucide icons"],
+  ["Migrate to Lucide icons", "Upgrade to daisyUI 5"],
+  ["Upgrade to daisyUI 5", "Build Kanban component"],
+  ["Add DataTable filter persistence", "Create FeedbackWidget"],
+  ["Build Kanban component", "Cut v3.1.0 beta"]
+]
+dependency_pairs.each do |predecessor_title, successor_title|
+  predecessor = project.tasks.find_by!(title: predecessor_title)
+  successor = project.tasks.find_by!(title: successor_title)
+  TaskDependency.find_or_create_by!(predecessor: predecessor, successor: successor)
+end
+
+puts "Created #{Project.count} projects with #{Task.count} tasks and #{TaskDependency.count} dependencies"
+
+# #708 — un párrafo con referencias reales en el primer documento, para que /documents/:id
+# tenga qué resolver al cargar (y qué materializar en bali_entity_references). Va aquí y no
+# con el resto del contenido porque las entidades referidas se crean más arriba: una
+# referencia solo demuestra algo si apunta a un registro que existe.
+roadmap = Document.find_by(title: "Q2 2026 Product Roadmap")
+if roadmap
+  referenced_task = project.tasks.find_by(title: "Build Kanban component")
+  archived = Document.find_by(title: "Archived: Legacy Migration Plan")
+
+  references_paragraph = {
+    "id" => "refs-1",
+    "type" => "paragraph",
+    "content" => [
+      { "type" => "text", "text" => "Seguimiento en ", "styles" => {} },
+      { "type" => "entityReference",
+        "props" => { "entityType" => "Project", "entityId" => project.id.to_s,
+                     "entityName" => project.name } },
+      { "type" => "text", "text" => ", con ", "styles" => {} },
+      { "type" => "entityReference",
+        "props" => { "entityType" => "Task", "entityId" => referenced_task.id.to_s,
+                     "entityName" => referenced_task.title } },
+      { "type" => "text", "text" => " en curso. Reemplaza a ", "styles" => {} },
+      # A un documento archivado: el chip se pinta roto, que es la señal que se perdería
+      # si el resolver simplemente omitiera lo inalcanzable.
+      { "type" => "entityReference",
+        "props" => { "entityType" => "Document", "entityId" => archived.id.to_s,
+                     "entityName" => archived.title } },
+      { "type" => "text", "text" => ".", "styles" => {} }
+    ]
+  }
+
+  unless roadmap.content.any? { |block| block["id"] == "refs-1" }
+    roadmap.update!(content: roadmap.content + [ references_paragraph ])
+  end
+
+  puts "Document '#{roadmap.title}' references #{roadmap.entity_references.count} entities"
+end
 
 # Dueño de las vistas guardadas: el dummy no autentica, hay un solo usuario y es el que
 # nombra el topbar.

@@ -43,6 +43,16 @@ class BaliDashboardPageComponentTest < ComponentTestCase
     assert_selector(".rounded-full svg")
   end
 
+  def test_stat_with_href_renders_its_stat_card_as_a_link
+    render_inline(Bali::DashboardPage::Component.new(title: "Dashboard")) do |page|
+      page.with_stat(label: "Total Movies", value: "1,234", icon: "film", href: "/movies")
+      page.with_stat(label: "Revenue", value: "$45K", icon: "dollar-sign")
+      page.with_body { "Content" }
+    end
+    assert_selector("a.card[href='/movies']", text: "Total Movies")
+    assert_selector("div.card", text: "Revenue")
+  end
+
   def test_renders_actions
     render_inline(Bali::DashboardPage::Component.new(title: "Dashboard")) do |page|
       page.with_action { "Export Button" }

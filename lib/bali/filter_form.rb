@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "date_range_presets"
 require_relative "filter_form/search_configuration"
 require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
@@ -67,6 +68,14 @@ module Bali
       SIMPLE_INPUTS = %i[select slim_select toggle_group radio_group boolean date
                          date_range number_range].freeze
 
+      # Widgets that may carry `auto_submit: true`: the ones where a change event is
+      # a completed choice. A pill click is the whole interaction, and a native
+      # select only fires `change` when the menu closes on a selection (#996) — so
+      # neither can cut the user off mid-value the way a date or a number range
+      # would. `slim_select` stays out until its change semantics are verified
+      # against the SlimSelect controller.
+      AUTO_SUBMIT_INPUTS = %i[toggle_group radio_group select].freeze
+
       # Default SimpleFilters widget derived from the declared data type.
       # :text has no entry on purpose — quick text search belongs to search_fields.
       DEFAULT_SIMPLE_INPUT_FOR_TYPE = {
@@ -115,6 +124,19 @@ module Bali
       # @param step [Numeric] Step for the :number_range simple widget
       # @param placeholder_min [String] Min placeholder for :number_range
       # @param placeholder_max [String] Max placeholder for :number_range
+      # @param auto_submit [Boolean] Filter as soon as this control changes, instead
+      #   of waiting for the Filter button. Opt-in per filter and off by default, so
+      #   no existing row changes behaviour. Only for widgets whose change is a
+      #   completed choice — `:toggle_group`, `:radio_group` and `:select`, see
+      #   AUTO_SUBMIT_INPUTS above; a range would submit between the two halves of
+      #   its value.
+      # @param presets [Boolean, Array<Symbol>] Named periods offered by an
+      #   `input: :date_range` widget, which then renders a period select whose
+      #   "Custom…" option reveals the date picker. `true` offers all of
+      #   {Bali::DateRangePresets::TOKENS}; an array picks and orders them. The
+      #   chosen token travels in the same param the explicit range does and is
+      #   resolved against `Time.zone` on every query, so a saved view that says
+      #   "this month" still means this month next month.
       #
       # @example Advanced popover only (same as always)
       #   filter_attribute :name, type: :text
@@ -126,13 +148,26 @@ module Bali
       # @example Simple UI only, custom widget
       #   filter_attribute :priority, type: :select, simple: true, advanced: false,
       #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group
+      #
+      # @example Pills that filter on click
+      #   filter_attribute :status, type: :select, simple: true, advanced: false,
+      #     options: [['Draft', 'draft'], ['Published', 'published']],
+      #     input: :radio_group, auto_submit: true
+      #
+      # @example Date range with named periods
+      #   filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+      #     presets: %i[today this_week this_month], blank: 'Any date'
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, options: [], collection: nil,
                            simple: false, advanced: true, input: nil, predicate: :eq,
                            blank: nil, default: nil, icon: nil, step: nil,
-                           placeholder_min: nil, placeholder_max: nil)
+                           placeholder_min: nil, placeholder_max: nil, auto_submit: false,
+                           presets: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
+        resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
+        validate_auto_submit(key, resolved_input, auto_submit)
+
         filter_attributes << {
           key: key.to_sym,
           type: type,
@@ -141,14 +176,16 @@ module Bali
           options: options.presence || collection || [],
           simple: simple,
           advanced: advanced,
-          input: simple ? resolve_simple_input(key, type, input) : input&.to_sym,
+          input: resolved_input,
           predicate: predicate&.to_sym,
           blank: blank,
           default: default,
           icon: icon,
           step: step,
           placeholder_min: placeholder_min,
-          placeholder_max: placeholder_max
+          placeholder_max: placeholder_max,
+          auto_submit: auto_submit,
+          presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input)
         }
       end
 
@@ -179,6 +216,18 @@ module Bali
                                "declare quick text search with search_fields"
         end
       end
+
+      # Fails at class-definition time rather than rendering a row whose `auto_submit:`
+      # nothing reads — the same contract as an unknown `input:`.
+      def validate_auto_submit(key, widget, auto_submit)
+        return unless auto_submit
+        return if AUTO_SUBMIT_INPUTS.include?(widget)
+
+        raise ArgumentError,
+              "filter_attribute #{key}: auto_submit: true only applies to single-choice " \
+              "widgets (#{AUTO_SUBMIT_INPUTS.join(', ')}) declared with simple: true; " \
+              "this one is #{widget ? ":#{widget}" : 'not a simple filter'}"
+      end
     end
 
     # @param scope [ActiveRecord::Relation] The base scope to filter
@@ -208,21 +257,40 @@ module Bali
     #   tarjetas. Pasá lo MISMO que le pasás al DataTable (p.ej. `params[:view] || :grid`)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
+                   search_placeholder: nil, search_icon: nil, search_aria_label: nil,
+                   search_width: nil, search_label: nil,
+                   persist_enabled: nil, simple_filters: nil,
                    group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
                    saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
+      # `search_label:` mirrors the DSL's old `label:` and was renamed with it
+      # (#1026): the value is the box's aria-label, and the accessible-name
+      # spelling across the library is `aria_label`.
+      if search_label
+        raise ArgumentError,
+              "#{self.class.name}: `search_label:` was renamed to `search_aria_label:` in v3.1."
+      end
+
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
       @instance_search_icon = search_icon
+      @instance_search_label = search_aria_label
+      @instance_search_width = search_width
       @instance_simple_filters = simple_filters
       @instance_group_by_attributes = group_by_attributes
       @instance_group_by_modes = group_by_modes
       @view_param = (view_param || DEFAULT_VIEW_PARAM).to_sym
       @search_placeholder = search_placeholder
-      @persist_enabled = persist_enabled
+      # nil vs false matters (#999): an explicit `persist_enabled: false` is a
+      # read opt-in ("this browser said no"); nil means NOBODY read the cookie,
+      # which with a storage_id present is the silent failure mode — the toggle
+      # renders, the state saves, and it never restores. DataTable warns on it
+      # in development; `Bali::Filterable#filter_form` is the wiring that cannot
+      # forget.
+      @persist_enabled_read = !persist_enabled.nil?
+      @persist_enabled = persist_enabled.nil? ? false : persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
       @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
@@ -258,7 +326,7 @@ module Bali
       # Extract Ransack groupings (g) and combinator (m) for complex filters
       # These are used by Filters for AND/OR condition groups
       @groupings = extract_groupings(q_params)
-      @combinator = q_params[:m]
+      @combinator = sanitized_combinator(q_params[:m])
 
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
@@ -297,6 +365,13 @@ module Bali
     # Check if user has opted into filter persistence
     def persist_enabled?
       @persist_enabled
+    end
+
+    # Whether the persistence opt-in was actually read when this form was built
+    # (an explicit true OR false — as opposed to nobody having looked). See the
+    # initializer note; DataTable's dev/test warning keys off this.
+    def persistence_opt_in_read?
+      @persist_enabled_read
     end
 
     def permitted_attributes
@@ -379,9 +454,18 @@ module Bali
     # — the listing blamed the data for what the filters had done.
     #
     # `"s"` is Ransack's *sort* param, not a filter, and stays out.
+    #
+    # Date ranges declared as `attribute` (#966) need their own source too: `result`
+    # applies them with a `where` on the relation, outside Ransack, so `query_params`
+    # excludes them by construction — the filter narrowed the listing but did not
+    # exist for anything consulting here. A simple date range wins on key collision:
+    # it travels raw (a preset like `this_month` stays a token the server re-resolves),
+    # while the attribute form travels frozen, already resolved.
     def active_filters
       @active_filters || begin
-        filters = query_params.except("s").compact_blank.merge(active_simple_filters)
+        filters = query_params.except("s").compact_blank
+                              .merge(active_date_range_filters)
+                              .merge(active_simple_filters)
         filters[search_field_name] = search_value if search_enabled? && search_value.present?
         filters
       end
@@ -484,6 +568,23 @@ module Bali
       attribute_names - date_range_attributes
     end
 
+    # The date ranges declared as `attribute`, serialized the way a form can re-emit
+    # them as hidden fields: `begin..end` — the exact shape `DateRangeValue` casts
+    # back, with either end blank for an open range. `date_range_attributes` also
+    # lists the simple-filter ones, which never become ActiveModel attributes (no
+    # reader), so `respond_to?` filters them out — same guard `result` uses.
+    def active_date_range_filters
+      date_range_attributes.filter_map do |attr_name|
+        next unless respond_to?(attr_name)
+
+        value = public_send(attr_name)
+        next if value.blank?
+
+        value = "#{value.begin}..#{value.end}" if value.is_a?(Range)
+        [ attr_name, value ]
+      end.to_h
+    end
+
     # Extract Ransack groupings from params.
     # Groupings format: q[g][0][field_operator]=value, q[g][0][m]=or/and
     #
@@ -560,11 +661,15 @@ module Bali
         # por la que reaparecen filtros que la URL ya no describe.
         stored = @persist_enabled ? Rails.cache.fetch(cache_key) : nil
         if stored.is_a?(Hash)
-          # Los simplificados sobreviven al merge —solo `search_value` se anula— y salen por
+          # Los simplificados sobreviven al merge —solo la búsqueda se anula— y salen por
           # el efecto: limpiar la búsqueda no puede llevarse los selects. `clearSearch` navega
           # descartando todos los `q[...]` (ver preservedParamsUrl), así que la caché es la
           # ÚNICA fuente de lo que el usuario tenía elegido.
-          Rails.cache.write(cache_key, stored.merge(search_value: nil))
+          stored = stored.merge(
+            search_value: nil,
+            attributes: attributes_without_search_field(stored[:attributes])
+          )
+          Rails.cache.write(cache_key, stored)
           restore_simple_filter_state(stored)
           [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
         else
@@ -598,6 +703,24 @@ module Bali
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+    # El término de búsqueda entra a la caché por DOS puertas cuando el host declara el
+    # predicado de Ransack como atributo además de `search_fields` —la forma natural cuando
+    # el buscador rápido también participa de los filtros avanzados:
+    #
+    #   search_fields :email, :first_name
+    #   attribute :email_or_first_name_cont      # <- la segunda puerta
+    #
+    # `extract_search_value` lo levanta en `search_value`, y como la clave TAMBIÉN está en
+    # `attribute_names` entra igual en `attributes`. Anular solo la primera dejaba el
+    # predicado dentro de los atributos restaurados: la caja quedaba vacía y el listado
+    # seguía recortado por un término que ya no se veía en ningún lado — y como la caché se
+    # reescribía con él adentro, en cada visita posterior también (#1017).
+    def attributes_without_search_field(attributes)
+      return attributes unless search_enabled? && attributes.is_a?(Hash)
+
+      attributes.except(search_field_name.to_s, search_field_name.to_sym)
+    end
 
     # Los simplificados se restauran por un EFECTO y no por la tupla, porque su valor nunca es
     # un atributo de ActiveModel: vive en `@q_params` y va directo a Ransack. Es exactamente lo

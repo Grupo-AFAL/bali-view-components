@@ -191,4 +191,44 @@ class BaliButtonComponentTest < ComponentTestCase
     render_inline(Bali::Button::Component.new(name: "Add"))
     assert_no_selector("button.max-sm\\:btn-square")
   end
+
+  # The trigger for a modal rendered on the same page, mirrored from Bali::Link's
+  # `modal: { id:, local: true }` for the case with no href at all.
+  def test_modal_local_opens_a_prerendered_modal_by_name
+    render_inline(Bali::Button::Component.new(name: "Edit health",
+                                              modal: { id: "health-modal", local: true }))
+
+    assert_selector("button[data-action~='modal#openLocal'][data-modal-id='health-modal']",
+                    text: "Edit health")
+  end
+
+  def test_modal_local_composes_with_an_existing_action
+    render_inline(Bali::Button::Component.new(name: "x", modal: { id: "m", local: true },
+                                              data: { action: "thing#track" }))
+
+    assert_selector("button[data-action='modal#openLocal thing#track']")
+  end
+
+  # A button has no href to fetch, so the remote mode stays on Bali::Link.
+  def test_modal_on_a_button_rejects_the_remote_mode
+    error = assert_raises(ArgumentError) do
+      Bali::Button::Component.new(name: "x", modal: true)
+    end
+
+    assert_match(/only the local mode/, error.message)
+  end
+
+  # A local open without an id would broadcast to every modal on the page (#854).
+  def test_modal_local_without_id_raises
+    assert_raises(ArgumentError) do
+      Bali::Button::Component.new(name: "x", modal: { local: true })
+    end
+  end
+
+  def test_drawer_local_mirrors_the_modal_contract
+    render_inline(Bali::Button::Component.new(name: "Notes",
+                                              drawer: { id: "notes-drawer", local: true }))
+
+    assert_selector("button[data-action~='drawer#openLocal'][data-drawer-id='notes-drawer']")
+  end
 end

@@ -86,14 +86,15 @@ module Bali
       # and returns `[{entityType:, entityId:, entityName:}, ...]`.
       # Pass `references_resolve_url:` for batch name resolution on load.
       #
-      # This preview uses the dummy app's `/entity_references` endpoint.
+      # This preview uses the engine endpoint (Bali::EntityReferencesController); the dummy
+      # declares its types in `Bali.entity_reference_types`.
       # @param placeholder text
       def with_entity_references(placeholder: 'Type # to reference an entity...')
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
-          references_url: '/entity_references',
-          references_resolve_url: '/entity_references/resolve'
+          references_url: '/bali/entity_references',
+          references_resolve_url: '/bali/entity_references/resolve'
         )
       end
 
@@ -112,7 +113,7 @@ module Bali
       def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true,
                         table_of_contents: false, comments: false)
         comments_config = if comments
-                            { url: '/block_editor_comments', user: sample_comments_user,
+                            { url: demo_comments_url, user: sample_comments_user,
                               users: sample_comments_users }
                           else
                             false
@@ -129,8 +130,8 @@ module Bali
           export_filename: 'my-document',
           ai_url: '/block_editor/ai',
           mentions_url: '/users',
-          references_url: '/entity_references',
-          references_resolve_url: '/entity_references/resolve',
+          references_url: '/bali/entity_references',
+          references_resolve_url: '/bali/entity_references/resolve',
           initial_content: full_featured_content.to_json
         )
       end
@@ -165,18 +166,22 @@ module Bali
       end
 
       # @label With Comments (Persistent)
-      # Enables inline commenting with database persistence via REST API.
-      # Comments survive page reloads. Requires the dummy app server
-      # running (`cd spec/dummy && bin/dev`) and the migration applied
-      # (`cd spec/dummy && bin/rails db:migrate`).
+      # Enables inline commenting with database persistence, through the engine's own
+      # endpoints. Comments survive page reloads. Requires the dummy app server
+      # running (`cd spec/dummy && bin/dev`).
       #
-      # The `comments_url` param points to the REST endpoint that
-      # implements the ThreadStore contract (see RESTThreadStore.js).
+      # **This is not the API you write.** A host passes the record the threads belong
+      # to and lets Bali resolve the URL:
+      #
+      #     comments: { url: :auto, commentable: @document, user: ... }
+      #
+      # A preview owns no record, so it spells the resolved path out instead — see
+      # `demo_comments_url` and docs/guides/engines.md.
       # @param editable toggle
       def with_persistent_comments(editable: true)
         render BlockEditor::Component.new(
           editable: editable,
-          comments: { url: '/block_editor_comments', user: sample_comments_user,
+          comments: { url: demo_comments_url, user: sample_comments_user,
                       users: sample_comments_users },
           initial_content: sample_content.to_json
         )
@@ -195,6 +200,15 @@ module Bali
       end
 
       private
+
+      # The engine scopes every comment endpoint to the record the threads belong to
+      # (#706), and a preview owns no record — so the two previews that need real
+      # persistence name the dummy app's first seeded document by hand. In an app the
+      # equivalent is `comments: { url: :auto, commentable: record }`, which resolves to
+      # exactly this path; nobody should copy the literal.
+      def demo_comments_url
+        '/bali/block_editor_comments?commentable_type=Document&commentable_id=1'
+      end
 
       def sample_users
         [

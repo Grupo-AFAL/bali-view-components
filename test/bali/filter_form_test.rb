@@ -46,6 +46,36 @@ class SearchableSimpleFilterForm < Bali::FilterForm
                    options: [ %w[Action Action], %w[Comedy Comedy] ], blank: "All Genres"
 end
 
+# El form de #966: un date_range declarado como `attribute`. `result` lo aplica FUERA de
+# Ransack, así que `query_params` lo excluye por construcción — pero el filtro SÍ está
+# recortando el listado, y `active_filters` tiene que decirlo.
+class DateRangeAttributeFilterForm < Bali::FilterForm
+  attribute :name_cont
+  attribute :created_at, Bali::Types::DateRangeValue.new
+end
+
+# El form del #1017: `search_fields` Y el predicado declarado como atributo — la forma que
+# toma un listado cuyo buscador rápido también participa de los filtros avanzados. El término
+# viaja por dos puertas (`search_value` y el atributo homónimo) y limpiarlo tiene que cerrar
+# las dos; `genre_eq` está para fijar que la X no se lleva el resto del recorte.
+class DualChannelSearchFilterForm < Bali::FilterForm
+  search_fields :name, :genre
+
+  attribute :name_or_genre_cont
+  attribute :genre_eq
+end
+
+# Test form with the full search_fields signature (#982): aria_label: is the
+# box's aria-label — the only accessible name that survives typing — and
+# width: the per-listing width override. Both were renderable by the
+# components but unreachable from the DSL. (`label:` was the beta spelling and
+# now raises — see the rename tests below, #1026.)
+class LabelledSearchMovieFilterForm < Bali::FilterForm
+  search_fields :name, icon: "search", aria_label: "Search movies", width: "w-64"
+
+  filter_attribute :name, type: :text
+end
+
 # Test form declaring simple-UI-only filters
 class SimpleFilterableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, simple: true, advanced: false,
@@ -218,6 +248,38 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     refute(@form.active_filters?)
   end
 
+  # #966 — un date_range declarado como `attribute` no pasa por Ransack (`result` lo aplica
+  # aparte, con un `where` sobre la relation) y `query_params` lo excluye por construcción.
+  # `active_filters` tiene que incluirlo igual: el badge, el empty state de `Table` y la
+  # re-emisión del bulk consultan acá, y sin esto el filtro recorta el listado pero "no
+  # existe" para nadie — el bulk actuaría sobre un superconjunto de lo que se ve.
+  def test_active_filters_includes_a_date_range_declared_as_attribute
+    @form = DateRangeAttributeFilterForm.new(
+      Movie.all, params({ created_at: "2026-01-01..2026-12-31", name_cont: "Iron" })
+    )
+
+    assert_equal(2, @form.active_filters_count)
+    assert_includes(@form.active_filters.keys, "created_at")
+  end
+
+  # Viaja RESUELTO (`inicio..fin`), que es la forma que `DateRangeValue` vuelve a castear:
+  # el par que un form re-emite como hidden tiene que reproducir el mismo recorte.
+  def test_an_active_date_range_attribute_round_trips_through_its_own_cast
+    @form = DateRangeAttributeFilterForm.new(
+      Movie.all, params({ created_at: "2026-01-01..2026-12-31" })
+    )
+
+    reparsed = Bali::Types::DateRangeValue.new.cast(@form.active_filters["created_at"])
+    assert_equal(Time.zone.parse("2026-01-01"), reparsed.begin)
+    assert_equal(Time.zone.parse("2026-12-31"), reparsed.end)
+  end
+
+  def test_active_filters_skips_a_blank_date_range_attribute
+    @form = DateRangeAttributeFilterForm.new(Movie.all, params({ name_cont: "Iron" }))
+
+    assert_equal({ "name_cont" => "Iron" }, @form.active_filters)
+  end
+
   def test_query_params_returns_a_hash_of_attributes_and_values
     assert_equal({ "genre_in" => nil, "name_i_cont" => "Iron", "s" => nil }, @form.query_params)
   end
@@ -348,6 +410,19 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal("or", @form.combinator)
   end
 
+  def test_combinator_collapses_a_value_that_is_not_a_combinator
+    filter_params = { m: '"><img src=x onerror=alert(1)>' }
+    @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+    assert_equal("and", @form.combinator)
+    assert_nil(@form.applied_combinator)
+  end
+
+  def test_group_combinator_collapses_a_value_that_is_not_a_combinator
+    filter_params = { g: { "0" => { name_cont: "Iron", m: "<script>alert(1)</script>" } } }
+    @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+    assert_equal("or", @form.filter_groups.first[:combinator])
+  end
+
   def test_active_filter_details_returns_empty_array_when_no_filters_active
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
     assert_equal([], @form.active_filter_details)
@@ -449,6 +524,57 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_search_config_returns_nil_when_search_not_enabled
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.search_config)
+  end
+
+  # --- search_fields label:/width: (#982) ---
+
+  def test_search_fields_dsl_stores_label_and_width
+    assert_equal("Search movies", LabelledSearchMovieFilterForm.defined_search_label)
+    assert_equal("w-64", LabelledSearchMovieFilterForm.defined_search_width)
+  end
+
+  # The producer emits every key the components render: a key search_config
+  # cannot emit is an option the auto-configured route cannot express, which is
+  # how the search box lost its aria-label on every bare `with_simple_filters`.
+  def test_search_config_emits_every_search_config_key
+    @form = LabelledSearchMovieFilterForm.new(Movie.all, params({}))
+    config = @form.search_config
+    assert_equal(Bali::SearchConfig::KEYS.sort, config.keys.sort)
+    assert_equal("Search movies", config[:label])
+    assert_equal("w-64", config[:width])
+    assert_equal("search", config[:icon])
+  end
+
+  def test_search_aria_label_and_width_instance_kwargs_override_the_dsl
+    @form = LabelledSearchMovieFilterForm.new(Movie.all, params({}),
+                                              search_aria_label: "Find", search_width: "w-96")
+    assert_equal("Find", @form.search_label)
+    assert_equal("w-96", @form.search_width)
+  end
+
+  # --- the #1026 rename: the beta spellings raise, naming their replacement ---
+
+  def test_search_fields_label_keyword_raises_naming_aria_label
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        def self.name = "RenamedForm"
+        search_fields :name, label: "Search"
+      end
+    end
+    assert_match(/`label:` was renamed to `aria_label:`/, error.message)
+  end
+
+  def test_search_label_initialize_kwarg_raises_naming_search_aria_label
+    error = assert_raises(ArgumentError) do
+      LabelledSearchMovieFilterForm.new(Movie.all, params({}), search_label: "Find")
+    end
+    assert_match(/`search_label:` was renamed to `search_aria_label:`/, error.message)
+  end
+
+  def test_search_label_and_width_are_inherited_by_subclasses
+    subclass = Class.new(LabelledSearchMovieFilterForm)
+    assert_equal("Search movies", subclass.defined_search_label)
+    assert_equal("w-64", subclass.defined_search_width)
   end
 
   def test_search_fields_via_initialize_parameter_accepts_search_fields_as_initialize_parameter
@@ -667,6 +793,54 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
       storage_id: "movies", persist_enabled: true
     )
     assert_equal("iron", still_there.name_i_cont)
+  end
+
+  def test_clearing_the_search_also_clears_a_predicate_declared_as_an_attribute
+    # El término entra por dos puertas y la X cerraba solo una, así que la caja quedaba
+    # vacía sobre un listado que seguía recortado por ella (#1017).
+    DualChannelSearchFilterForm.new(
+      Movie.all, params(name_or_genre_cont: "iron"), storage_id: "movies"
+    )
+
+    cleared = DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.search_value)
+    assert_nil(cleared.name_or_genre_cont)
+  end
+
+  def test_a_cleared_search_does_not_come_back_on_the_next_visit
+    # Lo que de verdad dolía: la caché se reescribía CON el predicado adentro, así que el
+    # recorte volvía en cada visita limpia, ya sin término visible que lo explicara.
+    DualChannelSearchFilterForm.new(
+      Movie.all, params(name_or_genre_cont: "iron"), storage_id: "movies"
+    )
+    DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+
+    revisited = DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new,
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(revisited.name_or_genre_cont)
+    assert_nil(revisited.search_value)
+  end
+
+  def test_clearing_the_search_keeps_the_other_filters
+    # La X limpia la búsqueda, no el recorte entero: para eso está "Limpiar filtros".
+    DualChannelSearchFilterForm.new(
+      Movie.all, params(name_or_genre_cont: "iron", genre_eq: "action"), storage_id: "movies"
+    )
+
+    cleared = DualChannelSearchFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.name_or_genre_cont)
+    assert_equal("action", cleared.genre_eq)
   end
 
   def test_stores_complete_filter_state_including_groupings
@@ -1409,6 +1583,62 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
     assert_match(/unknown input/, error.message)
   end
 
+  # --- auto_submit (#725) ---
+
+  def test_auto_submit_reaches_the_simple_filters_config
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :status, type: :select, simple: true, advanced: false,
+                       options: [ %w[Draft draft], %w[Published published] ],
+                       input: :radio_group, auto_submit: true
+      filter_attribute :genre, type: :select, simple: true, advanced: false,
+                       options: [ %w[Action action] ]
+    end
+
+    by_attribute = form_class.new(Movie.all, params({})).simple_filters_config.index_by { |f| f[:attribute] }
+
+    assert_equal(true, by_attribute[:status][:auto_submit])
+    assert_equal(false, by_attribute[:genre][:auto_submit])
+  end
+
+  # El default es false y no nil: una fila declarada antes de que existiera la opción no
+  # puede quedar dependiendo de que el template lea un nil como falso.
+  def test_auto_submit_defaults_to_false
+    status = SimpleFilterableMovieFilterForm.filter_attributes.find { |a| a[:key] == :status }
+
+    assert_equal(false, status[:auto_submit])
+  end
+
+  # #996: un select nativo también es una elección terminada — el change dispara al
+  # cerrar el menú con una selección — así que puede auto-enviar igual que las pills.
+  def test_auto_submit_on_a_select_reaches_the_simple_filters_config
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :genre, type: :select, simple: true, advanced: false,
+                       options: [ %w[Action action] ], auto_submit: true
+    end
+
+    genre = form_class.new(Movie.all, params({})).simple_filters_config.first
+    assert_equal(true, genre[:auto_submit])
+  end
+
+  # Falla al definir la clase y no al renderizar, como un `input:` desconocido: un
+  # `auto_submit:` que nadie lee es peor que un error.
+  def test_auto_submit_outside_the_single_choice_widgets_raises
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        filter_attribute :created_at, type: :date, simple: true, auto_submit: true
+      end
+    end
+    assert_match(/auto_submit: true only applies to single-choice widgets/, error.message)
+    assert_match(/this one is :date/, error.message)
+  end
+
+  def test_auto_submit_on_an_advanced_only_attribute_raises
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) { filter_attribute :name, type: :text, auto_submit: true }
+    end
+    assert_match(/not a simple filter/, error.message)
+  end
+
   def test_date_simple_filter_honors_declared_predicate
     form = DatePredicateFilterForm.new(Movie.all, params({ created_at_gteq: "2024-01-01" }))
     assert_includes(form.simple_filters_permitted_keys, "created_at_gteq")
@@ -1761,5 +1991,160 @@ class EnumCastingFilterFormTest < ActiveSupport::TestCase
   def test_the_translated_predicates_are_the_ones_the_select_ui_offers
     assert_equal Bali::Filters::Operators.for_type(:select).pluck(:value).sort,
                  Bali::FilterForm::EnumCasting::EQUALITY_PREDICATES.sort
+  end
+end
+
+# --- Presets de periodo (#725): un token simbólico en el MISMO param que el rango ---
+class DateRangePresetsFilterFormTest < ActiveSupport::TestCase
+  class PresetsFilterForm < Bali::FilterForm
+    filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                     advanced: false, label: "Created",
+                     presets: %i[today this_week this_month]
+  end
+
+  class AllPresetsFilterForm < Bali::FilterForm
+    filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                     advanced: false, presets: true
+  end
+
+  def setup
+    @tenant = Tenant.create(name: "Tenant")
+    travel_to Time.zone.parse("2026-08-06 12:00:00") do
+      @today = @tenant.movies.create(name: "Today", status: 0)
+      @this_week = @tenant.movies.create(name: "Monday", status: 0, created_at: 3.days.ago)
+      @this_month = @tenant.movies.create(name: "First", status: 0, created_at: Time.zone.parse("2026-08-01 09:00"))
+      @last_month = @tenant.movies.create(name: "July", status: 0, created_at: Time.zone.parse("2026-07-15 09:00"))
+    end
+  end
+
+  def params(filter_attributes)
+    ActionController::Parameters.new(q: filter_attributes)
+  end
+
+  # El corazón de la decisión 725-D1: el token se resuelve contra Time.zone EN LA CONSULTA,
+  # no al declararlo, así que el mismo valor guardado recorta distinto en otra fecha.
+  def test_a_token_narrows_the_result_to_the_period_it_names
+    travel_to Time.zone.parse("2026-08-06 18:00:00") do
+      form = PresetsFilterForm.new(@tenant.movies, params(created_at: "today"))
+      assert_equal [ "Today" ], form.result.pluck(:name)
+    end
+  end
+
+  def test_this_week_and_this_month_widen_the_same_way_the_calendar_does
+    travel_to Time.zone.parse("2026-08-06 18:00:00") do
+      week = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_week"))
+      assert_equal %w[Monday Today], week.result.pluck(:name).sort
+
+      month = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month"))
+      assert_equal %w[First Monday Today], month.result.pluck(:name).sort
+    end
+  end
+
+  # Lo que un rango literal en una vista guardada NO hace: seguir significando lo mismo.
+  def test_the_same_token_means_the_new_month_a_month_later
+    august = travel_to(Time.zone.parse("2026-08-06 18:00:00")) do
+      PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month")).result.count
+    end
+    september = travel_to(Time.zone.parse("2026-09-06 18:00:00")) do
+      PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month")).result.count
+    end
+
+    assert_equal 3, august
+    assert_equal 0, september
+  end
+
+  # Un preset no reemplaza al rango explícito: viajan por el MISMO param y los dos filtran.
+  def test_an_explicit_range_still_travels_in_the_same_param
+    form = PresetsFilterForm.new(@tenant.movies, params(created_at: "2026-07-01 to 2026-07-31"))
+
+    assert_equal [ "July" ], form.result.pluck(:name)
+  end
+
+  def test_a_token_counts_as_an_active_filter
+    form = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month"))
+
+    assert form.active_filters?
+    assert_equal({ "created_at" => "this_month" }, form.active_filters)
+  end
+
+  # DSL
+
+  def test_presets_reach_the_simple_filters_config_in_the_declared_order
+    config = PresetsFilterForm.new(@tenant.movies, params({}))
+                              .simple_filters_config.find { |c| c[:attribute] == :created_at }
+
+    assert_equal %w[today this_week this_month], config[:presets]
+  end
+
+  def test_presets_true_offers_every_token
+    config = AllPresetsFilterForm.new(@tenant.movies, params({}))
+                                 .simple_filters_config.find { |c| c[:attribute] == :created_at }
+
+    assert_equal Bali::DateRangePresets::TOKENS, config[:presets]
+  end
+
+  def test_a_filter_without_presets_carries_none
+    config = Bali::FilterForm.new(
+      @tenant.movies, params({}),
+      simple_filters: [ { attribute: :created_at, type: :date_range, label: "Created" } ]
+    ).simple_filters_config.first
+
+    assert_nil config[:presets]
+  end
+
+  def test_instance_level_simple_filters_take_presets_too
+    config = Bali::FilterForm.new(
+      @tenant.movies, params({}),
+      simple_filters: [ { attribute: :created_at, type: :date_range, presets: true } ]
+    ).simple_filters_config.first
+
+    assert_equal Bali::DateRangePresets::TOKENS, config[:presets]
+  end
+
+  def test_an_unknown_preset_raises_at_declaration_time
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                         presets: %i[this_millennium]
+      end
+    end
+    assert_match(/unknown date range preset/, error.message)
+  end
+
+  # 725-D4: "esta semana" no es un valor que una fecha suelta pueda tener.
+  def test_presets_on_a_single_date_filter_raise
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        filter_attribute :release_date, type: :date, simple: true, presets: %i[today]
+      end
+    end
+    assert_match(/needs input: :date_range/, error.message)
+  end
+
+  def test_an_unknown_preset_from_an_instance_level_hash_raises_too
+    form = Bali::FilterForm.new(
+      @tenant.movies, params({}),
+      simple_filters: [ { attribute: :created_at, type: :date_range, presets: %i[whenever] } ]
+    )
+
+    assert_raises(ArgumentError) { form.simple_filters_config }
+  end
+
+  # Round-trip por el form RENDERIZADO: el token tiene que sobrevivir el viaje por el hidden
+  # que el widget emite, no solo por un hash escrito a mano en el test.
+  def test_the_token_survives_the_round_trip_through_the_rendered_form
+    config = PresetsFilterForm.new(@tenant.movies, params(created_at: "this_month"))
+                              .simple_filters_config
+
+    html = ApplicationController.render(
+      Bali::DataTable::SimpleFilters::Component.new(url: "/movies", filters: config),
+      layout: false
+    )
+    hidden = Capybara.string(html).find("input[type=hidden][name='q[created_at]']", visible: :all)
+
+    resubmitted = PresetsFilterForm.new(@tenant.movies, params(created_at: hidden[:value]))
+    travel_to(Time.zone.parse("2026-08-06 18:00:00")) do
+      assert_equal 3, resubmitted.result.count
+    end
   end
 end

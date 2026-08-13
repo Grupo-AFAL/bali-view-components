@@ -16,23 +16,28 @@
 
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css" layer(components);
+@import "../../../components/bali/gantt/index.css" layer(components);
 @import "../../../components/bali/carousel/index.css" layer(components);
 @import "../../../components/bali/timeline/index.css" layer(components);
 @import "../../../components/bali/tooltip/index.css" layer(components);
 @import "../../../components/bali/status/index.css" layer(components);
 @import "../../../components/bali/hover_card/index.css" layer(components);
 @import "../../../components/bali/tag/index.css" layer(components);
+@import "../../../components/bali/kanban/index.css" layer(components);
+@import "../../../components/bali/qr_scanner/index.css" layer(components);
 
 /* Form Components */
 @import "../../../components/bali/delete_link/index.css" layer(components);
 @import "../../../components/bali/filters/index.css" layer(components);
 @import "../../../components/bali/rich_text_editor/index.css" layer(components);
 @import "../../../components/bali/stepper/index.css" layer(components);
+@import "../../../components/bali/workflow_steps/index.css" layer(components);
 
 /* Layout Components */
 @import "../../../components/bali/app_layout/index.css" layer(components);
 @import "../../../components/bali/drawer/index.css" layer(components);
 @import "../../../components/bali/image_grid/index.css" layer(components);
+@import "../../../components/bali/split_view/index.css" layer(components);
 
 /* Feedback Components. The toast *stack* is layered; the toast itself is not --
    see the unlayered group below and that sheet's own header. */

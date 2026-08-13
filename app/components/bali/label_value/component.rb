@@ -13,9 +13,13 @@ module Bali
     # one set read top to bottom: it renders a single `<table>` of `<th
     # scope="row">`/`<td>` rows, which gives a screen reader table navigation
     # over the whole set and one announcement of how many rows there are.
+    # Reach for `Bali::DescriptionList::Component` when the pairs form one set
+    # that wants a grid rather than table rows: ONE `<dl>` with a cell per
+    # pair, so the whole set stays a single list announced once.
     # LabelValue is the right call for a pair that stands on its own, or when
-    # each pair needs its own placement in a grid — every instance is its own
-    # one-pair list, so a run of them is a run of lists, not one set.
+    # each pair needs its own placement in a layout neither of those can
+    # express — every instance is its own one-pair list, so a run of them is
+    # a run of lists, not one set.
     class Component < ApplicationViewComponent
       LABEL_CLASSES = "font-bold text-xs text-base-content/70"
       VALUE_CLASSES = "min-h-6"

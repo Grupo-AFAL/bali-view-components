@@ -45,6 +45,7 @@ en:
       combinators:
         and: "AND"
         or: "OR"
+      combinator_toggle: "Combine conditions with"
 
       # Selected count for multi-select
       selected_count: "%{count} selected"
@@ -97,6 +98,17 @@ en:
     simple_filters:
       apply: "Filter"
       clear: "Clear"
+      # Named periods for a date_range filter (see Bali::DateRangePresets). `custom`
+      # reveals the date picker; `any` is the blank option when the filter declares no
+      # `blank:` of its own.
+      presets:
+        any: "Any date"
+        custom: "Custom…"
+        today: "Today"
+        this_week: "This week"
+        this_month: "This month"
+        last_7_days: "Last 7 days"
+        last_30_days: "Last 30 days"
 
     # File input
     file_input:
@@ -125,6 +137,11 @@ en:
       navigate: "navigate"
       open_action: "open"
       close: "close"
+
+    # Conversational chat
+    chat:
+      typing_indicator:
+        label: "Typing…"
 
     # Modal
     modal:
@@ -219,6 +236,12 @@ en:
       updated: "View updated."
       deleted: "View deleted."
 
+    # Content versions (#707) — written into the version's `summary` when it is created,
+    # so these are stored as data, not resolved at render.
+    content_versions:
+      restored_from: "Restored from v%{number}"
+      unknown_author: "Unknown"
+
     # Status
     status:
       no_status: "No status"
@@ -236,6 +259,12 @@ en:
       selected_one: selected
       selected_other: selected
       clear: Clear selection
+      select_all_filtered:
+        one: Select the only result
+        other: Select all %{count} results
+      all_filtered_selected:
+        one: The only result is selected
+        other: All %{count} results are selected
     tree_view:
       toggle_branch: "Toggle %{name}"
     timeago:
@@ -349,6 +378,69 @@ en:
         month: Month
         previous: Previous
         next: Next
+    gantt:
+      loading: Loading the timeline
+      noscript: This timeline needs JavaScript to be displayed.
+      undated_title: No dates
+      # Flat strings table of the React island (#705, D12) — served by
+      # Bali::Gantt::Translations.island as the `i18n` prop. `%{...}` are
+      # interpolated CLIENT-side; keys must match Translations::KEYS and the
+      # DEFAULT_I18N table in app/components/bali/gantt/i18n.js.
+      island:
+        add_group: Group
+        add_group_hint: Add group
+        add_item: Item
+        add_item_hint: New item
+        search_placeholder: Search…
+        filter: Filter
+        filter_by_status: Filter by status
+        all: All
+        columns: Columns
+        show_columns: Show columns
+        col_name: Name
+        col_assignee_short: Owner
+        col_assignee: Assignee
+        col_dates: Dates
+        col_days: Days
+        col_status: Status
+        col_progress: Progress
+        critical: Critical
+        critical_hint: Highlight critical path
+        deps: Deps
+        deps_hint: Show dependencies
+        color: Color
+        color_by: Color by
+        color_status: Status
+        color_assignee: Owner
+        color_group: Group
+        color_priority: Priority
+        zoom_label: Zoom
+        zoom_day: Day
+        zoom_week: Week
+        zoom_month: Month
+        today: Today
+        go_to_today: Go to today
+        zoom_in: Zoom in
+        zoom_out: Zoom out
+        fit: Fit to window
+        fullscreen: Full screen
+        expand: Expand
+        collapse: Collapse
+        selection_none: No selection
+        selected: "%{count} selected"
+        items_count: "%{count} items"
+        undated_count: "%{count} with no dates"
+        range_days: "%{count} days"
+        critical_count: "critical: %{count}"
+        progress_label: "%{percent}% complete"
+        resize_start: Resize (start)
+        resize_duration: Resize (duration)
+        drag_dependency: Drag to another bar to create a dependency
+        minimap_hint: Minimap — click or drag to navigate
+        splitter_hint: Drag to resize the table
+        schedule_refreshed: The schedule was refreshed (an item had changed).
+        change_failed: The change could not be applied
+        load_error: The timeline failed to load.
     navbar:
       main_navigation: Main navigation
       toggle_menu: Toggle menu
@@ -420,6 +512,7 @@ en:
       save: "Save"
       toggle_comments: "Toggle comments"
       toggle_history: "Toggle version history"
+      export: "Export"
       export_pdf: "Export PDF"
       export_docx: "Export DOCX"
       close: "Close editor"
@@ -454,7 +547,7 @@ en:
       versions_empty: "No versions yet."
 
       # Restore confirmation, shown through Bali's confirm dialog.
-      restore_confirm: "Restore this version? Current content will be saved as a new version first."
+      restore_confirm: "Restore this version? It will be added as the newest version, so nothing already in the history is lost."
       confirm_title: "Restore version"
       confirm_accept: "Restore"
       confirm_cancel: "Cancel"
@@ -486,6 +579,19 @@ en:
       placeholder: "Start typing..."
 
       bubble_menu:
+        # Accessible names for the icon-only formatting buttons (no visible text)
+        actions:
+          bold: "Bold"
+          italic: "Italic"
+          underline: "Underline"
+          strikethrough: "Strikethrough"
+          align_left: "Align left"
+          align_center: "Align center"
+          align_right: "Align right"
+          text_color: "Text color"
+          link: "Link"
+          image: "Insert image"
+          table: "Table"
         # Node type dropdown; `text` doubles as the trigger's default label
         nodes:
           text: "Text"
@@ -532,3 +638,58 @@ en:
       card_moved: "%{card} moved to %{column}, position %{position} of %{total}"
     tabs:
       navigation: "Section navigation"
+    topbar:
+      user_menu:
+        trigger_label: "User menu for %{name}"
+        sign_out: "Sign out"
+    qr_code:
+      label: "QR code"
+    qr_scanner:
+      hint: "Point the camera at the QR code."
+      idle:
+        title: "Ready to scan"
+        start: "Start camera"
+      requesting:
+        title: "Requesting camera access…"
+      scanned:
+        title: "Code detected"
+        restart: "Scan again"
+      # Deliberately does not say "grant permission here": the browser's own
+      # affordance for a blocked camera is a lock or camera icon in the address
+      # bar, and where it is depends on the browser, so naming the wrong place
+      # is worse than naming none.
+      denied:
+        title: "Camera access blocked"
+        description: "Allow this site to use the camera in your browser settings, then try again."
+        retry: "Try again"
+      # Covers a device with no camera, one another application is holding, and
+      # a page served over plain http — the last of which the browser reports
+      # as no camera at all. The console message from the controller is the one
+      # that can afford to be specific.
+      unavailable:
+        title: "Camera unavailable"
+        description: "No camera is available on this device, or this browser cannot use one here."
+    workflow_steps:
+      # Neither marker says a step's state in anything but colour — the
+      # circle's number is a position, not a verdict, and the quick flow's dot
+      # has no text at all — so every step renders one of these as an
+      # `sr-only` name. Deliberately generic, since the component covers
+      # approval chains, signature rounds and onboarding alike; a host with
+      # better words for its domain overrides them.
+      states:
+        success: "Completed"
+        error: "Rejected"
+        warning: "Needs attention"
+        pending: "Pending"
+        skipped: "Skipped"
+        current: "In progress"
+    split_view:
+      # The three states of the infinite-scroll sentinel. They ship translated
+      # because a `default:` in the template is exactly what hid the missing
+      # scope: the fallback rendered, in Spanish, for every host on earth, and
+      # nothing failed. Without one, a missing key says "translation missing".
+      end_of_list: "No more results"
+      load_error: "Could not load more results."
+      retry: "Retry"
+
+      filter_active: "active, click to remove"

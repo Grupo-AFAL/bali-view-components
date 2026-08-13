@@ -10,7 +10,8 @@
           title: stat.label,
           value: stat.value,
           icon: stat.icon,
-          color: stat.color
+          color: stat.color,
+          href: stat.href
         ) do |card| %>
           <% if stat.change.present? %>
             <% card.with_footer do %>

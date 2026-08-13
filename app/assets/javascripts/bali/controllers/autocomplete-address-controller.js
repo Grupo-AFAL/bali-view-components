@@ -1,6 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
 
-// TODO: Add tests (Issue: #137)
 export class AutocompleteAddressController extends Controller {
   static values = { apiKey: String }
   static targets = [

@@ -23,6 +23,13 @@ module Bali
       # continues inside the content instead of restarting at the top.
       MAIN_ID = "main-content"
 
+      # Measures the banner strip and publishes its height as
+      # `--bali-banner-height`, which is what pushes the pinned sidebar below it.
+      # Attached whether or not a banner is in the slot: a strip that arrives
+      # later, over a Turbo Stream, has to be measured on arrival, and with no
+      # banner the controller does nothing at all.
+      LAYOUT_CONTROLLER = "app-layout"
+
       # @param fixed_sidebar [Boolean] Sidebar is pinned to the viewport and the content
       #   is offset to clear it. Must agree with the `fixed:` of the SideMenu rendered in
       #   the slot — they share a default (both true) and a mismatch raises in development.
@@ -38,11 +45,17 @@ module Bali
       # @param app_name [String, nil] Title shown next to the hamburger in the
       #   auto-rendered mobile topbar. Only used when `fixed_sidebar:` is true,
       #   a sidebar is present, and no `topbar` slot was provided.
+      # @param mobile_bottom_padding [Boolean] Keep the end of the page reachable
+      #   on a phone: room under the content for the browser's own floating bar,
+      #   plus the device's bottom safe area. Off by default — see the guide, it
+      #   is not something every app wants.
       def initialize(fixed_sidebar: true, viewport_locked: nil,
                      flash: nil, modal: true, drawer: true,
                      modal_size: nil, drawer_size: nil,
                      body_container: :wide, app_name: nil, skip_link: true,
+                     mobile_bottom_padding: false,
                      **options)
+        @mobile_bottom_padding = mobile_bottom_padding
         @fixed_sidebar = fixed_sidebar
         @viewport_locked = viewport_locked
         @flash = flash
@@ -129,23 +142,34 @@ module Bali
           { "app-layout--has-navbar" => navbar? },
           { "app-layout--has-sidebar" => sidebar? },
           { "app-layout--viewport-locked" => viewport_locked? },
+          { "app-layout--mobile-bottom-padding" => @mobile_bottom_padding },
           @options[:class]
         )
       end
 
+      # A host that puts its own `data: { controller: ... }` on the layout keeps
+      # it: Stimulus reads one attribute per element, so the two identifiers are
+      # joined rather than one silently replacing the other.
       def container_attributes
-        @options.except(:class)
+        attributes = @options.except(:class)
+        data = (attributes[:data] || {}).symbolize_keys
+
+        attributes.merge(
+          data: data.merge(controller: [ LAYOUT_CONTROLLER, data[:controller] ].compact_blank.join(" "))
+        )
       end
 
-      # An empty container is a fixed, zero-height div in every page's DOM, so the
-      # guard stays here rather than inside the component: only the caller knows
-      # whether a slot is coming.
-      def flash_toasts?
-        return false if @flash.blank?
-
-        @flash.any? do |key, message|
-          Bali::ToastContainer::Component::FLASH_COLORS.key?(key.to_sym) && message.present?
-        end
+      # The container renders whenever the caller passes `flash:` — even an empty
+      # one. Its id is a documented Turbo Stream target (the controller promises
+      # `turbo_stream.append "toast-notifications"` keeps landing in the same
+      # place), and a target that only exists when a flash happens to be set is a
+      # contract broken on exactly the pages async toasts land on: Turbo resolves
+      # the target with getElementById and silently discards the append (#991).
+      # Two hosts rebuilt the node by hand and reached opposite conclusions about
+      # when to paint it — one of them shipping duplicate ids. What the old guard
+      # bought was avoiding an empty, zero-height, non-interactive div.
+      def toast_container?
+        !@flash.nil?
       end
 
       def body_container_classes

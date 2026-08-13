@@ -57,8 +57,18 @@ module Bali
       # `**options` va PRIMERO: lo que el componente posee no se puede pisar desde el host.
       # Splateado al final, un `standalone: true` del host anidaba un segundo controlador y
       # rompía en silencio la invariante que este comentario acaba de documentar.
+      #
+      # `total_count:` y `filter_params:` van ANTES del splat: son un default derivado del
+      # listado (el `pagy` y el `filter_form` que este DataTable ya tiene), no una invariante
+      # del componente, así que el host puede pisarlos — para acotar la oferta a otra cuenta,
+      # o para apagarla con `total_count: nil` en un listado donde una acción sobre todo el
+      # resultado no tiene sentido.
       renders_one :bulk_actions, ->(**options) do
-        Bali::BulkActions::Component.new(**options, variant: :toolbar, standalone: false)
+        Bali::BulkActions::Component.new(
+          total_count: bulk_actions_total_count,
+          filter_params: Bali::Filters::ActiveFilterParams.for_filter_form(@filter_form),
+          **options, variant: :toolbar, standalone: false
+        )
       end
 
       # Filters panel using Filters component.
@@ -629,6 +639,43 @@ module Bali
       def capture_persistence(storage_id, enabled)
         @persistence_storage_id = storage_id.presence
         @persistence_enabled = !!enabled
+        warn_unwired_persistence
+      end
+
+      # #999's safety net. The toggle is about to render (storage_id present),
+      # so a form built without anyone reading the opt-in — or without a
+      # context — is the silent failure mode: state saves into Rails.cache and
+      # never restores, or every user restores everyone's. Development only —
+      # in a host's test suite the warning is noise about an env that isn't
+      # the one misconfigured (#1029) — once per storage_id per process;
+      # `Bali::Filterable#filter_form` closes both halves and never trips this.
+      def warn_unwired_persistence
+        return unless Rails.env.development?
+        return if @persistence_storage_id.blank? || @filter_form.nil?
+        return unless @filter_form.respond_to?(:persistence_opt_in_read?)
+        return if (self.class.persistence_warnings_issued ||= Set.new).include?(@persistence_storage_id)
+
+        if !@filter_form.persistence_opt_in_read?
+          self.class.persistence_warnings_issued << @persistence_storage_id
+          Rails.logger.warn(
+            "[Bali] DataTable \"#{@persistence_storage_id}\": the persistence toggle will " \
+            "render, but the FilterForm was built without `persist_enabled:` — filters will " \
+            "save and never restore. Build the form with Bali::Filterable#filter_form, or " \
+            "pass persist_enabled: cookies[\"bali_persist_#{@persistence_storage_id}\"] == \"1\"."
+          )
+        elsif @filter_form.respond_to?(:context) && @filter_form.context.nil?
+          self.class.persistence_warnings_issued << @persistence_storage_id
+          Rails.logger.warn(
+            "[Bali] DataTable \"#{@persistence_storage_id}\": persisted filters have no " \
+            "`context:` — the cache key is one for the whole process, so every user restores " \
+            "everyone's filters. Pass context: (Bali::Filterable#filter_form derives it from " \
+            "Bali.filter_context), or context: nil explicitly stays silent only via the concern."
+          )
+        end
+      end
+
+      class << self
+        attr_accessor :persistence_warnings_issued
       end
 
       # The `search:` hash both filter slots hand to their component: whatever the
@@ -817,6 +864,15 @@ module Bali
 
       def pagy_adapter
         @pagy_adapter ||= Bali::Pagination::PagyAdapter.new(@pagy)
+      end
+
+      # N para la oferta "seleccionar los N resultados": el total del resultado FILTRADO, que
+      # es exactamente lo que el pagy del listado cuenta. Sin pagy, o con paginación countless
+      # (donde `count` es nil por diseño), no hay N que ofrecer y la barra no ofrece nada.
+      def bulk_actions_total_count
+        return unless @pagy && pagy_adapter.summarizable?
+
+        pagy_adapter.count
       end
 
       def summary_position?(position)

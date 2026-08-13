@@ -1,0 +1,25 @@
+<div class="flex items-center justify-center gap-2 my-2">
+  <div class="flex-1 border-t border-base-300"></div>
+  <input type="hidden" name="q[m]" value="<%= combinator %>" data-filters-target="groupCombinator">
+  <%# `aria-pressed` carries the active state a screen reader cannot get from
+      btn-primary vs btn-outline (#1028); the JS keeps it in sync. %>
+  <div class="join" role="group"
+       aria-label="<%= t('bali_view.filters.combinator_toggle') %>"
+       data-filters-target="groupCombinatorToggle">
+    <button type="button"
+            class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+            aria-pressed="<%= (combinator == 'and').to_s %>"
+            data-action="filters#setGroupCombinator"
+            data-combinator="and">
+      <%= t('bali_view.filters.combinators.and') %>
+    </button>
+    <button type="button"
+            class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+            aria-pressed="<%= (combinator == 'or').to_s %>"
+            data-action="filters#setGroupCombinator"
+            data-combinator="or">
+      <%= t('bali_view.filters.combinators.or') %>
+    </button>
+  </div>
+  <div class="flex-1 border-t border-base-300"></div>
+</div>

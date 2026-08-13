@@ -6,6 +6,13 @@ module Bali
       WRAPPER_CLASS = "slim-select"
       SELECT_CLASS = "select select-bordered"
       TOGGLE_BUTTON_CLASS = "ss-toggle-btn"
+
+      # The one density SlimSelect has CSS for (#521, `bali/slim_select.css`).
+      # It stays a one-key map on purpose: the widget is drawn by SlimSelect, not
+      # by daisyUI, so a `:lg` here would name a class no stylesheet defines.
+      # `size_variant` raises on the other symbols rather than dropping them,
+      # which is the whole point of routing through it — the previous lookup
+      # returned nil for `:lg` and the field silently came out full-size.
       SIZE_CLASSES = { sm: "slim-select-sm" }.freeze
 
       DEFAULT_OPTIONS = {
@@ -42,16 +49,25 @@ module Bali
         # among them — so it stays untouched. The caption keys travel separately.
         group = group_options(options, merged_html)
 
+        # The density is the wrapper's, so the `<select>` must not keep the key:
+        # it used to reach the element by both routes at once and paint a
+        # `size="sm"` next to the class — invisible, since the select is clipped
+        # to 1x1, and invalid all the same.
+        variant = select_size_variant(options, html_options, SIZE_CLASSES)
+        merged_options = merged_options.except(:size) if variant
+
         # `widget_attributes`, not `html_attributes`: this family cannot carry `required`.
         # See #drop_unenforceable_required.
         attributes = widget_attributes(merged_html)
+        attributes.delete(:size) if variant
         attributes[:class] = field_class_name(
           method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
-          error_class: "select-error"
+          error_class: "select-error", options: group
         )
         merge_aria_attributes(attributes, method, group)
 
-        field = build_wrapper(method, merged_options, attributes, merged_html[:select_class]) do
+        field = build_wrapper(method, merged_options, attributes,
+                              merged_html[:select_class], variant) do
           build_select_content(method, values, merged_options, attributes)
         end
 
@@ -129,8 +145,10 @@ module Bali
         { multiple: false, data: default_data.merge(user_data) }.merge(html_options.except(:data))
       end
 
-      def build_wrapper(method, options, html_options, select_class, &)
-        content_tag(:div, wrapper_attributes(method, options, html_options, select_class), &)
+      def build_wrapper(method, options, html_options, select_class, variant = nil, &)
+        content_tag(
+          :div, wrapper_attributes(method, options, html_options, select_class, variant), &
+        )
       end
 
       def build_select_content(method, values, options, html_options)
@@ -192,11 +210,10 @@ module Bali
       # The wrapper id used to be a bare `#{method}_select_div`, which ignored the
       # object name, the index and any nested-attribute path — so two forms for
       # the same model on one page emitted the very same id twice.
-      def wrapper_attributes(method, options, html_options, select_class)
-        size_class = SIZE_CLASSES[options[:size]&.to_sym]
+      def wrapper_attributes(method, options, html_options, select_class, variant = nil)
         {
           id: field_id(method, "select_div"),
-          class: class_names([ WRAPPER_CLASS, size_class, select_class ].compact),
+          class: class_names([ WRAPPER_CLASS, variant, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
       end

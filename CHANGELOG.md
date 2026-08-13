@@ -7,6 +7,1377 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0] - 2026-08-13
+
+**v3.1 goes stable.** Same code as `v3.1.0.beta.15` — this release promotes the beta line
+to the stable channel: `3.1` merges into `main` and `main` becomes the v3.1 line.
+Everything the line changed since `v3.0.0` is recorded in the `v3.1.0.beta.N` entries
+below. Upgrading from v3.0: read the
+[migration guide](docs/guides/migration-v3-to-v31.md) — a handful of announced breaking
+changes, each with its blast radius measured. From v2, read
+[migration-v2-to-v3.md](docs/guides/migration-v2-to-v3.md) first. How the channels work:
+[Release channels](docs/guides/release-channels.md).
+
+## [v3.1.0.beta.15] - 2026-08-13
+
+### Added
+
+- **SortableList: keyboard reordering** (#1028, WCAG 2.1.1). The drag had no keyboard
+  alternative. Every direct item is now focusable, and ArrowUp/ArrowDown moves the focused item
+  one slot — persisting (PATCH) and dispatching `bali:sortable-list:end` exactly like a drop,
+  with focus travelling along so repeated arrows keep moving it. Arrows only act when the item
+  element itself has focus, so nested controls keep their own arrow behaviour; cross-list moves
+  remain mouse-only. A new Cypress spec (`sortable-list.cy.js`) covers the component E2E for
+  the first time.
+
+### Changed (breaking)
+
+- **`FilterForm.search_fields` renames `label:` to `aria_label:`** (#1026, closing the last
+  deviation of the pre-GA API audit). The value is the search box's `aria-label` (#982), and
+  the accessible-name spelling across the library is `aria_label:` — the same rename
+  `Topbar::IconAction` took in beta.14, in the second place the audit flagged. The
+  instance-level mirror moves with it (`search_aria_label:`, was `search_label:`). Both old
+  spellings raise naming their replacement. **Only affects hosts pinned to a v3.1 beta** —
+  the keywords shipped in beta.10.
+
+### Changed
+
+- **Dev dependencies: Cypress 15.18.1 → 15.20.1, and the dummy's transitive `nanoid`
+  5.1.6 → 5.1.16** — one PR consolidating (and superseding) Dependabot's #997 and #998,
+  taking Cypress to the actual latest. Neither ships to hosts: Cypress is the repo's E2E
+  runner and nanoid lives in the dummy app's lockfile. daisyUI (5.7.16) and
+  `tailwindcss-rails` (4.6.0) were checked in the same pass and are already at latest.
+- **CHANGELOG: the #987 `question_circle` entry is reclassified as breaking** (#1029). It
+  shipped in beta.10 under plain "Changed", but a host using the underscored spelling gets a
+  runtime raise — it now sits under "Changed (breaking)" where hosts scanning for breaks will
+  find it, and the v3→v3.1 migration guide documents it alongside the other renames.
+- **The Topbar previews follow `IconAction`'s `label:` → `aria_label:` rename** (#1035). The
+  beta.14 rename reached the component, its tests and the migration guide, but not the two
+  Lookbook previews that exercise it (`default` and `icon_actions`) — and since the old keyword
+  now raises, both previews 500ed on open. The previews and the `docs/guides/components.md`
+  examples now use `aria_label:`, the doc's option list gains the missing `active:` and
+  `max_count:` entries (added in beta.10, #995), and a new request test renders every Topbar
+  preview over HTTP so a broken preview template turns the build red instead of waiting for a
+  human to open Lookbook.
+
+### Fixed
+
+- **`docs/reference/` rewritten from the code that ships** (#1040). The three reference
+  files predated the v3 migration and actively misled an agent that followed them:
+  `component-patterns.md` taught a base class, a preview base class, alias maps and an
+  RSpec/SCSS toolchain that do not exist here — it now documents
+  `ApplicationViewComponent`, the `HtmlElementHelper` merge helpers, the
+  `Bali::ButtonTaxonomy` axes (with the raise-on-unknown contract), the real
+  slot/preview/Minitest patterns and the fully-qualified-constants rule.
+  `stimulus-patterns.md` showed `export default class`, an invented directory layout and
+  four imaginary controllers — it now documents the three real controller homes, named
+  exports, the hardcoded `bali:<component>` event prefix (and the `bali:hovercard`
+  exception), dynamic imports for optional peers, `ReactIslandController`, and
+  Cypress-over-Lookbook testing with the hard-earned rules (asset caching, native drag).
+  `afal-design-system.md` claimed Iconify icons and daisyUI drawer classes — it now
+  states what the design system concretely is (daisyUI 5 + the shipped
+  `afal`/`afal-dark`/`costa-norte` themes + the components), a verified component↔daisyUI
+  table that marks the deliberate native-`<dialog>`/tippy exceptions, and the
+  lucide-rails icon pipeline. Also: `.claude/CLAUDE.md` now counts all three project
+  skills.
+- **Kanban: `with_card` passes host options through — `data:` merges instead of being
+  dropped** (#1027). The card built its attributes from scratch and read only `:class`, so
+  the column-lock recipe the guide documents (`data: { sortable_item_pull: "false" }`) —
+  and any host `id:`/`aria-*` — never reached the element. Host `data:` now merges under
+  the component's own keys.
+- **Docs: the remaining user-breaking drift from the pre-GA audit** (#1027). The
+  v3→v3.1 migration guide gains the two missing breaking-change sections — #723
+  (an unknown `size:` Symbol raises on every FormBuilder family) and #992 (Tooltip
+  defaults to `append_to: :body`, with the test-selector consequences spelled out).
+  `components.md`: Card's `with_header` takes `title:` and its per-item slot is
+  `with_action`; Modal/Drawer have no `with_trigger` (the examples now open them the real
+  way and put the modal title in `with_header`); `Link` takes `variant:`, not the removed
+  `type:`; Table rows are raw `<td>`s (no `with_cell`); Breadcrumb items take `name:`;
+  Filters' `available_attributes` is required, not defaulted; RichTextEditor is marked
+  deprecated (and TipTap-based, not BlockNote); DocumentEditor's comments/export travel in
+  `config:`. README's Component Status table is regenerated from the filesystem — 86
+  components, including the 15 it omitted (Gantt and SplitView among them).
+  Minor sweeps: `form-builder.md` documents the `required:` passthrough contract (which
+  families drop it) and fixes the v2 `*_field_*` names in the Stimulus table;
+  `accessibility.md`'s form examples move to daisyUI 5's `fieldset` vocabulary and the
+  testing helper to Minitest; `controllers.md` fixes `time24hr`;
+  `javascript-integration.md` documents `detail.id` on `bali:modal/drawer:open` (#854);
+  `custom-themes.md` explains why `@theme {}` cannot override the eight structural tokens;
+  `engine-models.md` replaces three "shipping separately" stubs with the models that
+  shipped; `direct-upload-*.md` fixes the `has_one_attached` removal recipe and the real
+  5-minute signed-URL expiry.
+- **Filters: the applied-tag remove button names WHICH filter it removes** (aria-label with the
+  attribute/operator/value), the remove-condition button gains an explicit `aria-label`, and
+  the AND/OR combinator toggles — in `FilterGroup`, in the `CombinatorDivider` between groups,
+  and in the divider the JS builds client-side — carry `aria-pressed` state plus a named
+  `role="group"`; the Stimulus controllers keep `aria-pressed` in sync with the visual state.
+  The multi-select value trigger (a `role="button"` div) now also opens with Enter/Space.
+  `CombinatorDivider` gains its first component test.
+- **DocumentEditor: every icon-only app-bar control has an accessible name** — the TOC,
+  comments and history toggles get `aria-label` + `aria-expanded` (kept in sync with their
+  panels by the controller), the export dropdown trigger — which had no name at all — gets
+  `aria-label`, and so does the close link.
+- **RichTextEditor bubble menu: the dropdown items are real buttons.** #1032 converted the
+  seven toolbar `<a>`s; the node-select and table items inside the dropdowns were still
+  `<a>`s without `href` — they now render through the Dropdown's `tag: :button` item, and the
+  three icon-only dropdown triggers (link, image, table) gain `aria-label`s. A new component
+  test freezes the "no action `<a>` without href" contract.
+- **SplitView no longer refetches the detail pane on every history traversal** (#1029). Two
+  defects compounded: the traversal guard compared the frame's `src` — which Turbo rewrites to
+  an absolute URL — against the row's `href` as written (usually relative), so a raw string
+  compare never matched; and since #1030's rewind, by the time the guard runs on a traversal
+  the `src` is usually gone entirely — Turbo caches the leaving page (which strips the `src`)
+  before the controller's popstate listener fires. The rewind now stashes the pane's pointer in
+  `data-split-view-src` before dropping `src`, and the guard resolves both URLs against the
+  document — a traversal that lands on what the pane already shows leaves it alone, and one
+  that lands elsewhere still refetches.
+- **Gantt: the "no dates" footer count now counts what its drawer lists** (#1029). The count
+  was recomputed from the island's live schedule while the drawer it opens is server-rendered
+  (#1015) and cannot follow a reconcile, so after an edit or a schedule refresh the pill could
+  claim a number the drawer didn't show. The count is now derived from the schedule the server
+  rendered — it ages alongside the list it opens instead of disagreeing with it.
+- **DataTable's unwired-persistence warning no longer fires in the host's test env** (#1029).
+  The #999 safety net warned in dev *and* test, so every host suite rendering a DataTable with
+  a `storage_id:` but no wired opt-in logged Bali's development advice on each run. The warning
+  is development-only now.
+
+## [v3.1.0.beta.14] - 2026-08-11
+
+### Added
+- **`Bali::Command::Group` and `Command::Item` accept HTML attributes** (pre-GA API audit).
+  The slot lambda (`command/component.rb`) always advertised a `**opts` passthrough, but the
+  two components' initializers did not accept it, so `with_group(class:)` or `with_item(data:)`
+  raised `ArgumentError`. They now merge `**options` onto the root element: `class` composes
+  with the component's own classes and `data` merges over its `command-target`/`mode` without
+  clobbering them.
+
+### Changed (breaking)
+- **`Bali::Topbar::IconAction` renames `label:` to `aria_label:`** (pre-GA API audit). The
+  accessible name is spelled `aria_label:` on every other icon-only Bali control
+  (`ViewSwitch`, `SideMenu`, `Chart`); `label:` here was the odd one out and, worse, a host
+  reaching for the majority spelling got a silent stray `label=""` attribute with no accessible
+  name applied. Passing the old `label:` now raises with the new name. **Only affects hosts
+  pinned to a v3.1 beta** — the component is new in 3.1. No pinned host uses it.
+- **`Bali::WorkflowSteps` renames `variant:` to `orientation:`** (pre-GA API audit). The
+  horizontal/vertical axis is `orientation:` on its sibling `Bali::Stepper`, and `variant:` is
+  what the button taxonomy reserves for colour. Passing the old `variant:` now raises. **Only
+  affects a call site that passed `variant: :horizontal`**; the default vertical call takes no
+  keyword. The one pinned host (afal-apps) renders it vertically without the keyword, so it is
+  unaffected.
+
+### Changed
+- **`Bali::Alert` moves to the shared `xs`/`sm`/`md`/`lg`/`xl` size scale** (pre-GA API audit).
+  It was the only live component still on v2's `small`/`regular`/`medium`/`large` vocabulary,
+  and — because it resolved sizes with a silent `fetch` default — `size: :sm` (the spelling
+  every other component takes) rendered no size class at all, with no warning. The scale is now
+  the standard one, `:md` is the default and carries no class, and an unknown size **raises**
+  instead of defaulting silently, matching `Bali::Tag`. The old names still resolve as
+  deprecated aliases (`small`→`sm`, `regular`/`medium`→`md`, `large`→`lg`), so existing call
+  sites render as before — `size: :medium` now renders base (no `text-base` class), which is
+  visually identical in an alert.
+
+### Fixed
+- **`Bali::SplitView`: a row click no longer wipes the detail it just opened** (regression
+  from #1020). #1020 fixed #1012 by rewinding the detail frame on `turbo:before-cache` —
+  stripping its `src` and restoring the pristine empty pane — so a navigated frame could not
+  reach Turbo's snapshot cache still carrying a `src` that reloads and re-advances on back.
+  But a row click's own advance visit (`data-turbo-action="advance"`, `willRender: false`)
+  fires `turbo:before-cache` against the page that **stays on screen**, so the rewind erased
+  the detail the reader had just opened — on every click, in the default `advance: true`
+  configuration (`custom_master`, `with_list`, and worst of all `with_selection`, which came
+  back showing the previously selected record). Cypress missed it: the wipe lands about a
+  frame after the detail renders, and the assertions resolved in the same tick. The rewind
+  now strips only the `src`, never the content — which is all #1012 needs (a src-less frame
+  is not reloaded on restore) — and `syncFrameFromLocation` resets the pane to its pristine
+  empty state when a history traversal lands on a URL that selects no row, so back to the
+  list still shows the empty pane and no stale record. `advance: false` was never affected.
+- **`Bali::RichTextEditor` bubble menu: the formatting controls are keyboard-reachable and
+  named** (pre-GA accessibility audit). The seven icon-only toolbar controls (bold, italic,
+  underline, strikethrough, and the three alignments) were `<a>` elements with no `href`, no
+  `tabindex` and no accessible name — unreachable by keyboard (WCAG 2.1.1) and nameless to a
+  screen reader (4.1.2). They are now `<button type="button">` with an `aria-label` from new
+  `rich_text_editor.bubble_menu.actions.*` keys (en/es), and the colour input gains a label
+  too. The `.toolbar-link` stylesheet rule dropped its `a` qualifier so the buttons keep the
+  same look.
+- **Documentation: the blocking copy-paste errors an adopter hits first** (pre-GA audit).
+  Each correction was checked against the source before writing:
+  - **README** Quick Start: the Gemfile pin moves off the stale `v2.18.0` to the current
+    tag; the Card example used a `with_body`/`with_actions` API that does not exist (the
+    slots are `with_header(title:)`, plain block content for the body, and `with_action`
+    singular); `Bali::Link` `type:` (which now raises) becomes `variant:`; `f.submit_button`
+    (no such method) becomes `f.submit_group`; and the `bundle exec rspec` commands become
+    `bin/rails test` — the repository is Minitest-only.
+  - **installation.md / troubleshooting.md**: `import { registerControllers }` (not exported)
+    becomes `registerAll`; the "icons via Iconify" claim is corrected to inline `lucide-rails`
+    SVGs, which is the actual resolution pipeline; the hardcoded `Bali::VERSION` example is
+    refreshed.
+  - **migration-v2-to-v3.md**: the `@blocknote/*` floor and every `yarn add` example move from
+    `0.52.1` to the real `>= 0.53.0` (#908); a dated investigation note about a checkout that no
+    longer mismatches is removed rather than left contradicting itself.
+  - **master-detail.md**: the snippet that told hosts to add their own
+    `data-controller="split-view"` is replaced — since #1012 the component renders that
+    controller itself, so the snippet created a second, unwired instance; the supported way to
+    extend the selected-row look (a CSS rule on `.split-view-row[aria-current]`) is documented
+    instead.
+- **The v3.0 → v3.1 migration guide no longer promises #903** (residual daisyUI 4 class
+  names outside the FormBuilder). The change was announced as part of the v3.1 block and
+  then deferred to v4, but the guide's placeholder section kept telling hosts to expect
+  it in this release — a host reading it before upgrading would wait for, or hunt down, a
+  change that never happened. The block is now described as the four changes that
+  actually shipped (#641, #722, #729, #902), with an explicit note that #903 is
+  scheduled for v4. The beta.1 entry below carries an editor's note to the same effect.
+- **CHANGELOG corrections ahead of the GA consolidation.** Four duplicated entries left
+  behind by merge trains are gone (`Bali::QrScanner` repeated in beta.7 after shipping in
+  beta.6, the two `Bali::WorkflowSteps` entries repeated in beta.5 after shipping in
+  beta.4, and `Bali::AppLayout`'s sidebar offset listed twice within beta.5); the beta.12
+  section is translated to English like the rest of the file; and the `Bali::Tooltip`
+  `append_to: :body` default (#992, beta.10) moved under `### Changed (breaking)` — it
+  breaks against v3.0.0, not only against earlier 3.1 betas.
+- **Gemspec metadata**: `homepage` points at the repository's current name
+  (`bali-view-components`, not the pre-rename `bali`), and `summary`/`description`
+  describe the library instead of repeating the "View Components" placeholder.
+- **`docs/guides/engines.md` documents the `saved_views_owner` misconfiguration trap**:
+  a host that hardens `saved_views_authorize` while leaving the owner lambda returning
+  `nil` ends up with every anonymous view shared — readable and writable — among all
+  visitors.
+
+### Security
+- **BlockEditor uploads deny by default** (#1029). `Bali.block_editor_upload_authorize` was the
+  one engine gate that was *open* when unset — a host that mounted the engine and rendered the
+  BlockEditor without configuring it exposed `POST /bali/block_editor/uploads` to any visitor
+  (50 MB blobs on a loop, the host's domain as file hosting). It now denies by default, matching
+  every other engine controller (`entity_references`, `content_versions`, comments): an unset
+  lambda returns `403` and logs a one-line warning that names this change, so the denial is
+  diagnosable rather than mysterious. **Every host that renders the BlockEditor with uploads
+  must set the lambda** — `Bali.block_editor_upload_authorize = ->(c) { c.current_user.present? }`,
+  or `->(_) { true }` to keep it open on a fully-internal app. The upload validations
+  (magic-byte type detection, blocked-extension list, size cap) are unchanged; what changed is
+  that reaching them now requires the host to have decided who may upload. See the migration
+  guide.
+- **Stored XSS in the Filters combinator is closed** (pre-GA audit). Ransack's `q[m]`
+  combinator arrived raw from the params and was re-emitted across the stack — a hidden
+  field, the filter-persistence cache, and the saved-view payload — and the Filters
+  Stimulus controller rebuilds that hidden field with `innerHTML`. A `q[m]` value that was
+  not `and`/`or` broke out of the attribute and executed; because the value is persisted,
+  a poisoned combinator saved into a shared view kept executing on later visits. `q[m]` is
+  now validated against `%w[and or]` at every entry point — top-level and per-group, on
+  read and when restoring an older saved view — collapsing anything else to the default.
+  Defense in depth on the JS side: the combinator divider normalizes the value before
+  interpolating it, the operator `<option>`s in the condition controller now run through
+  the same `escapeHtml` the rest of that file already used, and `Bali::Timeago` writes its
+  value with `textContent` instead of `innerHTML`.
+- **`@tiptap/extension-link` peer floor moves from `>= 2.0.0` to `>= 2.5.0`** (pre-GA
+  audit). `RichTextEditor` (deprecated, removed in v4) passes a user-typed URL to
+  `setLink` without a protocol filter; TipTap's protocol validation that blocks
+  `javascript:` links first shipped in 2.5. A host pinned to 2.0–2.4 could store a
+  `javascript:` href that executes when the content renders in read mode. Raising the peer
+  floor closes it without touching the deprecated component.
+
+## [v3.1.0.beta.13] - 2026-08-10
+
+### Added
+- **`Bali::Gantt`: items without dates get the "No dates" surface the docs promised** (#1015).
+  An item with `starts_on: null` cannot get a bar or a row, and until now it simply vanished:
+  `Data#undated_items` had no consumer left after #970, while the footer count still included
+  the item — "4 items" over 3 visible rows, with nothing to explain the difference. The footer
+  now grows a link right next to the count ("12 items · 3 with no dates", es: "sin fechas")
+  that opens a server-rendered **drawer** listing each undated item — name, status (labelled
+  through the same catalog the island paints with) and a link when the item carries `href:`.
+  The drawer keeps the board visible (the point is comparing against what IS scheduled), is
+  addressed by id (`bali:drawer:open` with `detail.id`, so it never answers a broadcast
+  trigger), and lives inside the component's element so a broadcast replace refreshes it with
+  the board. Structurally the skeleton moved into an inner `.bali-gantt-mount` div the island
+  now mounts into — hosts that select `.bali-gantt > .bali-gantt-skeleton` directly (none
+  known) need the extra level.
+### Changed
+- **BlockEditor: the `@blocknote/*` peer floor moves from `>= 0.52.1` to `>= 0.53.0`** (#908).
+  BlockNote `<= 0.52.1` enters a re-render loop (`Maximum update depth exceeded`, a frozen tab
+  in the worst case) whenever a browser extension that rewrites the editor's DOM is active —
+  Dark Reader, Grammarly, page translators (TypeCellOS/BlockNote#2818). The fix, upstream
+  #2912, first shipped in 0.53.0; the wrapper cannot absorb it from outside, so the floor
+  moves past the bug. **Hosts that render the BlockEditor (afal-apps, enjoykitchen, flamingOS)
+  must upgrade every `@blocknote/*` package they declare to the same `>= 0.53.0` version when
+  adopting this release** — including the `xl-*` extras an app added on its own, and rebuilding
+  any self-built editor bundle (afal-apps' `editor.js`). Staying on 0.52.1 keeps working (no
+  0.53-only API is called) but keeps the loop and an unmet-peer warning. Verified on 0.53.0:
+  the three editor Cypress specs, every Lookbook preview, and typing/slash-menu/formatting by
+  hand in the browser under a simulated Dark-Reader-style attribute mutator — content intact,
+  no loop.
+
+### Fixed
+- **`Bali::SplitView`: pressing back no longer throws the reader forward to the detail they just
+  left** (#1012). A row click swaps the detail frame and, through the frame's own
+  `data-turbo-action="advance"`, rewrites the URL. Turbo caches the page it is leaving under the
+  OLD url — but it reads the DOM when it gets around to it, so if the frame's response landed
+  first, the cached snapshot kept the frame's `src`. Restoring that snapshot reloads the frame
+  (Turbo reloads any frame carrying a `src`), the reload fires `advance` again, and back
+  bounced forward. Measured: locally the snapshot is taken before the response and the bug never
+  appears; in CI it did, in about a third of the runs, and it is what made the split-view specs
+  the flakiest in the suite.
+
+  The frame is now rewound on `turbo:before-cache` whenever it was navigated in-page — `src`
+  removed and the server's original detail put back — so no snapshot can carry a re-advance.
+  The rewind keys on the frame having a `src` and **not** on the current location: by then the
+  URL is already the detail's. A server-rendered detail page carries no `src` and is untouched.
+  Symmetrically, a traversal onto a row's own URL now points the frame at that row, which
+  refetches the detail the rewind cleared — the same request Turbo would have made, now made
+  only where it belongs.
+
+- **`Bali::FilterForm#active_filters` now includes date ranges declared as `attribute`** (#966).
+  A filter declared `attribute :created_at, Bali::Types::DateRangeValue.new` is applied by
+  `result` with a `where` on the relation, outside Ransack — and `active_filters` was built
+  from the Ransack params only, so the filter narrowed the listing while not existing for
+  anything consulting it: the panel's active-filter badge undercounted, `Table` blamed the
+  data for an empty result the date filter had produced, and the BulkActions re-emission
+  posted a superset of what the user saw. The attribute form now travels resolved
+  (`begin..end`, the shape `DateRangeValue` casts back); a simple date range keeps traveling
+  raw, so presets stay tokens the server re-resolves. `ActiveFilterParams`' local patch for
+  the same hole is gone — `active_filters` is the single source again. Hosts that call
+  `active_filters` / `active_filters_count` directly will now see date-range attributes
+  counted; that is the fix, but review any logic assuming they were absent.
+
+## [v3.1.0.beta.12] - 2026-08-10
+
+### Added
+- **`Command`: `mode: :navigation`, the mode a directory of pages was missing** (#1016).
+  The three modes covered three of the four combinations of (visible with an empty query?) ×
+  (filters as you type?), and the missing one was exactly the most common case: a list of
+  sections that can be explored the moment the palette opens **and** that narrows as the user
+  types. Without it a host chose between opening with an empty panel (`:searchable`) or
+  opening populated and never filtering (`:action`) — which is what a consumer's admin was
+  found doing: ⌘K opened, arrows and Enter navigated, and typing trimmed nothing. `:action`
+  does not change: its contract is still to survive any query so it stays reachable under the
+  "no results" message (the "create X named «what you typed»" case), which is why it stays
+  out of the count that decides that message. A matching `:navigation` row does count as a
+  result and gets its `<mark>`, same as a `:searchable` one. Additive: no existing host
+  changes behaviour.
+
+### Fixed
+- **`FilterForm`: clearing the search left the filter alive — and sticky — when the predicate
+  was also declared as an attribute** (#1017). The term enters the cache through two doors as
+  soon as the form declares the Ransack predicate in addition to `search_fields` (the natural
+  shape when the quick search also participates in the advanced filters):
+  `extract_search_value` picks it up as `search_value` and, because the key is in
+  `attribute_names`, it also lands in `attributes`. The `clear_search` branch nulled only the
+  first one, so the X emptied the box and returned a listing **still trimmed** by a term no
+  longer visible anywhere — and since the cache was rewritten with the predicate inside, the
+  trim came back on every later clean visit, with nothing in the URL or on screen to explain
+  it. Both doors are closed now: the search field also leaves the stored attributes. A form
+  using only `search_fields` was not affected, and the other filters still survive the X —
+  removing them is what "Clear filters" is for.
+
+## [v3.1.0.beta.11] - 2026-08-10
+
+### Fixed
+- **Drawer/Modal: clicks inside a portaled popup no longer count as a close gesture** (#1013).
+  `enterTopLayer` moves flatpickr's calendar (and SlimSelect's dropdown) into the `<dialog>` so
+  they stay clickable over the overlay — but as a *sibling* of the panel wrapper, and the
+  overlay-click detection asked `wrapperTarget.contains(target)`: with a dirty form, paging the
+  calendar's month (arrows, month, year) asked "are you sure you want to close?". Day clicks
+  never showed it only because selecting closes the calendar before the click completes. The
+  detection now walks `event.composedPath()` — snapshotted at dispatch, so targets flatpickr
+  detaches mid-gesture still count — and treats the wrapper's subtree, `[popover]` elements
+  (everything `enterTopLayer` moves in) and `[data-tippy-root]` balloons as inside the panel.
+  Same report, third trigger: dismissing an `<input type="file">`'s OS picker fires a `cancel`
+  event that — unlike the dialog's own — BUBBLES, and the panel's platform-close listener took
+  it as a close request; it now only answers a `cancel` targeting the dialog itself. The real
+  overlay still closes, confirmation included; Cypress pins every half (calendar paging,
+  SlimSelect search/pick, the file-picker cancel, and the real overlay as control).
+- **The Filters panel stays open while you use a SlimSelect value** (#1013, same defect in the
+  other surface — found sweeping for it). `closeOnClickOutside` excused flatpickr's calendar by
+  selector from the start, but not SlimSelect's `.ss-content`, which every select-type condition
+  mounts and which portals to `<body>` just the same: clicking the value's search box closed the
+  whole panel and lost the condition being built. Both portaled popups are now one named
+  constant, so the next widget that portals is one entry rather than a third special case, and
+  a Cypress test pins it (with a real outside click as the control).
+
+## [v3.1.0.beta.10] - 2026-08-10
+
+### Added
+- **`Bali::HelpTip`: the help icon with a tooltip, packaged** (#993). The "?" next to a
+  heading, a label or a domain term was a pattern every host rebuilt — one app had 49 copies
+  across two helpers, one of them with the Lucide SVG pasted inline. It is one component now:
+  `render Bali::HelpTip::Component.new(t('.sipoc_help'))`, with `icon:`, `placement:`, a block
+  form for rich content, and passthrough to `Bali::Tooltip` for the rest.
+  `FieldGroupWrapper` renders a field's `tooltip:` option through it, so the form-field "?"
+  and the table-header "?" are the same drawing — and both inherit Tooltip's `:body` portal
+  default (#992) and the keyboard-reachable trigger.
+- **`Bali::Filterable`: the controller concern that closes the persistence circuit** (#999).
+  Filter persistence needed three kwargs from every host controller — `storage_id`, `context:`
+  and `persist_enabled:` — and each was an engine internal leaking out: the `bali_persist_*`
+  cookie format, the "no context = process-global cache" trap, and a storage id that is always
+  a derivation of the controller. Forgetting any of the three renders perfectly and never
+  restores; it happened to two apps in a row, silently.
+  `include Bali::Filterable` + `@filter_form = filter_form(AccountsFilterForm, policy_scope(Account))`
+  derives all three (storage id from `controller_path`, opt-in from the toggle's cookie,
+  context from the new `Bali.filter_context` — `current_user&.id` by default, same shape as
+  `saved_views_owner`). Explicit kwargs still win, so it is fully additive. As the safety net,
+  a DataTable about to render the persistence toggle over a form nobody wired — or with a nil
+  context — warns in dev/test, once per storage id; `FilterForm#persistence_opt_in_read?`
+  distinguishes an explicit `persist_enabled: false` (a read opt-in) from nobody having looked.
+  The dummy's canonical controllers now go through the concern.
+- **SimpleFilters: `auto_submit: true` now also applies to the native `:select` widget**
+  (#996). The restriction to the pill widgets left the most common filter control unable to
+  auto-submit, so a listing migrated to `SimpleFilters` traded its filter-on-change selects for
+  an extra click on the Filter button — the package shipped `SubmitOnChangeController` and no
+  way to connect it. A native select's `change` fires when the menu closes on a selection,
+  which is as completed a choice as a pill click; date and number-range widgets stay excluded
+  (they would submit between the two halves of a value), and `slim_select` stays out until its
+  change semantics are verified. Same opt-in per filter, off by default — no existing row
+  changes behaviour.
+
+- **`Bali::FilterForm`: `search_fields` takes `label:` and `width:`, and `search_config` emits
+  all six `SearchConfig` keys** (#982). Both filter surfaces render `label:` as the search box's
+  `aria-label` — the only accessible name that survives typing — but the producer only emitted 4
+  of the 6 keys, so the auto-configured route (a bare `with_simple_filters` over a FilterForm)
+  could never express it and the box stayed named by its placeholder alone. The DSL now carries
+  them (`search_fields :name, :email, icon: 'search', label: t('.search_label')`), the
+  initializer accepts `search_label:`/`search_width:` overrides, and subclasses inherit both.
+- **`Bali::Topbar::IconAction` takes `active:` and `max_count:`** (#995). `active: true` paints
+  daisyUI's `btn-active` state and, on a link, announces it with `aria-current="page"` — the
+  current-section highlight every hand-written topbar action re-implemented with its own class
+  string. `max_count:` (default 99) caps an Integer `badge:` as "99+", packaging the design
+  decision hosts repeated at each call site; String badges pass through untouched. The count
+  stays out of the accessible name by design — put it in `label:` ("Inbox, 3 pending"), which is
+  what a screen reader should announce.
+
+### Changed (breaking)
+- **`Bali::Tooltip` defaults to `append_to: :body`** (#992, the follow-up #611 asked for). The
+  old `:parent` default was wrong exactly in the composition the library promotes: under
+  `viewport_locked` (which follows `fixed_sidebar`, `true` since v3) AppLayout's own `<main>`
+  carries `overflow-y: auto`, so every balloon rendered in place was born clipped — one host
+  accumulated 49 `append_to: :body` workarounds across 19 files, plus helpers and a retreat to
+  the native `title` attribute, to escape it. The balloon now portals to `<body>` by default
+  (`FieldGroupWrapper`'s help icon inherits it), `append_to: :parent` is the opt-in for keeping
+  it in the trigger's subtree, and the JS controller's own value default matches. Inside an open
+  modal/drawer the top-layer host wins regardless, as before. Hosts can delete their per-call
+  `append_to: :body` — it is now a no-op restating the default.
+- **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
+  underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
+  resolved while `question-circle`, the spelling consistent with every other name, raised with a
+  "Did you mean: `question_circle`?" — the exact rename the migration guide tells hosts not to
+  adopt. Now `question-circle` resolves to `circle-help` directly and `question_circle` raises
+  suggesting `question-circle`, like every other snake_case spelling. A test freezes the
+  no-underscored-keys invariant so the trap cannot return.
+
+### Fixed
+- **CI: split-view Cypress spec hardening, and failure screenshots as artifacts** (#1009). The
+  structured-list preview's scroll container was borderline against page one's height under the
+  CI runner's fonts (`22rem` → `16rem`, so page one always overflows and the infinite-scroll
+  sentinel starts below the fold), and the cold-load empty-state assertions ran against
+  Cypress's 4s default timeout (now 10s). The recurring failures turned out to be deeper — an
+  intermittent SplitView back-restoration race that re-fires the frame's advance, filed as
+  #1012 with the evidence — and the workflow now uploads Cypress's failure screenshots as
+  artifacts, which is exactly what made that diagnosis possible.
+- **`ModalController`/`DrawerController`: a `submit_group(..., drawer: true)` on a full page
+  degrades to a working form instead of a dead button** (#984). AppLayout mounts
+  `data-controller="modal drawer"` on `<main>` by default, and Stimulus scopes the panel's
+  targets to the `<dialog>`'s own controller — so that `<main>` instance owns no targets, yet it
+  is the closest `drawer` controller of every form on every page. A form that hardcoded
+  `drawer: true` and rendered as a full page sent its 422 into `_replaceContent`, which threw on
+  the missing target: no validation errors, the button stuck disabled with its spinner on, and
+  the Cancel link's navigation swallowed by `preventDefault`. `submit` and `close` now return
+  *before* `preventDefault` when the instance has no panel — the browser and Turbo keep the
+  submit — and `openModal`, `_showOverlay`, `_hideOverlay`, `_replaceContent`, `_closeModal` and
+  `trapFocus` guard their targets like the rest of the file already did. `setOptions` also
+  tolerates a missing `detail.options` (#981's belt-and-braces). A new
+  `bali/app_layout/orphan_drawer_form` preview reproduces the page and
+  `cypress/e2e/modal-orphan-form.cy.js` pins the degraded-to-normal behaviour.
+- **`Bali::Icon`: every Lucide `<svg>` carried two `width`/`height` pairs, and the wrong one
+  won** (#986). `LucideRails.default_options` holds `"width"`/`"height"` as String keys; the
+  Symbol overrides serialized as a second pair, and HTML parsers keep the first — so the SVG was
+  always 24x24 outside Bali's CSS (email HTML, extracted SVGs, strict XML parsers fail outright
+  on the duplicate). The default pair is now excluded before the override, leaving a single pair
+  with the real size. The size test fixture moved off 24 — Lucide's own default, which is what
+  let the bug pass its test — and a new assertion pins the single-pair output.
+- **`Bali::Icon`: "Did you mean" suggestions rank the exact match first** (#985). The pool
+  already covered the full Lucide catalog (since #902), but `first(3)` truncated in pool order,
+  so `panel_left` could lose `panel-left` itself to `layout-panel-left`. Candidates now rank
+  exact (dash/underscore-normalized) match, then prefix, then substring, alphabetical within
+  each tier.
+- **`Bali::Pagination::PagyAdapter#summary` returns nil when there is nothing to summarize**
+  (#988). With a countless Pagy — `count` nil by design — the method interpolated the nil into
+  "Showing 11-20 of  …" and, worse, the default `item_name` resolved to the i18n plural hash
+  verbatim, printing `{one: "item", other: "items"}` inside the sentence. The components were
+  never affected (both call sites gate on `summarizable?`); this hardens the public method for
+  hosts that call it bare, and the countless test now asserts what `summary` returns.
+- **`Bali::AppLayout` renders the toast container whenever `flash:` is passed — empty
+  included** (#991). The container's id is a documented Turbo Stream target
+  (`turbo_stream.append "toast-notifications"`), but the node only existed when the flash had a
+  toast-able entry — so on the pages async toasts actually land on (no flash), Turbo resolved
+  the target to nothing and silently discarded the append. Two hosts rebuilt the node by hand
+  and reached opposite conclusions about when to paint it, one of them shipping duplicate DOM
+  ids. Passing `flash:` (any flash, even empty) now guarantees the target exists; omitting it
+  still renders no container. The cost is an empty, zero-height, non-interactive div.
+- **Install docs: the documented `@source` glob omitted `lib/`** (#983). The FormBuilder lives
+  entirely under `lib/bali/form_builder/` and is the only place that writes daisyUI's state
+  classes — `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`,
+  `toggle-error`, `fieldset-label`, the whole `range-*` family. A host copying the README or
+  installation guide compiled a CSS missing all 51 of them (measured in a real host: -51 distinct
+  classes, 0 gained), so invalid fields rendered with no error border — and the troubleshooting
+  section prescribed the same broken glob as the cure. README, installation guide (including its
+  troubleshooting section) and troubleshooting guide now all hand out the same two-line pair, and
+  the dummy app compiles against exactly those globs so the documented pair is the one CI
+  exercises.
+- **Migration guide: the i18n grep recipe couldn't find the `helpers.*` keys its own section
+  migrates** (#989). None of the recipe's four alternatives matched a YAML `helpers:` subtree, so
+  a host carrying any of the six v2 keys ran the recipe, got a clean result, and never renamed —
+  keeping dead YAML exactly one release after the override would finally have worked. The recipe
+  now includes a `helpers:` alternative and a note on telling Bali's six keys apart from Rails'
+  own `helpers.*`.
+- **Stimulus patterns reference: the "preferred" `bali:modal:open` snippet threw instead of
+  opening** (#981). The snippet omitted `detail.options`, which the controller requires —
+  `Object.keys(undefined)` raised a `TypeError` before `openModal` ran, an unhandled no-op with a
+  stack pointing at Bali rather than the dispatching code. The snippet now passes `options: {}`
+  and documents that `content` is optional.
+- **`Bali::SplitView height: :full` now clamps when page one is taller than the viewport** (#979
+  follow-up; found adopting the component in afal-apps' inbox — the adoption run these betas exist
+  for). The pairing rule gave AppLayout's body container `flex: 1 0 auto`: basis `auto` makes the
+  container's hypothetical size its **content** size, and shrink `0` means it never comes back
+  down — so with a list taller than the screen (a real inbox's normal state) the container never
+  clamped, the page scrolled as a whole, each pane's own scroll never engaged, and the
+  infinite-scroll sentinel — permanently in view — fetched every page at once. Measured in
+  afal-apps with 87 pending items: a 7,537px container inside a 1,061px `<main>`. The rule is now
+  `flex: 1 1 0%` plus `min-height: 0`: the container is exactly the leftover space, the split fills
+  it, each pane scrolls. The `:content` case never matched this `:has()` rule, so nothing else
+  changes. The reference page missed this for a whole beta because its page one (5 rows) was
+  shorter than the viewport and flex-grow stretched it into looking right; `/split-view/full` now
+  paginates 12 per page — taller than the pane by construction, with a second page left so the
+  sentinel still demonstrates infinite scroll inside the clamp — and
+  `cypress/e2e/split-view-full-height.cy.js` reproduces the regression explicitly and pins the new
+  flex pair (a `flex-shrink: 0` assertion was the old value's alarm; it now guards the fix).
+
+## [v3.1.0.beta.9] - 2026-08-07
+
+### Added
+
+- **`Bali::SplitView` takes `height: :full`** (#979). The default, `:content`, grows with its
+  content and lets the page scroll. `:full` gives the other shape — the inbox one: the split fills
+  the screen and **each pane scrolls on its own**, so the list and the detail move independently
+  and neither takes the page with it.
+
+  **There is no number in it anywhere.** It is `height: 100%` plus a flex chain: no measured
+  offset, no `calc(100vh - 17rem)`, no JavaScript reading the top of anything. That means it fills
+  whatever bounded box you put it in — and fills **nothing** without one, visibly rather than
+  subtly. Deliberate, and the same reasoning that kept a magic offset out of the Kanban: a
+  component that guessed at the height of your chrome would be wrong on every screen that does not
+  look like the one it was written for.
+
+  So the pairing is the recipe: `AppLayout viewport_locked: true` stops the body scrolling and
+  makes `<main>` the bounded box. Making that pairing *actually* pair took two rules, because
+  AppLayout's body container is `height: auto` and wraps its content — measured, the split stopped
+  at 629px inside a 1086px `<main>`, filling nothing while claiming to fill everything. Those rules
+  ship with `:full` rather than with AppLayout, scoped by `:has()` so that every other locked page
+  is byte-for-byte what it was, and `flex: 1 0 auto` so a page taller than the viewport keeps its
+  height and `<main>` scrolls as before.
+
+  An unrecognised `height:` **raises**, like `master_width:` beside it: a silent fallback on the
+  option that is this whole feature turns a typo into a component that renders the default and
+  says nothing, and the symptom — a split that does not fill — sends the reader hunting through
+  CSS. Free to demand now, breaking to demand later.
+
+  **Inert below `lg`**, on purpose: the panes are stacked there, and two stacked panes cannot both
+  fill one screen — a master and a detail would fight over the same viewport. `max_height:` belongs
+  to `:content`; in `:full` the flex chain decides, so the cap is dropped rather than fighting it.
+  Infinite scroll simply gets a taller container: one page of rows often does not fill it, so the
+  sentinel stays in view and keeps loading until it does — the container changed size, not
+  identity. `/split-view/full` in the dummy is the whole arrangement, and the spec measures it.
+
+- **The SplitView previews now teach the API the component actually has** (#977/#979 follow-up). A
+  preview is the first documentation anyone copies, so what the default scenario shows is what
+  hosts will write — and it was still showing a master built by hand, from before `with_list`
+  existed. The set is now: **`default`** (the structured listing, with **live** filter pills — they
+  build their own URLs from the request, so clicking one really filters the list below),
+  **`multi_filters`** (several pills active at once), `with_selection`,
+  `deep_link_beyond_the_first_page`, `without_advance`, **`full_height/default`** (inside a locked
+  AppLayout), and **`custom_master`** — the old default, kept and relabelled as the escape hatch it
+  always was.
+
+  Two things worth knowing beyond this component. **A preview method has no `params`, but the
+  template it renders runs inside a real request** — which is what lets the pills be live rather
+  than posed. And **`@layout` is not a tag Lookbook 2.3 knows**: annotating a scenario with it does
+  nothing, silently. The full-height scenario needs the layout that omits `<body>` (AppLayout
+  renders its own, and nesting them makes the parser discard the inner one along with
+  `app-layout--viewport-locked`), so it moved to a preview class of its own where `layout` is a
+  class-level declaration that works. Measured before the move: the scenario filled a 769px
+  `<main>` inside an 1151px viewport and looked perfectly plausible while demonstrating nothing.
+  `test/requests/split_view_previews_test.rb` now fails if either regresses.
+
+### Changed
+
+- **`Bali::SplitView`: the filter band is pills that are links** (#977, breaking against
+  v3.1.0.beta.8 only). `with_list` gains `with_filter(label:, href:, active:, count:)`, and the
+  free-form `with_filters` slot beta.8 shipped is **gone**. Only beta.8 had it, nothing adopted it,
+  and leaving it would have meant two escape hatches for the same thing — the `master` slot is
+  already the one that takes any markup at all.
+
+  **What Fede saw:** the pills did not fit. The band held a `DataTable::SimpleFilters` row, whose
+  controls lay out horizontally with a search box, a Filter button and a Clear button, and a master
+  column is about 420px wide — so they ran off the edge. The diagnosis is worth keeping: that
+  component is built to render in the DataTable's own toolbar, and putting it somewhere narrower
+  did not make it narrower. Reaching for the machinery that already existed was the right instinct
+  and the wrong component.
+
+  **What replaced it is not a smaller filtering system but none at all.** Each pill is an `<a>`
+  with an href, and the band is not a form: no submit, no clear, no Ransack, no FilterForm, no
+  `q[...]`. A filter is a query param the action reads. The active pill takes `aria-current="true"`
+  and, by convention, an href pointing at the listing *without* its param — so clicking it again
+  clears the filter, which is what a Clear button was for. The component does not build those URLs:
+  only the caller knows what its params mean and what "off" is.
+
+  This is the shape of the inbox the whole component was generalised from, down to the count inside
+  the pill after the label. Two things about that source are worth naming: it uses `flex-wrap`, so
+  pills spill onto a second line rather than overflow — which is why it never had the bug — and it
+  marks the active bucket by colour alone, with no `aria-current` anywhere. The pills here carry
+  the attribute, and the styling hangs off it rather than off a class, so the two cannot disagree.
+
+  Measured under stress rather than at the two pills the dummy shows: eight pills in a 418px band
+  wrap onto four lines, none of them crossing the band's right edge, with neither the band nor the
+  page scrolling sideways.
+
+  **Two semantics, and the component builds the URLs.** `with_list(filter_mode:)` picks between
+  `:single` (default — a bucket strip: one value active, clicking another replaces it, clicking
+  the active one drops the param) and `:multi` (independent toggles over a multi-valued param like
+  `"q[status_in]"`, each pill adding or removing **its** value and leaving the rest alone). Since
+  the two disagree about what a click means, the pill is declared rather than linked:
+  `with_filter(label:, param:, value:, count:)`, and the href comes from the current request.
+  `href:`/`active:` remain as escapes. **`param:` requires `value:`** and raises without it: on its
+  own it built `?bucket=`, which is not "no filter" but a filter for the empty string — a listing
+  that honours it comes back empty, the opposite of what writing it suggests. The pill that clears
+  a filter is an `href:` one, which is what the guide shows.
+
+  Every other param survives a pill click — a selection, a scope, a sort — but **`page` does not**:
+  filtering starts the listing over, and carrying page 4 into a filter with two pages of results is
+  a blank screen. Removing the last value of a nested param prunes the empty parent, so the last
+  genre turning off gives `/movies` and not `/movies?q=`.
+
+  **The active state without `aria-pressed`.** Browsers drop it on `role=link` — the reason
+  `ViewSwitch` stopped emitting it — so it would announce nothing. `:single` marks its one active
+  pill `aria-current="true"`, which is exactly what that attribute is for. `:multi` cannot:
+  several pills are current at once and `aria-current` on all of them says "these are all the
+  current one". Both modes put an `sr-only` note in the active pill saying it is on and that
+  clicking removes it — the part a sighted reader gets from the colour and everyone else got
+  nothing from, and which doubles as the link's purpose. The styling hangs off `data-active`, so
+  the two modes look identical while their semantics differ.
+
+## [v3.1.0.beta.8] - 2026-08-07
+
+### Removed
+
+- **`Bali::Gantt`: the `:static` renderer is gone — the React island is the only renderer** (#970, breaking against the v3.1 betas). One component with two renderers over one data contract was the design signed in #704 and completed in #719; validating it in the betas is what settled that it was a promise Bali could not keep cheaply. Parity was never reached and the gap was growing: measured preview against preview, the static board lacked the **minimap, the colour selector, dependencies, the critical path, fullscreen, the design alignment, filtering and the column selector** — eight features, and every one of them serves the read-only portfolio case as much as the editable one. Two renderers of the same board meant paying that tax again on each new feature, and the two defects found the same week (an axis that did not fill its width, chrome that had drifted apart) were the tax being collected. The portfolio case moves to the island with `editable: false, manageable: false` and no `urls:`, and gains all eight.
+
+  Six options went with the renderer they configured, and each is **refused by name** with an `ArgumentError` naming its replacement rather than travelling on to the browser as a stray HTML attribute — the component takes `**options`, so silence was the alternative:
+
+  | Removed | The island's answer |
+  |---|---|
+  | `mode:` | There is one renderer |
+  | `fallback:` | The skeleton is the only loading state |
+  | `limit:` | The island always received the whole document and renders it |
+  | `zoom_links:` | The island's toolbar owns zoom, and persists it to `zoom_param:` |
+  | `group_label:` | The island labels its own name column |
+  | `color_by:` | The island's toolbar owns colour-by (status, assignee, group, priority) as view state |
+
+  `Bali::Gantt::TimeScale` shrank to the one decision the client cannot make in time — resolving `zoom: :auto` against the window, so the island opens at the right density instead of rescaling on mount — and `Bali::Gantt::Colors` to the default status → daisyUI colour map a host inherits when it passes no catalog. Every pixel now lives in JavaScript, so the Ruby↔JS parity tests changed shape with it: instead of comparing px/day and colour formulas that Ruby no longer computes, they read `ZoomControls.jsx` and `ganttColors.js` and compare the **names** — the zoom levels and the default status colours — which is what still crosses the boundary. `Bali::Gantt::Data` lost `limit:` and `truncated?` with the cap; validation, parsing and the derived window are unchanged.
+
+  Closed by obsolescence: #969 (pale bars in the static board).
+
+### Changed
+
+- **`Bali::Gantt`: the skeleton is the loading state, not an option, and a `<noscript>` says what happens without JavaScript** (#970). `fallback: :skeleton` was one of two choices; it is now the mechanism, and the only thing the component renders inside the island's mount. What that buys is unchanged from #719 and stays measured: React's container is prepended and the skeleton is retired from inside the first commit, so one frame shows the skeleton, the next the island, and none an empty box; and a bundle that never arrives leaves the skeleton in place with the error notice prepended to it, rather than an emptied mount. What is new is the honesty: a skeleton says `aria-busy="true"` and means "loading", which for a visitor who will never run the bundle would be a claim held forever. The `<noscript>` beside it says the timeline needs JavaScript, in both shipped locales (`bali_view.gantt.noscript`). If some of your visitors need the plan without the bundle, give them a non-canvas path to it — `docs/api/gantt.md` now leads its accessibility section with that, because removing the static board removed the answer Bali used to have.
+
+- **The Gantt's Lookbook previews are the island's four faces** (#970): `default` (read-only, `zoom` as a live param), `editable` (the dummy's real endpoints, edits persist), `stress` (300 items from a fixed seed — the swap under load) and `empty` (an empty document still mounts; drawing it is the island's job). The static previews and the A/B pairs that existed to settle the fallback default are gone with the question they were asked to answer. The dummy's own `admin/projects/:id?view=timeline` now mounts the editable island through `content_for :head` — the host circuit in a real layout, which is the one step a Lookbook preview cannot demonstrate.
+### Added
+
+- **`Bali::SplitView` gets a structured listing, and pages itself** (#971). `with_list` +
+  `with_item` replace the hand-built master: the component writes `data-turbo-frame`,
+  `data-split-view-target`, `data-action` and `aria-current` itself. Those four attributes were
+  copied into every host template that used the component, and a row missing one of them looks
+  right and silently reloads the whole page instead of swapping the frame. Selection is decided
+  once too — `with_list(selected:)` takes the id of the selected record and each item its own
+  `id:`, in place of the same comparison written per row.
+
+  **The fields are the union of the two production listings this was drawn from**, not a copy of
+  either: `title` and `href` required, then `subtitle`, `icon`, `meta` with a `meta_color` for the
+  overdue date both of them paint red, any number of `with_tag`, and a block for whatever the
+  fields do not name (gc's urgency dot and requester avatar live there). The two rows agree on
+  almost nothing except the title and the subtitle, which is why the rest is optional. Grouping is
+  the one thing both listings do that this does **not** ship: it pulls against infinite scroll,
+  since an appended page arrives as a flat list of rows and merging it into existing group headers
+  needs the server to say which group each row belongs to. The free `master` slot is untouched and
+  still the answer for a listing this shape does not fit.
+
+  **Paging is infinite by default, by fetch-and-extract.** Given a `pagy:`, the list renders
+  ordinary pagination controls plus a sentinel; the new `split-view-list` controller hides the
+  controls on connect and, as the sentinel comes into view, fetches **the same index URL one page
+  further on**, lifts the rows out of the reply and appends them. Nothing is added on the server:
+  no `respond_to`, no Turbo Stream, no partial extracted for the purpose — and the rows arrive
+  wired because the server is what rendered them. The next URL is read back out of each fetched
+  page rather than incremented in the browser, so the server stays in charge of what "next" means,
+  including running out. That order is deliberate: the pagination controls are in the markup and
+  enhancement removes them, so a reader without JavaScript gets working pagination rather than a
+  spinner that never resolves.
+
+  Four corners, all measured rather than assumed: an appended page is fetched from a URL that
+  predates any click, so its markup can carry a stale selection — `rowTargetConnected` re-derives
+  it, and leaves the server's alone when nothing is selected in-page, which is what makes a deep
+  link to a record on page four light up when its page arrives. Going back after scrolling
+  **keeps** the pages already appended, because Turbo caches the page as it was when you left it,
+  and Stimulus reflects the controller's next-page value back to its attribute so the restored
+  list does not re-append a page it already has. An `IntersectionObserver` only reports a *change*
+  in intersection, so a sentinel still on screen after the rows land is asked again explicitly —
+  without that the list stalled one page in. And `hidden` on the sentinel needed a CSS rule of its
+  own: the attribute works by `display: none` in the UA stylesheet, which any author `display`
+  beats, so the spinner was visible to exactly the readers it was hidden from.
+
+- **`with_filters`: the listing's tabs and chips get a place, not a system** (#971). Buckets and
+  filter chips belong to the listing — the inbox this was generalised from puts them inside the
+  master — so `with_list` has a slot for them. It renders a band between the header and the rows:
+  **outside** the scroll area, so the controls stay put while the rows move under them, and
+  **inside** the card, so they read as part of the listing instead of as page chrome. That
+  position is the whole of what the slot provides.
+
+  **Bali grows no second filtering system for it.** Put `Bali::DataTable::SimpleFilters` in the
+  band, which already has the control this pattern wants: `type: :radio_group` with
+  `auto_submit: true` (#725) is the pill that filters on click — one active value, submitted the
+  moment it changes. Counts in the pill labels stay the caller's, because SimpleFilters does not
+  count and teaching it to would be the second system. Worth knowing when you go looking for the
+  click target: daisyUI styles the radio *itself* as the pill and takes its text from
+  `aria-label`, so there is no `<label>` element.
+
+  **Filtering does nothing to the infinite scroll, and that is the design.** A filter submit is an
+  ordinary full-page GET, so the server renders page one and there is no reset to perform, no
+  browser state to clear and no coupling between the two features. The filter then travels into
+  every page the sentinel fetches on its own, because the next URL is derived from the request the
+  server answered and Pagy keeps its params — nothing in the controller knows what a filter is.
+  Measured rather than assumed; the spec asserts the fetched URL carries the filter and that the
+  appended rows really are the filtered ones. The submit button stays even when every filter
+  auto-submits, and should: without JavaScript `auto_submit` does nothing, so the button is how
+  the filter gets applied — the same progressive enhancement as the pagination controls.
+
+- **A test that fails when the library asks for a `bali_view.*` string nobody wrote.** `i18n_scope_test.rb` compares the two locale files against each other, so it catches a key translated into one and not the other; it cannot catch a component reaching for a key that was never written down, which renders the humanized key to the visitor and fails nothing. `test/bali/i18n_usage_test.rb` scans every `t(`/`I18n.t(` in `app/components` and `lib/bali`, resolves relative keys against the component's own scope, and requires the result to exist in **both** locales — naming file, line and key when it does not. The filter is by PREFIX, not an allowlist: `default:` on somebody else's key (`number.*`, `activerecord.*`) is depending correctly on another namespace and is left alone, while `default:` on one of ours was hiding a hole. With the guard in place those own-key `default:`s can be deleted — the string going missing now breaks the suite instead of quietly rendering something hardcoded. No debt to pay: it passes as written.
+
+### Fixed
+
+- **`docs/api/gantt.md`: `statuses:` must cover group statuses too** (#720 adoption finding, afal-apps#462). Groups render as bars and feed the same legend as items, and any status the catalog misses falls back to `value.humanize` — which is how an untranslated "Not started" leaked into a Spanish UI. One sentence in the option table now says so.
+
+## [v3.1.0.beta.7] - 2026-08-06
+
+### Added
+
+- **`Bali::Gantt` composes the React island: `mode: :interactive`** (#719, phase 3 of the Gantt). The option was signed in phase 1 and raised until now; it renders. The element the component already emitted becomes the island's mount point — `data-controller="gantt"` plus the values that map 1:1 to `GanttFlow`'s props — and **the static board renders inside it**. React calls `replaceChildren` when it connects, so the fallback is three things at once: what a visitor sees while a React-plus-React-Flow bundle is in flight, what a visitor without JavaScript keeps forever, and what a reader mode indexes. An interactive Gantt is now a working Gantt before any JavaScript runs.
+
+  **That the swap is unremarkable is measured, not asserted.** `Bali::Gantt::TimeScale` and the island's `timeScale.js` already shared their densities (day 24 px/day, week 8, month 2), and `cypress/e2e/gantt-interactive.cy.js` now pins it: it measures a bar in the server-rendered fallback and the same bar as a React Flow node, and requires the two widths to be **equal**, not close. The one thing that did not line up was the zoom — the island opened at its own default (`week`) while the fallback had resolved `:auto` against the window, so mounting rescaled the whole board in front of the visitor. The component now hands the island the density its fallback resolved (`data-gantt-initial-zoom-value`, read only when the URL carries no `gantt_zoom`), and after mount the island owns the zoom as before.
+
+  This is the position afal-apps could not take: it shipped a component fallback, saw it flicker, and replaced it with a neutral skeleton — but that fallback did not share geometry with the island, which is precisely what changed here.
+
+- **`fallback: :skeleton` for the interactive Gantt** (#719). A neutral placeholder — the island's own frame with grey blocks in it, no schedule data — instead of the static board inside the mount. It exists for the case where rendering the board twice is not worth what it costs: at 300 items the static fallback is about 390 KB of extra HTML per response, and the skeleton is a fixed ten rows regardless of dataset size. `:static` remains the default, and moving between them is one keyword: nothing else about the call site changes. The placeholder announces itself as `role="status"` with `aria-busy`, and carries none of the real names or dates.
+
+- **`docs/api/gantt.md`** (#719, decision D17) — the page a host needs to run the island, and the two contracts Bali documents but deliberately does not implement:
+  - **The mutation contract.** `PATCH` an item, `POST`/`DELETE` a dependency, `GET` to re-sync — and always answer with the **complete** document, never a patch. A move cascades into successors, group rollups and the critical path, and the island has no scheduler to work that out; returning only the edited item leaves the board wrong until the next reload. `422 {errors}` rolls the optimistic edit back, `404` makes the client re-`GET`. The dummy's `Admin::Projects::SchedulesController` and `DependenciesController` are the executable form of all of it.
+  - **The broadcast contract.** `broadcast_replace_to(target: dom_id(project, :gantt))` — which is what the component's `id:` is for. Replacing the whole element is the right mechanism, because the island reads its `data` value **once, at mount**: changing the attribute in place would do nothing. The page also documents the part that is easy to get wrong — **echo suppression is the host's job**. A remount costs a React mount and resets scroll, selection and collapsed groups; that is a fair price for someone else's edit and a bad one for your own, whose authoritative answer already arrived as the `200` of your own `PATCH`.
+
+  Also documented: the four-step install (npm peers, dedicated entry, loader, meta tags), the full parameter table, why the island's canvas is a mouse-first surface that must not be the only path to an action, and a troubleshooting list that names the symptom each mistake actually produces.
+
+- **Four new Lookbook previews of the interactive Gantt** (#719): `interactive_readonly` and `interactive_skeleton` for the two fallbacks, and `interactive_stress` / `interactive_stress_skeleton` — 300 items over 12 groups from a fixed seed (`Random.new(719)`), so the board is identical between runs and between the two variants, which is what makes them usable as an A/B measurement rather than an illustration. The existing editable `island` preview now mounts through `Bali::Gantt::Component` instead of hand-written markup: it is the reference call site, `urls:` and all.
+
+### Fixed
+
+- **The island swap no longer flashes an empty box** (#719). `ReactIslandController` cleared the mount with `replaceChildren` *before* calling `createRoot`, and a concurrent root does not render inside `render()` — so between "fallback gone" and "island painted" there was nothing on screen. On a fast machine that is invisible; measured on the 300-item Gantt with the CPU throttled 6x it was a **fully white page for ~1.9 seconds**, which is precisely the flicker the fallback exists to prevent. React's container is now *prepended* and the fallback is retired from inside the first commit (`componentDidMount`, which runs after the DOM carries the island and before the browser paints), so one frame shows the fallback, the next shows the island, and none shows either nothing or both. Prepended rather than appended because an island that measures its own viewport space does so in a layout effect, and layout effects run before the parent's `componentDidMount` — first in flow, that measurement is the real one. Re-measured after the change: the gap is **0 ms with zero frames painted in between**, in three runs of each fallback variant.
+
+- **A React island that fails to load no longer destroys the fallback under it** (#719). `ReactIslandController`'s load-error path called `replaceChildren` on the mount, which was right when the mount was empty and quietly wrong the moment #719 started rendering the whole static Gantt board inside it: with the meta tags present and the `import()` failing — a digest rotated by a deploy, a dropped connection, a CSP that blocks the bundle — the visitor lost a working, navigable, keyboard-reachable schedule and got a single `<p>` in its place. The error notice is now **prepended** to whatever the server rendered, and the mount is only replaced wholesale when it has no element children (which is every island that renders no fallback, including the block editor's editor target — its behaviour is unchanged). Repeated connect/disconnect cycles replace the notice instead of stacking copies of it. The `load_error` preview grew a second mount with server-rendered content, and `cypress/e2e/react-island.cy.js` now asserts that the content survives, that the link inside it is still usable, and that the notice comes first.
+
+### Changed
+
+- **The events table no longer lists `bali:gantt-foldable-item:toggle`** (#719). `GanttFoldableItemController` was removed with the v2 Gantt chart in 3.0; the row outlived it in `docs/guides/javascript-integration.md`. The new Gantt folds with `<details>` and dispatches nothing.
+
+- **`bali-view-components/gantt` resolves again** — worth knowing if you are upgrading from v2 *straight* to v3.1. v3.0 removed that npm subpath so a stale `import { registerGantt } from 'bali-view-components/gantt'` would fail the build; v3.1 reuses the name for the island (it was free — the removal verified zero consumers). The stale import now resolves and registers a completely different controller: the build goes green and nothing renders. `docs/guides/migration-v2-to-v3.md` says so where the removal is documented, and gained a table for porting a `GanttChart` call site to `Bali::Gantt`.
+
+  **The decoder is an optional peer, not a dependency.** `qr-scanner` (MIT, ~14 kB) is loaded with a dynamic `import()` the first time a scanner connects, so an app that never renders one never pays for it — the same contract `rqrcode` has on `Bali::QrCode`. Without it the component renders its "unavailable" state and the console names the line to run, instead of throwing an unresolved-module error into a page that otherwise works.
+
+  **Six states, all of them in the document from the first render.** `idle`, `requesting`, `scanning`, `scanned`, `denied`, `unavailable`; the controller shows one by taking `hidden` off it and publishes the current one as `data-qr-scanner-state` on the container. A state built on demand is a state no host can restyle and no spec can find, so they are all there and the tests measure visibility rather than text.
+
+  **Telling "blocked" from "no camera" took a second call, and it is the reason the states are worth having.** qr-scanner tries `getUserMedia` six times with different constraints, swallows every rejection (`catch(f){}`), and rethrows the single string `'Camera not found.'` — so its own error cannot distinguish a refused permission from absent hardware, and a component built on it alone can only ever say one thing. On the failure path only, the controller asks the browser once more and reads the real `DOMException`: `NotAllowedError`/`SecurityError` mean `denied` and come with a retry button, everything else means `unavailable`. The probe is deliberately *after* the failure and not in front of the camera — opening a stream only to close it and let the library open its own costs latency on every success and blinks the camera light for nothing.
+
+  **`autostart: false` renders an idle state with a button instead of prompting on connect.** The default is `true`, which is what a dedicated scan screen wants, but a scanner inside a modal or an unopened tab must not fire a permission prompt the visitor never asked for — and a prompt that follows a deliberate press is one people say yes to. It is also what makes the Lookbook previews usable, since the alternative is a camera prompt on every reload.
+
+  `stop_on_scan: true` (the default) releases the camera on the first code and offers "scan again" — `disconnect()` stops **and** destroys the scanner, which is the difference between a camera light that goes out and one that does not. `camera:` picks the rear (`:environment`, the default) or front lens, `highlight:` draws qr-scanner's scan-region frame, `hint:` overrides or drops the line underneath. Documented with the requirement that catches everyone out: a camera is only reachable over **https or http on localhost**, and on any other host over plain http the browser exposes none at all — which arrives indistinguishable from a device that has none, so the controller says so in the console.
+
+  Cypress covers it without a camera by replacing `getUserMedia`: rejections for the two error states, and — for the happy path — a real `MediaStream` from a canvas with a QR code painted on it, so the decode, the event and its payload are exercised end to end. The module matrix comes from the same `rqrcode` gem `Bali::QrCode` encodes with.
+
+## [v3.1.0.beta.6] - 2026-08-06
+
+### Added
+
+- **A bulk action can carry an input of its own, and can open in another tab** (#724). `with_control` mounts host markup — a driver select, a date field, a `slim_select` — INSIDE that action's own `<form>`, immediately before the submit, so its value is posted alongside `selected_ids` with no JavaScript in between. This is the "assign a driver to the 12 selected shipments" shape costa-norte hand-rolled around a single form with `formaction` per button; in Bali each action is already its own form, so the control simply belongs to one of them. Declaring a control on a `method: :get` action raises `ArgumentError` at render: a GET action renders a link, a link has no form, and the value the user picked would go nowhere — the same fail-fast the filter DSL applies to an impossible `input:`. The second half is `target:`, a first-class option rather than a passthrough, because `form_with` only honours a short list of loose options (`id`, `class`, `data`, …) and swallowed a `target:` handed to it through `**options` without a word; it reaches the `<form target>` of a form action and the `<a target>` of a GET one, which is the "print the selection in a new tab and keep the selection" case. Two cautions, in the components guide and in the new **Control and target** preview: ids are per-document, so two actions mounting the same widget need distinct `id:`s (or `id: nil`) — the hidden `selected_ids` field Bali itself emits stopped carrying one for the same reason, since a bar with three actions repeated `id="selected_ids"` three times; and every action being its own form means a listing already wrapped in a form of yours gets the inner ones hoisted out by the parser, so render that form outside the listing and point a submit at it with the HTML `form="its-id"` attribute.
+- **`Bali::QrScanner` — the camera half of the QR pair** (#928). `Bali::QrCode` has printed the label since #941; this reads it. `render Bali::QrScanner::Component.new` is a viewfinder that asks for the camera, decodes frames, and announces every code as `bali:qr-scanner:scan` with `{ value, result }` in the detail — `value` is the decoded string, `result` is qr-scanner's own object, which also carries `cornerPoints`. It decides nothing about what a code *means*: the host listens, fills an input, submits a form, navigates. `bali:qr-scanner:error` carries `{ state, error }` for the two ways it can fail.
+
+  **The decoder is an optional peer, not a dependency.** `qr-scanner` (MIT, ~14 kB) is loaded with a dynamic `import()` the first time a scanner connects, so an app that never renders one never pays for it — the same contract `rqrcode` has on `Bali::QrCode`. Without it the component renders its "unavailable" state and the console names the line to run, instead of throwing an unresolved-module error into a page that otherwise works.
+
+  **Six states, all of them in the document from the first render.** `idle`, `requesting`, `scanning`, `scanned`, `denied`, `unavailable`; the controller shows one by taking `hidden` off it and publishes the current one as `data-qr-scanner-state` on the container. A state built on demand is a state no host can restyle and no spec can find, so they are all there and the tests measure visibility rather than text.
+
+  **Telling "blocked" from "no camera" took a second call, and it is the reason the states are worth having.** qr-scanner tries `getUserMedia` six times with different constraints, swallows every rejection (`catch(f){}`), and rethrows the single string `'Camera not found.'` — so its own error cannot distinguish a refused permission from absent hardware, and a component built on it alone can only ever say one thing. On the failure path only, the controller asks the browser once more and reads the real `DOMException`: `NotAllowedError`/`SecurityError` mean `denied` and come with a retry button, everything else means `unavailable`. The probe is deliberately *after* the failure and not in front of the camera — opening a stream only to close it and let the library open its own costs latency on every success and blinks the camera light for nothing.
+
+  **`autostart: false` renders an idle state with a button instead of prompting on connect.** The default is `true`, which is what a dedicated scan screen wants, but a scanner inside a modal or an unopened tab must not fire a permission prompt the visitor never asked for — and a prompt that follows a deliberate press is one people say yes to. It is also what makes the Lookbook previews usable, since the alternative is a camera prompt on every reload.
+
+  `stop_on_scan: true` (the default) releases the camera on the first code and offers "scan again" — `disconnect()` stops **and** destroys the scanner, which is the difference between a camera light that goes out and one that does not. `camera:` picks the rear (`:environment`, the default) or front lens, `highlight:` draws qr-scanner's scan-region frame, `hint:` overrides or drops the line underneath. Documented with the requirement that catches everyone out: a camera is only reachable over **https or http on localhost**, and on any other host over plain http the browser exposes none at all — which arrives indistinguishable from a device that has none, so the controller says so in the console.
+
+  Cypress covers it without a camera by replacing `getUserMedia`: rejections for the two error states, and — for the happy path — a real `MediaStream` from a canvas with a QR code painted on it, so the decode, the event and its payload are exercised end to end. The module matrix comes from the same `rqrcode` gem `Bali::QrCode` encodes with.
+- **`Bali::Chat` — the conversation surface, extracted from the two apps that had already built it twice** (#927). Three components that compose: `Bali::Chat::Component` is the scrollable region and the Turbo Stream append target, `Bali::Chat::Message::Component` is one bubble over daisyUI's `chat` grid, and `Bali::Chat::TypingIndicator::Component` is the "…is typing" placeholder. They ship no CSS at all — daisyUI's `chat`, `chat-start`/`chat-end`, `chat-bubble-*` and `loading-dots` already draw every part of this, and the bubble colour map is written out longhand so Tailwind's scanner can see the class names it has to emit.
+
+  **The container follows a new message only when the reader was already at the bottom.** Both source implementations force-scroll on every DOM mutation, so an answer arriving while you are up in the history yanks you back down mid-sentence; `threshold:` (64px by default) says how close to the bottom still counts as following along. The decision is taken from the position recorded by the last real `scroll` event rather than measured when the message lands: an append grows `scrollHeight` while `scrollTop` stays put, so a check made afterwards reads "at the bottom" as "scrolled up by exactly the height of what just arrived" — which is why the naive version of this is always subtly wrong.
+
+  **The typing indicator lives in the DOM permanently and hides behind a class**, which is the repo's pattern and also a fix. One of the two apps anchors its Turbo Streams to a bare `<div id="typing-indicator">` and then `broadcast_remove_to`s it, destroying the anchor: from the second message on, the `turbo_stream.replace` that should bring the indicator back silently does nothing. A node that is never removed cannot lose its anchor. Toggle it from the server by replacing it with `visible: true`/`false`, or from the page through `chat#showTyping` / `chat#hideTyping` — the indicator registers itself as a target of the container's controller, so `data: { action: 'turbo:submit-end->chat#showTyping' }` on the composer is the whole wiring.
+
+  **The API is daisyUI's vocabulary, not either app's role enum.** The two implementations both compute a side and a colour from their own `user`/`assistant` roles and then disagree on the colour, so `position:` (`:start`/`:end`) and `color:` are what the component takes, and each host keeps its own names. It also means a support chat between two humans reads no worse than an AI one. `author:`/`timestamp:` fill the header (the timestamp as a `<time>` with a machine-readable `datetime`), and the `avatar`, `header` and `footer` slots fill the rest of daisyUI's grid — the footer is where one app hangs the source documents an answer was drawn from.
+
+  **The bubble body is passed through untouched — no escaping, no sanitising, no `raw`.** Both apps render Markdown a language model produced, and clean it, through their own helper; which of those a host wants is a policy decision that belongs with the host, and a `raw` here would quietly take it away. Lookbook previews for the live conversation, every bubble shape, and the indicator, plus a Cypress spec that measures `scrollTop`/`scrollHeight` through all four autoscroll cases.
+
+- **"Select all 1,248 results", not just the 20 on screen** (#724). Give `Bali::BulkActions` a `total_count:` and, once the selection covers the whole page, the bar offers to extend it to the entire filtered result. A `DataTable` declares nothing: N comes from its own `pagy` and the filters from its `filter_form`. Unchecking any row leaves the mode and returns to page selection — the Gmail move — instead of disabling the checkboxes, which would trap the user in a state only the ✕ can leave. The text is pluralized server-side into a data attribute, the same trick the bar's live region already used for `selected_one/other`, so no i18n is interpolated in JavaScript.
+
+  **What travels is the contract, and it is deliberately explicit.** While the mode is on, `selected_ids` goes out EMPTY and two things go with the POST instead: `select_all_filtered=true`, and the `q[...]` in effect re-emitted as hidden fields inside every action's form. The server rebuilds the scope with the very code the index already runs — `MyFilterForm.new(scope, params).result` — so the params of a bulk request say exactly what was acted on and can be read in a log six months later. The alternatives were worse in the same way: a serialized query string is this with a parsing step bolted on, and "just the flag, re-derive from the persistence cache or the Referer" depends on state that may have changed between the render and the click, on a cache that is best-effort, and on persistence being on at all.
+
+  **The params come from the RESOLVED state, not from the request URL**, which is what makes it correct under filter persistence: a listing can arrive with an empty query string and still be filtered by what the cache restored, and re-emitting the URL would claim nothing was filtered while the user is looking at 3 of 200 rows. The serialization now lives in one place, `Bali::Filters::ActiveFilterParams`, shared with the quick-search form that has always had to preserve applied filters — two implementations of "what is this listing narrowed by" would eventually disagree, and the day they did a bulk action would act on a different set than the listing showed. A GET action, which has no hidden fields, carries the same params in its href. The components guide carries the whole recipe: the offer, the exact shape of the POST, the controller that re-derives the scope, why the flag has to be cast rather than tested (it travels on every POST, and outside the mode it is the string `"false"`, which is truthy), and the two things to get right at scale — enqueue a job instead of blocking a request on 12,000 records, and put a confirmation on the destructive ones. It also draws the boundary: only the Ransack `q[...]` travel, so a listing also cut by a nav tab, a `group_by` or a controller-side scope has to pass `filter_params:` itself or the bulk will act wider than the listing showed.
+
+  **A date range declared as an attribute travels too, and it took a fix to.** `FilterForm#result` applies `Bali::Types::DateRangeValue` attributes itself, outside Ransack, which is exactly why `active_filters` excludes them by construction — it is built from `query_params`, and that walks `non_date_range_attribute_names`. Re-emitting only what `active_filters` knows meant a listing showing 1 record handed the server enough to re-derive 2: the bulk acting on a superset of what the user could see, which at scale is a `destroy_all` reaching precisely the rows the date filter had excluded. They are now serialized separately, as the resolved `start..end` the same type casts back. The other way of declaring a date range — as a simple filter — was already covered by `active_filters` and is skipped by name, since two hidden fields sharing one `name` mean the server silently keeps one. The two paths send different things, which is worth knowing when you read a bulk request's params: the `attribute` path sends the resolved range, the simple-filter path sends the raw value, so a named period (`this_month`) travels as the token and the server re-resolves it. Since `presets:` only exist on simple date ranges, every preset travels as a token.
+- **`Bali::SplitView` — the inbox shape, as a component** (#728). A master list on the left, the
+  detail of the selected row on the right inside a Turbo Frame, so a row click swaps only the
+  right column and the list keeps its scroll position and its highlight. `frame_id:` names the
+  frame, `master_width:` sets the left column from `lg` up (default `420px`; below `lg` the panes
+  stack, master on top, with no extra JavaScript), and `advance: true` puts
+  `data-turbo-action="advance"` on the frame so the selection is deep-linkable. Three slots:
+  `master`, `detail`, and `empty_detail` for when nothing is selected.
+
+  **It is deliberately thin.** The component owns the responsive grid, the frame and the
+  highlight controller — the three things that are identical in every master-detail screen — and
+  claims nothing else. Tabs, filter chips, pagination and the rows themselves go inside `master`
+  in whatever shape the screen needs, because the app this was extracted from puts all four there
+  and no two screens agree on their arrangement. The grouped "InboxList" the issue also asks for
+  is **not** in this release: one app has one, and one anatomy is not enough to triangulate an API.
+
+  **The selection is an attribute, not a class list.** The `split-view` Stimulus controller moves
+  `aria-current` between rows and the look follows from `.split-view-row[aria-current]` in the
+  package stylesheet, so the selected state cannot fall out of a Tailwind build the way class
+  names toggled from JavaScript can. It is drawn with an inset `box-shadow` rather than a left
+  border, measured: rows are separated with `border-b border-base-200/70`, and that colour utility
+  claims all four sides from Tailwind's utilities layer, which beats `@layer components` outright
+  — a `border-l-primary` in the component sheet rendered base-200 and the highlight was invisible.
+  The shadow also paints inside the padding box, so the selection moves between rows without
+  shifting a pixel of text. `data-split-view-selected-class` is there for a host that wants more.
+
+  **Back and forward behave.** A row click promotes the frame swap to a Turbo visit, and the
+  snapshot Turbo caches for the page being left is taken between the click and the frame's
+  response — so it holds the highlight the controller had just moved next to the detail pane from
+  *before* the swap, and pressing back restored a master pointing at one row with an empty detail
+  beside it. On a history traversal the controller now re-derives the highlight from the URL
+  instead of trusting that snapshot, which it can do because each row's href *is* the URL that
+  selects it. Only on a traversal: on a first paint the server's markup wins, since a master can
+  live on a page whose URL is not in its rows' URL space at all. The href and the location are
+  matched on path plus query params **as a set**, not as one string — the two are built by
+  different code paths, so the location routinely carries params the href never had (a page
+  number, a sort) and lists the shared ones in another order, and a string comparison called
+  those a different place and dropped the highlight.
+
+  `.split-view-scroll` is an opt-in class for whichever part of the master should scroll — usually
+  the list alone, so tabs above it and pagination below it stay put — reading
+  `--bali-split-master-max-h` (default `calc(100vh - 20rem)`) so each screen can tune it to its own
+  chrome. `--bali-split-master-width` carries `master_width:` for the same reason a Tailwind
+  arbitrary value cannot: the width is a runtime value the build never sees.
+
+  The component is half the screen and the other half is the host's, so
+  **`docs/guides/master-detail.md`** carries the rest of the pattern: the whole Rails side in
+  one action, why the row's href has to hold the current filters, the two different empty
+  states a filtered list needs (composed from `Bali::EmptyState`'s `cta` slot, not added as an
+  option — "no results" beside filters the reader set is a dead end, and the useful thing is a
+  way out of them), and the full-page-detail-on-a-phone variant. That last one hinges on a
+  measured Turbo fallback: a frame in the DOM is swapped **even under `display: none`**, and
+  only a frame that is absent turns the row click into a full visit — so whether a phone gets
+  the split view at all is a server-side decision, and `lg:hidden` will not make it. The guide
+  also covers what happens when the detail request **fails**, which splits two ways and is the
+  one corner that looks fine on screen: a response carrying
+  `<meta name="turbo-visit-control" content="reload">` (Rails' own exception page does) becomes
+  a full-page visit, while any other response without a matching frame is *ignored* — the pane
+  keeps its previous detail while the optimistic highlight has already moved, and the two
+  disagree silently until the next click.
+
+## [v3.1.0.beta.5] - 2026-08-06
+
+### Added
+
+- **`Bali::SideMenu` takes a `theme:`** (#726). The keyword emits `data-theme` on the `<nav>`, which is the whole of "the sidebar is dark and the page is not": daisyUI resolves its colour variables against the nearest ancestor carrying one. The theme's values stay in the host — chrome colours are brand — and `docs/guides/custom-themes.md` now carries the ~18-token recipe measured in costa-norte, the app that ran this pattern in production first. A themed sidebar also fixes its flyout panels on its own: on a dark surface daisyUI's soft shadow is invisible and a `base-100` panel is the same colour as the rail it opens from, so the panels render one step lighter with a real border and a shadow that reads against dark. The `dark_chrome` Lookbook preview shows the whole arrangement next to light content.
+
+- **`Bali::AppLayout` takes `mobile_bottom_padding:` for the bottom of a phone screen** (#726). Off by default; when on, it puts room under the content so the last row of a list or the submit button of a long form is not stuck behind the phone's own chrome. It covers two problems that are easy to confuse: the home indicator, which is real and comes from `env(safe-area-inset-bottom)` (and is `0px` everywhere else, so it costs nothing on a desktop), and Safari's floating bottom bar, which hovers **over** the page and is **not** reported by `env()` at all — hence a flat `4rem` under `sm` next to the environment value rather than instead of it. Documented with the setup the insets need to report anything in the first place (`viewport-fit=cover`, plus `theme-color` while you are in there), which is the host's `<head>` and not Bali's to render. The padding lands on `<main>`: the body container's own padding is a Tailwind utility, and a utility beats `@layer components`, so a rule on the container would never have applied.
+
+- **`Bali::AppLayout` offsets the pinned sidebar under the banner, by measurement** (#726). A banner — impersonation, maintenance, "you are in beta" — is a full-width strip, and the fixed sidebar now starts below it instead of painting over it. Nothing has to be declared: the new `app-layout` Stimulus controller keeps a `ResizeObserver` on the strip and publishes its height as `--bali-banner-height` on `<body>`, which the sidebar's `top` and `height` read. That covers the cases a constant cannot — two banners stacked (gc hardcodes `top: 5.5rem !important` for exactly that pair), a banner the user dismisses, one a Turbo Stream adds later, one that wraps to two lines on a phone — and it removes the `--banner-height` TODO the apps have been carrying. The strip is `position: sticky` so an impersonation warning survives scrolling; under `viewport_locked: true` the body does not scroll and sticky is inert. Only the height is JavaScript: the offset is one CSS rule reading `var(--bali-banner-height, 0px)`, so a page whose JS has not run, or a host that never registers the controller, renders exactly as before. New `with_banner` Lookbook preview (two stacked banners, the second dismissible) and a Cypress spec that measures the rail's computed `top`/`height` against the strip.
+- **`auto_submit: true` per filter: SimpleFilters pills that filter on click** (#725). A `:toggle_group` or `:radio_group` declared with `auto_submit: true` submits the row the moment it changes, so a segmented control behaves like the tab strip it looks like instead of asking for a second click on Filter. `filter_attribute :status, type: :select, simple: true, input: :radio_group, auto_submit: true` — and the instance-level `simple_filters:` hashes take the same key. It is **opt-in per filter and off by default**, so no existing row changes: `submit-on-change` is mounted on the form only when some filter asked for it, only that filter's controls carry the action, and the Filter button stays for the filters that did not opt in. Only the two pill widgets accept it and anything else raises at class-definition time, because one click is the whole interaction on a pill while a date or number range would submit between the two halves of its value. No new controller and no new JavaScript: this is the extended `submit-on-change` from #717, whose connect guard is what keeps the row from submitting itself while it is still being built.
+- **`size:` is a density on every FormBuilder family, not just the text inputs** (#723). The
+  foundation shipped the discrimination — a Symbol is daisyUI's variant, an Integer or String
+  stays the HTML attribute of the same name, an unknown Symbol raises — and this completes the
+  rollout, so a form written entirely at one density comes out at that density:
+  `select_group`/`time_zone_select_group` → `select-*`, `text_area_group` → `textarea-*`,
+  `range_group` → `range-*`, `file_group` → `btn-*` on its CTA, and `checkbox-*`/`toggle-*`/
+  `radio-*` gain the `:xl` daisyUI 5 added. `slim_select_group` keeps `:sm`, the one density its
+  widget has CSS for, and now raises on the others instead of silently rendering full-size.
+  Captions, help text and error messages need no variant of their own — daisyUI scales them with
+  the fieldset. New preview **Form / Sizes** (compact form, and the same fields side by side with
+  and without the option). Every family declares its outcome in
+  `test/bali/form_builder/size_option_test.rb`, which fails if a new one lands in neither list.
+- **`f.date_group :on, alt_input: true, size: :sm`** now sizes the input the user actually sees.
+  With `alt_input:` flatpickr hides the real input and draws a second one from
+  `alt_input_class`, which the density never reached.
+- **Date range filters take named periods — "This month" instead of two dates** (#725). `filter_attribute :created_at, type: :date, input: :date_range, simple: true, presets: %i[today this_week this_month]` (or `presets: true` for all five: `today`, `this_week`, `this_month`, `last_7_days`, `last_30_days`, the trailing two inclusive of today) renders a period select whose "Custom…" option reveals the picker that was there before. An instance-level `simple_filters:` hash takes the same key. An unknown token raises at declaration time, and so does `presets:` on anything but `date_range` — "this week" is not a value a single date can hold, and a control that cannot work should not render.
+
+  **The token is what travels, and that is the point.** `q[created_at]=this_month` goes in the SAME param an explicit range does, and `Bali::Types::DateRangeValue` only resolves it to a real range when the query runs. So a saved view or a persisted filter built on one still means this month next month, where a stored `2026-08-01..2026-08-31` means August forever — which is exactly the complaint that produced the issue. The period is the server's `Time.zone`, the zone the rest of the date filtering already speaks; resolving it in the browser would use the visitor's and quietly disagree with the listing it filters.
+
+  **The cast is additive, measured token by token.** Three of the five (`today`, `this_week`, `last_7_days`) used to reach `Time.zone.parse`, come back `nil` and raise `NoMethodError`. The other two did produce a range and both were nonsense: `Date._parse` reads the "mon" inside `this_month` as a weekday and yields today, and pulls `mday: 30` out of `last_30_days` and yields the 30th of the current month. Those two literal strings are the only inputs whose result changes, from a silently wrong day to the period they name. Every other form the type accepts — `a..b`, the beginless and endless halves, the localized `2026-01-01 to 2026-03-31`, a bare date widening to its whole day — is covered by the new `test/bali/types/date_range_value_test.rb` and unchanged.
+
+  **No second Stimulus controller.** The widget is `time-period-field`, the one `f.time_period_group` has always built, given a `custom-value` so the option that reveals the picker can be named. It defaults to the empty string — what the form builder uses, since its blank option is spent on "custom" — while a filter row needs its blank for "any date" and passes `custom`. Two fixes came with it: the container named by `date-input-container-class` is now resolved before the first toggle rather than after, so it is hidden on the initial render instead of one interaction later; and the hidden field is the only control in the widget with a `name`, since two inputs sharing one submit the param twice and the server keeps the last, not the one on screen.
+- **`dynamic_fields_group` grows a table mode and an array mode** (#715). The same helper, the
+  same anatomy — header, container, `<template>` — with two shapes it could not produce before,
+  both opt-in and both leaving existing call sites byte-for-byte unchanged:
+  - `table: true` renders the container as the `<tbody>` of a table the helper emits, so the row
+    partial writes `<tr>`. `columns:` fills the `<thead>` and `table_class:` overrides the default
+    `table`. The header and its `<template>` render *outside* the `<table>`, which is the only
+    place they survive: the HTML parser hoists a `<div>` sitting between `<table>` and `<tbody>`
+    out of the table, which used to strand the add button and its template. A `<tr>` inside the
+    `<template>` is fine — the HTML5 parser switches to "in table body" for exactly that case.
+  - `array: true` names the rows `movie[steps][][role]` for an attribute that is a plain array of
+    hashes rather than an association: no `fields_for`, no `_destroy`, no
+    `reflect_on_association` to explode on. Rows come from the attribute or from `values:`, and
+    the partial receives `name_prefix:`, `item:` and `index:` alongside `f`. Checkboxes are not
+    supported in this mode — Rails' paired hidden field repeats a key inside the element and
+    splits the array — see the guide.
+  - `partial:` on both `dynamic_fields_group` and `link_to_add_fields` names the row partial
+    explicitly instead of deriving `_<singular>_fields`, and `destroy_flag: false` on
+    `link_to_remove_fields` drops the hidden `_destroy` for rows that have nothing to destroy.
+- **`dynamic-fields` renumbers a visible ordinal** (#715). A `data-dynamic-fields-target="ordinal"`
+  element inside a row gets the row's 1-based number written into it after every add, remove and
+  reorder, counting only the rows still in play. The target holds the number alone, so punctuation
+  around it ("1.", "#1") lives in the markup and survives renumbering. Absent target, nothing
+  happens — this is the piece host apps were each writing a controller for.
+
+
+- **`submit-on-change#debouncedSubmit`, so one form can mix immediate and debounced controls** (#717). The controller has always had a `delay` value, but it applied to the whole form: either every control waited or none did, which is why a filter row with a select and a search box needed two controllers (or, in three AFAL apps, a local `auto_submit_controller.js` copy that had grown the pair on its own). `submit` stays as it was and `debouncedSubmit` is always debounced, so `<select data-action="submit-on-change#submit">` next to `<input type="search" data-action="submit-on-change#debouncedSubmit">` is now the whole wiring. `delay` still governs both actions when set; without it `debouncedSubmit` waits 300 ms. New `bali/submit_on_change/default` preview and `cypress/e2e/submit-on-change.cy.js` cover both actions, and `docs/guides/controllers.md` has the markup.
+
+- **`char_counter:` works on a text field, not just a textarea** (#723). `f.text_group :headline, char_counter: { max: 80 }` renders the same live count under the control that `text_area_group` has had, because it is the same thing: the Stimulus controller behind it only reads `value.length`, so an `<input>` and a `<textarea>` are indistinguishable to it. `{ max: n }` counts against a maximum and turns the counter red past it; `true` just counts. The typing is never stopped — the count is an advisory, so pair it with `maxlength:` and a model validation when the limit has to hold. New preview **Form / Text → With Character Counter**, a `char-counter.cy.js` spec that runs the same expectations against both controls, and the option finally documented in the FormBuilder guide.
+
+
+
+### Changed
+
+- **`BlockEditorController` now inherits from `ReactIslandController`** (#703). No API change
+  and nothing to do in a host app: the controller identifier, its Stimulus values, the entry
+  and `block_editor_meta_tags` are all untouched. What changed is where the mechanics live —
+  the `_disconnected` guard, `createRoot` over its own mount point, the `turbo-cache-control`
+  meta, the unmount on disconnect and the error fallback now come from the base the editor
+  was extracted from, and the controller keeps only what makes it the block editor: the
+  BlockNote wrapper, the props, the submit flush, the ProseMirror teardown (moved to the
+  base's `beforeUnmount` hook, which runs while the DOM is still attached) and the PDF/DOCX
+  exports. The editor is the first real subclass, so this is what proves the base's hooks fit
+  a demanding island rather than only the toy preview. It also gains the base's
+  ErrorBoundary, which it never had: a render error inside the editor now shows the fallback
+  message instead of tearing down the React tree.
+
+- **Removing an unsaved row deletes it from the DOM** (#715). `dynamic-fields#removeFields` used to
+  hide every removed row and flag it `_destroy`, whether or not there was anything to destroy. It
+  now looks for the `[id]` hidden field `fields_for` emits only for a persisted record: with one,
+  the old behaviour (hide, strip the visible inputs, flag) so the server still learns which record
+  to delete; without one, the row simply leaves the DOM. What gets submitted is unchanged —
+  `_destroy` on a nested hash with no `id` was already a no-op — but the DOM stops accumulating
+  dead rows. `resetPositionValues` skips hidden rows for the same reason, so `[data-position]`
+  stays contiguous over the rows that will actually be saved, and it now tolerates a row without a
+  position input instead of raising.
+- **`submit-on-change` ignores change events fired in the frame it connects in** (#717). SlimSelect dispatches a `change` on the native `<select>` while it builds its widget over it — measurable whenever the options carry `data-inner-html`, which makes it rewrite the element — and a form carrying `submit-on-change` submitted on that event, before the user had touched anything. Measured against the new preview with the guard off: the page navigates to `?form_record[select]=1&form_record[text]=` on its own. This is a behavior change, not only a fix: any change event in the first frame after `connect()` is now dropped, including one your own code dispatches there. `data-submit-on-change-skip-initial-value="false"` restores the old behavior. Two incidental fixes ride along: a pending debounced submit is cancelled on `disconnect()` instead of firing at a detached form, and reconnecting the controller no longer wraps the debounce around itself (a form that connected twice used to wait `delay` twice).
+- **One wrapper builds the counter for every family that can have one** (#723). `text_area_field` used to build its own `.control` div next to a second copy of the error and help paragraphs — the arrangement that once made a textarea with a counter render neither. The controller, its values and the counter element now come from `field_helper`, the one place that decides how a control is wrapped, so the two spellings cannot drift apart again. No markup change: the textarea's existing tests pass untouched. `TextAreaFields::COUNTER_CLASS` is now an alias of `HtmlUtils::COUNTER_CLASS`.
+
+- **The `Bali::AppLayout` banner no longer clears the fixed sidebar horizontally** (#726). A beta gave `.app-layout-banner` the same `padding-left: var(--bali-side-menu-width)` as the navbar and the content, because the sidebar was pinned at `top: 0` and painted over the strip's left edge. The sidebar now starts *below* the banner instead, so there is nothing left to clear: keeping the padding would indent a full-width strip into the content column and leave a band of empty page above the sidebar. The navbar and the content keep their offset — that half of the fix is untouched. A host that styled around the indented banner (a background that started at 16rem, a left-aligned logo inside the strip) will see the strip move left to the viewport edge.
+
+
+
+### Fixed
+
+- **The Gantt island's drag spec no longer degrades the dummy database it runs against** (#705).
+  `gantt-island.cy.js` dragged a bar forward and then dragged it back "the same distance" to
+  restore the seeded dates. The return drag is not the inverse of the outbound one — measured on
+  the seeded fixture, the outbound drag moves the item 5 days and the return drag moves it 0 — so
+  every local run left the item ~5 days later than it found it. Once the item drifted past the
+  start of the next one, the return drag landed on the date the item already had,
+  `onNodeDragStop` short-circuited before posting, and `cy.wait('@patch')` timed out waiting for a
+  second request that never came. CI never saw it because every CI run does
+  `db:schema:load db:seed` first; locally it surfaced after a handful of repetitions and looked
+  like a race in the island. The spec now waits for the reconcile to land in the table before
+  asserting, and restores the item through the contract's own PATCH endpoint instead of through a
+  second drag — deterministic, and it leaves the database exactly as it found it. Verified with 8
+  consecutive runs: 8/8 green with the seeded dates unchanged (before: 0/8 from a drifted
+  database).
+
+- **`size:` no longer leaks into the markup as an attribute where it means nothing** (#723).
+  `slim_select_group(size: :sm)` emitted `<select size="sm">` next to the wrapper class — Rails'
+  `select_content_tag` copies `:size` out of a select's options and onto the element, so closing
+  one route was not enough. The families whose control is a widget over a hidden field
+  (`rich_text_group`, `block_editor_group`, `coordinates_polygon_group`, `time_period_group`)
+  painted `<div size="sm">` for the same reason `<div required>` used to appear there; `size`
+  joins `required` in `CONTROL_ONLY_OPTIONS`.
+
+
+
+## [v3.1.0.beta.4] - 2026-08-06
+
+### Added
+
+- **Acknowledgments and read coverage: `Bali::Acknowledgeable` + `Bali::ReadCoverage`** (#709). "I read and confirm this" is the same ledger in every app that has ever needed it, so the engine now ships it:
+  - New table `bali_acknowledgments`. **Both** halves are polymorphic — the signer (`user`) and the thing signed (`acknowledgeable`) — so one table serves documents signed by `User`s and agreements signed by `Member`s without Bali knowing either class. Unique on `[acknowledgeable_type, acknowledgeable_id, user_type, user_id]`: one signature per person per record, always.
+  - `include Bali::Acknowledgeable` gives a model `acknowledge(user:)`, `acknowledged_by?(user)` and `acknowledgments`. No macro to configure: the only thing the concern asks the model is `version_label`, and it asks with `try`, so a model without versions works unchanged.
+  - `acknowledge` is **idempotent for the same version** — confirming twice returns the existing signature untouched, which is what makes `acknowledged_at` usable as evidence. When `version_label` has changed the person is signing a different text, so the label **and** the date move together on the same row, rather than leaving a record that claims someone signed v2.0 before v2.0 existed.
+  - `content_version_id` is nullable and carries **no foreign key**, so installing the signature book never forces installing the content-versions table; it fills itself in when both are present, and a caller can always name it.
+  - `Bali::ReadCoverage.new(record, audience:, threshold: 80)` answers how much of an audience has signed: `total_count`, `confirmed_count`, `pending_count`, `confirmed_users`, `pending_users`, `coverage_percentage`, `below_threshold?`. The audience is **injected**, because where it comes from — a department, a role, an explicit reader list — is the part every app does differently. One query for the signatures regardless of audience size, and no grouping by area: that is the host's domain.
+  - **An empty audience has no coverage, not zero coverage**: `coverage_percentage` returns `nil` and `below_threshold?` returns `false`. `0/0` is not `0`; reporting 0% would paint a dashboard red over records nobody has to read, and 100% would claim a coverage nobody confirmed.
+  - No acknowledgments controller in the engine, on purpose — the valuable part of one is a `turbo_stream` that renders a partial *of the host*. The twenty-line recipe, whitelist included, is in the new guide.
+  - New guide `docs/guides/engine-models.md`: the adoption path for every table the engine ships (saved views and acknowledgments today, the rest of the documents engine as it lands), plus what to change when porting the schema from gobierno-corporativo.
+- **Entity references move into the engine, behind one registry per type (#708).** The
+  BlockEditor's `#` menu had a working front end and no server: every host wrote its own
+  search endpoint, its own resolver and its own display config, three parallel declarations
+  that drifted. Now `Bali.entity_reference_types` declares a type once — `search_scope`,
+  `lookup_scope`, `search_fields`, `display_field`, and optionally `url`, `unreachable?`,
+  `extra_payload`, `permission_scope` and `display` — and that single entry powers the
+  search endpoint, the resolution endpoint **and** the editor's `references_config`, which
+  the component now derives when the host doesn't pass one.
+  - `Bali::EntityReferencesController` serves both operations for every registered type at
+    once (`GET bali/entity_references?q=`, `POST bali/entity_references/resolve`), capped at
+    10 results and 5 per type, with the query escaped through `sanitize_sql_like`.
+    `Bali.entity_references_authorize` **denies by default**: mounting the engine publishes
+    no search over your records until you open it, and `permission_scope:` gates each type
+    on both search and resolution, so a record the viewer may not see resolves as broken
+    rather than disclosing its name.
+  - `Bali::EntityReferenceable` materializes the references embedded in a model's BlockNote
+    column into the new `bali_entity_references` table (`record` and `referenceable` both
+    polymorphic, no foreign key on the referenced side so a reference survives the deletion
+    of its target and still renders as a broken chip). The write is a minimal diff guarded
+    by `saved_change_to_<attribute>?`: an autosave that doesn't touch the content costs no
+    queries, and rows that are still there keep their ids. `references_entities_in :body`
+    names the column when it isn't `content`; `incoming_references` and
+    `Model.referencing(record)` walk the relation backwards.
+  - `Bali::BlockNote::Text.entity_references` is the single walker over BlockNote structure
+    (nested children, both table shapes), shared with the text extractor — the reason the
+    hand-rolled versions this replaces drifted apart was having two.
+  - The payload the browser receives — `entityType`, `entityId`, `entityName`, `url`,
+    `broken` — is frozen; `extra_payload` adds host-owned keys on top of it and cannot
+    override those five. Adoption guide: `docs/guides/engines.md`.
+  - Caps on both sides, because the `after_save` runs inside the host's own `update!` and
+    the request body is written by the client: 500 references per record, 500 refs per
+    resolve request, 255 characters of `reference_text`, ids that don't fit a bigint
+    dropped, and no search below two characters.
+
+- **Polymorphic content versions: `Bali::ContentVersionable` + `Bali::ContentVersionsController`** (#707). The `DocumentEditor`'s history panel has been a JSON contract with no server behind it — every host reimplemented the same `create_version!` / `create_or_coalesce_version!` pair, the same numbering, the same restore, and the dummy's copy did it without the row lock (which is the bug, not the pattern). The engine now ships all of it:
+  - New table `bali_content_versions`: a polymorphic `record`, so a document, a policy and a note share one history table without Bali knowing any of those models. `version_number` is unique per record, `content` is jsonb on Postgres and json everywhere else, and `has_one_attached :file` is there (no presence validation) for the "version of a file" case.
+  - `include Bali::ContentVersionable` gives a model `content_versions`, `create_version!`, `create_or_coalesce_version!`, `content_at_version` and `restore_content_version!`. `content_versionable attribute: :content, coalesce_window: 5.minutes` configures it — the window is a property of the model, not of the app, because how long one editing session lasts depends on what is being edited. A burst of auto-saves by one author inside the window updates the last version instead of creating twelve, under a row lock so two concurrent saves cannot claim the same `version_number`.
+  - The author is a polymorphic **optional** association plus a required denormalized `author_name`: the JSON the editor consumes serves the name, so a host with no user model loses nothing, while the foreign key makes "my versions" and auditing possible without a later migration. Coalescing compares by `(author_type, author_id)` when there is an author record, so two people with the same name never collapse into one version.
+  - `Bali::ContentVersionsController` serves index, show and restore. The record travels in the query string (`?record_type=&record_id=`) because the engine cannot nest routes under models it does not know, and each version carries its own `url` — the shape the JavaScript already prefers over interpolating one.
+  - Two default-deny gates: `Bali.content_versionables` is a whitelist of `record_type` → resolver, empty by default, so every type is a 404 until a host names one (without it, `record_type` would be a `constantize` over user input); `Bali.content_versions_authorize` receives the action, so reading and restoring can be gated apart, and returns falsy by default → 403. `Bali.content_versions_author` names who signs the version a restore creates.
+  - `Bali::DocumentEditor::Component` accepts `versions_url: :auto` / `restore_version_url: :auto` plus `record:`, resolving to the mounted engine's endpoints. Without a record the history panel does not render, rather than rendering one whose every request would 404. Plain string URLs keep working untouched.
+  - Adoption guide in `docs/guides/engines.md`, including the explicit note that a host with an existing history table **does not have to migrate** — the contract is JSON.
+  - The dummy app now consumes the engine instead of its own `DocumentVersion`, which is what proves the adoption path works.
+  - Both `create_version!` and `create_or_coalesce_version!` take a row lock, so they must be called **after** the record is saved: Rails refuses to lock a record with unsaved attributes, which means versioning mid-edit raises instead of recording a snapshot the database never held. `summary` is capped at 255 characters in the column and in the model, and `restore_content_version!` re-scopes the version to the record it is called on even when handed a `Bali::ContentVersion` object, so one record can never be restored from another's history.
+- **The engine now stores the Block Editor's inline comments** (#706). Three tables
+  (`bali_block_editor_threads` / `_comments` / `_reactions`, installed with
+  `bin/rails bali:install:migrations`), three controllers, and the nine endpoints
+  `RESTThreadStore` has always called — so a host stops re-implementing the reference
+  controllers by hand. Point the editor at them with `comments: { url: :auto, commentable: record }`:
+  it resolves `bali.block_editor_threads_path(commentable_type:, commentable_id:)` for that
+  record, and `_buildUrl` carries the scope to all nine sub-requests for free. Passing `:auto`
+  without a `commentable:` raises — there is no unscoped thread list, deliberately.
+  - Three lambdas are the whole configuration, and all three deny by default:
+    `Bali.block_editor_commentables` (default `{}`, so mounting the engine grants nothing;
+    a type nobody listed and a record that does not exist are both `404`, and
+    `commentable_type` is never `constantize`d), `Bali.block_editor_comments_user`
+    (returns the string author id) and `Bali.block_editor_comments_authorize`
+    (`403` when it says no).
+  - Permissions replay BlockNote's own `DefaultThreadStoreAuth` server-side, because the
+    client-side copy stops nothing: anyone admitted may list, open a thread, comment, resolve
+    and react; only a comment's author may edit or delete it; only the author of a thread's
+    **first** comment may delete the thread. Deleting a comment is soft (null body plus
+    `deleted_at`), and deleting the last live comment takes the thread with it.
+  - `commentable_type`/`commentable_id` are **required on every action**, including the ones
+    that already carry a thread id. That is what keeps `GET /` from being "every thread in the
+    database" — the leak the reference implementation shipped with.
+  - The `X-User-Id` header the store sends is ignored on purpose; identity comes only from
+    `Bali.block_editor_comments_user`. There is no user-directory endpoint either: display
+    names stay the host's business through `comments[:users]` / `users_url`.
+  - `as_json` is a frozen wire contract (`test/bali/block_editor_json_contract_test.rb` fails
+    the build on a renamed key), and the dummy app now consumes the engine instead of its own
+    copy — that substitution is the adoption test. Adoption, the permission matrix and the
+    three-`rename_table` migration for apps that already ran the reference implementation are
+    documented in `docs/guides/engines.md`.
+- **`Bali::WorkflowSteps` gets the horizontal "quick flow" and the decision-form pattern** (#716). `variant: :horizontal` renders the same steps as a row of cards with an N/M progress bar on top — the shape for a summary card or a table cell, where the whole chain has to fit in a glance. Same `with_step` API; the marker becomes a dot and there are no connectors, because the bar already says how far the flow got. **N counts the steps with a verdict** (`:success`, `:error`, `:warning`, `:skipped`): a skipped step is settled and it is still one of the dots on screen, so counting it keeps N/M matching what the reader can count; `:pending` and `:current` are the two that have not happened yet. **The bar takes the flow's verdict** — red if any step was rejected, amber if any came back with observations, neutral otherwise — so a broken chain reads as broken without reading it. `progress: false` drops the bar; asking for one on the vertical variant raises, since that shape has no header to hang it on. The cards wrap on their own (`auto-fit` from 11rem) instead of shrinking past reading width, and `:skipped` draws a **hollow** dot rather than the vertical variant's dash: with no number left to read, two greys at that size were the same dot.
+- **The approve/reject decision form is documented, not packaged** (#716). One form, two submits told apart by `name: "decision"` / `value:`, `required: true` on the notes and `formnovalidate` on Approve — which is what makes the browser demand a reason to reject and ask nothing to approve, with no JavaScript and no second field — plus `turbo_confirm` on the destructive half only. It is a `Bali::FormBuilder` recipe end to end (`text_area_group` + two `submit_field`s), in the components guide and in the new `decision_pattern` Lookbook preview. Deliberately not a component: the form owns the host's route, params and policy, and packaging `formnovalidate` would be the first step towards the workflow engine this component is not.
+
+
+### Fixed
+
+- **An entity reference chip no longer links to a `javascript:` URL.** The chip's `url` prop
+  lives inside the saved document, so it is written by whoever can edit the content, and it
+  reaches the `href` untouched whenever resolution doesn't run (no `references_resolve_url`,
+  or a failed request). React renders `javascript:` hrefs with nothing but a console
+  warning. The chip now renders as plain text unless the URL is `http(s):`, `mailto:`,
+  root-relative or a fragment.
+- **`Bali::WorkflowSteps` names each step's state for a screen reader** (#716). Both markers said the state in colour and nothing else — the circle's number is a position, not a verdict, and the quick flow's dot has no text at all — so "3, Legal review" was everything a screen reader got about a rejected step. Every step now renders an `sr-only` span with the state's name next to its marker, **in both variants**, from six new keys under `bali_view.workflow_steps.states.*` (en/es) that a host overrides like any other Bali string when its domain has better words ("Signed", "Returned", "Waiting on legal"). The span sits *outside* the circle, so the number stays the circle's whole content.
+- **A field with `char_counter:` no longer writes its Stimulus wiring into the caller's options hash** (#723). The two helpers that add `data-` attributes mutate in place, and the `:data` key they reach is the caller's own object — so reusing one options hash across two fields would have carried the first field's target and action into the second. Caught by `options_contract_test.rb`, which exists for exactly this.
+- **The textarea controller stays quiet when it has no control to act on** (#723). `auto_grow:` belongs to the textarea — an `<input>` has no height to grow into — so a text field written with it now gets a controller and no input target. Before the guard that would have thrown "Missing target element" on connect, where it used to do nothing at all; doing nothing is the right answer, and it is now the measured one.
+
+
+## [v3.1.0.beta.3] - 2026-08-06
+
+### Changed
+
+- **The Gantt island follows the viewport without re-rendering** (#705). Panning, dragging a bar,
+  selecting and typing in the search box each used to re-reconcile the island's entire React tree;
+  on a 300-item document (20 groups, 150 dependencies) a single pan frame rebuilt every row of the
+  left table, every tick of the axis and every bar of the minimap. No public API, markup, CSS or
+  data-contract change — only how the components subscribe to the canvas:
+  - The layers that shift as a block with the pan (time header, grid + weekend bands, row bands,
+    group summary bars, today line, left table, minimap viewport rectangle) no longer subscribe to
+    the React Flow transform with `useStore`. They take it from the store imperatively (new
+    `useViewportFollow` hook) and write `style.transform` on a ref, so a pan frame costs **zero**
+    React renders instead of one per layer plus all of its children. Measured over 20 pan frames:
+    horizontal 100 component renders → 0; vertical 20 renders + 6.400 table rows → 0.
+  - `React.memo` on the chrome (`GanttTable` and its `Row`, `Toolbar`, `TimeHeader`, `GridBands`,
+    `RowBands`, `SummaryBars`, `Minimap`, `GanttFooter`), with the toolbar's toggle callbacks
+    given stable identities so the memo actually holds. Dragging a bar re-rendered the whole
+    chrome once per pointer frame (3.200 row renders over 20 frames); it now re-renders only the
+    dragged bar. Same for the table splitter: 6.080 row renders → 0.
+  - Node decoration runs in two passes, so the `selected` bit no longer rebuilds every bar's `data`
+    object: React Flow keeps its internal node for the bars whose bit did not change and only the
+    affected ones re-render. A selection click went from 300 bar renders + 640 row renders to 1
+    and 1.
+  - `useDeferredValue` on search and status filter: the input echoes the keystroke immediately
+    while the model rebuild is deferred, so a burst of keystrokes rebuilds the filtered document
+    once instead of once per letter (9 letters: 5.760 row renders + 2.700 bar renders → 320 + 300).
+### Added
+
+- **`Bali::QrCode` — QR codes generated server-side, with `rqrcode` as an optional dependency** (#926). `render Bali::QrCode::Component.new(payload: movie_url(@movie))` emits inline SVG: no JavaScript, no image request, nothing to serve. `payload:` is required; `size:` (pixels, default 200) and `level:` (error correction `:l`/`:m`/`:q`/`:h`, default `:m`) are the whole API. The gem it encodes with is **not** in the gemspec — three apps in the org render QR codes and the rest would carry it for nothing — so it is required lazily and its absence raises `Bali::QrCode::Component::MissingDependency`, a `LoadError` subclass whose message names the line to add (`gem "rqrcode", "~> 3.1"`) instead of leaving a host with `cannot load such file`. Same contract as the optional npm peers in `package.json`. Black on white with the spec's four-module quiet zone, neither configurable: a scanner reads dark-on-light, so theme colours would leave the code unreadable under a dark theme while still looking like a QR code. The SVG carries a `viewBox`, so `class: 'w-full h-auto'` overrides `size:`; `role="img"` plus an `aria-label` that defaults to the generic `bali_view.qr_code.label` ("QR code" / "Código QR") and takes a `label:` for the context the markup does not supply.
+
+## [v3.1.0.beta.2] - 2026-08-06
+
+### Added
+
+- **Guide: filtering on derived attributes (`docs/guides/derived-filters.md`)** (#642). How to
+  filter by a value that exists only in Ruby — a computed status, a health traffic light, an
+  accent-folded name — without leaving Ransack: declare a `ransacker` over a SQL expression or a
+  cached column and the attribute joins the Filters popover as a first-class citizen (operators,
+  AND/OR groups, persistence, saved views), with no new Bali API. Documents the two worked
+  patterns that resolved the motivating real-world case, the pagination anti-pattern they avoid
+  (filtering in Ruby after `pagy` breaks the count and the summary), why the popover cannot host
+  non-Ransack params (its OR groups resolve in SQL), and the honest host-side escape hatch for a
+  value that truly cannot reach SQL. Cross-linked from the components guide and the
+  `filterform-datatable` skill. Closes #642 in favor of this pattern; to be reopened only if a
+  derived attribute that can be neither expressed in SQL nor cached in a column shows up.
+- **`Bali::WorkflowSteps` — steps of a flow with a verdict per step (#716).** Neither `Stepper` (a daisyUI wizard by index: one `current:`, per-step look derived from position) nor `Timeline` (chronological) could tell an approval chain where step 2 was rejected while step 4 is still pending — so gc hand-rolls this layout twice, almost line for line. New vertical component: `with_step(title:, state:, assignee:, date:, number:)` plus a free content block for the comment; six states (`:success`, `:error`, `:warning`, `:current` with ring emphasis, `:pending`, `:skipped`) validated with the same machinery as every `color:` keyword. The connector under each circle takes the state of the **next** step — computed by the component, not the caller — and auto-numbering counts the real route only: a `:skipped` step renders muted with a dash and consumes no position (an explicit `number:` always wins). Structure lives in `@layer components` (`workflow_steps/index.css`), so host utilities on the template win without `!`; the connector spans the row's full height, so long comments cannot break it — the spot where the hand-rolled versions suffer. The horizontal "quick flow" variant and the decision-form pattern docs ship separately.
+
+- **`Bali::Tag` accepts `icon:`, and the enum-badge pattern gets its sugar and its recipe** (#711):
+  - `Bali::Tag::Component` takes an `icon:` keyword (glyph before the text, drawn at the pill's own font-size so it fits every badge size — a default 16px icon is as tall as the whole `badge-xs` pill) and a `with_icon` slot that takes `Bali::Icon` options and wins over the keyword. This replaces the `safe_join`-an-icon-into-`text:` hack repeated across host helpers.
+  - `Bali::Tag.for(value, map:, i18n_scope:, default:, **tag_options)` — the enum sugar: a host-owned `value => color/options` map (entries are a bare color name or a hash of Tag options; `text:` overrides the label) plus i18n label resolution, returning a component ready for `render`. An unmapped value raises unless `default:` is given — a new domain state must be mapped, not rendered blank.
+  - `Bali::Status.for(...)` — the mirror for workflow states: the same map shape builds the whole `options:` array (entry `label:` overrides), so one map also powers the editable panel; `form:`, `size:`, `id:`, etc. pass through.
+  - `Bali::Status.palette(name)` — the fixed 12-color workflow palette is now public API: returns the `{ bg:, fg: }` hex pair (raising on an unknown name) for painting non-pill things (a Gantt bar) in the same colour as the pill. Public means frozen: changing a hex is a breaking change from here on.
+  - New guide `docs/guides/enum-badges.md` with the canonical recipe ("the map lives in a host helper") and the official Tag vs Status criterion: Tag for categories/priorities that follow the theme, Status for workflow states on the fixed theme-independent palette.
+- **ViewSwitch: `icon:` is now optional and `mode: :selector` covers data-slice selectors** (#729). `with_view` no longer requires an icon — a selector that slices the data shown ("12 months", "Optimistic") is text-only by design. `mode:` on the component distinguishes the two jobs the control does: `:navigation` (default, unchanged — active view announces `aria-current="page"`) for sibling views of the same content, and `:selector` (active view announces `aria-current="true"`, "the current item of a set") for controls that slice the data (year, scenario, months window). The views stay real links in both modes; `aria-pressed` was deliberately *not* reintroduced — browsers discard it on `role=link`, which is the measured a11y bug v3 removed.
+- **Card, StatCard and DashboardPage stats are clickable via `href:`** (#729). `Bali::Card` gains `href:` — the root element renders as `<a class="card">` with a `transition-shadow hover:shadow-md` affordance; `Bali::StatCard` propagates it (KPI drill-down without the `link_to` wrapper), and `DashboardPage#with_stat` gains `href:` so a stat inherits it. With `href:` the card's content must not contain links or buttons (interactive content inside an `<a>` is invalid HTML) — StatCard's `footer` included.
+- **Dropdown items (and any Link/Button) can open a pre-rendered "local" modal or drawer** (#641). `with_item(name: 'Edit health', modal: { id: 'health-modal', local: true })` — likewise `drawer:` — opens an overlay that is already on the page, by name and with no fetch: the new `modal#openLocal` / `drawer#openLocal` action dispatches the open event addressed with the id and no content, so the overlay keeps its server-rendered content. Without an `href:` the item renders as a real `<button>` (an `<a>` with no href is not even focusable); the same `modal: { id:, local: true }` sugar lands on `Bali::Link::Component` (riding on the href as fallback navigation) and on `Bali::Button::Component` (local mode only — a button has no href to fetch). The `id:` is mandatory in local mode and the components raise without it: an open event naming no overlay is a broadcast, and a broadcast opens every shared overlay on the page (#854).
+  - `Bali::Modal::Component` now takes `shared: false` (requires an explicit `id:`), mirroring the drawer's keyword: the dialog renders its own controller instance and answers only open events that name it — under the page-level controller the `template` target is whichever dialog comes first in the DOM, so an addressed open was compared against the wrong id and dropped.
+  - `Bali::Link`'s `modal: { id: }` / `drawer: { id: }` (without `local:`) now emits `data-modal-id` / `data-drawer-id` for the addressed *remote* open — the attribute the controller always read but every call site had to write by hand.
+  - Docs: item-shape table in `components.md`, "Opening an overlay by name, and the local mode" in `docs/guides/overlays-and-the-top-layer.md`, `local_overlays` Lookbook preview (with a decoy modal so the #854 regression stays measurable) and a Cypress spec asserting only the named dialog enters the top layer.
+- **`Bali::Topbar::UserMenu` — the prefabricated user dropdown** (#713). A preset of
+  `Bali::Dropdown` (the ActionsDropdown move), so keyboard navigation, Escape,
+  `aria-expanded` and `popover:` come with it — everything the hand-rolled
+  `<details class="dropdown">` menus in the apps never had. Trigger: `Bali::Avatar` with
+  `name:` (photo via `avatar_url:`, or derived initials with a deterministic colour, #712),
+  the name hidden on mobile, and a chevron. Panel: a non-actionable name/email header
+  (`Dropdown::Title`), the host's `with_item`s, then sign-out. `sign_out:` has **no default
+  route** — the item only renders when the call site passes `sign_out: { href: ... }`, so
+  the gem stays uncoupled from bali-auth; `method:` defaults to `:delete` and submits a
+  real form (`button_to`) that cannot degrade to a GET without JavaScript, with the
+  delete-confirm dialog off (pass `confirm:` to opt in). New `bali_view.topbar.user_menu.*`
+  locales (en/es).
+- **`Bali::Topbar::IconAction` — one icon button for the Topbar's `with_action` slot**
+  (#713). The notification bell packaged: a `<button>` (or `<a>` with `href:`) that
+  requires an accessible `label:`, with an optional badge — `badge: true` draws the dot, a
+  number draws a count pill (`Bali::Tag`), and `badge_id:` names the indicator `<span>` so
+  the host can `turbo_stream.replace` it (with `badge_id:` alone the span renders empty
+  and hidden, ready for a stream to light up). The component brings no polling and no
+  channel — only the target. The Topbar/AppLayout previews and the dummy admin topbar now
+  compose both components instead of hand-rolling the markup.
+- **FormBuilder: `error:` option — external errors per field** (#723). Every field group now
+  accepts `error:` (String, Array, or nil/false for "nothing"), carrying a message that never
+  lived in `object.errors` — a rodauth view rendering `form_with url:` with no object, or any
+  non-ActiveModel validator. The explicit error rides the exact plumbing model errors already
+  use: the `.text-error` message paragraph, the `aria-invalid`/`aria-describedby` pair, and the
+  family's `*-error` class on the control. When the model also has errors on the field the two
+  sources join rather than replace, explicit first. On the two-hash families (`select_*`,
+  `slim_select_*`, `time_zone_select_*`, `radio_*`) it is a group option and works from either
+  hash. A new contract test (`external_error_option_test.rb`) makes every group helper declare
+  its outcome — full dress, message only, or silent — so no family can drift out unnoticed.
+- **FormBuilder: `size:` density variants — foundation** (#723). On the text-input families,
+  `size:` with a Symbol (`:xs`/`:sm`/`:md`/`:lg`/`:xl`) now renders the daisyUI `input-*`
+  density class instead of the attribute; an Integer — or a String, which is what `size: "4"`
+  always meant — keeps meaning the HTML `size` attribute and passes through untouched, and an
+  unknown Symbol raises instead of leaking into the markup (the contract `submit_field`/
+  `submit_group` already enforced through `ButtonTaxonomy`, now asserted for both mechanisms).
+  The per-family maps (`select-*`, `textarea-*`, `file-input-*`, `range-*`) build on this
+  foundation in a follow-up PR.
+
+- **`Bali::Gantt` — phase 2: the GanttFlow React island ships in the npm package** (#705). The ~2,600-line interactive Gantt (React Flow canvas, columnar table, toolbar, minimap, footer, optimistic editing with server reconcile) migrated from afal-apps into `app/components/bali/gantt/`, decoupled from TDFlow and mounted through the react-island base (#703) — never a second Stimulus Application:
+  - **npm subpaths** `bali-view-components/gantt` (+ `gantt-entry`, `gantt-loader`), reusing the `./gantt` name removed in 3.0 with zero consumers (D13), in exact symmetry with `./block-editor`. New optional peer: `@xyflow/react >= 12`. The dedicated entry emits the island's CSS (React Flow's stylesheet plus `flow.css`); the main bundle stays React-free.
+  - **Parametrized against the phase-1 contract**: the island consumes `{ window (optional, derived when absent), groups[], items[], dependencies[], critical_ids[] }` — the renames (`stages→groups`, `tasks→items`, `title→name`, `parent_*→parent_id`) live in the host serializer (D19). `catalogs:` (`{ statuses: [{value,label,color}], priorities: [{value,label,hue}] }`, D11) replaces the hardcoded TDFlow status/priority constants; the flat `i18n` prop served from `bali_view.gantt.island.*` via `Bali::Gantt::Translations.island` (D12) replaces ~43 hardcoded Spanish strings, with English defaults in the bundle; the zoom persists under a namespaced `gantt_zoom` param, configurable via `zoomParam` (D14); `editable`/`manageable` gate moving/resizing vs. rewriting dependency topology.
+  - **`milestone:` items render as diamonds** in the island (D6 parity with `:static`) and **critical dependency edges are now visibly critical**: the `.critical` className the model always emitted gained its one CSS rule — `stroke: var(--color-error)` (D10; it was dead code in afal-apps).
+  - **Full editing in the dummy** (D15/D17): `Admin::Projects::SchedulesController`/`DependenciesController` are the executable reference of the mutation contract (PATCH item / POST-DELETE dependency → always the complete document; 422 `{errors}` → rollback; 404 → re-GET), backed by `TaskDependency` (cycle/self-link validation) and a naive longest-chain critical path in `ProjectGantt`. The Lookbook previews `bali/gantt/island` (editable, seeded project) and `island_readonly` (toy data) exercise the island end-to-end; `/admin/projects/:id?view=timeline` keeps the `:static` render and is fully wired for phase 3 (#719) to flip `mode: :interactive`. Cypress covers mount-on-host-Stimulus, the namespaced zoom, collapse, color-by, critical edges, milestones and the drag → PATCH → reconcile loop.
+- **`Bali::Gantt` — phase 1: the shared data contract and the server-rendered `:static` mode** (#704). One component, two renderers; this phase ships the foundation the React island (phases 2-3, #705/#719) will plug into:
+  - `Bali::Gantt::Data` parses and validates the frozen contract — `{ window, groups[], items[], dependencies[], critical_ids[] }` with two-level group/item nesting (`parent_id`), ISO8601 dates, and the optional fields the real island already consumes: `assignee`, `percent_complete`, `slack_days`, `priority`, plus `milestone:` (rendered as a diamond) and `href`. Single-date items draw as minimum-width bars, inverted ranges clamp to their start, and structural errors raise instead of silently dropping bars. A frozen sample of `TDFlow::GanttSerializer` output validates the rename mapping (`test/fixtures/gantt/`).
+  - `Bali::Gantt::TimeScale` — one day-based coordinate system shared with the future island (`px_per_day` 24/8/2 for day/week/month, exactly `ZoomControls.jsx`), `:auto` density picked from the window span, minimum bar width, inclusive ends, clipped calendar ticks/bands and the today marker.
+  - `Bali::Gantt::Colors` — the exact `color-mix`/oklch formulas of the island's `ganttColors.js` (verbatim-asserted in tests) so both renderers are visually identical; default status map plus support for host status catalogs.
+  - `Bali::Gantt::Component` `mode: :static` — sticky two-tier header, collapsible `<details>` groups (with their own rollup bars), today line, grid, `color_by: :status/:none`, zoom by links on a namespaced `gantt_zoom` param, `group_label:`, an announced `limit:` cap (never silent) and a "No dates" section. This closes the `color_by:` promise made to #667. `mode: :interactive` is part of the signature already and raises with a clear message until phase 3.
+  - Structural `--gantt-*` tokens in `@layer components`, `bali_view.gantt.*` locales (en/es), Lookbook previews, and a full dummy reference: `/admin/projects/:id?view=timeline` renders the timeline from seeded schedule data through `ProjectGantt`, a host-side reference implementation of the contract.
+- **`Bali::Timeline` learns the tracking look: `compact:`, `state:`, `timestamp:` and a clickable box** (#714). What three apps hand-rolled with raw daisyUI timelines (custody chains, itineraries, patrol logs) is now the component:
+  - `compact: true` on the container adds daisyUI's `timeline-compact`: one column, every content box on the end side (`position:` no longer alternates there).
+  - `with_item(state: :done | :current | :pending)` is sugar over `icon:`/`color:`: `:done` renders a `circle-check` primary marker, `:current` a `circle-dot` primary marker, and `:pending` the plain circle with a muted heading. Explicit `icon:`/`color:` win (`state: :done, color: :success` for the green check); an unknown state raises with the valid names.
+  - `timestamp:` (a string, or anything `l`-localizable) renders muted on the free side of the line — or as a line inside the box when compact, the custody-chain layout. A `with_timestamp` slot replaces the keyword when the metadata needs markup (`<time>`, a tooltip).
+  - `href:` renders the content box as an `<a>` with hover feedback, same tag decision as `Bali::Tag`.
+  - The "tracking" preset (event + date + author) is documented in the component guide and has its own Lookbook preview.
+
+### Changed
+
+- `Bali::Timeline`: the line below an item now takes the colour of the item that *follows* it, so a coloured line reads as "travelled this far" — the exact look the hand-rolled tracking timelines draw. Only timelines whose consecutive items mix different explicit colours render differently (the boundary used to be half each colour); uniform and default-coloured timelines are untouched. The line below the last item keeps its own colour. (#714)
+- `Bali::Timeline::Item` extra options now land on the content box as HTML attributes. They were documented as forwarded but silently dropped, so no existing markup changes — `data: { action: ... }` on an item simply starts working, which is what makes the box clickable without an `href:`. (#714)
+
+### Changed
+
+- **Five icon names stop being shadowed and now draw their real Lucide glyph** (#902). `trash`, `cog`, `expand`, `indent` and `outdent` were `LucideMapping` keys redirecting to a different drawing (`trash-2`, `settings`, `maximize`, `indent-increase`, `indent-decrease`), which made the glyph lucide.dev shows for those names unreachable — silently. The entries are removed; each name keeps resolving through the direct-Lucide step. Write the old target name to keep the previous drawing — the before/after table is in the [v3 → v3.1 migration guide](docs/guides/migration-v3-to-v31.md) (and, because it reaches v1/v2 hosts on their jump, in the [v2 → v3 guide](docs/guides/migration-v2-to-v3.md)). Measured across all pinned v3 hosts: zero call sites of the five. Related, in the same change:
+  - `check-circle => circle-check`, `edit => pencil` and `plus-circle => circle-plus` stay mapped as documented exceptions — their "honest" spellings are deprecated Lucide aliases (a legacy glyph, and a name whose real rename is `square-pen`), so removal would make drawings worse, not truer. The shadowing test freezes the surviving set and pins the removed names to the direct-Lucide step.
+  - The 60 identity entries (`"check" => "check"`, …) are gone — verified no-op, the direct-Lucide step resolves every one of them identically. "Did you mean" suggestions now draw from the full Lucide set instead of the mapping's keys, so `arrow_left` still suggests `arrow-left` (and any Lucide name typo gets suggestions, which it previously did not).
+  - `Bali::DeleteLink`'s default icon is now spelled `trash-2` internally — same drawing as always.
+
+### Changed
+
+- **Announced (v3.1 block): a Card given `href:` changes its root element, and `DashboardPage::Stat` grows from five members to six** (#729). Opt-in per call site — without `href:` the markup is byte-identical — but adopting it breaks host test selectors that assert `div.card` or the old `a > div.card` wrapper shape, and positional construction of the `Stat` Data class outside Bali now raises. See [the v3.0 → v3.1 migration guide](docs/guides/migration-v3-to-v31.md#card-root-becomes-an-a-when-given-href-729).
+
+### Changed
+
+- **Dropdown/ActionsDropdown items with `method: :post/:patch/:put` are now real `button_to` forms** (#641 — announced change, see `docs/guides/migration-v3-to-v31.md`). They rendered `<a data-turbo-method>`, which degrades to a GET *navigation* without Turbo and announces as a link while mutating state; they now render `<form class="contents" method="post">` + `<button type="submit">` styled as the item — the exact shape the `:delete` item has had since #829, form out of the box tree, `_method` override for `:patch`/`:put`, `data:` still landing on the button. Measured blast radius: 6 call sites across all consuming apps (1 in afal-apps on v3 today, 5 in a v2-locked host), behaviour identical for all of them. Plain `Bali::Link` with `method:` outside a dropdown keeps `data-turbo-method`.
+- **`Bali::Kanban` learns the board-level anatomy real boards use** (#643). The API is deliberately board-level — the reference boards in afal-apps proved the height and the scroll live on the board, not on each column:
+  - `layout:` on the board — `:grid` (default, unchanged: caps at 4 columns) or `:flow`, a single horizontally scrolling row with `w-72` columns, which is what a 5+ column board needs.
+  - `height:` on the board (opt-in, default `nil`) — `:viewport` caps the board to `calc(100vh - var(--bali-kanban-offset, 17rem))` (override the CSS variable to match the host's header chrome) and any string is taken as a height utility class. On a bounded board each column's card list scrolls internally; there is no separate `scrollable:` knob and no per-column `max_height:`.
+  - Columns are now `flex flex-col min-h-0` with the card list as `flex-1 overflow-y-auto`, so the list (not the page) is what scrolls and the whole body of a column is a drop target.
+  - **Empty columns keep a visible drop area**: a 100px floor with a dashed border, driven by CSS `:has()` in the new `kanban/index.css` (`@layer components`) rather than a render-time `cards.empty?` flag — it appears live when the last card is dragged out and yields to SortableJS's ghost while a drag hovers.
+  - `with_column` accepts `disabled: true`, forwarded to the underlying SortableList (the option existed there but the column never passed it through).
+  - The Kanban section of `docs/guides/components.md` gained a "Wiring the drop PATCH" guide with the Rails side of the contract: member route, 1-based `resource[position]` + `list_param_name` params, and when to answer with `:html` vs `:turbo_stream`.
+  - New Lookbook preview `kanban/scrollable_board` (flow layout, viewport height, an empty column, a disabled column) and a Cypress spec covering per-column scroll, the live empty-column affordance and the PATCH payload.
+- **The AFAL brand theme ships in the gem: `css/themes/afal.css`** (#718). Canonical copy
+  of the `[data-theme="afal"]` block that gobierno-corporativo, afal-apps, identity and
+  opina carried byte-identically in their own CSS — same plain unlayered `[data-theme]`
+  format as `costa-norte.css`, importable via
+  `@import "bali-view-components/css/themes/afal.css"` with no `package.json` change (the
+  `./css/themes/*.css` export wildcard already covered it). Hosts should delete their
+  local block in the same commit that adds the import — see the
+  [v3 → v3.1 migration guide](docs/guides/migration-v3-to-v31.md). Note for adopters:
+  from now on a color change in this file propagates to every host on its next bump;
+  such changes will always be announced as a visual change in this file.
+- **A `css/themes/afal-dark.css` DRAFT** (#718). All four AFAL hosts have long declared
+  `afal-dark` in their daisyUI plugin config without any definition existing anywhere;
+  this is the first actual design — derived from the light theme (same gray ramp
+  inverted, brand hues lifted one Tailwind step with `-950` content pairs, status colors
+  unchanged, every pair measured >= 4.5:1 WCAG AA). **Experimental**: no app activates it
+  and tokens may change before it is announced stable. Preview both themes in Lookbook
+  under *Theme Sampler* (new `afal` and `afal_dark` previews with their own layouts).
+- **Custom themes guide covers AFAL** (`docs/guides/custom-themes.md`): the adoption
+  path, the phantom `themes: afal --default, afal-dark` plugin note, and the
+  `@custom-variant dark` extension `afal-dark` needs for `dark:` utilities to fire.
+- **Theme regression tests**: every file in `app/assets/stylesheets/bali/themes/` is
+  asserted complete (the 26 required variables plus `color-scheme` and the
+  `[data-theme]` selector matching its filename), and the ThemeSampler previews get a
+  request test so a broken theme preview fails the build.
+
+### Fixed
+
+- **`docs/guides/installation.md` documented an incomplete `@source` glob** (#718): it
+  scanned `*.{rb,erb}` but not `.js`, and some Tailwind classes are written from
+  JavaScript (`modal/index.js` swaps a drawer's submit button for
+  `loading loading-spinner loading-sm`), so the spinner rendered unstyled in apps that
+  copied the documented glob. The canonical glob is now `*.{rb,erb,js}`, and the guide
+  also documents the optional vendor/bundle glob that only matches on CI with a vendored
+  bundle (and why a non-matching `@source` is harmless).
+
+## [v3.1.0.beta.1] - 2026-08-05
+
+### Added
+
+- **Troubleshooting entry for the BlockNote <= 0.52.1 render loop (#908).** The BlockEditor guide (`docs/api/block-editor.md`) now documents the `Maximum update depth exceeded` console error: it appears while typing (or when closing a drawer/modal holding the editor) when a browser extension that rewrites the page's DOM (Dark Reader, Grammarly, page translators) is active, because BlockNote <= 0.52.1 node views do not ignore non-content mutations (TypeCellOS/BlockNote#2818, fixed upstream by #2912 — merged but not yet released). No data is lost; the `@blocknote/*` bump lands separately once upstream publishes a release containing the fix.
+- **Stimulus utility controllers catalog.** New guide `docs/guides/controllers.md`
+  (mirrored as a Lookbook guide page) documenting all 24 standalone controllers in
+  `app/assets/javascripts/bali/controllers/` — Stimulus identifier, what each does, and a
+  minimal markup example per controller — plus a "Do you have a local copy?" section
+  listing the known per-app copies to delete or review, referenced from the migration
+  guide. `docs/guides/javascript-integration.md` now links to the catalog instead of
+  keeping its own partial table (it listed 12 of the 24, and still offered the deprecated
+  `NotificationController`), and `scripts/check-controller-manifest.mjs` gained a fifth
+  check: the build fails if a registered utility identifier is missing from the catalog
+  or its Lookbook mirror. (#717)
+
+### Changed
+
+- Deleted the 15 stale `// TODO: Add tests (Issue: #NNN)` comments from the utility
+  controllers — all 15 referenced issues (#136–#144, #154–#157, #225, #253) are closed on
+  GitHub, so the comments only misled readers into thinking the work was still tracked.
+  Two stale header comments were corrected along the way: `radio-buttons-group`'s example
+  used a `radio-buttons-grouped` identifier that never connects, and `radio-toggle`'s used
+  `data-toggle-radio-current-value` instead of `data-radio-toggle-current-value`. (#717)
+### Added
+
+- **New migration guide skeleton: `docs/guides/migration-v3-to-v31.md`.** Migration notes
+  for the 3.1 line live in a new per-release document instead of growing the v2 → v3 guide.
+  The skeleton states the upgrade policy — five announced markup/behaviour changes admitted
+  as a block (#903, #641, #722, #729, #902) — and reserves one section per change; each
+  section's details land with its PR. (Editor's note: #903 was later deferred to v4 and
+  never landed in 3.1; four of the five shipped.)
+- **`Bali::Tabs` tabs take a `count:` badge.** `with_tab(count: 12)` renders a `badge badge-sm` after the title, in both modes — navigation tabs (the scopes pattern: Mine / Team, statuses, the inbox counter case) and panel tabs. `nil` renders nothing; `0` renders, because an empty scope is information. A string works too (`"99+"`). The badge is not `aria-hidden`: the number belongs in the link's accessible name ("Mine 12"). (#722)
+- **Navigation-mode tab links emit `data-turbo-action="advance"` by default.** A no-op on full-page visits (advance is already Turbo's default); inside a `turbo_frame` it promotes the visit to the URL, which is what makes URL-driven scope tabs addressable and back-button friendly. `turbo_action: false` omits the attribute; another symbol (e.g. `:replace`) passes through. Ignored in panel mode. (#722)
+
+### Changed
+
+- **`Bali::Tabs` navigation mode: the tab's `**options` now land on the `<a>`.** They used to be merged into the attributes of a panel `<div>` that navigation mode never renders, so they silently vanished — there was no way to put a `data:` attribute on a tab link. `class` composes with the tab classes instead of replacing them. Only a call site that passed options to an `href:` tab *and* relied on them being ignored changes behaviour; none exists among the pinned hosts. One of the announced v3.1 changes — see [the migration guide](docs/guides/migration-v3-to-v31.md). (#722)
+### Added
+
+- **Avatar derives initials and a deterministic color from `name:`.** `Bali::Avatar::Component.new(name: 'Ana García López')` now renders an initials placeholder — first letter of the first and the last word ("AL", unicode-aware upcase; one word yields one letter) — over a background hashed from the name into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style: the same person gets the same color on every render, process and DaisyUI theme. The hash is the new `Bali::Utils::ColorCalculator#deterministic_color(seed)` (`Zlib.crc32`, not the per-process-randomized `String#hash`); collisions between names are expected and fine. `initials:` overrides the derivation, and images keep winning: picture slot > `src:` > manual `placeholder` slot (which keeps its static neutral background) > `name:`/`initials:`. With `name:` present the avatar also stops being invisible to assistive tech: initials avatars get `role="img"`, `aria-label` and `title` with the full name, and image avatars use it as the `alt` (an explicit `alt:` wins). Groundwork for `Topbar::UserMenu` (#713). (#712)
+- **`Bali::DescriptionList::Component` — a set of label/value pairs in the component's own responsive grid** (#727). The middle ground between `Bali::LabelValue` (one pair the caller places) and `Bali::PropertiesTable` (one set read top to bottom as a table): `columns:` 1/2/3 with responsive collapse, `layout:` `:stacked` (default) or `:horizontal` (term and value side by side inside each cell), and `with_item(label:, value:)` accepting block content for rich values such as a `Bali::Tag`. Markup is one `<dl>` of `<div><dt/><dd/></div>` cells, and `dt`/`dd` reuse LabelValue's typography so the three options read as one family; the guide now carries the three-way comparison under DescriptionList.
+### Fixed
+
+- **SimpleFilters lost the listing URL's own query params on every submit.** A GET submit replaces the action's query string with the form's fields, so a host passing `url:` with params of its own (a scope such as `status=historico`) saw them silently dropped each time the simple form was applied — the "Clear" link preserved them (beta.6), the submit did not. The form now re-emits the non-filter query params of its `url:` as hidden fields with the exact semantics `Bali::Filters::Component` always had: `q`, `clear_filters`, `clear_search` and `saved_view` stay out, and on a key collision the explicit `preserved_params:` hash wins, so a host already passing the param by hand does not emit it twice. (Refs #725)
+
+### Changed
+
+- **Filters/SimpleFilters internal dedup — no rendered-output change for the full panel.** The preserved-params semantics above now live in one shared `Bali::Filters::PreservedParams` module; the `storage_id`/`persist_enabled?`/`persistence_toggle?` persistence trio both components copied is now the `Bali::Filters::Persistable` concern; and the AND/OR combinator divider the panel template carried twice (popover and inline branches) is the `Bali::Filters::CombinatorDivider::Component` subcomponent. (Refs #725)
+### Added
+
+- **`react-island`: the official React-island infrastructure** (#703). The block editor's mounting mechanics, extracted into a reusable module so new islands (the upcoming Gantt) do not re-implement them. One npm subpath, `bali-view-components/react-island`, exports `ReactIslandController` (a Stimulus base class: subclass and implement `loadComponent()`; the base handles `createRoot`, values→props, a built-in React ErrorBoundary, Turbo cache exclusion and unmount on disconnect), `registerIsland(name, Controller)` (the whole body of an island's bundler entry — registers on `window.Stimulus`, idempotently, never a second Application) and `startIslandLoader(name)` (main-bundle lazy loader driven by `<meta>` tags). The new `react_island_meta_tags(name, js:, css: nil)` helper publishes the digested bundle paths those metas carry; `block_editor_meta_tags` is now its block-editor spelling (same output, not deprecated). Errors from both phases (load and render) funnel through the configurable `ReactIslandController.onError` static hook, so a host plugs Sentry in once for every island without the gem depending on any tracker. Guide with the full wiring and the extraction criteria: `docs/api/react-island.md`; working toy island in the dummy app with Lookbook previews (`bali/react_island/*`) and a Cypress contract spec. `BlockEditorController` itself migrates to the base in a follow-up PR.
+- **`Bali.engine_controller_concerns` — the official way for a host to teach its context to the engine's controllers.** `isolate_namespace` means `Bali::ApplicationController` inherits from `ActionController::Base`, not from the host's `ApplicationController`, so `current_user` and friends never existed inside the engine — every host worked around it by monkey-patching `Bali::SavedViewsController` from a `to_prepare` initializer, once per controller, once per app. Every module in the new array is now included into `Bali::ApplicationController` (and therefore into every engine controller at once) on each `to_prepare`, idempotently and surviving code reloads. The concern must stay passive — identity, not access: the gate remains the `Bali.*_authorize` lambdas. The new [Engines guide](docs/guides/engines.md) documents the `isolate_namespace` gotcha in one place, the authorize-lambdas doctrine, and the bali-auth recipe (`include BaliAuth::Authentication` + `allow_unauthenticated_access`). (#710)
+- **`Bali::BlockNote::Text`, `Bali::BlockNote::Diff` and `Bali::BlockNote::Chunker` — pure-Ruby BlockNote content libs** (#708, PR 1 of 2). Ported from gobierno-corporativo's `Document::BlockNoteText` / `Document::ContentDiff` / `Document::Chunker` and generalized under the engine so every host shares one walker for BlockNote JSON:
+  - `Text` extracts plain text from BlockNote block structures — inline `text` and `entityReference` nodes, table blocks in both the legacy `tableRow` and current `tableContent` shapes, nested children — and `Text.normalize` accepts Array/Hash/JSON-string content, unwrapping legacy v1 `blockGroup`/`blockContainer` layers.
+  - `Diff` compares two contents at section level (`changed_sections` / `summary`, grouped by heading with an id-stripped structural fingerprint) and at block level (`annotated_blocks` marks each block `added`/`removed`/`modified`/`unchanged` by BlockNote UUID; modified blocks carry `_diff_spans` from a word-level LCS diff). Removed blocks and sections appear inline at their original position.
+  - `Chunker` splits a document into heading-delimited chunks for search indexing / RAG (target 1600 chars, 300-char overlap, ~4 chars/token estimate). Embeddings and vector storage stay host-side on purpose — no pgvector in the engine.
+
+  The libs live in `app/lib/` (autoloaded, no new eager-load path) and are deliberately free of ActiveSupport core extensions: they load and run under plain Ruby. New runtime dependency: `diff-lcs` (~> 1.5, MIT, no transitive deps) for the word-level spans. Entity-reference extraction, registry and controller arrive in PR 2.
+- **Cypress coverage for `dynamic-fields-controller`** (#715 PR1, closes the TODO from #155).
+  `cypress/e2e/dynamic-fields-controller.cy.js` freezes the controller's current JS contract
+  before the #715 feature work touches it: `addFields` clones the `<template>` replacing the
+  `new_record` placeholder with a numeric child index, `removeFields` hides the row (it stays
+  in the DOM), sets `.destroy-flag` to `true` and strips the non-hidden form elements while
+  keeping the hidden ones, `moveUp`/`moveDown` swap rows and renumber every `[data-position]`
+  input (and are no-ops at the edges), and the `remove-duplicates` mode drops already-selected
+  options from the cloned template and disables the add button at maximum size — on `connect()`
+  too — re-enabling it when a row is removed. Two new Lookbook previews back the parts the Ruby
+  helper does not emit yet (`sortable`, `remove_duplicates`), wired by hand the way host apps
+  do today; the add/remove specs run against the existing `default`/`empty` previews.
+
+### Dependencies
+
+- Updated daisyUI to 5.7.16 in the dummy app. The package's peer range (`>=5.7.0`) is unchanged.
+
 ## [v3.0.0] - 2026-08-05
 
 **v3 goes stable.** Same code as `v3.0.0.beta.6` — this release promotes the beta line to

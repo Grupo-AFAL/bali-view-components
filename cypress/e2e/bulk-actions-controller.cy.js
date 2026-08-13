@@ -68,6 +68,89 @@ describe('BulkActionsController', () => {
     cy.get(bar).should('have.class', 'hidden')
   })
 
+  // El modo "actuar sobre los N filtrados": la barra lo ofrece solo cuando la selección ya
+  // cubre la página entera y hay más resultados detrás.
+  describe('select all filtered', () => {
+    const offer = '[data-bulk-actions-target="selectAllOffer"]'
+    const notice = '[data-bulk-actions-target="selectAllNotice"]'
+    const flag = 'input[name="select_all_filtered"]'
+
+    it('offers the whole result only once the page is fully selected', () => {
+      cy.get(rows).first().find('input[type="checkbox"]').check()
+      cy.get(offer).should('not.be.visible')
+
+      cy.get(selectAll).check()
+      cy.get(offer).should('be.visible')
+      cy.get(notice).should('not.be.visible')
+      // N es el total del listado, no el de la página.
+      cy.get(rows).then(($rows) => {
+        cy.get(offer).invoke('attr', 'data-total-count').then((total) => {
+          expect(Number(total)).to.be.greaterThan($rows.length)
+          cy.get(`${offer} button`).should('contain.text', total)
+        })
+      })
+    })
+
+    it('switches every action form to the whole result and empties the ids', () => {
+      cy.get(selectAll).check()
+      cy.get(`${offer} button`).click()
+
+      cy.get(offer).should('not.be.visible')
+      cy.get(notice).should('be.visible')
+      cy.get(offer).invoke('attr', 'data-total-count').then((total) => {
+        cy.get(counter).should('have.text', total)
+      })
+
+      cy.get(`${bar} ${flag}`).should('have.length.greaterThan', 1)
+      cy.get(`${bar} ${flag}`).each(($input) => expect($input.val()).to.eq('true'))
+      // Los ids salen VACÍOS: el servidor re-deriva el scope de los filtros del mismo POST.
+      cy.get(`${bar} input[name="selected_ids"]`).each(($input) => {
+        expect(JSON.parse($input.val())).to.have.length(0)
+      })
+    })
+
+    // El cambio de modo no mueve el foco: si la live region solo dice el número, el usuario
+    // de lector de pantalla oye "20 seleccionados" sin nada que le diga que la selección ya
+    // no es la página que está mirando.
+    it('announces the mode change, not just the new number', () => {
+      const announcement = '[data-bulk-actions-target="announcement"]'
+
+      cy.get(selectAll).check()
+      cy.get(announcement).should('contain.text', 'selected')
+
+      cy.get(`${offer} button`).click()
+      cy.get(notice).invoke('text').then((noticeText) => {
+        cy.get(announcement).should('have.text', noticeText.trim())
+      })
+    })
+
+    it('leaves the mode when a row is unchecked, without disabling anything', () => {
+      cy.get(selectAll).check()
+      cy.get(`${offer} button`).click()
+      cy.get(notice).should('be.visible')
+
+      cy.get(rows).first().find('input[type="checkbox"]').should('not.be.disabled').uncheck()
+
+      cy.get(notice).should('not.be.visible')
+      cy.get(offer).should('not.be.visible')
+      cy.get(`${bar} ${flag}`).each(($input) => expect($input.val()).to.eq('false'))
+      cy.get(rows).then(($rows) => {
+        cy.get(counter).should('have.text', String($rows.length - 1))
+      })
+    })
+
+    it('leaves the mode when the selection is cleared', () => {
+      cy.get(selectAll).check()
+      cy.get(`${offer} button`).click()
+
+      cy.get(`${bar} button[data-action="bulk-actions#clear"]`).click()
+
+      cy.get(counter).should('have.text', '0')
+      cy.get(bar).should('have.class', 'hidden')
+      cy.get(toolbar).should('not.have.class', 'hidden')
+    })
+  })
+
   it('selects a row on double click and keeps its checkbox in sync', () => {
     cy.get(rows).first().find('td').eq(1).dblclick()
     cy.get(counter).should('have.text', '1')

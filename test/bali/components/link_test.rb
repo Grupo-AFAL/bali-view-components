@@ -247,4 +247,45 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "New", href: "#", icon: "plus"))
     assert_no_selector("a.max-sm\\:btn-square")
   end
+
+  # `modal: { id:, local: true }` opens a modal already rendered on the page — the action
+  # switches from `modal#open` (fetch the href) to `modal#openLocal` (dispatch by name).
+  def test_modal_local_switches_the_action_and_names_the_overlay
+    render_inline(Bali::Link::Component.new(name: "Edit health", href: "/health/edit",
+                                            modal: { id: "health-modal", local: true }))
+
+    assert_selector("a[data-action~='modal#openLocal'][data-modal-id='health-modal']" \
+                    "[data-turbo='false']", text: "Edit health")
+    assert_no_selector("a[data-action~='modal#open']")
+  end
+
+  # Without `local:`, `id:` addresses the modal the fetched content opens into — the
+  # `data-modal-id` the controller already read; it just had to be written by hand before.
+  def test_modal_remote_with_id_addresses_the_overlay_it_fetches_into
+    render_inline(Bali::Link::Component.new(name: "New", href: "/new",
+                                            modal: { id: "side-modal" }))
+
+    assert_selector("a[data-action~='modal#open'][data-modal-id='side-modal']")
+    assert_no_selector("a[data-action~='modal#openLocal']")
+  end
+
+  # A local open without an id would broadcast to every modal on the page (#854).
+  def test_modal_local_without_id_raises
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "x", href: "/x", modal: { local: true })
+    end
+
+    assert_match(/requires an `id:`/, error.message)
+  end
+
+  def test_drawer_local_mirrors_the_modal_contract
+    render_inline(Bali::Link::Component.new(name: "Notes", href: "/notes",
+                                            drawer: { id: "notes-drawer", local: true }))
+
+    assert_selector("a[data-action~='drawer#openLocal'][data-drawer-id='notes-drawer']")
+
+    assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "x", href: "/x", drawer: { local: true })
+    end
+  end
 end

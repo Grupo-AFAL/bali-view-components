@@ -26,7 +26,7 @@ yarn add shiki
 
 You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.52.1`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.53.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 
@@ -151,13 +151,14 @@ This is the setup the lazy path replaces: everything travels in `application.js`
 
 Four optional features are built on **BlockNote XL** packages, licensed `GPL-3.0 OR PROPRIETARY`.
 
-### Licence facts as of `@blocknote/*` 0.52.1
+### Licence facts as of `@blocknote/*` 0.53.0
 
-Measured on the versions this repository installs. Re-check with
+Measured on the versions this repository installs (the 0.52.1 column re-checked at 0.53.0:
+all seven `license` fields are identical). Re-check with
 `npm view @blocknote/<pkg>@<version> license`, and for what ships in the published gem/npm
 package, the `files` array in the repository root `package.json`.
 
-| Package | `license` field at 0.52.1 | `license` field at 0.46.2 | Reached from |
+| Package | `license` field at 0.52.1–0.53.0 | `license` field at 0.46.2 | Reached from |
 |---|---|---|---|
 | `@blocknote/core` | `MPL-2.0` | `MPL-2.0` | static import, always |
 | `@blocknote/react` | `MPL-2.0` | `MPL-2.0` | static import, always |
@@ -603,7 +604,14 @@ Entity references let users type `#` to reference domain objects like tasks, pro
 
 ### Setup
 
-Entity references require two endpoints:
+Entity references require two endpoints. **The engine ships both** — declare your
+referenceable types once in `Bali.entity_reference_types` and point the editor at
+`bali.entity_references_path` / `bali.resolve_entity_references_path`. That registry also
+feeds `references_config`, so the chips get their icon, label and color without a second
+declaration. See the entity references section of `docs/guides/engines.md`.
+
+The rest of this section documents the wire contract, which is what you implement yourself
+if you don't mount the engine:
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
@@ -780,7 +788,8 @@ Comments are configured through a single `comments:` **Hash**:
 | `user` | `Hash` | Current user authoring comments: `{ id:, username:, avatar_url: }`. `id` and `username` are required, `avatar_url` optional |
 | `users` | `Array` | Static user list for resolution: `[{ id:, username:, avatar_url: }, ...]` |
 | `users_url` | `String` | Remote endpoint for user resolution |
-| `url` | `String` | REST API base URL for persistent thread storage (in-memory when omitted) |
+| `url` | `String` or `:auto` | REST API base URL for persistent thread storage (in-memory when omitted). `:auto` points at the engine's own endpoints and requires `commentable:` |
+| `commentable` | Active Record | The host record the threads belong to. Only read when `url: :auto` |
 
 > **Comments are on only when `comments:` is a non-empty Hash.** `comments: true` and `comments: {}` both leave them off, silently -- a truthy non-Hash is not a configuration. There is no separate `comments_user:` / `comments_url:` / `comments_users:` / `comments_users_url:` argument: passing those at the top level does not configure anything, they fall through to `**options` and end up as HTML attributes on the wrapper `div`.
 
@@ -849,7 +858,35 @@ end
 
 When `comments[:url]` is not provided, comments are stored **in-memory** -- they exist only for the duration of the editor session and are lost on page reload. This is suitable for previews, demos, and single-session review workflows.
 
-#### REST Persistence
+#### The engine's own storage (`url: :auto`)
+
+Since v3.1 the engine ships the storage itself -- three tables, three controllers and the
+nine endpoints below. Point the editor at them with `:auto` plus the record the threads
+belong to:
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    url: :auto,
+    commentable: @document,
+    user: { id: current_user.id.to_s, username: current_user.name },
+    users_url: users_path
+  }
+) %>
+```
+
+It resolves to `bali.block_editor_threads_path(commentable_type:, commentable_id:)` for that
+record; `RESTThreadStore` keeps the query string on all nine sub-requests, so the scope
+travels for free. Passing `:auto` without a `commentable:` raises -- there is no unscoped
+thread list.
+
+Installing the migration and configuring who may comment on what
+(`Bali.block_editor_commentables`, `Bali.block_editor_comments_user`,
+`Bali.block_editor_comments_authorize`) is covered in
+[docs/guides/engines.md](../guides/engines.md), together with the permission matrix and the
+migration path for apps that already had their own tables.
+
+#### REST Persistence (your own endpoints)
 
 Pass `comments[:url]` to persist comments to a database via REST API:
 
@@ -1119,14 +1156,16 @@ The `submit` event is what triggers the flush, so a form sent through the legacy
 
 ### Version compatibility
 
-The peer range is `@blocknote/* >= 0.52.1`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `spec/dummy` pins 0.52.1 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
+The peer range is `@blocknote/* >= 0.53.0`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `spec/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
 
 The lower bound is not cosmetic:
+
+- **0.53** is the first release carrying [TypeCellOS/BlockNote#2912](https://github.com/TypeCellOS/BlockNote/pull/2912): on `<= 0.52.1`, a browser extension that rewrites the editor's DOM (Dark Reader, Grammarly, page translators) sends the side menus into a re-render loop -- `Maximum update depth exceeded` in the console, a frozen tab in the worst case (#908). The wrapper cannot fix that from outside; the floor moving past it is the fix.
 
 - **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions. The submit flush depends on this directly: it has to write the hidden input *during* the `submit` event, and it cannot await anything there.
 - **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. On 0.52.1 a cell containing `A|B` survives a Markdown round-trip -- `blocksToMarkdownLossy` emits `A\|B` and the table keeps its three columns.
 
-**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.52-only API, so an app on 0.51.x will most likely keep working -- but it is outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
+**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.53-only API, so an app on 0.52.x will most likely keep working -- but it carries the render-loop bug the floor exists to exclude, sits outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
 
 ### File Structure
 
@@ -1187,8 +1226,9 @@ The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/r
 | Console: `Failed to load AI modules` / `PDF export failed` | The XL packages for that feature are not installed | Install them deliberately -- read [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in) first |
 | Content saved is one edit behind | The form was submitted through `form.submit()`, which fires no `submit` event, so the flush never ran | Use `form.requestSubmit()` or a normal Turbo/Rails submit |
 | Comments never appear | `comments:` was given something other than a non-empty Hash | See [Comments](#comments) |
-| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.52.1`, the declared and tested range |
+| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.53.0`, the declared and tested range |
 | A menu never opens, or content silently fails to serialise, with no error | `@blocknote/*` packages installed at different versions | Pin them all to the same version -- see [Step 1](#step-1----npm-packages) |
+| Console: `Maximum update depth exceeded` while typing, or when closing a drawer/modal that holds the editor -- yet the content saves correctly | A browser extension that rewrites the editor's DOM (Dark Reader, Grammarly, page translators) feeds attribute mutations into ProseMirror's DOM observer, and in BlockNote <= 0.52.1 the node views do not ignore non-content mutations, so the side menus re-render in a loop until React cuts it off ([TypeCellOS/BlockNote#2818](https://github.com/TypeCellOS/BlockNote/issues/2818); fixed by [#2912](https://github.com/TypeCellOS/BlockNote/pull/2912), first released in 0.53.0) | No data is lost -- the hidden input is written outside React. Seeing this means the app is on `<= 0.52.1`: upgrade every `@blocknote/*` package to `>= 0.53.0` (same version, as always -- the declared floor since v3.1) |
 
 ---
 

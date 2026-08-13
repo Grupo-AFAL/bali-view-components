@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -14,6 +14,10 @@
     "./block-editor": "./app/frontend/bali/block-editor.js",
     "./block-editor-entry": "./app/frontend/bali/block-editor-entry.js",
     "./block-editor-loader": "./app/frontend/bali/block-editor-loader.js",
+    "./gantt": "./app/frontend/bali/gantt.js",
+    "./gantt-entry": "./app/frontend/bali/gantt-entry.js",
+    "./gantt-loader": "./app/frontend/bali/gantt-loader.js",
+    "./react-island": "./app/frontend/bali/react-island.js",
     "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
     "./controllers": "./app/frontend/bali/controllers/index.js",
     "./components": "./app/frontend/bali/components/index.js",
@@ -36,7 +40,7 @@
     "@babel/core": "^7.29.0",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "7.29.7",
-    "cypress": "15.18.1",
+    "cypress": "15.20.1",
     "standard": "^17.1.2"
   },
   "standard": {
@@ -61,7 +65,9 @@
       "localStorage",
       "DataTransfer",
       "MutationObserver",
-      "Node"
+      "Node",
+      "IntersectionObserver",
+      "DOMParser"
     ]
   },
   "//peerDependencies": [
@@ -73,15 +79,24 @@
     "  optional peer is listed next to the entry that reaches for it.",
     "  Root entry, per controller: @glidejs/glide (carousel), @googlemaps/markerclusterer +",
     "  @rails/activestorage (locations map, direct upload), @rails/request.js, date-fns",
-    "  (timeago), flatpickr (datepicker), lodash.debounce, lodash.throttle, rrule (recurrent",
-    "  event rule), slim-select, sortablejs (kanban, sortable list), tippy.js.",
+    "  (timeago), flatpickr (datepicker), lodash.debounce, lodash.throttle, qr-scanner",
+    "  (qr scanner), rrule (recurrent event rule), slim-select, sortablejs (kanban, sortable",
+    "  list), tippy.js.",
     "  ./charts: chart.js.",
     "  ./block-editor: @blocknote/core + /react + /mantine, @mantine/core, @mantine/hooks,",
     "    react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for syntax-highlighted",
     "    code blocks; pass syntax_highlighting: false and you can skip it.",
-    "    The @blocknote/* lower bound is 0.52.1 because that is the version spec/dummy pins and",
-    "    the one the editor was exercised against by hand. It is not an aspiration: do not widen",
-    "    it downwards without running the editor on the version you want to claim.",
+    "    The @blocknote/* lower bound is 0.53.0: the version spec/dummy pins and the one the",
+    "    editor was exercised against by hand -- and the first release carrying upstream #2912,",
+    "    the fix for the render loop (#908) that <=0.52.1 enters when a browser extension",
+    "    rewrites the editor's DOM. Do not widen it downwards without running the editor on the",
+    "    version you want to claim.",
+    "  ./react-island: none -- it only imports @hotwired/stimulus. An island SUBCLASS loads react",
+    "    and react-dom (>=18) inside loadComponent(), so they stay attributed to the island's own",
+    "    entry and optional for apps without islands (see docs/api/react-island.md).",
+    "  ./gantt (+ -entry/-loader): react, react-dom (>=18), @xyflow/react (>=12 -- supports both",
+    "    react 18 and 19), date-fns (axis labels), @rails/request.js (schedule mutations). The",
+    "    subpath name deliberately reuses the one removed in 3.0 (zero consumers, D13).",
     "  ./rich-text-editor: the @tiptap/* set plus lowlight, highlight.js. DEPRECATED in v3 and",
     "    removed in v4 -- migrate to ./block-editor.",
     "DELIBERATELY ABSENT -- @blocknote/xl-ai, xl-multi-column, xl-pdf-exporter, xl-docx-exporter",
@@ -95,9 +110,9 @@
     "@hotwired/stimulus": ">=3.2.0",
     "@hotwired/turbo-rails": ">=8.0.0",
     "daisyui": ">=5.7.0",
-    "@blocknote/core": ">=0.52.1",
-    "@blocknote/mantine": ">=0.52.1",
-    "@blocknote/react": ">=0.52.1",
+    "@blocknote/core": ">=0.53.0",
+    "@blocknote/mantine": ">=0.53.0",
+    "@blocknote/react": ">=0.53.0",
     "@glidejs/glide": ">=3.6.0",
     "@googlemaps/markerclusterer": ">=2.0.0",
     "@mantine/core": ">=8.3.0",
@@ -123,7 +138,7 @@
     "@tiptap/extension-horizontal-rule": ">=2.0.0",
     "@tiptap/extension-image": ">=2.0.0",
     "@tiptap/extension-italic": ">=2.0.0",
-    "@tiptap/extension-link": ">=2.0.0",
+    "@tiptap/extension-link": ">=2.5.0",
     "@tiptap/extension-list-item": ">=2.0.0",
     "@tiptap/extension-mention": ">=2.0.0",
     "@tiptap/extension-ordered-list": ">=2.0.0",
@@ -143,6 +158,7 @@
     "@tiptap/extension-text-style": ">=2.0.0",
     "@tiptap/extension-underline": ">=2.0.0",
     "@tiptap/suggestion": ">=2.0.0",
+    "@xyflow/react": ">=12.0.0",
     "chart.js": ">=4.0.0",
     "date-fns": ">=3.0.0",
     "flatpickr": ">=4.6.0",
@@ -150,6 +166,7 @@
     "lodash.debounce": ">=4.0.0",
     "lodash.throttle": ">=4.0.0",
     "lowlight": ">=2.0.0",
+    "qr-scanner": ">=1.4.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "rrule": ">=2.7.0",
@@ -301,6 +318,9 @@
       "optional": true
     },
     "@tiptap/suggestion": {
+      "optional": true
+    },
+    "@xyflow/react": {
       "optional": true
     },
     "chart.js": {

@@ -106,6 +106,7 @@ Standard text input with DaisyUI styling.
 - `help` - Help text displayed below input
 - `addon_left` - Content to prepend (e.g., "$" for currency)
 - `addon_right` - Content to append (e.g., ".com")
+- `char_counter` - A live character count under the field — see below
 
 ### email_group / email_field
 
@@ -238,7 +239,7 @@ Slider input with optional tick marks.
 - `min` - Minimum value (default: 0)
 - `max` - Maximum value (default: 100)
 - `step` - Step increment (default: 1)
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
 - `show_ticks` - Show tick marks below slider
 - `ticks` - Number of tick marks
@@ -255,7 +256,34 @@ Slider input with optional tick marks.
 ```erb
 <%= f.text_area_group :description %>
 <%= f.text_area_group :description, rows: 5 %>
+<%= f.text_area_group :description, auto_grow: true %>
 ```
+
+**Options:**
+- `char_counter` - A live character count — see below
+- `auto_grow` - Grow the box to fit its content. Textarea only: an `<input>` has
+  no height to grow into
+
+### char_counter
+
+`char_counter:` renders a live count under the control and works the same on a
+text field and a textarea — the Stimulus controller behind it only reads
+`value.length`, so the element it counts makes no difference:
+
+```erb
+<%= f.text_group :headline, char_counter: { max: 80 } %>   <%# "12 / 80" %>
+<%= f.text_area_group :bio, char_counter: { max: 500 } %>
+<%= f.text_group :slug, char_counter: true %>              <%# "12" — no maximum %>
+```
+
+Past the maximum the counter turns red (`text-error`) and **the typing is not
+stopped**: the count is an advisory, not a constraint. Pair it with `maxlength:`
+if the input really has to be cut off, and with a model validation either way —
+nothing here reaches the server.
+
+The controller lives on the field's `.control` div and the counter is the last
+element inside it, which is why the two travel together: it counts the control
+it wraps.
 
 ### rich_text_area_group / rich_text_area
 
@@ -437,7 +465,7 @@ Checkbox input.
 ```
 
 **Options:**
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
 - `text` - The caption **beside the checkbox** (default: the translated attribute name).
   `false` renders none.
@@ -453,7 +481,7 @@ Toggle switch (styled checkbox).
 ```
 
 **Options:**
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
 - `text` - The caption **beside the toggle** (default: the translated attribute name)
 - `label` - A `<legend>` **over the group**, with no default
@@ -613,12 +641,183 @@ Pass a block to replace the whole header:
 - `label` - Header caption (default: the translated association name)
 - `button_text` - Add-button text (default: `bali_view.form_builder.dynamic_fields.add`)
 - `button_class` - Add-button classes (default: `btn btn-primary`)
+- `partial` - Row partial (default: `_<singular>_fields`)
+- `table` - Render the container as a `<tbody>` — see [Table mode](#table-mode)
+- `columns` / `table_class` - Table mode only
+- `array` - Name the rows `[][key]` — see [Array mode](#array-mode)
+- `values` - Rows to render in array mode (default: `object.send(method)`)
 
 `link_to_add_fields` and `link_to_remove_fields` render `<button type="button">`.
 The names are historical — they emitted `<a href="#">` until v3 — but nothing
 here navigates, so an anchor was announced by screen readers as a link going
 nowhere. The `type="button"` matters: these sit inside a `<form>`, where a button
 without one submits it.
+
+#### Which mode
+
+| Your rows are… | Mode | Names |
+|---|---|---|
+| An association with `accepts_nested_attributes_for` | default | `invoice[line_items_attributes][0][price]` |
+| The same, but they have to be table rows | `table: true` | same as above |
+| A JSON/array attribute — no association, no model per row | `array: true` | `chain[steps][][role]` |
+
+The first two round-trip through `accepts_nested_attributes_for`, so a removed
+row that the server already stores is flagged `_destroy` and the record is
+deleted on save. Array mode has no records to destroy: the whole array is
+replaced by what the form submits.
+
+#### Removing a row
+
+What happens on remove depends on whether the server already knows about the
+row, and the marker is the `[id]` hidden field Rails emits only for a persisted
+record:
+
+- **Persisted row** — hidden, its visible inputs stripped, and its `_destroy`
+  flag set to `true`. It stays in the DOM because the server needs its `id` back
+  to know which record to delete.
+- **Unsaved row** — removed from the DOM outright. There is nothing to destroy,
+  and `_destroy` on a nested hash with no `id` was always a no-op.
+
+Nothing about this needs configuring; it follows from the markup Rails already
+emits.
+
+#### Ordinals
+
+Give an element inside the row the `ordinal` target and the controller writes the
+row's 1-based number into it after every add, remove and reorder, counting only
+the rows still on screen:
+
+```erb
+<div class="step-fields">
+  <span class="badge" data-dynamic-fields-target="ordinal">1</span>
+  …
+</div>
+```
+
+The target holds the number **alone**. Punctuation around it belongs to the
+markup outside the target, so it survives renumbering:
+
+```erb
+<span><span data-dynamic-fields-target="ordinal">1</span>.</span>
+```
+
+#### Table mode
+
+`table: true` renders the container as the `<tbody>` of a table the helper emits,
+so the row partial writes a `<tr>`:
+
+```erb
+<%= f.dynamic_fields_group :monetary_lines,
+      table: true,
+      columns: ["#", "Concept", "Amount", ""],
+      table_class: "table table-sm",
+      button_text: "Add line" %>
+```
+
+```erb
+<%# app/views/business_cases/_monetary_line_fields.html.erb %>
+<tr class="monetary_line-fields">
+  <td><span data-dynamic-fields-target="ordinal">1</span></td>
+  <td><%= f.text_field :concept %></td>
+  <td><%= f.currency_field :amount %></td>
+  <td><%= f.link_to_remove_fields "Remove", class: "btn btn-error btn-sm" %></td>
+</tr>
+```
+
+`columns:` fills the `<thead>` and is optional — omit it and no `<thead>` is
+rendered. `table_class:` defaults to `table`.
+
+The header and its `<template>` render **outside** the `<table>`, which is the
+only place they survive. A `<div>` sitting between `<table>` and `<tbody>` is
+hoisted out of the table by the HTML parser, and the add button and its template
+would go with it. A `<tr>` *inside* the `<template>` is fine: the HTML5 parser
+switches to "in table body" for exactly that case, wherever the template sits.
+
+That last point is worth remembering when you write tests. Nokogiri parses HTML4,
+where `<template>` is an unknown element and the `<tr>` inside one is dropped, so
+a Ruby-level assertion on the parsed document sees an empty template even though
+the browser does not. Assert on the rendered string in Minitest and leave the
+parsed-DOM half to a system or Cypress test.
+
+#### Array mode
+
+`array: true` is for an attribute that is a plain array of hashes rather than an
+association — a JSON column, a serialized attribute, anything with no record per
+row. No `fields_for`, no `_destroy`, and no association to reflect on:
+
+```erb
+<%= f.dynamic_fields_group :steps,
+      array: true,
+      partial: "step_fields",
+      button_text: "Add step" %>
+```
+
+The row partial receives `name_prefix:`, `item:` and `index:` alongside `f`.
+`name_prefix` already ends in the empty brackets Rails reads as "next element of
+the array", so the partial appends its own key:
+
+```erb
+<%# app/views/approval_chains/_step_fields.html.erb %>
+<% row_key = index || "new_record" %>
+<div class="step-fields">
+  <span data-dynamic-fields-target="ordinal"><%= index.to_i + 1 %></span>
+
+  <%= f.text_group :role,
+        name: "#{name_prefix}[role]",
+        id: "chain_steps_#{row_key}_role",
+        control_id: "chain_steps_#{row_key}_role",
+        value: item&.dig("role") %>
+
+  <%= f.link_to_remove_fields "Remove", destroy_flag: false %>
+</div>
+```
+
+Three things about that partial:
+
+- `f` is the **outer** builder. There is no nested record to build a scoped one
+  from, so the names come from `name_prefix`, not from `f`. A Bali group takes
+  its name through `name:` and its value through `value:`; `input_name:` is a
+  different escape hatch that only `select_group` and `slim_select_group`
+  understand.
+- `control_id:` points the caption's `for` at this row's own control. Without it
+  every row's label targets the same id. `new_record` is the placeholder the
+  controller swaps for a timestamp when it clones the template, so cloned rows
+  get unique ids for free.
+- `destroy_flag: false` on the remove button. An array row always leaves the DOM
+  on remove, so a `_destroy` key would only add noise to the hash the array
+  submits.
+
+Rows come from `object.send(method)` when the object answers to it, or from
+`values:` when it does not.
+
+##### Checkboxes do not work in array mode
+
+Rails parses `a[][x]=1&a[][y]=2` by filling one hash until a key repeats, at
+which point it starts a new element. A Rails checkbox renders **two** inputs with
+the same name — a hidden `0` and the box itself — so a checked box repeats its
+key inside the element and splits the array in two, silently, putting the
+following fields on the wrong row.
+
+With two rows and one checked box:
+
+```ruby
+Rack::Utils.parse_nested_query(
+  "c[steps][][role]=Author&c[steps][][active]=0&c[steps][][active]=1" \
+  "&c[steps][][role]=Reviewer&c[steps][][active]=0"
+)["c"]["steps"]
+# => [{"role" => "Author", "active" => "0"},
+#     {"active" => "1", "role" => "Reviewer"},
+#     {"active" => "0"}]
+```
+
+Two rows in, three out, and `active` landed on the wrong one. There is no fix on
+the Bali side — it is how the query string is parsed — so **do not put a checkbox
+in an array-mode row.** If you need a boolean, either use a `select_group` with
+explicit options (one input, one key) or move the collection to a real
+association and use the default mode.
+
+The same hazard applies to any control that renders a paired hidden input, which
+is why `link_to_remove_fields` takes `destroy_flag: false` here.
 
 ### coordinates_polygon_group
 
@@ -646,11 +845,86 @@ These options work across most field types:
 |--------|-------------|
 | `label` | Custom label text (default: humanized attribute name) |
 | `help` | Help text displayed below input |
+| `error` | Explicit error message(s) for the field — see [External Errors](#external-errors-error) |
 | `placeholder` | Input placeholder |
 | `disabled` | Disable the input |
 | `readonly` | Make input read-only |
 | `class` | Additional CSS classes |
 | `data` | Data attributes hash |
+
+### `required:` is a plain HTML passthrough — and not every family has a control to put it on
+
+`required:` is not a Bali option: it reaches the control as the HTML attribute on the
+families whose control is a native input (`text_*`, `email_*`, `number_*`, `date_*`,
+`select_*`, `boolean_*`, `switch_*`, `file_*`, and the rest of the native-control
+families), and is **dropped silently** by the families whose visible control is a widget
+over a hidden field — `slim_select_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
+`block_editor_*`, `rich_text_area_*`, `coordinates_polygon_*`,
+`recurrent_event_rule_*`, `direct_upload_*`, `time_period_*` and the submit pair. A
+`required` on a `type="hidden"` input would either do nothing or, worse, make the form
+unsubmittable, so those families need a model validation instead of the attribute.
+
+The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
+declares every family in one of the two camps and fails when a new family lands in
+neither.
+
+### Density (`size:`)
+
+`size:` is the one option with two meanings on a form control, and both work:
+
+- **Symbol** — the daisyUI density variant: `:xs`, `:sm`, `:md`, `:lg`, `:xl`.
+  The class joins the control's base classes and no `size` attribute is emitted.
+- **Integer** (or String) — the HTML `size` attribute it has always been: width
+  in characters on an `<input>`, visible rows on a `<select>`.
+
+```erb
+<%= f.text_group :code, size: :sm %>   <%# <input class="input input-sm ..."> %>
+<%= f.text_group :code, size: 8 %>     <%# <input size="8" class="input ..."> %>
+<%= f.submit_group "Save", size: :sm %> <%# <button class="btn btn-primary btn-sm"> %>
+```
+
+A Symbol outside the variant list raises `ArgumentError` instead of leaking
+`size="tiny"` into the markup.
+
+Every family takes it, and each one puts the variant on the element it actually
+has:
+
+| Family | Class | Notes |
+|--------|-------|-------|
+| text, email, url, password, number, currency, percentage, numeric, step_number, date, datetime, time, month, search | `input-*` | |
+| `select_group`, `time_zone_select_group` | `select-*` | |
+| `text_area_group` | `textarea-*` | |
+| `range_group` | `range-*` | |
+| `boolean_group` | `checkbox-*` | |
+| `switch_group` | `toggle-*` | |
+| `radio_group` | `radio-*` | in `html:`, like its other input attributes |
+| `slim_select_group` | `slim-select-sm` | `:sm` only — the one density the widget has CSS for; the others raise |
+| `file_group` | `btn-*` | the native input is hidden, so the density is the CTA button's |
+| `submit_group` / `submit_field` | `btn-*` | |
+
+The families whose control is a widget over a hidden field — `rich_text_group`,
+`block_editor_group`, `rich_text_area_group`, `coordinates_polygon_group`,
+`time_period_group`, `recurrent_event_rule_group`, `direct_upload_group`,
+`radio_buttons_group` — ignore the option entirely; there is no daisyUI
+component underneath to give a density to.
+
+Captions, help text and error messages take no variant of their own, and need
+none: `fieldset-legend` and `fieldset-label` are 12px at every density —
+measured on both columns of the **Form / Sizes → Default vs compact** preview.
+A validation message is the last thing that should get smaller anyway.
+
+One daisyUI behaviour worth knowing before filing it as a bug: `textarea-sm`
+sets the **type size**, not the height. `.textarea` carries `min-height: 5rem`
+at every density, so a compact textarea keeps its box and changes its text. Use
+`rows:` for the height.
+
+Two spellings the discrimination is worth knowing about:
+
+- `select_group` reads `size:` from either hash (next to `label:` or inside
+  `html:`), because Rails copies `:size` out of a select's options onto the
+  element and both routes had to be closed.
+- `text_area_group` keeps Rails' `size: "20x40"` String, which sets `cols` and
+  `rows` — the String half of the rule, doing exactly what it always did.
 
 ---
 
@@ -665,13 +939,32 @@ Bali FormBuilder automatically displays validation errors:
 
 The input gets `input-error` class and error messages appear below.
 
-### Manual Error Display
+### External Errors (`error:`)
+
+`error:` carries a message that never lived in `object.errors` — because the
+form has no object (`form_with url:`), or because something other than
+ActiveModel validated the field. It takes a String, an Array of them, or
+nil/false (both render nothing), so the raw return of the validator can be
+passed unconditionally:
 
 ```erb
-<% if @user.errors[:email].any? %>
-  <p class="text-error text-sm"><%= @user.errors[:email].join(", ") %></p>
+<%# A rodauth view: no model, the error comes from rodauth itself %>
+<%= form_with url: rodauth.login_path, builder: Bali::FormBuilder do |f| %>
+  <%= f.email_group :login, error: rodauth.field_error(rodauth.login_param), required: true %>
+  <%= f.password_group :password, error: rodauth.field_error("password") %>
+  <%= f.submit_group rodauth.login_button %>
 <% end %>
 ```
+
+The explicit error rides the same plumbing model errors use: the message
+paragraph, `aria-invalid` + `aria-describedby`, and the family's `*-error`
+class on the control. When the model **also** has errors on the field, the two
+join rather than replace — explicit first — mirroring how an error and a help
+message both render.
+
+On the two-hash families (`select_*`, `slim_select_*`, `time_zone_select_*`,
+`radio_*`) `error:` is a group option: pass it top-level, next to `label:`
+(inside `html:` also works).
 
 ---
 
@@ -699,9 +992,9 @@ Many fields automatically integrate with Stimulus controllers:
 | Field | Controller | Features |
 |-------|------------|----------|
 | `slim_select_*` | `slim-select` | Search, multi-select, AJAX |
-| `date_field_*` | `datepicker` | Flatpickr integration |
-| `datetime_field_*` | `datepicker` | Date + time picking |
-| `step_number_field_*` | `step-number-input` | Increment/decrement |
+| `date_*` | `datepicker` | Flatpickr integration |
+| `datetime_*` | `datepicker` | Date + time picking |
+| `step_number_*` | `step-number-input` | Increment/decrement |
 | `rich_text_area_*` | `trix-attachments` | File size limits |
 | `submit_field` (with modal) | `modal` | Form submission handling |
 

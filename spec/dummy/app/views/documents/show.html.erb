@@ -62,7 +62,7 @@
       </div>
       <div>
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Versions</p>
-        <p class="text-sm"><%= @document.document_versions.count %></p>
+        <p class="text-sm"><%= @document.content_versions.count %></p>
       </div>
       <div>
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Word Count</p>
@@ -79,11 +79,14 @@
     initial_content: @document.content,
     document_url: document_path(@document),
     close_url: document_path(@document),
-    versions_url: document_versions_path(@document),
+    versions_url: :auto,
+    restore_version_url: :auto,
+    record: @document,
     editable: true,
     config: {
       comments: {
-        url: document_comment_threads_path(@document),
+        url: :auto,
+        commentable: @document,
         user: { id: "user-1", username: "Demo User" },
         users: [
           { id: "user-1", username: "Demo User" },
@@ -93,8 +96,8 @@
       },
       export: true,
       export_filename: @document.title.parameterize,
-      references_url: "/entity_references",
-      references_resolve_url: "/entity_references/resolve"
+      references_url: bali.entity_references_path,
+      references_resolve_url: bali.resolve_entity_references_path
     }
   ) %>
 </div>
@@ -106,11 +109,14 @@
     initial_content: @document.content,
     document_url: document_path(@document),
     close_url: document_path(@document),
-    versions_url: document_versions_path(@document),
+    versions_url: :auto,
+    restore_version_url: :auto,
+    record: @document,
     editable: false,
     config: {
       comments: {
-        url: document_comment_threads_path(@document),
+        url: :auto,
+        commentable: @document,
         user: { id: "user-1", username: "Demo User" },
         users: [
           { id: "user-1", username: "Demo User" },
@@ -118,8 +124,8 @@
           { id: "user-3", username: "Bob Wilson" }
         ]
       },
-      references_url: "/entity_references",
-      references_resolve_url: "/entity_references/resolve"
+      references_url: bali.entity_references_path,
+      references_resolve_url: bali.resolve_entity_references_path
     }
   ) %>
 </div>

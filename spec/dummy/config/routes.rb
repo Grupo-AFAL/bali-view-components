@@ -34,6 +34,11 @@ Rails.application.routes.draw do
 
     resources :projects, only: %i[index show] do
       resources :tasks, only: :update, module: :projects
+      # Fake Gantt schedule endpoints (#705): the executable reference of the
+      # mutation contract the island's scheduleClient.js implements. Phase 3
+      # (#719) points `mode: :interactive` at these same URLs.
+      resource :schedule, only: %i[show update], module: :projects
+      resources :dependencies, only: %i[create destroy], module: :projects
     end
 
     resources :analytics, only: :index
@@ -59,6 +64,12 @@ Rails.application.routes.draw do
   get 'sidemenu-example', to: 'pages#sidemenu_example'
   get 'z-stack', to: 'pages#z_stack' # Manual check for the overlay z-index scale
   get 'feedback-widget-demo', to: 'pages#feedback_widget_demo'
+  # SplitView reference page. `?selected=<id>` is the deep link; the Lookbook
+  # preview of the component navigates its detail frame here.
+  get 'split-view', to: 'split_views#show', as: :split_view
+  # `height: :full` needs a bounded parent to fill, so its reference page is the
+  # pairing the guide documents: an AppLayout with `viewport_locked: true`.
+  get 'split-view/full', to: 'split_views#full', as: :split_view_full
   get 'embed/feedback_posts', to: 'pages#feedback_embed' # Stand-in for Opina's embed page
 
   # Modal/Drawer content routes (for remote loading)
@@ -76,32 +87,22 @@ Rails.application.routes.draw do
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
   get 'users', to: 'users#index'
-  get 'entity_references', to: 'entity_references#index'
-  post 'entity_references/resolve', to: 'entity_references#resolve'
 
-  # BlockEditor
-  resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
-    resources :comments, controller: 'block_editor_threads/comments', only: %i[create update destroy] do
-      resource :reactions, controller: 'block_editor_threads/comments/reactions', only: %i[create destroy]
-    end
-  end
+  # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine
+  # endpoints (`mount Bali::Engine` below), and `config/initializers/bali.rb` says
+  # which records may carry threads. That substitution is the adoption test — the
+  # dummy consumes the engine the same way a host app does.
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
   # Documents (full editing experience reference)
   # No `edit`: editing a document happens in the overlay `documents#show` opens, not on a
   # page of its own, so `DocumentsController` implements six of the seven actions and the
   # seventh route answered 404 to anyone who followed it.
-  resources :documents, except: :edit do
-    resources :versions, only: [:index, :show], controller: 'document_versions'
-    resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
-      resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
-        resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
-      end
-    end
-    member do
-      post :restore_version
-    end
-  end
+  # Las versiones ya NO son rutas de esta app: `versions_url: :auto` en el DocumentEditor
+  # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707). Los
+  # comentarios tampoco (#706): `comments: { url: :auto, commentable: }` apunta a los
+  # nueve endpoints del engine.
+  resources :documents, except: :edit
 
   mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'

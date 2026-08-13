@@ -45,6 +45,7 @@ es:
       combinators:
         and: "Y"
         or: "O"
+      combinator_toggle: "Combinar condiciones con"
 
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
@@ -97,6 +98,14 @@ es:
     simple_filters:
       apply: "Filtrar"
       clear: "Limpiar"
+      presets:
+        any: "Cualquier fecha"
+        custom: "Personalizado…"
+        today: "Hoy"
+        this_week: "Esta semana"
+        this_month: "Este mes"
+        last_7_days: "Últimos 7 días"
+        last_30_days: "Últimos 30 días"
 
     # File input
     file_input:
@@ -125,6 +134,11 @@ es:
       navigate: "navegar"
       open_action: "abrir"
       close: "cerrar"
+
+    # Chat conversacional
+    chat:
+      typing_indicator:
+        label: "Escribiendo…"
 
     # Modal
     modal:
@@ -218,6 +232,12 @@ es:
       updated: "Vista actualizada."
       deleted: "Vista borrada."
 
+    # Versiones de contenido (#707) — se escriben en el `summary` de la versión al crearla,
+    # así que quedan guardadas como dato, no resueltas al render.
+    content_versions:
+      restored_from: "Restaurado desde la v%{number}"
+      unknown_author: "Desconocido"
+
     # Status
     status:
       no_status: "Sin estado"
@@ -235,6 +255,12 @@ es:
       selected_one: seleccionado
       selected_other: seleccionados
       clear: Limpiar selección
+      select_all_filtered:
+        one: Seleccionar el único resultado
+        other: Seleccionar los %{count} resultados
+      all_filtered_selected:
+        one: El único resultado está seleccionado
+        other: Los %{count} resultados están seleccionados
     tree_view:
       toggle_branch: "Alternar %{name}"
     timeago:
@@ -348,6 +374,70 @@ es:
         month: Mes
         previous: Anterior
         next: Siguiente
+    gantt:
+      loading: Cargando el cronograma
+      noscript: Este cronograma necesita JavaScript para mostrarse.
+      undated_title: Sin fechas
+      # Tabla plana de la isla React (#705, D12) — la sirve
+      # Bali::Gantt::Translations.island como prop `i18n`. Los `%{...}` se
+      # interpolan del lado del CLIENTE; las claves deben coincidir con
+      # Translations::KEYS y con DEFAULT_I18N en
+      # app/components/bali/gantt/i18n.js.
+      island:
+        add_group: Grupo
+        add_group_hint: Agregar grupo
+        add_item: Elemento
+        add_item_hint: Nuevo elemento
+        search_placeholder: Buscar…
+        filter: Filtrar
+        filter_by_status: Filtrar por estado
+        all: Todos
+        columns: Columnas
+        show_columns: Mostrar columnas
+        col_name: Nombre
+        col_assignee_short: Resp
+        col_assignee: Responsable
+        col_dates: Fechas
+        col_days: Días
+        col_status: Estado
+        col_progress: Avance
+        critical: Crítica
+        critical_hint: Resaltar ruta crítica
+        deps: Deps
+        deps_hint: Mostrar dependencias
+        color: Color
+        color_by: Colorear por
+        color_status: Estado
+        color_assignee: Resp
+        color_group: Grupo
+        color_priority: Prioridad
+        zoom_label: Zoom
+        zoom_day: Día
+        zoom_week: Semana
+        zoom_month: Mes
+        today: Hoy
+        go_to_today: Ir a hoy
+        zoom_in: Acercar
+        zoom_out: Alejar
+        fit: Ajustar a la ventana
+        fullscreen: Pantalla completa
+        expand: Expandir
+        collapse: Colapsar
+        selection_none: Sin selección
+        selected: "%{count} en selección"
+        items_count: "%{count} elementos"
+        undated_count: "%{count} sin fechas"
+        range_days: "%{count} días"
+        critical_count: "crítica: %{count}"
+        progress_label: "%{percent}% avance"
+        resize_start: Redimensionar (inicio)
+        resize_duration: Redimensionar (duración)
+        drag_dependency: Arrastra a otra barra para crear una dependencia
+        minimap_hint: Minimapa — clic o arrastra para navegar
+        splitter_hint: Arrastra para ajustar el ancho de la tabla
+        schedule_refreshed: El cronograma se actualizó (un elemento había cambiado).
+        change_failed: No se pudo aplicar el cambio
+        load_error: La línea de tiempo no pudo cargar.
     navbar:
       main_navigation: Navegación principal
       toggle_menu: Alternar menú
@@ -419,6 +509,7 @@ es:
       save: "Guardar"
       toggle_comments: "Alternar comentarios"
       toggle_history: "Alternar historial de versiones"
+      export: "Exportar"
       export_pdf: "Exportar PDF"
       export_docx: "Exportar DOCX"
       close: "Cerrar editor"
@@ -454,7 +545,7 @@ es:
       versions_empty: "Todavía no hay versiones."
 
       # Confirmación de restaurar, mostrada con el diálogo de confirmación de Bali.
-      restore_confirm: "¿Restaurar esta versión? El contenido actual se guardará antes como una versión nueva."
+      restore_confirm: "¿Restaurar esta versión? Se agregará como la versión más reciente, así que no se pierde nada de lo que ya está en el historial."
       confirm_title: "Restaurar versión"
       confirm_accept: "Restaurar"
       confirm_cancel: "Cancelar"
@@ -487,6 +578,19 @@ es:
       placeholder: "Empieza a escribir..."
 
       bubble_menu:
+        # Accessible names for the icon-only formatting buttons (no visible text)
+        actions:
+          bold: "Negrita"
+          italic: "Cursiva"
+          underline: "Subrayado"
+          strikethrough: "Tachado"
+          align_left: "Alinear a la izquierda"
+          align_center: "Centrar"
+          align_right: "Alinear a la derecha"
+          text_color: "Color de texto"
+          link: "Enlace"
+          image: "Insertar imagen"
+          table: "Tabla"
         # Node type dropdown; `text` doubles as the trigger's default label
         nodes:
           text: "Texto"
@@ -533,3 +637,40 @@ es:
       card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
     tabs:
       navigation: "Navegación de secciones"
+    topbar:
+      user_menu:
+        trigger_label: "Menú de usuario de %{name}"
+        sign_out: "Cerrar sesión"
+    qr_code:
+      label: "Código QR"
+    qr_scanner:
+      hint: "Apunta la cámara al código QR."
+      idle:
+        title: "Listo para escanear"
+        start: "Activar cámara"
+      requesting:
+        title: "Solicitando acceso a la cámara…"
+      scanned:
+        title: "Código detectado"
+        restart: "Escanear otra vez"
+      denied:
+        title: "Acceso a la cámara bloqueado"
+        description: "Permite el uso de la cámara para este sitio en la configuración de tu navegador e inténtalo de nuevo."
+        retry: "Reintentar"
+      unavailable:
+        title: "Cámara no disponible"
+        description: "No hay ninguna cámara disponible en este dispositivo, o este navegador no puede usarla aquí."
+    workflow_steps:
+      states:
+        success: "Completado"
+        error: "Rechazado"
+        warning: "Requiere atención"
+        pending: "Pendiente"
+        skipped: "Omitido"
+        current: "En curso"
+    split_view:
+      end_of_list: "No hay más resultados"
+      load_error: "No se pudieron cargar más resultados."
+      retry: "Reintentar"
+
+      filter_active: "activo, quitar filtro"

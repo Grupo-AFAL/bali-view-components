@@ -1,0 +1,47 @@
+<div class="flex flex-col gap-6 p-8">
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', aria_label: 'Help') %>
+    <span class="text-sm text-base-content/60">No badge — plain icon button</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'bell', aria_label: 'Notifications', badge: true
+    ) %>
+    <span class="text-sm text-base-content/60"><code>badge: true</code> — the dot</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'inbox', aria_label: 'Inbox, 3 unread', badge: 3, badge_id: 'inbox-badge'
+    ) %>
+    <span class="text-sm text-base-content/60">
+      <code>badge: 3, badge_id: 'inbox-badge'</code> — count pill, Turbo-Stream-replaceable
+    </span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'mail', aria_label: 'Messages', badge_id: 'messages-badge'
+    ) %>
+    <span class="text-sm text-base-content/60">
+      <code>badge_id:</code> alone — hidden empty target a stream can light up later
+    </span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'settings', aria_label: 'Settings', href: '/lookbook'
+    ) %>
+    <span class="text-sm text-base-content/60"><code>href:</code> — renders an <code>&lt;a&gt;</code></span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'inbox', aria_label: 'Inbox, 128 pending', href: '/lookbook', badge: 128, active: true
+    ) %>
+    <span class="text-sm text-base-content/60">
+      <code>active: true, badge: 128</code> — current section (<code>aria-current="page"</code>) and the capped pill (<code>max_count:</code> defaults to 99)
+    </span>
+  </div>
+</div>

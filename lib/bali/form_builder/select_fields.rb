@@ -24,9 +24,12 @@ module Bali
       def select_field(method, values, *legacy, html: {}, **options)
         options, html_options = legacy_option_hashes(:select_field, legacy, html, options)
         group = group_options(options, html_options)
+        variant = select_size_variant(options, html_options)
+        options = options.except(:size) if variant
 
         attributes = html_attributes(html_options)
-        attributes[:class] = select_classes(method, html_options[:class])
+        attributes.delete(:size) if variant
+        attributes[:class] = select_classes(method, group, html_options[:class], variant)
         apply_input_name_options(options, attributes)
         merge_aria_attributes(attributes, method, group)
 
@@ -36,8 +39,11 @@ module Bali
 
       private
 
-      def select_classes(method, additional_classes = nil)
-        base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
+      # `options` is the merged group hash — `error:` may arrive top-level or in
+      # `html:`, and `group_options` has already read both.
+      def select_classes(method, options, additional_classes = nil, variant = nil)
+        base = field_class_name(method, [ BASE_CLASSES, variant ].compact.join(" "),
+                                        error_class: "select-error", options: options)
         [ base, additional_classes ].compact.join(" ")
       end
     end

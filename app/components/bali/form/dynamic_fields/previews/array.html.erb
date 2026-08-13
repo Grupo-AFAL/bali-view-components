@@ -1,0 +1,21 @@
+<%# Array mode: no association behind `:steps`, so the rows come from `values:`
+    and their inputs are named `movie[steps][][role]`. Rails collects one hash
+    per element as long as no key repeats inside an element — which is why the
+    row partial has no checkbox. %>
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Approval steps (array attribute)</h3>
+
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.dynamic_fields_group :steps,
+        array: true,
+        partial: 'step_fields',
+        values: [{ 'role' => 'Author', 'days' => '2' },
+                 { 'role' => 'Reviewer', 'days' => '3' }],
+        label: 'Steps',
+        button_text: 'Add Step' %>
+
+    <div class="mt-4">
+      <%= f.submit 'Save Chain', class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

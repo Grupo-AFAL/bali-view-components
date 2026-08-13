@@ -14,7 +14,8 @@ module Bali
         xs: "range-xs",
         sm: "range-sm",
         md: "range-md",
-        lg: "range-lg"
+        lg: "range-lg",
+        xl: "range-xl"
       }.freeze
 
       COLORS = {
@@ -95,9 +96,9 @@ module Bali
         range_class = [
           RANGE_CLASS,
           "w-full",
-          SIZES[options[:size]],
+          size_variant(options, SIZES),
           COLORS[options[:color]],
-          (errors?(method) ? "range-error" : nil),
+          (errors?(method, options) ? "range-error" : nil),
           options[:class]
         ].compact.join(" ")
 

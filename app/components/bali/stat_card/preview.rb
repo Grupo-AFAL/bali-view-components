@@ -28,6 +28,19 @@ module Bali
         )
       end
 
+      # `href:` renders the whole card as an `<a>` (KPI drill-down to its
+      # listing) with a hover shadow affordance. The footer must not contain
+      # links then — an `<a>` inside an `<a>` is invalid HTML.
+      def clickable
+        render Bali::StatCard::Component.new(
+          title: 'Open Orders',
+          value: '87',
+          icon: 'shopping-cart',
+          color: :info,
+          href: '/lookbook'
+        )
+      end
+
       # With footer showing a trend
       def with_trend
         render_with_template(template: 'bali/stat_card/previews/with_trend')

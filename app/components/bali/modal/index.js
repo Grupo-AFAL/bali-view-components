@@ -237,6 +237,12 @@ export class ModalController extends Controller {
   }
 
   openModal (content) {
+    // No panel, nothing to open. The instance AppLayout mounts on `<main>`
+    // (`data-controller="modal drawer"`) owns no targets — Stimulus scopes the
+    // panel's targets to the `<dialog>`'s own controller — so every write below
+    // would throw on it (#984).
+    if (!this.hasTemplateTarget || !this.hasWrapperTarget || !this.hasContentTarget) return
+
     // A freshly opened modal starts clean
     this._dirty = false
 
@@ -282,6 +288,8 @@ export class ModalController extends Controller {
   // Idempotent on purpose: `open()` runs this twice per remote open, once for
   // the skeleton and once for the loaded content.
   _showOverlay () {
+    if (!this.hasTemplateTarget) return
+
     const dialog = this.templateTarget
     dialog.classList.add(this.openClass)
 
@@ -304,6 +312,8 @@ export class ModalController extends Controller {
   // attribute restored drops `:modal` back to false and `elementFromPoint` over the page
   // returns the page again instead of `HTML`.
   _hideOverlay () {
+    if (!this.hasTemplateTarget) return
+
     const dialog = this.templateTarget
     dialog.classList.remove(this.openClass)
 
@@ -317,6 +327,8 @@ export class ModalController extends Controller {
   // the unsaved-changes state and the element to restore focus to still stand.
   // Focus is re-seated because the nodes that held it were just replaced.
   _replaceContent (content) {
+    if (!this.hasContentTarget) return
+
     this.contentTarget.innerHTML = content
     this.trapFocus()
   }
@@ -343,6 +355,8 @@ export class ModalController extends Controller {
   }
 
   trapFocus () {
+    if (!this.hasWrapperTarget) return
+
     const focusableElements = this.wrapperTarget.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )
@@ -396,23 +410,47 @@ export class ModalController extends Controller {
     }
   }
 
+  // `options || {}`: `detail.options` is documented as required, but the
+  // package's own reference snippet shipped without it once (#981) — a
+  // tolerant contract costs one line.
   setOptions (options) {
-    const keys = Object.keys(options)
+    const keys = Object.keys(options || {})
     keys.forEach((key, _i) => {
       this[key] = options[key]
     })
   }
 
+  // Inside-the-panel, however the panel is composed at that moment: the
+  // wrapper's subtree, or a popup portaled into the dialog NEXT to it —
+  // flatpickr's calendar and SlimSelect's dropdown arrive via `enterTopLayer`,
+  // which leaves them carrying `[popover]`; a tooltip balloon portals itself to
+  // the top-layer host and is `[data-tippy-root]`. Asking only
+  // `wrapperTarget.contains(target)` counted every one of those clicks as a
+  // close gesture: with a dirty form, paging the calendar's month asked "are
+  // you sure you want to close?" (#1013). Day clicks never showed it only
+  // because selecting closes the calendar before the click completes.
+  //
+  // `composedPath()` and not `contains()`: the path is snapshotted at dispatch,
+  // so a target flatpickr detaches mid-gesture (the month arrows redraw the
+  // header) still counts as the inside click it was.
+  _pointerInsidePanel (event) {
+    if (!this.hasWrapperTarget) return false
+
+    return event.composedPath().some(node => {
+      if (node === this.wrapperTarget) return true
+      if (typeof node.hasAttribute !== 'function') return false
+
+      return node.hasAttribute('popover') || node.hasAttribute('data-tippy-root')
+    })
+  }
+
   _onOverlayMousedown = (event) => {
-    const insideWrapper = this.hasWrapperTarget && this.wrapperTarget.contains(event.target)
-    this._mousedownOnOverlay = !insideWrapper
+    this._mousedownOnOverlay = this.hasWrapperTarget && !this._pointerInsidePanel(event)
   }
 
   _onOverlayClick = (event) => {
-    const insideWrapper = this.hasWrapperTarget && this.wrapperTarget.contains(event.target)
-
-    // Close only if both mousedown AND click were outside the wrapper
-    if (this._mousedownOnOverlay && !insideWrapper) {
+    // Close only if both mousedown AND click were outside the panel
+    if (this._mousedownOnOverlay && this.hasWrapperTarget && !this._pointerInsidePanel(event)) {
       this._closeWithConfirmation()
     }
     this._mousedownOnOverlay = false
@@ -429,6 +467,13 @@ export class ModalController extends Controller {
   // the focus sits inside an <iframe> in the panel. Route it through the same
   // guarded path rather than let the browser discard the form.
   _onDialogCancel = event => {
+    // Only the dialog's OWN close request. An `<input type="file">` whose OS
+    // picker was dismissed fires `cancel` too, and unlike the dialog's, that
+    // one BUBBLES — so backing out of a file selection asked "are you sure you
+    // want to close?" (#1013). Declining to pick a file is not a request to
+    // close the panel.
+    if (event.target !== this.templateTarget) return
+
     event.preventDefault()
     this._closeWithConfirmation()
   }
@@ -473,10 +518,8 @@ export class ModalController extends Controller {
     this._restoreDefaultSize()
 
     // Restore original skeleton content for next open
-    if (this._originalContent) {
-      this.contentTarget.innerHTML = this._originalContent
-    } else {
-      this.contentTarget.innerHTML = ''
+    if (this.hasContentTarget) {
+      this.contentTarget.innerHTML = this._originalContent || ''
     }
 
     // Clean up focus trap. `hasWrapperTarget`, not `wrapperTarget`: reading the target
@@ -588,6 +631,32 @@ export class ModalController extends Controller {
     this._dispatchOpen({ id, content: body, options })
   }
 
+  /**
+   * Opens an overlay that is already rendered on the page, by name — no fetch.
+   * The trigger names it (`data-modal-id` / `data-drawer-id` — see `idAttribute`)
+   * and the open event carries `content: null`, which `openModal` reads as "keep
+   * the content the server rendered". Inherited unchanged by DrawerController.
+   *
+   * The id is mandatory. An open event without one is a broadcast, and a
+   * broadcast is answered by every shared overlay on the page — the one nobody
+   * closes afterwards stays in the top layer and leaves the document inert
+   * (#854). The Ruby side raises before emitting a local trigger with no id;
+   * this guard covers the hand-written one.
+   */
+  openLocal = event => {
+    event.preventDefault()
+    const target = event.currentTarget
+    const id = target.getAttribute(this.idAttribute)
+
+    if (!id) {
+      console.warn(`${this.identifier}#openLocal ignored: the trigger has no ${this.idAttribute}`)
+      return
+    }
+
+    const options = { [this.sizeOptionKey]: target.getAttribute(this.sizeAttribute) }
+    this._dispatchOpen({ id, content: null, options })
+  }
+
   get idAttribute () {
     return 'data-modal-id'
   }
@@ -600,6 +669,11 @@ export class ModalController extends Controller {
   }
 
   close = event => {
+    // Same orphan story as `submit` (#984): with no panel there is nothing to
+    // close, and the preventDefault below would swallow a Cancel link's
+    // navigation. Leave the event alone.
+    if (!this.hasTemplateTarget) return
+
     // Ignore synthetic keydown events from browser autocomplete selections.
     // When a user selects a browser autocomplete suggestion, some browsers fire
     // a keydown event with key: undefined, which Stimulus may not filter out.
@@ -644,6 +718,14 @@ export class ModalController extends Controller {
    * are already only getting the contents inside the modal.
    */
   submit = event => {
+    // BEFORE preventDefault, so the browser and Turbo keep the submit. The
+    // instance with no panel is the one AppLayout mounts on `<main>`
+    // (`data-controller="modal drawer"`): a `submit_group(..., drawer: true)`
+    // hardcoded on a full-page form lands its click here, and fetching into a
+    // panel that does not exist ate the 422 response and left the button dead
+    // with its spinner on (#984). Returning degrades it to a working page form.
+    if (!this.hasContentTarget || !this.hasTemplateTarget) return
+
     event.preventDefault()
 
     const button = event.target
@@ -663,9 +745,8 @@ export class ModalController extends Controller {
     // The form-level call does all of it — validates every control the browser validates,
     // focuses the first invalid one, scrolls to it and shows its message.
     //
-    // Reach is wider than "inside a panel": `AppLayout` renders `<main>` with
-    // `data-controller="modal drawer"` by default, so a `submit_group(..., drawer: true)`
-    // on an ordinary page is captured by this controller too.
+    // (The orphan `<main>` instance used to reach this line too; since #984 it
+    // returns before preventDefault, so its validation is the browser's own.)
     const form = button.closest('form')
     if (!form.reportValidity()) {
       this._stopSubmitting(button)

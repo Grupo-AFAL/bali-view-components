@@ -2,7 +2,6 @@ import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 
-// TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
   static values = {
     addItems: Boolean,

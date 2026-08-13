@@ -1,4 +1,4 @@
 <%= link_to href, link_attributes do %>
-  <%= render Bali::Icon::Component.new(icon, size: :small) %>
+  <% if icon.present? %><%= render Bali::Icon::Component.new(icon, size: :small) %><% end %>
   <% unless icon_only? %><span class="<%= "max-sm:hidden" if responsive_icon_only? %>"><%= name %></span><% end %>
 <% end %>

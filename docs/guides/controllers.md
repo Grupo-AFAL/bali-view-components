@@ -1,0 +1,624 @@
+# Stimulus Utility Controllers
+
+Bali ships 24 standalone Stimulus controllers that work independently of any
+ViewComponent. They live in `app/assets/javascripts/bali/controllers/` and are
+registered by `registerAll` under the identifiers below — the `CONTROLLERS` map in
+`app/frontend/bali/controllers/index.js`. How to register them (all at once, or one
+at a time for a smaller bundle) is covered in the
+[JavaScript integration guide](javascript-integration.md).
+
+This page is the inventory: `yarn check:manifest`
+(`scripts/check-controller-manifest.mjs`) fails the build if a registered utility
+identifier is missing from it, so if `registerAll` registers it, it is documented here.
+Component-owned controllers (`modal`, `dropdown`, `toast-container`, …) are not on
+this page — they ship with their component and are documented with it.
+
+Several controllers are mounted for you by the [FormBuilder](form-builder.md); the
+table names the helper when one exists. The markup examples are for wiring a
+controller by hand.
+
+| Identifier | What it does | Rendered by |
+|---|---|---|
+| [`auto-play-audio`](#auto-play-audio) | Plays the media element it is attached to on connect | hand markup |
+| [`autocomplete-address`](#autocomplete-address) | Google Places autocomplete that splits the address into form fields | hand markup |
+| [`checkbox-reveal`](#checkbox-reveal) | Shows its `item` targets while at least one checkbox is checked | hand markup |
+| [`checkbox-toggle`](#checkbox-toggle) | Toggles `on`/`off` targets from the state of one checkbox | hand markup |
+| [`datepicker`](#datepicker) | flatpickr date picker, fully configured via values | `f.date_group`, `f.datetime_group`, `f.time_group` |
+| [`drawing-maps`](#drawing-maps) | Google Map with polygon drawing serialized to a form field | `f.coordinates_polygon_group` |
+| [`dynamic-fields`](#dynamic-fields) | Adds/removes rows of nested form fields | `f.dynamic_fields_group` |
+| [`elements-overlap`](#elements-overlap) | Keeps a fixed element from overlapping a dynamic one | hand markup |
+| [`file-input`](#file-input) | Shows the chosen filename(s) next to a file input | `f.file_group`, `f.file_field` |
+| [`filter-persistence`](#filter-persistence) | "Remember my filters" preference: localStorage + cookie | Filters persistence toggle |
+| [`focus-on-connect`](#focus-on-connect) | Smooth-scrolls itself into view on connect | hand markup |
+| [`geocoder-maps`](#geocoder-maps) | Geocodes an address to a map marker and lat/lng fields | hand markup |
+| [`input-on-change`](#input-on-change) | Notifies the server (Turbo Stream) when an input changes | hand markup |
+| [`interact`](#interact) | Drag/resize an absolutely-positioned element with snapping | hand markup |
+| [`print`](#print) | Prints the page on connect, closes the window on refocus | hand markup |
+| [`radio-buttons-group`](#radio-buttons-group) | Shows grouped content per selected toggler button | `f.radio_buttons_group` |
+| [`radio-toggle`](#radio-toggle) | Shows elements matching the selected radio's value | hand markup |
+| [`slim-select`](#slim-select) | SlimSelect widget: search, remote options, addable items | `f.slim_select_group` |
+| [`step-number-input`](#step-number-input) | Number input with +/− buttons respecting min/max/step | `f.step_number_group` |
+| [`submit-button`](#submit-button) | Loading state on the submitter during a Turbo submission | Bali's `form_with` |
+| [`submit-on-change`](#submit-on-change) | Auto-submits the form when a control changes, immediately or debounced | hand markup |
+| [`textarea`](#textarea) | Character counter and auto-grow for a textarea | `f.text_area_group` |
+| [`time-period-field`](#time-period-field) | Period select that reveals a custom date input | `f.time_period_group` |
+| [`trix-attachments`](#trix-attachments) | Caps the total attachment size in a Trix editor | `f.rich_text_area` |
+
+---
+
+## `auto-play-audio`
+
+Plays the `<audio>` or `<video>` element it is attached to as soon as it connects,
+after a configurable `delay` (default 100 ms).
+
+```html
+<audio src="/assets/new-order.mp3"
+       data-controller="auto-play-audio"
+       data-auto-play-audio-delay-value="500"></audio>
+```
+
+The controller element must be the media element itself (it calls
+`this.element.play()`). Browsers block autoplay with sound until the user has
+interacted with the page, so this is most useful for elements inserted by a Turbo
+Stream after a user action.
+
+## `autocomplete-address`
+
+Google Places autocomplete: the user picks an address in the `input` target and the
+controller distributes its components across the other targets. Loads the Google
+Maps JS API on demand; the key comes from the `apiKey` value or
+`window.GOOGLE_MAPS_API_KEY`.
+
+```html
+<div data-controller="autocomplete-address"
+     data-autocomplete-address-api-key-value="YOUR_KEY">
+  <input type="text" data-autocomplete-address-target="input" placeholder="Search address">
+
+  <input type="text" data-autocomplete-address-target="street">
+  <input type="text" data-autocomplete-address-target="streetNumber">
+  <input type="text" data-autocomplete-address-target="neighbourhood">
+  <input type="text" data-autocomplete-address-target="city">
+  <input type="text" data-autocomplete-address-target="state">
+  <input type="text" data-autocomplete-address-target="country">
+  <input type="text" data-autocomplete-address-target="postalCode">
+  <input type="hidden" data-autocomplete-address-target="latitude">
+  <input type="hidden" data-autocomplete-address-target="longitude">
+</div>
+```
+
+Carry all ten targets: every one of them is written when a place is selected.
+
+## `checkbox-reveal`
+
+Shows the `item` targets while at least one `checkbox` target is checked, and hides
+them otherwise. The hiding class defaults to `hidden`; override it with
+`data-checkbox-reveal-hidden-class`.
+
+```html
+<div data-controller="checkbox-reveal">
+  <label>
+    <input type="checkbox" data-checkbox-reveal-target="checkbox"
+           data-action="checkbox-reveal#toggle">
+    Notify by email
+  </label>
+
+  <div data-checkbox-reveal-target="item" class="hidden">
+    <input type="email" name="notification_email" class="input">
+  </div>
+</div>
+```
+
+## `checkbox-toggle`
+
+Toggles an `on` and an `off` target from the state of a single checkbox — the
+two-target variant of `checkbox-reveal`.
+
+```html
+<div data-controller="checkbox-toggle" data-checkbox-toggle-checked-value="true">
+  <input type="checkbox" checked data-action="checkbox-toggle#change">
+  <div data-checkbox-toggle-target="on">Shown while checked</div>
+  <div data-checkbox-toggle-target="off">Shown while unchecked</div>
+</div>
+```
+
+`checked` sets the initial state before the first change event.
+
+## `datepicker`
+
+Date picker built on [flatpickr](https://flatpickr.js.org/) (optional peer,
+imported on demand). The FormBuilder's date and time families
+(`f.date_group`, `f.datetime_group`, `f.time_group`, …) render it for you; by hand,
+the minimal form is:
+
+```html
+<input type="text" data-controller="datepicker">
+```
+
+Everything else is a value: `enable-time`, `no-calendar` (time-only),
+`enable-seconds`, `time24hr` (one word — the value is `time24hr`, so the attribute is
+`data-datepicker-time24hr-value`), `mode` (`single`/`range`), `default-date` /
+`default-dates`, `min-date` / `max-date`, `min-time` / `max-time`,
+`disable-weekends`, `disabled-dates`, `alt-format`, `static`, `locale`.
+
+```html
+<input type="text" data-controller="datepicker"
+       data-datepicker-mode-value="range"
+       data-datepicker-min-date-value="2026-01-01"
+       data-datepicker-locale-value="es">
+```
+
+`locale` defaults to `en`; the gem ships Spanish (`es`) and falls back to English
+for anything else — a host needing another locale calls `flatpickr.localize()`
+itself. Inside a modal or drawer the calendar moves itself to the top layer so the
+overlay cannot cover it; `static` and an `appendTo` target opt out of that.
+
+## `drawing-maps`
+
+Google Map with polygon drawing: shapes the user draws (including holes) are
+serialized as JSON into the `polygonField` target on every edit.
+`f.coordinates_polygon_group` renders it; by hand:
+
+```html
+<div data-controller="drawing-maps" data-drawing-maps-key="YOUR_KEY"
+     data-drawing-maps-latitude-value="32.51" data-drawing-maps-longitude-value="-117.0">
+  <div data-drawing-maps-target="map" class="h-96"></div>
+  <input type="hidden" name="zone[polygon]" value='{"shells":[],"holes":[]}'
+         data-drawing-maps-target="polygonField">
+  <button type="button" class="btn" data-action="drawing-maps#clear">Clear</button>
+  <button type="button" class="btn" data-action="drawing-maps#clearHoles">Clear holes</button>
+</div>
+```
+
+The field value must parse as JSON: `{"shells": [...], "holes": [...]}` (a legacy
+bare array of paths is still read). `editable: false` renders the polygons without
+the drawing toolbar. Note the API key is a plain data attribute
+(`data-drawing-maps-key`), not a Stimulus value.
+
+## `dynamic-fields`
+
+Adds and removes rows of nested fields (`accepts_nested_attributes_for`-style).
+Use it through the FormBuilder:
+
+```erb
+<%= form_with model: @project, builder: Bali::FormBuilder do |f| %>
+  <%= f.dynamic_fields_group :items, label: 'Items', button_text: 'Add item' %>
+<% end %>
+```
+
+with an `_item_fields.html.erb` partial per row:
+
+```erb
+<div class="item-fields">
+  <%= f.text_group :name %>
+  <%= f.link_to_remove_fields 'Remove', class: 'btn btn-ghost' %>
+</div>
+```
+
+The helper wires the whole contract: the `<template>` (`template` target) holding a
+blank row with the `new_record` child-index placeholder, the `container` target the
+rows append into, the `button` target that disables at the maximum, the
+`fields-selector` value (`.item-fields` — the association name singularized), and
+the hidden `destroy-flag` input `removeFields` flips. `moveUp`/`moveDown` actions
+reorder rows and renumber their `[data-position]` inputs;
+`remove-duplicates` removes already-selected `<select>` options from new rows and
+caps the row count at the number of options.
+
+## `elements-overlap`
+
+Keeps a `position: fixed` element (a sidebar, a floating actions bar) from
+overlapping a `dynamicElement` further down the page (a footer), by pushing the
+fixed element up once they would collide.
+
+```html
+<div data-controller="elements-overlap" data-elements-overlap-gap-value="24">
+  <aside class="fixed" data-elements-overlap-target="fixedElement">…</aside>
+  <main>…</main>
+  <footer data-elements-overlap-target="dynamicElement">…</footer>
+</div>
+```
+
+Values: `gap` (default 16 px), `min-window-width` (default 1023 — inactive on
+smaller screens), `throttle-interval` (scroll/resize throttle, default 10 ms).
+Requires `lodash.throttle`.
+
+## `file-input`
+
+Displays the selected filename(s) next to a file input; in `multiple` mode it
+renders a removable list and keeps the input's `FileList` in sync.
+`f.file_group` / `f.file_field` build it; by hand:
+
+```html
+<div class="flex items-center gap-3" data-controller="file-input"
+     data-file-input-non-selected-text-value="No file selected"
+     data-file-input-multiple-value="false">
+  <label class="cursor-pointer inline-flex">
+    <input type="file" class="hidden"
+           data-action="file-input#onChange" data-file-input-target="input">
+    <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
+  </label>
+  <span class="text-sm text-base-content/60 truncate"
+        data-file-input-target="value">No file selected</span>
+</div>
+```
+
+## `filter-persistence`
+
+The "remember my filters" preference toggle used by the Filters components. Stores
+the preference in localStorage (client source of truth) and mirrors it into a
+`bali_persist_<storageId>` cookie so the server can decide whether to restore saved
+filters. Toggling reloads the page to apply the change.
+
+```html
+<div data-controller="filter-persistence"
+     data-filter-persistence-storage-id-value="movies"
+     data-filter-persistence-enabled-value="false"
+     data-filter-persistence-enabled-tooltip-value="Persistence on. Click to disable."
+     data-filter-persistence-disabled-tooltip-value="Persistence off. Click to enable.">
+  <button type="button" class="btn btn-ghost tooltip"
+          data-action="filter-persistence#toggle"
+          data-filter-persistence-target="button">
+    <span data-filter-persistence-target="iconEnabled" class="hidden">filled bookmark</span>
+    <span data-filter-persistence-target="iconDisabled">outline bookmark</span>
+  </button>
+</div>
+```
+
+The tooltip texts must be values on the controller element — attributes on the
+button are not read. You rarely wire this by hand: `Bali::Filters` and
+`Bali::SimpleFilters` render their own toggle.
+
+## `focus-on-connect`
+
+Smooth-scrolls its element into view (`scrollIntoView`, centered) when it connects.
+Despite the name it does not call `focus()`. Useful for content appended by a Turbo
+Stream that would otherwise land off-screen.
+
+```html
+<div data-controller="focus-on-connect">…</div>
+```
+
+## `geocoder-maps`
+
+Geocodes the address typed into its field targets and drops a marker on a Google
+Map, filling the `latitude`/`longitude` targets. With `draggable-marker`, dragging
+the marker updates them again.
+
+```html
+<div data-controller="geocoder-maps" data-geocoder-maps-key="YOUR_KEY"
+     data-geocoder-maps-draggable-marker-value="true">
+  <div data-geocoder-maps-target="map" class="h-96"></div>
+
+  <input type="text" data-geocoder-maps-target="route">
+  <input type="text" data-geocoder-maps-target="streetNumber">
+  <input type="text" data-geocoder-maps-target="sublocalityLevel1">
+  <input type="text" data-geocoder-maps-target="locality">
+  <input type="text" data-geocoder-maps-target="postalCode">
+  <input type="hidden" data-geocoder-maps-target="latitude">
+  <input type="hidden" data-geocoder-maps-target="longitude">
+</div>
+```
+
+Each address field re-geocodes on `change`. Heads-up: the geocoding query is biased
+to Baja California, Mexico — the city falls back to Tijuana when `locality` is
+empty, and the map centers there by default. The API key is a plain data attribute
+(`data-geocoder-maps-key`). `data-geocoder-maps-test-mode="true"` skips the Google
+Maps load entirely (for tests).
+
+## `input-on-change`
+
+Notifies the server with a Turbo Stream request when an input changes. By default
+it sends the input's `name` as the query key; override it with the `query-key`
+value. An optional `element` target sends its DOM id as `target_id` so the server
+knows which element to update.
+
+```html
+<div data-controller="input-on-change" data-input-on-change-url-value="/quotes/recalculate">
+  <input data-action="input-on-change#change" name="quantity" value="1">
+  <div data-input-on-change-target="element" id="quote-total">…</div>
+</div>
+```
+
+For a multi-select, use POST so the values arrive as an actual array (it also reads
+the selection off a SlimSelect instance when one is attached):
+
+```html
+<div data-controller="input-on-change"
+     data-input-on-change-url-value="/quotes/recalculate"
+     data-input-on-change-method-value="post">
+  <select multiple data-action="input-on-change#change" name="services">…</select>
+</div>
+```
+
+## `interact`
+
+Drag and resize for an absolutely-positioned element, snapping to `increment`
+pixels. Movement updates `left`/`width` inline styles and mirrors into the
+`position`, `start-delta`, `end-delta` and `width` values.
+
+```html
+<div class="absolute" data-controller="interact"
+     data-interact-position-value="0"
+     data-interact-increment-value="25"
+     data-action="mousedown->interact#onDragStart">
+  <div data-action="mousedown->interact#onResizeStart" data-interact-handle-param="left"></div>
+  Bar content
+  <div data-action="mousedown->interact#onResizeStart" data-interact-handle-param="right"></div>
+</div>
+```
+
+While moving it dispatches `bali:interact:dragging` / `drag-end` / `resizing` /
+`resize-end` with the element, your `params` value and the live geometry on
+`event.detail` — see the [events table](javascript-integration.md#events). The
+`bali:interact` prefix is fixed on purpose, so the events keep their names even if
+you register the controller under a different identifier. A `link` target makes a
+click (small movement, under 500 ms) fall through to the link instead of being
+swallowed as a drag.
+
+## `print`
+
+Calls `window.print()` on connect and closes the window when it regains focus
+(i.e. when the print dialog is dismissed). Meant for a print-only page opened with
+`target="_blank"`:
+
+```html
+<div data-controller="print">
+  <!-- printable content -->
+</div>
+```
+
+## `radio-buttons-group`
+
+Toggler buttons that reveal one content pane each, where the panes themselves
+contain radio groups. The visible pane is the one whose
+`data-radio-buttons-group-value` contains the active toggler's `value`
+(comma-separated to share a pane between togglers). Hiding a pane unchecks its
+radios; `keep-selection` re-checks the remembered one when the pane comes back.
+`f.radio_buttons_group` renders all of this; by hand:
+
+```html
+<div data-controller="radio-buttons-group" data-radio-buttons-group-current-value="card">
+  <button type="button" value="card" data-radio-buttons-group-target="toggler"
+          data-action="radio-buttons-group#change">Card</button>
+  <button type="button" value="transfer" data-radio-buttons-group-target="toggler"
+          data-action="radio-buttons-group#change">Transfer</button>
+
+  <div data-radio-buttons-group-target="element" data-radio-buttons-group-value="card">
+    <label><input type="radio" name="method" value="visa"
+                  data-action="radio-buttons-group#select"> Visa</label>
+    <label><input type="radio" name="method" value="amex"
+                  data-action="radio-buttons-group#select"> Amex</label>
+  </div>
+  <div data-radio-buttons-group-target="element" data-radio-buttons-group-value="transfer">
+    <label><input type="radio" name="method" value="spei"
+                  data-action="radio-buttons-group#select"> SPEI</label>
+  </div>
+</div>
+```
+
+The active/inactive toggler classes default to `btn-primary`/`btn-ghost`; override
+with `data-radio-buttons-group-active-class` and
+`data-radio-buttons-group-inactive-class`.
+
+## `radio-toggle`
+
+Shows the elements whose `data-radio-toggle-value` matches the selected radio's
+value (comma-separated to match several) — the single-level sibling of
+`radio-buttons-group`.
+
+```html
+<div data-controller="radio-toggle" data-radio-toggle-current-value="one">
+  <input type="radio" name="kind" data-action="radio-toggle#change" value="one" checked>
+  <input type="radio" name="kind" data-action="radio-toggle#change" value="two">
+
+  <div data-radio-toggle-target="element" data-radio-toggle-value="one">One</div>
+  <div data-radio-toggle-target="element" data-radio-toggle-value="one,two">One or two</div>
+</div>
+```
+
+## `slim-select`
+
+Wraps a `<select>` in the [SlimSelect](https://slimselectjs.com/) widget (optional
+peer, imported on demand): search, multi-select, remote options, addable items.
+`f.slim_select_group` / `f.slim_select_field` render it; by hand:
+
+```html
+<div data-controller="slim-select" data-slim-select-placeholder-value="Pick a country">
+  <select name="country" data-slim-select-target="select">
+    <option value="mx">México</option>
+    <option value="us">United States</option>
+  </select>
+</div>
+```
+
+The values map mostly 1:1 onto SlimSelect settings (`show-search`,
+`close-on-select`, `allow-deselect-option`, `hide-selected`, `search-highlight`,
+`content-width`, the `*-text` strings). Beyond passthrough:
+
+- **Remote search** — set all four of `ajax-url`, `ajax-param-name`,
+  `ajax-value-name`, `ajax-text-name`; the endpoint returns a JSON array and the
+  named keys become option value/text.
+- **Addable options** — `add-items` lets the user create options.
+- **Server notification** — `after-change-fetch-url` (+ `after-change-fetch-method`)
+  sends the selection as a Turbo Stream request on every change.
+- **`selectAll`/`deselectAll` actions** — wire buttons (`select-all-button` /
+  `deselect-all-button` targets) for multi-selects.
+- **HTML options** — per-option markup goes in a `data-inner-html` attribute on the
+  `<option>`, not inline HTML.
+
+The controller also survives Turbo restoration visits (it tears the widget down
+before the page is cached) — one of the reasons to prefer it over hand-rolled
+SlimSelect wiring.
+
+## `step-number-input`
+
+Number input with +/− buttons. Reads `min`, `max` and `step` off the input itself,
+clamps on every change, and disables the button at each limit.
+`f.step_number_group` builds it; by hand:
+
+```html
+<div class="join" data-controller="step-number-input">
+  <button type="button" class="btn join-item" data-step-number-input-target="subtract"
+          data-action="step-number-input#subtract">−</button>
+  <input type="number" class="input join-item w-20 text-center" min="0" max="10" step="1"
+         value="1" data-step-number-input-target="input">
+  <button type="button" class="btn join-item" data-step-number-input-target="add"
+          data-action="step-number-input#add">+</button>
+</div>
+```
+
+Button clicks dispatch a bubbling `change` event on the input, so other controllers
+(e.g. `submit-on-change`) see it.
+
+## `submit-button`
+
+Swaps the submitter button's content for a daisyUI spinner and disables it between
+`turbo:submit-start` and `turbo:submit-end`, preserving the button's width and
+colors. Attach it to the `<form>`:
+
+```html
+<form action="/movies" method="post" data-controller="submit-button">
+  <!-- fields -->
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+```
+
+Bali's `form_with` helper (`Bali::FormHelper`) prepends this controller to every
+form it builds, so host apps using it get the loading state for free.
+
+## `submit-on-change`
+
+Submits the form whenever one of its controls changes — the backbone of
+filter forms. Two actions, so a select and a search box can share one controller:
+`submit` fires right away, `debouncedSubmit` waits for the typing to stop.
+
+```html
+<form action="/movies" method="get" data-controller="submit-on-change">
+  <select name="genre" data-action="submit-on-change#submit">
+    <option value="drama">Drama</option>
+    <option value="comedy">Comedy</option>
+  </select>
+  <input type="search" name="q" data-action="submit-on-change#debouncedSubmit">
+</form>
+```
+
+- `delay` (ms) debounces **both** actions. Without it, `submit` is immediate and
+  `debouncedSubmit` waits 300 ms.
+- `skip-initial` (default `true`) drops change events fired in the first frame after
+  connecting. SlimSelect emits one on the native `<select>` while it builds its
+  widget, which used to submit a form nobody had touched. Set it to `false` only if
+  your app relies on that submit.
+- `action` / `method` submit somewhere other than the form's own target, via a
+  hidden submitter with `formaction`/`formmethod` (the form's normal submit button
+  keeps its own destination).
+
+```html
+<form action="/movies" data-controller="submit-on-change"
+      data-submit-on-change-delay-value="300"
+      data-submit-on-change-skip-initial-value="false"
+      data-submit-on-change-action-value="/movies/preview"
+      data-submit-on-change-method-value="get">
+  …
+</form>
+```
+
+Both actions and the guard are live in the `bali/submit_on_change/default` preview.
+
+If your app carries a local `auto_submit_controller.js`, this controller replaces
+it — see [Do you have a local copy?](#do-you-have-a-local-copy)
+
+## `textarea`
+
+Optional character counter and auto-grow for a textarea.
+`f.text_area_group(:bio, char_counter: true, auto_grow: true)` builds it; by hand:
+
+```html
+<div data-controller="textarea"
+     data-textarea-max-length-value="500"
+     data-textarea-auto-grow-value="true">
+  <textarea class="textarea w-full" data-textarea-target="input"
+            data-action="input->textarea#onInput"></textarea>
+  <span data-textarea-target="counter"></span>
+</div>
+```
+
+With `max-length` the counter reads `12 / 500` and turns red over the limit
+(display only — pair it with a real `maxlength` attribute to enforce). Without it,
+it is a plain character count. `min-height` floors the auto-grow.
+
+## `time-period-field`
+
+A period `<select>` (this week, this month, …) over a hidden field, where one option
+means "custom" and reveals a date-range picker. Whichever control the user touched
+last writes the hidden field the form actually submits.
+`f.time_period_group` builds it; the essential wiring is:
+
+```html
+<div data-controller="time-period-field">
+  <input type="hidden" name="q[created_at]" data-time-period-field-target="input">
+
+  <select class="select"
+          data-time-period-field-target="select"
+          data-action="time-period-field#toggleDateInput time-period-field#setInputValue">
+    <option value="2026-08-01..2026-08-31">This month</option>
+    <option value="">Custom…</option>
+  </select>
+
+  <input type="text" class="hidden" data-controller="datepicker"
+         data-datepicker-mode-value="range"
+         data-time-period-field-target="dateInput"
+         data-action="time-period-field#setInputValue">
+</div>
+```
+
+The hidden field is the only control with a `name`: two inputs sharing one would submit
+the param twice and the server would keep the last, which is not necessarily the one on
+screen.
+
+`custom-value` names which option reveals the picker, and defaults to the empty string —
+what `f.time_period_group` uses, because its blank option is spent on exactly that. A
+filter row cannot afford that: its blank option has to mean "no filter", so
+SimpleFilters' `presets:` widget names a real one (`data-time-period-field-custom-value="custom"`)
+and keeps the blank for "any date". See `Bali::DateRangePresets`.
+
+`data-time-period-field-date-input-container-class-value` names a wrapper element to
+show/hide together with the date input — needed whenever the picker runs with `altInput`,
+since then the real input is already hidden and what the user sees is flatpickr's sibling
+inside that wrapper. Spell the `-value` suffix: without it Stimulus reads nothing, the
+controller has no container to reveal and the picker never appears, silently.
+
+## `trix-attachments`
+
+Caps the **total** size of attachments in a Trix editor. When accepting a file
+would push the sum past `max-size` (in MB), the drop is rejected and
+`error-message` is alerted. `f.rich_text_area` wires it with the gem's defaults;
+by hand:
+
+```html
+<trix-editor input="post_body"
+             data-controller="trix-attachments"
+             data-trix-attachments-max-size-value="5"
+             data-trix-attachments-error-message-value="Attachments exceed 5 MB"></trix-editor>
+```
+
+The controller element must be the `<trix-editor>` (it listens for
+`trix-file-accept` and reads `this.element.editor`).
+
+---
+
+## Do you have a local copy?
+
+Before this page existed, several AFAL apps copied these controllers (or wrote
+siblings of them) instead of registering Bali's. If your app carries one of these
+files, delete it and register the Bali controller — the copies either duplicate the
+gem byte for byte or lag behind fixes it has since received:
+
+| App(s) | Local file | Replace with |
+|---|---|---|
+| gobierno-corporativo, afal-apps, centinela-web | `auto_submit_controller.js` | [`submit-on-change`](#submit-on-change) — same two actions (`submit`, `debouncedSubmit`) and the same first-frame guard; rename `data-controller="auto-submit"` and the action prefix at each call site |
+| centinela-web, costa-norte | `notification_controller.js` (centinela also keeps the `fadeOutRight` keyframe CSS for it) | `Bali::ToastContainer::Component` + its `toast-container` controller — `Bali::Notification` is deprecated in v3, see the [migration guide](migration-v2-to-v3.md) |
+| identity | `clipboard_controller.js` | Bali's `clipboard` component controller |
+| identity, costa-norte | `bulk_select_controller.js` | Candidates to review against v3's `bulk-actions` — the replacement is not 1:1 yet (identity's "select all N filtered" is not covered), so evaluate before deleting |
+| opina | `navigate_controller.js` (select → `Turbo.visit`) | No Bali equivalent yet; a known tier-3 candidate. Keep your copy for now |
+
+The first three rows are safe deletions today. The last two are named here so the
+next person who needs the behavior knows a copy already exists.

@@ -58,3 +58,15 @@ jobs:
 
       - name: Run Cypress tests
         run: yarn cypress run --browser chrome
+
+      # Sin esto, un flake solo deja el mensaje del assert: el screenshot que
+      # Cypress ya toma en cada fallo se quedaba en el runner. Con la página
+      # a la vista, "never found it" se vuelve diagnosticable.
+      - name: Upload failure screenshots
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 14

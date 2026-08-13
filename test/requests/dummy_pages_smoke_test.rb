@@ -26,11 +26,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   # Routes owned by the dummy that the sweep deliberately does not request, each with the
   # reason. The guard below fails on anything owned by the dummy that is neither swept nor
   # listed here, so a new page cannot join the app without someone deciding about it.
-  UNSWEPT = {
-    "documents/comment_threads#index" => "Turbo Stream partial; a bare GET has no frame to " \
-                                         "render into and the JSON shape belongs to a " \
-                                         "controller test"
-  }.freeze
+  UNSWEPT = {}.freeze
 
   # Deprecations the dummy fires on purpose, keyed by the leading text of the entry the
   # walk builds — `<path> (<endpoint>): <message>` — so an exception covers the call site
@@ -47,7 +43,6 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     @studio = Studio.create!(name: "Smoke Studio", country: "USA", status: :active)
     @project = Project.create!(name: "Smoke Project")
     @document = Document.create!(title: "Smoke Document", author_name: "Smoke Author")
-    @version = @document.create_version!(author_name: "Smoke Author")
   end
 
   # Two assertions off one walk rather than two test methods, because the walk is the
@@ -141,8 +136,8 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "studios" => { "id" => @studio.to_param },
       "admin/studios" => { "id" => @studio.to_param },
       "admin/projects" => { "id" => @project.to_param },
-      "documents" => { "id" => @document.to_param },
-      "document_versions" => { "document_id" => @document.to_param, "id" => @version.to_param }
+      "admin/projects/schedules" => { "project_id" => @project.to_param },
+      "documents" => { "id" => @document.to_param }
     }
   end
 

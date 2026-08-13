@@ -27,7 +27,6 @@ import { getTimestamp } from '../utils/time.js'
  * </div>
  */
 
-// TODO: Add tests (Issue: #141)
 export class InputOnChangeController extends Controller {
   static values = {
     url: String,

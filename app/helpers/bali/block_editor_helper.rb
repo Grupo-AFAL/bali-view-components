@@ -6,17 +6,16 @@ module Bali
   # `bali-view-components/block-editor-loader` can inject them the first time
   # a block editor appears in the DOM.
   #
-  # They travel as <meta> instead of <link>/<script> because the bundle must
-  # not load on every page, and because drawers/modals inject content with
-  # innerHTML, where a <script> never executes — only the server knows the
-  # digested path, hence the meta indirection.
+  # The block editor was the first React island; the generic mechanics now
+  # live in Bali::ReactIslandHelper and this remains as the editor's
+  # ergonomic spelling (not deprecated — it is the established API of the
+  # gem's largest island).
   module BlockEditorHelper
+    include Bali::ReactIslandHelper
+
     # Pass `css: nil` if the entry emits no stylesheet of its own.
     def block_editor_meta_tags(js: "editor.js", css: "editor.css")
-      tags = [ tag.meta(name: "bali-block-editor-js", content: asset_path(js)) ]
-      tags << tag.meta(name: "bali-block-editor-css", content: asset_path(css)) if css
-
-      safe_join(tags, "\n")
+      react_island_meta_tags("block-editor", js: js, css: css)
     end
   end
 end

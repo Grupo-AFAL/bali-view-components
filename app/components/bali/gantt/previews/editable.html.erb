@@ -1,0 +1,25 @@
+<%# locals: project, gantt %>
+<%# The COMPLETE editable island wired to the dummy's reference endpoints —
+    the executable form of the mutation contract (#705, D15/D17). This is
+    verbatim what a host writes: one render call and the endpoints in `urls:`.
+    `id:` is the broadcast target (docs/api/gantt.md). %>
+<%= react_island_meta_tags('gantt', js: 'gantt-island.js', css: 'gantt-island.css') %>
+<% if project %>
+  <%= render Bali::Gantt::Component.new(
+        data: gantt.to_h,
+        statuses: gantt.statuses,
+        catalogs: gantt.catalogs,
+        editable: true,
+        manageable: true,
+        urls: {
+          patch: admin_project_schedule_path(project),
+          schedule: admin_project_schedule_path(project),
+          dependencies: admin_project_dependencies_path(project)
+        },
+        id: dom_id(project, :gantt)) %>
+<% else %>
+  <p class="p-4 text-sm text-base-content/60">
+    This preview mounts the island against the seeded demo project — run
+    <code>bin/rails db:seed</code> in spec/dummy first.
+  </p>
+<% end %>

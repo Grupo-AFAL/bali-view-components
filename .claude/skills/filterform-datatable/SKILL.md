@@ -146,8 +146,9 @@ For reusable filter forms, use the class-level DSL:
 
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
-  # Quick search across multiple columns
-  search_fields :name, :genre, :studio_name
+  # Quick search across multiple columns. `aria_label:` is the box's aria-label
+  # (#982; it was `label:` in the v3.1 betas); `icon:`/`width:` style it. All optional.
+  search_fields :name, :genre, :studio_name, aria_label: 'Search movies'
 
   # Filterable attributes for advanced filters UI
   filter_attribute :name, type: :text
@@ -170,6 +171,11 @@ Ransack drop the whole condition without raising: the search returns 200 and eve
 same rule applies to `with_header(sort:)` on the table. Assert on the result SET, not the
 status code.
 
+**An attribute derived in Ruby (no column) is NOT a reason to bypass Ransack.** Declare a
+`ransacker` over a SQL expression or a cached column and it becomes a normal
+`filter_attribute` — the full pattern, the pagination anti-pattern it avoids, and the two
+real-world worked examples are in `docs/guides/derived-filters.md`.
+
 A `filter_attribute type: :select` over a Rails enum can use the enum LABELS as its option
 values (`Movie.statuses.keys`) — Bali translates label to value before the params reach
 Ransack, which otherwise casts with the raw column type and turns `"done"` into `0`. Only the
@@ -182,6 +188,66 @@ member, so the option values must be the exact `Movie.statuses.keys` strings —
 Ransack association path) skips the translation, so a select built on its labels returns the
 OPPOSITE records, silently. Declare those options with the raw values
 (`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
+
+### Pills that filter on click (`auto_submit:`)
+
+`auto_submit: true` makes a SimpleFilters filter submit the row as soon as it changes, with no
+trip through the Filter button:
+
+```ruby
+filter_attribute :status, type: :select, simple: true, advanced: false,
+  options: [['Draft', 'draft'], ['Published', 'published']],
+  input: :radio_group, auto_submit: true
+```
+
+It is **opt-in per filter and off by default**, so no existing row changes behaviour, and the
+button stays for the filters that did not opt in. The row mounts `submit-on-change` only when
+at least one filter asked for it, and only that filter's controls get the action.
+
+Only `:toggle_group` and `:radio_group` accept it (`AUTO_SUBMIT_INPUTS` in
+`lib/bali/filter_form.rb` — it lives on the singleton class next to `SIMPLE_INPUTS`, so it is
+not reachable as `Bali::FilterForm::AUTO_SUBMIT_INPUTS`).
+Anything else **raises at class-definition time**: one click is the whole interaction on a
+pill, whereas a date or number range would submit between the two halves of its value. The
+instance-level `simple_filters:` hashes take the same key and are filtered by the component
+instead of raising, since they never go through the DSL's validation.
+
+There is no phantom submit on load: `submit-on-change` drops change events fired in the frame
+it connects in (see `docs/guides/controllers.md`).
+
+### Date range presets ("This month" instead of two dates)
+
+`presets:` turns an `input: :date_range` simple filter into a period select whose "Custom…"
+option reveals the picker. It takes `true` for every token, or an array to pick and order
+them:
+
+```ruby
+filter_attribute :created_at, type: :date, input: :date_range, simple: true,
+                 presets: %i[today this_week this_month], blank: 'Any date'
+
+# or, from an instance-level simple_filters: hash
+{ attribute: :created_at, type: :date_range, label: 'Created', presets: true }
+```
+
+The tokens are `today`, `this_week`, `this_month`, `last_7_days`, `last_30_days`
+(`Bali::DateRangePresets::TOKENS`); the trailing two include today. An unknown one raises at
+declaration time.
+
+**The token itself is what travels.** `q[created_at]=this_month` goes in the same param an
+explicit range would, and `Bali::Types::DateRangeValue` resolves it to a real range only when
+the query runs. That is the whole reason to prefer it over filling in two dates: a saved view
+or a persisted filter holding `this_month` still means this month next month, while one
+holding `2026-08-01..2026-08-31` means August forever.
+
+It also means the period is the SERVER's — `Time.zone`, the same zone the rest of the date
+filtering already speaks. A visitor in another zone sees the boundaries their listing is
+actually filtered by, which is the honest answer; computing them in the browser would make
+the two disagree.
+
+Presets are `date_range`-only, by design: "this week" is not a value a single `date` filter
+can hold, so declaring them on one raises rather than rendering a control that cannot work.
+The widget is the shared `time-period-field` Stimulus controller — the same one
+`f.time_period_group` builds — so a period select behaves the same wherever it appears.
 
 ## FilterForm Architecture
 
@@ -201,7 +267,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `search_enabled?` | `Boolean` | True if search is configured |
 | `search_value` | `String` | Current search value from params |
 | `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
-| `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take (`fields`, `value`, `placeholder`, `icon`) |
+| `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take — every `Bali::SearchConfig::KEYS` entry (`fields`, `value`, `placeholder`, `label`, `icon`, `width`) |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
 | `combinator` | `String` | Top-level combinator ('and' or 'or') |
@@ -263,6 +329,34 @@ When a `filter_form` is provided to DataTable, `with_filters_panel` auto-populat
 ```
 
 `with_simple_filters` resolves `search:` the same way, from the same `search_config`.
+
+`with_bulk_actions` auto-populates two more, from the `pagy` and the `filter_form`:
+
+- `total_count` from `pagy.count` — with it, the bar offers "select all N results" once the
+  selection covers the page (nothing to declare; `nil` on countless pagination);
+- `filter_params` from `Bali::Filters::ActiveFilterParams.for_filter_form(filter_form)` —
+  the `q[...]` as APPLIED (groups, flat attributes, simple filters and quick search), which
+  every action re-emits as hidden fields.
+
+The bulk controller then re-derives the scope with the same object the index built:
+
+```ruby
+movies = if ActiveModel::Type::Boolean.new.cast(params[:select_all_filtered])
+  MovieFilterForm.new(policy_scope(Movie), params).result
+else
+  policy_scope(Movie).where(id: JSON.parse(params[:selected_ids]))
+end
+```
+
+Cast the flag rather than testing it: it travels on every POST, and outside the mode it is
+the string `"false"`, which is truthy.
+
+Those params come from the RESOLVED state, not from the request URL — which is what keeps
+them right when filter persistence restored the filters from cache and the query string is
+empty. **Only the `q[...]` travel**, though: a nav tab, `group_by`, or a scope you apply in
+the controller before handing over the relation is invisible to the re-emission, and a bulk
+would act wider than the listing showed. Pass `filter_params:` yourself if your listing is
+cut outside `q`. Enqueue a job when N is large, and confirm the destructive actions.
 
 ### The `search:` shape
 

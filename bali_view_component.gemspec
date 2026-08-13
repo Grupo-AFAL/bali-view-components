@@ -7,9 +7,12 @@ Gem::Specification.new do |spec|
   spec.version     = Bali::VERSION
   spec.authors     = [ "Federico Gonzalez", "Miguel Frías" ]
   spec.email       = [ "fedegl@hey.com", "miguelf@enjoykitchen.mx" ]
-  spec.homepage    = "https://github.com/Grupo-AFAL/bali"
-  spec.summary     = "View Components"
-  spec.description = "View Components"
+  spec.homepage    = "https://github.com/Grupo-AFAL/bali-view-components"
+  spec.summary     = "Bali ViewComponents — AFAL's Rails UI component library"
+  spec.description = "Server-rendered UI component library for Rails: ViewComponent + " \
+                     "Stimulus + Tailwind CSS/daisyUI. Ships ~90 components (forms, " \
+                     "filters, data tables, overlays, Gantt, block editor) with a " \
+                     "FormBuilder, filtering DSL and optional engine controllers."
   spec.license = "MIT"
   spec.required_ruby_version = ">= 4.0"
 
@@ -22,6 +25,8 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "caxlsx"
+  # Word-level LCS diff for Bali::BlockNote::Diff (MIT, no transitive deps).
+  spec.add_dependency "diff-lcs", "~> 1.5"
   # Capped: icon resolution and several legacy spellings ride the alias SVGs
   # lucide-rails still ships, and an uncapped bump that drops them turns those
   # names into IconNotAvailable — a 500 — with no change on the host's side.

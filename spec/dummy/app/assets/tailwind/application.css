@@ -13,8 +13,10 @@
 @source "../../javascript/**/*.js";
 @source "../../../public/*.html";
 
-/* Bali ViewComponents sources (via node_modules symlink) */
-@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
+/* Bali ViewComponents sources (via node_modules symlink). Deliberately the
+   exact pair README.md and installation.md hand to hosts, so the documented
+   globs are the ones this app's build actually exercises (#983). */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
 @source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 
 /* Responsive Bali::Columns classes — Tailwind's scanner can't detect colon-prefixed
@@ -36,3 +38,5 @@
 
 /* Bali custom themes */
 @import "bali-view-components/css/themes/costa-norte.css";
+@import "bali-view-components/css/themes/afal.css";
+@import "bali-view-components/css/themes/afal-dark.css";

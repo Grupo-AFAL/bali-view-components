@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v2.18.0"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.1.0.beta.13"
 ```
 
 Then run:
@@ -55,8 +55,11 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Scan Bali ViewComponents for Tailwind classes */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+/* Scan Bali ViewComponents for Tailwind classes — BOTH lines. app/ has the
+   components (including the JS that writes class names at runtime); lib/ has
+   the FormBuilder, which is where every *-error class comes from. */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 
 /* Import Bali CSS — one line, component sheets included */
 @import "bali-view-components/css/bali.css";
@@ -73,7 +76,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 }
 ```
 
-> **Important**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files. Without it, Tailwind won't detect these classes and they won't be included in your CSS build.
+> **Important**: Both `@source` directives are required. Bali defines Tailwind classes in Ruby, ERB and JS files under `app/`, and the FormBuilder defines its own — `input-error`, `select-error`, `fieldset-label`, the whole `range-*` family — under `lib/bali/`. Scanning only `app/` compiles without any warning and silently drops every form error style: invalid fields render with no red border.
 
 ### 4. Use Components
 
@@ -83,15 +86,13 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
 <%# Card with slots %>
 <%= render Bali::Card::Component.new do |c| %>
-  <% c.with_header { "Card Title" } %>
-  <% c.with_body { "Card content goes here" } %>
-  <% c.with_actions do %>
-    <%= render Bali::Button::Component.new(name: 'Action', variant: :ghost) %>
-  <% end %>
+  <% c.with_header(title: 'Card Title') %>
+  <%= tag.p 'Card content goes here' %>
+  <% c.with_action(class: 'btn-ghost') { 'Action' } %>
 <% end %>
 
 <%# Link styled as button %>
-<%= render Bali::Link::Component.new(name: 'View Details', href: '/items/1', type: :primary) %>
+<%= render Bali::Link::Component.new(name: 'View Details', href: '/items/1', variant: :primary) %>
 ```
 
 ## Documentation
@@ -100,9 +101,12 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 |-------|-------------|
 | [Installation](docs/guides/installation.md) | Complete setup including Tailwind v4 |
 | [Components](docs/guides/components.md) | Component usage patterns and slots |
+| [Enum badges](docs/guides/enum-badges.md) | `Bali::Tag.for` / `Bali::Status.for` — one map per enum, and the Tag vs Status criterion |
 | [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
 | [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
 | [Overlays and the top layer](docs/guides/overlays-and-the-top-layer.md) | What the z-index scale orders, and what it cannot |
+| [Engines](docs/guides/engines.md) | Host integration for Bali's controllers (`Bali.engine_controller_concerns`) |
+| [Engine models](docs/guides/engine-models.md) | The tables Bali ships and how a model opts in (saved views, acknowledgments) |
 | [Migrating v2 → v3](docs/guides/migration-v2-to-v3.md) | Breaking changes to the index page (DataTable) |
 | [Troubleshooting](docs/guides/troubleshooting.md) | Common issues and solutions |
 
@@ -115,7 +119,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`, `ViewSwitch`
 
 ### Data Display
-`Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
+`Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `QrCode`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
 
 ### Interactive
 `ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SortableList`, `Tooltip`
@@ -144,7 +148,7 @@ Bali extends Rails' `FormBuilder` with DaisyUI-styled inputs:
   <%= f.switch_field :active, color: :primary %>
   <%= f.date_field_group :birth_date %>
   <%= f.rich_text_area_group :bio %>
-  <%= f.submit_button 'Save', variant: :primary %>
+  <%= f.submit_group 'Save', variant: :primary %>
 <% end %>
 ```
 
@@ -161,8 +165,8 @@ Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook) to browse 
 ### Running Tests
 
 ```bash
-# RSpec tests
-bundle exec rspec
+# Minitest suite
+bin/rails test
 
 # Cypress tests (requires server running on port 3001)
 yarn run cy:run   # Headless
@@ -180,7 +184,7 @@ rails g view_component bali/my_component name
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Write tests for your changes
-4. Ensure all tests pass (`bundle exec rspec`)
+4. Ensure all tests pass (`bin/rails test`)
 5. Create Lookbook preview for new components
 6. Submit a pull request
 
@@ -215,79 +219,91 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | Component | Preview | Docs | Tests |
 |-----------|:-------:|:----:|:-----:|
 | ActionsDropdown | ✓ | ✓ | ✓ |
+| Alert | ✓ | ✓ | ✓ |
 | AppLayout | ✓ | ✓ | ✓ |
 | Avatar | ✓ | ✓ | ✓ |
 | BlockEditor | ✓ | ✓ | ✓ |
 | BooleanIcon | ✓ | ✓ | ✓ |
 | Breadcrumb | ✓ | ✓ | ✓ |
-| BulkActions | ✓ | - | ✓ |
+| BulkActions | ✓ | ✓ | ✓ |
 | Button | ✓ | ✓ | ✓ |
 | Calendar | ✓ | ✓ | ✓ |
 | Card | ✓ | ✓ | ✓ |
 | Carousel | ✓ | ✓ | ✓ |
-| Chart | ✓ | ~ | ✓ |
+| Chart | ✓ | ✓ | ✓ |
+| Chat | ✓ | ✓ | ✓ |
 | Clipboard | ✓ | ✓ | ✓ |
 | Columns | ✓ | ✓ | ✓ |
 | Command | ✓ | ✓ | ✓ |
-| ConfirmDialog | ✓ | - | - |
-| DashboardPage | ✓ | - | ✓ |
+| DashboardPage | ✓ | ✓ | ✓ |
 | DataTable | ✓ | ✓ | ✓ |
 | DeleteLink | ✓ | ✓ | ✓ |
-| DirectUpload | ✓ | ✓ | - |
-| DocumentEditor | ✓ | - | ✓ |
-| DocumentPage | ✓ | - | ✓ |
+| DescriptionList | ✓ | ✓ | ✓ |
+| DirectUpload | ✓ | ✓ | ✓ |
+| DocumentEditor | ✓ | ✓ | ✓ |
+| DocumentPage | ✓ | ✓ | ✓ |
 | Drawer | ✓ | ✓ | ✓ |
 | Dropdown | ✓ | ✓ | ✓ |
-| FeedbackWidget | ✓ | - | ✓ |
+| EmptyState | ✓ | ✓ | ✓ |
+| FeedbackWidget | ✓ | ✓ | ✓ |
+| FieldGroupWrapper | ✓ | - | ✓ |
 | Filters | ✓ | ✓ | ✓ |
-| FlashNotifications | ✓ | - | ✓ |
-| Footer | ✓ | - | ✓ |
-| FormPage | ✓ | - | ✓ |
+| FlashNotifications | - | - | ✓ |
+| Footer | ✓ | ✓ | ✓ |
+| FormPage | ✓ | ✓ | ✓ |
+| Gantt | ✓ | ✓ | ✓ |
 | Heatmap | ✓ | ✓ | ✓ |
+| HelpTip | ✓ | ✓ | ✓ |
 | Hero | ✓ | ✓ | ✓ |
 | HoverCard | ✓ | ✓ | ✓ |
 | Icon | ✓ | ✓ | ✓ |
-| ImageField | ✓ | - | ✓ |
+| ImageField | ✓ | ✓ | ✓ |
 | ImageGrid | ✓ | ✓ | ✓ |
-| IndexPage | ✓ | - | ✓ |
+| IndexPage | ✓ | ✓ | ✓ |
 | InfoLevel | ✓ | ✓ | ✓ |
-| Kanban | ✓ | - | ✓ |
+| Kanban | ✓ | ✓ | ✓ |
 | LabelValue | ✓ | ✓ | ✓ |
 | Level | ✓ | ✓ | ✓ |
 | Link | ✓ | ✓ | ✓ |
 | List | ✓ | ✓ | ✓ |
 | Loader | ✓ | ✓ | ✓ |
 | LocationsMap | ✓ | ✓ | ✓ |
-| Message | ✓ | - | ✓ |
+| Message | - | - | ✓ |
 | Modal | ✓ | ✓ | ✓ |
-| NavBar | ✓ | ✓ | ✓ |
-| Notification | ✓ | ✓ | ✓ |
-| PageHeader | ✓ | ~ | ✓ |
-| Pagination | ✓ | - | ✓ |
-| PaginationFooter | ✓ | - | ✓ |
+| Navbar | ✓ | - | ✓ |
+| Notification | - | - | ✓ |
+| PageHeader | ✓ | ✓ | ✓ |
+| Pagination | ✓ | ✓ | ✓ |
+| PaginationFooter | ✓ | ✓ | ✓ |
 | Progress | ✓ | ✓ | ✓ |
 | PropertiesTable | ✓ | ✓ | ✓ |
+| QrCode | ✓ | ✓ | ✓ |
+| QrScanner | ✓ | ✓ | ✓ |
 | Rate | ✓ | ✓ | ✓ |
-| RecurrentEventRuleForm | ✓ | - | ✓ |
+| RecurrentEventRuleForm | ✓ | ✓ | ✓ |
 | Reveal | ✓ | ✓ | ✓ |
-| RichTextEditor | ✓ | - | - |
-| ShowPage | ✓ | - | ✓ |
+| RichTextEditor | ✓ | ✓ | ✓ |
+| ShowPage | ✓ | ✓ | ✓ |
 | SideMenu | ✓ | ✓ | ✓ |
-| Skeleton | ✓ | - | ✓ |
+| Skeleton | ✓ | ✓ | ✓ |
 | SortableList | ✓ | ✓ | ✓ |
-| StatCard | ✓ | - | - |
+| SplitView | ✓ | ✓ | ✓ |
+| StatCard | ✓ | ✓ | ✓ |
+| Status | ✓ | ✓ | ✓ |
 | Stepper | ✓ | ✓ | ✓ |
 | Table | ✓ | ✓ | ✓ |
 | Tabs | ✓ | ✓ | ✓ |
-| Tag | ✓ | - | ✓ |
-| Tags | ✓ | - | ✓ |
-| ThemeSampler | ✓ | - | - |
+| Tag | ✓ | ✓ | ✓ |
+| Tags | ✓ | ✓ | ✓ |
 | Timeago | ✓ | ✓ | ✓ |
 | Timeline | ✓ | ✓ | ✓ |
+| Toast | ✓ | ✓ | ✓ |
+| ToastContainer | ✓ | ✓ | ✓ |
 | Tooltip | ✓ | ✓ | ✓ |
 | Topbar | ✓ | ✓ | ✓ |
 | TreeView | ✓ | ✓ | ✓ |
 | ViewSwitch | ✓ | ✓ | ✓ |
+| WorkflowSteps | ✓ | ✓ | ✓ |
 
 **Legend:** ✓ Complete | ~ Partial | - Missing
 

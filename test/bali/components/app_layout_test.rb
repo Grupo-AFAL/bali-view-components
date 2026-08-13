@@ -93,11 +93,16 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("#toast-notifications")
   end
 
-  def test_does_not_render_toast_container_when_flash_is_empty_hash
+  # #991: the container's id is a documented Turbo Stream target — a host's
+  # `turbo_stream.append "toast-notifications"` must find it on pages without a
+  # flash, which is exactly where async toasts land. Empty flash still renders
+  # the (empty) container; only omitting `flash:` altogether skips it.
+  def test_renders_an_empty_toast_container_when_flash_is_empty_hash
     render_inline(Bali::AppLayout::Component.new(flash: {})) do |layout|
       layout.with_body { "Content" }
     end
-    assert_no_selector("#toast-notifications")
+    assert_selector("#toast-notifications")
+    assert_no_selector("#toast-notifications .toast-component")
   end
 
   def test_renders_modal_shell_by_default
@@ -218,9 +223,84 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     )) do |layout|
       layout.with_body { "Content" }
     end
-    # theme-switcher should be on the container, modal/drawer on main
-    assert_selector(".app-layout[data-controller='theme-switcher']")
+    # The host's controller keeps the container, next to the layout's own;
+    # modal/drawer stay on main.
+    assert_selector(".app-layout[data-controller='app-layout theme-switcher']")
     assert_selector("main[data-controller='modal drawer']")
+  end
+
+  def test_the_layout_controller_is_attached_even_without_a_banner
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+
+    assert_selector("body.app-layout[data-controller='app-layout']")
+    assert_no_selector("[data-app-layout-target='banner']")
+  end
+
+  def test_the_banner_is_the_target_the_controller_measures
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner { "You are impersonating John" }
+      layout.with_body { "Content" }
+    end
+
+    assert_selector(".app-layout-banner[data-app-layout-target='banner']",
+                    text: "You are impersonating John")
+  end
+
+  # One slot, one target, whatever the host stacks inside it: the controller
+  # measures the strip, not the banners, so two banners need no second target.
+  def test_stacked_banners_share_the_one_target
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner do
+        %(<div>Impersonating</div><div>Maintenance at 9pm</div>).html_safe
+      end
+      layout.with_body { "Content" }
+    end
+
+    assert_selector("[data-app-layout-target='banner']", count: 1)
+    assert_selector(".app-layout-banner div", count: 2)
+  end
+
+  # The strip is a sibling above the main area, not a child of the content
+  # column: that is what lets it span the full width with the sidebar below it.
+  def test_the_banner_sits_above_the_main_area_and_outside_the_content_column
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner { "Impersonating" }
+      layout.with_body { "Content" }
+    end
+
+    assert_selector(".app-layout-banner + .app-layout-main")
+    assert_no_selector(".app-layout-content .app-layout-banner")
+  end
+
+  # Off by default: 4rem of air under every mobile page is a visual change no
+  # host asked for.
+  def test_mobile_bottom_padding_is_opt_in
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--mobile-bottom-padding")
+  end
+
+  def test_mobile_bottom_padding_marks_the_layout_when_asked_for
+    render_inline(Bali::AppLayout::Component.new(mobile_bottom_padding: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body.app-layout.app-layout--mobile-bottom-padding")
+  end
+
+  # The class goes on the root and the padding lands on <main>, because the
+  # body container's own padding is a Tailwind utility and a utility beats
+  # @layer components — a rule on the container would never apply.
+  def test_mobile_bottom_padding_leaves_the_body_container_untouched
+    render_inline(Bali::AppLayout::Component.new(mobile_bottom_padding: true,
+                                                 body_container: :wide)) do |layout|
+      layout.with_body { "Content" }
+    end
+
+    assert_selector(".app-layout-body-container.p-4")
+    assert_no_selector(".app-layout-body-container[style]")
   end
 
   def test_renders_body_tag_as_root
@@ -299,12 +379,14 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("#toast-notifications")
   end
 
-  # `flash[:timedout]` and friends are state, not messages.
-  def test_no_container_for_flash_keys_that_are_not_messages
+  # `flash[:timedout]` and friends are state, not messages: no toast renders.
+  # The container itself still does — it is a Turbo Stream target (#991).
+  def test_no_toasts_for_flash_keys_that_are_not_messages
     render_inline(Bali::AppLayout::Component.new(flash: { timedout: true })) do |layout|
       layout.with_body { "Content" }
     end
-    assert_no_selector("#toast-notifications")
+    assert_selector("#toast-notifications")
+    assert_no_selector("#toast-notifications .toast-component")
   end
 
   def test_uses_flex_col_direction

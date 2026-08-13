@@ -2,6 +2,12 @@
 
 class Task < ApplicationRecord
   belongs_to :project
+  has_many :outgoing_dependencies, class_name: 'TaskDependency',
+                                   foreign_key: :predecessor_id,
+                                   inverse_of: :predecessor, dependent: :destroy
+  has_many :incoming_dependencies, class_name: 'TaskDependency',
+                                   foreign_key: :successor_id,
+                                   inverse_of: :successor, dependent: :destroy
 
   validates :title, presence: true
 

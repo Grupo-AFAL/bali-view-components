@@ -1,0 +1,39 @@
+<div class="max-w-3xl space-y-8 p-4">
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The six states
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal, progress: progress) do |c| %>
+      <% c.with_step(title: 'Request submitted', state: :success, date: 'Jul 1') %>
+      <% c.with_step(title: 'Area manager', state: :warning, date: 'Jul 2') %>
+      <% c.with_step(title: 'Legal review', state: :error, date: 'Jul 4') %>
+      <% c.with_step(title: 'Finance sign-off', state: :skipped) %>
+      <% c.with_step(title: 'Compliance', state: :current, assignee: 'Jorge Medina') %>
+      <% c.with_step(title: 'Director signature', state: :pending) %>
+    <% end %>
+  </div>
+
+  <%# The call site this variant exists for: the chain as one line of a summary
+      card, next to the metrics rather than instead of them. %>
+  <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+    <% card.with_title('Vendor onboarding · ACME S.A.') %>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
+      <% c.with_step(title: 'Documents received', state: :success, date: 'Jul 1') %>
+      <% c.with_step(title: 'Due diligence', state: :success, date: 'Jul 3') %>
+      <% c.with_step(title: 'Contract signed', state: :current, assignee: 'Ana Gutiérrez') %>
+      <% c.with_step(title: 'Vendor active', state: :pending) %>
+    <% end %>
+  <% end %>
+
+  <%# Narrow container: the cards wrap instead of shrinking past reading width. %>
+  <div class="max-w-xs space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      In a narrow column
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
+      <% c.with_step(title: 'Drafted', state: :success) %>
+      <% c.with_step(title: 'Reviewed', state: :success) %>
+      <% c.with_step(title: 'Published', state: :pending) %>
+    <% end %>
+  </div>
+</div>

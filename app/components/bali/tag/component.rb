@@ -35,6 +35,13 @@ module Bali
         dash: "badge-dash"
       }.freeze
 
+      # Pixel sizes for the `icon:` keyword, one per badge size and matched to
+      # the font-size daisyUI gives that size. The Icon default (16px) equals
+      # the full height of a `badge-xs` pill, so an unsized glyph would touch
+      # both edges; drawn at the text's own size it sits inside the padding box
+      # at every size. The slot is the escape hatch for any other size.
+      ICON_SIZES = { xs: 10, sm: 12, md: 14, lg: 16, xl: 18 }.freeze
+
       # The Bulma colour names are shared with every other component that takes a
       # `color:`, so they live in Bali::Color. The sizes are Tag's alone.
       LEGACY_COLORS = Bali::Color::LEGACY
@@ -49,14 +56,24 @@ module Bali
       LIGHT_REMOVED_MESSAGE = "Bali::Tag::Component no longer accepts `light:`. " \
                               "Use `style: :outline`."
 
+      # The slot and the `icon:` keyword are the same concept written two ways,
+      # mirroring Bali::Link: the keyword is the common case and draws the glyph
+      # at the pill's own text size; the slot is the one that takes options
+      # (`with_icon('star', class: 'text-error')`), so it wins when both are
+      # given.
+      renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
+
+      # @param icon [String, Symbol] Icon name, drawn before the text.
       # rubocop:disable Metrics/ParameterLists
       def initialize(text: nil, href: nil, color: nil, custom_color: nil, size: nil,
-                     style: nil, rounded: false, **options)
+                     style: nil, rounded: false, icon: nil, **options)
         # rubocop:enable Metrics/ParameterLists
         reject_light!(options)
 
         @text = text
         @href = href
+        @icon = icon
+        @size = size&.to_sym
         @color_class = COLORS[Bali::Color.name!(self.class, color)]
         @size_class = variant_class(:size, size, SIZES, LEGACY_SIZES)
         @custom_color = Bali::Color.hex!(self.class, custom_color)
@@ -71,6 +88,12 @@ module Bali
 
       def tag_name
         href.present? ? :a : :div
+      end
+
+      # A `size:` that is not a key raised in the constructor, so by now @size
+      # is either valid or nil — and nil renders daisyUI's default, which is md.
+      def keyword_icon_size
+        ICON_SIZES.fetch(@size || :md)
       end
 
       def component_classes

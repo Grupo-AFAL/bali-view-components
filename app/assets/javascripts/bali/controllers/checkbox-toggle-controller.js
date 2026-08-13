@@ -14,7 +14,6 @@ import { Controller } from '@hotwired/stimulus'
  * </div>
  */
 
-// TODO: Add tests (Issue: #138)
 export class CheckboxToggleController extends Controller {
   static targets = ['on', 'off']
   static values = { checked: Boolean }

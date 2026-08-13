@@ -30,33 +30,26 @@
   <% end %>
 
   <% topbar.with_action do %>
-    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications">
-      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
-      <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100"></span>
-    </button>
+    <%= render Bali::Topbar::IconAction::Component.new(
+      icon: 'bell', aria_label: 'Notifications', badge: true, badge_id: 'admin-notifications-badge'
+    ) %>
   <% end %>
 
   <% topbar.with_action do %>
-    <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help">
-      <%= render Bali::Icon::Component.new('circle-help', class: 'size-5') %>
-    </button>
+    <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', aria_label: 'Help') %>
   <% end %>
 
   <% topbar.with_user_menu do %>
-    <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
-      <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
-        <%# La identidad sale de `current_user`, no de dos strings sueltos: quien nombra el
-            topbar ES el dueño de las vistas guardadas de /admin/movies. %>
-        <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
-          <% avatar.with_placeholder { current_user.name.split.map(&:first).join } %>
-        <% end %>
-        <span class="hidden md:inline"><%= current_user.name %></span>
-        <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
-      <% end %>
-      <% dropdown.with_item(href: admin_settings_path) { t('navbar.profile') } %>
-      <% dropdown.with_item(href: admin_settings_path) { t('navbar.settings') } %>
-      <li class="divider my-1"></li>
-      <% dropdown.with_item(href: logout_path, class: 'text-error', data: { turbo_method: :delete }) { t('navbar.sign_out') } %>
+    <%# La identidad sale de `current_user`, no de dos strings sueltos: quien nombra el
+        topbar ES el dueño de las vistas guardadas de /admin/movies. Sin ruta mágica de
+        sign_out: el `href:` va explícito y el verbo es :delete por default (#713). %>
+    <%= render Bali::Topbar::UserMenu::Component.new(
+      name: current_user.name,
+      email: "#{current_user.name.parameterize}@example.com",
+      sign_out: { href: logout_path, name: t('navbar.sign_out') }
+    ) do |menu| %>
+      <% menu.with_item(name: t('navbar.profile'), href: admin_settings_path, icon: 'user') %>
+      <% menu.with_item(name: t('navbar.settings'), href: admin_settings_path, icon: 'settings') %>
     <% end %>
   <% end %>
 <% end %>

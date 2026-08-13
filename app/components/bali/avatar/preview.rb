@@ -50,9 +50,41 @@ module Bali
         )
       end
 
+      # With Name (Derived Initials)
+      # ----------------
+      # `name:` derives two initials — the first letter of the FIRST and the LAST
+      # word ("Ana García López" → AL, "María de la Luz" → ML; a single word
+      # yields one letter) — and paints a deterministic background: the name is
+      # hashed into the fixed Status palette (minus slate/gray), so the same
+      # person gets the same color on every render and DaisyUI theme.
+      # `initials:` overrides the derivation; an image (`src:` or the picture
+      # slot) always wins over initials. The container gets `role="img"`,
+      # `aria-label` and `title` with the full name.
+      # @param name text
+      # @param initials text
+      # @param size select [xs, sm, md, lg, xl]
+      def with_name(name: 'Ana García López', initials: '', size: :md)
+        render Bali::Avatar::Component.new(
+          name: name.presence, initials: initials.presence, size: size.to_sym
+        )
+      end
+
+      # Deterministic Colors
+      # ----------------
+      # A grid of names showing the stable name→color mapping. Collisions are
+      # expected and fine: two people can share a color.
+      def deterministic_colors
+        render_with_template(
+          template: 'bali/avatar/previews/deterministic_colors'
+        )
+      end
+
       # With Placeholder
       # ----------------
-      # Avatar with text initials instead of image
+      # Avatar with custom placeholder content via the manual slot. Prefer
+      # `name:` (see "With Name") — it derives initials and a color for you;
+      # the slot remains for fully custom content and keeps the static
+      # neutral background.
       # @param initials text
       # @param size select [xs, sm, md, lg, xl]
       def with_placeholder(initials: 'JD', size: :md)

@@ -4,17 +4,21 @@ Bali is **not published to RubyGems or npm**. Apps consume it straight from this
 repository, so a "channel" here is nothing more than a git ref — there is no registry to
 configure and no publishing step to run.
 
-Two lines are maintained at the same time:
+One line is maintained today:
 
 | Channel | Branch | Tags | For |
 |---|---|---|---|
-| **Stable (v3)** | `main` | `v3.0.0`, `v3.0.1`, … | Every app in production today |
-| **Next (v3.1)** | `3.1` | `v3.1.0.beta.1`, `.beta.2`, … | Apps adopting v3.1 early, one at a time |
+| **Stable (v3.1)** | `main` | `v3.1.0`, `v3.1.1`, … | Every app in production |
 
-v3.0.0 shipped on 2026-08-05: `3.0` merged into `main` and the `3.0` branch is retired —
-its history lives in `main`. There is no v2 branch anymore. If a v2 app needs a fix before
-it migrates, branch off the `v2.18.0` tag into a `2-x` maintenance branch, add that branch
-to the CI filters, and tag `v2.18.x` from there.
+When the next line of work opens (its branch named after the version it targets), it gets
+a **Next** row here, its branch joins the CI filters, and it ships `beta.N` tags until its
+own GA — the same cycle v3.0 and v3.1 followed.
+
+v3.1.0 shipped on 2026-08-13: `3.1` merged into `main` and the `3.1` branch is retired —
+its history lives in `main`, its changes in the `v3.1.0.beta.N` changelog entries.
+v3.0.0 shipped on 2026-08-05 the same way. There is no v2 branch anymore. If a v2 app
+needs a fix before it migrates, branch off the `v2.18.0` tag into a `2-x` maintenance
+branch, add that branch to the CI filters, and tag `v2.18.x` from there.
 
 ## One tag, two packages
 
@@ -88,7 +92,14 @@ Note the quotes in `branches: [main, "3.1"]` — unquoted, YAML parses `3.1` as 
 
 Whenever `3.1` reaches a state an app could adopt:
 
-1. Bump `lib/bali/version.rb` and `package.json` to the next `3.1.0.beta.N`.
+1. Bump `lib/bali/version.rb` and `package.json` to the next `3.1.0.beta.N`, then run
+   `bundle install` and commit the regenerated **`Gemfile.lock` in the same commit** — the
+   lock records the PATH gem's version, and CI bundles with a frozen lock, so a bump
+   without the lock fails every Ruby workflow with exit 16 at `setup-ruby` before a single
+   test runs (measured on v3.1.0.beta.6/7: the tag itself carried the stale lock, and a
+   tag cannot be fixed after the fact). Consuming apps are unaffected either way — a host
+   resolves the git-sourced gem from its gemspec, never from this repo's lock — but the
+   release commit should be the one CI can verify.
 2. Move the `## [Unreleased]` entries under `## [v3.1.0.beta.N] - <date>`.
 3. Tag `v3.1.0.beta.N` on `3.1` and publish a GitHub Release marked **pre-release**.
 

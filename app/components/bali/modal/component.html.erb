@@ -7,7 +7,9 @@
      class="<%= modal_classes %> fixed inset-0 z-[var(--bali-z-modal)] items-center justify-center hidden [&.modal-open]:flex"
      <% if title? %>aria-labelledby="<%= title_id %>"<% end %>
      <% if description? %>aria-describedby="<%= description_id %>"<% end %>
-     <% if confirm_on_close? %>data-controller="modal" data-modal-confirm-close-message-value="<%= confirm_close_message %>"<% end %>
+     <% if own_controller? %>data-controller="modal"<% end %>
+     <% if confirm_on_close? %>data-modal-confirm-close-message-value="<%= confirm_close_message %>"<% end %>
+     <% unless shared? %>data-modal-shared-value="false"<% end %>
      data-modal-target="template"
      data-action="keydown.esc->modal#close">
   <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" aria-hidden="true"></div>

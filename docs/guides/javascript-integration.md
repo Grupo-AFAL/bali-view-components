@@ -127,7 +127,6 @@ pin "bali/tabs", to: "bali/tabs/index.js"
 pin "bali/tooltip", to: "bali/tooltip/index.js"
 pin "bali/carousel", to: "bali/carousel/index.js"
 pin "bali/clipboard", to: "bali/clipboard/index.js"
-pin "bali/notification", to: "bali/notification/index.js"
 pin "bali/reveal", to: "bali/reveal/index.js"
 pin "bali/drawer", to: "bali/drawer/index.js"
 pin "bali/navbar", to: "bali/navbar/index.js"
@@ -168,20 +167,10 @@ application.register("dropdown", DropdownController)
 
 ### Utility Controllers
 
-| Controller | Description |
-|------------|-------------|
-| `DatepickerController` | Flatpickr date picker |
-| `SubmitButtonController` | Loading state on submit |
-| `SubmitOnChangeController` | Auto-submit on change |
-| `DynamicFieldsController` | Add/remove form fields |
-| `CheckboxToggleController` | Toggle visibility with checkbox |
-| `RadioToggleController` | Toggle visibility with radio |
-| `FileInputController` | File input display |
-| `FocusOnConnectController` | Auto-focus on connect |
-| `PrintController` | Print current page |
-| `SlimSelectController` | Slim Select dropdown |
-| `StepNumberInputController` | Number increment/decrement |
-| `InteractController` | Drag/resize with interact.js |
+All 24 standalone controllers — identifier, what each does, and a minimal markup
+example — are catalogued in the [Stimulus utility controllers guide](controllers.md).
+That page is the single source of truth: `yarn check:manifest` fails if a registered
+utility identifier is missing from it.
 
 ### Component Controllers
 
@@ -195,7 +184,6 @@ application.register("dropdown", DropdownController)
 | `HovercardController` | Hover popups |
 | `CarouselController` | Image carousel (Glide.js) |
 | `ClipboardController` | Copy to clipboard |
-| `NotificationController` | Toast notifications |
 | `RevealController` | Show/hide content |
 | `SortableListController` | Drag-drop sorting |
 | `NavbarController` | Navigation bar |
@@ -222,13 +210,18 @@ Every event the package emits or listens for is named `bali:<component>:<event>`
 and carries its payload on `event.detail`. Nothing else is public: an event without the `bali:`
 prefix does not come from this package.
 
+One deliberate exception: the hover card's events are `bali:hovercard:*` (no hyphen). The
+spelling shipped in v3.0 and the v2→v3 migration guide taught hosts to listen for it, so
+renaming it to match the rule would break exactly the hosts that followed the guide — for
+nothing a user can see (#1026).
+
 ### Emitted by Bali
 
 | Event | Dispatched on | `detail` |
 |---|---|---|
-| `bali:modal:open` | `document` | `{ content, options }` |
+| `bali:modal:open` | `document` | `{ id, content, options }` |
 | `bali:modal:success` | `document` | the redirect params merged over `data-extra-props`; also fires for drawers |
-| `bali:drawer:open` | `document` | `{ content, options }` |
+| `bali:drawer:open` | `document` | `{ id, content, options }` |
 | `bali:side-menu:toggle` | `window` | — (emitted by `Navbar#toggleSideMenu`) |
 | `bali:command:select` | the palette element (bubbles) | `{ row, value }` |
 | `bali:direct-upload:complete` | the controller element (bubbles) | `{ id, filename, signedId }` |
@@ -238,7 +231,6 @@ prefix does not come from this package.
 | `bali:sortable-list:end` | the list element (bubbles) | `{ order, toListId, item, from, to, oldIndex, newIndex }` |
 | `bali:interact:dragging` / `bali:interact:drag-end` | the dragged element (bubbles) | `{ element, params, position, startDelta, endDelta, width }` |
 | `bali:interact:resizing` / `bali:interact:resize-end` | the resized element (bubbles) | same, plus the live `width`/`position` while resizing |
-| `bali:gantt-foldable-item:toggle` | the row element (bubbles) | `{ folded }` |
 
 ### Listened for by Bali
 
@@ -246,8 +238,8 @@ Dispatch these yourself to drive a component without a trigger element.
 
 | Event | Dispatch on | Effect |
 |---|---|---|
-| `bali:modal:open` | `document` | Opens the modal. `detail.content` is the HTML for the body (`null` keeps the skeleton), `detail.options` accepts `wrapperClasses`, `redirectTo`, `skipRender`, `extraProps`, `modalSize` |
-| `bali:drawer:open` | `document` | Same, with `drawerSize` instead of `modalSize` |
+| `bali:modal:open` | `document` | Opens the modal. **`detail.id` names WHICH one** — without it the event is a broadcast and every shared modal on the page answers (#854). `detail.content` is the HTML for the body (`null` keeps the skeleton), `detail.options` accepts `wrapperClasses`, `redirectTo`, `skipRender`, `extraProps`, `modalSize` |
+| `bali:drawer:open` | `document` | Same, with `drawerSize` instead of `modalSize` — and the same rule: always send `detail.id` |
 | `bali:command:open` / `:close` / `:toggle` | `window` | Drives the command palette |
 | `bali:side-menu:open` / `:close` / `:toggle` | `window` | Drives the mobile side menu |
 

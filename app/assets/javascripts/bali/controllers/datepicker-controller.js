@@ -1,8 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 
-// TODO: Add tests (Issue: #154)
-
 /**
  * Datepicker Controller
  * Uses the flatpickr library to render a Date Picker

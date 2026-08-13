@@ -24,7 +24,7 @@ nothing checks it at all.
 | Tailwind CSS | v4 | **v4, and only v4** | nobody — see below | nothing |
 | `@hotwired/stimulus` | undeclared | `>= 3.2.0` | `peerDependencies` | npm 7+; not Yarn Classic |
 | `@hotwired/turbo-rails` | undeclared | `>= 8.0.0` | `peerDependencies` | npm 7+; not Yarn Classic |
-| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared | `>= 0.52.1` | `peerDependencies` | npm 7+; and see the caveat below |
+| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared | `>= 0.53.0` | `peerDependencies` | npm 7+; and see the caveat below |
 | Node | any | `>= 22`, **only if you render the BlockEditor** | `lib0`'s `engines.node` | `yarn install`, which aborts |
 
 An app still on Rails 7 gets a resolution error rather than a runtime surprise. Nothing
@@ -74,75 +74,50 @@ table in *Step 6* of the [installation guide](installation.md) maps each optiona
 the component that loads it. If you already had a working v2 app, you almost certainly have
 these installed; nothing new is required unless you adopt a component you were not using.
 
-### `@blocknote/*` moves to `>= 0.52.1` — only matters if you render the BlockEditor
+### `@blocknote/*` moves to `>= 0.53.0` — only matters if you render the BlockEditor
 
-| | v2 | v3.0 |
-|---|---|---|
-| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared, `0.46.2` actually tested | `>= 0.52.1`, and 0.52.1 is what is tested |
+| | v2 | v3.0 | v3.1 |
+|---|---|---|---|
+| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared, `0.46.2` actually tested | `>= 0.52.1` | **`>= 0.53.0`, and 0.53.0 is what is tested** |
 
-The old bound was fiction: nothing inside the declared range had ever been run. v3 pins the
-demo app to 0.52.1 and declares that same version, so the floor now means something.
+The old bound was fiction: nothing inside the declared range had ever been run. v3.0 pinned
+the demo app to 0.52.1; v3.1 moves the floor again, past a bug rather than up to one — see
+[Migrating v3.0 → v3.1](migration-v3-to-v31.md) for why (#908, an upstream re-render loop
+with DOM-mutating browser extensions). If you are adopting Bali fresh, install the current
+floor directly.
 
 - **Below 0.51 — a real break.** The editor writes its hidden input *during* the form's
   `submit` event and cannot await anything there, which requires the synchronous parsers and
   serialisers BlockNote introduced in 0.51. On older versions a form submitted inside the
   500 ms debounce window posts the previous content and the user's last edits vanish with no
   error.
-- **0.51.x — a warning, not a break.** Nothing in the component calls a 0.52-only API, so it
-  will most likely keep working, but you are outside the declared range and outside what
-  anyone tested, and your package manager will say so.
+- **0.51.x–0.52.x — a warning, not a break.** Nothing in the component calls a 0.53-only API,
+  so it will most likely keep working, but you are outside the declared range and outside what
+  is tested, your package manager will say so, and you keep the re-render loop #908 fixed.
 - **Upgrade all seven together.** Mixing versions between `@blocknote/core` and
   `@blocknote/react` is not a build error. It shows up as a suggestion menu that never opens
   or content that silently fails to serialise, which is far more expensive to diagnose.
 
 ```bash
-yarn add @blocknote/core@0.52.1 @blocknote/react@0.52.1 @blocknote/mantine@0.52.1
+yarn add @blocknote/core@0.53.0 @blocknote/react@0.53.0 @blocknote/mantine@0.53.0
 ```
 
 If you also render the paid XL features (`multi_column:`, `export:`, `ai_url:`), bump
 `@blocknote/xl-multi-column`, `@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter` and
-`@blocknote/xl-ai` to the same 0.52.1. Their licences are unchanged from 0.46 — see the
-[licence facts](../api/block-editor.md#licence-facts-as-of-blocknote-0521), which are pending
+`@blocknote/xl-ai` to the same 0.53.0. Their licences are unchanged from 0.46 — see the
+[licence facts](../api/block-editor.md#licence-facts-as-of-blocknote-0530), which are pending
 review by legal.
 
-Two upstream table bugs present in 0.47 are fixed by this move: a `|` typed inside a table
+Two upstream table bugs present in 0.47 are fixed by the 0.52 move: a `|` typed inside a table
 cell no longer drops a column, and a table with no header row no longer promotes its first
 data row to the header. If your stored content has tables, this is a reason to upgrade rather
 than a cost of it.
 
-**Your build needs Node >= 22.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, whose
+**Your build needs Node >= 22.** `@blocknote/core` depends on `lib0` `1.0.0-rc.22`, whose
 `engines.node` is `">=22"`. On Node 20 the install itself fails — `Found incompatible module` —
 so you find out at `yarn install`, not in production. Bump your CI and your Dockerfile before
 bumping the package. This applies only if you render the BlockEditor; nothing else in Bali
 raises the Node floor.
-
-### The 0.52.1 floor is right; this repo's own checkouts are not on it
-
-Said plainly, because a host reading "tested at 0.52.1" deserves to know what that covers.
-`package.json` declares `>= 0.52.1`, `spec/dummy/package.json` asks for `^0.52.1`, and
-`spec/dummy/yarn.lock` resolves `0.52.1`. What is installed in `spec/dummy/node_modules` is
-**0.46.2** — all five `@blocknote/*` packages — and `node_modules/.yarn-integrity` still
-records its top-level patterns as `^0.46.0`, so the last successful `yarn install` in this
-checkout predates the bump in **#759**. The built bundle in
-`spec/dummy/app/assets/builds/application.js` came out of that tree, which means every
-by-hand pass over the editor on a developer machine since #759 has been a pass over 0.46.2.
-
-CI does not share that tree. `test.yml` and `cypress.yml` both run
-`cd spec/dummy && yarn install`, which reads the lockfile and installs 0.52.1. So the suite
-has only ever run against 0.52.1 and a human has only ever watched 0.46.2, and neither side
-complains, because a stale `node_modules` is not something `yarn build` has an opinion about.
-
-**The floor stays at 0.52.1.** 0.46.2 is not a candidate for it: it sits below even v2's
-declared `>= 0.51.0`, and 0.51 is the hard line for the reason given above — the editor
-serialises inside the form's `submit` event and cannot await there, so on 0.46 a submit
-inside the debounce window silently posts the previous content. Lowering the declared floor
-to match what happens to be on disk would be documenting an accident, and it would
-re-open a data-loss bug to do it.
-
-What is missing is not a different number, it is the verification behind the one we have.
-Before v3.0.0 ships, run `cd spec/dummy && yarn install && yarn build` and exercise the
-BlockEditor by hand on the version the floor names. Until that happens, "tested at 0.52.1"
-means CI's headless run and nothing more.
 
 ### `Bali.deprecator`
 
@@ -293,6 +268,15 @@ the `standardjs` workflow. It fails the build if a controller a bundle registers
 re-exported from the package root — the seam that had already lost `CommandController`,
 `FeedbackWidgetController` and `FilterPersistenceController` once, registered but not
 importable, with nothing failing loudly.
+
+### Delete your local copies while you are here
+
+Several apps copied Bali's utility controllers — or wrote local siblings of them —
+before they were documented: `auto_submit_controller.js`, `notification_controller.js`,
+`clipboard_controller.js`, `bulk_select_controller.js`. All 24 utility controllers now
+have a catalog page with a markup example each, and its
+[Do you have a local copy?](controllers.md#do-you-have-a-local-copy) section names each
+known copy per app: which to delete today and which to keep pending review.
 
 ## The document editor contract changes
 
@@ -491,9 +475,12 @@ had no one to serve.
 
 If you do render it, you have three options:
 
-1. **Wait for v3.1.** A new `Bali::Gantt` is planned there, built for read-only portfolio
-   views, with the per-row `color_by:` that #667 asked for. It is not an API-compatible
-   revival of this one — the drag/resize/dependency editor is not coming back.
+1. **Move to `Bali::Gantt`, which shipped in v3.1.** It is not an API-compatible revival:
+   it is a different component with a different contract, and the section below is the
+   whole of what porting involves. It is a React island — drag/resize/dependency editing
+   are back, as is colour-by, but through the island's own toolbar rather than the old
+   Stimulus controllers, and a read-only board is the same island with no endpoints. It
+   needs JavaScript. See [../api/gantt.md](../api/gantt.md).
 2. **Server-render the view yourself.** afal-apps#426 did exactly this for a portfolio
    Gantt: `position: sticky` plus `<details>` for the parent/child folding, no JavaScript.
    A read-only chart uses almost none of what the component carried.
@@ -517,6 +504,30 @@ registerGantt(application)
 The export is removed from `package.json` rather than left as a throwing stub, so a stale
 import fails at build time instead of rendering an empty container at runtime. `sortablejs`
 stays an optional peer: Kanban and SortableList still need it.
+
+> **If you are upgrading from v2 straight to v3.1 or later, delete those two lines anyway.**
+> v3.1 reuses the `bali-view-components/gantt` subpath for the new island (it was free —
+> the removal verified zero consumers), so the stale import no longer fails the build. It
+> resolves, and `registerGantt` registers a completely different controller. The build goes
+> green and nothing renders. v3.0 is the only version that catches this for you.
+
+### Porting a `GanttChart` call site to `Bali::Gantt`
+
+The shapes have nothing in common — the old component took nested sub-component slots, the
+new one takes one document:
+
+| v2 `GanttChart` | v3.1 `Gantt` |
+|---|---|
+| Sub-component slots per row/section | A single `data:` document — see `Bali::Gantt::Data` |
+| `Bali::GanttChart::Component.new(...)` + nested renders | One `render Bali::Gantt::Component.new(data: …)` |
+| `gantt-chart` / `gantt-foldable-item` Stimulus controllers | The `gantt` island controller, lazy-loaded |
+| Folding via `GanttFoldableItemController` | The island's own group rows |
+| Bar colour via CSS classes per status | A `statuses:` catalog; the island's toolbar picks what to colour by |
+| `bali_view.gantt_chart.*` locale keys | `bali_view.gantt.*` |
+
+The work is in the serializer, not the view: write the object that turns your models into
+the contract (`spec/dummy/app/models/project_gantt.rb` is a complete example), then the
+call site is a single render.
 
 **#667 is closed by this removal, not solved by it.** A portfolio Gantt whose bar colour
 encodes project status has no v3 answer; the workaround recorded on the issue (one CSS class
@@ -544,13 +555,16 @@ it, and only those two lose their glyph:
 | Name that stops resolving | What it drew | Use instead |
 |---|---|---|
 | `money-bill-wave` | a filled FontAwesome banknote | `banknote`, or `hand-coins` if the point was payment rather than cash |
-| `question-circle` | a filled question mark in a circle | `circle-help` |
+| `question-circle` | a filled question mark in a circle | `circle-help` (resolves again since v3.1 — see below) |
 
-`question-circle` is the one worth grepping for: the Lucide map *does* carry an entry for this
-icon, but under the key `question_circle` — the single underscored key in the whole table, a
-leftover from the v1 hash. So `question_circle` keeps working and `question-circle`, the
-spelling that matches every other name in the library, does not. Rename it to `circle-help`
-rather than to the underscored form; the underscore is the accident here, not the fix.
+`question-circle` had a twist in v3.0: the Lucide map *did* carry an entry for this icon, but
+under the key `question_circle` — the single underscored key in the whole table, a leftover
+from the v1 hash. So the underscored accident kept working while `question-circle`, the
+spelling that matches every other name in the library, did not — and the error's "Did you
+mean" pointed at the accident. Since v3.1 (#987) the key is dashed: `question-circle`
+resolves to `circle-help` directly, and `question_circle` raises suggesting
+`question-circle`, consistent with every other snake_case spelling below. Rename it to
+`circle-help` either way; that is the name lucide.dev shows.
 
 ### Every alternative spelling of a name stops resolving too
 
@@ -601,6 +615,28 @@ Icon 'money-bill-wave' is not available. Check available icons at: https://lucid
 
 `money-bill-wave` is the one that still gets no suggestion, and correctly so — no surviving
 name resembles it. Take the alternative from the table above.
+
+### Five names now draw their real Lucide glyph (v3.1)
+
+This one lands in v3.1, not v3.0, but if you are migrating from v1/v2 you will jump
+straight past the boundary, so it belongs in your sweep. Five legacy map entries used to
+shadow current Lucide names with a *different* drawing — you read lucide.dev, wrote the
+name, and got another glyph. The entries are gone (#902); the names keep resolving, as the
+icon lucide.dev actually shows:
+
+| Name | Drew in v2/v3.0 | Draws since v3.1 | Want the old drawing? |
+|---|---|---|---|
+| `trash` | `trash-2` — bin with two inner vertical lines | Lucide `trash` — plain bin | write `trash-2` |
+| `cog` | `settings` — gear with a single toothed outline | Lucide `cog` — double cog wheel | write `settings` |
+| `expand` | `maximize` — four corner brackets | Lucide `expand` — diagonal out-pointing arrows | write `maximize` |
+| `indent` | `indent-increase` | Lucide `indent` — same shape, legacy encoding | write `indent-increase` |
+| `outdent` | `indent-decrease` | Lucide `outdent` — same shape, legacy encoding | write `indent-decrease` |
+
+Two shadowing entries stay on purpose, so grep for these five only: `check-circle` still
+draws `circle-check` and `edit` still draws `pencil` — their "honest" spellings are
+deprecated Lucide aliases (a legacy glyph, and a name whose real rename is `square-pen`),
+so removing them would make drawings worse, not truer. The full reasoning lives in
+`lucide_mapping.rb` and in [the v3 → v3.1 guide](migration-v3-to-v31.md).
 
 ### `Bali::Icon::Options` only lists what ships as SVG
 
@@ -724,8 +760,13 @@ and not under `pagination_footer`. Rename yours or delete it; leaving it under t
 is silently dead.
 
 ```
-grep -rn "^\s*bali:\|view_components:\|bali\.\|view_components\.bali\." config/locales app/
+grep -rnE "^\s*(bali|view_components|helpers):|bali\.|view_components\.bali\." config/locales app/
 ```
+
+The `helpers:` alternative is what surfaces the six `helpers.*` keys from the table above —
+without it this recipe returns clean on a host that has all six, and the rename never happens.
+It also matches Rails' own `helpers.submit.*`/`helpers.label.*` keys; those are fine where they
+are, so only move the six Bali ones.
 
 ### Strings that had no key at all
 
@@ -3691,7 +3732,7 @@ grep -rn "aria-pressed" app/ test/                              # ViewSwitch mar
 grep -rn -A6 "Tooltip::Component" app/
 grep -rn "tooltip:" app/views                                   # the field wrapper's help icon is one of these
 grep -rn "trigger_event" app/                                   # "mouseenter focus" → "mouseenter focusin"
-# do you render the BlockEditor, and are all @blocknote/* on the same >= 0.52.1?
+# do you render the BlockEditor, and are all @blocknote/* on the same >= 0.53.0?
 grep -rn "BlockEditor::Component\|block_editor_group" app/
 node -e 'const d=require("./package.json").dependencies||{};for(const k of Object.keys(d))if(k.startsWith("@blocknote/"))console.log(k,d[k])'
 # events — these break with no error at all, see the table above
