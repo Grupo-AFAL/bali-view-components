@@ -7,14 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.0.beta.15] - 2026-08-13
+
+### Added
+
+- **SortableList: keyboard reordering** (#1028, WCAG 2.1.1). The drag had no keyboard
+  alternative. Every direct item is now focusable, and ArrowUp/ArrowDown moves the focused item
+  one slot — persisting (PATCH) and dispatching `bali:sortable-list:end` exactly like a drop,
+  with focus travelling along so repeated arrows keep moving it. Arrows only act when the item
+  element itself has focus, so nested controls keep their own arrow behaviour; cross-list moves
+  remain mouse-only. A new Cypress spec (`sortable-list.cy.js`) covers the component E2E for
+  the first time.
+
+### Changed (breaking)
+
+- **`FilterForm.search_fields` renames `label:` to `aria_label:`** (#1026, closing the last
+  deviation of the pre-GA API audit). The value is the search box's `aria-label` (#982), and
+  the accessible-name spelling across the library is `aria_label:` — the same rename
+  `Topbar::IconAction` took in beta.14, in the second place the audit flagged. The
+  instance-level mirror moves with it (`search_aria_label:`, was `search_label:`). Both old
+  spellings raise naming their replacement. **Only affects hosts pinned to a v3.1 beta** —
+  the keywords shipped in beta.10.
+
 ### Changed
+
 - **Dev dependencies: Cypress 15.18.1 → 15.20.1, and the dummy's transitive `nanoid`
   5.1.6 → 5.1.16** — one PR consolidating (and superseding) Dependabot's #997 and #998,
   taking Cypress to the actual latest. Neither ships to hosts: Cypress is the repo's E2E
   runner and nanoid lives in the dummy app's lockfile. daisyUI (5.7.16) and
   `tailwindcss-rails` (4.6.0) were checked in the same pass and are already at latest.
+- **CHANGELOG: the #987 `question_circle` entry is reclassified as breaking** (#1029). It
+  shipped in beta.10 under plain "Changed", but a host using the underscored spelling gets a
+  runtime raise — it now sits under "Changed (breaking)" where hosts scanning for breaks will
+  find it, and the v3→v3.1 migration guide documents it alongside the other renames.
+- **The Topbar previews follow `IconAction`'s `label:` → `aria_label:` rename** (#1035). The
+  beta.14 rename reached the component, its tests and the migration guide, but not the two
+  Lookbook previews that exercise it (`default` and `icon_actions`) — and since the old keyword
+  now raises, both previews 500ed on open. The previews and the `docs/guides/components.md`
+  examples now use `aria_label:`, the doc's option list gains the missing `active:` and
+  `max_count:` entries (added in beta.10, #995), and a new request test renders every Topbar
+  preview over HTTP so a broken preview template turns the build red instead of waiting for a
+  human to open Lookbook.
 
 ### Fixed
+
 - **`docs/reference/` rewritten from the code that ships** (#1040). The three reference
   files predated the v3 migration and actively misled an agent that followed them:
   `component-patterns.md` taught a base class, a preview base class, alias maps and an
@@ -33,17 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table that marks the deliberate native-`<dialog>`/tippy exceptions, and the
   lucide-rails icon pipeline. Also: `.claude/CLAUDE.md` now counts all three project
   skills.
-
-### Changed (breaking)
-- **`FilterForm.search_fields` renames `label:` to `aria_label:`** (#1026, closing the last
-  deviation of the pre-GA API audit). The value is the search box's `aria-label` (#982), and
-  the accessible-name spelling across the library is `aria_label:` — the same rename
-  `Topbar::IconAction` took in beta.14, in the second place the audit flagged. The
-  instance-level mirror moves with it (`search_aria_label:`, was `search_label:`). Both old
-  spellings raise naming their replacement. **Only affects hosts pinned to a v3.1 beta** —
-  the keywords shipped in beta.10.
-
-### Fixed
 - **Kanban: `with_card` passes host options through — `data:` merges instead of being
   dropped** (#1027). The card built its attributes from scratch and read only `:class`, so
   the column-lock recipe the guide documents (`data: { sortable_item_pull: "false" }`) —
@@ -70,16 +95,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `engine-models.md` replaces three "shipping separately" stubs with the models that
   shipped; `direct-upload-*.md` fixes the `has_one_attached` removal recipe and the real
   5-minute signed-URL expiry.
-### Added
-- **SortableList: keyboard reordering** (#1028, WCAG 2.1.1). The drag had no keyboard
-  alternative. Every direct item is now focusable, and ArrowUp/ArrowDown moves the focused item
-  one slot — persisting (PATCH) and dispatching `bali:sortable-list:end` exactly like a drop,
-  with focus travelling along so repeated arrows keep moving it. Arrows only act when the item
-  element itself has focus, so nested controls keep their own arrow behaviour; cross-list moves
-  remain mouse-only. A new Cypress spec (`sortable-list.cy.js`) covers the component E2E for
-  the first time.
-
-### Fixed (accessibility, pre-GA audit #1028)
 - **Filters: the applied-tag remove button names WHICH filter it removes** (aria-label with the
   attribute/operator/value), the remove-condition button gains an explicit `aria-label`, and
   the AND/OR combinator toggles — in `FilterGroup`, in the `CombinatorDivider` between groups,
@@ -96,7 +111,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<a>`s without `href` — they now render through the Dropdown's `tag: :button` item, and the
   three icon-only dropdown triggers (link, image, table) gain `aria-label`s. A new component
   test freezes the "no action `<a>` without href" contract.
-### Fixed
 - **SplitView no longer refetches the detail pane on every history traversal** (#1029). Two
   defects compounded: the traversal guard compared the frame's `src` — which Turbo rewrites to
   an absolute URL — against the row's `href` as written (usually relative), so a raw string
@@ -115,20 +129,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The #999 safety net warned in dev *and* test, so every host suite rendering a DataTable with
   a `storage_id:` but no wired opt-in logged Bali's development advice on each run. The warning
   is development-only now.
-
-### Changed
-- **CHANGELOG: the #987 `question_circle` entry is reclassified as breaking** (#1029). It
-  shipped in beta.10 under plain "Changed", but a host using the underscored spelling gets a
-  runtime raise — it now sits under "Changed (breaking)" where hosts scanning for breaks will
-  find it, and the v3→v3.1 migration guide documents it alongside the other renames.
-- **The Topbar previews follow `IconAction`'s `label:` → `aria_label:` rename** (#1035). The
-  beta.14 rename reached the component, its tests and the migration guide, but not the two
-  Lookbook previews that exercise it (`default` and `icon_actions`) — and since the old keyword
-  now raises, both previews 500ed on open. The previews and the `docs/guides/components.md`
-  examples now use `aria_label:`, the doc's option list gains the missing `active:` and
-  `max_count:` entries (added in beta.10, #995), and a new request test renders every Topbar
-  preview over HTTP so a broken preview template turns the build red instead of waiting for a
-  human to open Lookbook.
 
 ## [v3.1.0.beta.14] - 2026-08-11
 
