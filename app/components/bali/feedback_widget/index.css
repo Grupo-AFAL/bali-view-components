@@ -1,3 +1,10 @@
+/* Imported UNLAYERED by ../../../assets/stylesheets/bali/components.css, because the rule
+ * it has to beat is `p-6` — a Tailwind utility the drawer template writes on
+ * `.drawer-inner`. Utilities are the last layer, so the padding below only wins from
+ * outside the layers. The `padding: 0` that used to live here sat in @layer components
+ * and never applied: the panel has been showing the drawer's `p-6` since the widget was
+ * composed out of Bali::Drawer, which is the whole reason this file moved. */
+
 /* The embed fills whatever the drawer's header leaves over, without either side
  * having to know the other's height. Scoped to this widget's own drawer on
  * purpose: making `.drawer-panel` a flex column pins a `footer` slot to the
@@ -9,14 +16,32 @@
   flex-direction: column;
 }
 
+/* `p-4`, matching the header above it rather than the drawer's own `p-6`. The frame and
+ * the header are the only two things in this panel, so a 24px/16px difference between
+ * their left edges reads as one of them being out of line.
+ *
+ * The padding is here and not inside the embed because it has to be drawn in the host's
+ * colours: the frame is a separate document and the strip around it belongs to the panel. */
 .feedback-widget .drawer-inner {
   flex: 1;
   min-height: 0;
-  padding: 0;
+  padding: calc(var(--spacing, 0.25rem) * 4);
 }
 
 .feedback-widget-embed {
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* Taking a screenshot of the host page means getting the panel out of the picture — both
+ * the panel and the dimmed overlay behind it, which are one `<dialog>`.
+ *
+ * Hidden, not closed: closing tears the frame down, and with it whatever the person had
+ * already typed into the report. `visibility: hidden` is not enough either, since the
+ * dialog's `::backdrop` is painted by the UA and does not inherit it; `opacity` covers
+ * the element and its backdrop together. It lasts about a fifth of a second, the time
+ * for the capture stream to deliver a frame composited without the panel. */
+.feedback-widget[data-capturing] .drawer-component {
+  opacity: 0;
 }
