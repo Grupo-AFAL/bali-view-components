@@ -645,11 +645,12 @@ module Bali
       # #999's safety net. The toggle is about to render (storage_id present),
       # so a form built without anyone reading the opt-in — or without a
       # context — is the silent failure mode: state saves into Rails.cache and
-      # never restores, or every user restores everyone's. Dev/test only, once
-      # per storage_id per process; `Bali::Filterable#filter_form` closes both
-      # halves and never trips this.
+      # never restores, or every user restores everyone's. Development only —
+      # in a host's test suite the warning is noise about an env that isn't
+      # the one misconfigured (#1029) — once per storage_id per process;
+      # `Bali::Filterable#filter_form` closes both halves and never trips this.
       def warn_unwired_persistence
-        return unless Rails.env.development? || Rails.env.test?
+        return unless Rails.env.development?
         return if @persistence_storage_id.blank? || @filter_form.nil?
         return unless @filter_form.respond_to?(:persistence_opt_in_read?)
         return if (self.class.persistence_warnings_issued ||= Set.new).include?(@persistence_storage_id)

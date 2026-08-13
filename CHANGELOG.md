@@ -33,6 +33,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<a>`s without `href` — they now render through the Dropdown's `tag: :button` item, and the
   three icon-only dropdown triggers (link, image, table) gain `aria-label`s. A new component
   test freezes the "no action `<a>` without href" contract.
+### Fixed
+- **SplitView no longer refetches the detail pane on every history traversal** (#1029). Two
+  defects compounded: the traversal guard compared the frame's `src` — which Turbo rewrites to
+  an absolute URL — against the row's `href` as written (usually relative), so a raw string
+  compare never matched; and since #1030's rewind, by the time the guard runs on a traversal
+  the `src` is usually gone entirely — Turbo caches the leaving page (which strips the `src`)
+  before the controller's popstate listener fires. The rewind now stashes the pane's pointer in
+  `data-split-view-src` before dropping `src`, and the guard resolves both URLs against the
+  document — a traversal that lands on what the pane already shows leaves it alone, and one
+  that lands elsewhere still refetches.
+- **Gantt: the "no dates" footer count now counts what its drawer lists** (#1029). The count
+  was recomputed from the island's live schedule while the drawer it opens is server-rendered
+  (#1015) and cannot follow a reconcile, so after an edit or a schedule refresh the pill could
+  claim a number the drawer didn't show. The count is now derived from the schedule the server
+  rendered — it ages alongside the list it opens instead of disagreeing with it.
+- **DataTable's unwired-persistence warning no longer fires in the host's test env** (#1029).
+  The #999 safety net warned in dev *and* test, so every host suite rendering a DataTable with
+  a `storage_id:` but no wired opt-in logged Bali's development advice on each run. The warning
+  is development-only now.
+
+### Changed
+- **CHANGELOG: the #987 `question_circle` entry is reclassified as breaking** (#1029). It
+  shipped in beta.10 under plain "Changed", but a host using the underscored spelling gets a
+  runtime raise — it now sits under "Changed (breaking)" where hosts scanning for breaks will
+  find it, and the v3→v3.1 migration guide documents it alongside the other renames.
+- **The Topbar previews follow `IconAction`'s `label:` → `aria_label:` rename** (#1035). The
+  beta.14 rename reached the component, its tests and the migration guide, but not the two
+  Lookbook previews that exercise it (`default` and `icon_actions`) — and since the old keyword
+  now raises, both previews 500ed on open. The previews and the `docs/guides/components.md`
+  examples now use `aria_label:`, the doc's option list gains the missing `active:` and
+  `max_count:` entries (added in beta.10, #995), and a new request test renders every Topbar
+  preview over HTTP so a broken preview template turns the build red instead of waiting for a
+  human to open Lookbook.
 
 ## [v3.1.0.beta.14] - 2026-08-11
 
@@ -345,8 +378,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it in the trigger's subtree, and the JS controller's own value default matches. Inside an open
   modal/drawer the top-layer host wins regardless, as before. Hosts can delete their per-call
   `append_to: :body` — it is now a no-op restating the default.
-
-### Changed
 - **`Bali::Icon`: the `question_circle` mapping key is now dashed** (#987). The single
   underscored key in the whole Lucide map — a v1-hash leftover — meant the underscored accident
   resolved while `question-circle`, the spelling consistent with every other name, raised with a

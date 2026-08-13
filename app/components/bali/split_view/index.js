@@ -73,6 +73,9 @@ export class SplitViewController extends Controller {
 
     const frame = this.detailFrame
     if (!frame || frame.hasAttribute('src')) return
+    // A rewound frame carries no `src` but is NOT pristine — the stash names
+    // the detail it still shows (#1029).
+    if (frame.hasAttribute('data-split-view-src')) return
 
     pristineDetail.set(this.frameValue, frame.innerHTML)
   }
@@ -106,6 +109,14 @@ export class SplitViewController extends Controller {
     const frame = this.detailFrame
     if (!frame || !frame.hasAttribute('src')) return
 
+    // Stash where the pane points before dropping `src`, so a traversal that
+    // lands back on this URL can recognise the pane as already right instead
+    // of refetching it (#1029). Turbo strips the `src` HERE, synchronously,
+    // before the controller's own popstate listener gets to compare anything —
+    // without the stash a src-less pane cannot say what it shows. The stash
+    // survives into the snapshot deliberately: unlike `src`, Turbo does not
+    // reload a frame over a data attribute.
+    frame.setAttribute('data-split-view-src', frame.getAttribute('src'))
     frame.removeAttribute('src')
   }
 
@@ -174,13 +185,24 @@ export class SplitViewController extends Controller {
       const pristine = pristineDetail.get(this.frameValue)
       if (pristine !== undefined && frame.innerHTML !== pristine) {
         frame.removeAttribute('src')
+        frame.removeAttribute('data-split-view-src')
         frame.innerHTML = pristine
       }
       return
     }
 
-    if (frame.getAttribute('src') === current.getAttribute('href')) return
+    // Two traps hid here (#1029). Turbo rewrites a navigated frame's `src` to
+    // an ABSOLUTE URL while the row's href stays as written (usually
+    // relative), so a raw string compare never matched. And by the time this
+    // runs on a traversal the `src` is usually GONE — Turbo caches the page it
+    // is leaving before the controller's popstate listener fires, and the
+    // rewind above strips it right there — so the pane's pointer lives in the
+    // stash. Either way: resolve, compare, and only refetch a pane that shows
+    // something else.
+    const src = frame.getAttribute('src') ?? frame.getAttribute('data-split-view-src')
+    if (src && new URL(src, window.location.href).href === current.href) return
 
+    frame.removeAttribute('data-split-view-src')
     frame.setAttribute('src', current.getAttribute('href'))
   }
 

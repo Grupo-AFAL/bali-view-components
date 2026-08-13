@@ -129,7 +129,10 @@ class BaliFilterFormPersistenceOptInTest < ActiveSupport::TestCase
 end
 
 # The safety net: the toggle is about to render, so a form nobody wired warns
-# in dev/test instead of failing silently for the third app in a row.
+# in development instead of failing silently for the third app in a row. Only
+# there — in a host's test suite the warning is noise (#1029) — so every test
+# here renders under a stubbed development env, including the silent ones:
+# without the stub they would pass because of the env gate, not the wiring.
 class BaliDataTablePersistenceWarningTest < ComponentTestCase
   def setup
     Bali::DataTable::Component.persistence_warnings_issued = Set.new
@@ -161,9 +164,28 @@ class BaliDataTablePersistenceWarningTest < ComponentTestCase
     assert_empty capture_bali_log { render_data_table(form) }
   end
 
+  # The #1029 fix itself: an unwired form under the REAL (test) env — no stub —
+  # stays silent, so a host's suite never logs Bali's development-only advice.
+  def test_stays_silent_in_a_test_env_even_when_unwired
+    form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new({}),
+                                storage_id: "test-env-#{object_id}")
+
+    assert_empty capture_bali_log { render_data_table(form, stub_env: false) }
+  end
+
   private
 
-  def render_data_table(form)
+  def render_data_table(form, stub_env: true)
+    return render_table(form) unless stub_env
+
+    previous = Rails.env
+    Rails.env = "development"
+    render_table(form)
+  ensure
+    Rails.env = previous if stub_env
+  end
+
+  def render_table(form)
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
       c.with_simple_filters(filters: [
                               { attribute: :status, collection: [ %w[On on] ], label: "Status" }
