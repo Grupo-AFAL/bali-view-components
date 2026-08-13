@@ -69,41 +69,89 @@ describe('FeedbackWidget screen capture', () => {
   // The stand-in embed is served by the dummy itself, so it is same-origin and its document
   // is reachable. In production it is Opina and it is not — which is what the whole message
   // protocol under test is for.
-  const embed = () =>
-    cy.get('#feedback-widget iframe')
-      .its('0.contentDocument.body')
-      .should('not.be.empty')
-      .then(cy.wrap)
+  //
+  // The Cypress subject stays the `<iframe>` element, which never moves, and everything
+  // inside is read from within the retrying callback. Wrapping an element out of the frame's
+  // document does not survive this suite: the embed navigates inside the frame, and the
+  // subject Cypress is holding detaches mid-chain.
+  const expectInEmbed = (selector, assert) =>
+    cy.get('#feedback-widget iframe').should(($frame) => {
+      const element = $frame[0].contentDocument.querySelector(selector)
+      expect(element, selector).to.not.equal(null)
+      assert(element.textContent)
+    })
+
+  const expectText = (selector, expected) =>
+    expectInEmbed(selector, (text) => expect(text, selector).to.equal(expected))
+
+  // A native click, for the same reason: there is no Cypress subject to lose. The wait and
+  // the click are separate commands on purpose — `should` retries its callback, and a click
+  // is not something to do twice.
+  const clickInEmbed = (selector) => {
+    expectInEmbed(selector, () => {})
+
+    return cy.get('#feedback-widget iframe').then(($frame) => {
+      $frame[0].contentDocument.querySelector(selector).click()
+    })
+  }
 
   it('hands the embed the address and title of the page being reported on', () => {
     visitDemo()
     openWidget()
 
-    embed().find('#host-url').should('have.text', `${appOrigin}${demoPath}`)
-    embed().find('#host-title').should('not.have.text', '(none)')
-    embed().find('#capture-supported').should('have.text', 'true')
+    expectText('#host-url', `${appOrigin}${demoPath}`)
+    expectInEmbed('#host-title', (text) => expect(text).to.not.equal('(none)'))
+    expectText('#capture-supported', 'true')
     // The HOST's viewport. The frame's own would be the width of the panel, which says
     // nothing about the page the report is about.
-    embed().find('#host-viewport').invoke('text').should('match', /^\d{3,}x\d{3,}$/)
+    expectInEmbed('#host-viewport', (text) => expect(text).to.match(/^\d{3,}x\d{3,}$/))
+  })
+
+  // The embed navigates inside the frame — a list, a report, the form — and the form is
+  // the only page that ever wants a screenshot. Sent once on the first load, the context
+  // reached the page nobody needed it on: by the time someone was writing the report, the
+  // document that knew where it was had been replaced, and the button never appeared.
+  it('tells the embed where it is again after it navigates inside the frame', () => {
+    visitDemo()
+    openWidget()
+
+    expectText('#capture-supported', 'true')
+    clickInEmbed('#go-deeper')
+
+    // The new document starts out knowing nothing, and is told.
+    expectText('#query-string', 'paso=2')
+    expectText('#host-url', `${appOrigin}${demoPath}`)
+    expectText('#capture-supported', 'true')
+  })
+
+  it('still answers a capture request after that navigation', () => {
+    visitDemo()
+    openWidget()
+
+    clickInEmbed('#go-deeper')
+    expectText('#query-string', 'paso=2')
+
+    clickInEmbed('#request-capture')
+    expectText('#capture-pixel', '0,255,0')
   })
 
   it('takes the picture with the panel out of the way', () => {
     visitDemo()
     openWidget()
 
-    embed().find('#request-capture').click()
+    clickInEmbed('#request-capture')
 
-    embed().find('#capture-status').should('contain', 'received')
+    expectInEmbed('#capture-status', (text) => expect(text).to.contain('received'))
     // Green: every frame that still had the panel in it was let go by.
-    embed().find('#capture-pixel').should('have.text', '0,255,0')
+    expectText('#capture-pixel', '0,255,0')
   })
 
   it('puts the panel back once the picture is taken', () => {
     visitDemo()
     openWidget()
 
-    embed().find('#request-capture').click()
-    embed().find('#capture-status').should('contain', 'received')
+    clickInEmbed('#request-capture')
+    expectInEmbed('#capture-status', (text) => expect(text).to.contain('received'))
 
     cy.get('.feedback-widget').should('not.have.attr', 'data-capturing')
     cy.get('#feedback-widget').should('have.class', 'drawer-open')
@@ -116,8 +164,8 @@ describe('FeedbackWidget screen capture', () => {
     ))
     openWidget()
 
-    embed().find('#request-capture').click()
-    embed().find('#capture-status').should('have.text', 'error: denied')
+    clickInEmbed('#request-capture')
+    expectText('#capture-status', 'error: denied')
   })
 
   // The host is being asked to put a screen-share prompt in front of the user. Only the

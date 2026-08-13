@@ -16,7 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the token, the widget sends `bali:feedback:context` with the full URL, the title, the host's
   viewport (the frame's own is the width of the panel, which describes nothing) and whether
   this browser can capture at all, so an embed talking to an older host does not offer a button
-  that leads nowhere. The embed asks for the picture with `bali:feedback:capture-request` and
+  that leads nowhere. The context goes out on **every** load of the frame, not just the first:
+  the embed navigates inside it — a list, a report, the form — and each of those is a new
+  document that has to be told where it is again. (The token still goes once per opening; the
+  embed trades it for a cookie.) The embed asks for the picture with `bali:feedback:capture-request` and
   the host takes it, because only the host can get its own panel out of the shot: the panel is
   hidden with `opacity` rather than closed — closing tears the frame down and takes a
   half-written report with it — and three fresh frames are let through before drawing, since

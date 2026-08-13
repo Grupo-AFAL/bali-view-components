@@ -56,7 +56,13 @@ export class FeedbackWidgetController extends Controller {
     // The drawer restores its markup on close, so the frame is a fresh one on
     // every open and the embed reloads instead of showing whatever it held the
     // last time it was on screen.
-    this.iframeTarget.addEventListener('load', this.handshake, { once: true })
+    //
+    // NOT `{ once: true }`: the embed navigates inside the frame — a list, a report,
+    // the form — and every one of those is a new document that has to be told where
+    // it is all over again. The token still goes out once per opening; `handshake`
+    // keeps that part to itself.
+    this.pendingToken = this.hasTokenValue
+    this.iframeTarget.addEventListener('load', this.handshake)
     this.iframeTarget.src = this.embedUrlValue
 
     this.dispatch('open', {
@@ -70,10 +76,19 @@ export class FeedbackWidgetController extends Controller {
     this.lastChecked = new Date().toISOString()
   }
 
-  // Both messages go out on the same `load`: the embed registers its listeners
-  // inline, before the document's own `load` fires, so it is listening by now.
+  // Runs on every load of the frame. The embed is listening by then: it registers
+  // for these inline, before its own document's `load` fires.
+  //
+  // The token goes out on the first load only — the embed trades it for a cookie and
+  // the navigations after that are already authenticated. The context does not: it
+  // describes the page being reported on to a document that has just replaced the one
+  // that knew it.
   handshake = () => {
-    this.sendToken()
+    if (this.pendingToken) {
+      this.pendingToken = false
+      this.sendToken()
+    }
+
     this.sendContext()
   }
 

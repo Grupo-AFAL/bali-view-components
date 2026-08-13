@@ -5,6 +5,10 @@
   </head>
   <body style="font-family: system-ui; padding: 1rem">
     <p>Query string: <code id="query-string"><%= request.query_string.presence || '(empty)' %></code></p>
+    <%# Una navegacion interna del embed: es lo que hace de verdad —lista, reporte,
+        formulario— y cada una es un documento nuevo al que hay que volver a decirle
+        donde esta parado. %>
+    <p><a id="go-deeper" href="?paso=2">Ir a otra pagina del embed</a></p>
     <p>Token received by message: <code id="received-token">(none)</code></p>
     <p>Host page: <code id="host-url">(none)</code> — <code id="host-title">(none)</code></p>
     <p>Host viewport: <code id="host-viewport">(none)</code></p>
