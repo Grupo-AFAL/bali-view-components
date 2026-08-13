@@ -155,7 +155,8 @@ module Bali
           combinators: {
             and: I18n.t("bali_view.filters.combinators.and"),
             or: I18n.t("bali_view.filters.combinators.or")
-          }
+          },
+          combinator_toggle: I18n.t("bali_view.filters.combinator_toggle")
         }.to_json
       end
 

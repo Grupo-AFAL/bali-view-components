@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **SortableList: keyboard reordering** (#1028, WCAG 2.1.1). The drag had no keyboard
+  alternative. Every direct item is now focusable, and ArrowUp/ArrowDown moves the focused item
+  one slot — persisting (PATCH) and dispatching `bali:sortable-list:end` exactly like a drop,
+  with focus travelling along so repeated arrows keep moving it. Arrows only act when the item
+  element itself has focus, so nested controls keep their own arrow behaviour; cross-list moves
+  remain mouse-only. A new Cypress spec (`sortable-list.cy.js`) covers the component E2E for
+  the first time.
+
+### Fixed (accessibility, pre-GA audit #1028)
+- **Filters: the applied-tag remove button names WHICH filter it removes** (aria-label with the
+  attribute/operator/value), the remove-condition button gains an explicit `aria-label`, and
+  the AND/OR combinator toggles — in `FilterGroup`, in the `CombinatorDivider` between groups,
+  and in the divider the JS builds client-side — carry `aria-pressed` state plus a named
+  `role="group"`; the Stimulus controllers keep `aria-pressed` in sync with the visual state.
+  The multi-select value trigger (a `role="button"` div) now also opens with Enter/Space.
+  `CombinatorDivider` gains its first component test.
+- **DocumentEditor: every icon-only app-bar control has an accessible name** — the TOC,
+  comments and history toggles get `aria-label` + `aria-expanded` (kept in sync with their
+  panels by the controller), the export dropdown trigger — which had no name at all — gets
+  `aria-label`, and so does the close link.
+- **RichTextEditor bubble menu: the dropdown items are real buttons.** #1032 converted the
+  seven toolbar `<a>`s; the node-select and table items inside the dropdowns were still
+  `<a>`s without `href` — they now render through the Dropdown's `tag: :button` item, and the
+  three icon-only dropdown triggers (link, image, table) gain `aria-label`s. A new component
+  test freezes the "no action `<a>` without href" contract.
 ### Fixed
 - **SplitView no longer refetches the detail pane on every history traversal** (#1029). Two
   defects compounded: the traversal guard compared the frame's `src` — which Turbo rewrites to

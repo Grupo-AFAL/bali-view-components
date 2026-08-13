@@ -2,8 +2,12 @@
   <%# App Bar %>
   <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0">
     <%# Left: TOC toggle %>
+    <%# Los toggles icon-only llevan aria-label explícito (el title solo es
+        nombre de último recurso) y aria-expanded que el controller mantiene
+        al abrir/cerrar su panel (#1028). %>
     <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
-          data: { action: "document-editor#toggleToc" }, title: t('.toggle_toc')) do %>
+          data: { action: "document-editor#toggleToc", document_editor_target: "tocToggle" },
+          "aria-label": t('.toggle_toc'), "aria-expanded": "false", title: t('.toggle_toc')) do %>
       <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
     <% end %>
 
@@ -43,6 +47,7 @@
       <% if comments? %>
         <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
               data: { action: "document-editor#toggleComments", document_editor_target: "commentsToggle" },
+              "aria-label": t('.toggle_comments'), "aria-expanded": "false",
               title: t('.toggle_comments')) do %>
           <%= render Bali::Icon::Component.new('message-square', size: :small) %>
         <% end %>
@@ -51,6 +56,7 @@
       <% if versions? %>
         <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
               data: { action: "document-editor#toggleHistory", document_editor_target: "historyToggle" },
+              "aria-label": t('.toggle_history'), "aria-expanded": "false",
               title: t('.toggle_history')) do %>
           <%= render Bali::Icon::Component.new('history', size: :small) %>
         <% end %>
@@ -58,7 +64,9 @@
 
       <% if export? %>
         <%= render Bali::Dropdown::Component.new(align: :end) do |dropdown| %>
-          <% dropdown.with_trigger(class: "btn-ghost btn-sm btn-square") do %>
+          <%# Sin aria-label este trigger icon-only no tiene nombre accesible (#1028). %>
+          <% dropdown.with_trigger(class: "btn-ghost btn-sm btn-square",
+               "aria-label": t('.export'), title: t('.export')) do %>
             <%= render Bali::Icon::Component.new('download', size: :small) %>
           <% end %>
           <% dropdown.with_item(tag: :button, data: { action: "document-editor#exportPdf" }) { t('.export_pdf') } %>
@@ -69,7 +77,8 @@
       <div class="divider divider-horizontal mx-1 h-6"></div>
 
       <%= link_to close_url, class: "btn btn-ghost btn-sm btn-square",
-            data: { action: "document-editor#close" }, title: t('.close') do %>
+            data: { action: "document-editor#close" },
+            "aria-label": t('.close'), title: t('.close') do %>
         <%= render Bali::Icon::Component.new('x', size: :small) %>
       <% end %>
     </div>
