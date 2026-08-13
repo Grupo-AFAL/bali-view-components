@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Dev dependencies: Cypress 15.18.1 → 15.20.1, and the dummy's transitive `nanoid`
+  5.1.6 → 5.1.16** — one PR consolidating (and superseding) Dependabot's #997 and #998,
+  taking Cypress to the actual latest. Neither ships to hosts: Cypress is the repo's E2E
+  runner and nanoid lives in the dummy app's lockfile. daisyUI (5.7.16) and
+  `tailwindcss-rails` (4.6.0) were checked in the same pass and are already at latest.
+
 ### Fixed
 - **`docs/reference/` rewritten from the code that ships** (#1040). The three reference
   files predated the v3 migration and actively misled an agent that followed them:
