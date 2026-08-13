@@ -257,17 +257,26 @@ module Bali
     #   tarjetas. Pasá lo MISMO que le pasás al DataTable (p.ej. `params[:view] || :grid`)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, search_icon: nil, search_label: nil, search_width: nil,
+                   search_placeholder: nil, search_icon: nil, search_aria_label: nil,
+                   search_width: nil, search_label: nil,
                    persist_enabled: nil, simple_filters: nil,
                    group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
                    saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
+      # `search_label:` mirrors the DSL's old `label:` and was renamed with it
+      # (#1026): the value is the box's aria-label, and the accessible-name
+      # spelling across the library is `aria_label`.
+      if search_label
+        raise ArgumentError,
+              "#{self.class.name}: `search_label:` was renamed to `search_aria_label:` in v3.1."
+      end
+
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
       @instance_search_icon = search_icon
-      @instance_search_label = search_label
+      @instance_search_label = search_aria_label
       @instance_search_width = search_width
       @instance_simple_filters = simple_filters
       @instance_group_by_attributes = group_by_attributes
@@ -278,7 +287,7 @@ module Bali
       # read opt-in ("this browser said no"); nil means NOBODY read the cookie,
       # which with a storage_id present is the silent failure mode — the toggle
       # renders, the state saves, and it never restores. DataTable warns on it
-      # in dev/test; `Bali::Filterable#filter_form` is the wiring that cannot
+      # in development; `Bali::Filterable#filter_form` is the wiring that cannot
       # forget.
       @persist_enabled_read = !persist_enabled.nil?
       @persist_enabled = persist_enabled.nil? ? false : persist_enabled

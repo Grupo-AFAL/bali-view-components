@@ -262,10 +262,10 @@ column of ~420px its row of controls overflowed. The band now wraps.
 
 Full recipe: [master-detail.md](master-detail.md#filtering-the-list).
 
-## `Topbar::IconAction` and `WorkflowSteps`: two keywords renamed for consistency
+## `Topbar::IconAction`, `WorkflowSteps` and `search_fields`: keywords renamed for consistency
 
-**Both only affect you if you pinned a v3.1 beta and used the component — these
-components are new in 3.1, so there is nothing to migrate from v3.0.** The
+**These only affect you if you pinned a v3.1 beta and used the API — all three
+surfaces are new in 3.1, so there is nothing to migrate from v3.0.** The
 renames land before the GA so the final API matches the rest of the library.
 
 - **`Topbar::IconAction` takes `aria_label:`, not `label:`.** The accessible
@@ -273,6 +273,18 @@ renames land before the GA so the final API matches the rest of the library.
   (`ViewSwitch`, `SideMenu`, `Chart`), and `label:` here silently produced a
   stray `label=""` attribute if you reached for the majority spelling. Passing
   the old `label:` now raises with the new name.
+
+- **`FilterForm.search_fields` takes `aria_label:`, not `label:`** — the same
+  rename, same reason: the value is the search box's `aria-label` (#982). The
+  instance-level mirror moves with it: `search_aria_label:`, not
+  `search_label:`. Both old spellings raise naming their replacement.
+
+  ```ruby
+  # beta
+  search_fields :name, :email, icon: 'search', label: 'Search users'
+  # now
+  search_fields :name, :email, icon: 'search', aria_label: 'Search users'
+  ```
 
   ```erb
   <%# beta %>   <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', label: 'Notifications') %>

@@ -65,12 +65,13 @@ class DualChannelSearchFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 
-# Test form with the full search_fields signature (#982): label: is the box's
-# aria-label — the only accessible name that survives typing — and width: the
-# per-listing width override. Both were renderable by the components but
-# unreachable from the DSL.
+# Test form with the full search_fields signature (#982): aria_label: is the
+# box's aria-label — the only accessible name that survives typing — and
+# width: the per-listing width override. Both were renderable by the
+# components but unreachable from the DSL. (`label:` was the beta spelling and
+# now raises — see the rename tests below, #1026.)
 class LabelledSearchMovieFilterForm < Bali::FilterForm
-  search_fields :name, icon: "search", label: "Search movies", width: "w-64"
+  search_fields :name, icon: "search", aria_label: "Search movies", width: "w-64"
 
   filter_attribute :name, type: :text
 end
@@ -544,11 +545,30 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal("search", config[:icon])
   end
 
-  def test_search_label_and_width_instance_kwargs_override_the_dsl
+  def test_search_aria_label_and_width_instance_kwargs_override_the_dsl
     @form = LabelledSearchMovieFilterForm.new(Movie.all, params({}),
-                                              search_label: "Find", search_width: "w-96")
+                                              search_aria_label: "Find", search_width: "w-96")
     assert_equal("Find", @form.search_label)
     assert_equal("w-96", @form.search_width)
+  end
+
+  # --- the #1026 rename: the beta spellings raise, naming their replacement ---
+
+  def test_search_fields_label_keyword_raises_naming_aria_label
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) do
+        def self.name = "RenamedForm"
+        search_fields :name, label: "Search"
+      end
+    end
+    assert_match(/`label:` was renamed to `aria_label:`/, error.message)
+  end
+
+  def test_search_label_initialize_kwarg_raises_naming_search_aria_label
+    error = assert_raises(ArgumentError) do
+      LabelledSearchMovieFilterForm.new(Movie.all, params({}), search_label: "Find")
+    end
+    assert_match(/`search_label:` was renamed to `search_aria_label:`/, error.message)
   end
 
   def test_search_label_and_width_are_inherited_by_subclasses
