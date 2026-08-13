@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`docs/reference/` rewritten from the code that ships** (#1040). The three reference
+  files predated the v3 migration and actively misled an agent that followed them:
+  `component-patterns.md` taught a base class, a preview base class, alias maps and an
+  RSpec/SCSS toolchain that do not exist here — it now documents
+  `ApplicationViewComponent`, the `HtmlElementHelper` merge helpers, the
+  `Bali::ButtonTaxonomy` axes (with the raise-on-unknown contract), the real
+  slot/preview/Minitest patterns and the fully-qualified-constants rule.
+  `stimulus-patterns.md` showed `export default class`, an invented directory layout and
+  four imaginary controllers — it now documents the three real controller homes, named
+  exports, the hardcoded `bali:<component>` event prefix (and the `bali:hovercard`
+  exception), dynamic imports for optional peers, `ReactIslandController`, and
+  Cypress-over-Lookbook testing with the hard-earned rules (asset caching, native drag).
+  `afal-design-system.md` claimed Iconify icons and daisyUI drawer classes — it now
+  states what the design system concretely is (daisyUI 5 + the shipped
+  `afal`/`afal-dark`/`costa-norte` themes + the components), a verified component↔daisyUI
+  table that marks the deliberate native-`<dialog>`/tippy exceptions, and the
+  lucide-rails icon pipeline. Also: `.claude/CLAUDE.md` now counts all three project
+  skills.
+
 ### Changed (breaking)
 - **`FilterForm.search_fields` renames `label:` to `aria_label:`** (#1026, closing the last
   deviation of the pre-GA API audit). The value is the search box's `aria-label` (#982), and
