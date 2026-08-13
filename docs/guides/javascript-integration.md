@@ -214,9 +214,9 @@ prefix does not come from this package.
 
 | Event | Dispatched on | `detail` |
 |---|---|---|
-| `bali:modal:open` | `document` | `{ content, options }` |
+| `bali:modal:open` | `document` | `{ id, content, options }` |
 | `bali:modal:success` | `document` | the redirect params merged over `data-extra-props`; also fires for drawers |
-| `bali:drawer:open` | `document` | `{ content, options }` |
+| `bali:drawer:open` | `document` | `{ id, content, options }` |
 | `bali:side-menu:toggle` | `window` | — (emitted by `Navbar#toggleSideMenu`) |
 | `bali:command:select` | the palette element (bubbles) | `{ row, value }` |
 | `bali:direct-upload:complete` | the controller element (bubbles) | `{ id, filename, signedId }` |
@@ -233,8 +233,8 @@ Dispatch these yourself to drive a component without a trigger element.
 
 | Event | Dispatch on | Effect |
 |---|---|---|
-| `bali:modal:open` | `document` | Opens the modal. `detail.content` is the HTML for the body (`null` keeps the skeleton), `detail.options` accepts `wrapperClasses`, `redirectTo`, `skipRender`, `extraProps`, `modalSize` |
-| `bali:drawer:open` | `document` | Same, with `drawerSize` instead of `modalSize` |
+| `bali:modal:open` | `document` | Opens the modal. **`detail.id` names WHICH one** — without it the event is a broadcast and every shared modal on the page answers (#854). `detail.content` is the HTML for the body (`null` keeps the skeleton), `detail.options` accepts `wrapperClasses`, `redirectTo`, `skipRender`, `extraProps`, `modalSize` |
+| `bali:drawer:open` | `document` | Same, with `drawerSize` instead of `modalSize` — and the same rule: always send `detail.id` |
 | `bali:command:open` / `:close` / `:toggle` | `window` | Drives the command palette |
 | `bali:side-menu:open` / `:close` / `:toggle` | `window` | Drives the mobile side menu |
 

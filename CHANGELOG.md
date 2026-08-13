@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Kanban: `with_card` passes host options through — `data:` merges instead of being
+  dropped** (#1027). The card built its attributes from scratch and read only `:class`, so
+  the column-lock recipe the guide documents (`data: { sortable_item_pull: "false" }`) —
+  and any host `id:`/`aria-*` — never reached the element. Host `data:` now merges under
+  the component's own keys.
+- **Docs: the remaining user-breaking drift from the pre-GA audit** (#1027). The
+  v3→v3.1 migration guide gains the two missing breaking-change sections — #723
+  (an unknown `size:` Symbol raises on every FormBuilder family) and #992 (Tooltip
+  defaults to `append_to: :body`, with the test-selector consequences spelled out).
+  `components.md`: Card's `with_header` takes `title:` and its per-item slot is
+  `with_action`; Modal/Drawer have no `with_trigger` (the examples now open them the real
+  way and put the modal title in `with_header`); `Link` takes `variant:`, not the removed
+  `type:`; Table rows are raw `<td>`s (no `with_cell`); Breadcrumb items take `name:`;
+  Filters' `available_attributes` is required, not defaulted; RichTextEditor is marked
+  deprecated (and TipTap-based, not BlockNote); DocumentEditor's comments/export travel in
+  `config:`. README's Component Status table is regenerated from the filesystem — 86
+  components, including the 15 it omitted (Gantt and SplitView among them).
+  Minor sweeps: `form-builder.md` documents the `required:` passthrough contract (which
+  families drop it) and fixes the v2 `*_field_*` names in the Stimulus table;
+  `accessibility.md`'s form examples move to daisyUI 5's `fieldset` vocabulary and the
+  testing helper to Minitest; `controllers.md` fixes `time24hr`;
+  `javascript-integration.md` documents `detail.id` on `bali:modal/drawer:open` (#854);
+  `custom-themes.md` explains why `@theme {}` cannot override the eight structural tokens;
+  `engine-models.md` replaces three "shipping separately" stubs with the models that
+  shipped; `direct-upload-*.md` fixes the `has_one_attached` removal recipe and the real
+  5-minute signed-URL expiry.
 ### Added
 - **SortableList: keyboard reordering** (#1028, WCAG 2.1.1). The drag had no keyboard
   alternative. Every direct item is now focusable, and ArrowUp/ArrowDown moves the focused item

@@ -105,8 +105,8 @@ Slots allow you to inject content into specific areas of a component:
 
 ```erb
 <%= render Bali::Card::Component.new do |card| %>
-  <% card.with_header { "Card Title" } %>
-  <% card.with_actions do %>
+  <% card.with_header(title: "Card Title") %>
+  <% card.with_action do %>
     <%= render Bali::Button::Component.new(name: 'Save') %>
   <% end %>
 
@@ -145,7 +145,7 @@ Slots allow you to inject content into specific areas of a component:
 ```erb
 <%= render Bali::Card::Component.new do |c| %>
   <% c.with_image(src: "/image.jpg", alt: "Description") %>
-  <% c.with_actions do %>
+  <% c.with_action do %>
     <%= render Bali::Button::Component.new(name: 'Action', variant: :primary) %>
   <% end %>
 <% end %>
@@ -376,7 +376,7 @@ Content container with optional header, image, and actions.
   <% c.with_image(src: "/photo.jpg") %>
   <% c.with_title("Card Title") %>
   <p>Card description text.</p>
-  <% c.with_actions do %>
+  <% c.with_action do %>
     <%= render Bali::Button::Component.new(name: 'Details', variant: :primary) %>
   <% end %>
 <% end %>
@@ -398,11 +398,17 @@ Escape and focus restoration come from the element. See
 [Overlays and the top layer](overlays-and-the-top-layer.md) for what that means for
 anything you render over it.
 
+There is no trigger slot: a modal opens from OUTSIDE — a `Bali::Link` with `modal: true`
+fetches it (remote), or a `Bali::Button` with `modal: { id:, local: true }` opens one
+already rendered on the page. The title goes in the `with_header` slot, not in a keyword.
+
 ```erb
-<%= render Bali::Modal::Component.new(title: "Confirm Action") do |modal| %>
-  <% modal.with_trigger do %>
-    <%= render Bali::Button::Component.new(name: 'Open Modal') %>
-  <% end %>
+<%# The trigger, wherever the action lives: %>
+<%= render Bali::Button::Component.new(name: 'Open Modal', modal: { id: 'confirm-modal', local: true }) %>
+
+<%# The modal itself: %>
+<%= render Bali::Modal::Component.new(id: 'confirm-modal', shared: false, active: false) do |modal| %>
+  <% modal.with_header(title: "Confirm Action") %>
 
   <p>Are you sure you want to proceed?</p>
 
@@ -440,12 +446,19 @@ answered by this dialog and not the first one in the DOM.
 Slide-in panel from edge of screen. Like `Modal`, a native `<dialog>` opened with
 `showModal()`.
 
+There is no trigger slot here either — a `Bali::Link` with `drawer: true` fetches a page
+into the shared drawer, and a `Bali::Button` with `drawer: { id:, local: true }` opens one
+already rendered:
+
 ```erb
-<%= render Bali::Drawer::Component.new(title: "Settings", position: :right) do |drawer| %>
-  <% drawer.with_trigger { "Open Settings" } %>
-  <%# Drawer content %>
+<%= render Bali::Link::Component.new(name: 'Open Settings', href: settings_path, drawer: true) %>
+
+<%# Or, pre-rendered on the page: %>
+<%= render Bali::Drawer::Component.new(title: "Settings", position: :right,
+                                       drawer_id: 'settings-drawer', shared: false) do %>
   <p>Drawer panel content here.</p>
 <% end %>
+<%= render Bali::Button::Component.new(name: 'Open Settings', drawer: { id: 'settings-drawer', local: true }) %>
 ```
 
 **Turbo Stream form submits** (Modal and Drawer): forms submitted with the
@@ -553,7 +566,7 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
   subtitle: 'Manage your catalog',
   back: { href: movies_path }
 ) do %>
-  <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, type: :primary) %>
+  <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary) %>
 <% end %>
 ```
 
@@ -818,9 +831,9 @@ Navigation path indicator.
 
 ```erb
 <%= render Bali::Breadcrumb::Component.new do |bc| %>
-  <% bc.with_item(href: "/") { "Home" } %>
-  <% bc.with_item(href: "/products") { "Products" } %>
-  <% bc.with_item { "Current Page" } %>  <%# No href = current %>
+  <% bc.with_item(name: "Home", href: "/") %>
+  <% bc.with_item(name: "Products", href: "/products") %>
+  <% bc.with_item(name: "Current Page") %>  <%# No href = current %>
 <% end %>
 ```
 
@@ -1217,10 +1230,11 @@ Data table with optional sorting and pagination.
   <% table.with_header(name: "Status") %>
 
   <% @users.each do |user| %>
-    <% table.with_row do |row| %>
-      <% row.with_cell { user.name } %>
-      <% row.with_cell { user.email } %>
-      <% row.with_cell { render Bali::Tag::Component.new(text: user.status, color: status_color(user)) } %>
+    <%# The row's cells are raw <td> tags — there is no with_cell slot. %>
+    <% table.with_row do %>
+      <td><%= user.name %></td>
+      <td><%= user.email %></td>
+      <td><%= render Bali::Tag::Component.new(text: user.status, color: status_color(user)) %></td>
     <% end %>
   <% end %>
 <% end %>
@@ -1575,7 +1589,7 @@ Responsive image gallery with optional lightbox and empty state.
   <% grid.with_empty_state do %>
     <p class="text-sm text-base-content/60"><%= t('bali_view.image_grid.empty_state.title') %></p>
     <%= render Bali::Link::Component.new(name: t('bali_view.image_grid.empty_state.add_image'),
-          href: new_image_path, type: :primary) %>
+          href: new_image_path, variant: :primary) %>
   <% end %>
   <% @images.each do |image| %>
     <% grid.with_image(full_src: image.full_url) { image_tag image.thumb_url } %>
@@ -3160,7 +3174,7 @@ The search input includes a clear button (x) that appears when text is entered. 
 |--------|------|---------|-------------|
 | `url` | String | Required | Form action URL |
 | `filter_form` | FilterForm | Required | FilterForm instance |
-| `available_attributes` | Array | `[]` | Filterable attributes |
+| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm) |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
@@ -3260,7 +3274,11 @@ Image preview with an optional file input overlay for uploading/replacing an ima
 
 #### RichTextEditor
 
-BlockNote-based rich text editor for editing or displaying HTML content, with a hidden input for form submission.
+**Deprecated in v3, removed in v4 — use [BlockEditor](#blockeditor) for new work.** It ships
+behind `Bali.rich_text_editor_enabled`, which defaults to `false`: with the flag off the
+component renders nothing at all.
+
+TipTap-based rich text editor for editing or displaying HTML content, with a hidden input for form submission.
 
 ```erb
 <%= render Bali::RichTextEditor::Component.new(
@@ -3507,6 +3525,10 @@ See the component class for the full list (`ai_url`, `mentions`, `references_url
 
 Full-screen document editing overlay wrapping BlockEditor with app bar, table of contents, comments sidebar, version history (preview and restore past versions), auto-save, and Cmd+S manual save.
 
+Comments and export are BlockEditor concerns and travel inside `config:` — passed as
+top-level keywords they fall into `**options` and are painted as HTML attributes, with
+neither feature enabled and no warning.
+
 ```erb
 <%= render Bali::DocumentEditor::Component.new(
   title: @document.title,
@@ -3514,8 +3536,10 @@ Full-screen document editing overlay wrapping BlockEditor with app bar, table of
   document_url: document_path(@document),
   close_url: document_path(@document),
   versions_url: document_versions_path(@document),
-  comments: { url: '/block_editor_comments', user: current_user_json, users: users_json },
-  export: true
+  config: {
+    comments: { url: '/block_editor_comments', user: current_user_json, users: users_json },
+    export: true
+  }
 ) do |editor| %>
   <% editor.with_toolbar do %>
     <span class="badge badge-ghost">Draft</span>

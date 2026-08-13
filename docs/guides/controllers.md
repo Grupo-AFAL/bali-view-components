@@ -135,7 +135,8 @@ the minimal form is:
 ```
 
 Everything else is a value: `enable-time`, `no-calendar` (time-only),
-`enable-seconds`, `time-24hr`, `mode` (`single`/`range`), `default-date` /
+`enable-seconds`, `time24hr` (one word — the value is `time24hr`, so the attribute is
+`data-datepicker-time24hr-value`), `mode` (`single`/`range`), `default-date` /
 `default-dates`, `min-date` / `max-date`, `min-time` / `max-time`,
 `disable-weekends`, `disabled-dates`, `alt-format`, `static`, `locale`.
 

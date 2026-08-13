@@ -296,13 +296,18 @@ class DocumentsController < ApplicationController
   def update
     @document = Document.find(params[:id])
 
-    # Handle file removals
+    # Handle file removals. The component submits `document[remove_<method>][]`
+    # with the ids of the attachments marked for removal.
+    #
+    # With `has_one_attached :file` there is exactly one attachment — purge it:
     if params[:document][:remove_file].present?
-      params[:document][:remove_file].each do |attachment_id|
-        attachment = @document.file.find { |a| a.id.to_s == attachment_id }
-        attachment&.purge_later
-      end
+      @document.file.purge_later
     end
+    # With `has_many_attached :images`, look each id up through the
+    # `<name>_attachments` relation (the attached proxy has no `find`):
+    #   params[:document][:remove_images].each do |attachment_id|
+    #     @document.images_attachments.find_by(id: attachment_id)&.purge_later
+    #   end
 
     if @document.update(document_params)
       redirect_to @document

@@ -226,13 +226,21 @@ Its `acknowledgments` table is close but not identical:
 
 ## Content versions
 
-Shipping separately — see issue #707. This section lands with it, so that the adoption
-guide for every engine model stays in one place.
+Shipped (#707): `Bali::ContentVersion` plus the `Bali::ContentVersionable` concern, with
+the `create_bali_content_versions` migration. It backs DocumentEditor's version history
+(preview and restore) — include the concern in the model whose content is versioned and
+point the editor's `versions_url:`/`restore_version_url:` at the engine's endpoints (or
+pass `record:` and let `:auto` resolve them).
 
 ## Comments and threads
 
-Shipping separately — see issue #706.
+Shipped (#706): `Bali::BlockEditorThread`, `Bali::BlockEditorComment` and
+`Bali::BlockEditorReaction`, with the `create_bali_block_editor_comments` migration. They
+back BlockEditor's comments sidebar — enable it with `comments:` in the editor's
+`config:`.
 
 ## Entity references
 
-Shipping separately — see issue #708.
+Shipped (#708): `Bali::EntityReference` plus the `Bali::EntityReferenceable` concern,
+with the `create_bali_entity_references` migration. It records which entities a document
+mentions, so back-references ("mentioned in…") can be listed from either side.
