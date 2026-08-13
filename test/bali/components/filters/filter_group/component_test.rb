@@ -76,6 +76,17 @@ class BaliFiltersFilterGroupComponentTest < ComponentTestCase
     assert_selector("button.btn-outline", text: "OR")
   end
 
+  # El estado activo también viaja en aria-pressed, y el grupo tiene nombre:
+  # un lector de pantalla no distingue btn-primary de btn-outline (#1028).
+  def test_the_combinator_toggle_announces_its_state
+    render_inline(Bali::Filters::FilterGroup::Component.new(
+      group: @group_with_conditions, index: 0, available_attributes: @available_attributes
+    ))
+    assert_selector("[role='group'][aria-label='#{I18n.t('bali_view.filters.combinator_toggle')}']")
+    assert_selector("button[aria-pressed='true']", text: "AND")
+    assert_selector("button[aria-pressed='false']", text: "OR")
+  end
+
   def test_combinator_defaults_to_or
     component = Bali::Filters::FilterGroup::Component.new(
       group: { conditions: [ { attribute: "", operator: "cont", value: "" } ] },

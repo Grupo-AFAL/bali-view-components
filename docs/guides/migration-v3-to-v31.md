@@ -16,8 +16,10 @@ class names outside the FormBuilder — `label-text`, `input-bordered`, `form-co
 not land in v3.1**; it is scheduled for v4. If you were waiting for it before upgrading,
 stop waiting — nothing in v3.1 touches those class names.
 
-Each section below covers one of the four — what breaks, what replaces it, and the
-measurement that sized it.
+The pre-GA audit then admitted a few more changes under the same policy — each measured,
+each with its own CHANGELOG entry — and they get their own sections here as well. Each
+section below covers one change: what breaks, what replaces it, and the measurement that
+sized it.
 
 ## `ActionsDropdown` POST items become `button_to` (#641)
 
@@ -203,10 +205,34 @@ can only shrink from here.
 
 ---
 
+## Icon: `question_circle` becomes `question-circle` (#987)
+
+**What changes.** The legacy name map carried a single underscored key — `question_circle`,
+a v1-hash leftover — so the underscored accident resolved while `question-circle`, the
+spelling consistent with every other name in the library, **raised**. In v3.1 the key is
+dashed: `question-circle` resolves to `circle-help` directly, and `question_circle` raises
+with a "Did you mean: `question-circle`?" suggestion, like every other snake_case spelling.
+
+**What to do.** Grep for the underscored form and dash it (or go straight to the Lucide
+name):
+
+```erb
+<%# v3.0 %> <%= render Bali::Icon::Component.new('question_circle') %>
+<%# v3.1 %> <%= render Bali::Icon::Component.new('question-circle') %>
+<%# or the direct Lucide name it maps to: %>
+<%= render Bali::Icon::Component.new('circle-help') %>
+```
+
+**Who is affected.** Any host that copied the underscored spelling — it was the only
+spelling that worked before v3.1, so if you render this icon at all, you are affected.
+The failure is a loud runtime raise naming the fix, not a silent drawing change.
+
+---
+
 ## `SplitView`'s filter band: `with_filters` becomes `with_filter` (#977)
 
 **Only affects you if you pinned `v3.1.0.beta.8`** and used the free-form
-`with_filters` slot. It shipped in that one beta and is gone; the four breaking
+`with_filters` slot. It shipped in that one beta and is gone; the breaking
 changes above are about v3.0, this is about a beta.
 
 ```erb
@@ -310,7 +336,7 @@ The uploads themselves were always validated (magic-byte type detection, a block
 list, a size cap); what changes is that *reaching* the validation now requires the host to
 have decided who is allowed in.
 
-## Adoption notes (additive — not part of the four)
+## Adoption notes (additive — nothing here breaks)
 
 Everything below is opt-in housekeeping: nothing renders differently until you act.
 

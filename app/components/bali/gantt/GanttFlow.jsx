@@ -758,10 +758,19 @@ function GanttCanvas (props) {
     )
   }, [undatedDrawerId])
 
+  // The "no dates" pill opens the server-rendered drawer (#1015), so it must
+  // count what THAT drawer lists — the items of the schedule the server
+  // rendered — not the live one: a reconcile can change the set, but the
+  // drawer's list cannot follow it, and a count that disagrees with the list
+  // it opens is worse than one that ages alongside it (#1029).
+  const undatedCount = useMemo(
+    () => ((props.data && props.data.items) || []).filter((item) => !item.starts_on).length,
+    [props.data]
+  )
+
   // --- Footer metrics ---
   const footer = useMemo(() => {
     const leaves = schedule.items || []
-    const undatedCount = leaves.filter((item) => !item.starts_on).length
     const durOf = (item) => (item.starts_on ? durationDays(item.starts_on, item.ends_on) : 0)
     const totalDur = leaves.reduce((a, item) => a + durOf(item), 0) || 1
     const wprog = Math.round(leaves.reduce((a, item) => a + durOf(item) * (item.percent_complete || 0), 0) / totalDur)
@@ -788,7 +797,7 @@ function GanttCanvas (props) {
         assignees
       })
     }
-  }, [schedule, colorBy, windowStart, windowEnd, catalogs, t])
+  }, [schedule, undatedCount, colorBy, windowStart, windowEnd, catalogs, t])
 
   return (
     <div

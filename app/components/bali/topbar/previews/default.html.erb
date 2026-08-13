@@ -9,7 +9,7 @@
 
   <% topbar.with_action do %>
     <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'bell', label: 'Notifications', badge: true, badge_id: 'preview-notifications-badge'
+      icon: 'bell', aria_label: 'Notifications', badge: true, badge_id: 'preview-notifications-badge'
     ) %>
   <% end %>
 
