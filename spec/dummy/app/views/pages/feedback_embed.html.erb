@@ -6,6 +6,19 @@
   <body style="font-family: system-ui; padding: 1rem">
     <p>Query string: <code id="query-string"><%= request.query_string.presence || '(empty)' %></code></p>
     <p>Token received by message: <code id="received-token">(none)</code></p>
+    <p>Host page: <code id="host-url">(none)</code> — <code id="host-title">(none)</code></p>
+    <p>Host viewport: <code id="host-viewport">(none)</code></p>
+    <p>Host can capture: <code id="capture-supported">(unknown)</code></p>
+
+    <p>
+      <button type="button" id="request-capture">Take a screenshot</button>
+      <code id="capture-status">(idle)</code>
+    </p>
+    <%# The colour of the picture the host took, as "r,g,b". The demo's stand-in capture
+        paints green while the panel is hidden and red while it is showing, so this single
+        value says whether the picture was taken with the drawer out of the way. %>
+    <p>Captured pixel: <code id="capture-pixel">(none)</code></p>
+    <img id="capture-preview" alt="" style="max-width: 100%; display: none">
 
     <script>
       // What Opina's embed does with this PR in: read the credential off a
@@ -13,12 +26,63 @@
       document.getElementById('query-string').textContent =
         window.location.search.replace(/^\?/, '') || '(empty)'
 
-      window.addEventListener('message', event => {
-        if (event.origin !== window.location.origin) return
-        if (!event.data || event.data.type !== 'bali:feedback:token') return
+      // NOT `status`: at global scope in a classic script that assigns to `window.status`,
+      // a legacy property whose setter coerces to a string. The element would silently
+      // become "[object HTMLElement]" and every write to it a no-op.
+      var statusEl = document.getElementById('capture-status')
 
-        document.getElementById('received-token').textContent = event.data.token
+      window.addEventListener('message', function (event) {
+        if (event.origin !== window.location.origin) return
+        if (!event.data) return
+
+        if (event.data.type === 'bali:feedback:token') {
+          document.getElementById('received-token').textContent = event.data.token
+        }
+
+        // The page being reported on. The embed is cross-origin to it in real life, so
+        // this is the only way it learns anything past the bare origin.
+        if (event.data.type === 'bali:feedback:context') {
+          document.getElementById('host-url').textContent = event.data.url
+          document.getElementById('host-title').textContent = event.data.title
+          document.getElementById('host-viewport').textContent =
+            event.data.viewport.width + 'x' + event.data.viewport.height
+          document.getElementById('capture-supported').textContent = String(event.data.capture)
+        }
+
+        if (event.data.type === 'bali:feedback:capture') {
+          if (event.data.error) {
+            statusEl.textContent = 'error: ' + event.data.error
+            return
+          }
+
+          statusEl.textContent = 'received ' + event.data.image.size + ' bytes'
+          showCapture(event.data.image)
+        }
       })
+
+      document.getElementById('request-capture').addEventListener('click', function () {
+        statusEl.textContent = 'requested'
+        window.parent.postMessage({ type: 'bali:feedback:capture-request' }, window.location.origin)
+      })
+
+      function showCapture (blob) {
+        var url = URL.createObjectURL(blob)
+        var img = document.getElementById('capture-preview')
+        img.onload = function () {
+          img.style.display = 'block'
+          readPixel(img)
+        }
+        img.src = url
+      }
+
+      function readPixel (img) {
+        var canvas = document.createElement('canvas')
+        canvas.width = 1
+        canvas.height = 1
+        canvas.getContext('2d').drawImage(img, 0, 0, 1, 1)
+        var d = canvas.getContext('2d').getImageData(0, 0, 1, 1).data
+        document.getElementById('capture-pixel').textContent = d[0] + ',' + d[1] + ',' + d[2]
+      }
     </script>
   </body>
 </html>
