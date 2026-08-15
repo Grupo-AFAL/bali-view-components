@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "caxlsx"
   # Word-level LCS diff for Bali::BlockNote::Diff (MIT, no transitive deps).
-  spec.add_dependency "diff-lcs", "~> 1.5"
+  spec.add_dependency "diff-lcs", ">= 1.5", "< 3.0"
   # Capped: icon resolution and several legacy spellings ride the alias SVGs
   # lucide-rails still ships, and an uncapped bump that drops them turns those
   # names into IconNotAvailable — a 500 — with no change on the host's side.
