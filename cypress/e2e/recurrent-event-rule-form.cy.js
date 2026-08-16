@@ -148,22 +148,27 @@ describe('RecurrentEventRuleForm', () => {
       frequency().find('option:not(:disabled)').first().should('have.value', WEEKLY)
     })
 
-    // CHARACTERIZATION, NOT A PROMISE (#1051): the rule the form starts with is
-    // FREQ=YEARLY even where yearly is one of the frequencies the host forbade,
-    // because the controller's fallback is a hardcoded yearly rule and it then
-    // syncs the select back to it. Submitted untouched, the form persists a
-    // frequency the host disallowed. When that is fixed this assertion should
-    // fail — and the fix is to preselect the first allowed frequency.
-    it('still starts from a yearly rule the host disallowed', () => {
+    // #1051: the form used to open on yearly — a disabled option — because the
+    // server preselected nothing and the controller's fallback rule was a
+    // hardcoded yearly one it then synced the select back to. Submitted
+    // untouched, it persisted a frequency the host had forbidden.
+    it('starts from the first frequency the host allowed', () => {
       cy.visit('/bali/recurrent_event_rule_form/limited_frequencies')
 
-      rule().should('have.value', 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1')
+      frequency().should('have.value', WEEKLY)
       frequency().should(($select) => {
         const select = $select[0]
 
-        expect(select.value).to.eq(YEARLY)
-        expect(select.options[select.selectedIndex].disabled, 'selected option').to.eq(true)
+        expect(select.options[select.selectedIndex].disabled, 'selected option').to.eq(false)
       })
+
+      // And the rule an untouched submit would carry is that frequency's.
+      rule().should('have.value', 'FREQ=WEEKLY;INTERVAL=1')
+      // The panel on screen agrees with it: weekly's, not yearly's.
+      cy.get('[data-rrule-freq="2"][data-recurrent-event-rule-target="freqCustomizationInputsContainer"]')
+        .should('be.visible')
+      cy.get('[data-rrule-freq="0"][data-recurrent-event-rule-target="freqCustomizationInputsContainer"]')
+        .should('not.be.visible')
     })
 
     it('hides the end section when the host skipped it', () => {

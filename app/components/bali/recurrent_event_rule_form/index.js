@@ -13,7 +13,7 @@ export class RecurrentEventRuleController extends Controller {
   ]
 
   connect () {
-    this.inputTarget.value ||= 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1'
+    this.inputTarget.value ||= this._defaultRule()
     const options = rrulestr(this.inputTarget.value).origOptions
 
     this._setSelectedIndexToEndMethodSelect(options)
@@ -118,6 +118,29 @@ export class RecurrentEventRuleController extends Controller {
     this.inputTarget.value = new RRule(options)
       .toString()
       .replace('RRULE:', '')
+  }
+
+  // The rule an empty form starts from comes from the frequency select, where
+  // the server left the first frequency the host allows selected. A hardcoded
+  // yearly rule here meant a form declared `frequency_options: %w[weekly daily]`
+  // opened on yearly and persisted `FREQ=YEARLY` if it was submitted untouched —
+  // a frequency the host had forbidden (#1051).
+  _defaultRule = () => {
+    const freq = this._selectedFreq()
+
+    // Yearly keeps its fuller rule: the month and day-of-month selects that go
+    // with it hold a value from the first render, so the rule matches what is
+    // on screen before anything is touched.
+    if (freq === RRule.YEARLY) return 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1'
+
+    return new RRule({ freq, interval: 1 }).toString().replace('RRULE:', '')
+  }
+
+  _selectedFreq = () => {
+    const select = this.element.querySelector('[data-rrule-attr="freq"]')
+    const freq = parseInt(select?.value)
+
+    return Number.isNaN(freq) ? RRule.YEARLY : freq
   }
 
   _setInputActiveDataAttribute = (target, value) => {

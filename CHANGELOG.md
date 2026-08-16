@@ -73,6 +73,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **RecurrentEventRuleForm opened on a frequency the host had forbidden** (#1051). With
+  `frequency_options: %w[weekly daily]` the excluded frequencies are rendered `disabled` rather
+  than removed — but nothing preselected an allowed one, so the select opened on the disabled
+  `Yearly`, and the controller, whose fallback rule was a hardcoded yearly one, synced it right
+  back there. A form submitted untouched persisted `FREQ=YEARLY`. The server now preselects the
+  first allowed frequency, in the order the select lists them, and the controller builds its
+  default rule from that selection instead of a constant (`FREQ=WEEKLY;INTERVAL=1` for a form
+  that opens on weekly). Nothing changes for a form that allows every frequency: it still opens
+  on `FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1`.
+
 - **Carousel: `aria-selected` never left the first bullet** (#1041). The bullets are a
   `role="tablist"`, so `aria-selected` is what a screen reader reads out — and Glide only ever
   moves a class. Whichever slide was showing, the bullets kept announcing the first one as the

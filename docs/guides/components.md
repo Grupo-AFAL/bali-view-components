@@ -3427,6 +3427,12 @@ Also available through the form builder as `form.recurrent_event_rule_field :sch
 - `skip_end_method` - Hide the "End" section for rules that never end (default: false)
 - `frequency_options` - Array of allowed frequencies from `yearly`, `monthly`, `weekly`, `daily`, `hourly` (default: all)
 
+The frequencies left out of `frequency_options` are rendered `disabled` rather than removed, so
+the values keep their meaning, and the form opens on the first one that IS allowed — in the
+order the select lists them, which is the order above. With no `value:`, the rule an untouched
+form would submit is that frequency's (`FREQ=WEEKLY;INTERVAL=1` for a form that opens on
+weekly, `FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1` when everything is allowed).
+
 ---
 
 ### Feedback Components
