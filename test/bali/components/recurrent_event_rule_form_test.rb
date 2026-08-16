@@ -100,12 +100,34 @@ class BaliRecurrentEventRuleFormComponentTest < ComponentTestCase
     refute(weekly_option["disabled"])
     refute(daily_option["disabled"])
   end
+
+  # #1051. With nothing selected the browser keeps the first option — disabled
+  # whenever the host excluded it — and the controller, which builds its default
+  # rule from this selection, then persisted a frequency the host had forbidden.
+  # Weekly and not daily: the select lists them in catalogue order, so the first
+  # allowed one on screen is the one to open on.
+  def test_frequency_options_filtering_preselects_the_first_allowed_frequency
+    render_inline(component(frequency_options: %w[daily weekly]))
+    selected = page.find('select[name="freq"] option[selected]')
+    assert_equal("2", selected["value"])
+    refute(selected["disabled"])
+  end
+
+  def test_frequency_options_filtering_falls_back_to_yearly_when_none_is_allowed
+    render_inline(component(frequency_options: []))
+    assert_equal("0", page.find('select[name="freq"] option[selected]')["value"])
+  end
   # frequency select
 
   def test_frequency_select_renders_all_frequency_options_by_default
     render_inline(component)
     freq_select = page.find('select[name="freq"]')
     assert_equal(5, freq_select.all("option").count)
+  end
+
+  def test_frequency_select_opens_on_yearly_when_every_frequency_is_allowed
+    render_inline(component)
+    assert_equal("0", page.find('select[name="freq"] option[selected]')["value"])
   end
 
   def test_frequency_select_has_correct_values_for_frequencies

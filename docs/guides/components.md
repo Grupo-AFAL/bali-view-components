@@ -2957,6 +2957,11 @@ Image/content carousel powered by Glide.js with optional arrows, bullets, autopl
 - `breakpoints` - Hash of responsive settings passed to Glide.js (default: `nil`)
 - `peek` - Pixels of adjacent slides to show at the edges (default: `nil`)
 
+The bullets are a `role="tablist"` and the controller keeps `aria-selected` on the bullet of
+the slide that is showing — Glide moves a class of its own and nothing else, so without that
+every bullet but the first would announce itself as unselected forever. Arrows and bullets
+are named from the component's own translations.
+
 #### Chat
 
 Conversation surface: a scrollable container, a bubble, and a typing indicator. Three
@@ -3421,6 +3426,12 @@ Also available through the form builder as `form.recurrent_event_rule_field :sch
 - `disabled` - Disable all form controls (default: false)
 - `skip_end_method` - Hide the "End" section for rules that never end (default: false)
 - `frequency_options` - Array of allowed frequencies from `yearly`, `monthly`, `weekly`, `daily`, `hourly` (default: all)
+
+The frequencies left out of `frequency_options` are rendered `disabled` rather than removed, so
+the values keep their meaning, and the form opens on the first one that IS allowed — in the
+order the select lists them, which is the order above. With no `value:`, the rule an untouched
+form would submit is that frequency's (`FREQ=WEEKLY;INTERVAL=1` for a form that opens on
+weekly, `FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1` when everything is allowed).
 
 ---
 
