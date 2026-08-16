@@ -2957,6 +2957,11 @@ Image/content carousel powered by Glide.js with optional arrows, bullets, autopl
 - `breakpoints` - Hash of responsive settings passed to Glide.js (default: `nil`)
 - `peek` - Pixels of adjacent slides to show at the edges (default: `nil`)
 
+The bullets are a `role="tablist"` and the controller keeps `aria-selected` on the bullet of
+the slide that is showing — Glide moves a class of its own and nothing else, so without that
+every bullet but the first would announce itself as unselected forever. Arrows and bullets
+are named from the component's own translations.
+
 #### Chat
 
 Conversation surface: a scrollable container, a bubble, and a typing indicator. Three
