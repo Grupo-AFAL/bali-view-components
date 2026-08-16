@@ -49,6 +49,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`diff-lcs` is no longer capped at 1.x, and simplecov goes to 1.1.1** — one PR consolidating
+  (and superseding) Dependabot's #1049 and #1048. The gemspec now asks for
+  `>= 1.5, < 3.0`: `Bali::BlockNote::Diff` calls exactly one method of it, `Diff::LCS.sdiff`,
+  which behaves the same in both majors, so a `~> 1.5` cap only got in the way of whatever else
+  the host has in its bundle. Nothing about the rendered diff changes — the 85 `Bali::BlockNote`
+  tests and the content-versions E2E pass on 2.0.0. simplecov is the repo's coverage runner and
+  ships to nobody; 1.1.1 is the actual latest, one patch past the 1.1.0 Dependabot proposed.
+
 - **Table: the group-header row splits off the selection column** when the table is
   `selectable`. The label cell now spans the visible headers and the leftmost cell holds that
   group's select-all (the left accent moves with it). A row that spanned every column is
