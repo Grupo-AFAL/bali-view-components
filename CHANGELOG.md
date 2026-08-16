@@ -32,6 +32,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   double-click, the toolbar's ✕ and "select all N results" write `checkbox.checked` by
   assignment, which fires no native `change`, so a consumer wired to the checkboxes drifted out
   of sync in silence.
+- **E2E coverage for the last components with JavaScript that had none** (#1041, follow-up of
+  #1028). Thirteen new Cypress specs — 86 tests over Avatar, Carousel, Chart, Clipboard,
+  DocumentPage, FeedbackWidget (badge poll and embed handshake), HoverCard, ImageField,
+  ImageGrid, LocationsMap, Rate, RecurrentEventRuleForm and Timeago — each aimed at the part
+  that only exists in a browser: the blob URL behind an image preview, the hidden input a
+  star rating actually submits, the RRULE a form of inert controls writes, the colors a canvas
+  cannot resolve from CSS, the credential that must not travel in a URL. Two of them work
+  around a dependency instead of against it: `google-maps-stub.js` replaces the Google Maps
+  script (unloadable in CI) so the marker/card/info-window wiring can be read back, and the
+  Carousel spec waits on Glide's own `disabled` flag rather than sleeping through its
+  transitions. RichTextEditor is deliberately left out: it is deprecated for v4, it is behind
+  `Bali.rich_text_editor_enabled`, and `spec/dummy` neither installs `@tiptap/*` nor registers
+  its controller — covering it means shipping the whole TipTap set into the dummy for a
+  component that is being removed.
 
 ### Changed
 
@@ -58,6 +72,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   comes from the frame this widget loaded and from the origin the token was addressed to.
 
 ### Fixed
+
+- **Carousel: `aria-selected` never left the first bullet** (#1041). The bullets are a
+  `role="tablist"`, so `aria-selected` is what a screen reader reads out — and Glide only ever
+  moves a class. Whichever slide was showing, the bullets kept announcing the first one as the
+  selected tab. The controller now syncs the attribute on the same two events Glide's own
+  controls listen to (`mount.after`, `move.after`), so the class and the attribute always
+  change together (WCAG 4.1.2). Found by the new E2E spec.
 
 - **FeedbackWidget: the panel was showing the drawer's `p-6`, not its own padding.**
   `Bali::Drawer` writes `p-6` on `.drawer-inner` as a Tailwind utility, and the widget's sheet
