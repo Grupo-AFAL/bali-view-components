@@ -67,6 +67,24 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector(".bulk-actions-item.custom-item-class")
   end
 
+  # Un `selectAll` con `data-bulk-actions-group="<id>"` solo alcanza a los items que declaren
+  # ese id. Sin `group:` no se emite atributo, y sin atributo el item entra en todos.
+  def test_items_carry_no_group_by_default
+    render_inline(@component) do |c|
+      c.with_item(record_id: 1) { "Content" }
+    end
+    assert_no_selector("[data-bulk-actions-group]")
+  end
+
+  def test_items_declare_the_groups_they_belong_to
+    render_inline(@component) do |c|
+      c.with_item(record_id: 1, group: "norte") { "Content" }
+      c.with_item(record_id: 2, group: %w[norte tijuana]) { "Content" }
+    end
+    assert_selector("[data-record-id='1'][data-bulk-actions-group='norte']")
+    assert_selector("[data-record-id='2'][data-bulk-actions-group='norte tijuana']")
+  end
+
   def test_items_renders_multiple_items
     render_inline(@component) do |c|
       c.with_item(record_id: 1) { "Item 1" }

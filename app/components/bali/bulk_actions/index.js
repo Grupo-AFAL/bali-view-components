@@ -65,8 +65,14 @@ export class BulkActionsController extends Controller {
     if (item) this.toggle(item)
   }
 
+  // Un `selectAll` que lleva `data-bulk-actions-group` solo alcanza a las filas que declaran
+  // ese id; sin el atributo alcanza a todas, que es el seleccionar-todo de siempre. Así N
+  // listados caben bajo UN controlador —un solo contador, una sola barra— sin instancias
+  // anidadas, que Stimulus repartiría por ancestro más cercano dejando la barra sin filas.
   toggleAll = (event) => {
-    this.selectableItems.forEach(item => this.setSelected(item, event.target.checked))
+    const items = this.itemsInGroup(event.target.dataset.bulkActionsGroup)
+
+    items.forEach(item => this.setSelected(item, event.target.checked))
     this.syncSelectedIds()
   }
 
@@ -134,6 +140,17 @@ export class BulkActionsController extends Controller {
     return this.itemTargets.filter(item => item.dataset.recordId)
   }
 
+  // Los ids de grupo de una fila son una LISTA separada por espacios, como las clases: una
+  // fila puede estar a la vez en el grupo de su tabla y en el de su sub-encabezado, y cada
+  // seleccionar-todo ve el suyo. Sin grupo, el universo es la selección entera.
+  itemsInGroup = (group) => {
+    if (!group) return this.selectableItems
+
+    return this.selectableItems.filter(item => this.groupsOf(item).includes(group))
+  }
+
+  groupsOf = (item) => (item.dataset.bulkActionsGroup || '').split(/\s+/).filter(Boolean)
+
   get pageFullySelected () {
     const total = this.selectableItems.length
 
@@ -162,6 +179,24 @@ export class BulkActionsController extends Controller {
     this.updateSelectAllFilteredBar()
     this.updateToolbar()
     this.announceSelection()
+    this.notifySelectionChange()
+  }
+
+  // Un evento, y emitido acá y no al final de `syncSelectedIds`, porque `update` es el único
+  // punto por el que pasan TODOS los caminos —incluido `selectAllFiltered`, que no toca ids—.
+  // Un consumidor que se enganche al `change` de cada casilla se pierde los que escriben
+  // `checkbox.checked` por asignación (doble clic, el ✕, "todos los filtrados"): asignar la
+  // propiedad no dispara el evento nativo. Con este, el consumidor se declara en el HTML:
+  //
+  //   data-action="bulk-actions:change@window->mi-controlador#sync"
+  notifySelectionChange = () => {
+    this.dispatch('change', {
+      detail: {
+        selectedIds: this.selectedIdsValue,
+        selectAllFiltered: this.selectAllFilteredValue,
+        count: this.selectionCount
+      }
+    })
   }
 
   // En modo "todos los filtrados" los ids se vacían a propósito: el servidor re-deriva el
@@ -230,14 +265,17 @@ export class BulkActionsController extends Controller {
     this.selectedLabelOtherTarget.classList.toggle('hidden', one)
   }
 
+  // Todos los seleccionar-todo, cada uno contra SU universo: el de la cabecera de la tabla
+  // contra sus filas, el del encabezado de un grupo contra las de ese grupo. Se cuenta sobre
+  // la clase y no sobre `selectedIdsValue`, que es la selección entera y no sabe de grupos.
   updateSelectAll = () => {
-    if (!this.hasSelectAllTarget) return
+    this.selectAllTargets.forEach(checkbox => {
+      const items = this.itemsInGroup(checkbox.dataset.bulkActionsGroup)
+      const selected = items.filter(item => item.classList.contains(SELECTED_CLASS)).length
 
-    const total = this.selectableItems.length
-    const selected = this.selectedIdsValue.length
-
-    this.selectAllTarget.checked = total > 0 && selected === total
-    this.selectAllTarget.indeterminate = selected > 0 && selected < total
+      checkbox.checked = items.length > 0 && selected === items.length
+      checkbox.indeterminate = selected > 0 && selected < items.length
+    })
   }
 
   // El cambio de selección no mueve el foco, así que sin anunciarlo el usuario de lector de

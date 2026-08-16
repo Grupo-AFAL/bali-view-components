@@ -1,0 +1,30 @@
+<div class="p-4">
+  <div class="mb-4">
+    <h2 class="text-lg font-semibold">Branch consolidation</h2>
+    <p class="text-sm text-base-content/60">
+      Every table selects its own rows; the bar at the bottom counts them all together.
+    </p>
+  </div>
+
+  <%# Un solo controlador para las N tablas: una sola barra, un solo contador y un total
+      contra el cual confirmar. Cada tabla acota su seleccionar-todo con `select_group:`. %>
+  <%= render Bali::BulkActions::Component.new do |bulk| %>
+    <% bulk.with_action(label: 'Consolidate', href: '/branches/bulk_consolidate', variant: :primary) %>
+
+    <% regions.each do |region| %>
+      <h3 class="font-semibold mt-4 mb-2"><%= region[:name] %></h3>
+
+      <%= render Bali::Table::Component.new(selectable: true, select_group: "region-#{region[:id]}") do |t| %>
+        <%= t.with_headers(headers) %>
+        <% region[:branches].each do |branch| %>
+          <%= t.with_row(record_id: branch[:id], select_label: branch[:branch],
+                         group: region[:grouped] ? branch[:zone] : nil) do %>
+            <td class="font-medium"><%= branch[:branch] %></td>
+            <td><%= branch[:manager] %></td>
+            <td><%= branch[:headcount] %></td>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

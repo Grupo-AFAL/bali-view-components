@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **BulkActions: select-all by subgroup** (#1047). `Bali::Table(select_group:)` narrows a
+  table's select-all to its own rows, so N listings fit under **one** `Bali::BulkActions` —
+  one bar, one counter, one total to confirm against. One instance per listing gave N
+  counters and no total; nesting two instances never worked, because Stimulus assigns every
+  target to its closest controller ancestor and the outer bar would sit at 0 in silence. A
+  selectable table that also groups its rows now gets a select-all in every group-header row,
+  scoped to that group: the ids are a space-separated list, like classes, so a row carries its
+  table's id *and* its group's and both select-alls reach it. Group ids are derived from the
+  group value, so a value that reappears further down is the same group. `with_item(group:)`
+  is the same contract outside a table, and the underlying one is plain HTML: a `selectAll`
+  target with `data-bulk-actions-group="<id>"` only reaches items whose own
+  `data-bulk-actions-group` includes that id.
+- **Table: rows that stay out of the selection** (#1047). `with_row(selectable: false)` on a
+  `selectable` table renders the cell empty instead of a checkbox and leaves the row out of
+  the select-all's universe — the listing that shows every state on one page and only lets you
+  act on some of them. A row can only opt *out*: `selectable: true` on a table that is not
+  selectable raises, because the column and the select-all header are the table's. A row that
+  is selectable and lost its `record_id:` still raises, naming `selectable: false` as the fix.
+- **BulkActions: `bulk-actions:change` event** (#1047). Dispatched on every selection change
+  with `{ selectedIds, selectAllFiltered, count }` in `detail`. It is the only complete signal:
+  double-click, the toolbar's ✕ and "select all N results" write `checkbox.checked` by
+  assignment, which fires no native `change`, so a consumer wired to the checkboxes drifted out
+  of sync in silence.
+
+### Changed
+
+- **Table: the group-header row splits off the selection column** when the table is
+  `selectable`. The label cell now spans the visible headers and the leftmost cell holds that
+  group's select-all (the left accent moves with it). A row that spanned every column is
+  unchanged on tables without selection.
+
 - **FeedbackWidget: the host hands the embed its page context, and takes the screenshot.** The
   embed is cross-origin to the page someone is reporting a problem about, so there are two
   things it cannot get for itself: where that page is — `document.referrer` gives it the origin

@@ -151,6 +151,53 @@ describe('BulkActionsController', () => {
     })
   })
 
+  // El evento existe porque el `change` de la casilla NO cubre todos los caminos: doble
+  // clic, ✕ y "todos los filtrados" escriben `checkbox.checked` por asignación, y asignar la
+  // propiedad no dispara el evento nativo. Un consumidor enganchado a las casillas se
+  // quedaba con su estado equivocado y en silencio.
+  describe('bulk-actions:change', () => {
+    const record = () => cy.window().then((win) => {
+      win.selectionEvents = []
+      win.addEventListener('bulk-actions:change', (event) => win.selectionEvents.push(event.detail))
+    })
+
+    it('anuncia la selección al marcar una fila', () => {
+      record()
+      cy.get(rows).first().find('input[type="checkbox"]').check()
+
+      cy.window().its('selectionEvents').should((events) => {
+        expect(events).to.have.length(1)
+        expect(events[0].selectedIds).to.have.length(1)
+        expect(events[0].count).to.eq(1)
+        expect(events[0].selectAllFiltered).to.eq(false)
+      })
+    })
+
+    it('anuncia también los caminos que no disparan el change de la casilla', () => {
+      record()
+      cy.get(rows).first().find('td').eq(1).dblclick()
+      cy.window().its('selectionEvents').should('have.length', 1)
+
+      cy.get(`${bar} button[data-action="bulk-actions#clear"]`).click()
+      cy.window().its('selectionEvents').should((events) => {
+        expect(events).to.have.length(2)
+        expect(events[1].selectedIds).to.have.length(0)
+      })
+    })
+
+    it('anuncia el modo "todos los filtrados", que no tiene ids que anunciar', () => {
+      cy.get(selectAll).check()
+      record()
+      cy.get('[data-bulk-actions-target="selectAllOffer"] button').click()
+
+      cy.window().its('selectionEvents').should((events) => {
+        const last = events[events.length - 1]
+        expect(last.selectAllFiltered).to.eq(true)
+        expect(last.count).to.be.greaterThan(last.selectedIds.length)
+      })
+    })
+  })
+
   it('selects a row on double click and keeps its checkbox in sync', () => {
     cy.get(rows).first().find('td').eq(1).dblclick()
     cy.get(counter).should('have.text', '1')

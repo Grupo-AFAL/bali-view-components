@@ -279,6 +279,7 @@ en:
       group_partial: "showing %{shown}"
       ungrouped: Ungrouped
       select_all: Select all
+      select_all_group: "Select all in %{group}"
       row:
         select_row: Select row
         select_row_named: Select %{name}

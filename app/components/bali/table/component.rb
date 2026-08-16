@@ -19,14 +19,33 @@ module Bali
                              "that is `with_bulk_actions`, standalone it is the default " \
                              "`variant: :floating` bar."
 
+      ROW_SELECTABLE_WITHOUT_TABLE = "with_row(selectable: true) needs the table to be " \
+                                     "`selectable: true`: the checkbox column and the " \
+                                     "select-all header are the table's, not the row's. A " \
+                                     "row can only opt OUT, with `selectable: false`."
+
       RowGroup = Struct.new(:value, :rows)
 
       renders_many :headers, ->(name: nil, sort: nil, **options) do
         Header::Component.new(form: @form, name: name, sort: sort, **options)
       end
 
-      renders_many :rows, ->(skip_tr: false, **options) do
-        Row::Component.new(skip_tr: skip_tr, selectable: selectable?, **options)
+      # `selectable:` en la fila GANA sobre el de la tabla: `false` deja la fila fuera del
+      # universo del seleccionar-todo y pinta la celda vacía, para que las columnas sigan
+      # alineadas. Es el caso "propuestos, aprobados y retirados en la misma página, y solo
+      # los propuestos se aprueban en masa".
+      #
+      # Los grupos de selección se resuelven al RENDERIZAR, no acá: `grouped?` depende de
+      # TODAS las filas y cuando este lambda corre solo existen las anteriores.
+      renders_many :rows, ->(skip_tr: false, selectable: nil, group: nil, **options) do
+        Row::Component.new(
+          skip_tr: skip_tr,
+          selectable: row_selectable(selectable),
+          select_column: selectable?,
+          select_groups: -> { selection_groups_for(group) },
+          group: group,
+          **options
+        )
       end
 
       renders_many :footers, Footer::Component
@@ -42,13 +61,20 @@ module Bali
 
       # @param selectable [Boolean] Columna de checkbox + seleccionar-todo cableada al
       #   controlador `bulk-actions`, que debe vivir en algún ancestro (el DataTable lo
-      #   pone solo cuando se declara `with_bulk_actions`). Cada fila necesita `record_id:`.
-      def initialize(form: nil, selectable: false, sticky_headers: false,
+      #   pone solo cuando se declara `with_bulk_actions`). Cada fila necesita `record_id:`,
+      #   salvo las que se declaren `with_row(selectable: false)`.
+      # @param select_group [String, nil] Acota el seleccionar-todo de ESTA tabla a sus
+      #   propias filas. Es lo que permite N tablas —una por departamento, por sucursal—
+      #   bajo un solo `Bali::BulkActions`: cada cabecera marca lo suyo y el contador sigue
+      #   siendo uno, el total. Sin él, la cabecera marca todo lo que el controlador vea,
+      #   que con una sola tabla es exactamente lo mismo de siempre.
+      def initialize(form: nil, selectable: false, select_group: nil, sticky_headers: false,
                      group_counts: {}, **options)
         raise ArgumentError, REMOVED_BULK_ACTIONS if options.key?(:bulk_actions)
 
         @form = form
         @selectable = selectable
+        @select_group = select_group.presence
         @sticky_headers = sticky_headers
         @group_counts = group_counts || {}
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
@@ -85,8 +111,35 @@ module Bali
         visible_headers.count + (selectable? ? 1 : 0)
       end
 
+      attr_reader :select_group
+
+      # Los ids de grupo que lleva una fila, en el mismo formato de lista que las clases: el
+      # de la tabla y —si la tabla agrupa— el de su grupo visual. Con los dos, la cabecera de
+      # la tabla y el encabezado del grupo marcan cada uno su universo sin estorbarse.
+      def selection_groups_for(group_value)
+        return [] unless selectable?
+
+        [ select_group, (group_token(group_value) if grouped?) ].compact
+      end
+
+      # Derivado del VALOR del grupo y no de su posición: la fila lo calcula sola, sin
+      # depender de en qué corrida cayó. Un valor que reaparece más abajo es el mismo grupo
+      # —y su seleccionar-todo marca las dos corridas, que es lo que dice la etiqueta—.
+      # El digest desempata dos valores distintos que se aplanan al mismo slug ("Norte/Sur"
+      # y "norte sur"); el slug está para que el DOM se pueda leer.
+      def group_token(group_value)
+        slug = group_value.to_s.parameterize.presence || "ungrouped"
+        digest = Digest::SHA256.hexdigest(group_value.inspect)[0, 6]
+
+        [ select_group, "group", slug, digest ].compact.join("-")
+      end
+
       def group_label(value)
         value.nil? ? t(".ungrouped") : value.to_s
+      end
+
+      def group_selectable?(group)
+        group.rows.any?(&:selectable?)
       end
 
       # Group-header text. When a global count exists for the group value (from
@@ -123,6 +176,16 @@ module Bali
       end
 
       private
+
+      # Una fila solo puede SALIRSE de la selección. Entrar no: la columna y el
+      # seleccionar-todo los pinta la tabla, así que una fila seleccionable en una tabla que
+      # no lo es sería una casilla suelta con sus columnas corridas una posición.
+      def row_selectable(row_option)
+        return selectable? if row_option.nil?
+        raise ArgumentError, ROW_SELECTABLE_WITHOUT_TABLE if row_option && !selectable?
+
+        row_option
+      end
 
       # Tolerant lookup of the global total for a group value. SQL group keys are
       # often strings while record attributes may be symbols/enums, so we try the
