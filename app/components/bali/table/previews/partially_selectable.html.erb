@@ -1,0 +1,33 @@
+<div class="p-4">
+  <div class="mb-4">
+    <h2 class="text-lg font-semibold">Master catalog</h2>
+    <p class="text-sm text-base-content/60">
+      Only proposed records take part in the selection; approved and retired ones sit out.
+    </p>
+  </div>
+
+  <%= render Bali::BulkActions::Component.new do |bulk| %>
+    <% bulk.with_action(label: 'Approve', href: '/catalog/bulk_approve', variant: :success) %>
+
+    <%= render Bali::Table::Component.new(selectable: true) do |t| %>
+      <%= t.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%# `selectable:` en la fila gana sobre el de la tabla: sin casilla y fuera del
+            alcance del seleccionar-todo. Su celda se pinta igual, vacía, para que las
+            columnas no se corran. %>
+        <%= t.with_row(selectable: record[:state] == 'proposed',
+                       record_id: record[:id], select_label: record[:code]) do %>
+          <td class="font-mono text-sm"><%= record[:code] %></td>
+          <td class="font-medium"><%= record[:description] %></td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+                  text: record[:state].humanize,
+                  color: { 'proposed' => :warning, 'approved' => :success, 'retired' => :neutral }[record[:state]],
+                  size: :sm
+                ) %>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

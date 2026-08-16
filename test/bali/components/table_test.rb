@@ -333,6 +333,201 @@ class BaliTableComponentTest < ComponentTestCase
     refute(Bali::Table::Component.new.selectable?)
   end
 
+  # ---------------------------------------------------------------------------
+  # Selección por subgrupo (#1047)
+  # ---------------------------------------------------------------------------
+
+  # Sin `select_group:` el markup sale como salía: un seleccionar-todo sin grupo alcanza a
+  # TODA la selección del controlador, que con una sola tabla es lo mismo de siempre.
+  def test_selection_groups_are_absent_unless_asked_for
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+    end
+    assert_no_selector("[data-bulk-actions-group]")
+  end
+
+  def test_select_group_scopes_the_header_checkbox_and_stamps_every_row
+    @options = { selectable: true, select_group: "depto-42" }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+      c.with_row(record_id: 2) { "<td>Row 2</td>".html_safe }
+    end
+
+    assert_selector('th input[data-bulk-actions-target="selectAll"][data-bulk-actions-group="depto-42"]')
+    assert_selector('tr[data-record-id="1"][data-bulk-actions-group="depto-42"]')
+    assert_selector('tr[data-record-id="2"][data-bulk-actions-group="depto-42"]')
+  end
+
+  def test_grouped_rows_get_their_own_select_all_scoped_to_the_group
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(record_id: 2, group: "Sur") { "<td>B</td>".html_safe }
+    end
+
+    norte = Bali::Table::Component.new(selectable: true).group_token("Norte")
+    sur = Bali::Table::Component.new(selectable: true).group_token("Sur")
+
+    refute_equal(norte, sur)
+    assert_selector("tr.bali-table-group-row " \
+                    "input[data-bulk-actions-target='selectAll'][data-bulk-actions-group='#{norte}']")
+    assert_selector("tr[data-record-id='1'][data-bulk-actions-group='#{norte}']")
+    assert_selector("tr[data-record-id='2'][data-bulk-actions-group='#{sur}']")
+  end
+
+  # Los dos ids a la vez, separados por espacio como las clases: la cabecera de la tabla
+  # marca las 3 filas, el encabezado de cada grupo solo las suyas.
+  def test_a_row_carries_both_the_table_group_and_its_own_group
+    @options = { selectable: true, select_group: "depto-42" }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    table = Bali::Table::Component.new(selectable: true, select_group: "depto-42")
+    assert_selector("tr[data-record-id='1']" \
+                    "[data-bulk-actions-group='depto-42 #{table.group_token('Norte')}']")
+  end
+
+  # Un valor de grupo que reaparece más abajo es EL MISMO grupo: su seleccionar-todo marca
+  # las dos corridas, que es lo que dice su etiqueta.
+  def test_the_same_group_value_shares_one_token_across_runs
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(record_id: 2, group: "Sur") { "<td>B</td>".html_safe }
+      c.with_row(record_id: 3, group: "Norte") { "<td>C</td>".html_safe }
+    end
+
+    norte = Bali::Table::Component.new(selectable: true).group_token("Norte")
+    assert_selector("tr[data-bulk-actions-group='#{norte}']", count: 2)
+    assert_selector("input[data-bulk-actions-group='#{norte}']", count: 2)
+  end
+
+  def test_the_group_select_all_is_named_after_its_group
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(record_id: 2, group: nil) { "<td>B</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row input[aria-label='Select all in Norte']")
+    assert_selector("tr.bali-table-group-row input[aria-label='Select all in Ungrouped']")
+  end
+
+  # Una casilla que no marcaría nada es un control muerto: la celda se pinta igual, para
+  # sostener la alineación, pero vacía.
+  def test_a_group_with_no_selectable_rows_gets_no_select_all
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(selectable: false, group: "Retirados") { "<td>B</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row", count: 2)
+    assert_selector("tr.bali-table-group-row input", count: 1)
+    assert_selector("tr.bali-table-group-row td", count: 4)
+  end
+
+  # El acento de la izquierda se muda a la celda de la casilla, que pasa a ser la primera.
+  def test_the_group_header_keeps_its_accent_on_the_leftmost_cell
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td.w-4.border-l-4.border-l-primary")
+    assert_no_selector("tr.bali-table-group-row td[colspan].border-l-4")
+  end
+
+  def test_a_table_without_selection_keeps_the_single_group_header_cell
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", count: 1)
+    assert_selector("tr.bali-table-group-row td.border-l-4.border-l-primary", text: "Norte (1)")
+    assert_no_selector("tr.bali-table-group-row input")
+  end
+
+  # ---------------------------------------------------------------------------
+  # Filas fuera de la selección (#1047)
+  # ---------------------------------------------------------------------------
+
+  def test_a_row_can_opt_out_of_the_selection
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+      c.with_row(selectable: false) { "<td>Row 2</td>".html_safe }
+    end
+
+    assert_selector('tr[data-bulk-actions-target="item"]', count: 1)
+    assert_selector('tbody tr input[type="checkbox"]', count: 1)
+  end
+
+  # La celda se pinta vacía: sin ella las columnas de esa fila se corren una posición.
+  def test_a_non_selectable_row_keeps_the_column_alignment
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_header(name: "Amount")
+      c.with_row(record_id: 1) { "<td>A</td><td>1</td>".html_safe }
+      c.with_row(selectable: false) { "<td>B</td><td>2</td>".html_safe }
+    end
+
+    assert_selector("tbody tr", count: 2)
+    page.all("tbody tr").each { |row| assert_equal(3, row.all("td").count) }
+  end
+
+  def test_a_non_selectable_row_needs_no_record_id
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(selectable: false) { "<td>Row</td>".html_safe }
+    end
+
+    assert_selector("tbody tr td", text: "Row")
+  end
+
+  # `skip_tr` y la selección se siguen peleando —la fila no puede llevar el record id si no
+  # hay `<tr>` que la lleve—, pero una fila que se declaró fuera de la selección ya no.
+  def test_skip_tr_is_allowed_on_a_row_that_left_the_selection
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>A</td>".html_safe }
+      c.with_row(selectable: false, skip_tr: true) do
+        "<tr class='mine'><td>B</td></tr>".html_safe
+      end
+    end
+
+    assert_selector("tr.mine td", text: "B")
+  end
+
+  # Solo se puede salir de la selección, no entrar: la columna y el seleccionar-todo los
+  # pinta la TABLA, así que una fila seleccionable ahí adentro sería una casilla suelta con
+  # las columnas corridas una posición.
+  def test_a_row_cannot_opt_into_selection_on_a_plain_table
+    error = assert_raises(ArgumentError) do
+      render_inline(component) do |c|
+        c.with_header(name: "Name")
+        c.with_row(selectable: true, record_id: 9) { "<td>A</td>".html_safe }
+      end
+    end
+
+    assert_match(/selectable: true/, error.message)
+  end
+
   def test_sticky_headers_applies_sticky_classes_when_enabled
     @options = { sticky_headers: true }
     render_inline(component) do |c|
@@ -441,14 +636,18 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector('tr.bali-table-group-row td[colspan="2"]')
   end
 
-  def test_grouping_header_colspan_includes_the_selectable_column
+  # Con selección, la columna de casillas se la queda el seleccionar-todo del grupo: la
+  # etiqueta cubre el resto y entre las dos celdas la fila sigue midiendo lo mismo.
+  def test_grouping_header_splits_the_selection_column_off_the_label
     @options = { selectable: true }
     render_inline(component) do |c|
       c.with_header(name: "Name")
       c.with_header(name: "Amount")
       c.with_row(record_id: 1, group: "Norte") { "<td>A</td><td>1</td>".html_safe }
     end
-    assert_selector('tr.bali-table-group-row td[colspan="3"]')
+    assert_selector("tr.bali-table-group-row td", count: 2)
+    assert_selector('tr.bali-table-group-row td.w-4 input[type="checkbox"]')
+    assert_selector('tr.bali-table-group-row td[colspan="2"]', text: "Norte (1)")
   end
 
   def test_grouping_renders_no_header_rows_when_no_group_given

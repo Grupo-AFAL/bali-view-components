@@ -4,8 +4,11 @@
       <tr>
         <% if selectable? %>
           <th class="w-4">
+            <%# `bulk_actions_group` acota este seleccionar-todo a las filas de esta tabla;
+                nil no emite atributo, y sin atributo el universo es toda la selección. %>
             <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm', 'aria-label': t('.select_all'),
-                          data: { bulk_actions_target: 'selectAll', action: 'change->bulk-actions#toggleAll' } %>
+                          data: { bulk_actions_target: 'selectAll', bulk_actions_group: select_group,
+                                  action: 'change->bulk-actions#toggleAll' } %>
           </th>
         <% end %>
         <% visible_headers.each do |header| %>
@@ -18,7 +21,24 @@
         <% if grouped? %>
           <% row_groups.each do |group| %>
             <tr class="bali-table-group-row">
-              <%= tag.td(group_header_text(group), colspan: group_colspan, class: "bg-base-300 border-l-4 border-l-primary font-semibold text-sm text-base-content") %>
+              <% if selectable? %>
+                <%# El seleccionar-todo del grupo va en SU PROPIA celda, alineado con la
+                    columna de casillas de las filas; el acento de la izquierda se muda con
+                    él, que ahora es la celda de más a la izquierda. Un grupo sin ninguna
+                    fila seleccionable deja la celda vacía: la casilla no marcaría nada. %>
+                <%= tag.td(class: "w-4 bg-base-300 border-l-4 border-l-primary") do %>
+                  <% if group_selectable?(group) %>
+                    <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm',
+                                  'aria-label': t('.select_all_group', group: group_label(group.value)),
+                                  data: { bulk_actions_target: 'selectAll',
+                                          bulk_actions_group: group_token(group.value),
+                                          action: 'change->bulk-actions#toggleAll' } %>
+                  <% end %>
+                <% end %>
+              <% end %>
+              <%= tag.td(group_header_text(group), colspan: visible_headers.count,
+                         class: class_names("bg-base-300 font-semibold text-sm text-base-content",
+                                            "border-l-4 border-l-primary" => !selectable?)) %>
             </tr>
             <% group.rows.each do |row| %><%= row %><% end %>
           <% end %>

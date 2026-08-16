@@ -275,6 +275,7 @@ es:
       group_partial: "mostrando %{shown}"
       ungrouped: Sin agrupar
       select_all: Seleccionar todo
+      select_all_group: "Seleccionar todo en %{group}"
       row:
         select_row: Seleccionar fila
         select_row_named: Seleccionar %{name}

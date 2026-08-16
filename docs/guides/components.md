@@ -1289,10 +1289,67 @@ This is the replacement for the `bulk_actions:` array that `Bali::Table` accepte
 passing it now raises `ArgumentError` (see the migration guide). The selection column shifts
 every other column by one: a column selector's 0-based indexes must account for it.
 
+**Rows outside the selection** — `with_row(selectable: false)` keeps a row out: no checkbox,
+an empty cell in its place so the columns stay aligned, and the select-all never reaches it.
+This is the listing that shows every state on one page and only lets you act on some of them.
+
+```erb
+<% @records.each do |record| %>
+  <% table.with_row(selectable: record.proposed?, record_id: record.id) do %>
+    <td><%= record.code %></td>
+  <% end %>
+<% end %>
+```
+
+A row can only opt **out**. `selectable: true` on a table that is not selectable raises: the
+checkbox column and the select-all header are the table's, so a selectable row inside a plain
+table would be a stray checkbox with its columns shifted by one. A row that *is* selectable
+and simply lost its `record_id:` still raises too — degrading it silently would leave a row
+nobody can check and nothing would say so.
+
+**Select-all by subgroup** — `select_group:` narrows a table's select-all to its own rows, so
+N listings can live under **one** `Bali::BulkActions`: one bar, one counter, one total to
+confirm against. One instance per listing would give N counters and no total, and nesting two
+instances does not work at all — Stimulus assigns every target to its closest controller
+ancestor, so the outer bar would never see the rows and its counter would sit at 0 in silence.
+
+```erb
+<%= render Bali::BulkActions::Component.new do |bulk| %>
+  <% bulk.with_action(label: 'Consolidate', href: bulk_consolidate_branches_path, variant: :primary) %>
+
+  <% @departments.each do |department| %>
+    <%= render Bali::Table::Component.new(selectable: true, select_group: "department-#{department.id}") do |table| %>
+      <%# ... %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+A **selectable table that also groups its rows** gets a select-all in every group-header row,
+scoped to that group. The ids are a space-separated list, like classes, so a row carries its
+table's id *and* its group's: the header select-all still covers the whole table while each
+group header covers only its run. Group ids are derived from the group value, so the same
+value reappearing further down is the same group — its select-all covers both runs, which is
+what its label says. Outside a table, `BulkActions#with_item` takes the same `group:`.
+
+The contract is plain HTML, if you need to wire it by hand: a `selectAll` target with
+`data-bulk-actions-group="<id>"` only reaches items whose own `data-bulk-actions-group`
+includes that id; without the attribute it reaches the whole selection.
+
+**Reacting to the selection** — the controller dispatches `bulk-actions:change` on every
+selection change, with `{ selectedIds, selectAllFiltered, count }` in `detail`. Listen to it
+rather than to each checkbox: double-click, the toolbar's ✕ and "select all N results" all
+write `checkbox.checked` by assignment, which fires no native `change` event.
+
+```erb
+<div data-controller="my-summary" data-action="bulk-actions:change@window->my-summary#sync">
+```
+
 **Row grouping** — pass `group:` to `with_row` to render a group-header row
 whenever the value changes between consecutive rows. The header spans every
-column (including the selection column when present) and shows the group
-value plus the count of rows in that run (e.g. `Norte (12)`).
+column and shows the group value plus the count of rows in that run (e.g.
+`Norte (12)`); on a selectable table the selection column is its own cell,
+holding that group's select-all.
 
 ```erb
 <%= render Bali::Table::Component.new do |table| %>
@@ -2746,10 +2803,23 @@ Selectable item list with a floating action bar that appears when items are sele
 `:get` renders a link instead of a form), `variant:`, `size:`, `target:`, plus a
 `with_control` slot. The two below.
 
+**Item options** (`with_item`): `record_id:`, `group:` (one id or a list — the select-alls
+that reach this item, see [Table row selection](#table)) plus HTML attributes.
+
 Selection is **per page** unless you opt into `total_count:`: the controller only knows the
 DOM it was rendered with, so paginating, filtering or switching display mode clears it (all
 of those re-render the node that carries the controller). Record ids go through `parseInt`,
 so non-numeric ids (UUIDs) serialize as `null` in the `selected_ids` payload.
+
+**`bulk-actions:change`** is dispatched on every selection change, carrying
+`{ selectedIds, selectAllFiltered, count }` in `detail` — the hook for a summary, a running
+total or anything else outside the bar. Listen to it rather than to each checkbox's `change`:
+double-click, the ✕ and "select all N results" write `checkbox.checked` by assignment, and
+assigning the property fires no native event.
+
+```erb
+<div data-controller="my-summary" data-action="bulk-actions:change@window->my-summary#sync">
+```
 
 ##### An input that travels with one action
 

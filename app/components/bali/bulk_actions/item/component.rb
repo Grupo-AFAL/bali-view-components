@@ -4,10 +4,15 @@ module Bali
   module BulkActions
     module Item
       class Component < ApplicationViewComponent
-        attr_reader :record_id
+        attr_reader :record_id, :group
 
-        def initialize(record_id:, **options)
+        # @param group [String, Array<String>, nil] Ids de los seleccionar-todo que alcanzan
+        #   a este item. Un `selectAll` con `data-bulk-actions-group="<id>"` solo marca los
+        #   items que declaren ese id; sin el atributo marca todos. Se aceptan varios porque
+        #   los grupos anidan (el de la sección y el de su subgrupo), igual que las clases.
+        def initialize(record_id:, group: nil, **options)
           @record_id = record_id
+          @group = Array(group).compact_blank
           @options = options
         end
 
@@ -37,6 +42,7 @@ module Bali
               @options[:data],
               record_id: record_id,
               bulk_actions_target: "item",
+              bulk_actions_group: group.presence&.join(" "),
               action: "click->bulk-actions#toggle"
             )
           )
