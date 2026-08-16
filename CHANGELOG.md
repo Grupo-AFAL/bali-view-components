@@ -36,6 +36,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the difference read as a misalignment. The sheet moves to the unlayered group in
   `components.css` and the padding becomes `p-4`. Scoped to this widget: every other drawer
   keeps its `p-6`.
+## [v3.1.0] - 2026-08-13
+
+**v3.1 goes stable.** Same code as `v3.1.0.beta.15` — this release promotes the beta line
+to the stable channel: `3.1` merges into `main` and `main` becomes the v3.1 line.
+Everything the line changed since `v3.0.0` is recorded in the `v3.1.0.beta.N` entries
+below. Upgrading from v3.0: read the
+[migration guide](docs/guides/migration-v3-to-v31.md) — a handful of announced breaking
+changes, each with its blast radius measured. From v2, read
+[migration-v2-to-v3.md](docs/guides/migration-v2-to-v3.md) first. How the channels work:
+[Release channels](docs/guides/release-channels.md).
 
 ## [v3.1.0.beta.15] - 2026-08-13
 
