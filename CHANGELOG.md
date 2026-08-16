@@ -40,6 +40,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   group's select-all (the left accent moves with it). A row that spanned every column is
   unchanged on tables without selection.
 
+- **FeedbackWidget: the host hands the embed its page context, and takes the screenshot.** The
+  embed is cross-origin to the page someone is reporting a problem about, so there are two
+  things it cannot get for itself: where that page is — `document.referrer` gives it the origin
+  and no path or query — and what it looks like. Both now travel by `postMessage`. Alongside
+  the token, the widget sends `bali:feedback:context` with the full URL, the title, the host's
+  viewport (the frame's own is the width of the panel, which describes nothing) and whether
+  this browser can capture at all, so an embed talking to an older host does not offer a button
+  that leads nowhere. The context goes out on **every** load of the frame, not just the first:
+  the embed navigates inside it — a list, a report, the form — and each of those is a new
+  document that has to be told where it is again. (The token still goes once per opening; the
+  embed trades it for a cookie.) The embed asks for the picture with `bali:feedback:capture-request` and
+  the host takes it, because only the host can get its own panel out of the shot: the panel is
+  hidden with `opacity` rather than closed — closing tears the frame down and takes a
+  half-written report with it — and three fresh frames are let through before drawing, since
+  the capture stream runs a frame or two behind the DOM. A request is honoured only when it
+  comes from the frame this widget loaded and from the origin the token was addressed to.
+
+### Fixed
+
+- **FeedbackWidget: the panel was showing the drawer's `p-6`, not its own padding.**
+  `Bali::Drawer` writes `p-6` on `.drawer-inner` as a Tailwind utility, and the widget's sheet
+  contradicted it with `padding: 0` from `@layer components` — where it lost silently, since
+  utilities are the last layer. Ever since the widget was composed out of `Bali::Drawer` its
+  panel had 24px against the 16px of the header above it, the only other thing in the panel,
+  and the difference read as a misalignment. The sheet moves to the unlayered group in
+  `components.css` and the padding becomes `p-4`. Scoped to this widget: every other drawer
+  keeps its `p-6`.
 ## [v3.1.0] - 2026-08-13
 
 **v3.1 goes stable.** Same code as `v3.1.0.beta.15` — this release promotes the beta line
