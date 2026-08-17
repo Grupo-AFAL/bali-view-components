@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **FeedbackWidget: the embed asks for the host's context instead of waiting for a `load`**
+  (#1054). The URL, the title and the `capture` flag of the page being reported on went out on
+  the iframe's `load` event, which reaches a new document and nothing else — and the embed does
+  not always get one. Opina runs Turbo, which replaces the body over fetch, so the screen that
+  wants a screenshot arrived with no `load` behind it and the host never spoke: the capture
+  button stayed hidden, and the report was filed against the iframe's own URL, because an embed
+  nobody has told where it is falls back to `document.referrer`. The embed now sends
+  `bali:feedback:context-request` when its controller connects — which Turbo does run on every
+  screen — and how it got there stops mattering. The reply goes through the same origin and
+  `event.source` checks that already guarded the capture request: it names the page the user is
+  on, which is not something to hand to any document that asks. This is the second time the
+  "every screen of the embed is a new document" assumption broke the same feature; asking
+  removes it rather than patching it again. The stand-in in `spec/dummy` navigated with an
+  `<a href>` — a real navigation, which *does* fire `load` — so all seven previous specs passed
+  with the bug in. It now has a `#fake-turbo-visit` that wipes what the host had told it and
+  swaps the content with no `load`, and three specs cover that path: the context comes back
+  when asked for, the capture still works after the swap, and a request from a frame the widget
+  did not load gets no answer.
+
 ## [v3.1.1.beta.1] - 2026-08-16
 
 ### Added
