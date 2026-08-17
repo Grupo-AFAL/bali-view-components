@@ -8,6 +8,13 @@ const TOKEN_MESSAGE_TYPE = 'bali:feedback:token'
 // the path, the query and the title have to be handed over deliberately.
 const CONTEXT_MESSAGE_TYPE = 'bali:feedback:context'
 
+// The embed asking to be told that again. Sending it on the frame's `load` reaches a
+// new document and nothing else, and the embed does not always get one: a Turbo-driven
+// embed swaps its body over fetch, so the screen that wants a screenshot can arrive
+// without a `load` ever firing. Whatever puts the form on screen asks for the context
+// itself, and the answer stops depending on how the embed got there.
+const CONTEXT_REQUEST_TYPE = 'bali:feedback:context-request'
+
 // The embed asks for a picture of the host page; the reply carries the image, or the
 // reason there is none.
 const CAPTURE_REQUEST_TYPE = 'bali:feedback:capture-request'
@@ -114,18 +121,24 @@ export class FeedbackWidgetController extends Controller {
     })
   }
 
-  // -- Screen capture -----------------------------------------------------------
+  // -- Messages from the embed ---------------------------------------------------
 
   // Only this widget's own frame, and only from the origin the token was addressed
   // to. `event.origin` alone is not enough: any other frame on the page served from
   // that origin would then be able to make the host ask the user to share a screen.
+  //
+  // The context request is answered under the same two checks, for a smaller reason:
+  // the reply names the page the user is on, which is not something to hand to any
+  // document that asks.
   handleMessage = (event) => {
     if (!this.embedOriginValue || event.origin !== this.embedOriginValue) return
     if (!this.hasIframeTarget || event.source !== this.iframeTarget.contentWindow) return
-    if (event.data?.type !== CAPTURE_REQUEST_TYPE) return
 
-    this.capture()
+    if (event.data?.type === CONTEXT_REQUEST_TYPE) this.sendContext()
+    if (event.data?.type === CAPTURE_REQUEST_TYPE) this.capture()
   }
+
+  // -- Screen capture -----------------------------------------------------------
 
   async capture () {
     if (this.capturing) return
