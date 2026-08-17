@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.1.beta.2] - 2026-08-16
+
 ### Fixed
 
 - **FeedbackWidget: the embed asks for the host's context instead of waiting for a `load`**
