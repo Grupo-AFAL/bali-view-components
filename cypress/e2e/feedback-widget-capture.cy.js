@@ -135,6 +135,58 @@ describe('FeedbackWidget screen capture', () => {
     expectText('#capture-pixel', '0,255,0')
   })
 
+  // Watching the frame's `load` covers a new document and nothing else, and the real
+  // embed does not always get one: it runs Turbo, which replaces the body over fetch.
+  // The screen that wants a screenshot arrived with no `load` behind it, so the host
+  // never spoke, the button stayed hidden and the report was filed against the
+  // iframe's own URL. The embed asks on connect instead, and how it got there stops
+  // mattering.
+  it('names the page again when the embed asks, with no reload behind it', () => {
+    visitDemo()
+    openWidget()
+
+    expectText('#capture-supported', 'true')
+    clickInEmbed('#fake-turbo-visit')
+
+    // Wiped by the swap, and back only because it was asked for.
+    expectText('#host-url', `${appOrigin}${demoPath}`)
+    expectInEmbed('#host-title', (text) => expect(text).to.not.equal('(none)'))
+    expectText('#capture-supported', 'true')
+  })
+
+  it('still answers a capture request after a body swap', () => {
+    visitDemo()
+    openWidget()
+
+    clickInEmbed('#fake-turbo-visit')
+    expectText('#capture-supported', 'true')
+
+    clickInEmbed('#request-capture')
+    expectText('#capture-pixel', '0,255,0')
+  })
+
+  // The reply names the page the user is on. Same rule as the capture request: only
+  // the frame this widget loaded gets an answer.
+  it('ignores a context request that did not come from its own frame', () => {
+    visitDemo()
+    openWidget()
+
+    expectText('#capture-supported', 'true')
+
+    cy.get('#feedback-widget iframe').then(($frame) => {
+      cy.spy($frame[0].contentWindow, 'postMessage').as('toEmbed')
+    })
+
+    cy.window().then(win => {
+      win.postMessage({ type: 'bali:feedback:context-request' }, appOrigin)
+    })
+
+    // Nothing to wait for on success, so the assertion is made after the message has
+    // had a whole turn of the event loop to be acted on.
+    cy.wait(250)
+    cy.get('@toEmbed').should('not.have.been.called')
+  })
+
   it('takes the picture with the panel out of the way', () => {
     visitDemo()
     openWidget()

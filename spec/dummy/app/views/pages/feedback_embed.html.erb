@@ -9,6 +9,7 @@
         formulario— y cada una es un documento nuevo al que hay que volver a decirle
         donde esta parado. %>
     <p><a id="go-deeper" href="?paso=2">Ir a otra pagina del embed</a></p>
+    <p><button type="button" id="fake-turbo-visit">Navegar como lo hace Turbo (sin load)</button></p>
     <p>Token received by message: <code id="received-token">(none)</code></p>
     <p>Host page: <code id="host-url">(none)</code> — <code id="host-title">(none)</code></p>
     <p>Host viewport: <code id="host-viewport">(none)</code></p>
@@ -67,6 +68,28 @@
       document.getElementById('request-capture').addEventListener('click', function () {
         statusEl.textContent = 'requested'
         window.parent.postMessage({ type: 'bali:feedback:capture-request' }, window.location.origin)
+      })
+
+      // What Opina's embed does on connect. The real one runs it from a Stimulus
+      // controller, so it happens on every screen however that screen arrived.
+      function requestContext () {
+        window.parent.postMessage({ type: 'bali:feedback:context-request' }, '*')
+      }
+
+      requestContext()
+
+      // Stands in for a Turbo visit: the body is replaced over fetch and no new
+      // document is created, so the frame's `load` never fires and the host has no
+      // way to know anything happened. Everything the host had told this page is
+      // wiped, exactly as a fresh document would start out, and the only thing that
+      // can bring it back is asking.
+      document.getElementById('fake-turbo-visit').addEventListener('click', function () {
+        ;['host-url', 'host-title', 'host-viewport'].forEach(function (id) {
+          document.getElementById(id).textContent = '(none)'
+        })
+        document.getElementById('capture-supported').textContent = '(unknown)'
+
+        requestContext()
       })
 
       function showCapture (blob) {
