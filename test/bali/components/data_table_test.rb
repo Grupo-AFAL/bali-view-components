@@ -289,6 +289,20 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("input[name='view_mode'][value='cards']", visible: :all)
   end
 
+  # #1056: los dos slots de filtro tratan `preserved_params` igual. El slot inline pasaba
+  # `preserved_state_params` fijo, así que un param propio del host (p. ej. la profundidad
+  # de un árbol) se perdía EN SILENCIO en cada submit de la fila.
+  def test_simple_filters_explicit_preserved_params_do_not_drop_the_active_group_by
+    render_inline(Bali::DataTable::Component.new(url: "/movies",
+                                                 filter_form: grouping_filter_form)) do |c|
+      c.with_simple_filters(preserved_params: { profundidad: "todo" })
+      c.with_table { "".html_safe }
+    end
+
+    assert_selector("input[name='group_by'][value='genre']", visible: :all)
+    assert_selector("input[name='profundidad'][value='todo']", visible: :all)
+  end
+
   # --- Superficie: la trae el slot de contenido, no el host ni la toolbar ---
 
   def test_with_table_brings_its_own_surface_and_scroll_wrapper
@@ -940,6 +954,17 @@ class BaliDataTableComponentTest < ComponentTestCase
     @options = { display_mode: :grid }
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes, preserved_params: { tab: "archived" })
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("form input[type=hidden][name=view][value=grid]", visible: :all)
+    assert_selector("form input[type=hidden][name=tab][value=archived]", visible: :all)
+  end
+
+  def test_simple_filters_explicit_preserved_params_do_not_drop_the_active_view
+    @options = { display_mode: :grid, filter_form: grouping_filter_form(view: "grid") }
+    render_inline(component) do |c|
+      c.with_simple_filters(preserved_params: { tab: "archived" })
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 

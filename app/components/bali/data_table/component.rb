@@ -156,6 +156,9 @@ module Bali
       #
       # @param filters [Array<Hash>] Filter definitions (auto-populated from filter_form)
       #   Each filter hash should have: :attribute, :collection, :blank, :label, :value, :default
+      # @param preserved_params [Hash] Params propios del host que el submit GET de la fila
+      #   arrastra como hidden fields, mergeados sobre el estado del listado (`group_by`,
+      #   `view`) — mismo contrato que en `filters_panel` (#1056).
       #
       # @example Minimal (auto-configured from FilterForm)
       #   data_table.with_simple_filters
@@ -164,7 +167,8 @@ module Bali
       #   data_table.with_simple_filters(filters: [
       #     { attribute: :status, collection: [["Active", "active"]], blank: "All" }
       #   ])
-      renders_one :simple_filters, ->(filters: nil, search: nil, storage_id: nil, persist_enabled: nil) do
+      renders_one :simple_filters, ->(filters: nil, search: nil, storage_id: nil,
+                                      persist_enabled: nil, preserved_params: {}) do
         resolved_filters = filters || @filter_form&.simple_filters_config || []
         resolved_search = resolved_search_config(search)
         filters_active = @filter_form&.simple_filters_active? || false
@@ -189,7 +193,10 @@ module Bali
           storage_id: storage_id,
           persist_enabled: persist_enabled || false,
           persistence_toggle: false,
-          preserved_params: preserved_state_params
+          # Misma semántica y precedencia que en `filters_panel`: los explícitos MERGEAN con
+          # el estado del listado en vez de reemplazarlo (#1056). Fijo, el slot perdía en
+          # silencio cualquier param propio del host en cada submit GET de la fila.
+          preserved_params: preserved_state_params.merge(preserved_params || {})
         )
       end
 
