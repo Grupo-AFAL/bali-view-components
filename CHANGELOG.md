@@ -18,7 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `SimpleFilters` by hand outside the DataTable, which splits the toolbar in two rows and
   duplicates the clear control. Same semantics, same precedence as the panel: explicit
   params merge over `group_by`/`view` instead of replacing them, and without the argument
-  nothing changes.
+  the submit behaves as before. The row's **Clear link** now carries the same pairs the
+  submit emits as hidden fields — clearing removes the filters, not the view state. Before,
+  it dropped the grouping, the display mode and the host's params that the submit right
+  beside it had just preserved; the panel already kept them on clear
+  (`clearFiltersAndClose` re-reads the hidden fields), so this closes the same gap through
+  the adjacent control.
 
 ### Added
 

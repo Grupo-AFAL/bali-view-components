@@ -113,6 +113,16 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_link(href: "/test?clear_filters=true")
   end
 
+  # Limpiar quita los FILTROS, no el estado de la vista: el link arrastra los mismos pares
+  # que el submit emite como hidden fields. Sin esto, el param que el submit acababa de
+  # conservar se perdía por el control de al lado.
+  def test_clear_link_carries_the_preserved_params
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: @filters, show_clear: true, preserved_params: { tab: "archived" }
+    ))
+    assert_link(href: "/test?clear_filters=true&tab=archived")
+  end
+
   def test_hides_clear_button_when_show_clear_is_false
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, show_clear: false))
     assert_no_link(text: /Clear/i)

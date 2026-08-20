@@ -303,6 +303,53 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("input[name='profundidad'][value='todo']", visible: :all)
   end
 
+  # La dirección de la precedencia es parte del contrato: en colisión de clave, el hash
+  # explícito del host pisa el estado del listado — en los DOS slots. Sin estos tests,
+  # invertir el receptor del merge pasaría la suite entera.
+  def test_filters_panel_explicit_preserved_param_beats_the_same_key_from_the_listing_state
+    form = GroupableDataTableFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: "genre")
+    )
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_filters_panel(preserved_params: { group_by: "status" })
+      c.with_table { "".html_safe }
+    end
+
+    assert_selector("input[name='group_by'][value='status']", visible: :all)
+    assert_no_selector("input[name='group_by'][value='genre']", visible: :all)
+  end
+
+  def test_simple_filters_explicit_preserved_param_beats_the_same_key_from_the_listing_state
+    render_inline(Bali::DataTable::Component.new(url: "/movies",
+                                                 filter_form: grouping_filter_form)) do |c|
+      c.with_simple_filters(preserved_params: { group_by: "status" })
+      c.with_table { "".html_safe }
+    end
+
+    assert_selector("input[name='group_by'][value='status']", visible: :all)
+    assert_no_selector("input[name='group_by'][value='genre']", visible: :all)
+  end
+
+  # El link Limpiar es la otra salida de la fila, y arrastra lo mismo que el submit: sin
+  # esto, limpiar los filtros tiraba la agrupación y los params del host que el propio
+  # submit acababa de conservar (paridad con clearFiltersAndClose del panel).
+  def test_simple_filters_clear_link_keeps_the_listing_state_and_the_hosts_params
+    form = Bali::FilterForm.new(
+      Movie.all,
+      ActionController::Parameters.new(
+        q: ActionController::Parameters.new(genre_eq: "Action"), group_by: "genre"
+      ),
+      simple_filters: [ { attribute: :genre, collection: [ %w[Action Action] ], blank: "All" } ],
+      group_by_attributes: %i[genre status]
+    )
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_simple_filters(preserved_params: { profundidad: "todo" })
+      c.with_table { "".html_safe }
+    end
+
+    assert_selector("a[href='/movies?clear_filters=true&group_by=genre&profundidad=todo']")
+  end
+
   # --- Superficie: la trae el slot de contenido, no el host ni la toolbar ---
 
   def test_with_table_brings_its_own_surface_and_scroll_wrapper
