@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **LocationsMap: `fit_to_locations:` frames every marker instead of trusting
-  `center_*`/`zoom:`.** The component took a center and a zoom on faith, so a consumer
+  `center_*`/`zoom:`** (#1057). The component took a center and a zoom on faith, so a consumer
   with markers it can't predict had to guess — and the obvious guess, averaging the
   coordinates, lands in the middle of nowhere the moment two locations are far apart
   (for Centinela, the middle is the sea) at a zoom that shows neither. With
