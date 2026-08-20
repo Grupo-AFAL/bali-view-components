@@ -68,6 +68,17 @@ module Bali
         })
       end
 
+      # `heading:` names the element of the constructor-provided `title:` — the
+      # same thing the slot's `tag:` does, and like it, semantic only: the size
+      # stays put. The page components pass it contextually: `h1` on a page,
+      # `h2` inside a drawer (#1055).
+      #
+      # @param title text
+      # @param heading select { choices: [h1, h2, h3, h4, h5, h6] }
+      def with_heading_level(title: 'Title', heading: :h2)
+        render PageHeader::Component.new(title: title, heading: heading.to_sym)
+      end
+
       # The block is the CONTENT of the heading. A heading inside the block
       # nests one heading in another, and the parser splits that into an empty
       # heading plus yours.

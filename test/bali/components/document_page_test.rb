@@ -25,6 +25,17 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_selector(".breadcrumbs")
   end
 
+  # DocumentPage reparte sus opciones con `slice(*PAGE_OPTIONS)`: si `:heading` no está en
+  # esa lista, no llega al concern y termina como atributo HTML del contenedor.
+  def test_heading_reaches_the_page_header_through_the_options_slice
+    render_inline(Bali::DocumentPage::Component.new(title: "My Document", heading: :h3)) do |page|
+      page.with_body { "Content" }
+    end
+
+    assert_selector("h3.title", text: "My Document")
+    assert_no_selector(".document-page-component[heading]")
+  end
+
   def test_renders_actions
     render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
       page.with_action { "Edit Button" }

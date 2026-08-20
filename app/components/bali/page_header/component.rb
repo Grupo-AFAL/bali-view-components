@@ -56,9 +56,15 @@ module Bali
       # name ("The Matrix Action Released") and made it invalid HTML.
       renders_many :title_tags
 
-      def initialize(title: nil, subtitle: nil, align: :center, back: nil, responsive: true, **options)
+      # `heading:` names the element of the constructor-provided `title:` — the same thing
+      # the slot's `tag:` does, and like it, semantic only: the size stays TITLE_CLASSES.
+      # It exists so the page components can lower the level contextually (#1055) without
+      # giving up the shared classes that passing `title:` buys them.
+      def initialize(title: nil, subtitle: nil, align: :center, back: nil, responsive: true,
+                     heading: :h1, **options)
         @title = title
         @subtitle = subtitle
+        @heading = heading
         @align = align.to_sym
         @back = back
         @responsive = responsive
@@ -95,7 +101,7 @@ module Bali
       # emit) with no text is an empty section in the document outline and an
       # axe violation, and every page without a subtitle emitted one.
       def title_element
-        title || (tag.h1(@title, class: TITLE_CLASSES) if @title.present?)
+        title || heading_tag(@title, @heading, class: TITLE_CLASSES)
       end
 
       def subtitle_element
