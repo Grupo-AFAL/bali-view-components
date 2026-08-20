@@ -183,6 +183,21 @@ class BaliPageContextTest < ComponentTestCase
     assert_match(/h1, h2, h3, h4, h5, h6/, error.message)
   end
 
+  # También los valores que ni siquiera responden a `to_sym`: `2` es plausible porque los
+  # niveles de encabezado son idiomáticamente enteros (aria-level), y `false` por analogía
+  # con `card: false`, su gemelo de escape en la misma firma. El mismo ArgumentError que
+  # nombra los valores válidos, no un NoMethodError que no explica nada.
+  def test_a_non_symbolizable_heading_raises_the_same_argument_error
+    [ 2, false ].each do |value|
+      error = assert_raises(ArgumentError) do
+        Bali::FormPage::Component.new(title: "New Studio", heading: value)
+      end
+
+      assert_match(/Unknown heading: #{value.inspect}/, error.message)
+      assert_match(/h1, h2, h3, h4, h5, h6/, error.message)
+    end
+  end
+
   def test_show_page_lowers_its_heading_in_a_drawer
     render_inline(Bali::ShowPage::Component.new(title: "Studio", context: :drawer)) do |page|
       page.with_body { "Details" }

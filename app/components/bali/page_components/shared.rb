@@ -168,10 +168,13 @@ module Bali
               "Unknown context: #{value.inspect}. Valid: #{CONTEXTS.join(', ')}"
       end
 
+      # El guard de `to_sym` no es paranoia: `2` es plausible porque los niveles son
+      # idiomáticamente enteros (aria-level), y `false` por analogía con `card: false` — y
+      # los dos merecen el ArgumentError que nombra los valores válidos, no un NoMethodError.
       def resolve_heading(value)
         return if value.nil?
 
-        key = value.to_sym
+        key = value.respond_to?(:to_sym) ? value.to_sym : value
         return key if HEADINGS.include?(key)
 
         raise ArgumentError,

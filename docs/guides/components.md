@@ -572,6 +572,8 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 
 **Options:**
 - `title` - Title text; use the `with_title` slot for a custom tag or classes (default: `nil`)
+- `heading` - Element of the constructor-provided `title` (default: `:h1`). Semantic only,
+  like the slot's `tag:` — the size stays `TITLE_CLASSES`.
 - `subtitle` - Subtitle text; use the `with_subtitle` slot for a custom tag or classes (default: `nil`)
 - `align` - Vertical alignment of left/right content: `:top`, `:center`, `:bottom` (default: `:center`)
 - `back` - Back button options hash, requires `href` (e.g. `{ href: path }`) (default: `nil`)
@@ -585,9 +587,12 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
   stay out of its accessible name, and the row wraps on narrow viewports.
 
-**Headings.** The title is the page's `h1`. If your layout already renders one, pass
-`tag: :h2` — see the [migration guide](migration-v2-to-v3.md). `tag:` sets the element only;
-the size comes from `TITLE_CLASSES` and is overridden with `class:`.
+**Headings.** The title defaults to the page's `h1`. If your layout already renders one,
+pass `heading: :h2` on the constructor, or `tag: :h2` on the `with_title` slot — see the
+[migration guide](migration-v2-to-v3.md). Both set the element only; the size comes from
+`TITLE_CLASSES` and is overridden with `class:`. The page components pass `heading:`
+contextually — `h1` on a page, `h2` inside a drawer (see
+[the shared surface](#the-shared-surface)).
 
 **Accessibility.** The back button is icon-only, so it carries a default `aria-label` from
 `bali_view.page_header.back`. Pass a visible `name:` and the label is skipped, so the
