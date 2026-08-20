@@ -58,6 +58,16 @@ class BaliLocationsMapComponentTest < ComponentTestCase
     assert_selector('[data-locations-map-enable-clustering-value="true"]')
   end
 
+  def test_fit_to_locations_defaults_to_false
+    render_inline(@component)
+    assert_selector('[data-locations-map-fit-to-locations-value="false"]')
+  end
+
+  def test_fit_to_locations_parameter_passes_value_to_controller
+    render_inline(Bali::LocationsMap::Component.new(fit_to_locations: true))
+    assert_selector('[data-locations-map-fit-to-locations-value="true"]')
+  end
+
   def test_with_custom_location_marker_renders_marker_data_attributes
     render_inline(@component) do |c|
       c.with_location(

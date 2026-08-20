@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **LocationsMap: `fit_to_locations:` frames every marker instead of trusting
+  `center_*`/`zoom:`.** The component took a center and a zoom on faith, so a consumer
+  with markers it can't predict had to guess — and the obvious guess, averaging the
+  coordinates, lands in the middle of nowhere the moment two locations are far apart
+  (for Centinela, the middle is the sea) at a zoom that shows neither. With
+  `fit_to_locations: true` the controller builds a `LatLngBounds` over every location
+  and hands it to `fitBounds`, so the viewport always contains all markers. `zoom:`
+  becomes the ceiling the map never zooms in past — what keeps a single location (or a
+  very tight cluster) off street level, where `fitBounds` would otherwise land. The
+  `center_*` values only paint the first frame before the fit resolves. Off by
+  default; nothing changes for existing call sites.
+
 ## [v3.1.1.beta.2] - 2026-08-16
 
 ### Fixed

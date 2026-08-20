@@ -44,6 +44,27 @@
       this.center = center
     }
 
+    getZoom () {
+      return this.zoom
+    }
+
+    setZoom (zoom) {
+      this.zoom = zoom
+    }
+
+    // The real fitBounds picks whatever zoom contains the bounds. The stub
+    // mimics only the two ends the controller has to handle: a degenerate
+    // bounds (one point) zooms to street level, anything with spread zooms
+    // out — so a spec can tell a clamped zoom from a fitted one.
+    fitBounds (bounds) {
+      this.fittedBounds = bounds
+      const spread = bounds.points.some(
+        (point) => point.lat !== bounds.points[0].lat || point.lng !== bounds.points[0].lng
+      )
+      this.zoom = spread ? 10 : 21
+      this.emit('bounds_changed')
+    }
+
     // MarkerClusterer asks for this before it draws anything; null keeps it
     // from trying to.
     getProjection () {
@@ -95,6 +116,17 @@
     }
   }
 
+  class FakeLatLngBounds {
+    constructor () {
+      this.points = []
+    }
+
+    extend (point) {
+      this.points.push(point)
+      return this
+    }
+  }
+
   class FakePinElement {
     constructor (options) {
       this.options = options
@@ -107,6 +139,7 @@
     maps: {
       Map: FakeMap,
       InfoWindow: FakeInfoWindow,
+      LatLngBounds: FakeLatLngBounds,
       OverlayView,
       event: { trigger () {} },
       importLibrary: () =>
