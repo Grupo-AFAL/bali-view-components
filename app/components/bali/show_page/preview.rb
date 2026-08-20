@@ -33,8 +33,9 @@ module Bali
       # `context:` is declared in `Bali::PageComponents::Shared`, so ShowPage answers to it
       # exactly as FormPage does — the two `if drawer_request?` show views in afal-apps have
       # the same shape as the forty form ones. The difference is that ShowPage has no Card to
-      # give up: `:drawer` drops the breadcrumbs and the back button, and that is all.
-      # See FormPage's "Page or drawer" scenario for the whole contract.
+      # give up: `:drawer` drops the breadcrumbs and the back button, and lowers the title
+      # from `h1` to `h2` (#1055). See FormPage's "Page or drawer" scenario for the whole
+      # contract, `heading:` escape hatch included.
       # @param context select { choices: [auto, page, drawer] }
       def page_or_drawer(context: :auto)
         render_with_template(

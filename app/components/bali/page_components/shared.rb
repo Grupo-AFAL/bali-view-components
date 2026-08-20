@@ -36,13 +36,18 @@ module Bali
       # Las keyword args que este concern se queda. Un componente que además recibe opciones
       # sueltas de HTML (DocumentPage) las reparte con `slice`/`except` sobre esta lista en
       # vez de repetir la firma.
-      PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width context].freeze
+      PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width context
+                        heading].freeze
 
       # Where the page is being rendered. `:auto` asks the request; the other two state it,
       # which is what lets a test or a Lookbook preview pin the variant without simulating a
       # drawer fetch, and what keeps the component a function of its arguments when the host
       # wants it to be.
       CONTEXTS = %i[auto page drawer].freeze
+
+      # Niveles válidos para el título de la página. `nil` no está acá porque no es un
+      # nivel: es "que lo decida el contexto" (ver #heading).
+      HEADINGS = %i[h1 h2 h3 h4 h5 h6].freeze
 
       # Un solo hueco entre el encabezado (o el nav) y el cuerpo. Antes eran `mt-4` en
       # IndexPage, `mt-6` en ShowPage/FormPage/DocumentPage y ninguno en DashboardPage.
@@ -64,12 +69,13 @@ module Bali
       # Firma compartida de los cinco. Un componente que agrega argumentos propios los
       # declara y llama a `super` con el resto.
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: nil,
-                     sidebar_width: :default, context: :auto)
+                     sidebar_width: :default, context: :auto, heading: nil)
         @title = title
         @subtitle = subtitle
         @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @back = back
         @context = resolve_context(context)
+        @heading = resolve_heading(heading)
         @max_width_key = (max_width || default_max_width).to_sym
         @max_width = MAX_WIDTHS.fetch(@max_width_key) do
           raise ArgumentError,
@@ -89,6 +95,17 @@ module Bali
         return @drawer if defined?(@drawer)
 
         @drawer = context == :auto ? drawer_request? : context == :drawer
+      end
+
+      # El nivel del título de la página: el cuarto eje contextual, después de `back:`, los
+      # breadcrumbs y la Card. Mismo contrato que `FormPage#card?`: `nil` —el default— le
+      # deja la decisión al contexto, y un valor explícito gana en los dos sentidos. Dentro
+      # de un drawer baja a `h2` y no a `h3` porque la página que quedó abajo conserva su
+      # `h1`: el panel sigue la jerarquía del documento sin saltar niveles (#1055).
+      def heading
+        return @heading if @heading
+
+        drawer? ? :h2 : :h1
       end
 
       # Acciones SECUNDARIAS de la página: viven en el ⋯ al lado de la primaria. Se guardan
@@ -149,6 +166,19 @@ module Bali
 
         raise ArgumentError,
               "Unknown context: #{value.inspect}. Valid: #{CONTEXTS.join(', ')}"
+      end
+
+      # El guard de `to_sym` no es paranoia: `2` es plausible porque los niveles son
+      # idiomáticamente enteros (aria-level), y `false` por analogía con `card: false` — y
+      # los dos merecen el ArgumentError que nombra los valores válidos, no un NoMethodError.
+      def resolve_heading(value)
+        return if value.nil?
+
+        key = value.respond_to?(:to_sym) ? value.to_sym : value
+        return key if HEADINGS.include?(key)
+
+        raise ArgumentError,
+              "Unknown heading: #{value.inspect}. Valid: #{HEADINGS.join(', ')}"
       end
 
       def secondary_action_items
@@ -281,6 +311,7 @@ module Bali
       def render_page_header
         render(Bali::PageHeader::Component.new(
           title: title,
+          heading: heading,
           subtitle: subtitle,
           back: back,
           class: breadcrumb_spacer_class

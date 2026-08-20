@@ -572,6 +572,8 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 
 **Options:**
 - `title` - Title text; use the `with_title` slot for a custom tag or classes (default: `nil`)
+- `heading` - Element of the constructor-provided `title` (default: `:h1`). Semantic only,
+  like the slot's `tag:` — the size stays `TITLE_CLASSES`.
 - `subtitle` - Subtitle text; use the `with_subtitle` slot for a custom tag or classes (default: `nil`)
 - `align` - Vertical alignment of left/right content: `:top`, `:center`, `:bottom` (default: `:center`)
 - `back` - Back button options hash, requires `href` (e.g. `{ href: path }`) (default: `nil`)
@@ -585,9 +587,12 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
   stay out of its accessible name, and the row wraps on narrow viewports.
 
-**Headings.** The title is the page's `h1`. If your layout already renders one, pass
-`tag: :h2` — see the [migration guide](migration-v2-to-v3.md). `tag:` sets the element only;
-the size comes from `TITLE_CLASSES` and is overridden with `class:`.
+**Headings.** The title defaults to the page's `h1`. If your layout already renders one,
+pass `heading: :h2` on the constructor, or `tag: :h2` on the `with_title` slot — see the
+[migration guide](migration-v2-to-v3.md). Both set the element only; the size comes from
+`TITLE_CLASSES` and is overridden with `class:`. The page components pass `heading:`
+contextually — `h1` on a page, `h2` inside a drawer (see
+[the shared surface](#the-shared-surface)).
 
 **Accessibility.** The back button is icon-only, so it carries a default `aria-label` from
 `bali_view.page_header.back`. Pass a visible `name:` and the label is skipped, so the
@@ -3704,6 +3709,10 @@ one adds.
   always stacks under the body.
 - `context` - Where the page is rendering: `:auto` (default), `:page` or `:drawer`. See
   [One view for the page and the drawer](#one-view-for-the-page-and-the-drawer).
+- `heading` - Element of the title: `:h1`..`:h6`, semantic only — the size does not follow
+  the level. The default `nil` lets `context` decide: `h1` on a page, `h2` inside a drawer,
+  because the page underneath keeps the document's `h1`. An explicit value always wins; an
+  unknown one raises `ArgumentError`.
 
 **Slots:**
 - `with_action` (many) - Primary actions, top right
@@ -3845,9 +3854,11 @@ view does not need an `if drawer_request?` around two nearly identical renders.
 | `:drawer` | overlay chrome, whatever the request says |
 
 In a drawer the component drops the **breadcrumbs**, the **back button** and — on `FormPage`
-— the **Card**. The first two are ways out of a page, and a drawer is closed rather than
-left; the Card is the panel the drawer already draws. They are dropped even when passed,
-which is the point: the one surviving call site passes `back:`.
+— the **Card**, and lowers the **title** from `h1` to `h2`. The first two are ways out of a
+page, and a drawer is closed rather than left; the Card is the panel the drawer already
+draws; and the page underneath keeps the document's `h1`, so the panel's title steps down
+one level instead of duplicating it. They are dropped even when passed, which is the point:
+the one surviving call site passes `back:`.
 
 **How `:auto` decides.** It asks the view context for `drawer_request?`, which
 `Bali::LayoutConcern` defines as `params[:layout] == "false"` and exposes as a helper — so
@@ -3869,9 +3880,10 @@ module Admin
 end
 ```
 
-**Escape hatches.** `card:` always wins, `card: true` inside a drawer included. For the
-breadcrumbs and the back button the hatch is `context: :page`, which restores the whole page
-chrome inside a drawer request; `context: :page, card: false` combines them.
+**Escape hatches.** `card:` and `heading:` always win, `card: true` or `heading: :h1`
+inside a drawer included. For the breadcrumbs and the back button the hatch is
+`context: :page`, which restores the whole page chrome inside a drawer request;
+`context: :page, card: false` combines them.
 
 **When you still have to branch.** `page.drawer?` is public and yielded with the component,
 for differences that are behavioural rather than chrome — a Cancel that closes an overlay and
