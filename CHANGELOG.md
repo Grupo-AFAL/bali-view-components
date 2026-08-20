@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **DataTable: the `simple_filters` slot takes `preserved_params:`, like `filters_panel`
+  always did** (#1056). The two filter slots treated a host's own params differently: the
+  panel merged an explicit `preserved_params:` over the listing state, while the inline row
+  passed the state alone — so a listing param that is not a filter (a tab, a tree depth)
+  was dropped by every GET submit of the row, silently: no error, the filter applies, and
+  the user is back at the default without having asked. The only way out was rendering
+  `SimpleFilters` by hand outside the DataTable, which splits the toolbar in two rows and
+  duplicates the clear control. Same semantics, same precedence as the panel: explicit
+  params merge over `group_by`/`view` instead of replacing them, and without the argument
+  the submit behaves as before. The row's **Clear link** now carries the same pairs the
+  submit emits as hidden fields — clearing removes the filters, not the view state. Before,
+  it dropped the grouping, the display mode and the host's params that the submit right
+  beside it had just preserved; the panel already kept them on clear
+  (`clearFiltersAndClose` re-reads the hidden fields), so this closes the same gap through
+  the adjacent control.
+
 ### Added
 
 - **Page components: the title's heading level is contextual — `h1` on a page, `h2` inside a

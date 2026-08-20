@@ -330,6 +330,12 @@ When a `filter_form` is provided to DataTable, `with_filters_panel` auto-populat
 
 `with_simple_filters` resolves `search:` the same way, from the same `search_config`.
 
+Both filter slots also take `preserved_params:` — extra top-level params the GET filter
+submit carries as hidden fields, **merged over** the listing state (`group_by`, `view`)
+instead of replacing it (#1056). Use it for view state of your own (a tab, a tree depth)
+that is not a filter; without it the submit silently drops the param. The inline row's
+Clear link carries the same pairs, so clearing removes the filters, not the view state.
+
 `with_bulk_actions` auto-populates two more, from the `pagy` and the `filter_form`:
 
 - `total_count` from `pagy.count` — with it, the bar offers "select all N results" once the

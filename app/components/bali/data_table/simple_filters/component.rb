@@ -292,8 +292,16 @@ module Bali
         # Se AGREGA al query string en vez de reemplazarlo: la `url:` del listado puede traer
         # params propios del host (`request.fullpath`, un scope), y perderlos al limpiar
         # mandaría al usuario a otra vista.
+        #
+        # Y arrastra los MISMOS pares que el submit emite como hidden fields
+        # (`preserved_query_params`): limpiar quita los filtros, no el estado de la vista.
+        # Sin esto el link tiraba la agrupación, el modo de visualización y los
+        # `preserved_params:` del host que el submit de al lado acababa de conservar —
+        # el panel ya lo hacía así (`clearFiltersAndClose` re-lee los hidden fields).
         def clear_href
-          add_query_param(@url, :clear_filters, true)
+          preserved_query_params.reduce(add_query_param(@url, :clear_filters, true)) do |url, (name, value)|
+            add_query_param(url, name, value)
+          end
         end
       end
     end
