@@ -58,6 +58,20 @@ class PageContextRequestTest < ActionDispatch::IntegrationTest
     assert_select ".back-button", false
   end
 
+  # The drawer serves its title as `h2`: the page underneath keeps the document's only `h1`,
+  # so the same view emits one or the other depending on who is fetching it (#1055).
+  def test_the_drawer_lowers_the_heading_and_the_page_keeps_the_h1
+    get new_admin_studio_path
+    assert_response :ok
+    assert_select "h1.title"
+    assert_select "h2.title", false
+
+    get new_admin_studio_path, params: { layout: "false" }
+    assert_response :ok
+    assert_select "h2.title"
+    assert_select "h1", false
+  end
+
   # The Cancel button is the one thing `context:` deliberately does not absorb: it closes the
   # overlay in a drawer and navigates on a page. The context still reaches the partial from
   # the component (`drawer: page.drawer?`) rather than from `params`.

@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Page components: the title's heading level is contextual — `h1` on a page, `h2` inside a
+  drawer — with `heading:` as the explicit escape hatch** (#1055). The heading was the fourth
+  axis of chrome that had not followed `back:`, the breadcrumbs and FormPage's Card into the
+  context: `render_page_header` passed the title as a constructor argument and PageHeader
+  emitted a fixed `h1`, so opening a drawer left the document with two `h1`s — the page
+  underneath and the panel's — and the host had no way down, because the five page components
+  never expose PageHeader's `title` slot, which is where `tag:` lives. The two views that
+  needed a compact panel heading had to write the drawer branch by hand — the exact
+  `if drawer_request?` the contextual delegation came to remove. `heading:` follows the
+  `card:` contract: `nil`, the default, hands the decision to the context, and an explicit
+  value wins in both directions. It steps down to `:h2` and not `:h3` so the panel keeps the
+  document's hierarchy without skipping levels. PageHeader itself gains `heading:` on the
+  constructor — the same semantic-only element choice the slot's `tag:` already made: the
+  size stays `TITLE_CLASSES` and does not follow the level.
+
 - **LocationsMap: `fit_to_locations:` frames every marker instead of trusting
   `center_*`/`zoom:`** (#1057). The component took a center and a zoom on faith, so a consumer
   with markers it can't predict had to guess — and the obvious guess, averaging the
