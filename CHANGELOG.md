@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.1] - 2026-08-20
+
 ### Fixed
 
 - **DataTable: the `simple_filters` slot takes `preserved_params:`, like `filters_panel`
