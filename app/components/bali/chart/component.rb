@@ -183,7 +183,12 @@ module Bali
         configure_legend(base_opts, legend)
         configure_theme_styling(base_opts) if @use_theme_colors
 
-        base_opts.deep_merge(custom_options)
+        # Same normalization `data:` gets in the initializer: every key Bali
+        # writes below is a Symbol, so a String-keyed `options:` would sit NEXT
+        # to the theme styling instead of merging with it — duplicate keys in
+        # the JSON (an error under json 3.0), and the browser keeping only
+        # whichever entry came last (#1066).
+        base_opts.deep_merge(custom_options.deep_symbolize_keys)
       end
 
       def configure_legend(opts, display)
@@ -203,7 +208,9 @@ module Bali
       def configure_scales_styling(opts)
         opts[:scales] ||= {}
 
-        %w[x y].each do |axis|
+        # Symbols, not Strings: deep_merge in build_options only merges the
+        # caller's `scales:` into these entries when the keys are the same kind.
+        %i[x y].each do |axis|
           configure_axis_styling(opts[:scales], axis)
         end
       end
@@ -213,7 +220,7 @@ module Bali
         axis_config = scales[axis]
 
         # Grid: cleaner, more subtle - only show y-axis grid
-        axis_config[:grid] = { useThemeColors: true, drawBorder: false, display: (axis == "y") }
+        axis_config[:grid] = { useThemeColors: true, drawBorder: false, display: (axis == :y) }
 
         # Ticks with proper font
         axis_config[:ticks] = { useThemeColors: true, font: { family: FONT_FAMILY, size: 12 } }

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Chart: a caller's `scales:` never merged with the theme axis styling.** Bali indexed
+  `options[:scales]` with String keys (`"x"`, `"y"`) while a caller's `options:` naturally
+  carries Symbols, so `deep_merge` stacked the two side by side instead of merging: the emitted
+  JSON carried `"x"` and `"y"` twice — a warning per render today and an error under json 3.0 —
+  and the browser kept only whichever entry came last, silently dropping either Bali's grid,
+  tick and border styling or the caller's axis config (#1066). The axis keys are Symbols now,
+  and `options:` is `deep_symbolize_keys`d on the way in — the same normalization `data:`
+  already gets — so a String-keyed `plugins:` merges correctly too instead of duplicating
+  Bali's Symbol-keyed tooltip and legend styling.
 - **BlockEditor: Enter did nothing.** The editor mounted, rendered and accepted typing; the one
   thing it would not do was break the line, and the console carried
   `RangeError: Can not convert <> to a Fragment (looks like multiple versions of prosemirror-model
