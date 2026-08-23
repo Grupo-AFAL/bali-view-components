@@ -28,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Chart: the `data_table` slot is now the chart's no-JS fallback, not only its screen-reader
+  version.** Without JavaScript the canvas never draws — and the fallback content inside a
+  `<canvas>` tag only paints when canvas itself is unsupported, not when scripting is off — so a
+  chart page rendered a container-height hole where every graph should be, while the perfectly
+  good table next to it stayed `sr-only` (#1067). The slot wrapper now carries Bali's own
+  `.chart-fallback-table` class (same hiding declarations as `sr-only`, but in a layer Bali's own
+  CSS can override), and `@media (scripting: none)` reveals the table and collapses the empty
+  canvas box. Browsers without the `scripting` media feature (pre-2023) keep the old behavior;
+  screen readers with JS on read the table exactly as before.
 - **BlockEditor: `size:` scales the whole document at once.** The editor had no say in how large
   its text was: BlockNote hardcodes the body at 16px and Bali never touched it, so a description
   field inside a drawer rendered at document scale -- 16px paragraphs under a 48px `h1` -- with

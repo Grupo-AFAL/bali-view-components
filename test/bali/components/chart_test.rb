@@ -196,23 +196,43 @@ class BaliChartComponentTest < ComponentTestCase
   end
 
   # `role="img"` gives the chart a name, not its numbers. The slot is the only
-  # way a screen reader user reads a value off it.
+  # way a screen reader user reads a value off it. The wrapper class is Bali's
+  # own, not the `sr-only` utility: without JS the canvas never draws and the
+  # chart left a container-height hole, so chart/index.css reveals this table
+  # under `@media (scripting: none)` — an override that has to live in the
+  # same layer as the hiding it undoes, which a template utility cannot (#1067).
   def test_a11y_renders_the_data_table_slot_for_screen_readers
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 })) do |c|
       c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
     end
-    assert_selector("div.sr-only table td", text: "Chocolate")
+    assert_selector("div.chart-fallback-table table td", text: "Chocolate")
+    assert_no_selector("div.sr-only")
   end
 
   def test_a11y_renders_the_data_table_slot_inside_a_card
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, card_style: :default)) do |c|
       c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
     end
-    assert_selector(".card-body div.sr-only table td", text: "Chocolate")
+    assert_selector(".card-body div.chart-fallback-table table td", text: "Chocolate")
+  end
+
+  # The no-JS reveal hides the empty canvas box through a `:has(+ .chart-fallback-table)`
+  # sibling selector, so the wrapper must stay the container's next sibling in
+  # both layouts.
+  def test_a11y_fallback_table_is_the_containers_next_sibling
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 })) do |c|
+      c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
+    end
+    assert_selector(".chart-container + .chart-fallback-table")
+
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, card_style: :default)) do |c|
+      c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
+    end
+    assert_selector(".chart-container + .chart-fallback-table")
   end
 
   def test_a11y_renders_no_table_wrapper_without_the_slot
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
-    assert_no_selector("div.sr-only")
+    assert_no_selector("div.chart-fallback-table")
   end
 end
