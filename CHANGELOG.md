@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Chart: `pointBorderColor:` and `pointBorderWidth:` were the only point options a dataset
+  could not override.** `Dataset#to_h` pinned the ring around a line point to white instead of
+  routing it through `@options.fetch` like every neighboring property, so a hollow marker —
+  transparent fill plus colored ring, the shape bali-analytics draws for a k-anonymity-suppressed
+  value — rendered as transparent fill plus *white* ring: invisible on a white surface, visible on
+  the gray rows of the same zebra table (#1065). Both are now defaults, not locks; white stays the
+  default so no existing chart moves.
 - **BlockEditor: Enter did nothing.** The editor mounted, rendered and accepted typing; the one
   thing it would not do was break the line, and the console carried
   `RangeError: Can not convert <> to a Fragment (looks like multiple versions of prosemirror-model
