@@ -1728,10 +1728,13 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
 - `aria_label` - Accessible name for the canvas. Falls back to `title:`, then to `bali_view.chart.default_label` (default: nil)
 
-**Slots:** `with_data_table` — a real `<table>` rendered `sr-only` next to the canvas.
+**Slots:** `with_data_table` — a real `<table>` visually hidden next to the canvas.
 
 Everything Chart.js draws is pixels, so the canvas is `role="img"` with a name. A name is not
 a number: `with_data_table` is the only way a screen reader user reads a value off the chart.
+The same table doubles as the chart's no-JS fallback: with scripting off the canvas never
+draws, so the component reveals the table (`@media (scripting: none)`) and collapses the empty
+canvas box instead of leaving a container-height hole.
 
 ```erb
 <%= render Bali::Chart::Component.new(data: @sales, title: t('.weekly_sales')) do |c| %>

@@ -36,7 +36,9 @@
 <% end %>
 
 <p class="text-sm text-base-content/70 mt-4">
-  The table above is in the DOM and hidden with <code>sr-only</code>. Open the
-  accessibility tree to see it: the canvas is one <code>img</code> named "Weekly
-  Sales Report", and the table beside it is where the numbers live.
+  The table above is in the DOM, visually hidden. Open the accessibility tree to
+  see it: the canvas is one <code>img</code> named "Weekly Sales Report", and the
+  table beside it is where the numbers live. It is also the chart's no-JS
+  fallback — disable JavaScript and the table takes the graph's place instead of
+  a container-height hole (#1067).
 </p>
