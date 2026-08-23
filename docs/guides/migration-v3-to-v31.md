@@ -388,9 +388,9 @@ change before it is announced as stable. If you want to try it, see
 for `dark:` utilities to fire under it.
 
 While migrating, also fix your `@source` glob if it scans only `{rb,erb}`: Bali writes
-some classes from JavaScript (the drawer submit spinner among them), so the canonical glob
-is `node_modules/bali-view-components/app/**/*.{rb,erb,js}` — see
-[Installation](installation.md).
+some classes from JavaScript (the drawer submit spinner among them). Better, drop the
+globs altogether: the gem ships its own `engine.css` and the host writes
+`@import "../builds/tailwind/bali";` — see [Installation](installation.md).
 
 ### The Gantt is the React island, and only that (#719, #970)
 

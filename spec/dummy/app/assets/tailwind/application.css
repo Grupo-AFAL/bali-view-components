@@ -17,11 +17,12 @@
 @source "../../javascript/**/*.js";
 @source "../../../public/*.html";
 
-/* Bali ViewComponents sources (via node_modules symlink). Deliberately the
-   exact pair README.md and installation.md hand to hosts, so the documented
-   globs are the ones this app's build actually exercises (#983). */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+/* Bali ViewComponents sources. Deliberately the exact line README.md and
+   installation.md hand to hosts, so the documented import is the one this
+   app's build actually exercises (#983). tailwindcss-rails writes
+   app/assets/builds/tailwind/bali.css from the gem's engine.css before every
+   build, and that generated file is what resolves to this tree. */
+@import "../builds/tailwind/bali";
 
 /* Responsive Bali::Columns classes — Tailwind's scanner can't detect colon-prefixed
    variants assembled via Ruby string interpolation in .rb files */

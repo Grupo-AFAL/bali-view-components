@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The gem ships its own Tailwind sources; hosts stop guessing where Bundler put it.** Every
+  host wrote `@source` globs at Bali's files — two into `node_modules/bali-view-components`
+  and a third, for CI, into `vendor/bundle/ruby/*/bundler/gems/bali-view-components-*` — and
+  a glob that matches nothing does not fail: it silently leaves every Bali class out of the
+  build, the FormBuilder's error classes first. `app/assets/tailwind/bali/engine.css` now
+  carries those `@source` directives relative to itself (`app/**/*.{rb,erb,js}` and
+  `lib/bali/**/*.rb`, the pair the docs always asked for). tailwindcss-rails (>= 4.3) finds
+  it by engine name and writes `app/assets/builds/tailwind/bali.css` in the host with an
+  `@import` to the gem's real path on that machine, so the host's whole wiring is
+  `@import "../builds/tailwind/bali";`. A host that builds Tailwind without tailwindcss-rails
+  imports the same file from the npm package — `@import "bali-view-components/tailwind/engine.css";`
+  — and scans the same tree, because `@source` resolves relative to the stylesheet that
+  declares it. The dummy builds through the import, so the documented line is the one its
+  build exercises (#983), and a test keeps every `@source` in `engine.css` pointing at files
+  the gem actually has, the FormBuilder under `lib/` included. Hosts: replace the `@source`
+  lines with the import — [Installation § Step 3](docs/guides/installation.md#step-3-configure-tailwind-css-v4--daisyui)
+  has the full block.
+
 ### Fixed
 
 - **BlockEditor: `size:` now actually travels through `block_editor_group`.** The docs said the

@@ -69,36 +69,17 @@ Create `app/assets/tailwind/application.css` (or similar):
 /* =============================================
    Bali ViewComponents - Tailwind class scanning
    =============================================
-   IMPORTANT: Tailwind v4 needs to scan Bali's Ruby, ERB *and JS* files
-   to detect utility classes used in components. The gem installs
-   to a system directory outside your project, but the npm package
-   mirrors all source files in node_modules.
-
-   `.js` is not optional: some controllers write class names from
-   JavaScript (e.g. `modal/index.js` swaps the submit button for
-   `loading loading-spinner loading-sm` while a drawer form is in
-   flight). Without scanning `.js`, those classes never reach your
-   compiled CSS and the spinner renders unstyled.
-
-   `lib/` is not optional either: the FormBuilder lives entirely under
-   lib/bali/form_builder/ and is the only place that writes the error
-   and state classes — input-error, select-error, textarea-error,
-   checkbox-error, radio-error, toggle-error, fieldset-label, the whole
-   range-* family. Scanning only app/ compiles without any warning and
-   silently drops all of them: invalid fields render with no red border.
-*/
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
-
-/* Optional - CI with a vendored bundle only. `ruby/setup-ruby` with
-   `bundler-cache: true` vendors gems into vendor/bundle, so this glob
-   scans the *gem's* copy of the same tree. It does not match in local
-   (rbenv/rvm) or Docker (BUNDLE_PATH) setups, and that is fine: a
-   @source with no matches adds no classes and raises no error. With
-   all three globs, CI scans gem and npm copies alike, so if the two
-   ever skew, the union of classes keeps the build complete. It
-   complements the two npm globs above — it never replaces them. */
-@source "../../../vendor/bundle/ruby/*/bundler/gems/bali-view-components-*/**/*.{erb,rb}";
+   Tailwind v4 needs to scan Bali's Ruby, ERB *and JS* files to detect
+   the utility classes its components use, and the gem installs to a
+   system directory outside your project. The gem resolves that itself:
+   it ships app/assets/tailwind/bali/engine.css with its @source globs
+   relative to itself, and tailwindcss-rails (>= 4.3) writes
+   app/assets/builds/tailwind/bali.css — an @import to that file's real
+   path on this machine — before every tailwindcss:build,
+   tailwindcss:watch and assets:precompile (`bin/rails
+   tailwindcss:engines` runs that step alone). One import, nothing to
+   keep in sync when the gem moves. */
+@import "../builds/tailwind/bali";
 
 /* =============================================
    Bali CSS Import
@@ -125,7 +106,11 @@ Create `app/assets/tailwind/application.css` (or similar):
 }
 ```
 
-> **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript. Without it, Tailwind won't detect these classes and components will appear unstyled.
+> **Note**: Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript — `modal/index.js` swaps the submit button for `loading loading-spinner loading-sm` while a drawer form is in flight — and the FormBuilder, which lives entirely under `lib/bali/form_builder/`, is the only place that writes the error and state classes: `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`, `toggle-error`, `fieldset-label`, the whole `range-*` family. `engine.css` scans `app/**/*.{rb,erb,js}` and `lib/bali/**/*.rb` for exactly that reason; scanning only `app/` would compile without a warning and silently drop every form error style.
+>
+> `app/assets/builds` is already in the `.gitignore` tailwindcss-rails installs; the generated file is never committed. Do **not** write a `@source` glob at the gem directory yourself (`vendor/bundle/...`, `/usr/local/bundle/...`): the path differs per machine, and a glob that matches nothing does not fail — it silently leaves every Bali class out of the build.
+>
+> If your app builds Tailwind without tailwindcss-rails, import the same file from the npm package instead: `@import "bali-view-components/tailwind/engine.css";`. `@source` paths resolve relative to the stylesheet that declares them, so both routes scan the same tree.
 
 ### Overriding Bali styles
 

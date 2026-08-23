@@ -19,18 +19,20 @@ This guide covers common issues when using Bali ViewComponents and their solutio
 
 Tailwind needs to scan Bali component files to include their classes in the build.
 
-**Fix:** Add `@source` directives in your CSS entry point:
+**Fix:** Import the gem's Tailwind sources in your CSS entry point:
 
 ```css
 /* app/assets/tailwind/application.css */
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Add these source paths — app/ has the components (incl. class names
-   written from JS), lib/ has the FormBuilder's error/state classes */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+/* Bali's own engine.css, resolved by tailwindcss-rails (>= 4.3) before
+   every build. It scans app/ (components, incl. class names written
+   from JS) and lib/bali/ (the FormBuilder's error/state classes). */
+@import "../builds/tailwind/bali";
 ```
+
+If the build fails with `Can't resolve '../builds/tailwind/bali'`, the generated file is missing: run `bin/rails tailwindcss:engines` (tailwindcss-rails >= 4.3; `tailwindcss:build` runs it by itself). Without tailwindcss-rails, import the same file from the npm package: `@import "bali-view-components/tailwind/engine.css";`.
 
 #### 2. Bali CSS Not Imported
 
