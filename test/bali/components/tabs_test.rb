@@ -325,6 +325,57 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector('nav a[href="/team"] span.badge', text: "12")
   end
 
+  # A count is sometimes an alarm, not just an amount: "3 blocking questions"
+  # should not look like "3 items". `count_color:` takes the same semantic
+  # table every other `color:` does (#1064).
+  def test_count_color_paints_the_badge
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Discovery", active: true, count: 3, count_color: :warning) { "Content" }
+    end
+
+    assert_selector("a.tab span.badge.badge-warning", text: "3")
+  end
+
+  def test_count_color_paints_the_badge_in_navigation_mode
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Mine", href: "/mine", count: 3, count_color: :error)
+    end
+
+    assert_selector('nav a[href="/mine"] span.badge.badge-error', text: "3")
+  end
+
+  def test_without_count_color_the_badge_stays_neutral
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Inbox", active: true, count: 12) { "Content" }
+    end
+
+    badge = page.find("a.tab span.badge")
+    assert_equal("badge badge-sm ml-1", badge[:class])
+  end
+
+  def test_count_color_rejects_an_unknown_name
+    error = assert_raises(ArgumentError) do
+      Bali::Tabs::Tab::Component.new(title: "Inbox", count: 3, count_color: :danger)
+    end
+    assert_match(/count_color/, error.message)
+  end
+
+  # `Bali::Color.name!` validates against NAMES while the badge class is a bare
+  # COUNT_COLORS lookup, and `class_names` drops a nil silently — so a name
+  # added to NAMES without a matching entry here would validate and then render
+  # neutral. Same guard Timeline keeps on its COLORS maps.
+  def test_count_color_covers_every_bali_color_name
+    assert(Bali::Tabs::Tab::Component::COUNT_COLORS.frozen?)
+    assert_equal(Bali::Color::NAMES, Bali::Tabs::Tab::Component::COUNT_COLORS.keys)
+
+    Bali::Color::NAMES.each do |name|
+      render_inline(Bali::Tabs::Component.new) do |c|
+        c.with_tab(title: "Tab", active: true, count: 1, count_color: name) { "Content" }
+      end
+      assert_selector("a.tab span.badge.badge-#{name}", text: "1")
+    end
+  end
+
   # In navigation mode there is no panel div for the tab options to land on,
   # so they used to vanish. They belong to the `<a>`.
   def test_navigation_mode_passes_tab_options_to_the_link

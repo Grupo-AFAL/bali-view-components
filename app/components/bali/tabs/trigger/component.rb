@@ -19,6 +19,7 @@ module Bali
           @src = tab.src
           @href = tab.href
           @count = tab.count
+          @count_color_class = tab.count_color_class
           @turbo_action = tab.turbo_action
           @tab_options = tab.options
         end
@@ -26,7 +27,7 @@ module Bali
         private
 
         attr_reader :index, :href, :icon, :title, :src, :reload, :active, :explicit_active,
-                    :count, :turbo_action, :tab_options
+                    :count, :count_color_class, :turbo_action, :tab_options
 
         def navigation?
           @navigation

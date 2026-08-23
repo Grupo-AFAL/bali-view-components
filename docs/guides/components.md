@@ -905,6 +905,15 @@ renders — an empty scope is information. The count stays in the link's accessi
 these navs (a hub page plus a sub-navigation), give each its own `label:` — it is the only
 thing telling them apart in the rotor.
 
+A count is sometimes an alarm, not just an amount: `count_color:` paints the badge with the
+same semantic table every other `color:` takes (`:neutral :primary :secondary :accent :info
+:success :warning :error :ghost`), so "3 blocking questions" does not look like "3 items".
+`nil` keeps the neutral badge.
+
+```erb
+<% tabs.with_tab(title: "Discovery", count: 3, count_color: :warning, href: discovery_path) %>
+```
+
 **Mixing the two raises `ArgumentError`.** A `role="tablist"` where half the children are
 links leaving the page and half own a panel is not a widget ARIA describes, and it used to
 render in silence. Split it into two components, or drop `href:` from all of them.
