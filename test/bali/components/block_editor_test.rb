@@ -107,6 +107,18 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_selector("div.block-editor-component.block-editor-size-xs.custom-class")
   end
 
+  # An Integer is what `size:` means on the input families (the HTML
+  # attribute), and it can now arrive here through `block_editor_group`
+  # (#1076) — the rejection must be the clear ArgumentError, not a
+  # NoMethodError out of `4.to_sym`.
+  def test_a_size_that_cannot_name_a_scale_raises_with_the_valid_names
+    error = assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(size: 4)
+    end
+    assert_match(/unknown size 4/, error.message)
+    assert_match(/:xs/, error.message)
+  end
+
   # The size must never reach the wrapper as an HTML attribute: every keyword the
   # component does not name is forwarded onto the div, and `size="sm"` on a div is
   # a silent no-op that looks like it worked.

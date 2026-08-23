@@ -192,10 +192,15 @@ module Bali
       # development and test (see component.html.erb).
       # nil renders the default; anything unknown raises instead of defaulting in
       # silence -- the same contract Bali::Alert and Bali::Tag use.
+      # `size.to_sym` would turn an Integer — the value that means the HTML
+      # attribute on the input families, and now reachable through
+      # `block_editor_group` (#1076) — into a NoMethodError; letting it miss
+      # the fetch instead keeps the rejection one clear message.
       def size_class(size)
         return SIZES[:md] if size.nil?
 
-        SIZES.fetch(size.to_sym) do
+        key = size.respond_to?(:to_sym) ? size.to_sym : size
+        SIZES.fetch(key) do
           raise ArgumentError,
                 "#{self.class.name}: unknown size #{size.inspect}. " \
                 "Valid: #{SIZES.keys.map(&:inspect).join(', ')}."

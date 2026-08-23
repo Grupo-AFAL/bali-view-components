@@ -15,9 +15,16 @@ require "test_helper"
 #     into the markup. Same contract ButtonTaxonomy enforces for the submit
 #     button, which is the family that already had `size:` before this PR.
 #
-# Every family resolves through the one discriminator, `HtmlUtils#size_variant`,
-# and differs only in the map it hands it — which is what makes the sweep below
-# a sweep and not a list of special cases.
+# Every family with a control resolves through the one discriminator,
+# `HtmlUtils#size_variant`, and differs only in the map it hands it — which is
+# what makes the sweep below a sweep and not a list of special cases.
+#
+# One carve-out (#1076): the block editor families have no input the attribute
+# could reach, so their `size:` is the component's own API — the text scale,
+# resolved by `BlockEditor::Component#size_class`, not by `size_variant`. There
+# the Integer/String bullet above does not apply: an Integer, or a String that
+# does not name a scale, raises the component's ArgumentError instead of
+# passing through, and a String like `"sm"` reads as the scale.
 class BaliFormBuilderSizeOptionTest < FormBuilderTestCase
   INPUT_VARIANTS = {
     xs: "input-xs", sm: "input-sm", md: "input-md", lg: "input-lg", xl: "input-xl"
@@ -58,6 +65,17 @@ class BaliFormBuilderSizeOptionTest < FormBuilderTestCase
       ->(b, o) { b.slim_select_group(:status, [], **o) }, "div.slim-select.slim-select-sm"
     ],
     "range_group" => [ ->(b, o) { b.range_group(:rating, **o) }, "input.range-sm" ],
+    # The block editor's density is its own API — the text scale — not the
+    # `<input>` attribute the other widget families drop (#1076). The class
+    # lands on the component wrapper, the only element with a size to change.
+    "block_editor_group" => [
+      ->(b, o) { b.block_editor_group(:synopsis, **o) },
+      "div.block-editor-component.block-editor-size-sm"
+    ],
+    "rich_text_group" => [
+      ->(b, o) { b.rich_text_group(:synopsis, **o) },
+      "div.block-editor-component.block-editor-size-sm"
+    ],
     "boolean_group" => [ ->(b, o) { b.boolean_group(:indie, **o) }, "input.checkbox-sm" ],
     "switch_group" => [ ->(b, o) { b.switch_group(:indie, **o) }, "input.toggle-sm" ],
     "radio_group" => [
@@ -75,9 +93,9 @@ class BaliFormBuilderSizeOptionTest < FormBuilderTestCase
   # from their content. Named here rather than left out, so the coverage check
   # below stays a check — and asserted to emit no `size` attribute either, since
   # forwarding it would put `size` on a `<div>` or a `<trix-editor>`.
+  # (The block editor moved to CARRIES when its `size:` became the text scale,
+  # #1076; the Trix editor still has no density to give the option to.)
   IGNORES = {
-    "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
-    "block_editor_group" => ->(b, o) { b.block_editor_group(:synopsis, **o) },
     "rich_text_area_group" => ->(b, o) { b.rich_text_area_group(:synopsis, **o) },
     "coordinates_polygon_group" => ->(b, o) { b.coordinates_polygon_group(:name, **o) },
     "recurrent_event_rule_group" => ->(b, o) { b.recurrent_event_rule_group(:rule, **o) },
