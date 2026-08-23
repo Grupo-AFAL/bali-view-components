@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`prose-invert` was dead code in every app consuming Bali.** daisyUI maps Tailwind
+  Typography onto the theme with `:root .prose { --tw-prose-body: … }` — specificity (0,2,0) —
+  while the plugin's own `.prose-invert` is (0,1,0), so the theme mapping won always, by
+  construction: `prose prose-invert` on a dark surface rendered base-content **dark** text with
+  no build error, no warning and identical HTML, which reads as a design slip instead of a class
+  that never applied (it survived months in afal-apps' interview chat, #1063). Bali now ships
+  `bali/prose-invert.css` — unlayered, `:root .prose-invert` — re-pointing every variable
+  daisyUI's mapping sets at its `--tw-prose-invert-*` counterpart, plus a counter-rule for the
+  other half of that mapping: daisyUI's inline-code chip paints `base-200` with no `color`, so
+  inverted code text would sit near-white on a near-white chip; the chip now derives from
+  `currentColor` and keeps its affordance on any surface. Scope is the bare `prose-invert`
+  token — a variant-prefixed `dark:prose-invert` still compiles to a (0,1,0) utility daisyUI
+  outranks, and under daisyUI it is redundant anyway (dark themes flip `base-content` and the
+  mapping follows). Inert for hosts without the typography plugin; a contract test keeps the
+  variable list in lockstep with the daisyUI the dummy installs and pins the two cascade facts
+  the fix stands on (the `:root` prefix and the unlayered import). The dummy now loads
+  `@tailwindcss/typography` (the pairing afal-apps ships), and the Chat bubbles preview shows
+  Markdown — inline code included — on a dark bubble actually coming out light.
 - **Chart: a caller's `scales:` never merged with the theme axis styling.** Bali indexed
   `options[:scales]` with String keys (`"x"`, `"y"`) while a caller's `options:` naturally
   carries Symbols, so `deep_merge` stacked the two side by side instead of merging: the emitted

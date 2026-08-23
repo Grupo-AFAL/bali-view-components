@@ -79,6 +79,9 @@
 @import "./bali/datepicker.css";
 @import "./bali/slim_select.css";
 @import "./bali/container-overrides.css";
+/* Fights daisyUI's `:root .prose` mapping, which outranks the typography
+   plugin's own `.prose-invert`. Shares no selector with the sheets above. */
+@import "./bali/prose-invert.css";
 
 /* ==============================================
    Component styles (mostly @layer components — see the file)
