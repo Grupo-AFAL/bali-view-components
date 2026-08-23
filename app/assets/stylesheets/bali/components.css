@@ -16,6 +16,7 @@
 
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css" layer(components);
+@import "../../../components/bali/chart/index.css" layer(components);
 @import "../../../components/bali/gantt/index.css" layer(components);
 @import "../../../components/bali/carousel/index.css" layer(components);
 @import "../../../components/bali/timeline/index.css" layer(components);

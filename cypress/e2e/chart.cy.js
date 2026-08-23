@@ -108,7 +108,8 @@ describe('Chart', () => {
       cy.visit('/bali/chart/with_data_table')
 
       // `role="img"` plus a name is everything a canvas gives the accessibility
-      // tree — no numbers. The sr-only table is the only way to read a value.
+      // tree — no numbers. The visually hidden table (`.chart-fallback-table`,
+      // which also serves as the no-JS fallback) is the only way to read a value.
       canvas().should('have.attr', 'role', 'img')
       canvas().should('have.attr', 'aria-label', 'Weekly Sales Report')
 
@@ -118,8 +119,8 @@ describe('Chart', () => {
       })
 
       cy.then(() => {
-        cy.get('.sr-only table tbody tr').should('have.length', charted.labels.length)
-        cy.get('.sr-only table tbody tr').each(($row, index) => {
+        cy.get('.chart-fallback-table table tbody tr').should('have.length', charted.labels.length)
+        cy.get('.chart-fallback-table table tbody tr').each(($row, index) => {
           cy.wrap($row).find('th').should('have.text', charted.labels[index])
           cy.wrap($row).find('td').first().should('have.text', String(charted.sales[index]))
         })

@@ -441,7 +441,7 @@ content inside the tag is only surfaced when canvas itself is unsupported.
 ```erb
 <%= render Bali::Chart::Component.new(data: @sales, title: 'Weekly sales') do |c| %>
   <% c.with_data_table do %>
-    <%# a real <table>, rendered sr-only next to the canvas %>
+    <%# a real <table>, visually hidden next to the canvas %>
   <% end %>
 <% end %>
 ```
@@ -450,6 +450,9 @@ content inside the tag is only surfaced when canvas itself is unsupported.
   so a generic name beats none.
 - A name is not a number. The `data_table` slot is the only way a screen reader user reads
   a value off the chart.
+- The same table is the chart's no-JS fallback: with scripting off the canvas never draws,
+  so `@media (scripting: none)` reveals the table and collapses the empty canvas box
+  instead of leaving a container-height hole.
 
 The same reasoning drives `Bali::Heatmap`: axis labels are `<th scope="col">` and
 `<th scope="row">` so both axes reach the cell as headers, and each cell carries its value
