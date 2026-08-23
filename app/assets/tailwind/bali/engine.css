@@ -1,0 +1,29 @@
+/*
+ * Bali's Tailwind sources, resolved by the gem instead of guessed by the host.
+ *
+ * tailwindcss-rails (>= 4.3) looks in every Rails engine for
+ * app/assets/tailwind/<engine_name>/engine.css and writes, in the host,
+ * app/assets/builds/tailwind/bali.css with an @import to this file's absolute
+ * path on that machine. The host's whole wiring is then
+ *
+ *   @import "../builds/tailwind/bali";
+ *
+ * and nobody writes a glob to wherever Bundler put the gem — /usr/local/bundle
+ * in a container, vendor/bundle in a CI checkout, the system GEM_HOME on a
+ * laptop. A glob that matches nothing does not fail: it silently leaves every
+ * Bali class out of the build.
+ *
+ * A host that builds Tailwind without tailwindcss-rails imports this same file
+ * from the npm package — @import "bali-view-components/tailwind/engine.css" —
+ * and scans the same tree, because @source paths resolve relative to the
+ * stylesheet that declares them.
+ *
+ * Both globs are required. app/ holds the components, the helpers and the
+ * JavaScript that writes class names at runtime (modal/index.js swaps a submit
+ * button for `loading loading-spinner loading-sm`). lib/bali/ holds the
+ * FormBuilder, the only place that writes the error and state classes —
+ * input-error, select-error, fieldset-label, the whole range-* family.
+ * Scanning only app/ compiles without a warning and drops all of them.
+ */
+@source "../../../**/*.{rb,erb,js}";
+@source "../../../../lib/bali/**/*.rb";

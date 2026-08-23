@@ -55,11 +55,10 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Scan Bali ViewComponents for Tailwind classes — BOTH lines. app/ has the
-   components (including the JS that writes class names at runtime); lib/ has
-   the FormBuilder, which is where every *-error class comes from. */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+/* Bali's Tailwind sources. tailwindcss-rails (>= 4.3) writes this file from
+   the gem's own engine.css before every build, pointing at wherever Bundler
+   installed the gem on this machine. */
+@import "../builds/tailwind/bali";
 
 /* Import Bali CSS — one line, component sheets included */
 @import "bali-view-components/css/bali.css";
@@ -76,7 +75,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 }
 ```
 
-> **Important**: Both `@source` directives are required. Bali defines Tailwind classes in Ruby, ERB and JS files under `app/`, and the FormBuilder defines its own — `input-error`, `select-error`, `fieldset-label`, the whole `range-*` family — under `lib/bali/`. Scanning only `app/` compiles without any warning and silently drops every form error style: invalid fields render with no red border.
+> **Important**: Bali defines Tailwind classes in Ruby, ERB and JS files under `app/`, and the FormBuilder defines its own — `input-error`, `select-error`, `fieldset-label`, the whole `range-*` family — under `lib/bali/`. The gem's `app/assets/tailwind/bali/engine.css` carries the `@source` globs for both, and the import above is all a host writes. Never point a `@source` at the gem directory yourself: the path differs per machine, and a glob that matches nothing fails silently. Without tailwindcss-rails, import the same file from the npm package — `@import "bali-view-components/tailwind/engine.css";`. Details in [Installation § Step 3](docs/guides/installation.md#step-3-configure-tailwind-css-v4--daisyui).
 
 ### 4. Use Components
 

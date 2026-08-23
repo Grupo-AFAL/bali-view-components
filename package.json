@@ -22,6 +22,7 @@
     "./controllers": "./app/frontend/bali/controllers/index.js",
     "./components": "./app/frontend/bali/components/index.js",
     "./utils": "./app/frontend/bali/utils/index.js",
+    "./tailwind/engine.css": "./app/assets/tailwind/bali/engine.css",
     "./css/bali.css": "./app/assets/stylesheets/bali.css",
     "./css/components.css": "./app/assets/stylesheets/bali/components.css",
     "./css/*.css": "./app/assets/stylesheets/bali/*.css",
