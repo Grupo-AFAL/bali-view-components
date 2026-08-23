@@ -4,12 +4,18 @@ module Bali
   module BlockEditor
     # rubocop:disable Metrics/ClassLength
     class Preview < ApplicationViewComponentPreview
+      # `size:` scales the whole document at once. BlockNote derives headings,
+      # lists, quotes and table cells in `em` off a single body font-size, so
+      # every size below keeps the same proportions -- `:sm` is the same document
+      # at 14px, not a paragraph that has drifted away from its headings.
       # @param editable toggle
       # @param placeholder text
-      def default(editable: true, placeholder: 'Start typing...')
+      # @param size select { choices: [xs, sm, md, lg] }
+      def default(editable: true, placeholder: 'Start typing...', size: :md)
         render BlockEditor::Component.new(
           editable: editable,
-          placeholder: placeholder
+          placeholder: placeholder,
+          size: size.to_sym
         )
       end
 
@@ -20,10 +26,12 @@ module Bali
         )
       end
 
-      def with_initial_content
+      # @param size select { choices: [xs, sm, md, lg] }
+      def with_initial_content(size: :md)
         render BlockEditor::Component.new(
           initial_content: sample_content.to_json,
-          editable: true
+          editable: true,
+          size: size.to_sym
         )
       end
 
@@ -391,7 +399,13 @@ module Bali
           },
           {
             type: 'bulletListItem',
-            content: [{ type: 'text', text: 'Third bullet item', styles: {} }]
+            content: [{ type: 'text', text: 'Third bullet item', styles: {} }],
+            children: [
+              {
+                type: 'bulletListItem',
+                content: [{ type: 'text', text: 'Nested bullet item', styles: {} }]
+              }
+            ]
           },
           # Numbered list items
           {

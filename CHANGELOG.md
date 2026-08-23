@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **BlockEditor: Enter did nothing.** The editor mounted, rendered and accepted typing; the one
+  thing it would not do was break the line, and the console carried
+  `RangeError: Can not convert <> to a Fragment (looks like multiple versions of prosemirror-model
+  were loaded)` from `Transaction.split`. The cause was not in the code but in the dummy's
+  lockfile: bumping `@blocknote/*` to 0.53.0 made yarn 1 add a NEW `prosemirror-model` entry
+  instead of re-resolving the existing one, even though a single version satisfied both ranges.
+  With two copies in the bundle the `instanceof` ProseMirror validates nodes with fails, and
+  `splitBlock` -- which is what Enter runs -- throws. `prosemirror-transform` and
+  `prosemirror-view` were split the same way. All three are deduped with `resolutions`, and the
+  installation guide now names the symptom and the fix for host apps, which can hit this on their
+  own lockfiles.
+- **BlockEditor: a leading heading no longer starts pushed down.** BlockNote puts 18px of air
+  above EVERY heading. That air is the separation from the text the heading follows; the first
+  block has nothing to separate from, so the field began with its content pushed down and read as
+  a misaligned input. Only the first top-level block is exempt now: a heading opening a column or
+  a nested group does follow something and keeps its space.
+
+### Added
+
+- **BlockEditor: `size:` scales the whole document at once.** The editor had no say in how large
+  its text was: BlockNote hardcodes the body at 16px and Bali never touched it, so a description
+  field inside a drawer rendered at document scale -- 16px paragraphs under a 48px `h1` -- with
+  nothing but host CSS to reach for. `size:` (`:xs`, `:sm`, `:md`, `:lg`) now sets it, and because
+  BlockNote derives headings, lists, quotes and table cells in `em` off that single body
+  font-size, one value moves the entire document in proportion instead of letting the paragraphs
+  drift away from the headings. The geometry a list is read by goes with it -- BlockNote pins the
+  bullet gutter, the nesting indent and the check row at 24px, which at 12px text reads as a list
+  whose markers have drifted away from it -- and so does the code block, which pinned to `rem`
+  would end up larger than the body text around it. All of them now spell the same px they always
+  did at the default size, and so does the air above a heading. The chrome -- toolbars, side
+  menu, slash menu, thread cards --
+  deliberately keeps its size at every setting; it is UI, not content. Forwarded by the
+  FormBuilder helpers, so `f.rich_text_group :description, size: :sm` works. An unknown size
+  raises at the call site.
 ## [v3.1.1] - 2026-08-20
 
 ### Fixed

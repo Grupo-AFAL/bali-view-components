@@ -6,6 +6,18 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
+      # The size of the text the editor renders, as one class on the wrapper.
+      # BlockNote sizes the editor body once and derives everything inside it --
+      # headings, lists, quotes, table cells -- in `em` off that value, so a
+      # single font-size scales the whole document in proportion. `index.css`
+      # holds the actual measurements.
+      SIZES = {
+        xs: "block-editor-size-xs",
+        sm: "block-editor-size-sm",
+        md: "block-editor-size-md",
+        lg: "block-editor-size-lg"
+      }.freeze
+
       # Distinguishes "the caller did not pass this" from "the caller passed the
       # value that happens to be the default". Without it, `config:` could not be
       # overridden by an explicit `comments: false` or `upload_url: nil`, because
@@ -25,6 +37,7 @@ module Bali
         syntax_highlighting: UNSET,
         editable: true,
         placeholder: nil,
+        size: :md,
         upload_url: UNSET,
         theme: :light,
         export: UNSET,
@@ -109,6 +122,7 @@ module Bali
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
 
         @options = prepend_class_name(options, "block-editor-component")
+        @options = prepend_class_name(@options, size_class(size))
         @options = prepend_controller(@options, "block-editor")
         @options = prepend_values(@options, "block-editor", controller_values)
       end
@@ -176,6 +190,18 @@ module Bali
       # the single most common way this component is mis-installed, so say so
       # loudly where it is safe to: logs always, plus a visible placeholder in
       # development and test (see component.html.erb).
+      # nil renders the default; anything unknown raises instead of defaulting in
+      # silence -- the same contract Bali::Alert and Bali::Tag use.
+      def size_class(size)
+        return SIZES[:md] if size.nil?
+
+        SIZES.fetch(size.to_sym) do
+          raise ArgumentError,
+                "#{self.class.name}: unknown size #{size.inspect}. " \
+                "Valid: #{SIZES.keys.map(&:inspect).join(', ')}."
+        end
+      end
+
       def warn_disabled
         Rails.logger.warn(
           "[Bali] BlockEditor::Component was rendered but `Bali.block_editor_enabled` is false, " \
