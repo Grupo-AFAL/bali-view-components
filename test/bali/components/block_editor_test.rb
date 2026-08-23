@@ -82,6 +82,48 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_selector("div.block-editor-component.custom-class")
   end
 
+  def test_defaults_to_the_medium_text_size
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector("div.block-editor-component.block-editor-size-md")
+  end
+
+  def test_applies_the_requested_text_size_class
+    render_inline(Bali::BlockEditor::Component.new(size: :sm))
+    assert_selector("div.block-editor-component.block-editor-size-sm")
+  end
+
+  def test_accepts_a_string_text_size
+    render_inline(Bali::BlockEditor::Component.new(size: "lg"))
+    assert_selector("div.block-editor-component.block-editor-size-lg")
+  end
+
+  def test_treats_a_nil_text_size_as_the_default
+    render_inline(Bali::BlockEditor::Component.new(size: nil))
+    assert_selector("div.block-editor-component.block-editor-size-md")
+  end
+
+  def test_keeps_custom_classes_alongside_the_text_size
+    render_inline(Bali::BlockEditor::Component.new(size: :xs, class: "custom-class"))
+    assert_selector("div.block-editor-component.block-editor-size-xs.custom-class")
+  end
+
+  # The size must never reach the wrapper as an HTML attribute: every keyword the
+  # component does not name is forwarded onto the div, and `size="sm"` on a div is
+  # a silent no-op that looks like it worked.
+  def test_does_not_leak_the_text_size_as_an_html_attribute
+    render_inline(Bali::BlockEditor::Component.new(size: :sm))
+    assert_no_selector("div.block-editor-component[size]", visible: :all)
+  end
+
+  def test_raises_on_an_unknown_text_size
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::BlockEditor::Component.new(size: :huge))
+    end
+
+    assert_includes error.message, "unknown size :huge"
+    assert_includes error.message, ":xs, :sm, :md, :lg"
+  end
+
   def test_sets_controller_data_attribute
     render_inline(Bali::BlockEditor::Component.new)
     assert_selector('[data-controller="block-editor"]')

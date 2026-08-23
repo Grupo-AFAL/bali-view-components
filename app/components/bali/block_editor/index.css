@@ -91,6 +91,93 @@
   --bali-block-editor-min-height: 4rem;
 }
 
+/* Text size. BlockNote declares the size of the editor body exactly once, on
+   `.bn-editor.bn-default-styles` (16px, hardcoded), and everything it renders
+   inside is an `em` off that value: headings at 3em/2em/1.3em/1em/.9em/.8em,
+   and `font-size: inherit` for paragraphs, list items and table cells. So this
+   one declaration IS the scale -- change it and the whole document shrinks in
+   proportion, instead of the paragraphs drifting away from the headings.
+   `.block-editor-component .bn-editor` (0,2,0) beats BlockNote's own
+   `.bn-default-styles` (0,1,0), and this file loads after it (see the header).
+   The editor chrome -- toolbars, side menu, slash menu, thread cards -- is
+   deliberately left out: it is UI, not content, and shrinking a menu below its
+   hit target to match a compact field is not what a smaller field asked for. */
+.block-editor-component .bn-editor.bn-default-styles {
+  font-size: var(--bali-block-editor-font-size, 1rem);
+}
+
+.block-editor-component.block-editor-size-xs {
+  --bali-block-editor-font-size: 0.75rem;
+}
+
+.block-editor-component.block-editor-size-sm {
+  --bali-block-editor-font-size: 0.875rem;
+}
+
+.block-editor-component.block-editor-size-md {
+  --bali-block-editor-font-size: 1rem;
+}
+
+.block-editor-component.block-editor-size-lg {
+  --bali-block-editor-font-size: 1.125rem;
+}
+
+/* The geometry of a list is part of its text, and BlockNote pins all of it in
+   px: a 24px bullet gutter, a 24px indent per nesting level and a 24px-tall
+   check row. Left alone they do not move with `size:`, and the smaller settings
+   come out visibly wrong -- 12px text sitting in a 24px gutter reads as a list
+   whose markers have drifted away from it, and the check rows space out into a
+   loose ladder. In `em` the same numbers resolve to exactly the px values above
+   at the default size and shrink with the text below it.
+   Note these resolve against the body size, not the block's: BlockNote sizes
+   headings on `.bn-block-content`, while the gutter and the indent live on the
+   `:before` and on `.bn-block-group`, which inherit from the editor. */
+.block-editor-component .bn-editor .bn-block-group .bn-block-group {
+  margin-left: 1.5em;
+}
+
+.block-editor-component .bn-editor .bn-block-content[data-content-type="bulletListItem"]::before,
+.block-editor-component .bn-editor .bn-block-content[data-content-type="numberedListItem"]::before {
+  min-width: 1.5em;
+  padding-right: 0.25em;
+}
+
+.block-editor-component .bn-editor .bn-block-content[data-content-type="checkListItem"] > div:has(> input) {
+  height: 1.5em;
+}
+
+.block-editor-component .bn-editor .bn-block-content[data-content-type="checkListItem"] > div > input {
+  width: 0.75em;
+  height: 1.5em;
+  margin-left: 0.25em;
+  margin-right: 0.5em;
+}
+
+/* The hairline down the left of a nested group is positioned against that same
+   indent, so it has to move with it: pinned at BlockNote's -20px it ends up on
+   the wrong side of the parent's text as soon as the indent drops below 20px. */
+.block-editor-component .bn-editor .bn-block-group .bn-block-group > .bn-block-outer:not([data-prev-depth-changed])::before {
+  left: -1.25em;
+}
+
+/* BlockNote puts 18px above EVERY heading, first block of the document included.
+   That padding is the air a heading needs from the text it follows; at the top of
+   a document there is nothing to separate it from, and the field just starts with
+   its content pushed down -- which reads as a misaligned input, not as rhythm.
+   Only the first TOP-LEVEL block is exempt: the first heading inside a column or
+   a nested group does follow something, so it keeps its space.
+   The padding itself is stated against the editor's body size rather than left at
+   18px, because in `em` it would resolve against the HEADING's own size (3em for
+   an h1 -> 54px) and BlockNote's px does not follow `size:` at all. At the default
+   size the calc spells exactly the 18px it always was. */
+.block-editor-component .bn-editor .bn-block-content[data-content-type="heading"] {
+  padding-top: calc(var(--bali-block-editor-font-size, 1rem) * 1.125);
+}
+
+.block-editor-component .bn-editor > .bn-block-group > .bn-block-outer:first-child .bn-block-content[data-content-type="heading"] {
+  padding-top: 0;
+}
+
 /* Editor body: white background, remove default padding */
 .block-editor-component .bn-editor {
   background-color: var(--color-base-100);
@@ -209,9 +296,13 @@
   margin: 0;
 }
 
+/* `em`, not `rem`: code is editor content, so it has to ride the `size:` scale
+   with the paragraphs around it. At the default size the two spell the same
+   14px; pinned to `rem` a code block ends up LARGER than the body text it sits
+   in as soon as the editor is set to `:xs`. */
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] pre code {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.875em;
   line-height: 1.5;
 }
 

@@ -30,6 +30,33 @@ All of these are declared as **optional** peer dependencies of `bali-view-compon
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 
+**Keep exactly one copy of each `prosemirror-*` package in the bundle.** This one has a signature symptom: the editor mounts, renders and accepts typing, but **Enter does nothing** -- the caret stays on the same line and the console shows
+
+```
+RangeError: Can not convert <> to a Fragment (looks like multiple versions of prosemirror-model were loaded)
+    at Transaction.split
+```
+
+ProseMirror validates nodes with `instanceof` against its own copy of the classes, so two copies in one bundle make `splitBlock` -- which is what Enter runs -- throw. Nothing else breaks, which is why it survives a smoke test.
+
+The duplicate comes from the lockfile, not from your code. With Yarn 1 it appears when you bump `@blocknote/*`: the new package asks for a range the existing lock entry does not literally list, so yarn adds a **second** entry instead of re-resolving the first, even when one version satisfies both. Check with:
+
+```bash
+find node_modules -type d -name prosemirror-model -maxdepth 4
+```
+
+More than one hit means you have it. The fix is to force a single copy in your `package.json`:
+
+```json
+"resolutions": {
+  "prosemirror-model": "^1.25.11",
+  "prosemirror-transform": "^1.12.0",
+  "prosemirror-view": "^1.42.2"
+}
+```
+
+then `yarn install` and rebuild. Re-check after every `@blocknote/*` upgrade: `resolutions` keeps the tree deduped but the pinned floor has to move with the editor.
+
 > **Node >= 22 is required to install this.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. On Node 20, `yarn install` stops with `error lib0@1.0.0-rc.22: The engine "node" is incompatible with this module` and `Found incompatible module` -- an install-time failure, not a runtime one, so you will see it immediately rather than in production. This repository's own CI moved from Node 20 to 22 for exactly this reason. `lib0` is the only package in the tree that asks for 22.
 
 ### Step 2 -- esbuild flags
@@ -352,6 +379,42 @@ Markdown is a lossy target by construction (BlockNote names the serializer `bloc
 
 ---
 
+## Text size
+
+`size:` sets how large the editor renders its content.
+
+| `size:` | Body text | h1 | h2 | h3 |
+|---------|-----------|----|----|----|
+| `:xs` | 0.75rem (12px) | 36px | 24px | 15.6px |
+| `:sm` | 0.875rem (14px) | 42px | 28px | 18.2px |
+| `:md` (default) | 1rem (16px) | 48px | 32px | 20.8px |
+| `:lg` | 1.125rem (18px) | 54px | 36px | 23.4px |
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  markdown_content: @task.description,
+  input_name: 'task[description]',
+  preset: :simple,
+  size: :sm
+) %>
+```
+
+**The scale is uniform.** BlockNote declares the size of the editor body once and derives everything inside it in `em` -- headings at `3em`/`2em`/`1.3em`/`1em`/`.9em`/`.8em`, and `font-size: inherit` for paragraphs, list items, quotes and table cells. Changing `size:` therefore moves the whole document in proportion; it never leaves the paragraphs at one scale and the headings at another.
+
+The geometry a list is read by scales with it: the bullet gutter, the indent per nesting level and the height of a check row are all part of the text's rhythm, and at 12px text a 24px gutter reads as a list whose markers have drifted away from it. Code blocks scale too. Every one of these spells exactly the px it always did at `:md`.
+
+The editor **chrome** does not scale: toolbars, the side menu, the slash menu and the comment thread cards keep their size at every setting. They are UI rather than content, and shrinking a menu below its hit target is not what a compact field asked for.
+
+`size:` pairs naturally with `preset: :simple`, which already shortens the editor to textarea height -- together they turn the editor into something that reads as a form field rather than a document canvas. It is forwarded by the FormBuilder helpers like any other option:
+
+```erb
+<%= f.rich_text_group :description, size: :sm %>
+```
+
+An unknown size raises `ArgumentError` at the call site rather than silently falling back to the default.
+
+---
+
 ## Syntax highlighting
 
 Code blocks are highlighted with [Shiki](https://shiki.style/) by default (`syntax_highlighting: true`). Turning it off swaps in BlockNote's plain code block and never loads `shiki`:
@@ -398,6 +461,7 @@ The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint,
 | `input_name` | `String` | `nil` | Hidden input `name` attribute for form submission |
 | `format` | `Symbol` | `:json` | Serialization format: `:json`, `:html` or `:markdown` |
 | `preset` | `Symbol` | `:full` | UI preset: `:full` or `:simple` (see [Presets](#presets)) |
+| `size` | `Symbol` | `:md` | Text size of the editor body: `:xs`, `:sm`, `:md` or `:lg` (see [Text size](#text-size)) |
 | `syntax_highlighting` | `Boolean` | `true` | Highlight code blocks with Shiki. `false` never loads `shiki` |
 | `editable` | `Boolean` | `true` | Whether the editor is editable |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
