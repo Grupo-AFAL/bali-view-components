@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **BlockEditor: `size:` now actually travels through `block_editor_group`.** The docs said the
+  FormBuilder forwards it "like any other option"; the helper stripped it in silence —
+  `CONTROL_ONLY_OPTIONS` drops `size` on the widget families because there it could only be the
+  `<input>` attribute, and the list predates `size:` becoming the editor's own text scale. Every
+  editor built through the helper rendered `md` no matter what the call site said, with no error
+  and no workaround (the component always emits a size class, and the `md` rule wins same-specificity
+  ties by source order), which made it one of the expensive-to-diagnose kind (#1076). The helper
+  now keeps `:size` out of the strip list — `required:` stays control-only there, deliberately:
+  the editor is a widget over a hidden field, which constraint validation never reads — and the
+  `size_option_test` sweep moves `block_editor_group`/`rich_text_group` into the CARRIES contract.
+  An Integer `size:` (the value that means the HTML attribute on input families) now raises the
+  component's clear `ArgumentError` naming the valid scales instead of a `NoMethodError`.
+
 ## [v3.1.2] - 2026-08-22
 
 ### Fixed

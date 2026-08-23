@@ -70,6 +70,53 @@ class BaliFormBuilderRichTextFieldsTest < FormBuilderTestCase
     refute_html(result, "div.block-editor-component[help]")
   end
 
+  # `size:` sits in CONTROL_ONLY_OPTIONS because on an `<input>` it can only be
+  # the HTML attribute — but on this component it is API, the text scale, and
+  # the helper used to strip it in silence: every editor rendered `md` no
+  # matter what the call site said (#1076). It must reach the component as the
+  # keyword, and never the markup as an attribute.
+  def test_block_editor_group_forwards_size_to_the_component
+    result = builder.block_editor_group(:synopsis, size: :xs)
+
+    assert_html(result, "div.block-editor-component.block-editor-size-xs")
+    refute_html(result, ".block-editor-size-md")
+    refute_html(result, "[size]")
+  end
+
+  def test_block_editor_field_forwards_size_too
+    result = builder.block_editor_field(:synopsis, size: :lg)
+
+    assert_html(result, "div.block-editor-component.block-editor-size-lg")
+  end
+
+  def test_rich_text_group_forwards_size_too
+    result = builder.rich_text_group(:synopsis, size: :sm)
+
+    assert_html(result, "div.block-editor-component.block-editor-size-sm")
+  end
+
+  # On the input families an Integer `size:` means the HTML attribute; this
+  # editor has no input for it to reach, so the habit gets a clear rejection
+  # naming the valid scales instead of a NoMethodError from `4.to_sym`.
+  def test_block_editor_group_rejects_a_size_that_is_not_a_text_scale
+    error = assert_raises(ArgumentError) do
+      builder.block_editor_group(:synopsis, size: 4)
+    end
+
+    assert_match(/size/, error.message)
+    assert_match(/:xs/, error.message)
+  end
+
+  # The asymmetry is deliberate: `required:` stays control-only here — the
+  # editor is a widget over a hidden field, which constraint validation never
+  # reads — while `size:` is the component's own option. The full sweep lives
+  # in required_option_test.rb; this pins the pair side by side.
+  def test_block_editor_group_still_drops_required
+    result = builder.block_editor_group(:synopsis, required: true)
+
+    refute_html(result, "[required]")
+  end
+
   def test_rich_text_group_renders_the_help_text
     result = builder.rich_text_group(:synopsis, help: "Una ayuda")
     assert_html(result, "p.fieldset-label", text: "Una ayuda")
