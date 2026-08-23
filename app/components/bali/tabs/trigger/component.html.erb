@@ -1,5 +1,5 @@
 <%= tag.a(**trigger_attributes) do %>
   <%= render Bali::Icon::Component.new(icon, class: 'mr-1') if icon %>
   <span><%= title %></span>
-  <%= tag.span(count, class: 'badge badge-sm ml-1') unless count.nil? %>
+  <%= tag.span(count, class: class_names('badge badge-sm ml-1', count_color_class)) unless count.nil? %>
 <% end %>

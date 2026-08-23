@@ -44,6 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Tabs: `count_color:` lets a count badge express an alarm.** The `count:` badge always
+  rendered in daisyUI's neutral gray, so "3 blocking questions that stall the funnel" looked
+  exactly like "3 items" — and there was no way through: the tab's `**options` land on the panel
+  (or the `<a>` in navigation mode), never on the badge `<span>`, and the title is escaped so a
+  Tag rendered into it does not survive (#1064). `count_color:` takes the same semantic table
+  every other `color:` does (`:neutral :primary :secondary :accent :info :success :warning
+  :error :ghost`), validated by `Bali::Color.name!` like the rest; `nil` keeps today's neutral
+  badge, so no existing tab moves.
 - **Chart: the `data_table` slot is now the chart's no-JS fallback, not only its screen-reader
   version.** Without JavaScript the canvas never draws — and the fallback content inside a
   `<canvas>` tag only paints when canvas itself is unsupported, not when scripting is off — so a
