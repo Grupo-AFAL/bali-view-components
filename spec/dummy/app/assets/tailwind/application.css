@@ -2,6 +2,10 @@
 @plugin "daisyui" {
   themes: light --default, dark;
 }
+/* Same pairing afal-apps ships: daisyUI maps the prose palette onto the theme,
+   and bali/prose-invert.css (imported below via bali.css) keeps `prose-invert`
+   functional on top of that mapping (#1063). */
+@plugin "@tailwindcss/typography";
 
 /* ==============================================
    Source Paths - Tailwind class scanning

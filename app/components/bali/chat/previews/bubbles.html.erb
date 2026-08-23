@@ -103,5 +103,27 @@
       </div>
     </section>
 
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Markdown on a dark bubble</h3>
+      <p class="text-xs text-base-content/50">
+        On a colored bubble <code>prose</code> alone maps to <code>base-content</code> —
+        dark on dark. <code>prose-invert</code> switches to the light palette; Bali restores
+        the class against daisyUI's higher-specificity theme mapping (#1063).
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::Message::Component.new(
+              position: :end, color: :primary,
+              bubble_class: 'max-w-[82%] prose prose-sm prose-invert'
+            ) do %>
+          <p>Two follow-ups before we close:</p>
+          <ul>
+            <li>Send the <strong>signed minutes</strong> to the secretary</li>
+            <li>Confirm the <a href="#">quorum rule change</a></li>
+            <li>Set <code>quorum_threshold</code> to <code>0.51</code></li>
+          </ul>
+        <% end %>
+      </div>
+    </section>
+
   </div>
 </div>
