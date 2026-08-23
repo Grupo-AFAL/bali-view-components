@@ -43,6 +43,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deliberately keeps its size at every setting; it is UI, not content. Forwarded by the
   FormBuilder helpers, so `f.rich_text_group :description, size: :sm` works. An unknown size
   raises at the call site.
+## [v3.1.1] - 2026-08-20
+
+### Fixed
+
+- **DataTable: the `simple_filters` slot takes `preserved_params:`, like `filters_panel`
+  always did** (#1056). The two filter slots treated a host's own params differently: the
+  panel merged an explicit `preserved_params:` over the listing state, while the inline row
+  passed the state alone — so a listing param that is not a filter (a tab, a tree depth)
+  was dropped by every GET submit of the row, silently: no error, the filter applies, and
+  the user is back at the default without having asked. The only way out was rendering
+  `SimpleFilters` by hand outside the DataTable, which splits the toolbar in two rows and
+  duplicates the clear control. Same semantics, same precedence as the panel: explicit
+  params merge over `group_by`/`view` instead of replacing them, and without the argument
+  the submit behaves as before. The row's **Clear link** now carries the same pairs the
+  submit emits as hidden fields — clearing removes the filters, not the view state. Before,
+  it dropped the grouping, the display mode and the host's params that the submit right
+  beside it had just preserved; the panel already kept them on clear
+  (`clearFiltersAndClose` re-reads the hidden fields), so this closes the same gap through
+  the adjacent control.
+
+### Added
+
+- **Page components: the title's heading level is contextual — `h1` on a page, `h2` inside a
+  drawer — with `heading:` as the explicit escape hatch** (#1055). The heading was the fourth
+  axis of chrome that had not followed `back:`, the breadcrumbs and FormPage's Card into the
+  context: `render_page_header` passed the title as a constructor argument and PageHeader
+  emitted a fixed `h1`, so opening a drawer left the document with two `h1`s — the page
+  underneath and the panel's — and the host had no way down, because the five page components
+  never expose PageHeader's `title` slot, which is where `tag:` lives. The two views that
+  needed a compact panel heading had to write the drawer branch by hand — the exact
+  `if drawer_request?` the contextual delegation came to remove. `heading:` follows the
+  `card:` contract: `nil`, the default, hands the decision to the context, and an explicit
+  value wins in both directions. It steps down to `:h2` and not `:h3` so the panel keeps the
+  document's hierarchy without skipping levels. PageHeader itself gains `heading:` on the
+  constructor — the same semantic-only element choice the slot's `tag:` already made: the
+  size stays `TITLE_CLASSES` and does not follow the level.
+
+- **LocationsMap: `fit_to_locations:` frames every marker instead of trusting
+  `center_*`/`zoom:`** (#1057). The component took a center and a zoom on faith, so a consumer
+  with markers it can't predict had to guess — and the obvious guess, averaging the
+  coordinates, lands in the middle of nowhere the moment two locations are far apart
+  (for Centinela, the middle is the sea) at a zoom that shows neither. With
+  `fit_to_locations: true` the controller builds a `LatLngBounds` over every location
+  and hands it to `fitBounds`, so the viewport always contains all markers. `zoom:`
+  becomes the ceiling the map never zooms in past — what keeps a single location (or a
+  very tight cluster) off street level, where `fitBounds` would otherwise land. The
+  `center_*` values only paint the first frame before the fit resolves. Off by
+  default; nothing changes for existing call sites.
 
 ## [v3.1.1.beta.2] - 2026-08-16
 

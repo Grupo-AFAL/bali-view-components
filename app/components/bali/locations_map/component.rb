@@ -16,23 +16,29 @@ module Bali
       renders_many :cards, Card::Component
       renders_many :locations, Location::Component
 
+      # fit_to_locations: frame every location instead of trusting center/zoom —
+      # with it, `zoom:` becomes the ceiling the map never zooms in past (what a
+      # single location would otherwise do), and `center_*` only paints the first
+      # frame before the fit resolves.
       def initialize(
         center_latitude: DEFAULT_CENTER_LAT,
         center_longitude: DEFAULT_CENTER_LNG,
         zoom: 12,
         clustered: false,
+        fit_to_locations: false,
         **options
       )
         @center_latitude = center_latitude
         @center_longitude = center_longitude
         @zoom = zoom
         @clustered = clustered
+        @fit_to_locations = fit_to_locations
         @options = options
       end
 
       private
 
-      attr_reader :center_latitude, :center_longitude, :zoom, :clustered, :options
+      attr_reader :center_latitude, :center_longitude, :zoom, :clustered, :fit_to_locations, :options
 
       def component_options
         opts = prepend_class_name(options, BASE_CLASSES)
@@ -44,6 +50,7 @@ module Bali
         {
           api_key: Bali.google_maps_key,
           enable_clustering: clustered,
+          fit_to_locations: fit_to_locations,
           zoom: zoom,
           center_latitude: center_latitude,
           center_longitude: center_longitude,

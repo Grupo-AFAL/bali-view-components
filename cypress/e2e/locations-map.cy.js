@@ -133,6 +133,48 @@ describe('LocationsMap', () => {
     })
   })
 
+  describe('fit to locations', () => {
+    it('leaves the map alone when the fit is not asked for', () => {
+      viewport()
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/default')
+
+      registry(({ maps }) => {
+        expect(maps[0].fittedBounds).to.eq(undefined)
+      })
+    })
+
+    it('fits the viewport to every location', () => {
+      viewport()
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/fitted')
+
+      registry(({ maps }) => {
+        expect(maps[0].fittedBounds.points).to.have.length(5)
+        expect(maps[0].fittedBounds.points[0]).to.deep.eq({
+          lat: 32.52535328002182,
+          lng: -117.01662677673296
+        })
+        // The stub fits spread-out bounds at zoom 10 — under the ceiling (12),
+        // so the clamp must leave it alone.
+        expect(maps[0].zoom).to.eq(10)
+      })
+    })
+
+    it('never zooms in past `zoom:` — the single-location case', () => {
+      viewport()
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/fitted?single=true')
+
+      registry(({ maps }) => {
+        expect(maps[0].fittedBounds.points).to.have.length(1)
+        // The stub zooms a degenerate bounds to street level (21), as the real
+        // API would; the controller clamps back to the ceiling it was given.
+        expect(maps[0].zoom).to.eq(12)
+      })
+    })
+  })
+
   describe('clustering', () => {
     it('hands every marker to the clusterer when it is asked for', () => {
       viewport()

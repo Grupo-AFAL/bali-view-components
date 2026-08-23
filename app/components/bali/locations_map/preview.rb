@@ -43,6 +43,24 @@ module Bali
         end
       end
 
+      # @label Fitted to locations
+      # With `fit_to_locations: true` the map frames every marker instead of
+      # trusting `center_*`/`zoom:` — no more guessing a center that lands in
+      # the middle of nowhere when locations are far apart. `zoom:` becomes the
+      # ceiling the map never zooms in past, which is what keeps a single
+      # location (or a very tight cluster) from landing at street level.
+      # @param zoom number
+      # @param single toggle
+      def fitted(zoom: 12, single: false)
+        locations = single ? [LOCATIONS.first] : LOCATIONS
+
+        render Bali::LocationsMap::Component.new(zoom: zoom, fit_to_locations: true) do |c|
+          locations.each do |location_attrs|
+            c.with_location(**location_attrs)
+          end
+        end
+      end
+
       # @label With Cards
       # Displays location cards alongside the map. Cards highlight when clicking markers.
       # @param zoom number
