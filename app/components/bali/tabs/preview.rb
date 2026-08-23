@@ -118,21 +118,27 @@ module Bali
       # wait behind it. `count:` renders a badge after the title — `0` renders
       # too, an empty scope is information. Every link carries
       # `data-turbo-action="advance"` by default.
+      #
+      # A count is sometimes an alarm, not just an amount: `count_color:` takes
+      # the same semantic table every other `color:` does, so "2 blocked" can
+      # look like the warning it is while "12 mine" stays neutral.
       # @param style [Symbol] select [default, border, box, lift]
       def navigation_with_counts(style: :border)
         render(Bali::Tabs::Component.new(style: style, label: 'Inbox scopes')) do |c|
           c.with_tab(title: 'Mine', count: 12, href: '/tab1', active: true)
-          c.with_tab(title: 'Team', count: 3, href: '/tab2')
+          c.with_tab(title: 'Blocked', count: 2, count_color: :warning, href: '/tab2')
           c.with_tab(title: 'Done', count: 0, href: '/tab3')
         end
       end
 
       # Tabs with panels and counters
       # -----------------------------
-      # `count:` renders in panel mode too, with the same badge.
+      # `count:` renders in panel mode too, with the same badge, and
+      # `count_color:` paints it there as well.
       def panels_with_counts
         render(Bali::Tabs::Component.new(style: :border)) do |c|
           c.with_tab(title: 'Open', count: 7, active: true) { tag.p('Seven open items') }
+          c.with_tab(title: 'Overdue', count: 3, count_color: :error) { tag.p('Three overdue items') }
           c.with_tab(title: 'Closed', count: 42) { tag.p('Forty-two closed items') }
         end
       end

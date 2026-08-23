@@ -905,6 +905,15 @@ renders — an empty scope is information. The count stays in the link's accessi
 these navs (a hub page plus a sub-navigation), give each its own `label:` — it is the only
 thing telling them apart in the rotor.
 
+A count is sometimes an alarm, not just an amount: `count_color:` paints the badge with the
+same semantic table every other `color:` takes (`:neutral :primary :secondary :accent :info
+:success :warning :error :ghost`), so "3 blocking questions" does not look like "3 items".
+`nil` keeps the neutral badge.
+
+```erb
+<% tabs.with_tab(title: "Discovery", count: 3, count_color: :warning, href: discovery_path) %>
+```
+
 **Mixing the two raises `ArgumentError`.** A `role="tablist"` where half the children are
 links leaving the page and half own a panel is not a widget ARIA describes, and it used to
 render in silence. Split it into two components, or drop `href:` from all of them.
@@ -1719,10 +1728,13 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
 - `aria_label` - Accessible name for the canvas. Falls back to `title:`, then to `bali_view.chart.default_label` (default: nil)
 
-**Slots:** `with_data_table` — a real `<table>` rendered `sr-only` next to the canvas.
+**Slots:** `with_data_table` — a real `<table>` visually hidden next to the canvas.
 
 Everything Chart.js draws is pixels, so the canvas is `role="img"` with a name. A name is not
 a number: `with_data_table` is the only way a screen reader user reads a value off the chart.
+The same table doubles as the chart's no-JS fallback: with scripting off the canvas never
+draws, so the component reveals the table (`@media (scripting: none)`) and collapses the empty
+canvas box instead of leaving a container-height hole.
 
 ```erb
 <%= render Bali::Chart::Component.new(data: @sales, title: t('.weekly_sales')) do |c| %>

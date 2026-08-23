@@ -91,6 +91,54 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal([ 10, 20 ], JSON.parse(canvas["data-chart-data-value"])["datasets"].first["data"])
   end
 
+  # Theme styling used to index `scales` with String keys while a caller's
+  # `options:` naturally carries Symbols, so the two never merged: the JSON
+  # carried `"x"` twice (an error under json 3.0) and whichever entry the
+  # browser kept last silently erased the other side's config (#1066).
+  def test_scales_merges_callers_symbol_keyed_scales_into_the_theme_axis_config
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 },
+      options: { scales: { x: { display: false }, y: { display: false, beginAtZero: true } } }
+    ))
+    raw = page.find("canvas.chart")["data-chart-options-value"]
+    assert_equal(1, raw.scan('"x":').size)
+    assert_equal(1, raw.scan('"y":').size)
+
+    scales = JSON.parse(raw)["scales"]
+    assert_equal(false, scales["x"]["display"])
+    assert_equal(true, scales["y"]["beginAtZero"])
+    assert_equal(true, scales["x"]["ticks"]["useThemeColors"])
+    assert_equal(true, scales["y"]["grid"]["display"])
+  end
+
+  def test_scales_merges_callers_string_keyed_scales_too
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 },
+      options: { "scales" => { "x" => { "display" => false } } }
+    ))
+    raw = page.find("canvas.chart")["data-chart-options-value"]
+    assert_equal(1, raw.scan('"scales":').size)
+    assert_equal(1, raw.scan('"x":').size)
+
+    x_axis = JSON.parse(raw)["scales"]["x"]
+    assert_equal(false, x_axis["display"])
+    assert_equal(true, x_axis["ticks"]["useThemeColors"])
+  end
+
+  def test_plugins_merges_callers_string_keyed_plugins_into_the_theme_config
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 },
+      options: { "plugins" => { "tooltip" => { "enabled" => false } } }
+    ))
+    raw = page.find("canvas.chart")["data-chart-options-value"]
+    assert_equal(1, raw.scan('"plugins":').size)
+    assert_equal(1, raw.scan('"tooltip":').size)
+
+    tooltip = JSON.parse(raw)["plugins"]["tooltip"]
+    assert_equal(false, tooltip["enabled"])
+    assert_equal(true, tooltip["useThemeColors"])
+  end
+
   def test_constants_has_max_label_length_constant
     assert_equal(16, Bali::Chart::Component::MAX_LABEL_LENGTH)
   end
@@ -196,23 +244,43 @@ class BaliChartComponentTest < ComponentTestCase
   end
 
   # `role="img"` gives the chart a name, not its numbers. The slot is the only
-  # way a screen reader user reads a value off it.
+  # way a screen reader user reads a value off it. The wrapper class is Bali's
+  # own, not the `sr-only` utility: without JS the canvas never draws and the
+  # chart left a container-height hole, so chart/index.css reveals this table
+  # under `@media (scripting: none)` — an override that has to live in the
+  # same layer as the hiding it undoes, which a template utility cannot (#1067).
   def test_a11y_renders_the_data_table_slot_for_screen_readers
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 })) do |c|
       c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
     end
-    assert_selector("div.sr-only table td", text: "Chocolate")
+    assert_selector("div.chart-fallback-table table td", text: "Chocolate")
+    assert_no_selector("div.sr-only")
   end
 
   def test_a11y_renders_the_data_table_slot_inside_a_card
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, card_style: :default)) do |c|
       c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
     end
-    assert_selector(".card-body div.sr-only table td", text: "Chocolate")
+    assert_selector(".card-body div.chart-fallback-table table td", text: "Chocolate")
+  end
+
+  # The no-JS reveal hides the empty canvas box through a `:has(+ .chart-fallback-table)`
+  # sibling selector, so the wrapper must stay the container's next sibling in
+  # both layouts.
+  def test_a11y_fallback_table_is_the_containers_next_sibling
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 })) do |c|
+      c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
+    end
+    assert_selector(".chart-container + .chart-fallback-table")
+
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, card_style: :default)) do |c|
+      c.with_data_table { "<table><tr><td>Chocolate</td><td>3</td></tr></table>".html_safe }
+    end
+    assert_selector(".chart-container + .chart-fallback-table")
   end
 
   def test_a11y_renders_no_table_wrapper_without_the_slot
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
-    assert_no_selector("div.sr-only")
+    assert_no_selector("div.chart-fallback-table")
   end
 end
