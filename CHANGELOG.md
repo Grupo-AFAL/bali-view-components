@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.2] - 2026-08-22
+
 ### Fixed
 
 - **`prose-invert` was dead code in every app consuming Bali.** daisyUI maps Tailwind
