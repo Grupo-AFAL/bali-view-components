@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Passing a component's own slot name as a keyword now raises instead of vanishing.**
+  `Card::Component.new(title: "Data")` was accepted in silence: `title:` is not a
+  parameter, so it fell into the component's `**options` and was painted as the root
+  element's HTML `title` attribute — a tooltip where a heading should be. Valid HTML, no
+  exception, no warning, and the text still in the body, so even an `assert_match` in a
+  test passed; ten cards in one host app went months without their heading. The mistake
+  reads as correct because sibling components (StatCard, `Tabs#with_tab`, Message) do take
+  `title:` as a parameter. `ApplicationViewComponent.new` now raises an `ArgumentError`
+  naming the `with_*` setter whenever a keyword collides with a slot the class declares
+  **and** the initializer has no parameter by that name — so a component that declares
+  both, like `PageHeader`, is untouched, and a component with no `**options` is left to
+  Ruby's own "unknown keyword". This covers every component in the library, not just Card.
+  To set the HTML attribute on purpose, write the key as a string:
+  `Card::Component.new("title" => "Tooltip")`. `Bali.raise_on_slot_keyword_conflict` gates
+  it, defaulting to on outside production. (#1081)
+
 ## [v3.1.3] - 2026-08-23
 
 ### Added
