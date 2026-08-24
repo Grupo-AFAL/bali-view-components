@@ -12,10 +12,10 @@ engine's **controllers**, see [Engines](engines.md); this page is about the **mo
 
 Every engine model follows the same four steps, so learning one teaches you the rest:
 
-1. **Install the migrations.** They ship with the gem and are copied into your app:
+1. **Install the migration**, naming the feature you want:
 
    ```bash
-   bin/rails bali:install:migrations
+   bin/rails bali:install:migrations:saved_views
    bin/rails db:migrate
    ```
 
@@ -30,6 +30,32 @@ Every engine model follows the same four steps, so learning one teaches you the 
    associations, because the engine cannot know whether your user is a `User`, a `Member`
    or an `Employee`. That is also why no engine table has a foreign key constraint
    pointing into your schema.
+
+### Installing one feature at a time
+
+The features on this page are unrelated to each other, and an app usually adopts one of
+them. Rails' plain `bali:install:migrations` does not know that: it copies **every**
+migration an engine ships, so asking for saved views also hands you content versions,
+entity references, acknowledgments and block editor comments — four tables you never
+asked for, permanently in the `db/schema.rb` every one of your PRs reviews (#1079).
+
+So name the feature. One task per table, listed by `bin/rails -T bali`:
+
+```bash
+bin/rails bali:install:migrations:saved_views
+bin/rails bali:install:migrations:content_versions
+bin/rails bali:install:migrations:entity_references
+bin/rails bali:install:migrations:acknowledgments
+bin/rails bali:install:migrations:block_editor_comments
+```
+
+Each copies exactly one migration, through the same copier the umbrella task uses: it
+renumbers to the moment of the copy, keeps the `.bali.rb` suffix, and leaves a migration
+you already installed alone. Run one now and the next one months later — that is the
+point.
+
+`bali:install:migrations` still copies all five, for an app that really does want
+everything. It now prints the per-feature list before it starts.
 
 ---
 

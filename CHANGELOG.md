@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`bali:install:migrations:<feature>` installs one engine table instead of all five.**
+  Rails' own `bali:install:migrations` copies every migration an engine ships, and Bali's
+  five are unrelated features — an app adopting saved views also got content versions,
+  entity references, acknowledgments and block editor comments, four dead tables in the
+  `db/schema.rb` every one of its PRs reviews, and the guide's per-feature sections all
+  pointed at that one command. There is now a task per feature (`saved_views`,
+  `content_versions`, `entity_references`, `acknowledgments`, `block_editor_comments`),
+  listed by `bin/rails -T bali`. Each narrows what is handed to Rails' own copier rather
+  than reimplementing it, so renumbering, the `.bali.rb` suffix and the already-installed
+  check are unchanged — and installing the next feature months later is safe to repeat.
+  The umbrella task still copies all five and now prints the per-feature list first.
+  (#1079)
+
 ## [v3.1.3] - 2026-08-23
 
 ### Added
