@@ -135,8 +135,16 @@ export class WidgetGridController extends Controller {
     return Array.from(this.gridTarget.querySelectorAll('[data-widget-key]'))
   }
 
+  // Clearing first, exactly as `kanban` does: writing the same string twice is not
+  // a DOM change, and a live region only announces changes — so arrowing a card
+  // back to a position it already announced would go silent.
   announce (message) {
-    if (this.hasAnnouncerTarget && message) this.announcerTarget.textContent = message
+    if (!this.hasAnnouncerTarget || !message) return
+
+    this.announcerTarget.textContent = ''
+    window.requestAnimationFrame(() => {
+      this.announcerTarget.textContent = message
+    })
   }
 
   // Debounced AND serialized, for two different failures.
@@ -159,8 +167,24 @@ export class WidgetGridController extends Controller {
     this.timer = setTimeout(() => this.enqueue(() => this.writeSequence()), 250)
   }
 
+  // The `.catch` is the whole reason this is safe, and it has to come AFTER
+  // `.then(write)`: a handler passed as `.then(write, onRejected)` only catches a
+  // rejection of the INCOMING queue, never one produced by `write` itself.
+  //
+  // Without it, one rejected write poisons `this.queue` permanently — every later
+  // `.then(write)` skips its callback and re-propagates, so the grid stops saving
+  // for the life of the page, silently. Nothing rejects today (`send` try/catches
+  // and always resolves a boolean), but that is an invariant held in another
+  // method, and `this.cards` throwing on a missing `gridTarget` would land here as
+  // a rejection. Announcing rather than swallowing keeps the design's promise that
+  // a failure is never silent.
   enqueue (write) {
-    this.queue = Promise.resolve(this.queue).then(write)
+    this.queue = Promise.resolve(this.queue)
+      .then(write)
+      .catch(error => {
+        console.error(error)
+        this.announce(this.failedTextValue)
+      })
     return this.queue
   }
 
@@ -201,8 +225,12 @@ export class WidgetGridController extends Controller {
   }
 
   // Its own method so a test can observe and stub it.
+  //
+  // `isConnected` because the response can land after a Turbo navigation: remove
+  // the last card, navigate away inside the round trip, and an unguarded reload
+  // reloads whatever page the user is on NOW, not the grid they left.
   reload () {
-    window.location.reload()
+    if (this.element.isConnected) window.location.reload()
   }
 }
 
@@ -254,8 +282,14 @@ export class EditModeController extends Controller {
     this.editingValue = false
   }
 
-  // Ignored while idle so it doesn't swallow Escape from a modal or a dropdown.
+  // Ignored while idle so it doesn't swallow Escape from a modal or a dropdown —
+  // and ignored when something nested already handled it. A widget's `body` slot
+  // can hold a modal or a popover with its own Escape-to-close, and those call
+  // `preventDefault` without stopping propagation, so the keydown reaches this
+  // window listener too. Without the `defaultPrevented` check, closing a dropdown
+  // inside a card would also drop the user out of edit mode.
   keydown (event) {
+    if (event.defaultPrevented) return
     if (event.key === 'Escape' && this.editingValue) this.leave()
   }
 
@@ -283,7 +317,14 @@ export class EditModeController extends Controller {
     window.history.pushState({}, '', url)
   }
 
+  // Same clear-then-set as the grid controller: they share one announcer node, and
+  // a live region only announces changes.
   announce (message) {
-    if (this.hasAnnouncerTarget && message) this.announcerTarget.textContent = message
+    if (!this.hasAnnouncerTarget || !message) return
+
+    this.announcerTarget.textContent = ''
+    window.requestAnimationFrame(() => {
+      this.announcerTarget.textContent = message
+    })
   }
 }

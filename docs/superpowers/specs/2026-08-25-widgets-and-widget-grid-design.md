@@ -211,6 +211,17 @@ serialized through one promise queue (two in-flight requests are two complete an
 is read when the request is built, not when it is queued. `disconnect` clears the timer, so a Turbo
 navigation during the debounce window cannot PATCH a DOM that has already been replaced.
 
+**Two known follow-ups on the controllers**, both from review of Task 7:
+
+- **`EditModeController.push` uses raw `pushState`,** not Turbo's history bookkeeping, where
+  `modal/index.js` routes through `window.Turbo.session.history.push` when Turbo is present.
+  Probably fine — the path never changes, only a query param — but "probably" is below the bar
+  the rest of this file holds. The Cypress spec must assert that browser-Back leaves edit mode
+  **without a full navigation**, not merely that the URL and class end up right.
+- **`remove()` announces the widget but not the new total,** where `move()` announces
+  "position X of Y". A screen-reader user removing cards loses the running count. Needs a new
+  locale string carrying a count, so it was left out of the initial pass.
+
 Failures are announced, never swallowed: the whole design rests on the DOM being truthful — no draft,
 no save button — so the one moment it stops being truthful is the one moment the user must be told.
 
