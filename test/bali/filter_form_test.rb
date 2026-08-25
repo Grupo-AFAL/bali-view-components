@@ -179,6 +179,11 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     ActionController::Parameters.new(q: filter_attributes)
   end
 
+  # Lo que manda el panel avanzado: `q[g][N][attr_pred]`.
+  def grouped_params(groups)
+    ActionController::Parameters.new(q: { g: groups.transform_keys(&:to_s) })
+  end
+
   def test_initialize_initializes_a_form_with_provided_attributes
     assert_equal("Iron", @form.name_i_cont)
   end
@@ -240,6 +245,82 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
     refute(@form.active_filters?)
     assert_equal(0, @form.active_filters_count)
+  end
+
+  # #1085 — la cuarta fuente. Las condiciones del panel avanzado viajan anidadas
+  # (`q[g][N][attr_pred]`), no planas bajo `q`, así que `active_filters` no las ve por
+  # construcción: `Table` pintaba "Aún no hay registros" sobre un catálogo entero recortado
+  # a cero desde el panel.
+  def test_active_filters_counts_a_condition_of_the_advanced_panel
+    @form = MovieFilterForm.new(@tenant.movies, grouped_params(0 => { name_cont: "Iron" }))
+
+    assert(@form.active_filters?)
+    assert_equal(1, @form.active_filters_count)
+  end
+
+  def test_active_filters_counts_every_condition_across_groups
+    @form = MovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { name_cont: "Iron", genre_eq: "Action" }, 1 => { name_cont: "Man" })
+    )
+
+    assert_equal(3, @form.active_filters_count)
+  end
+
+  def test_active_filters_adds_the_advanced_panel_to_the_flat_half
+    @form = MovieFilterForm.new(@tenant.movies,
+                                params({ name_i_cont: "Iron" }).tap { |p|
+                                  p[:q][:g] = { "0" => { genre_eq: "Action" } }
+                                })
+
+    assert_equal(2, @form.active_filters_count)
+  end
+
+  # Una fila del builder sin valor no recorta nada, y un `between` con los dos extremos en
+  # blanco tampoco: es un Hash, así que pasa `present?` sin aportar un solo par a la query.
+  # Es la misma regla que decide qué VIAJA — ver el test de equivalencia más abajo.
+  def test_active_filters_ignores_an_empty_condition_of_the_advanced_panel
+    @form = MovieFilterForm.new(@tenant.movies, grouped_params(0 => { name_cont: "" }))
+
+    refute(@form.active_filters?)
+    assert_equal(0, @form.active_filters_count)
+  end
+
+  def test_active_filters_ignores_a_between_with_both_ends_blank
+    @form = MovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_gteq: "", created_at_lteq: "" })
+    )
+
+    refute(@form.active_filters?)
+  end
+
+  # Lo que se CUENTA y lo que VIAJA tienen que ser la misma pregunta: si divergen, un bulk
+  # action actúa sobre un conjunto distinto del que el listado dice estar mostrando.
+  def test_what_counts_as_applied_is_what_travels
+    [
+      { name_cont: "Iron" },
+      { name_cont: "" },
+      { created_at_gteq: "", created_at_lteq: "" },
+      { created_at_gteq: "2026-01-01", created_at_lteq: "" }
+    ].each do |conditions|
+      form = MovieFilterForm.new(@tenant.movies, grouped_params(0 => conditions))
+      travels = Bali::Filters::ActiveFilterParams.group_pairs(form.filter_groups).any?
+
+      assert_equal(travels, form.applied_filter_conditions.any?, conditions.inspect)
+    end
+  end
+
+  # El hash sigue siendo SOLO la mitad plana, y tiene que seguir siéndolo: se re-emite como
+  # pares `q[...]`, así que una condición de grupo metida ahí saldría dos veces —plana y
+  # anidada— y el bulk mandaría un filtro que el listado nunca aplicó.
+  def test_the_flat_hash_does_not_absorb_the_advanced_panel
+    @form = MovieFilterForm.new(@tenant.movies, grouped_params(0 => { name_cont: "Iron" }))
+
+    assert_empty(@form.active_filters)
+    assert_equal(
+      [ [ "q[g][0][m]", "or" ], [ "q[g][0][name_cont]", "Iron" ] ],
+      Bali::Filters::ActiveFilterParams.for_filter_form(@form)
+    )
   end
 
   # `s` is Ransack's sort param. Sorting is not narrowing.
