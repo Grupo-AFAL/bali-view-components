@@ -295,6 +295,16 @@ What this does and does not buy you:
 ) %>
 ```
 
+`editable: false` also turns uploads off, whatever `upload_url:` says. That is worth stating
+because the default is the other way round: **not passing `upload_url:` does not disable
+uploads, it enables them** — the default is `:auto`, which resolves to the engine's own
+endpoint. A viewer that still accepted uploads was collecting unattached blobs nobody could
+see (#1092).
+
+`readonly:` is accepted as a deprecated alias of `editable: false` and is removed in 4.0. It
+used to be a silent no-op: not a parameter, so it landed in `**options` and was painted as
+`readonly="readonly"` on a `<div>`, where it means nothing — the screen stayed editable.
+
 ### Inside a Form
 
 When `input_name` is provided, the editor syncs its content to a hidden input field. Use `format:` to control the serialization format.
@@ -512,9 +522,10 @@ The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint,
 | `preset` | `Symbol` | `:full` | UI preset: `:full` or `:simple` (see [Presets](#presets)) |
 | `size` | `Symbol` | `:md` | Text size of the editor body: `:xs`, `:sm`, `:md` or `:lg` (see [Text size](#text-size)) |
 | `syntax_highlighting` | `Boolean` | `true` | Highlight code blocks with Shiki. `false` never loads `shiki` |
-| `editable` | `Boolean` | `true` | Whether the editor is editable |
+| `editable` | `Boolean` | `true` | Whether the editor is editable. `false` also turns uploads off |
+| `readonly` | `Boolean` | — | **Deprecated**, removed in 4.0. Alias of `editable: !readonly` |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
-| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes |
+| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes; `nil` turns uploads off, and so does `editable: false` |
 | `theme` | `Symbol` | `:light` | Editor theme: `:light` or `:dark` |
 | `export` | `Boolean`, `Array` | `false` | Enable export. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
 | `export_filename` | `String` | `'document'` | Base filename for exported files (without extension) |

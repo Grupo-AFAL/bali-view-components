@@ -28,6 +28,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The BlockEditor keyword arguments that used to be a silent no-op now say so.** All three
+  editor surfaces end in `**options`, which is painted onto the root element, so a keyword
+  the component does not declare produced valid HTML, no error, no warning, and the feature
+  left at its default. Two shapes of that cost one host app real defects. **The v2 spellings:**
+  `ai_url:`, `export:`, `references_url:` and `comments:` travel inside `config:` since v3, and
+  passed loose they landed in `**options` — three views had AI, export, references and comments
+  off from the day of the migration, and `DocumentPage`'s reference chips rendered with the
+  default icon and label. Any `Config` key passed loose to `BlockEditor`, `DocumentEditor` or
+  `DocumentPage` now warns through `Bali.deprecator`, naming the keys and the `config:` they
+  belong in. **`readonly:`** is the Rails word and the obvious guess; it was painted as
+  `readonly="readonly"` on a `<div>`, where it means nothing, so two "read-only" screens were
+  editable. It is now a deprecated alias of `editable: !readonly`, removed in 4.0. And
+  **`editable: false` turns uploads off**, whatever `upload_url:` says — the default is
+  `:auto`, so *not* passing the key does not disable uploads, it enables them, and those two
+  screens were accepting uploads into unattached blobs nobody could see. `:auto` already
+  checked `editable?`; an explicit URL did not, and now the rule is whole. (#1092)
+
+### Fixed
+
 - **A listing narrowed only from the advanced filters panel no longer blames the data for
   it.** `Table` picks between its two empty states with `FilterForm#active_filters?`, and
   that summed three of the four ways a listing can be narrowed: the `filter_attribute`
