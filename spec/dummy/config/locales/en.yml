@@ -5,6 +5,7 @@ en:
   # Navigation
   navbar:
     dashboard: Dashboard
+    widgets: Widgets
     movies: Movies
     showcase: Showcase
     landing: Landing
@@ -66,6 +67,43 @@ en:
     hour: Hour
     activity: Activity
     today: Today
+
+  # The real widget dashboard demo page (see DashboardWidgetsController) —
+  # copy for the page chrome around Bali::WidgetGrid::Component. Distinct from
+  # `widgets.*` below, which is each WIDGET's own copy.
+  dashboard_widgets:
+    title: Widgets
+    subtitle: Your own arrangement — drag, resize or remove a card; it's saved automatically.
+
+  # A widget's title/short_title/description/empty come from THIS scope, not
+  # `bali_view.widgets.*` (that's Bali's own chrome — the Edit/Done labels, the
+  # size names). See docs/guides/engine-models.md, "Dashboard widgets".
+  widgets:
+    overdue_tasks:
+      title: Overdue tasks
+      short_title: Overdue
+      description: Tasks past their due date, across every project
+      empty: Nothing overdue
+    recent_movies:
+      title: Recent movies
+      short_title: Recent movies
+      description: The newest movies added to the catalog
+      empty: No movies yet
+    active_studios:
+      title: Active studios
+      short_title: Active studios
+      description: Partner studios currently active
+      empty: No active studios
+    upcoming_tasks:
+      title: Upcoming tasks
+      short_title: Upcoming
+      description: Tasks due today or later, soonest first
+      empty: Nothing on the schedule
+    top_budget_movies:
+      title: Top budget movies
+      short_title: Top budget
+      description: The biggest budgets in the catalog, highest first
+      empty: No budgeted movies yet
 
   # Movies
   movies:

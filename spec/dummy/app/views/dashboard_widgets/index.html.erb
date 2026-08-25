@@ -1,0 +1,15 @@
+<%# The real widget dashboard demo — wired to DashboardWidgetsController and
+    real models, unlike the Lookbook preview's stub. Press Edit to rearrange,
+    resize or remove a card; reload to see it stick. %>
+<%= render Bali::PageHeader::Component.new(
+  title: t('dashboard_widgets.title'),
+  subtitle: t('dashboard_widgets.subtitle')
+) %>
+
+<div class="mt-6">
+  <%= render Bali::WidgetGrid::Component.new(url: dashboard_widgets_path) do |grid| %>
+    <% @layout.widgets.each do |widget| %>
+      <% grid.with_widget(widget) %>
+    <% end %>
+  <% end %>
+</div>

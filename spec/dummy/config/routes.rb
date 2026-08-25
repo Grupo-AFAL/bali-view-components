@@ -87,6 +87,12 @@ Rails.application.routes.draw do
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
   resource :widget_layout, only: :update
+
+  # The real widget dashboard demo (as opposed to the Lookbook preview's stub
+  # above): one URL for both the page and the PATCH the grid sends on every
+  # gesture, matching the `url:` the view passes to `Bali::WidgetGrid::Component`.
+  get 'dashboard_widgets', to: 'dashboard_widgets#index', as: :dashboard_widgets
+  patch 'dashboard_widgets', to: 'dashboard_widgets#update'
   get 'users', to: 'users#index'
 
   # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine
