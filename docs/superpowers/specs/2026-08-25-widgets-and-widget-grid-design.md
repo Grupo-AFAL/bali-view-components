@@ -167,7 +167,9 @@ names" constraint never applies.
 
 The component owns the whole surface enjoykitchen splits across `today/show` and `today/_widgets`: the
 `data-controller="bali-widget-grid edit-mode"` wrapper and its values, a default toolbar (enter/leave
-`Bali::Button`s occupying the same slot; `renders_one :toolbar` to override), the `sr-only` announcer
+`Bali::Button`s occupying the same slot, and always rendered — `renders_one :heading` overrides
+only the leading text, never the controls, so a host cannot delete the sole entry point to
+edit mode), the `sr-only` announcer
 both controllers write to, the `Bali::SortableList`, the dashed "+" tile when `add_path:` is given, and
 `Bali::EmptyState` when there are no widgets.
 
