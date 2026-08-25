@@ -562,7 +562,9 @@ The card and the grid share this vocabulary, so both use ABSOLUTE keys
 
 - [ ] **Step 1: Add the English strings**
 
-Add under the existing `en: bali_view:` mapping in `config/locales/bali_view.en.yml`, alphabetically among its siblings:
+Add under the existing `en: bali_view:` mapping in `config/locales/bali_view.en.yml`. The file is
+NOT alphabetical at the top level — it is append-order by feature — so append at the end,
+after `split_view:`:
 
 ```yaml
     widgets:
@@ -638,7 +640,7 @@ puts "#{flat(en).size} keys, en and es in sync"
 '
 ```
 
-Expected: `28 keys, en and es in sync`
+Expected: `21 keys, en and es in sync` (4 top-level + 17 under `edit`)
 
 - [ ] **Step 4: Commit**
 
