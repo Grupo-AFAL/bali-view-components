@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **DataTable: the controls collapsed into the `⋯` menu open over the table again.** Above
+  the `sm` breakpoint a nested dropdown inside the `⋯` floats, which is what a popover
+  inside another has to do — but the menu's own `overflow-y: auto` clipped it, and a scroll
+  container can only contain what is in flow. Measured at 1440px on a toolbar wide enough
+  to collapse Views: of its panel only a border peeked out and `elementFromPoint` at its
+  centre returned a `<td>`, so the control was unusable at exactly the widths where the `⋯`
+  is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
+  that stacks the children in flow, the two being halves of one decision — and floating, a
+  child adds no height, so above the breakpoint there is nothing to cap. (#1080)
 ### Added
 
 - **`bali:install:migrations:<feature>` installs one engine table instead of all five.**
