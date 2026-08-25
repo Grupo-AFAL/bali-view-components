@@ -24,6 +24,7 @@ module Bali
         auto_save_delay: 30000,
         input_name: nil,
         config: nil,
+        readonly: nil,
         **options
       )
         @title = title
@@ -49,7 +50,7 @@ module Bali
           else
             restore_version_url || "#{document_url}/restore_version"
           end
-        @editable = editable
+        @editable = resolve_editable(editable, readonly)
         @auto_save = auto_save
         @auto_save_delay = auto_save_delay
         @input_name = input_name || "#{@param_key}[content]"
@@ -58,6 +59,8 @@ module Bali
         # forward untouched now travel as one value. See Bali::BlockEditor::Config.
         @config = Bali::BlockEditor::Config.wrap(config)
         @config = @config.merge(export_filename: title.parameterize) if @config.export_filename.blank?
+
+        Bali::BlockEditor::Config.warn_stray_keywords(options, component: self.class.name)
 
         @options = options
         @instance_id = SecureRandom.hex(4)
@@ -86,6 +89,18 @@ module Bali
       end
 
       private
+
+      # @deprecated Ver Bali::BlockEditor::Component#resolve_editable. Se elimina en 4.0.
+      def resolve_editable(editable, readonly)
+        return editable if readonly.nil?
+
+        Bali.deprecator.warn(
+          "Bali::DocumentEditor(readonly:) is deprecated and is removed in 4.0. " \
+          "Write `editable: #{!readonly}`."
+        )
+
+        !readonly
+      end
 
       attr_reader :title, :initial_content, :document_url, :close_url,
                   :versions_url, :restore_version_url, :param_key,

@@ -26,6 +26,12 @@ module Bali
         @metadata_open = metadata_open
         @config = Bali::BlockEditor::Config.wrap(config)
         @options = options.except(*PAGE_OPTIONS)
+
+        # Los tres `references_*` de esta página también se mudaron a `config:` en v3, y
+        # sueltos se pintaban como atributos del div: los chips de referencia de la ficha
+        # publicada salían con el ícono y la etiqueta por omisión, sin re-resolver el
+        # nombre, y nada lo decía (#1092).
+        Bali::BlockEditor::Config.warn_stray_keywords(@options, component: self.class.name)
       end
 
       # @deprecated El slot se llama `body` desde v3, igual que en los otros cuatro page

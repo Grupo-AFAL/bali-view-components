@@ -55,6 +55,7 @@ module Bali
         comments: UNSET,
         comments_container_id: nil,
         config: nil,
+        readonly: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
@@ -83,10 +84,21 @@ module Bali
         @locale = locale || I18n.locale.to_s.split("-").first
         @syntax_highlighting = @config.syntax_highlighting
         @syntax_highlighting = Bali.block_editor_syntax_highlighting if @syntax_highlighting.nil?
-        @editable = editable
+        @editable = resolve_editable(editable, readonly)
         @placeholder = placeholder
         @upload_url_auto = (@config.upload_url == :auto)
-        @upload_url = @config.upload_url == :auto ? nil : @config.upload_url
+        @upload_url = @upload_url_auto ? nil : @config.upload_url
+
+        # Un visor no sube archivos, y no pasar `upload_url:` no APAGA las subidas: las
+        # ENCIENDE, porque su default es `:auto` y eso resuelve al endpoint del engine.
+        # `:auto` ya lo contemplaba —`resolve_auto_upload_url` mira `editable?`—, pero una
+        # url explícita no, así que una pantalla de solo lectura seguía aceptando subidas:
+        # blobs `unattached` que la purga de huérfanos del host se lleva a los siete días
+        # (#1092). La regla queda entera: sin edición no hay subida, venga de donde venga.
+        unless @editable
+          @upload_url_auto = false
+          @upload_url = nil
+        end
         @theme = theme
         @export = @config.export
         @export_filename = @config.export_filename || "document"
@@ -120,6 +132,8 @@ module Bali
         # -1 stands for "not configured": 0 is a real value that turns polling off,
         # so it cannot double as the unset marker.
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
+
+        Config.warn_stray_keywords(options, component: self.class.name)
 
         @options = prepend_class_name(options, "block-editor-component")
         @options = prepend_class_name(@options, size_class(size))
@@ -184,6 +198,23 @@ module Bali
       end
 
       private
+
+      # @deprecated `readonly:` es el nombre de Rails y la primera conjetura de cualquiera,
+      #   y hasta v3.1 era una trampa muda: no es parámetro del componente, así que caía en
+      #   `**options` y salía como `readonly="readonly"` en un `<div>`, donde no significa
+      #   nada. Dos pantallas "de solo lectura" de una app anfitriona eran editables, y
+      #   además aceptaban subidas, porque `upload_url:` por omisión es `:auto` (#1092).
+      #   Se elimina en 4.0.
+      def resolve_editable(editable, readonly)
+        return editable if readonly.nil?
+
+        Bali.deprecator.warn(
+          "Bali::BlockEditor(readonly:) is deprecated and is removed in 4.0. " \
+          "Write `editable: #{!readonly}`."
+        )
+
+        !readonly
+      end
 
       # A disabled component renders an empty string: no markup, no controller,
       # no error — and `assert_response :success` still passes. That silence is
