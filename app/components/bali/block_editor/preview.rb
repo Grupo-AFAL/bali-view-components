@@ -195,6 +195,24 @@ module Bali
         )
       end
 
+      # @label Pinned content format
+      # `format:` decide en qué forma se escribe el JSON, y hasta v3.1.3 con `:json` no lo
+      # decidía el host: el primer comentario del documento cambiaba la forma sola, porque
+      # BlockNote borra las marcas de comentario de `editor.document` (#1091).
+      #
+      # Los tres editores de acá abajo cargan EL MISMO documento, que ya trae marcas de
+      # comentario, y escriben en un input distinto cada uno. Escribí en cualquiera y mirá
+      # el `value` y el `data-content-format` de su input: el primero conserva las marcas y
+      # cambia de forma, los otros dos se quedan en la que el host pidió.
+      def with_pinned_format
+        render_with_template(
+          template: 'bali/block_editor/previews/with_pinned_format',
+          locals: { content: commented_document.to_json,
+                    comments: { user: sample_comments_user, users: sample_comments_users,
+                                threads: sample_comment_threads } }
+        )
+      end
+
       # Requires ANTHROPIC_API_KEY environment variable set on the Rails server.
       #
       # Type `/ai` in the editor or select text and click the AI button in the toolbar.

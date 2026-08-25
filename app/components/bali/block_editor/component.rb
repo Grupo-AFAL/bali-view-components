@@ -18,6 +18,23 @@ module Bali
         lg: "block-editor-size-lg"
       }.freeze
 
+      # Cómo se escribe el contenido en el hidden input.
+      #
+      # Los tres primeros son los de siempre. Los dos últimos existen porque `:json` es
+      # ADAPTATIVO y esa era la trampa (#1091): BlockNote borra las marcas de comentario de
+      # `editor.document`, así que con comentarios encendidos el editor cambia solo a la
+      # forma ProseMirror para no perderlas — y eso no lo dispara el host, lo dispara el
+      # primer usuario que deje un comentario. Con auto-guardado, ese comentario reescribe
+      # la columna en un esquema distinto sin que nadie lo pida, y todo lo que la lee del
+      # lado de Rails (referencias, indexado, diffs, export) se encuentra otra cosa.
+      #
+      # `:blocks` fija `editor.document` y `:prosemirror` fija la forma ProseMirror. Fijar
+      # `:blocks` con comentarios encendidos PIERDE el anclaje de cada hilo —los hilos
+      # sobreviven en su store, las marcas no—, así que el editor lo avisa por consola la
+      # primera vez que descarta una. Es un intercambio que el host puede querer; lo que no
+      # puede es que se lo hagan sin avisar.
+      FORMATS = %i[json blocks prosemirror html markdown].freeze
+
       # Distinguishes "the caller did not pass this" from "the caller passed the
       # value that happens to be the default". Without it, `config:` could not be
       # overridden by an explicit `comments: false` or `upload_url: nil`, because
@@ -76,7 +93,7 @@ module Bali
         @html_content = html_content
         @markdown_content = markdown_content
         @input_name = input_name
-        @format = format
+        @format = validated_format(format)
         @preset = preset
         # Sigue a la app por default: un editor en inglés dentro de una UI en
         # español es el error más visible de una instalación sin configurar.
@@ -176,11 +193,21 @@ module Bali
       # It must round-trip the ORIGINAL content: if the user submits without
       # touching the editor, an empty value here would silently blank the field.
       def hidden_input_value
-        case @format.to_sym
+        case @format
         when :markdown then @markdown_content.to_s
         when :html then @html_content.to_s
         else serialized_content
         end
+      end
+
+      # En qué forma está el valor que el input lleva AHORA, para el que lo lea antes de
+      # que el editor monte y lo reescriba. El editor mantiene el atributo al día en cada
+      # escritura (`useContentSync`), y del lado de Rails la misma pregunta la responde
+      # `Bali::BlockEditor.content_format` sobre la columna.
+      def content_format
+        return @format if %i[html markdown].include?(@format)
+
+        Bali::BlockEditor.content_format(@initial_content)&.to_s
       end
 
       private
@@ -196,6 +223,17 @@ module Bali
       # attribute on the input families, and now reachable through
       # `block_editor_group` (#1076) — into a NoMethodError; letting it miss
       # the fetch instead keeps the rejection one clear message.
+      # Un `format:` desconocido caía en el `else` y salía como JSON: un host que pidió
+      # markdown se llevaba JSON sin enterarse. Mismo contrato que `size_class`.
+      def validated_format(format)
+        key = format.respond_to?(:to_sym) ? format.to_sym : format
+        return key if FORMATS.include?(key)
+
+        raise ArgumentError,
+              "#{self.class.name}: unknown format #{format.inspect}. " \
+              "Valid: #{FORMATS.map(&:inspect).join(', ')}."
+      end
+
       def size_class(size)
         return SIZES[:md] if size.nil?
 
