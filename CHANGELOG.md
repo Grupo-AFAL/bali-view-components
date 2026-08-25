@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`format:` gains `:blocks` and `:prosemirror`, so the shape the editor persists is the
+  host's decision.** `format: :json` writes one of two incompatible JSON schemas — an Array
+  of blocks with `props`, or `{"type": "doc"}` with `blockGroup`/`blockContainer` wrappers
+  and `attrs` — and which one is not a preference: comment marks only survive in the
+  ProseMirror document, so the editor switches as soon as the document holds one. That
+  switch is triggered by **the first user who leaves a comment**, and with auto-save their
+  comment rewrites the host's column into the other schema without anyone asking; every
+  server-side reader (reference extraction, search indexing, version diffs, export) then
+  meets a shape it was not written for. One host lost a document's stored references to it,
+  silently, because the extractor found none and deleted what it did not find. `:blocks` and
+  `:prosemirror` pin one shape. Pinning `:blocks` with comments on drops the comment anchors
+  — the marks *are* the anchors — so the editor says so in the console the first time it
+  does, rather than losing them the way this whole option exists to stop. Two ways to tell
+  what you were handed: `Bali::BlockEditor.content_format(content)` from Ruby, and the hidden
+  input's `data-content-format`, server-rendered and kept up to date on every write, from JS.
+  An unknown `format:` now raises instead of falling through to JSON. (#1091)
+
 ### Fixed
 
 - **A listing narrowed only from the advanced filters panel no longer blames the data for

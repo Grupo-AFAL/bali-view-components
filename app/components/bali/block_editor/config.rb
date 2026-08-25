@@ -19,6 +19,12 @@ module Bali
       # `preset`, `placeholder`, `theme`, `table_of_contents*`, `show_export_buttons`
       # and `comments_container_id` -- each wrapper decides those for itself, and a
       # shared value would be a wrapper silently overriding its own layout.
+      # OJO con `comments`: encenderlo cambia la FORMA en que el editor persiste el
+      # contenido, porque las marcas de comentario solo sobreviven en el JSON de
+      # ProseMirror. Con el `format: :json` por omisión eso pasa solo, en cuanto alguien
+      # comenta. Si algo fuera del editor lee esa columna, fijá la forma con
+      # `format: :blocks` o `:prosemirror` — ver el comentario de FORMATS en
+      # BlockEditor::Component (#1091).
       ATTRIBUTES = %i[
         ai_url
         mentions_url
