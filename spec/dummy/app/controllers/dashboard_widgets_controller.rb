@@ -16,6 +16,26 @@ class DashboardWidgetsController < ApplicationController
     head :no_content
   end
 
+  # The picker: EVERY authorized widget, not just the chosen ones — `layout`
+  # only reads what's already stored, and `offering` is what the picker's
+  # checkboxes have to be built from instead. `Layout#offering` is private on
+  # purpose (see its own comments), so the controller hands the view its own
+  # copy rather than reaching around that boundary.
+  def picker
+    @layout = layout
+    @offering = offering
+  end
+
+  def update_picker
+    layout.choose(permitted_widgets)
+    redirect_to dashboard_widgets_path, notice: t('.success')
+  end
+
+  def reset
+    layout.reset
+    redirect_to dashboard_widgets_path, notice: t('.success')
+  end
+
   private
 
   def layout
@@ -48,5 +68,16 @@ class DashboardWidgetsController < ApplicationController
       widget = by_key[item[:key].to_s]
       { widget: widget, size: item[:size] } if widget
     end
+  end
+
+  # THE BOUNDARY, again, for the picker: a submitted key becomes a widget only
+  # by lookup in the already-authorized offering. An unauthorized, retired or
+  # hand-edited key finds nothing here and is silently dropped — never
+  # rejected — so a role revoked between rendering the picker and submitting
+  # it degrades quietly instead of 422ing, and a made-up key can't be used to
+  # probe whether it names a real widget.
+  def permitted_widgets
+    by_key = offering.index_by(&:key)
+    Array(params[:widget_keys]).filter_map { |key| by_key[key.to_s] }
   end
 end

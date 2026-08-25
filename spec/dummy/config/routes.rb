@@ -93,6 +93,13 @@ Rails.application.routes.draw do
   # gesture, matching the `url:` the view passes to `Bali::WidgetGrid::Component`.
   get 'dashboard_widgets', to: 'dashboard_widgets#index', as: :dashboard_widgets
   patch 'dashboard_widgets', to: 'dashboard_widgets#update'
+
+  # The picker: every AUTHORIZED widget (not just the ones currently chosen),
+  # so a dashboard emptied down to nothing still has a way back in. Submitting
+  # goes through `Layout#choose`, never `#arrange` — see the controller.
+  get 'dashboard_widgets/picker', to: 'dashboard_widgets#picker', as: :dashboard_widgets_picker
+  patch 'dashboard_widgets/picker', to: 'dashboard_widgets#update_picker'
+  delete 'dashboard_widgets/reset', to: 'dashboard_widgets#reset', as: :reset_dashboard_widgets
   get 'users', to: 'users#index'
 
   # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine

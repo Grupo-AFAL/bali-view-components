@@ -7,7 +7,8 @@
 ) %>
 
 <div class="mt-6">
-  <%= render Bali::WidgetGrid::Component.new(url: dashboard_widgets_path) do |grid| %>
+  <%= render Bali::WidgetGrid::Component.new(
+        url: dashboard_widgets_path, add_path: dashboard_widgets_picker_path) do |grid| %>
     <% @layout.widgets.each do |widget| %>
       <% grid.with_widget(widget) %>
     <% end %>
