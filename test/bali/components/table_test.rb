@@ -161,6 +161,28 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".empty-table p", text: "No Records")
   end
 
+  # #1085 — con un FilterForm de verdad, no un Struct: el defecto era que el panel avanzado
+  # no llegaba a `active_filters?`, así que un listado recortado a cero DESDE EL PANEL
+  # ofrecía "Aún no hay registros — creá el primero" sobre un catálogo entero.
+  def test_empty_states_reads_the_advanced_panel_as_filtered
+    grouped = ActionController::Parameters.new(q: { g: { "0" => { name_cont: "NO_EXISTE" } } })
+    @options = { form: Bali::FilterForm.new(Movie.all, grouped) }
+
+    render_inline(component) { |c| c.with_new_record_link(name: "Add", href: "#", modal: false) }
+
+    assert_selector(".empty-table p", text: "No Results")
+    assert_no_selector(".empty-table a", text: "Add")
+  end
+
+  def test_empty_states_still_reads_an_untouched_advanced_panel_as_empty
+    grouped = ActionController::Parameters.new(q: { g: { "0" => { name_cont: "" } } })
+    @options = { form: Bali::FilterForm.new(Movie.all, grouped) }
+
+    render_inline(component)
+
+    assert_selector(".empty-table p", text: "No Records")
+  end
+
   def test_empty_states_renders_a_table_with_new_record_link
     render_inline(component) do |c|
       c.with_new_record_link(name: "Add New Record", href: "#", modal: false)

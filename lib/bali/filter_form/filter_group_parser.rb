@@ -60,6 +60,27 @@ module Bali
         @combinator
       end
 
+      # Las condiciones del panel avanzado que de verdad recortan el listado, en una lista
+      # plana (el grupo al que pertenecen no cambia si una condición cuenta o no).
+      #
+      # Existe porque el panel avanzado viaja APARTE del resto: sus condiciones son
+      # `q[g][N][attr_pred]`, mientras que los `filter_attribute`, los filtros simples y la
+      # búsqueda rápida viven planos bajo `q` y son lo que responde `active_filters`. Ese
+      # hash no las puede incluir sin romperse —se re-emite como pares `q[...]`, así que una
+      # condición de grupo saldría DOS veces, plana y anidada—, de modo que la mitad
+      # anidada se cuenta desde acá y `active_filters?` suma las dos (#1085).
+      #
+      # Qué cuenta como aplicada lo decide `ActiveFilterParams.applied?`, que es la misma
+      # regla que decide qué VIAJA. Si contáramos con una regla propia, un `between` vacío
+      # diría "filtrado" sin aportar un solo par a la query.
+      def applied_filter_conditions
+        filter_groups.flat_map do |group|
+          Array(group[:conditions]).select do |condition|
+            Bali::Filters::ActiveFilterParams.applied?(condition)
+          end
+        end
+      end
+
       # Get detailed information about each active filter condition.
       # Useful for displaying filter pills/tags with human-readable labels.
       #
