@@ -287,7 +287,7 @@ bin/rails db:migrate
 
 ### The three pieces
 
-`Bali::Widget::Base` is the contract a widget class implements. `Bali::Widget::Layout`
+`Bali::Widget::Base` is the contract a widget class implements. `Bali::DashboardWidget::Store`
 reads and writes one owner's arrangement. `Bali::WidgetGrid::Component` renders it.
 
 ```ruby
@@ -347,9 +347,9 @@ in this engine do, since they have no locale file of their own.
 
 ### Gating: building the `offering:`
 
-`Bali::Widget::Layout` never decides who can see what. It is handed the already-authorized
-set and can only subset, reorder and resize it — a stale or tampered widget key finds
-nothing in that set and is inert.
+`Bali::DashboardWidget::Store` never decides who can see what. It is handed the
+already-authorized set and can only subset, reorder and resize it — a stale or tampered
+widget key finds nothing in that set and is inert.
 
 ```ruby
 def offering
@@ -361,21 +361,37 @@ end
 `visible?` bodies cost — never a widget query, since visibility and loading are
 deliberately kept separate.
 
-### Constructing a `Layout`
+### Constructing a `Store`
 
 ```ruby
-layout = Bali::Widget::Layout.new(
-  owner: current_user,
+layout = Bali::DashboardWidget.store_for(
+  current_user,
   context: @tenant.id.to_s,   # the scoping string; "" for a single-tenant app
   dashboard_key: "today",     # which dashboard, for a host with more than one
   offering: offering
 )
 ```
 
+Which is a shortcut for building the scope object directly — the same relationship
+`Bali::SavedView.store_for` has to `SavedView::Store`:
+
+```ruby
+layout = Bali::DashboardWidget::Store.new(
+  owner: current_user, context: @tenant.id.to_s, dashboard_key: "today", offering: offering
+)
+```
+
 Two different things are both called "context" here, and they are not the same one.
-`Layout.new(context:)` is a scoping STRING — a tenant id — and it is unrelated to
+`Store.new(context:)` is a scoping STRING — a tenant id — and it is unrelated to
 `Bali::Widget::Base#context`, the actor object a widget's `visible?` gates against.
-`Layout` never sees the actor object; `Base` never sees the scoping string.
+`Store` never sees the actor object; `Base` never sees the scoping string.
+
+`Bali::DashboardWidget::Store` is the DEFAULT implementation, not a requirement. A host
+that already persists dashboards elsewhere — an existing table, its own model — can
+implement the same contract (`widgets`, `stored_keys`, `visible_keys`, `customized?`,
+`choose`, `arrange`, `reset`) and pass that object wherever a `Store` is expected instead;
+such a host never runs `bali:install:migrations:dashboard_widgets`. See the class comment
+on `Bali::DashboardWidget::Store` for the contract in full.
 
 ### Rendering
 
@@ -409,7 +425,7 @@ that configured `add_path:` still has a way to add its first widget.
 ### The write path
 
 Bali ships **no controller and no routes** — who may see which widget is your rule, so the
-write goes through the same `Layout` you built the offering with. Every gesture — drag,
+write goes through the same `Store` you built the offering with. Every gesture — drag,
 arrow-key move, resize, remove — PATCHes the **whole** arrangement to `url:`, not a diff:
 
 ```
@@ -426,8 +442,8 @@ class WidgetLayoutsController < ApplicationController
   private
 
   def layout
-    Bali::Widget::Layout.new(owner: current_user, context: @tenant.id.to_s,
-                             dashboard_key: "today", offering: offering)
+    Bali::DashboardWidget.store_for(current_user, context: @tenant.id.to_s,
+                                    dashboard_key: "today", offering: offering)
   end
 
   # THE BOUNDARY. A submitted key becomes a widget only by looking it up in the
@@ -460,14 +476,14 @@ Two behaviours are not obvious and matter:
   (`spec/dummy/app/views/dashboard_widgets/picker.html.erb`) does exactly that.
 
 - **An empty sequence means reset.** Removing the last widget submits nothing;
-  `Layout#arrange([])` deletes every row, and no rows means "never chose" — the next read
+  `Store#arrange([])` deletes every row, and no rows means "never chose" — the next read
   restores every authorized widget, in catalog order.
 - **The grid reloads after an empty sequence.** A `204` returns no markup, which would
   leave an empty grid on screen over a full dashboard already sitting in the database,
   wrong until the next navigation — so the grid's own JavaScript does a full reload
   specifically for this one case.
 
-### `Bali::Widget::Layout` methods
+### `Bali::DashboardWidget::Store` methods
 
 | Method | Returns |
 |---|---|
@@ -482,6 +498,17 @@ Two behaviours are not obvious and matter:
 Rows never grant visibility, and a row for a widget the owner can no longer see survives
 rather than being deleted — so a temporarily revoked role, or a feature flag flipped off
 and back on, does not silently erase someone's arrangement.
+
+### Bring your own store
+
+`Bali::DashboardWidget::Store` is the **default** implementation of the contract above, not
+a requirement of it — the same seam `Bali::SavedView::Store` offers for saved views. A host
+that already persists dashboards elsewhere (an existing table, its own model) can write a
+plain object with the same seven methods (`widgets`, `stored_keys`, `visible_keys`,
+`customized?`, `choose`, `arrange`, `reset`) and pass it anywhere this guide passes a
+`Store` — the grid, the controller, the picker all just call methods on whatever they were
+handed. That host never installs `bali_dashboard_widgets` and never runs
+`bali:install:migrations:dashboard_widgets`; nothing in Bali requires the table to exist.
 
 ### Locking has real limits
 

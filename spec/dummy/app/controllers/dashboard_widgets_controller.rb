@@ -39,9 +39,8 @@ class DashboardWidgetsController < ApplicationController
   private
 
   def layout
-    @layout ||= Bali::Widget::Layout.new(
-      owner: current_user,
-      context: "",
+    @layout ||= Bali::DashboardWidget.store_for(
+      current_user,
       dashboard_key: "demo",
       offering: offering
     )
@@ -54,7 +53,7 @@ class DashboardWidgetsController < ApplicationController
   # THE BOUNDARY. A submitted key becomes a widget only by looking it up in
   # the already-authorized offering — an unauthorized or retired key finds
   # nothing and is silently dropped. That is the design's entire security
-  # property; see `Bali::Widget::Layout`.
+  # property; see `Bali::DashboardWidget::Store`.
   #
   # The blank check runs BEFORE `params.expect`, deliberately: `expect` raises
   # `ActionController::ParameterMissing` on both an omitted `widgets` key and

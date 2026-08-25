@@ -32,7 +32,7 @@ app/lib/bali/widget.rb                    Bali::Widget — SIZES, SEPARATOR, .su
 app/lib/bali/widget/base.rb               Bali::Widget::Base
 app/lib/bali/widget/result.rb             Bali::Widget::Result
 app/lib/bali/widget/row.rb                Bali::Widget::Row
-app/lib/bali/widget/layout.rb             Bali::Widget::Layout
+app/models/bali/dashboard_widget/store.rb             Bali::DashboardWidget::Store
 app/components/bali/widget/               Bali::Widget::Component — the card
   component.rb  component.html.erb  index.css  preview.rb  previews/
 app/components/bali/widget_grid/          Bali::WidgetGrid::Component — the bento
@@ -52,7 +52,7 @@ for `User` while its owner refuses to name one is self-contradicting. It also gi
 name that reads — `bali:install:migrations:dashboard_widgets` — and the feature name is derived from
 the migration filename by `Bali::EngineMigrations`, so this is the only place it is chosen.
 
-**`Bali::Widget::Layout`, not `Dashboard`.** In review "Dashboard" read as *the grid*. `Layout` names
+**`Bali::DashboardWidget::Store`, not `Dashboard`.** In review "Dashboard" read as *the grid*. `Store` names
 what the rows actually are — an ordered, sized arrangement — reads correctly against its own methods
 (`layout.arrange(…)`) and against the host endpoint enjoykitchen already calls `widget_layouts#update`.
 
@@ -298,9 +298,9 @@ add_index :bali_dashboard_widgets,
 unique index, so a nullable column would let a single-tenant host store the same widget twice.
 
 **Two things are called `context` in this design, and they are unrelated.** The column and the
-`Layout.new(context:)` argument are a **scoping string** — the tenant id, or `""` for a single-tenant
+`Store.new(context:)` argument are a **scoping string** — the tenant id, or `""` for a single-tenant
 host. `Bali::Widget::Base#context` is the **actor object** a widget's `visible?` gates against
-(enjoykitchen's `PunditUserContext`). Nothing passes one where the other is expected — `Layout` never
+(enjoykitchen's `PunditUserContext`). Nothing passes one where the other is expected — `Store` never
 sees the actor and `Base` never sees the scope string — but the names collide in conversation, so a
 reader has to know which is meant. Named here rather than renamed because the column name was chosen
 deliberately.
@@ -332,10 +332,10 @@ so two rows *can* share a position, and without a second term Postgres returns t
 — which makes `stored_keys` nondeterministic and `choose`'s "survivors keep their stored order"
 guarantee unstable.
 
-### `Bali::Widget::Layout`
+### `Bali::DashboardWidget::Store`
 
 ```ruby
-Bali::Widget::Layout.new(owner:, dashboard_key:, offering:, context: "")
+Bali::DashboardWidget::Store.new(owner:, dashboard_key:, offering:, context: "")
 ```
 
 | Method | Purpose |
@@ -399,7 +399,7 @@ class WidgetLayoutsController < ApplicationController
   private
 
   def layout
-    Bali::Widget::Layout.new(owner: current_user, context: @tenant.id.to_s,
+    Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
                              dashboard_key: "today",
                              offering: Widgets.authorized_for(pundit_user))
   end
@@ -420,7 +420,7 @@ including the two behaviours that are not obvious:
 ## Verification
 
 **Minitest** — the card (each size, the failed card, the body slot, `summary?`, `view_all_link?`), the
-grid (widget slots, empty state, "+" tile presence, emitted controller values), `Bali::Widget::Layout`
+grid (widget slots, empty state, "+" tile presence, emitted controller values), `Bali::DashboardWidget::Store`
 (`choose` / `arrange` / `reset`, ordering tie-break, an unauthorized key being inert, the "no visible
 rows means never chose" fallback), `Bali::Widget::Base` (`sized` validation, `with_size` copying rather
 than mutating the class attribute, the memoized failure), and the model.
@@ -453,7 +453,7 @@ scope for this spec; recorded so it is not discovered during the swap.
 
 - The nineteen `Widgets::*` classes, `Widgets::Routes`, and the `DashboardWidgets` concern.
 - The membership picker UI (`user_widgets#edit`, the drawer with a checkbox per authorized widget).
-  `Layout#choose` is the write half; the UI stays in the host because its list *is* the authorized set.
+  `Store#choose` is the write half; the UI stays in the host because its list *is* the authorized set.
 - Any change to `Bali::SortableList` — including its `disabled`-only-at-connect limitation, which
   handle-gating routes around at no cost.
 - The enjoykitchen 2.9 → 3.x upgrade.

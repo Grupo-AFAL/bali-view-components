@@ -8,8 +8,8 @@ module Bali
     # Visibility and loading are deliberately SEPARATE halves. `visible?` costs
     # only whatever the host's predicate costs, so a picker can list every
     # authorized widget without running a single widget query; `#result` is the
-    # load, and only the widgets that survive `Layout#widgets` are ever asked
-    # for it.
+    # load, and only the widgets that survive
+    # `Bali::DashboardWidget::Store#widgets` are ever asked for it.
     #
     # Bali owns the `visible?` HOOK and never the rule — roles, tenancy and
     # feature flags are things only the host can see.

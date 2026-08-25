@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module Bali
-  module Widget
+  class DashboardWidget
     # One owner's dashboard arrangement in one context: which widgets, in what
     # order, at what size. The only thing that reads or writes
-    # `bali_dashboard_widgets`.
+    # `bali_dashboard_widgets` — `Bali::DashboardWidget`, the AR model this
+    # class is nested under, is a row and nothing more; see its own comments.
     #
     # NOTE `arrange` is `delete_all` + `insert_all`, so a row does not survive a
     # rearrange — a widget that has sat on the dashboard for a year gets a fresh
@@ -12,16 +13,38 @@ module Bali
     # today, but it means "when did you first add this widget?" is permanently
     # unanswerable from this table, which is worth knowing before building on it.
     #
-    # NOT an ActiveRecord model, deliberately. A `dashboards` table would hold an
-    # owner, a context and two timestamps — pure join identity, bought with a
-    # migration and an extra read on every request, to buy a name we can have for
-    # free. Promote it the day a dashboard has state of its own.
+    # `Store` ITSELF is not an ActiveRecord model, deliberately — a plain object
+    # scoped to one owner, one context and one dashboard, the same shape as
+    # `SavedView::Store`. There is no separate `dashboards` table backing that
+    # scope: owner + context + dashboard_key is pure join identity, and a table
+    # for it would buy only an owner, a context and two timestamps — bought with
+    # a migration and an extra read on every request, for a name we can have for
+    # free by scoping `DashboardWidget` rows directly. Promote it the day a
+    # dashboard has state of its own.
+    #
+    # THE CONTRACT a replacement must implement, if a host already persists
+    # dashboards elsewhere (an existing table, its own model) and wants to pass
+    # that object instead of this one — the same seam `SavedView::Store` proves
+    # (a phase-2 team-shared implementation is OTRA clase con este mismo
+    # contrato):
+    #
+    #   - `widgets`         — the offering, subset/reordered/resized by what is stored
+    #   - `stored_keys`     — every stored key, including ones the owner cannot see
+    #   - `visible_keys`    — stored keys the owner can currently see, in stored order
+    #   - `customized?`     — whether there is anything visible to reset
+    #   - `choose(widgets)` — membership only; survivors keep stored order and size
+    #   - `arrange(layout)` — full reconcile to exactly `layout`
+    #   - `reset`           — drop every row
+    #
+    # This class is the DEFAULT implementation of that contract, not a
+    # requirement of it — a host supplying its own never runs
+    # `bali:install:migrations:dashboard_widgets`.
     #
     # NOTE `context` here is the SCOPING STRING — a tenant id, or "" for a
     # single-tenant host. It is unrelated to `Bali::Widget::Base#context`, which
     # is the actor object a host's `visible?` gates against. This class never
     # sees that one.
-    class Layout
+    class Store
       # The set the owner is being shown right now — already gated by the host.
       # State rather than an argument to three methods, because every one of them
       # needs it and all mean the same thing by it.

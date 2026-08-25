@@ -4,7 +4,7 @@
 
 **Goal:** Port enjoykitchen's user-arrangeable bento dashboard — the card, the grid, the widget contract and layout persistence — into Bali, leaving the widget classes and authorization rules in the host.
 
-**Architecture:** One `Bali::Widget::` namespace spanning `app/lib` (value objects, `Base`, `Layout`) and `app/components` (the card). `Bali::WidgetGrid::Component` renders the bento and owns two Stimulus controllers. `Bali::Widget::Layout` is the only thing that reads or writes `bali_dashboard_widgets`, and it can only ever subset the `offering:` it was handed — so authorization never enters Bali. Bali ships no controller and no routes.
+**Architecture:** One `Bali::Widget::` namespace spanning `app/lib` (value objects, `Base`, `Store`) and `app/components` (the card). `Bali::WidgetGrid::Component` renders the bento and owns two Stimulus controllers. `Bali::DashboardWidget::Store` is the only thing that reads or writes `bali_dashboard_widgets`, and it can only ever subset the `offering:` it was handed — so authorization never enters Bali. Bali ships no controller and no routes.
 
 **Tech Stack:** Ruby on Rails 8.1 engine, ViewComponent 4 (`ViewComponentContrib::Base`), Stimulus, SortableJS (via `Bali::SortableList`), Tailwind v4 + daisyUI 5, Minitest + Capybara, Cypress, Lookbook.
 
@@ -20,7 +20,7 @@
 | `app/lib/bali/widget/result.rb` | What `#call` returns |
 | `app/lib/bali/widget/row.rb` | One list row |
 | `app/lib/bali/widget/base.rb` | The widget contract: `sized`, `key`, i18n, `with_size`, memoized `result`, `list_from` |
-| `app/lib/bali/widget/layout.rb` | Reads and writes the persisted arrangement |
+| `app/models/bali/dashboard_widget/store.rb` | Reads and writes the persisted arrangement |
 | `app/models/bali/dashboard_widget.rb` | One persisted row |
 | `db/migrate/20260825120000_create_bali_dashboard_widgets.rb` | The table |
 | `app/components/bali/widget/component.rb` | Card: sizes, predicates, lattice classes |
@@ -370,7 +370,7 @@ module Bali
     # Visibility and loading are deliberately SEPARATE halves. `visible?` costs
     # only whatever the host's predicate costs, so a picker can list every
     # authorized widget without running a single widget query; `#result` is the
-    # load, and only the widgets that survive `Layout#widgets` are ever asked
+    # load, and only the widgets that survive `Store#widgets` are ever asked
     # for it.
     #
     # Bali owns the `visible?` HOOK and never the rule — roles, tenancy and
@@ -1809,7 +1809,7 @@ module Bali
     #
     # `url` is a host endpoint. Bali ships no controller and no routes: who may
     # see which widget is the host's rule, and the write goes through
-    # `Bali::Widget::Layout`.
+    # `Bali::DashboardWidget::Store`.
     class Component < ApplicationViewComponent
       # A string rather than the constant, so this class carries no load-order
       # dependency on the card.
@@ -2086,7 +2086,7 @@ Create `spec/dummy/app/controllers/widget_layouts_controller.rb`:
 
 # The ~15 lines a real host writes. Bali ships no controller and no routes: who
 # may see which widget is the host's rule, so the host builds the `offering:` and
-# `Bali::Widget::Layout` can only ever subset it.
+# `Bali::DashboardWidget::Store` can only ever subset it.
 #
 # Here the offering is the preview's own specimens and there is no signed-in
 # user, so this exists to make the grid's PATCH succeed — which is what the
@@ -2155,7 +2155,7 @@ Create `db/migrate/20260825120000_create_bali_dashboard_widgets.rb`:
 # one of them would be a lie, and why there is no foreign key pointing into the
 # host's schema.
 #
-# These rows NEVER grant visibility. `Bali::Widget::Layout` is handed the set the
+# These rows NEVER grant visibility. `Bali::DashboardWidget::Store` is handed the set the
 # owner is already authorized for and can only subset and reorder it.
 class CreateBaliDashboardWidgets < ActiveRecord::Migration[7.0]
   def change
@@ -2249,7 +2249,7 @@ class BaliDashboardWidgetTest < ActiveSupport::TestCase
     # Two rows CAN share a position: a row for a widget the owner cannot see
     # keeps its position while the visible ones renumber around it. Without the
     # tie-break Postgres returns those in arbitrary order, which makes
-    # Layout#stored_keys nondeterministic.
+    # Store#stored_keys nondeterministic.
     build(widget_key: "zulu", position: 0).save!
     build(widget_key: "alpha", position: 0).save!
 
@@ -2281,13 +2281,13 @@ module Bali
   # One chosen dashboard widget: for one owner, in one context, on one dashboard.
   #
   # A row and nothing more. Reading and writing an arrangement belongs to
-  # `Bali::Widget::Layout`, which owns the scope this table is keyed by.
+  # `Bali::DashboardWidget::Store`, which owns the scope this table is keyed by.
   #
-  # These rows NEVER grant visibility. `Layout#widgets` is handed the set the
+  # These rows NEVER grant visibility. `Store#widgets` is handed the set the
   # owner is already authorized for and can only subset and reorder it. No
   # VISIBLE rows means "never chose" — show everything authorized, in catalog
   # order. (Rows for widgets the owner cannot currently see survive but do not
-  # count; see `Layout#visible_keys`.)
+  # count; see `Store#visible_keys`.)
   class DashboardWidget < ApplicationRecord
     belongs_to :owner, polymorphic: true
 
@@ -2295,7 +2295,7 @@ module Bali
     validates :widget_key, presence: true,
                            uniqueness: { scope: %i[owner_type owner_id context dashboard_key] }
 
-    # These guard the ActiveRecord paths only — `Layout#arrange` reaches the
+    # These guard the ActiveRecord paths only — `Store#arrange` reaches the
     # table through `insert_all`, which bypasses validations and gets its
     # positions from an array index. They exist so a stray `create!` fails with
     # an error naming the column rather than a raw NotNullViolation, and because
@@ -2313,7 +2313,7 @@ module Bali
     # NOTE: deliberately no `inclusion` validation of `widget_key`. It would make
     # every legacy row unsaveable the day a widget is retired, blocking unrelated
     # saves, and it duplicates a read-side filter that must exist regardless
-    # (`Layout#widgets` drops unknown keys).
+    # (`Store#widgets` drops unknown keys).
     #
     # The same goes for `size`, which is a string and NOT a Rails enum: the
     # `Bali::Widget::SIZES` vocabulary lives there, this column only caches a
@@ -2323,7 +2323,7 @@ module Bali
 
     # `widget_key` is the tie-break, and it is load-bearing rather than tidy. Two
     # rows CAN hold the same position (see above); without a second term Postgres
-    # returns those in arbitrary order, which makes `Layout#stored_keys`
+    # returns those in arbitrary order, which makes `Store#stored_keys`
     # nondeterministic and, through it, `choose`'s "survivors keep their stored
     # order" guarantee unstable.
     scope :ordered, -> { order(:position, :widget_key) }
@@ -2356,22 +2356,22 @@ git commit -m "feat(widget): add the bali_dashboard_widgets table and model"
 
 ---
 
-### Task 11: `Bali::Widget::Layout`
+### Task 11: `Bali::DashboardWidget::Store`
 
 **Files:**
-- Create: `app/lib/bali/widget/layout.rb`
-- Test: `test/bali/widget/layout_test.rb`
+- Create: `app/models/bali/dashboard_widget/store.rb`
+- Test: `test/bali/models/dashboard_widget/store_test.rb`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `test/bali/widget/layout_test.rb`:
+Create `test/bali/models/dashboard_widget/store_test.rb`:
 
 ```ruby
 # frozen_string_literal: true
 
 require "test_helper"
 
-class BaliWidgetLayoutTest < ActiveSupport::TestCase
+class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   def self.widget(key, size)
     Class.new(Bali::Widget::Base) do
       sized size
@@ -2394,7 +2394,7 @@ class BaliWidgetLayoutTest < ActiveSupport::TestCase
   def offering = [ALPHA.new, BRAVO.new, CHARLIE.new]
 
   def layout(offer: offering)
-    Bali::Widget::Layout.new(owner: owner, context: "1",
+    Bali::DashboardWidget::Store.new(owner: owner, context: "1",
                              dashboard_key: "today", offering: offer)
   end
 
@@ -2402,7 +2402,7 @@ class BaliWidgetLayoutTest < ActiveSupport::TestCase
 
   def test_offering_is_required
     assert_raises(ArgumentError) do
-      Bali::Widget::Layout.new(owner: owner, dashboard_key: "today")
+      Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "today")
     end
   end
 
@@ -2496,9 +2496,9 @@ class BaliWidgetLayoutTest < ActiveSupport::TestCase
   def test_rows_are_scoped_to_the_context_and_dashboard
     layout.arrange([{ widget: ALPHA.new }])
 
-    other_context = Bali::Widget::Layout.new(owner: owner, context: "2",
+    other_context = Bali::DashboardWidget::Store.new(owner: owner, context: "2",
                                              dashboard_key: "today", offering: offering)
-    other_dashboard = Bali::Widget::Layout.new(owner: owner, context: "1",
+    other_dashboard = Bali::DashboardWidget::Store.new(owner: owner, context: "1",
                                                dashboard_key: "finance", offering: offering)
 
     assert_empty other_context.stored_keys
@@ -2509,12 +2509,12 @@ end
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bundle exec rails test test/bali/widget/layout_test.rb`
-Expected: FAIL with `NameError: uninitialized constant Bali::Widget::Layout`
+Run: `bundle exec rails test test/bali/models/dashboard_widget/store_test.rb`
+Expected: FAIL with `NameError: uninitialized constant Bali::DashboardWidget::Store`
 
 - [ ] **Step 3: Write the implementation**
 
-Create `app/lib/bali/widget/layout.rb`:
+Create `app/models/bali/dashboard_widget/store.rb`:
 
 ```ruby
 # frozen_string_literal: true
@@ -2534,7 +2534,7 @@ module Bali
     # single-tenant host. It is unrelated to `Bali::Widget::Base#context`, which
     # is the actor object a host's `visible?` gates against. This class never
     # sees that one.
-    class Layout
+    class Store
       # The set the owner is being shown right now — already gated by the host.
       # State rather than an argument to three methods, because every one of them
       # needs it and all mean the same thing by it.
@@ -2699,7 +2699,7 @@ end
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bundle exec rails test test/bali/widget/layout_test.rb`
+Run: `bundle exec rails test test/bali/models/dashboard_widget/store_test.rb`
 Expected: PASS, 0 failures
 
 - [ ] **Step 5: Run the whole Ruby suite**
@@ -2715,8 +2715,8 @@ Expected: no offenses after autocorrect
 - [ ] **Step 7: Commit**
 
 ```bash
-git add app/lib/bali/widget/layout.rb test/bali/widget/layout_test.rb
-git commit -m "feat(widget): add Bali::Widget::Layout"
+git add app/models/bali/dashboard_widget/store.rb test/bali/models/dashboard_widget/store_test.rb
+git commit -m "feat(widget): add Bali::DashboardWidget::Store"
 ```
 
 ---
@@ -2895,7 +2895,7 @@ bin/rails db:migrate
 
 ### The three pieces
 
-`Bali::Widget::Base` is the contract a widget implements. `Bali::Widget::Layout`
+`Bali::Widget::Base` is the contract a widget implements. `Bali::DashboardWidget::Store`
 reads and writes the arrangement. `Bali::WidgetGrid::Component` renders it.
 
 ```ruby
@@ -2921,7 +2921,7 @@ things only your app can see. Gate first, then hand the survivors to the layout.
 
 ```ruby
 def layout
-  Bali::Widget::Layout.new(
+  Bali::DashboardWidget::Store.new(
     owner: current_user,
     context: @tenant.id.to_s,        # "" for a single-tenant app
     dashboard_key: "today",
@@ -2930,7 +2930,7 @@ def layout
 end
 ```
 
-`offering:` is the seam that keeps authorization out of Bali. `Layout` can only
+`offering:` is the seam that keeps authorization out of Bali. `Store` can only
 subset, reorder and resize what it was handed, so a stale or tampered `widget_key`
 finds nothing and is inert. There is no permitted-key list to pass and none to
 forget.
@@ -3028,7 +3028,7 @@ Add under the Unreleased heading in `CHANGELOG.md`:
 
 - `Bali::Widget::Component` and `Bali::WidgetGrid::Component`: a user-arrangeable
   bento dashboard — four card sizes, drag and arrow-key reorder, resize, remove —
-  with `Bali::Widget::Base` as the widget contract and `Bali::Widget::Layout`
+  with `Bali::Widget::Base` as the widget contract and `Bali::DashboardWidget::Store`
   persisting the arrangement to `bali_dashboard_widgets`. Install the table with
   `bin/rails bali:install:migrations:dashboard_widgets`. Hosts route their own
   PATCH endpoint; see `docs/guides/engine-models.md`.
@@ -3068,7 +3068,7 @@ else — the fix is structural, not a typo.
 emits `data-bali-widget-grid-moved-text-value`, which the controller reads as
 `movedTextValue`. Don't hand-write these attributes.
 
-**Two `context`s.** `Layout.new(context:)` is a scoping STRING (a tenant id).
+**Two `context`s.** `Store.new(context:)` is a scoping STRING (a tenant id).
 `Base#context` is the actor object a host's `visible?` gates against. Nothing
 passes one where the other is expected, but the names collide when you talk about
 them.

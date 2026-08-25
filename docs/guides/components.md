@@ -2532,7 +2532,7 @@ works.
 
 See [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the
 widget contract (`Bali::Widget::Base`) and the persisted arrangement
-(`Bali::Widget::Layout`).
+(`Bali::DashboardWidget::Store`).
 
 ---
 

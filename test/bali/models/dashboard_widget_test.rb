@@ -47,7 +47,7 @@ class BaliDashboardWidgetTest < ActiveSupport::TestCase
     # Two rows CAN share a position: a row for a widget the owner cannot see
     # keeps its position while the visible ones renumber around it. Without the
     # tie-break Postgres returns those in arbitrary order, which makes
-    # Layout#stored_keys nondeterministic.
+    # Store#stored_keys nondeterministic.
     build(widget_key: "zulu", position: 0).save!
     build(widget_key: "alpha", position: 0).save!
 

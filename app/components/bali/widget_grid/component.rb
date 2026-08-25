@@ -11,7 +11,7 @@ module Bali
     #
     # `url` is a host endpoint. Bali ships no controller and no routes: who may
     # see which widget is the host's rule, and the write goes through
-    # `Bali::Widget::Layout`.
+    # `Bali::DashboardWidget::Store`.
     class Component < ApplicationViewComponent
       # A string rather than the constant, so this class carries no load-order
       # dependency on the card.

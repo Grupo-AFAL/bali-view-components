@@ -96,7 +96,7 @@ Rails.application.routes.draw do
 
   # The picker: every AUTHORIZED widget (not just the ones currently chosen),
   # so a dashboard emptied down to nothing still has a way back in. Submitting
-  # goes through `Layout#choose`, never `#arrange` — see the controller.
+  # goes through `Store#choose`, never `#arrange` — see the controller.
   get 'dashboard_widgets/picker', to: 'dashboard_widgets#picker', as: :dashboard_widgets_picker
   patch 'dashboard_widgets/picker', to: 'dashboard_widgets#update_picker'
   delete 'dashboard_widgets/reset', to: 'dashboard_widgets#reset', as: :reset_dashboard_widgets

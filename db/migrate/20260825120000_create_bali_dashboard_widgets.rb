@@ -8,7 +8,7 @@
 # one of them would be a lie, and why there is no foreign key pointing into the
 # host's schema.
 #
-# These rows NEVER grant visibility. `Bali::Widget::Layout` is handed the set the
+# These rows NEVER grant visibility. `Bali::DashboardWidget::Store` is handed the set the
 # owner is already authorized for and can only subset and reorder it.
 class CreateBaliDashboardWidgets < ActiveRecord::Migration[7.0]
   def change
