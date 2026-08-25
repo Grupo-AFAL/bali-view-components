@@ -75,6 +75,23 @@ module Bali
   mattr_accessor :native_app, default: false
   mattr_accessor :custom_icons, default: {}
 
+  # Whether passing a component's own slot name as a keyword raises (#1081). See
+  # Bali::ApplicationViewComponent.new for what the keyword does when nothing stops it.
+  #
+  # Same posture as `raise_on_missing_translations`: loud where the author can still fix
+  # it, a pass-through in production, where an exception would take down a page over a
+  # heading that has already been missing since the deploy. Set it to `true` in production
+  # if you would rather find out.
+  mattr_writer :raise_on_slot_keyword_conflict, default: nil
+
+  # Resolved per call rather than at load: this file is required while Bundler sets the
+  # gems up, and `Rails.env` frozen there is the environment of whoever loaded first.
+  def self.raise_on_slot_keyword_conflict
+    return @@raise_on_slot_keyword_conflict unless @@raise_on_slot_keyword_conflict.nil?
+
+    !Rails.env.production?
+  end
+
   # Google Maps JavaScript API key, read by LocationsMap and by the form
   # builder's coordinates polygon field. Both used to call
   # `ENV.fetch("GOOGLE_MAPS_KEY")` on their own, which made the environment the
