@@ -99,6 +99,7 @@ export {
   DocumentPageController,
   DrawerController,
   DropdownController,
+  EditModeController,
   ExportLinksController,
   FeedbackWidgetController,
   FilterGroupController,
@@ -128,7 +129,8 @@ export {
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
-  TreeViewItemController
+  TreeViewItemController,
+  WidgetGridController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 

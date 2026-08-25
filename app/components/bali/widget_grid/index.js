@@ -1,0 +1,289 @@
+import { Controller } from '@hotwired/stimulus'
+import { patch } from '@rails/request.js'
+
+// Turns grid gestures into a persisted layout: drag or arrow keys to reorder,
+// the remove button to drop a card, a glyph to resize.
+//
+// Every gesture is the SAME operation as far as the server is concerned: each
+// sends the whole layout — which widgets, in what order, at what size — and they
+// differ only in what they do to the DOM first. One endpoint, one write path,
+// one queue.
+//
+// Entering edit mode is `EditModeController`'s job; the two are composed on one
+// element and share no state.
+export class WidgetGridController extends Controller {
+  static targets = ['grid', 'announcer']
+  static values = {
+    url: String,
+    movedText: String,
+    removedText: String,
+    failedText: String,
+    resizedText: String
+  }
+
+  // A queued write belongs to a grid that no longer exists: without this, a
+  // Turbo navigation during the debounce window fires a PATCH describing a DOM
+  // that has already been replaced.
+  disconnect () {
+    clearTimeout(this.timer)
+  }
+
+  // Fired by Bali's sortable-list controller after a drop. Its per-item PATCH is
+  // deliberately not wired up (the cards carry no `data-sortable-update-url`):
+  // it posts 1-based positions for one item where we write a 0-based whole
+  // sequence. The whole sequence is one write.
+  reordered () {
+    this.persist()
+  }
+
+  remove (event) {
+    const card = event.target.closest('[data-widget-key]')
+    if (!card) return
+
+    const label = card.dataset.widgetTitle
+    // Focus has to be placed BEFORE the card leaves, or it falls to `<body>` and
+    // a keyboard user loses their place in a twelve-card grid. Deleting is the
+    // gesture where losing your place costs most.
+    const cards = this.cards
+    const next = cards[cards.indexOf(card) + 1] ?? cards[cards.indexOf(card) - 1]
+
+    card.remove()
+    this.focusHandle(next)
+    this.announce(this.removedTextValue.replace('%{widget}', label))
+    this.persist()
+  }
+
+  // The size is swapped locally first so the card resizes under the cursor. The
+  // server is being told, not asked — and told the same thing every other
+  // gesture tells it, since the card carries its size into the payload.
+  resize (event) {
+    const button = event.target.closest('[data-widget-size]')
+    const card = button?.closest('[data-widget-key]')
+    if (!card) return
+
+    const size = button.dataset.widgetSize
+    if (size === this.currentSize(card)) return
+
+    this.applySize(card, size)
+    this.announce(
+      this.resizedTextValue
+        .replace('%{widget}', card.dataset.widgetTitle)
+        .replace('%{size}', button.getAttribute('aria-label'))
+    )
+
+    this.persist()
+  }
+
+  currentSize (card) {
+    return card.querySelector('[data-widget-size][aria-pressed="true"]')?.dataset.widgetSize
+  }
+
+  // ONE attribute for the geometry: the stylesheet owns what each size MEANS at
+  // each breakpoint, so nothing here builds a class name — which is also why it
+  // no longer matters that Tailwind cannot see class names built at runtime.
+  //
+  // And ONE attribute for the selection: every visual consequence is expressed
+  // by `aria-pressed:` and `group-aria-pressed:` variants in the card template,
+  // so there is no class list for the server and the client to disagree about,
+  // and the accessible state and the visible state cannot drift.
+  applySize (card, size) {
+    card.dataset.size = size
+
+    card.querySelectorAll('[data-widget-size]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.widgetSize === size))
+    })
+  }
+
+  // No fallback when there is no card left: the grid is empty, which means the
+  // sequence just sent was empty, which means `writeSequence` is about to reload
+  // for the restored defaults.
+  focusHandle (card) {
+    card?.querySelector('.handle')?.focus()
+  }
+
+  // Bali's SortableList grew keyboard reordering, but it only acts on focused
+  // `:scope > .sortable-item` children — which these cards deliberately are not,
+  // because `SortableList::Item::Component` carries list-row styling that fights
+  // the bento. So this is the entire keyboard path, and it handles Left/Right
+  // too: meaningless in a list, essential in a four-column bento.
+  move (event) {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+    if (!step) return
+
+    const card = event.target.closest('[data-widget-key]')
+    const cards = this.cards
+    const from = cards.indexOf(card)
+    const to = from + step
+    if (from === -1 || to < 0 || to >= cards.length) return
+
+    event.preventDefault()
+    if (step > 0) cards[to].after(card)
+    else cards[to].before(card)
+
+    // Focus follows the card, not the index — the DOM move blurs the button.
+    this.focusHandle(card)
+    this.announce(
+      this.movedTextValue
+        .replace('%{widget}', card.dataset.widgetTitle)
+        .replace('%{position}', to + 1)
+        .replace('%{total}', cards.length)
+    )
+    this.persist()
+  }
+
+  get cards () {
+    return Array.from(this.gridTarget.querySelectorAll('[data-widget-key]'))
+  }
+
+  announce (message) {
+    if (this.hasAnnouncerTarget && message) this.announcerTarget.textContent = message
+  }
+
+  // Debounced AND serialized, for two different failures.
+  //
+  // Debounced because arrow keys auto-repeat: holding one fires a gesture every
+  // few milliseconds, and each would otherwise be a full PATCH. The trailing
+  // edge collapses a held key into the one write that describes where the card
+  // came to rest.
+  //
+  // Serialized because every gesture sends a full snapshot, so two in-flight
+  // requests are two complete and DIFFERENT answers to "what is the
+  // arrangement", and nothing about HTTP guarantees the later one commits last.
+  // Drag a card, immediately remove another, and the stale snapshot can win —
+  // resurrecting the widget you just deleted.
+  //
+  // The snapshot is read when the request is BUILT, not when it is queued, so a
+  // queued write still sends the latest DOM.
+  persist () {
+    clearTimeout(this.timer)
+    this.timer = setTimeout(() => this.enqueue(() => this.writeSequence()), 250)
+  }
+
+  enqueue (write) {
+    this.queue = Promise.resolve(this.queue).then(write)
+    return this.queue
+  }
+
+  // The whole layout, read out of the DOM: order from the card order, size from
+  // whichever glyph is pressed. Submitting the order on a resize is not an
+  // overreach — this IS the order, and the server has no better source for it.
+  async writeSequence () {
+    const body = new FormData()
+    this.cards.forEach(card => {
+      body.append('widgets[][key]', card.dataset.widgetKey)
+      body.append('widgets[][size]', this.currentSize(card) ?? '')
+    })
+
+    if (!await this.send(this.urlValue, body)) return
+
+    // Removing the LAST widget sends an empty sequence, and no rows means "never
+    // chose" — so the server answers by restoring every authorized widget. The
+    // `204` contract means nothing comes back to render, which would leave an
+    // empty grid on screen over a full dashboard in the database, wrong until
+    // the next reload. This is the one gesture that has to go back for markup.
+    if (this.cards.length === 0) this.reload()
+  }
+
+  // Failures are announced, never swallowed. The whole design rests on the DOM
+  // being truthful — no draft, no save button — so the one moment it stops being
+  // truthful is the one moment the user has to be told.
+  async send (url, body) {
+    try {
+      const response = await patch(url, { body, responseKind: 'json' })
+      if (!response.ok) this.announce(this.failedTextValue)
+
+      return response.ok
+    } catch {
+      this.announce(this.failedTextValue)
+
+      return false
+    }
+  }
+
+  // Its own method so a test can observe and stub it.
+  reload () {
+    window.location.reload()
+  }
+}
+
+// Puts a page into an edit mode and remembers it in the URL. Knows nothing about
+// widgets — it toggles a class, swaps the control that enters for the one that
+// leaves, marks a subtree `inert`, and announces the change.
+//
+// Compose them on one element:
+//
+//   <div data-controller="bali-widget-grid edit-mode" ...>
+//
+export class EditModeController extends Controller {
+  static targets = ['enter', 'leave', 'inert', 'announcer']
+  static classes = ['editing']
+  static values = {
+    editing: { type: Boolean, default: false },
+    onText: String,
+    offText: String
+  }
+
+  connect () {
+    // Back leaves edit mode rather than the page, and a restore visit has to
+    // re-enter it — so the flag lives in the URL, not only in memory.
+    this.editingValue = this.editingInUrl
+    this.popstate = () => { this.editingValue = this.editingInUrl }
+    window.addEventListener('popstate', this.popstate)
+  }
+
+  disconnect () {
+    window.removeEventListener('popstate', this.popstate)
+  }
+
+  get editingInUrl () {
+    return new URLSearchParams(window.location.search).has('editing')
+  }
+
+  // The controls are real links to real URLs, so the default action is a correct
+  // — just wasteful — full page load. Cancelling it turns the same navigation
+  // into a class flip, and the page still works if this controller never loads.
+  enter (event) {
+    event?.preventDefault()
+    this.push(true)
+    this.editingValue = true
+  }
+
+  leave (event) {
+    event?.preventDefault()
+    this.push(false)
+    this.editingValue = false
+  }
+
+  // Ignored while idle so it doesn't swallow Escape from a modal or a dropdown.
+  keydown (event) {
+    if (event.key === 'Escape' && this.editingValue) this.leave()
+  }
+
+  editingValueChanged (editing, wasEditing) {
+    this.element.classList.toggle(this.editingClass, editing)
+    // Enter and leave occupy the same slot: the control you press to leave
+    // should be where the one you pressed to enter was.
+    if (this.hasEnterTarget) this.enterTarget.hidden = editing
+    if (this.hasLeaveTarget) this.leaveTarget.hidden = !editing
+    // The one piece of edit state CSS cannot express: `pointer-events-none`
+    // stops the mouse and leaves every link in the tab order.
+    this.inertTargets.forEach(target => { target.inert = editing })
+
+    // A sighted user sees the page change. Without this, a screen-reader user
+    // gets silence and finds the mode by stumbling into new buttons. Skipped on
+    // the initial set, which is a render rather than a transition.
+    if (wasEditing === undefined) return
+    this.announce(editing ? this.onTextValue : this.offTextValue)
+  }
+
+  push (editing) {
+    const url = new URL(window.location.href)
+    if (editing) url.searchParams.set('editing', '1')
+    else url.searchParams.delete('editing')
+    window.history.pushState({}, '', url)
+  }
+
+  announce (message) {
+    if (this.hasAnnouncerTarget && message) this.announcerTarget.textContent = message
+  }
+}
