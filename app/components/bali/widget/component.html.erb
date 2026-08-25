@@ -121,7 +121,7 @@
           retry button that re-runs a broken query.
 
           `capture` so the two branches share one copy of the content instead of
-          drifting out of sync — same pattern `DataTable` uses for its footer. %>
+          drifting out of sync. %>
       <% summary_content = capture do %>
         <div class="stat-value text-4xl tabular-nums <%= count.positive? ? 'text-base-content' : 'text-base-content/30' %>">
           <%= count %>
