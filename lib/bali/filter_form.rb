@@ -429,12 +429,24 @@ module Bali
     # How many values are narrowing this listing right now. The quick search counts
     # as one: it cuts the result exactly like any other filter, and a toolbar that
     # reads "0 filters" over 3 of 200 rows is telling the user something false.
+    # Cuántos y si hay alguno, sobre las DOS mitades por las que se puede recortar un
+    # listado: la plana (`active_filters`) y la anidada del panel avanzado
+    # (`applied_filter_conditions`). No se derivan del hash solo porque el hash no puede
+    # llevar la mitad anidada — ver el comentario de `active_filters` y el de
+    # `FilterGroupParser#applied_filter_conditions`.
+    #
+    # #1085: `Table` elige su estado vacío con `active_filters?`, así que un listado
+    # recortado a cero DESDE EL PANEL AVANZADO pintaba "Aún no hay entidades" sobre un
+    # catálogo de 1,563 — el listado le echaba la culpa a los datos de lo que habían hecho
+    # los filtros. Es el mismo defecto que el comentario de `active_filters` documenta
+    # haber arreglado para la búsqueda y los filtros simples; la tercera fuente se quedó
+    # fuera porque es la única que no viaja plana.
     def active_filters_count
-      active_filters.size
+      active_filters.size + applied_filter_conditions.size
     end
 
     def active_filters?
-      active_filters.any?
+      active_filters.any? || applied_filter_conditions.any?
     end
 
     # Every value narrowing the listing right now, keyed the way the query carries
@@ -452,6 +464,12 @@ module Bali
     # `active_filters?`, so a search or a simple filter that cut the result to zero
     # got "No records yet" plus an invitation to create one, instead of "No results"
     # — the listing blamed the data for what the filters had done.
+    #
+    # The advanced panel is the one source that is NOT here, and on purpose: its conditions
+    # travel nested (`q[g][0][name_cont]`) while this hash is re-emitted flat under `q`, so
+    # a condition put in here would go out TWICE — once nested by
+    # `ActiveFilterParams.group_pairs` and once flat by this hash. It is counted separately;
+    # `active_filters?` above sums the two halves (#1085).
     #
     # `"s"` is Ransack's *sort* param, not a filter, and stays out.
     #

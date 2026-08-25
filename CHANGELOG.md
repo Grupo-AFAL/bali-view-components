@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A listing narrowed only from the advanced filters panel no longer blames the data for
+  it.** `Table` picks between its two empty states with `FilterForm#active_filters?`, and
+  that summed three of the four ways a listing can be narrowed: the `filter_attribute`
+  values, the simple filters and the quick search. The advanced panel was missing, because
+  it is the one that does not travel flat — its conditions are `q[g][N][attr_pred]`, and
+  the flat hash cannot hold them without emitting each one twice. So a catalogue of 1,563
+  rows cut to zero from the panel rendered "No records yet" plus "create the first one".
+  The panel is now counted as its own half and `active_filters?` (and
+  `active_filters_count`) sums both. What counts as an applied condition is
+  `Filters::ActiveFilterParams.applied?` — the same rule that decides what actually
+  travels in the query, so a builder row with no value, or a `between` with both ends
+  blank, is not a filter for either. That rule also backs the panel's own badge, which
+  used to count an empty `between` as one filter. (#1085)
+
 ### Added
 
 - **`bali:install:migrations:<feature>` installs one engine table instead of all five.**
