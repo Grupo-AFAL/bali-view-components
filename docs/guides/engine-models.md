@@ -292,6 +292,10 @@ reads and writes one owner's arrangement. `Bali::WidgetGrid::Component` renders 
 
 ```ruby
 class LowStockItems < Bali::Widget::Base
+  # Bali::Widget::Base deliberately carries almost no surface — it does NOT give you
+  # route helpers. A widget that links its rows anywhere needs them itself.
+  include Rails.application.routes.url_helpers
+
   sized :medium
 
   def visible? = context.has_any_role?(:inventory_manager)
