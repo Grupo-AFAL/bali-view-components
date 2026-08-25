@@ -2611,8 +2611,10 @@ module Bali
       # of a row means "off", so "removed" and "re-added" are the same gesture
       # twice.
       #
-      # Sizes are absent from what it hands `arrange`, which is how a picker says
-      # "I have no opinion about how big these are". Ticking a box cannot resize.
+      # A picker has no opinion about how big anything is — but it cannot express
+      # that by omitting sizes, because `arrange` is a full reconcile and an
+      # omitted size comes back as the widget's default. So the stored sizes are
+      # read and handed straight back. Ticking a box cannot resize.
       #
       # Takes WIDGETS, not keys — see `arrange`.
       def choose(widgets)
