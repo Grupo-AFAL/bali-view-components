@@ -2505,6 +2505,35 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 **Slots:** `with_item(name:, path:)` — items nest recursively via a block to build sub-trees.
 
+#### Widget
+
+One card in a user-arrangeable dashboard, rendered at one of four sizes — `small` (a bare
+stat), `medium`, `large` (`medium`'s width, twice the height) and `wide` (full row). Takes
+a widget instance, not its data, so the card can derive a widget's copy from `widget.key`
+and delegate `count`/`items`/`view_all_path` without knowing where they came from. Meant to
+render inside `Bali::WidgetGrid::Component`, not alone.
+
+```erb
+<%= render Bali::Widget::Component.new(low_stock_items_widget) %>
+```
+
+A widget that isn't a row list fills the card's `body` slot instead of falling through to
+the default list:
+
+```erb
+<%= render Bali::Widget::Component.new(compliance_widget) do |card| %>
+  <% card.with_body { render Compliance::TodayPanel::Component.new(widget.payload) } %>
+<% end %>
+```
+
+**Slots:** `with_body` — replaces the row list with custom content. Still falls through to
+the compact stat at `small` even when filled — a ~215px card is not where custom content
+works.
+
+See [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the
+widget contract (`Bali::Widget::Base`) and the persisted arrangement
+(`Bali::Widget::Layout`).
+
 ---
 
 ### Interactive Components
@@ -3194,6 +3223,43 @@ mouse-only.
 - `handle` - CSS selector for the drag handle; without one, whole items are draggable (default: `nil`)
 - `disabled` - Disable dragging (default: `false`)
 - `animation` - Drag animation duration in milliseconds (default: `150`)
+
+#### WidgetGrid
+
+The bento: an arrangeable grid of `Bali::Widget::Component` cards a user can drag,
+arrow-key move, resize and remove, with the whole layout persisted on every gesture.
+Composes two Stimulus controllers on one wrapper — `bali-widget-grid` (moves cards, writes
+the sequence) and `edit-mode` (toggles edit mode, remembers it in the URL).
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(
+      url: widget_layout_path, add_path: edit_user_widgets_path) do |grid| %>
+  <% @widgets.each do |widget| %>
+    <% grid.with_widget(widget) %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `url` - Endpoint every gesture PATCHes the whole arrangement to (required) — Bali ships
+  no controller or routes; see [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets)
+- `add_path` - Where the dashed "+" tile (and the empty state's own call to action) link to
+  add a widget; omit to hide both (default: `nil`)
+
+**Slots:**
+- `with_widget` — one `Bali::Widget::Component` per card; yield to fill that card's `body`
+  slot
+- `with_heading` — replaces only the leading text next to the Edit/Done controls, which
+  stay structural and always render — a heading override cannot delete the grid's only
+  entry point into edit mode
+- `with_empty_state` — replaces the default `Bali::EmptyState` shown when there are no
+  widgets
+
+Built on `Bali::SortableList`, but cards are plain children rather than
+`Bali::SortableList::Item::Component`s — that variant requires an `update_url:` per item
+and carries list-row styling that fights the bento. See [Dashboard
+widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the widget
+contract and the write path this component's `url:` PATCHes to.
 
 ---
 

@@ -32,6 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **`Bali::Widget` and `Bali::WidgetGrid`: a user-arrangeable bento dashboard.** Four card
+  sizes, drag and arrow-key reorder, resize and remove, with the whole layout persisted on
+  every gesture. `Bali::Widget::Base` is the contract a host's widget classes implement
+  (`sized`, `visible?`, `#call`); `Bali::Widget::Layout` reads and writes the arrangement to
+  the new `bali_dashboard_widgets` table, keyed by owner, tenant context and dashboard;
+  `Bali::WidgetGrid::Component` renders it. Bali ships no controller and no routes — a host
+  builds the already-authorized `offering:` and routes its own PATCH endpoint. Install the
+  table with `bin/rails bali:install:migrations:dashboard_widgets`; see
+  [`docs/guides/engine-models.md`](docs/guides/engine-models.md#dashboard-widgets-bali_dashboard_widgets)
+  for the widget contract, the write-path security boundary, and `Layout`'s method table.
 
 ## [v3.1.3] - 2026-08-23
 
