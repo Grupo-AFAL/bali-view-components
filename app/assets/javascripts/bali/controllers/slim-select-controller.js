@@ -21,6 +21,12 @@ export class SlimSelectController extends Controller {
     ajaxValueName: String,
     ajaxTextName: String,
     ajaxUrl: String,
+    // Lo que la busqueda remota manda ADEMAS del termino (#1084). `ajaxExtraParams` es
+    // el scope fijo, conocido al renderizar; `ajaxParamSelectors` es un mapa
+    // `parametro -> selector CSS` que se LEE EN CADA BUSQUEDA, que es lo que hace posible
+    // un select dependiente de otro campo del formulario.
+    ajaxExtraParams: Object,
+    ajaxParamSelectors: Object,
     placeholder: { type: String, default: 'Select value' },
     ajaxPlaceholder: {
       type: String,
@@ -244,7 +250,14 @@ export class SlimSelectController extends Controller {
       }
 
       get(this.ajaxUrlValue, {
-        query: { [this.ajaxParamNameValue]: search },
+        query: {
+          ...this.ajaxExtraParamsValue,
+          ...this.dependentParams(),
+          // El termino va ULTIMO a proposito: un parametro extra que se llame igual que
+          // `ajaxParamName` es un error del call site, y quedarse sin busqueda es la peor
+          // forma de enterarse.
+          [this.ajaxParamNameValue]: search
+        },
         responseKind: 'json'
       })
         .then(response => response.json)
@@ -260,6 +273,42 @@ export class SlimSelectController extends Controller {
           resolve([{ label: this.resultsTextValue, options }])
         })
     })
+  }
+
+  /**
+   * Los parametros que salen de otros campos, resueltos en el momento de la busqueda y no
+   * al conectar: el campo del que dependen cambia despues, y ese es todo el caso de uso.
+   *
+   * Un campo vacio no manda el parametro en vez de mandarlo vacio: `?type=` y `sin type`
+   * son dos preguntas distintas del lado del servidor, y "sin recorte" es la que
+   * corresponde cuando no hay nada elegido.
+   *
+   * Un selector que no encuentra nada AVISA. Es exactamente el modo de falla que este
+   * value existe para eliminar: sin el aviso, el filtro deja de acotar en silencio y el
+   * widget sigue andando, devolviendo el universo completo. Una vez por selector, que la
+   * busqueda corre por tecla.
+   */
+  dependentParams () {
+    this.missingSelectors ||= new Set()
+
+    return Object.entries(this.ajaxParamSelectorsValue).reduce((params, [key, selector]) => {
+      const field = document.querySelector(selector)
+
+      if (!field) {
+        if (!this.missingSelectors.has(selector)) {
+          this.missingSelectors.add(selector)
+          console.warn(
+            `slim-select: ajaxParamSelectors matched no element with "${selector}", ` +
+            `so the remote search runs without the "${key}" parameter`
+          )
+        }
+        return params
+      }
+
+      if (field.value !== '') params[key] = field.value
+
+      return params
+    }, {})
   }
 
   hasAjaxValues () {

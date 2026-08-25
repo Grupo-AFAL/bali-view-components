@@ -296,6 +296,35 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-ajax-text-name-value="name"]')
   end
 
+  # #1084: lo que la búsqueda remota manda además del término. Los dos viajan como JSON en
+  # el data attribute porque el value de Stimulus es un Object.
+  def test_slim_select_field_ajax_extra_params_travel_as_json
+    result = builder.slim_select_field(:status, Movie.statuses.to_a,
+                                       ajax_url: "/api/search",
+                                       ajax_extra_params: { scope: "active", source: "bali" })
+
+    assert_html(result,
+                'div[data-slim-select-ajax-extra-params-value=\'{"scope":"active","source":"bali"}\']')
+  end
+
+  def test_slim_select_field_ajax_param_selectors_travel_as_json
+    result = builder.slim_select_field(:status, Movie.statuses.to_a,
+                                       ajax_url: "/api/search",
+                                       ajax_param_selectors: { type: "#assignable_type" })
+
+    assert_html(result,
+                'div[data-slim-select-ajax-param-selectors-value=\'{"type":"#assignable_type"}\']')
+  end
+
+  # Un data attribute con "null" adentro no es lo mismo que no tener el attribute: el
+  # value de Stimulus lo parsearía y el default `{}` no aplicaría.
+  def test_slim_select_field_omits_the_extra_ajax_params_when_not_provided
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, ajax_url: "/api/search")
+
+    refute_match(/data-slim-select-ajax-extra-params-value/, result)
+    refute_match(/data-slim-select-ajax-param-selectors-value/, result)
+  end
+
   def test_slim_select_field_ajax_options_sets_ajax_placeholder_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_placeholder: "Loading...")

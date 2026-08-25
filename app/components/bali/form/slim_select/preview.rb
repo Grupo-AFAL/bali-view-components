@@ -87,6 +87,16 @@ module Bali
           )
         end
 
+        # @label Remote scoped by another field
+        # The remote search carries a fixed parameter and one taken from the select above
+        # it, so picking a family narrows what the search can find (#1084).
+        def remote_dependent
+          render_with_template(
+            template: 'bali/form/slim_select/previews/remote_dependent',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         # @label Allow Deselect
         # Single select with X button to clear selection
         def allow_deselect

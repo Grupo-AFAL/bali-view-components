@@ -21,6 +21,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **`slim_select_*` in ajax mode can send more than the search term: `ajax_extra_params:`
+  and `ajax_param_selectors:`.** The remote search sent one parameter to one fixed URL, so
+  a *dependent select* — "Resource type" narrowing what "Resource" searches, "Country"
+  narrowing "City" — had no native spelling: the term travelled alone and the endpoint
+  could not know which catalogue to look in. `ajax_extra_params:` is a hash merged into
+  every search, for scope already known when the page renders. `ajax_param_selectors:` is
+  a `param => CSS selector` hash resolved **on every search**, which is what makes the
+  dependent case work — the selector points anywhere in the document, so the field it
+  reads need not belong to the form or to Bali. An empty field sends no parameter rather
+  than an empty one, and a selector that matches nothing warns in the console: a filter
+  that silently stops narrowing is indistinguishable from a working widget. This replaces
+  the workaround of rewriting the controller's own `ajaxUrlValue` from an app-side
+  Stimulus, which leaned on the URL being re-read per search. (#1084)
+
+### Fixed
+
+- **DataTable: the controls collapsed into the `⋯` menu open over the table again.** Above
+  the `sm` breakpoint a nested dropdown inside the `⋯` floats, which is what a popover
+  inside another has to do — but the menu's own `overflow-y: auto` clipped it, and a scroll
+  container can only contain what is in flow. Measured at 1440px on a toolbar wide enough
+  to collapse Views: of its panel only a border peeked out and `elementFromPoint` at its
+  centre returned a `<td>`, so the control was unusable at exactly the widths where the `⋯`
+  is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
+  that stacks the children in flow, the two being halves of one decision — and floating, a
+  child adds no height, so above the breakpoint there is nothing to cap. (#1080)
 
 ### Fixed
 
