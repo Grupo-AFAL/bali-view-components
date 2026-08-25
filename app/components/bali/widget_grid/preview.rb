@@ -6,6 +6,11 @@ module Bali
       # Widgets with no host behind them, one per size, so the bento shows all
       # four spans at once.
       class Demo < Bali::Widget::Base
+        # `define_singleton_method(:key) { key }` is NOT infinite recursion: the
+        # block closes over `build`'s local parameter, which shadows the method
+        # being defined. The override is required rather than decorative —
+        # `Base.key` derives from `name.demodulize.underscore`, and an anonymous
+        # `Class.new` has no `name`, so without it every call raises.
         def self.build(key, size, count)
           Class.new(self) do
             sized size
@@ -35,15 +40,20 @@ module Bali
       # remove button and size picker; drag a card, or focus a handle and use the
       # arrow keys.
       #
-      # Every gesture PATCHes the whole layout to `url` — Bali ships no controller,
-      # so this preview points at the dummy app's:
+      # Every gesture PATCHes the whole layout to `url`. Bali ships no controller
+      # and no routes — who may see which widget is the host's rule — so a host
+      # writes roughly:
       #
       # ```ruby
       # def update
-      #   layout.arrange(permitted_layout)
-      #   head :no_content
+      #   layout.arrange(permitted_layout)   # permitted_layout looks each key up
+      #   head :no_content                   # in the ALREADY-AUTHORIZED set
       # end
       # ```
+      #
+      # The dummy app behind this preview is a stub that only answers `204`, so
+      # rearranging here will not survive a reload. See `docs/guides/engine-models.md`
+      # for the version worth copying.
       #
       # @param add_tile toggle
       def default(add_tile: true)
@@ -53,6 +63,17 @@ module Bali
                                end,
                                add_path: add_tile ? "/lookbook" : nil
                              })
+      end
+
+      # The three extension points `default` never shows: a custom `heading` (which
+      # replaces the hint but CANNOT remove the Edit control), a widget filling the
+      # card's `body` slot instead of rendering a list, and — with `populated` off —
+      # the empty state, including the "Add widget" CTA that only appears when the
+      # host passed an `add_path`.
+      #
+      # @param populated toggle
+      def with_slots(populated: true)
+        render_with_template(locals: { populated: populated })
       end
     end
   end
