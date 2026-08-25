@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_06_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -122,6 +122,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_150000) do
     t.string "storage_id", null: false
     t.datetime "updated_at", null: false
     t.index ["owner_type", "owner_id", "storage_id", "name"], name: "index_bali_saved_views_uniqueness", unique: true
+  end
+
+  create_table "bali_dashboard_widgets", force: :cascade do |t|
+    t.string "context", default: "", null: false
+    t.datetime "created_at", null: false
+    t.string "dashboard_key", null: false
+    t.integer "owner_id", null: false
+    t.string "owner_type", null: false
+    t.integer "position", null: false
+    t.string "size"
+    t.datetime "updated_at", null: false
+    t.string "widget_key", null: false
+    t.index ["owner_type", "owner_id", "context", "dashboard_key", "position"], name: "index_bali_dashboard_widgets_ordering"
+    t.index ["owner_type", "owner_id", "context", "dashboard_key", "widget_key"], name: "index_bali_dashboard_widgets_uniqueness", unique: true
   end
 
   create_table "characters", force: :cascade do |t|
