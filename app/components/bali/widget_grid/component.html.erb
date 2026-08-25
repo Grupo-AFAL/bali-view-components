@@ -1,0 +1,58 @@
+<%# Two controllers, composed. `edit-mode` knows nothing about widgets — it
+    toggles a mode and remembers it in the URL. `bali-widget-grid` knows nothing
+    about the mode — it moves cards and writes the sequence. %>
+<%= tag.div(**options) do %>
+  <div class="mb-4 flex items-center justify-between gap-2">
+    <% if toolbar? %>
+      <%= toolbar %>
+    <% else %>
+      <p class="text-sm text-base-content/60"><%= t('bali_view.widgets.edit.hint') %></p>
+
+      <%# Enter and leave occupy the same slot: the control you press to leave
+          should be where the one you pressed to enter was. %>
+      <span data-edit-mode-target="enter">
+        <%= render Bali::Button::Component.new(
+              name: t('bali_view.widgets.edit.edit'), icon: 'pencil',
+              variant: :ghost, size: :sm,
+              data: { action: 'edit-mode#enter' }) %>
+      </span>
+      <span data-edit-mode-target="leave" hidden>
+        <%= render Bali::Button::Component.new(
+              name: t('bali_view.widgets.edit.done'),
+              variant: :primary, size: :sm,
+              data: { action: 'edit-mode#leave' }) %>
+      </span>
+    <% end %>
+  </div>
+
+  <%# ONE live region for both controllers. A sighted user sees the card move; a
+      screen-reader user gets this or silence. %>
+  <p role="status" aria-live="polite" class="sr-only"
+     data-bali-widget-grid-target="announcer"
+     data-edit-mode-target="announcer"></p>
+
+  <% if widgets.any? %>
+    <%= render Bali::SortableList::Component.new(**sortable_options) do %>
+      <% widgets.each do |widget| %>
+        <%= widget %>
+      <% end %>
+
+      <%# The "+" tile sits where the widget will land, which teaches the grid in
+          a way a header button cannot. It carries no `.handle`, which is the only
+          reason it cannot be dragged — the same rule as every card. %>
+      <% if add_path.present? %>
+        <a href="<%= add_path %>" data-size="small" class="<%= ADD_TILE_CLASSES %>">
+          <%= render Bali::Icon::Component.new('plus', size: :medium) %>
+          <span class="text-sm font-medium"><%= t('bali_view.widgets.edit.add') %></span>
+        </a>
+      <% end %>
+    <% end %>
+  <% elsif empty_state? %>
+    <%= empty_state %>
+  <% else %>
+    <%= render Bali::EmptyState::Component.new(
+          title: t('bali_view.widgets.empty.title'),
+          description: t('bali_view.widgets.empty.description'),
+          icon: 'sparkles') %>
+  <% end %>
+<% end %>
