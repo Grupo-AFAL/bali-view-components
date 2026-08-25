@@ -2620,9 +2620,17 @@ module Bali
 
         rows.transaction do
           lock_rows
+          # Sizes are re-supplied rather than omitted. `arrange` is a full
+          # reconcile — `delete_all` then `insert_all` — so a survivor whose size
+          # is left out comes back at its default, and merely ticking a box in the
+          # picker would silently resize every card the owner had already sized.
+          # Read inside the lock, before `arrange` deletes anything.
+          current_sizes = rows.pluck(:widget_key, :size).to_h
           survivors = stored_keys & by_key.keys
 
-          arrange((survivors | by_key.keys).map { |key| { widget: by_key.fetch(key) } })
+          arrange((survivors | by_key.keys).map do |key|
+            { widget: by_key.fetch(key), size: current_sizes[key] }
+          end)
         end
       end
 

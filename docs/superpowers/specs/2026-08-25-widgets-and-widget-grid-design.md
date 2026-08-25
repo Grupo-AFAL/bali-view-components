@@ -329,6 +329,18 @@ Bali::Widget::Layout.new(owner:, dashboard_key:, offering:, context: "")
 | `#arrange(layout)` | full reconcile — `delete_all` + `upsert_all` with positions from the array index, in a locked transaction |
 | `#reset` | drop all rows — what "restore defaults" and an emptied grid both mean |
 
+**`arrange` is a pure reconcile; `choose` preserves sizes.** `arrange` writes exactly the
+layout it is handed (`delete_all` + `insert_all`), so an omitted size comes back as the
+widget's default. The grid controller always sends a size for every card, so this only bites
+the picker — which has no opinion about sizes and must therefore re-supply the stored ones.
+`choose` reads them inside its lock, before `arrange` deletes anything. Getting this wrong
+means ticking a checkbox silently resizes every card the owner had already sized.
+
+**`lock_rows` is a no-op on SQLite.** `.lock` emits no `FOR UPDATE` on that adapter, verified
+against `.to_sql`. The serialization it provides is real on Postgres — the engine's target —
+but a host running SQLite gets none of it, and the client-side promise queue is then the only
+thing preventing two interleaved writes. Recorded rather than assumed.
+
 `offering:` is **required, with no default**. An empty offer is a valid state but a terrible default:
 `arrange` would lose its delete half (`[] - submitted` is `[]`), `choose` would become a no-op, and
 `#widgets` would render nothing — three wrong behaviours from one forgotten argument, none raising.
