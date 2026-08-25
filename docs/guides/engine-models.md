@@ -317,6 +317,30 @@ builds one from an ordered scope, capping the preview at `PREVIEW_ROWS` (8 rows)
 size the card renders at. `context` is whatever your app needs to gate on (a Pundit
 context, a user, nothing at all) — Bali never reads it itself.
 
+### The widget's copy is yours, in your own locale scope
+
+A widget's `title`, `short_title`, `description` and `empty` come from **your** app's locale
+files, under a plain `widgets.<key>.*` scope — deliberately NOT under `bali_view.*`, which is
+where Bali keeps its own chrome (the Edit/Done labels, the size names, "Couldn't load"). Bali
+ships that chrome in `en` and `es`; the widget's own words are host content and it has none.
+
+The `key` is derived from the class name, so `LowStockItems` reads `widgets.low_stock_items.*`:
+
+```yaml
+en:
+  widgets:
+    low_stock_items:
+      title: "Low stock items"
+      short_title: "Low stock"        # optional; falls back to title
+      description: "Ingredients running low"
+      empty: "Nothing running low"
+```
+
+Without these you get `translation missing` on the card, so add them when you add the widget.
+Point `Bali::Widget::Base.i18n_scope` elsewhere if `widgets` collides with something you
+already use, or override the four class methods directly — which is what the Lookbook previews
+in this engine do, since they have no locale file of their own.
+
 ### Gating: building the `offering:`
 
 `Bali::Widget::Layout` never decides who can see what. It is handed the already-authorized
