@@ -6,6 +6,12 @@ module Bali
     # order, at what size. The only thing that reads or writes
     # `bali_dashboard_widgets`.
     #
+    # NOTE `arrange` is `delete_all` + `insert_all`, so a row does not survive a
+    # rearrange — a widget that has sat on the dashboard for a year gets a fresh
+    # `created_at` every time anything is dragged. Nothing reads those timestamps
+    # today, but it means "when did you first add this widget?" is permanently
+    # unanswerable from this table, which is worth knowing before building on it.
+    #
     # NOT an ActiveRecord model, deliberately. A `dashboards` table would hold an
     # owner, a context and two timestamps — pure join identity, bought with a
     # migration and an extra read on every request, to buy a name we can have for
@@ -131,13 +137,19 @@ module Bali
 
           next if layout.empty?
 
-          Bali::DashboardWidget.insert_all(layout.map.with_index { |item, index| row_for(item, index) })
+          # One timestamp for the whole write. Stamping inside `row_for` gave the
+          # rows of a single logical write microsecond-jittered `created_at`s.
+          now = Time.current
+          Bali::DashboardWidget.insert_all(
+            layout.map.with_index { |item, index| row_for(item, index, now) }
+          )
         end
       end
 
-      # "Restore defaults" and an emptied grid are the same gesture.
+      # "Restore defaults" and an emptied grid are the same gesture. No explicit
+      # transaction: one `DELETE` is already atomic, and it locks what it matches.
       def reset
-        rows.transaction { rows.delete_all }
+        rows.delete_all
       end
 
       private
@@ -152,16 +164,31 @@ module Bali
                                     dashboard_key: dashboard_key)
       end
 
-      # Two gestures a few milliseconds apart are two complete answers to "what
-      # does this dashboard look like". The client serialises its writes; this is
-      # what stops two REQUESTS interleaving.
+      # What this DOES buy: two requests that both find existing rows are
+      # serialised, so neither sees the other half-written.
+      #
+      # What it does NOT buy, stated plainly because the name suggests otherwise:
+      #
+      #   - `FOR UPDATE` can only lock rows that ALREADY EXIST. On a first-ever
+      #     `choose`, the scope is empty, there is nothing to lock, and two
+      #     concurrent writers proceed completely unserialised.
+      #   - It does not prevent a lost update even when it does lock. Each caller
+      #     computes its target state from ITS OWN request, so the later commit
+      #     wins wholesale — and because `delete_all` runs before `insert_all`,
+      #     the loser's row is gone before the unique index could object. No
+      #     exception, no conflict: it simply vanishes.
+      #
+      # Exposure is bounded to one owner racing themselves (two tabs, a retried
+      # request), and the grid controller already serialises its own writes
+      # client-side. A host that needs more should reach for an advisory lock
+      # keyed on the scope — `pg_advisory_xact_lock` serialises writers even when
+      # zero rows exist, which row locking structurally cannot. Not done here
+      # because it is Postgres-only and this engine runs on whatever the host has.
       def lock_rows
         rows.lock.pluck(:id)
       end
 
-      def row_for(item, index)
-        now = Time.current
-
+      def row_for(item, index, now)
         {
           owner_type: owner.class.polymorphic_name, owner_id: owner.id,
           context: context, dashboard_key: dashboard_key,

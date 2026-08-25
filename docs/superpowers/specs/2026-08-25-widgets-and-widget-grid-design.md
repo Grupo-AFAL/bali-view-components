@@ -326,7 +326,7 @@ Bali::Widget::Layout.new(owner:, dashboard_key:, offering:, context: "")
 | `#visible_keys` | stored keys ∩ offering keys, in stored order |
 | `#customized?` | `visible_keys.any?` |
 | `#choose(widgets)` | membership. Survivors keep stored order; newly chosen append |
-| `#arrange(layout)` | full reconcile — `delete_all` + `upsert_all` with positions from the array index, in a locked transaction |
+| `#arrange(layout)` | full reconcile — `delete_all` + `insert_all` with positions from the array index, in a locked transaction |
 | `#reset` | drop all rows — what "restore defaults" and an emptied grid both mean |
 
 **`arrange` is a pure reconcile; `choose` preserves sizes.** `arrange` writes exactly the
@@ -335,6 +335,19 @@ widget's default. The grid controller always sends a size for every card, so thi
 the picker — which has no opinion about sizes and must therefore re-supply the stored ones.
 `choose` reads them inside its lock, before `arrange` deletes anything. Getting this wrong
 means ticking a checkbox silently resizes every card the owner had already sized.
+
+**`lock_rows` cannot serialise an empty scope, on any adapter.** `FOR UPDATE` locks rows that
+exist; on a first-ever `choose` there are none, so two concurrent writers proceed unserialised
+and the later commit wins — and since `delete_all` precedes `insert_all`, the loser's row is
+gone before the unique index could object. Silent, not an error. Exposure is one owner racing
+themselves (two tabs, a retried request), and the controller serialises its own writes
+client-side. The fix, if a host needs it, is an advisory lock keyed on the scope
+(`pg_advisory_xact_lock`), which serialises writers even with zero rows present. Not shipped
+because it is Postgres-only and the engine runs on whatever the host has.
+
+**Timestamps do not survive a rearrange.** `arrange` deletes and re-inserts, so every row gets
+a fresh `created_at` on every write. Nothing reads them today, but "when did you first add
+this widget?" is permanently unanswerable from this table.
 
 **`lock_rows` is a no-op on SQLite.** `.lock` emits no `FOR UPDATE` on that adapter, verified
 against `.to_sql`. The serialization it provides is real on Postgres — the engine's target —
