@@ -166,9 +166,13 @@ declarations that drifted.
 ### 1. Install the table
 
 ```bash
-bin/rails bali:install:migrations
+bin/rails bali:install:migrations:entity_references
 bin/rails db:migrate
 ```
+
+Ask for the feature by name. The plain `bali:install:migrations` copies **all five**
+migrations the engine ships, and the four you did not ask for become four dead tables in
+your `schema.rb` — see [Engine models](engine-models.md#installing-one-feature-at-a-time).
 
 ### 2. Declare your referenceable types
 
@@ -296,10 +300,11 @@ document, a policy and a note share it without Bali knowing any of those models.
 backs `Bali::ContentVersionsController`, which serves the three endpoints the
 `DocumentEditor` history panel calls — list, preview one version, restore one.
 
-Install the table once (it ships with the engine's migrations):
+Install the table once — by name, so the other four engine tables stay out of your schema
+(see [Engine models](engine-models.md#installing-one-feature-at-a-time)):
 
 ```bash
-bin/rails bali:install:migrations
+bin/rails bali:install:migrations:content_versions
 bin/rails db:migrate
 ```
 
@@ -429,7 +434,7 @@ migration, three lines of configuration, and one keyword in the view.
 ### 1. Install the tables
 
 ```bash
-bin/rails bali:install:migrations
+bin/rails bali:install:migrations:block_editor_comments
 bin/rails db:migrate
 ```
 

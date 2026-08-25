@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`bali:install:migrations:<feature>` installs one engine table instead of all five.**
+  Rails' own `bali:install:migrations` copies every migration an engine ships, and Bali's
+  five are unrelated features — an app adopting saved views also got content versions,
+  entity references, acknowledgments and block editor comments, four dead tables in the
+  `db/schema.rb` every one of its PRs reviews, and the guide's per-feature sections all
+  pointed at that one command. There is now a task per feature (`saved_views`,
+  `content_versions`, `entity_references`, `acknowledgments`, `block_editor_comments`),
+  listed by `bin/rails -T bali`. Each narrows what is handed to Rails' own copier rather
+  than reimplementing it, so renumbering, the `.bali.rb` suffix and the already-installed
+  check are unchanged — and installing the next feature months later is safe to repeat.
+  The umbrella task still copies all five and now prints the per-feature list first.
+  (#1079)
 - **`slim_select_*` in ajax mode can send more than the search term: `ajax_extra_params:`
   and `ajax_param_selectors:`.** The remote search sent one parameter to one fixed URL, so
   a *dependent select* — "Resource type" narrowing what "Resource" searches, "Country"
@@ -22,6 +34,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that silently stops narrowing is indistinguishable from a working widget. This replaces
   the workaround of rewriting the controller's own `ajaxUrlValue` from an app-side
   Stimulus, which leaned on the URL being re-read per search. (#1084)
+
+### Fixed
+
+- **DataTable: the controls collapsed into the `⋯` menu open over the table again.** Above
+  the `sm` breakpoint a nested dropdown inside the `⋯` floats, which is what a popover
+  inside another has to do — but the menu's own `overflow-y: auto` clipped it, and a scroll
+  container can only contain what is in flow. Measured at 1440px on a toolbar wide enough
+  to collapse Views: of its panel only a border peeked out and `elementFromPoint` at its
+  centre returned a `<td>`, so the control was unusable at exactly the widths where the `⋯`
+  is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
+  that stacks the children in flow, the two being halves of one decision — and floating, a
+  child adds no height, so above the breakpoint there is nothing to cap. (#1080)
 
 ## [v3.1.3] - 2026-08-23
 
