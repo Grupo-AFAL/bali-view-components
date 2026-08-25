@@ -1855,20 +1855,25 @@ module Bali
         prepend_action(opts, "keydown@window->edit-mode#keydown")
       end
 
+      # `I18n.t`, NOT the instance `t` every template uses. These are read from
+      # `initialize` (through `build_options`), and ViewComponent's `#translate`
+      # raises `TranslateCalledBeforeRenderError` until `render_in` has set
+      # `@view_context`. `Bali::Tabs::Component` hit the same wall and reaches for
+      # `I18n.t` for the same reason.
       def widget_grid_values
         {
           url: url,
-          moved_text: t("bali_view.widgets.edit.moved"),
-          removed_text: t("bali_view.widgets.edit.removed"),
-          resized_text: t("bali_view.widgets.edit.resized"),
-          failed_text: t("bali_view.widgets.edit.failed")
+          moved_text: I18n.t("bali_view.widgets.edit.moved"),
+          removed_text: I18n.t("bali_view.widgets.edit.removed"),
+          resized_text: I18n.t("bali_view.widgets.edit.resized"),
+          failed_text: I18n.t("bali_view.widgets.edit.failed")
         }
       end
 
       def edit_mode_values
         {
-          on_text: t("bali_view.widgets.edit.editing_on"),
-          off_text: t("bali_view.widgets.edit.editing_off")
+          on_text: I18n.t("bali_view.widgets.edit.editing_on"),
+          off_text: I18n.t("bali_view.widgets.edit.editing_off")
         }
       end
 
