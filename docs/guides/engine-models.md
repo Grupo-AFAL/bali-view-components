@@ -452,6 +452,13 @@ gesture below.
 
 Two behaviours are not obvious and matter:
 
+- **There is no way to store "an empty dashboard".** No visible rows means "never chose", so
+  `#widgets` falls back to the whole offering. That is what gives a new user a populated
+  dashboard and what makes "restore defaults" work — but it also means a picker in which the
+  user unticks *everything* shows them MORE widgets, not none. Say so in your picker's copy;
+  the gesture reads the other way round. The dummy app's picker
+  (`spec/dummy/app/views/dashboard_widgets/picker.html.erb`) does exactly that.
+
 - **An empty sequence means reset.** Removing the last widget submits nothing;
   `Layout#arrange([])` deletes every row, and no rows means "never chose" — the next read
   restores every authorized widget, in catalog order.

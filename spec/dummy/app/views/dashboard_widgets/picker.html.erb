@@ -30,7 +30,12 @@
         <% end %>
       <% end %>
 
-      <div class="flex justify-end mt-4">
+      <%# No stored rows is indistinguishable from "never chose" — `Layout#widgets`
+          falls back to the whole offering — so unticking everything restores the
+          defaults rather than emptying the dashboard. Say so, because the gesture
+          reads the other way. %>
+      <div class="flex items-center justify-between gap-4 mt-4">
+        <p class="text-sm text-base-content/60"><%= t('.unchecking_all') %></p>
         <%= render Bali::Button::Component.new(name: t('.save'), variant: :primary, type: :submit) %>
       </div>
     <% end %>

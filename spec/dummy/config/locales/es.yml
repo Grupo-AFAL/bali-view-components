@@ -131,6 +131,7 @@ es:
       title: Agregar widgets
       subtitle: Elige que widgets aparecen en tu panel.
       save: Guardar
+      unchecking_all: "Si desmarcas todo, se restauran los widgets predeterminados."
       restore_defaults: Restaurar valores predeterminados
       restore_confirm: Esto borra tu orden y trae de vuelta cada widget en su tamano predeterminado. Continuar?
     update_picker:

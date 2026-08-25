@@ -78,6 +78,7 @@ en:
       title: Add widgets
       subtitle: Choose which widgets appear on your dashboard.
       save: Save
+      unchecking_all: "Unchecking everything restores the default dashboard."
       restore_defaults: Restore defaults
       restore_confirm: This clears your arrangement and brings back every widget at its default size. Continue?
     update_picker:
