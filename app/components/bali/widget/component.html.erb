@@ -18,6 +18,7 @@
          data-widget-key="<%= key %>"
          data-widget-title="<%= short_title %>"
          data-size="<%= size %>"
+         aria-label="<%= short_title %>"
          class="relative flex h-full flex-col rounded-box border border-base-300 bg-base-100 <%= summary? ? 'p-4' : 'p-6' %> [.editing_&]:border-dashed [.editing_&]:border-primary [.editing_&]:shadow-lg">
   <%# No jiggle. A wobbling card of overdue counts reads as a rendering fault
       rather than an affordance, makes the text unreadable, and collides with
@@ -35,6 +36,7 @@
     <button type="button"
             class="handle btn btn-circle btn-xs btn-ghost bg-base-100 shadow"
             aria-label="<%= t('bali_view.widgets.edit.reorder', widget: short_title) %>"
+            aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
             data-action="keydown->bali-widget-grid#move">
       <%= render Bali::Icon::Component.new('handle', size: :small) %>
     </button>
@@ -112,11 +114,26 @@
         <p class="text-xs text-warning"><%= t('bali_view.widgets.load_error') %></p>
       </div>
     <% elsif summary? %>
-      <%= link_to view_all_path || '#', class: 'stat flex-1 place-content-center p-0' do %>
+      <%# The whole tile is the link — but ONLY when there is somewhere to go.
+          A nil `view_all_path` is a legitimate state (`Base#list_from` defaults
+          it to nil), and `href="#"` would make the card look clickable while
+          doing nothing — the same lie the failed state refuses to tell with a
+          retry button that re-runs a broken query.
+
+          `capture` so the two branches share one copy of the content instead of
+          drifting out of sync — same pattern `DataTable` uses for its footer. %>
+      <% summary_content = capture do %>
         <div class="stat-value text-4xl tabular-nums <%= count.positive? ? 'text-base-content' : 'text-base-content/30' %>">
           <%= count %>
         </div>
         <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>
+      <% end %>
+      <% if view_all_path.present? %>
+        <%= link_to view_all_path, class: 'stat flex-1 place-content-center p-0' do %>
+          <%= summary_content %>
+        <% end %>
+      <% else %>
+        <div class="stat flex-1 place-content-center p-0"><%= summary_content %></div>
       <% end %>
     <% else %>
       <%= render Bali::PageHeader::Component.new do |c| %>

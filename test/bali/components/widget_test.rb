@@ -37,6 +37,12 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector("section[data-id='stock'][data-widget-title='Low stock']")
   end
 
+  def test_the_card_names_itself_for_landmark_navigation
+    render_inline(Bali::Widget::Component.new(widget))
+
+    assert_selector("section[aria-label='Low stock']")
+  end
+
   def test_medium_renders_the_title_and_three_rows
     render_inline(Bali::Widget::Component.new(widget(size: :medium, items: 5.times.map { |i|
       Bali::Widget::Row.new(title: "Row #{i}")
@@ -54,6 +60,14 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector("ul.list li", count: 7)
   end
 
+  def test_wide_renders_three_rows_like_medium_because_it_is_one_row_tall
+    render_inline(Bali::Widget::Component.new(widget(size: :wide, items: 9.times.map { |i|
+      Bali::Widget::Row.new(title: "Row #{i}")
+    })))
+
+    assert_selector("ul.list li", count: 3)
+  end
+
   def test_small_renders_a_stat_and_no_rows
     render_inline(Bali::Widget::Component.new(widget(size: :small)))
 
@@ -66,6 +80,16 @@ class BaliWidgetComponentTest < ComponentTestCase
     render_inline(Bali::Widget::Component.new(widget(size: :small, count: 0)))
 
     assert_selector(".stat-value.text-base-content\\/30", text: "0")
+  end
+
+  def test_a_small_card_without_a_destination_is_not_a_link_to_nowhere
+    render_inline(Bali::Widget::Component.new(widget(size: :small, view_all_path: nil)))
+
+    assert_selector(".stat-value", text: "2")
+    # `href="#"` looks clickable and does nothing — the same lie as a retry
+    # button that re-runs a broken query.
+    assert_no_selector("a[href='#']")
+    assert_no_selector("a.stat")
   end
 
   def test_empty_list_renders_the_empty_message
