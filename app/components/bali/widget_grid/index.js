@@ -254,7 +254,16 @@ export class EditModeController extends Controller {
   connect () {
     // Back leaves edit mode rather than the page, and a restore visit has to
     // re-enter it — so the flag lives in the URL, not only in memory.
+    //
+    // `restoring` because Stimulus already ran its default-value pass before
+    // `connect`: this assignment fires `editingValueChanged(true, false)`, where
+    // `wasEditing` is `false` rather than `undefined`, so the "initial render is
+    // not a transition" guard below misses it and a page opened at `?editing=1`
+    // announces on load. The class toggle and `inert` still need to happen.
+    this.restoring = true
     this.editingValue = this.editingInUrl
+    this.restoring = false
+
     this.popstate = () => { this.editingValue = this.editingInUrl }
     window.addEventListener('popstate', this.popstate)
   }
@@ -306,7 +315,7 @@ export class EditModeController extends Controller {
     // A sighted user sees the page change. Without this, a screen-reader user
     // gets silence and finds the mode by stumbling into new buttons. Skipped on
     // the initial set, which is a render rather than a transition.
-    if (wasEditing === undefined) return
+    if (wasEditing === undefined || this.restoring) return
     this.announce(editing ? this.onTextValue : this.offTextValue)
   }
 

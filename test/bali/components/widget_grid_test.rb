@@ -77,7 +77,35 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     assert_no_selector(".bali-widget-grid")
   end
 
-  def test_the_default_toolbar_offers_enter_and_a_hidden_leave
+  def test_the_empty_state_offers_a_way_to_add_the_first_widget
+    render_inline(Bali::WidgetGrid::Component.new(url: "/l", add_path: "/widgets/edit"))
+
+    assert_selector(".empty-state-component a[href='/widgets/edit']")
+  end
+
+  def test_the_empty_state_offers_no_cta_when_there_is_nowhere_to_add
+    render_inline(Bali::WidgetGrid::Component.new(url: "/l"))
+
+    assert_selector(".empty-state-component")
+    assert_no_selector(".empty-state-component a")
+  end
+
+  def test_a_custom_empty_state_replaces_the_default
+    render_inline(Bali::WidgetGrid::Component.new(url: "/l")) do |grid|
+      grid.with_empty_state { "<p class='mine'>Nothing yet</p>".html_safe }
+    end
+
+    assert_selector("p.mine", text: "Nothing yet")
+    assert_no_selector(".empty-state-component")
+  end
+
+  def test_the_wrapper_binds_escape_for_edit_mode
+    render_inline(Bali::WidgetGrid::Component.new(url: "/l"))
+
+    assert_selector("[data-action*='keydown@window->edit-mode#keydown']", visible: :all)
+  end
+
+  def test_the_default_bar_offers_enter_and_a_hidden_leave
     render_inline(Bali::WidgetGrid::Component.new(url: "/l")) do |grid|
       grid.with_widget(Stock.new)
     end
@@ -86,14 +114,16 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     assert_selector("[data-edit-mode-target='leave'][hidden] button[data-action='edit-mode#leave']", visible: :all)
   end
 
-  def test_a_custom_toolbar_replaces_the_default
+  def test_a_custom_heading_replaces_the_hint_but_keeps_the_edit_controls
     render_inline(Bali::WidgetGrid::Component.new(url: "/l")) do |grid|
       grid.with_widget(Stock.new)
-      grid.with_toolbar { "<h1>My dashboard</h1>".html_safe }
+      grid.with_heading { "<h1>My dashboard</h1>".html_safe }
     end
 
     assert_selector("h1", text: "My dashboard")
-    assert_no_selector("[data-edit-mode-target='enter']", visible: :all)
+    # The grid is the only surface that offers edit mode; a custom heading must
+    # not be able to delete the way in.
+    assert_selector("[data-edit-mode-target='enter'] button[data-action='edit-mode#enter']", visible: :all)
   end
 
   def test_renders_one_announcer_shared_by_both_controllers

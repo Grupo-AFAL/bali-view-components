@@ -17,9 +17,11 @@ module Bali
       # dependency on the card.
       renders_many :widgets, "Bali::Widget::Component"
 
-      # Defaults to enter/leave controls in one slot. A host that wants a heading
-      # and its own buttons replaces the whole band.
-      renders_one :toolbar
+      # Only the LEADING text, never the controls. An earlier version let a host
+      # replace the whole band, which silently deleted the Edit/Done buttons —
+      # and since the grid is the only surface that offers edit mode, a host that
+      # wanted a heading lost the feature with nothing to tell it so.
+      renders_one :heading
 
       renders_one :empty_state
 
@@ -34,10 +36,10 @@ module Bali
       GRID_CLASSES = "bali-widget-grid grid grid-cols-1 gap-4 md:grid-cols-2 " \
                      "lg:grid-cols-4 lg:auto-rows-[16rem]"
 
-      ADD_TILE_CLASSES = "hidden [.editing_&]:flex flex-col items-center justify-center gap-2 " \
-                         "rounded-box border-2 border-dashed border-base-300 " \
-                         "text-base-content/50 transition-colors hover:border-primary " \
-                         "hover:text-primary"
+      ADD_TILE_CLASSES = "bali-widget-add-tile hidden [.editing_&]:flex flex-col items-center " \
+                         "justify-center gap-2 rounded-box border-2 border-dashed " \
+                         "border-base-300 text-base-content/50 transition-colors " \
+                         "hover:border-primary hover:text-primary"
 
       def initialize(url:, add_path: nil, **options)
         @url = url

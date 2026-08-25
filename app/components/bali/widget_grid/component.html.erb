@@ -3,26 +3,27 @@
     about the mode — it moves cards and writes the sequence. %>
 <%= tag.div(**options) do %>
   <div class="mb-4 flex items-center justify-between gap-2">
-    <% if toolbar? %>
-      <%= toolbar %>
+    <% if heading? %>
+      <%= heading %>
     <% else %>
       <p class="text-sm text-base-content/60"><%= t('bali_view.widgets.edit.hint') %></p>
-
-      <%# Enter and leave occupy the same slot: the control you press to leave
-          should be where the one you pressed to enter was. %>
-      <span data-edit-mode-target="enter">
-        <%= render Bali::Button::Component.new(
-              name: t('bali_view.widgets.edit.edit'), icon: 'pencil',
-              variant: :ghost, size: :sm,
-              data: { action: 'edit-mode#enter' }) %>
-      </span>
-      <span data-edit-mode-target="leave" hidden>
-        <%= render Bali::Button::Component.new(
-              name: t('bali_view.widgets.edit.done'),
-              variant: :primary, size: :sm,
-              data: { action: 'edit-mode#leave' }) %>
-      </span>
     <% end %>
+
+    <%# Structural, not part of the overridable slot — see `renders_one :heading`.
+        Enter and leave occupy the same slot: the control you press to leave
+        should be where the one you pressed to enter was. %>
+    <span data-edit-mode-target="enter">
+      <%= render Bali::Button::Component.new(
+            name: t('bali_view.widgets.edit.edit'), icon: 'pencil',
+            variant: :ghost, size: :sm,
+            data: { action: 'edit-mode#enter' }) %>
+    </span>
+    <span data-edit-mode-target="leave" hidden>
+      <%= render Bali::Button::Component.new(
+            name: t('bali_view.widgets.edit.done'),
+            variant: :primary, size: :sm,
+            data: { action: 'edit-mode#leave' }) %>
+    </span>
   </div>
 
   <%# ONE live region for both controllers. A sighted user sees the card move; a
@@ -53,6 +54,16 @@
     <%= render Bali::EmptyState::Component.new(
           title: t('bali_view.widgets.empty.title'),
           description: t('bali_view.widgets.empty.description'),
-          icon: 'sparkles') %>
+          icon: 'sparkles') do |empty| %>
+      <%# The "+" tile otherwise lives only in the populated branch, so without
+          this a host that configured `add_path:` has no way to add its FIRST
+          widget — the empty state is exactly when it matters most. %>
+      <% if add_path.present? %>
+        <% empty.with_cta do %>
+          <%= render Bali::Link::Component.new(
+                name: t('bali_view.widgets.edit.add'), href: add_path, variant: :primary) %>
+        <% end %>
+      <% end %>
+    <% end %>
   <% end %>
 <% end %>
