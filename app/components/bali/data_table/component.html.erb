@@ -159,10 +159,21 @@
                 un escritorio apilar en flujo hace que el popover contenedor CREZCA al abrir
                 un hijo: medido en /admin/studios, el panel del ⋯ pasaba de 320x176 a
                 320x338 al abrir Views. Arriba del breakpoint el anidado vuelve a flotar,
-                que es lo que un popover dentro de otro tiene que hacer. %>
+                que es lo que un popover dentro de otro tiene que hacer.
+
+                El tope de alto lleva el MISMO `max-sm:`, y eso es lo que arregla #1080: un
+                scroll container solo puede contener lo que está EN FLUJO, así que arriba
+                del breakpoint —donde el hijo es absoluto— `overflow-y: auto` no lo
+                acotaba, lo RECORTABA. Medido a 1440px en /admin/studios: del panel de
+                Views asomaba un borde y `elementFromPoint` en su centro devolvía un `<td>`,
+                con el control inservible justo en los anchos donde el ⋯ es la única
+                salida. Sin recorte el hijo se pinta dentro del contexto de apilamiento del
+                propio ⋯ (absolute + z-index), que ya está por encima de la banda de
+                contenido. Y no hace falta acotarlo: flotando, el hijo no aporta alto: el
+                menú mide lo que miden sus controles. %>
             <div class="toolbar-overflow-menu
                         flex flex-col items-stretch gap-2 w-full p-1
-                        max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto
+                        max-w-[calc(100vw-3rem)] max-sm:max-h-[70vh] max-sm:overflow-y-auto
                         max-sm:[&_.dropdown-content]:!static max-sm:[&_.dropdown-content]:!w-full"
                  data-toolbar-overflow-target="menu"></div>
           <% end %>
