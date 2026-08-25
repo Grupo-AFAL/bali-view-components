@@ -25,6 +25,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::Table` can translate its group band label without losing the global count:
+  `group_i18n_scope:` and `group_label:`.** The band was labelled with the raw column
+  value, which for an enum is the database's — "table (5)" on a Spanish page. The obvious
+  fix, passing the translated string as `with_row(group:)`, cost the global count:
+  `group_counts` is keyed by whatever the `GROUP BY` returned, so the lookup missed and the
+  header fell back to the count of the *page*, which is the one thing `group_counts` exists
+  to prevent. Hosts were left translating both sides and remembering to do it in two
+  places. The label is now resolved when the band is painted: `group_i18n_scope:` reads
+  `"<scope>.<value>"` — the same convention as `Bali::Tag.for(i18n_scope:)` — and
+  `group_label:` takes a callable over the raw value for anything that is not a
+  key-per-value lookup. Rows keep carrying the raw value, so `group_counts` and the group's
+  select-all token are untouched. The SQL NULL band keeps its own `bali_view.table.ungrouped`
+  key. (#1086)
+
+### Added
+
 - **`bali:install:migrations:<feature>` installs one engine table instead of all five.**
   Rails' own `bali:install:migrations` copies every migration an engine ships, and Bali's
   five are unrelated features — an app adopting saved views also got content versions,

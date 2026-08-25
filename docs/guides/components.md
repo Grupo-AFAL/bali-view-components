@@ -1404,6 +1404,30 @@ Caveats:
   `bali_view.table.ungrouped`). When **no** row has a `group:`, the table renders
   exactly as it does without the feature — no header rows.
 
+**Translating the band label** — the band is labelled with the raw group value, which for
+an enum is the database's (`table`, `view`). Do **not** translate it by passing the
+translated string as `group:`: the keys of `group_counts` are the ones the `GROUP BY`
+returned, so the lookup misses and the header silently falls back to the page-local count —
+the very thing `group_counts` exists to avoid. The label is resolved when the band is
+painted instead:
+
+```erb
+<%# The common case: one key per value, same convention as Bali::Tag.for(i18n_scope:) %>
+<%= render Bali::Table::Component.new(form: @filter_form,
+                                      group_counts: @filter_form.group_counts,
+                                      group_i18n_scope: "movies.genres") do |table| %>
+  <% table.with_row(group: movie.genre) do %><%# still the raw value %><% end %>
+<% end %>
+
+<%# The escape hatch, for a label that is not a key-per-value lookup %>
+<%= render Bali::Table::Component.new(group_counts: counts,
+                                      group_label: ->(value) { value.to_date.strftime("%B %Y") }) %>
+```
+
+`group_label:` wins over `group_i18n_scope:`. Neither sees `nil`, the SQL NULL band — that
+one already has its own translatable key. And because the label never reaches the row, the
+group's select-all token keeps deriving from the value rather than from its translation.
+
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
 `Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
 the query, counts are global, and the "Agrupar por" control persists the choice

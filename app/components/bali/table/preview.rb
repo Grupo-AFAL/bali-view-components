@@ -44,6 +44,26 @@ module Bali
         { id: 12, area: 'Sur', leader: 'Lucas Ibarra', role: 'Volunteer', members: 1 }
       ].freeze
 
+      # Agrupado por un enum: el valor que llega es el de la base, y es lo que tienen que
+      # seguir llevando `with_row(group:)` y las llaves de `group_counts`.
+      GROUPING_ENUM_HEADERS = [
+        { name: 'Asset' },
+        { name: 'Owner' },
+        { name: 'Rows' }
+      ].freeze
+
+      GROUPING_ENUM_RECORDS = [
+        { id: 1, kind: 'table', asset: 'fact_sales', owner: 'Ana Torres', rows: '1.2M' },
+        { id: 2, kind: 'table', asset: 'dim_customer', owner: 'Bruno Díaz', rows: '84K' },
+        { id: 3, kind: 'view', asset: 'v_active_customers', owner: 'Carla Ruiz', rows: '61K' },
+        { id: 4, kind: 'view', asset: 'v_monthly_revenue', owner: 'Diego Sosa', rows: '36' },
+        { id: 5, kind: 'restricted', asset: 'employee_payroll', owner: 'Elena Vidal', rows: '412' }
+      ].freeze
+
+      # Totales del GROUP BY: llaves CRUDAS, que es la razón por la que el rótulo se traduce
+      # al pintar y no metiéndole la traducción a `with_row(group:)`.
+      GROUPING_ENUM_COUNTS = { 'table' => 96, 'view' => 41, 'restricted' => 7 }.freeze
+
       BULK_ACTION_RECORDS = [
         { id: 1, product: 'MacBook Pro 14"', sku: 'MBP-14-M3', price: '$1,999', stock: 45, status: 'active' },
         { id: 2, product: 'iPhone 15 Pro', sku: 'IP15-PRO-256', price: '$999', stock: 120, status: 'active' },
@@ -143,6 +163,25 @@ module Bali
           locals: {
             headers: GROUPING_HEADERS,
             records: GROUPING_RECORDS
+          }
+        )
+      end
+
+      # @label Translated group bands
+      # La banda rotula con el valor crudo de la columna, que en un enum es el de la base
+      # (`table`, `view`). `group_i18n_scope:` lo resuelve como `"scope.valor"` y
+      # `group_label:` es la escapatoria para lo que no sale de una clave por valor.
+      #
+      # Los dos resuelven el rótulo AL PINTAR, así que `with_row(group:)` sigue llevando el
+      # valor crudo y `group_counts:` conserva sus llaves: los conteos de abajo son los
+      # globales (96, 41, 7), no los de la página.
+      def with_translated_groups
+        render_with_template(
+          template: 'bali/table/previews/with_translated_groups',
+          locals: {
+            headers: GROUPING_ENUM_HEADERS,
+            records: GROUPING_ENUM_RECORDS,
+            counts: GROUPING_ENUM_COUNTS
           }
         )
       end
