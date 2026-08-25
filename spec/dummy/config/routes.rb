@@ -86,6 +86,7 @@ Rails.application.routes.draw do
   get 'tab2', to: 'tabs#tab2'
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
+  resource :widget_layout, only: :update
   get 'users', to: 'users#index'
 
   # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine
