@@ -236,6 +236,15 @@ module Bali
           slim_select_ajax_value_name_value: options[:ajax_value_name],
           slim_select_ajax_text_name_value: options[:ajax_text_name],
           slim_select_ajax_url_value: options[:ajax_url],
+          # Everything the remote search sends BESIDES the search term (#1084). Fixed
+          # scope known at render time goes in `ajax_extra_params`; scope that depends on
+          # another field of the form goes in `ajax_param_selectors`, a
+          # `param => CSS selector` map the controller reads on every keystroke. Without
+          # them the term travelled alone, and the only way to narrow a remote select by
+          # a sibling field was for the app to rewrite this controller's `ajaxUrlValue`
+          # from the outside — a Stimulus per form, leaning on an internal.
+          slim_select_ajax_extra_params_value: options[:ajax_extra_params],
+          slim_select_ajax_param_selectors_value: options[:ajax_param_selectors],
           slim_select_ajax_placeholder_value: options[:ajax_placeholder],
           slim_select_after_change_fetch_url_value: options[:after_change_fetch_url],
           slim_select_after_change_fetch_method_value: options[:after_change_fetch_method],

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`slim_select_*` in ajax mode can send more than the search term: `ajax_extra_params:`
+  and `ajax_param_selectors:`.** The remote search sent one parameter to one fixed URL, so
+  a *dependent select* — "Resource type" narrowing what "Resource" searches, "Country"
+  narrowing "City" — had no native spelling: the term travelled alone and the endpoint
+  could not know which catalogue to look in. `ajax_extra_params:` is a hash merged into
+  every search, for scope already known when the page renders. `ajax_param_selectors:` is
+  a `param => CSS selector` hash resolved **on every search**, which is what makes the
+  dependent case work — the selector points anywhere in the document, so the field it
+  reads need not belong to the form or to Bali. An empty field sends no parameter rather
+  than an empty one, and a selector that matches nothing warns in the console: a filter
+  that silently stops narrowing is indistinguishable from a working widget. This replaces
+  the workaround of rewriting the controller's own `ajaxUrlValue` from an app-side
+  Stimulus, which leaned on the URL being re-read per search. (#1084)
+
 ## [v3.1.3] - 2026-08-23
 
 ### Added
