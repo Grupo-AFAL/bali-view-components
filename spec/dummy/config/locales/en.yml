@@ -574,3 +574,12 @@ en:
     description: Description
     created_at: Created
     updated_at: Updated
+
+  # Preview-only strings. They live here and not in the gem's locales on purpose: a
+  # preview renders in the HOST's i18n context, and `bali_view.*` is the gem's public
+  # surface — a demo key has no business in it.
+  lookbook:
+    asset_kinds:
+      table: Table
+      view: View
+      restricted: Restricted
