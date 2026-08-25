@@ -1,0 +1,9 @@
+<%# The `.editing` class normally lives on the grid wrapper that `edit-mode`
+    toggles; here it is hard-coded so a single card can be inspected in both
+    states. `lg:h-64` matches the grid's `auto-rows-[16rem]` so the card has the
+    height its layout was drawn around. %>
+<div class="<%= 'editing' if editing %> max-w-md p-8">
+  <div class="lg:h-64">
+    <%= render Bali::Widget::Component.new(widget) %>
+  </div>
+</div>
