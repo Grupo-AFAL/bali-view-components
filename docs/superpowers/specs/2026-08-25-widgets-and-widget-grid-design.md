@@ -213,11 +213,28 @@ navigation during the debounce window cannot PATCH a DOM that has already been r
 
 **Two known follow-ups on the controllers**, both from review of Task 7:
 
-- **`EditModeController.push` uses raw `pushState`,** not Turbo's history bookkeeping, where
-  `modal/index.js` routes through `window.Turbo.session.history.push` when Turbo is present.
-  Probably fine — the path never changes, only a query param — but "probably" is below the bar
-  the rest of this file holds. The Cypress spec must assert that browser-Back leaves edit mode
-  **without a full navigation**, not merely that the URL and class end up right.
+- **`EditModeController.push` uses raw `pushState`, and that is now a settled decision rather
+  than an open question.** Review flagged it because `modal/index.js` routes through
+  `window.Turbo.session.history.push` when Turbo is present. Cypress measured the actual
+  behaviour: browser-Back does NOT hard-reload (a `window` marker survives, and our own
+  `popstate` handler does the real work), but Turbo does issue a restoration visit — one
+  wasted `GET` of a page that never changed.
+
+  Routing through `Turbo.session.history.push` was tried and **does not fix it.** That method
+  stamps the history entry correctly; it cannot retroactively cache the DOM. Turbo's snapshot
+  cache is keyed by URL and populated only by `view.cacheSnapshot()` during a real visit away
+  from a page — and toggling a query param never makes Turbo visit anything. With no cached
+  snapshot for the pre-edit URL, `action: "restore"` falls back to the network. Architectural,
+  not a missing line.
+
+  Closing it would mean calling `Turbo.session.view.cacheSnapshot()` — private API not exposed
+  on `window.Turbo` — from a shared library controller. Not worth a guaranteed future breakage
+  to save one `GET` on an infrequent action that already behaves correctly. Accepted as a known
+  minor cost; the Cypress spec documents it rather than asserting it away.
+
+  **Note for the library at large:** `modal/index.js`'s use of the same pattern is unverified
+  for the same reason. Nothing in `cypress/e2e/` exercises its Back path, and its push-then-
+  swap-body flow has the same empty-snapshot-cache problem. Worth checking separately.
 - **`remove()` announces the widget but not the new total,** where `move()` announces
   "position X of Y". A screen-reader user removing cards loses the running count. Needs a new
   locale string carrying a count, so it was left out of the initial pass.
