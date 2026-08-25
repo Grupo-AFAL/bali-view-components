@@ -675,3 +675,36 @@ es:
       retry: "Reintentar"
 
       filter_active: "activo, quitar filtro"
+
+    # Chrome del widget (tarjeta Bali::Widget + widget grid). Los títulos de
+    # los widgets son contenido del HOST y viven en el scope propio del host
+    # `widgets.<key>.*` — ver Bali::Widget::Base#i18n_scope. Estas son claves
+    # absolutas, no relativas: tanto la tarjeta como el grid usan el mismo
+    # texto, y un `t(".remove")` relativo resolvería a dos scopes distintos
+    # (`bali_view.widget.remove` vs `bali_view.widget_grid.remove`) en lugar
+    # de compartir una sola cadena.
+    widgets:
+      load_error: "No se pudo cargar"
+      view_all: "Ver todo (%{count})"
+      empty:
+        title: "Aún no hay widgets"
+        description: "Agrega widgets para armar tu tablero."
+      edit:
+        edit: "Editar"
+        done: "Listo"
+        add: "Agregar widget"
+        hint: "Arrastra para reacomodar, cambiar tamaño o quitar widgets."
+        reorder: "Reacomodar %{widget}"
+        remove: "Quitar %{widget}"
+        size_of: "Tamaño de %{widget}"
+        sizes:
+          small: "Chico"
+          medium: "Mediano"
+          large: "Grande"
+          wide: "Ancho"
+        moved: "%{widget} movido a la posición %{position} de %{total}"
+        removed: "%{widget} quitado"
+        resized: "%{widget} cambiado a %{size}"
+        failed: "No se pudieron guardar los cambios"
+        editing_on: "Editando el tablero"
+        editing_off: "Edición terminada"
