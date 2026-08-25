@@ -36,8 +36,9 @@ Every engine model follows the same four steps, so learning one teaches you the 
 The features on this page are unrelated to each other, and an app usually adopts one of
 them. Rails' plain `bali:install:migrations` does not know that: it copies **every**
 migration an engine ships, so asking for saved views also hands you content versions,
-entity references, acknowledgments and block editor comments — four tables you never
-asked for, permanently in the `db/schema.rb` every one of your PRs reviews (#1079).
+entity references, acknowledgments, block editor comments and dashboard widgets — five
+tables you never asked for, permanently in the `db/schema.rb` every one of your PRs
+reviews (#1079).
 
 So name the feature. One task per table, listed by `bin/rails -T bali`:
 
@@ -47,6 +48,7 @@ bin/rails bali:install:migrations:content_versions
 bin/rails bali:install:migrations:entity_references
 bin/rails bali:install:migrations:acknowledgments
 bin/rails bali:install:migrations:block_editor_comments
+bin/rails bali:install:migrations:dashboard_widgets
 ```
 
 Each copies exactly one migration, through the same copier the umbrella task uses: it
@@ -54,7 +56,7 @@ renumbers to the moment of the copy, keeps the `.bali.rb` suffix, and leaves a m
 you already installed alone. Run one now and the next one months later — that is the
 point.
 
-`bali:install:migrations` still copies all five, for an app that really does want
+`bali:install:migrations` still copies all six, for an app that really does want
 everything. It now prints the per-feature list before it starts.
 
 ---
@@ -270,3 +272,261 @@ back BlockEditor's comments sidebar — enable it with `comments:` in the editor
 Shipped (#708): `Bali::EntityReference` plus the `Bali::EntityReferenceable` concern,
 with the `create_bali_entity_references` migration. It records which entities a document
 mentions, so back-references ("mentioned in…") can be listed from either side.
+
+---
+
+## Dashboard widgets (`bali_dashboard_widgets`)
+
+A user-arrangeable bento dashboard: which widgets an owner sees, in what order, at what
+size.
+
+```bash
+bin/rails bali:install:migrations:dashboard_widgets
+bin/rails db:migrate
+```
+
+### The three pieces
+
+`Bali::Widget::Base` is the contract a widget class implements. `Bali::DashboardWidget::Store`
+reads and writes one owner's arrangement. `Bali::WidgetGrid::Component` renders it.
+
+```ruby
+class LowStockItems < Bali::Widget::Base
+  # Bali::Widget::Base deliberately carries almost no surface — it does NOT give you
+  # route helpers. A widget that links its rows anywhere needs them itself.
+  include Rails.application.routes.url_helpers
+
+  sized :medium
+
+  def visible? = context.has_any_role?(:inventory_manager)
+
+  def call = list_from(low_stock.order(:name), view_all_path: items_path)
+
+  private
+
+  def row(item)
+    Bali::Widget::Row.new(title: item.name,
+                          subtitle: subtitle("#{item.stock} left", item.outlet_name),
+                          href: item_path(item))
+  end
+end
+```
+
+`sized` is validated at class-definition time — an unknown size is a boot failure, not a
+`KeyError` the first time someone opens the dashboard. `visible?` is a HOOK, never a rule
+Bali owns: roles, tenancy and feature flags are things only your app can see, and it
+defaults to `true`. `call` returns a `Bali::Widget::Result`; the private `list_from`
+builds one from an ordered scope, capping the preview at `PREVIEW_ROWS` (8 rows) while
+`count` still reflects the whole scope — which is what lets `#call` stay ignorant of the
+size the card renders at. `context` is whatever your app needs to gate on (a Pundit
+context, a user, nothing at all) — Bali never reads it itself.
+
+### The widget's copy is yours, in your own locale scope
+
+A widget's `title`, `short_title`, `description` and `empty` come from **your** app's locale
+files, under a plain `widgets.<key>.*` scope — deliberately NOT under `bali_view.*`, which is
+where Bali keeps its own chrome (the Edit/Done labels, the size names, "Couldn't load"). Bali
+ships that chrome in `en` and `es`; the widget's own words are host content and it has none.
+
+The `key` is derived from the class name, so `LowStockItems` reads `widgets.low_stock_items.*`:
+
+```yaml
+en:
+  widgets:
+    low_stock_items:
+      title: "Low stock items"
+      short_title: "Low stock"        # optional; falls back to title
+      description: "Ingredients running low"
+      empty: "Nothing running low"
+```
+
+Without these you get `translation missing` on the card, so add them when you add the widget.
+Point `Bali::Widget::Base.i18n_scope` elsewhere if `widgets` collides with something you
+already use, or override the four class methods directly — which is what the Lookbook previews
+in this engine do, since they have no locale file of their own.
+
+### Gating: building the `offering:`
+
+`Bali::DashboardWidget::Store` never decides who can see what. It is handed the
+already-authorized set and can only subset, reorder and resize it — a stale or tampered
+widget key finds nothing in that set and is inert.
+
+```ruby
+def offering
+  Bali::Widget.authorized_for(WIDGETS.map { |klass| klass.new(pundit_user) })
+end
+```
+
+`Bali::Widget.authorized_for` just selects on `#visible?`. It costs only whatever your
+`visible?` bodies cost — never a widget query, since visibility and loading are
+deliberately kept separate.
+
+### Constructing a `Store`
+
+```ruby
+layout = Bali::DashboardWidget.store_for(
+  current_user,
+  context: @tenant.id.to_s,   # the scoping string; "" for a single-tenant app
+  dashboard_key: "today",     # which dashboard, for a host with more than one
+  offering: offering
+)
+```
+
+Which is a shortcut for building the scope object directly — the same relationship
+`Bali::SavedView.store_for` has to `SavedView::Store`:
+
+```ruby
+layout = Bali::DashboardWidget::Store.new(
+  owner: current_user, context: @tenant.id.to_s, dashboard_key: "today", offering: offering
+)
+```
+
+Two different things are both called "context" here, and they are not the same one.
+`Store.new(context:)` is a scoping STRING — a tenant id — and it is unrelated to
+`Bali::Widget::Base#context`, the actor object a widget's `visible?` gates against.
+`Store` never sees the actor object; `Base` never sees the scoping string.
+
+`Bali::DashboardWidget::Store` is the DEFAULT implementation, not a requirement. A host
+that already persists dashboards elsewhere — an existing table, its own model — can
+implement the same contract (`widgets`, `stored_keys`, `visible_keys`, `customized?`,
+`choose`, `arrange`, `reset`) and pass that object wherever a `Store` is expected instead;
+such a host never runs `bali:install:migrations:dashboard_widgets`. See the class comment
+on `Bali::DashboardWidget::Store` for the contract in full.
+
+### Rendering
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(
+      url: widget_layout_path, add_path: edit_user_widgets_path) do |grid| %>
+  <% grid.with_heading { tag.h2("Today", class: "text-lg font-semibold") } %>
+  <% layout.widgets.each do |widget| %>
+    <% grid.with_widget(widget) %>
+  <% end %>
+<% end %>
+```
+
+`with_heading` replaces only the leading text next to the Edit/Done controls — the
+controls themselves are structural and always render, deliberately, so a heading override
+can never delete the dashboard's one entry point into edit mode.
+
+A widget that isn't a list fills the card's `body` slot instead of falling through to the
+default row list:
+
+```erb
+<% grid.with_widget(widget) do |card| %>
+  <% card.with_body { render Compliance::TodayPanel::Component.new(widget.payload) } %>
+<% end %>
+```
+
+`add_path:` is optional. When given, a dashed "+" tile appears in edit mode — and, when
+the grid has no widgets at all, it becomes the empty state's own call to action, so a host
+that configured `add_path:` still has a way to add its first widget.
+
+### The write path
+
+Bali ships **no controller and no routes** — who may see which widget is your rule, so the
+write goes through the same `Store` you built the offering with. Every gesture — drag,
+arrow-key move, resize, remove — PATCHes the **whole** arrangement to `url:`, not a diff:
+
+```
+widgets[][key]=low_stock_items&widgets[][size]=medium&widgets[][key]=cost_spikes&widgets[][size]=
+```
+
+```ruby
+class WidgetLayoutsController < ApplicationController
+  def update
+    layout.arrange(permitted_layout)
+    head :no_content
+  end
+
+  private
+
+  def layout
+    Bali::DashboardWidget.store_for(current_user, context: @tenant.id.to_s,
+                                    dashboard_key: "today", offering: offering)
+  end
+
+  # THE BOUNDARY. A submitted key becomes a widget only by looking it up in the
+  # already-authorized offering — an unauthorized or retired key finds nothing
+  # and is silently dropped. That is the design's entire security property.
+  def permitted_layout
+    return [] if params[:widgets].blank?
+
+    by_key = offering.index_by(&:key)
+    params.expect(widgets: [%i[key size]]).filter_map do |item|
+      widget = by_key[item[:key].to_s]
+      { widget: widget, size: item[:size] } if widget
+    end
+  end
+end
+```
+
+The `params[:widgets].blank?` guard runs **before** `params.expect`, deliberately:
+`expect` raises `ActionController::ParameterMissing` on both an omitted `widgets` key and
+an empty `widgets: []` — and an empty submission is not an error here, it is the reset
+gesture below.
+
+Two behaviours are not obvious and matter:
+
+- **There is no way to store "an empty dashboard".** No visible rows means "never chose", so
+  `#widgets` falls back to the whole offering. That is what gives a new user a populated
+  dashboard and what makes "restore defaults" work — but it also means a picker in which the
+  user unticks *everything* shows them MORE widgets, not none. Say so in your picker's copy;
+  the gesture reads the other way round. The dummy app's picker
+  (`spec/dummy/app/views/dashboard_widgets/picker.html.erb`) does exactly that.
+
+- **An empty sequence means reset.** Removing the last widget submits nothing;
+  `Store#arrange([])` deletes every row, and no rows means "never chose" — the next read
+  restores every authorized widget, in catalog order.
+- **The grid reloads after an empty sequence.** A `204` returns no markup, which would
+  leave an empty grid on screen over a full dashboard already sitting in the database,
+  wrong until the next navigation — so the grid's own JavaScript does a full reload
+  specifically for this one case.
+
+### `Bali::DashboardWidget::Store` methods
+
+| Method | Returns |
+|---|---|
+| `#widgets` | the offering, subset, reordered and resized by what is stored. No **visible** stored row means "never chose" — the whole offering, in catalog order |
+| `#stored_keys` | every stored key, including rows for widgets the owner cannot currently see |
+| `#visible_keys` | stored keys ∩ offering keys, in stored order |
+| `#customized?` | `visible_keys.any?` — whether there is anything visible to reset |
+| `#choose(widgets)` | membership only: survivors keep their stored order, newly chosen widgets append. Re-supplies each survivor's stored size internally, because `arrange` (below) is a full reconcile — without that, every `choose` would silently reset every already-sized card back to its default |
+| `#arrange(layout)` | reconciles to exactly `layout`, an ordered `[{ widget:, size: }, …]` where position is the array index — `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around) |
+| `#reset` | drops every row — what "restore defaults" and an emptied grid both mean |
+
+Rows never grant visibility, and a row for a widget the owner can no longer see survives
+rather than being deleted — so a temporarily revoked role, or a feature flag flipped off
+and back on, does not silently erase someone's arrangement.
+
+### Bring your own store
+
+`Bali::DashboardWidget::Store` is the **default** implementation of the contract above, not
+a requirement of it — the same seam `Bali::SavedView::Store` offers for saved views. A host
+that already persists dashboards elsewhere (an existing table, its own model) can write a
+plain object with the same seven methods (`widgets`, `stored_keys`, `visible_keys`,
+`customized?`, `choose`, `arrange`, `reset`) and pass it anywhere this guide passes a
+`Store` — the grid, the controller, the picker all just call methods on whatever they were
+handed. That host never installs `bali_dashboard_widgets` and never runs
+`bali:install:migrations:dashboard_widgets`; nothing in Bali requires the table to exist.
+
+### Locking has real limits
+
+`choose` and `arrange` lock their scope's rows before writing (`SELECT ... FOR UPDATE`
+inside a transaction), but that buys less than the name suggests:
+
+- **It cannot lock rows that don't exist yet.** On a first-ever write for an owner there is
+  nothing to lock, so two concurrent requests proceed completely unserialized.
+- **It does not prevent a lost update even when rows already exist.** Each request
+  computes its target state from its own snapshot; the later commit wins wholesale, and
+  because `arrange` deletes before it inserts, the loser's row is simply gone — no
+  exception, no conflict, just silence.
+- **On SQLite it is a no-op.** `.lock` emits no `FOR UPDATE` on that adapter, so the
+  locking described above is real only on PostgreSQL.
+
+In practice this bounds the exposure to one owner racing themselves — two tabs, a retried
+request — and the grid's own JavaScript already serializes its writes client-side (a
+250ms debounce plus a promise queue). A host that needs a stronger guarantee should reach
+for an advisory lock keyed on the scope (`pg_advisory_xact_lock`), which serializes
+writers even with zero rows present. Bali does not ship one: it is PostgreSQL-only, and
+the engine runs on whatever database the host has.

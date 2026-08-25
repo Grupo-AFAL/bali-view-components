@@ -2,10 +2,7 @@
 
 require "test_helper"
 
-# `DashboardWidget::Store` lives in the dummy app, not the engine: it is the
-# reference implementation of the store contract Bali documents but ships no
-# implementation of. See docs/guides/widgets.md.
-class DashboardWidgetStoreTest < ActiveSupport::TestCase
+class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   def self.widget(key, size)
     Class.new(Bali::Widget::Base) do
       sized size
@@ -28,15 +25,15 @@ class DashboardWidgetStoreTest < ActiveSupport::TestCase
   def offering = [ ALPHA.new, BRAVO.new, CHARLIE.new ]
 
   def store(offer: offering)
-    DashboardWidget::Store.new(owner: owner, context: "1",
-                               dashboard_key: "today", offering: offer)
+    Bali::DashboardWidget::Store.new(owner: owner, context: "1",
+                                     dashboard_key: "today", offering: offer)
   end
 
   def keys_of(widgets) = widgets.map(&:key)
 
   def test_offering_is_required
     assert_raises(ArgumentError) do
-      DashboardWidget::Store.new(owner: owner, dashboard_key: "today")
+      Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "today")
     end
   end
 
@@ -130,23 +127,23 @@ class DashboardWidgetStoreTest < ActiveSupport::TestCase
   def test_rows_are_scoped_to_the_context_and_dashboard
     store.arrange([ { widget: ALPHA.new } ])
 
-    other_context = DashboardWidget::Store.new(owner: owner, context: "2",
-                                                dashboard_key: "today", offering: offering)
-    other_dashboard = DashboardWidget::Store.new(owner: owner, context: "1",
-                                                  dashboard_key: "finance", offering: offering)
+    other_context = Bali::DashboardWidget::Store.new(owner: owner, context: "2",
+                                                      dashboard_key: "today", offering: offering)
+    other_dashboard = Bali::DashboardWidget::Store.new(owner: owner, context: "1",
+                                                        dashboard_key: "finance", offering: offering)
 
     assert_empty other_context.stored_keys
     assert_empty other_dashboard.stored_keys
   end
 
   def test_store_for_builds_a_store_scoped_to_the_owner_context_and_dashboard
-    store = DashboardWidget.store_for(owner, dashboard_key: "today", offering: offering,
-                                              context: "1")
+    store = Bali::DashboardWidget.store_for(owner, dashboard_key: "today", offering: offering,
+                                                    context: "1")
     store.arrange([ { widget: ALPHA.new } ])
 
     assert_equal %w[alpha], store.stored_keys
     # store_for defaults context to "" for a single-tenant host, same as `Store.new`.
-    single_tenant = DashboardWidget.store_for(owner, dashboard_key: "today", offering: offering)
+    single_tenant = Bali::DashboardWidget.store_for(owner, dashboard_key: "today", offering: offering)
     assert_empty single_tenant.stored_keys
   end
 end

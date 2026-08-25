@@ -9,10 +9,9 @@ module Bali
     #     widgets.each { |widget| grid.with_widget(widget) }
     #   end
     #
-    # `url` is a host endpoint. Bali ships no controller, no routes and no
-    # store: who may see which widget is the host's rule, and persistence is
-    # always the host's — see docs/guides/widgets.md for the contract a host's
-    # store implements.
+    # `url` is a host endpoint. Bali ships no controller and no routes: who may
+    # see which widget is the host's rule, and the write goes through
+    # `Bali::DashboardWidget::Store`.
     class Component < ApplicationViewComponent
       # A string rather than the constant, so this class carries no load-order
       # dependency on the card.

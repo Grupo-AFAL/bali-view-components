@@ -18,18 +18,8 @@ gate, the tenant feature flags — where it belongs.
 | The card (chrome, four sizes, edit affordances, bento CSS) | ✅ all of it | — |
 | The grid (SortableList wrapper, edit mode, announcer, "+" tile) | ✅ all of it | — |
 | Widget contract (`Base`, `Result`, `Row`, `SIZES`) | ✅ minus authorization | `visible?` bodies |
-| Persistence (table, model, store, migration, controller) | — | ✅ all of it |
+| Persistence (table, model, read/write object) | ✅ all of it | the controller that routes it |
 | The nineteen widget classes, roles, Flipper flags, the picker UI | — | ✅ all of it |
-
-**Persistence moved fully to the host mid-review (see [Persistence](#persistence) below).**
-The first pass of this design shipped a `bali_dashboard_widgets` table and
-`Bali::DashboardWidget::Store` in the engine, mirroring `Bali::SavedView::Store`. The owner
-decided that precedent didn't hold: a saved view is genuinely a Bali concept (it backs the
-DataTable's own "Views" dropdown), while a dashboard's arrangement is entirely the host's
-data, in the host's tenancy model, gated by the host's own rules — Bali never needed to
-touch a row. What ships instead is the contract those classes proved out, documented for a
-host to implement, with the original implementation kept as a worked example in the dummy
-app rather than the engine.
 
 ## Architecture
 
@@ -42,17 +32,14 @@ app/lib/bali/widget.rb                    Bali::Widget — SIZES, SEPARATOR, .su
 app/lib/bali/widget/base.rb               Bali::Widget::Base
 app/lib/bali/widget/result.rb             Bali::Widget::Result
 app/lib/bali/widget/row.rb                Bali::Widget::Row
+app/models/bali/dashboard_widget/store.rb             Bali::DashboardWidget::Store
 app/components/bali/widget/               Bali::Widget::Component — the card
   component.rb  component.html.erb  index.css  preview.rb  previews/
 app/components/bali/widget_grid/          Bali::WidgetGrid::Component — the bento
   component.rb  component.html.erb  index.js  preview.rb  previews/
+app/models/bali/dashboard_widget.rb       Bali::DashboardWidget — one persisted row
+db/migrate/*_create_bali_dashboard_widgets.rb
 config/locales/bali_view.{en,es}.yml      bali_view.widgets.* chrome strings appended
-docs/guides/widgets.md                    the store contract Bali ships no implementation of
-
-# The reference implementation of that contract — a host's, not the engine's:
-spec/dummy/db/migrate/*_create_dashboard_widgets.rb
-spec/dummy/app/models/dashboard_widget.rb            DashboardWidget — one persisted row
-spec/dummy/app/models/dashboard_widget/store.rb      DashboardWidget::Store
 ```
 
 `app/lib/bali/widget.rb` exists so the namespace is explicit and can hold constants; without it
@@ -60,17 +47,14 @@ Zeitwerk would define `Bali::Widget` implicitly and `SIZES` would have nowhere t
 
 ### Naming decisions
 
-**`dashboard_widgets`, not `user_widgets`.** Carried over from the engine-owned draft: the owner column
-is polymorphic, so a table named for `User` while its owner column refuses to name one is
-self-contradicting. Not `bali_dashboard_widgets` in the reference implementation, because it is the
-dummy app's own table now — the `bali_` prefix would claim an engine table that doesn't exist.
+**`bali_dashboard_widgets`, not `bali_user_widgets`.** The owner column is polymorphic; a table named
+for `User` while its owner refuses to name one is self-contradicting. It also gives the install task a
+name that reads — `bali:install:migrations:dashboard_widgets` — and the feature name is derived from
+the migration filename by `Bali::EngineMigrations`, so this is the only place it is chosen.
 
-**`Store`, not `Dashboard`.** In review "Dashboard" read as *the grid*. `Store` names what the rows
-actually are — an ordered, sized arrangement — reads correctly against its own methods
+**`Bali::DashboardWidget::Store`, not `Dashboard`.** In review "Dashboard" read as *the grid*. `Store` names
+what the rows actually are — an ordered, sized arrangement — reads correctly against its own methods
 (`layout.arrange(…)`) and against the host endpoint enjoykitchen already calls `widget_layouts#update`.
-This naming survived the move from engine to host unchanged; only the namespace it sits in did
-(`Bali::DashboardWidget::Store` in the first pass, `DashboardWidget::Store` in the reference
-implementation, since it belongs to the host, not the engine).
 
 **`index.css` goes in `@layer components`,** imported from `app/assets/stylesheets/bali/components.css`
 like every other component sheet. The bento rules only set `grid-column` / `grid-row`; nothing needs to
@@ -291,15 +275,8 @@ kind that hides bugs.
 
 ## Persistence
 
-**Bali ships no store and no table for this — see [What moves and what stays](#what-moves-and-what-stays).**
-What follows documents the *contract* (`docs/guides/widgets.md` is the canonical version a host reads)
-through the reference implementation that satisfies it, which lives in the dummy app rather than the
-engine: `spec/dummy/db/migrate/*_create_dashboard_widgets.rb`, `spec/dummy/app/models/dashboard_widget.rb`
-and `spec/dummy/app/models/dashboard_widget/store.rb`. Everything below describes that code; a host
-adopting this feature is expected to write its own version of it, not require Bali's.
-
 ```ruby
-create_table :dashboard_widgets do |t|
+create_table :bali_dashboard_widgets do |t|
   t.references :owner, polymorphic: true, null: false, index: false
   t.string  :context,       null: false, default: ""   # tenant id; "" for single-tenant hosts
   t.string  :dashboard_key, null: false
@@ -309,17 +286,16 @@ create_table :dashboard_widgets do |t|
   t.timestamps
 end
 
-add_index :dashboard_widgets,
+add_index :bali_dashboard_widgets,
           %i[owner_type owner_id context dashboard_key widget_key],
-          unique: true, name: "index_dashboard_widgets_uniqueness"
-add_index :dashboard_widgets,
+          unique: true, name: "index_bali_dashboard_widgets_uniqueness"
+add_index :bali_dashboard_widgets,
           %i[owner_type owner_id context dashboard_key position],
-          name: "index_dashboard_widgets_ordering"
+          name: "index_bali_dashboard_widgets_ordering"
 ```
 
-`context` is `null: false, default: ""` and **not** nullable: Postgres and SQLite both treat NULLs as
-distinct in a unique index, so a nullable column would let a single-tenant host store the same widget
-twice.
+`context` is `null: false, default: ""` and **not** nullable: Postgres treats NULLs as distinct in a
+unique index, so a nullable column would let a single-tenant host store the same widget twice.
 
 **Two things are called `context` in this design, and they are unrelated.** The column and the
 `Store.new(context:)` argument are a **scoping string** — the tenant id, or `""` for a single-tenant
@@ -332,10 +308,10 @@ deliberately.
 `index: false` on the `references` because the unique index below leads with `[owner_type, owner_id]`
 and serves every lookup — the same reasoning as `bali_saved_views`.
 
-Not installed by any Bali rake task — it is the dummy app's own migration, run the same way any of its
-other tables are (`db/migrate` plus `db:migrate`), because it is not an engine table.
+Installed per-feature: `bin/rails bali:install:migrations:dashboard_widgets`. The umbrella
+`bali:install:migrations` still copies everything and prints the per-feature list first.
 
-### `DashboardWidget`
+### `Bali::DashboardWidget`
 
 A row and nothing more. `belongs_to :owner, polymorphic: true`; presence on `dashboard_key`,
 `widget_key` and `position`; `widget_key` unique scoped to `%i[owner_type owner_id context
@@ -352,17 +328,15 @@ it belongs would silently relabel every stored row.
 
 `scope :ordered, -> { order(:position, :widget_key) }`. The tie-break is load-bearing, not tidy: a row
 for a widget the owner cannot currently see keeps its position while visible ones renumber around it,
-so two rows *can* share a position, and without a second term the database returns them in arbitrary
-order — which makes `stored_keys` nondeterministic and `choose`'s "survivors keep their stored order"
+so two rows *can* share a position, and without a second term Postgres returns them in arbitrary order
+— which makes `stored_keys` nondeterministic and `choose`'s "survivors keep their stored order"
 guarantee unstable.
 
-### `DashboardWidget::Store`
+### `Bali::DashboardWidget::Store`
 
 ```ruby
-DashboardWidget::Store.new(owner:, dashboard_key:, offering:, context: "")
+Bali::DashboardWidget::Store.new(owner:, dashboard_key:, offering:, context: "")
 ```
-
-The seven-method contract Bali documents (`docs/guides/widgets.md`) and this class implements:
 
 | Method | Purpose |
 |---|---|
@@ -379,9 +353,7 @@ layout it is handed (`delete_all` + `insert_all`), so an omitted size comes back
 widget's default. The grid controller always sends a size for every card, so this only bites
 the picker — which has no opinion about sizes and must therefore re-supply the stored ones.
 `choose` reads them inside its lock, before `arrange` deletes anything. Getting this wrong
-means ticking a checkbox silently resizes every card the owner had already sized — a real bug
-caught in review of the first pass, which is why it is one of the five behaviours
-`docs/guides/widgets.md` calls out by name for any host implementing this contract fresh.
+means ticking a checkbox silently resizes every card the owner had already sized.
 
 **`lock_rows` cannot serialise an empty scope, on any adapter.** `FOR UPDATE` locks rows that
 exist; on a first-ever `choose` there are none, so two concurrent writers proceed unserialised
@@ -390,17 +362,16 @@ gone before the unique index could object. Silent, not an error. Exposure is one
 themselves (two tabs, a retried request), and the controller serialises its own writes
 client-side. The fix, if a host needs it, is an advisory lock keyed on the scope
 (`pg_advisory_xact_lock`), which serialises writers even with zero rows present. Not shipped
-in the reference implementation because it is Postgres-only and a host may run anything.
+because it is Postgres-only and the engine runs on whatever the host has.
 
 **Timestamps do not survive a rearrange.** `arrange` deletes and re-inserts, so every row gets
 a fresh `created_at` on every write. Nothing reads them today, but "when did you first add
 this widget?" is permanently unanswerable from this table.
 
-**`lock_rows` is a no-op on SQLite** — which is what the dummy app runs. `.lock` emits no
-`FOR UPDATE` on that adapter, verified against `.to_sql`. The serialization it provides is real
-only on PostgreSQL; a host on SQLite gets none of it, and a client-side promise queue (which
-the grid's own JavaScript already has, independent of the store) is the only thing preventing
-two interleaved writes. Recorded rather than assumed.
+**`lock_rows` is a no-op on SQLite.** `.lock` emits no `FOR UPDATE` on that adapter, verified
+against `.to_sql`. The serialization it provides is real on Postgres — the engine's target —
+but a host running SQLite gets none of it, and the client-side promise queue is then the only
+thing preventing two interleaved writes. Recorded rather than assumed.
 
 `offering:` is **required, with no default**. An empty offer is a valid state but a terrible default:
 `arrange` would lose its delete half (`[] - submitted` is `[]`), `choose` would become a no-op, and
@@ -410,9 +381,7 @@ two interleaved writes. Recorded rather than assumed.
 `offering.index_by(&:key)`. A key for a widget whose role was revoked, whose flag went off, that was
 deleted from the catalog, or that was hand-edited into the table all collapse to the same `nil` from
 one lookup. Safe by construction: there is no permitted-key list to pass and none to forget. The honest
-claim is that an unauthorized widget cannot get here *by accident* — not that it cannot get here. This
-is the first of the five behaviours named in `docs/guides/widgets.md` — the security invariant any host
-store must preserve.
+claim is that an unauthorized widget cannot get here *by accident* — not that it cannot get here.
 
 `stored_keys` and `visible_keys` are genuinely different, and conflating them is a real bug: an owner
 whose only stored row is for a hidden widget has customized nothing they can see, and telling them
@@ -430,19 +399,17 @@ class WidgetLayoutsController < ApplicationController
   private
 
   def layout
-    DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
+    Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
                              dashboard_key: "today",
                              offering: Widgets.authorized_for(pundit_user))
   end
 end
 ```
 
-Bali ships **no controller, no routes and no store**. Who may see which widget is the host's rule,
-and a host that already has `DashboardWidgets` (the concern doing gate → filter → load) keeps it
-unchanged; `Store` above is the host's own class, the same as `DashboardWidget::Store` in the
-reference implementation, not something `Bali::` supplies.
+Bali ships **no controller and no routes**. Who may see which widget is the host's rule, and a host
+that already has `DashboardWidgets` (the concern doing gate → filter → load) keeps it unchanged.
 
-`docs/guides/widgets.md` documents the PATCH contract — `widgets[][key]`, `widgets[][size]` —
+`docs/guides/engine-models.md` documents the PATCH contract — `widgets[][key]`, `widgets[][size]` —
 including the two behaviours that are not obvious:
 
 - An **empty sequence means reset**. Removing the last widget sends nothing, no rows means "never
@@ -453,14 +420,10 @@ including the two behaviours that are not obvious:
 ## Verification
 
 **Minitest** — the card (each size, the failed card, the body slot, `summary?`, `view_all_link?`), the
-grid (widget slots, empty state, "+" tile presence, emitted controller values), and `Bali::Widget::Base`
-(`sized` validation, `with_size` copying rather than mutating the class attribute, the memoized
-failure) in the engine's own suite. `DashboardWidget::Store` (`choose` / `arrange` / `reset`, ordering
-tie-break, an unauthorized key being inert, the "no visible rows means never chose" fallback) and the
-`DashboardWidget` model live in the dummy app's persistence and are covered by
-`test/dummy_dashboard_widget_store_test.rb` and `test/dummy_dashboard_widget_test.rb` — engine tests,
-since they boot the dummy app, but exercising a host's implementation of the contract rather than
-anything Bali ships.
+grid (widget slots, empty state, "+" tile presence, emitted controller values), `Bali::DashboardWidget::Store`
+(`choose` / `arrange` / `reset`, ordering tie-break, an unauthorized key being inert, the "no visible
+rows means never chose" fallback), `Bali::Widget::Base` (`sized` validation, `with_size` copying rather
+than mutating the class attribute, the memoized failure), and the model.
 
 **Lookbook previews** — `@param size select`, `@param editing toggle`, `@param failed toggle` rather
 than a method per size. Previews inherit `ApplicationViewComponentPreview` and name sibling constants

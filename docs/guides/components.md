@@ -2530,9 +2530,9 @@ the default list:
 the compact stat at `small` even when filled — a ~215px card is not where custom content
 works.
 
-See [Widgets and the dashboard grid](widgets.md) for the widget contract
-(`Bali::Widget::Base`) and the store contract a host implements to persist the
-arrangement.
+See [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the
+widget contract (`Bali::Widget::Base`) and the persisted arrangement
+(`Bali::DashboardWidget::Store`).
 
 ---
 
@@ -3242,7 +3242,7 @@ the sequence) and `edit-mode` (toggles edit mode, remembers it in the URL).
 
 **Options:**
 - `url` - Endpoint every gesture PATCHes the whole arrangement to (required) — Bali ships
-  no controller, routes or store; see [Widgets and the dashboard grid](widgets.md)
+  no controller or routes; see [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets)
 - `add_path` - Where the dashed "+" tile (and the empty state's own call to action) link to
   add a widget; omit to hide both (default: `nil`)
 
@@ -3257,9 +3257,9 @@ the sequence) and `edit-mode` (toggles edit mode, remembers it in the URL).
 
 Built on `Bali::SortableList`, but cards are plain children rather than
 `Bali::SortableList::Item::Component`s — that variant requires an `update_url:` per item
-and carries list-row styling that fights the bento. See [Widgets and the dashboard
-grid](widgets.md) for the widget contract and the write path this component's `url:`
-PATCHes to.
+and carries list-row styling that fights the bento. See [Dashboard
+widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the widget
+contract and the write path this component's `url:` PATCHes to.
 
 ---
 
