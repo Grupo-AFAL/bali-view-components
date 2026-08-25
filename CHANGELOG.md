@@ -35,16 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Widget` and `Bali::WidgetGrid`: a user-arrangeable bento dashboard.** Four card
   sizes, drag and arrow-key reorder, resize and remove, with the whole layout persisted on
   every gesture. `Bali::Widget::Base` is the contract a host's widget classes implement
-  (`sized`, `visible?`, `#call`); `Bali::DashboardWidget::Store` reads and writes the
-  arrangement to the new `bali_dashboard_widgets` table, keyed by owner, tenant context and
-  dashboard — `Bali::DashboardWidget.store_for` builds one, the same shortcut
-  `Bali::SavedView.store_for` offers, and a host may swap in its own object implementing
-  the same contract instead; `Bali::WidgetGrid::Component` renders it. Bali ships no
-  controller and no routes — a host builds the already-authorized `offering:` and routes
-  its own PATCH endpoint. Install the table with
-  `bin/rails bali:install:migrations:dashboard_widgets`; see
-  [`docs/guides/engine-models.md`](docs/guides/engine-models.md#dashboard-widgets-bali_dashboard_widgets)
-  for the widget contract, the write-path security boundary, and `Store`'s method table.
+  (`sized`, `visible?`, `#call`); `Bali::WidgetGrid::Component` renders the arrangement.
+  Bali ships presentation only — no controller, no routes, and no store: persistence is
+  always the host's, the same way widget visibility already was. A host builds the
+  already-authorized `offering:`, a store implementing a seven-method contract
+  (`widgets`, `stored_keys`, `visible_keys`, `customized?`, `choose`, `arrange`, `reset`),
+  and routes its own PATCH endpoint; `spec/dummy/app/models/dashboard_widget/store.rb` is
+  a complete worked implementation to copy. See
+  [`docs/guides/widgets.md`](docs/guides/widgets.md) for the widget contract, the
+  write-path security boundary, and the five non-obvious behaviours a store must get
+  right.
 
 ## [v3.1.3] - 2026-08-23
 

@@ -2,7 +2,7 @@
 
 # The ~15 lines a real host writes. Bali ships no controller and no routes: who
 # may see which widget is the host's rule, so the host builds the `offering:` and
-# `Bali::DashboardWidget::Store` can only ever subset it.
+# its own store (`DashboardWidget::Store` here) can only ever subset it.
 #
 # Here the offering is the preview's own specimens and there is no signed-in
 # user, so this exists to make the grid's PATCH succeed — which is what the

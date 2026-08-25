@@ -2,7 +2,10 @@
 
 require "test_helper"
 
-class BaliDashboardWidgetTest < ActiveSupport::TestCase
+# `DashboardWidget` lives in the dummy app, not the engine: Bali ships the
+# widget contract and the grid, persistence is always the host's. See
+# docs/guides/widgets.md.
+class DashboardWidgetTest < ActiveSupport::TestCase
   # No fixtures in this repo; the house pattern is an inline create.
   # See test/bali/models/saved_view_test.rb.
   def owner
@@ -10,7 +13,7 @@ class BaliDashboardWidgetTest < ActiveSupport::TestCase
   end
 
   def build(**overrides)
-    Bali::DashboardWidget.new({
+    DashboardWidget.new({
       owner: owner, context: "1", dashboard_key: "today",
       widget_key: "low_stock_items", position: 0
     }.merge(overrides))
@@ -51,12 +54,12 @@ class BaliDashboardWidgetTest < ActiveSupport::TestCase
     build(widget_key: "zulu", position: 0).save!
     build(widget_key: "alpha", position: 0).save!
 
-    assert_equal %w[alpha zulu], Bali::DashboardWidget.ordered.pluck(:widget_key)
+    assert_equal %w[alpha zulu], DashboardWidget.ordered.pluck(:widget_key)
   end
 
   def test_context_defaults_to_the_empty_string_for_a_single_tenant_host
-    row = Bali::DashboardWidget.create!(owner: owner, dashboard_key: "today",
-                                        widget_key: "solo", position: 0)
+    row = DashboardWidget.create!(owner: owner, dashboard_key: "today",
+                                  widget_key: "solo", position: 0)
 
     assert_equal "", row.reload.context
   end
