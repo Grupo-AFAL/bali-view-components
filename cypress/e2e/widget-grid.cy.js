@@ -29,6 +29,16 @@ describe('widget grid', () => {
     [...String(interception.request.body).matchAll(/name="widgets\[\]\[key\]"\r\n\r\n([^\r\n]*)\r\n/g)]
       .map(([, value]) => value)
 
+  // Same shape as `submittedKeys`, for the paired `widgets[][size]` field. Each
+  // card appends its key and then its size (see `writeSequence`), so the two
+  // arrays line up positionally — `submittedSizes(...)[submittedKeys(...).indexOf(key)]`
+  // is the size that key was submitted with. A substring check on the raw body
+  // can't tell "the right value under the right field name" from "these letters
+  // appear somewhere" — it would pass just as well if the field were renamed.
+  const submittedSizes = (interception) =>
+    [...String(interception.request.body).matchAll(/name="widgets\[\]\[size\]"\r\n\r\n([^\r\n]*)\r\n/g)]
+      .map(([, value]) => value)
+
   // SortableJS arrives via dynamic import inside the controller's connect(), so
   // "the page rendered" does not mean "drag is wired" — see kanban-board.cy.js.
   const waitForSortable = () => {
@@ -129,7 +139,13 @@ describe('widget grid', () => {
       .should('have.attr', 'aria-pressed', 'false')
 
     cy.wait('@save').then((interception) => {
-      expect(interception.request.body).to.contain('wide')
+      // Positional, by name — proves `low_stock_items` specifically was
+      // submitted as `wide` under the `widgets[][size]` field, not merely that
+      // the word "wide" appears somewhere in the body (a raw substring check
+      // would pass even if the field were mis-named, e.g. `widgets[][sizes]`).
+      const keys = submittedKeys(interception)
+      const sizes = submittedSizes(interception)
+      expect(sizes[keys.indexOf('low_stock_items')]).to.equal('wide')
     })
   })
 
@@ -165,6 +181,21 @@ describe('widget grid', () => {
     cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]').click()
 
     cy.wait('@failedSave')
+    cy.get('[role="status"]').should('contain', "Couldn't save your changes")
+  })
+
+  // A 500 exercises `send`'s `if (!response.ok)` branch — `patch()` still
+  // RESOLVES, just with `response.ok === false`. That never touches the
+  // `catch`. `enqueue`'s own comment leans on "nothing rejects today, because
+  // `send` try/catches and always resolves a boolean" as a load-bearing
+  // invariant — this is the case that actually exercises it: a request that
+  // never gets a response at all, which is what makes `patch()` REJECT.
+  it('announces a failure when the request itself fails, not just a bad response', () => {
+    cy.intercept('PATCH', '/widget_layout', { forceNetworkError: true }).as('networkError')
+    enterEditMode()
+    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]').click()
+
+    cy.wait('@networkError')
     cy.get('[role="status"]').should('contain', "Couldn't save your changes")
   })
 
