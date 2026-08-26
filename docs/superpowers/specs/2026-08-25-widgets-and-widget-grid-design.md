@@ -126,18 +126,23 @@ server — so entering edit mode costs no round trip and re-runs no widget queri
 a wobbling card of overdue counts reads as a rendering fault, makes text unreadable, and collides with
 `prefers-reduced-motion`.
 
-**Known follow-up: the size picker is a toggle group, not a radiogroup.** The four sizes are
-mutually exclusive, which is what `role="radiogroup"`/`role="radio"` exists for, and review
-raised it. It was declined deliberately: `role="radio"` without roving tabindex and arrow-key
-selection announces radiogroup semantics that assistive tech will expect to work and then does
-not honour, which is worse than an honest, well-labelled toggle group — a `role="group"` +
-`aria-pressed` set is a legitimate pattern (text-alignment pickers use it). Upgrading to a real
-radiogroup, roving tabindex included, is a worthwhile follow-up; it is a two-file change
-(template + `WidgetGridController#resize`).
+**The size picker is a real radiogroup.** The four sizes are mutually exclusive, which is what
+`role="radiogroup"`/`role="radio"` exists for. It shipped first as a `role="group"` +
+`aria-pressed` toggle set — a legitimate pattern, and the honest one to use while the keyboard
+behaviour was missing, since `role="radio"` without roving tabindex and arrow-key selection
+announces semantics assistive tech expects to work and then does not honour. The follow-up
+closed that gap rather than the role: the group is now one tab stop carried by the checked
+size, all four arrows move within it (wrapping), Home/End jump to the ends, and selection
+follows focus — so the card resizes live as you arrow, the same preview the mouse gets, with
+`persist`'s debounce collapsing the sweep into one write.
+
+`WidgetGridController#sizeKeydown` decides which button is next and then `click()`s it, so the
+keyboard and the mouse both reach the size through `#resize` and cannot drift apart. Selection
+is `aria-checked` and nothing else; `applySize` roves the `tabindex` alongside it.
 
 The size picker draws each size as a filled/empty 4×2 lattice. The lattice is the point, not the fill:
 four rectangles floating in whitespace have no shared origin, which is why `medium` (2×1) and `large`
-(2×2) were indistinguishable at the same width. Selection is expressed by `aria-pressed` and nothing
+(2×2) were indistinguishable at the same width. Selection is expressed by `aria-checked` and nothing
 else, so the accessible state and the visible state cannot drift.
 
 The card emits `data-id` (SortableJS's `toArray`), `data-widget-key`, `data-widget-title` and

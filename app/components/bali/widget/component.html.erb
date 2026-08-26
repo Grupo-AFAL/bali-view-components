@@ -51,19 +51,35 @@
       The shelf's own visual design (why a shelf, why `bg-base-200`, why hidden
       below `lg`) is explained in `app/components/bali/widget/index.css`. %>
   <div class="bali-widget-edit-shelf">
-    <div class="join" role="group"
-         aria-label="<%= t('bali_view.widgets.edit.size_of', widget: short_title) %>">
+    <%# A REAL radiogroup, not a toggle group: the four sizes are mutually
+        exclusive, which is exactly what this role exists for. It only earns the
+        role by honouring the whole pattern — one tab stop for the set (roving
+        tabindex, below), arrows to move within it, and selection following
+        focus. Announcing radiogroup semantics without the keyboard behaviour
+        assistive tech then expects is worse than an honest toggle group, which
+        is what this used to be.
+
+        `keydown` is bound HERE rather than on each button because the handler
+        needs the whole set to know what "next" means. %>
+    <div class="join" role="radiogroup"
+         aria-label="<%= t('bali_view.widgets.edit.size_of', widget: short_title) %>"
+         data-action="keydown->bali-widget-grid#sizeKeydown">
       <% Bali::Widget::SIZES.each do |name| %>
         <%# Height and padding are separate dials and only one was the problem:
             `btn-xs` shrinks both, overriding `--btn-p` takes the dead space and
             leaves the click target alone.
 
-            Selection is `aria-pressed` and NOTHING else — the cell variants read
+            Selection is `aria-checked` and NOTHING else — the cell variants read
             it, so the controller sets one attribute and every visual consequence
-            follows. No class for the server and the client to disagree about. %>
-        <button type="button"
-                class="group join-item btn btn-sm [--btn-p:.375rem] border-base-300 bg-base-100 hover:border-base-content/25 aria-pressed:border-primary/40 aria-pressed:bg-primary/10"
-                aria-pressed="<%= name == size %>"
+            follows. No class for the server and the client to disagree about.
+
+            `tabindex` is the roving half: the checked size carries the group's
+            single tab stop. Without it a keyboard user crosses four buttons per
+            card — 48 stops in a twelve-card grid — just to reach the next card. %>
+        <button type="button" role="radio"
+                class="group join-item btn btn-sm [--btn-p:.375rem] border-base-300 bg-base-100 hover:border-base-content/25 aria-checked:border-primary/40 aria-checked:bg-primary/10"
+                aria-checked="<%= name == size %>"
+                tabindex="<%= name == size ? 0 : -1 %>"
                 aria-label="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
                 title="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
                 data-widget-size="<%= name %>"

@@ -133,12 +133,34 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector(".stat-value", text: "2")
   end
 
-  def test_renders_a_size_button_per_size_with_the_current_one_pressed
+  def test_renders_a_size_radio_per_size_with_the_current_one_checked
     render_inline(Bali::Widget::Component.new(widget(size: :wide)))
 
-    assert_selector("button[data-widget-size]", count: 4, visible: :all)
-    assert_selector("button[data-widget-size='wide'][aria-pressed='true']", visible: :all)
-    assert_selector("button[data-widget-size='small'][aria-pressed='false']", visible: :all)
+    assert_selector("[role='radiogroup']", visible: :all)
+    assert_selector("button[role='radio'][data-widget-size]", count: 4, visible: :all)
+    assert_selector("button[data-widget-size='wide'][aria-checked='true']", visible: :all)
+    assert_selector("button[data-widget-size='small'][aria-checked='false']", visible: :all)
+  end
+
+  # The four sizes are mutually exclusive, so the whole group is ONE tab stop
+  # and the checked size is it. Without this a keyboard user tabs through four
+  # buttons per card — 48 stops in a twelve-card grid — to reach the next card.
+  def test_the_size_group_is_one_tab_stop_carried_by_the_checked_size
+    render_inline(Bali::Widget::Component.new(widget(size: :wide)))
+
+    assert_selector("button[data-widget-size='wide'][tabindex='0']", visible: :all)
+    assert_selector("button[data-widget-size][tabindex='-1']", count: 3, visible: :all)
+  end
+
+  # Selection follows focus, so the arrows have to reach the controller rather
+  # than scrolling the page. Bound on the GROUP, not each button: the handler
+  # needs the whole set to know what "next" means.
+  def test_the_size_group_routes_arrow_keys_to_the_controller
+    render_inline(Bali::Widget::Component.new(widget))
+
+    assert_selector(
+      "[role='radiogroup'][data-action='keydown->bali-widget-grid#sizeKeydown']", visible: :all
+    )
   end
 
   def test_edit_chrome_is_always_rendered_so_entering_edit_mode_costs_no_round_trip

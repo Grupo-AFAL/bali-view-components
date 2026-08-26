@@ -75,7 +75,42 @@ export class WidgetGridController extends Controller {
   }
 
   currentSize (card) {
-    return card.querySelector('[data-widget-size][aria-pressed="true"]')?.dataset.widgetSize
+    return card.querySelector('[data-widget-size][aria-checked="true"]')?.dataset.widgetSize
+  }
+
+  // The size picker is a radiogroup, so the whole set is ONE tab stop and the
+  // arrows move within it. Selection FOLLOWS FOCUS, per the APG pattern — and
+  // here that is a feature rather than a concession: the card resizes live as
+  // you arrow across the sizes, which is the same preview the mouse gets, and
+  // `persist`'s debounce collapses the whole sweep into one write.
+  //
+  // Bound on the group rather than each button because "next" is only knowable
+  // from the whole set. No conflict with `move`: that listens on `.handle`,
+  // which is a different element, so an arrow key is either moving the card or
+  // choosing a size and never both.
+  sizeKeydown (event) {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+    const edge = { Home: 'first', End: 'last' }[event.key]
+    if (!step && !edge) return
+
+    const buttons = Array.from(event.currentTarget.querySelectorAll('[data-widget-size]'))
+    const from = buttons.indexOf(event.target.closest('[data-widget-size]'))
+    if (from === -1) return
+
+    // Otherwise the arrows scroll the page out from under the card being sized.
+    event.preventDefault()
+
+    // Wrapping, which the radiogroup pattern calls for: four sizes is a short
+    // ring, and stopping dead at `wide` makes `small` feel unreachable from it.
+    const to = edge
+      ? (edge === 'first' ? 0 : buttons.length - 1)
+      : (from + step + buttons.length) % buttons.length
+
+    // `click`, not a direct `applySize`: `resize` already owns applying a size,
+    // announcing it and queueing the write, and one path means the keyboard and
+    // the mouse cannot drift apart.
+    buttons[to].focus()
+    buttons[to].click()
   }
 
   // ONE attribute for the geometry: the stylesheet owns what each size MEANS at
@@ -83,14 +118,19 @@ export class WidgetGridController extends Controller {
   // no longer matters that Tailwind cannot see class names built at runtime.
   //
   // And ONE attribute for the selection: every visual consequence is expressed
-  // by `aria-pressed:` and `group-aria-pressed:` variants in the card template,
+  // by `aria-checked:` and `group-aria-checked:` variants in the card template,
   // so there is no class list for the server and the client to disagree about,
   // and the accessible state and the visible state cannot drift.
   applySize (card, size) {
     card.dataset.size = size
 
     card.querySelectorAll('[data-widget-size]').forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.widgetSize === size))
+      const chosen = button.dataset.widgetSize === size
+      button.setAttribute('aria-checked', String(chosen))
+      // The roving half of the roving tabindex: the group keeps exactly one tab
+      // stop and the checked size is it, so tabbing out and back returns to the
+      // size actually in force rather than to whichever button was first.
+      button.tabIndex = chosen ? 0 : -1
     })
   }
 

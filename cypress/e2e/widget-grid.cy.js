@@ -134,9 +134,9 @@ describe('widget grid', () => {
 
     cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'wide')
     cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]')
-      .should('have.attr', 'aria-pressed', 'true')
+      .should('have.attr', 'aria-checked', 'true')
     cy.get('[data-widget-key="low_stock_items"] [data-widget-size="medium"]')
-      .should('have.attr', 'aria-pressed', 'false')
+      .should('have.attr', 'aria-checked', 'false')
 
     cy.wait('@save').then((interception) => {
       // Positional, by name — proves `low_stock_items` specifically was
@@ -146,6 +146,81 @@ describe('widget grid', () => {
       const keys = submittedKeys(interception)
       const sizes = submittedSizes(interception)
       expect(sizes[keys.indexOf('low_stock_items')]).to.equal('wide')
+    })
+  })
+
+  // The size picker claims `role="radiogroup"`, and the point of the upgrade is
+  // that it HONOURS the pattern rather than merely announcing it: one tab stop,
+  // arrows within it, selection following focus.
+  describe('the size picker as a radiogroup', () => {
+    const picker = '[data-widget-key="low_stock_items"] [role="radiogroup"]'
+
+    it('carries one tab stop on the checked size, not four', () => {
+      enterEditMode()
+
+      cy.get(`${picker} [aria-checked="true"]`).should('have.attr', 'tabindex', '0')
+      cy.get(`${picker} [aria-checked="false"]`)
+        .should('have.length', 3)
+        .each(($button) => expect($button.attr('tabindex')).to.equal('-1'))
+    })
+
+    it('moves selection with the arrow keys and saves the size it lands on', () => {
+      enterEditMode()
+      // `low_stock_items` is declared `medium`, so one step right is `large`.
+      cy.get(`${picker} [aria-checked="true"]`).focus().type('{rightarrow}')
+
+      cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'large')
+      cy.get(`${picker} [data-widget-size="large"]`)
+        .should('have.attr', 'aria-checked', 'true')
+        .and('have.attr', 'tabindex', '0')
+        .and('be.focused')
+
+      cy.wait('@save').then((interception) => {
+        const keys = submittedKeys(interception)
+        expect(submittedSizes(interception)[keys.indexOf('low_stock_items')]).to.equal('large')
+      })
+    })
+
+    // Selection following focus is only an improvement if it SAYS so: a screen
+    // reader user arrowing through sizes otherwise gets four silent focus moves
+    // and a dashboard that quietly relaid itself out four times.
+    it('announces the size it lands on', () => {
+      enterEditMode()
+      cy.get(`${picker} [aria-checked="true"]`).focus().type('{rightarrow}')
+
+      cy.get('[role="status"]').should('contain', 'Large')
+    })
+
+    // Wrapping is what makes a four-item ring feel closed rather than clamped.
+    it('wraps from the last size back to the first', () => {
+      enterEditMode()
+      cy.get(`${picker} [data-widget-size="wide"]`).click()
+      cy.get(`${picker} [data-widget-size="wide"]`).focus().type('{rightarrow}')
+
+      cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'small')
+    })
+
+    it('jumps to the ends with Home and End', () => {
+      enterEditMode()
+      cy.get(`${picker} [aria-checked="true"]`).focus().type('{end}')
+      cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'wide')
+
+      cy.get(`${picker} [aria-checked="true"]`).type('{home}')
+      cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'small')
+    })
+
+    // The card's own arrow-key reorder listens on `.handle`. Arrowing inside the
+    // picker must size the card, never move it — otherwise choosing a size would
+    // silently rearrange the dashboard.
+    it('does not reorder the card while arrowing through sizes', () => {
+      enterEditMode()
+      cy.get('.bali-widget-grid [data-widget-key]').first()
+        .should('have.attr', 'data-widget-key', 'overdue_counts')
+
+      cy.get(`${picker} [aria-checked="true"]`).focus().type('{rightarrow}')
+
+      cy.get('.bali-widget-grid [data-widget-key]').first()
+        .should('have.attr', 'data-widget-key', 'overdue_counts')
     })
   })
 

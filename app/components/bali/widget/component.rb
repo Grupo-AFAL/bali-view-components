@@ -42,8 +42,8 @@ module Bali
       # opacities into 9% ink on white: invisible, which collapsed the map back
       # into the mass it replaced.
       CELL_FILLED = "rounded-[1px] bg-base-content/45 " \
-                    "group-hover:bg-base-content/70 group-aria-pressed:bg-primary"
-      CELL_EMPTY = "rounded-[1px] bg-base-content/20 group-aria-pressed:bg-primary/25"
+                    "group-hover:bg-base-content/70 group-aria-checked:bg-primary"
+      CELL_EMPTY = "rounded-[1px] bg-base-content/20 group-aria-checked:bg-primary/25"
 
       # Custom content for a widget that isn't a list. Replaces the shape enum
       # the source app used, which had to name an app concept (`:verdict`)
