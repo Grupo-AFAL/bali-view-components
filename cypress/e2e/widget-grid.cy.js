@@ -237,6 +237,48 @@ describe('widget grid', () => {
     })
   })
 
+  // `move` announces "position X of Y". Removing announces the same running
+  // total, which is the gesture where it matters most: there is one fewer card
+  // to count and no visual grid for a screen-reader user to glance at.
+  it('announces how many widgets are left after a removal', () => {
+    enterEditMode()
+    // Four specimens in the preview, so removing one leaves three.
+    cy.get('[data-widget-key="low_stock_items"] [data-action="bali-widget-grid#remove"]').click()
+
+    cy.get('[role="status"]').should('contain', '3 widgets remaining')
+  })
+
+  it('announces the singular when one widget is left', () => {
+    enterEditMode()
+    const remove = (key) =>
+      cy.get(`[data-widget-key="${key}"] [data-action="bali-widget-grid#remove"]`).click()
+
+    // Four specimens, so it takes three removals to leave exactly one.
+    remove('low_stock_items')
+    remove('expiring_stock')
+    remove('cost_spikes')
+
+    cy.get('[role="status"]').should('contain', '1 widget remaining')
+    cy.get('[role="status"]').should('not.contain', '1 widgets')
+  })
+
+  // Emptying the grid means "never chose", so the server restores the defaults
+  // and the controller reloads for them. Announcing "0 widgets remaining" would
+  // name a state the user is about to not be in.
+  it('announces the restore rather than a count of zero on the last removal', () => {
+    enterEditMode()
+    const remove = (key) =>
+      cy.get(`[data-widget-key="${key}"] [data-action="bali-widget-grid#remove"]`).click()
+
+    remove('low_stock_items')
+    remove('expiring_stock')
+    remove('cost_spikes')
+    remove('overdue_counts')
+
+    cy.get('[role="status"]').should('contain', 'restoring your default widgets')
+    cy.get('[role="status"]').should('not.contain', '0 widgets')
+  })
+
   it('collapses a held arrow key into one write', () => {
     enterEditMode()
     cy.get('[data-widget-key="overdue_counts"] .handle')

@@ -23,6 +23,29 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     assert_selector("[data-bali-widget-grid-url-value='/widget_layout']", visible: :all)
   end
 
+  # Removing announces a running total the way `move` does, and Spanish does not
+  # share a verb across "queda 1 widget" and "quedan 3 widgets" — so the count
+  # cannot be one interpolated string. The component resolves i18n at
+  # `initialize`, where it cannot know a count, so all three forms are emitted
+  # and the controller picks.
+  def test_emits_every_removal_announcement_the_controller_has_to_choose_between
+    render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout"))
+
+    assert_selector("[data-bali-widget-grid-removed-one-text-value]", visible: :all)
+    assert_selector("[data-bali-widget-grid-removed-other-text-value]", visible: :all)
+    assert_selector("[data-bali-widget-grid-removed-last-text-value]", visible: :all)
+  end
+
+  # The empty case is its own string rather than "0 widgets remaining", which
+  # would name a state the user is about to not be in: an emptied grid means
+  # "never chose", so the server restores every authorized widget and the
+  # controller reloads for them.
+  def test_the_last_removal_announces_the_restore_rather_than_a_count_of_zero
+    render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout"))
+
+    assert_no_selector("[data-bali-widget-grid-removed-last-text-value*='%{total}']", visible: :all)
+  end
+
   def test_renders_one_card_per_widget_inside_the_sortable_grid
     render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout")) do |grid|
       grid.with_widget(Stock.new)

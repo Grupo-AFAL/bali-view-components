@@ -79,7 +79,8 @@ copy from `widget.key`. It does no data access, which is what lets it be tested 
 
 Bali's own chrome ships in `bali_view.{en,es}.yml` under `bali_view.widgets.*` — `edit.reorder`,
 `edit.remove`, `edit.size_of`, `edit.sizes.*`, `edit.add`, `edit.done`, `edit.hint`, `edit.moved`,
-`edit.removed`, `edit.resized`, `edit.failed`, `edit.editing_on`, `edit.editing_off`, `load_error`,
+`edit.removed_one`, `edit.removed_other`, `edit.removed_last`, `edit.resized`, `edit.failed`,
+`edit.editing_on`, `edit.editing_off`, `load_error`,
 `view_all`.
 
 The **widget's** copy (`title`, `short_title`, `description`, `empty`) is host content, read from a
@@ -242,9 +243,14 @@ navigation during the debounce window cannot PATCH a DOM that has already been r
   **Note for the library at large:** `modal/index.js`'s use of the same pattern is unverified
   for the same reason. Nothing in `cypress/e2e/` exercises its Back path, and its push-then-
   swap-body flow has the same empty-snapshot-cache problem. Worth checking separately.
-- **`remove()` announces the widget but not the new total,** where `move()` announces
-  "position X of Y". A screen-reader user removing cards loses the running count. Needs a new
-  locale string carrying a count, so it was left out of the initial pass.
+- **`remove()` announces the new total,** the way `move()` announces "position X of Y". It
+  first shipped naming only the widget, which is where a running count matters most: a
+  screen-reader user emptying a dashboard has no grid to glance at. Three strings rather than
+  one with a count in it, because Spanish does not share a verb across "queda 1 widget" and
+  "quedan 3 widgets", and the component resolves i18n at `initialize` where the count is
+  unknowable. The empty case gets its own string rather than "0 widgets remaining" — that
+  would name a state the user is about to not be in, since an emptied grid means "never chose"
+  and the server answers by restoring the defaults.
 
 Failures are announced, never swallowed: the whole design rests on the DOM being truthful — no draft,
 no save button — so the one moment it stops being truthful is the one moment the user must be told.

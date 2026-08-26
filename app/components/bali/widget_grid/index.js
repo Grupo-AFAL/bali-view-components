@@ -16,7 +16,9 @@ export class WidgetGridController extends Controller {
   static values = {
     url: String,
     movedText: String,
-    removedText: String,
+    removedOneText: String,
+    removedOtherText: String,
+    removedLastText: String,
     failedText: String,
     resizedText: String
   }
@@ -49,8 +51,27 @@ export class WidgetGridController extends Controller {
 
     card.remove()
     this.focusHandle(next)
-    this.announce(this.removedTextValue.replace('%{widget}', label))
+    // `cards` was read before the removal, so it still counts the card that just
+    // left — the new total is one less.
+    this.announce(this.removalText(label, cards.length - 1))
     this.persist()
+  }
+
+  // `move` announces "position 3 of 9"; removing used to announce only the
+  // widget name. That is where a running count matters MOST: a screen-reader
+  // user emptying a dashboard has no grid to glance at, so without this they
+  // learn how many are left only by counting them again.
+  //
+  // Three strings rather than one with a count interpolated into it, because
+  // Spanish does not share a verb across them — "queda 1 widget" against
+  // "quedan 3 widgets" — and the component resolves i18n at `initialize`, where
+  // the count cannot be known.
+  removalText (label, remaining) {
+    if (remaining === 0) return this.removedLastTextValue.replace('%{widget}', label)
+
+    const template = remaining === 1 ? this.removedOneTextValue : this.removedOtherTextValue
+
+    return template.replace('%{widget}', label).replace('%{total}', remaining)
   }
 
   // The size is swapped locally first so the card resizes under the cursor. The

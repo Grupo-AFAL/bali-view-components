@@ -67,7 +67,17 @@ module Bali
         {
           url: url,
           moved_text: I18n.t("bali_view.widgets.edit.moved"),
-          removed_text: I18n.t("bali_view.widgets.edit.removed"),
+          # THREE removal strings, not one with a count in it. Spanish does not
+          # share a verb across them ("queda 1 widget" / "quedan 3 widgets"), and
+          # this method runs at `initialize` where the count is unknowable — the
+          # card being removed has not been chosen yet. So the server ships every
+          # form and the controller picks the one that fits.
+          removed_one_text: I18n.t("bali_view.widgets.edit.removed_one"),
+          removed_other_text: I18n.t("bali_view.widgets.edit.removed_other"),
+          # Its own string rather than "0 widgets remaining", which would name a
+          # state the user is about to not be in: an emptied grid means "never
+          # chose", so the server restores the defaults and the grid reloads.
+          removed_last_text: I18n.t("bali_view.widgets.edit.removed_last"),
           resized_text: I18n.t("bali_view.widgets.edit.resized"),
           failed_text: I18n.t("bali_view.widgets.edit.failed")
         }
