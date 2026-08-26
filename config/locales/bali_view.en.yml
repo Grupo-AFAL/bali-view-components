@@ -702,6 +702,8 @@ en:
     # relative `t(".remove")` would resolve to two different scopes
     # (`bali_view.widget.remove` vs `bali_view.widget_grid.remove`) instead
     # of sharing one string.
+    gauge:
+      default_label: "%{percentage}% complete"
     widgets:
       load_error: "Couldn't load"
       view_all: "View all %{count}"

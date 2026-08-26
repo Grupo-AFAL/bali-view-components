@@ -683,6 +683,8 @@ es:
     # texto, y un `t(".remove")` relativo resolvería a dos scopes distintos
     # (`bali_view.widget.remove` vs `bali_view.widget_grid.remove`) en lugar
     # de compartir una sola cadena.
+    gauge:
+      default_label: "%{percentage}% completado"
     widgets:
       load_error: "No se pudo cargar"
       view_all: "Ver todo (%{count})"
