@@ -2507,11 +2507,58 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 #### Widget
 
-One card in a user-arrangeable dashboard, rendered at one of four sizes — `small` (a bare
-stat), `medium`, `large` (`medium`'s width, twice the height) and `wide` (full row). Takes
-a widget instance, not its data, so the card can derive a widget's copy from `widget.key`
-and delegate `count`/`items`/`view_all_path` without knowing where they came from. Meant to
+One card in a user-arrangeable dashboard, rendered at one of four sizes. Takes a widget
+instance, not its data, so the card can derive a widget's copy from `widget.key` and
+delegate `count`/`items`/`view_all_path` without knowing where they came from. Meant to
 render inside `Bali::WidgetGrid::Component`, not alone.
+
+**The size changes how much context the same fact gets — never the subject.** Three regions
+fill in as the canvas grows:
+
+| Size | Grid | Shows |
+|---|---|---|
+| `small` | 1×1 | The fact alone. The whole tile is one link, and nothing inside it is focusable. |
+| `medium` | 2×1 | The fact, and a sparkline beside it — axis-less, because below roughly 2×2 axes cost more room than they explain. |
+| `large` | 2×2 | The fact, a chart with axes, and the breakdown below. |
+| `wide` | 4×2 | Two columns: the fact and its chart, then the breakdown. |
+
+A widget opts into the richer rungs by returning more on its `Result` — `trend:`, `series:`
+and `gauge:`. **A widget that returns none of them still renders at every size**: the
+context region is simply absent and the breakdown expands to fill it, which is exactly what
+a widget written before the ladder does.
+
+```ruby
+Bali::Widget::Result.new(
+  count: 42, items: rows, view_all_path: items_path,
+  # "Up" is NOT universally good. Overdue tasks up 12% and revenue up 12% are opposite
+  # news, so the widget says which direction is good and the card colours from that.
+  # Get this wrong and the trend indicator confidently lies.
+  trend: Bali::Widget::Trend.new(delta: 12, period: "vs last week", positive_when: :down),
+  series: Bali::Widget::Series.new(values: [3, 5, 4, 8], labels: %w[Mon Tue Wed Thu])
+)
+```
+
+For the ring ladder — progress toward a goal, then how you got there — return a
+`Bali::Widget::Gauge` instead of leaning on `count`; it replaces the number as the headline
+at every size:
+
+```ruby
+Bali::Widget::Result.new(
+  count: 7,
+  gauge: Bali::Widget::Gauge.new(value: 7, max: 10, label: "of 10"),
+  series: Bali::Widget::Series.new(values: [2, 4, 3, 6, 7], type: :bar)
+)
+```
+
+`display_value` is what the headline actually prints, defaulting to an abbreviation of
+`count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
+six characters. Set it explicitly for a headline that isn't a count — `"72%"`, `"$1.2k"`.
+
+**One thing to know before building on this:** resizing a card in the browser writes a
+single attribute, and the card's interior is rendered by the server — so a card resized from
+`medium` to `small` keeps its old body until the next page load. CSS hides the regions a
+small tile cannot honour; the headline always survives. See the note at the bottom of
+`app/components/bali/widget/index.css`.
 
 ```erb
 <%= render Bali::Widget::Component.new(low_stock_items_widget) %>

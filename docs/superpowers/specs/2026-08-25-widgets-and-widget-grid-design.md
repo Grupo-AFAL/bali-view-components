@@ -108,17 +108,27 @@ every other card falls through to the list body.
 
 ### Body precedence
 
+**Superseded by the size ladder** — see
+`docs/superpowers/plans/2026-08-26-widget-size-ladder.md`. `ROWS` is gone; `REGIONS` replaced
+it, because a row count could only ever express one of the three widget ladders. What follows
+is the current precedence.
+
 1. **`failed?`** — the degraded card, at every size. Checked first because a failed widget has
    `count: 0` and the small card renders nothing but its count, so a confident grey "0" would be this
    dashboard's word for *all clear*. A tile that could not load must never be able to say that.
-2. **`summary?`** (size `:small`) — the whole tile is a `stat` link. A ~215px card carrying three
-   truncated titles is worse than the number those titles summarize.
-3. **`body?`** — the slot, if the host filled it.
-4. **the list** — `rows`, truncated by `ROWS = { small: 0, medium: 3, large: 7, wide: 3 }`, or
-   `empty_message`.
+2. **`summary?`** (size `:small`) — the whole tile is a `stat` link, and nothing inside it is
+   focusable, because a small widget supports exactly one tap target. Keyed on the headline
+   style rather than a row count of zero: a charted widget at `medium` also has no rows and is
+   emphatically not a summary tile.
+3. **the regions** — headline, then context if the widget supplied a `series` or `gauge` for
+   it, then detail. `REGIONS` gives each size a `rows` PAIR — `[with_context, without_context]`
+   — so a widget with neither renders the row counts it always did (3 at medium, 7 at large)
+   and one that charts trades rows for the chart.
 
-Note that 2-before-3 means a custom-bodied widget dropped to `small` still renders as a stat. That is
-the existing behaviour and is kept: a 215px box is not where custom content works.
+The `body?` slot now replaces the **detail** region rather than the whole body, so a host that
+fills it still gets the headline and context it did not have to write. A custom-bodied widget
+dropped to `small` still renders as the hero, which is the existing behaviour and is kept: a
+215px box is not where custom content works.
 
 ### Edit chrome
 

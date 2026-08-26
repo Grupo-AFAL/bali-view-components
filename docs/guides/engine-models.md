@@ -321,6 +321,41 @@ builds one from an ordered scope, capping the preview at `PREVIEW_ROWS` (8 rows)
 size the card renders at. `context` is whatever your app needs to gate on (a Pundit
 context, a user, nothing at all) — Bali never reads it itself.
 
+### Giving the fact context as the card grows
+
+`call` may return more than a count and a list. The card shows the same fact at every size
+and adds context as the canvas grows, and these are what it adds:
+
+| Field | Type | What it earns |
+|---|---|---|
+| `trend:` | `Bali::Widget::Trend` | An arrow and a delta beside the headline, at every size |
+| `series:` | `Bali::Widget::Series` | The chart region — a sparkline at `medium`, a chart with axes at `large` and `wide` |
+| `gauge:` | `Bali::Widget::Gauge` | A ring that replaces the number as the headline |
+| `display_value:` | `String` | Overrides the printed headline; defaults to an abbreviation of `count` |
+
+**`Trend` needs `positive_when:` and getting it wrong makes the card lie.** "Up" is not
+universally good — overdue tasks up 12% and revenue up 12% are opposite news, and the
+direction alone cannot tell them apart. The card colours from whether the movement was
+*good*, not which way it went, so a widget counting something bad declares
+`positive_when: :down` and a rising number then reads red.
+
+```ruby
+def call
+  Bali::Widget::Result.new(
+    count: overdue.count,
+    items: overdue.limit(PREVIEW_ROWS).map { |t| row(t) },
+    view_all_path: tasks_path,
+    trend: Bali::Widget::Trend.new(delta: 12, period: "vs last week", positive_when: :down),
+    series: Bali::Widget::Series.new(values: weekly_counts, labels: weekday_names)
+  )
+end
+```
+
+Every one of these is optional, and omitting all of them is a supported, unremarkable state:
+the card drops the context region and the breakdown expands to fill it, which is what a
+widget written against the original contract renders. Adding them is additive, never a
+migration.
+
 ### The widget's copy is yours, in your own locale scope
 
 A widget's `title`, `short_title`, `description` and `empty` come from **your** app's locale

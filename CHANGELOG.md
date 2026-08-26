@@ -32,9 +32,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **`Bali::Gauge`: a radial progress ring.** The circular half of what `Bali::Progress` does
+  linearly, over daisyUI's `radial-progress` — CSS-only, so a page of them costs no
+  JavaScript. Carries the full `progressbar` ARIA contract, which daisyUI's own markup does
+  not: the arc is drawn from a CSS custom property that assistive technology cannot see, so
+  without it the control is invisible rather than merely unlabelled. `value` past `max` fills
+  the ring while `aria-valuenow` still reports the true figure.
 - **`Bali::Widget` and `Bali::WidgetGrid`: a user-arrangeable bento dashboard.** Four card
   sizes, drag and arrow-key reorder, resize and remove, with the whole layout persisted on
-  every gesture. `Bali::Widget::Base` is the contract a host's widget classes implement
+  every gesture. **The size changes how much context the same fact gets, never the subject**:
+  `small` is the fact alone, `medium` adds a sparkline beside it, `large` a chart with axes
+  and the breakdown below, and `wide` (4×2) two columns. A widget opts into the richer rungs
+  with `trend:`, `series:` and `gauge:` on its `Result`; one that returns none of them renders
+  at every size with the context region simply absent. `Bali::Widget::Trend` carries
+  `positive_when:` because "up" is not universally good — the card colours from whether the
+  movement was good, not which way it went. `Bali::Widget::Base` is the contract a host's widget classes implement
   (`sized`, `visible?`, `#call`); `Bali::DashboardWidget::Store` reads and writes the
   arrangement to the new `bali_dashboard_widgets` table, keyed by owner, tenant context and
   dashboard — `Bali::DashboardWidget.store_for` builds one, the same shortcut
