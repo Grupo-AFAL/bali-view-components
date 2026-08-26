@@ -19,11 +19,31 @@ module Bali
     # baked into translator-editable strings.
     SEPARATOR = " · "
 
+    # Largest first, so `find` returns the biggest unit that applies. Stops at
+    # billions: a dashboard tile showing a trillion of anything has a bigger
+    # problem than its formatting.
+    ABBREVIATIONS = [ [ 1_000_000_000, "B" ], [ 1_000_000, "M" ], [ 1_000, "k" ] ].freeze
+
     class << self
       # Blank parts drop out, so a widget with only one half doesn't render a
       # dangling separator.
       def subtitle(*parts)
         parts.compact_blank.join(SEPARATOR)
+      end
+
+      # The small card is ~215px wide and draws its headline at `text-4xl`, which
+      # gives it roughly 4-6 characters before the number runs off the tile. This
+      # is what keeps a count of 1_234_567 from doing that.
+      #
+      # One decimal at most, and a trailing ".0" is dropped — "1k" reads better
+      # than "1.0k" and both fit, so the shorter one wins.
+      def abbreviate(number)
+        value = number.to_i
+        magnitude = ABBREVIATIONS.find { |threshold, _| value.abs >= threshold }
+        return value.to_s if magnitude.nil?
+
+        threshold, suffix = magnitude
+        "#{(value.to_f / threshold).round(1).then { |n| n % 1 == 0 ? n.to_i : n }}#{suffix}"
       end
 
       # Whether a widget whose `#call` raises should take the request down with

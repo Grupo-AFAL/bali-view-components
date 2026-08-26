@@ -70,7 +70,8 @@ module Bali
       # The component receives the WIDGET, not its `Result`, so `widget.count` is
       # true rather than a convenient lie — and the widget still knows its own
       # key, which is what lets one component derive every widget's copy.
-      delegate :count, :items, :view_all_path, :payload, :failed?, to: :result
+      delegate :count, :items, :view_all_path, :payload, :failed?,
+               :display_value, :trend, :series, :gauge, to: :result
 
       # Overridden by the host. Bali's default shows everything.
       def visible? = true
