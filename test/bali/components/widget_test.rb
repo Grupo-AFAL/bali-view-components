@@ -247,7 +247,7 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   # ---- degradation, which is what keeps every pre-ladder widget working ------
 
-  # A widget supplying neither series nor gauge — every widget written against
+  # A widget supplying neither series nor goal — every widget written against
   # the original contract — must render exactly what it always did.
   def test_a_widget_with_no_ladder_data_keeps_its_original_row_counts
     { medium: 3, large: 7 }.each do |size, expected|
@@ -270,9 +270,9 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector("ul.list li", count: 3)
   end
 
-  # ---- the gauge ladder ----------------------------------------------------
+  # ---- the goal ladder -----------------------------------------------------
 
-  def test_a_gauge_replaces_the_number_as_the_headline
+  def test_a_goal_replaces_the_number_as_the_headline
     render_inline(Bali::Widget::Component.new(
       widget(size: :small, goal: Bali::Widget::Goal.new(value: 7, max: 10, label: "shifts"))
     ))
@@ -281,12 +281,12 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_no_selector(".stat-value")
   end
 
-  # A GAUGE IS A HEADLINE, NOT A CONTEXT. The context region can only ever draw
-  # a series, so counting a gauge as context made the card reserve room for a
+  # A GOAL IS A HEADLINE, NOT A CONTEXT. The context region can only ever draw
+  # a series, so counting a goal as context made the card reserve room for a
   # chart that never renders: at `medium` the detail region was suppressed
   # entirely and the tile showed a ring and nothing else, where the same widget
-  # without a gauge showed three rows.
-  def test_a_gauge_without_a_series_does_not_cost_the_card_its_rows
+  # without a goal showed three rows.
+  def test_a_goal_without_a_series_does_not_cost_the_card_its_rows
     render_inline(Bali::Widget::Component.new(
       widget(size: :medium, goal: Bali::Widget::Goal.new(value: 7, max: 10),
              items: 9.times.map { |i| Bali::Widget::Row.new(title: "Row #{i}") })
@@ -295,7 +295,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector("ul.list li", count: 3)
   end
 
-  def test_a_gauge_without_a_series_keeps_the_full_row_count_at_large
+  def test_a_goal_without_a_series_keeps_the_full_row_count_at_large
     render_inline(Bali::Widget::Component.new(
       widget(size: :large, goal: Bali::Widget::Goal.new(value: 7, max: 10),
              items: 9.times.map { |i| Bali::Widget::Row.new(title: "Row #{i}") })
@@ -304,9 +304,9 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector("ul.list li", count: 7)
   end
 
-  # And the empty state survives too: it was gated on `!context?`, so a gauge
+  # And the empty state survives too: it was gated on `!context?`, so a goal
   # widget with nothing to list said nothing at all.
-  def test_a_gauge_widget_with_nothing_to_list_still_says_so
+  def test_a_goal_widget_with_nothing_to_list_still_says_so
     render_inline(Bali::Widget::Component.new(
       widget(size: :large, count: 0, items: [],
              goal: Bali::Widget::Goal.new(value: 0, max: 10))
@@ -315,7 +315,52 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_text "Nothing running low"
   end
 
-  def test_a_gauge_keeps_its_ring_and_gains_a_chart_as_the_card_grows
+  # THE SAME DEFECT AS `context?`, on the other side of the card: a region sized
+  # for content the widget never supplied. The number and ring ladders are
+  # DOCUMENTED as having no items, so the detail wrapper rendered empty — taking
+  # `flex-1` at `:stacked` and squeezing the chart into two fifths of a canvas it
+  # could have had whole, and leaving a blank right-hand column at `:split`.
+  #
+  # Shaped after the example in docs/guides/components.md.
+  # DECIDED, not accidental: a slot filled at the call site is an explicit
+  # instruction from the host; a `series` is a data field. At `:inline` there is
+  # room for the headline and one of them, so the explicit one wins. Before this,
+  # a widget that asked for custom content silently got a sparkline instead.
+  def test_a_filled_body_slot_beats_the_chart_where_only_one_fits
+    render_inline(Bali::Widget::Component.new(widget(size: :medium, series: a_series))) do |card|
+      card.with_body { "<p class='verdict'>All clear</p>".html_safe }
+    end
+
+    assert_selector("p.verdict")
+    assert_no_selector("canvas.chart", visible: :all)
+  end
+
+  def test_the_chart_still_wins_when_no_slot_asked_for_the_space
+    render_inline(Bali::Widget::Component.new(widget(size: :medium, series: a_series)))
+
+    assert_selector("canvas.chart", visible: :all)
+  end
+
+  def test_a_widget_with_no_items_renders_no_detail_region
+    render_inline(Bali::Widget::Component.new(
+      widget(size: :large, count: 7, items: [], series: a_series,
+             goal: Bali::Widget::Goal.new(value: 7, max: 10, label: "of 10"))
+    ))
+
+    assert_no_selector(".bali-widget-detail")
+  end
+
+  def test_the_split_layout_drops_its_second_column_when_there_is_no_detail
+    render_inline(Bali::Widget::Component.new(
+      widget(size: :wide, count: 7, items: [], series: a_series,
+             goal: Bali::Widget::Goal.new(value: 7, max: 10))
+    ))
+
+    assert_no_selector(".bali-widget-detail")
+    assert_no_selector(".lg\\:grid-cols-2")
+  end
+
+  def test_a_goal_keeps_its_ring_and_gains_a_chart_as_the_card_grows
     render_inline(Bali::Widget::Component.new(
       widget(size: :large, series: a_series,
              goal: Bali::Widget::Goal.new(value: 7, max: 10))
@@ -327,7 +372,7 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   # ---- the one-tap-target constraint ---------------------------------------
 
-  # A small widget supports exactly ONE tap target. A trend or a gauge rendering
+  # A small widget supports exactly ONE tap target. A trend or a ring rendering
   # a focusable control inside the tile would break that, and the failure is
   # silent for anyone not using a keyboard.
   def test_the_small_card_contains_no_focusable_element_inside_its_single_link

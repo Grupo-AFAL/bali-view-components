@@ -55,7 +55,13 @@ module Bali
         # `title` names the widget being sized, so the group's accessible name
         # says WHICH card these four buttons belong to — a dashboard has twelve.
         def initialize(size:, title:)
-          @size = size
+          # COERCED. `checked?` compares with `==`, so a String size would match
+          # nothing, no button would carry `tabindex="0"`, and the whole
+          # radiogroup would drop out of the tab order — unreachable by keyboard,
+          # silently. The card passes a symbol, but this is a public component
+          # with its own preview, and the preview was already coercing on its
+          # behalf, which is the tell that it belongs here.
+          @size = size.to_sym
           @title = title
           super()
         end
@@ -67,6 +73,8 @@ module Bali
         def sizes = Bali::Widget::SIZES
 
         def checked?(name) = name == size
+
+        def button_classes = BUTTON_CLASSES
 
         def cell_class(name, cell)
           CELLS.fetch(name).include?(cell) ? CELL_FILLED : CELL_EMPTY

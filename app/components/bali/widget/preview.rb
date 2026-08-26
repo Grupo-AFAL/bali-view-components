@@ -49,8 +49,8 @@ module Bali
                                              positive_when: :down),
               series: Bali::Widget::Series.new(values: [ 3, 5, 4, 8, 6, 9, 12 ],
                                                labels: %w[Mon Tue Wed Thu Fri Sat Sun]) }
-          # Ring -> ring + history.
-          when :gauge
+          # Ring -> ring + history. A GOAL is the data; the gauge draws it.
+          when :goal
             { goal: Bali::Widget::Goal.new(value: @count, max: 10, label: "of 10"),
               series: Bali::Widget::Series.new(values: [ 2, 4, 3, 6, 5, 7, @count ],
                                                labels: %w[Mon Tue Wed Thu Fri Sat Sun],
@@ -82,7 +82,7 @@ module Bali
       # the size picker — which the card always renders and CSS hides.
       #
       # @param size select { choices: [small, medium, large, wide] }
-      # @param pattern select { choices: [metric, list, gauge] }
+      # @param pattern select { choices: [metric, list, goal] }
       # @param count number
       # @param failed toggle
       # @param editing toggle

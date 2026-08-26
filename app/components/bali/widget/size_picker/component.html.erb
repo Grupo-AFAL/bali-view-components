@@ -12,7 +12,7 @@
         single tab stop. Without it a keyboard user crosses four buttons per
         card — 48 stops in a twelve-card grid — just to reach the next card. %>
     <button type="button" role="radio"
-            class="<%= Bali::Widget::SizePicker::Component::BUTTON_CLASSES %>"
+            class="<%= button_classes %>"
             aria-checked="<%= checked?(name) %>"
             tabindex="<%= checked?(name) ? 0 : -1 %>"
             aria-label="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
@@ -20,7 +20,9 @@
             data-widget-size="<%= name %>"
             data-action="bali-widget-grid#resize">
       <span class="grid h-3.5 w-6 grid-cols-4 grid-rows-2 gap-px" aria-hidden="true">
-        <% 8.times { |cell| %><span class="<%= cell_class(name, cell) %>"></span><% } %>
+        <% 8.times do |cell| %>
+          <span class="<%= cell_class(name, cell) %>"></span>
+        <% end %>
       </span>
     </button>
   <% end %>

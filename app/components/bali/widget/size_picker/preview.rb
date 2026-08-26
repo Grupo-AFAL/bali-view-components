@@ -15,8 +15,7 @@ module Bali
         #
         # @param size select { choices: [small, medium, large, wide] }
         def default(size: :medium)
-          render Bali::Widget::SizePicker::Component.new(size: size.to_sym,
-                                                         title: "Low stock")
+          render Bali::Widget::SizePicker::Component.new(size: size, title: "Low stock")
         end
       end
     end

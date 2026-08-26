@@ -89,9 +89,9 @@ module Bali
       # truth the moment someone adds a size.
       def layout = region.fetch(:layout)
 
-      # The compact card: one fact, and the whole tile is the link. Keyed on the
-      # headline style rather than a row count of zero — a charted widget at
-      # `medium` also has no rows, and it is emphatically not a summary tile.
+      # The compact card: one fact, and the whole tile is the link. Keyed on
+      # `layout` rather than a row count of zero — a charted widget at `medium`
+      # also has no rows, and it is emphatically not a summary tile.
       def summary? = layout == :hero
 
       # A region the widget has nothing to put in is not rendered. This is the
@@ -102,9 +102,9 @@ module Bali
       # goal here made the card reserve room for a chart that never rendered:
       # at `medium` the detail region was suppressed and the tile showed a ring
       # alone, where the same widget without a goal showed three rows.
-      def context? = region[:context].present? && series?
+      def context? = region.fetch(:context).present? && series?
 
-      def spark? = region[:context] == :spark
+      def spark? = region.fetch(:context) == :spark
 
       def series? = series&.charted? || false
 
@@ -112,7 +112,24 @@ module Bali
 
       # Two columns, because an extra-large tile laid out as one long strip shows
       # less than a medium does in four times the space.
-      def two_column? = layout == :split
+      def split? = layout == :split
+
+      # The detail region is rendered only when it HAS something. An empty
+      # wrapper is not free: at `:stacked` it takes `flex-1` and squeezes the
+      # chart into two fifths of a canvas it could have had whole, and at
+      # `:split` it is a blank right-hand column. The number and ring ladders are
+      # documented as having no items, so this is the common case, not the edge.
+      #
+      # The counterpart to `context?`. Both answer "does this region have
+      # anything to put in it", and having only one of them was the whole defect.
+      def detail? = body? || rows.any? || empty_state?
+
+      # ONE home for this rule. The template used to spell it inline as well,
+      # and two spellings of one rule is how the `context?` bug got in.
+      #
+      # Suppressed when a chart is already speaking for the card: "nothing to
+      # show" beside a populated sparkline is a contradiction.
+      def empty_state? = !any_items? && !context?
 
       def rows = items.first(region.fetch(context? ? :charted_rows : :rows))
 
@@ -151,15 +168,15 @@ module Bali
       # The chart's share of the canvas, which differs by what it is SHARING
       # WITH rather than by taste.
       #
-      # At `medium` it divides a row with the headline, so it takes the
-      # remaining width. At `wide` it has a column to itself — the breakdown is
+      # At `:inline` it divides a row with the headline, so it takes the
+      # remaining width. At `:split` it has a column to itself — the breakdown is
       # in the other one — so it takes the remaining height. Only at `large` is
       # it stacked ABOVE the breakdown, and there an even split starves the list
       # and clips its last row; two fifths leaves the rows whole.
       def context_classes
         class_names(
           "bali-widget-context min-h-0 min-w-0 overflow-hidden",
-          spark? || two_column? ? "flex-1" : "basis-2/5"
+          spark? || split? ? "flex-1" : "basis-2/5"
         )
       end
 

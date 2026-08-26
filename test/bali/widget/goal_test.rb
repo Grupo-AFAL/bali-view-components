@@ -8,11 +8,11 @@ class BaliWidgetGoalTest < ActiveSupport::TestCase
   # `max`, a `max` of zero, and the accessible value staying true. Duplicating
   # that here was two sets of rounding rules with one caller between them.
   def test_max_defaults_to_a_hundred_so_a_bare_percentage_works
-    gauge = Bali::Widget::Goal.new(value: 42)
+    goal = Bali::Widget::Goal.new(value: 42)
 
-    assert_equal 42, gauge.value
-    assert_equal 100, gauge.max
-    assert_nil gauge.label
+    assert_equal 42, goal.value
+    assert_equal 100, goal.max
+    assert_nil goal.label
   end
 
   def test_carries_the_label_the_ring_prints_under_its_figure

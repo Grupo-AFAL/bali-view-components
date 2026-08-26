@@ -1,0 +1,29 @@
+/* Gauge — the rule that has to outrank daisyUI's `.radial-progress`.
+ *
+ * WHY THIS FILE IS UNLAYERED
+ * --------------------------
+ * daisyUI paints ONLY the filled arc. Its `::before` is
+ *
+ *   conic-gradient(currentColor var(--radialprogress), #0000 0)
+ *
+ * so the unfilled remainder is transparent — there is no track. A ring at 0%
+ * therefore renders as a bare dot, indistinguishable from a component that
+ * failed to load. "0 of 10 shifts covered" is a real and common state and has
+ * to look like an EMPTY ring rather than an absent one.
+ *
+ * daisyUI 5 emits its components inside @layer utilities, and layers beat
+ * specificity outright — so this rule in @layer components would lose no matter
+ * how specific it was written. Unlayered is the only position that wins.
+ *
+ * It fits the rule of thumb in `.claude/CLAUDE.md` exactly: the right-most
+ * compound is a daisyUI class, and the only declaration set here (`background`)
+ * is one daisyUI sets itself. The whole gradient stack is restated because
+ * `background` is a shorthand — overriding only the second layer is not
+ * expressible.
+ */
+.radial-progress:before {
+  background:
+    radial-gradient(farthest-side, currentColor 98%, #0000) top / var(--thickness)
+      var(--thickness) no-repeat,
+    conic-gradient(currentColor var(--radialprogress), var(--color-base-300) 0);
+}

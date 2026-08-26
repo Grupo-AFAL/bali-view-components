@@ -32,12 +32,12 @@ module Bali
 
       # One specimen per size AND one per ladder, so the grid shows the whole
       # matrix at once: the metric ladder at `medium`, the plain list at `large`
-      # (the pre-ladder contract, still rendering), and the gauge at `wide`.
+      # (the pre-ladder contract, still rendering), and the goal at `wide`.
       SPECIMENS = [
         [ "overdue_counts", :small, 4, :metric ],
         [ "low_stock_items", :medium, 6, :metric ],
         [ "expiring_stock", :large, 9, :list ],
-        [ "cost_spikes", :wide, 7, :gauge ]
+        [ "cost_spikes", :wide, 7, :goal ]
       ].freeze
 
       # The three ladders, shared with `Bali::Widget::Preview`'s specimen. A
@@ -50,7 +50,7 @@ module Bali
                                            positive_when: :down),
             series: Bali::Widget::Series.new(values: [ 3, 5, 4, 8, 6, 9, 12 ],
                                              labels: %w[Mon Tue Wed Thu Fri Sat Sun]) }
-        when :gauge
+        when :goal
           { goal: Bali::Widget::Goal.new(value: count, max: 10, label: "of 10"),
             series: Bali::Widget::Series.new(values: [ 2, 4, 3, 6, 5, 7, count ],
                                              labels: %w[Mon Tue Wed Thu Fri Sat Sun],

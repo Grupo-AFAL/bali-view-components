@@ -83,6 +83,11 @@
         <p class="text-xs text-warning"><%= t('bali_view.widgets.load_error') %></p>
       </div>
 
+    <%# `:hero` is handled HERE rather than as a branch of the `case layout`
+        below, and that is deliberate: the captures under it build the headline,
+        the context and the detail eagerly — including rendering a whole
+        `Bali::Chart` — and a hero tile shows none of them. Folding this in would
+        mean constructing all three only to throw them away. %>
     <% elsif summary? %>
       <%# THE HERO. One fact, and the whole tile is the link — but ONLY when
           there is somewhere to go. A nil `view_all_path` is a legitimate state
@@ -180,7 +185,17 @@
         <% if body? %>
           <div class="min-h-0 flex-1 overflow-hidden"><%= body %></div>
         <% elsif rows.any? %>
-          <%# `rows`, not `items`: widgets load `PREVIEW_ROWS` regardless of size
+          <%# NOT `Bali::List`, considered and ruled out: its `Item` puts title and
+              subtitle in a bare `<div>` with no way to set a class, and the
+              widget row needs `min-w-0` on that wrapper — which is precisely what
+              makes `truncate` work inside a flex row. Its defaults differ too
+              (`font-semibold`/`text-sm` against this card's
+              `font-medium`/`text-xs`), so composing it means five overrides to
+              defeat five defaults and still leaves the truncation broken. A row
+              that fails to truncate looks fine until a long title arrives, which
+              is why this note exists.
+
+              `rows`, not `items`: widgets load `PREVIEW_ROWS` regardless of size
               and the card truncates to what it has room for — less when a chart
               is taking part of the canvas. The rows are plain value objects, so
               this branch never touches a model. %>
@@ -201,7 +216,7 @@
               </li>
             <% end %>
           </ul>
-        <% elsif !any_items? && !context? %>
+        <% elsif empty_state? %>
           <p class="flex-1 place-content-center text-center text-sm text-base-content/40">
             <%= empty_message %>
           </p>
@@ -227,10 +242,21 @@
 
       <% case layout when :inline %>
         <%# MEDIUM: fact on the left, sparkline on the right. %>
+        <%# `body?` FIRST, and that is a decision rather than an accident: a slot
+            filled at the call site is an explicit instruction from the host,
+            where a `series` is a data field. At `:inline` there is room for the
+            headline and ONE of them, so the explicit one wins — a widget that
+            asked for custom content and silently got a sparkline instead had no
+            way to find out. A host wanting the chart here simply omits the
+            slot. %>
         <div class="flex min-h-0 flex-1 items-center gap-4">
           <div class="shrink-0"><%= headline %></div>
-          <%= context %>
-          <% unless context? %><%= detail %><% end %>
+          <% if body? %>
+            <%= detail %>
+          <% else %>
+            <%= context %>
+            <%= detail if detail? %>
+          <% end %>
         </div>
 
       <% when :split %>
@@ -238,12 +264,14 @@
             the left column, the breakdown the right, where it has room for more
             rows than `large` gives it. Stacks below `lg`, where there is no
             four-column track to divide. %>
-        <div class="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
+        <div class="grid min-h-0 flex-1 gap-4 <%= 'lg:grid-cols-2' if detail? %>">
           <div class="flex min-h-0 flex-col gap-2">
             <%= headline %>
             <%= context %>
           </div>
-          <div class="flex min-h-0 flex-col overflow-hidden"><%= detail %></div>
+          <% if detail? %>
+            <div class="flex min-h-0 flex-col overflow-hidden"><%= detail %></div>
+          <% end %>
         </div>
 
       <% else %>
@@ -251,7 +279,7 @@
         <div class="flex min-h-0 flex-1 flex-col gap-2">
           <%= headline %>
           <%= context %>
-          <%= detail %>
+          <%= detail if detail? %>
         </div>
       <% end %>
     <% end %>
