@@ -2523,7 +2523,7 @@ fill in as the canvas grows:
 | `wide` | 4×2 | Two columns: the fact and its chart, then the breakdown. |
 
 A widget opts into the richer rungs by returning more on its `Result` — `trend:`, `series:`
-and `gauge:`. **A widget that returns none of them still renders at every size**: the
+and `goal:`. **A widget that returns none of them still renders at every size**: the
 context region is simply absent and the breakdown expands to fill it, which is exactly what
 a widget written before the ladder does.
 
@@ -2539,13 +2539,13 @@ Bali::Widget::Result.new(
 ```
 
 For the ring ladder — progress toward a goal, then how you got there — return a
-`Bali::Widget::Gauge` instead of leaning on `count`; it replaces the number as the headline
+`Bali::Widget::Goal` instead of leaning on `count`; it replaces the number as the headline
 at every size:
 
 ```ruby
 Bali::Widget::Result.new(
   count: 7,
-  gauge: Bali::Widget::Gauge.new(value: 7, max: 10, label: "of 10"),
+  goal: Bali::Widget::Goal.new(value: 7, max: 10, label: "of 10"),
   series: Bali::Widget::Series.new(values: [2, 4, 3, 6, 7], type: :bar)
 )
 ```

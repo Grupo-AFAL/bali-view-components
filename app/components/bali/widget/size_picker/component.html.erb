@@ -1,0 +1,27 @@
+<%# `keydown` is bound on the GROUP rather than each button because the handler
+    needs the whole set to know what "next" means. %>
+<div class="join" role="radiogroup"
+     aria-label="<%= t('bali_view.widgets.edit.size_of', widget: title) %>"
+     data-action="keydown->bali-widget-grid#sizeKeydown">
+  <% sizes.each do |name| %>
+    <%# Selection is `aria-checked` and NOTHING else — the cell variants read it,
+        so the controller sets one attribute and every visual consequence
+        follows. No class for the server and the client to disagree about.
+
+        `tabindex` is the roving half: the checked size carries the group's
+        single tab stop. Without it a keyboard user crosses four buttons per
+        card — 48 stops in a twelve-card grid — just to reach the next card. %>
+    <button type="button" role="radio"
+            class="<%= Bali::Widget::SizePicker::Component::BUTTON_CLASSES %>"
+            aria-checked="<%= checked?(name) %>"
+            tabindex="<%= checked?(name) ? 0 : -1 %>"
+            aria-label="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
+            title="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
+            data-widget-size="<%= name %>"
+            data-action="bali-widget-grid#resize">
+      <span class="grid h-3.5 w-6 grid-cols-4 grid-rows-2 gap-px" aria-hidden="true">
+        <% 8.times { |cell| %><span class="<%= cell_class(name, cell) %>"></span><% } %>
+      </span>
+    </button>
+  <% end %>
+</div>

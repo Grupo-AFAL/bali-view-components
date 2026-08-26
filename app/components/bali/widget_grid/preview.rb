@@ -51,7 +51,7 @@ module Bali
             series: Bali::Widget::Series.new(values: [ 3, 5, 4, 8, 6, 9, 12 ],
                                              labels: %w[Mon Tue Wed Thu Fri Sat Sun]) }
         when :gauge
-          { gauge: Bali::Widget::Gauge.new(value: count, max: 10, label: "of 10"),
+          { goal: Bali::Widget::Goal.new(value: count, max: 10, label: "of 10"),
             series: Bali::Widget::Series.new(values: [ 2, 4, 3, 6, 5, 7, count ],
                                              labels: %w[Mon Tue Wed Thu Fri Sat Sun],
                                              type: :bar) }

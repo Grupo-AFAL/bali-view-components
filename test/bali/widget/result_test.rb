@@ -21,7 +21,7 @@ class BaliWidgetResultTest < ActiveSupport::TestCase
 
     assert_nil result.trend
     assert_nil result.series
-    assert_nil result.gauge
+    assert_nil result.goal
     assert_equal "3", result.display_value
   end
 

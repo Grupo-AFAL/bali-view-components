@@ -29,7 +29,13 @@ module Bali
       end
 
       # What the card colours from.
-      def good? = direction == positive_when
+      #
+      # A flat trend is never good: `delta: 0` derives `direction: :up`, so
+      # without the guard `good?` returned true for no movement at all. The card
+      # happened to be safe because `trend_classes` checks `flat?` first — but
+      # this class tells callers to ask `good?` and never `direction`, and
+      # correctness that depends on the caller's branch order is not correctness.
+      def good? = !flat? && direction == positive_when
 
       # Its own state rather than a weak `up`: no change is not good news, and
       # painting it green would say it was.

@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every gesture. **The size changes how much context the same fact gets, never the subject**:
   `small` is the fact alone, `medium` adds a sparkline beside it, `large` a chart with axes
   and the breakdown below, and `wide` (4×2) two columns. A widget opts into the richer rungs
-  with `trend:`, `series:` and `gauge:` on its `Result`; one that returns none of them renders
+  with `trend:`, `series:` and `goal:` on its `Result`; one that returns none of them renders
   at every size with the context region simply absent. `Bali::Widget::Trend` carries
   `positive_when:` because "up" is not universally good — the card colours from whether the
   movement was good, not which way it went. `Bali::Widget::Base` is the contract a host's widget classes implement

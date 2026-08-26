@@ -17,7 +17,9 @@ module Bali
         super
       end
 
-      def any? = values.present?
+      # NOT `any?`: that name takes a block under `Enumerable`, and a caller
+      # writing `series.any? { … }` would have had the block silently ignored.
+      def charted? = values.present?
     end
   end
 end

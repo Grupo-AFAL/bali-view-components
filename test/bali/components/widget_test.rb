@@ -20,7 +20,7 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   def widget(size: :medium, count: 2, items: nil, view_all_path: "/items",
              payload: nil, failed: false, display_value: nil, trend: nil,
-             series: nil, gauge: nil)
+             series: nil, goal: nil)
     rows = items || [
       Bali::Widget::Row.new(title: "Tomatoes", subtitle: "3 left · Cocina", href: "/i/1"),
       Bali::Widget::Row.new(title: "Onions")
@@ -29,7 +29,7 @@ class BaliWidgetComponentTest < ComponentTestCase
                                                  view_all_path: view_all_path,
                                                  payload: payload, failed: failed,
                                                  display_value: display_value, trend: trend,
-                                                 series: series, gauge: gauge)
+                                                 series: series, goal: goal)
     Stock.new.with_size(size)
   end
 
@@ -143,34 +143,13 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector(".stat-value", text: "2")
   end
 
-  def test_renders_a_size_radio_per_size_with_the_current_one_checked
+  # The picker is its own component now; its behaviour is tested there. This
+  # only asserts the card still mounts it, named for the widget it sizes.
+  def test_the_card_mounts_the_size_picker_for_its_own_widget
     render_inline(Bali::Widget::Component.new(widget(size: :wide)))
 
-    assert_selector("[role='radiogroup']", visible: :all)
-    assert_selector("button[role='radio'][data-widget-size]", count: 4, visible: :all)
+    assert_selector("[role='radiogroup'][aria-label='Size of Low stock']", visible: :all)
     assert_selector("button[data-widget-size='wide'][aria-checked='true']", visible: :all)
-    assert_selector("button[data-widget-size='small'][aria-checked='false']", visible: :all)
-  end
-
-  # The four sizes are mutually exclusive, so the whole group is ONE tab stop
-  # and the checked size is it. Without this a keyboard user tabs through four
-  # buttons per card — 48 stops in a twelve-card grid — to reach the next card.
-  def test_the_size_group_is_one_tab_stop_carried_by_the_checked_size
-    render_inline(Bali::Widget::Component.new(widget(size: :wide)))
-
-    assert_selector("button[data-widget-size='wide'][tabindex='0']", visible: :all)
-    assert_selector("button[data-widget-size][tabindex='-1']", count: 3, visible: :all)
-  end
-
-  # Selection follows focus, so the arrows have to reach the controller rather
-  # than scrolling the page. Bound on the GROUP, not each button: the handler
-  # needs the whole set to know what "next" means.
-  def test_the_size_group_routes_arrow_keys_to_the_controller
-    render_inline(Bali::Widget::Component.new(widget))
-
-    assert_selector(
-      "[role='radiogroup'][data-action='keydown->bali-widget-grid#sizeKeydown']", visible: :all
-    )
   end
 
   def test_edit_chrome_is_always_rendered_so_entering_edit_mode_costs_no_round_trip
@@ -178,13 +157,6 @@ class BaliWidgetComponentTest < ComponentTestCase
 
     assert_selector("button.handle[data-action='keydown->bali-widget-grid#move']", visible: :all)
     assert_selector("button[data-action='bali-widget-grid#remove']", visible: :all)
-  end
-
-  def test_cell_class_marks_the_filled_cells_of_each_size
-    component = Bali::Widget::Component.new(widget)
-
-    assert_includes component.cell_class(:large, 5), "bg-base-content/45"
-    assert_includes component.cell_class(:large, 2), "bg-base-content/20"
   end
 
   # ==========================================================================
@@ -258,13 +230,19 @@ class BaliWidgetComponentTest < ComponentTestCase
   # Below roughly 2x2 a chart's axes cost more room than they explain, which is
   # what makes `medium`'s chart a sparkline and `large`'s a chart.
   def test_the_chart_drops_its_axes_at_medium_and_keeps_them_at_large
-    component = Bali::Widget::Component.new(widget(size: :medium, series: a_series))
+    render_inline(Bali::Widget::Component.new(widget(size: :medium, series: a_series)))
 
-    assert_equal({ display: false }, component.chart_options.dig(:scales, :x))
+    assert_equal false, chart_options.dig("scales", "x", "display")
 
-    large = Bali::Widget::Component.new(widget(size: :large, series: a_series))
+    render_inline(Bali::Widget::Component.new(widget(size: :large, series: a_series)))
 
-    assert_nil large.chart_options[:scales]
+    refute_equal false, chart_options.dig("scales", "x", "display")
+  end
+
+  # Read off the rendered canvas rather than the component: this is the value
+  # Chart.js actually receives, so it survives any refactor of how it is built.
+  def chart_options
+    JSON.parse(page.find("canvas.chart", visible: :all)["data-chart-options-value"])
   end
 
   # ---- degradation, which is what keeps every pre-ladder widget working ------
@@ -296,17 +274,51 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   def test_a_gauge_replaces_the_number_as_the_headline
     render_inline(Bali::Widget::Component.new(
-      widget(size: :small, gauge: Bali::Widget::Gauge.new(value: 7, max: 10, label: "shifts"))
+      widget(size: :small, goal: Bali::Widget::Goal.new(value: 7, max: 10, label: "shifts"))
     ))
 
     assert_selector("[role='progressbar'][aria-valuenow='7']", visible: :all)
     assert_no_selector(".stat-value")
   end
 
+  # A GAUGE IS A HEADLINE, NOT A CONTEXT. The context region can only ever draw
+  # a series, so counting a gauge as context made the card reserve room for a
+  # chart that never renders: at `medium` the detail region was suppressed
+  # entirely and the tile showed a ring and nothing else, where the same widget
+  # without a gauge showed three rows.
+  def test_a_gauge_without_a_series_does_not_cost_the_card_its_rows
+    render_inline(Bali::Widget::Component.new(
+      widget(size: :medium, goal: Bali::Widget::Goal.new(value: 7, max: 10),
+             items: 9.times.map { |i| Bali::Widget::Row.new(title: "Row #{i}") })
+    ))
+
+    assert_selector("ul.list li", count: 3)
+  end
+
+  def test_a_gauge_without_a_series_keeps_the_full_row_count_at_large
+    render_inline(Bali::Widget::Component.new(
+      widget(size: :large, goal: Bali::Widget::Goal.new(value: 7, max: 10),
+             items: 9.times.map { |i| Bali::Widget::Row.new(title: "Row #{i}") })
+    ))
+
+    assert_selector("ul.list li", count: 7)
+  end
+
+  # And the empty state survives too: it was gated on `!context?`, so a gauge
+  # widget with nothing to list said nothing at all.
+  def test_a_gauge_widget_with_nothing_to_list_still_says_so
+    render_inline(Bali::Widget::Component.new(
+      widget(size: :large, count: 0, items: [],
+             goal: Bali::Widget::Goal.new(value: 0, max: 10))
+    ))
+
+    assert_text "Nothing running low"
+  end
+
   def test_a_gauge_keeps_its_ring_and_gains_a_chart_as_the_card_grows
     render_inline(Bali::Widget::Component.new(
       widget(size: :large, series: a_series,
-             gauge: Bali::Widget::Gauge.new(value: 7, max: 10))
+             goal: Bali::Widget::Goal.new(value: 7, max: 10))
     ))
 
     assert_selector("[role='progressbar']", visible: :all)
@@ -321,7 +333,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   def test_the_small_card_contains_no_focusable_element_inside_its_single_link
     render_inline(Bali::Widget::Component.new(
       widget(size: :small, trend: a_trend,
-             gauge: Bali::Widget::Gauge.new(value: 7, max: 10))
+             goal: Bali::Widget::Goal.new(value: 7, max: 10))
     ))
 
     within_body = page.find("a.stat")

@@ -4,7 +4,7 @@
     grows — it never changes subject. `REGIONS` in `component.rb` says what each
     size has room for; this template renders those regions.
 
-      headline — the fact. A number and its label, or a gauge ring.
+      headline — the fact. A number and its label, or a goal drawn as a ring.
       context  — how the fact is moving. A chart, axis-less below `large`.
       detail   — the breakdown. The row list.
 
@@ -56,47 +56,7 @@
       The shelf's own visual design (why a shelf, why `bg-base-200`, why hidden
       below `lg`) is explained in `app/components/bali/widget/index.css`. %>
   <div class="bali-widget-edit-shelf">
-    <%# A REAL radiogroup, not a toggle group: the four sizes are mutually
-        exclusive, which is exactly what this role exists for. It only earns the
-        role by honouring the whole pattern — one tab stop for the set (roving
-        tabindex, below), arrows to move within it, and selection following
-        focus. Announcing radiogroup semantics without the keyboard behaviour
-        assistive tech then expects is worse than an honest toggle group, which
-        is what this used to be.
-
-        `keydown` is bound HERE rather than on each button because the handler
-        needs the whole set to know what "next" means. %>
-    <div class="join" role="radiogroup"
-         aria-label="<%= t('bali_view.widgets.edit.size_of', widget: short_title) %>"
-         data-action="keydown->bali-widget-grid#sizeKeydown">
-      <% Bali::Widget::SIZES.each do |name| %>
-        <%# Height and padding are separate dials and only one was the problem:
-            `btn-xs` shrinks both, overriding `--btn-p` takes the dead space and
-            leaves the click target alone.
-
-            Selection is `aria-checked` and NOTHING else — the cell variants read
-            it, so the controller sets one attribute and every visual consequence
-            follows. No class for the server and the client to disagree about.
-
-            `tabindex` is the roving half: the checked size carries the group's
-            single tab stop. Without it a keyboard user crosses four buttons per
-            card — 48 stops in a twelve-card grid — just to reach the next card. %>
-        <button type="button" role="radio"
-                class="group join-item btn btn-sm [--btn-p:.375rem] border-base-300 bg-base-100 hover:border-base-content/25 aria-checked:border-primary/40 aria-checked:bg-primary/10"
-                aria-checked="<%= name == size %>"
-                tabindex="<%= name == size ? 0 : -1 %>"
-                aria-label="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
-                title="<%= t("bali_view.widgets.edit.sizes.#{name}") %>"
-                data-widget-size="<%= name %>"
-                data-action="bali-widget-grid#resize">
-          <span class="grid h-3.5 w-6 grid-cols-4 grid-rows-2 gap-px" aria-hidden="true">
-            <% 8.times do |cell| %>
-              <span class="<%= cell_class(name, cell) %>"></span>
-            <% end %>
-          </span>
-        </button>
-      <% end %>
-    </div>
+    <%= render Bali::Widget::SizePicker::Component.new(size: size, title: short_title) %>
   </div>
 
   <%# Genuinely `inert` while editing, set by `edit-mode` — not merely
@@ -135,14 +95,13 @@
           `capture` so the two branches share one copy of the content instead of
           drifting out of sync. %>
       <% summary_content = capture do %>
-        <% if gauge? %>
+        <% if goal? %>
           <%# `flex justify-center` rather than leaning on the `text-center`
               above: daisyUI's `.stat` is a GRID, and `text-align` does not move
               a grid item — the ring sat off to the left of its own label. %>
           <div class="flex justify-center">
             <%= render Bali::Gauge::Component.new(
-                  value: gauge.value, max: gauge.max, label: gauge.label, size: :lg,
-                  color: :primary) %>
+                  **goal.to_h, size: :lg, color: :primary) %>
           </div>
           <div class="stat-title mt-2 whitespace-normal text-sm leading-tight"><%= short_title %></div>
         <% else %>
@@ -172,10 +131,9 @@
           ladder — and the canvas decides how much sits beside and beneath it. %>
       <% headline = capture do %>
         <div class="flex items-center gap-3">
-          <% if gauge? %>
+          <% if goal? %>
             <%= render Bali::Gauge::Component.new(
-                  value: gauge.value, max: gauge.max, label: gauge.label,
-                  size: :md, color: :primary) %>
+                  **goal.to_h, size: :md, color: :primary) %>
           <% else %>
             <span class="text-3xl font-semibold tabular-nums leading-none <%= any_items? ? 'text-base-content' : 'text-base-content/30' %>">
               <%= display_value %>
@@ -203,7 +161,7 @@
             refuses to shrink below its content, and a responsive canvas measures
             its parent — so without this the chart pushes straight through the
             card's right edge instead of fitting inside it. %>
-        <% if context? && series? %>
+        <% if context? %>
           <div class="<%= context_classes %>">
             <%= render Bali::Chart::Component.new(
                   type: series.type, height: :fit, legend: false,
@@ -267,7 +225,7 @@
         <% end %>
       <% end %>
 
-      <% if headline_style == :inline %>
+      <% case layout when :inline %>
         <%# MEDIUM: fact on the left, sparkline on the right. %>
         <div class="flex min-h-0 flex-1 items-center gap-4">
           <div class="shrink-0"><%= headline %></div>
@@ -275,7 +233,7 @@
           <% unless context? %><%= detail %><% end %>
         </div>
 
-      <% elsif two_column? %>
+      <% when :split %>
         <%# EXTRA LARGE: two mediums side by side. The fact and its chart take
             the left column, the breakdown the right, where it has room for more
             rows than `large` gives it. Stacks below `lg`, where there is no
@@ -289,7 +247,7 @@
         </div>
 
       <% else %>
-        <%# LARGE: fact, then chart, then breakdown, stacked. %>
+        <%# STACKED (large): fact, then chart, then breakdown. %>
         <div class="flex min-h-0 flex-1 flex-col gap-2">
           <%= headline %>
           <%= context %>

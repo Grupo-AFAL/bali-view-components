@@ -330,7 +330,7 @@ and adds context as the canvas grows, and these are what it adds:
 |---|---|---|
 | `trend:` | `Bali::Widget::Trend` | An arrow and a delta beside the headline, at every size |
 | `series:` | `Bali::Widget::Series` | The chart region — a sparkline at `medium`, a chart with axes at `large` and `wide` |
-| `gauge:` | `Bali::Widget::Gauge` | A ring that replaces the number as the headline |
+| `goal:` | `Bali::Widget::Goal` | A ring that replaces the number as the headline |
 | `display_value:` | `String` | Overrides the printed headline; defaults to an abbreviation of `count` |
 
 **`Trend` needs `positive_when:` and getting it wrong makes the card lie.** "Up" is not

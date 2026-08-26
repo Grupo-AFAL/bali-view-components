@@ -18,33 +18,31 @@ module Bali
       #
       # Three regions fill in progressively:
       #
-      #   headline — the fact. A number and its label, or a gauge ring.
+      #   headline — the fact. A number and its label, or a goal as a ring.
       #   context  — how the fact is moving. A chart.
       #   detail   — the breakdown. The row list.
       #
-      # `rows` is a PAIR — `[with_context, without_context]` — and that pair is
-      # what makes the ladder additive instead of a migration. A widget that
-      # supplies no `series` and no `gauge` (every widget written against the
-      # original contract) has no context region, takes the second number, and
-      # renders exactly what it always did: 3 rows at medium, 7 at large. A
-      # widget that supplies a series trades rows for the chart.
+      # `rows` is what a PRE-LADDER widget gets — 3 at medium, 7 at large, exactly
+      # what it always rendered — and `charted_rows` is what is left once a chart
+      # takes part of the canvas. Two named numbers rather than one positional
+      # pair, because "index 0 means with a chart" is a fact a reader should not
+      # have to carry.
       #
       # Truncation lives HERE, not in `#call`: the widget answers "which rows
       # matter", the card answers "how many fit".
       REGIONS = {
         # A ~215px tile fits one fact and nothing else, and it is a single tap
-        # target — so no rows at either count, and nothing inside may be
-        # focusable.
-        small: { headline: :hero, context: nil, rows: [ 0, 0 ] },
+        # target — so no rows either way, and nothing inside may be focusable.
+        small: { layout: :hero, context: nil, rows: 0, charted_rows: 0 },
         # Fact on the left, sparkline on the right. Axis-less: below roughly 2x2
         # a chart's axes cost more room than they explain.
-        medium: { headline: :inline, context: :spark, rows: [ 0, 3 ] },
+        medium: { layout: :inline, context: :spark, rows: 3, charted_rows: 0 },
         # Fact in a header band, chart under it, breakdown below that.
-        large: { headline: :header, context: :full, rows: [ 3, 7 ] },
+        large: { layout: :stacked, context: :full, rows: 7, charted_rows: 3 },
         # Two columns — Apple's extra large is defined as two mediums side by
         # side, so the fact and its chart take the left and the breakdown the
         # right, where it has room for more rows than `large` gives it.
-        wide: { headline: :header, context: :full, rows: [ 6, 6 ] }
+        wide: { layout: :split, context: :full, rows: 6, charted_rows: 6 }
       }.freeze
 
       # `Bali::Chart` options that turn a chart into a sparkline. The library is
@@ -61,29 +59,6 @@ module Bali
       # `elements` default it would otherwise fall back to.
       SPARK_DATASET = { pointRadius: 0, pointHoverRadius: 0 }.freeze
 
-      # Which of the 4x2 lattice cells each size fills, in the grid's own reading
-      # order: left to right, top row then bottom.
-      #
-      # The LATTICE is the point, not the fill. Four rectangles floating in
-      # whitespace are four masses with no shared origin — which is why `medium`
-      # (2x1) and `large` (2x2), being the same WIDTH, were indistinguishable.
-      # The same four inside a visible 4x2 grid are a map.
-      CELLS = {
-        small: [ 0 ],
-        medium: [ 0, 1 ],
-        large: [ 0, 1, 4, 5 ],
-        wide: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
-      }.freeze
-
-      # The empty cell is a CONSTANT — `base-content`, never `current` — because
-      # a frame of reference that changes with the state it frames is not a
-      # reference. Deriving it from the button's text colour stacked two
-      # opacities into 9% ink on white: invisible, which collapsed the map back
-      # into the mass it replaced.
-      CELL_FILLED = "rounded-[1px] bg-base-content/45 " \
-                    "group-hover:bg-base-content/70 group-aria-checked:bg-primary"
-      CELL_EMPTY = "rounded-[1px] bg-base-content/20 group-aria-checked:bg-primary/25"
-
       # Custom content for a widget that isn't a list. Replaces the shape enum
       # the source app used, which had to name an app concept (`:verdict`)
       # inside a library.
@@ -91,7 +66,7 @@ module Bali
 
       delegate :key, :title, :short_title, :count, :items, :view_all_path,
                :empty_message, :size, :failed?,
-               :display_value, :trend, :series, :gauge, to: :widget
+               :display_value, :trend, :series, :goal, to: :widget
 
       # `**options` so a host can add a `data-testid`, an extra class, or a
       # Turbo frame attribute to a card — the same passthrough every other
@@ -102,34 +77,44 @@ module Bali
         super()
       end
 
+      private
+
+      attr_reader :widget, :options
+
       def region = REGIONS.fetch(size)
 
-      def headline_style = region[:headline]
+      # The ONE fact about a size that the rest of this class reads. Every
+      # "what does this size look like" question resolves through `REGIONS`;
+      # nothing keys off `size` directly, or the table stops being the source of
+      # truth the moment someone adds a size.
+      def layout = region.fetch(:layout)
 
       # The compact card: one fact, and the whole tile is the link. Keyed on the
       # headline style rather than a row count of zero — a charted widget at
       # `medium` also has no rows, and it is emphatically not a summary tile.
-      def summary? = headline_style == :hero
+      def summary? = layout == :hero
 
       # A region the widget has nothing to put in is not rendered. This is the
       # degradation that keeps every pre-ladder widget working.
-      def context? = region[:context].present? && (series? || gauge?)
+      #
+      # A SERIES AND NOTHING ELSE. A goal is a HEADLINE — it replaces the
+      # number — and the context region can only ever draw a chart. Counting a
+      # goal here made the card reserve room for a chart that never rendered:
+      # at `medium` the detail region was suppressed and the tile showed a ring
+      # alone, where the same widget without a goal showed three rows.
+      def context? = region[:context].present? && series?
 
-      def context_style = region[:context]
+      def spark? = region[:context] == :spark
 
-      def spark? = context_style == :spark
+      def series? = series&.charted? || false
 
-      def series? = series.present? && series.any?
-
-      def gauge? = gauge.present?
+      def goal? = goal.present?
 
       # Two columns, because an extra-large tile laid out as one long strip shows
       # less than a medium does in four times the space.
-      def two_column? = size == :wide
+      def two_column? = layout == :split
 
-      def rows = items.first(region[:rows][context? ? 0 : 1])
-
-      def detail? = rows.any? || (!summary? && !any_items?)
+      def rows = items.first(region.fetch(context? ? :charted_rows : :rows))
 
       def any_items? = count.positive?
 
@@ -190,16 +175,6 @@ module Bali
 
         { labels: series.labels, datasets: [ dataset ] }
       end
-
-      # Here rather than in the template so the template stops doing conditional
-      # presentation with fully qualified constants on a 160-character line.
-      def cell_class(name, cell)
-        CELLS.fetch(name).include?(cell) ? CELL_FILLED : CELL_EMPTY
-      end
-
-      private
-
-      attr_reader :widget, :options
 
       def card_classes
         class_names(

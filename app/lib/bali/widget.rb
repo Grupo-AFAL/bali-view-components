@@ -11,8 +11,10 @@ module Bali
   # `app/components/bali/widget/`) and `SIZES` would have nowhere to live.
   module Widget
     # Semantic, not Tailwind — and 2-D, adapted from iOS: `small` is 1x1,
-    # `medium` 2x1, `large` 2x2, `wide` 4x1. `large` is `medium`'s WIDTH at
-    # double HEIGHT, which is why it earns more rows rather than wider ones.
+    # `medium` 2x1, `large` 2x2, `wide` 4x2. `large` is `medium`'s WIDTH at
+    # double HEIGHT, which is why it earns more rows rather than wider ones;
+    # `wide` is `large`'s HEIGHT at double width, which is what makes it two
+    # columns rather than one long strip.
     SIZES = %i[small medium large wide].freeze
 
     # Subtitles read "A · B" everywhere. The separator lives here rather than
@@ -39,11 +41,14 @@ module Bali
       # than "1.0k" and both fit, so the shorter one wins.
       def abbreviate(number)
         value = number.to_i
-        magnitude = ABBREVIATIONS.find { |threshold, _| value.abs >= threshold }
-        return value.to_s if magnitude.nil?
+        # Destructuring nil gives two nils, so the guard below still reads.
+        threshold, suffix = ABBREVIATIONS.find { |limit, _| value.abs >= limit }
+        return value.to_s if threshold.nil?
 
-        threshold, suffix = magnitude
-        "#{(value.to_f / threshold).round(1).then { |n| n % 1 == 0 ? n.to_i : n }}#{suffix}"
+        scaled = (value.to_f / threshold).round(1)
+        # "1k" over "1.0k": both fit, and the shorter one reads better.
+        scaled = scaled.to_i if (scaled % 1).zero?
+        "#{scaled}#{suffix}"
       end
 
       # Whether a widget whose `#call` raises should take the request down with

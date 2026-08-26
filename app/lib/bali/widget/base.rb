@@ -71,7 +71,7 @@ module Bali
       # true rather than a convenient lie — and the widget still knows its own
       # key, which is what lets one component derive every widget's copy.
       delegate :count, :items, :view_all_path, :payload, :failed?,
-               :display_value, :trend, :series, :gauge, to: :result
+               :display_value, :trend, :series, :goal, to: :result
 
       # Overridden by the host. Bali's default shows everything.
       def visible? = true

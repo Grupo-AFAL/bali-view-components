@@ -49,7 +49,8 @@ module Bali
 
       # CLAMPED, and only for drawing: a ring has nowhere to put the eleventh of
       # ten, but "11 / 10" is a real and good state the caller may still want to
-      # print beside it. Mirrors `Bali::Widget::Gauge#percentage`.
+      # print beside it. This is the ONLY implementation — `Bali::Widget::Goal`
+      # says what the goal is and this draws it.
       #
       # A `max` of zero is "no goal set" rather than an error — dividing by it
       # would take a page down over a configuration mistake.
