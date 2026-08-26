@@ -361,24 +361,34 @@ Bali::DashboardWidget::Store.new(owner:, dashboard_key:, offering:, context: "")
 | `#visible_keys` | stored keys ∩ offering keys, in stored order |
 | `#customized?` | `visible_keys.any?` |
 | `#choose(widgets)` | membership. Survivors keep stored order; newly chosen append |
-| `#arrange(layout)` | full reconcile — `delete_all` + `insert_all` with positions from the array index, in a locked transaction |
+| `#arrange(layout)` | full reconcile — `delete_all` + `insert_all` with positions from the array index, in one transaction |
 | `#reset` | drop all rows — what "restore defaults" and an emptied grid both mean |
 
 **`arrange` is a pure reconcile; `choose` preserves sizes.** `arrange` writes exactly the
 layout it is handed (`delete_all` + `insert_all`), so an omitted size comes back as the
 widget's default. The grid controller always sends a size for every card, so this only bites
 the picker — which has no opinion about sizes and must therefore re-supply the stored ones.
-`choose` reads them inside its lock, before `arrange` deletes anything. Getting this wrong
-means ticking a checkbox silently resizes every card the owner had already sized.
+`choose` reads them inside its transaction, before `arrange` deletes anything. Getting this
+wrong means ticking a checkbox silently resizes every card the owner had already sized.
 
-**`lock_rows` cannot serialise an empty scope, on any adapter.** `FOR UPDATE` locks rows that
-exist; on a first-ever `choose` there are none, so two concurrent writers proceed unserialised
-and the later commit wins — and since `delete_all` precedes `insert_all`, the loser's row is
-gone before the unique index could object. Silent, not an error. Exposure is one owner racing
-themselves (two tabs, a retried request), and the controller serialises its own writes
-client-side. The fix, if a host needs it, is an advisory lock keyed on the scope
-(`pg_advisory_xact_lock`), which serialises writers even with zero rows present. Not shipped
-because it is Postgres-only and the engine runs on whatever the host has.
+**There is no row locking, and that is the shipped decision.** An earlier version took
+`SELECT … FOR UPDATE` on the scope inside the transaction. It was removed, because it bought
+nothing a plain `delete_all` does not already buy: it cannot lock rows that do not exist yet,
+so a first-ever write is unserialised with or without it; it does not prevent a lost update
+even when rows do exist, because each request computes its target state from its own snapshot
+and the later commit wins wholesale regardless; and on SQLite — what the dummy app runs —
+`.lock` emits no `FOR UPDATE` at all, verified against `.to_sql`, so the guarantee was only
+ever real on PostgreSQL. Two extra `SELECT`s per write for a promise the code's own comments
+conceded it could not keep.
+
+What actually happens on a race: both writers delete what is there and insert their own
+layout, the later commit wins wholesale, no exception and no conflict. Exposure is one owner
+racing themselves (two tabs, a retried request), and the grid's own JavaScript already
+serialises its writes client-side with a 250ms debounce and a promise queue. A host needing a
+stronger guarantee should reach for an advisory lock keyed on the scope
+(`pg_advisory_xact_lock`), which serialises writers even with zero rows present; Bali does not
+ship one because it is PostgreSQL-only and the engine runs on whatever database the host has.
+`docs/guides/engine-models.md` carries this for hosts.
 
 **`created_at` survives a rearrange, though the row does not.** `arrange` deletes and
 re-inserts, so a fresh `created_at` on every write was the original behaviour and made "when
@@ -390,11 +400,6 @@ means "off", so there is nothing left to carry forward. The cost is one extra `S
 write, deliberately not folded into the one `choose` already does: `arrange` is the
 lower-level primitive a host can call directly, so it holds the invariant itself rather than
 trusting a caller to have read the rows for it.
-
-**`lock_rows` is a no-op on SQLite.** `.lock` emits no `FOR UPDATE` on that adapter, verified
-against `.to_sql`. The serialization it provides is real on Postgres — the engine's target —
-but a host running SQLite gets none of it, and the client-side promise queue is then the only
-thing preventing two interleaved writes. Recorded rather than assumed.
 
 `offering:` is **required, with no default**. An empty offer is a valid state but a terrible default:
 `arrange` would lose its delete half (`[] - submitted` is `[]`), `choose` would become a no-op, and
