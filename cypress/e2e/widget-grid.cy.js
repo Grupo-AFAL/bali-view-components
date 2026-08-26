@@ -149,6 +149,71 @@ describe('widget grid', () => {
     })
   })
 
+  // THE LADDER. The card must show the same fact at every size and give it more
+  // context as it grows — never change subject. A component test sees one size
+  // at a time; only driving the picker shows the regions appear and disappear as
+  // the canvas changes, which IS the ladder.
+  describe('the size ladder', () => {
+    // `low_stock_items` is the metric specimen: a count, a trend and a series.
+    const card = '[data-widget-key="low_stock_items"]'
+    const sizeTo = (size) => cy.get(`${card} [data-widget-size="${size}"]`).click()
+
+    it('keeps the headline at every size', () => {
+      enterEditMode()
+
+      for (const size of ['small', 'medium', 'large', 'wide']) {
+        sizeTo(size)
+        cy.get(card).should('have.attr', 'data-size', size)
+        // The regression the ladder exists to fix: the headline used to appear
+        // at `small` and nowhere else.
+        cy.get(card).should('contain', '6')
+      }
+    })
+
+    it('gains a chart from medium up and drops it at small', () => {
+      enterEditMode()
+
+      // NOT `not.exist`: resizing writes one attribute and the interior is
+      // server-rendered, so the canvas is still in the DOM until the next load.
+      // CSS hides it, which is what a ~215px tile can actually honour — see the
+      // note at the bottom of `widget/index.css`.
+      sizeTo('small')
+      cy.get(`${card} canvas.chart`).should('not.be.visible')
+
+      sizeTo('medium')
+      cy.get(`${card} canvas.chart`).should('exist')
+
+      sizeTo('large')
+      cy.get(`${card} canvas.chart`).should('exist')
+    })
+
+    // `expiring_stock` is the pre-ladder specimen — count and items only, the
+    // shape every widget written before this change has. It must still render
+    // at every size, with the context region simply absent.
+    it('renders a widget with no ladder data at every size, without a chart', () => {
+      enterEditMode()
+      const plain = '[data-widget-key="expiring_stock"]'
+
+      for (const size of ['small', 'medium', 'large', 'wide']) {
+        cy.get(`${plain} [data-widget-size="${size}"]`).click()
+        cy.get(plain).should('have.attr', 'data-size', size)
+        cy.get(`${plain} canvas.chart`).should('not.exist')
+        cy.get(plain).should('contain', '9')
+      }
+    })
+
+    // The extra-large tile is two mediums side by side, so it is two rows tall.
+    // As 4x1 it showed fewer rows than `medium` in four times the space.
+    it('gives the extra-large tile two rows of height', () => {
+      enterEditMode()
+      cy.get(`${card} [data-widget-size="medium"]`).click()
+      cy.get(card).invoke('outerHeight').then((mediumHeight) => {
+        cy.get(`${card} [data-widget-size="wide"]`).click()
+        cy.get(card).invoke('outerHeight').should('be.greaterThan', mediumHeight)
+      })
+    })
+  })
+
   // The size picker claims `role="radiogroup"`, and the point of the upgrade is
   // that it HONOURS the pattern rather than merely announcing it: one tab stop,
   // arrows within it, selection following focus.

@@ -12,16 +12,20 @@ module Bali
     #
     # So the widget declares what counts as good for ITS metric and the card asks
     # `good?`, never `direction`.
-    Trend = Data.define(:delta, :direction, :period, :positive_when) do
+    Trend = Data.define(:delta, :direction, :period, :positive_when, :unit) do
       # `direction` is derived from the sign by default, because a widget that
       # has computed a delta has already said which way it went — making it say
       # so twice is an invitation for the two to disagree. Still overridable for
       # the case where the delta is not the thing that moved.
-      def initialize(delta:, direction: nil, period: nil, positive_when: :up)
+      # `unit` because "+12" of what? A percentage is the common case and the
+      # default; a widget counting things passes `unit: ""` and gets a bare
+      # number rather than a card inventing a percent sign for it.
+      def initialize(delta:, direction: nil, period: nil, positive_when: :up, unit: "%")
         super(delta: delta,
               direction: direction || (delta.to_f.negative? ? :down : :up),
               period: period,
-              positive_when: positive_when)
+              positive_when: positive_when,
+              unit: unit)
       end
 
       # What the card colours from.

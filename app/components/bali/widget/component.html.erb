@@ -1,10 +1,15 @@
-<%# One card for every widget. The chrome — box, heading, optional "view all" —
-    is the same for all of them; the BODY is what changes, and `size` selects how
-    much of it there is.
+<%# One card for every widget, at four canvases.
 
-    A `small` card is a different card, not a narrower one: it drops the heading
-    row and the list for a single daisyUI `stat`, and the whole tile becomes the
-    link.
+    The card shows the SAME FACT at every size and gives it more context as it
+    grows — it never changes subject. `REGIONS` in `component.rb` says what each
+    size has room for; this template renders those regions.
+
+      headline — the fact. A number and its label, or a gauge ring.
+      context  — how the fact is moving. A chart, axis-less below `large`.
+      detail   — the breakdown. The row list.
+
+    A `small` card is a different card, not a narrower one: it drops everything
+    but the headline and the whole tile becomes one link.
 
     The edit chrome is rendered ALWAYS and hidden by CSS, never toggled by the
     server: entering edit mode is a class on the grid wrapper, so it costs no
@@ -117,29 +122,135 @@
         <p class="text-sm font-medium text-base-content/70"><%= short_title %></p>
         <p class="text-xs text-warning"><%= t('bali_view.widgets.load_error') %></p>
       </div>
+
     <% elsif summary? %>
-      <%# The whole tile is the link — but ONLY when there is somewhere to go.
-          A nil `view_all_path` is a legitimate state (`Base#list_from` defaults
-          it to nil), and `href="#"` would make the card look clickable while
-          doing nothing — the same lie the failed state refuses to tell with a
-          retry button that re-runs a broken query.
+      <%# THE HERO. One fact, and the whole tile is the link — but ONLY when
+          there is somewhere to go. A nil `view_all_path` is a legitimate state
+          (`Base#list_from` defaults it to nil), and `href="#"` would make the
+          card look clickable while doing nothing.
+
+          NOTHING inside here may be focusable. A small widget supports exactly
+          one tap target, so the trend renders as text and never as a control.
 
           `capture` so the two branches share one copy of the content instead of
           drifting out of sync. %>
       <% summary_content = capture do %>
-        <div class="stat-value text-4xl tabular-nums <%= any_items? ? 'text-base-content' : 'text-base-content/30' %>">
-          <%= count %>
-        </div>
-        <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>
+        <% if gauge? %>
+          <%# `flex justify-center` rather than leaning on the `text-center`
+              above: daisyUI's `.stat` is a GRID, and `text-align` does not move
+              a grid item — the ring sat off to the left of its own label. %>
+          <div class="flex justify-center">
+            <%= render Bali::Gauge::Component.new(
+                  value: gauge.value, max: gauge.max, label: gauge.label, size: :lg,
+                  color: :primary) %>
+          </div>
+          <div class="stat-title mt-2 whitespace-normal text-sm leading-tight"><%= short_title %></div>
+        <% else %>
+          <div class="stat-value text-4xl tabular-nums <%= any_items? ? 'text-base-content' : 'text-base-content/30' %>">
+            <%= display_value %>
+          </div>
+          <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>
+        <% end %>
+        <% if trend? %>
+          <p class="mt-1 flex items-center justify-center gap-1 text-xs <%= trend_classes %>">
+            <%= render Bali::Icon::Component.new(trend_icon, size: :small, class: 'w-3 h-3') %>
+            <span class="sr-only"><%= trend_label %></span>
+            <span aria-hidden="true"><%= trend_delta %></span>
+          </p>
+        <% end %>
       <% end %>
       <% if view_all_path.present? %>
-        <%= link_to view_all_path, class: 'stat flex-1 place-content-center p-0' do %>
+        <%= link_to view_all_path, class: 'stat flex-1 place-content-center p-0 text-center' do %>
           <%= summary_content %>
         <% end %>
       <% else %>
-        <div class="stat flex-1 place-content-center p-0"><%= summary_content %></div>
+        <div class="stat flex-1 place-content-center p-0 text-center"><%= summary_content %></div>
       <% end %>
+
     <% else %>
+      <%# EVERY OTHER SIZE. The headline stays — that is the whole point of the
+          ladder — and the canvas decides how much sits beside and beneath it. %>
+      <% headline = capture do %>
+        <div class="flex items-center gap-3">
+          <% if gauge? %>
+            <%= render Bali::Gauge::Component.new(
+                  value: gauge.value, max: gauge.max, label: gauge.label,
+                  size: :md, color: :primary) %>
+          <% else %>
+            <span class="text-3xl font-semibold tabular-nums leading-none <%= any_items? ? 'text-base-content' : 'text-base-content/30' %>">
+              <%= display_value %>
+            </span>
+          <% end %>
+          <% if trend? %>
+            <span class="flex items-center gap-1 text-xs <%= trend_classes %>">
+              <%= render Bali::Icon::Component.new(trend_icon, size: :small, class: 'w-3 h-3') %>
+              <span class="sr-only"><%= trend_label %></span>
+              <span aria-hidden="true"><%= trend_delta %></span>
+              <% if trend.period.present? %>
+                <span class="text-base-content/50"><%= trend.period %></span>
+              <% end %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# The chart. `Bali::Chart` at every size, configured axis-less below
+          `large` — a sparkline is a chart that has given up its axes, not a
+          different component. `height: :fit` so it fills the region it is given
+          rather than naming a pixel height the tile may not have. %>
+      <% context = capture do %>
+        <%# `min-w-0` as well as `min-h-0`: a flex item's default `min-width:auto`
+            refuses to shrink below its content, and a responsive canvas measures
+            its parent — so without this the chart pushes straight through the
+            card's right edge instead of fitting inside it. %>
+        <% if context? && series? %>
+          <div class="<%= context_classes %>">
+            <%= render Bali::Chart::Component.new(
+                  type: series.type, height: :fit, legend: false,
+                  aria_label: short_title,
+                  data: chart_data, options: chart_options) %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%# The wrapper carries the hook class and the flex sizing; the list inside
+          it just fills. Hiding the `ul` directly cannot work — daisyUI's `.list`
+          sets `display` from `@layer utilities`, which beats anything Bali puts
+          in `@layer components` regardless of specificity. %>
+      <% detail = capture do %>
+        <div class="bali-widget-detail flex min-h-0 flex-1 flex-col overflow-hidden">
+        <% if body? %>
+          <div class="min-h-0 flex-1 overflow-hidden"><%= body %></div>
+        <% elsif rows.any? %>
+          <%# `rows`, not `items`: widgets load `PREVIEW_ROWS` regardless of size
+              and the card truncates to what it has room for — less when a chart
+              is taking part of the canvas. The rows are plain value objects, so
+              this branch never touches a model. %>
+          <ul class="list min-h-0 flex-1 overflow-hidden">
+            <% rows.each do |row| %>
+              <li class="list-row px-0">
+                <div class="list-col-grow min-w-0">
+                  <% if row.href %>
+                    <%= link_to row.title, row.href,
+                          class: 'font-medium text-base-content hover:text-primary transition-colors block truncate' %>
+                  <% else %>
+                    <p class="font-medium text-base-content truncate"><%= row.title %></p>
+                  <% end %>
+                  <% if row.subtitle.present? %>
+                    <p class="text-xs text-base-content/60 mt-0.5 truncate"><%= row.subtitle %></p>
+                  <% end %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% elsif !any_items? && !context? %>
+          <p class="flex-1 place-content-center text-center text-sm text-base-content/40">
+            <%= empty_message %>
+          </p>
+        <% end %>
+        </div>
+      <% end %>
+
       <%= render Bali::PageHeader::Component.new do |c| %>
         <% c.with_title(title, tag: :h5) %>
 
@@ -156,33 +267,34 @@
         <% end %>
       <% end %>
 
-      <% if body? %>
-        <div class="min-h-0 flex-1 overflow-hidden"><%= body %></div>
-      <% elsif any_items? %>
-        <%# `rows`, not `items`: widgets load `PREVIEW_ROWS` regardless of size
-            and the card truncates to what it has room for. The rows are plain
-            value objects, so this branch never touches a model. %>
-        <ul class="list min-h-0 flex-1 overflow-hidden">
-          <% rows.each do |row| %>
-            <li class="list-row px-0">
-              <div class="list-col-grow min-w-0">
-                <% if row.href %>
-                  <%= link_to row.title, row.href,
-                        class: 'font-medium text-base-content hover:text-primary transition-colors block truncate' %>
-                <% else %>
-                  <p class="font-medium text-base-content truncate"><%= row.title %></p>
-                <% end %>
-                <% if row.subtitle.present? %>
-                  <p class="text-xs text-base-content/60 mt-0.5 truncate"><%= row.subtitle %></p>
-                <% end %>
-              </div>
-            </li>
-          <% end %>
-        </ul>
+      <% if headline_style == :inline %>
+        <%# MEDIUM: fact on the left, sparkline on the right. %>
+        <div class="flex min-h-0 flex-1 items-center gap-4">
+          <div class="shrink-0"><%= headline %></div>
+          <%= context %>
+          <% unless context? %><%= detail %><% end %>
+        </div>
+
+      <% elsif two_column? %>
+        <%# EXTRA LARGE: two mediums side by side. The fact and its chart take
+            the left column, the breakdown the right, where it has room for more
+            rows than `large` gives it. Stacks below `lg`, where there is no
+            four-column track to divide. %>
+        <div class="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
+          <div class="flex min-h-0 flex-col gap-2">
+            <%= headline %>
+            <%= context %>
+          </div>
+          <div class="flex min-h-0 flex-col overflow-hidden"><%= detail %></div>
+        </div>
+
       <% else %>
-        <p class="flex-1 place-content-center text-center text-sm text-base-content/40">
-          <%= empty_message %>
-        </p>
+        <%# LARGE: fact, then chart, then breakdown, stacked. %>
+        <div class="flex min-h-0 flex-1 flex-col gap-2">
+          <%= headline %>
+          <%= context %>
+          <%= detail %>
+        </div>
       <% end %>
     <% end %>
   </div>

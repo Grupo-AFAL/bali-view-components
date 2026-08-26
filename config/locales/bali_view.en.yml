@@ -710,6 +710,10 @@ en:
       empty:
         title: "No widgets yet"
         description: "Add widgets to build your dashboard."
+      trend:
+        up: "up %{delta}"
+        down: "down %{delta}"
+        flat: "no change"
       edit:
         edit: "Edit"
         done: "Done"
@@ -722,7 +726,7 @@ en:
           small: "Small"
           medium: "Medium"
           large: "Large"
-          wide: "Wide"
+          wide: "Extra large"
         moved: "%{widget} moved to position %{position} of %{total}"
         removed_one: "%{widget} removed, 1 widget remaining"
         removed_other: "%{widget} removed, %{total} widgets remaining"

@@ -1,9 +1,27 @@
 <%# The `.editing` class normally lives on the grid wrapper that `edit-mode`
     toggles; here it is hard-coded so a single card can be inspected in both
-    states. `lg:h-64` matches the grid's `auto-rows-[16rem]` so the card has the
-    height its layout was drawn around. %>
-<div class="<%= 'editing' if editing %> max-w-md p-8">
-  <div class="lg:h-64">
+    states.
+
+    The box has to match the CELL the size actually occupies in the bento, or
+    the preview lies about the layout: the grid is `auto-rows-[16rem]` with a
+    `gap-4`, so a two-row size is 16 + 1 + 16 = 33rem tall, not 16. This used to
+    be a flat `lg:h-64` for every size, which squeezed `large` and `wide` into
+    one row and clipped their charts — the card was fine and the preview was
+    wrong, which is the worse of the two failures because it sends you looking
+    in the component. %>
+<%
+  height = case widget.size
+           when :large, :wide then 'lg:h-[33rem]'
+           else 'lg:h-64'
+           end
+  width = case widget.size
+          when :small then 'max-w-xs'
+          when :wide then 'max-w-5xl'
+          else 'max-w-md'
+          end
+%>
+<div class="<%= 'editing' if editing %> <%= width %> p-8">
+  <div class="<%= height %>">
     <%= render Bali::Widget::Component.new(widget) %>
   </div>
 </div>

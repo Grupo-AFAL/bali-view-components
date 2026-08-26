@@ -11,7 +11,7 @@ module Bali
         # being defined. The override is required rather than decorative —
         # `Base.key` derives from `name.demodulize.underscore`, and an anonymous
         # `Class.new` has no `name`, so without it every call raises.
-        def self.build(key, size, count)
+        def self.build(key, size, count, pattern = :list)
           Class.new(self) do
             sized size
             define_singleton_method(:key) { key }
@@ -22,19 +22,43 @@ module Bali
               Bali::Widget::Result.new(
                 count: count,
                 view_all_path: "/lookbook",
-                items: Array.new(count) { |i| Bali::Widget::Row.new(title: "Row #{i + 1}") }
+                items: Array.new(count) { |i| Bali::Widget::Row.new(title: "Row #{i + 1}") },
+                **Preview.ladder_for(pattern, count)
               )
             end
           end.new
         end
       end
 
+      # One specimen per size AND one per ladder, so the grid shows the whole
+      # matrix at once: the metric ladder at `medium`, the plain list at `large`
+      # (the pre-ladder contract, still rendering), and the gauge at `wide`.
       SPECIMENS = [
-        [ "overdue_counts", :small, 4 ],
-        [ "low_stock_items", :medium, 6 ],
-        [ "expiring_stock", :large, 9 ],
-        [ "cost_spikes", :wide, 3 ]
+        [ "overdue_counts", :small, 4, :metric ],
+        [ "low_stock_items", :medium, 6, :metric ],
+        [ "expiring_stock", :large, 9, :list ],
+        [ "cost_spikes", :wide, 7, :gauge ]
       ].freeze
+
+      # The three ladders, shared with `Bali::Widget::Preview`'s specimen. A
+      # module method so `build`'s anonymous class can reach it — the block
+      # closes over nothing useful.
+      def self.ladder_for(pattern, count)
+        case pattern
+        when :metric
+          { trend: Bali::Widget::Trend.new(delta: 12, period: "vs last week",
+                                           positive_when: :down),
+            series: Bali::Widget::Series.new(values: [ 3, 5, 4, 8, 6, 9, 12 ],
+                                             labels: %w[Mon Tue Wed Thu Fri Sat Sun]) }
+        when :gauge
+          { gauge: Bali::Widget::Gauge.new(value: count, max: 10, label: "of 10"),
+            series: Bali::Widget::Series.new(values: [ 2, 4, 3, 6, 5, 7, count ],
+                                             labels: %w[Mon Tue Wed Thu Fri Sat Sun],
+                                             type: :bar) }
+        else
+          {}
+        end
+      end
 
       # A user-arrangeable dashboard. Press **Edit** to reveal each card's handle,
       # remove button and size picker; drag a card, or focus a handle and use the
@@ -58,8 +82,8 @@ module Bali
       # @param add_tile toggle
       def default(add_tile: true)
         render_with_template(locals: {
-                               widgets: Bali::WidgetGrid::Preview::SPECIMENS.map do |key, size, count|
-                                 Bali::WidgetGrid::Preview::Demo.build(key, size, count)
+                               widgets: Bali::WidgetGrid::Preview::SPECIMENS.map do |key, size, count, pattern|
+                                 Bali::WidgetGrid::Preview::Demo.build(key, size, count, pattern)
                                end,
                                add_path: add_tile ? "/lookbook" : nil
                              })

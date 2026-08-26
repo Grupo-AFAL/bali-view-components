@@ -72,3 +72,35 @@
 .editing .bali-widget-body {
   @apply opacity-50 lg:pb-12;
 }
+
+/* Resizing a card in the browser changes ONE attribute — `data-size` — and the
+ * card's interior is rendered by the server. So a card resized from `medium` to
+ * `small` keeps whatever body it was rendered with until the next page load: a
+ * chart and a header row squeezed into a ~215px cell.
+ *
+ * This predates the size ladder (the pre-ladder card branched on `summary?` in
+ * ERB just the same, and `applySize` has only ever written attributes), but the
+ * ladder makes it far more visible, because the interiors now differ by a whole
+ * chart rather than by a row count.
+ *
+ * The full fix is to render every region and let CSS choose between them, the
+ * way the edit chrome above already works. That is not free for the CONTEXT
+ * region specifically: a Chart.js canvas inside `display:none` measures zero and
+ * does not reliably recover when shown, so "render it always and hide it" trades
+ * this glitch for a worse one.
+ *
+ * What is free is hiding the two regions a `small` tile has no room for at all.
+ * The headline survives — which is the ladder's whole promise — and the card
+ * stops claiming to show a chart in a box that cannot hold one. The exact
+ * layout still arrives on the next load.
+ *
+ * The hooks below are WRAPPERS rather than the chart and the list themselves,
+ * and that is load-bearing: `.chart-component` carries a `flex` utility and
+ * daisyUI's `.list` sets `display` from `@layer utilities` — both beat anything
+ * in `@layer components` on layer order, whatever the specificity. Neither
+ * wrapper carries a display utility, so this rule lands.
+ */
+.bali-widget-card[data-size="small"] .bali-widget-context,
+.bali-widget-card[data-size="small"] .bali-widget-detail {
+  @apply hidden;
+}
