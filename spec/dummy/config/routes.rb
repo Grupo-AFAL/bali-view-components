@@ -88,6 +88,14 @@ Rails.application.routes.draw do
   patch 'sortable_list', to: 'sortable_list#update'
   resource :widget_layout, only: :update
 
+  # Scaffolding for `cypress/e2e/modal-history.cy.js`. `modal_redirect#go` exists
+  # only to redirect, which is the one condition that sends `ModalController#open`
+  # down `_replaceBodyAndURL` — the body-swapping branch whose Back behaviour was
+  # previously untested.
+  get 'modal_redirect', to: 'modal_redirect#index', as: :modal_redirect
+  get 'modal_redirect/go', to: 'modal_redirect#go', as: :modal_redirect_go
+  get 'modal_redirect/landing', to: 'modal_redirect#landing', as: :modal_redirect_landing
+
   # The real widget dashboard demo (as opposed to the Lookbook preview's stub
   # above): one URL for both the page and the PATCH the grid sends on every
   # gesture, matching the `url:` the view passes to `Bali::WidgetGrid::Component`.

@@ -240,9 +240,14 @@ navigation during the debounce window cannot PATCH a DOM that has already been r
   to save one `GET` on an infrequent action that already behaves correctly. Accepted as a known
   minor cost; the Cypress spec documents it rather than asserting it away.
 
-  **Note for the library at large:** `modal/index.js`'s use of the same pattern is unverified
-  for the same reason. Nothing in `cypress/e2e/` exercises its Back path, and its push-then-
-  swap-body flow has the same empty-snapshot-cache problem. Worth checking separately.
+  **Note for the library at large: `modal/index.js` was checked, and has the same benign
+  cost.** Its push-then-swap-body flow has the same empty-snapshot-cache problem, and nothing
+  in `cypress/e2e/` exercised its Back path. `cypress/e2e/modal-history.cy.js` now does, via a
+  dummy page whose modal trigger redirects — the only condition that reaches
+  `_replaceBodyAndURL`. Measured: Back returns to the origin page, the JS realm survives it
+  (so it is a restoration visit, not a reload), and it spends exactly one GET of a page that
+  has not changed. Nothing worse than the grid's, and the spec pins the count so a regression
+  that makes it worse fails rather than going unnoticed.
 - **`remove()` announces the new total,** the way `move()` announces "position X of Y". It
   first shipped naming only the widget, which is where a running count matters most: a
   screen-reader user emptying a dashboard has no grid to glance at. Three strings rather than
