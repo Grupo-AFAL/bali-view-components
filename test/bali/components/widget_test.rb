@@ -350,6 +350,21 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_no_selector(".bali-widget-detail")
   end
 
+  # THE THIRD INSTANCE of the same class: a region sized against a neighbour that
+  # may not be there. `basis-2/5` has no grow, and two fifths was chosen because
+  # the breakdown sits UNDER the chart — so once `detail?` can remove the
+  # breakdown, the chart keeps 40% and nothing takes the other 60%. The empty
+  # wrapper went away; the whitespace it was holding did not.
+  def test_the_chart_takes_the_whole_column_when_no_breakdown_sits_under_it
+    render_inline(Bali::Widget::Component.new(
+      widget(size: :large, count: 7, items: [], series: a_series,
+             goal: Bali::Widget::Goal.new(value: 7, max: 10))
+    ))
+
+    assert_selector(".bali-widget-context.flex-1")
+    assert_no_selector(".bali-widget-context.basis-2\\/5")
+  end
+
   def test_the_split_layout_drops_its_second_column_when_there_is_no_detail
     render_inline(Bali::Widget::Component.new(
       widget(size: :wide, count: 7, items: [], series: a_series,

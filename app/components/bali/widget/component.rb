@@ -170,13 +170,24 @@ module Bali
       #
       # At `:inline` it divides a row with the headline, so it takes the
       # remaining width. At `:split` it has a column to itself — the breakdown is
-      # in the other one — so it takes the remaining height. Only at `large` is
-      # it stacked ABOVE the breakdown, and there an even split starves the list
+      # in the other one — so it takes the remaining height. Only at `:stacked`
+      # does it sit ABOVE the breakdown, and there an even split starves the list
       # and clips its last row; two fifths leaves the rows whole.
+      #
+      # `!detail?` is the condition those two fifths always depended on: with no
+      # breakdown beneath it, the chart takes the canvas. Without this the empty
+      # wrapper goes away and the whitespace it was holding stays — a chart in
+      # the top 40% of a card with dead space under it.
+      #
+      # THIS METHOD IS THE ONE PLACE that has to know about more than one region.
+      # `context?` and `detail?` each decide whether their OWN region renders;
+      # this decides how big one of them is GIVEN the other, which is why three
+      # bugs of the same shape all ended here. Anything that changes WHEN a
+      # region renders has to be checked against this line.
       def context_classes
         class_names(
           "bali-widget-context min-h-0 min-w-0 overflow-hidden",
-          spark? || split? ? "flex-1" : "basis-2/5"
+          spark? || split? || !detail? ? "flex-1" : "basis-2/5"
         )
       end
 

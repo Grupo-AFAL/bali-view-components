@@ -84,8 +84,8 @@ module Bali
       attr_reader :value, :max, :label, :size, :color, :options
 
       def gauge_classes
-        class_names("radial-progress", COLORS[color], SIZES.fetch(size, SIZES[:md]),
-                    options[:class])
+        class_names("bali-gauge radial-progress", COLORS[color],
+                    SIZES.fetch(size, SIZES[:md]), options[:class])
       end
 
       def gauge_attributes

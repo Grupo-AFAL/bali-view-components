@@ -16,26 +16,47 @@
 describe('gauge', () => {
   const ring = '.radial-progress'
 
+  // daisyUI's conic ends `…, #0000 0)`, which computes to this. Bali's override
+  // replaces that final stop with the track colour, so this exact substring is
+  // the discriminator between the two rules winning.
+  //
+  // Read as a plain substring rather than parsed out of the background: a regex
+  // for the conic's contents stops at the first `)`, which belongs to the
+  // `oklch(…)` inside it, and silently captures a truncated string that can
+  // never match. That is how an earlier version of this spec passed against a
+  // build with no track at all.
+  const TRANSPARENT = 'rgba(0, 0, 0, 0) 0deg'
+
+  const trackStop = (el) => {
+    const background = window.getComputedStyle(el, '::before').background
+    expect(background, 'the ring must draw a conic arc').to.include('conic-gradient')
+
+    return background.includes(TRANSPARENT) ? TRANSPARENT : 'painted'
+  }
+
   it('paints a track behind the unfilled arc', () => {
     cy.visit('/bali/gauge/default?value=7&max=10&label=shifts&size=lg')
 
     cy.get(ring).then(($el) => {
-      const background = window.getComputedStyle($el[0], '::before').background
-      // The second conic stop is the track. Transparent here means the override
-      // lost to daisyUI and the ring has gone back to being invisible.
-      expect(background).to.include('conic-gradient')
-      expect(background).not.to.match(/conic-gradient\([^)]*?,\s*rgba\(0,\s*0,\s*0,\s*0\)\s*0/)
+      expect(trackStop($el[0]), 'the unfilled arc must be painted').to.not.equal(TRANSPARENT)
     })
   })
 
-  it('still draws a full ring when the goal is at zero', () => {
+  // At 0% the conic is ENTIRELY track, which is a different assertion from the
+  // one above and the state the bug actually showed up in: without the override
+  // there is nothing to paint and the ring disappears.
+  //
+  // Deliberately not asserting the element's width — `--size` is 7rem whether
+  // the track paints or not, so a box measurement passes with the override
+  // deleted. "Collapsing to a dot" is a paint effect, and only a paint
+  // assertion can see it.
+  it('is all track when the goal is at zero, rather than nothing at all', () => {
     cy.visit('/bali/gauge/default?value=0&max=10&label=shifts&size=lg')
 
-    cy.get(ring)
-      .should('have.attr', 'aria-valuenow', '0')
-      .and(($el) => {
-        // The ring occupies its declared size rather than collapsing to the dot.
-        expect($el[0].getBoundingClientRect().width).to.be.greaterThan(50)
-      })
+    cy.get(ring).should('have.attr', 'aria-valuenow', '0')
+
+    cy.get(ring).then(($el) => {
+      expect(trackStop($el[0]), 'at 0% the whole ring is track').to.not.equal(TRANSPARENT)
+    })
   })
 })

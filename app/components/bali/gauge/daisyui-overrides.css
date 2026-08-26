@@ -11,17 +11,32 @@
  * failed to load. "0 of 10 shifts covered" is a real and common state and has
  * to look like an EMPTY ring rather than an absent one.
  *
- * daisyUI 5 emits its components inside @layer utilities, and layers beat
- * specificity outright — so this rule in @layer components would lose no matter
- * how specific it was written. Unlayered is the only position that wins.
+ * daisyUI 5 emits this into `@layer daisyui` — NOT `@layer utilities`, which is
+ * what the general note in `.claude/CLAUDE.md` says and is right about most of
+ * daisyUI. The compiled order is theme, base, components, daisyui, utilities, so
+ * `daisyui` still comes after `components` and layers beat specificity outright:
+ * this rule in `@layer components` loses however specific it is written.
+ * Unlayered is the only position that wins.
+ *
+ * MEASURED, not reasoned: built with `layer(components)` the ring renders as a
+ * bare dot again. `cypress/e2e/gauge.cy.js` is that measurement, kept — and it
+ * is verified to FAIL under the layered build, which the first version of it did
+ * not.
  *
  * It fits the rule of thumb in `.claude/CLAUDE.md` exactly: the right-most
  * compound is a daisyUI class, and the only declaration set here (`background`)
  * is one daisyUI sets itself. The whole gradient stack is restated because
  * `background` is a shorthand — overriding only the second layer is not
  * expressible.
+ *
+ * SCOPED to `.bali-gauge`, like every other override sheet here
+ * (`.calendar-component .table td`, `.side-menu-component .collapse`). Bali is a
+ * library: a host that writes its own `.radial-progress` nowhere near a Bali
+ * component must not be repainted from inside a gem — and because this file is
+ * unlayered, undoing it would be awkward. Scoping costs nothing, since unlayered
+ * beats layered whatever the specificity.
  */
-.radial-progress:before {
+.bali-gauge:before {
   background:
     radial-gradient(farthest-side, currentColor 98%, #0000) top / var(--thickness)
       var(--thickness) no-repeat,
