@@ -124,6 +124,17 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_empty store.stored_keys
   end
 
+  # `choose`'s own union already dedupes before it calls `arrange`, but
+  # `arrange` is a lower-level primitive a host's controller can call
+  # directly from params — where nothing guarantees a unique key. Without an
+  # explicit dedupe, `insert_all`'s `ON CONFLICT DO NOTHING` silently keeps
+  # only the first occurrence and drops the rest with no error.
+  def test_arrange_dedupes_a_repeated_key_instead_of_silently_dropping_it
+    store.arrange([ { widget: ALPHA.new, size: "wide" }, { widget: ALPHA.new, size: "large" } ])
+
+    assert_equal %w[alpha], store.stored_keys
+  end
+
   def test_rows_are_scoped_to_the_context_and_dashboard
     store.arrange([ { widget: ALPHA.new } ])
 

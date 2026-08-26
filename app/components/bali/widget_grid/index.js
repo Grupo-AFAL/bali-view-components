@@ -104,8 +104,15 @@ export class WidgetGridController extends Controller {
   // Bali's SortableList grew keyboard reordering, but it only acts on focused
   // `:scope > .sortable-item` children — which these cards deliberately are not,
   // because `SortableList::Item::Component` carries list-row styling that fights
-  // the bento. So this is the entire keyboard path, and it handles Left/Right
-  // too: meaningless in a list, essential in a four-column bento.
+  // the bento. So this is the entire keyboard path.
+  //
+  // All four arrow keys map to the same ±1: "earlier or later in DOM order",
+  // not "up/down/left/right in the 2-D layout" — this controller has no notion
+  // of grid geometry, columns, or rows. That is a deliberate simplification,
+  // not a gap: true spatial movement is ill-defined the moment a 2x2 `large`
+  // tile sits beside two 1x1 tiles, so there is no single "the cell above" to
+  // move into. DOM order is the one answer that stays well-defined for every
+  // mix of sizes, and it is what `writeSequence` persists regardless.
   move (event) {
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
     if (!step) return

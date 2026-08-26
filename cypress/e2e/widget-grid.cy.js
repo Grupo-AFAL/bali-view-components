@@ -290,7 +290,7 @@ describe('widget grid', () => {
 
       // Extra assertion #3: the "+" tile shares this SortableList and carries
       // no `.handle`, so nothing stops a card from landing after it — it is
-      // pinned last only by `order: 9999` in widget/index.css. Read the
+      // pinned last only by `order: 9999` in widget_grid/index.css. Read the
       // COMPUTED style (proves the stylesheet is actually wired up) and the
       // rendered position (proves the pin actually wins visually), not the
       // class name alone.

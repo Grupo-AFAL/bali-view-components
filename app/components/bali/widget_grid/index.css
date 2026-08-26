@@ -1,0 +1,68 @@
+/* Bento geometry for the widget grid.
+ *
+ * A card declares WHAT it is — `data-size="large"` — and this stylesheet decides
+ * what that means at each breakpoint. The alternative (the card carrying the
+ * Tailwind spans, all four sizes serialised as JSON so the client can swap, and
+ * the controller doing class arithmetic) is three copies of one fact in three
+ * languages.
+ *
+ * It also retires the reason that existed: Tailwind only sees class names it can
+ * read as literals in the files it scans, so `col-span-${n}` built in JS reaches
+ * no stylesheet. None of that matters when the client writes an ATTRIBUTE.
+ *
+ * 2-D sizes, adapted from iOS: small 1x1, medium 2x1, large 2x2, wide 4x1.
+ * `large` is `medium`'s WIDTH at double HEIGHT, which is why it earns more rows
+ * rather than wider ones.
+ *
+ * A CHILD combinator, not a descendant one: `data-size` is a generic attribute
+ * name and the grid contains third-party markup. `>` costs nothing and
+ * forecloses a bug that would be baffling.
+ *
+ * Breakpoints match Tailwind's `md` (48rem) and `lg` (64rem) because the grid
+ * container declares its column count in Tailwind utilities. Below `md`
+ * everything is one column, so no size means anything and no rule applies.
+ *
+ * Imported into `@layer components`: these rules only set grid placement and
+ * nothing here needs to outrank daisyUI. Being in `components` is what lets a
+ * host override a span with `lg:col-span-4` and no `!` variant.
+ */
+
+@media (width >= 48rem) {
+  /* Two columns: everything except `small` fills the row. */
+  .bali-widget-grid > [data-size="medium"],
+  .bali-widget-grid > [data-size="large"],
+  .bali-widget-grid > [data-size="wide"] {
+    grid-column: span 2 / span 2;
+  }
+}
+
+@media (width >= 64rem) {
+  .bali-widget-grid > [data-size="small"] {
+    grid-column: span 1 / span 1;
+  }
+
+  .bali-widget-grid > [data-size="medium"] {
+    grid-column: span 2 / span 2;
+  }
+
+  .bali-widget-grid > [data-size="large"] {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+  }
+
+  .bali-widget-grid > [data-size="wide"] {
+    grid-column: span 4 / span 4;
+  }
+}
+
+/* The "+" tile shares the SortableList with the cards, and `handle:` only gates
+ * what can START a drag — a card dropped last lands after the tile and strands it
+ * mid-grid until the next reload. It is not part of the sequence (it carries no
+ * `data-widget-key`, so `writeSequence` filters it out), so pinning it last
+ * visually costs nothing and cannot desync from what is saved.
+ *
+ * Visual order only: focus order still follows the DOM, which self-heals on the
+ * next render. */
+.bali-widget-grid > .bali-widget-add-tile {
+  order: 9999;
+}

@@ -8,8 +8,10 @@
 
     The edit chrome is rendered ALWAYS and hidden by CSS, never toggled by the
     server: entering edit mode is a class on the grid wrapper, so it costs no
-    round trip and re-runs none of the widget queries. `[.editing_&]:` is
-    Tailwind's arbitrary-parent variant — "when an ancestor has `.editing`".
+    round trip and re-runs none of the widget queries. The `.bali-widget-*`
+    classes below (`bali-widget-card`, `-edit-toolbar`, `-edit-shelf`,
+    `-body`) carry that editing state — see `app/components/bali/widget/index.css`
+    for what each one does under `.editing` and why.
 
     `data-id` is what SortableJS's `toArray` reads and `data-widget-key` is what
     the grid controller reads. Same value, different consumers; collapsing them
@@ -19,16 +21,9 @@
          data-widget-title="<%= short_title %>"
          data-size="<%= size %>"
          aria-label="<%= short_title %>"
-         class="relative flex h-full flex-col rounded-box border border-base-300 bg-base-100 <%= summary? ? 'p-4' : 'p-6' %> [.editing_&]:border-dashed [.editing_&]:border-primary [.editing_&]:shadow-lg">
-  <%# No jiggle. A wobbling card of overdue counts reads as a rendering fault
-      rather than an affordance, makes the text unreadable, and collides with
-      `prefers-reduced-motion`. Raised + dashed accent + a dimmed inert body is
-      the web's vocabulary for "manipulable object".
-
-      INSIDE the card, not hanging into the gutter: a band at `-top-3` in a 16px
-      gap puts one card's remove button under a neighbour's centre in a mixed
-      bento, and paint order decides which one you can click. %>
-  <div class="hidden [.editing_&]:absolute [.editing_&]:inset-x-0 [.editing_&]:top-2 [.editing_&]:z-10 [.editing_&]:flex [.editing_&]:items-center [.editing_&]:justify-between [.editing_&]:px-3">
+         class="<%= card_classes %>"
+         <%= tag.attributes(card_attributes) %>>
+  <div class="bali-widget-edit-toolbar">
     <%# A real <button>, so it takes focus and arrows can move the card. This is
         the whole keyboard path: SortableJS is pointer-only, and Bali's own
         keyboard reordering only acts on focused `.sortable-item` children, which
@@ -51,19 +46,11 @@
     </button>
   </div>
 
-  <%# A shelf, not a floating pill. In edit mode the body is `inert` at 50%
-      opacity, so this is chrome sitting on switched-off content — the move a
-      video player's control bar makes.
-
-      `bg-base-200` is the PAGE's material, not the card's: `bg-base-100/95` is
-      the same white as the card it sits in, so it read as more card.
-
-      Hidden below `lg`, where all four sizes render identically and the control
-      would visibly do nothing.
-
-      The names live in `title` and `aria-label`: four labels of four different
-      lengths will not fit, but a hover should still say what you are choosing. %>
-  <div class="hidden [.editing_&]:absolute [.editing_&]:inset-x-0 [.editing_&]:bottom-0 [.editing_&]:z-10 [.editing_&]:h-12 [.editing_&]:items-center [.editing_&]:justify-center [.editing_&]:rounded-b-box [.editing_&]:border-t [.editing_&]:border-base-300 [.editing_&]:bg-base-200 [.editing_&]:px-1 [.editing_&]:max-lg:hidden [.editing_&]:lg:flex">
+  <%# The names live in `title` and `aria-label`: four labels of four different
+      lengths will not fit, but a hover should still say what you are choosing.
+      The shelf's own visual design (why a shelf, why `bg-base-200`, why hidden
+      below `lg`) is explained in `app/components/bali/widget/index.css`. %>
+  <div class="bali-widget-edit-shelf">
     <div class="join" role="group"
          aria-label="<%= t('bali_view.widgets.edit.size_of', widget: short_title) %>">
       <% Bali::Widget::SIZES.each do |name| %>
@@ -96,9 +83,10 @@
       tab order. Tabbing into a 50%-opacity card and pressing Enter would
       navigate away mid-arrangement, which is the exact failure this prevents.
       `inert` cannot be expressed as a CSS class, which is why this one piece of
-      edit state is applied in JS. %>
+      edit state is applied in JS — the dimming itself is in
+      `app/components/bali/widget/index.css`. %>
   <div data-edit-mode-target="inert"
-       class="flex min-h-0 flex-1 flex-col [.editing_&]:opacity-50 [.editing_&]:lg:pb-12">
+       class="bali-widget-body">
     <%# BEFORE the size split, so a widget that couldn't load says so at every
         size. It carries its own `short_title` because the heading row belongs to
         the non-summary branch, and a bare "couldn't load" in a bento of twelve
@@ -123,7 +111,7 @@
           `capture` so the two branches share one copy of the content instead of
           drifting out of sync. %>
       <% summary_content = capture do %>
-        <div class="stat-value text-4xl tabular-nums <%= count.positive? ? 'text-base-content' : 'text-base-content/30' %>">
+        <div class="stat-value text-4xl tabular-nums <%= any_items? ? 'text-base-content' : 'text-base-content/30' %>">
           <%= count %>
         </div>
         <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>

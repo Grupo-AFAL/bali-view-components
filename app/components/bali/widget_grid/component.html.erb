@@ -40,12 +40,20 @@
 
       <%# The "+" tile sits where the widget will land, which teaches the grid in
           a way a header button cannot. It carries no `.handle`, which is the only
-          reason it cannot be dragged — the same rule as every card. %>
+          reason it cannot be dragged — the same rule as every card.
+
+          `Bali::Link::Component`, like the same tile in the empty state below,
+          rather than a bare `<a>` — see `.claude/CLAUDE.md`'s component-composition
+          rule. `plain: true` is required: the default `base_class` is `"link
+          inline-flex items-center gap-1"`, which fights `ADD_TILE_CLASSES`'s own
+          `flex flex-col items-center` on the `display` property; `plain: true`
+          drops that down to a bare `"flex items-center gap-2"`. %>
       <% if add_path.present? %>
-        <a href="<%= add_path %>" data-size="small" class="<%= ADD_TILE_CLASSES %>">
-          <%= render Bali::Icon::Component.new('plus', size: :medium) %>
+        <%= render Bali::Link::Component.new(
+              href: add_path, plain: true, class: ADD_TILE_CLASSES, data: { size: 'small' }) do |c| %>
+          <% c.with_icon('plus', size: :medium) %>
           <span class="text-sm font-medium"><%= t('bali_view.widgets.edit.add') %></span>
-        </a>
+        <% end %>
       <% end %>
     <% end %>
   <% elsif empty_state? %>

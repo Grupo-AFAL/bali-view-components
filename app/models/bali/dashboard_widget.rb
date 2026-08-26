@@ -26,6 +26,12 @@ module Bali
     validates :position, presence: true,
                          numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
+    # Same caveat as above: this guards `create!`, not `Store#arrange`'s
+    # `insert_all`. The column's own `limit: 32` (see the migration) is what
+    # actually stops a user from inflating their own rows through the write
+    # path everything real goes through.
+    validates :size, length: { maximum: 32 }
+
     # Shortcut for a controller's adoption line:
     #   Bali::DashboardWidget.store_for(current_user, context: @tenant.id.to_s,
     #                                   dashboard_key: "today", offering: offering)

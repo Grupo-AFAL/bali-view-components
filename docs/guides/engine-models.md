@@ -422,6 +422,15 @@ default row list:
 the grid has no widgets at all, it becomes the empty state's own call to action, so a host
 that configured `add_path:` still has a way to add its first widget.
 
+**There is currently no way to render a plain, non-editable grid.** `url:` is a required
+keyword and the Edit/Done controls always render — deliberately, so a heading override
+can never delete the dashboard's only entry point into edit mode (see above). One
+consequence of that guarantee is that `Bali::WidgetGrid::Component` cannot express a
+read-only bento: an admin viewing someone else's dashboard, an embedded summary, a
+read-only export. A host that needs one today has to compose its own layout directly out
+of `Bali::Widget::Component` cards. This is a current limitation, not a contract Bali is
+promising to keep.
+
 ### The write path
 
 Bali ships **no controller and no routes** — who may see which widget is your rule, so the
@@ -492,7 +501,7 @@ Two behaviours are not obvious and matter:
 | `#visible_keys` | stored keys ∩ offering keys, in stored order |
 | `#customized?` | `visible_keys.any?` — whether there is anything visible to reset |
 | `#choose(widgets)` | membership only: survivors keep their stored order, newly chosen widgets append. Re-supplies each survivor's stored size internally, because `arrange` (below) is a full reconcile — without that, every `choose` would silently reset every already-sized card back to its default |
-| `#arrange(layout)` | reconciles to exactly `layout`, an ordered `[{ widget:, size: }, …]` where position is the array index — `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around) |
+| `#arrange(layout)` | reconciles to exactly `layout`, an ordered `[{ widget:, size: }, …]` where position is the array index — `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around). A repeated widget key is deduped, keeping the first occurrence, before the insert — `choose`'s own union already guarantees uniqueness, but `arrange` is the lower-level primitive a host's controller can reach directly from params, and `insert_all`'s `ON CONFLICT DO NOTHING` would otherwise silently drop everything after the first without raising |
 | `#reset` | drops every row — what "restore defaults" and an emptied grid both mean |
 
 Rows never grant visibility, and a row for a widget the owner can no longer see survives
@@ -510,23 +519,25 @@ plain object with the same seven methods (`widgets`, `stored_keys`, `visible_key
 handed. That host never installs `bali_dashboard_widgets` and never runs
 `bali:install:migrations:dashboard_widgets`; nothing in Bali requires the table to exist.
 
-### Locking has real limits
+### There is no locking, and that turned out fine
 
-`choose` and `arrange` lock their scope's rows before writing (`SELECT ... FOR UPDATE`
-inside a transaction), but that buys less than the name suggests:
+`choose` and `arrange` do not lock their scope's rows before writing — an earlier version
+did (`SELECT ... FOR UPDATE` inside the transaction), but it bought nothing a plain
+`delete_all` doesn't already buy: it cannot lock rows that don't exist yet, so a
+first-ever write is unserialized with or without it; it does not prevent a lost update
+even when rows already exist, because each request computes its target state from its
+own snapshot and the later commit wins wholesale regardless; and on SQLite — what the
+dummy app runs — `.lock` emits no `FOR UPDATE` at all, so the guarantee was real only on
+PostgreSQL to begin with. It was two extra `SELECT`s per write for a promise the code's
+own comments already conceded it couldn't keep, so it was removed rather than kept as
+reassurance.
 
-- **It cannot lock rows that don't exist yet.** On a first-ever write for an owner there is
-  nothing to lock, so two concurrent requests proceed completely unserialized.
-- **It does not prevent a lost update even when rows already exist.** Each request
-  computes its target state from its own snapshot; the later commit wins wholesale, and
-  because `arrange` deletes before it inserts, the loser's row is simply gone — no
-  exception, no conflict, just silence.
-- **On SQLite it is a no-op.** `.lock` emits no `FOR UPDATE` on that adapter, so the
-  locking described above is real only on PostgreSQL.
-
-In practice this bounds the exposure to one owner racing themselves — two tabs, a retried
-request — and the grid's own JavaScript already serializes its writes client-side (a
-250ms debounce plus a promise queue). A host that needs a stronger guarantee should reach
-for an advisory lock keyed on the scope (`pg_advisory_xact_lock`), which serializes
-writers even with zero rows present. Bali does not ship one: it is PostgreSQL-only, and
-the engine runs on whatever database the host has.
+What actually happens on a race: two concurrent writes for the same owner both delete
+what's there and insert their own layout; the later commit wins wholesale, no exception,
+no conflict, just silence. In practice this bounds the exposure to one owner racing
+themselves — two tabs, a retried request — and the grid's own JavaScript already
+serializes its writes client-side (a 250ms debounce plus a promise queue). A host that
+needs a stronger guarantee should reach for an advisory lock keyed on the scope
+(`pg_advisory_xact_lock`), which serializes writers even with zero rows present. Bali
+does not ship one: it is PostgreSQL-only, and the engine runs on whatever database the
+host has.

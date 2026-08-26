@@ -133,12 +133,14 @@ module Bali
         by_key = widgets.index_by(&:key)
 
         rows.transaction do
-          lock_rows
-          current_sizes = rows.pluck(:widget_key, :size).to_h
-          survivors = stored_keys & by_key.keys
+          # One query for both the stored order and the stored sizes, rather
+          # than `stored_keys` plus a second `pluck` for sizes — same two
+          # facts, one SELECT.
+          stored = rows.ordered.pluck(:widget_key, :size).to_h
+          survivors = stored.keys & by_key.keys
 
           arrange((survivors | by_key.keys).map do |key|
-            { widget: by_key.fetch(key), size: current_sizes[key] }
+            { widget: by_key.fetch(key), size: stored[key] }
           end)
         end
       end
@@ -155,16 +157,24 @@ module Bali
       # means "never chose", so the next read restores every authorized widget.
       def arrange(layout)
         rows.transaction do
-          lock_rows
           rows.delete_all
 
           next if layout.empty?
+
+          # `choose`'s own union already dedupes before it ever calls here, but
+          # `arrange` is the lower-level primitive and a host's controller can
+          # reach it directly from params, where nothing guarantees a unique
+          # key. Without this, `insert_all` emits `ON CONFLICT DO NOTHING` and
+          # silently keeps only the FIRST occurrence of a repeated key,
+          # dropping the rest with no error — so dedupe explicitly instead of
+          # leaning on that.
+          deduped = layout.uniq { |item| item[:widget].key }
 
           # One timestamp for the whole write. Stamping inside `row_for` gave the
           # rows of a single logical write microsecond-jittered `created_at`s.
           now = Time.current
           Bali::DashboardWidget.insert_all(
-            layout.map.with_index { |item, index| row_for(item, index, now) }
+            deduped.map.with_index { |item, index| row_for(item, index, now) }
           )
         end
       end
@@ -179,36 +189,14 @@ module Bali
 
       attr_reader :owner, :context, :dashboard_key, :offering
 
-      # The ONLY place the scope is spelled. Six method bodies re-spelling
-      # `where(owner:, context:, dashboard_key:)` is a parameter list describing
-      # an object nobody had made.
+      # The READ scope. `row_for` below spells the same four columns again on
+      # the write side — that one can't be collapsed into this: `insert_all`
+      # builds attribute hashes directly, bypassing the AR relation (and its
+      # validations) entirely, which is the whole point of using it for a bulk
+      # write.
       def rows
         Bali::DashboardWidget.where(owner: owner, context: context,
                                     dashboard_key: dashboard_key)
-      end
-
-      # What this DOES buy: two requests that both find existing rows are
-      # serialised, so neither sees the other half-written.
-      #
-      # What it does NOT buy, stated plainly because the name suggests otherwise:
-      #
-      #   - `FOR UPDATE` can only lock rows that ALREADY EXIST. On a first-ever
-      #     `choose`, the scope is empty, there is nothing to lock, and two
-      #     concurrent writers proceed completely unserialised.
-      #   - It does not prevent a lost update even when it does lock. Each caller
-      #     computes its target state from ITS OWN request, so the later commit
-      #     wins wholesale — and because `delete_all` runs before `insert_all`,
-      #     the loser's row is gone before the unique index could object. No
-      #     exception, no conflict: it simply vanishes.
-      #
-      # Exposure is bounded to one owner racing themselves (two tabs, a retried
-      # request), and the grid controller already serialises its own writes
-      # client-side. A host that needs more should reach for an advisory lock
-      # keyed on the scope — `pg_advisory_xact_lock` serialises writers even when
-      # zero rows exist, which row locking structurally cannot. Not done here
-      # because it is Postgres-only and this engine runs on whatever the host has.
-      def lock_rows
-        rows.lock.pluck(:id)
       end
 
       def row_for(item, index, now)

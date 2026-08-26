@@ -53,8 +53,12 @@ module Bali
       delegate :key, :title, :short_title, :count, :items, :view_all_path,
                :empty_message, :size, :failed?, to: :widget
 
-      def initialize(widget)
+      # `**options` so a host can add a `data-testid`, an extra class, or a
+      # Turbo frame attribute to a card — the same passthrough every other
+      # component in this library offers on its root tag.
+      def initialize(widget, **options)
         @widget = widget
+        @options = options
         super()
       end
 
@@ -75,7 +79,19 @@ module Bali
 
       private
 
-      attr_reader :widget
+      attr_reader :widget, :options
+
+      def card_classes
+        class_names(
+          "bali-widget-card",
+          summary? ? "p-4" : "p-6",
+          options[:class]
+        )
+      end
+
+      def card_attributes
+        options.except(:class)
+      end
     end
   end
 end

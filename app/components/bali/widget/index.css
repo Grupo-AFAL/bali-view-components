@@ -1,68 +1,74 @@
-/* Bento geometry for the widget grid.
+/* Bali Widget card — the edit-mode chrome layered onto the read view.
  *
- * A card declares WHAT it is — `data-size="large"` — and this stylesheet decides
- * what that means at each breakpoint. The alternative (the card carrying the
- * Tailwind spans, all four sizes serialised as JSON so the client can swap, and
- * the controller doing class arithmetic) is three copies of one fact in three
- * languages.
+ * Entering edit mode is a single class (`editing`) toggled by `EditModeController`
+ * on the GRID wrapper (`Bali::WidgetGrid::Component`), never a server round trip —
+ * so it costs no round trip and re-runs none of the widget queries. Every rule
+ * below reads `.editing <selector>` for exactly that reason: "this element,
+ * somewhere inside an `.editing` ancestor" — the same relationship Tailwind's
+ * `[.editing_&]:` arbitrary-parent variant expressed inline, before doing that
+ * 27 times across four elements made the template's actual markup hard to see.
  *
- * It also retires the reason that existed: Tailwind only sees class names it can
- * read as literals in the files it scans, so `col-span-${n}` built in JS reaches
- * no stylesheet. None of that matters when the client writes an ATTRIBUTE.
- *
- * 2-D sizes, adapted from iOS: small 1x1, medium 2x1, large 2x2, wide 4x1.
- * `large` is `medium`'s WIDTH at double HEIGHT, which is why it earns more rows
- * rather than wider ones.
- *
- * A CHILD combinator, not a descendant one: `data-size` is a generic attribute
- * name and the grid contains third-party markup. `>` costs nothing and
- * forecloses a bug that would be baffling.
- *
- * Breakpoints match Tailwind's `md` (48rem) and `lg` (64rem) because the grid
- * container declares its column count in Tailwind utilities. Below `md`
- * everything is one column, so no size means anything and no rule applies.
- *
- * Imported into `@layer components`: these rules only set grid placement and
- * nothing here needs to outrank daisyUI. Being in `components` is what lets a
- * host override a span with `lg:col-span-4` and no `!` variant.
+ * Imported into @layer components: a host utility still wins the cascade
+ * against anything here, and none of this needs to outrank daisyUI.
  */
 
-@media (width >= 48rem) {
-  /* Two columns: everything except `small` fills the row. */
-  .bali-widget-grid > [data-size="medium"],
-  .bali-widget-grid > [data-size="large"],
-  .bali-widget-grid > [data-size="wide"] {
-    grid-column: span 2 / span 2;
-  }
+.bali-widget-card {
+  @apply relative flex h-full flex-col rounded-box border border-base-300 bg-base-100;
 }
 
-@media (width >= 64rem) {
-  .bali-widget-grid > [data-size="small"] {
-    grid-column: span 1 / span 1;
-  }
-
-  .bali-widget-grid > [data-size="medium"] {
-    grid-column: span 2 / span 2;
-  }
-
-  .bali-widget-grid > [data-size="large"] {
-    grid-column: span 2 / span 2;
-    grid-row: span 2 / span 2;
-  }
-
-  .bali-widget-grid > [data-size="wide"] {
-    grid-column: span 4 / span 4;
-  }
+/* No jiggle. A wobbling card of overdue counts reads as a rendering fault
+ * rather than an affordance, makes the text unreadable, and collides with
+ * `prefers-reduced-motion`. Raised + dashed accent + a dimmed inert body
+ * (`.bali-widget-body` below) is the web's vocabulary for "manipulable
+ * object" instead.
+ */
+.editing .bali-widget-card {
+  @apply border-dashed border-primary shadow-lg;
 }
 
-/* The "+" tile shares the SortableList with the cards, and `handle:` only gates
- * what can START a drag — a card dropped last lands after the tile and strands it
- * mid-grid until the next reload. It is not part of the sequence (it carries no
- * `data-widget-key`, so `writeSequence` filters it out), so pinning it last
- * visually costs nothing and cannot desync from what is saved.
+.bali-widget-edit-toolbar {
+  @apply hidden;
+}
+
+/* The reorder handle and remove button. INSIDE the card, not hanging into the
+ * gutter: a floating pill above the card in the 16px grid gap would put one
+ * card's remove button under a neighbour's centre in a mixed bento, and paint
+ * order would decide which one you can click.
+ */
+.editing .bali-widget-edit-toolbar {
+  @apply absolute inset-x-0 top-2 z-10 flex items-center justify-between px-3;
+}
+
+.bali-widget-edit-shelf {
+  @apply hidden;
+}
+
+/* The size-picker shelf: a shelf, not a floating pill. In edit mode the body
+ * (`.bali-widget-body` below) is `inert` at 50% opacity, so this is chrome
+ * sitting on switched-off content — the move a video player's control bar
+ * makes.
  *
- * Visual order only: focus order still follows the DOM, which self-heals on the
- * next render. */
-.bali-widget-grid > .bali-widget-add-tile {
-  order: 9999;
+ * `bg-base-200` is the PAGE's material, not the card's: `bg-base-100/95` is
+ * the same white as the card it sits in, so it read as more card.
+ *
+ * Hidden below `lg` (`max-lg:hidden`), where all four sizes render
+ * identically and the control would visibly do nothing.
+ */
+.editing .bali-widget-edit-shelf {
+  @apply absolute inset-x-0 bottom-0 z-10 h-12 items-center justify-center rounded-b-box
+         border-t border-base-300 bg-base-200 px-1 max-lg:hidden lg:flex;
+}
+
+.bali-widget-body {
+  @apply flex min-h-0 flex-1 flex-col;
+}
+
+/* Dimmed while editing. `lg:pb-12` matches the shelf's own `h-12` so the
+ * shelf never sits over the last row of content at the sizes where it
+ * actually renders. `inert` itself cannot be expressed as a CSS class — see
+ * `data-edit-mode-target="inert"` in the template for that half of this
+ * state.
+ */
+.editing .bali-widget-body {
+  @apply opacity-50 lg:pb-12;
 }
