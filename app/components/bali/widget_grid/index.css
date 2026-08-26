@@ -10,16 +10,13 @@
  * read as literals in the files it scans, so `col-span-${n}` built in JS reaches
  * no stylesheet. None of that matters when the client writes an ATTRIBUTE.
  *
- * 2-D sizes, adapted from iOS: small 1x1, medium 2x1, large 2x2, wide 4x2.
- * `large` is `medium`'s WIDTH at double HEIGHT, which is why it earns more rows
- * rather than wider ones; `wide` is `large`'s HEIGHT at double width, which is
- * what makes it two columns rather than one long strip.
+ * 2-D sizes, adapted from iOS: small 1x1, medium 2x1, large 2x2. `large` is
+ * `medium`'s WIDTH at double HEIGHT, which is why it earns more rows rather than
+ * wider ones.
  *
- * `wide` used to be 4x1 — full width, one row — and it was the ladder's weakest
- * cell: a vertical list of three rows stretched across four columns, showing
- * LESS than `medium` did in four times the space. At 4x2 it is Apple's extra
- * large, which is defined as two mediums side by side, and the card lays it out
- * as two columns accordingly.
+ * A fourth size, `wide` 4x2, shipped briefly and was cut — it was the only one
+ * needing a second layout branch in the card and its own pair of rules here, and
+ * its two columns collapsed below `lg` regardless.
  *
  * A CHILD combinator, not a descendant one: `data-size` is a generic attribute
  * name and the grid contains third-party markup. `>` costs nothing and
@@ -37,16 +34,8 @@
 @media (width >= 48rem) {
   /* Two columns: everything except `small` fills the row. */
   .bali-widget-grid > [data-size="medium"],
-  .bali-widget-grid > [data-size="large"],
-  .bali-widget-grid > [data-size="wide"] {
+  .bali-widget-grid > [data-size="large"] {
     grid-column: span 2 / span 2;
-  }
-
-  /* There is no four-column track to span here, so `wide` keeps its HEIGHT and
-   * gives up its width — the two-column body stacks, which is the same thing
-   * every other size does on a narrow screen. */
-  .bali-widget-grid > [data-size="wide"] {
-    grid-row: span 2 / span 2;
   }
 }
 
@@ -61,11 +50,6 @@
 
   .bali-widget-grid > [data-size="large"] {
     grid-column: span 2 / span 2;
-    grid-row: span 2 / span 2;
-  }
-
-  .bali-widget-grid > [data-size="wide"] {
-    grid-column: span 4 / span 4;
     grid-row: span 2 / span 2;
   }
 }

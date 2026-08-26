@@ -11,11 +11,18 @@ module Bali
   # `app/components/bali/widget/`) and `SIZES` would have nowhere to live.
   module Widget
     # Semantic, not Tailwind — and 2-D, adapted from iOS: `small` is 1x1,
-    # `medium` 2x1, `large` 2x2, `wide` 4x2. `large` is `medium`'s WIDTH at
-    # double HEIGHT, which is why it earns more rows rather than wider ones;
-    # `wide` is `large`'s HEIGHT at double width, which is what makes it two
-    # columns rather than one long strip.
-    SIZES = %i[small medium large wide].freeze
+    # `medium` 2x1, `large` 2x2. `large` is `medium`'s WIDTH at double HEIGHT,
+    # which is why it earns more rows rather than wider ones.
+    #
+    # THREE, not four. A `wide` 4x2 shipped briefly and was cut: it was the only
+    # size needing a second layout branch in the card, its own row budget and its
+    # own pair of grid rules, and its two columns collapsed below `lg` anyway —
+    # which is most tablet use. Three sizes carry the whole ladder argument.
+    #
+    # A stored row still saying "wide" is harmless: `Base#with_size` falls back to
+    # the widget's own size for a name it does not recognise, which is exactly the
+    # case it was written for.
+    SIZES = %i[small medium large].freeze
 
     # Subtitles read "A · B" everywhere. The separator lives here rather than
     # baked into translator-editable strings.

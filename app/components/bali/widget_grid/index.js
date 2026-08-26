@@ -86,6 +86,13 @@ export class WidgetGridController extends Controller {
     if (size === this.currentSize(card)) return
 
     this.applySize(card, size)
+    // The interior is SERVER-rendered — `applySize` writes one attribute and the
+    // regions inside the card do not move. Growing a charted `medium` to `large`
+    // would otherwise keep an axis-less sparkline and no breakdown; growing a
+    // hero card would leave one number in a 2x2 cell. So the write says which
+    // card changed shape, and a host that answers with a turbo-stream gets the
+    // right card back. A host that keeps answering 204 is unaffected.
+    this.resizedKey = card.dataset.widgetKey
     this.announce(
       this.resizedTextValue
         .replace('%{widget}', card.dataset.widgetTitle)
@@ -266,7 +273,19 @@ export class WidgetGridController extends Controller {
       body.append('widgets[][size]', this.currentSize(card) ?? '')
     })
 
+    // Consumed here rather than in `resize`, because the debounce collapses a
+    // sweep across the size picker into one write and only the size it came to
+    // rest on needs re-rendering.
+    const resized = this.resizedKey
+    this.resizedKey = null
+    if (resized) body.append('resized_key', resized)
+
+    // A keyboard resize has focus inside the card that is about to be replaced.
+    const refocus = document.activeElement?.dataset.widgetSize
+
     if (!await this.send(this.urlValue, body)) return
+
+    if (resized) this.restoreFocus(resized, refocus)
 
     // Removing the LAST widget sends an empty sequence, and no rows means "never
     // chose" — so the server answers by restoring every authorized widget. The
@@ -281,8 +300,14 @@ export class WidgetGridController extends Controller {
   // truthful is the one moment the user has to be told.
   async send (url, body) {
     try {
-      const response = await patch(url, { body, responseKind: 'json' })
+      // `turbo-stream` in the Accept header, not a demand: the contract is still
+      // "any 2xx means saved". A host answering `head :no_content` behaves
+      // exactly as before; one answering with a stream gets it rendered, which
+      // is how a resized card's server-rendered interior catches up with its new
+      // shape.
+      const response = await patch(url, { body, responseKind: 'turbo-stream' })
       if (!response.ok) this.announce(this.failedTextValue)
+      else await this.renderStream(response)
 
       return response.ok
     } catch {
@@ -292,6 +317,26 @@ export class WidgetGridController extends Controller {
     }
   }
 
+  // Its own method so a test can observe it, and guarded because 204 is still
+  // the common answer: `text` on an empty body is "" and rendering that is a
+  // no-op, but asking Turbo to parse nothing is noise either way.
+  async renderStream (response) {
+    if (!window.Turbo) return
+
+    const body = await response.text
+    if (body?.includes('<turbo-stream')) window.Turbo.renderStreamMessage(body)
+  }
+
+  // A keyboard resize leaves focus on a size button inside the card the stream
+  // just replaced, and a replaced element takes its focus with it — the user
+  // lands on `<body>` mid-edit. Puts them back on the same size in the new card.
+  restoreFocus (key, size) {
+    if (!size) return
+
+    const card = this.gridTarget.querySelector(`[data-widget-key="${key}"]`)
+    card?.querySelector(`[data-widget-size="${size}"]`)?.focus()
+  }
+
   // Its own method so a test can observe and stub it.
   //
   // `isConnected` because the response can land after a Turbo navigation: remove
@@ -299,109 +344,5 @@ export class WidgetGridController extends Controller {
   // reloads whatever page the user is on NOW, not the grid they left.
   reload () {
     if (this.element.isConnected) window.location.reload()
-  }
-}
-
-// Puts a page into an edit mode and remembers it in the URL. Knows nothing about
-// widgets — it toggles a class, swaps the control that enters for the one that
-// leaves, marks a subtree `inert`, and announces the change.
-//
-// Compose them on one element:
-//
-//   <div data-controller="bali-widget-grid edit-mode" ...>
-//
-export class EditModeController extends Controller {
-  static targets = ['enter', 'leave', 'inert', 'announcer']
-  static classes = ['editing']
-  static values = {
-    editing: { type: Boolean, default: false },
-    onText: String,
-    offText: String
-  }
-
-  connect () {
-    // Back leaves edit mode rather than the page, and a restore visit has to
-    // re-enter it — so the flag lives in the URL, not only in memory.
-    //
-    // `restoring` because Stimulus already ran its default-value pass before
-    // `connect`: this assignment fires `editingValueChanged(true, false)`, where
-    // `wasEditing` is `false` rather than `undefined`, so the "initial render is
-    // not a transition" guard below misses it and a page opened at `?editing=1`
-    // announces on load. The class toggle and `inert` still need to happen.
-    this.restoring = true
-    this.editingValue = this.editingInUrl
-    this.restoring = false
-
-    this.popstate = () => { this.editingValue = this.editingInUrl }
-    window.addEventListener('popstate', this.popstate)
-  }
-
-  disconnect () {
-    window.removeEventListener('popstate', this.popstate)
-  }
-
-  get editingInUrl () {
-    return new URLSearchParams(window.location.search).has('editing')
-  }
-
-  // The controls are real links to real URLs, so the default action is a correct
-  // — just wasteful — full page load. Cancelling it turns the same navigation
-  // into a class flip, and the page still works if this controller never loads.
-  enter (event) {
-    event?.preventDefault()
-    this.push(true)
-    this.editingValue = true
-  }
-
-  leave (event) {
-    event?.preventDefault()
-    this.push(false)
-    this.editingValue = false
-  }
-
-  // Ignored while idle so it doesn't swallow Escape from a modal or a dropdown —
-  // and ignored when something nested already handled it. A widget's `body` slot
-  // can hold a modal or a popover with its own Escape-to-close, and those call
-  // `preventDefault` without stopping propagation, so the keydown reaches this
-  // window listener too. Without the `defaultPrevented` check, closing a dropdown
-  // inside a card would also drop the user out of edit mode.
-  keydown (event) {
-    if (event.defaultPrevented) return
-    if (event.key === 'Escape' && this.editingValue) this.leave()
-  }
-
-  editingValueChanged (editing, wasEditing) {
-    this.element.classList.toggle(this.editingClass, editing)
-    // Enter and leave occupy the same slot: the control you press to leave
-    // should be where the one you pressed to enter was.
-    if (this.hasEnterTarget) this.enterTarget.hidden = editing
-    if (this.hasLeaveTarget) this.leaveTarget.hidden = !editing
-    // The one piece of edit state CSS cannot express: `pointer-events-none`
-    // stops the mouse and leaves every link in the tab order.
-    this.inertTargets.forEach(target => { target.inert = editing })
-
-    // A sighted user sees the page change. Without this, a screen-reader user
-    // gets silence and finds the mode by stumbling into new buttons. Skipped on
-    // the initial set, which is a render rather than a transition.
-    if (wasEditing === undefined || this.restoring) return
-    this.announce(editing ? this.onTextValue : this.offTextValue)
-  }
-
-  push (editing) {
-    const url = new URL(window.location.href)
-    if (editing) url.searchParams.set('editing', '1')
-    else url.searchParams.delete('editing')
-    window.history.pushState({}, '', url)
-  }
-
-  // Same clear-then-set as the grid controller: they share one announcer node, and
-  // a live region only announces changes.
-  announce (message) {
-    if (!this.hasAnnouncerTarget || !message) return
-
-    this.announcerTarget.textContent = ''
-    window.requestAnimationFrame(() => {
-      this.announcerTarget.textContent = message
-    })
   }
 }

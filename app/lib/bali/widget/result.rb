@@ -9,9 +9,6 @@ module Bali
     # declaration fifteen lines from the `#call` it describes can drift from what
     # `#call` actually returns; a field on the result cannot.
     #
-    # `payload` carries pre-loaded data for a widget rendering custom content
-    # through the card's `body` slot; list widgets leave it nil.
-    #
     # The last four are the SIZE LADDER's half of the contract, and every one of
     # them defaults to nil or a derived value. That is what makes the ladder
     # additive: a widget written against the original five fields still renders
@@ -22,15 +19,15 @@ module Bali
     #   `trend`         — Bali::Widget::Trend, the "number + trend" rung
     #   `series`        — Bali::Widget::Series, what the context region charts
     #   `goal`          — Bali::Widget::Goal, the ring ladder's headline
-    Result = Data.define(:count, :items, :view_all_path, :payload, :failed,
+    Result = Data.define(:count, :items, :view_all_path, :failed,
                          :display_value, :trend, :series, :goal) do
-      def initialize(count: 0, items: [], view_all_path: nil, payload: nil, failed: false,
+      def initialize(count: 0, items: [], view_all_path: nil, failed: false,
                      display_value: nil, trend: nil, series: nil, goal: nil)
         # Abbreviated HERE rather than in the card, so a widget can read back the
         # same string the tile shows. An explicit value is never touched: a
         # headline of "72%" or "$1.2k" is not a count and abbreviating it would
         # corrupt it.
-        super(count:, items:, view_all_path:, payload:, failed:, trend:, series:, goal:,
+        super(count:, items:, view_all_path:, failed:, trend:, series:, goal:,
               display_value: display_value || Widget.abbreviate(count))
       end
 

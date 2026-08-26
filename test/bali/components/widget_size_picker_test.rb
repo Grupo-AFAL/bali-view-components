@@ -8,22 +8,22 @@ class BaliWidgetSizePickerComponentTest < ComponentTestCase
   end
 
   def test_renders_a_radio_per_size_with_the_current_one_checked
-    render_inline(picker(size: :wide))
+    render_inline(picker(size: :large))
 
     assert_selector("[role='radiogroup']", visible: :all)
-    assert_selector("button[role='radio'][data-widget-size]", count: 4, visible: :all)
-    assert_selector("button[data-widget-size='wide'][aria-checked='true']", visible: :all)
+    assert_selector("button[role='radio'][data-widget-size]", count: 3, visible: :all)
+    assert_selector("button[data-widget-size='large'][aria-checked='true']", visible: :all)
     assert_selector("button[data-widget-size='small'][aria-checked='false']", visible: :all)
   end
 
   # The four sizes are mutually exclusive, so the whole group is ONE tab stop and
-  # the checked size carries it. Without this a keyboard user crosses four
+  # the checked size carries it. Without this a keyboard user crosses three
   # buttons per card — 48 stops in a twelve-card grid — to reach the next card.
   def test_is_one_tab_stop_carried_by_the_checked_size
-    render_inline(picker(size: :wide))
+    render_inline(picker(size: :large))
 
-    assert_selector("button[data-widget-size='wide'][tabindex='0']", visible: :all)
-    assert_selector("button[data-widget-size][tabindex='-1']", count: 3, visible: :all)
+    assert_selector("button[data-widget-size='large'][tabindex='0']", visible: :all)
+    assert_selector("button[data-widget-size][tabindex='-1']", count: 2, visible: :all)
   end
 
   # Selection follows focus, so the arrows must reach the controller rather than

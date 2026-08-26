@@ -14,7 +14,7 @@ module DemoWidgets
   class TaskLoad < Bali::Widget::Base
     include Rails.application.routes.url_helpers
 
-    sized :wide
+    sized :large
 
     WEEKS = 6
 

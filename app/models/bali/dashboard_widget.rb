@@ -32,13 +32,6 @@ module Bali
     # path everything real goes through.
     validates :size, length: { maximum: 32 }
 
-    # Shortcut for a controller's adoption line:
-    #   Bali::DashboardWidget.store_for(current_user, context: @tenant.id.to_s,
-    #                                   dashboard_key: "today", offering: offering)
-    def self.store_for(owner, dashboard_key:, offering:, context: "")
-      Store.new(owner: owner, dashboard_key: dashboard_key, offering: offering, context: context)
-    end
-
     # NOTE: deliberately NOT `acts_as_list`. The gem's contract is dense,
     # contiguous positions within a scope, and this table does not have that: a
     # row for a widget the owner cannot currently see keeps its position while

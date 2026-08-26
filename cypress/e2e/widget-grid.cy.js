@@ -53,7 +53,7 @@ describe('widget grid', () => {
     cy.get('[data-widget-key="overdue_counts"]').should('have.attr', 'data-size', 'small')
     cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'medium')
     cy.get('[data-widget-key="expiring_stock"]').should('have.attr', 'data-size', 'large')
-    cy.get('[data-widget-key="cost_spikes"]').should('have.attr', 'data-size', 'wide')
+    cy.get('[data-widget-key="cost_spikes"]').should('have.attr', 'data-size', 'large')
   })
 
   it('hides the edit chrome until edit mode is entered', () => {
@@ -130,22 +130,22 @@ describe('widget grid', () => {
 
   it('resizes a card immediately and saves the size', () => {
     enterEditMode()
-    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]').click()
+    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="large"]').click()
 
-    cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'wide')
-    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]')
+    cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'large')
+    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="large"]')
       .should('have.attr', 'aria-checked', 'true')
     cy.get('[data-widget-key="low_stock_items"] [data-widget-size="medium"]')
       .should('have.attr', 'aria-checked', 'false')
 
     cy.wait('@save').then((interception) => {
       // Positional, by name — proves `low_stock_items` specifically was
-      // submitted as `wide` under the `widgets[][size]` field, not merely that
-      // the word "wide" appears somewhere in the body (a raw substring check
+      // submitted as `large` under the `widgets[][size]` field, not merely that
+      // the word "large" appears somewhere in the body (a raw substring check
       // would pass even if the field were mis-named, e.g. `widgets[][sizes]`).
       const keys = submittedKeys(interception)
       const sizes = submittedSizes(interception)
-      expect(sizes[keys.indexOf('low_stock_items')]).to.equal('wide')
+      expect(sizes[keys.indexOf('low_stock_items')]).to.equal('large')
     })
   })
 
@@ -161,7 +161,7 @@ describe('widget grid', () => {
     it('keeps the headline at every size', () => {
       enterEditMode()
 
-      for (const size of ['small', 'medium', 'large', 'wide']) {
+      for (const size of ['small', 'medium', 'large']) {
         sizeTo(size)
         cy.get(card).should('have.attr', 'data-size', size)
         // The regression the ladder exists to fix: the headline used to appear
@@ -170,6 +170,9 @@ describe('widget grid', () => {
       }
     })
 
+    // GROWING is the gesture the ladder exists for, and it needs a host that
+    // answers the resize with a stream — the Lookbook stub answers 204, so this
+    // lives against the real dashboard in `widget-grid-resize.cy.js`.
     it('gains a chart from medium up and drops it at small', () => {
       enterEditMode()
 
@@ -194,23 +197,12 @@ describe('widget grid', () => {
       enterEditMode()
       const plain = '[data-widget-key="expiring_stock"]'
 
-      for (const size of ['small', 'medium', 'large', 'wide']) {
+      for (const size of ['small', 'medium', 'large']) {
         cy.get(`${plain} [data-widget-size="${size}"]`).click()
         cy.get(plain).should('have.attr', 'data-size', size)
         cy.get(`${plain} canvas.chart`).should('not.exist')
         cy.get(plain).should('contain', '9')
       }
-    })
-
-    // The extra-large tile is two mediums side by side, so it is two rows tall.
-    // As 4x1 it showed fewer rows than `medium` in four times the space.
-    it('gives the extra-large tile two rows of height', () => {
-      enterEditMode()
-      cy.get(`${card} [data-widget-size="medium"]`).click()
-      cy.get(card).invoke('outerHeight').then((mediumHeight) => {
-        cy.get(`${card} [data-widget-size="wide"]`).click()
-        cy.get(card).invoke('outerHeight').should('be.greaterThan', mediumHeight)
-      })
     })
   })
 
@@ -220,12 +212,12 @@ describe('widget grid', () => {
   describe('the size picker as a radiogroup', () => {
     const picker = '[data-widget-key="low_stock_items"] [role="radiogroup"]'
 
-    it('carries one tab stop on the checked size, not four', () => {
+    it('carries one tab stop on the checked size, not three', () => {
       enterEditMode()
 
       cy.get(`${picker} [aria-checked="true"]`).should('have.attr', 'tabindex', '0')
       cy.get(`${picker} [aria-checked="false"]`)
-        .should('have.length', 3)
+        .should('have.length', 2)
         .each(($button) => expect($button.attr('tabindex')).to.equal('-1'))
     })
 
@@ -259,8 +251,8 @@ describe('widget grid', () => {
     // Wrapping is what makes a four-item ring feel closed rather than clamped.
     it('wraps from the last size back to the first', () => {
       enterEditMode()
-      cy.get(`${picker} [data-widget-size="wide"]`).click()
-      cy.get(`${picker} [data-widget-size="wide"]`).focus().type('{rightarrow}')
+      cy.get(`${picker} [data-widget-size="large"]`).click()
+      cy.get(`${picker} [data-widget-size="large"]`).focus().type('{rightarrow}')
 
       cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'small')
     })
@@ -268,7 +260,7 @@ describe('widget grid', () => {
     it('jumps to the ends with Home and End', () => {
       enterEditMode()
       cy.get(`${picker} [aria-checked="true"]`).focus().type('{end}')
-      cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'wide')
+      cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'large')
 
       cy.get(`${picker} [aria-checked="true"]`).type('{home}')
       cy.get('[data-widget-key="low_stock_items"]').should('have.attr', 'data-size', 'small')
@@ -360,7 +352,7 @@ describe('widget grid', () => {
   it('announces a failure rather than swallowing it', () => {
     cy.intercept('PATCH', '/widget_layout', { statusCode: 500, body: {} }).as('failedSave')
     enterEditMode()
-    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]').click()
+    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="large"]').click()
 
     cy.wait('@failedSave')
     cy.get('[role="status"]').should('contain', "Couldn't save your changes")
@@ -375,7 +367,7 @@ describe('widget grid', () => {
   it('announces a failure when the request itself fails, not just a bad response', () => {
     cy.intercept('PATCH', '/widget_layout', { forceNetworkError: true }).as('networkError')
     enterEditMode()
-    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="wide"]').click()
+    cy.get('[data-widget-key="low_stock_items"] [data-widget-size="large"]').click()
 
     cy.wait('@networkError')
     cy.get('[role="status"]').should('contain', "Couldn't save your changes")

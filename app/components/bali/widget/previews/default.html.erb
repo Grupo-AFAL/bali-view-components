@@ -11,12 +11,11 @@
     in the component. %>
 <%
   height = case widget.size
-           when :large, :wide then 'lg:h-[33rem]'
+           when :large then 'lg:h-[33rem]'
            else 'lg:h-64'
            end
   width = case widget.size
           when :small then 'max-w-xs'
-          when :wide then 'max-w-5xl'
           else 'max-w-md'
           end
 %>

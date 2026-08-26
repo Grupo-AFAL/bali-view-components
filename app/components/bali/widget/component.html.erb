@@ -21,7 +21,8 @@
     `data-id` is what SortableJS's `toArray` reads and `data-widget-key` is what
     the grid controller reads. Same value, different consumers; collapsing them
     would couple the payload to SortableJS's internals. %>
-<section data-id="<%= key %>"
+<section id="<%= dom_id %>"
+         data-id="<%= key %>"
          data-widget-key="<%= key %>"
          data-widget-title="<%= short_title %>"
          data-size="<%= size %>"
@@ -233,7 +234,7 @@
         <% end %>
       <% end %>
 
-      <% case layout when :inline %>
+      <% if layout == :inline %>
         <%# MEDIUM: fact on the left, sparkline on the right. %>
         <%# `body?` FIRST, and that is a decision rather than an accident: a slot
             filled at the call site is an explicit instruction from the host,
@@ -249,21 +250,6 @@
           <% else %>
             <%= context %>
             <%= detail if detail? %>
-          <% end %>
-        </div>
-
-      <% when :split %>
-        <%# EXTRA LARGE: two mediums side by side. The fact and its chart take
-            the left column, the breakdown the right, where it has room for more
-            rows than `large` gives it. Stacks below `lg`, where there is no
-            four-column track to divide. %>
-        <div class="grid min-h-0 flex-1 gap-4 <%= 'lg:grid-cols-2' if detail? %>">
-          <div class="flex min-h-0 flex-col gap-2">
-            <%= headline %>
-            <%= context %>
-          </div>
-          <% if detail? %>
-            <div class="flex min-h-0 flex-col overflow-hidden"><%= detail %></div>
           <% end %>
         </div>
 

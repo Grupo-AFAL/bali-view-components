@@ -67,17 +67,17 @@ module Bali
       end
 
       delegate :key, :title, :short_title, :description, :empty_message, to: :class
-      # The component receives the WIDGET, not its `Result`, so `widget.count` is
-      # true rather than a convenient lie — and the widget still knows its own
-      # key, which is what lets one component derive every widget's copy.
-      # NOTE these names are TAKEN. A subclass that defines its own `trend`,
-      # `series`, `goal`, `count` or `items` — even privately, especially
-      # privately — shadows the delegation, and the card calling `widget.trend`
-      # gets `NoMethodError: private method 'trend' called` at render time rather
-      # than anything that names the real problem. A helper that BUILDS one of
-      # these should be named for what it builds: `founding_trend`, not `trend`.
-      delegate :count, :items, :view_all_path, :payload, :failed?,
-               :display_value, :trend, :series, :goal, to: :result
+
+      # NO `delegate … to: :result` HERE, deliberately. Forwarding `count`,
+      # `items`, `trend`, `series` and `goal` from the widget reserved five
+      # ordinary English words on every host subclass — and a host defining one
+      # of them as a private helper got `NoMethodError: private method 'trend'
+      # called` at render time, three layers from the cause. A comment is not an
+      # enforcement mechanism.
+      #
+      # `result` is public, so `Widget::Component` reads the data from there and
+      # the copy from here. Hosts get their five names back and Bali loses
+      # nothing.
 
       # Overridden by the host. Bali's default shows everything.
       def visible? = true

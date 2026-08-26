@@ -38,11 +38,7 @@ module Bali
         # a chart's axes cost more room than they explain.
         medium: { layout: :inline, context: :spark, rows: 3, charted_rows: 0 },
         # Fact in a header band, chart under it, breakdown below that.
-        large: { layout: :stacked, context: :full, rows: 7, charted_rows: 3 },
-        # Two columns — Apple's extra large is defined as two mediums side by
-        # side, so the fact and its chart take the left and the breakdown the
-        # right, where it has room for more rows than `large` gives it.
-        wide: { layout: :split, context: :full, rows: 6, charted_rows: 6 }
+        large: { layout: :stacked, context: :full, rows: 7, charted_rows: 3 }
       }.freeze
 
       # `Bali::Chart` options that turn a chart into a sparkline. The library is
@@ -64,9 +60,12 @@ module Bali
       # inside a library.
       renders_one :body
 
-      delegate :key, :title, :short_title, :count, :items, :view_all_path,
-               :empty_message, :size, :failed?,
-               :display_value, :trend, :series, :goal, to: :widget
+      # Copy and identity from the WIDGET; data from its RESULT. Split because
+      # forwarding the data through the widget reserved five ordinary English
+      # words on every host subclass — see the note in `Bali::Widget::Base`.
+      delegate :key, :title, :short_title, :empty_message, :size, to: :widget
+      delegate :count, :items, :view_all_path, :failed?,
+               :display_value, :trend, :series, :goal, to: :result
 
       # `**options` so a host can add a `data-testid`, an extra class, or a
       # Turbo frame attribute to a card — the same passthrough every other
@@ -80,6 +79,21 @@ module Bali
       private
 
       attr_reader :widget, :options
+
+      def result = widget.result
+
+      # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
+      # grid's own resize needs it — a card that changes shape has to come back
+      # re-rendered, because its interior is built by the server — and any host
+      # refreshing a single tile can target the same id.
+      #
+      # Public: it is the one thing about the card a host outside this component
+      # legitimately needs to name.
+      def dom_id = self.class.dom_id(key)
+
+      def self.dom_id(key) = "bali-widget-#{key}"
+
+      private
 
       def region = REGIONS.fetch(size)
 
@@ -110,10 +124,6 @@ module Bali
 
       def goal? = goal.present?
 
-      # Two columns, because an extra-large tile laid out as one long strip shows
-      # less than a medium does in four times the space.
-      def split? = layout == :split
-
       # The detail region is rendered only when it HAS something. An empty
       # wrapper is not free: at `:stacked` it takes `flex-1` and squeezes the
       # chart into two fifths of a canvas it could have had whole, and at
@@ -143,10 +153,9 @@ module Bali
       # WITH rather than by taste.
       #
       # At `:inline` it divides a row with the headline, so it takes the
-      # remaining width. At `:split` it has a column to itself — the breakdown is
-      # in the other one — so it takes the remaining height. Only at `:stacked`
-      # does it sit ABOVE the breakdown, and there an even split starves the list
-      # and clips its last row; two fifths leaves the rows whole.
+      # remaining width. At `:stacked` it sits ABOVE the breakdown, and there an
+      # even split starves the list and clips its last row; two fifths leaves the
+      # rows whole.
       #
       # `!detail?` is the condition those two fifths always depended on: with no
       # breakdown beneath it, the chart takes the canvas. Without this the empty
@@ -161,7 +170,7 @@ module Bali
       def context_classes
         class_names(
           "bali-widget-context min-h-0 min-w-0 overflow-hidden",
-          spark? || split? || !detail? ? "flex-1" : "basis-2/5"
+          spark? || !detail? ? "flex-1" : "basis-2/5"
         )
       end
 

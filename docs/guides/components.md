@@ -2520,7 +2520,6 @@ fill in as the canvas grows:
 | `small` | 1×1 | The fact alone. The whole tile is one link, and nothing inside it is focusable. |
 | `medium` | 2×1 | The fact, and a sparkline beside it — axis-less, because below roughly 2×2 axes cost more room than they explain. |
 | `large` | 2×2 | The fact, a chart with axes, and the breakdown below. |
-| `wide` | 4×2 | Two columns: the fact and its chart, then the breakdown. |
 
 A widget opts into the richer rungs by returning more on its `Result` — `trend:`, `series:`
 and `goal:`. **A widget that returns none of them still renders at every size**: the
@@ -2554,11 +2553,29 @@ Bali::Widget::Result.new(
 `count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
 six characters. Set it explicitly for a headline that isn't a count — `"72%"`, `"$1.2k"`.
 
-**One thing to know before building on this:** resizing a card in the browser writes a
-single attribute, and the card's interior is rendered by the server — so a card resized from
-`medium` to `small` keeps its old body until the next page load. CSS hides the regions a
-small tile cannot honour; the headline always survives. See the note at the bottom of
-`app/components/bali/widget/index.css`.
+**Answer a resize with the card.** Resizing writes a single attribute client-side, but the
+card's interior is server-rendered — so a card grown from `medium` to `large` would keep the
+axis-less sparkline and missing breakdown it had at the smaller size. The grid sends
+`resized_key` alongside the layout for exactly this, and a host that answers with a Turbo
+Stream gets the right card back for one widget query on an already-debounced write:
+
+```ruby
+def update
+  layout.arrange(permitted_layout)
+
+  resized = layout.widgets.find { |w| w.key == params[:resized_key].presence }
+  return head :no_content unless resized
+
+  render turbo_stream: turbo_stream.replace(
+    Bali::Widget::Component.dom_id(resized.key),
+    renderable: Bali::Widget::Component.new(resized)
+  )
+end
+```
+
+`head :no_content` remains a valid answer for every gesture — reorder and remove change
+position, not shape, so the DOM the browser already has is correct. Only a resize needs the
+round trip.
 
 ```erb
 <%= render Bali::Widget::Component.new(low_stock_items_widget) %>

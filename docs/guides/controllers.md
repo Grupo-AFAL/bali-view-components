@@ -26,6 +26,7 @@ controller by hand.
 | [`datepicker`](#datepicker) | flatpickr date picker, fully configured via values | `f.date_group`, `f.datetime_group`, `f.time_group` |
 | [`drawing-maps`](#drawing-maps) | Google Map with polygon drawing serialized to a form field | `f.coordinates_polygon_group` |
 | [`dynamic-fields`](#dynamic-fields) | Adds/removes rows of nested form fields | `f.dynamic_fields_group` |
+| [`edit-mode`](#edit-mode) | Toggles an edit mode, remembers it in the URL, marks a subtree `inert` | hand markup |
 | [`elements-overlap`](#elements-overlap) | Keeps a fixed element from overlapping a dynamic one | hand markup |
 | [`file-input`](#file-input) | Shows the chosen filename(s) next to a file input | `f.file_group`, `f.file_field` |
 | [`filter-persistence`](#filter-persistence) | "Remember my filters" preference: localStorage + cookie | Filters persistence toggle |
@@ -202,6 +203,47 @@ the hidden `destroy-flag` input `removeFields` flips. `moveUp`/`moveDown` action
 reorder rows and renumber their `[data-position]` inputs;
 `remove-duplicates` removes already-selected `<select>` options from new rows and
 caps the row count at the number of options.
+
+## `edit-mode`
+
+Puts a page into an edit mode and remembers it in the URL. Knows nothing about
+what is being edited — it toggles a class, swaps the control that enters for the
+one that leaves, marks a subtree `inert`, and announces the change to a live
+region. `Bali::WidgetGrid::Component` composes it, but nothing about it is
+widget-specific.
+
+`inert` rather than `pointer-events-none`: the latter stops the mouse and leaves
+every link in the tab order, so a keyboard user can still tab into dimmed content
+and navigate away mid-edit. `inert` is applied in JS because it cannot be
+expressed as a CSS class — the dimming itself belongs in your stylesheet.
+
+The flag lives in the URL so Back leaves edit mode rather than the page, and a
+restored visit re-enters it. Escape leaves too, and is ignored when something
+nested already handled the key — a dropdown closing inside the edited subtree
+must not also drop you out of the mode.
+
+```erb
+<div data-controller="edit-mode"
+     data-edit-mode-editing-class="editing"
+     data-edit-mode-on-text-value="Editing"
+     data-edit-mode-off-text-value="Done editing"
+     data-action="keydown@window->edit-mode#keydown">
+  <span data-edit-mode-target="enter">
+    <button data-action="edit-mode#enter">Edit</button>
+  </span>
+  <span data-edit-mode-target="leave" hidden>
+    <button data-action="edit-mode#leave">Done</button>
+  </span>
+
+  <p role="status" aria-live="polite" class="sr-only" data-edit-mode-target="announcer"></p>
+
+  <div data-edit-mode-target="inert">…the content being arranged…</div>
+</div>
+```
+
+An `inert` target that arrives later — a Turbo Stream replacing part of the
+subtree while the mode is on — is marked on connect, so a replacement cannot
+land tabbable inside a dimmed page.
 
 ## `elements-overlap`
 

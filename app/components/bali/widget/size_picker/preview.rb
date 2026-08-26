@@ -13,7 +13,7 @@ module Bali
         # `WidgetGridController#sizeKeydown`, so they only move inside a grid —
         # here, Tab reaches the checked size and Space selects.
         #
-        # @param size select { choices: [small, medium, large, wide] }
+        # @param size select { choices: [small, medium, large] }
         def default(size: :medium)
           render Bali::Widget::SizePicker::Component.new(size: size, title: "Low stock")
         end

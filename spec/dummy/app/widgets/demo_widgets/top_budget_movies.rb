@@ -4,7 +4,7 @@ module DemoWidgets
   class TopBudgetMovies < Bali::Widget::Base
     include Rails.application.routes.url_helpers
 
-    sized :wide
+    sized :large
 
     def call
       list_from(scope, view_all_path: admin_movies_path)

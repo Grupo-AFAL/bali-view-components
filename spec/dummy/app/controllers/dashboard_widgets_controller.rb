@@ -11,9 +11,24 @@ class DashboardWidgetsController < ApplicationController
     @layout = layout
   end
 
+  # A resize changes the card's SHAPE, and the card's interior is server-rendered
+  # — so `head :no_content` leaves a grown card showing the body it had at its old
+  # size: an axis-less sparkline stretched across a `large` cell, or a hero number
+  # alone in a 2x2. The grid sends `resized_key` for exactly this, and answering
+  # with a stream costs one widget query on an already-debounced write.
+  #
+  # Every other gesture still answers 204: reorder and remove change position, not
+  # shape, and the DOM the browser already has is correct.
   def update
     layout.arrange(permitted_layout)
-    head :no_content
+
+    resized = resized_widget
+    return head :no_content unless resized
+
+    render turbo_stream: turbo_stream.replace(
+      Bali::Widget::Component.dom_id(resized.key),
+      renderable: Bali::Widget::Component.new(resized)
+    )
   end
 
   # The picker: EVERY authorized widget, not just the chosen ones — `layout`
@@ -39,8 +54,8 @@ class DashboardWidgetsController < ApplicationController
   private
 
   def layout
-    @layout ||= Bali::DashboardWidget.store_for(
-      current_user,
+    @layout ||= Bali::DashboardWidget::Store.new(
+      owner: current_user,
       dashboard_key: "demo",
       offering: offering
     )
@@ -59,6 +74,16 @@ class DashboardWidgetsController < ApplicationController
   # `ActionController::ParameterMissing` on both an omitted `widgets` key and
   # an empty `widgets: []` — and an empty submission is not an error here, it
   # is the reset gesture (`Layout#arrange([])` drops every row).
+  # Looked up in the arrangement we just wrote, so it comes back at its NEW size.
+  # Nil for every gesture that is not a resize, and for a key outside the
+  # offering — the same boundary `permitted_layout` enforces.
+  def resized_widget
+    key = params[:resized_key].presence
+    return if key.nil?
+
+    layout.widgets.find { |widget| widget.key == key }
+  end
+
   def permitted_layout
     return [] if params[:widgets].blank?
 

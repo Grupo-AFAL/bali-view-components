@@ -13,8 +13,8 @@ require "test_helper"
 # actually turns raw request params into that array correctly.
 class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   def store
-    Bali::DashboardWidget.store_for(User.demo, dashboard_key: "demo",
-                                               offering: DemoWidgets.authorized_for(User.demo))
+    Bali::DashboardWidget::Store.new(owner: User.demo, dashboard_key: "demo",
+                                     offering: DemoWidgets.authorized_for(User.demo))
   end
 
   def test_update_persists_an_authorized_widget

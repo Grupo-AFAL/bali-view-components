@@ -71,7 +71,6 @@ module Bali
       #   small  the fact alone; the whole tile is one link
       #   medium the fact, and a sparkline beside it
       #   large  the fact, a chart with axes, and the breakdown below
-      #   wide   two columns: the fact and its chart, then the breakdown
       #
       # `pattern` switches between the three ladders. `list` sets none of the
       # ladder fields, which is what every widget written against the original
@@ -81,7 +80,7 @@ module Bali
       # Toggle `editing` to see the edit chrome — a handle, a remove button and
       # the size picker — which the card always renders and CSS hides.
       #
-      # @param size select { choices: [small, medium, large, wide] }
+      # @param size select { choices: [small, medium, large] }
       # @param pattern select { choices: [metric, list, goal] }
       # @param count number
       # @param failed toggle

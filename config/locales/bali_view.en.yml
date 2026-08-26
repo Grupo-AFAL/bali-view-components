@@ -726,7 +726,6 @@ en:
           small: "Small"
           medium: "Medium"
           large: "Large"
-          wide: "Extra large"
         moved: "%{widget} moved to position %{position} of %{total}"
         removed_one: "%{widget} removed, 1 widget remaining"
         removed_other: "%{widget} removed, %{total} widgets remaining"

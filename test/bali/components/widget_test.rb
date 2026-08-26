@@ -19,7 +19,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   end
 
   def widget(size: :medium, count: 2, items: nil, view_all_path: "/items",
-             payload: nil, failed: false, display_value: nil, trend: nil,
+             failed: false, display_value: nil, trend: nil,
              series: nil, goal: nil)
     rows = items || [
       Bali::Widget::Row.new(title: "Tomatoes", subtitle: "3 left · Cocina", href: "/i/1"),
@@ -27,7 +27,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     ]
     Stock.stub_result = Bali::Widget::Result.new(count: count, items: rows,
                                                  view_all_path: view_all_path,
-                                                 payload: payload, failed: failed,
+                                                 failed: failed,
                                                  display_value: display_value, trend: trend,
                                                  series: series, goal: goal)
     Stock.new.with_size(size)
@@ -65,17 +65,6 @@ class BaliWidgetComponentTest < ComponentTestCase
     })))
 
     assert_selector("ul.list li", count: 7)
-  end
-
-  # `wide` is 4x2 now, not 4x1 — Apple's extra large, defined as two mediums
-  # side by side. As 4x1 it was the ladder's weakest cell: three rows stretched
-  # across four columns, showing LESS than `medium` in four times the space.
-  def test_wide_renders_six_rows_because_it_is_two_rows_tall
-    render_inline(Bali::Widget::Component.new(widget(size: :wide, items: 9.times.map { |i|
-      Bali::Widget::Row.new(title: "Row #{i}")
-    })))
-
-    assert_selector("ul.list li", count: 6)
   end
 
   def test_small_renders_a_stat_and_no_rows
@@ -116,7 +105,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   end
 
   def test_failed_widget_says_so_at_every_size
-    %i[small medium large wide].each do |size|
+    %i[small medium large].each do |size|
       render_inline(Bali::Widget::Component.new(widget(size: size, count: 0, failed: true)))
 
       assert_text("Couldn't load", count: 1)
@@ -146,10 +135,10 @@ class BaliWidgetComponentTest < ComponentTestCase
   # The picker is its own component now; its behaviour is tested there. This
   # only asserts the card still mounts it, named for the widget it sizes.
   def test_the_card_mounts_the_size_picker_for_its_own_widget
-    render_inline(Bali::Widget::Component.new(widget(size: :wide)))
+    render_inline(Bali::Widget::Component.new(widget(size: :large)))
 
     assert_selector("[role='radiogroup'][aria-label='Size of Low stock']", visible: :all)
-    assert_selector("button[data-widget-size='wide'][aria-checked='true']", visible: :all)
+    assert_selector("button[data-widget-size='large'][aria-checked='true']", visible: :all)
   end
 
   def test_edit_chrome_is_always_rendered_so_entering_edit_mode_costs_no_round_trip
@@ -352,16 +341,6 @@ class BaliWidgetComponentTest < ComponentTestCase
 
     assert_selector(".bali-widget-context.flex-1")
     assert_no_selector(".bali-widget-context.basis-2\\/5")
-  end
-
-  def test_the_split_layout_drops_its_second_column_when_there_is_no_detail
-    render_inline(Bali::Widget::Component.new(
-      widget(size: :wide, count: 7, items: [], series: a_series,
-             goal: Bali::Widget::Goal.new(value: 7, max: 10))
-    ))
-
-    assert_no_selector(".bali-widget-detail")
-    assert_no_selector(".lg\\:grid-cols-2")
   end
 
   def test_a_goal_keeps_its_ring_and_gains_a_chart_as_the_card_grows

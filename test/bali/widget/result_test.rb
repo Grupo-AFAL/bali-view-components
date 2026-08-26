@@ -9,7 +9,6 @@ class BaliWidgetResultTest < ActiveSupport::TestCase
     assert_equal 0, result.count
     assert_empty result.items
     assert_nil result.view_all_path
-    assert_nil result.payload
     refute_predicate result, :failed?
   end
 
@@ -67,7 +66,7 @@ class BaliWidgetResultTest < ActiveSupport::TestCase
     assert_equal "3 left · Cocina", Bali::Widget.subtitle("3 left", nil, "Cocina", "")
   end
 
-  def test_sizes_are_the_four_bento_sizes
-    assert_equal %i[small medium large wide], Bali::Widget::SIZES
+  def test_sizes_are_the_three_bento_sizes
+    assert_equal %i[small medium large], Bali::Widget::SIZES
   end
 end

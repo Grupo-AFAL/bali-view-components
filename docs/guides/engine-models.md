@@ -399,22 +399,17 @@ deliberately kept separate.
 ### Constructing a `Store`
 
 ```ruby
-layout = Bali::DashboardWidget.store_for(
-  current_user,
+layout = Bali::DashboardWidget::Store.new(
+  owner: current_user,
   context: @tenant.id.to_s,   # the scoping string; "" for a single-tenant app
   dashboard_key: "today",     # which dashboard, for a host with more than one
   offering: offering
 )
 ```
 
-Which is a shortcut for building the scope object directly — the same relationship
-`Bali::SavedView.store_for` has to `SavedView::Store`:
-
-```ruby
-layout = Bali::DashboardWidget::Store.new(
-  owner: current_user, context: @tenant.id.to_s, dashboard_key: "today", offering: offering
-)
-```
+There is no `DashboardWidget.store_for` shortcut, unlike `Bali::SavedView.store_for`.
+`Store.new` takes four keywords and a shortcut that forwarded all four unchanged
+bought a saved line and a second name for one thing.
 
 Two different things are both called "context" here, and they are not the same one.
 `Store.new(context:)` is a scoping STRING — a tenant id — and it is unrelated to
@@ -486,8 +481,8 @@ class WidgetLayoutsController < ApplicationController
   private
 
   def layout
-    Bali::DashboardWidget.store_for(current_user, context: @tenant.id.to_s,
-                                    dashboard_key: "today", offering: offering)
+    Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
+                                     dashboard_key: "today", offering: offering)
   end
 
   # THE BOUNDARY. A submitted key becomes a widget only by looking it up in the

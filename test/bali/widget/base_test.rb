@@ -48,19 +48,19 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     assert_match(/unknown widget size/, error.message)
   end
 
-  def test_delegates_result_readers
+  def test_the_result_carries_the_readers_rather_than_the_widget
     widget = LowStockItems.new
 
-    assert_equal 2, widget.count
-    assert_equal "/items", widget.view_all_path
-    assert_equal [ "Tomatoes" ], widget.items.map(&:title)
-    refute_predicate widget, :failed?
+    assert_equal 2, widget.result.count
+    assert_equal "/items", widget.result.view_all_path
+    assert_equal [ "Tomatoes" ], widget.result.items.map(&:title)
+    refute_predicate widget.result, :failed?
   end
 
   def test_with_size_copies_rather_than_mutating_the_class
-    resized = LowStockItems.new.with_size("wide")
+    resized = LowStockItems.new.with_size("large")
 
-    assert_equal :wide, resized.size
+    assert_equal :large, resized.size
     assert_equal :medium, LowStockItems.new.size
     assert_equal :medium, LowStockItems.size
   end
@@ -74,8 +74,8 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     swallowing_load_errors do
       widget = Exploding.new
 
-      assert_predicate widget, :failed?
-      assert_equal 0, widget.count
+      assert_predicate widget.result, :failed?
+      assert_equal 0, widget.result.count
     end
   end
 
@@ -94,9 +94,9 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
 
     swallowing_load_errors do
       widget = klass.new
-      widget.failed?
-      widget.count
-      widget.items
+      widget.result.failed?
+      widget.result.count
+      widget.result.items
     end
 
     assert_equal 1, calls
@@ -138,7 +138,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     end
 
     swallowing_load_errors do
-      assert_predicate klass.new, :failed?
+      assert_predicate klass.new.result, :failed?
     end
   end
 

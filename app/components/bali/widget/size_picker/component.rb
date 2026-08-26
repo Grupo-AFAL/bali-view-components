@@ -32,8 +32,7 @@ module Bali
         CELLS = {
           small: [ 0 ],
           medium: [ 0, 1 ],
-          large: [ 0, 1, 4, 5 ],
-          wide: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+          large: [ 0, 1, 4, 5 ]
         }.freeze
 
         # The empty cell is a CONSTANT — `base-content`, never `current` —

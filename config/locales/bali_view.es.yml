@@ -707,7 +707,6 @@ es:
           small: "Chico"
           medium: "Mediano"
           large: "Grande"
-          wide: "Extra grande"
         moved: "«%{widget}» se movió a la posición %{position} de %{total}"
         removed_one: "«%{widget}» se quitó, queda 1 widget"
         removed_other: "«%{widget}» se quitó, quedan %{total} widgets"

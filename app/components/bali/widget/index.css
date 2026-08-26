@@ -83,13 +83,16 @@
  * ladder makes it far more visible, because the interiors now differ by a whole
  * chart rather than by a row count.
  *
- * The full fix is to render every region and let CSS choose between them, the
- * way the edit chrome above already works. That is not free for the CONTEXT
- * region specifically: a Chart.js canvas inside `display:none` measures zero and
- * does not reliably recover when shown, so "render it always and hide it" trades
- * this glitch for a worse one.
+ * GROWING is handled properly now: the grid sends `resized_key` and a host
+ * answers with a turbo-stream replacing that card, so a card that gains a canvas
+ * gets its real interior back. See `Bali::WidgetGrid`'s controller and the
+ * `update` example in `docs/guides/components.md`.
  *
- * What is free is hiding the two regions a `small` tile has no room for at all.
+ * These rules are what a host answering `head :no_content` still gets, and what
+ * covers the instant between the gesture and the stream landing. Hiding the two
+ * regions a `small` tile has no room for is free; rendering every region and
+ * choosing in CSS is not, because a Chart.js canvas inside `display:none`
+ * measures zero and does not reliably recover when shown.
  * The headline survives — which is the ladder's whole promise — and the card
  * stops claiming to show a chart in a box that cannot hold one. The exact
  * layout still arrives on the next load.

@@ -48,12 +48,12 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_arrange_stores_order_and_size
-    store.arrange([ { widget: CHARLIE.new, size: "wide" }, { widget: ALPHA.new } ])
+    store.arrange([ { widget: CHARLIE.new, size: "large" }, { widget: ALPHA.new } ])
 
     stored = store.widgets
 
     assert_equal %w[charlie alpha], keys_of(stored)
-    assert_equal :wide, stored.first.size
+    assert_equal :large, stored.first.size
     # No size submitted means "no opinion": the widget renders at its own.
     assert_equal :small, stored.last.size
     assert_predicate store, :customized?
@@ -171,10 +171,10 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_choose_does_not_resize
-    store.arrange([ { widget: ALPHA.new, size: "wide" } ])
+    store.arrange([ { widget: ALPHA.new, size: "large" } ])
     store.choose([ ALPHA.new, BRAVO.new ])
 
-    assert_equal :wide, store.widgets.first.size
+    assert_equal :large, store.widgets.first.size
   end
 
   def test_choose_dedupes_so_a_repeated_key_cannot_collide_on_the_unique_index
@@ -204,7 +204,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # explicit dedupe, `insert_all`'s `ON CONFLICT DO NOTHING` silently keeps
   # only the first occurrence and drops the rest with no error.
   def test_arrange_dedupes_a_repeated_key_instead_of_silently_dropping_it
-    store.arrange([ { widget: ALPHA.new, size: "wide" }, { widget: ALPHA.new, size: "large" } ])
+    store.arrange([ { widget: ALPHA.new, size: "large" }, { widget: ALPHA.new, size: "large" } ])
 
     assert_equal %w[alpha], store.stored_keys
   end
@@ -219,16 +219,5 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
 
     assert_empty other_context.stored_keys
     assert_empty other_dashboard.stored_keys
-  end
-
-  def test_store_for_builds_a_store_scoped_to_the_owner_context_and_dashboard
-    store = Bali::DashboardWidget.store_for(owner, dashboard_key: "today", offering: offering,
-                                                    context: "1")
-    store.arrange([ { widget: ALPHA.new } ])
-
-    assert_equal %w[alpha], store.stored_keys
-    # store_for defaults context to "" for a single-tenant host, same as `Store.new`.
-    single_tenant = Bali::DashboardWidget.store_for(owner, dashboard_key: "today", offering: offering)
-    assert_empty single_tenant.stored_keys
   end
 end

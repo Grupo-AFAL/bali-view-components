@@ -32,12 +32,12 @@ module Bali
 
       # One specimen per size AND one per ladder, so the grid shows the whole
       # matrix at once: the metric ladder at `medium`, the plain list at `large`
-      # (the pre-ladder contract, still rendering), and the goal at `wide`.
+      # (the pre-ladder contract, still rendering), and the goal at `large`.
       SPECIMENS = [
         [ "overdue_counts", :small, 4, :metric ],
         [ "low_stock_items", :medium, 6, :metric ],
         [ "expiring_stock", :large, 9, :list ],
-        [ "cost_spikes", :wide, 7, :goal ]
+        [ "cost_spikes", :large, 7, :goal ]
       ].freeze
 
       # The three ladders, shared with `Bali::Widget::Preview`'s specimen. A
