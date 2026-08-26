@@ -139,32 +139,6 @@ module Bali
 
       def trend? = trend.present?
 
-      # Colour comes from `good?` and NEVER from `direction`. Overdue tasks up
-      # 12% and revenue up 12% are opposite news; a card reading the direction
-      # would paint half a dashboard's trends the wrong way while looking
-      # confident about it.
-      def trend_classes
-        return "text-base-content/60" if trend.flat?
-
-        trend.good? ? "text-success" : "text-error"
-      end
-
-      def trend_icon
-        return "minus" if trend.flat?
-
-        trend.direction == :up ? "trending-up" : "trending-down"
-      end
-
-      # The arrow is decorative and `aria-hidden`; this is what is actually
-      # announced, so it has to carry the direction as a WORD.
-      def trend_label
-        return t("bali_view.widgets.trend.flat") if trend.flat?
-
-        t("bali_view.widgets.trend.#{trend.direction}", delta: trend_delta)
-      end
-
-      def trend_delta = "#{trend.delta.abs}#{trend.unit}"
-
       # The chart's share of the canvas, which differs by what it is SHARING
       # WITH rather than by taste.
       #

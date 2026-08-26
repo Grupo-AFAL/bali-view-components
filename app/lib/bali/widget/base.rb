@@ -123,28 +123,8 @@ module Bali
       rescue StandardError, NotImplementedError => e
         raise if Widget.raise_load_errors?
 
-        report_failure(e)
+        FailureReport.record(e, widget: self)
         Result.failed
-      end
-
-      # Tagged by widget key so Sentry groups these per tile rather than piling
-      # every widget's failure under one controller action.
-      def report_failure(error)
-        Sentry.capture_exception(error, tags: { widget: failure_tag }) if defined?(Sentry)
-        Rails.logger.error(
-          "[bali/widget] #{failure_tag} failed to load — #{error.class}: #{error.message}\n" \
-          "#{error.backtrace&.first(5)&.join("\n")}"
-        )
-      end
-
-      # `key` raises for an anonymous class, which is CORRECT for `key` — it is
-      # the i18n scope and the persisted `widget_key`, where a silent fallback
-      # would collide. But this is the reporting path, already inside a rescue,
-      # and an exception here would mask the failure it exists to record.
-      def failure_tag
-        key
-      rescue StandardError
-        self.class.name || "anonymous"
       end
 
       def call

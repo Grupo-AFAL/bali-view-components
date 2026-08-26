@@ -184,33 +184,6 @@ class BaliWidgetComponentTest < ComponentTestCase
     end
   end
 
-  # COLOUR COMES FROM `good?`, NEVER `direction`. Overdue tasks up 12% and
-  # revenue up 12% are opposite news, and a card reading the direction would
-  # paint half a dashboard's trends the wrong way while looking confident.
-  def test_a_rising_trend_is_red_when_the_widget_says_rising_is_bad
-    render_inline(Bali::Widget::Component.new(
-      widget(trend: a_trend(delta: 12, positive_when: :down))
-    ))
-
-    assert_selector(".text-error", visible: :all)
-    assert_no_selector(".text-success", visible: :all)
-  end
-
-  def test_a_flat_trend_is_neither_good_nor_bad
-    render_inline(Bali::Widget::Component.new(widget(trend: a_trend(delta: 0))))
-
-    assert_no_selector(".text-success", visible: :all)
-    assert_no_selector(".text-error", visible: :all)
-  end
-
-  # The arrow is decorative; the direction has to reach a screen reader as a
-  # WORD or the trend announces as a bare number.
-  def test_the_trend_direction_is_announced_as_words_not_an_arrow
-    render_inline(Bali::Widget::Component.new(widget(trend: a_trend)))
-
-    assert_selector(".sr-only", text: "up 12%", visible: :all)
-  end
-
   # ---- the context region --------------------------------------------------
 
   def test_a_series_becomes_a_chart_from_medium_up

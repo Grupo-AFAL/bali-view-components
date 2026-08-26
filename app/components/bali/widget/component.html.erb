@@ -115,11 +115,11 @@
           </div>
           <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>
         <% end %>
+        <%# `compact`: a ~215px tile has room for an arrow and a delta, not the
+            period they compare against. %>
         <% if trend? %>
-          <p class="mt-1 flex items-center justify-center gap-1 text-xs <%= trend_classes %>">
-            <%= render Bali::Icon::Component.new(trend_icon, size: :small, class: 'w-3 h-3') %>
-            <span class="sr-only"><%= trend_label %></span>
-            <span aria-hidden="true"><%= trend_delta %></span>
+          <p class="mt-1 flex justify-center">
+            <%= render Bali::Widget::TrendIndicator::Component.new(trend, compact: true) %>
           </p>
         <% end %>
       <% end %>
@@ -145,14 +145,7 @@
             </span>
           <% end %>
           <% if trend? %>
-            <span class="flex items-center gap-1 text-xs <%= trend_classes %>">
-              <%= render Bali::Icon::Component.new(trend_icon, size: :small, class: 'w-3 h-3') %>
-              <span class="sr-only"><%= trend_label %></span>
-              <span aria-hidden="true"><%= trend_delta %></span>
-              <% if trend.period.present? %>
-                <span class="text-base-content/50"><%= trend.period %></span>
-              <% end %>
-            </span>
+            <%= render Bali::Widget::TrendIndicator::Component.new(trend) %>
           <% end %>
         </div>
       <% end %>
