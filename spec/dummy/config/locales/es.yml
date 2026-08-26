@@ -144,6 +144,34 @@ es:
   # Editar/Listo, los nombres de tamano). Ver docs/guides/engine-models.md,
   # "Dashboard widgets".
   widgets:
+    production_budget:
+      title: Presupuesto de producción
+      short_title: Presupuesto
+      description: Todas las películas con presupuesto, sumadas
+      empty: Aún no hay presupuesto
+    studio_foundings:
+      title: Estudios fundados
+      short_title: Estudios
+      description: Estudios socios por la década en que se fundaron
+      empty: No hay estudios registrados
+      period: vs la década anterior
+    task_load:
+      title: Carga próxima
+      short_title: Carga
+      description: Tareas sin terminar por la semana en que vencen
+      empty: No hay nada agendado
+      period: vs el mes siguiente
+    project_progress:
+      title: Avance del proyecto
+      short_title: Avance
+      description: Tareas completadas contra todo lo que hay en el tablero
+      empty: Aún no hay nada terminado
+      of_total: "de %{count}"
+    unavailable_feed:
+      title: Taquilla
+      short_title: Taquilla
+      description: Un widget cuya fuente de datos está caída, para que la tarjeta degradada tenga dónde mostrarse
+      empty: No hay nada que mostrar
     overdue_tasks:
       title: Tareas atrasadas
       short_title: Atrasadas

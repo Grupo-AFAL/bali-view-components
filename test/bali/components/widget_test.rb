@@ -245,6 +245,22 @@ class BaliWidgetComponentTest < ComponentTestCase
     JSON.parse(page.find("canvas.chart", visible: :all)["data-chart-options-value"])
   end
 
+  # Most widget series are COUNTS, and Chart.js's default tick algorithm will
+  # happily offer "1.6" of them. Inferred rather than configured: a widget
+  # charting whole numbers never wants fractional ticks.
+  def test_a_chart_of_whole_numbers_gets_whole_numbered_ticks
+    render_inline(Bali::Widget::Component.new(widget(size: :large, series: a_series)))
+
+    assert_equal 0, chart_options.dig("scales", "y", "ticks", "precision")
+  end
+
+  def test_a_chart_of_fractions_is_left_alone
+    fractional = Bali::Widget::Series.new(values: [ 1.5, 2.25 ], labels: %w[a b])
+    render_inline(Bali::Widget::Component.new(widget(size: :large, series: fractional)))
+
+    assert_nil chart_options.dig("scales", "y", "ticks", "precision")
+  end
+
   # ---- degradation, which is what keeps every pre-ladder widget working ------
 
   # A widget supplying neither series nor goal — every widget written against

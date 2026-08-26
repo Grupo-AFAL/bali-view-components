@@ -194,7 +194,17 @@ module Bali
       def chart_options
         return SPARK_OPTIONS.deep_dup if spark?
 
-        { plugins: { tooltip: { enabled: true } } }
+        # `precision: 0` when every value is a whole number, because most widget
+        # series are COUNTS and Chart.js's default tick algorithm happily offers
+        # "1.6" of them. Inferred rather than configured: a widget charting
+        # integers never wants fractional ticks, so there is nothing to ask it.
+        { plugins: { tooltip: { enabled: true } } }.tap do |options|
+          options[:scales] = { y: { ticks: { precision: 0 } } } if whole_numbers?
+        end
+      end
+
+      def whole_numbers?
+        series.values.all? { |value| value.is_a?(Integer) || value.to_f % 1 == 0 }
       end
 
       def chart_data

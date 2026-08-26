@@ -90,6 +90,34 @@ en:
   # `bali_view.widgets.*` (that's Bali's own chrome — the Edit/Done labels, the
   # size names). See docs/guides/engine-models.md, "Dashboard widgets".
   widgets:
+    production_budget:
+      title: Production budget
+      short_title: Budget
+      description: Every budgeted movie in the catalog, added up
+      empty: Nothing budgeted yet
+    studio_foundings:
+      title: Studios founded
+      short_title: Studios
+      description: Partner studios by the decade they were founded
+      empty: No studios on record
+      period: vs previous decade
+    task_load:
+      title: Upcoming workload
+      short_title: Workload
+      description: Unfinished tasks by the week they fall due
+      empty: Nothing on the schedule
+      period: vs next month
+    project_progress:
+      title: Project progress
+      short_title: Progress
+      description: Completed tasks against everything on the board
+      empty: Nothing finished yet
+      of_total: "of %{count}"
+    unavailable_feed:
+      title: Box office feed
+      short_title: Box office
+      description: A widget whose data source is down, so the degraded card has somewhere to show
+      empty: Nothing to show
     overdue_tasks:
       title: Overdue tasks
       short_title: Overdue

@@ -70,6 +70,12 @@ module Bali
       # The component receives the WIDGET, not its `Result`, so `widget.count` is
       # true rather than a convenient lie — and the widget still knows its own
       # key, which is what lets one component derive every widget's copy.
+      # NOTE these names are TAKEN. A subclass that defines its own `trend`,
+      # `series`, `goal`, `count` or `items` — even privately, especially
+      # privately — shadows the delegation, and the card calling `widget.trend`
+      # gets `NoMethodError: private method 'trend' called` at render time rather
+      # than anything that names the real problem. A helper that BUILDS one of
+      # these should be named for what it builds: `founding_trend`, not `trend`.
       delegate :count, :items, :view_all_path, :payload, :failed?,
                :display_value, :trend, :series, :goal, to: :result
 

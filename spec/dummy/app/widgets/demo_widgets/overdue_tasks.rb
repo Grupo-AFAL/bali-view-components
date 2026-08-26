@@ -13,6 +13,9 @@ module DemoWidgets
       list_from(scope, view_all_path: admin_projects_path)
     end
 
+    # `small` renders the fact alone, so this is where the trend has to earn its
+    # place in four to six characters — an arrow and a delta, nothing else.
+
     private
 
     def scope
