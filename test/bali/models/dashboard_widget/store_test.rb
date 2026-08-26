@@ -31,6 +31,11 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
 
   def keys_of(widgets) = widgets.map(&:key)
 
+  def rows_by_key
+    Bali::DashboardWidget.where(owner: owner, context: "1", dashboard_key: "today")
+                         .index_by(&:widget_key)
+  end
+
   def test_offering_is_required
     assert_raises(ArgumentError) do
       Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "today")
@@ -52,6 +57,75 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     # No size submitted means "no opinion": the widget renders at its own.
     assert_equal :small, stored.last.size
     assert_predicate store, :customized?
+  end
+
+  # `arrange` is `delete_all` + `insert_all`, so without carrying them forward a
+  # widget that has sat on the dashboard for a year would get a fresh
+  # `created_at` every time anything is dragged — and "when did you first add
+  # this widget?" would be permanently unanswerable from this table.
+  def test_a_rearrange_preserves_when_a_widget_was_first_added
+    travel_to Time.zone.local(2026, 1, 1) do
+      store.arrange([ { widget: ALPHA.new }, { widget: BRAVO.new } ])
+    end
+
+    travel_to Time.zone.local(2026, 6, 1) do
+      store.arrange([ { widget: BRAVO.new }, { widget: ALPHA.new } ])
+    end
+
+    born = rows_by_key.transform_values(&:created_at)
+
+    assert_equal Time.zone.local(2026, 1, 1), born["alpha"]
+    assert_equal Time.zone.local(2026, 1, 1), born["bravo"]
+  end
+
+  # The other half: a widget that was NOT there is genuinely new, and dating it
+  # to the arrangement it first appeared in is the whole point of keeping these.
+  def test_a_newly_added_widget_is_dated_now_not_backfilled
+    travel_to Time.zone.local(2026, 1, 1) do
+      store.arrange([ { widget: ALPHA.new } ])
+    end
+
+    travel_to Time.zone.local(2026, 6, 1) do
+      store.arrange([ { widget: ALPHA.new }, { widget: CHARLIE.new } ])
+    end
+
+    born = rows_by_key.transform_values(&:created_at)
+
+    assert_equal Time.zone.local(2026, 1, 1), born["alpha"]
+    assert_equal Time.zone.local(2026, 6, 1), born["charlie"]
+  end
+
+  # `updated_at` is the opposite promise: the row really was just rewritten.
+  def test_a_rearrange_still_stamps_updated_at
+    travel_to Time.zone.local(2026, 1, 1) do
+      store.arrange([ { widget: ALPHA.new } ])
+    end
+
+    travel_to Time.zone.local(2026, 6, 1) do
+      store.arrange([ { widget: ALPHA.new } ])
+    end
+
+    assert_equal Time.zone.local(2026, 6, 1), rows_by_key["alpha"].updated_at
+  end
+
+  # Removing a widget and adding it back is "off" then "on", not a restoration:
+  # `reset` and an emptied grid both drop the rows outright, so there is nothing
+  # left to carry a birthday forward from.
+  def test_a_widget_removed_and_re_added_is_dated_from_its_return
+    travel_to Time.zone.local(2026, 1, 1) do
+      store.arrange([ { widget: ALPHA.new } ])
+    end
+
+    travel_to Time.zone.local(2026, 3, 1) do
+      store.arrange([ { widget: BRAVO.new } ])
+    end
+
+    travel_to Time.zone.local(2026, 6, 1) do
+      store.arrange([ { widget: BRAVO.new }, { widget: ALPHA.new } ])
+    end
+
+    assert_equal Time.zone.local(2026, 6, 1), rows_by_key["alpha"].created_at
+    assert_equal Time.zone.local(2026, 3, 1), rows_by_key["bravo"].created_at
   end
 
   def test_arrange_is_a_full_reconcile_not_an_append

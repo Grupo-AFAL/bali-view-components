@@ -375,9 +375,16 @@ client-side. The fix, if a host needs it, is an advisory lock keyed on the scope
 (`pg_advisory_xact_lock`), which serialises writers even with zero rows present. Not shipped
 because it is Postgres-only and the engine runs on whatever the host has.
 
-**Timestamps do not survive a rearrange.** `arrange` deletes and re-inserts, so every row gets
-a fresh `created_at` on every write. Nothing reads them today, but "when did you first add
-this widget?" is permanently unanswerable from this table.
+**`created_at` survives a rearrange, though the row does not.** `arrange` deletes and
+re-inserts, so a fresh `created_at` on every write was the original behaviour and made "when
+did you first add this widget?" unanswerable. It now reads the existing timestamps before the
+delete and carries each surviving widget's forward; a widget that was absent is dated now, and
+`updated_at` is always now, which is the true claim about a row that really was just
+rewritten. A widget removed and later re-added is dated from its return — absence of a row
+means "off", so there is nothing left to carry forward. The cost is one extra `SELECT` per
+write, deliberately not folded into the one `choose` already does: `arrange` is the
+lower-level primitive a host can call directly, so it holds the invariant itself rather than
+trusting a caller to have read the rows for it.
 
 **`lock_rows` is a no-op on SQLite.** `.lock` emits no `FOR UPDATE` on that adapter, verified
 against `.to_sql`. The serialization it provides is real on Postgres — the engine's target —

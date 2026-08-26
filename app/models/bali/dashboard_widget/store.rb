@@ -7,11 +7,11 @@ module Bali
     # `bali_dashboard_widgets` — `Bali::DashboardWidget`, the AR model this
     # class is nested under, is a row and nothing more; see its own comments.
     #
-    # NOTE `arrange` is `delete_all` + `insert_all`, so a row does not survive a
-    # rearrange — a widget that has sat on the dashboard for a year gets a fresh
-    # `created_at` every time anything is dragged. Nothing reads those timestamps
-    # today, but it means "when did you first add this widget?" is permanently
-    # unanswerable from this table, which is worth knowing before building on it.
+    # NOTE `arrange` is `delete_all` + `insert_all`, so no row survives a
+    # rearrange — but `created_at` does: `arrange` reads the existing ones before
+    # it deletes and carries each surviving widget's forward, so "when did you
+    # first add this widget?" stays answerable across any number of drags. A
+    # widget that was absent is dated now, and `updated_at` is always now.
     #
     # `Store` ITSELF is not an ActiveRecord model, deliberately — a plain object
     # scoped to one owner, one context and one dashboard, the same shape as
@@ -157,6 +157,19 @@ module Bali
       # means "never chose", so the next read restores every authorized widget.
       def arrange(layout)
         rows.transaction do
+          # BEFORE the delete, which is the only chance to read them. `arrange`
+          # is a reconcile rather than an upsert, so every row is destroyed and
+          # rebuilt on every gesture — without carrying these forward a widget
+          # that has sat on the dashboard for a year would get a fresh
+          # `created_at` each time anything was dragged.
+          #
+          # This is a second SELECT on the path `choose` already plucks once, and
+          # it is deliberately not folded into that one: `arrange` is the
+          # lower-level primitive a host's controller can call directly, so it
+          # has to hold this invariant on its own rather than trusting a caller
+          # to have read the rows for it.
+          born = rows.pluck(:widget_key, :created_at).to_h
+
           rows.delete_all
 
           next if layout.empty?
@@ -174,7 +187,7 @@ module Bali
           # rows of a single logical write microsecond-jittered `created_at`s.
           now = Time.current
           Bali::DashboardWidget.insert_all(
-            deduped.map.with_index { |item, index| row_for(item, index, now) }
+            deduped.map.with_index { |item, index| row_for(item, index, now, born) }
           )
         end
       end
@@ -199,13 +212,23 @@ module Bali
                                     dashboard_key: dashboard_key)
       end
 
-      def row_for(item, index, now)
+      def row_for(item, index, now, born)
+        key = item[:widget].key
+
         {
           owner_type: owner.class.polymorphic_name, owner_id: owner.id,
           context: context, dashboard_key: dashboard_key,
-          widget_key: item[:widget].key, position: index,
+          widget_key: key, position: index,
           size: item[:size].presence&.to_s,
-          created_at: now, updated_at: now
+          # A widget that was already on the dashboard keeps the moment it
+          # arrived; one that was not is genuinely new and is dated now. A
+          # widget removed and later re-added is the second case, not the first
+          # — absence of a row means "off", so "removed" and "re-added" are the
+          # same gesture twice and there is nothing left to carry forward.
+          #
+          # `updated_at` is always `now`, which is the opposite promise and the
+          # true one: the row really was just rewritten.
+          created_at: born.fetch(key, now), updated_at: now
         }
       end
     end

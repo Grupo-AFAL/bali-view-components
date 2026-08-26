@@ -504,6 +504,12 @@ Two behaviours are not obvious and matter:
 | `#arrange(layout)` | reconciles to exactly `layout`, an ordered `[{ widget:, size: }, …]` where position is the array index — `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around). A repeated widget key is deduped, keeping the first occurrence, before the insert — `choose`'s own union already guarantees uniqueness, but `arrange` is the lower-level primitive a host's controller can reach directly from params, and `insert_all`'s `ON CONFLICT DO NOTHING` would otherwise silently drop everything after the first without raising |
 | `#reset` | drops every row — what "restore defaults" and an emptied grid both mean |
 
+`arrange` rebuilds every row, but `created_at` is not rebuilt with them: it reads the
+existing timestamps before deleting and carries each surviving widget's forward, so "when did
+you first add this widget?" stays answerable across any number of drags. A widget that was
+absent is dated now; one removed and later re-added is dated from its return, because absence
+of a row means "off". `updated_at` is always the moment of the write.
+
 Rows never grant visibility, and a row for a widget the owner can no longer see survives
 rather than being deleted — so a temporarily revoked role, or a feature flag flipped off
 and back on, does not silently erase someone's arrangement.
