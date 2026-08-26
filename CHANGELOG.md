@@ -7,75 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **`format:` gains `:blocks` and `:prosemirror`, so the shape the editor persists is the
-  host's decision.** `format: :json` writes one of two incompatible JSON schemas — an Array
-  of blocks with `props`, or `{"type": "doc"}` with `blockGroup`/`blockContainer` wrappers
-  and `attrs` — and which one is not a preference: comment marks only survive in the
-  ProseMirror document, so the editor switches as soon as the document holds one. That
-  switch is triggered by **the first user who leaves a comment**, and with auto-save their
-  comment rewrites the host's column into the other schema without anyone asking; every
-  server-side reader (reference extraction, search indexing, version diffs, export) then
-  meets a shape it was not written for. One host lost a document's stored references to it,
-  silently, because the extractor found none and deleted what it did not find. `:blocks` and
-  `:prosemirror` pin one shape. Pinning `:blocks` with comments on drops the comment anchors
-  — the marks *are* the anchors — so the editor says so in the console the first time it
-  does, rather than losing them the way this whole option exists to stop. Two ways to tell
-  what you were handed: `Bali::BlockEditor.content_format(content)` from Ruby, and the hidden
-  input's `data-content-format`, server-rendered and kept up to date on every write, from JS.
-  An unknown `format:` now raises instead of falling through to JSON. (#1091)
-
-### Fixed
-
-- **The BlockEditor keyword arguments that used to be a silent no-op now say so.** All three
-  editor surfaces end in `**options`, which is painted onto the root element, so a keyword
-  the component does not declare produced valid HTML, no error, no warning, and the feature
-  left at its default. Two shapes of that cost one host app real defects. **The v2 spellings:**
-  `ai_url:`, `export:`, `references_url:` and `comments:` travel inside `config:` since v3, and
-  passed loose they landed in `**options` — three views had AI, export, references and comments
-  off from the day of the migration, and `DocumentPage`'s reference chips rendered with the
-  default icon and label. Any `Config` key passed loose to `BlockEditor`, `DocumentEditor` or
-  `DocumentPage` now warns through `Bali.deprecator`, naming the keys and the `config:` they
-  belong in. **`readonly:`** is the Rails word and the obvious guess; it was painted as
-  `readonly="readonly"` on a `<div>`, where it means nothing, so two "read-only" screens were
-  editable. It is now a deprecated alias of `editable: !readonly`, removed in 4.0. And
-  **`editable: false` turns uploads off**, whatever `upload_url:` says — the default is
-  `:auto`, so *not* passing the key does not disable uploads, it enables them, and those two
-  screens were accepting uploads into unattached blobs nobody could see. `:auto` already
-  checked `editable?`; an explicit URL did not, and now the rule is whole. (#1092)
-
-### Fixed
-
-- **A listing narrowed only from the advanced filters panel no longer blames the data for
-  it.** `Table` picks between its two empty states with `FilterForm#active_filters?`, and
-  that summed three of the four ways a listing can be narrowed: the `filter_attribute`
-  values, the simple filters and the quick search. The advanced panel was missing, because
-  it is the one that does not travel flat — its conditions are `q[g][N][attr_pred]`, and
-  the flat hash cannot hold them without emitting each one twice. So a catalogue of 1,563
-  rows cut to zero from the panel rendered "No records yet" plus "create the first one".
-  The panel is now counted as its own half and `active_filters?` (and
-  `active_filters_count`) sums both. What counts as an applied condition is
-  `Filters::ActiveFilterParams.applied?` — the same rule that decides what actually
-  travels in the query, so a builder row with no value, or a `between` with both ends
-  blank, is not a filter for either. That rule also backs the panel's own badge, which
-  used to count an empty `between` as one filter. (#1085)
-
-### Added
-
-- **`Bali::Table` can translate its group band label without losing the global count:
-  `group_i18n_scope:` and `group_label:`.** The band was labelled with the raw column
-  value, which for an enum is the database's — "table (5)" on a Spanish page. The obvious
-  fix, passing the translated string as `with_row(group:)`, cost the global count:
-  `group_counts` is keyed by whatever the `GROUP BY` returned, so the lookup missed and the
-  header fell back to the count of the *page*, which is the one thing `group_counts` exists
-  to prevent. Hosts were left translating both sides and remembering to do it in two
-  places. The label is now resolved when the band is painted: `group_i18n_scope:` reads
-  `"<scope>.<value>"` — the same convention as `Bali::Tag.for(i18n_scope:)` — and
-  `group_label:` takes a callable over the raw value for anything that is not a
-  key-per-value lookup. Rows keep carrying the raw value, so `group_counts` and the group's
-  select-all token are untouched. The SQL NULL band keeps its own `bali_view.table.ungrouped`
-  key. (#1086)
+## [v3.1.4] - 2026-08-25
 
 ### Added
 
@@ -104,6 +36,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that silently stops narrowing is indistinguishable from a working widget. This replaces
   the workaround of rewriting the controller's own `ajaxUrlValue` from an app-side
   Stimulus, which leaned on the URL being re-read per search. (#1084)
+- **`Bali::Table` can translate its group band label without losing the global count:
+  `group_i18n_scope:` and `group_label:`.** The band was labelled with the raw column
+  value, which for an enum is the database's — "table (5)" on a Spanish page. The obvious
+  fix, passing the translated string as `with_row(group:)`, cost the global count:
+  `group_counts` is keyed by whatever the `GROUP BY` returned, so the lookup missed and the
+  header fell back to the count of the *page*, which is the one thing `group_counts` exists
+  to prevent. Hosts were left translating both sides and remembering to do it in two
+  places. The label is now resolved when the band is painted: `group_i18n_scope:` reads
+  `"<scope>.<value>"` — the same convention as `Bali::Tag.for(i18n_scope:)` — and
+  `group_label:` takes a callable over the raw value for anything that is not a
+  key-per-value lookup. Rows keep carrying the raw value, so `group_counts` and the group's
+  select-all token are untouched. The SQL NULL band keeps its own `bali_view.table.ungrouped`
+  key. (#1086)
+- **`format:` gains `:blocks` and `:prosemirror`, so the shape the editor persists is the
+  host's decision.** `format: :json` writes one of two incompatible JSON schemas — an Array
+  of blocks with `props`, or `{"type": "doc"}` with `blockGroup`/`blockContainer` wrappers
+  and `attrs` — and which one is not a preference: comment marks only survive in the
+  ProseMirror document, so the editor switches as soon as the document holds one. That
+  switch is triggered by **the first user who leaves a comment**, and with auto-save their
+  comment rewrites the host's column into the other schema without anyone asking; every
+  server-side reader (reference extraction, search indexing, version diffs, export) then
+  meets a shape it was not written for. One host lost a document's stored references to it,
+  silently, because the extractor found none and deleted what it did not find. `:blocks` and
+  `:prosemirror` pin one shape. Pinning `:blocks` with comments on drops the comment anchors
+  — the marks *are* the anchors — so the editor says so in the console the first time it
+  does, rather than losing them the way this whole option exists to stop. Two ways to tell
+  what you were handed: `Bali::BlockEditor.content_format(content)` from Ruby, and the hidden
+  input's `data-content-format`, server-rendered and kept up to date on every write, from JS.
+  An unknown `format:` now raises instead of falling through to JSON. (#1091)
 
 ### Fixed
 
@@ -116,9 +77,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
   that stacks the children in flow, the two being halves of one decision — and floating, a
   child adds no height, so above the breakpoint there is nothing to cap. (#1080)
-
-### Fixed
-
 - **Passing a component's own slot name as a keyword now raises instead of vanishing.**
   `Card::Component.new(title: "Data")` was accepted in silence: `title:` is not a
   parameter, so it fell into the component's `**options` and was painted as the root
@@ -134,15 +92,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   To set the HTML attribute on purpose, write the key as a string:
   `Card::Component.new("title" => "Tooltip")`. `Bali.raise_on_slot_keyword_conflict` gates
   it, defaulting to on outside production. (#1081)
-- **DataTable: the controls collapsed into the `⋯` menu open over the table again.** Above
-  the `sm` breakpoint a nested dropdown inside the `⋯` floats, which is what a popover
-  inside another has to do — but the menu's own `overflow-y: auto` clipped it, and a scroll
-  container can only contain what is in flow. Measured at 1440px on a toolbar wide enough
-  to collapse Views: of its panel only a border peeked out and `elementFromPoint` at its
-  centre returned a `<td>`, so the control was unusable at exactly the widths where the `⋯`
-  is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
-  that stacks the children in flow, the two being halves of one decision — and floating, a
-  child adds no height, so above the breakpoint there is nothing to cap. (#1080)
+- **A listing narrowed only from the advanced filters panel no longer blames the data for
+  it.** `Table` picks between its two empty states with `FilterForm#active_filters?`, and
+  that summed three of the four ways a listing can be narrowed: the `filter_attribute`
+  values, the simple filters and the quick search. The advanced panel was missing, because
+  it is the one that does not travel flat — its conditions are `q[g][N][attr_pred]`, and
+  the flat hash cannot hold them without emitting each one twice. So a catalogue of 1,563
+  rows cut to zero from the panel rendered "No records yet" plus "create the first one".
+  The panel is now counted as its own half and `active_filters?` (and
+  `active_filters_count`) sums both. What counts as an applied condition is
+  `Filters::ActiveFilterParams.applied?` — the same rule that decides what actually
+  travels in the query, so a builder row with no value, or a `between` with both ends
+  blank, is not a filter for either. That rule also backs the panel's own badge, which
+  used to count an empty `between` as one filter. (#1085)
+- **The BlockEditor keyword arguments that used to be a silent no-op now say so.** All three
+  editor surfaces end in `**options`, which is painted onto the root element, so a keyword
+  the component does not declare produced valid HTML, no error, no warning, and the feature
+  left at its default. Two shapes of that cost one host app real defects. **The v2 spellings:**
+  `ai_url:`, `export:`, `references_url:` and `comments:` travel inside `config:` since v3, and
+  passed loose they landed in `**options` — three views had AI, export, references and comments
+  off from the day of the migration, and `DocumentPage`'s reference chips rendered with the
+  default icon and label. Any `Config` key passed loose to `BlockEditor`, `DocumentEditor` or
+  `DocumentPage` now warns through `Bali.deprecator`, naming the keys and the `config:` they
+  belong in. **`readonly:`** is the Rails word and the obvious guess; it was painted as
+  `readonly="readonly"` on a `<div>`, where it means nothing, so two "read-only" screens were
+  editable. It is now a deprecated alias of `editable: !readonly`, removed in 4.0. And
+  **`editable: false` turns uploads off**, whatever `upload_url:` says — the default is
+  `:auto`, so *not* passing the key does not disable uploads, it enables them, and those two
+  screens were accepting uploads into unattached blobs nobody could see. `:auto` already
+  checked `editable?`; an explicit URL did not, and now the rule is whole. (#1092)
 
 ## [v3.1.3] - 2026-08-23
 
