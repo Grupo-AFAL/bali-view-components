@@ -312,6 +312,37 @@ class LowStockItems < Bali::Widget::Base
 end
 ```
 
+### Start with an `ApplicationWidget`
+
+`Bali::Widget::Base` deliberately hands you almost nothing — in particular, no route
+helpers. An engine cannot safely reach into a host's routes, so a widget that links its
+rows includes them itself. That is one line per widget, which is the signal to do what
+Rails does everywhere else and own a base class:
+
+```ruby
+# app/widgets/application_widget.rb
+class ApplicationWidget < Bali::Widget::Base
+  include Rails.application.routes.url_helpers
+
+  # Anything every widget in your app shares: a default `i18n_scope`, a
+  # `current_tenant` reader off `context`, helpers your rows want.
+end
+```
+
+`bin/rails g bali:widget LowStockItems` inherits from it automatically when it exists, and
+falls back to `Bali::Widget::Base` when it does not.
+
+### Scaffold one
+
+```bash
+bin/rails g bali:widget LowStockItems --size medium
+```
+
+Writes the widget, a test, and its four locale keys in **every locale your app has**. The
+keys are the reason the generator exists: `widgets.<key>.{title,short_title,description,empty}`
+is four keys per widget per locale, and `description` is only ever seen in the picker — a
+missing one surfaces late.
+
 `sized` is validated at class-definition time — an unknown size is a boot failure, not a
 `KeyError` the first time someone opens the dashboard. `visible?` is a HOOK, never a rule
 Bali owns: roles, tenancy and feature flags are things only your app can see, and it
@@ -339,15 +370,24 @@ direction alone cannot tell them apart. The card colours from whether the moveme
 *good*, not which way it went, so a widget counting something bad declares
 `positive_when: :down` and a rising number then reads red.
 
+Build them onto the result rather than assembling one big `Result.new` — `list_from` gives
+you the fact, and each builder adds a rung:
+
 ```ruby
 def call
-  Bali::Widget::Result.new(
-    count: overdue.count,
-    items: overdue.limit(PREVIEW_ROWS).map { |t| row(t) },
-    view_all_path: tasks_path,
-    trend: Bali::Widget::Trend.new(delta: 12, period: "vs last week", positive_when: :down),
-    series: Bali::Widget::Series.new(values: weekly_counts, labels: weekday_names)
-  )
+  list_from(overdue, view_all_path: tasks_path) { |task| row_for(task) }
+    .with_trend(delta: 12, period: "vs last week", positive_when: :down)
+    .with_series(values: weekly_counts, labels: weekday_names)
+end
+```
+
+For the ring ladder, `with_goal` replaces the number as the headline:
+
+```ruby
+def call
+  list_from(done, view_all_path: tasks_path) { |task| row_for(task) }
+    .with_goal(value: done.count, max: Task.count, label: "of #{Task.count}")
+    .with_series(values: per_status, type: :bar)
 end
 ```
 
@@ -485,18 +525,12 @@ class WidgetLayoutsController < ApplicationController
                                      dashboard_key: "today", offering: offering)
   end
 
-  # THE BOUNDARY. A submitted key becomes a widget only by looking it up in the
-  # already-authorized offering — an unauthorized or retired key finds nothing
-  # and is silently dropped. That is the design's entire security property.
-  def permitted_layout
-    return [] if params[:widgets].blank?
-
-    by_key = offering.index_by(&:key)
-    params.expect(widgets: [%i[key size]]).filter_map do |item|
-      widget = by_key[item[:key].to_s]
-      { widget: widget, size: item[:size] } if widget
-    end
-  end
+  # THE BOUNDARY. `Bali::Widget::Layout` does the lookup; you supply the
+  # offering. A submitted key becomes a widget only by being found in the
+  # already-authorized set — an unauthorized, retired or hand-edited key finds
+  # nothing and is dropped rather than rejected, so a role revoked between
+  # render and submit degrades quietly.
+  def permitted_layout = Bali::Widget::Layout.from(params, offering: offering)
 end
 ```
 

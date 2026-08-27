@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+<% module_namespacing do -%>
+class <%= class_name %> < <%= parent_class %>
+  sized :<%= options[:size] %>
+
+  # Who may see this. `context` is whatever your controller passes the offering —
+  # a Pundit context, a user, nothing at all. Bali never reads it.
+  #
+  # def visible? = context.has_any_role?(:some_role)
+
+  def call
+    list_from(scope, view_all_path: nil) do |record|
+      Bali::Widget::Row.new(title: record.to_s)
+    end
+  end
+
+  private
+
+  # Must arrive ORDERED: paging a preview off an unordered relation is a
+  # different bug in every database.
+  def scope
+    raise NotImplementedError, "<%= class_name %>#scope"
+  end
+end
+<% end -%>

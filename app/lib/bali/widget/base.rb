@@ -132,16 +132,40 @@ module Bali
       end
 
       # The shape most list widgets share: the count is the WHOLE scope, the rows
-      # are a capped preview of it, and `#row` turns each record into a `Row`.
+      # are a capped preview of it, and each record becomes a `Row`.
       #
       # The scope must arrive ORDERED: paging a preview off an unordered relation
       # is a different bug in every database.
-      def list_from(scope, view_all_path: nil)
+      #
+      # Two ways to shape a row. A block, which keeps the mapping next to the
+      # scope it maps:
+      #
+      #   list_from(scope, view_all_path: items_path) do |item|
+      #     Bali::Widget::Row.new(title: item.name, href: item_path(item))
+      #   end
+      #
+      # ...or a `#row` method, which is worth having when the mapping is long
+      # enough to want a name. Passing neither is an error that says so — see
+      # `#row` below.
+      def list_from(scope, view_all_path: nil, &shape)
+        shape ||= method(:row)
+
         Result.new(
           count: scope.count,
-          items: scope.limit(PREVIEW_ROWS).map { |record| row(record) },
+          items: scope.limit(PREVIEW_ROWS).map { |record| shape.call(record) },
           view_all_path: view_all_path
         )
+      end
+
+      # DECLARED, like `#call`, rather than left as an invisible template method.
+      # `list_from` used to call this without anything announcing it existed, so
+      # a widget that forgot it got `NoMethodError: undefined method 'row'` raised
+      # from inside Bali — a message that names neither the contract nor the
+      # widget that broke it.
+      def row(_record)
+        raise NotImplementedError,
+              "#{self.class.name || 'This widget'} calls `list_from` without a block, " \
+              "so it must define `#row(record)` returning a Bali::Widget::Row."
       end
 
       def subtitle(*parts)

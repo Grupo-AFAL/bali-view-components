@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+<% module_namespacing do -%>
+class <%= class_name %>Test < ActiveSupport::TestCase
+  def widget = <%= class_name %>.new(nil)
+
+  def test_it_is_drawn_around_its_declared_size
+    assert_equal :<%= options[:size] %>, widget.size
+  end
+
+  # `count` is the WHOLE scope; `items` is a preview capped at PREVIEW_ROWS. The
+  # card decides how many of them fit at each size.
+  def test_it_loads_a_result
+    result = widget.result
+
+    assert_kind_of Bali::Widget::Result, result
+    refute_predicate result, :failed?
+  end
+
+  def test_it_is_visible_by_default
+    assert_predicate widget, :visible?
+  end
+end
+<% end -%>

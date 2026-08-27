@@ -2553,6 +2553,16 @@ Bali::Widget::Result.new(
 `count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
 six characters. Set it explicitly for a headline that isn't a count — `"72%"`, `"$1.2k"`.
 
+**The row budgets are overridable.** `rows` and `charted_rows` in `REGIONS` are pixel
+budgets measured against Bali's own type sizes. If your base font is larger, or your
+subtitles wrap to two lines, set your own in an initializer rather than living with
+clipping:
+
+```ruby
+Bali::Widget::Component.regions =
+  Bali::Widget::Component::REGIONS.deep_merge(large: { rows: 5, charted_rows: 2 })
+```
+
 **Answer a resize with the card.** Resizing writes a single attribute client-side, but the
 card's interior is server-rendered — so a card grown from `medium` to `large` would keep the
 axis-less sparkline and missing breakdown it had at the smaller size. The grid sends

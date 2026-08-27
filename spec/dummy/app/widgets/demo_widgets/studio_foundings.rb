@@ -15,14 +15,13 @@ module DemoWidgets
     sized :medium
 
     def call
-      Bali::Widget::Result.new(
-        count: Studio.count,
-        items: rows,
-        view_all_path: admin_studios_path,
-        trend: founding_trend,
-        series: Bali::Widget::Series.new(labels: decades.keys.map(&:to_s),
-                                         values: decades.values)
-      )
+      list_from(Studio.order(founded_year: :desc), view_all_path: admin_studios_path) do |studio|
+        Bali::Widget::Row.new(title: studio.name,
+                              subtitle: subtitle(studio.founded_year, studio.country),
+                              href: admin_studio_path(studio))
+      end
+        .with_series(labels: decades.keys.map(&:to_s), values: decades.values)
+        .with(trend: founding_trend)
     end
 
     private
@@ -46,14 +45,6 @@ module DemoWidgets
         delta: (((latest - previous) / previous.to_f) * 100).round,
         period: I18n.t("widgets.studio_foundings.period")
       )
-    end
-
-    def rows
-      Studio.order(founded_year: :desc).limit(PREVIEW_ROWS).map do |studio|
-        Bali::Widget::Row.new(title: studio.name,
-                              subtitle: subtitle(studio.founded_year, studio.country),
-                              href: admin_studio_path(studio))
-      end
     end
   end
 end

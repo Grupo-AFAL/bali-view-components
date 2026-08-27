@@ -65,15 +65,6 @@ class DashboardWidgetsController < ApplicationController
     @offering ||= DemoWidgets.authorized_for(current_user)
   end
 
-  # THE BOUNDARY. A submitted key becomes a widget only by looking it up in
-  # the already-authorized offering — an unauthorized or retired key finds
-  # nothing and is silently dropped. That is the design's entire security
-  # property; see `Bali::DashboardWidget::Store`.
-  #
-  # The blank check runs BEFORE `params.expect`, deliberately: `expect` raises
-  # `ActionController::ParameterMissing` on both an omitted `widgets` key and
-  # an empty `widgets: []` — and an empty submission is not an error here, it
-  # is the reset gesture (`Layout#arrange([])` drops every row).
   # Looked up in the arrangement we just wrote, so it comes back at its NEW size.
   # Nil for every gesture that is not a resize, and for a key outside the
   # offering — the same boundary `permitted_layout` enforces.
@@ -84,24 +75,13 @@ class DashboardWidgetsController < ApplicationController
     layout.widgets.find { |widget| widget.key == key }
   end
 
-  def permitted_layout
-    return [] if params[:widgets].blank?
+  # THE BOUNDARY, both halves, and both of them library code now:
+  # `Bali::Widget::Layout` does the lookup and this supplies the offering. A
+  # submitted key becomes a widget only by being found in the already-authorized
+  # set — an unauthorized, retired or hand-edited key finds nothing and is
+  # dropped. That is the design's entire security property, and it used to be a
+  # dozen lines every host retyped out of a guide.
+  def permitted_layout = Bali::Widget::Layout.from(params, offering: offering)
 
-    by_key = offering.index_by(&:key)
-    params.expect(widgets: [ %i[key size] ]).filter_map do |item|
-      widget = by_key[item[:key].to_s]
-      { widget: widget, size: item[:size] } if widget
-    end
-  end
-
-  # THE BOUNDARY, again, for the picker: a submitted key becomes a widget only
-  # by lookup in the already-authorized offering. An unauthorized, retired or
-  # hand-edited key finds nothing here and is silently dropped — never
-  # rejected — so a role revoked between rendering the picker and submitting
-  # it degrades quietly instead of 422ing, and a made-up key can't be used to
-  # probe whether it names a real widget.
-  def permitted_widgets
-    by_key = offering.index_by(&:key)
-    Array(params[:widget_keys]).filter_map { |key| by_key[key.to_s] }
-  end
+  def permitted_widgets = Bali::Widget::Layout.chosen(params, offering: offering)
 end

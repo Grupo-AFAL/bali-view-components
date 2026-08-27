@@ -223,6 +223,22 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_nil chart_options.dig("scales", "y", "ticks", "precision")
   end
 
+  # `rows` is a pixel budget measured against Bali's own type sizes. A host with
+  # a larger base font gets clipping, and as a frozen constant it had no way to
+  # say so.
+  def test_the_row_budget_can_be_overridden_by_a_host
+    original = Bali::Widget::Component.regions
+    Bali::Widget::Component.regions = original.deep_merge(large: { rows: 2 })
+
+    render_inline(Bali::Widget::Component.new(widget(size: :large, items: 9.times.map { |i|
+      Bali::Widget::Row.new(title: "Row #{i}")
+    })))
+
+    assert_selector("ul.list li", count: 2)
+  ensure
+    Bali::Widget::Component.regions = original
+  end
+
   # ---- degradation, which is what keeps every pre-ladder widget working ------
 
   # A widget supplying neither series nor goal — every widget written against

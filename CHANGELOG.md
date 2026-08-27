@@ -32,6 +32,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **Widget authoring got a real API.** `bin/rails g bali:widget LowStockItems --size medium`
+  scaffolds the class, a test, and the four locale keys in every locale your app has —
+  `widgets.<key>.{title,short_title,description,empty}` is easy to forget one of, and
+  `description` only ever shows in a picker. `list_from` now takes a block
+  (`list_from(scope) { |item| Bali::Widget::Row.new(…) }`) and `#row` is declared, so a
+  widget that defines neither gets an error naming the contract instead of `NoMethodError`
+  from inside Bali. `Bali::Widget::Result` gained `with_trend`, `with_series` and `with_goal`,
+  so all three ladders build the same way instead of one having sugar and two needing a
+  nine-keyword constructor. **`Bali::Widget::Layout.from(params, offering:)` ships the
+  security boundary** that was a dozen lines of param filtering every host copied out of the
+  guide. `Bali::Widget::Component.regions` is overridable, because the row budgets are pixel
+  measurements against Bali's own type sizes and a host with a larger base font could not say
+  so. See `docs/guides/engine-models.md` for `ApplicationWidget`, which is where your route
+  helpers belong.
 - **`edit-mode` controller.** Puts a page into an edit mode and remembers it in the URL:
   toggles a class, swaps the control that enters for the one that leaves, marks a subtree
   `inert` (not `pointer-events-none`, which leaves every link in the tab order), and

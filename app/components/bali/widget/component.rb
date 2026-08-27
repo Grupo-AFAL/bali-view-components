@@ -41,6 +41,22 @@ module Bali
         large: { layout: :stacked, context: :full, rows: 7, charted_rows: 3 }
       }.freeze
 
+      # OVERRIDABLE, because `rows` and `charted_rows` are pixel budgets measured
+      # against Bali's own type sizes. A host with a larger base font, two-line
+      # subtitles or a denser theme gets clipping and, as a frozen constant, no
+      # way to say so — a library imposing not a philosophy but a MEASUREMENT.
+      #
+      # Set it in an initializer:
+      #
+      #   Bali::Widget::Component.regions = Bali::Widget::Component::REGIONS.deep_merge(
+      #     large: { rows: 5, charted_rows: 2 }
+      #   )
+      #
+      # `layout` and `context` are structure rather than measurement — they name
+      # which regions exist and how they are arranged — so overriding those is
+      # possible and not the point of this.
+      class_attribute :regions, default: REGIONS
+
       # `Bali::Chart` options that turn a chart into a sparkline. The library is
       # already dynamically imported (`chart/index.js`), so reusing it here costs
       # an instance and a canvas rather than a bundle.
@@ -95,7 +111,7 @@ module Bali
 
       private
 
-      def region = REGIONS.fetch(size)
+      def region = regions.fetch(size)
 
       # The ONE fact about a size that the rest of this class reads. Every
       # "what does this size look like" question resolves through `REGIONS`;
