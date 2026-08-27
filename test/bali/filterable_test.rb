@@ -9,17 +9,20 @@ class BaliFilterableTest < ActiveSupport::TestCase
   class FakeController
     include Bali::Filterable
 
-    attr_reader :params, :cookies
+    attr_reader :params, :cookies, :request, :redirected_to
 
-    def initialize(params: {}, cookies: {}, path: "admin/accounts", user: nil)
+    def initialize(params: {}, cookies: {}, path: "admin/accounts", user: nil,
+                   request: ActionDispatch::TestRequest.create)
       @params = ActionController::Parameters.new(params)
       @cookies = cookies
       @path = path
       @user = user
+      @request = request
     end
 
     def controller_path = @path
     def current_user = @user
+    def redirect_to(url) = @redirected_to = url
   end
 
   FakeUser = Struct.new(:id)
@@ -90,6 +93,35 @@ class BaliFilterableTest < ActiveSupport::TestCase
 
   def test_extra_kwargs_pass_through_to_the_form
     assert_equal %i[name], form(search_fields: %i[name]).search_fields
+  end
+
+  # #1096. Public because a host that decides ANYTHING from the opt-in — a redirect to a
+  # default filter, a banner — would otherwise spell `bali_persist_<id>` itself, which is
+  # the convention this concern exists to keep on one side of the wall.
+  def test_the_persistence_signal_is_public_api
+    on = FakeController.new(cookies: { "bali_persist_admin-accounts" => "1" })
+
+    assert_includes Bali::Filterable.public_instance_methods, :filter_persistence_enabled?
+    assert on.filter_persistence_enabled?("admin-accounts")
+    refute FakeController.new.filter_persistence_enabled?("admin-accounts")
+  end
+
+  # With no argument it answers for THIS listing, the same identity #filter_form derives.
+  def test_the_persistence_signal_derives_the_storage_id_like_filter_form_does
+    on = FakeController.new(cookies: { "bali_persist_admin-accounts" => "1" })
+
+    assert on.filter_persistence_enabled?
+    refute on.filter_persistence_enabled?("some-other-listing")
+  end
+
+  # It was private until #1096 and an app was already calling it (gobierno-corporativo#877);
+  # renaming it out from under them would fail the exact way that issue is about — silently.
+  def test_the_old_private_name_still_answers_and_deprecates
+    on = FakeController.new(cookies: { "bali_persist_admin-accounts" => "1" })
+
+    assert_deprecated(/filter_persistence_enabled/, Bali.deprecator) do
+      assert on.send(:bali_filter_persistence_cookie?, "admin-accounts")
+    end
   end
 
   private
@@ -202,5 +234,106 @@ class BaliDataTablePersistenceWarningTest < ComponentTestCase
     io.string.scan(/\[Bali\].*/).join("\n")
   ensure
     Rails.logger = previous
+  end
+end
+
+# #1096. The controller half of `default:`: a listing whose default question lives in the
+# URL keeps it through sorting and paging (Ransack's `sort_link` and the pagination compose
+# their hrefs out of `params`), shows it as a removable condition, and travels in a link.
+class BaliFilterableDefaultFiltersTest < ActiveSupport::TestCase
+  FormWithDefault = Class.new(Bali::FilterForm) do
+    filter_attribute :status, type: :select, simple: true, default: "active"
+  end
+
+  FormWithoutDefaults = Class.new(Bali::FilterForm) do
+    filter_attribute :status, type: :select, simple: true
+  end
+
+  def test_a_bare_listing_url_is_sent_to_its_defaults
+    controller = build
+
+    assert controller.redirect_to_default_filters(FormWithDefault)
+    assert_equal "/personas?q%5Bstatus_eq%5D=active", controller.redirected_to
+  end
+
+  def test_the_rest_of_the_query_string_survives_the_redirect
+    controller = build(query: "view=grid&page=2")
+
+    assert controller.redirect_to_default_filters(FormWithDefault)
+    assert_equal "/personas?page=2&q%5Bstatus_eq%5D=active&view=grid", controller.redirected_to
+  end
+
+  # No loop: the redirect's own destination carries `q`, which is the first gate.
+  def test_the_redirect_destination_does_not_redirect_again
+    controller = build
+    controller.redirect_to_default_filters(FormWithDefault)
+    landed = build(params: { q: { status_eq: "active" } }, query: "q%5Bstatus_eq%5D=active")
+
+    refute landed.redirect_to_default_filters(FormWithDefault)
+  end
+
+  def test_a_form_with_no_defaults_never_redirects
+    controller = build
+
+    refute controller.redirect_to_default_filters(FormWithoutDefaults)
+    assert_nil controller.redirected_to
+  end
+
+  # The four gates, each one the user having already answered. `q` covers filtering AND
+  # sorting: a sorted URL carries `q[s]`, so the default is not re-imposed on the way back.
+  def test_a_url_that_already_talks_about_filters_is_left_alone
+    [ { q: { s: "name asc" } }, { q: { status_eq: "" } }, { clear_filters: "true" },
+      { saved_view: "7" } ].each do |params|
+      controller = build(params: params)
+
+      refute controller.redirect_to_default_filters(FormWithDefault),
+             "#{params.keys.first} must turn the redirect off"
+    end
+  end
+
+  # The toggle promises "remember what I chose". A default written into the URL on every
+  # bare entry is filter params as far as the form can tell, so it would be stored as the
+  # last state and nothing else would ever be restored — persistence off, silently.
+  def test_filter_persistence_turns_the_redirect_off
+    controller = build(cookies: { "bali_persist_mdm-personas" => "1" })
+
+    refute controller.redirect_to_default_filters(FormWithDefault)
+  end
+
+  def test_an_explicit_storage_id_is_the_one_consulted
+    controller = build(cookies: { "bali_persist_mdm_catalogo_7" => "1" })
+
+    refute controller.redirect_to_default_filters(FormWithDefault,
+                                                  storage_id: "mdm_catalogo_7")
+    assert controller.redirect_to_default_filters(FormWithDefault)
+  end
+
+  # A listing built with instance-level `simple_filters:` has no class to ask, and a
+  # default can also depend on the request. Both pass the `q` hash straight in.
+  def test_a_plain_params_hash_works_where_there_is_no_form_class
+    controller = build
+
+    assert controller.redirect_to_default_filters({ "estado_eq" => "activo" })
+    assert_equal "/personas?q%5Bestado_eq%5D=activo", controller.redirected_to
+  end
+
+  def test_an_empty_params_hash_never_redirects
+    refute build.redirect_to_default_filters({})
+  end
+
+  def test_a_non_get_request_is_left_alone
+    controller = build(request: ActionDispatch::TestRequest.create("PATH_INFO" => "/personas",
+                                                                   "REQUEST_METHOD" => "POST"))
+
+    refute controller.redirect_to_default_filters(FormWithDefault)
+  end
+
+  private
+
+  def build(params: {}, cookies: {}, query: "", request: nil)
+    request ||= ActionDispatch::TestRequest.create("PATH_INFO" => "/personas",
+                                                   "QUERY_STRING" => query)
+    BaliFilterableTest::FakeController.new(params: params, cookies: cookies,
+                                           path: "mdm/personas", request: request)
   end
 end
