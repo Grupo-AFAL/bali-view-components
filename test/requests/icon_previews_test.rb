@@ -64,8 +64,8 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
 
   # El guard sirve de poco si no ve a la mitad de las hermanas. `Bali::Widget` es el primer
   # namespace de la gema que abarca dos raíces de autoload, y ahí se notó: `sibling_constants`
-  # solo miraba el directorio del propio preview, así que descubría `Component` y no `Base`,
-  # `Result` ni `Row`. Este test fija que las descubra todas, porque la única señal de que
+  # solo miraba el directorio del propio preview, así que descubría `Component` y no `Base`
+  # ni las clases de patrón. Este test fija que las descubra todas, porque la única señal de que
   # falta una es un 500 en la request — nunca en `bin/rails runner`.
   def test_sibling_discovery_spans_both_autoload_roots
     preview = Bali::Engine.root.join("app/components/bali/widget/preview.rb").to_s
@@ -73,8 +73,8 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
 
     assert_includes siblings, "Component", "app/components/bali/widget/component.rb"
     assert_includes siblings, "Base", "app/lib/bali/widget/base.rb"
-    assert_includes siblings, "Result", "app/lib/bali/widget/result.rb"
-    assert_includes siblings, "Row", "app/lib/bali/widget/row.rb"
+    assert_includes siblings, "ListBase", "app/lib/bali/widget/list_base.rb"
+    assert_includes siblings, "TrendBase", "app/lib/bali/widget/trend_base.rb"
   end
 
   private

@@ -4,7 +4,7 @@ require "test_helper"
 
 class BaliWidgetGridComponentTest < ComponentTestCase
   class Stock < Bali::Widget::Base
-    sized :medium
+    default_size :medium
 
     def self.title = "Low stock items"
     def self.short_title = "Low stock"

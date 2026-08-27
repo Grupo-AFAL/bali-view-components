@@ -2,118 +2,133 @@
 
 module Bali
   module Widget
-    # Shared chrome for dashboard widgets. A host subclass owns one widget: its
-    # semantic `sized`, its `visible?` rule, and a `#call` returning a `Result`.
+    # What every widget is, regardless of which ladder it walks.
     #
-    # Visibility and loading are deliberately SEPARATE halves. `visible?` costs
-    # only whatever the host's predicate costs, so a picker can list every
-    # authorized widget without running a single widget query; `#result` is the
-    # load, and only the widgets that survive
-    # `Bali::DashboardWidget::Store#widgets` are ever asked for it.
+    # A widget is no longer a thing that BUILDS a result; it is a thing the card
+    # ASKS. `Base` answers every question the card has with a null — no rows, no
+    # trend, no series, no goal — and each pattern subclass overrides the ones it
+    # actually has. So the card talks to one uniform interface and never branches
+    # on which kind of widget it is holding.
     #
-    # Bali owns the `visible?` HOOK and never the rule — roles, tenancy and
-    # feature flags are things only the host can see.
+    # THE PATTERN IS THE TYPE. A widget picks exactly one of `ValueBase`,
+    # `ListBase`, `TrendBase` or `ProgressBase`, and that choice is not a claim it
+    # can contradict — it is what gives the class its declarations and its
+    # abstract methods. Choosing `TrendBase` and not implementing `current` is a
+    # loud failure, not a card that renders half a thing.
     class Base
-      # How many preview rows every widget loads, regardless of the size it is
+      # How many preview rows a list widget loads, regardless of the size it is
       # rendered at. `count` comes from the full scope, so the preview is
-      # presentation rather than data — which is what keeps `#call` from needing
-      # to know a size. `Widget::Component` truncates to what the size has room
-      # for.
+      # presentation rather than data — which is what keeps a widget from needing
+      # to know a size. `Widget::Component` truncates to what the size has room for.
       PREVIEW_ROWS = 8
 
-      # No default, deliberately: a widget that forgets its size should fail
-      # loudly rather than inherit one its layout was never drawn around.
-      class_attribute :size
+      # The canvas the widget is drawn around, and the fallback for a stored size
+      # it no longer supports.
+      class_attribute :_default_size, default: SIZES.first
 
-      # Which sizes a USER may choose, defaulting to all of them. Written by the
-      # `supports` macro below and read under this name, which is what the macro
-      # is named after.
+      # Which sizes a USER may choose, defaulting to all of them. Declare a subset
+      # when the widget has nothing to fill the others with — a bare figure at
+      # `large` is a title, a number and most of a 2x2 cell of whitespace.
       #
-      # DECLARED rather than inferred from the data, and that is the whole design
-      # decision. Inferring "this widget has no series, so hide `large`" would
-      # mean loading every widget just to render a picker — collapsing the
-      # `visible?` / `#call` split that lets a picker list the authorized set
-      # without running a single query. It would also make the offered sizes vary
-      # with the data: a widget whose series is empty this week would silently
-      # stop offering a size the user had already chosen. Apple declares
-      # `supportedFamilies` for the same reasons.
-      class_attribute :supported_sizes, default: SIZES
+      # DECLARED rather than inferred from the data. Inferring "this widget has no
+      # series, so hide `large`" would mean loading every widget just to render a
+      # picker — collapsing the `visible?` / data split that lets a picker list
+      # the authorized set without running a single query. It would also make the
+      # offered sizes vary with the data: a widget whose series is empty this week
+      # would silently stop offering a size the user had already chosen. Apple
+      # declares `supportedFamilies` for the same reasons.
+      class_attribute :_supported_sizes, default: SIZES
 
-      # Widget copy is HOST content, not Bali's. Bali's own chrome lives under
-      # `bali_view.widgets.*`; this is the scope a host's titles live in.
+      # Copy is HOST content. It reads from i18n by default — `widgets.<key>.*` —
+      # and a class may set a literal instead, which is what a widget with one
+      # hardcoded string wants rather than four locale keys.
+      class_attribute :_title
+      class_attribute :_short_title
+      class_attribute :_description
+      class_attribute :_empty_message
+
+      # Bali's own chrome lives under `bali_view.widgets.*`; this is the scope a
+      # host's titles live in.
       class_attribute :i18n_scope, default: "widgets"
+
+      # Where the tile links. A block, because it is a route helper rather than a
+      # value — and on `Base` rather than `ListBase` because a figure, a trend and
+      # a ring all link somewhere just as a list does.
+      class_attribute :_view_all_path
 
       class << self
         # Validated at class-definition time, so a typo is a boot failure rather
         # than a KeyError the first time someone opens the dashboard.
-        def sized(name)
+        def default_size(name)
           raise ArgumentError, "unknown widget size #{name.inspect}" unless SIZES.include?(name)
 
-          self.size = name
+          self._default_size = name
         end
 
-        # Which sizes the picker offers. Defaults to all of them; declare a
-        # subset when the widget has nothing to fill the others with — a bare
-        # count at `large` is a title, a number and most of a 2x2 cell of
-        # whitespace.
-        #
-        #   sized :small              # the canvas it is drawn around
-        #   supports :small, :medium  # what a user may choose
-        #
-        # NOT `sizes`, which this was first called and which sat one letter from
-        # `sized` in the same class body — the exact collision
-        # `docs/superpowers/specs/2026-08-25-widgets-and-widget-grid-design.md`
-        # criticises in the code this feature was ported from. `supports` also
-        # names the attribute it writes, and echoes the `supportedFamilies` this
-        # whole model is adapted from.
-        #
-        # Validated at class-definition time like `sized`, including that the
-        # declared default is among them: a widget offering `[:small, :medium]`
-        # while defaulting to `:large` would render at a size its own picker
-        # cannot get back to.
+        # NOT `sizes`, which sat one letter from the size macro in the same class
+        # body — the collision the 2026-08-25 design spec criticises in the code
+        # this feature was ported from. `supports` also names the attribute it
+        # writes, and echoes the `supportedFamilies` this model is adapted from.
         def supports(*names)
           unknown = names - SIZES
           raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
           raise ArgumentError, "a widget must support at least one size" if names.empty?
+          unless names.include?(_default_size)
+            raise ArgumentError,
+                  "#{name_for_error} defaults to #{_default_size.inspect} but only offers " \
+                  "#{names.inspect} — the default must be one a user can choose."
+          end
 
-          self.supported_sizes = names
-          validate_default_size!
+          self._supported_sizes = names
         end
 
+        def view_all_path(&block) = self._view_all_path = block
 
-        # `Widgets::LowStockItems` -> `"low_stock_items"`, which is also the
-        # i18n scope and the persisted key. One fewer constant to keep in sync.
+        def supported_sizes = _supported_sizes
+
+        def size = _default_size
+
+        # `Widgets::LowStockItems` -> `"low_stock_items"`, which is also the i18n
+        # scope and the persisted key. One fewer constant to keep in sync.
         def key
           @key ||= name.demodulize.underscore
         end
 
-        def title = I18n.t("#{i18n_scope}.#{key}.title")
+        # Read with no argument, set with one. A widget with a single literal
+        # string says `title "Overdue tasks"`; one with translations says nothing
+        # and gets `widgets.<key>.title`.
+        def title(value = nil) = value.nil? ? (_title || translate(:title)) : (self._title = value)
 
         # The `small` card is ~215px wide, where a long title wraps to three
         # lines. Falls back to the full title, so a widget only needs a short one
-        # if its real one doesn't fit.
-        def short_title = I18n.t("#{i18n_scope}.#{key}.short_title", default: title)
+        # if its real one does not fit.
+        def short_title(value = nil)
+          return self._short_title = value unless value.nil?
 
-        # One line telling a picker what this widget actually shows. Several
-        # titles are usually near-neighbours, so the label alone doesn't
-        # distinguish them.
-        def description = I18n.t("#{i18n_scope}.#{key}.description")
+          _short_title || translate(:short_title, default: title)
+        end
 
-        # Empty-state copy, shown by the card's list body.
-        def empty_message = I18n.t("#{i18n_scope}.#{key}.empty")
+        # One line telling a picker what this widget shows. Several titles are
+        # usually near-neighbours, so the label alone does not distinguish them.
+        def description(value = nil)
+          value.nil? ? (_description || translate(:description)) : (self._description = value)
+        end
+
+        # Shown by the card's list body when there is nothing to list.
+        def empty_message(value = nil)
+          value.nil? ? (_empty_message || translate(:empty)) : (self._empty_message = value)
+        end
 
         private
 
-        # A widget offering `[:small, :medium]` while defaulting to `:large` would
-        # render at a size its own picker cannot get back to.
-        def validate_default_size!
-          return if size.nil? || supported_sizes.include?(size)
-
-          raise ArgumentError,
-                "#{name || 'This widget'} is `sized #{size.inspect}` but only offers " \
-                "#{supported_sizes.inspect} — the default must be one a user can choose."
+        def translate(suffix, **options)
+          I18n.t("#{i18n_scope}.#{key}.#{suffix}", **options)
         end
+
+        def name_for_error = name || "This widget"
       end
+
+      attr_reader :context
 
       # `context` is whatever the host needs to gate and scope on — a Pundit
       # context, a user, a tenant, nothing at all. Bali never reads it.
@@ -124,121 +139,129 @@ module Bali
       delegate :key, :title, :short_title, :description, :empty_message,
                :supported_sizes, to: :class
 
-      # NO `delegate … to: :result` HERE, deliberately. Forwarding `count`,
-      # `items`, `trend`, `series` and `goal` from the widget reserved five
-      # ordinary English words on every host subclass — and a host defining one
-      # of them as a private helper got `NoMethodError: private method 'trend'
-      # called` at render time, three layers from the cause. A comment is not an
-      # enforcement mechanism.
-      #
-      # `result` is public, so `Widget::Component` reads the data from there and
-      # the copy from here. Hosts get their five names back and Bali loses
-      # nothing.
-
-      # Overridden by the host. Bali's default shows everything.
+      # Overridden by the host. Bali owns the HOOK and never the rule: roles,
+      # tenancy and feature flags are things only the host can see.
       def visible? = true
 
-      # This widget rendered at a user-chosen size. Always a COPY, because `size`
-      # is a `class_attribute`: assigning it on the class would resize that
-      # widget for every user in the process until the next deploy. The instance
-      # writer shadows the class value on this object alone.
+      # ---- what the card asks -------------------------------------------------
       #
-      # A name this widget does not offer falls back to the size it was drawn
-      # around rather than raising — the name arrives from a database column, so
-      # it can describe a size retired from the vocabulary, or one this widget
-      # stopped supporting, between the save and the read. A dashboard that will
-      # not render is a worse answer than one drawn at its default.
+      # Every one of these is a null here. A pattern overrides what it has, so the
+      # card reads one interface and never asks what kind of widget it holds.
+
+      def count = 0
+
+      def items = []
+
+      def view_all_path
+        safely(nil) { _view_all_path && instance_exec(&_view_all_path) }
+      end
+
+      def trend = nil
+
+      def series = nil
+
+      def goal = nil
+
+      # The headline as printed. A ~215px tile at `text-4xl` fits four to six
+      # characters, so a raw 1_234_567 runs off it. A pattern whose headline is
+      # not a count overrides this.
+      def display_value = Widget.abbreviate(count)
+
+      def size = @size || self.class.size
+
+      # This widget at a user-chosen size. Always a COPY, because `_default_size`
+      # is a class attribute: assigning it would resize the widget for every user
+      # in the process until the next deploy.
       #
-      # UNOFFERABLE is not the same as unrenderable: a host passing a size
-      # directly to `Widget::Component` still gets it drawn. Only the picker is
-      # constrained, because that is where a user makes the choice.
-      #
-      # A copy even when nothing changes, so callers get one kind of thing back.
+      # A size this widget does not offer falls back to its default rather than
+      # raising — the name arrives from a database column, so it can describe a
+      # size retired between the save and the read, and a dashboard that will not
+      # render is a worse answer than one drawn at its default.
       def with_size(name)
         chosen = name&.to_sym
 
         dup.tap { |widget| widget.size = supported_sizes.include?(chosen) ? chosen : size }
       end
 
-      def result
-        @result ||= load_result
+      # ONE widget's failure must not take the page with it. A tile that vanishes
+      # reads as "nothing to see", which is the one thing a failure must not say,
+      # so a raising widget renders the degraded card instead.
+      #
+      # This PROBES rather than merely reporting, and it has to. The card branches
+      # on failure FIRST, before it has asked the widget for anything — and a
+      # widget that reads lazily has not failed yet at that moment, so a plain
+      # `@failed.present?` is false for every widget that is about to raise. The
+      # card then takes the healthy branch and renders a greyed-out `0`: the tile
+      # says "nothing here" for a widget that is actually broken, which is the one
+      # thing the degraded card exists to prevent.
+      #
+      # `count` is the probe because it is the one read all four patterns share,
+      # and because every region of the card already depends on it — `any_items?`,
+      # `empty_state?` and `view_all_link?` all read it, so this costs no query
+      # the card was not going to make anyway. A pattern whose OTHER reads fail
+      # while `count` succeeds is caught a second time by the detail region; see
+      # `component.html.erb`.
+      def failed?
+        count
+        @failed.present?
       end
+
+      # "3 left · Cocina". Here rather than reached through `Bali::Widget` so a
+      # row block can call it bare.
+      def subtitle(*parts) = Widget.subtitle(*parts)
+
+      protected
+
+      attr_writer :size
 
       private
 
-      attr_reader :context
-
-      # ONE widget's failure must not take the page with it. Memoizing
-      # `load_result` rather than `call` is load-bearing: the failure has to be
-      # memoized too, because the component delegates `count`, `items` and
-      # `view_all_path` separately and a rescue that returned without assigning
-      # would re-run the raising query three times per card.
+      # Wraps every data read a pattern makes. Memoises the FAILURE as well as
+      # guarding the call: the card asks `count`, `items` and `view_all_path`
+      # separately, and a rescue that did not remember would re-run the raising
+      # query three times per tile.
       #
       # `NotImplementedError` is named explicitly because it descends from
-      # `ScriptError`, NOT `StandardError` — so a subclass that forgets `#call`
-      # would otherwise sail straight past this rescue and take the page down in
-      # production, which is the single most likely way to author a broken widget
-      # and the one case the safety net has to cover.
-      def load_result
-        call
+      # `ScriptError`, NOT `StandardError` — a widget that forgets an abstract
+      # method is the most likely way to author a broken one, and the case the
+      # safety net most has to cover.
+      def safely(fallback)
+        return fallback if @failed
+
+        yield
       rescue StandardError, NotImplementedError => e
         raise if Widget.raise_load_errors?
 
-        FailureReport.record(e, widget: self)
-        Result.failed
+        @failed = e
+        report_failure(e)
+        fallback
       end
 
-      def call
-        raise NotImplementedError
-      end
-
-      # The shape most list widgets share: the count is the WHOLE scope, the rows
-      # are a capped preview of it, and each record becomes a `Row`.
-      #
-      # The scope must arrive ORDERED: paging a preview off an unordered relation
-      # is a different bug in every database.
-      #
-      # Two ways to shape a row. A block, which keeps the mapping next to the
-      # scope it maps:
-      #
-      #   list_from(scope, view_all_path: items_path) do |item|
-      #     Bali::Widget::Row.new(title: item.name, href: item_path(item))
-      #   end
-      #
-      # ...or a `#row` method, which is worth having when the mapping is long
-      # enough to want a name. Passing neither is an error that says so — see
-      # `#row` below.
-      def list_from(scope, view_all_path: nil, &shape)
-        shape ||= method(:row)
-
-        Result.new(
-          count: scope.count,
-          items: scope.limit(PREVIEW_ROWS).map { |record| shape.call(record) },
-          view_all_path: view_all_path
+      # Tagged by widget key so an error reporter groups these per tile rather
+      # than piling every widget's failure under one controller action.
+      def report_failure(error)
+        Sentry.capture_exception(error, tags: { widget: failure_tag }) if defined?(Sentry)
+        Rails.logger.error(
+          "[bali/widget] #{failure_tag} failed to load — #{error.class}: #{error.message}\n" \
+          "#{error.backtrace&.first(5)&.join("\n")}"
         )
       end
 
-      # DECLARED, like `#call`, rather than left as an invisible template method.
-      # `list_from` used to call this without anything announcing it existed, so
-      # a widget that forgot it got `NoMethodError: undefined method 'row'` raised
-      # from inside Bali — a message that names neither the contract nor the
-      # widget that broke it.
-      def row(_record)
-        raise NotImplementedError,
-              "#{self.class.name || 'This widget'} calls `list_from` without a block, " \
-              "so it must define `#row(record)` returning a Bali::Widget::Row."
+      # `key` raises for an anonymous class, which is CORRECT for `key` — it is
+      # the i18n scope and the persisted `widget_key`. But this is the reporting
+      # path, already inside a rescue, and an exception here would mask the
+      # failure it exists to record.
+      def failure_tag
+        key
+      rescue StandardError
+        self.class.name || "anonymous"
       end
 
-      def subtitle(*parts)
-        Widget.subtitle(*parts)
-      end
-
-      # Reached through `helpers` rather than by including `DateHelper`: this
-      # object is handed to the component, and its public surface is deliberately
-      # curated by the `delegate`s above. An include would add ~17 public methods
-      # to it, several of which raise outside a view.
-      def time_ago_in_words(time)
-        ActionController::Base.helpers.time_ago_in_words(time)
+      # Every pattern that reads records declares one. Must arrive ORDERED where
+      # order matters: paging a preview off an unordered relation is a different
+      # bug in every database.
+      def scope
+        raise NotImplementedError, "#{self.class.name || 'This widget'} must define `#scope`."
       end
     end
   end

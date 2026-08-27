@@ -2,30 +2,91 @@
 
 <% module_namespacing do -%>
 class <%= class_name %> < <%= parent_class %>
-  sized :<%= options[:size] %>
-<% if options[:supports] -%>
-  # What a user may choose. Declare a subset when the widget has nothing to fill
-  # the others with — a bare count at `large` is mostly whitespace.
-  supports <%= options[:supports].map { |s| ":#{s}" }.join(', ') %>
+  default_size :<%= options[:size] %>
+<% if supports_declaration -%>
+  <%= supports_declaration %>
 <% end -%>
 
   # Who may see this. `context` is whatever your controller passes the offering —
-  # a Pundit context, a user, nothing at all. Bali never reads it.
+  # a Pundit context, a user, nothing at all. Bali never reads it. It runs
+  # WITHOUT touching the database, which is what lets a picker list the
+  # authorized set without loading a single widget.
   #
   # def visible? = context.has_any_role?(:some_role)
 
-  def call
-    list_from(scope, view_all_path: nil) do |record|
-      Bali::Widget::Row.new(title: record.to_s)
-    end
+  # Where the tile links. Route helpers are not available here by default: add
+  # `include Rails.application.routes.url_helpers` to a concern your widgets
+  # share, the way `spec/dummy/app/widgets/widget_routes.rb` does.
+  #
+  # view_all_path { <%= widget_key %>_path }
+
+<% if pattern == 'value' -%>
+  # THE FIGURE. A sum, an average, a ratio — whatever the card shows big.
+  def value
+    raise NotImplementedError, "<%= class_name %>#value"
   end
 
-  private
-
-  # Must arrive ORDERED: paging a preview off an unordered relation is a
-  # different bug in every database.
+  # Only when the number is not the display. A ~215px tile fits four to six
+  # characters, so `Bali::Widget.abbreviate` is usually part of the answer.
+  #
+  # def display_value = "$#{Bali::Widget.abbreviate(value)}"
+<% elsif pattern == 'list' -%>
+  # THE SCOPE IS THE PRIMITIVE: `count` is the whole of it, and the preview rows
+  # are the first `PREVIEW_ROWS` after ordering. Leave the order to `order_by`
+  # below — paging a preview off an unordered relation is a different bug in
+  # every database, and `order_by` is applied before the limit rather than after.
   def scope
     raise NotImplementedError, "<%= class_name %>#scope"
   end
+
+  # What one row says. A Symbol is sent to the RECORD; a block runs against the
+  # WIDGET with the record yielded, so it can reach route helpers and private
+  # methods. `row_subtitle` takes either — a symbol for one attribute, a block
+  # when it composes two, where `subtitle(a, b)` joins them the card's way.
+  order_by :id
+  row_title :to_s
+  # row_subtitle :some_attribute
+  # row_href { |record| record_path(record) }
+<% elsif pattern == 'trend' -%>
+  # THE FIGURE, and what it is compared against. The base computes the delta.
+  def current
+    raise NotImplementedError, "<%= class_name %>#current"
+  end
+
+  # Return NIL when there is nothing to compare to — a widget's first week has no
+  # previous period, and the trend is then ABSENT rather than zero.
+  def previous
+    raise NotImplementedError, "<%= class_name %>#previous"
+  end
+
+  # `:up` unless you say otherwise. A widget counting something BAD — overdue
+  # work, low stock — declares `positive_when :down`, and a rising number then
+  # reads red. Getting this wrong makes the card lie confidently.
+  #
+  # positive_when :down
+  period_label "vs previous period"
+
+  # The history behind the fact: a sparkline at `medium`, an axed chart at
+  # `large`. Both blocks run against the widget, so they can share one query
+  # through a memoised private method.
+  series_labels { [] }
+  series_values { [] }
+<% elsif pattern == 'progress' -%>
+  # HOW FAR ALONG. The ring REPLACES the number as the headline, which is what
+  # makes this a pattern rather than a list with a decoration.
+  def value
+    raise NotImplementedError, "<%= class_name %>#value"
+  end
+
+  # What counts as done. Defaults to 100, so a widget whose figure is already a
+  # percentage implements `value` alone.
+  #
+  # def max = 100
+
+  goal_label { "of #{max}" }
+
+  # How you got there. Omit both and the ring stands alone.
+  series_values { [] }
+<% end -%>
 end
 <% end -%>

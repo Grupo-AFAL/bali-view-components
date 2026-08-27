@@ -290,137 +290,162 @@ bin/rails db:migrate
 `Bali::Widget::Base` is the contract a widget class implements. `Bali::DashboardWidget::Store`
 reads and writes one owner's arrangement. `Bali::WidgetGrid::Component` renders it.
 
+### The pattern is the type
+
+A widget does not declare what shape it is; it **inherits** it. There are four bases, one per
+shape, and picking one is what supplies both the declarations you may use and the methods you
+owe:
+
+| Base | The card shows | You implement | You declare |
+|---|---|---|---|
+| `Bali::Widget::ValueBase` | one figure | `value` | `display_value` if the number is not the display |
+| `Bali::Widget::ListBase` | how many, and which | `scope` | `order_by`, `row_title`, `row_subtitle`, `row_href` |
+| `Bali::Widget::TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values` |
+| `Bali::Widget::ProgressBase` | a ring toward a goal | `value`, `max` | `goal_label`, `series_labels`, `series_values` |
+
+This is single inheritance on purpose: **a widget is exactly one of these.** A class that could
+claim two shapes could claim them inconsistently, and the card would have to ask which one it
+meant. It never asks — `Base` answers every question with a null (`items` is `[]`, `trend` is
+`nil`, `goal` is `nil`), each pattern overrides the ones it actually has, and the card reads
+one uniform interface at every size.
+
+It also means a subclass that forgets an abstract method fails loudly rather than rendering
+half a thing: `TrendBase#current` raises `NotImplementedError` until you write it.
+
 ```ruby
-class LowStockItems < Bali::Widget::Base
-  # Bali::Widget::Base deliberately carries almost no surface — it does NOT give you
-  # route helpers. A widget that links its rows anywhere needs them itself.
-  include Rails.application.routes.url_helpers
+class LowStockItems < Bali::Widget::ListBase
+  default_size :medium
 
-  sized :medium
+  order_by     :name
+  row_title    :name
+  row_subtitle :outlet_name
+  row_href     { |item| item_path(item) }
 
-  def visible? = context.has_any_role?(:inventory_manager)
+  view_all_path { items_path }
 
-  def call = list_from(low_stock.order(:name), view_all_path: items_path)
+  def scope = Item.low_stock
+end
+```
+
+**The scope is the primitive.** `count` and the preview rows both fall out of it, so a list
+widget states its collection once. Leave the ordering to `order_by`, which is applied *before*
+the preview is taken — ordering a limited relation sorts the eight rows you already picked,
+which is not the same query and usually not the one you meant.
+
+**The row declarations are symbols sent to the record**, which is the ergonomic point of them:
+`row_title :name` says everything `->(r) { r.name }` would. `row_href` takes a block, because a
+path is built from a helper rather than read off the record, and `row_subtitle` accepts either
+— a symbol for one attribute, a block when it composes two.
+
+A trend widget implements the two figures and lets the base compute the delta between them:
+
+```ruby
+class StudioFoundings < Bali::Widget::TrendBase
+  default_size :medium
+
+  period_label  "vs previous decade"
+  series_labels { decades.keys.map(&:to_s) }
+  series_values { decades.values }
+
+  view_all_path { admin_studios_path }
+
+  def current  = decades.values.last
+  def previous = decades.values[-2]
 
   private
 
-  def row(item)
-    Bali::Widget::Row.new(title: item.name,
-                          subtitle: subtitle("#{item.stock} left", item.outlet_name),
-                          href: item_path(item))
-  end
+  # Declaration blocks run against the widget, so private helpers and memoisation
+  # work exactly as they do in a method — which is how `series` and `trend` share
+  # one query.
+  def decades = @decades ||= Studio.group(…).count.sort.to_h
 end
 ```
 
-### Start with an `ApplicationWidget`
+`previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
+nothing to compare against, and the card drops the indicator rather than drawing a flat 0%.
+Every trend widget used to hand-roll `(((latest - previous) / previous.to_f) * 100).round`;
+it is written once in the base now, and `current`/`previous` is a contract you cannot
+half-implement.
 
-`Bali::Widget::Base` deliberately hands you almost nothing — in particular, no route
-helpers. An engine cannot safely reach into a host's routes, so a widget that links its
-rows includes them itself. That is one line per widget, which is the signal to do what
-Rails does everywhere else and own a base class:
+**`positive_when` is a declaration because getting it wrong makes the card lie.** "Up" is not
+universally good — overdue tasks up 12% and revenue up 12% are opposite news, and the direction
+alone cannot tell them apart. The card colours from whether the movement was *good*, so a widget
+counting something bad declares `positive_when :down` and a rising number then reads red.
+
+The simplest pattern is one figure:
 
 ```ruby
-# app/widgets/application_widget.rb
-class ApplicationWidget < Bali::Widget::Base
-  include Rails.application.routes.url_helpers
+class ProductionBudget < Bali::Widget::ValueBase
+  default_size :small
 
-  # Anything every widget in your app shares: a default `i18n_scope`, a
-  # `current_tenant` reader off `context`, helpers your rows want.
+  view_all_path { admin_movies_path }
+
+  def value = Movie.budgeted.sum(:budget).to_i
+  def display_value = "$#{Bali::Widget.abbreviate(value)}"
 end
 ```
 
-`bin/rails g bali:widget LowStockItems` inherits from it automatically when it exists, and
-falls back to `Bali::Widget::Base` when it does not.
+### The sizes you offer are a promise about the data you have
 
-### Scaffold one
+`medium` and `large` put a context region beside or above the headline. `ValueBase` therefore
+offers `small` alone, and that is the class's point rather than a limitation of it: a bare
+figure at `large` is a title, a number and most of a 2×2 cell of whitespace. Say `supports`
+yourself to override it.
+
+`supports` is **declared, never inferred from the data.** Inferring "this widget has no series,
+so hide `large`" would mean loading every widget just to render a picker — collapsing the
+`visible?`/data split that lets the picker list the authorized set without a single query. It
+would also make the offered sizes vary with the data: a widget whose series is empty this week
+would silently stop offering a size the user had already chosen. Apple declares
+`supportedFamilies` for the same two reasons.
+
+Both `default_size` and `supports` are validated at class-definition time, and `supports`
+additionally rejects a default the user could not choose — a typo is a boot failure, not a
+`KeyError` the first time someone opens the dashboard.
+
+### What every widget gets from `Base`
+
+`view_all_path` is on `Base` rather than on `ListBase`, because a figure, a trend and a ring
+all link somewhere just as a list does. Route helpers are not available to a widget by default:
+put `include Rails.application.routes.url_helpers` in a concern your widgets share, the way
+`spec/dummy/app/widgets/widget_routes.rb` does. (A shared `ApplicationWidget` superclass is not
+an option here — the superclass slot belongs to the pattern.)
+
+`visible?` is a HOOK, never a rule Bali owns: roles, tenancy and feature flags are things only
+your app can see, and it defaults to `true`. It must not touch the database — that split is what
+lets the picker list the offering without loading anything. `context` is whatever your app needs
+to gate on (a Pundit context, a user, nothing at all); Bali never reads it itself.
+
+The preview is capped at `PREVIEW_ROWS` (8 rows) while `count` reflects the whole scope, which
+is what lets a widget stay ignorant of the size its card renders at.
+
+**One widget's failure must not take the page with it.** Every data read a pattern makes is
+wrapped, so a raising widget renders a degraded "Couldn't load" tile instead of a 500 — and
+memoises the failure, so the card's several questions do not re-run the broken query. In
+development and test the safety net is off (`Bali::Widget.raise_load_errors?`), because a widget
+bug there is a bug rather than a permanently apologetic tile.
+
+### The four ladders
+
+The card shows the same fact at every size and adds context as the canvas grows. It never
+changes subject.
+
+| Pattern | small → medium → large |
+|---|---|
+| **Value** | figure *(the only size it offers)* |
+| **List** | count → count + 3 rows → count + 7 rows |
+| **Trend** | figure + trend → + sparkline → + axed chart |
+| **Progress** | ring → ring + sparkline → ring + axed chart |
+
+A `small` card is a different card, not a narrower one: it drops everything but the headline
+and the whole tile becomes one link, because a tile that size supports exactly one tap target.
 
 ```bash
-bin/rails g bali:widget LowStockItems --size medium
+bin/rails g bali:widget StudioFoundings --pattern trend --size medium
 ```
 
-Writes the widget, a test, and its four locale keys in **every locale your app has**. The
-keys are the reason the generator exists: `widgets.<key>.{title,short_title,description,empty}`
-is four keys per widget per locale, and `description` is only ever seen in the picker — a
-missing one surfaces late.
-
-### Limit which sizes a user may choose
-
-`sized` declares the canvas a widget is drawn around. `supports` declares which ones a user may
-pick, and defaults to all of them:
-
-```ruby
-class ProductionBudget < ApplicationWidget
-  sized :small            # the canvas it is drawn around
-  supports :small, :medium   # what the picker offers
-end
-```
-
-Declare a subset when the widget has nothing to fill the others with. A bare count at `large`
-is a title, a number and most of a 2×2 cell of whitespace — offering that size invites a user
-to make the card worse. A widget offering exactly one size gets no picker at all.
-
-**Declared, not inferred.** Bali does not work out "this widget has no series, so hide
-`large`", and deliberately: `authorized_for` never loads data, so inferring would mean
-running every widget's query just to render a picker. It would also make the offered sizes
-vary with the data — a widget whose series is empty this week would silently stop offering a
-size the user had already chosen. Apple declares `supportedFamilies` for the same reasons.
-
-Unofferable is not unrenderable. A stored row naming a size the widget no longer supports
-falls back to its default rather than refusing to draw, and a host passing a size straight to
-`Bali::Widget::Component` still gets it.
-
-`sized` is validated at class-definition time — an unknown size is a boot failure, not a
-`KeyError` the first time someone opens the dashboard. `visible?` is a HOOK, never a rule
-Bali owns: roles, tenancy and feature flags are things only your app can see, and it
-defaults to `true`. `call` returns a `Bali::Widget::Result`; the private `list_from`
-builds one from an ordered scope, capping the preview at `PREVIEW_ROWS` (8 rows) while
-`count` still reflects the whole scope — which is what lets `#call` stay ignorant of the
-size the card renders at. `context` is whatever your app needs to gate on (a Pundit
-context, a user, nothing at all) — Bali never reads it itself.
-
-### Giving the fact context as the card grows
-
-`call` may return more than a count and a list. The card shows the same fact at every size
-and adds context as the canvas grows, and these are what it adds:
-
-| Field | Type | What it earns |
-|---|---|---|
-| `trend:` | `Bali::Widget::Trend` | An arrow and a delta beside the headline, at every size |
-| `series:` | `Bali::Widget::Series` | The chart region — a sparkline at `medium`, a chart with axes at `large` and `wide` |
-| `goal:` | `Bali::Widget::Goal` | A ring that replaces the number as the headline |
-| `display_value:` | `String` | Overrides the printed headline; defaults to an abbreviation of `count` |
-
-**`Trend` needs `positive_when:` and getting it wrong makes the card lie.** "Up" is not
-universally good — overdue tasks up 12% and revenue up 12% are opposite news, and the
-direction alone cannot tell them apart. The card colours from whether the movement was
-*good*, not which way it went, so a widget counting something bad declares
-`positive_when: :down` and a rising number then reads red.
-
-Build them onto the result rather than assembling one big `Result.new` — `list_from` gives
-you the fact, and each builder adds a rung:
-
-```ruby
-def call
-  list_from(overdue, view_all_path: tasks_path) { |task| row_for(task) }
-    .with_trend(delta: 12, period: "vs last week", positive_when: :down)
-    .with_series(values: weekly_counts, labels: weekday_names)
-end
-```
-
-For the ring ladder, `with_goal` replaces the number as the headline:
-
-```ruby
-def call
-  list_from(done, view_all_path: tasks_path) { |task| row_for(task) }
-    .with_goal(value: done.count, max: Task.count, label: "of #{Task.count}")
-    .with_series(values: per_status, type: :bar)
-end
-```
-
-Every one of these is optional, and omitting all of them is a supported, unremarkable state:
-the card drops the context region and the breakdown expands to fill it, which is what a
-widget written against the original contract renders. Adding them is additive, never a
-migration.
+scaffolds exactly that pattern's abstract methods and declarations with the reasoning in
+comments, which is the shortest way to learn what one needs.
 
 ### The widget's copy is yours, in your own locale scope
 

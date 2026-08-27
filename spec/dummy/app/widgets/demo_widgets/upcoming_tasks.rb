@@ -1,29 +1,19 @@
 # frozen_string_literal: true
 
 module DemoWidgets
-  # `large` fits 7 rows, so this is the widget that actually needs a longer
-  # scope to show off the size — every task due today or later, project first.
-  class UpcomingTasks < Bali::Widget::Base
-    include Rails.application.routes.url_helpers
+  class UpcomingTasks < Bali::Widget::ListBase
+    include WidgetRoutes
 
-    sized :large
+    default_size :large
 
-    def call
-      list_from(scope, view_all_path: admin_projects_path)
-    end
-
-    private
+    order_by :due_date
+    row_title :title
+    row_subtitle { |task| subtitle(task.project.name, task.priority.humanize) }
+    row_href { |task| admin_project_path(task.project) }
+    view_all_path { admin_projects_path }
 
     def scope
-      Task.includes(:project).where.not(status: :done).where(due_date: Date.current..).order(:due_date)
-    end
-
-    def row(task)
-      Bali::Widget::Row.new(
-        title: task.title,
-        subtitle: subtitle(task.project.name, task.priority.humanize),
-        href: admin_project_path(task.project)
-      )
+      Task.includes(:project).where.not(status: :done).where(due_date: Date.current..)
     end
   end
 end

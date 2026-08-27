@@ -5,7 +5,7 @@ require "test_helper"
 class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   def self.widget(key, size)
     Class.new(Bali::Widget::Base) do
-      sized size
+      default_size size
       define_singleton_method(:key) { key }
       define_singleton_method(:title) { key }
       def call = Bali::Widget::Result.new

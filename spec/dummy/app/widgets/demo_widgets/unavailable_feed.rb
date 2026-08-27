@@ -3,23 +3,17 @@
 module DemoWidgets
   # THE DEGRADED CARD, so the showcase has one.
   #
-  # It returns `Result.failed` rather than raising, and that is deliberate.
-  # `Bali::Widget.raise_load_errors?` is TRUE in development and test — which is
-  # the correct production safety net working as designed: a widget bug is loud
-  # where someone can fix it. A demo widget that actually raised would therefore
-  # take this whole page down in the environment the page is read in, rather than
-  # showing the degraded tile it exists to show.
-  #
-  # So this demonstrates the CARD, not the rescue. The rescue is covered by
-  # `test/bali/widget/base_test.rb`, where the environment can be stubbed.
-  class UnavailableFeed < Bali::Widget::Base
-    sized :small
-    # A degraded card says the same thing at every size, so growing it buys
-    # nothing. One supported size means no picker at all.
-    supports :small
+  # It DECLARES the state rather than raising to produce it. A widget whose data
+  # actually raises gets here through `Base#safely`, but `raise_load_errors?` is
+  # true in development — the safety net working as designed — so a demo widget
+  # that really raised would take this page down instead of showing the tile it
+  # exists to show. The rescue is covered in `test/bali/widget/base_test.rb`,
+  # where the environment can be stubbed.
+  class UnavailableFeed < Bali::Widget::ValueBase
+    default_size :small
 
-    def call
-      Bali::Widget::Result.failed
-    end
+    def value = 0
+
+    def failed? = true
   end
 end

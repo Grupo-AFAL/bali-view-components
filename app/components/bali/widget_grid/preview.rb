@@ -3,62 +3,72 @@
 module Bali
   module WidgetGrid
     class Preview < ApplicationViewComponentPreview
-      # Widgets with no host behind them, one per size, so the bento shows all
-      # four spans at once.
-      class Demo < Bali::Widget::Base
-        # `define_singleton_method(:key) { key }` is NOT infinite recursion: the
-        # block closes over `build`'s local parameter, which shadows the method
-        # being defined. The override is required rather than decorative —
-        # `Base.key` derives from `name.demodulize.underscore`, and an anonymous
-        # `Class.new` has no `name`, so without it every call raises.
-        def self.build(key, size, count, pattern = :list)
-          Class.new(self) do
-            sized size
+      # Specimens with no host behind them, one per pattern and one per size, so
+      # the bento shows the whole matrix at once. THE PATTERN IS THE TYPE, so
+      # each is built from the base class its ladder belongs to.
+      module Demo
+        # `define_singleton_method(:key)` is NOT infinite recursion: the block
+        # closes over the local parameter, which shadows the method being
+        # defined. It is required rather than decorative — `Base.key` derives
+        # from `name.demodulize.underscore`, and an anonymous `Class.new` has no
+        # `name`, so without it every call raises.
+        def self.named(base, key, size, &block)
+          Class.new(base) do
             define_singleton_method(:key) { key }
-            define_singleton_method(:title) { key.humanize }
-            define_singleton_method(:short_title) { key.humanize }
-            define_singleton_method(:empty_message) { "Nothing here" }
-            define_method(:call) do
-              Bali::Widget::Result.new(
-                count: count,
-                view_all_path: "/lookbook",
-                items: Array.new(count) { |i| Bali::Widget::Row.new(title: "Row #{i + 1}") },
-                **Preview.ladder_for(pattern, count)
-              )
-            end
+            title key.humanize
+            short_title key.humanize
+            empty_message "Nothing here"
+            view_all_path { "/lookbook" }
+            class_eval(&block)
+            default_size size
           end.new
         end
-      end
 
-      # One specimen per size AND one per ladder, so the grid shows the whole
-      # matrix at once: the metric ladder at `medium`, the plain list at `large`
-      # (the pre-ladder contract, still rendering), and the goal at `large`.
-      SPECIMENS = [
-        [ "overdue_counts", :small, 4, :metric ],
-        [ "low_stock_items", :medium, 6, :metric ],
-        [ "expiring_stock", :large, 9, :list ],
-        [ "cost_spikes", :large, 7, :goal ]
-      ].freeze
+        def self.list(key, size, count)
+          named(Bali::Widget::ListBase, key, size) do
+            row_title { |row| row[:title] }
+            define_method(:count) { count }
+            define_method(:scope) { Rows.new(count) }
+          end
+        end
 
-      # The three ladders, shared with `Bali::Widget::Preview`'s specimen. A
-      # module method so `build`'s anonymous class can reach it — the block
-      # closes over nothing useful.
-      def self.ladder_for(pattern, count)
-        case pattern
-        when :metric
-          { trend: Bali::Widget::Trend.new(delta: 12, period: "vs last week",
-                                           positive_when: :down),
-            series: Bali::Widget::Series.new(values: [ 3, 5, 4, 8, 6, 9, 12 ],
-                                             labels: %w[Mon Tue Wed Thu Fri Sat Sun]) }
-        when :goal
-          { goal: Bali::Widget::Goal.new(value: count, max: 10, label: "of 10"),
-            series: Bali::Widget::Series.new(values: [ 2, 4, 3, 6, 5, 7, count ],
-                                             labels: %w[Mon Tue Wed Thu Fri Sat Sun],
-                                             type: :bar) }
-        else
-          {}
+        def self.trend(key, size, count)
+          named(Bali::Widget::TrendBase, key, size) do
+            positive_when :down
+            period_label "vs last week"
+            series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
+            series_values { [ 3, 5, 4, 8, 6, 9, 12 ] }
+            define_method(:current) { count }
+            define_method(:previous) { [ count / 2, 1 ].max }
+          end
+        end
+
+        def self.goal(key, size, count)
+          named(Bali::Widget::ProgressBase, key, size) do
+            goal_label "of 10"
+            series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
+            series_values { [ 2, 4, 3, 6, 5, 7, 9 ] }
+            define_method(:value) { count }
+            def max = 10
+          end
+        end
+
+        # A stand-in for a relation: the card only asks a scope to count and to
+        # hand back a capped preview, so a preview needs no table.
+        Rows = Struct.new(:size) do
+          def count = size
+          def order(*) = self
+          def limit(n) = Array.new([ size, n ].min) { |i| { title: "Row #{i + 1}" } }
         end
       end
+
+      # One per pattern and one per size, so the grid shows the whole matrix.
+      SPECIMENS = [
+        [ :trend, "overdue_counts", :small, 4 ],
+        [ :trend, "low_stock_items", :medium, 6 ],
+        [ :list, "expiring_stock", :large, 9 ],
+        [ :goal, "cost_spikes", :large, 7 ]
+      ].freeze
 
       # A user-arrangeable dashboard. Press **Edit** to reveal each card's handle,
       # remove button and size picker; drag a card, or focus a handle and use the
@@ -82,8 +92,8 @@ module Bali
       # @param add_tile toggle
       def default(add_tile: true)
         render_with_template(locals: {
-                               widgets: Bali::WidgetGrid::Preview::SPECIMENS.map do |key, size, count, pattern|
-                                 Bali::WidgetGrid::Preview::Demo.build(key, size, count, pattern)
+                               widgets: Bali::WidgetGrid::Preview::SPECIMENS.map do |pattern, key, size, count|
+                                 Bali::WidgetGrid::Preview::Demo.public_send(pattern, key, size, count)
                                end,
                                add_path: add_tile ? "/lookbook" : nil
                              })

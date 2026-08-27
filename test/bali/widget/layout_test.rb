@@ -5,7 +5,7 @@ require "test_helper"
 class BaliWidgetLayoutTest < ActiveSupport::TestCase
   def self.widget(key)
     Class.new(Bali::Widget::Base) do
-      sized :medium
+      default_size :medium
       define_singleton_method(:key) { key }
     end
   end

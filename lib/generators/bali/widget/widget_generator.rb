@@ -4,9 +4,16 @@ module Bali
   # Scaffolds a dashboard widget: the class, its four locale keys in every locale
   # the app has, and a test.
   #
-  #   bin/rails g bali:widget LowStockItems --size medium
+  #   bin/rails g bali:widget LowStockItems --pattern list --size medium
   #
-  # The locale keys are the reason this exists. A widget's copy lives under
+  # THE PATTERN IS THE SUPERCLASS. `--pattern` does not write a declaration the
+  # class could later contradict; it picks which of the four bases the widget
+  # inherits from, and that choice is what supplies its declarations and its
+  # abstract methods. So the scaffold is the documentation: a `trend` widget is
+  # generated with `current` and `previous` raising, because those are exactly
+  # what a trend widget owes the card.
+  #
+  # The locale keys are the other reason this exists. A widget's copy lives under
   # `widgets.<key>.{title,short_title,description,empty}` — four keys per widget,
   # per locale, that a host otherwise discovers from prose and forgets one of.
   # `description` in particular is only ever seen in a picker, so a missing one
@@ -14,14 +21,30 @@ module Bali
   class WidgetGenerator < Rails::Generators::NamedBase
     source_root File.expand_path("templates", __dir__)
 
+    # Named for the base each one picks, so `--pattern trend` and
+    # `Bali::Widget::TrendBase` are the same word. A separate vocabulary here
+    # ("metric", "stat") would be a second name for a class that already has one.
+    PATTERNS = {
+      "value" => "ValueBase",
+      "list" => "ListBase",
+      "trend" => "TrendBase",
+      "progress" => "ProgressBase"
+    }.freeze
+
+    class_option :pattern, type: :string, default: "list",
+                           desc: "#{PATTERNS.keys.join(', ')} — which base the widget inherits from"
     class_option :size, type: :string, default: "medium",
                         desc: "small, medium or large — the canvas the widget is drawn around"
     class_option :supports, type: :array, default: nil,
-                            desc: "Sizes a user may choose (defaults to all three)"
-    class_option :parent, type: :string, default: nil,
-                          desc: "Base class (defaults to ApplicationWidget if you have one)"
+                            desc: "Sizes a user may choose (defaults to the pattern's own set)"
     class_option :skip_test, type: :boolean, default: false
     class_option :skip_locales, type: :boolean, default: false
+
+    def validate_pattern
+      return if PATTERNS.key?(options[:pattern])
+
+      raise Thor::Error, "--pattern must be one of: #{PATTERNS.keys.join(', ')}"
+    end
 
     def validate_sizes
       known = Bali::Widget::SIZES.map(&:to_s)
@@ -31,9 +54,8 @@ module Bali
 
       unknown = Array(options[:supports]) - known
       raise Thor::Error, "--supports must be from: #{Bali::Widget::SIZES.join(', ')}" if unknown.any?
-      return if options[:supports].nil? || options[:supports].include?(options[:size])
 
-      raise Thor::Error, "--size #{options[:size]} must be one of --supports #{options[:supports].join(', ')}"
+      validate_default_is_offered
     end
 
     def create_widget
@@ -61,12 +83,36 @@ module Bali
 
     private
 
+    def pattern = options[:pattern]
+
+    def parent_class = "Bali::Widget::#{PATTERNS.fetch(pattern)}"
+
+    # `ValueBase` offers `small` alone, and that is the class's point rather than
+    # a limitation of it — a bare figure at `large` is a title, a number and most
+    # of a 2x2 cell of whitespace. The base would reject the mismatch itself at
+    # class-definition time; refusing here means the message can name the flag.
+    def offered_sizes
+      Array(options[:supports]).presence || parent_class.constantize.supported_sizes.map(&:to_s)
+    end
+
+    def validate_default_is_offered
+      return if offered_sizes.include?(options[:size])
+
+      raise Thor::Error,
+            "--pattern #{pattern} offers #{offered_sizes.join(', ')}, so --size #{options[:size]} " \
+            "is not a size a user could choose. Pick one of those, or pass --supports."
+    end
+
+    # Only written when it differs from what the base already offers. A `supports`
+    # restating the default is a second place to keep the same fact.
+    def supports_declaration
+      return if options[:supports].nil?
+
+      "supports #{options[:supports].map { |s| ":#{s}" }.join(', ')}"
+    end
+
     # `LowStockItems` -> `low_stock_items`, the same derivation `Base.key` does.
     def widget_key = file_name
-
-    def parent_class
-      options[:parent] || (defined?(::ApplicationWidget) ? "ApplicationWidget" : "Bali::Widget::Base")
-    end
 
     def locales
       found = Dir.glob(Rails.root.join("config/locales/*.yml")).map { |f| File.basename(f, ".yml").split(".").last }
@@ -79,7 +125,7 @@ module Bali
         #{'      '}title: #{human_name}
         #{'      '}short_title: #{human_name}
         #{'      '}description: TODO — one line saying what this widget shows, for the picker
-        #{'      '}empty: TODO — what to say when there is nothing to list
+        #{'      '}empty: TODO — what to say when there is nothing to show
       YAML
     end
   end

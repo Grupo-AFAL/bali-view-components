@@ -10,13 +10,26 @@ class <%= class_name %>Test < ActiveSupport::TestCase
     assert_equal :<%= options[:size] %>, widget.size
   end
 
-  # `count` is the WHOLE scope; `items` is a preview capped at PREVIEW_ROWS. The
-  # card decides how many of them fit at each size.
-  def test_it_loads_a_result
-    result = widget.result
-
-    assert_kind_of Bali::Widget::Result, result
-    refute_predicate result, :failed?
+  # The card asks the widget directly — there is no result object between them —
+  # so this is the whole interface a <%= pattern %> widget has to answer.
+  #
+  # `failed?` is the one that matters: a widget swallows its own exceptions so a
+  # single bad query cannot take the dashboard with it, which means a broken
+  # `<%= pattern == 'list' ? 'scope' : 'value' %>` renders a degraded card rather than raising here.
+  def test_it_loads_without_failing
+    refute_predicate widget, :failed?
+<% if pattern == 'value' -%>
+    assert_kind_of Integer, widget.count
+<% elsif pattern == 'list' -%>
+    assert_kind_of Integer, widget.count
+    assert_operator widget.items.size, :<=, Bali::Widget::Base::PREVIEW_ROWS
+<% elsif pattern == 'trend' -%>
+    assert_kind_of Integer, widget.count
+    # nil is a legitimate answer: no previous period means no trend to draw.
+    assert(widget.trend.nil? || widget.trend.is_a?(Bali::Widget::TrendBase::Trend))
+<% elsif pattern == 'progress' -%>
+    assert_kind_of Bali::Widget::ProgressBase::Goal, widget.goal
+<% end -%>
   end
 
   def test_it_is_visible_by_default

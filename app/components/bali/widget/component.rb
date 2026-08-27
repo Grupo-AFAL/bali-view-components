@@ -76,13 +76,14 @@ module Bali
       # inside a library.
       renders_one :body
 
-      # Copy and identity from the WIDGET; data from its RESULT. Split because
-      # forwarding the data through the widget reserved five ordinary English
-      # words on every host subclass — see the note in `Bali::Widget::Base`.
-      delegate :key, :title, :short_title, :empty_message, :size,
-               :supported_sizes, to: :widget
-      delegate :count, :items, :view_all_path, :failed?,
-               :display_value, :trend, :series, :goal, to: :result
+      # ONE INTERFACE, straight off the widget. `Bali::Widget::Base` answers every
+      # one of these — with a null where the pattern has nothing — so the card
+      # never asks what kind of widget it is holding. A `ValueBase` returns no
+      # rows and no series; the regions that would have shown them simply do not
+      # render.
+      delegate :key, :title, :short_title, :empty_message, :size, :supported_sizes,
+               :count, :items, :view_all_path, :failed?,
+               :display_value, :trend, :series, :goal, to: :widget
 
       # `**options` so a host can add a `data-testid`, an extra class, or a
       # Turbo frame attribute to a card — the same passthrough every other
@@ -96,8 +97,6 @@ module Bali
       private
 
       attr_reader :widget, :options
-
-      def result = widget.result
 
       # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
       # grid's own resize needs it — a card that changes shape has to come back
@@ -153,7 +152,12 @@ module Bali
       #
       # The counterpart to `context?`. Both answer "does this region have
       # anything to put in it", and having only one of them was the whole defect.
-      def detail? = body? || rows.any? || empty_state?
+      # `failed?` is in here for the LATE failure only. An early one never gets
+      # this far — the card's first branch is the degraded tile. But `failed?`
+      # probes with `count`, so a widget whose count survives and whose rows do
+      # not is discovered while this region is being captured, and without this
+      # the region is dropped and the apology inside it goes with it.
+      def detail? = body? || rows.any? || empty_state? || failed?
 
       # ONE home for this rule. The template used to spell it inline as well,
       # and two spellings of one rule is how the `context?` bug got in.

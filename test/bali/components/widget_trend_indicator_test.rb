@@ -4,7 +4,7 @@ require "test_helper"
 
 class BaliWidgetTrendIndicatorComponentTest < ComponentTestCase
   def trend(**overrides)
-    Bali::Widget::Trend.new(**{ delta: 12, period: "vs last week" }.merge(overrides))
+    Bali::Widget::TrendBase::Trend.new(**{ delta: 12, period: "vs last week" }.merge(overrides))
   end
 
   def render_trend(compact: false, **overrides)

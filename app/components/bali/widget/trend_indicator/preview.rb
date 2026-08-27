@@ -19,7 +19,7 @@ module Bali
         def default(delta: 12, unit: "%", period: "vs last week", positive_when: :up,
                     compact: false)
           render Bali::Widget::TrendIndicator::Component.new(
-            Bali::Widget::Trend.new(delta: delta.to_i, unit: unit, period: period.presence,
+            Bali::Widget::TrendBase::Trend.new(delta: delta.to_i, unit: unit, period: period.presence,
                                     positive_when: positive_when.to_sym),
             compact: compact
           )

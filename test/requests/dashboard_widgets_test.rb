@@ -19,12 +19,23 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
 
   def test_update_persists_an_authorized_widget
     patch dashboard_widgets_path, params: {
-      widgets: [ { key: "overdue_tasks", size: "large" } ]
+      widgets: [ { key: "recent_movies", size: "large" } ]
     }
     assert_response :no_content
 
-    assert_equal %w[overdue_tasks], store.stored_keys
+    assert_equal %w[recent_movies], store.stored_keys
     assert_equal :large, store.widgets.first.size
+  end
+
+  # `OverdueTasks` is a `ValueBase`, which supports `:small` alone — a bare figure
+  # has nothing to fill a bigger canvas. A stored size it does not offer falls
+  # back to its default rather than refusing to render.
+  def test_a_size_a_widget_does_not_offer_falls_back_to_its_default
+    patch dashboard_widgets_path, params: {
+      widgets: [ { key: "overdue_tasks", size: "large" } ]
+    }
+
+    assert_equal :small, store.widgets.first.size
   end
 
   def test_update_silently_drops_a_key_outside_the_offering

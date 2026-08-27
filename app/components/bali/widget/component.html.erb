@@ -213,6 +213,15 @@
               </li>
             <% end %>
           </ul>
+        <%# A SECOND failure check, and not a redundant one: `failed?` above probes
+            with `count`, so a widget whose count succeeds and whose rows raise
+            reaches here looking healthy — a headline over an empty region. The
+            muted empty message below would be a lie in that case, because it
+            says "nothing to list" about a list that failed to load. %>
+        <% elsif failed? %>
+          <p class="flex-1 place-content-center text-center text-xs text-warning">
+            <%= t('bali_view.widgets.load_error') %>
+          </p>
         <% elsif empty_state? %>
           <p class="flex-1 place-content-center text-center text-sm text-base-content/40">
             <%= empty_message %>

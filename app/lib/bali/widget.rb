@@ -24,22 +24,16 @@ module Bali
     # case it was written for.
     SIZES = %i[small medium large].freeze
 
-    # Subtitles read "A · B" everywhere. The separator lives here rather than
-    # baked into translator-editable strings.
-    SEPARATOR = " · "
-
     # Largest first, so `find` returns the biggest unit that applies. Stops at
     # billions: a dashboard tile showing a trillion of anything has a bigger
     # problem than its formatting.
     ABBREVIATIONS = [ [ 1_000_000_000, "B" ], [ 1_000_000, "M" ], [ 1_000, "k" ] ].freeze
 
-    class << self
-      # Blank parts drop out, so a widget with only one half doesn't render a
-      # dangling separator.
-      def subtitle(*parts)
-        parts.compact_blank.join(SEPARATOR)
-      end
+    # Subtitles read "A · B" everywhere. The separator lives here rather than
+    # baked into translator-editable strings.
+    SEPARATOR = " · "
 
+    class << self
       # The small card is ~215px wide and draws its headline at `text-4xl`, which
       # gives it roughly 4-6 characters before the number runs off the tile. This
       # is what keeps a count of 1_234_567 from doing that.
@@ -67,6 +61,10 @@ module Bali
       #
       # A method, not a constant: `Rails.env` is read per call so a test can
       # stub this without freezing the answer at boot.
+      # Blank parts drop out, so a row with only one half does not render a
+      # dangling separator.
+      def subtitle(*parts) = parts.compact_blank.join(SEPARATOR)
+
       def raise_load_errors? = Rails.env.local?
 
       # The gate. Un-called widget instances, so it costs only whatever the

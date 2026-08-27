@@ -1,34 +1,15 @@
 # frozen_string_literal: true
 
 module DemoWidgets
-  # THE ABBREVIATION RUNG. A ~215px tile at `text-4xl` has room for four to six
-  # characters, and the real figure here is 2,062,000,000 — so this is the widget
-  # that shows why `display_value` exists.
-  #
-  # It overrides rather than leaning on `Bali::Widget.abbreviate`, because the
-  # headline is money: `abbreviate` would render "2.1B" and drop the currency,
-  # which is a different number.
-  class ProductionBudget < Bali::Widget::Base
-    include Rails.application.routes.url_helpers
+  # THE ABBREVIATION CASE. The real figure is 2,062,000,000 and a ~215px tile at
+  # `text-4xl` fits four to six characters — so `display_value` overrides, and it
+  # overrides rather than leaning on `abbreviate` alone because the headline is
+  # money and dropping the currency would make it a different number.
+  class ProductionBudget < Bali::Widget::ValueBase
+    default_size :small
 
-    sized :small
-    # Nothing to fill a bigger canvas with: no items, no series, no goal. At
-    # `large` this would be a title, "$2.1B" and most of a 2x2 cell of
-    # whitespace, so the picker does not offer it.
-    supports :small, :medium
+    def value = Movie.budgeted.sum(:budget).to_i
 
-    def call
-      Bali::Widget::Result.new(
-        count: total.to_i,
-        display_value: "$#{Bali::Widget.abbreviate(total)}",
-        view_all_path: admin_movies_path
-      )
-    end
-
-    private
-
-    def total
-      @total ||= Movie.budgeted.sum(:budget)
-    end
+    def display_value = "$#{Bali::Widget.abbreviate(value)}"
   end
 end

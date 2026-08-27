@@ -32,17 +32,17 @@ describe('resizing re-renders the card', () => {
     cy.visit(`${appOrigin}/dashboard_widgets?editing=1`)
   })
 
-  // `studio_foundings` is a metric widget: a count, a trend and a series. At
-  // `medium` a charted card trades its rows for the sparkline, so it has none.
-  it('grows a charted card from medium to large and gains the breakdown', () => {
-    startAt('studio_foundings', 'medium')
-    cy.get(`${card('studio_foundings')} ul.list li`).should('not.exist')
+  // `recent_movies` is a ListBase: growing it gains rows, which is the list
+  // ladder's whole content step. A TrendBase has no rows at all — the pattern
+  // is the type, and a trend widget's ladder is figure → sparkline → axed chart.
+  it('grows a list card from medium to large and gains rows', () => {
+    startAt('recent_movies', 'medium')
+    cy.get(`${card('recent_movies')} ul.list li`).should('have.length', 3)
 
-    sizeTo('studio_foundings', 'large')
+    sizeTo('recent_movies', 'large')
 
-    cy.get(card('studio_foundings')).should('have.attr', 'data-size', 'large')
-    cy.get(`${card('studio_foundings')} .bali-widget-detail`).should('exist')
-    cy.get(`${card('studio_foundings')} ul.list li`).should('have.length', 3)
+    cy.get(card('recent_movies')).should('have.attr', 'data-size', 'large')
+    cy.get(`${card('recent_movies')} ul.list li`).should('have.length', 7)
   })
 
   // Below roughly 2x2 a chart gives up its axes. Growing has to give them back,
@@ -61,39 +61,39 @@ describe('resizing re-renders the card', () => {
 
   // A hero card is a different DOM, not a smaller one: no header, the whole tile
   // is one link. No CSS can turn that into a stacked layout.
-  // `overdue_tasks`, not `production_budget`: the latter declares
-  // `sizes :small, :medium`, so `large` is not offerable — which is exactly what
-  // that declaration is for. This needs a hero widget that offers all three.
+  // A ListBase at `small` is a hero — the whole tile is one link and there is no
+  // header. Growing it is a different DOM, which only a re-render can produce.
   it('grows a hero card into the full layout', () => {
-    startAt('overdue_tasks', 'small')
-    cy.get(`${card('overdue_tasks')} .stat`).should('exist')
-    cy.get(`${card('overdue_tasks')} h5`).should('not.exist')
+    startAt('recent_movies', 'small')
+    cy.get(`${card('recent_movies')} .stat`).should('exist')
+    cy.get(`${card('recent_movies')} h5`).should('not.exist')
 
-    sizeTo('overdue_tasks', 'large')
+    sizeTo('recent_movies', 'large')
 
-    cy.get(`${card('overdue_tasks')} h5`).should('exist')
-    cy.get(`${card('overdue_tasks')} .stat`).should('not.exist')
+    cy.get(`${card('recent_movies')} h5`).should('exist')
+    cy.get(`${card('recent_movies')} .stat`).should('not.exist')
   })
 
-  // The declaration is load-bearing, not decorative: a size a widget does not
-  // offer has no button to press.
-  it('offers only the sizes a widget declares', () => {
-    cy.get(`${card('production_budget')} [data-widget-size]`).should('have.length', 2)
-    cy.get(`${card('production_budget')} [data-widget-size="large"]`).should('not.exist')
-  })
-
-  // One size is not a choice, so there is no radiogroup to tab into.
+  // `ValueBase` supports `:small` alone — a bare figure has nothing to fill a
+  // bigger canvas, which is the class's point rather than a limitation of it.
+  // One size is not a choice, so neither gets a radiogroup to tab into.
+  //
+  // The partial case (two of three offered) is covered in
+  // `test/bali/components/widget_size_picker_test.rb`, which can build a widget
+  // for it rather than needing one to exist in the showcase.
   it('gives a single-size widget no picker at all', () => {
+    cy.get(`${card('production_budget')} [role="radiogroup"]`).should('not.exist')
+    cy.get(`${card('production_budget')} [data-widget-size]`).should('not.exist')
     cy.get(`${card('unavailable_feed')} [role="radiogroup"]`).should('not.exist')
   })
 
   // A keyboard resize leaves focus on a size button inside the card the stream
   // is about to replace, and a replaced element takes its focus with it.
   it('keeps focus on the size picker after a keyboard resize', () => {
-    startAt('studio_foundings', 'medium')
-    cy.get(`${card('studio_foundings')} [aria-checked="true"]`).focus().type('{rightarrow}')
+    startAt('recent_movies', 'medium')
+    cy.get(`${card('recent_movies')} [aria-checked="true"]`).focus().type('{rightarrow}')
 
-    cy.get(card('studio_foundings')).should('have.attr', 'data-size', 'large')
+    cy.get(card('recent_movies')).should('have.attr', 'data-size', 'large')
     cy.focused().should('have.attr', 'data-widget-size', 'large')
   })
 
@@ -101,11 +101,11 @@ describe('resizing re-renders the card', () => {
   // `editingValueChanged` does not fire again for it. Without
   // `inertTargetConnected` the new card is tabbable inside a dimmed page.
   it('marks the replacement inert, like every other card in edit mode', () => {
-    startAt('studio_foundings', 'medium')
+    startAt('recent_movies', 'medium')
 
-    sizeTo('studio_foundings', 'large')
+    sizeTo('recent_movies', 'large')
 
-    cy.get(`${card('studio_foundings')} [data-bali-widget-grid-edit-mode-target="inert"]`)
+    cy.get(`${card('recent_movies')} [data-bali-widget-grid-edit-mode-target="inert"]`)
       .should(($el) => expect($el[0].inert, 'replacement is inert').to.equal(true))
   })
 })

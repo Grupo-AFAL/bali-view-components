@@ -2521,33 +2521,52 @@ fill in as the canvas grows:
 | `medium` | 2×1 | The fact, and a sparkline beside it — axis-less, because below roughly 2×2 axes cost more room than they explain. |
 | `large` | 2×2 | The fact, a chart with axes, and the breakdown below. |
 
-A widget opts into the richer rungs by returning more on its `Result` — `trend:`, `series:`
-and `goal:`. **A widget that returns none of them still renders at every size**: the
-context region is simply absent and the breakdown expands to fill it, which is exactly what
-a widget written before the ladder does.
+**The pattern is the type.** A widget inherits from one of four bases, and that choice is what
+gives it its rungs — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many and which),
+`TrendBase` (a figure and how it moved) and `ProgressBase` (a ring toward a goal). The card
+asks the widget directly; there is no result object between them, and `Base` answers every
+question a pattern does not have with a null, so the card reads one interface at every size.
 
 ```ruby
-Bali::Widget::Result.new(
-  count: 42, items: rows, view_all_path: items_path,
+class OverdueTasks < Bali::Widget::TrendBase
+  default_size :medium
+
   # "Up" is NOT universally good. Overdue tasks up 12% and revenue up 12% are opposite
   # news, so the widget says which direction is good and the card colours from that.
   # Get this wrong and the trend indicator confidently lies.
-  trend: Bali::Widget::Trend.new(delta: 12, period: "vs last week", positive_when: :down),
-  series: Bali::Widget::Series.new(values: [3, 5, 4, 8], labels: %w[Mon Tue Wed Thu])
-)
+  positive_when :down
+  period_label  "vs last week"
+  series_labels { %w[Mon Tue Wed Thu] }
+  series_values { [ 3, 5, 4, 8 ] }
+
+  view_all_path { tasks_path }
+
+  def current  = 8
+  def previous = 4
+end
 ```
 
-For the ring ladder — progress toward a goal, then how you got there — return a
-`Bali::Widget::Goal` instead of leaning on `count`; it replaces the number as the headline
-at every size:
+`previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
+nothing to compare against, and the card drops the indicator rather than drawing a flat 0%.
+
+For the ring ladder — progress toward a goal, then how you got there — the ring replaces the
+number as the headline at every size:
 
 ```ruby
-Bali::Widget::Result.new(
-  count: 7,
-  goal: Bali::Widget::Goal.new(value: 7, max: 10, label: "of 10"),
-  series: Bali::Widget::Series.new(values: [2, 4, 3, 6, 7], type: :bar)
-)
+class Onboarding < Bali::Widget::ProgressBase
+  default_size :large
+
+  goal_label    { "of #{max}" }
+  series_values { [ 2, 4, 3, 6, 7 ] }
+
+  def value = 7
+  def max   = 10
+end
 ```
+
+`ValueBase` offers `small` alone, because a bare figure at `large` is a title, a number and
+most of a 2×2 cell of whitespace; every other pattern offers all three. Say `supports` in the
+class body to override that.
 
 `display_value` is what the headline actually prints, defaulting to an abbreviation of
 `count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
