@@ -16,15 +16,24 @@ module Bali
 
     class_option :size, type: :string, default: "medium",
                         desc: "small, medium or large — the canvas the widget is drawn around"
+    class_option :sizes, type: :array, default: nil,
+                         desc: "Sizes a user may choose (defaults to all three)"
     class_option :parent, type: :string, default: nil,
                           desc: "Base class (defaults to ApplicationWidget if you have one)"
     class_option :skip_test, type: :boolean, default: false
     class_option :skip_locales, type: :boolean, default: false
 
-    def validate_size
-      return if Bali::Widget::SIZES.map(&:to_s).include?(options[:size])
+    def validate_sizes
+      known = Bali::Widget::SIZES.map(&:to_s)
+      unless known.include?(options[:size])
+        raise Thor::Error, "--size must be one of: #{Bali::Widget::SIZES.join(', ')}"
+      end
 
-      raise Thor::Error, "--size must be one of: #{Bali::Widget::SIZES.join(', ')}"
+      unknown = Array(options[:sizes]) - known
+      raise Thor::Error, "--sizes must be from: #{Bali::Widget::SIZES.join(', ')}" if unknown.any?
+      return if options[:sizes].nil? || options[:sizes].include?(options[:size])
+
+      raise Thor::Error, "--size #{options[:size]} must be one of --sizes #{options[:sizes].join(', ')}"
     end
 
     def create_widget

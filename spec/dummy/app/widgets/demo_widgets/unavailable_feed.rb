@@ -14,6 +14,9 @@ module DemoWidgets
   # `test/bali/widget/base_test.rb`, where the environment can be stubbed.
   class UnavailableFeed < Bali::Widget::Base
     sized :small
+    # A degraded card says the same thing at every size, so growing it buys
+    # nothing. One supported size means no picker at all.
+    sizes :small
 
     def call
       Bali::Widget::Result.failed

@@ -3,6 +3,11 @@
 <% module_namespacing do -%>
 class <%= class_name %> < <%= parent_class %>
   sized :<%= options[:size] %>
+<% if options[:sizes] -%>
+  # What a user may choose. Declare a subset when the widget has nothing to fill
+  # the others with — a bare count at `large` is mostly whitespace.
+  sizes <%= options[:sizes].map { |s| ":#{s}" }.join(', ') %>
+<% end -%>
 
   # Who may see this. `context` is whatever your controller passes the offering —
   # a Pundit context, a user, nothing at all. Bali never reads it.

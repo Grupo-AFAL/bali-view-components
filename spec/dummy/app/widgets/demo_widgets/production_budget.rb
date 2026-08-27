@@ -12,6 +12,10 @@ module DemoWidgets
     include Rails.application.routes.url_helpers
 
     sized :small
+    # Nothing to fill a bigger canvas with: no items, no series, no goal. At
+    # `large` this would be a title, "$2.1B" and most of a 2x2 cell of
+    # whitespace, so the picker does not offer it.
+    sizes :small, :medium
 
     def call
       Bali::Widget::Result.new(

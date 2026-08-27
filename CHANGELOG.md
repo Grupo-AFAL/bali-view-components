@@ -32,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **Widgets declare which sizes a user may choose.** `sizes :small, :medium` alongside
+  `sized :small`, defaulting to all three. Declare a subset when the widget has nothing to
+  fill the others with — a bare count at `large` is a title, a number and most of a 2×2 cell
+  of whitespace. A widget offering one size gets no picker at all. Declared rather than
+  inferred from the data, because `authorized_for` never loads data (inferring would run
+  every widget's query just to draw a picker) and because offered sizes that varied with the
+  data would silently drop a size the user had already chosen. Unofferable is not
+  unrenderable: a stored row naming an unsupported size falls back to the widget's default.
 - **Widget authoring got a real API.** `bin/rails g bali:widget LowStockItems --size medium`
   scaffolds the class, a test, and the four locale keys in every locale your app has —
   `widgets.<key>.{title,short_title,description,empty}` is easy to forget one of, and

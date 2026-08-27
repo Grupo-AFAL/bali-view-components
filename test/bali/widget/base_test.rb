@@ -57,6 +57,59 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     refute_predicate widget.result, :failed?
   end
 
+  # ---- what a user may choose --------------------------------------------
+
+  def test_every_size_is_offered_by_default
+    assert_equal Bali::Widget::SIZES, LowStockItems.supported_sizes
+  end
+
+  # A bare count at `large` is a title, a number and most of a 2x2 cell of
+  # whitespace. A widget with nothing to fill a canvas should not invite one.
+  def test_a_widget_can_offer_a_subset
+    klass = Class.new(Bali::Widget::Base) do
+      sized :small
+      sizes :small, :medium
+    end
+
+    assert_equal %i[small medium], klass.supported_sizes
+  end
+
+  # DECLARED, not inferred: validated at class-definition time like `sized`, so a
+  # typo is a boot failure rather than a picker that quietly offers nothing.
+  def test_an_unknown_size_is_a_boot_failure
+    assert_raises(ArgumentError) do
+      Class.new(Bali::Widget::Base) { sizes :small, :enormous }
+    end
+  end
+
+  def test_offering_nothing_is_a_boot_failure
+    assert_raises(ArgumentError) { Class.new(Bali::Widget::Base) { sizes } }
+  end
+
+  # Otherwise the widget renders at a size its own picker cannot get back to.
+  def test_the_default_must_be_one_a_user_can_choose
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::Widget::Base) do
+        sized :large
+        sizes :small, :medium
+      end
+    end
+
+    assert_match(/must be one a user can choose/, error.message)
+  end
+
+  # A stored row can name a size this widget stopped offering. Falling back beats
+  # refusing to draw — the same call `with_size` already makes for a retired name.
+  def test_a_stored_size_the_widget_no_longer_offers_falls_back_to_its_default
+    klass = Class.new(Bali::Widget::Base) do
+      sized :small
+      sizes :small, :medium
+    end
+
+    assert_equal :small, klass.new.with_size("large").size
+    assert_equal :medium, klass.new.with_size("medium").size
+  end
+
   def test_with_size_copies_rather_than_mutating_the_class
     resized = LowStockItems.new.with_size("large")
 

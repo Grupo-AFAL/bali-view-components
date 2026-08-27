@@ -25,6 +25,20 @@ module Bali
       # loudly rather than inherit one its layout was never drawn around.
       class_attribute :size
 
+      # Which sizes a USER may choose, defaulting to all of them. Set with the
+      # `sizes` macro below; read here because a `class_attribute` cannot share a
+      # name with the macro that writes it.
+      #
+      # DECLARED rather than inferred from the data, and that is the whole design
+      # decision. Inferring "this widget has no series, so hide `large`" would
+      # mean loading every widget just to render a picker — collapsing the
+      # `visible?` / `#call` split that lets a picker list the authorized set
+      # without running a single query. It would also make the offered sizes vary
+      # with the data: a widget whose series is empty this week would silently
+      # stop offering a size the user had already chosen. Apple declares
+      # `supportedFamilies` for the same reasons.
+      class_attribute :supported_sizes, default: SIZES
+
       # Widget copy is HOST content, not Bali's. Bali's own chrome lives under
       # `bali_view.widgets.*`; this is the scope a host's titles live in.
       class_attribute :i18n_scope, default: "widgets"
@@ -37,6 +51,28 @@ module Bali
 
           self.size = name
         end
+
+        # Which sizes the picker offers. Defaults to all of them; declare a
+        # subset when the widget has nothing to fill the others with — a bare
+        # count at `large` is a title, a number and most of a 2x2 cell of
+        # whitespace.
+        #
+        #   sized :small            # the canvas it is drawn around
+        #   sizes :small, :medium   # what a user may choose
+        #
+        # Validated at class-definition time like `sized`, including that the
+        # declared default is among them: a widget offering `[:small, :medium]`
+        # while defaulting to `:large` would render at a size its own picker
+        # cannot get back to.
+        def sizes(*names)
+          unknown = names - SIZES
+          raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
+          raise ArgumentError, "sizes cannot be empty" if names.empty?
+
+          self.supported_sizes = names
+          validate_default_size!
+        end
+
 
         # `Widgets::LowStockItems` -> `"low_stock_items"`, which is also the
         # i18n scope and the persisted key. One fewer constant to keep in sync.
@@ -58,6 +94,18 @@ module Bali
 
         # Empty-state copy, shown by the card's list body.
         def empty_message = I18n.t("#{i18n_scope}.#{key}.empty")
+
+        private
+
+        # A widget offering `[:small, :medium]` while defaulting to `:large` would
+        # render at a size its own picker cannot get back to.
+        def validate_default_size!
+          return if size.nil? || supported_sizes.include?(size)
+
+          raise ArgumentError,
+                "#{name || 'This widget'} is `sized #{size.inspect}` but only offers " \
+                "#{supported_sizes.inspect} — the default must be one a user can choose."
+        end
       end
 
       # `context` is whatever the host needs to gate and scope on — a Pundit
@@ -66,7 +114,8 @@ module Bali
         @context = context
       end
 
-      delegate :key, :title, :short_title, :description, :empty_message, to: :class
+      delegate :key, :title, :short_title, :description, :empty_message,
+               :supported_sizes, to: :class
 
       # NO `delegate … to: :result` HERE, deliberately. Forwarding `count`,
       # `items`, `trend`, `series` and `goal` from the widget reserved five
@@ -87,16 +136,21 @@ module Bali
       # widget for every user in the process until the next deploy. The instance
       # writer shadows the class value on this object alone.
       #
-      # An unknown name falls back to the size the widget was drawn around rather
-      # than raising — the name arrives from a database column, so it can
-      # describe something retired between the save and the read, and a dashboard
-      # that will not render is a worse answer than one drawn at its default.
+      # A name this widget does not offer falls back to the size it was drawn
+      # around rather than raising — the name arrives from a database column, so
+      # it can describe a size retired from the vocabulary, or one this widget
+      # stopped supporting, between the save and the read. A dashboard that will
+      # not render is a worse answer than one drawn at its default.
+      #
+      # UNOFFERABLE is not the same as unrenderable: a host passing a size
+      # directly to `Widget::Component` still gets it drawn. Only the picker is
+      # constrained, because that is where a user makes the choice.
       #
       # A copy even when nothing changes, so callers get one kind of thing back.
       def with_size(name)
         chosen = name&.to_sym
 
-        dup.tap { |widget| widget.size = SIZES.include?(chosen) ? chosen : size }
+        dup.tap { |widget| widget.size = supported_sizes.include?(chosen) ? chosen : size }
       end
 
       def result

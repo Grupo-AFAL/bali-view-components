@@ -343,6 +343,32 @@ keys are the reason the generator exists: `widgets.<key>.{title,short_title,desc
 is four keys per widget per locale, and `description` is only ever seen in the picker — a
 missing one surfaces late.
 
+### Limit which sizes a user may choose
+
+`sized` declares the canvas a widget is drawn around. `sizes` declares which ones a user may
+pick, and defaults to all of them:
+
+```ruby
+class ProductionBudget < ApplicationWidget
+  sized :small            # the canvas it is drawn around
+  sizes :small, :medium   # what the picker offers
+end
+```
+
+Declare a subset when the widget has nothing to fill the others with. A bare count at `large`
+is a title, a number and most of a 2×2 cell of whitespace — offering that size invites a user
+to make the card worse. A widget offering exactly one size gets no picker at all.
+
+**Declared, not inferred.** Bali does not work out "this widget has no series, so hide
+`large`", and deliberately: `authorized_for` never loads data, so inferring would mean
+running every widget's query just to render a picker. It would also make the offered sizes
+vary with the data — a widget whose series is empty this week would silently stop offering a
+size the user had already chosen. Apple declares `supportedFamilies` for the same reasons.
+
+Unofferable is not unrenderable. A stored row naming a size the widget no longer supports
+falls back to its default rather than refusing to draw, and a host passing a size straight to
+`Bali::Widget::Component` still gets it.
+
 `sized` is validated at class-definition time — an unknown size is a boot failure, not a
 `KeyError` the first time someone opens the dashboard. `visible?` is a HOOK, never a rule
 Bali owns: roles, tenancy and feature flags are things only your app can see, and it

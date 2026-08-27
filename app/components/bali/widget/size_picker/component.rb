@@ -52,8 +52,12 @@ module Bali
                          "aria-checked:border-primary/40 aria-checked:bg-primary/10"
 
         # `title` names the widget being sized, so the group's accessible name
-        # says WHICH card these four buttons belong to — a dashboard has twelve.
-        def initialize(size:, title:)
+        # says WHICH card these buttons belong to — a dashboard has twelve.
+        #
+        # `sizes` is what THIS widget offers, not the global vocabulary: a widget
+        # with nothing to fill a `large` canvas should not invite a user to pick
+        # one. Defaults to all of them.
+        def initialize(size:, title:, sizes: Bali::Widget::SIZES)
           # COERCED. `checked?` compares with `==`, so a String size would match
           # nothing, no button would carry `tabindex="0"`, and the whole
           # radiogroup would drop out of the tab order — unreachable by keyboard,
@@ -61,15 +65,14 @@ module Bali
           # with its own preview, and the preview was already coercing on its
           # behalf, which is the tell that it belongs here.
           @size = size.to_sym
+          @sizes = sizes
           @title = title
           super()
         end
 
         private
 
-        attr_reader :size, :title
-
-        def sizes = Bali::Widget::SIZES
+        attr_reader :size, :title, :sizes
 
         def checked?(name) = name == size
 

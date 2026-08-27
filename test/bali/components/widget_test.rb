@@ -132,6 +132,35 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector(".stat-value", text: "2")
   end
 
+  # The picker offers what the WIDGET offers, not the global vocabulary.
+  def test_the_picker_offers_only_the_sizes_the_widget_supports
+    limited = Class.new(Stock) do
+      sized :small
+      sizes :small, :medium
+      def self.key = "stock"
+    end
+    Stock.stub_result = Bali::Widget::Result.new(count: 1)
+
+    render_inline(Bali::Widget::Component.new(limited.new.with_size(:small)))
+
+    assert_selector("button[data-widget-size]", count: 2, visible: :all)
+    assert_no_selector("button[data-widget-size='large']", visible: :all)
+  end
+
+  # A radiogroup with one option is not a choice.
+  def test_a_widget_with_one_size_gets_no_picker_at_all
+    fixed = Class.new(Stock) do
+      sized :small
+      sizes :small
+      def self.key = "stock"
+    end
+    Stock.stub_result = Bali::Widget::Result.new(count: 1)
+
+    render_inline(Bali::Widget::Component.new(fixed.new.with_size(:small)))
+
+    assert_no_selector("[role='radiogroup']", visible: :all)
+  end
+
   # The picker is its own component now; its behaviour is tested there. This
   # only asserts the card still mounts it, named for the widget it sizes.
   def test_the_card_mounts_the_size_picker_for_its_own_widget

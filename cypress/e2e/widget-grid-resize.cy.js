@@ -61,17 +61,30 @@ describe('resizing re-renders the card', () => {
 
   // A hero card is a different DOM, not a smaller one: no header, the whole tile
   // is one link. No CSS can turn that into a stacked layout.
+  // `overdue_tasks`, not `production_budget`: the latter declares
+  // `sizes :small, :medium`, so `large` is not offerable — which is exactly what
+  // that declaration is for. This needs a hero widget that offers all three.
   it('grows a hero card into the full layout', () => {
-    startAt('production_budget', 'small')
-    cy.get(`${card('production_budget')} .stat`).should('exist')
-    cy.get(`${card('production_budget')} h5`).should('not.exist')
+    startAt('overdue_tasks', 'small')
+    cy.get(`${card('overdue_tasks')} .stat`).should('exist')
+    cy.get(`${card('overdue_tasks')} h5`).should('not.exist')
 
-    sizeTo('production_budget', 'large')
+    sizeTo('overdue_tasks', 'large')
 
-    cy.get(`${card('production_budget')} h5`).should('exist')
-    cy.get(`${card('production_budget')} .stat`).should('not.exist')
-    // The headline survives the swap — that is the ladder's whole promise.
-    cy.get(card('production_budget')).should('contain', '$2.1B')
+    cy.get(`${card('overdue_tasks')} h5`).should('exist')
+    cy.get(`${card('overdue_tasks')} .stat`).should('not.exist')
+  })
+
+  // The declaration is load-bearing, not decorative: a size a widget does not
+  // offer has no button to press.
+  it('offers only the sizes a widget declares', () => {
+    cy.get(`${card('production_budget')} [data-widget-size]`).should('have.length', 2)
+    cy.get(`${card('production_budget')} [data-widget-size="large"]`).should('not.exist')
+  })
+
+  // One size is not a choice, so there is no radiogroup to tab into.
+  it('gives a single-size widget no picker at all', () => {
+    cy.get(`${card('unavailable_feed')} [role="radiogroup"]`).should('not.exist')
   })
 
   // A keyboard resize leaves focus on a size button inside the card the stream

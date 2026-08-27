@@ -37,6 +37,17 @@ class BaliWidgetSizePickerComponentTest < ComponentTestCase
     )
   end
 
+  # The picker draws what the WIDGET offers, not the global vocabulary.
+  def test_renders_only_the_sizes_it_is_given
+    render_inline(Bali::Widget::SizePicker::Component.new(
+      size: :small, title: "Budget", sizes: %i[small medium]
+    ))
+
+    assert_selector("button[role='radio'][data-widget-size]", count: 2, visible: :all)
+    assert_no_selector("button[data-widget-size='large']", visible: :all)
+    assert_selector("button[data-widget-size='small'][tabindex='0']", visible: :all)
+  end
+
   # A dashboard has twelve of these; the group has to say which card it sizes.
   def test_names_the_widget_it_sizes
     render_inline(picker)

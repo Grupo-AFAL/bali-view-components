@@ -57,7 +57,10 @@
       The shelf's own visual design (why a shelf, why `bg-base-200`, why hidden
       below `lg`) is explained in `app/components/bali/widget/index.css`. %>
   <div class="bali-widget-edit-shelf">
-    <%= render Bali::Widget::SizePicker::Component.new(size: size, title: short_title) %>
+    <% if resizable? %>
+      <%= render Bali::Widget::SizePicker::Component.new(
+            size: size, title: short_title, sizes: supported_sizes) %>
+    <% end %>
   </div>
 
   <%# Genuinely `inert` while editing, set by `edit-mode` — not merely

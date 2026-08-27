@@ -79,7 +79,8 @@ module Bali
       # Copy and identity from the WIDGET; data from its RESULT. Split because
       # forwarding the data through the widget reserved five ordinary English
       # words on every host subclass — see the note in `Bali::Widget::Base`.
-      delegate :key, :title, :short_title, :empty_message, :size, to: :widget
+      delegate :key, :title, :short_title, :empty_message, :size,
+               :supported_sizes, to: :widget
       delegate :count, :items, :view_all_path, :failed?,
                :display_value, :trend, :series, :goal, to: :result
 
@@ -106,6 +107,10 @@ module Bali
       # Public: it is the one thing about the card a host outside this component
       # legitimately needs to name.
       def dom_id = self.class.dom_id(key)
+
+      # A radiogroup with one option is not a choice. A widget that offers a
+      # single size gets no picker rather than a picker that cannot do anything.
+      def resizable? = supported_sizes.many?
 
       def self.dom_id(key) = "bali-widget-#{key}"
 
