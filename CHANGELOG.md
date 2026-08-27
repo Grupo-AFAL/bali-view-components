@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.5] - 2026-08-27
+
 ### Added
 
 - **`Bali::SideMenu` scrolls the current page's item into view, and `reveal_current:` turns
@@ -63,9 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and has nothing to serialize. Accepting it would be an option that does nothing, and
   letting it fall through to `**options` paints `format="blocks"` on the wrapper div in
   silence — the failure mode of #1092. (#1098)
-
-### Added
-
 - **A listing can open on a question, and the question lives in the URL: `default:` now
   reaches Ransack through `Bali::Filterable#redirect_to_default_filters`.** A people
   catalogue that should open on the active roster rather than on the group's whole history
