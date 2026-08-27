@@ -93,7 +93,12 @@ module Bali
     #   one {#filter_form} derives
     # @return [Boolean] true when it redirected, so the action can return
     def redirect_to_default_filters(form, storage_id: nil)
-      return false unless request.get?
+      # `head?` alongside `get?` because Rails routes HEAD to the GET action while
+      # `request.get?` answers false for it: a HEAD on the listing has to get the same 302
+      # its GET would, or a client that probes with HEAD sees a different listing than the
+      # one it then fetches. (Brakeman's VerbConfusion check flags the bare `get?` for
+      # exactly this.)
+      return false unless request.get? || request.head?
       return false if params[:q].present? || params[:clear_filters].present? ||
                       params[:saved_view].present?
       return false if filter_persistence_enabled?(storage_id)

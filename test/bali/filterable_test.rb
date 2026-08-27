@@ -328,6 +328,16 @@ class BaliFilterableDefaultFiltersTest < ActiveSupport::TestCase
     refute controller.redirect_to_default_filters(FormWithDefault)
   end
 
+  # Rails routes HEAD to the GET action but `request.get?` answers false for it, so a probe
+  # would see a listing the fetch that follows does not.
+  def test_a_head_request_redirects_like_the_get_it_is_routed_as
+    controller = build(request: ActionDispatch::TestRequest.create("PATH_INFO" => "/personas",
+                                                                   "REQUEST_METHOD" => "HEAD"))
+
+    assert controller.redirect_to_default_filters(FormWithDefault)
+    assert_equal "/personas?q%5Bstatus_eq%5D=active", controller.redirected_to
+  end
+
   private
 
   def build(params: {}, cookies: {}, query: "", request: nil)
