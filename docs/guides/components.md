@@ -755,9 +755,25 @@ bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
 - `brand` - Simple text brand. For richer brand (logo + text, custom HTML), use the `with_brand` slot instead
 - `aria_label` - Accessible name of the `<nav>` landmark (default: translated "Sidebar")
 - `group_behavior` - `:expandable` (default, DaisyUI collapse) or `:dropdown` (hover dropdown for nested items)
+- `reveal_current` - Scroll the menu so the current page's item is in view (default: true)
 
 Renders a `<nav aria-label>` whose items are a `ul`/`li` list, with `aria-current="page"` on the
 item pointing at the current page.
+
+**The current item is scrolled into view on connect.** Every navigation re-renders the sidebar
+and its scroll returns to the top, so in a menu taller than the screen the active item lands
+out of view and the sidebar stops answering "where am I" — the whole reason it highlights
+anything. `fixed: true` makes it more likely, since the sidebar is pinned and the menu scrolls
+inside it (#1099).
+
+It only ever moves the menu's own `scrollTop`, never the page's, and it does nothing when the
+item is already visible, so there is no jump on the pages that were fine. In a **closed mobile
+drawer** it waits: that panel is `inert` and translated off screen, so it is revealed when the
+drawer opens instead. Pass `reveal_current: false` for a sidebar whose scroll position is
+yours to manage.
+
+Turning it on is also what makes an inline, non-collapsible sidebar carry the Stimulus
+controller at all — before, that combination got none.
 
 #### SideMenu::Trigger
 

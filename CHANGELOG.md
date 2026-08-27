@@ -9,6 +9,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::SideMenu` scrolls the current page's item into view, and `reveal_current:` turns
+  it off.** Every navigation re-renders the sidebar and its scroll returns to the top, so in
+  a menu taller than the screen the **active item lands out of view**: you arrive at a page
+  and the sidebar does not show you where you are — the one question it highlights anything
+  to answer. It is universal for any app whose menu outgrows the viewport, and `fixed: true`
+  makes it more likely, since the sidebar is pinned and the menu scrolls inside it.
+
+  This belongs to the component and not to the host, which is what a host app patching it
+  from outside with its own 30-line Stimulus proved: the three things that patch depended on
+  are all emitted here — `.sidebar-menu` as the scroller, `aria-current="page"` on exactly
+  one link (whose rule, *a parent highlights while a child route is open but only the link
+  for the page you are ON is current*, is decided in `item/component.rb`), and the root
+  element itself. Rename any of them and the patch stops working in silence. And a host
+  cannot know **when** to measure: `restoreCollapseState()` reads localStorage and toggles
+  `is-collapsed`, which changes the rail's width and with it every position, so an external
+  controller can only guess with `requestAnimationFrame`. In here it is the next line.
+
+  It moves the menu's own `scrollTop` and nothing else — deliberately not
+  `scrollIntoView({ block: 'nearest' })`, which also scrolls whatever ancestors it needs up
+  to the document, so an inline sidebar below the fold would jump the whole page on load. It
+  does nothing when the item is already visible, and in a **closed mobile drawer** it waits
+  for `open()` rather than measuring an `inert` panel that is off screen. A simple item
+  renders twice — expanded and collapsed icon-only — and both carry `aria-current`, so it
+  measures whichever one the rail is actually showing.
+
+  One behaviour change comes with it: an **inline, non-collapsible sidebar now carries the
+  Stimulus controller**, which it did not before. The menu scrolls whenever it is taller than
+  its box, which has nothing to do with being pinned or collapsible, so that combination
+  would have been the one case the reveal silently skipped — the same mistake #830 made with
+  the module switcher. `reveal_current: false` takes the reason away again. (#1099)
+- **`Bali::DocumentEditor` takes `format:`, and pins `:prosemirror` by itself when comments
+  are on.** `format:` (#1091, v3.1.4) is what stops the editor's JSON shape from depending on
+  whether anyone has commented yet — but it only reached the editor when the host mounted
+  `Bali::BlockEditor` directly. `DocumentEditor` neither accepted it nor forwarded it, and
+  `Config` leaves it out on purpose ("each wrapper decides those for itself"). The wrapper
+  was not deciding: **the screen that needs the pin most — a document editor with comments
+  and auto-save — had no public channel to set it** and stayed on the adaptive `:json` the
+  whole option exists to end. A host app had to reach in with a `prepend` on
+  `BlockEditor::Component#initialize` (Grupo-AFAL/gobierno-corporativo#868), which is the
+  shape of workaround #884 had just finished removing from that repo.
+
+  It accepts `format:` now and forwards it, and when nobody names one it decides: with
+  `comments:` on the default is **`:prosemirror`**, the only combination that loses nothing.
+  `:json` switches to that very shape the moment a comment mark appears — triggered by the
+  first reader, not by the host — and with auto-save that schema rewrite reaches the column
+  unasked. Pinning writes from the first save what the adaptive shape was going to write
+  anyway, only declared. (`:blocks` is not a candidate: it drops every thread's anchor.) An
+  explicit `format:` always wins, `:json` included.
+
+  `Bali::DocumentPage` deliberately does **not** take it, and raises if you pass one: it
+  mounts its editor with `editable: false` and no `input_name`, so it renders no hidden input
+  and has nothing to serialize. Accepting it would be an option that does nothing, and
+  letting it fall through to `**options` paints `format="blocks"` on the wrapper div in
+  silence — the failure mode of #1092. (#1098)
+
+### Added
+
 - **A listing can open on a question, and the question lives in the URL: `default:` now
   reaches Ransack through `Bali::Filterable#redirect_to_default_filters`.** A people
   catalogue that should open on the active roster rather than on the group's whole history
