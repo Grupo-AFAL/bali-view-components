@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::LayoutConcern` no longer makes turbo-rails' Turbo Frame layout unreachable: every
+  frame request was getting the whole application shell.** An app that included the concern in
+  its `ApplicationController` answered a `Turbo-Frame` request with the full `AppLayout` —
+  sidebar, topbar, header — inside the `<turbo-frame>`. No exception, no warning, no log line:
+  it is seen as a duplicated side menu inside a panel, or by a test that counts the chrome. It
+  affected *every* controller at once, because the concern is included once and inherited.
+
+  The mechanism is `layout :a_symbol`. `ActionView::Layouts#_write_layout_method` compiles it
+  to "call the method; **if it returns `nil`, look up `layouts/<implied name>` and only if THAT
+  misses, call `super`**". `conditional_layout` is a `class_attribute` with no default, so
+  outside a drawer the method returned `nil` — and since the concern is included in
+  `ApplicationController`, the implied name is `application`, a template every real app has.
+  The lookup always hit, `super` never ran, and the
+  `layout -> { "turbo_rails/frame" if turbo_frame_request? }` that turbo-rails declares on
+  `ActionController::Base` was dead for as long as the concern was included. Put shortly: the
+  concern turned "I have no opinion about the layout" into "use `layouts/application`, no
+  matter what", and with that it ate any `layout` declared further up the chain — turbo-rails
+  is simply the one every Hotwire app has.
+
+  `conditionally_skip_layout` now answers the frame itself, since there is no falling through
+  to it. Precedence is drawer, then frame, then `conditional_layout`: `false` (no layout at
+  all) is smaller than the frame layout and a response headed for a `#main-drawer` does not
+  want even that `<html>`, and an admin shell inside a frame is the duplicated chrome the frame
+  exists to avoid. turbo-rails is not a dependency of this gem, so the predicate is asked for
+  with `respond_to?(:turbo_frame_request?, true)` — **`include_all` and not a plain
+  `respond_to?`**, because turbo-rails declares it under its own `private` and the obvious
+  spelling answers `false` in every app that has the gem. An app supplying its own
+  `app/views/layouts/turbo_rails/frame.html.erb` still wins: the concern names the same path
+  turbo-rails does.
+
+  **Measured while fixing it, and now documented:** a *conditional* `layout "x", only: :full`
+  in a subclass does not merely pick that action's layout — `only:`/`except:` generates an
+  instance method `_conditional_layout?`, which the concern's own `_layout` calls by dynamic
+  dispatch, so the condition switches the concern off for that controller's **other** actions
+  too. They fall to `layouts/application` without ever reaching `conditionally_skip_layout`,
+  which means neither the drawer nor the frame is answered there. The dummy's
+  `SplitViewsController` had exactly that shape and now writes its per-action layout as an
+  override calling `super`, which is what the guide recommends — `conditional_layout` is a
+  `class_attribute` and cannot vary by action. (#1097)
+
 ## [v3.1.4] - 2026-08-25
 
 ### Added

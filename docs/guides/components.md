@@ -3916,6 +3916,40 @@ module Admin
 end
 ```
 
+**The concern overrides in BOTH directions, and only one of them is obvious.** Downward is
+the line in the snippet: a `layout "admin"` in a subclass wins over the concern's and takes
+the layout skipping with it, so declare it as `self.conditional_layout`. A **conditional**
+`layout "x", only: :full` does not escape that either, and its shape is worse: `only:`/
+`except:` generates an *instance* method `_conditional_layout?`, and the `_layout` the
+concern installs on `ApplicationController` calls that same method by dynamic dispatch — so
+the condition switches off the concern for the controller's *other* actions too, which fall
+to `layouts/application` without ever calling `conditionally_skip_layout`. A per-action
+layout is written as an override instead, because `conditional_layout` is a `class_attribute`
+and cannot vary by action:
+
+```ruby
+def conditionally_skip_layout
+  action_name == 'full' ? 'app_layout_preview' : super
+end
+```
+
+Upward is the one that surprised an app in production: `layout :a_symbol` compiles to *"call
+the method; if it returns `nil`, look up `layouts/<implied name>` and only if THAT misses,
+call `super`"*, and
+since the concern is included in `ApplicationController` the implied name is `application` —
+a template every app has. The lookup always hits, so **`super` never runs and any `layout`
+declared by an ancestor is unreachable**, gem-supplied ones included.
+
+The one every Hotwire app has is turbo-rails', which declares
+`layout -> { "turbo_rails/frame" if turbo_frame_request? }` on `ActionController::Base`. The
+concern answers the frame itself (#1097), so a `Turbo-Frame` request gets
+`turbo_rails/frame` rather than the full application shell — an app that supplies its own
+`app/views/layouts/turbo_rails/frame.html.erb` still wins. Precedence is **drawer, then
+frame, then `conditional_layout`**: `false` is smaller than the frame layout and a response
+headed for a `#main-drawer` does not want even its `<html>`, while an admin shell inside a
+frame is exactly the duplicated chrome a frame exists to avoid. Any *other* layout an
+ancestor declares still needs the host to name it in `conditional_layout`.
+
 **Escape hatches.** `card:` and `heading:` always win, `card: true` or `heading: :h1`
 inside a drawer included. For the breadcrumbs and the back button the hatch is
 `context: :page`, which restores the whole page chrome inside a drawer request;
