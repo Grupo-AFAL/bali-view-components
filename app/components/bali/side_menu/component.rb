@@ -56,8 +56,14 @@ module Bali
       #   the host's: its colours are brand, so the gem ships the mechanism and
       #   documents the token list (see docs/guides/custom-themes.md), not the
       #   values.
+      # @param reveal_current [Boolean] Scroll the menu so the item for the current page is
+      #   in view. On by default (#1099): every navigation re-renders the sidebar and its
+      #   scroll returns to the top, so in a menu taller than the screen the active item
+      #   lands out of view and the menu stops answering "where am I". It only ever moves
+      #   the menu's own scroll, never the page's, and it does nothing when the item is
+      #   already visible. Pass `false` for a sidebar whose scroll position is yours.
       def initialize(current_path:, id: DEFAULT_ID, fixed: true, collapsible: false,
-                     group_behavior: :expandable,
+                     group_behavior: :expandable, reveal_current: true,
                      brand: nil, aria_label: nil, theme: nil, **options)
         @theme = theme.presence&.to_s
         @current_path = current_path
@@ -65,6 +71,7 @@ module Bali
         @fixed = fixed
         @collapsible = collapsible
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
+        @reveal_current = reveal_current
         @brand = brand
         @aria_label = aria_label
         @options = options
@@ -103,14 +110,23 @@ module Bali
       # (#830). Without this a sidebar that is neither collapsible nor fixed — which is
       # exactly what the switcher preview composes — got no controller at all and the
       # panel stayed open over the page.
+      #
+      # `@reveal_current` joins the list for the same reason and it is the same mistake
+      # twice (#1099): the menu scrolls whenever it is taller than its box, which has
+      # nothing to do with being pinned or collapsible, so an inline sidebar would have
+      # been the one case the reveal silently skipped.
       def container_data
         data = (@options[:data] || {}).dup
         data[:controller] = class_names(
           data[:controller],
-          { "side-menu" => @collapsible || @fixed || multiple_menus? }
+          { "side-menu" => @collapsible || @fixed || @reveal_current || multiple_menus? }
         )
         data[:side_menu_collapsible_value] = @collapsible
         data[:side_menu_fixed_value] = @fixed
+        # Emitido solo cuando está apagado: el default del controller ya es `true`, y un
+        # `data-side-menu-reveal-current-value="true"` en cada sidebar es ruido que además
+        # invita a leerlo como si fuera el interruptor.
+        data[:side_menu_reveal_current_value] = false unless @reveal_current
         data
       end
 
