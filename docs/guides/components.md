@@ -3271,6 +3271,12 @@ makes it a first-class popover attribute with no new API.
   `persist_enabled:`, and anything the form takes). Configure the identity once:
   `Bali.filter_context = ->(controller) { controller.current_account&.id }`. A DataTable
   whose toggle is about to render over a form nobody wired warns in dev/test.
+
+  `filter_persistence_enabled?(storage_id = nil)` is the same opt-in read, public: anything
+  a host decides from the toggle — the default filters below, a banner, a different empty
+  state — asks for it here instead of spelling the `bali_persist_<storage_id>` cookie
+  itself. With no argument it answers for the current listing.
+
 - Date range "between" operator with Flatpickr
 
 **Modes:**
@@ -3294,6 +3300,58 @@ The search input includes a clear button (x) that appears when text is entered. 
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
+
+#### A listing that opens filtered (`default:` + `redirect_to_default_filters`)
+
+Some listings open on a question rather than on everything: a people catalogue shows the
+active roster, not the group's whole history. **That default belongs in the URL**, and the
+controller puts it there:
+
+```ruby
+class PeopleFilterForm < Bali::FilterForm
+  filter_attribute :employment_status, type: :select, simple: true, default: 'active',
+    options: -> { Person.employment_statuses.keys.map { |s| [s.humanize, s] } }
+end
+
+def index
+  return if redirect_to_default_filters(PeopleFilterForm)
+
+  @filter_form = filter_form(PeopleFilterForm, policy_scope(Person))
+end
+```
+
+`/people` becomes `/people?q[employment_status_eq]=active`, and from there the default is a
+filter like any other — visible in its own control, removable, shareable in a link.
+
+**Why the URL and not the scope.** Everything the `DataTable` builds afterwards is built
+from `params`: the sortable headers delegate to Ransack's `sort_link`, which composes its
+href out of the URL, and so does the pagination. A default injected into the scope or into
+`ransack_params` survives neither — the screen opens filtered, the user sorts a column, and
+the population silently changes. A default living only in the widget has the same problem
+from the other side: the select reads "Active" over a listing that shows everyone.
+
+`FilterForm.default_filter_params` is what the redirect emits, and it shapes each default
+the way the UI that owns its attribute reads it back: **flat** under `q` for a
+`simple: true` attribute, so the value lands in its own control; as a condition of the
+**advanced panel's first group** otherwise, so it renders as a removable pill.
+
+**Four things turn the redirect off**, each of them the user having already answered:
+
+| Gate | Why |
+|---|---|
+| `q` in the URL | They filtered, sorted, or emptied the panel — a sorted URL carries `q[s]` |
+| `clear_filters` | They cleared on purpose; the redirect would undo the click |
+| `saved_view` | A view is a complete state, not something to merge a default into |
+| Filter persistence on | The toggle promises "remember what I chose"; a default written on every bare entry would be stored as the last state and nothing else would ever restore |
+
+A listing built with instance-level `simple_filters:` has no class to ask — pass the `q`
+hash straight in: `redirect_to_default_filters({ estado_eq: 'activo' })` (braces required,
+a bare hash reads as keyword arguments). `storage_id:` takes the listing's persistence
+identity when it is not the one `filter_form` derives.
+
+A `default:` on an attribute offered in neither UI (`simple: false, advanced: false`) raises
+at class-definition time: it would have no control to sit in and no pill to remove, so it
+would filter invisibly.
 
 #### Quick search (`search:`)
 
@@ -3915,6 +3973,40 @@ module Admin
   end
 end
 ```
+
+**The concern overrides in BOTH directions, and only one of them is obvious.** Downward is
+the line in the snippet: a `layout "admin"` in a subclass wins over the concern's and takes
+the layout skipping with it, so declare it as `self.conditional_layout`. A **conditional**
+`layout "x", only: :full` does not escape that either, and its shape is worse: `only:`/
+`except:` generates an *instance* method `_conditional_layout?`, and the `_layout` the
+concern installs on `ApplicationController` calls that same method by dynamic dispatch — so
+the condition switches off the concern for the controller's *other* actions too, which fall
+to `layouts/application` without ever calling `conditionally_skip_layout`. A per-action
+layout is written as an override instead, because `conditional_layout` is a `class_attribute`
+and cannot vary by action:
+
+```ruby
+def conditionally_skip_layout
+  action_name == 'full' ? 'app_layout_preview' : super
+end
+```
+
+Upward is the one that surprised an app in production: `layout :a_symbol` compiles to *"call
+the method; if it returns `nil`, look up `layouts/<implied name>` and only if THAT misses,
+call `super`"*, and
+since the concern is included in `ApplicationController` the implied name is `application` —
+a template every app has. The lookup always hits, so **`super` never runs and any `layout`
+declared by an ancestor is unreachable**, gem-supplied ones included.
+
+The one every Hotwire app has is turbo-rails', which declares
+`layout -> { "turbo_rails/frame" if turbo_frame_request? }` on `ActionController::Base`. The
+concern answers the frame itself (#1097), so a `Turbo-Frame` request gets
+`turbo_rails/frame` rather than the full application shell — an app that supplies its own
+`app/views/layouts/turbo_rails/frame.html.erb` still wins. Precedence is **drawer, then
+frame, then `conditional_layout`**: `false` is smaller than the frame layout and a response
+headed for a `#main-drawer` does not want even its `<html>`, while an admin shell inside a
+frame is exactly the duplicated chrome a frame exists to avoid. Any *other* layout an
+ancestor declares still needs the host to name it in `conditional_layout`.
 
 **Escape hatches.** `card:` and `heading:` always win, `card: true` or `heading: :h1`
 inside a drawer included. For the breadcrumbs and the back button the hatch is

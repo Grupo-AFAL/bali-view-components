@@ -33,7 +33,18 @@ class SplitViewsController < ApplicationController
   FULL_PER_PAGE = 12
 
   # AppLayout renders its own <body>, so the shell around it must not have one.
-  layout "app_layout_preview", only: :full
+  #
+  # NO como `layout "app_layout_preview", only: :full`: `only:`/`except:` genera un
+  # `_conditional_layout?` DE INSTANCIA, y el `_layout` que Bali::LayoutConcern define en
+  # ApplicationController llama a ese mismo método por dispatch dinámico. O sea que la
+  # condición no solo elige el layout de `full` — apaga el concern entero para TODAS las
+  # demás acciones, que caen a `layouts/application` sin pasar por `conditionally_skip_layout`.
+  # Medido: con `only:`, `/split-view?layout=false` seguía trayendo el shell completo y una
+  # request de Turbo Frame también. Un layout POR ACCIÓN se escribe acá, con `super`, porque
+  # `self.conditional_layout` es un class_attribute y no puede variar por acción.
+  def conditionally_skip_layout
+    action_name == "full" ? "app_layout_preview" : super
+  end
 
   def show
     load_listing(limit: PER_PAGE)

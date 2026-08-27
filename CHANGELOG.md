@@ -7,6 +7,111 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A listing can open on a question, and the question lives in the URL: `default:` now
+  reaches Ransack through `Bali::Filterable#redirect_to_default_filters`.** A people
+  catalogue that should open on the active roster rather than on the group's whole history
+  had nowhere correct to say so. Not the scope and not `ransack_params`, because everything
+  the `DataTable` builds afterwards is built from `params` — `Bali::Table::Header::Component`
+  delegates to Ransack's `sort_link`, which composes its href out of the URL, and so does the
+  pagination. A default injected underneath survives neither: the screen opens filtered, the
+  user sorts a column, and **the population changes** from active roster to full history with
+  nothing on screen to explain it. And not the widget either, which is where `default:`
+  stopped until now: it preselected the SimpleFilters control and never reached Ransack, so
+  the select read "Active" over a listing that showed everyone — the same disagreement from
+  the other side.
+
+  `FilterForm.default_filter_params` turns every declared `default:` into the `q` params
+  that apply it, each shaped the way the UI that owns its attribute reads it back: flat under
+  `q` for a `simple: true` attribute, so the value lands *in* its own control; as a condition
+  of the advanced panel's first group otherwise, so it renders as a pill the user can remove.
+  The controller half is one line, and it is the one that puts them in the URL:
+
+  ```ruby
+  class PeopleFilterForm < Bali::FilterForm
+    filter_attribute :employment_status, type: :select, simple: true, default: 'active',
+      options: -> { Person.employment_statuses.keys.map { |s| [s.humanize, s] } }
+  end
+
+  def index
+    return if redirect_to_default_filters(PeopleFilterForm)
+
+    @filter_form = filter_form(PeopleFilterForm, policy_scope(Person))
+  end
+  ```
+
+  `/people` becomes `/people?q[employment_status_eq]=active`, and from there the default is a
+  filter like any other: visible, removable, shareable in a link, and still applied after
+  sorting and paging. **Four things turn the redirect off, and each one is the user having
+  already answered** — `q` in the URL (they filtered, sorted, or emptied the panel),
+  `clear_filters` (they cleared on purpose, and the redirect would undo the click),
+  `saved_view` (a view is a complete state, not something to merge a default into), and
+  filter persistence being on for that listing. The last one is the subtle one: the toggle
+  promises "remember what I chose", and a default written into the URL on every bare entry is
+  filter params as far as the form can tell, so it would be stored as the last state and
+  nothing else would ever be restored — persistence off for that listing, silently. A listing
+  built with instance-level `simple_filters:` has no class to ask; pass the `q` hash straight
+  in (`redirect_to_default_filters({ estado_eq: 'activo' })` — the braces matter, a bare hash
+  would be read as keyword arguments).
+
+  One new guard comes with it, at class-definition time like the two already in
+  `filter_attribute`: a `default:` on an attribute offered in **neither** UI
+  (`simple: false, advanced: false`) now raises. Such a default has no control to sit in and
+  no pill to remove, so it would filter invisibly — the exact failure the rest of this entry
+  is about. The combination was inert before, so nothing that worked stops working. (#1096)
+- **`Bali::Filterable#filter_persistence_enabled?` is public API.** The only place that knew
+  the `bali_persist_<storage_id>` cookie's name was a private method of the concern, so a host
+  deciding anything at all from the opt-in — the redirect above, a banner, a different empty
+  state — had either to call private API or to duplicate the convention in application code.
+  Both break in silence when the gem changes the name, which is the failure mode the concern
+  exists to remove. With no argument it answers for the current listing, deriving the
+  `storage_id` exactly as `filter_form` does. The old private
+  `bali_filter_persistence_cookie?` still answers, warning through `Bali.deprecator`, and is
+  removed in 4.0. (#1096)
+
+### Fixed
+
+- **`Bali::LayoutConcern` no longer makes turbo-rails' Turbo Frame layout unreachable: every
+  frame request was getting the whole application shell.** An app that included the concern in
+  its `ApplicationController` answered a `Turbo-Frame` request with the full `AppLayout` —
+  sidebar, topbar, header — inside the `<turbo-frame>`. No exception, no warning, no log line:
+  it is seen as a duplicated side menu inside a panel, or by a test that counts the chrome. It
+  affected *every* controller at once, because the concern is included once and inherited.
+
+  The mechanism is `layout :a_symbol`. `ActionView::Layouts#_write_layout_method` compiles it
+  to "call the method; **if it returns `nil`, look up `layouts/<implied name>` and only if THAT
+  misses, call `super`**". `conditional_layout` is a `class_attribute` with no default, so
+  outside a drawer the method returned `nil` — and since the concern is included in
+  `ApplicationController`, the implied name is `application`, a template every real app has.
+  The lookup always hit, `super` never ran, and the
+  `layout -> { "turbo_rails/frame" if turbo_frame_request? }` that turbo-rails declares on
+  `ActionController::Base` was dead for as long as the concern was included. Put shortly: the
+  concern turned "I have no opinion about the layout" into "use `layouts/application`, no
+  matter what", and with that it ate any `layout` declared further up the chain — turbo-rails
+  is simply the one every Hotwire app has.
+
+  `conditionally_skip_layout` now answers the frame itself, since there is no falling through
+  to it. Precedence is drawer, then frame, then `conditional_layout`: `false` (no layout at
+  all) is smaller than the frame layout and a response headed for a `#main-drawer` does not
+  want even that `<html>`, and an admin shell inside a frame is the duplicated chrome the frame
+  exists to avoid. turbo-rails is not a dependency of this gem, so the predicate is asked for
+  with `respond_to?(:turbo_frame_request?, true)` — **`include_all` and not a plain
+  `respond_to?`**, because turbo-rails declares it under its own `private` and the obvious
+  spelling answers `false` in every app that has the gem. An app supplying its own
+  `app/views/layouts/turbo_rails/frame.html.erb` still wins: the concern names the same path
+  turbo-rails does.
+
+  **Measured while fixing it, and now documented:** a *conditional* `layout "x", only: :full`
+  in a subclass does not merely pick that action's layout — `only:`/`except:` generates an
+  instance method `_conditional_layout?`, which the concern's own `_layout` calls by dynamic
+  dispatch, so the condition switches the concern off for that controller's **other** actions
+  too. They fall to `layouts/application` without ever reaching `conditionally_skip_layout`,
+  which means neither the drawer nor the frame is answered there. The dummy's
+  `SplitViewsController` had exactly that shape and now writes its per-action layout as an
+  override calling `super`, which is what the guide recommends — `conditional_layout` is a
+  `class_attribute` and cannot vary by action. (#1097)
+
 ## [v3.1.4] - 2026-08-25
 
 ### Added

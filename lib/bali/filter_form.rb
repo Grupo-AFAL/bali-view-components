@@ -7,6 +7,7 @@ require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
 require_relative "filter_form/saved_views_configuration"
 require_relative "filter_form/enum_casting"
+require_relative "filter_form/default_filters"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -52,6 +53,7 @@ module Bali
     include GroupByConfiguration
     include SavedViewsConfiguration
     include EnumCasting
+    include DefaultFilters
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
 
@@ -119,7 +121,13 @@ module Bali
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
       #   (default :eq; the advanced UI lets the user pick the operator)
       # @param blank [String, Proc] Blank option text for the simple UI
-      # @param default [String] Default value for the simple UI
+      # @param default [String, Boolean, Hash, Proc] The value this listing opens on.
+      #   It preselects the simple control, and it is what
+      #   {Bali::FilterForm::DefaultFilters.default_filter_params} emits so that
+      #   `Bali::Filterable#redirect_to_default_filters` can put it in the URL — which
+      #   is what makes it actually filter, survive sorting and paging, and stay
+      #   removable. Needs a UI to live in: raises when the attribute is offered in
+      #   neither (`simple: false, advanced: false`).
       # @param icon [String] Icon name for the simple UI
       # @param step [Numeric] Step for the :number_range simple widget
       # @param placeholder_min [String] Min placeholder for :number_range
@@ -167,6 +175,7 @@ module Bali
         type = type.to_sym
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
         validate_auto_submit(key, resolved_input, auto_submit)
+        validate_default(key, default, simple, advanced)
 
         filter_attributes << {
           key: key.to_sym,
@@ -215,6 +224,20 @@ module Bali
                                "widget; pass input: (one of #{SIMPLE_INPUTS.join(', ')}) or " \
                                "declare quick text search with search_fields"
         end
+      end
+
+      # A `default:` is the question the listing opens with, so it has to be visible and
+      # removable somewhere — the simple control or the advanced panel. On an attribute
+      # offered in NEITHER it would apply and there would be no way to see or drop it,
+      # which is precisely the silent mismatch `default_filter_params` exists to end.
+      # Fails at class-definition time, like the two guards around it (#1096).
+      def validate_default(key, default, simple, advanced)
+        return if default.nil? || default == ""
+        return if simple || advanced
+
+        raise ArgumentError, "filter_attribute #{key}: default: needs a UI to live in — " \
+                             "declare `simple: true`, or leave `advanced:` on. A default " \
+                             "on an attribute offered nowhere filters invisibly."
       end
 
       # Fails at class-definition time rather than rendering a row whose `auto_submit:`
