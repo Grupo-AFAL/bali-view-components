@@ -345,13 +345,13 @@ missing one surfaces late.
 
 ### Limit which sizes a user may choose
 
-`sized` declares the canvas a widget is drawn around. `sizes` declares which ones a user may
+`sized` declares the canvas a widget is drawn around. `supports` declares which ones a user may
 pick, and defaults to all of them:
 
 ```ruby
 class ProductionBudget < ApplicationWidget
   sized :small            # the canvas it is drawn around
-  sizes :small, :medium   # what the picker offers
+  supports :small, :medium   # what the picker offers
 end
 ```
 

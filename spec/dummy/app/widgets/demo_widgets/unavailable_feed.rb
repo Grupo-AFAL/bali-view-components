@@ -16,7 +16,7 @@ module DemoWidgets
     sized :small
     # A degraded card says the same thing at every size, so growing it buys
     # nothing. One supported size means no picker at all.
-    sizes :small
+    supports :small
 
     def call
       Bali::Widget::Result.failed

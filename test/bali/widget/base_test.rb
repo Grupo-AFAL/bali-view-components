@@ -68,7 +68,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   def test_a_widget_can_offer_a_subset
     klass = Class.new(Bali::Widget::Base) do
       sized :small
-      sizes :small, :medium
+      supports :small, :medium
     end
 
     assert_equal %i[small medium], klass.supported_sizes
@@ -78,12 +78,12 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   # typo is a boot failure rather than a picker that quietly offers nothing.
   def test_an_unknown_size_is_a_boot_failure
     assert_raises(ArgumentError) do
-      Class.new(Bali::Widget::Base) { sizes :small, :enormous }
+      Class.new(Bali::Widget::Base) { supports :small, :enormous }
     end
   end
 
   def test_offering_nothing_is_a_boot_failure
-    assert_raises(ArgumentError) { Class.new(Bali::Widget::Base) { sizes } }
+    assert_raises(ArgumentError) { Class.new(Bali::Widget::Base) { supports } }
   end
 
   # Otherwise the widget renders at a size its own picker cannot get back to.
@@ -91,7 +91,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     error = assert_raises(ArgumentError) do
       Class.new(Bali::Widget::Base) do
         sized :large
-        sizes :small, :medium
+        supports :small, :medium
       end
     end
 
@@ -103,7 +103,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   def test_a_stored_size_the_widget_no_longer_offers_falls_back_to_its_default
     klass = Class.new(Bali::Widget::Base) do
       sized :small
-      sizes :small, :medium
+      supports :small, :medium
     end
 
     assert_equal :small, klass.new.with_size("large").size

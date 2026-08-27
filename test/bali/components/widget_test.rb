@@ -136,7 +136,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   def test_the_picker_offers_only_the_sizes_the_widget_supports
     limited = Class.new(Stock) do
       sized :small
-      sizes :small, :medium
+      supports :small, :medium
       def self.key = "stock"
     end
     Stock.stub_result = Bali::Widget::Result.new(count: 1)
@@ -151,7 +151,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   def test_a_widget_with_one_size_gets_no_picker_at_all
     fixed = Class.new(Stock) do
       sized :small
-      sizes :small
+      supports :small
       def self.key = "stock"
     end
     Stock.stub_result = Bali::Widget::Result.new(count: 1)

@@ -25,9 +25,9 @@ module Bali
       # loudly rather than inherit one its layout was never drawn around.
       class_attribute :size
 
-      # Which sizes a USER may choose, defaulting to all of them. Set with the
-      # `sizes` macro below; read here because a `class_attribute` cannot share a
-      # name with the macro that writes it.
+      # Which sizes a USER may choose, defaulting to all of them. Written by the
+      # `supports` macro below and read under this name, which is what the macro
+      # is named after.
       #
       # DECLARED rather than inferred from the data, and that is the whole design
       # decision. Inferring "this widget has no series, so hide `large`" would
@@ -57,17 +57,24 @@ module Bali
         # count at `large` is a title, a number and most of a 2x2 cell of
         # whitespace.
         #
-        #   sized :small            # the canvas it is drawn around
-        #   sizes :small, :medium   # what a user may choose
+        #   sized :small              # the canvas it is drawn around
+        #   supports :small, :medium  # what a user may choose
+        #
+        # NOT `sizes`, which this was first called and which sat one letter from
+        # `sized` in the same class body — the exact collision
+        # `docs/superpowers/specs/2026-08-25-widgets-and-widget-grid-design.md`
+        # criticises in the code this feature was ported from. `supports` also
+        # names the attribute it writes, and echoes the `supportedFamilies` this
+        # whole model is adapted from.
         #
         # Validated at class-definition time like `sized`, including that the
         # declared default is among them: a widget offering `[:small, :medium]`
         # while defaulting to `:large` would render at a size its own picker
         # cannot get back to.
-        def sizes(*names)
+        def supports(*names)
           unknown = names - SIZES
           raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
-          raise ArgumentError, "sizes cannot be empty" if names.empty?
+          raise ArgumentError, "a widget must support at least one size" if names.empty?
 
           self.supported_sizes = names
           validate_default_size!
