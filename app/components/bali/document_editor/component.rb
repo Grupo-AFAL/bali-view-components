@@ -5,6 +5,12 @@ module Bali
     class Component < ApplicationViewComponent
       renders_one :toolbar
 
+      # Distingue "el host no pasó `format:`" de "pasó el valor que resulta ser el default",
+      # que es lo que hace posible el default opinado de abajo sin quitarle al host la
+      # posibilidad de pedir `:json` a propósito. Mismo centinela que BlockEditor::Component.
+      UNSET = Object.new.freeze
+      private_constant :UNSET
+
       # Every URL the controller talks to is declared here. It used to build two of
       # them by string interpolation -- `"#{document_url}/restore_version"` and
       # `"#{versions_url}/#{id}"` -- which made the host's routing file a guess the
@@ -24,6 +30,7 @@ module Bali
         auto_save_delay: 30000,
         input_name: nil,
         config: nil,
+        format: UNSET,
         readonly: nil,
         **options
       )
@@ -59,6 +66,7 @@ module Bali
         # forward untouched now travel as one value. See Bali::BlockEditor::Config.
         @config = Bali::BlockEditor::Config.wrap(config)
         @config = @config.merge(export_filename: title.parameterize) if @config.export_filename.blank?
+        @editor_format = resolve_format(format)
 
         Bali::BlockEditor::Config.warn_stray_keywords(options, component: self.class.name)
 
@@ -90,6 +98,29 @@ module Bali
 
       private
 
+      # La forma en que se persiste el contenido, cuando el host no la nombra (#1098).
+      #
+      # `format:` no viaja en `config:` a propósito —"cada wrapper decide"— y este wrapper no
+      # lo decidía: no lo aceptaba ni lo reenviaba, así que la pantalla que MÁS lo necesita
+      # (un editor de documentos con comentarios y auto-guardado) se quedaba con el `:json`
+      # adaptativo que #1091 existe para terminar. Ahora lo acepta, y cuando no se lo pasan
+      # lo decide de verdad.
+      #
+      # Con `comments:` encendido eso es `:prosemirror`, que es la única combinación que no
+      # pierde nada: `:json` cambia SOLO a esa misma forma en cuanto alguien deja un
+      # comentario —lo dispara el primer lector, no el host— y con auto-guardado esa
+      # reescritura de esquema llega a la columna sin que nadie la pida. Fijarla es escribir
+      # desde el primer guardado lo que el adaptativo iba a escribir igual, pero declarado.
+      # (`:blocks` no sirve de default: pierde el anclaje de cada hilo.)
+      #
+      # Un `format:` explícito gana siempre, `:json` incluido: un host que quiere el
+      # adaptativo lo pide y se lo lleva.
+      def resolve_format(format)
+        return format unless format == UNSET
+
+        @config.comments.present? ? :prosemirror : :json
+      end
+
       # @deprecated Ver Bali::BlockEditor::Component#resolve_editable. Se elimina en 4.0.
       def resolve_editable(editable, readonly)
         return editable if readonly.nil?
@@ -105,7 +136,7 @@ module Bali
       attr_reader :title, :initial_content, :document_url, :close_url,
                   :versions_url, :restore_version_url, :param_key,
                   :auto_save, :auto_save_delay, :input_name,
-                  :config, :options, :instance_id
+                  :config, :editor_format, :options, :instance_id
 
       # Without a record there is nothing to name in the query string, so `:auto` resolves
       # to nothing and the history panel simply does not render: an off switch beats a

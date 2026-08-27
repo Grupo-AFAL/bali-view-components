@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::DocumentEditor` takes `format:`, and pins `:prosemirror` by itself when comments
+  are on.** `format:` (#1091, v3.1.4) is what stops the editor's JSON shape from depending on
+  whether anyone has commented yet — but it only reached the editor when the host mounted
+  `Bali::BlockEditor` directly. `DocumentEditor` neither accepted it nor forwarded it, and
+  `Config` leaves it out on purpose ("each wrapper decides those for itself"). The wrapper
+  was not deciding: **the screen that needs the pin most — a document editor with comments
+  and auto-save — had no public channel to set it** and stayed on the adaptive `:json` the
+  whole option exists to end. A host app had to reach in with a `prepend` on
+  `BlockEditor::Component#initialize` (Grupo-AFAL/gobierno-corporativo#868), which is the
+  shape of workaround #884 had just finished removing from that repo.
+
+  It accepts `format:` now and forwards it, and when nobody names one it decides: with
+  `comments:` on the default is **`:prosemirror`**, the only combination that loses nothing.
+  `:json` switches to that very shape the moment a comment mark appears — triggered by the
+  first reader, not by the host — and with auto-save that schema rewrite reaches the column
+  unasked. Pinning writes from the first save what the adaptive shape was going to write
+  anyway, only declared. (`:blocks` is not a candidate: it drops every thread's anchor.) An
+  explicit `format:` always wins, `:json` included.
+
+  `Bali::DocumentPage` deliberately does **not** take it, and raises if you pass one: it
+  mounts its editor with `editable: false` and no `input_name`, so it renders no hidden input
+  and has nothing to serialize. Accepting it would be an option that does nothing, and
+  letting it fall through to `**options` paints `format="blocks"` on the wrapper div in
+  silence — the failure mode of #1092. (#1098)
+
+### Added
+
 - **A listing can open on a question, and the question lives in the URL: `default:` now
   reaches Ransack through `Bali::Filterable#redirect_to_default_filters`.** A people
   catalogue that should open on the active roster rather than on the group's whole history

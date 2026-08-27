@@ -365,6 +365,30 @@ their anchors do not, because the anchor is the mark `editor.document` strips. T
 warns in the console the first time it drops one. `format: :prosemirror` keeps everything and
 pins the other shape.
 
+#### Through the wrappers
+
+`DocumentEditor` takes `format:` too and hands it to the editor it mounts — and when you do
+not pass one, **it pins `:prosemirror` as soon as `comments:` is on** (#1098). That screen is
+the one the adaptive default hurts most: comments plus auto-save means the first reader to
+comment rewrites the column's schema. Pinning writes from the very first save what the
+adaptive shape was going to write anyway, only declared. An explicit `format:` always wins,
+`:json` included — a host that wants the adaptive behaviour asks for it and gets it.
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+  title: @document.title,
+  initial_content: @document.content,
+  document_url: document_path(@document),
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash } }
+) %>
+<%# no format: → :prosemirror, because comments are on %>
+```
+
+`DocumentPage` does **not** take `format:` and raises if you pass one: it mounts a read-only
+editor with no `input_name`, so it renders no hidden input and there is nothing to serialize.
+The keyword would be an option that does nothing — and left to fall through it would paint
+`format="blocks"` on the wrapper div in silence, which is the failure mode of #1092.
+
 Two ways to tell what you were handed:
 
 ```ruby
