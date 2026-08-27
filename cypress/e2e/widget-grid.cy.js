@@ -1,6 +1,6 @@
 // Covers both Stimulus controllers behind the bento dashboard —
 // `bali-widget-grid` (drag/keyboard reorder, resize, remove, persist) and
-// `edit-mode` (enter/leave, URL, Escape, Back) — driven through the Lookbook
+// `bali-widget-grid-edit-mode` (enter/leave, URL, Escape, Back) — driven through the Lookbook
 // preview at /bali/widget_grid/default, the only surface Bali has for a
 // controller with no jsdom unit runner behind it.
 describe('widget grid', () => {
@@ -18,7 +18,7 @@ describe('widget grid', () => {
     cy.visit('/bali/widget_grid/default')
   })
 
-  const enterEditMode = () => cy.get('[data-action="edit-mode#enter"]').click()
+  const enterEditMode = () => cy.get('[data-action="bali-widget-grid-edit-mode#enter"]').click()
 
   // `@rails/request.js` sends the layout as `multipart/form-data` (it's a
   // FormData body), not `application/x-www-form-urlencoded` — so
@@ -103,6 +103,14 @@ describe('widget grid', () => {
     // The one signal a hard reload cannot fake: the JS realm is still the one
     // that was standing before Back, not a freshly booted one.
     cy.window().should('have.prop', '__cySurvivesBack', true)
+  })
+
+  // The param is a Stimulus value, not a hardcoded `editing`. A component has no
+  // business claiming a bare, generic name from inside a host's URL — a host may
+  // already use it for something of their own.
+  it('remembers the mode under a configurable param', () => {
+    cy.get('[data-controller*="bali-widget-grid-edit-mode"]')
+      .should('have.attr', 'data-bali-widget-grid-edit-mode-param-value', 'editing')
   })
 
   it('leaves edit mode on Escape', () => {

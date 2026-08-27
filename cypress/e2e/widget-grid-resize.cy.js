@@ -105,7 +105,7 @@ describe('resizing re-renders the card', () => {
 
     sizeTo('studio_foundings', 'large')
 
-    cy.get(`${card('studio_foundings')} [data-edit-mode-target="inert"]`)
+    cy.get(`${card('studio_foundings')} [data-bali-widget-grid-edit-mode-target="inert"]`)
       .should(($el) => expect($el[0].inert, 'replacement is inert').to.equal(true))
   })
 })

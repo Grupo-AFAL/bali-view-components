@@ -2553,6 +2553,14 @@ Bali::Widget::Result.new(
 `count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
 six characters. Set it explicitly for a headline that isn't a count — `"72%"`, `"$1.2k"`.
 
+**The edit-mode param is configurable.** The grid remembers the mode in the URL so Back
+leaves the mode rather than the page. It defaults to `?editing`; pass `editing_param:` when
+your app already uses that name for something of its own:
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(url: …, editing_param: "arranging") %>
+```
+
 **The row budgets are overridable.** `rows` and `charted_rows` in `REGIONS` are pixel
 budgets measured against Bali's own type sizes. If your base font is larger, or your
 subtitles wrap to two lines, set your own in an initializer rather than living with

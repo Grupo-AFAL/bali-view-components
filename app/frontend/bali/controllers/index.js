@@ -15,7 +15,6 @@ import { AutoPlayAudioController } from '../../../assets/javascripts/bali/contro
 import { AutocompleteAddressController } from '../../../assets/javascripts/bali/controllers/autocomplete-address-controller'
 import { CheckboxRevealController } from '../../../assets/javascripts/bali/controllers/checkbox-reveal-controller'
 import { CheckboxToggleController } from '../../../assets/javascripts/bali/controllers/checkbox-toggle-controller'
-import { EditModeController } from '../../../assets/javascripts/bali/controllers/edit-mode-controller'
 import { DatepickerController } from '../../../assets/javascripts/bali/controllers/datepicker-controller'
 import { DrawingMapsController } from '../../../assets/javascripts/bali/controllers/drawing-maps-controller'
 import { DynamicFieldsController } from '../../../assets/javascripts/bali/controllers/dynamic-fields-controller'
@@ -42,7 +41,6 @@ export {
   AutocompleteAddressController,
   CheckboxRevealController,
   CheckboxToggleController,
-  EditModeController,
   DatepickerController,
   DrawingMapsController,
   DynamicFieldsController,
@@ -83,7 +81,6 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   datepicker: DatepickerController,
   'drawing-maps': DrawingMapsController,
   'dynamic-fields': DynamicFieldsController,
-  'edit-mode': EditModeController,
   'elements-overlap': ElementsOverlapController,
   'file-input': FileInputController,
   'filter-persistence': FilterPersistenceController,

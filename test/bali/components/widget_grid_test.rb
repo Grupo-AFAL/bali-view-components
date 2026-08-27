@@ -19,7 +19,7 @@ class BaliWidgetGridComponentTest < ComponentTestCase
   def test_renders_the_two_composed_controllers_and_the_endpoint
     render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout"))
 
-    assert_selector("[data-controller='bali-widget-grid edit-mode']", visible: :all)
+    assert_selector("[data-controller='bali-widget-grid bali-widget-grid-edit-mode']", visible: :all)
     assert_selector("[data-bali-widget-grid-url-value='/widget_layout']", visible: :all)
   end
 
@@ -44,6 +44,21 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout"))
 
     assert_no_selector("[data-bali-widget-grid-removed-last-text-value*='%{total}']", visible: :all)
+  end
+
+  # A component has no business claiming a bare, generic `?editing` from inside a
+  # host's URL — they may already use it. Exposed in Ruby because a host renders
+  # this component; it does not hand-write the data attributes.
+  def test_the_editing_param_is_configurable
+    render_inline(Bali::WidgetGrid::Component.new(url: "/w", editing_param: "arranging"))
+
+    assert_selector("[data-bali-widget-grid-edit-mode-param-value='arranging']", visible: :all)
+  end
+
+  def test_the_editing_param_defaults_to_editing
+    render_inline(Bali::WidgetGrid::Component.new(url: "/w"))
+
+    assert_selector("[data-bali-widget-grid-edit-mode-param-value='editing']", visible: :all)
   end
 
   def test_renders_one_card_per_widget_inside_the_sortable_grid
@@ -125,7 +140,7 @@ class BaliWidgetGridComponentTest < ComponentTestCase
   def test_the_wrapper_binds_escape_for_edit_mode
     render_inline(Bali::WidgetGrid::Component.new(url: "/l"))
 
-    assert_selector("[data-action*='keydown@window->edit-mode#keydown']", visible: :all)
+    assert_selector("[data-action*='keydown@window->bali-widget-grid-edit-mode#keydown']", visible: :all)
   end
 
   def test_the_default_bar_offers_enter_and_a_hidden_leave
@@ -133,8 +148,8 @@ class BaliWidgetGridComponentTest < ComponentTestCase
       grid.with_widget(Stock.new)
     end
 
-    assert_selector("[data-edit-mode-target='enter'] button[data-action='edit-mode#enter']", visible: :all)
-    assert_selector("[data-edit-mode-target='leave'][hidden] button[data-action='edit-mode#leave']", visible: :all)
+    assert_selector("[data-bali-widget-grid-edit-mode-target='enter'] button[data-action='bali-widget-grid-edit-mode#enter']", visible: :all)
+    assert_selector("[data-bali-widget-grid-edit-mode-target='leave'][hidden] button[data-action='bali-widget-grid-edit-mode#leave']", visible: :all)
   end
 
   def test_a_custom_heading_replaces_the_hint_but_keeps_the_edit_controls
@@ -146,14 +161,14 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     assert_selector("h1", text: "My dashboard")
     # The grid is the only surface that offers edit mode; a custom heading must
     # not be able to delete the way in.
-    assert_selector("[data-edit-mode-target='enter'] button[data-action='edit-mode#enter']", visible: :all)
+    assert_selector("[data-bali-widget-grid-edit-mode-target='enter'] button[data-action='bali-widget-grid-edit-mode#enter']", visible: :all)
   end
 
   def test_renders_one_announcer_shared_by_both_controllers
     render_inline(Bali::WidgetGrid::Component.new(url: "/l"))
 
     assert_selector(
-      "[role='status'][aria-live='polite'][data-bali-widget-grid-target='announcer'][data-edit-mode-target='announcer']",
+      "[role='status'][aria-live='polite'][data-bali-widget-grid-target='announcer'][data-bali-widget-grid-edit-mode-target='announcer']",
       visible: :all
     )
   end

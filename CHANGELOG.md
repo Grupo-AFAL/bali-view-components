@@ -54,11 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   measurements against Bali's own type sizes and a host with a larger base font could not say
   so. See `docs/guides/engine-models.md` for `ApplicationWidget`, which is where your route
   helpers belong.
-- **`edit-mode` controller.** Puts a page into an edit mode and remembers it in the URL:
-  toggles a class, swaps the control that enters for the one that leaves, marks a subtree
-  `inert` (not `pointer-events-none`, which leaves every link in the tab order), and
-  announces the change. `Bali::WidgetGrid` composes it, but nothing about it is
-  widget-specific — see `docs/guides/controllers.md`.
 - **`Bali::Gauge`: a radial progress ring.** The circular half of what `Bali::Progress` does
   linearly, over daisyUI's `radial-progress` — CSS-only, so a page of them costs no
   JavaScript. Carries the full `progressbar` ARIA contract, which daisyUI's own markup does

@@ -61,7 +61,6 @@ export {
   DatepickerController,
   DrawingMapsController,
   DynamicFieldsController,
-  EditModeController,
   ElementsOverlapController,
   FileInputController,
   FilterPersistenceController,
@@ -130,7 +129,8 @@ export {
   ToolbarOverflowController,
   TooltipController,
   TreeViewItemController,
-  WidgetGridController
+  WidgetGridController,
+  WidgetGridEditModeController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 

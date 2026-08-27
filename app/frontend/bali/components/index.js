@@ -33,7 +33,7 @@ import { ChatController } from '../../../components/bali/chat/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
-import { WidgetGridController } from '../../../components/bali/widget_grid/index'
+import { WidgetGridController, WidgetGridEditModeController } from '../../../components/bali/widget_grid/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -114,7 +114,8 @@ export {
   ToolbarOverflowController,
   TooltipController,
   TreeViewItemController,
-  WidgetGridController
+  WidgetGridController,
+  WidgetGridEditModeController
 }
 
 /**
@@ -158,6 +159,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   kanban: KanbanController,
   reveal: RevealController,
   'bali-widget-grid': WidgetGridController,
+  'bali-widget-grid-edit-mode': WidgetGridEditModeController,
   'sortable-list': SortableListController,
   tooltip: TooltipController,
   status: StatusController,

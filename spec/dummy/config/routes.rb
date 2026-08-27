@@ -88,10 +88,6 @@ Rails.application.routes.draw do
   patch 'sortable_list', to: 'sortable_list#update'
   resource :widget_layout, only: :update
 
-  # Two independent `edit-mode` regions on one page — the case a hardcoded query
-  # param made impossible. See `cypress/e2e/edit-mode.cy.js`.
-  get 'edit_mode_demo', to: 'edit_mode_demo#index', as: :edit_mode_demo
-
   # Scaffolding for `cypress/e2e/modal-history.cy.js`. `modal_redirect#go` exists
   # only to redirect, which is the one condition that sends `ModalController#open`
   # down `_replaceBodyAndURL` — the body-swapping branch whose Back behaviour was

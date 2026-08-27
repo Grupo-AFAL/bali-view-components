@@ -41,22 +41,27 @@ module Bali
                          "border-base-300 text-base-content/50 transition-colors " \
                          "hover:border-primary hover:text-primary"
 
-      def initialize(url:, add_path: nil, **options)
+      # `editing_param` is the query param the mode is remembered in. Exposed
+      # because a host may already use `editing` for something of their own, and
+      # because a knob only reachable from hand-written markup is not reachable:
+      # a host renders this component, it does not write the data attributes.
+      def initialize(url:, add_path: nil, editing_param: "editing", **options)
         @url = url
         @add_path = add_path
+        @editing_param = editing_param
         @options = build_options(options)
       end
 
       private
 
-      attr_reader :url, :add_path, :options
+      attr_reader :url, :add_path, :editing_param, :options
 
       def build_options(opts)
-        opts = prepend_controller(opts, "bali-widget-grid edit-mode")
+        opts = prepend_controller(opts, "bali-widget-grid bali-widget-grid-edit-mode")
         opts = prepend_values(opts, "bali-widget-grid", widget_grid_values)
-        opts = prepend_values(opts, "edit-mode", edit_mode_values)
-        opts = prepend_data_attribute(opts, "edit-mode-editing-class", "editing")
-        prepend_action(opts, "keydown@window->edit-mode#keydown")
+        opts = prepend_values(opts, "bali-widget-grid-edit-mode", edit_mode_values)
+        opts = prepend_data_attribute(opts, "bali-widget-grid-edit-mode-editing-class", "editing")
+        prepend_action(opts, "keydown@window->bali-widget-grid-edit-mode#keydown")
       end
 
       # `I18n.t`, not the instance `#t`: this runs from `initialize`, before
@@ -85,6 +90,7 @@ module Bali
 
       def edit_mode_values
         {
+          param: editing_param,
           on_text: I18n.t("bali_view.widgets.edit.editing_on"),
           off_text: I18n.t("bali_view.widgets.edit.editing_off")
         }
