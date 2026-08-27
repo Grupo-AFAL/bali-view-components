@@ -263,6 +263,15 @@ An `inert` target that arrives later — a Turbo Stream replacing part of the
 subtree while the mode is on — is marked on connect, so a replacement cannot
 land tabbable inside a dimmed page.
 
+The query param defaults to `editing` and is set with
+`data-edit-mode-param-value`. Give each region its own name when a page has more
+than one — under a shared param they read the same flag and enter together:
+
+```erb
+<section data-controller="edit-mode" data-edit-mode-param-value="editing_widgets">…</section>
+<section data-controller="edit-mode" data-edit-mode-param-value="editing_layout">…</section>
+```
+
 ## `elements-overlap`
 
 Keeps a `position: fixed` element (a sidebar, a floating actions bar) from

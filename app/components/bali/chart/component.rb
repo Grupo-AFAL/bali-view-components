@@ -144,7 +144,7 @@ module Bali
       end
 
       def wrapper_classes
-        class_names("chart-component", ("flex h-full min-h-0 flex-col" if fit?))
+        token_list("chart-component", "flex h-full min-h-0 flex-col": fit?)
       end
 
       def container_classes
