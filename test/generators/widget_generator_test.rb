@@ -46,7 +46,9 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     assert_file "app/widgets/trending.rb" do |content|
       assert_match(/^  trend do \|t\|/, content)
       assert_match(/t\.current/, content)
-      assert_match(/^  series do \|s\|/, content)
+      # Commented out: a series is optional, and a scaffolded `s.values { [] }`
+      # is a declaration that silently does nothing.
+      assert_match(/^  # series do \|s\|/, content)
       assert_no_match(/^  list/, content)
       assert_no_match(/^  goal /, content)
     end

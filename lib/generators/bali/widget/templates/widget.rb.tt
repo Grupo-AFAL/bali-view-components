@@ -59,7 +59,7 @@ class <%= class_name %> < <%= parent_class %>
   # data problem rather than an unfinished widget. The other two are optional.
   row do |r|
     r.title :name
-    # r.subtitle { |record| subtitle(record.thing, record.other) }
+    # r.subtitle { |record| join(record.thing, record.other) }
     # r.href { |record| record_path(record) }
   end
 <% elsif pattern == 'trend' -%>
@@ -84,10 +84,10 @@ class <%= class_name %> < <%= parent_class %>
   # The history behind the fact: a sparkline at `medium`, an axed chart at
   # `large`. Blocks run against the widget, so both can share one query through a
   # memoised private method. Omit `series` entirely and the card draws no chart.
-  series do |s|
-    s.labels { [] }
-    s.values { [] }
-  end
+  # series do |s|
+  #   s.labels { by_week.keys }
+  #   s.values { by_week.values }
+  # end
 <% elsif pattern == 'progress' -%>
   # HOW FAR ALONG. The ring REPLACES the number as the headline, which is what
   # makes this a pattern rather than a list with a decoration.
@@ -102,7 +102,7 @@ class <%= class_name %> < <%= parent_class %>
   end
 
   # How you got there. Omit `series` entirely and the ring stands alone.
-  series { |s| s.values { [] } }
+  # series { |s| s.values { by_status.values } }
 <% end -%>
 end
 <% end -%>

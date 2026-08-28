@@ -55,9 +55,6 @@ module Bali
       # rather than the second replacing the first — which lets a shared module
       # declare a title and an href while a widget declares only its subtitle.
       class RowBuilder
-        # A Symbol is sent to the RECORD, a block runs on the WIDGET with the
-        # record yielded, a String is the value itself. Same three forms for all
-        # three fields — see `#resolve`.
         def title(value = nil, &block) = @title = block || value
 
         def subtitle(value = nil, &block) = @subtitle = block || value
@@ -93,9 +90,9 @@ module Bali
         # A STRING is the value itself, and used to be a third spelling of "send
         # this to the record" — which made `r.subtitle "In stock"` a confusing
         # `NoMethodError` at render time. It reads exactly like the `title "Low
-        # stock items"` a few lines above it in the same class body, and
-        # `goal_label` over in `ProgressBase` already treats a non-Proc as a
-        # literal. One feature cannot have two answers to what a string means.
+        # stock items"` a few lines above it in the same class body, and every
+        # other builder already treats a non-Proc as a literal. One feature
+        # cannot have two answers to what a string means.
         def resolve(widget, field, record)
           case field
           when nil, String then field
@@ -167,7 +164,17 @@ module Bali
         end
       end
 
-      def count = @count ||= safely(0) { scope.count.to_i }
+      # The row declaration is checked HERE as well as in `#items`, because a
+      # `:small` card renders no rows and would otherwise never look: `count`
+      # would succeed, the hero would print a confident number, and the widget
+      # would be broken at every other size with nothing on screen saying so.
+      # A list widget owes a `row` whatever size it happens to be drawn at.
+      def count
+        @count ||= safely(0) do
+          row_builder.check!(self.class)
+          scope.count.to_i
+        end
+      end
 
       def items
         @items ||= safely([]) do

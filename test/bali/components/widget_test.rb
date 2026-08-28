@@ -226,6 +226,45 @@ class BaliWidgetComponentTest < ComponentTestCase
     end
   end
 
+  # THE `:small` HOLE. A widget missing a required declaration used to render a
+  # confident grey `0` at `small` while apologising correctly at the other two
+  # sizes — the exact failure the degraded tile exists to prevent, in the default
+  # size of the two patterns that carry the most computed logic.
+  #
+  # The mechanism was size-dependent and worth naming: the hero branch decides on
+  # `failed?` at the very top and never looks again, so a guard that only fired
+  # from `#trend` or `#goal` was reached AFTER the card had committed to looking
+  # healthy. Validating from `count` closes it, because `before_render` reads
+  # `count` at every size.
+  def test_a_missing_declaration_apologises_at_every_size_including_small
+    missing_current = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "stock"
+      supports(*Bali::Widget::SIZES)
+      trend { |t| t.previous 5 }
+    end
+    missing_value = Class.new(Bali::Widget::ProgressBase) do
+      def self.key = "stock"
+      supports(*Bali::Widget::SIZES)
+      goal { |g| g.max 10 }
+    end
+    missing_row = Class.new(Bali::Widget::ListBase) do
+      def self.key = "stock"
+      supports(*Bali::Widget::SIZES)
+      list { Studio.all }
+    end
+
+    swallowing_load_errors do
+      [ missing_current, missing_value, missing_row ].each do |klass|
+        Bali::Widget::SIZES.each do |size|
+          render_inline(Bali::Widget::Component.new(klass.new.with_size(size)))
+
+          assert_text "Couldn't load", count: 1
+          refute_selector ".stat-value", text: "0"
+        end
+      end
+    end
+  end
+
   # ---- trend ---------------------------------------------------------------
 
   def test_a_trend_renders_beside_the_headline_at_every_size

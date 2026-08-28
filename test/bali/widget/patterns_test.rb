@@ -10,63 +10,155 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     @b = Studio.create!(name: "Beta", country: "US", status: :active, founded_year: 2000)
   end
 
+  # ---- the declaration machinery -------------------------------------------
+
+  # THE `dup`-ON-INHERIT RULE. `class_attribute` copies on WRITE and never on
+  # MUTATION, so a subclass re-declaring would otherwise be handed its parent's
+  # builder object and two siblings would overwrite each other's fields — last
+  # class body loaded winning, which presents as "widget B shows widget A's
+  # title" and depends on autoload order.
+  def test_sibling_widgets_do_not_share_a_builder
+    Studio.create!(name: "Shared", country: "MX")
+    parent = Class.new(Bali::Widget::ListBase) do
+      def self.key = "parent"
+      list { Studio.where(name: "Shared") }
+      row { |r| r.title :name }
+    end
+    first = Class.new(parent) { def self.key = "first"; row { |r| r.subtitle "FIRST" } }
+    second = Class.new(parent) { def self.key = "second"; row { |r| r.subtitle "SECOND" } }
+
+    assert_equal "FIRST", first.new.items.first.subtitle
+    assert_equal "SECOND", second.new.items.first.subtitle
+    # And the field neither of them re-declared still comes from the parent.
+    assert_equal "Shared", first.new.items.first.title
+  end
+
+  def test_sibling_widgets_do_not_share_a_series_or_trend_builder
+    parent = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "tparent"
+      trend { |t| t.current 12; t.previous 6 }
+      series { |s| s.labels %w[a b] }
+    end
+    up = Class.new(parent) { def self.key = "up"; trend { |t| t.positive_when :up } }
+    down = Class.new(parent) { def self.key = "down"; trend { |t| t.positive_when :down } }
+    one = Class.new(parent) { def self.key = "one"; series { |s| s.values [ 1, 2 ] } }
+    two = Class.new(parent) { def self.key = "two"; series { |s| s.values [ 9, 9 ] } }
+
+    assert_predicate up.new.trend, :good?
+    refute_predicate down.new.trend, :good?
+    assert_equal [ 1, 2 ], one.new.series.values
+    assert_equal [ 9, 9 ], two.new.series.values
+    assert_equal %w[a b], one.new.series.labels
+  end
+
+  # `:line` for a trend, `:bar` for a breakdown. Both patterns include the same
+  # `Charted` module, so the default has to be per-including-class rather than
+  # per-module — otherwise whichever loaded last would win for both.
+  def test_the_series_default_type_does_not_leak_between_patterns
+    trend = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "t"
+      trend { |t| t.current 1; t.previous 1 }
+      series { |s| s.values [ 1 ] }
+    end
+    progress = Class.new(Bali::Widget::ProgressBase) do
+      def self.key = "p"
+      goal { |g| g.value 1 }
+      series { |s| s.values [ 1 ] }
+    end
+
+    assert_equal :line, trend.new.series.type
+    assert_equal :bar, progress.new.series.type
+  end
+
+  # NINE of the fourteen hand-written errors were untested. They replace the
+  # `NotImplementedError` and `ArgumentError` Ruby used to give for free, so
+  # they are only a fair trade if they are as reliable — and the message IS the
+  # documentation, so a message suggesting a declaration that then fails is a
+  # bug in the API rather than in the prose.
+  def test_every_declaration_says_what_it_needs_when_given_no_block
+    {
+      Bali::Widget::ListBase => %i[list row],
+      Bali::Widget::TrendBase => %i[trend series],
+      Bali::Widget::ProgressBase => %i[goal series]
+    }.each do |base, macros|
+      macros.each do |macro|
+        error = assert_raises(ArgumentError, "#{base}.#{macro}") { Class.new(base).public_send(macro) }
+
+        assert_match(/`#{macro}` needs a block/, error.message)
+      end
+    end
+
+    error = assert_raises(ArgumentError) { Class.new(Bali::Widget::ValueBase).value }
+
+    assert_match(/`value` needs a figure/, error.message)
+  end
+
+  # A list widget has no chart, so it is not `Charted` — asserting the absence
+  # keeps the pattern boundary from quietly widening.
+  def test_only_the_charted_patterns_offer_a_series
+    assert_respond_to Bali::Widget::TrendBase, :series
+    assert_respond_to Bali::Widget::ProgressBase, :series
+    refute_respond_to Bali::Widget::ListBase, :series
+    refute_respond_to Bali::Widget::ValueBase, :series
+  end
+
+  # The suggestion in each message has to be a declaration that WORKS. Two of
+  # them used to suggest one that raised the next guard: `trend { |t|
+  # t.positive_when :down }` has no `t.current`, and `goal { |g| g.label "of
+  # 10" }` has no `g.value`.
+  def test_the_suggested_declaration_in_each_message_actually_works
+    trend = assert_raises(ArgumentError) { Class.new(Bali::Widget::TrendBase).trend }
+    assert_match(/t\.current/, trend.message)
+
+    goal = assert_raises(ArgumentError) { Class.new(Bali::Widget::ProgressBase).goal }
+    assert_match(/g\.value/, goal.message)
+
+    # And following them leaves a widget that loads.
+    widget = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "suggested"
+      trend { |t| t.current { 12 } }
+    end.new
+
+    assert_equal 12, widget.count
+    assert_nil widget.trend, "no previous period means no trend, not a raise"
+  end
+
+  def test_a_trend_without_a_current_says_which_field_is_missing
+    klass = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "nocurrent"
+      trend { |t| t.period_label "vs last week" }
+    end
+
+    error = assert_raises(NotImplementedError) { klass.new.trend }
+
+    assert_match(/must declare `t\.current`/, error.message)
+  end
+
+  def test_a_goal_without_a_value_says_which_field_is_missing
+    klass = Class.new(Bali::Widget::ProgressBase) do
+      def self.key = "novalue"
+      goal { |g| g.label "of 10" }
+    end
+
+    error = assert_raises(NotImplementedError) { klass.new.goal }
+
+    assert_match(/must declare `g\.value`/, error.message)
+  end
+
+  def test_a_pattern_without_its_declaration_at_all_says_so
+    assert_match(/must declare `trend`/,
+                 assert_raises(NotImplementedError) { Class.new(Bali::Widget::TrendBase) { def self.key = "x" }.new.trend }.message)
+    assert_match(/must declare `goal`/,
+                 assert_raises(NotImplementedError) { Class.new(Bali::Widget::ProgressBase) { def self.key = "y" }.new.goal }.message)
+  end
+
   # ---- ValueBase -----------------------------------------------------------
 
   def value_widget(&block) = Class.new(Bali::Widget::ValueBase) { def self.key = "v" }.tap { it.class_eval(&block) }.new
 
   # A bare figure at `large` is a title, a number and most of a 2x2 cell of
-  # whitespace — so this is the class's default rather than a limitation of it.
-  # `title "Low stock items"` sits three lines from `row_subtitle` in a real
-  # class body, and `ProgressBase#goal_label` already reads a non-Proc as the
-  # value. A string that meant "send this to the record" made one macro in the
-  # set disagree with the rest, and failed as a `NoMethodError` on a method
-  # named "In stock".
-  # A list widget owes a `row` the way it owes a `list`. Without one there is
-  # nothing to build a row from, and `items` would otherwise fail deep inside
-  # the builder with a nil receiver.
-  def test_a_list_without_a_row_says_so
-    klass = Class.new(Bali::Widget::ListBase) do
-      def self.key = "unrowed"
-      list { Studio.all }
-    end
-
-    error = assert_raises(NotImplementedError) { klass.new.items }
-
-    assert_match(/must declare `row`/, error.message)
-  end
-
-  # And a `row` that declares no title is the same class of mistake one level
-  # in: every row renders blank, which reads as a data problem rather than an
-  # unfinished widget. Checked once per render, not once per row.
-  def test_a_row_without_a_title_says_so
-    klass = Class.new(Bali::Widget::ListBase) do
-      def self.key = "untitled"
-      list { Studio.all }
-      row { |r| r.subtitle :country }
-    end
-
-    error = assert_raises(NotImplementedError) { klass.new.items }
-
-    assert_match(/must declare `r.title`/, error.message)
-  end
-
-  def test_a_string_row_field_is_the_value_rather_than_a_method_name
-    klass = Class.new(Bali::Widget::ListBase) do
-      def self.key = "literal"
-      row do |r|
-        r.title :name
-        r.subtitle "In stock"
-      end
-      list { Studio.where(name: "Flour") }
-    end
-
-    Studio.create!(name: "Flour")
-    row = klass.new.items.first
-
-    assert_equal "Flour", row.title
-    assert_equal "In stock", row.subtitle
-  end
-
+  # whitespace — so one offered size is the class's default rather than a
+  # limitation of it.
   def test_a_value_widget_offers_only_small_by_default
     assert_equal [ :small ], Bali::Widget::ValueBase.supported_sizes
   end
@@ -96,6 +188,56 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # ---- ListBase ------------------------------------------------------------
 
   def list_widget(&block) = Class.new(Bali::Widget::ListBase) { def self.key = "l" }.tap { it.class_eval(&block) }.new
+
+  # A list widget owes a `row` the way it owes a `list`. Without one there is
+  # nothing to build a row from, and `items` would otherwise fail deep inside
+  # the builder with a nil receiver.
+  def test_a_list_without_a_row_says_so
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "unrowed"
+      list { Studio.all }
+    end
+
+    error = assert_raises(NotImplementedError) { klass.new.items }
+
+    assert_match(/must declare `row`/, error.message)
+  end
+
+  # And a `row` that declares no title is the same class of mistake one level
+  # in: every row renders blank, which reads as a data problem rather than an
+  # unfinished widget. Checked once per render, not once per row.
+  def test_a_row_without_a_title_says_so
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "untitled"
+      list { Studio.all }
+      row { |r| r.subtitle :country }
+    end
+
+    error = assert_raises(NotImplementedError) { klass.new.items }
+
+    assert_match(/must declare `r.title`/, error.message)
+  end
+
+  # `title "Low stock items"` sits a few lines from `r.subtitle` in a real class
+  # body, and every other builder reads a non-Proc as a literal. A string that
+  # meant "send this to the record" made one field in the set disagree with the
+  # rest, and failed as a `NoMethodError` on a method named "In stock".
+  def test_a_string_row_field_is_the_value_rather_than_a_method_name
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "literal"
+      row do |r|
+        r.title :name
+        r.subtitle "In stock"
+      end
+      list { Studio.where(name: "Flour") }
+    end
+
+    Studio.create!(name: "Flour")
+    row = klass.new.items.first
+
+    assert_equal "Flour", row.title
+    assert_equal "In stock", row.subtitle
+  end
 
   def test_a_list_answers_count_and_a_capped_preview_from_one_scope
     widget = list_widget do
@@ -148,17 +290,6 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     assert_match(/must declare `list`/, error.message)
   end
 
-  # A class body runs once at boot, so a relation passed by value freezes
-  # whatever it closed over then — `Date.current` is the day the process
-  # started. The block form is re-read per render, which is why it is the one
-  # the docs lead with.
-  # THE BUG THE BLOCK EXISTS TO PREVENT, stated as a date rather than a counter.
-  # A class body runs once at boot, so a relation built there closes over the
-  # day the process started — `due_date: Date.current..` silently keeps
-  # yesterday's window and the tile shows the wrong week until a redeploy. The
-  # reloader re-runs the class body on every request, so this cannot reproduce
-  # in development: it is a production-only, silent failure, which is why `list`
-  # takes a block and nothing else.
   # All three row fields take the same three forms. `row_href` used to be the
   # exception — block only — so `row_href :url` raised `wrong number of
   # arguments (given 1, expected 0)`, which names nothing about the API, and a
@@ -220,21 +351,21 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   # A CLASS-level invariant, so it is checked once per render rather than once
   # per row — and reported for the widget, not for a record.
-  def test_the_missing_row_title_is_reported_once_not_once_per_row
+  def test_the_missing_row_title_is_checked_before_the_row_loop_not_inside_it
     3.times { |i| Studio.create!(name: "Untitled #{i}", country: "US") }
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "untitled2"
       list { Studio.where("name LIKE 'Untitled %'") }
     end
 
-    raised = 0
-    begin
-      klass.new.items
-    rescue NotImplementedError
-      raised += 1
-    end
+    # Counting raises cannot tell "checked once up front" from "checked on the
+    # first row and short-circuited" — both raise once. Counting how many RECORDS
+    # the row builder saw can: a guard inside the loop would have touched one.
+    seen = 0
+    klass.class_eval { define_method(:row_for) { |record| seen += 1; super(record) } }
 
-    assert_equal 1, raised
+    assert_raises(NotImplementedError) { klass.new.items }
+    assert_equal 0, seen, "the guard ran inside the row loop, not before it"
   end
 
   # Each setter writes its OWN attribute, so two `row` blocks merge field by
@@ -273,6 +404,13 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     assert_match(/needs a block/, error.message)
   end
 
+  # THE BUG THE BLOCK EXISTS TO PREVENT, stated as a date rather than a counter.
+  # A class body runs once at boot, so a relation built there closes over the day
+  # the process started — `due_date: Date.current..` silently keeps yesterday's
+  # window and the tile shows the wrong week until a redeploy. The reloader
+  # re-runs the class body on every request, so this cannot reproduce in
+  # development: a production-only, silent failure, which is why `list` takes a
+  # block and nothing else.
   def test_a_dated_scope_moves_with_the_clock
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "dated"
@@ -288,6 +426,8 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     travel_to(Time.zone.parse("2026-01-02 12:00")) { assert_equal 0, klass.new.count }
   end
 
+  # The same property counted rather than dated: the block is re-read per render,
+  # which is what makes the dated case above work.
   def test_a_block_scope_is_re_read_on_every_render
     reads = 0
     klass = Class.new(Bali::Widget::ListBase) do

@@ -15,6 +15,8 @@ module Bali
     # whatever else it has. That is a supported state, not a missing declaration —
     # which is why there is no guard here, unlike `list` and `row`.
     module Charted
+      extend ActiveSupport::Concern
+
       # `charted?` rather than `values.any?` at the call site: an empty series is
       # a chart with nothing to draw, and the card should skip the region rather
       # than render an empty canvas.
@@ -55,15 +57,19 @@ module Bali
         end
       end
 
-      def self.included(base)
-        base.class_attribute :_series_builder, **Base::ATTRIBUTE_OPTIONS
+      included do
+        class_attribute :_series_builder, **Base::ATTRIBUTE_OPTIONS
         # `:line` for a trend, `:bar` for a breakdown — the including pattern says
         # which, and a widget overrides it with `s.type`.
-        base.class_attribute :_default_series_type, default: :line, **Base::ATTRIBUTE_OPTIONS
-        base.extend(ClassMethods)
+        #
+        # READ WHEN `series` IS FIRST CALLED, not when this module is included, so
+        # a pattern setting it must do so in its own class body — before any
+        # subclass declares a series. `ProgressBase` does, two lines after
+        # `include Charted`.
+        class_attribute :_default_series_type, default: :line, **Base::ATTRIBUTE_OPTIONS
       end
 
-      module ClassMethods
+      class_methods do
         # DUPS what it inherits, for the same reason `row` does: `class_attribute`
         # copies on write and never on mutation, so a subclass would otherwise be
         # handed its parent's builder and two siblings would overwrite each other.
@@ -75,8 +81,17 @@ module Bali
         end
       end
 
+      # `defined?` rather than `@series ||=`: a widget with no series answers nil,
+      # which is the common case and exactly the one `||=` cannot memoise.
+      #
+      # The card asks through `series?`, `context?`, `empty_state?`, `detail?` and
+      # `context_classes`, then again for `series.type`, the chart data and the
+      # tick precision — five to eight times per tile, each rebuilding the object
+      # and re-running BOTH declaration blocks.
       def series
-        safely(nil) { _series_builder&.to_series(self) }
+        return @series if defined?(@series)
+
+        @series = safely(nil) { _series_builder&.to_series(self) }
       end
     end
   end

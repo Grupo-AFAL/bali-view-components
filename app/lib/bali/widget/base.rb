@@ -29,6 +29,25 @@ module Bali
       # nothing calls. Instance READERS stay: the patterns read them.
       ATTRIBUTE_OPTIONS = { instance_writer: false, instance_predicate: false }.freeze
 
+      # THE BUILDER CONTRACT, which every `list`/`row`/`series`/`trend`/`goal`
+      # declaration relies on and none of them restates:
+      #
+      #   1. A builder is held in a `class_attribute` and `dup`ed before it is
+      #      written to. `class_attribute` copies on WRITE and never on MUTATION,
+      #      so without the dup a subclass would be handed its parent's object and
+      #      two siblings would overwrite each other's fields — last class body
+      #      loaded winning, which presents as "widget B shows widget A's title"
+      #      and depends on autoload order.
+      #
+      #   2. That `dup` is SHALLOW, and shallow is sufficient only because every
+      #      setter ASSIGNS (`@title = block || value`) rather than mutating, and
+      #      no builder exposes a reader. This is a proof obligation, not a
+      #      shortcut: add an accumulating field (`r.tag <<`) or a reader that
+      #      hands out the ivar, and parent and child start sharing one object
+      #      through the copy. Add a `dup` of your own to the field if you do.
+      #
+      # `test/bali/widget/patterns_test.rb` pins (1) for all four builders.
+
       # The canvas the widget is drawn around, and the fallback for a stored size
       # it no longer supports.
       class_attribute :_default_size, default: SIZES.first, **ATTRIBUTE_OPTIONS

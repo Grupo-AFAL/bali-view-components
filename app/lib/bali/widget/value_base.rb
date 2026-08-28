@@ -45,15 +45,22 @@ module Bali
 
       # A READER over the declaration, memoised — `count` reads it, and so does
       # any `display_value` block.
+      #
+      # THE SAME WORD AS THE MACRO ABOVE, deliberately: `value { … }` in a class
+      # body is the class method, and a bare `value` anywhere else — including
+      # inside `display_value { "$#{Widget.abbreviate(value)}" }` — is this one.
+      # It is the sharpest overload in the feature; the alternative was a second
+      # name for one concept, which reads worse in the class body where hosts
+      # actually work.
       def value
-        @value ||= begin
-          unless _value
-            raise NotImplementedError,
-                  "#{self.class.name || 'This widget'} must declare `value`."
-          end
+        return @value if defined?(@value)
 
-          _value.is_a?(Proc) ? instance_exec(&_value) : _value
+        unless _value
+          raise NotImplementedError,
+                "#{self.class.name || 'This widget'} must declare `value`."
         end
+
+        @value = _value.is_a?(Proc) ? instance_exec(&_value) : _value
       end
 
       # `value` IS the count as far as the card is concerned — that is what makes

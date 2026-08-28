@@ -17,6 +17,33 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
                                      offering: DemoWidgets.authorized_for(User.demo))
   end
 
+  # THE INDEX ACTION, which nothing else covers. The component tests all drive
+  # synthetic widgets against `Bali::Widget::Component` directly, so a break in
+  # the page around them — a bad `regions` override, a typo in the grid's ERB,
+  # a demo widget whose declaration stopped resolving — would not fail anything.
+  # This renders the real ten against the real database.
+  def test_the_dashboard_renders_every_offered_widget
+    get dashboard_widgets_path
+
+    assert_response :success
+    DemoWidgets.authorized_for(User.demo).each do |widget|
+      assert_select %(section[data-widget-key="#{widget.key}"]), 1,
+                    "#{widget.key} did not render"
+    end
+  end
+
+  # A widget that raises must degrade its own tile, never the page. The demo
+  # offering ships one that reports failure, so the index is the place this is
+  # visible end to end rather than in a component test's synthetic widget.
+  def test_a_failed_widget_does_not_take_the_page_down
+    get dashboard_widgets_path
+
+    assert_response :success
+    assert_select %(section[data-widget-key="unavailable_feed"]) do
+      assert_select ".text-warning"
+    end
+  end
+
   def test_update_persists_an_authorized_widget
     patch dashboard_widgets_path, params: {
       widgets: [ { key: "recent_movies", size: "large" } ]

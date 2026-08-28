@@ -52,6 +52,11 @@ module Bali
         # is drawn to.
         def label(value = nil, &block) = @label = block || value
 
+        # READS THROUGH THE WIDGET, never through `resolved_value`/`resolved_max`.
+        # That is the invariant that makes `g.label { "of #{max}" }` print the
+        # same figure the ring is drawn to: the widget's readers memoise, these
+        # do not, and shortcutting to them here would run each block a second
+        # time and could disagree with the label.
         def to_goal(widget)
           Goal.new(value: widget.value, max: widget.max, label: resolve(widget, @label))
         end
@@ -85,7 +90,7 @@ module Bali
         #
         # DUPS what it inherits, for the same reason `row` and `series` do.
         def goal(&block)
-          raise ArgumentError, "`goal` needs a block: `goal { |g| g.label \"of 10\" }`." unless block
+          raise ArgumentError, "`goal` needs a block: `goal { |g| g.value { Item.done.count } }`." unless block
 
           self._goal_builder = _goal_builder&.dup || GoalBuilder.new
           block.call(_goal_builder)
@@ -98,16 +103,33 @@ module Bali
       #
       # Memoised: the ring reads both, `count` reads `value` again, and a
       # declaration doing real work should not do it three times.
-      def value = @value ||= goal_builder.resolved_value(self)
+      # `defined?` rather than `||=`, so a legitimately nil or zero figure is
+      # memoised rather than re-read on every call.
+      # CHECKS HERE, not only in `#goal` — `count` reads this and the card always
+      # reads `count`, so a missing `g.value` degrades the tile at every size.
+      # Guarding only `#goal` left the hero card printing a confident blank.
+      def value
+        return @value if defined?(@value)
 
-      def max = @max ||= goal_builder.resolved_max(self)
+        goal_builder.check!(self.class)
+        @value = goal_builder.resolved_value(self)
+      end
+
+      def max
+        return @max if defined?(@max)
+
+        @max = goal_builder.resolved_max(self)
+      end
 
       # The ring is the headline, but `count` still gates the empty state and the
       # "view all" link, so it answers with what has been achieved.
       def count = @count ||= safely(0) { value.to_i }
 
+      # Memoised: the card asks `goal?` and then renders `goal.to_h`.
       def goal
-        safely(nil) do
+        return @goal if defined?(@goal)
+
+        @goal = safely(nil) do
           goal_builder.check!(self.class)
           goal_builder.to_goal(self)
         end

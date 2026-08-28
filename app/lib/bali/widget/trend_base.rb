@@ -67,6 +67,8 @@ module Bali
         # "vs last week". What `current` is being compared against, in words.
         def period_label(value) = @period_label = value
 
+        # Reads through the widget's memoised `#current`/`#previous`, never its
+        # own `resolved_*` — those exist only for those readers to call.
         def to_trend(widget)
           before = widget.previous
           return if before.nil? || before.to_f.zero?
@@ -103,25 +105,46 @@ module Bali
         # DUPS what it inherits — `class_attribute` copies on write and never on
         # mutation, so a subclass would otherwise share its parent's builder.
         def trend(&block)
-          raise ArgumentError, "`trend` needs a block: `trend { |t| t.positive_when :down }`." unless block
+          raise ArgumentError, "`trend` needs a block: `trend { |t| t.current { Item.count } }`." unless block
 
           self._trend_builder = _trend_builder&.dup || TrendBuilder.new
           block.call(_trend_builder)
         end
       end
 
-      # READERS over the declaration. Memoised: the card asks `count`, and the
-      # delta reads both again.
-      def current = @current ||= trend_builder.resolved_current(self)
+      # READERS over the declaration. Memoised with `defined?` rather than `||=`,
+      # because NIL is a documented answer here rather than an edge case: a
+      # widget's first period has no `previous`, the generator scaffolds
+      # `t.previous { nil }`, and `||=` would re-run that block on every read.
+      # CHECKS HERE, not only in `#trend`. `count` reads this and the card's
+      # `before_render` always reads `count` — at every size — so validating here
+      # is what makes a missing `t.current` degrade the tile rather than print a
+      # confident zero. Guarding only `#trend` left `:small` unprotected: the hero
+      # branch decides on `failed?` before it ever asks `trend?`, so the failure
+      # was discovered after the card had already committed to looking healthy.
+      def current
+        return @current if defined?(@current)
 
-      def previous = @previous ||= trend_builder.resolved_previous(self)
+        trend_builder.check!(self.class)
+        @current = trend_builder.resolved_current(self)
+      end
+
+      def previous
+        return @previous if defined?(@previous)
+
+        @previous = trend_builder.resolved_previous(self)
+      end
 
       # `to_i` because a widget with no data at all has a nil `current`, and the
       # card asks `count.positive?`.
       def count = @count ||= safely(0) { current.to_i }
 
+      # Memoised: the card asks `trend?` and then renders `trend`, and a nil trend
+      # — the documented no-previous-period state — is what `||=` could not hold.
       def trend
-        safely(nil) do
+        return @trend if defined?(@trend)
+
+        @trend = safely(nil) do
           trend_builder.check!(self.class)
           trend_builder.to_trend(self)
         end
