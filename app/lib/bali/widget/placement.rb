@@ -15,8 +15,10 @@ module Bali
     # which size to draw rather than asking the widget.
     #
     # ONE SHAPE FOR BOTH DIRECTIONS: `Store#widgets` returns these and
-    # `Store#arrange` consumes them, so the read path and the write path speak
-    # the same language.
+    # `Store#arrange` accepts them, so a host can reorder what it read and write
+    # it straight back. `arrange` also takes bare `[key, size]` pairs, which is
+    # what a controller has — this type is the RESOLVED form, not the wire one,
+    # and nothing should be building it out of `params`.
     Placement = Data.define(:widget, :size) do
       # RESOLVED AT CONSTRUCTION, so nothing downstream has to ask whether a size
       # is real. The name arrives from a database column, so it can describe a

@@ -152,19 +152,36 @@ module Bali
           stored = rows.ordered.pluck(:widget_key, :size).to_h
           survivors = stored.keys & by_key.keys
 
-          arrange((survivors | by_key.keys).map do |key|
-            Bali::Widget::Placement.new(widget: by_key.fetch(key), size: stored[key])
-          end)
+          # KEYS, not widgets: `arrange` resolves them against the offering,
+          # which is the narrower set. A widget that is authorized but was
+          # never offered here passes the gate above and is dropped by that
+          # one — and the instance that gets stored comes from one place.
+          arrange((survivors | by_key.keys).map { |key| [ key, stored[key] ] })
         end
       end
 
-      # Reconcile to exactly `layout` — an ordered list of `{ widget:, size: }`,
-      # where POSITION IS THE INDEX and a missing size means "no opinion".
+      # Reconcile to exactly `layout`, where POSITION IS THE INDEX and a missing
+      # size means "no opinion".
       #
-      # WIDGETS, not keys. A key is a string and strings arrive from `params`; a
-      # widget comes from looking one up in the already-authorized set. The
-      # honest claim is that an unauthorized widget cannot get here BY ACCIDENT —
-      # not that it cannot get here.
+      # TAKES EITHER SHAPE, and resolves both against the offering itself:
+      #
+      #   store.arrange([[ "low_stock_items", "medium" ], [ "cost_spikes", nil ]])
+      #   store.arrange(store.widgets)   # `[Placement]`, so a read round-trips
+      #
+      # KEYS ARE THE POINT of the first one. A controller has strings from
+      # `params` and nothing else, and until this method took them, every host
+      # had to look each one up in the offering before calling — a `by_key` and
+      # a `Placement.new` in a controller, restated in every app, immediately
+      # ahead of the identical lookup this method does anyway. The offering is
+      # private state here; a caller doing the lookup had to keep its own copy
+      # of it. Now the host supplies the WIRE FORMAT and this supplies the
+      # meaning.
+      #
+      # A key that is not in the offering — unauthorized, retired, or hand-edited
+      # into the payload — finds nothing and is DROPPED. Silently, because a role
+      # revoked between rendering the page and submitting it should degrade
+      # rather than 422, and because refusing a made-up key would confirm which
+      # keys are real.
       #
       # An EMPTY layout is a reset, which is what an emptied grid means: no rows
       # means "never chose", so the next read restores every authorized widget.
@@ -187,24 +204,16 @@ module Bali
 
           next if layout.empty?
 
-          # `choose`'s own union already dedupes before it ever calls here, but
-          # `arrange` is the lower-level primitive and a host's controller can
-          # reach it directly from params, where nothing guarantees a unique
-          # key. Without this, `insert_all` emits `ON CONFLICT DO NOTHING` and
-          # silently keeps only the FIRST occurrence of a repeated key,
-          # dropping the rest with no error — so dedupe explicitly instead of
-          # leaning on that.
-          deduped = layout.uniq(&:key)
-
-          # And gated against the offering, for the same reason as the dedupe
-          # above: `arrange` is the primitive a host can reach directly, so it
-          # holds its own invariants rather than trusting a caller to have
-          # filtered. The offering is already authorized by the constructor,
-          # so a widget the owner cannot see finds no key here and is dropped —
-          # silently, like every other unauthorized key, because a role revoked
-          # between render and submit should degrade rather than 422.
-          offered = Bali::Widget.by_key(offering)
-          deduped = deduped.select { |placement| offered.key?(placement.key) }
+          # RESOLVED FIRST, so everything below works in placements and the
+          # gate cannot be skipped by a caller who already had objects.
+          #
+          # Then deduped, because `insert_all` would otherwise emit
+          # `ON CONFLICT DO NOTHING` and silently keep only the FIRST
+          # occurrence of a repeated key, dropping the rest with no error.
+          # `choose`'s own union already dedupes before it calls here, but this
+          # is the primitive a host reaches directly from params, where nothing
+          # guarantees a unique key.
+          deduped = resolve(layout).uniq(&:key)
 
           next if deduped.empty?
 
@@ -226,6 +235,27 @@ module Bali
       private
 
       attr_reader :owner, :context, :dashboard_key, :offering
+
+      # A submission -> gated `[Placement]`. THE BOUNDARY: a submitted key
+      # becomes a widget only by being FOUND in the already-authorized offering,
+      # so the method never sees a list of permitted keys to check against — it
+      # sees the widgets themselves and maps over them. That is the difference
+      # between a boundary and a habit, and it is why this cannot conjure a
+      # widget no matter what arrives.
+      #
+      # A `Placement` is re-resolved rather than passed through, so the guarantee
+      # holds for `store.arrange(other_store.widgets)` too. Its size survives the
+      # trip: `Placement` normalises at construction, so a size already resolved
+      # resolves to itself.
+      def resolve(layout)
+        by_key = Bali::Widget.by_key(offering)
+
+        layout.filter_map do |item|
+          key, size = item.is_a?(Bali::Widget::Placement) ? [ item.key, item.size ] : item
+          widget = by_key[key.to_s]
+          Bali::Widget::Placement.new(widget: widget, size: size.presence) if widget
+        end
+      end
 
       # The READ scope. `row_for` below spells the same four columns again on
       # the write side — that one can't be collapsed into this: `insert_all`

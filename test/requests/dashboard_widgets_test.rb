@@ -86,11 +86,26 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
     # An emptied grid submits NO `widgets` params at all — not `widgets: []`,
     # which HTML form encoding cannot even express as distinct from a single
     # blank entry (`widgets[]=` parses back as `[""]`, not `[]`). This is the
-    # shape `permitted_layout`'s blank check is actually guarding against.
+    # shape `submitted_layout`'s blank check is actually guarding against.
     patch dashboard_widgets_path, params: {}
     assert_response :no_content
 
     assert_empty store.stored_keys
+  end
+
+  # `?widgets=lol` is a String, and `\"lol\"[:key]` raises `TypeError` — a 500 for
+  # a malformed request that deserves a 400. This is what `params.expect` is in
+  # `submitted_layout` for; the `blank?` guard above does not cover it, because
+  # a scalar is not blank.
+  def test_update_with_a_malformed_widgets_param_is_a_bad_request
+    patch dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
+    assert_equal %w[overdue_tasks], store.stored_keys
+
+    patch dashboard_widgets_path, params: { widgets: "lol" }
+    assert_response :bad_request
+
+    # And nothing was written on the way to failing.
+    assert_equal %w[overdue_tasks], store.stored_keys
   end
 
   def test_update_picker_chooses_membership_and_drops_unauthorized_keys

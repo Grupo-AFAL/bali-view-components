@@ -58,6 +58,43 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal [ "alpha" ], store.widgets.map(&:key)
   end
 
+  # THE SHAPE A CONTROLLER HAS. Strings out of `params`, with no lookup done —
+  # that lookup is the offering gate, and it belongs on this side of it.
+  def test_arrange_takes_key_and_size_pairs
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, CHARLIE.new ])
+
+    store.arrange([ [ "charlie", "large" ], [ "alpha", nil ] ])
+
+    assert_equal [ "charlie", "alpha" ], store.stored_keys
+    assert_equal [ [ "charlie", "large" ], [ "alpha", "small" ] ],
+                 store.widgets.map { |placement| [ placement.key, placement.size.to_s ] }
+  end
+
+  # An unauthorized, retired or hand-edited key finds nothing in the offering
+  # and is dropped — which is the whole reason a controller may hand this raw
+  # strings in the first place.
+  def test_arrange_drops_a_pair_whose_key_is_not_offered
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
+
+    store.arrange([ [ "payroll", "large" ], [ "alpha", "small" ] ])
+
+    assert_equal [ "alpha" ], store.stored_keys
+  end
+
+  # A READ ROUND-TRIPS. `#widgets` hands back placements and this takes them,
+  # so a host that reorders what it read can write it straight back.
+  def test_arrange_takes_the_placements_widgets_returned
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, CHARLIE.new ])
+    store.arrange([ [ "alpha", "small" ], [ "charlie", "large" ] ])
+
+    store.arrange(store.widgets.reverse)
+
+    assert_equal [ "charlie", "alpha" ], store.stored_keys
+    assert_equal [ "large", "small" ], store.widgets.map { |placement| placement.size.to_s }
+  end
+
   # `choose` gates on its own too, not only `arrange`. A picker submits
   # membership rather than a layout, so it reaches a different method and would
   # otherwise be an unguarded second door into the same table.

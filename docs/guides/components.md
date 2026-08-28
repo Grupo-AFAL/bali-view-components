@@ -2623,14 +2623,14 @@ Stream gets the right card back for one widget query on an already-debounced wri
 
 ```ruby
 def update
-  layout.arrange(permitted_layout)
+  store.arrange(submitted_layout)
 
-  resized = layout.widgets.find { |w| w.key == params[:resized_key].presence }
+  resized = store.widgets.find { |placement| placement.key == params[:resized_key].presence }
   return head :no_content unless resized
 
   render turbo_stream: turbo_stream.replace(
     Bali::Widget::Component.dom_id(resized.key),
-    renderable: Bali::Widget::Component.new(resized)
+    renderable: Bali::Widget::Component.new(resized.widget, size: resized.size)
   )
 end
 ```
@@ -2643,12 +2643,11 @@ round trip.
 <%= render Bali::Widget::Component.new(low_stock_items_widget) %>
 ```
 
-A widget that isn't a row list fills the card's `body` slot instead of falling through to
-the default list:
+The card that gets built is decided by the widget's pattern — `ValueBase` renders a figure,
+`ListBase` a list, `TrendBase` a chart — so there is nothing to pass and nothing to pick:
 
 ```erb
-<%= render Bali::Widget::Component.new(compliance_widget) do |card| %>
-<% end %>
+<%= render Bali::Widget::Component.new(compliance_widget, size: :medium) %>
 ```
 
 **Slots:** none. A widget's card is built from what its pattern declares — there is no way to

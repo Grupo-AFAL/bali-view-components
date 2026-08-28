@@ -649,7 +649,7 @@ widgets[][key]=low_stock_items&widgets[][size]=medium&widgets[][key]=cost_spikes
 ```ruby
 class WidgetLayoutsController < ApplicationController
   def update
-    store.arrange(permitted_layout)
+    store.arrange(submitted_layout)
     head :no_content
   end
 
@@ -663,38 +663,39 @@ class WidgetLayoutsController < ApplicationController
   # Memoised, so this one copy is what both the filter below and the store see.
   def offering = @offering ||= Widgets::ALL.select(&:authorized?)
 
-  # THE BOUNDARY. A submitted key becomes a widget only by being FOUND in the
-  # already-authorized offering — an unauthorized, retired or hand-edited key
-  # finds nothing and is DROPPED rather than rejected, so a role revoked between
-  # render and submit degrades quietly instead of 422ing.
-  def permitted_layout
-    submitted = params[:widgets]
-    return [] if submitted.blank?
+  # JUST THE WIRE FORMAT — `[["low_stock_items", "medium"], …]`. No lookup, no
+  # `Placement`, no offering: `arrange` resolves these strings itself.
+  def submitted_layout
+    return [] if params[:widgets].blank?
 
-    by_key = Bali::Widget.by_key(offering)
-    submitted.filter_map do |item|
-      widget = by_key[item[:key].to_s]
-      Bali::Widget::Placement.new(widget: widget, size: item[:size].presence) if widget
-    end
+    params.expect(widgets: [[:key, :size]]).map { |item| [item[:key], item[:size]] }
   end
 end
 ```
 
-Copy that filter as written; two lines of it are load-bearing.
+**All you supply is the shape of your own params.** `arrange` resolves each key against the
+offering it was constructed with, and a key it cannot find there — unauthorized, retired, or
+hand-edited into the payload — is **dropped**. Silently: a role revoked between rendering the
+page and submitting it should degrade rather than 422, and refusing a made-up key would
+confirm which keys are real.
 
-`Bali::Widget.by_key` is what makes the lookup safe **by construction** rather than by
-convention: it is handed the widgets themselves, never a list of permitted keys to check
-against, so there is no call to forget. It re-gates on `authorized?` as it goes, so passing
-an already-filtered offering costs nothing.
+That is the feature's entire security property, and it is safe **by construction** rather than
+by convention — `arrange` is never handed a list of permitted keys to check against, it is
+handed the widgets themselves and maps over them. There is no call for you to forget.
 
-The `params[:widgets].blank?` guard runs **before** any parsing, deliberately: `params.expect`
-raises `ActionController::ParameterMissing` — a **400** — on both an omitted `widgets` key and
-an empty `widgets: []`, and only one of those is an error. Removing the last card submits
-nothing at all, and that is the reset gesture below, not a malformed request.
+Two lines of that method are load-bearing, though:
 
-`Store#arrange` gates against the offering again on its own, since it is the primitive you can
-reach directly from params. The filter above is the outer of two independent boundaries, not
-the only one.
+- The `blank?` guard runs **before** `expect`, because `expect` raises
+  `ActionController::ParameterMissing` — a **400** — on both an omitted `widgets` key and an
+  empty `widgets: []`, and only one of those is an error. Removing the last card submits
+  nothing at all, and that is the reset gesture below.
+- `expect` rather than reading `params[:widgets]` directly, for the case the guard misses:
+  `?widgets=lol` is a String, and indexing it with `[:key]` raises `TypeError` — a 500 for a
+  request that deserves a 400. Nothing here is mass-assigned, so permitting buys no safety;
+  the **shape** check is what earns the call.
+
+`arrange` also accepts the `Bali::Widget::Placement`s that `#widgets` returns, so a host that
+reorders what it read can write it straight back — `store.arrange(store.widgets.reverse)`.
 
 Two behaviours are not obvious and matter:
 

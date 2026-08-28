@@ -20,7 +20,7 @@ class DashboardWidgetsController < ApplicationController
   # Every other gesture still answers 204: reorder and remove change position, not
   # shape, and the DOM the browser already has is correct.
   def update
-    store.arrange(permitted_layout)
+    store.arrange(submitted_layout)
 
     resized = resized_widget
     return head :no_content unless resized
@@ -42,7 +42,7 @@ class DashboardWidgetsController < ApplicationController
   end
 
   def update_picker
-    store.choose(permitted_widgets)
+    store.choose(submitted_widgets)
     redirect_to dashboard_widgets_path, notice: t('.success')
   end
 
@@ -61,16 +61,16 @@ class DashboardWidgetsController < ApplicationController
     )
   end
 
-  # MEMOISED, and both `permitted_layout` and `store` read this one copy. Two
-  # calls to `authorized_for` could disagree if a flag flipped between them,
-  # and a key that passed the params filter would then vanish in the store.
+  # MEMOISED, so the picker's checkboxes and the store are built from one
+  # copy. Two calls to `authorized_for` could disagree if a flag flipped
+  # between them.
   def offering
     @offering ||= DemoWidgets.authorized_for(current_user)
   end
 
   # Looked up in the arrangement we just wrote, so it comes back at its NEW size.
   # Nil for every gesture that is not a resize, and for a key outside the
-  # offering — the same boundary `permitted_layout` enforces.
+  # offering — the same boundary `arrange` enforced a line earlier.
   def resized_widget
     key = params[:resized_key].presence
     return if key.nil?
@@ -78,34 +78,31 @@ class DashboardWidgetsController < ApplicationController
     store.widgets.find { |placement| placement.key == key }
   end
 
-  # THE BOUNDARY. A submitted key becomes a widget only by being FOUND in the
-  # already-authorized offering: an unauthorized, retired or hand-edited key
-  # finds nothing and is DROPPED rather than rejected. Silently, because a role
-  # revoked between rendering the page and submitting it should degrade quietly,
-  # and because refusing a made-up key would confirm which keys are real.
+  # JUST THE WIRE FORMAT. No lookup, no `Placement`, no offering: `arrange`
+  # resolves these strings against the offering itself and drops anything it
+  # cannot find, which is the boundary. All a host owns is the shape of its own
+  # params.
   #
-  # `Store#arrange` gates against the offering again on its own — it is the
-  # primitive a controller can reach directly — so this is the outer of two
-  # independent boundaries rather than the only one.
-  #
-  # The `blank?` guard runs BEFORE any parsing, deliberately: `params.expect`
-  # raises `ParameterMissing` on both an omitted `widgets` key AND an empty
+  # The `blank?` guard runs BEFORE `expect`, deliberately: `expect` raises
+  # `ParameterMissing` — a 400 — on an omitted `widgets` key AND on an empty
   # `widgets: []`, and only one of those is an error. Removing the last card
-  # submits nothing at all, which is the RESET gesture — 400ing there is a bug.
-  def permitted_layout
-    submitted = params[:widgets]
-    return [] if submitted.blank?
+  # submits nothing at all, and that is the RESET gesture.
+  #
+  # `expect` rather than reading `params[:widgets]` directly, for the case the
+  # guard does not cover: `?widgets=lol` is a String, and indexing it with
+  # `[:key]` raises `TypeError` — a 500 for a malformed request that deserves a
+  # 400. Nothing here is mass-assigned, so permitting buys no safety; the SHAPE
+  # check is the whole reason it is worth the call.
+  def submitted_layout
+    return [] if params[:widgets].blank?
 
-    by_key = Bali::Widget.by_key(offering)
-    submitted.filter_map do |item|
-      widget = by_key[item[:key].to_s]
-      Bali::Widget::Placement.new(widget: widget, size: item[:size].presence) if widget
-    end
+    params.expect(widgets: [ [ :key, :size ] ]).map { |item| [ item[:key], item[:size] ] }
   end
 
-  # The picker's payload. Membership only — `Store#choose` decides order and
-  # preserves stored sizes, so no `Placement` here.
-  def permitted_widgets
+  # The picker submits membership, not an arrangement — `Store#choose` decides
+  # order and preserves stored sizes. Widgets rather than keys, because `choose`
+  # takes the objects; `arrange`, which it calls through, does the gating.
+  def submitted_widgets
     by_key = Bali::Widget.by_key(offering)
     Array(params[:widget_keys]).filter_map { |key| by_key[key.to_s] }
   end

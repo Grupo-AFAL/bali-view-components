@@ -94,9 +94,9 @@ module Bali
       #
       # ```ruby
       # def update
-      #   layout.arrange(permitted_layout)   # permitted_layout looks each key up
-      #   head :no_content                   # in the ALREADY-AUTHORIZED set
-      # end
+      #   store.arrange(submitted_layout)   # just `[key, size]` strings; `arrange`
+      #   head :no_content                  # resolves them against the offering
+      # end                                 # and drops what it cannot find
       # ```
       #
       # The dummy app behind this preview is a stub that only answers `204`, so
