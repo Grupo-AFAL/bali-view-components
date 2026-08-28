@@ -100,18 +100,21 @@ module Bali
       # Safe by CONSTRUCTION rather than by filtering: the method never sees a
       # list of permitted keys to check against, it sees the widgets themselves
       # and maps over them. That is the difference between a boundary and a habit.
+      # Returns `Bali::Widget::Placement`s — a widget AT A SIZE — because size is
+      # a fact about this owner's arrangement rather than about the widget.
+      # `Placement` resolves a nil or retired stored size to the widget's
+      # default, so a row predating the size column still renders.
       def widgets
         by_key = offering.index_by(&:key)
         chosen = rows.ordered.pluck(:widget_key, :size).filter_map do |key, size|
-          # `with_size` returns the widget at its own size for a nil or retired
-          # one, so a row predating the size column still renders.
-          by_key[key]&.with_size(size)
+          widget = by_key[key]
+          Bali::Widget::Placement.new(widget: widget, size: size) if widget
         end
 
         # "No rows means never chose" is really "no VISIBLE rows means never
         # chose": a dashboard holding only hidden ones would otherwise render
         # empty rather than falling back.
-        chosen.presence || offering
+        chosen.presence || offering.map { |widget| Bali::Widget::Placement.new(widget: widget) }
       end
 
       # Membership, not order — what a picker submits.
@@ -148,7 +151,7 @@ module Bali
           survivors = stored.keys & by_key.keys
 
           arrange((survivors | by_key.keys).map do |key|
-            { widget: by_key.fetch(key), size: stored[key] }
+            Bali::Widget::Placement.new(widget: by_key.fetch(key), size: stored[key])
           end)
         end
       end
@@ -189,7 +192,7 @@ module Bali
           # silently keeps only the FIRST occurrence of a repeated key,
           # dropping the rest with no error — so dedupe explicitly instead of
           # leaning on that.
-          deduped = layout.uniq { |item| item[:widget].key }
+          deduped = layout.uniq(&:key)
 
           # And gated against the offering, for the same reason as the dedupe
           # above: `arrange` is the primitive a host can reach directly, so it
@@ -199,7 +202,7 @@ module Bali
           # silently, like every other unauthorized key, because a role revoked
           # between render and submit should degrade rather than 422.
           offered = offering.index_by(&:key)
-          deduped = deduped.select { |item| offered.key?(item[:widget].key) }
+          deduped = deduped.select { |placement| offered.key?(placement.key) }
 
           next if deduped.empty?
 
@@ -207,7 +210,7 @@ module Bali
           # rows of a single logical write microsecond-jittered `created_at`s.
           now = Time.current
           Bali::DashboardWidget.insert_all(
-            deduped.map.with_index { |item, index| row_for(item, index, now, born) }
+            deduped.map.with_index { |placement, index| row_for(placement, index, now, born) }
           )
         end
       end
@@ -232,14 +235,14 @@ module Bali
                                     dashboard_key: dashboard_key)
       end
 
-      def row_for(item, index, now, born)
-        key = item[:widget].key
+      def row_for(placement, index, now, born)
+        key = placement.key
 
         {
           owner_type: owner.class.polymorphic_name, owner_id: owner.id,
           context: context, dashboard_key: dashboard_key,
           widget_key: key, position: index,
-          size: item[:size].presence&.to_s,
+          size: placement.size.to_s,
           # A widget that was already on the dashboard keeps the moment it
           # arrived; one that was not is genuinely new and is dated now. A
           # widget removed and later re-added is the second case, not the first

@@ -8,15 +8,17 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     def self.key = "bare"
   end
 
-  # WHAT EVERY WIDGET HAS, and nothing more: where it links, whether it failed,
-  # its size and its copy. Everything a PATTERN answers — `count`,
-  # `display_value`, `items`, `trend`, `series`, `goal`, `state` — belongs to the
-  # pattern that has it, and the card defaults the rest.
+  # WHAT EVERY WIDGET HAS, and nothing more: where it links, who may see it, and
+  # its copy. Everything a PATTERN answers — `count`, `display_value`, `items`,
+  # `trend`, `series`, `goal`, `state` — belongs to the pattern that has it, and
+  # the card defaults the rest. SIZE is not here either: it is a per-owner
+  # arrangement fact, carried by `Bali::Widget::Placement`.
   def test_base_carries_only_what_every_widget_shares
     widget = Bare.new
 
     assert_nil widget.view_all_path
-    assert_equal :small, widget.size
+    assert_predicate widget, :authorized?
+    assert_equal "bare", widget.key
   end
 
   # A WIDGET ANSWERS FOR WHAT IT IS, and rescues nothing. The pattern reads
@@ -102,26 +104,13 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { Class.new(Bali::Widget::Base) { supports } }
   end
 
-  # A stored row can name a size the widget stopped offering. Falling back beats
-  # refusing to draw.
-  def test_an_unsupported_stored_size_falls_back_to_the_default
-    klass = Class.new(Bali::Widget::Base) do
-      def self.key = "k"
-      default_size :small
-      supports :small, :medium
-    end
-
-    assert_equal :small, klass.new.with_size("large").size
-    assert_equal :medium, klass.new.with_size("medium").size
-  end
-
-  # `_default_size` is a class attribute: assigning it would resize the widget
-  # for every user in the process until the next deploy.
-  def test_with_size_copies_rather_than_mutating_the_class
-    resized = Bare.new.with_size(:large)
-
-    assert_equal :large, resized.size
-    assert_equal Bali::Widget::SIZES.first, Bare.new.size
+  # SIZE IS NOT A PROPERTY OF A WIDGET. It is a per-owner arrangement fact — the
+  # same class is `small` for one person and `large` for another — so a widget
+  # does not carry one, and `Bali::Widget::Placement` pairs the two.
+  def test_a_widget_does_not_carry_a_size
+    refute_respond_to Bare.new, :size
+    refute_respond_to Bare.new, :with_size
+    assert_equal Bali::Widget::SIZES.first, Bare.default_size
   end
 
   # ---- copy ----------------------------------------------------------------

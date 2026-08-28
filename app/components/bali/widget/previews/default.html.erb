@@ -10,17 +10,17 @@
     wrong, which is the worse of the two failures because it sends you looking
     in the component. %>
 <%
-  height = case widget.size
+  height = case size
            when :large then 'lg:h-[33rem]'
            else 'lg:h-64'
            end
-  width = case widget.size
+  width = case size
           when :small then 'max-w-xs'
           else 'max-w-md'
           end
 %>
 <div class="<%= 'editing' if editing %> <%= width %> p-8">
   <div class="<%= height %>">
-    <%= render Bali::Widget::Component.new(widget) %>
+    <%= render Bali::Widget::Component.new(widget, size: size) %>
   </div>
 </div>

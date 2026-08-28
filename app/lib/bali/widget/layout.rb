@@ -25,7 +25,7 @@ module Bali
     # made-up key would confirm which keys are real.
     class Layout
       class << self
-        # An ordered `[{ widget:, size: }, …]` for `Store#arrange`, from the
+        # An ordered `[Bali::Widget::Placement, …]` for `Store#arrange`, from the
         # `widgets[][key]` / `widgets[][size]` payload the grid sends.
         #
         # An EMPTY submission returns `[]`, which `arrange` reads as a reset —
@@ -40,7 +40,7 @@ module Bali
           by_key = Bali::Widget.authorized_for(offering).index_by(&:key)
           submitted.filter_map do |item|
             widget = by_key[item[:key].to_s]
-            { widget: widget, size: item[:size].presence } if widget
+            Bali::Widget::Placement.new(widget: widget, size: item[:size].presence) if widget
           end
         end
 

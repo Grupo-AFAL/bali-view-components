@@ -55,7 +55,13 @@ class BaliWidgetComponentTest < ComponentTestCase
     klass.class_eval { title(title); short_title(title) }
     klass.class_eval(&block)
     klass.default_size(size)
-    klass.new.with_size(size)
+    klass.new
+  end
+
+  # The card is TOLD which size to draw. `build` sets `default_size` to match, so
+  # a helper's `size:` reaches both the component and anything asking the class.
+  def card(widget, size: nil, **options)
+    Bali::Widget::Component.new(widget, size: size || widget.class.default_size, **options)
   end
 
   setup do
@@ -65,7 +71,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   # ---- identity ------------------------------------------------------------
 
   def test_renders_the_card_with_its_identity_attributes
-    render_inline(Bali::Widget::Component.new(list_widget))
+    render_inline(card(list_widget))
 
     assert_selector("section[data-widget-key='stock'][data-size='medium']")
     assert_selector("section[data-id='stock'][data-widget-title='Low stock']")
@@ -73,7 +79,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   end
 
   def test_the_card_names_itself_for_landmark_navigation
-    render_inline(Bali::Widget::Component.new(list_widget))
+    render_inline(card(list_widget))
 
     assert_selector("section[aria-label='Low stock']")
   end
@@ -81,26 +87,26 @@ class BaliWidgetComponentTest < ComponentTestCase
   # ---- the list ladder -----------------------------------------------------
 
   def test_medium_renders_the_title_and_three_rows
-    render_inline(Bali::Widget::Component.new(list_widget(size: :medium, rows: 8)))
+    render_inline(card(list_widget(size: :medium, rows: 8)))
 
     assert_selector("h5", text: "Low stock")
     assert_selector("ul.list li", count: 3)
   end
 
   def test_large_renders_seven_rows
-    render_inline(Bali::Widget::Component.new(list_widget(size: :large, rows: 8)))
+    render_inline(card(list_widget(size: :large, rows: 8)))
 
     assert_selector("ul.list li", count: 7)
   end
 
   def test_empty_list_renders_the_empty_message
-    render_inline(Bali::Widget::Component.new(list_widget(rows: 0)))
+    render_inline(card(list_widget(rows: 0)))
 
     assert_text "Nothing running low"
   end
 
   def test_view_all_link_is_suppressed_when_there_is_nothing_to_view
-    render_inline(Bali::Widget::Component.new(list_widget(rows: 0)))
+    render_inline(card(list_widget(rows: 0)))
 
     assert_no_link(href: "/studios")
   end
@@ -108,21 +114,21 @@ class BaliWidgetComponentTest < ComponentTestCase
   # ---- the hero ------------------------------------------------------------
 
   def test_small_renders_a_stat_and_no_rows
-    render_inline(Bali::Widget::Component.new(value_widget(size: :small, value: 2)))
+    render_inline(card(value_widget(size: :small, value: 2)))
 
     assert_selector(".stat-value", text: "2")
     assert_no_selector("ul.list li")
   end
 
   def test_a_zero_count_small_card_dims_the_number
-    render_inline(Bali::Widget::Component.new(value_widget(value: 0)))
+    render_inline(card(value_widget(value: 0)))
 
     assert_selector(".stat-value.text-base-content\\/30", text: "0")
   end
 
   # `href="#"` would make the card look clickable while doing nothing.
   def test_a_small_card_without_a_destination_is_not_a_link_to_nowhere
-    render_inline(Bali::Widget::Component.new(value_widget))
+    render_inline(card(value_widget))
 
     assert_no_selector("a.stat")
     assert_selector("div.stat")
@@ -131,7 +137,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   # A small widget supports exactly ONE tap target, and the failure is silent for
   # anyone not using a keyboard.
   def test_the_small_card_contains_no_focusable_element_inside_its_single_link
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :small)))
+    render_inline(card(trend_widget(size: :small)))
 
     body = page.find(".bali-widget-body")
 
@@ -142,14 +148,14 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   def test_the_headline_survives_every_size
     Bali::Widget::SIZES.each do |size|
-      render_inline(Bali::Widget::Component.new(value_widget(size: size, value: 42)))
+      render_inline(card(value_widget(size: size, value: 42)))
 
       assert page.has_text?("42"), "the headline vanished at #{size}"
     end
   end
 
   def test_a_large_count_is_abbreviated_so_it_fits_the_tile
-    render_inline(Bali::Widget::Component.new(value_widget(value: 1_234_567)))
+    render_inline(card(value_widget(value: 1_234_567)))
 
     assert_selector(".stat-value", text: "1.2M")
   end
@@ -167,7 +173,7 @@ class BaliWidgetComponentTest < ComponentTestCase
       value { raise Bali::Widget::Unavailable, "the feed is down" }
     end
 
-    render_inline(Bali::Widget::Component.new(unavailable.new))
+    render_inline(card(unavailable.new))
 
     assert_text "Couldn't load"
   end
@@ -183,7 +189,7 @@ class BaliWidgetComponentTest < ComponentTestCase
       value { raise Bali::Widget::Unavailable, "down" }
     end
 
-    render_inline(Bali::Widget::Component.new(broken.new.with_size(:large)))
+    render_inline(card(broken.new, size: :large))
 
     assert_selector "section[data-widget-key='stock'][data-size='large']"
     assert_selector ".handle"
@@ -201,7 +207,7 @@ class BaliWidgetComponentTest < ComponentTestCase
       series { |s| s.values { raise Bali::Widget::Unavailable, "history is down" } }
     end
 
-    render_inline(Bali::Widget::Component.new(half.new.with_size(:large)))
+    render_inline(card(half.new, size: :large))
 
     assert_text "Couldn't load", count: 1
     assert_no_selector "h5"
@@ -228,7 +234,7 @@ class BaliWidgetComponentTest < ComponentTestCase
 
     swallowing_load_errors do
       Bali::Widget::SIZES.each do |size|
-        render_inline(Bali::Widget::Component.new(failing.new.with_size(size)))
+        render_inline(card(failing.new, size: size))
 
         assert_text "Couldn't load", count: 1
         refute_selector ".stat-value"
@@ -254,7 +260,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     end
 
     swallowing_load_errors do
-      render_inline(Bali::Widget::Component.new(half_broken.new.with_size(:large)))
+      render_inline(card(half_broken.new, size: :large))
 
       assert_text "Couldn't load"
       refute_selector "ul.list li"
@@ -277,7 +283,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     end
 
     swallowing_load_errors do
-      render_inline(Bali::Widget::Component.new(late.new.with_size(:large)))
+      render_inline(card(late.new, size: :large))
 
       assert_text "Couldn't load", count: 1
       assert_no_selector "canvas.chart", visible: :all
@@ -315,7 +321,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     swallowing_load_errors do
       [ missing_current, missing_value, missing_row ].each do |klass|
         Bali::Widget::SIZES.each do |size|
-          render_inline(Bali::Widget::Component.new(klass.new.with_size(size)))
+          render_inline(card(klass.new, size: size))
 
           assert_text "Couldn't load", count: 1
           refute_selector ".stat-value", text: "0"
@@ -345,7 +351,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     swallowing_load_errors do
       [ broken_max, broken_previous ].each do |klass|
         Bali::Widget::SIZES.each do |size|
-          render_inline(Bali::Widget::Component.new(klass.new.with_size(size)))
+          render_inline(card(klass.new, size: size))
 
           assert_text "Couldn't load", count: 1
         end
@@ -357,7 +363,7 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   def test_a_trend_renders_beside_the_headline_at_every_size
     Bali::Widget::SIZES.each do |size|
-      render_inline(Bali::Widget::Component.new(trend_widget(size: size)))
+      render_inline(card(trend_widget(size: size)))
 
       assert_selector(".text-success", text: "100%", visible: :all)
     end
@@ -367,25 +373,25 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   def test_a_series_becomes_a_chart_from_medium_up
     %i[medium large].each do |size|
-      render_inline(Bali::Widget::Component.new(trend_widget(size: size)))
+      render_inline(card(trend_widget(size: size)))
 
       assert_selector("canvas.chart", visible: :all, count: 1)
     end
   end
 
   def test_small_has_no_room_for_a_chart_even_when_one_is_offered
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :small)))
+    render_inline(card(trend_widget(size: :small)))
 
     assert_no_selector("canvas.chart", visible: :all)
   end
 
   # Below roughly 2x2 a chart's axes cost more room than they explain.
   def test_the_chart_drops_its_axes_at_medium_and_keeps_them_at_large
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :medium)))
+    render_inline(card(trend_widget(size: :medium)))
 
     assert_equal false, chart_options.dig("scales", "x", "display")
 
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :large)))
+    render_inline(card(trend_widget(size: :large)))
 
     refute_equal false, chart_options.dig("scales", "x", "display")
   end
@@ -393,13 +399,13 @@ class BaliWidgetComponentTest < ComponentTestCase
   # Widget series are usually COUNTS, and Chart.js will happily offer "1.6" of
   # them.
   def test_a_chart_of_whole_numbers_gets_whole_numbered_ticks
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :large)))
+    render_inline(card(trend_widget(size: :large)))
 
     assert_equal 0, chart_options.dig("scales", "y", "ticks", "precision")
   end
 
   def test_a_chart_of_fractions_is_left_alone
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :large, series: [ 1.5, 2.25 ])))
+    render_inline(card(trend_widget(size: :large, series: [ 1.5, 2.25 ])))
 
     assert_nil chart_options.dig("scales", "y", "ticks", "precision")
   end
@@ -407,14 +413,14 @@ class BaliWidgetComponentTest < ComponentTestCase
   # ---- the ring ------------------------------------------------------------
 
   def test_a_goal_replaces_the_number_as_the_headline
-    render_inline(Bali::Widget::Component.new(progress_widget(size: :small)))
+    render_inline(card(progress_widget(size: :small)))
 
     assert_selector("[role='progressbar'][aria-valuenow='7']", visible: :all)
     assert_no_selector(".stat-value")
   end
 
   def test_a_goal_keeps_its_ring_and_gains_a_chart_as_the_card_grows
-    render_inline(Bali::Widget::Component.new(progress_widget(size: :large)))
+    render_inline(card(progress_widget(size: :large)))
 
     assert_selector("[role='progressbar']", visible: :all)
     assert_selector("canvas.chart", visible: :all)
@@ -428,7 +434,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     original = Bali::Widget::Component.regions
     Bali::Widget::Component.regions = original.deep_merge(large: { rows: 2 })
 
-    render_inline(Bali::Widget::Component.new(list_widget(size: :large, rows: 8)))
+    render_inline(card(list_widget(size: :large, rows: 8)))
 
     assert_selector("ul.list li", count: 2)
   ensure
@@ -438,13 +444,13 @@ class BaliWidgetComponentTest < ComponentTestCase
   # A region sized for content the widget never supplied leaves the card holding
   # whitespace — the defect that bit three rounds running.
   def test_a_widget_with_no_rows_renders_no_detail_region
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :large)))
+    render_inline(card(trend_widget(size: :large)))
 
     assert_no_selector(".bali-widget-detail")
   end
 
   def test_the_chart_takes_the_whole_column_when_no_breakdown_sits_under_it
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :large)))
+    render_inline(card(trend_widget(size: :large)))
 
     assert_selector(".bali-widget-context.flex-1")
   end
@@ -452,7 +458,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   # ---- the body slot -------------------------------------------------------
 
   def test_the_chart_still_wins_when_no_slot_asked_for_the_space
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :medium)))
+    render_inline(card(trend_widget(size: :medium)))
 
     assert_selector("canvas.chart", visible: :all)
   end
@@ -460,7 +466,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   # ---- edit chrome ---------------------------------------------------------
 
   def test_the_card_mounts_the_size_picker_for_its_own_widget
-    render_inline(Bali::Widget::Component.new(list_widget(size: :large)))
+    render_inline(card(list_widget(size: :large)))
 
     assert_selector("[role='radiogroup'][aria-label='Size of Low stock']", visible: :all)
     assert_selector("button[data-widget-size='large'][aria-checked='true']", visible: :all)
@@ -477,7 +483,7 @@ class BaliWidgetComponentTest < ComponentTestCase
       def scope = Studio.all
     end
 
-    render_inline(Bali::Widget::Component.new(limited.new.with_size(:small)))
+    render_inline(card(limited.new, size: :small))
 
     assert_selector("button[data-widget-size]", count: 2, visible: :all)
     assert_no_selector("button[data-widget-size='large']", visible: :all)
@@ -488,13 +494,13 @@ class BaliWidgetComponentTest < ComponentTestCase
   def test_a_widget_with_one_size_gets_no_picker_at_all
     fixed = Class.new(Bali::Widget::ValueBase) { def self.key = "stock"; value { 1 } }
 
-    render_inline(Bali::Widget::Component.new(fixed.new))
+    render_inline(card(fixed.new))
 
     assert_no_selector("[role='radiogroup']", visible: :all)
   end
 
   def test_edit_chrome_is_always_rendered_so_entering_edit_mode_costs_no_round_trip
-    render_inline(Bali::Widget::Component.new(list_widget))
+    render_inline(card(list_widget))
 
     assert_selector("button.handle[data-action='keydown->bali-widget-grid#move']", visible: :all)
     assert_selector("button[data-action='bali-widget-grid#remove']", visible: :all)

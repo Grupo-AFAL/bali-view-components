@@ -52,7 +52,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     end.new
 
     store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new, hidden ])
-    store.arrange([ { widget: hidden, size: :small }, { widget: ALPHA.new, size: :small } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: hidden, size: :small), Bali::Widget::Placement.new(widget: ALPHA.new, size: :small) ])
 
     assert_equal [ "alpha" ], store.stored_keys
     assert_equal [ "alpha" ], store.widgets.map(&:key)
@@ -97,7 +97,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_arrange_stores_order_and_size
-    store.arrange([ { widget: CHARLIE.new, size: "large" }, { widget: ALPHA.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: CHARLIE.new, size: "large"), Bali::Widget::Placement.new(widget: ALPHA.new) ])
 
     stored = store.widgets
 
@@ -114,11 +114,11 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # this widget?" would be permanently unanswerable from this table.
   def test_a_rearrange_preserves_when_a_widget_was_first_added
     travel_to Time.zone.local(2026, 1, 1) do
-      store.arrange([ { widget: ALPHA.new }, { widget: BRAVO.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new), Bali::Widget::Placement.new(widget: BRAVO.new) ])
     end
 
     travel_to Time.zone.local(2026, 6, 1) do
-      store.arrange([ { widget: BRAVO.new }, { widget: ALPHA.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: BRAVO.new), Bali::Widget::Placement.new(widget: ALPHA.new) ])
     end
 
     born = rows_by_key.transform_values(&:created_at)
@@ -131,11 +131,11 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # to the arrangement it first appeared in is the whole point of keeping these.
   def test_a_newly_added_widget_is_dated_now_not_backfilled
     travel_to Time.zone.local(2026, 1, 1) do
-      store.arrange([ { widget: ALPHA.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
     end
 
     travel_to Time.zone.local(2026, 6, 1) do
-      store.arrange([ { widget: ALPHA.new }, { widget: CHARLIE.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new), Bali::Widget::Placement.new(widget: CHARLIE.new) ])
     end
 
     born = rows_by_key.transform_values(&:created_at)
@@ -147,11 +147,11 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # `updated_at` is the opposite promise: the row really was just rewritten.
   def test_a_rearrange_still_stamps_updated_at
     travel_to Time.zone.local(2026, 1, 1) do
-      store.arrange([ { widget: ALPHA.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
     end
 
     travel_to Time.zone.local(2026, 6, 1) do
-      store.arrange([ { widget: ALPHA.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
     end
 
     assert_equal Time.zone.local(2026, 6, 1), rows_by_key["alpha"].updated_at
@@ -162,15 +162,15 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # left to carry a birthday forward from.
   def test_a_widget_removed_and_re_added_is_dated_from_its_return
     travel_to Time.zone.local(2026, 1, 1) do
-      store.arrange([ { widget: ALPHA.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
     end
 
     travel_to Time.zone.local(2026, 3, 1) do
-      store.arrange([ { widget: BRAVO.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: BRAVO.new) ])
     end
 
     travel_to Time.zone.local(2026, 6, 1) do
-      store.arrange([ { widget: BRAVO.new }, { widget: ALPHA.new } ])
+      store.arrange([ Bali::Widget::Placement.new(widget: BRAVO.new), Bali::Widget::Placement.new(widget: ALPHA.new) ])
     end
 
     assert_equal Time.zone.local(2026, 6, 1), rows_by_key["alpha"].created_at
@@ -178,20 +178,20 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_arrange_is_a_full_reconcile_not_an_append
-    store.arrange([ { widget: ALPHA.new }, { widget: BRAVO.new } ])
-    store.arrange([ { widget: BRAVO.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new), Bali::Widget::Placement.new(widget: BRAVO.new) ])
+    store.arrange([ Bali::Widget::Placement.new(widget: BRAVO.new) ])
 
     assert_equal %w[bravo], keys_of(store.widgets)
   end
 
   def test_a_retired_size_falls_back_to_the_widget_s_own
-    store.arrange([ { widget: ALPHA.new, size: "enormous" } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new, size: "enormous") ])
 
     assert_equal :small, store.widgets.first.size
   end
 
   def test_a_stored_key_outside_the_offering_renders_nothing_and_is_not_visible
-    store.arrange([ { widget: ALPHA.new }, { widget: CHARLIE.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new), Bali::Widget::Placement.new(widget: CHARLIE.new) ])
 
     narrowed = store(offer: [ ALPHA.new ])
 
@@ -201,7 +201,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_a_dashboard_of_only_invisible_rows_falls_back_to_the_offering
-    store.arrange([ { widget: CHARLIE.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: CHARLIE.new) ])
 
     narrowed = store(offer: [ ALPHA.new, BRAVO.new ])
 
@@ -213,14 +213,14 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_choose_keeps_stored_order_for_survivors_and_appends_the_rest
-    store.arrange([ { widget: CHARLIE.new }, { widget: ALPHA.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: CHARLIE.new), Bali::Widget::Placement.new(widget: ALPHA.new) ])
     store.choose([ ALPHA.new, BRAVO.new, CHARLIE.new ])
 
     assert_equal %w[charlie alpha bravo], keys_of(store.widgets)
   end
 
   def test_choose_does_not_resize
-    store.arrange([ { widget: ALPHA.new, size: "large" } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new, size: "large") ])
     store.choose([ ALPHA.new, BRAVO.new ])
 
     assert_equal :large, store.widgets.first.size
@@ -233,7 +233,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_reset_drops_every_row
-    store.arrange([ { widget: ALPHA.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
     store.reset
 
     assert_empty store.stored_keys
@@ -241,7 +241,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   end
 
   def test_an_empty_arrange_is_a_reset
-    store.arrange([ { widget: ALPHA.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
     store.arrange([])
 
     assert_empty store.stored_keys
@@ -253,13 +253,13 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # explicit dedupe, `insert_all`'s `ON CONFLICT DO NOTHING` silently keeps
   # only the first occurrence and drops the rest with no error.
   def test_arrange_dedupes_a_repeated_key_instead_of_silently_dropping_it
-    store.arrange([ { widget: ALPHA.new, size: "large" }, { widget: ALPHA.new, size: "large" } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new, size: "large"), Bali::Widget::Placement.new(widget: ALPHA.new, size: "large") ])
 
     assert_equal %w[alpha], store.stored_keys
   end
 
   def test_rows_are_scoped_to_the_context_and_dashboard
-    store.arrange([ { widget: ALPHA.new } ])
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new) ])
 
     other_context = Bali::DashboardWidget::Store.new(owner: owner, context: "2",
                                                       dashboard_key: "today", offering: offering)

@@ -27,7 +27,7 @@ class DashboardWidgetsController < ApplicationController
 
     render turbo_stream: turbo_stream.replace(
       Bali::Widget::Component.dom_id(resized.key),
-      renderable: Bali::Widget::Component.new(resized)
+      renderable: Bali::Widget::Component.new(resized.widget, size: resized.size)
     )
   end
 
@@ -72,7 +72,7 @@ class DashboardWidgetsController < ApplicationController
     key = params[:resized_key].presence
     return if key.nil?
 
-    layout.widgets.find { |widget| widget.key == key }
+    layout.widgets.find { |placement| placement.key == key }
   end
 
   # THE BOUNDARY, both halves, and both of them library code now:

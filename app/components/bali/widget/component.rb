@@ -79,7 +79,7 @@ module Bali
       # render.
       # WHAT EVERY WIDGET ANSWERS. Five patterns, one interface, no type check
       # anywhere in this class or its template.
-      delegate :key, :title, :short_title, :empty_message, :size, :supported_sizes,
+      delegate :key, :title, :short_title, :empty_message, :supported_sizes,
                :view_all_path, to: :widget
 
       # WHICH CARD DRAWS THIS WIDGET. The one place the shell asks what kind of
@@ -90,11 +90,22 @@ module Bali
       # A widget that is none of the five still renders: `Value` is the fallback,
       # and it needs only `count` and `display_value`, which `Bali::Widget::Base`
       # does not define but every real widget does.
+      # SIZE IS TOLD, NOT ASKED. It is a per-owner arrangement fact rather than
+      # a property of the widget — the same widget class is `small` for one
+      # person and `large` for another — so the card that draws it is the thing
+      # that knows which canvas it is drawing on.
+      #
+      # Defaults to the widget's own `default_size`, which is what a preview, a
+      # test or a host rendering one card outside an arrangement wants. A stored
+      # size arrives through `Bali::Widget::Placement`, which has already
+      # resolved a retired or nil one.
+      #
       # `**options` so a host can add a `data-testid`, an extra class, or a Turbo
       # frame attribute to a card — the same passthrough every other component in
       # this library offers on its root tag.
-      def initialize(widget, **options)
+      def initialize(widget, size: nil, **options)
         @widget = widget
+        @size = size&.to_sym || widget.class.default_size
         @options = options
         super()
       end
@@ -133,7 +144,7 @@ module Bali
 
       private
 
-      attr_reader :widget, :options
+      attr_reader :widget, :size, :options
 
       def dom_id = self.class.dom_id(key)
 

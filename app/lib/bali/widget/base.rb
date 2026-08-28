@@ -36,8 +36,7 @@ module Bali
     class Base
       # Every declaration below is CLASS-level configuration. The instance writer
       # `class_attribute` generates by default silently shadows the class value
-      # for one object — the same trap `#with_size` dups to avoid, reachable
-      # through another door — and the predicate is noise on forty-eight methods
+      # for one object, and the predicate is noise on forty-eight methods
       # nothing calls. Instance READERS stay: the patterns read them.
       ATTRIBUTE_OPTIONS = { instance_writer: false, instance_predicate: false }.freeze
 
@@ -210,26 +209,6 @@ module Bali
       # somewhere just as a list does, and no pattern overrides this — it is the
       # implementation rather than a default.
       def view_all_path = _view_all_path && instance_exec(&_view_all_path)
-
-      def size = @size || self.class.default_size
-
-      # This widget at a user-chosen size. Always a COPY, because `_default_size`
-      # is a class attribute: assigning it would resize the widget for every user
-      # in the process until the next deploy.
-      #
-      # A size this widget does not offer falls back to its default rather than
-      # raising — the name arrives from a database column, so it can describe a
-      # size retired between the save and the read, and a dashboard that will not
-      # render is a worse answer than one drawn at its default.
-      def with_size(name)
-        chosen = name&.to_sym
-
-        dup.tap { |widget| widget.size = supported_sizes.include?(chosen) ? chosen : size }
-      end
-
-      protected
-
-      attr_writer :size
     end
   end
 end

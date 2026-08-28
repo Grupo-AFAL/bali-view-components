@@ -77,7 +77,7 @@ class BaliWidgetGridComponentTest < ComponentTestCase
   def test_renders_one_card_per_widget_inside_the_sortable_grid
     render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout")) do |grid|
       grid.with_widget(Stock.new)
-      grid.with_widget(Stock.new.with_size(:small))
+      grid.with_widget(Stock.new)
     end
 
     assert_selector(".bali-widget-grid[data-controller~='sortable-list']", visible: :all)

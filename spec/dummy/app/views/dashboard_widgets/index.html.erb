@@ -9,8 +9,10 @@
 <div class="mt-6">
   <%= render Bali::WidgetGrid::Component.new(
         url: dashboard_widgets_path, add_path: dashboard_widgets_picker_path) do |grid| %>
-    <% @layout.widgets.each do |widget| %>
-      <% grid.with_widget(widget) %>
+    <%# A PLACEMENT is a widget at a size — the arrangement's own pairing, which
+        the card is told rather than the widget carrying. %>
+    <% @layout.widgets.each do |placement| %>
+      <% grid.with_widget(placement.widget, size: placement.size) %>
     <% end %>
   <% end %>
 </div>

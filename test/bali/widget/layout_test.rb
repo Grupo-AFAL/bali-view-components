@@ -23,8 +23,10 @@ class BaliWidgetLayoutTest < ActiveSupport::TestCase
       offering: offering
     )
 
-    assert_equal %w[bravo alpha], layout.map { |item| item[:widget].key }
-    assert_equal [ "large", nil ], layout.map { |item| item[:size] }
+    assert_equal %w[bravo alpha], layout.map(&:key)
+    # `Placement` resolves at construction, so a nil stored size is already the
+    # widget's default by the time anything reads it.
+    assert_equal %i[large medium], layout.map(&:size)
   end
 
   # THE BOUNDARY. A key that is not in the already-authorized offering finds
@@ -37,7 +39,7 @@ class BaliWidgetLayoutTest < ActiveSupport::TestCase
       offering: offering
     )
 
-    assert_equal %w[alpha], layout.map { |item| item[:widget].key }
+    assert_equal %w[alpha], layout.map(&:key)
   end
 
   # An emptied grid sends nothing, and no rows means "never chose" — so this is
