@@ -4,11 +4,14 @@ require "test_helper"
 
 class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   def self.widget(key, size)
-    Class.new(Bali::Widget::Base) do
+    # `ValueBase`, not `Base` directly: a widget IS one of the four patterns.
+    # The store only ever reads keys and sizes, so the figure is a constant.
+    Class.new(Bali::Widget::ValueBase) do
+      supports(*Bali::Widget::SIZES)
       default_size size
       define_singleton_method(:key) { key }
       define_singleton_method(:title) { key }
-      def call = Bali::Widget::Result.new
+      def value = 0
     end
   end
 

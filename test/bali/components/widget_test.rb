@@ -177,11 +177,12 @@ class BaliWidgetComponentTest < ComponentTestCase
     end
   end
 
-  # `failed?` probes with `count`, so a widget whose count survives and whose
-  # rows do not reaches the healthy branch — a headline over a region with
-  # nothing in it. The muted empty message would be a lie there: it says
-  # "nothing to list" about a list that failed to load.
-  def test_a_widget_whose_rows_fail_apologises_in_the_region_that_failed
+  # A widget that half-loaded is in an unknown state, so the whole tile
+  # apologises rather than printing a headline it cannot corroborate. This is
+  # what moving the load into `before_render` bought: both reads happen before
+  # the card's first branch, so there is no such thing as a partly-drawn card
+  # that discovers its own failure halfway down.
+  def test_a_widget_whose_rows_fail_degrades_the_whole_tile
     half_broken = Class.new(Bali::Widget::ListBase) do
       def self.key = "stock"
       # Breaks where a real list widget breaks: `count` is its own query, and
@@ -194,7 +195,27 @@ class BaliWidgetComponentTest < ComponentTestCase
     swallowing_load_errors do
       render_inline(Bali::Widget::Component.new(half_broken.new.with_size(:large)))
 
-      assert_selector("span", text: "12")
+      assert_text "Couldn't load"
+      refute_selector "ul.list li"
+    end
+  end
+
+  # `before_render` loads `count` and the rows, because those are what every
+  # card reads. A series is read later, while the context region is being built
+  # — so this failure genuinely arrives after the first branch, and the detail
+  # region is what is left to carry the apology. Dropping that region (it has no
+  # rows and no empty state to show) would drop the message with it.
+  def test_a_late_failure_still_finds_a_region_to_apologise_in
+    late = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "stock"
+      series_values { raise "history is down" }
+      def current = 12
+      def previous = 6
+    end
+
+    swallowing_load_errors do
+      render_inline(Bali::Widget::Component.new(late.new.with_size(:large)))
+
       assert_selector(".bali-widget-detail", text: "Couldn't load")
     end
   end

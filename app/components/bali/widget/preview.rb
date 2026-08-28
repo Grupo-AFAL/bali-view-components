@@ -6,12 +6,25 @@ module Bali
       # One specimen per pattern, with no host behind them — so the preview needs
       # no dummy-app model and no locale fixtures. THE PATTERN IS THE TYPE, so
       # there is a class per ladder rather than one class with a flag.
+      # A per-INSTANCE row count. Not a `class_attribute`: Lookbook renders these
+      # per request, and a class-level write is process-wide state that two
+      # concurrent previews with different `count` params race on, and that leaks
+      # into the next request.
+      module Sized
+        def initialize(rows = 5)
+          @rows = rows
+          super(nil)
+        end
+
+        attr_reader :rows
+      end
+
       class DemoList < Bali::Widget::ListBase
+        include Sized
         title "Low stock items"
         short_title "Low stock"
         empty_message "Nothing running low"
 
-        class_attribute :rows, default: 5
 
         row_title { |item| item[:title] }
         row_subtitle { |item| item[:subtitle] }
@@ -34,11 +47,11 @@ module Bali
       end
 
       class DemoTrend < Bali::Widget::TrendBase
+        include Sized
         title "Low stock items"
         short_title "Low stock"
         empty_message "Nothing running low"
 
-        class_attribute :rows, default: 5
 
         # Running low on MORE things is worse news, so a rising count reads red.
         positive_when :down
@@ -53,11 +66,11 @@ module Bali
       end
 
       class DemoProgress < Bali::Widget::ProgressBase
+        include Sized
         title "Low stock items"
         short_title "Low stock"
         empty_message "Nothing running low"
 
-        class_attribute :rows, default: 5
 
         goal_label "of 10"
         series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
@@ -70,16 +83,16 @@ module Bali
       end
 
       class DemoValue < Bali::Widget::ValueBase
+        include Sized
         title "Production budget"
         short_title "Budget"
 
-        class_attribute :rows, default: 5
 
         view_all_path { "/lookbook" }
 
         def value = rows * 421_000_000
 
-        def display_value = "$#{Bali::Widget.abbreviate(value)}"
+        def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
       end
 
       # DECLARES the failure rather than raising to produce it, for the same
@@ -128,9 +141,9 @@ module Bali
       # @param editing toggle
       def default(size: :medium, pattern: :trend, count: 5, failed: false, editing: false)
         klass = failed ? DemoFailed : Bali::Widget::Preview::PATTERNS.fetch(pattern.to_sym)
-        klass.rows = count.to_i if klass.respond_to?(:rows=)
+        specimen = klass.include?(Sized) ? klass.new(count.to_i) : klass.new
 
-        render_with_template(locals: { widget: klass.new.with_size(size.to_sym), editing: editing })
+        render_with_template(locals: { widget: specimen.with_size(size.to_sym), editing: editing })
       end
     end
   end

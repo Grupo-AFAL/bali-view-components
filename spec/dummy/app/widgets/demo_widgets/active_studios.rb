@@ -9,6 +9,14 @@ module DemoWidgets
 
     default_size :medium
 
+    # title "Active Studios"
+    # description "List of active studios"
+    # empty_message "No active studios"
+
+    # list scope: Studio.active, limit: 10, order_by: :name
+    # row_serializer ¿?
+    # view_all_path
+
     order_by :name
     row_title :name
     row_subtitle { |studio| subtitle(studio.country, studio.size&.humanize) }

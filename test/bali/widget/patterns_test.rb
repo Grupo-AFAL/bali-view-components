@@ -16,6 +16,40 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   # A bare figure at `large` is a title, a number and most of a 2x2 cell of
   # whitespace — so this is the class's default rather than a limitation of it.
+  # `title "Low stock items"` sits three lines from `row_subtitle` in a real
+  # class body, and `ProgressBase#goal_label` already reads a non-Proc as the
+  # value. A string that meant "send this to the record" made one macro in the
+  # set disagree with the rest, and failed as a `NoMethodError` on a method
+  # named "In stock".
+  # The counterpart to a missing `#scope`. A list widget with no `row_title`
+  # used to render a column of blank rows, which reads as a data problem rather
+  # than an unfinished widget.
+  def test_a_list_without_a_row_title_says_so
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "untitled"
+      def scope = Studio.all
+    end
+
+    error = assert_raises(NotImplementedError) { klass.new.items }
+
+    assert_match(/row_title/, error.message)
+  end
+
+  def test_a_string_row_field_is_the_value_rather_than_a_method_name
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "literal"
+      row_title :name
+      row_subtitle "In stock"
+      def scope = Studio.where(name: "Flour")
+    end
+
+    Studio.create!(name: "Flour")
+    row = klass.new.items.first
+
+    assert_equal "Flour", row.title
+    assert_equal "In stock", row.subtitle
+  end
+
   def test_a_value_widget_offers_only_small_by_default
     assert_equal [ :small ], Bali::Widget::ValueBase.supported_sizes
   end
@@ -30,7 +64,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_a_value_widget_can_print_something_other_than_its_number
     widget = value_widget do
       def value = 2_062_000_000
-      def display_value = "$#{Bali::Widget.abbreviate(value)}"
+      def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
     end
 
     assert_equal "$2.1B", widget.display_value

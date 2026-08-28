@@ -298,7 +298,7 @@ owe:
 
 | Base | The card shows | You implement | You declare |
 |---|---|---|---|
-| `Bali::Widget::ValueBase` | one figure | `value` | `display_value` if the number is not the display |
+| `Bali::Widget::ValueBase` | one figure | `value` | `formatted_value` if the number is not the display |
 | `Bali::Widget::ListBase` | how many, and which | `scope` | `order_by`, `row_title`, `row_subtitle`, `row_href` |
 | `Bali::Widget::TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values` |
 | `Bali::Widget::ProgressBase` | a ring toward a goal | `value`, `max` | `goal_label`, `series_labels`, `series_values` |
@@ -336,6 +336,19 @@ which is not the same query and usually not the one you meant.
 `row_title :name` says everything `->(r) { r.name }` would. `row_href` takes a block, because a
 path is built from a helper rather than read off the record, and `row_subtitle` accepts either
 — a symbol for one attribute, a block when it composes two.
+
+A **string is the value itself**, not a third spelling of "send this to the record": a symbol
+references, a string is. `row_subtitle "In stock"` labels every row the same way, and reads the
+same as the `title "Low stock items"` a few lines above it.
+
+**Blocks run against the widget, so take the record as an argument — don't reach for it
+bare.** `size`, `count`, `items`, `title`, `key`, `description` and `subtitle` are all widget
+methods, and several are ordinary column names too: inside `row_subtitle { … }`, a bare `size`
+is the widget's size, not the record's. Always name the parameter:
+
+```ruby
+row_subtitle { |studio| subtitle(studio.country, studio.size&.humanize) }
+```
 
 A trend widget implements the two figures and lets the base compute the delta between them:
 
@@ -381,7 +394,7 @@ class ProductionBudget < Bali::Widget::ValueBase
   view_all_path { admin_movies_path }
 
   def value = Movie.budgeted.sum(:budget).to_i
-  def display_value = "$#{Bali::Widget.abbreviate(value)}"
+  def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
 end
 ```
 

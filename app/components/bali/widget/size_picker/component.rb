@@ -12,7 +12,7 @@ module Bali
       # a lattice, and it kept three constants and a helper inside the card that
       # the card never used for anything else.
       #
-      # A REAL radiogroup, not a toggle group — the four sizes are mutually
+      # A REAL radiogroup, not a toggle group — the sizes are mutually
       # exclusive, which is what the role exists for. It earns the role by
       # honouring the whole pattern: one tab stop for the set, arrows to move
       # within it, and selection following focus. Announcing radiogroup semantics

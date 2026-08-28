@@ -22,9 +22,16 @@ module Bali
       # to know a size. `Widget::Component` truncates to what the size has room for.
       PREVIEW_ROWS = 8
 
+      # Every declaration below is CLASS-level configuration. The instance writer
+      # `class_attribute` generates by default silently shadows the class value
+      # for one object — the same trap `#with_size` dups to avoid, reachable
+      # through another door — and the predicate is noise on forty-eight methods
+      # nothing calls. Instance READERS stay: the patterns read them.
+      ATTRIBUTE_OPTIONS = { instance_writer: false, instance_predicate: false }.freeze
+
       # The canvas the widget is drawn around, and the fallback for a stored size
       # it no longer supports.
-      class_attribute :_default_size, default: SIZES.first
+      class_attribute :_default_size, default: SIZES.first, **ATTRIBUTE_OPTIONS
 
       # Which sizes a USER may choose, defaulting to all of them. Declare a subset
       # when the widget has nothing to fill the others with — a bare figure at
@@ -37,38 +44,45 @@ module Bali
       # offered sizes vary with the data: a widget whose series is empty this week
       # would silently stop offering a size the user had already chosen. Apple
       # declares `supportedFamilies` for the same reasons.
-      class_attribute :_supported_sizes, default: SIZES
+      class_attribute :_supported_sizes, default: SIZES, **ATTRIBUTE_OPTIONS
 
       # Copy is HOST content. It reads from i18n by default — `widgets.<key>.*` —
       # and a class may set a literal instead, which is what a widget with one
       # hardcoded string wants rather than four locale keys.
-      class_attribute :_title
-      class_attribute :_short_title
-      class_attribute :_description
-      class_attribute :_empty_message
+      class_attribute :_title, **ATTRIBUTE_OPTIONS
+      class_attribute :_short_title, **ATTRIBUTE_OPTIONS
+      class_attribute :_description, **ATTRIBUTE_OPTIONS
+      class_attribute :_empty_message, **ATTRIBUTE_OPTIONS
 
       # Bali's own chrome lives under `bali_view.widgets.*`; this is the scope a
       # host's titles live in.
-      class_attribute :i18n_scope, default: "widgets"
+      class_attribute :i18n_scope, default: "widgets", **ATTRIBUTE_OPTIONS
 
       # Where the tile links. A block, because it is a route helper rather than a
       # value — and on `Base` rather than `ListBase` because a figure, a trend and
       # a ring all link somewhere just as a list does.
-      class_attribute :_view_all_path
+      class_attribute :_view_all_path, **ATTRIBUTE_OPTIONS
 
       class << self
         # Validated at class-definition time, so a typo is a boot failure rather
         # than a KeyError the first time someone opens the dashboard.
-        def default_size(name)
+        #
+        # Deliberately does NOT check `_supported_sizes`: `ValueBase` ships with
+        # `[:small]`, so a widget widening it writes `default_size :medium` above
+        # `supports :small, :medium` and the check would reject a legitimate
+        # class. `supports` validates the pair instead, which makes the two
+        # ORDER-DEPENDENT — `supports` must come second. The generator scaffolds
+        # them that way round.
+        def default_size(name = nil)
+          return _default_size if name.nil?
+
           raise ArgumentError, "unknown widget size #{name.inspect}" unless SIZES.include?(name)
 
           self._default_size = name
         end
 
-        # NOT `sizes`, which sat one letter from the size macro in the same class
-        # body — the collision the 2026-08-25 design spec criticises in the code
-        # this feature was ported from. `supports` also names the attribute it
-        # writes, and echoes the `supportedFamilies` this model is adapted from.
+        # NOT `sizes`, which sits one letter from `size`. Echoes the
+        # `supportedFamilies` this model is adapted from.
         def supports(*names)
           unknown = names - SIZES
           raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
@@ -85,8 +99,6 @@ module Bali
         def view_all_path(&block) = self._view_all_path = block
 
         def supported_sizes = _supported_sizes
-
-        def size = _default_size
 
         # `Widgets::LowStockItems` -> `"low_stock_items"`, which is also the i18n
         # scope and the persisted key. One fewer constant to keep in sync.
@@ -163,11 +175,20 @@ module Bali
       def goal = nil
 
       # The headline as printed. A ~215px tile at `text-4xl` fits four to six
-      # characters, so a raw 1_234_567 runs off it. A pattern whose headline is
-      # not a count overrides this.
-      def display_value = Widget.abbreviate(count)
+      # characters, so a raw 1_234_567 runs off it.
+      #
+      # A widget formats by overriding `formatted_value`, NOT this — everything
+      # a host writes has to run inside the failure net, and the documented
+      # idiom (`"$#{Widget.abbreviate(value)}"`) reaches straight past `count`
+      # to the abstract method underneath it. Overriding `display_value` itself
+      # would put host code outside `safely`, where a raising widget takes the
+      # page down instead of degrading its own tile.
+      def display_value = safely("—") { formatted_value }
 
-      def size = @size || self.class.size
+      # What the headline says, before the net. Override this.
+      def formatted_value = Widget.abbreviate(count)
+
+      def size = @size || self.class.default_size
 
       # This widget at a user-chosen size. Always a COPY, because `_default_size`
       # is a class attribute: assigning it would resize the widget for every user
@@ -187,24 +208,11 @@ module Bali
       # reads as "nothing to see", which is the one thing a failure must not say,
       # so a raising widget renders the degraded card instead.
       #
-      # This PROBES rather than merely reporting, and it has to. The card branches
-      # on failure FIRST, before it has asked the widget for anything — and a
-      # widget that reads lazily has not failed yet at that moment, so a plain
-      # `@failed.present?` is false for every widget that is about to raise. The
-      # card then takes the healthy branch and renders a greyed-out `0`: the tile
-      # says "nothing here" for a widget that is actually broken, which is the one
-      # thing the degraded card exists to prevent.
-      #
-      # `count` is the probe because it is the one read all four patterns share,
-      # and because every region of the card already depends on it — `any_items?`,
-      # `empty_state?` and `view_all_link?` all read it, so this costs no query
-      # the card was not going to make anyway. A pattern whose OTHER reads fail
-      # while `count` succeeds is caught a second time by the detail region; see
-      # `component.html.erb`.
-      def failed?
-        count
-        @failed.present?
-      end
+      # A PLAIN READER. `Bali::Widget::Component#before_render` does the loading,
+      # because deciding what a canvas needs read is the card's job and not the
+      # widget's — and the card branches on failure before it would otherwise
+      # have asked for anything.
+      def failed? = @failed.present?
 
       # "3 left · Cocina". Here rather than reached through `Bali::Widget` so a
       # row block can call it bare.
@@ -220,6 +228,13 @@ module Bali
       # guarding the call: the card asks `count`, `items` and `view_all_path`
       # separately, and a rescue that did not remember would re-run the raising
       # query three times per tile.
+      #
+      # The SUCCESSES are memoised by the patterns themselves (`@count ||=`),
+      # and have to be: one card asks `count` five times — the headline, the
+      # empty state, the "view all" link and its label — and `display_value`
+      # reaches it from inside the widget, where no memo in the card can see the
+      # call. A widget is built per render, so the memo lives exactly as long as
+      # the answer is good for.
       #
       # `NotImplementedError` is named explicitly because it descends from
       # `ScriptError`, NOT `StandardError` — a widget that forgets an abstract

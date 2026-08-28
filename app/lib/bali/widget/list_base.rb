@@ -25,10 +25,10 @@ module Bali
         def initialize(title:, subtitle: nil, href: nil) = super
       end
 
-      class_attribute :_order_by
-      class_attribute :_row_title
-      class_attribute :_row_subtitle
-      class_attribute :_row_href
+      class_attribute :_order_by, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_row_title, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_row_subtitle, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_row_href, **Base::ATTRIBUTE_OPTIONS
 
       class << self
         # Applied to the scope before the preview is taken, never after: ordering
@@ -43,10 +43,10 @@ module Bali
         def row_href(&block) = self._row_href = block
       end
 
-      def count = safely(0) { scope.count.to_i }
+      def count = @count ||= safely(0) { scope.count.to_i }
 
       def items
-        safely([]) do
+        @items ||= safely([]) do
           previewable.map { |record| Row.new(**row_for(record)) }
         end
       end
@@ -62,6 +62,15 @@ module Bali
       end
 
       def row_for(record)
+        # A list widget owes a title the way it owes a scope. Left to default to
+        # nil, a widget with no `row_title` renders a column of blank rows and
+        # looks like a data problem — so this fails the same loud way a missing
+        # `#scope` does, naming the macro that fixes it.
+        unless _row_title
+          raise NotImplementedError,
+                "#{self.class.name || 'This widget'} must declare `row_title`."
+        end
+
         {
           title: resolve(_row_title, record),
           subtitle: resolve(_row_subtitle, record),
@@ -69,12 +78,19 @@ module Bali
         }
       end
 
-      # A Symbol is sent to the record; a block runs against the WIDGET with the
+      # A SYMBOL is sent to the record; a BLOCK runs against the WIDGET with the
       # record yielded, so it can reach route helpers and private methods.
+      #
+      # A STRING is the value itself, and used to be a third spelling of "send
+      # this to the record" — which made `row_subtitle "In stock"` a confusing
+      # `NoMethodError` at render time. It reads exactly like `title "Low stock
+      # items"` three lines above it in the same class body, and `goal_label`
+      # over in `ProgressBase` already treats a non-Proc as a literal. One
+      # feature cannot have two answers to what a string means.
       def resolve(field, record)
         case field
-        when nil then nil
-        when Symbol, String then record.public_send(field)
+        when nil, String then field
+        when Symbol then record.public_send(field)
         else instance_exec(record, &field)
         end
       end

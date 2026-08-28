@@ -3,17 +3,28 @@
 require "test_helper"
 
 class BaliWidgetGridComponentTest < ComponentTestCase
-  class Stock < Bali::Widget::Base
+  # A real pattern subclass. Not `Bali::Widget::Base` directly — the
+  # architecture is that a widget IS one of the four patterns, and a test class
+  # that skips the ladder is testing a widget no host could write.
+  class Stock < Bali::Widget::ListBase
     default_size :medium
 
-    def self.title = "Low stock items"
-    def self.short_title = "Low stock"
-    def self.empty_message = "Nothing running low"
+    title "Low stock items"
+    short_title "Low stock"
+    empty_message "Nothing running low"
 
-    def call
-      Bali::Widget::Result.new(count: 1, view_all_path: "/items",
-                               items: [ Bali::Widget::Row.new(title: "Tomatoes") ])
-    end
+    row_title :title
+    view_all_path { "/items" }
+
+    def count = 1
+
+    def scope = [ Struct.new(:title).new("Tomatoes") ]
+
+    private
+
+    # The grid only ever renders these; a relation would mean a table this test
+    # does not otherwise need.
+    def previewable = scope
   end
 
   def test_renders_the_two_composed_controllers_and_the_endpoint

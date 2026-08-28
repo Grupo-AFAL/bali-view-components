@@ -45,11 +45,11 @@ module Bali
       # overdue work, low stock — declares `positive_when :down`, and a rising
       # number then reads red. Getting this wrong makes the card lie confidently,
       # which is why it is a declaration rather than a guess.
-      class_attribute :_positive_when, default: :up
-      class_attribute :_period_label
-      class_attribute :_series_labels
-      class_attribute :_series_values
-      class_attribute :_series_type, default: :line
+      class_attribute :_positive_when, default: :up, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_period_label, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_series_labels, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_series_values, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_series_type, default: :line, **Base::ATTRIBUTE_OPTIONS
 
       class << self
         def positive_when(value) = self._positive_when = value
@@ -77,7 +77,7 @@ module Bali
 
       # `to_i` because a widget with no data at all has a nil `current`, and the
       # card asks `count.positive?`.
-      def count = safely(0) { current.to_i }
+      def count = @count ||= safely(0) { current.to_i }
 
       def trend
         safely(nil) do

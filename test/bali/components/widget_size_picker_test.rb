@@ -16,7 +16,7 @@ class BaliWidgetSizePickerComponentTest < ComponentTestCase
     assert_selector("button[data-widget-size='small'][aria-checked='false']", visible: :all)
   end
 
-  # The four sizes are mutually exclusive, so the whole group is ONE tab stop and
+  # The sizes are mutually exclusive, so the whole group is ONE tab stop and
   # the checked size carries it. Without this a keyboard user crosses three
   # buttons per card — 48 stops in a twelve-card grid — to reach the next card.
   def test_is_one_tab_stop_carried_by_the_checked_size

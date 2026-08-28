@@ -68,14 +68,22 @@ back rather than on a type check.
 `ListBase`. The original ladder spec described the metric ladder's top rung as a *breakdown*,
 which a trend widget can no longer have either.
 
-This is accepted knowingly. Rows on every pattern would mean either multiple inheritance or a
-`rows` mixin, and the mixin puts us back where the DSL was — a widget free to combine shapes,
-with the card branching on what it finds. **A widget that genuinely needs a chart and a list is
-two widgets**, and the grid exists to put them side by side.
+This is accepted knowingly, but **not for the reason first written here.** The original
+argument — that a `rows` mixin would put us back where the DSL was, with the card branching on
+what it finds — is false, and the card disproves it: `context?` and `detail?` each decide their
+own region with no type checks, so a widget with both a series and items would render through
+both unchanged. `REGIONS` even carried a row budget for exactly that case.
 
-Revisit if real host dashboards keep wanting it. The change would be a `Rows` concern supplying
-`scope`/`order_by`/`row_*` to `TrendBase` and `ProgressBase`, and it is deliberately not
-speculative work today.
+The DSL's real defect was free combination on the **headline** axis: `trend` without `series`,
+a `goal` beside a `count`, two things competing to be the big number. "Does this widget also
+list things" is orthogonal — the detail region is always subordinate, and the null object
+already absorbs its absence.
+
+So rows are left out because **no host dashboard has asked for them**, not because they are
+incoherent. **A widget that needs both a chart and a list is two widgets**, and the grid exists
+to put them side by side. If that stops being true, the change is a `Rows` concern supplying
+`scope`/`order_by`/`row_*` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
+for a card that is showing both.
 
 ## Failure is probed, not reported
 

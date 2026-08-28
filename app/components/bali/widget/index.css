@@ -51,7 +51,7 @@
  * `bg-base-200` is the PAGE's material, not the card's: `bg-base-100/95` is
  * the same white as the card it sits in, so it read as more card.
  *
- * Hidden below `lg` (`max-lg:hidden`), where all four sizes render
+ * Hidden below `lg` (`max-lg:hidden`), where all three sizes render
  * identically and the control would visibly do nothing.
  */
 .editing .bali-widget-edit-shelf {

@@ -9,14 +9,14 @@ module Bali
     #     default_size :small
     #
     #     def value = Movie.budgeted.sum(:budget).to_i
-    #     def display_value = "$#{Bali::Widget.abbreviate(value)}"
+    #     def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
     #   end
     #
     # `supports :small` by default, and that is the point of the class rather
     # than a limitation of it: a bare figure at `large` is a title, a number and
     # most of a 2x2 cell of whitespace. Say `supports` yourself to override.
     class ValueBase < Base
-      self._supported_sizes = [ SIZES.first ].freeze
+      supports :small
 
       # The figure. Whatever the card shows big.
       def value
@@ -25,7 +25,7 @@ module Bali
 
       # `value` IS the count as far as the card is concerned — that is what makes
       # the empty state and the "view all" link work without a second reader.
-      def count = safely(0) { value.to_i }
+      def count = @count ||= safely(0) { value.to_i }
     end
   end
 end

@@ -128,7 +128,7 @@ export class WidgetGridController extends Controller {
     // Otherwise the arrows scroll the page out from under the card being sized.
     event.preventDefault()
 
-    // Wrapping, which the radiogroup pattern calls for: four sizes is a short
+    // Wrapping, which the radiogroup pattern calls for: three sizes is a short
     // ring, and stopping dead at `wide` makes `small` feel unreachable from it.
     const to = edge
       ? (edge === 'first' ? 0 : buttons.length - 1)

@@ -6,12 +6,13 @@ module Bali
     #
     #   render Bali::Widget::Component.new(widget)
     #
-    # Takes the WIDGET, not its `Result` — the widget delegates count/items to
-    # the result and still knows its own key, which is what lets one component
-    # derive every widget's copy.
+    # Takes the WIDGET and asks it directly — there is no result object between
+    # them. `Bali::Widget::Base` answers every question with a null where the
+    # pattern has nothing, so this component reads one uniform interface and
+    # never branches on which kind of widget it is holding.
     #
-    # Does no data access at all, which is what lets it be tested against plain
-    # `Base` subclasses with a stubbed `#call`.
+    # It decides WHAT TO LOAD (`before_render`) and HOW MUCH FITS (`REGIONS`);
+    # the widget decides what the answers are.
     class Component < ApplicationViewComponent
       # What each canvas has room for. The card shows the SAME FACT at every
       # size and gives it more context as it grows — it does not change subject.
@@ -22,34 +23,34 @@ module Bali
       #   context  — how the fact is moving. A chart.
       #   detail   — the breakdown. The row list.
       #
-      # `rows` is what a PRE-LADDER widget gets — 3 at medium, 7 at large, exactly
-      # what it always rendered — and `charted_rows` is what is left once a chart
-      # takes part of the canvas. Two named numbers rather than one positional
-      # pair, because "index 0 means with a chart" is a fact a reader should not
-      # have to carry.
-      #
-      # Truncation lives HERE, not in `#call`: the widget answers "which rows
+      # Truncation lives HERE, not in the widget: the widget answers "which rows
       # matter", the card answers "how many fit".
+      #
+      # There is no separate budget for "rows beside a chart". A widget is
+      # exactly one pattern, and no pattern has both a series and items —
+      # `ListBase` overrides `items` and never `series`, `TrendBase` and
+      # `ProgressBase` the reverse — so a card is never asked to fit both.
+      # Reinstate one here if `TrendBase`/`ProgressBase` ever gain rows.
       REGIONS = {
         # A ~215px tile fits one fact and nothing else, and it is a single tap
-        # target — so no rows either way, and nothing inside may be focusable.
-        small: { layout: :hero, context: nil, rows: 0, charted_rows: 0 },
+        # target — so no rows, and nothing inside may be focusable.
+        small: { layout: :hero, context: nil, rows: 0 },
         # Fact on the left, sparkline on the right. Axis-less: below roughly 2x2
         # a chart's axes cost more room than they explain.
-        medium: { layout: :inline, context: :spark, rows: 3, charted_rows: 0 },
+        medium: { layout: :inline, context: :spark, rows: 3 },
         # Fact in a header band, chart under it, breakdown below that.
-        large: { layout: :stacked, context: :full, rows: 7, charted_rows: 3 }
+        large: { layout: :stacked, context: :full, rows: 7 }
       }.freeze
 
-      # OVERRIDABLE, because `rows` and `charted_rows` are pixel budgets measured
-      # against Bali's own type sizes. A host with a larger base font, two-line
+      # OVERRIDABLE, because `rows` is a pixel budget measured against Bali's
+      # own type sizes. A host with a larger base font, two-line
       # subtitles or a denser theme gets clipping and, as a frozen constant, no
       # way to say so — a library imposing not a philosophy but a MEASUREMENT.
       #
       # Set it in an initializer:
       #
       #   Bali::Widget::Component.regions = Bali::Widget::Component::REGIONS.deep_merge(
-      #     large: { rows: 5, charted_rows: 2 }
+      #     large: { rows: 5 }
       #   )
       #
       # `layout` and `context` are structure rather than measurement — they name
@@ -85,6 +86,15 @@ module Bali
                :count, :items, :view_all_path, :failed?,
                :display_value, :trend, :series, :goal, to: :widget
 
+      # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
+      # grid's own resize needs it — a card that changes shape has to come back
+      # re-rendered, because its interior is built by the server — and any host
+      # refreshing a single tile can target the same id.
+      #
+      # Public: it is the one thing about the card a host outside this component
+      # legitimately needs to name.
+      def self.dom_id(key) = "bali-widget-#{key}"
+
       # `**options` so a host can add a `data-testid`, an extra class, or a
       # Turbo frame attribute to a card — the same passthrough every other
       # component in this library offers on its root tag.
@@ -94,26 +104,31 @@ module Bali
         super()
       end
 
+      # THE CARD BRANCHES ON FAILURE FIRST, before it has asked the widget
+      # anything — and a widget reads lazily, so at that moment nothing has
+      # failed yet. Without this the card takes the healthy branch and renders a
+      # confident grey `0` for a widget that is actually broken, which is the one
+      # thing the degraded tile exists to prevent.
+      #
+      # Loading belongs here rather than behind a probing `failed?`, because
+      # deciding what a canvas needs read is the CARD's job: `count` always,
+      # since every pattern defines it and every region depends on it, and
+      # `items` only where rows will actually render. A hero tile shows none, so
+      # it never pays for them.
+      def before_render
+        count
+        items if region.fetch(:rows).positive?
+      end
+
       private
 
       attr_reader :widget, :options
 
-      # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
-      # grid's own resize needs it — a card that changes shape has to come back
-      # re-rendered, because its interior is built by the server — and any host
-      # refreshing a single tile can target the same id.
-      #
-      # Public: it is the one thing about the card a host outside this component
-      # legitimately needs to name.
       def dom_id = self.class.dom_id(key)
 
       # A radiogroup with one option is not a choice. A widget that offers a
       # single size gets no picker rather than a picker that cannot do anything.
       def resizable? = supported_sizes.many?
-
-      def self.dom_id(key) = "bali-widget-#{key}"
-
-      private
 
       def region = regions.fetch(size)
 
@@ -152,11 +167,10 @@ module Bali
       #
       # The counterpart to `context?`. Both answer "does this region have
       # anything to put in it", and having only one of them was the whole defect.
-      # `failed?` is in here for the LATE failure only. An early one never gets
-      # this far — the card's first branch is the degraded tile. But `failed?`
-      # probes with `count`, so a widget whose count survives and whose rows do
-      # not is discovered while this region is being captured, and without this
-      # the region is dropped and the apology inside it goes with it.
+      #
+      # `failed?` because a failed detail region has an apology to show, and
+      # dropping the region would drop that with it. `before_render` has already
+      # attempted both reads, so this is a plain question by the time it is asked.
       def detail? = body? || rows.any? || empty_state? || failed?
 
       # ONE home for this rule. The template used to spell it inline as well,
@@ -166,7 +180,7 @@ module Bali
       # show" beside a populated sparkline is a contradiction.
       def empty_state? = !any_items? && !context?
 
-      def rows = items.first(region.fetch(context? ? :charted_rows : :rows))
+      def rows = @rows ||= items.first(region.fetch(:rows))
 
       def any_items? = count.positive?
 

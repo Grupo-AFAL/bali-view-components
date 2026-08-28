@@ -33,10 +33,10 @@ module Bali
 
       Series = TrendBase::Series
 
-      class_attribute :_goal_label
-      class_attribute :_series_labels
-      class_attribute :_series_values
-      class_attribute :_series_type, default: :bar
+      class_attribute :_goal_label, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_series_labels, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_series_values, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_series_type, default: :bar, **Base::ATTRIBUTE_OPTIONS
 
       class << self
         def goal_label(value = nil, &block) = self._goal_label = value || block
@@ -59,7 +59,7 @@ module Bali
 
       # The ring is the headline, but `count` still gates the empty state and the
       # "view all" link, so it answers with what has been achieved.
-      def count = safely(0) { value.to_i }
+      def count = @count ||= safely(0) { value.to_i }
 
       def goal
         safely(nil) do

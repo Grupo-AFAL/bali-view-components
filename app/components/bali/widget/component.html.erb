@@ -1,4 +1,4 @@
-<%# One card for every widget, at four canvases.
+<%# One card for every widget, at three canvases.
 
     The card shows the SAME FACT at every size and gives it more context as it
     grows — it never changes subject. `REGIONS` in `component.rb` says what each
@@ -95,8 +95,8 @@
     <% elsif summary? %>
       <%# THE HERO. One fact, and the whole tile is the link — but ONLY when
           there is somewhere to go. A nil `view_all_path` is a legitimate state
-          (`Base#list_from` defaults it to nil), and `href="#"` would make the
-          card look clickable while doing nothing.
+          — the declaration is optional on every pattern — and `href="#"` would
+          make the card look clickable while doing nothing.
 
           NOTHING inside here may be focusable. A small widget supports exactly
           one tap target, so the trend renders as text and never as a control.
@@ -213,11 +213,9 @@
               </li>
             <% end %>
           </ul>
-        <%# A SECOND failure check, and not a redundant one: `failed?` above probes
-            with `count`, so a widget whose count succeeds and whose rows raise
-            reaches here looking healthy — a headline over an empty region. The
-            muted empty message below would be a lie in that case, because it
-            says "nothing to list" about a list that failed to load. %>
+        <%# A widget whose count succeeded and whose rows did not: a headline over
+            a region with nothing in it. The muted empty message below would be a
+            lie there — it says "nothing to list" about a list that failed. %>
         <% elsif failed? %>
           <p class="flex-1 place-content-center text-center text-xs text-warning">
             <%= t('bali_view.widgets.load_error') %>

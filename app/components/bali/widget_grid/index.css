@@ -2,7 +2,7 @@
  *
  * A card declares WHAT it is — `data-size="large"` — and this stylesheet decides
  * what that means at each breakpoint. The alternative (the card carrying the
- * Tailwind spans, all four sizes serialised as JSON so the client can swap, and
+ * Tailwind spans, all three sizes serialised as JSON so the client can swap, and
  * the controller doing class arithmetic) is three copies of one fact in three
  * languages.
  *

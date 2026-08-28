@@ -5,7 +5,7 @@
 // controller with no jsdom unit runner behind it.
 describe('widget grid', () => {
   beforeEach(() => {
-    // The size picker only renders `lg:` and up (below that, all four sizes
+    // The size picker only renders `lg:` and up (below that, all three sizes
     // look identical, per widget/component.html.erb) — Cypress's default
     // viewport (1000px) is under the 1024px `lg` breakpoint, so every test
     // that touches edit chrome needs a viewport at or above it. Tall, too:

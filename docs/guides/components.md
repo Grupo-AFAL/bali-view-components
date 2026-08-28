@@ -2507,7 +2507,7 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 #### Widget
 
-One card in a user-arrangeable dashboard, rendered at one of four sizes. Takes a widget
+One card in a user-arrangeable dashboard, rendered at one of three sizes. Takes a widget
 instance, not its data, so the card can derive a widget's copy from `widget.key` and
 delegate `count`/`items`/`view_all_path` without knowing where they came from. Meant to
 render inside `Bali::WidgetGrid::Component`, not alone.
@@ -2580,14 +2580,13 @@ your app already uses that name for something of its own:
 <%= render Bali::WidgetGrid::Component.new(url: …, editing_param: "arranging") %>
 ```
 
-**The row budgets are overridable.** `rows` and `charted_rows` in `REGIONS` are pixel
-budgets measured against Bali's own type sizes. If your base font is larger, or your
-subtitles wrap to two lines, set your own in an initializer rather than living with
-clipping:
+**The row budgets are overridable.** `rows` in `REGIONS` is a pixel budget measured against
+Bali's own type sizes. If your base font is larger, or your subtitles wrap to two lines, set
+your own in an initializer rather than living with clipping:
 
 ```ruby
 Bali::Widget::Component.regions =
-  Bali::Widget::Component::REGIONS.deep_merge(large: { rows: 5, charted_rows: 2 })
+  Bali::Widget::Component::REGIONS.deep_merge(large: { rows: 5 })
 ```
 
 **Answer a resize with the card.** Resizing writes a single attribute client-side, but the

@@ -33,27 +33,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
 - **Widgets declare which sizes a user may choose.** `supports :small, :medium` alongside
-  `sized :small`, defaulting to all three. Declare a subset when the widget has nothing to
+  `default_size :small`, defaulting to what the pattern offers. Declare a subset when the widget has nothing to
   fill the others with — a bare count at `large` is a title, a number and most of a 2×2 cell
   of whitespace. A widget offering one size gets no picker at all. Declared rather than
   inferred from the data, because `authorized_for` never loads data (inferring would run
   every widget's query just to draw a picker) and because offered sizes that varied with the
   data would silently drop a size the user had already chosen. Unofferable is not
   unrenderable: a stored row naming an unsupported size falls back to the widget's default.
-- **Widget authoring got a real API.** `bin/rails g bali:widget LowStockItems --size medium`
-  scaffolds the class, a test, and the four locale keys in every locale your app has —
-  `widgets.<key>.{title,short_title,description,empty}` is easy to forget one of, and
-  `description` only ever shows in a picker. `list_from` now takes a block
-  (`list_from(scope) { |item| Bali::Widget::Row.new(…) }`) and `#row` is declared, so a
-  widget that defines neither gets an error naming the contract instead of `NoMethodError`
-  from inside Bali. `Bali::Widget::Result` gained `with_trend`, `with_series` and `with_goal`,
-  so all three ladders build the same way instead of one having sugar and two needing a
-  nine-keyword constructor. **`Bali::Widget::Layout.from(params, offering:)` ships the
-  security boundary** that was a dozen lines of param filtering every host copied out of the
-  guide. `Bali::Widget::Component.regions` is overridable, because the row budgets are pixel
+- **Widget authoring got a real API: the pattern is the type.** A widget inherits one of
+  four bases — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many, and which),
+  `TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal) — and that
+  choice supplies both the declarations it may use and the methods it owes. A widget is
+  exactly one of them, so a class cannot describe a shape it does not have, and one that
+  forgets an abstract method raises `NotImplementedError` naming it rather than rendering
+  half a thing. `TrendBase` computes the delta, so no widget hand-rolls
+  `((current - previous) / previous.to_f * 100).round` again, and `previous` returning `nil`
+  means the trend is absent rather than zero. `bin/rails g bali:widget LowStockItems
+  --pattern list --size medium` scaffolds that pattern's methods and the four locale keys in
+  every locale your app has — `widgets.<key>.{title,short_title,description,empty}` is easy
+  to forget one of, and `description` only ever shows in a picker.
+  **`Bali::Widget::Layout.from(params, offering:)` ships the security boundary** that was a
+  dozen lines of param filtering every host copied out of the guide.
+  `Bali::Widget::Component.regions` is overridable, because the row budgets are pixel
   measurements against Bali's own type sizes and a host with a larger base font could not say
-  so. See `docs/guides/engine-models.md` for `ApplicationWidget`, which is where your route
-  helpers belong.
+  so. Because the superclass slot belongs to the pattern, shared behaviour goes in a concern
+  rather than an `ApplicationWidget` — see `docs/guides/engine-models.md`, and
+  `spec/dummy/app/widgets/widget_routes.rb` for the route-helper case.
 - **`Bali::Gauge`: a radial progress ring.** The circular half of what `Bali::Progress` does
   linearly, over daisyUI's `radial-progress` — CSS-only, so a page of them costs no
   JavaScript. Carries the full `progressbar` ARIA contract, which daisyUI's own markup does
@@ -64,15 +69,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sizes, drag and arrow-key reorder, resize and remove, with the whole layout persisted on
   every gesture. **The size changes how much context the same fact gets, never the subject**:
   `small` is the fact alone, `medium` adds a sparkline beside it, and `large` a chart with
-  axes and the breakdown below. A widget opts into the richer rungs
-  with `trend:`, `series:` and `goal:` on its `Result`; one that returns none of them renders
-  at every size with the context region simply absent. A resize sends `resized_key` with the
+  axes and the breakdown below. Which rungs a card shows follows from the widget's
+  pattern; a region the widget has nothing to fill is simply not rendered. A resize sends `resized_key` with the
   layout, so a host can answer with a Turbo Stream replacing that one card — the interior is
   server-rendered, and a grown card needs its real body back rather than the one it had at
-  the smaller size. Every other gesture still takes a `204`. `Bali::Widget::Trend` carries
-  `positive_when:` because "up" is not universally good — the card colours from whether the
-  movement was good, not which way it went. `Bali::Widget::Base` is the contract a host's widget classes implement
-  (`sized`, `visible?`, `#call`); `Bali::DashboardWidget::Store` reads and writes the
+  the smaller size. Every other gesture still takes a `204`. `TrendBase` declares
+  `positive_when` because "up" is not universally good — the card colours from whether the
+  movement was good, not which way it went. A widget that raises degrades its own tile
+  instead of taking the page down. `Bali::Widget::Base` is what every widget shares
+  (`default_size`, `supports`, `visible?`, the copy macros);
+  `Bali::DashboardWidget::Store` reads and writes the
   arrangement to the new `bali_dashboard_widgets` table, keyed by owner, tenant context and
   dashboard — and a host may swap in its own object implementing the same contract
   instead; `Bali::WidgetGrid::Component` renders it. Bali ships no

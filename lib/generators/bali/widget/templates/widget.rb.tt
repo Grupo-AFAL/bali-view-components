@@ -29,7 +29,7 @@ class <%= class_name %> < <%= parent_class %>
   # Only when the number is not the display. A ~215px tile fits four to six
   # characters, so `Bali::Widget.abbreviate` is usually part of the answer.
   #
-  # def display_value = "$#{Bali::Widget.abbreviate(value)}"
+  # def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
 <% elsif pattern == 'list' -%>
   # THE SCOPE IS THE PRIMITIVE: `count` is the whole of it, and the preview rows
   # are the first `PREVIEW_ROWS` after ordering. Leave the order to `order_by`
@@ -41,10 +41,11 @@ class <%= class_name %> < <%= parent_class %>
 
   # What one row says. A Symbol is sent to the RECORD; a block runs against the
   # WIDGET with the record yielded, so it can reach route helpers and private
-  # methods. `row_subtitle` takes either — a symbol for one attribute, a block
-  # when it composes two, where `subtitle(a, b)` joins them the card's way.
+  # methods; a String is the value itself. `row_subtitle` takes any of the three
+  # — a symbol for one attribute, a block when it composes two (where
+  # `subtitle(a, b)` joins them the card's way), a string for a fixed label.
   order_by :id
-  row_title :to_s
+  # row_title :name
   # row_subtitle :some_attribute
   # row_href { |record| record_path(record) }
 <% elsif pattern == 'trend' -%>
