@@ -96,18 +96,14 @@ Rails.application.routes.draw do
   get 'modal_redirect/go', to: 'modal_redirect#go', as: :modal_redirect_go
   get 'modal_redirect/landing', to: 'modal_redirect#landing', as: :modal_redirect_landing
 
-  # The real widget dashboard demo (as opposed to the Lookbook preview's stub
-  # above): one URL for both the page and the PATCH the grid sends on every
-  # gesture, matching the `url:` the view passes to `Bali::WidgetGrid::Component`.
-  get 'dashboard_widgets', to: 'dashboard_widgets#index', as: :dashboard_widgets
-  patch 'dashboard_widgets', to: 'dashboard_widgets#update'
+  # The real widget dashboard demo, as opposed to the Lookbook preview's stub
+  # above. A SINGULAR resource — there is one dashboard per user, not a collection.
+  # Named `dashboard_widgets` so the path helper keeps that name; the concern
+  # itself uses `url_for(action:)` and does not care what this is called.
+  resource :dashboard_widgets, only: %i[show create edit update destroy] do
+    patch :arrange
+  end
 
-  # The picker: every AUTHORIZED widget (not just the ones currently chosen),
-  # so a dashboard emptied down to nothing still has a way back in. Submitting
-  # goes through `Store#choose`, never `#arrange` — see the controller.
-  get 'dashboard_widgets/picker', to: 'dashboard_widgets#picker', as: :dashboard_widgets_picker
-  patch 'dashboard_widgets/picker', to: 'dashboard_widgets#update_picker'
-  delete 'dashboard_widgets/reset', to: 'dashboard_widgets#reset', as: :reset_dashboard_widgets
   get 'users', to: 'users#index'
 
   # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine

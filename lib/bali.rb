@@ -23,6 +23,13 @@ require "bali/time_periods/select_options"
 # Core concerns (used by components/form builder)
 require "bali/concerns/date_range_attribute"
 
+# Controller concerns. REQUIRED HERE, not autoloaded: the engine assigns an
+# explicit `eager_load_paths` covering `app/` only, so anything under `lib/`
+# resolves in a host solely because a line like this one loaded it. (The dummy
+# app is not proof — it resolved this constant in development and raised
+# NameError in test, which is the trap `engine.rb` warns about.)
+require "bali/concerns/controllers/dashboard_widgets"
+
 # Non-UI concerns (SoftDelete, GlobalIdAccessors, etc.) are opt-in.
 # See lib/bali/extras.rb
 

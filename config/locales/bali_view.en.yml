@@ -717,6 +717,16 @@ en:
         up: "up %{delta}"
         down: "down %{delta}"
         flat: "no change"
+      picker:
+        title: "Your widgets"
+        subtitle: "Choose what appears on your dashboard."
+        save: "Save"
+        unchecking_all: "Unticking everything restores your default widgets rather than emptying the dashboard."
+        restore_defaults: "Restore defaults"
+        restore_confirm: "Restore the default widgets? Your arrangement will be lost."
+      notices:
+        saved: "Your widgets have been saved."
+        reset: "Your default widgets have been restored."
       edit:
         edit: "Edit"
         done: "Done"

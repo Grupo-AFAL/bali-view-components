@@ -698,6 +698,16 @@ es:
         up: "subió %{delta}"
         down: "bajó %{delta}"
         flat: "sin cambios"
+      picker:
+        title: "Tus widgets"
+        subtitle: "Elige qué aparece en tu tablero."
+        save: "Guardar"
+        unchecking_all: "Si desmarcas todo se restauran tus widgets predeterminados en lugar de vaciar el tablero."
+        restore_defaults: "Restaurar predeterminados"
+        restore_confirm: "¿Restaurar los widgets predeterminados? Se perderá tu orden actual."
+      notices:
+        saved: "Tus widgets se han guardado."
+        reset: "Se restauraron tus widgets predeterminados."
       edit:
         edit: "Editar"
         done: "Listo"

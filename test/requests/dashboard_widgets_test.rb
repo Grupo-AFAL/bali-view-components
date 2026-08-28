@@ -12,9 +12,14 @@ require "test_helper"
 # this given a Ruby array of widget objects; this proves the controller
 # actually turns raw request params into that array correctly.
 class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
+  # What the concern builds for itself, rebuilt here so a test can look at the
+  # rows behind a request.
+  def offering
+    Bali::Widget.authorized_for(DemoWidgets::ALL.map { |klass| klass.new(User.demo) })
+  end
+
   def store
-    Bali::DashboardWidget::Store.new(owner: User.demo, dashboard_key: "demo",
-                                     offering: DemoWidgets.authorized_for(User.demo))
+    Bali::DashboardWidget::Store.new(owner: User.demo, dashboard_key: "demo", offering: offering)
   end
 
   # THE INDEX ACTION, which nothing else covers. The component tests all drive
@@ -26,7 +31,7 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
     get dashboard_widgets_path
 
     assert_response :success
-    DemoWidgets.authorized_for(User.demo).each do |widget|
+    offering.each do |widget|
       assert_select %(section[data-widget-key="#{widget.key}"]), 1,
                     "#{widget.key} did not render"
     end
@@ -45,7 +50,7 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_update_persists_an_authorized_widget
-    patch dashboard_widgets_path, params: {
+    patch arrange_dashboard_widgets_path, params: {
       widgets: [ { key: "recent_movies", size: "large" } ]
     }
     assert_response :no_content
@@ -58,7 +63,7 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   # has nothing to fill a bigger canvas. A stored size it does not offer falls
   # back to its default rather than refusing to render.
   def test_a_size_a_widget_does_not_offer_falls_back_to_its_default
-    patch dashboard_widgets_path, params: {
+    patch arrange_dashboard_widgets_path, params: {
       widgets: [ { key: "overdue_tasks", size: "large" } ]
     }
 
@@ -66,7 +71,7 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_update_silently_drops_a_key_outside_the_offering
-    patch dashboard_widgets_path, params: {
+    patch arrange_dashboard_widgets_path, params: {
       widgets: [
         { key: "overdue_tasks", size: "" },
         { key: "totally_made_up_widget", size: "" }
@@ -80,14 +85,14 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_update_with_an_empty_widgets_submission_resets
-    patch dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
+    patch arrange_dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
     assert_equal %w[overdue_tasks], store.stored_keys
 
     # An emptied grid submits NO `widgets` params at all — not `widgets: []`,
     # which HTML form encoding cannot even express as distinct from a single
     # blank entry (`widgets[]=` parses back as `[""]`, not `[]`). This is the
     # shape `submitted_layout`'s blank check is actually guarding against.
-    patch dashboard_widgets_path, params: {}
+    patch arrange_dashboard_widgets_path, params: {}
     assert_response :no_content
 
     assert_empty store.stored_keys
@@ -98,10 +103,10 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   # `submitted_layout` for; the `blank?` guard above does not cover it, because
   # a scalar is not blank.
   def test_update_with_a_malformed_widgets_param_is_a_bad_request
-    patch dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
+    patch arrange_dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
     assert_equal %w[overdue_tasks], store.stored_keys
 
-    patch dashboard_widgets_path, params: { widgets: "lol" }
+    patch arrange_dashboard_widgets_path, params: { widgets: "lol" }
     assert_response :bad_request
 
     # And nothing was written on the way to failing.
@@ -109,7 +114,7 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_update_picker_chooses_membership_and_drops_unauthorized_keys
-    patch dashboard_widgets_picker_path, params: {
+    patch dashboard_widgets_path, params: {
       widget_keys: [ "overdue_tasks", "recent_movies", "totally_made_up_widget" ]
     }
     assert_response :redirect
@@ -117,11 +122,53 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
     assert_equal %w[overdue_tasks recent_movies], store.stored_keys
   end
 
+  # THE PICKER PAGE IS BALI'S. This app ships no `edit.html.erb`, so a 200 with
+  # the engine's copy on it is the whole "include it and you have a dashboard"
+  # promise being kept.
+  def test_the_picker_renders_balis_own_template
+    get edit_dashboard_widgets_path
+
+    assert_response :success
+    assert_select "input[name='widget_keys[]']", count: offering.size
+    assert_includes response.body, I18n.t("bali_view.widgets.picker.unchecking_all")
+  end
+
+  # And the OTHER half of the view contract: this app does ship `show.html.erb`,
+  # so its own page header wins over the engine's bare grid.
+  def test_the_dashboard_page_prefers_this_apps_own_template
+    get dashboard_widgets_path
+
+    assert_response :success
+    assert_select "p", text: /Your own arrangement/
+  end
+
+  # `create` is "make the defaults mine" — the arrangement stops being a
+  # fallback and becomes rows the user can drag, and the page comes back in
+  # edit mode.
+  def test_create_adopts_the_defaults_and_returns_in_edit_mode
+    assert_empty store.stored_keys
+
+    post dashboard_widgets_path
+
+    assert_redirected_to dashboard_widgets_path(editing: 1)
+    assert_equal offering.map(&:key), store.stored_keys
+  end
+
+  # And leaves an existing arrangement alone, so a second press cannot flatten
+  # a layout back to catalog order.
+  def test_create_does_not_disturb_an_existing_arrangement
+    patch arrange_dashboard_widgets_path, params: { widgets: [ { key: "recent_movies", size: "large" } ] }
+
+    post dashboard_widgets_path
+
+    assert_equal %w[recent_movies], store.stored_keys
+  end
+
   def test_reset_drops_every_row
-    patch dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
+    patch arrange_dashboard_widgets_path, params: { widgets: [ { key: "overdue_tasks", size: "" } ] }
     assert_equal %w[overdue_tasks], store.stored_keys
 
-    delete reset_dashboard_widgets_path
+    delete dashboard_widgets_path
     assert_response :redirect
 
     assert_empty store.stored_keys

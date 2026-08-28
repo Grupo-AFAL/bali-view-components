@@ -120,6 +120,33 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal [ "large", "small" ], store.widgets.map { |placement| placement.size.to_s }
   end
 
+  # `adopt` makes an implicit default arrangement explicit — same widgets, same
+  # order, now as rows the user can drag.
+  def test_adopt_writes_the_offering_when_nothing_is_stored
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, CHARLIE.new ])
+    assert_empty store.stored_keys
+
+    store.adopt
+
+    assert_equal [ "alpha", "charlie" ], store.stored_keys
+    assert store.customized?
+  end
+
+  # AND LEAVES AN EXISTING ARRANGEMENT ALONE. The button promises to change
+  # nothing you can see, so a second press — or a second tab — must not flatten
+  # a layout back to catalog order.
+  def test_adopt_is_a_no_op_once_anything_is_stored
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, CHARLIE.new ])
+    store.arrange([ { key: "charlie", size: "large" } ])
+
+    store.adopt
+
+    assert_equal [ "charlie" ], store.stored_keys
+    assert_equal [ "large" ], store.widgets.map { |placement| placement.size.to_s }
+  end
+
   # `choose` gates on its own too, not only `arrange`. A picker submits
   # membership rather than a layout, so it reaches a different method and would
   # otherwise be an unguarded second door into the same table.

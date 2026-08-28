@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 # The dummy app's widget catalog — mirrors the pattern
-# `docs/guides/engine-models.md` documents for a host's own `WIDGETS` list.
-# `DashboardWidgetsController#offering` is the only caller.
+# `docs/guides/engine-models.md` documents for a host's own list.
+#
+# JUST THE CONSTANT. `Bali::Concerns::Controllers::DashboardWidgets` is handed
+# these CLASSES and instantiates and gates them itself; the
+# `ALL.map { |k| k.new(user) }` wrapper every host used to write by hand lives
+# there now.
 module DemoWidgets
   # Ordered so the dashboard's default arrangement walks the ladders rather than
   # the alphabet: the compact facts first, then the two metric widgets that argue
@@ -26,8 +30,4 @@ module DemoWidgets
     UpcomingTasks,
     TopBudgetMovies
   ].freeze
-
-  def self.authorized_for(user)
-    Bali::Widget.authorized_for(ALL.map { |klass| klass.new(user) })
-  end
 end

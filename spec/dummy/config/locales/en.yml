@@ -74,17 +74,6 @@ en:
   dashboard_widgets:
     title: Widgets
     subtitle: Your own arrangement — drag, resize or remove a card; it's saved automatically.
-    picker:
-      title: Add widgets
-      subtitle: Choose which widgets appear on your dashboard.
-      save: Save
-      unchecking_all: "Unchecking everything restores the default dashboard."
-      restore_defaults: Restore defaults
-      restore_confirm: This clears your arrangement and brings back every widget at its default size. Continue?
-    update_picker:
-      success: Widgets updated.
-    reset:
-      success: Dashboard restored to defaults.
 
   # A widget's title/short_title/description/empty come from THIS scope, not
   # `bali_view.widgets.*` (that's Bali's own chrome — the Edit/Done labels, the

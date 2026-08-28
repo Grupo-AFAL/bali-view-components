@@ -638,39 +638,97 @@ promising to keep.
 
 ### The write path
 
-Bali ships **no controller and no routes** — who may see which widget is your rule, so the
-write goes through the same `Store` you built the offering with. Every gesture — drag,
-arrow-key move, resize, remove — PATCHes the **whole** arrangement to `url:`, not a diff:
+**The fastest way in is `Bali::Concerns::Controllers::DashboardWidgets`.** It ships every
+action a customisable dashboard needs, plus default templates for the grid and the picker, so
+a host writes a catalog, an owner and nothing else:
+
+```ruby
+class DashboardController < ApplicationController
+  include Bali::Concerns::Controllers::DashboardWidgets
+
+  dashboard_widgets catalog: Widgets::ALL
+
+  private
+
+  def widget_owner = current_user
+end
+```
+
+```ruby
+# config/routes.rb
+resource :dashboard, only: %i[show create edit update destroy] do
+  patch :arrange
+end
+```
+
+| Action | Verb + path | What it is |
+|---|---|---|
+| `show` | `GET /dashboard` | the grid |
+| `edit` | `GET /dashboard/edit` | the picker |
+| `update` | `PATCH /dashboard` | save the picker (`Store#choose`) |
+| `arrange` | `PATCH /dashboard/arrange` | drag, resize, remove (`Store#arrange`) |
+| `destroy` | `DELETE /dashboard` | restore defaults (`Store#reset`) |
+| `create` | `POST /dashboard` | adopt the defaults (`Store#adopt`), then edit mode |
+
+The human-facing pair is plain REST — `edit` renders the form, `update` saves it. `arrange` is
+verb-named and separate because it is not a form: it is what the grid's own JavaScript PATCHes
+on every gesture, and it answers `204` for a move but a Turbo Stream for a **resize**, since a
+card's interior is server-rendered and a grown card would otherwise keep its smaller body.
+
+**`catalog:` is widget classes, and its order is the default dashboard** — an owner with no
+stored rows sees the offering in exactly that sequence. Instantiating and gating them is the
+concern's job; you do not write `ALL.map { |k| k.new(user) }`.
+
+#### Seams
+
+| | |
+|---|---|
+| `widget_owner` | **Required.** Whose rows these are. Forgetting it raises `NotImplementedError` naming your controller. |
+| `widget_actor` | Who `authorized?` is asked about. Defaults to `widget_owner` — override when they differ, e.g. `pundit_user`. |
+| `widget_context` | The scoping string, for a tenant. Defaults to `""`. |
+| `dashboard_key:` | Macro argument. Defaults to `controller_path`. |
+
+#### Views
+
+`show` and `edit` render Bali's own templates, so a host that writes no ERB still gets a working
+dashboard. Create `app/views/<your controller>/show.html.erb` (or `edit`) and yours wins — the
+concern appends `bali/dashboard_widgets` **behind** your controller's own prefix, the same
+mechanism a subclassed controller uses to inherit views.
+
+The picker default is worth keeping. Its copy says that unticking everything **restores** your
+defaults rather than emptying the dashboard, which is true, counter-intuitive, and something a
+host writing that page from scratch has no way to know until a user complains.
+
+#### Doing it by hand
+
+Bali ships no routes, and nothing forces you through the concern — the write is just a `Store`
+call. Every gesture PATCHes the **whole** arrangement, not a diff:
 
 ```
 widgets[][key]=low_stock_items&widgets[][size]=medium&widgets[][key]=cost_spikes&widgets[][size]=
 ```
 
 ```ruby
-class WidgetLayoutsController < ApplicationController
-  def update
-    store.arrange(submitted_layout)
-    head :no_content
-  end
+def update
+  store.arrange(submitted_layout)
+  head :no_content
+end
 
-  private
+private
 
-  def store
-    @store ||= Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
-                                                dashboard_key: "today", offering: offering)
-  end
+def store
+  @store ||= Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
+                                              dashboard_key: "today", offering: offering)
+end
 
-  # Memoised, so this one copy is what both the filter below and the store see.
-  def offering = @offering ||= Widgets::ALL.select(&:authorized?)
+def offering = @offering ||= Bali::Widget.authorized_for(Widgets::ALL.map { |k| k.new(current_user) })
 
-  # JUST THE WIRE FORMAT, handed over as-is. No lookup, no `Placement`, no
-  # offering, nothing to unpack: `arrange` takes `{ key:, size: }` items and
-  # resolves them itself.
-  def submitted_layout
-    return [] if params[:widgets].blank?
+# JUST THE WIRE FORMAT. `arrange` takes `{ key:, size: }` items and resolves
+# them against the offering itself.
+def submitted_layout
+  return [] if params[:widgets].blank?
 
-    params.expect(widgets: [[:key, :size]])
-  end
+  params.expect(widgets: [[:key, :size]])
 end
 ```
 
@@ -684,7 +742,7 @@ That is the feature's entire security property, and it is safe **by construction
 by convention — `arrange` is never handed a list of permitted keys to check against, it is
 handed the widgets themselves and maps over them. There is no call for you to forget.
 
-Two lines of that method are load-bearing, though:
+Two lines of that method are load-bearing:
 
 - The `blank?` guard runs **before** `expect`, because `expect` raises
   `ActionController::ParameterMissing` — a **400** — on both an omitted `widgets` key and an
@@ -709,8 +767,8 @@ Two behaviours are not obvious and matter:
   `#widgets` falls back to the whole offering. That is what gives a new user a populated
   dashboard and what makes "restore defaults" work — but it also means a picker in which the
   user unticks *everything* shows them MORE widgets, not none. Say so in your picker's copy;
-  the gesture reads the other way round. The dummy app's picker
-  (`spec/dummy/app/views/dashboard_widgets/picker.html.erb`) does exactly that.
+  the gesture reads the other way round. Bali's own picker
+  (`app/views/bali/dashboard_widgets/edit.html.erb`) says so, which is one reason to keep it.
 
 - **An empty sequence means reset.** Removing the last widget submits nothing;
   `Store#arrange([])` deletes every row, and no rows means "never chose" — the next read
@@ -729,7 +787,8 @@ Two behaviours are not obvious and matter:
 | `#visible_keys` | stored keys ∩ offering keys, in stored order |
 | `#customized?` | `visible_keys.any?` — whether there is anything visible to reset |
 | `#choose(widgets)` | membership only: survivors keep their stored order, newly chosen widgets append. Re-supplies each survivor's stored size internally, because `arrange` (below) is a full reconcile — without that, every `choose` would silently reset every already-sized card back to its default |
-| `#arrange(layout)` | reconciles to exactly `layout`, an ordered `[{ widget:, size: }, …]` where position is the array index — `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around). A repeated widget key is deduped, keeping the first occurrence, before the insert — `choose`'s own union already guarantees uniqueness, but `arrange` is the lower-level primitive a host's controller can reach directly from params, and `insert_all`'s `ON CONFLICT DO NOTHING` would otherwise silently drop everything after the first without raising |
+| `#arrange(layout)` | reconciles to exactly `layout` — an ordered list of `{ key:, size: }` items (what `params.expect` gives you) or `Placement`s (what `#widgets` gives you), where position is the array index. Resolves every key against the offering and drops what it cannot find. `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around). A repeated key is deduped, keeping the first occurrence, before the insert — `choose`'s own union already guarantees uniqueness, but `arrange` is the lower-level primitive a host's controller can reach directly from params, and `insert_all`'s `ON CONFLICT DO NOTHING` would otherwise silently drop everything after the first without raising |
+| `#adopt` | writes the offering as rows, **only** if nothing visible is stored yet — turns a defaults-by-absence dashboard into one the owner can rearrange. A no-op otherwise, decided inside its own lock so a second tab's arrangement cannot be flattened |
 | `#reset` | drops every row — what "restore defaults" and an emptied grid both mean |
 
 `arrange` rebuilds every row, but `created_at` is not rebuilt with them: it reads the

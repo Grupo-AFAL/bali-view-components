@@ -34,6 +34,7 @@ module Bali
     #   - `customized?`     — whether there is anything visible to reset
     #   - `choose(widgets)` — membership only; survivors keep stored order and size
     #   - `arrange(layout)` — full reconcile to exactly `layout`
+    #   - `adopt`           — write the defaults as rows, if none are stored yet
     #   - `reset`           — drop every row
     #
     # This class is the DEFAULT implementation of that contract, not a
@@ -223,6 +224,32 @@ module Bali
           Bali::DashboardWidget.insert_all(
             deduped.map.with_index { |placement, index| row_for(placement, index, now, born) }
           )
+        end
+      end
+
+      # "MAKE THE DEFAULTS MINE." A user who has never chosen is shown the whole
+      # offering by `#widgets` — but IMPLICITLY, by absence of rows, so there is
+      # nothing stored to rearrange and every drag would be writing the layout
+      # for the first time. This writes what they are already looking at, which
+      # is what a "Personalise" button means: the arrangement stops being a
+      # fallback and becomes theirs.
+      #
+      # A NO-OP for someone who has already customized, and that question is
+      # answered from INSIDE the lock rather than by the caller asking first.
+      # Between a caller's check and this write, a second tab could arrange —
+      # and this would flatten it back to defaults, silently, on a button whose
+      # whole promise is that it changes nothing you can see.
+      #
+      # The lock is on the rows this owner already has. That is empty in the
+      # case this method exists for, which is the point: `SELECT … FOR UPDATE`
+      # on an empty set still serialises two concurrent `adopt`s through
+      # `arrange`'s own transaction, and the second one finds rows and stops.
+      def adopt
+        rows.transaction do
+          rows.lock.pluck(:id)
+          next if visible_keys.any?
+
+          arrange(offering.map { |widget| { key: widget.key } })
         end
       end
 

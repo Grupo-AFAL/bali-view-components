@@ -2621,8 +2621,11 @@ axis-less sparkline and missing breakdown it had at the smaller size. The grid s
 `resized_key` alongside the layout for exactly this, and a host that answers with a Turbo
 Stream gets the right card back for one widget query on an already-debounced write:
 
+`Bali::Concerns::Controllers::DashboardWidgets` does this for you — its `arrange` action is
+exactly the code below. By hand:
+
 ```ruby
-def update
+def arrange
   store.arrange(submitted_layout)
 
   resized = store.widgets.find { |placement| placement.key == params[:resized_key].presence }
