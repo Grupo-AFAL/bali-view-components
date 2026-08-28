@@ -167,6 +167,41 @@ es:
       description: Tareas completadas contra todo lo que hay en el tablero
       empty: Aún no hay nada terminado
       of_total: "de %{count}"
+    release_readiness:
+      title: Listo para publicar
+      short_title: Publicación
+      description: Si queda trabajo de prioridad alta bloqueando una publicación
+      empty: Todavía no hay nada que evaluar
+    schema_health:
+      title: Salud del catálogo
+      short_title: Catálogo
+      description: Si todas las películas tienen género
+      empty: Nada que revisar
+    ratings_audit:
+      title: Auditoría de calificaciones
+      short_title: Calificaciones
+      description: Si todas las películas están calificadas — pendiente hasta la primera
+      empty: Aún no hay calificaciones
+    modern_studios:
+      title: Estudios desde 2000
+      short_title: Desde 2000
+      description: Cuántos estudios se fundaron este siglo, frente a los noventa
+      empty: Ninguno registrado
+    catalog_coverage:
+      title: Películas terminadas
+      short_title: Terminadas
+      description: Cuántas películas han terminado, dibujado como anillo
+      empty: Aún no hay estudios
+    studio_sizes:
+      title: Tamaños de estudio
+      short_title: Tamaños
+      description: Cuántos estudios tienen tamaño registrado, y cómo se reparten
+      empty: Aún no hay películas
+    indie_studios:
+      title: Estudios independientes
+      short_title: Independientes
+      description: Estudios marcados como independientes — ninguno lo es, así que muestra el estado vacío
+      empty: No hay estudios independientes
     unavailable_feed:
       title: Taquilla
       short_title: Taquilla

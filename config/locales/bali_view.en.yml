@@ -705,6 +705,9 @@ en:
     gauge:
       default_label: "%{percentage}% complete"
     widgets:
+      check:
+        pass: "Passing"
+        fail: "Failing"
       load_error: "Couldn't load"
       view_all: "View all %{count}"
       empty:

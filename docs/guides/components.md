@@ -2521,9 +2521,10 @@ fill in as the canvas grows:
 | `medium` | 2×1 | The fact, and a sparkline beside it — axis-less, because below roughly 2×2 axes cost more room than they explain. |
 | `large` | 2×2 | The fact, a chart with axes, and the breakdown below. |
 
-**The pattern is the type.** A widget inherits from one of four bases, and that choice is what
+**The pattern is the type.** A widget inherits from one of five bases, and that choice is what
 gives it its rungs — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many and which),
-`TrendBase` (a figure and how it moved) and `ProgressBase` (a ring toward a goal). The card
+`TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal) and `CheckBase`
+(does it pass?). The card
 asks the widget directly; there is no result object between them, and `Base` answers every
 question a pattern does not have with a null, so the card reads one interface at every size.
 
@@ -2571,8 +2572,26 @@ class Onboarding < Bali::Widget::ProgressBase
 end
 ```
 
-`ValueBase` offers `small` alone, because a bare figure at `large` is a title, a number and
-most of a 2×2 cell of whitespace; every other pattern offers all three. Say `supports` in the
+For a pass/fail state, `CheckBase` is ternary — `nil` means "not checked yet" and draws a muted
+icon, distinct from a failing check:
+
+```ruby
+class BackupsHealthy < Bali::Widget::CheckBase
+  default_size :small
+
+  check do |c|
+    c.value { Backup.last&.succeeded? }
+    c.pass  "Healthy"
+    c.fail  "Failing"
+  end
+end
+```
+
+Phrase it so `true` is good — the card colours from the value, and the check's name is what
+carries the polarity.
+
+`ValueBase` and `CheckBase` offer `small` alone, because one fact at `large` is a title, an
+answer and most of a 2×2 cell of whitespace; the other three offer all three sizes. Say `supports` in the
 class body to override that.
 
 `display_value` is what the headline actually prints, defaulting to an abbreviation of

@@ -292,7 +292,7 @@ reads and writes one owner's arrangement. `Bali::WidgetGrid::Component` renders 
 
 ### The pattern is the type
 
-A widget does not declare what shape it is; it **inherits** it. There are four bases, one per
+A widget does not declare what shape it is; it **inherits** it. There are five bases, one per
 shape, and picking one is what supplies both the declarations you may use and the methods you
 owe:
 
@@ -302,6 +302,7 @@ owe:
 | `Bali::Widget::ListBase` | how many, and which | — | `list`, `row` |
 | `Bali::Widget::TrendBase` | a figure and how it moved | — | `trend`, `series` |
 | `Bali::Widget::ProgressBase` | a ring toward a goal | — | `goal`, `series` |
+| `Bali::Widget::CheckBase` | does it pass? | — | `check` |
 
 This is single inheritance on purpose: **a widget is exactly one of these.** A class that could
 claim two shapes could claim them inconsistently, and the card would have to ask which one it
@@ -384,6 +385,49 @@ separator and drops the blank ones, so a row with only one half renders no dangl
 r.subtitle { |studio| join(studio.country, studio.size&.humanize) }
 ```
 
+**A series draws a `:line` or a `:bar`, and nothing else.** `TrendBase` defaults to `:line`,
+`ProgressBase` to `:bar`, and `s.type` takes only those two — validated at class-definition time,
+so a typo is a boot failure rather than a blank tile. They are the two that survive the size
+ladder: both have axes for the sparkline to strip below `large`, and both still read at a 2×1.
+Chart.js's axis-less types (`pie`, `doughnut`, `polarArea`) do not, and a widget that wants one
+wants the `body` slot and its own chart instead.
+
+### A check is ternary, and its name carries the polarity
+
+`CheckBase` answers one question with `true`, `false`, or **`nil` for "not checked yet"**:
+
+```ruby
+class BackupsHealthy < Bali::Widget::CheckBase
+  default_size :small
+
+  check do |c|
+    c.value { Backup.last&.succeeded? }
+    c.pass  "Healthy"
+    c.fail  { "#{Backup.failures.count} failing" }
+  end
+end
+```
+
+`nil` is a third state, not a failure — it draws the muted icon and reports `count` 0, which is
+what stops a pending check from claiming a pass. `false` reports `count` 1, because **a failing
+check is not an empty one**: `count.positive?` is what drives the card's muted "nothing here"
+treatment, and a red tick is an answer.
+
+`c.pass` and `c.fail` default to Bali's own wording, so a check needing no custom copy declares
+only its value. Both take the same three forms as every other field.
+
+**Phrase the check so `true` is good.** There is no `positive_when` here as there is on a trend,
+and that is deliberate: a trend's number has no polarity of its own — 12% up is neutral until you
+say what it measures — so it must be declared. A check's *name* states it. "Backups healthy",
+"Certificate valid", "Queue draining". Named the other way round the card renders a green tick
+for bad news.
+
+The card draws it through `Bali::BooleanIcon`, which owns the icon, the colour and the
+screen-reader label for all three states — colour alone would fail WCAG 1.4.1.
+
+`supports :small` by default, for `ValueBase`'s reason: a check is one fact, and there is nothing
+to fill a 2×2 with.
+
 ### The sizes you offer are a promise about the data you have
 
 `medium` and `large` put a context region beside or above the headline. `ValueBase` therefore
@@ -424,7 +468,7 @@ memoises the failure, so the card's several questions do not re-run the broken q
 development and test the safety net is off (`Bali::Widget.raise_load_errors?`), because a widget
 bug there is a bug rather than a permanently apologetic tile.
 
-### The four ladders
+### The five ladders
 
 The card shows the same fact at every size and adds context as the canvas grows. It never
 changes subject.
@@ -432,6 +476,7 @@ changes subject.
 | Pattern | small → medium → large |
 |---|---|
 | **Value** | figure *(the only size it offers)* |
+| **Check** | icon and label *(the only size it offers)* |
 | **List** | count → count + 3 rows → count + 7 rows |
 | **Trend** | figure + trend → + sparkline → + axed chart |
 | **Progress** | ring → ring + sparkline → ring + axed chart |
@@ -443,8 +488,9 @@ and the whole tile becomes one link, because a tile that size supports exactly o
 bin/rails g bali:widget StudioFoundings --pattern trend --size medium
 ```
 
-scaffolds exactly that pattern's abstract methods and declarations with the reasoning in
-comments, which is the shortest way to learn what one needs.
+scaffolds exactly that pattern's required declarations — a raising placeholder in each, the
+optional ones commented out, and the reasoning beside them — which is the shortest way to learn
+what one needs.
 
 ### The widget's copy is yours, in your own locale scope
 

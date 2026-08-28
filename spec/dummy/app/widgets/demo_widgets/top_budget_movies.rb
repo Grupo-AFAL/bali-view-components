@@ -6,6 +6,10 @@ module DemoWidgets
 
     default_size :large
 
+    # NO `view_all_path`, deliberately: a nil one is a legitimate state and the
+    # header simply drops its link. Every other list here declares one, so this
+    # is the tile that shows what the other shape looks like.
+
     list { Movie.budgeted.order(budget: :desc) }
 
     row do |r|
@@ -14,7 +18,6 @@ module DemoWidgets
       r.href { |movie| admin_movie_path(movie) }
     end
 
-    view_all_path { admin_movies_path }
 
     private
 

@@ -105,6 +105,23 @@ module Bali
       # down instead of showing the tile it exists to show. The probe itself is
       # covered in `test/bali/components/widget_test.rb`, where the environment
       # can be stubbed.
+      class DemoCheck < Bali::Widget::CheckBase
+        include Sized
+        title "Release readiness"
+        short_title "Release"
+        empty_message "Nothing to judge"
+
+        # An even `rows` passes, an odd one fails, and zero is the not-yet-known
+        # third state — so the picker walks all three without a database.
+        check do |c|
+          c.value { rows.zero? ? nil : rows.even? }
+          c.pass { "Ready to ship" }
+          c.fail { "#{rows} blocking" }
+        end
+
+        view_all_path { "/lookbook" }
+      end
+
       class DemoFailed < Bali::Widget::ValueBase
         title "Low stock items"
         short_title "Low stock"
@@ -118,7 +135,8 @@ module Bali
       # Keyed by the base each one demonstrates, so the picker and the class
       # names are the same four words.
       PATTERNS = {
-        value: DemoValue, list: DemoList, trend: DemoTrend, progress: DemoProgress
+        value: DemoValue, list: DemoList, trend: DemoTrend,
+        progress: DemoProgress, check: DemoCheck
       }.freeze
 
       # A dashboard card. `size` changes the DESIGN, not just the width — the
@@ -130,7 +148,7 @@ module Bali
       #   large  the fact, a chart with axes, and the breakdown below
       #
       # `pattern` picks the widget's BASE CLASS: `ValueBase`, `ListBase`,
-      # `TrendBase` or `ProgressBase`. A widget is exactly one of them, and
+      # `TrendBase`, `ProgressBase` or `CheckBase`. A widget is exactly one of them, and
       # `ValueBase` offers `small` alone — pick a bigger size with it and the
       # card falls back, which is `with_size`'s documented behaviour.
       #
@@ -138,7 +156,7 @@ module Bali
       # the size picker — which the card always renders and CSS hides.
       #
       # @param size select { choices: [small, medium, large] }
-      # @param pattern select { choices: [value, list, trend, progress] }
+      # @param pattern select { choices: [value, list, trend, progress, check] }
       # @param count number
       # @param failed toggle
       # @param editing toggle

@@ -113,6 +113,41 @@ en:
       description: Completed tasks against everything on the board
       empty: Nothing finished yet
       of_total: "of %{count}"
+    release_readiness:
+      title: Release readiness
+      short_title: Release
+      description: Whether any high-priority work is still blocking a release
+      empty: Nothing to judge yet
+    schema_health:
+      title: Catalogue health
+      short_title: Catalogue
+      description: Whether every movie carries a genre
+      empty: Nothing to check
+    ratings_audit:
+      title: Ratings audit
+      short_title: Ratings
+      description: Whether every movie has been rated — pending until the first one is
+      empty: No ratings recorded yet
+    modern_studios:
+      title: Studios since 2000
+      short_title: Since 2000
+      description: How many studios were founded this century, against the 1990s
+      empty: None on record
+    catalog_coverage:
+      title: Movies finished
+      short_title: Finished
+      description: How many movies have wrapped, drawn as a ring
+      empty: No studios yet
+    studio_sizes:
+      title: Studio sizes
+      short_title: Sizes
+      description: How many studios have a size on record, and how those split
+      empty: No movies yet
+    indie_studios:
+      title: Independent studios
+      short_title: Independents
+      description: Studios flagged independent — none are, so this is the empty state
+      empty: No independent studios on record
     unavailable_feed:
       title: Box office feed
       short_title: Box office

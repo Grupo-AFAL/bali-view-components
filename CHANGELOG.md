@@ -41,8 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   data would silently drop a size the user had already chosen. Unofferable is not
   unrenderable: a stored row naming an unsupported size falls back to the widget's default.
 - **Widget authoring got a real API: the pattern is the type.** A widget inherits one of
-  four bases — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many, and which),
-  `TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal) — and that
+  five bases — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many, and which),
+  `TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal), `CheckBase`
+  (does it pass?) — and that
   choice supplies both the declarations it may use and the methods it owes. A widget is
   exactly one of them, so a class cannot describe a shape it does not have, and one that
   forgets an abstract method raises `NotImplementedError` naming it rather than rendering

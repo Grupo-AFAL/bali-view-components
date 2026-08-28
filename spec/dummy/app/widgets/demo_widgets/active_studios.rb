@@ -7,7 +7,7 @@ module DemoWidgets
   class ActiveStudios < Bali::Widget::ListBase
     include WidgetRoutes
 
-    default_size :medium
+    default_size :small
 
     list { Studio.active.order(:name) }
 

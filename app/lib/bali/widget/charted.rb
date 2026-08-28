@@ -14,8 +14,42 @@ module Bali
     # A widget with no `series` renders no chart, and the card gives the space to
     # whatever else it has. That is a supported state, not a missing declaration —
     # which is why there is no guard here, unlike `list` and `row`.
+    #
+    # A MODULE, NOT A `ChartedBase < Base` IN THE CHAIN. `Base → ChartedBase →
+    # {TrendBase, ProgressBase}` would work and would keep single inheritance, so
+    # this is a judgement rather than a rule:
+    #
+    #   `*Base` is host-facing vocabulary. `--pattern trend` scaffolds
+    #   `TrendBase`, the guide's table lists exactly four, and THE PATTERN IS THE
+    #   TYPE. A fifth `*Base` reads as a fifth pattern to inherit from, and
+    #   nothing inherits from this — it is a capability two patterns have, not a
+    #   kind of widget.
+    #
+    #   A middle class fixes a taxonomy; a mixin does not. Putting "charted" in
+    #   the chain commits to it being a LEVEL. It is not obviously one: a list
+    #   widget with a sparkline beside its count is a plausible thing to want, and
+    #   that is `include Charted` on `ListBase` — one line. With a middle class it
+    #   is a re-parenting, and `ListBase` cannot have two parents.
+    #
+    # Ruby draws the same line: `Comparable` and `Enumerable` are capabilities,
+    # inheritance is taxonomy. The name follows those rather than `Chartable` —
+    # a widget that includes this HAS a chart; it is not merely able to have one.
     module Charted
       extend ActiveSupport::Concern
+
+      # WHAT A WIDGET CARD CAN ACTUALLY DRAW, which is narrower than what
+      # `Bali::Chart` accepts. `s.type` used to pass straight through to Chart.js
+      # unvalidated, so a typo emitted a canvas with `chart-type-value="banana"`
+      # — a blank tile and an error in the browser console, the silent failure
+      # this feature validates against everywhere else.
+      #
+      # `:line` and `:bar` are the two that survive the size ladder. Both have
+      # axes for `SPARK_OPTIONS` to strip below `large`, and both still read at a
+      # 2x1. The axis-less types Chart.js offers — `pie`, `doughnut`, `polarArea`
+      # — do not: a pie in a sparkline slot beside a headline is a smudge, and
+      # the card's own `whole_numbers?` tick precision is meaningless for one.
+      # A host wanting one of those wants `renders_one :body` and its own chart.
+      TYPES = %i[line bar].freeze
 
       # `charted?` rather than `values.any?` at the call site: an empty series is
       # a chart with nothing to draw, and the card should skip the region rather
@@ -41,7 +75,16 @@ module Bali
 
         def values(value = nil, &block) = @values = block || value
 
-        def type(value) = @type = value
+        # Validated where it is written, so a typo is a boot failure rather than
+        # a blank tile — the same bargain `default_size` and `supports` make.
+        def type(value)
+          unless TYPES.include?(value)
+            raise ArgumentError,
+                  "unknown series type #{value.inspect} — a widget card draws #{TYPES.join(' or ')}."
+          end
+
+          @type = value
+        end
 
         def to_series(widget)
           drawn = resolve(widget, @values)

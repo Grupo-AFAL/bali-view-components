@@ -84,7 +84,7 @@ module Bali
       # render.
       delegate :key, :title, :short_title, :empty_message, :size, :supported_sizes,
                :count, :items, :view_all_path, :failed?,
-               :display_value, :trend, :series, :goal, to: :widget
+               :display_value, :trend, :series, :goal, :state, to: :widget
 
       # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
       # grid's own resize needs it — a card that changes shape has to come back
@@ -158,6 +158,11 @@ module Bali
       def series? = series&.charted? || false
 
       def goal? = goal.present?
+
+      # A CHECK REPLACES THE NUMBER, the way a goal's ring does — `state` is
+      # ternary, so `false` is an answer and only a pattern that has no check at
+      # all answers with the null from `Base`.
+      def check? = widget.respond_to?(:passing?)
 
       # The detail region is rendered only when it HAS something. An empty
       # wrapper is not free: at `:stacked` it takes `flex-1` and squeezes the

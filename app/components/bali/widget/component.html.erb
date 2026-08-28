@@ -104,7 +104,18 @@
           `capture` so the two branches share one copy of the content instead of
           drifting out of sync. %>
       <% summary_content = capture do %>
-        <% if goal? %>
+        <%# A CHECK, like a goal, REPLACES the number rather than decorating it —
+            so it branches here beside `goal?` rather than formatting through
+            `display_value`. `Bali::BooleanIcon` owns the icon, the colour and the
+            screen-reader label for all three states; the card only places it. %>
+        <% if check? %>
+          <div class="flex justify-center">
+            <%= render Bali::BooleanIcon::Component.new(
+                  value: state, label: display_value, class: "scale-150") %>
+          </div>
+          <div class="stat-value mt-3 text-2xl"><%= display_value %></div>
+          <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>
+        <% elsif goal? %>
           <%# `flex justify-center` rather than leaning on the `text-center`
               above: daisyUI's `.stat` is a GRID, and `text-align` does not move
               a grid item — the ring sat off to the left of its own label. %>
@@ -140,7 +151,11 @@
           ladder — and the canvas decides how much sits beside and beneath it. %>
       <% headline = capture do %>
         <div class="flex items-center gap-3">
-          <% if goal? %>
+          <% if check? %>
+            <%= render Bali::BooleanIcon::Component.new(
+                  value: state, label: display_value, class: "scale-125") %>
+            <span class="text-3xl font-semibold leading-none"><%= display_value %></span>
+          <% elsif goal? %>
             <%= render Bali::Gauge::Component.new(
                   **goal.to_h, size: :md, color: :primary) %>
           <% else %>

@@ -84,10 +84,29 @@ class <%= class_name %> < <%= parent_class %>
   # The history behind the fact: a sparkline at `medium`, an axed chart at
   # `large`. Blocks run against the widget, so both can share one query through a
   # memoised private method. Omit `series` entirely and the card draws no chart.
+  #
+  # `s.type` is `:line` here and `:bar` on a progress widget; those two are all a
+  # card draws, and anything else is a boot failure.
   # series do |s|
   #   s.labels { by_week.keys }
   #   s.values { by_week.values }
   # end
+<% elsif pattern == 'check' -%>
+  # DOES IT PASS? Ternary, not boolean: `nil` is "not checked yet" and draws the
+  # muted third state, which is a different statement from a failing check.
+  #
+  # PHRASE IT SO TRUE IS GOOD — "healthy", "valid", "draining". There is no
+  # `positive_when` here as there is on a trend, because a check's NAME carries
+  # its polarity where a bare number does not. Named the other way round, the
+  # card renders a green tick for bad news.
+  #
+  # `c.pass` and `c.fail` default to Bali's own wording, so a check needing no
+  # custom copy declares only its value.
+  check do |c|
+    c.value { raise NotImplementedError, "<%= class_name %> must declare `c.value`" }
+    # c.pass "Healthy"
+    # c.fail "Failing"
+  end
 <% elsif pattern == 'progress' -%>
   # HOW FAR ALONG. The ring REPLACES the number as the headline, which is what
   # makes this a pattern rather than a list with a decoration.

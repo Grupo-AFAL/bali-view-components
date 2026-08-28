@@ -7,11 +7,11 @@ module Bali
   #   bin/rails g bali:widget LowStockItems --pattern list --size medium
   #
   # THE PATTERN IS THE SUPERCLASS. `--pattern` does not write a declaration the
-  # class could later contradict; it picks which of the four bases the widget
+  # class could later contradict; it picks which of the five bases the widget
   # inherits from, and that choice is what supplies its declarations and its
-  # abstract methods. So the scaffold is the documentation: a `trend` widget is
-  # generated with `current` and `previous` raising, because those are exactly
-  # what a trend widget owes the card.
+  # declarations. So the scaffold is the documentation: a `trend` widget is
+  # generated with `t.current` raising and `t.previous` present, because those are
+  # exactly what a trend widget owes the card.
   #
   # The locale keys are the other reason this exists. A widget's copy lives under
   # `widgets.<key>.{title,short_title,description,empty}` — four keys per widget,
@@ -28,7 +28,8 @@ module Bali
       "value" => "ValueBase",
       "list" => "ListBase",
       "trend" => "TrendBase",
-      "progress" => "ProgressBase"
+      "progress" => "ProgressBase",
+      "check" => "CheckBase"
     }.freeze
 
     class_option :pattern, type: :string, default: "list",

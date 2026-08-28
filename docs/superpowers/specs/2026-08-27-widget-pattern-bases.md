@@ -4,7 +4,7 @@
 **Branch:** `feat/widgets-and-widget-grid`
 **Supersedes:** `docs/superpowers/specs/2026-08-27-widget-declaration-dsl.md`
 
-A widget does not describe its shape; it **inherits** it. There are four bases, one per shape,
+A widget does not describe its shape; it **inherits** it. There are five bases, one per shape,
 and a widget picks exactly one.
 
 ```ruby
@@ -42,17 +42,76 @@ declarations you may use *and* the methods you owe, so an incomplete widget is a
 `NotImplementedError` rather than a card that renders half a thing, and an incoherent one
 cannot be spelled at all.
 
-## The four
+## The five
 
-| Base | Shows | Abstract | Declares |
-|---|---|---|---|
-| `ValueBase` | one figure | `value` | — |
-| `ListBase` | how many, and which | — | `list`, `row` |
-| `TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values`, `series_type` |
-| `ProgressBase` | a ring toward a goal | `value` (`max` defaults 100) | `goal_label`, `series_labels`, `series_values`, `series_type` |
+| Base | Shows | Declares |
+|---|---|---|
+| `ValueBase` | one figure | `value`, `display_value` |
+| `ListBase` | how many, and which | `list`, `row` |
+| `TrendBase` | a figure and how it moved | `trend`, `series` |
+| `ProgressBase` | a ring toward a goal | `goal`, `series` |
+| `CheckBase` | does it pass? | `check` |
+
+**Nothing is an abstract method any more.** A widget's data is declared, not defined — `t.current
+{ … }` rather than `def current`. The readers survive (`#current`, `#value`, `#max`) because
+`g.label { "of #{max}" }` has to be able to read one, but they resolve the declaration rather
+than being overridden. The only methods a host writes are private helpers two declarations share.
 
 `Base` holds what they share: `default_size`, `supports`, `view_all_path`, the copy macros,
 `visible?`, `key`, and the failure net.
+
+## `CheckBase` is ternary, and its name carries the polarity
+
+Added after the other four, which makes it the first test of whether the shape generalises. It
+did: one builder, one value object's worth of state, the same `dup`-on-inherit and merge-per-field
+rules, and the card branch it needs is the one `goal?` already established — a check replaces the
+number rather than decorating it.
+
+**Ternary, not boolean.** `nil` is "not checked yet", drawn muted and reporting `count` 0, so a
+pending check cannot claim a pass. `false` reports `count` 1, because a failing check is not an
+empty one — `count.positive?` drives the card's muted treatment, and a red tick is an answer.
+
+**No `positive_when`, unlike `TrendBase`,** and the asymmetry is principled rather than an
+oversight. A trend's number carries no polarity of its own: 12% up is neutral until you say what
+it measures, so the widget must declare which direction is good. A check's *name* states it —
+"Backups healthy", "Certificate valid". Requiring positive phrasing puts the decision where the
+reader already looks, and adding a declaration would duplicate what the name says.
+
+It renders through `Bali::BooleanIcon`, which already owned the ternary reasoning, the
+success/error/muted palette and the screen-reader labels that keep colour from being the only
+signal. Composing it was the point: the pattern places a component, it does not restate one.
+
+**It caught a latent bug in the builder idiom.** Every other builder writes
+`@field = block || value`, which collapses a declared `c.value false` into "not declared" — fatal
+for the one pattern whose answer is falsy. `CheckBuilder` uses a sentinel instead. The other four
+are unaffected (no one declares `r.title false`), but the idiom is now known to be conditional on
+the field's values being truthy.
+
+## `Charted` is a module, not a fifth base
+
+`series` is declared and read identically by `TrendBase` and `ProgressBase` — it was written out
+twice, verbatim — so it lives in `Bali::Widget::Charted`, which both include. The per-pattern
+difference is one class attribute: `:line` against `:bar`.
+
+`Base → ChartedBase → {TrendBase, ProgressBase}` would also work and would keep single
+inheritance. It is a module instead for two reasons:
+
+**`*Base` is host-facing vocabulary.** `--pattern trend` scaffolds `TrendBase`; the guide's table
+lists exactly four. A fifth `*Base` reads as a fifth pattern to inherit from, and nothing
+inherits from this one — it is a capability two patterns have, not a kind of widget.
+
+**A middle class fixes a taxonomy; a mixin does not.** Putting "charted" in the chain commits to
+it being a level, and it is not obviously one: a list widget with a sparkline beside its count is
+a plausible thing to want, and that is `include Charted` on `ListBase` — one line, where a middle
+class would need a re-parenting `ListBase` cannot have.
+
+Ruby draws the same line: `Comparable` and `Enumerable` are capabilities; inheritance is
+taxonomy. The name follows those rather than `Chartable`, because a widget including it *has* a
+chart rather than merely being able to have one.
+
+**`s.type` takes `:line` or `:bar` and nothing else**, validated at class-definition time. Those
+two survive the size ladder — both have axes for the sparkline to strip below `large`, and both
+read at a 2×1. Chart.js's axis-less types do not, and a widget wanting one wants the `body` slot.
 
 ## Base is a null object
 
@@ -87,25 +146,36 @@ to put them side by side. If that stops being true, the change is a `Rows` conce
 `list`/`row` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
 for a card that is showing both.
 
-## Failure is probed, not reported
+## The card decides what to load, and validates while doing it
 
-`Base#failed?` runs `count` before answering. It has to: the card branches on failure *first*,
-before it has asked the widget for anything, and a lazily-read widget has not failed yet at
-that moment. A plain `@failed.present?` is false for every widget that is about to raise, and
-the card then takes the healthy branch and renders a greyed-out `0` — the tile saying "nothing
-here" for a widget that is actually broken, which is the one thing the degraded card exists to
-prevent.
+`Base#failed?` is a plain reader. The loading happens in `Bali::Widget::Component#before_render`,
+which reads `count` always and `items` only where rows will render — a hero tile shows none, so
+it never pays for them.
 
-`count` is the probe because all four patterns define it and every region of the card already
-depends on it, so it costs no query the card was not going to make. A widget whose `count`
-survives and whose rows do not is caught a second time by the detail region, which keeps
-itself rendered (`detail?` includes `failed?`) so the apology has somewhere to go.
+It has to happen there, because the card branches on failure *first*, before it has asked the
+widget for anything, and a lazily-read widget has not failed yet at that moment. Leaving
+`failed?` to probe for itself worked but had to be explained in three files; deciding what a
+canvas needs read is the card's job, and `REGIONS` is where that is already written down.
 
-The wrapper memoises the failure as well as catching it: the card asks several questions, and
-a rescue that did not remember would re-run the broken query once per question. It names
+**Every required declaration is validated from `count`**, which `before_render` reads at every
+size. That placement is load-bearing rather than incidental. Guarding only `#trend` and `#goal`
+left `:small` unprotected: the hero branch decides on `failed?` at the very top and never looks
+again, so a guard reached later fired *after* the card had committed to looking healthy — a
+widget missing `t.current` printed a confident grey `0` at its own default size while apologising
+correctly at the other two. That is precisely what the degraded tile exists to prevent.
+
+A widget whose `count` survives and whose series does not is caught a second time by the detail
+region, which keeps itself rendered (`detail?` includes `failed?`) so the apology has somewhere
+to go.
+
+The wrapper memoises the failure as well as catching it: the card asks several questions, and a
+rescue that did not remember would re-run the broken query once per question. It names
 `NotImplementedError` explicitly, because that descends from `ScriptError` rather than
-`StandardError` — and a forgotten abstract method is now the most likely way to author a
-broken widget.
+`StandardError` — and a forgotten declaration is the most likely way to author a broken widget.
+
+**Successes are memoised too**, by the patterns, with `defined?` rather than `||=`. `nil` is a
+documented answer here — no previous period, no series — and `||=` cannot hold it, so the
+declaration block would re-run on every read. The card asks `series` six to eight times per tile.
 
 ## Sizes are declared, never inferred
 
@@ -164,12 +234,15 @@ place to write the ordering — the place a Rails developer would write it anywa
 ## The generator
 
 `--pattern` no longer writes a declaration; it picks the superclass, and its vocabulary is the
-base names (`value`, `list`, `trend`, `progress`) rather than a second set of words for classes
-that already have names. It scaffolds that pattern's abstract methods raising, with the
-reasoning in comments, and refuses a `--size` the pattern does not offer.
+base names (`value`, `list`, `trend`, `progress`, `check`) rather than a second set of words for
+classes that already have names. It scaffolds that pattern's required declarations with a
+raising placeholder, the optional ones commented out, and the reasoning in comments — including
+the three forms every row field takes, which is the one table a host most needs and which
+otherwise lived only in the gem. It refuses a `--size` the pattern does not offer.
 
 ## What did not change
 
-`visible?`, `key`, the i18n scope, `PREVIEW_ROWS`, `Widget.abbreviate`, `Widget.join` (was `Widget.subtitle`), the
-`Trend`/`Series`/`Goal` value objects (moved onto the patterns that own them), the card, the
-grid, the store, and the size picker.
+`visible?`, `key`, the i18n scope, `PREVIEW_ROWS`, `Widget.abbreviate`, `Widget.join` (was
+`Widget.subtitle`), the `Trend`/`Series`/`Goal`/`Row` value objects (moved onto the patterns that
+own them, `Series` onto `Charted`), the card's regions and layouts, the grid, the store, and the
+size picker.

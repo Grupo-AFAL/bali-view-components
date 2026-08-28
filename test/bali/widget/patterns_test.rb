@@ -152,6 +152,33 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
                  assert_raises(NotImplementedError) { Class.new(Bali::Widget::ProgressBase) { def self.key = "y" }.new.goal }.message)
   end
 
+  # `s.type` passed straight through to Chart.js unvalidated, so a typo emitted
+  # `chart-type-value="banana"` — a canvas Chart.js cannot draw, a blank tile,
+  # and an error only in the browser console. `default_size` and `supports`
+  # already make the boot-failure bargain; this one did not.
+  def test_an_unknown_series_type_is_a_boot_failure
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::Widget::TrendBase) { series { |s| s.type :banana } }
+    end
+
+    assert_match(/unknown series type :banana/, error.message)
+    assert_match(/line or bar/, error.message, "the message should name the options")
+  end
+
+  # The two that survive the size ladder: both have axes for the sparkline to
+  # strip below `large`, and both still read at a 2x1.
+  def test_both_offered_series_types_are_accepted
+    Bali::Widget::Charted::TYPES.each do |type|
+      klass = Class.new(Bali::Widget::TrendBase) do
+        def self.key = "typed"
+        trend { |t| t.current 5; t.previous 3 }
+        series { |s| s.values [ 1, 2 ]; s.type type }
+      end
+
+      assert_equal type, klass.new.series.type
+    end
+  end
+
   # ---- ValueBase -----------------------------------------------------------
 
   def value_widget(&block) = Class.new(Bali::Widget::ValueBase) { def self.key = "v" }.tap { it.class_eval(&block) }.new
@@ -531,5 +558,79 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     end
 
     assert_equal :bar, widget.series.type
+  end
+
+  # ---- CheckBase -----------------------------------------------------------
+
+  def check_widget(&block) = Class.new(Bali::Widget::CheckBase) { def self.key = "c" }.tap { it.class_eval(&block) }.new
+
+  # TERNARY, NOT BOOLEAN. `nil` is "not checked yet" — a different statement from
+  # a failing check, and the distinction `Bali::BooleanIcon` already draws.
+  def test_a_check_answers_true_false_or_not_yet_known
+    assert_equal true, check_widget { check { |c| c.value true } }.state
+    assert_equal false, check_widget { check { |c| c.value false } }.state
+    assert_nil check_widget { check { |c| c.value nil } }.state
+  end
+
+  # A truthy non-boolean reads as true rather than leaking through as itself,
+  # which is what lets `c.value { record }` work.
+  def test_a_truthy_answer_collapses_to_true
+    assert_equal true, check_widget { check { |c| c.value "yes" } }.state
+  end
+
+  # A FAILING CHECK IS NOT AN EMPTY ONE. `count.positive?` drives the card's
+  # muted "nothing here" treatment and its "view all" link, so `false` has to
+  # count as an answer — only `nil` is genuinely nothing.
+  def test_a_failing_check_still_counts_as_an_answer
+    assert_equal 1, check_widget { check { |c| c.value true } }.count
+    assert_equal 1, check_widget { check { |c| c.value false } }.count
+    assert_equal 0, check_widget { check { |c| c.value nil } }.count
+  end
+
+  def test_the_labels_default_to_balis_own_wording
+    assert_equal I18n.t("bali_view.widgets.check.pass"),
+                 check_widget { check { |c| c.value true } }.display_value
+    assert_equal I18n.t("bali_view.widgets.check.fail"),
+                 check_widget { check { |c| c.value false } }.display_value
+  end
+
+  def test_the_labels_run_against_the_widget_so_they_can_read_its_data
+    widget = check_widget do
+      check do |c|
+        c.value { false }
+        c.fail { "#{blockers} blocking" }
+      end
+      define_method(:blockers) { 4 }
+    end
+
+    assert_equal "4 blocking", widget.display_value
+  end
+
+  # A check is one fact, so there is nothing to fill a 2x2 — `ValueBase`'s reason.
+  def test_a_check_offers_only_small_by_default
+    assert_equal [ :small ], Bali::Widget::CheckBase.supported_sizes
+  end
+
+  def test_a_check_without_a_value_says_so
+    error = assert_raises(NotImplementedError) { check_widget { check { |c| c.pass "OK" } }.count }
+
+    assert_match(/must declare `c\.value`/, error.message)
+  end
+
+  def test_a_check_without_a_check_block_says_so
+    error = assert_raises(NotImplementedError) { check_widget { }.count }
+
+    assert_match(/must declare `check`/, error.message)
+  end
+
+  def test_two_check_blocks_merge_field_by_field
+    parent = Class.new(Bali::Widget::CheckBase) do
+      def self.key = "cparent"
+      check { |c| c.value true; c.pass "SHARED" }
+    end
+    child = Class.new(parent) { def self.key = "cchild"; check { |c| c.value false } }
+
+    assert_equal false, child.new.state
+    assert_equal "SHARED", parent.new.display_value
   end
 end

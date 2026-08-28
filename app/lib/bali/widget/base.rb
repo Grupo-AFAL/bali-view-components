@@ -11,10 +11,10 @@ module Bali
     # on which kind of widget it is holding.
     #
     # THE PATTERN IS THE TYPE. A widget picks exactly one of `ValueBase`,
-    # `ListBase`, `TrendBase` or `ProgressBase`, and that choice is not a claim it
-    # can contradict — it is what gives the class its declarations and its
-    # abstract methods. Choosing `TrendBase` and not implementing `current` is a
-    # loud failure, not a card that renders half a thing.
+    # `ListBase`, `TrendBase`, `ProgressBase` or `CheckBase`, and that is not a claim it
+    # can contradict — it is what gives the class its declarations. Choosing
+    # `TrendBase` and not declaring `t.current` is a loud failure, not a card that
+    # renders half a thing.
     class Base
       # How many preview rows a list widget loads, regardless of the size it is
       # rendered at. `count` comes from the full scope, so the preview is
@@ -193,15 +193,20 @@ module Bali
 
       def goal = nil
 
+      # `true`, `false`, or nil for "not checked". Only `CheckBase` has one; the
+      # card asks every widget and gets this null from the rest.
+      def state = nil
+
       # The headline as printed. A ~215px tile at `text-4xl` fits four to six
       # characters, so a raw 1_234_567 runs off it.
       #
-      # A widget formats by overriding `formatted_value`, NOT this — everything
-      # a host writes has to run inside the failure net, and the documented
-      # idiom (`"$#{Widget.abbreviate(value)}"`) reaches straight past `count`
-      # to the abstract method underneath it. Overriding `display_value` itself
-      # would put host code outside `safely`, where a raising widget takes the
-      # page down instead of degrading its own tile.
+      # A widget formats through `formatted_value`, NOT by overriding this —
+      # everything a host writes has to run inside the failure net, and the
+      # documented idiom (`"$#{Widget.abbreviate(value)}"`) reaches straight past
+      # `count` to the declaration underneath it. Overriding `display_value`
+      # itself would put host code outside `safely`, where a raising widget takes
+      # the page down instead of degrading its own tile. `ValueBase#display_value`
+      # is the macro a host actually writes; it feeds `formatted_value`.
       def display_value = safely("—") { formatted_value }
 
       # What the headline says, before the net. Override this.
