@@ -7,9 +7,9 @@ module Bali
     #   render Bali::Widget::Component.new(widget)
     #
     # Takes the WIDGET and asks it directly — there is no result object between
-    # them. `Bali::Widget::Base` answers every question with a null where the
-    # pattern has nothing, so this component reads one uniform interface and
-    # never branches on which kind of widget it is holding.
+    # them. A pattern answers only for what it is, and this component defaults
+    # the rest — so it reads one uniform interface and never branches on which
+    # kind of widget it is holding.
     #
     # It decides WHAT TO LOAD (`before_render`) and HOW MUCH FITS (`REGIONS`);
     # the widget decides what the answers are.
@@ -82,9 +82,50 @@ module Bali
       # never asks what kind of widget it is holding. A `ValueBase` returns no
       # rows and no series; the regions that would have shown them simply do not
       # render.
+      # WHAT EVERY WIDGET ANSWERS. Five patterns, one interface, no type check
+      # anywhere in this class or its template.
       delegate :key, :title, :short_title, :empty_message, :size, :supported_sizes,
-               :count, :items, :view_all_path, :failed?,
-               :display_value, :trend, :series, :goal, :state, to: :widget
+               :view_all_path, :failed?, to: :widget
+
+      # WHAT ONLY SOME WIDGETS ANSWER, defaulted HERE rather than as nulls on
+      # `Bali::Widget::Base`.
+      #
+      # The defaults exist for the CARD's benefit — it needs one interface so it
+      # can decide whether a region has anything to put in it — and a widget
+      # should not have to answer `goal` because some other pattern has goals.
+      # A `ValueBase` is not a thing with no ring; it is a thing with a figure.
+      #
+      # `try` rather than `respond_to?` at each call site: it returns nil for a
+      # method the widget does not define, and — unlike `method_missing` — still
+      # lets an error raised INSIDE the method through, so a pattern's broken
+      # `series` fails loudly instead of reading as "no chart".
+      #
+      # This also means an object answering none of them still renders: a host's
+      # own `Base` subclass gets a headline and nothing else, rather than a
+      # `NoMethodError`.
+      # HOW MANY, which is really "does this widget have anything" — the card
+      # reads it for the empty state, the headline dimming and the "view all"
+      # label. Every pattern answers it, and `CheckBase` has to bend to: its
+      # count is 1 once the check has an answer either way, which is a predicate
+      # wearing a numeric name. That bend is the reason this is defaulted here
+      # rather than required of every widget.
+      def count = widget.try(:count) || 0
+
+      # WHAT THE HEADLINE PRINTS. A pattern whose headline is not its count says
+      # so — `ValueBase` through its `display_value` declaration, `CheckBase`
+      # with its pass/fail label — and the rest get the abbreviated count, since
+      # a ~215px tile at `text-4xl` fits four to six characters.
+      def display_value = widget.try(:display_value) || Bali::Widget.abbreviate(count)
+
+      def items = widget.try(:items) || []
+
+      def trend = widget.try(:trend)
+
+      def series = widget.try(:series)
+
+      def goal = widget.try(:goal)
+
+      def state = widget.try(:state)
 
       # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
       # grid's own resize needs it — a card that changes shape has to come back
@@ -159,10 +200,10 @@ module Bali
 
       def goal? = goal.present?
 
-      # A CHECK REPLACES THE NUMBER, the way a goal's ring does — `state` is
-      # ternary, so `false` is an answer and only a pattern that has no check at
-      # all answers with the null from `Base`.
-      def check? = widget.respond_to?(:passing?)
+      # A CHECK REPLACES THE NUMBER, the way a goal's ring does. Asked of the
+      # WIDGET rather than of `state`, because `state` is ternary: `false` and
+      # `nil` are both answers a check gives, so neither can mean "not a check".
+      def check? = widget.respond_to?(:state)
 
       # The detail region is rendered only when it HAS something. An empty
       # wrapper is not free: at `:stacked` it takes `flex-1` and squeezes the

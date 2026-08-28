@@ -67,13 +67,20 @@ module Bali
       # the empty state and the "view all" link work without a second reader.
       def count = @count ||= safely(0) { value.to_i }
 
-      # Overrides `Base#formatted_value`, which abbreviates the count. Runs inside
-      # `Base#display_value`'s `safely`, so a raising format degrades the tile
-      # rather than the page.
-      def formatted_value
-        return super if _display_value.nil?
+      # WHAT THE HEADLINE PRINTS. Wrapped here rather than by a hook on `Base`,
+      # because everything a host writes has to run inside the failure net and
+      # the declaration is host code — a raising format degrades this tile
+      # instead of taking the page down.
+      #
+      # Falls back to the abbreviated count, which is what the card would have
+      # printed anyway; declaring `display_value` is for when the number is not
+      # the display.
+      def display_value
+        safely("—") do
+          next Widget.abbreviate(count) if _display_value.nil?
 
-        _display_value.is_a?(Proc) ? instance_exec(&_display_value) : _display_value
+          _display_value.is_a?(Proc) ? instance_exec(&_display_value) : _display_value
+        end
       end
     end
   end

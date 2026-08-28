@@ -136,15 +136,50 @@ chart rather than merely being able to have one.
 two survive the size ladder — both have axes for the sparkline to strip below `large`, and both
 read at a 2×1. Chart.js's axis-less types do not, and a widget wanting one wants the `body` slot.
 
-## Base is a null object
+## The card defaults what only some widgets answer
 
-The card asks the widget directly — there is no `Result` between them — and `Base` answers
-every question with a null: `count` is `0`, `items` is `[]`, `trend`, `series` and `goal` are
-`nil`. Each pattern overrides the ones it actually has.
+The missing abstraction *was* `Result`, and deleting it was correct: a nine-field value object
+where four fields were always nil is a null object with extra allocation and an extra hop.
 
-So the card reads **one uniform interface** and never asks what kind of widget it is holding.
-`Widget::Component` delegates to a single target, and the template's regions turn on what came
-back rather than on a type check.
+The card still needs one interface — it has to decide whether a region has anything to put in
+it, without asking what kind of widget it holds — but the defaults live in
+`Bali::Widget::Component`, not on `Base`:
+
+```ruby
+def items = widget.try(:items) || []
+def trend = widget.try(:trend)
+def series = widget.try(:series)
+def goal = widget.try(:goal)
+def state = widget.try(:state)
+```
+
+They were nulls on `Base` first, and that was wrong: it made a `ValueBase` answer `goal`. A value
+widget is not a thing with no ring; it is a thing with a figure. **A widget answers for what it
+is**, and the uniform interface is something the card wants, so the card builds it.
+
+`Base` keeps only what every widget genuinely shares: `view_all_path` (a figure, a trend, a ring
+and a check all link somewhere just as a list does), `size`/`with_size`, the copy macros,
+`authorized?`, and the failure net.
+
+**`count` went too**, and the tell was `CheckBase`: its count is `1` once the check has an answer
+either way, which is a predicate wearing a numeric name. `count` is not a property every widget
+has — it is the card's "does this have anything", read for the empty state, the headline dimming
+and the "view all" label. So the card defaults it, and a pattern whose headline is not a count
+says so through its own `display_value` (`ValueBase`'s declaration, `CheckBase`'s pass/fail
+label) rather than through a `formatted_value` hook on `Base`, which is now gone. Host formatting
+wraps itself in `safely` where it is written, instead of relying on a base-class wrapper.
+
+`ListBase` likewise took back `PREVIEW_ROWS` and `join` — a preview cap and a row-subtitle
+separator are list concepts, and every caller of `join` is an `r.subtitle` block.
+
+`try` rather than `respond_to?` at each call site, and never `method_missing`: it returns nil for
+a method the widget does not define while still letting an error raised *inside* the method
+through, so a pattern's broken `series` fails loudly instead of reading as "no chart".
+
+The payoff is the same as before and now measurable: **no type check anywhere in the card**. The
+only `is_a?` in 550 lines of component and template is `value.is_a?(Integer)`, deciding chart tick
+precision. It also means an object answering none of them still renders — a host's own `Base`
+subclass gets a headline, not a `NoMethodError`.
 
 ## Single inheritance, and what it costs
 

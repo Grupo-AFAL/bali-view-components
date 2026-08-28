@@ -34,6 +34,14 @@ module Bali
     #
     # `r.title` is required. The other two are optional and default to nil.
     class ListBase < Base
+      # How many preview rows a list widget loads, regardless of the size it is
+      # rendered at. `count` comes from the whole scope, so the preview is
+      # presentation rather than data — which is what keeps a widget from needing
+      # to know its size. `Widget::Component` truncates to what the size has room
+      # for, and a host raising `Component.regions` past this raises `limit:` to
+      # match.
+      PREVIEW_ROWS = 8
+
       # `limit` is always passed by the macro below, which is the one place a
       # `List` is built — so this carries no defaults of its own to fall out of
       # step with that signature.
@@ -131,7 +139,7 @@ module Bali
         # so it reaches `context` — a scope frozen into the class body can never
         # be tenant- or user-scoped, which is most widgets in a real host. And it
         # is shorter to write than the keyword it replaces.
-        def list(limit: Base::PREVIEW_ROWS, &block)
+        def list(limit: PREVIEW_ROWS, &block)
           raise ArgumentError, "`list` needs a block: `list { Item.low_stock }`." unless block
 
           self._list = List.new(scope: block, limit: limit)
@@ -169,6 +177,14 @@ module Bali
       # would succeed, the hero would print a confident number, and the widget
       # would be broken at every other size with nothing on screen saying so.
       # A list widget owes a `row` whatever size it happens to be drawn at.
+      # "3 left · Cocina" — the card's own separator, with blank parts dropped so
+      # a row with only one half does not render a dangling divider.
+      #
+      # HERE rather than on `Base`: every caller is an `r.subtitle` block, and a
+      # figure, a ring or a check has nothing to join. An instance method so a
+      # row block — `instance_exec`'d on the widget — can call it bare.
+      def join(*parts) = Widget.join(*parts)
+
       def count
         @count ||= safely(0) do
           row_builder.check!(self.class)

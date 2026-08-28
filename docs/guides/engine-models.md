@@ -306,9 +306,10 @@ owe:
 
 This is single inheritance on purpose: **a widget is exactly one of these.** A class that could
 claim two shapes could claim them inconsistently, and the card would have to ask which one it
-meant. It never asks — `Base` answers every question with a null (`items` is `[]`, `trend` is
-`nil`, `goal` is `nil`), each pattern overrides the ones it actually has, and the card reads
-one uniform interface at every size.
+meant. It never asks: a pattern answers only for what it *is*, and the card defaults the rest
+(`items` to `[]`, `trend`, `series`, `goal` and `state` to `nil`). A `ValueBase` is not a thing
+with no ring — it is a thing with a figure, and is never asked about rings. The uniform interface
+is something the card wants, so the card builds it.
 
 **Every pattern declares its data rather than defining methods for it.** A widget is a class body
 of declarations; the only methods you write are private helpers two declarations share. A missing
@@ -338,7 +339,7 @@ a list widget states its collection once.
 one obvious place to write it and it is the place you would write it anyway. Bali applies
 `limit` *after* your block returns, so ordering written inside the scope is always applied
 first. An unordered scope pages the preview off whatever the database happened to return, which
-is a different bug in every database. `limit:` defaults to `PREVIEW_ROWS` (8), which covers
+is a different bug in every database. `limit:` defaults to `ListBase::PREVIEW_ROWS` (8), which covers
 every built-in size; raise it only if you have also raised `Component.regions` past eight.
 
 **`list` takes a block and nothing else**, and that is deliberate rather than terse. A class
@@ -459,7 +460,8 @@ your app can see, and it defaults to `true`. It must not touch the database — 
 lets the picker list the offering without loading anything. `context` is whatever your app needs
 to gate on (a Pundit context, a user, nothing at all); Bali never reads it itself.
 
-The preview is capped at `PREVIEW_ROWS` (8 rows) while `count` reflects the whole scope, which
+A list's preview is capped at `ListBase::PREVIEW_ROWS` (8 rows) while `count` reflects the whole
+scope, which
 is what lets a widget stay ignorant of the size its card renders at.
 
 **One widget's failure must not take the page with it.** Every data read a pattern makes is

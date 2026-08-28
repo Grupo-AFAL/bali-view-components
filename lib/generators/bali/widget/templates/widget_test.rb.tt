@@ -22,7 +22,7 @@ class <%= class_name %>Test < ActiveSupport::TestCase
     assert_kind_of Integer, widget.count
 <% elsif pattern == 'list' -%>
     assert_kind_of Integer, widget.count
-    assert_operator widget.items.size, :<=, Bali::Widget::Base::PREVIEW_ROWS
+    assert_operator widget.items.size, :<=, Bali::Widget::ListBase::PREVIEW_ROWS
 <% elsif pattern == 'trend' -%>
     assert_kind_of Integer, widget.count
     # nil is a legitimate answer: no previous period means no trend to draw.

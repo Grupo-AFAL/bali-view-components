@@ -16,12 +16,6 @@ module Bali
     # `TrendBase` and not declaring `t.current` is a loud failure, not a card that
     # renders half a thing.
     class Base
-      # How many preview rows a list widget loads, regardless of the size it is
-      # rendered at. `count` comes from the full scope, so the preview is
-      # presentation rather than data — which is what keeps a widget from needing
-      # to know a size. `Widget::Component` truncates to what the size has room for.
-      PREVIEW_ROWS = 8
-
       # Every declaration below is CLASS-level configuration. The instance writer
       # `class_attribute` generates by default silently shadows the class value
       # for one object — the same trap `#with_size` dups to avoid, reachable
@@ -192,43 +186,14 @@ module Bali
       # cannot.
       def authorized? = true
 
-      # ---- what the card asks -------------------------------------------------
-      #
-      # Every one of these is a null here. A pattern overrides what it has, so the
-      # card reads one interface and never asks what kind of widget it holds.
+      # ---- what every widget has -----------------------------------------------
 
-      def count = 0
-
-      def items = []
-
+      # WHERE THE TILE LINKS. A figure, a trend, a ring and a check all link
+      # somewhere just as a list does, and no pattern overrides this — it is the
+      # implementation rather than a default.
       def view_all_path
         safely(nil) { _view_all_path && instance_exec(&_view_all_path) }
       end
-
-      def trend = nil
-
-      def series = nil
-
-      def goal = nil
-
-      # `true`, `false`, or nil for "not checked". Only `CheckBase` has one; the
-      # card asks every widget and gets this null from the rest.
-      def state = nil
-
-      # The headline as printed. A ~215px tile at `text-4xl` fits four to six
-      # characters, so a raw 1_234_567 runs off it.
-      #
-      # A widget formats through `formatted_value`, NOT by overriding this —
-      # everything a host writes has to run inside the failure net, and the
-      # documented idiom (`"$#{Widget.abbreviate(value)}"`) reaches straight past
-      # `count` to the declaration underneath it. Overriding `display_value`
-      # itself would put host code outside `safely`, where a raising widget takes
-      # the page down instead of degrading its own tile. `ValueBase#display_value`
-      # is the macro a host actually writes; it feeds `formatted_value`.
-      def display_value = safely("—") { formatted_value }
-
-      # What the headline says, before the net. Override this.
-      def formatted_value = Widget.abbreviate(count)
 
       def size = @size || self.class.default_size
 
@@ -255,16 +220,6 @@ module Bali
       # widget's — and the card branches on failure before it would otherwise
       # have asked for anything.
       def failed? = @failed.present?
-
-      # "3 left · Cocina" — the card's own separator, with blank parts dropped so
-      # a row with only one half does not render a dangling divider.
-      #
-      # An instance method rather than only `Bali::Widget.join` because a row
-      # block is `instance_exec`'d on the WIDGET, so this is reachable bare from
-      # exactly where it is used:
-      #
-      #   r.subtitle { |movie| join(movie.genre, movie.status.humanize) }
-      def join(*parts) = Widget.join(*parts)
 
       protected
 

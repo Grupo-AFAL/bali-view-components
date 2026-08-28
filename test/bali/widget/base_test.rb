@@ -8,27 +8,48 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     def self.key = "bare"
   end
 
-  def test_it_answers_every_question_the_card_asks_with_a_null
+  # WHAT EVERY WIDGET HAS, and nothing more: where it links, whether it failed,
+  # its size and its copy. Everything a PATTERN answers — `count`,
+  # `display_value`, `items`, `trend`, `series`, `goal`, `state` — belongs to the
+  # pattern that has it, and the card defaults the rest.
+  def test_base_carries_only_what_every_widget_shares
     widget = Bare.new
 
-    assert_equal 0, widget.count
-    assert_empty widget.items
     assert_nil widget.view_all_path
-    assert_nil widget.trend
-    assert_nil widget.series
-    assert_nil widget.goal
     refute_predicate widget, :failed?
+    assert_equal :small, widget.size
   end
 
-  # THE POINT OF THE NULLS: the card reads one interface and never asks what kind
-  # of widget it is holding. A `ValueBase` has no rows; the region that would
-  # have shown them simply does not render.
-  def test_a_pattern_overrides_only_what_it_has
+  # A WIDGET ANSWERS FOR WHAT IT IS, not for what other patterns are. `items`,
+  # `trend`, `series`, `goal` and `state` used to be nulls here, so a `ValueBase`
+  # answered `goal` — a thing with no ring, rather than a thing with a figure.
+  # The card defaults them instead; see `Bali::Widget::Component`.
+  def test_base_does_not_answer_for_patterns_it_is_not
+    %i[count display_value items trend series goal state].each do |pattern_read|
+      refute_respond_to Bare.new, pattern_read
+    end
+  end
+
+  # Each pattern answers exactly its own.
+  def test_a_pattern_answers_only_what_it_has
     value = Class.new(Bali::Widget::ValueBase) { def self.key = "v"; value { 7 } }.new
 
     assert_equal 7, value.count
-    assert_empty value.items
-    assert_nil value.series
+    assert_equal "7", value.display_value
+    refute_respond_to value, :items
+    refute_respond_to value, :series
+    assert_respond_to Class.new(Bali::Widget::ListBase) { def self.key = "l" }.new, :items
+  end
+
+  # A widget that is none of the five still renders: the card defaults every
+  # pattern read, so it gets a headline of 0 rather than a `NoMethodError`.
+  def test_a_widget_that_is_no_pattern_at_all_still_has_a_card
+    component = Bali::Widget::Component.new(Bare.new)
+
+    assert_equal 0, component.send(:count)
+    assert_equal "0", component.send(:display_value)
+    assert_empty component.send(:items)
+    assert_nil component.send(:series)
   end
 
   # ---- sizes ---------------------------------------------------------------

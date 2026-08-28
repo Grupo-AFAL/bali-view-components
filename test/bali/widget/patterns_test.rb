@@ -308,7 +308,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     end
 
     assert_equal "Zed 8", widget.items.first.title
-    assert_equal Bali::Widget::Base::PREVIEW_ROWS, widget.items.size
+    assert_equal Bali::Widget::ListBase::PREVIEW_ROWS, widget.items.size
   end
 
   def test_a_list_without_a_scope_says_so
@@ -372,7 +372,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     widget = klass.new
 
     assert_equal 9, widget.count
-    assert_equal Bali::Widget::Base::PREVIEW_ROWS, widget.items.size
+    assert_equal Bali::Widget::ListBase::PREVIEW_ROWS, widget.items.size
     assert_equal 1, builds
   end
 

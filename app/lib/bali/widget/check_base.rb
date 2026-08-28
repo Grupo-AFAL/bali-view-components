@@ -113,8 +113,9 @@ module Bali
       # "nothing here" treatment and its "view all" link.
       def count = @count ||= safely(0) { passing?.nil? ? 0 : 1 }
 
-      # What the card prints beside the icon.
-      def formatted_value = check_builder.label(self, passing?)
+      # What the card prints beside the icon. Inside the net, because the labels
+      # are host code.
+      def display_value = safely("—") { check_builder.label(self, passing?) }
 
       # The card renders this through `Bali::BooleanIcon`, which owns the icon,
       # the colour and the screen-reader label for each of the three states.
