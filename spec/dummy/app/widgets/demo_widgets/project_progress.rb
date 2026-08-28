@@ -8,14 +8,16 @@ module DemoWidgets
   class ProjectProgress < Bali::Widget::ProgressBase
     default_size :large
 
-    goal_label { I18n.t("widgets.project_progress.of_total", count: max) }
+    goal do |g|
+      g.value { Task.where(status: :done).count }
+      g.max { Task.count }
+      g.label { I18n.t("widgets.project_progress.of_total", count: max) }
+    end
 
-    series_labels { by_status.keys.map(&:humanize) }
-    series_values { by_status.values }
-
-    def value = Task.where(status: :done).count
-
-    def max = Task.count
+    series do |s|
+      s.labels { by_status.keys.map(&:humanize) }
+      s.values { by_status.values }
+    end
 
     private
 

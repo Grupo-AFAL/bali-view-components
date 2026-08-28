@@ -13,17 +13,18 @@ module DemoWidgets
 
     # More studios founded than in the decade before is good news, so the default
     # `:up` is right here. `TaskLoad` is the same ladder, inverted.
-    positive_when :up
-    period_label "vs previous decade"
+    trend do |t|
+      t.current { decades.values.last }
+      # NIL when there is only one decade on record — the trend is then absent
+      # rather than zero, and `TrendBase` drops the rung for us.
+      t.previous { decades.values[-2] }
+      t.period_label "vs previous decade"
+    end
 
-    series_labels { decades.keys.map(&:to_s) }
-    series_values { decades.values }
-
-    def current = decades.values.last
-
-    # NIL when there is only one decade on record — the trend is then absent
-    # rather than zero, and `TrendBase` drops the rung for us.
-    def previous = decades.values[-2]
+    series do |s|
+      s.labels { decades.keys.map(&:to_s) }
+      s.values { decades.values }
+    end
 
     private
 

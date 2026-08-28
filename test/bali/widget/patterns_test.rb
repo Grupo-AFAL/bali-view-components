@@ -72,7 +72,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   end
 
   def test_the_value_is_the_count_the_card_reads
-    widget = value_widget { def value = 42 }
+    widget = value_widget { value { 42 } }
 
     assert_equal 42, widget.count
     assert_equal "42", widget.display_value
@@ -80,17 +80,17 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   def test_a_value_widget_can_print_something_other_than_its_number
     widget = value_widget do
-      def value = 2_062_000_000
-      def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
+      value { 2_062_000_000 }
+      display_value { "$#{Bali::Widget.abbreviate(value)}" }
     end
 
     assert_equal "$2.1B", widget.display_value
   end
 
-  def test_forgetting_value_says_which_method_is_missing
+  def test_forgetting_value_says_which_declaration_is_missing
     error = assert_raises(NotImplementedError) { value_widget { }.count }
 
-    assert_match(/must define `#value`/, error.message)
+    assert_match(/must declare `value`/, error.message)
   end
 
   # ---- ListBase ------------------------------------------------------------
@@ -312,7 +312,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   # The base computes the delta — every trend widget was hand-rolling it.
   def test_the_base_computes_the_delta_from_current_and_previous
-    widget = trend_widget { def current = 12; def previous = 36 }
+    widget = trend_widget { trend { |t| t.current 12; t.previous 36 } }
 
     assert_equal(-67, widget.trend.delta)
     assert_equal :down, widget.trend.direction
@@ -322,7 +322,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # THE FIELD THE PATTERN EXISTS FOR. Overdue tasks up 12% and revenue up 12%
   # are opposite news; the card colours from `good?`, never `direction`.
   def test_positive_when_decides_whether_a_movement_is_good_news
-    rising = ->(direction) { trend_widget { positive_when direction; def current = 12; def previous = 6 } }
+    rising = ->(direction) { trend_widget { trend { |t| t.positive_when direction; t.current 12; t.previous 6 } } }
 
     assert_predicate rising.call(:up).trend, :good?
     refute_predicate rising.call(:down).trend, :good?
@@ -331,16 +331,17 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # A widget's first week has no previous period, and the trend is then ABSENT
   # rather than zero.
   def test_no_previous_period_means_no_trend
-    assert_nil trend_widget { def current = 5; def previous = nil }.trend
-    assert_nil trend_widget { def current = 5; def previous = 0 }.trend
+    assert_nil trend_widget { trend { |t| t.current 5 } }.trend
+    assert_nil trend_widget { trend { |t| t.current 5; t.previous 0 } }.trend
   end
 
   def test_a_trend_widget_charts_its_history
     widget = trend_widget do
-      series_labels { %w[a b] }
-      series_values { [ 3, 5 ] }
-      def current = 5
-      def previous = 3
+      series do |s|
+        s.labels { %w[a b] }
+        s.values { [ 3, 5 ] }
+      end
+      trend { |t| t.current 5; t.previous 3 }
     end
 
     assert_equal [ 3, 5 ], widget.series.values
@@ -348,7 +349,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   end
 
   def test_a_trend_widget_without_a_series_has_none
-    assert_nil trend_widget { def current = 5; def previous = 3 }.series
+    assert_nil trend_widget { trend { |t| t.current 5; t.previous 3 } }.series
   end
 
   # ---- ProgressBase --------------------------------------------------------
@@ -357,9 +358,8 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   def test_a_progress_widget_answers_a_goal
     widget = progress_widget do
-      goal_label { "of #{max}" }
-      def value = 3
-      def max = 12
+      goal { |g| g.label { "of #{max}" } }
+      goal { |g| g.value 3; g.max 12 }
     end
 
     assert_equal 3, widget.goal.value
@@ -371,7 +371,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # A ring has nowhere to draw the eleventh of ten, but "11 / 10" is a real and
   # good state — so only the drawing is clamped.
   def test_the_percentage_clamps_without_touching_the_value
-    widget = progress_widget { def value = 11; def max = 10 }
+    widget = progress_widget { goal { |g| g.value 11; g.max 10 } }
 
     assert_in_delta 100.0, widget.goal.percentage
     assert_equal 11, widget.goal.value
@@ -379,16 +379,15 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   # "No goal set" is a configuration state, not an error.
   def test_a_zero_max_reads_as_empty_rather_than_dividing_by_zero
-    widget = progress_widget { def value = 5; def max = 0 }
+    widget = progress_widget { goal { |g| g.value 5; g.max 0 } }
 
     assert_in_delta 0.0, widget.goal.percentage
   end
 
   def test_a_progress_widget_charts_in_bars_by_default
     widget = progress_widget do
-      series_values { [ 3, 4 ] }
-      def value = 2
-      def max = 10
+      series { |s| s.values { [ 3, 4 ] } }
+      goal { |g| g.value 2; g.max 10 }
     end
 
     assert_equal :bar, widget.series.type

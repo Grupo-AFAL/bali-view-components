@@ -40,22 +40,30 @@ module Bali
 
         def self.trend(key, size, count)
           named(Bali::Widget::TrendBase, key, size) do
-            positive_when :down
-            period_label "vs last week"
-            series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
-            series_values { [ 3, 5, 4, 8, 6, 9, 12 ] }
-            define_method(:current) { count }
-            define_method(:previous) { [ count / 2, 1 ].max }
+            trend do |t|
+              t.current { count }
+              t.previous { [ count / 2, 1 ].max }
+              t.positive_when :down
+              t.period_label "vs last week"
+            end
+            series do |s|
+              s.labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
+              s.values { [ 3, 5, 4, 8, 6, 9, 12 ] }
+            end
           end
         end
 
         def self.goal(key, size, count)
           named(Bali::Widget::ProgressBase, key, size) do
-            goal_label "of 10"
-            series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
-            series_values { [ 2, 4, 3, 6, 5, 7, 9 ] }
-            define_method(:value) { count }
-            def max = 10
+            goal do |g|
+              g.value { count }
+              g.max 10
+              g.label "of 10"
+            end
+            series do |s|
+              s.labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
+              s.values { [ 2, 4, 3, 6, 5, 7, 9 ] }
+            end
           end
         end
 

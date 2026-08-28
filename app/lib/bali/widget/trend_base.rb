@@ -7,18 +7,24 @@ module Bali
     #   class StudioFoundings < Bali::Widget::TrendBase
     #     default_size :medium
     #
-    #     period_label "vs previous decade"
-    #     series_labels { decades.keys.map(&:to_s) }
-    #     series_values { decades.values }
+    #     trend do |t|
+    #       t.current  { decades.values.last }
+    #       t.previous { decades.values[-2] }
+    #       t.period_label "vs previous decade"
+    #     end
     #
-    #     def current  = decades.values.last
-    #     def previous = decades.values[-2]
+    #     series do |s|
+    #       s.labels { decades.keys.map(&:to_s) }
+    #       s.values { decades.values }
+    #     end
     #   end
     #
     # The base computes the delta. Every trend widget was hand-rolling
     # `(((latest - previous) / previous.to_f) * 100).round`; it is written once
     # here, and `current` / `previous` is a contract you cannot half-implement.
     class TrendBase < Base
+      include Charted
+
       Trend = Data.define(:delta, :direction, :period, :positive_when, :unit) do
         def initialize(delta:, direction: nil, period: nil, positive_when: :up, unit: "%")
           super(delta: delta, direction: direction || (delta.to_f.negative? ? :down : :up),
@@ -35,45 +41,80 @@ module Bali
         def flat? = delta.to_f.zero?
       end
 
-      Series = Data.define(:labels, :values, :type) do
-        def initialize(values:, labels: [], type: :line) = super
+      # What `trend` yields — the two figures, and how the movement between them
+      # reads. Each setter writes its OWN ivar, so two `trend` blocks merge per
+      # field, the same rule as `row`, `series` and `goal`.
+      class TrendBuilder
+        def initialize
+          @positive_when = :up
+        end
 
-        def charted? = values.present?
+        # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
+        # private methods; anything else is the value itself.
+        def current(value = nil, &block) = @current = block || value
+
+        # What `current` is compared against. NIL means the trend is ABSENT
+        # rather than zero — a widget's first week has no previous period, and
+        # the card drops the indicator rather than drawing a flat 0%.
+        def previous(value = nil, &block) = @previous = block || value
+
+        # `:up` unless the widget says otherwise. A widget counting something BAD
+        # — overdue work, low stock — says `:down`, and a rising number then reads
+        # red. Getting this wrong makes the card lie confidently, which is why it
+        # is declared rather than guessed.
+        def positive_when(value) = @positive_when = value
+
+        # "vs last week". What `current` is being compared against, in words.
+        def period_label(value) = @period_label = value
+
+        def to_trend(widget)
+          before = widget.previous
+          return if before.nil? || before.to_f.zero?
+
+          Trend.new(delta: (((widget.current - before) / before.to_f) * 100).round,
+                    period: @period_label, positive_when: @positive_when)
+        end
+
+        def resolved_current(widget) = resolve(widget, @current)
+
+        def resolved_previous(widget) = resolve(widget, @previous)
+
+        def check!(widget_class)
+          return if @current
+
+          raise NotImplementedError,
+                "#{widget_class.name || 'This widget'} must declare `t.current` in its `trend` block."
+        end
+
+        private
+
+        def resolve(widget, field)
+          field.is_a?(Proc) ? widget.instance_exec(&field) : field
+        end
       end
+      private_constant :TrendBuilder
 
-      # `:up` unless the widget says otherwise. A widget counting something BAD —
-      # overdue work, low stock — declares `positive_when :down`, and a rising
-      # number then reads red. Getting this wrong makes the card lie confidently,
-      # which is why it is a declaration rather than a guess.
-      class_attribute :_positive_when, default: :up, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_period_label, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_series_labels, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_series_values, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_series_type, default: :line, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_trend_builder, **ATTRIBUTE_OPTIONS
 
       class << self
-        def positive_when(value) = self._positive_when = value
+        # HOW THE MOVEMENT READS. Optional: a widget that declares no `trend` block
+        # still gets a delta, drawn neutral and unlabelled.
+        #
+        # DUPS what it inherits — `class_attribute` copies on write and never on
+        # mutation, so a subclass would otherwise share its parent's builder.
+        def trend(&block)
+          raise ArgumentError, "`trend` needs a block: `trend { |t| t.positive_when :down }`." unless block
 
-        def period_label(value) = self._period_label = value
-
-        def series_labels(&block) = self._series_labels = block
-
-        def series_values(&block) = self._series_values = block
-
-        def series_type(value) = self._series_type = value
+          self._trend_builder = _trend_builder&.dup || TrendBuilder.new
+          block.call(_trend_builder)
+        end
       end
 
-      # The figure the card shows big.
-      def current
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must define `#current`."
-      end
+      # READERS over the declaration. Memoised: the card asks `count`, and the
+      # delta reads both again.
+      def current = @current ||= trend_builder.resolved_current(self)
 
-      # What `current` is compared against. Return nil when there is nothing to
-      # compare to — a widget's first week has no previous period, and the trend
-      # is then ABSENT rather than zero.
-      def previous
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must define `#previous`."
-      end
+      def previous = @previous ||= trend_builder.resolved_previous(self)
 
       # `to_i` because a widget with no data at all has a nil `current`, and the
       # card asks `count.positive?`.
@@ -81,27 +122,17 @@ module Bali
 
       def trend
         safely(nil) do
-          before = previous
-          next if before.nil? || before.to_f.zero?
-
-          Trend.new(delta: (((current - before) / before.to_f) * 100).round,
-                    period: period_label, positive_when: _positive_when)
+          trend_builder.check!(self.class)
+          trend_builder.to_trend(self)
         end
       end
 
-      def series
-        safely(nil) do
-          next if _series_values.nil?
+      private
 
-          values = instance_exec(&_series_values)
-          next if values.blank?
-
-          Series.new(values: values, type: _series_type,
-                     labels: _series_labels ? instance_exec(&_series_labels) : [])
-        end
+      def trend_builder
+        _trend_builder || raise(NotImplementedError,
+                                "#{self.class.name || 'This widget'} must declare `trend`.")
       end
-
-      def period_label = _period_label
     end
   end
 end

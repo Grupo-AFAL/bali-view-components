@@ -7,8 +7,6 @@ module DemoWidgets
   class OverdueTasks < Bali::Widget::ValueBase
     default_size :small
 
-    def value
-      Task.where.not(status: :done).where(due_date: ...Date.current).count
-    end
+    value { Task.where.not(status: :done).where(due_date: ...Date.current).count }
   end
 end

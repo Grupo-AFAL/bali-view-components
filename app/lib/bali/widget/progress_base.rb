@@ -7,16 +7,23 @@ module Bali
     #   class ProjectProgress < Bali::Widget::ProgressBase
     #     default_size :large
     #
-    #     goal_label { "of #{Task.count}" }
-    #     series_values { Task.group(:status).count.values }
+    #     goal do |g|
+    #       g.value { Task.where(status: :done).count }
+    #       g.max   { Task.count }
+    #       g.label { "of #{max}" }
+    #     end
     #
-    #     def value = Task.where(status: :done).count
-    #     def max   = Task.count
+    #     series { |s| s.values { Task.group(:status).count.values } }
     #   end
     #
     # The ring REPLACES the number as the headline, which is what makes this a
     # different pattern rather than a list with a decoration.
     class ProgressBase < Base
+      include Charted
+
+      # A breakdown rather than a movement over time, so bars rather than a line.
+      self._default_series_type = :bar
+
       Goal = Data.define(:value, :max, :label) do
         def initialize(value:, max: 100, label: nil) = super
 
@@ -31,31 +38,69 @@ module Bali
         end
       end
 
-      Series = TrendBase::Series
+      # What `goal` yields — everything the ring is drawn from. Each setter writes
+      # its OWN ivar, so two `goal` blocks merge per field.
+      class GoalBuilder
+        # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
+        # private methods; anything else is the value itself.
+        def value(value = nil, &block) = @value = block || value
 
-      class_attribute :_goal_label, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_series_labels, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_series_values, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_series_type, default: :bar, **Base::ATTRIBUTE_OPTIONS
+        def max(value = nil, &block) = @max = block || value
+
+        # Reads `max` off the widget, not off `g` — `ProgressBase#max` resolves
+        # this builder, so `g.label { "of #{max}" }` sees the same figure the ring
+        # is drawn to.
+        def label(value = nil, &block) = @label = block || value
+
+        def to_goal(widget)
+          Goal.new(value: widget.value, max: widget.max, label: resolve(widget, @label))
+        end
+
+        def resolved_value(widget) = resolve(widget, @value)
+
+        # 100 by default, so a widget whose figure is already a percentage
+        # declares `g.value` alone.
+        def resolved_max(widget) = @max.nil? ? 100 : resolve(widget, @max)
+
+        def check!(widget_class)
+          return if @value
+
+          raise NotImplementedError,
+                "#{widget_class.name || 'This widget'} must declare `g.value` in its `goal` block."
+        end
+
+        private
+
+        def resolve(widget, field)
+          field.is_a?(Proc) ? widget.instance_exec(&field) : field
+        end
+      end
+      private_constant :GoalBuilder
+
+      class_attribute :_goal_builder, **ATTRIBUTE_OPTIONS
 
       class << self
-        def goal_label(value = nil, &block) = self._goal_label = value || block
+        # THE RING'S CAPTION. Optional — a ring with no label still draws its
+        # percentage.
+        #
+        # DUPS what it inherits, for the same reason `row` and `series` do.
+        def goal(&block)
+          raise ArgumentError, "`goal` needs a block: `goal { |g| g.label \"of 10\" }`." unless block
 
-        def series_labels(&block) = self._series_labels = block
-
-        def series_values(&block) = self._series_values = block
-
-        def series_type(value) = self._series_type = value
+          self._goal_builder = _goal_builder&.dup || GoalBuilder.new
+          block.call(_goal_builder)
+        end
       end
 
-      # How far along.
-      def value
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must define `#value`."
-      end
+      # How far along, and what counts as done. READERS over the declaration
+      # rather than methods a host overrides — but still methods, because
+      # `g.label { "of #{max}" }` has to be able to read one.
+      #
+      # Memoised: the ring reads both, `count` reads `value` again, and a
+      # declaration doing real work should not do it three times.
+      def value = @value ||= goal_builder.resolved_value(self)
 
-      # What counts as done. Defaults to a percentage's worth, so a widget whose
-      # figure is already a percentage implements `value` alone.
-      def max = 100
+      def max = @max ||= goal_builder.resolved_max(self)
 
       # The ring is the headline, but `count` still gates the empty state and the
       # "view all" link, so it answers with what has been achieved.
@@ -63,26 +108,16 @@ module Bali
 
       def goal
         safely(nil) do
-          Goal.new(value: value, max: max, label: resolved_goal_label)
-        end
-      end
-
-      def series
-        safely(nil) do
-          next if _series_values.nil?
-
-          values = instance_exec(&_series_values)
-          next if values.blank?
-
-          Series.new(values: values, type: _series_type,
-                     labels: _series_labels ? instance_exec(&_series_labels) : [])
+          goal_builder.check!(self.class)
+          goal_builder.to_goal(self)
         end
       end
 
       private
 
-      def resolved_goal_label
-        _goal_label.is_a?(Proc) ? instance_exec(&_goal_label) : _goal_label
+      def goal_builder
+        _goal_builder || raise(NotImplementedError,
+                               "#{self.class.name || 'This widget'} must declare `goal`.")
       end
     end
   end

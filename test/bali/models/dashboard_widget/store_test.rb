@@ -11,7 +11,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
       default_size size
       define_singleton_method(:key) { key }
       define_singleton_method(:title) { key }
-      def value = 0
+      value { 0 }
     end
   end
 

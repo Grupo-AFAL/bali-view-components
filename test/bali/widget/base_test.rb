@@ -24,7 +24,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   # of widget it is holding. A `ValueBase` has no rows; the region that would
   # have shown them simply does not render.
   def test_a_pattern_overrides_only_what_it_has
-    value = Class.new(Bali::Widget::ValueBase) { def self.key = "v"; def value = 7 }.new
+    value = Class.new(Bali::Widget::ValueBase) { def self.key = "v"; value { 7 } }.new
 
     assert_equal 7, value.count
     assert_empty value.items
@@ -106,7 +106,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   def test_a_raising_widget_degrades_rather_than_taking_the_page_down
     klass = Class.new(Bali::Widget::ValueBase) do
       def self.key = "boom"
-      def value = raise("upstream is down")
+      value { raise("upstream is down") }
     end
     widget = klass.new
 
@@ -136,7 +136,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   def test_it_raises_in_development_rather_than_hiding_the_bug
     klass = Class.new(Bali::Widget::ValueBase) do
       def self.key = "boom3"
-      def value = raise("upstream is down")
+      value { raise("upstream is down") }
     end
 
     assert Bali::Widget.raise_load_errors?

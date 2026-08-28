@@ -25,7 +25,6 @@ module Bali
         short_title "Low stock"
         empty_message "Nothing running low"
 
-
         list { FakeScope.new(rows) }
         row do |r|
           r.title { |item| item[:title] }
@@ -35,8 +34,6 @@ module Bali
         view_all_path { "/lookbook" }
 
         def count = rows
-
-
 
         # A stand-in for a relation: the card only ever asks a scope to count and
         # to hand back a capped preview, so a preview does not need a table.
@@ -55,17 +52,19 @@ module Bali
         short_title "Low stock"
         empty_message "Nothing running low"
 
-
         # Running low on MORE things is worse news, so a rising count reads red.
-        positive_when :down
-        period_label "vs last week"
-        series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
-        series_values { [ 3, 5, 4, 8, 6, 9, 12 ] }
+        trend do |t|
+          t.current { rows }
+          t.previous { [ (rows / 2), 1 ].max }
+          t.positive_when :down
+          t.period_label "vs last week"
+        end
+        series do |s|
+          s.labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
+          s.values { [ 3, 5, 4, 8, 6, 9, 12 ] }
+        end
         view_all_path { "/lookbook" }
 
-        def current = rows
-
-        def previous = [ (rows / 2), 1 ].max
       end
 
       class DemoProgress < Bali::Widget::ProgressBase
@@ -74,15 +73,17 @@ module Bali
         short_title "Low stock"
         empty_message "Nothing running low"
 
-
-        goal_label "of 10"
-        series_labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
-        series_values { [ 2, 4, 3, 6, 5, 7, 9 ] }
+        goal do |g|
+          g.value { rows }
+          g.max 10
+          g.label "of 10"
+        end
+        series do |s|
+          s.labels { %w[Mon Tue Wed Thu Fri Sat Sun] }
+          s.values { [ 2, 4, 3, 6, 5, 7, 9 ] }
+        end
         view_all_path { "/lookbook" }
 
-        def value = rows
-
-        def max = 10
       end
 
       class DemoValue < Bali::Widget::ValueBase
@@ -90,12 +91,11 @@ module Bali
         title "Production budget"
         short_title "Budget"
 
-
         view_all_path { "/lookbook" }
 
-        def value = rows * 421_000_000
+        value { rows * 421_000_000 }
 
-        def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
+        display_value { "$#{Bali::Widget.abbreviate(value)}" }
       end
 
       # DECLARES the failure rather than raising to produce it, for the same
@@ -110,7 +110,7 @@ module Bali
         short_title "Low stock"
         supports(*Bali::Widget::SIZES)
 
-        def value = 0
+        value { 0 }
 
         def failed? = true
       end

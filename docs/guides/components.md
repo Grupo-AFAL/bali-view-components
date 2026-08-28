@@ -2534,19 +2534,24 @@ class OverdueTasks < Bali::Widget::TrendBase
   # "Up" is NOT universally good. Overdue tasks up 12% and revenue up 12% are opposite
   # news, so the widget says which direction is good and the card colours from that.
   # Get this wrong and the trend indicator confidently lies.
-  positive_when :down
-  period_label  "vs last week"
-  series_labels { %w[Mon Tue Wed Thu] }
-  series_values { [ 3, 5, 4, 8 ] }
+  trend do |t|
+    t.current  { 8 }
+    t.previous { 4 }
+    t.positive_when :down
+    t.period_label "vs last week"
+  end
+
+  series do |s|
+    s.labels %w[Mon Tue Wed Thu]
+    s.values [ 3, 5, 4, 8 ]
+  end
 
   view_all_path { tasks_path }
 
-  def current  = 8
-  def previous = 4
 end
 ```
 
-`previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
+`t.previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
 nothing to compare against, and the card drops the indicator rather than drawing a flat 0%.
 
 For the ring ladder — progress toward a goal, then how you got there — the ring replaces the
@@ -2556,11 +2561,13 @@ number as the headline at every size:
 class Onboarding < Bali::Widget::ProgressBase
   default_size :large
 
-  goal_label    { "of #{max}" }
-  series_values { [ 2, 4, 3, 6, 7 ] }
+  goal do |g|
+    g.value 7
+    g.max   10
+    g.label { "of #{max}" }
+  end
 
-  def value = 7
-  def max   = 10
+  series { |s| s.values [ 2, 4, 3, 6, 7 ] }
 end
 ```
 

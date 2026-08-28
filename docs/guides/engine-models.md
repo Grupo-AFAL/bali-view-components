@@ -298,10 +298,10 @@ owe:
 
 | Base | The card shows | You implement | You declare |
 |---|---|---|---|
-| `Bali::Widget::ValueBase` | one figure | `value` | `formatted_value` if the number is not the display |
+| `Bali::Widget::ValueBase` | one figure | — | `value`, `display_value` |
 | `Bali::Widget::ListBase` | how many, and which | — | `list`, `row` |
-| `Bali::Widget::TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values` |
-| `Bali::Widget::ProgressBase` | a ring toward a goal | `value`, `max` | `goal_label`, `series_labels`, `series_values` |
+| `Bali::Widget::TrendBase` | a figure and how it moved | — | `trend`, `series` |
+| `Bali::Widget::ProgressBase` | a ring toward a goal | — | `goal`, `series` |
 
 This is single inheritance on purpose: **a widget is exactly one of these.** A class that could
 claim two shapes could claim them inconsistently, and the card would have to ask which one it
@@ -309,8 +309,10 @@ meant. It never asks — `Base` answers every question with a null (`items` is `
 `nil`, `goal` is `nil`), each pattern overrides the ones it actually has, and the card reads
 one uniform interface at every size.
 
-It also means a subclass that forgets an abstract method fails loudly rather than rendering
-half a thing: `TrendBase#current` raises `NotImplementedError` until you write it.
+**Every pattern declares its data rather than defining methods for it.** A widget is a class body
+of declarations; the only methods you write are private helpers two declarations share. A missing
+one fails loudly rather than rendering half a thing — a `TrendBase` with no `t.current` raises
+`NotImplementedError` naming the declaration.
 
 ```ruby
 class LowStockItems < Bali::Widget::ListBase

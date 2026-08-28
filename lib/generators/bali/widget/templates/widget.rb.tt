@@ -21,15 +21,14 @@ class <%= class_name %> < <%= parent_class %>
   # view_all_path { <%= widget_key %>_path }
 
 <% if pattern == 'value' -%>
-  # THE FIGURE. A sum, an average, a ratio — whatever the card shows big.
-  def value
-    raise NotImplementedError, "<%= class_name %>#value"
-  end
+  # THE FIGURE. A sum, an average, a ratio — whatever the card shows big. The
+  # block runs against the widget, so it reaches `context` and private methods.
+  value { raise NotImplementedError, "<%= class_name %> must declare a `value`" }
 
   # Only when the number is not the display. A ~215px tile fits four to six
   # characters, so `Bali::Widget.abbreviate` is usually part of the answer.
   #
-  # def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
+  # display_value { "$#{Bali::Widget.abbreviate(value)}" }
 <% elsif pattern == 'list' -%>
   # THE COLLECTION: `count` is the whole of it, and the preview rows are the
   # first `limit` of it. ORDER IT — Bali applies the limit after this block
@@ -64,45 +63,46 @@ class <%= class_name %> < <%= parent_class %>
     # r.href { |record| record_path(record) }
   end
 <% elsif pattern == 'trend' -%>
-  # THE FIGURE, and what it is compared against. The base computes the delta.
-  def current
-    raise NotImplementedError, "<%= class_name %>#current"
-  end
-
-  # Return NIL when there is nothing to compare to — a widget's first week has no
-  # previous period, and the trend is then ABSENT rather than zero.
-  def previous
-    raise NotImplementedError, "<%= class_name %>#previous"
-  end
-
-  # `:up` unless you say otherwise. A widget counting something BAD — overdue
-  # work, low stock — declares `positive_when :down`, and a rising number then
-  # reads red. Getting this wrong makes the card lie confidently.
+  # THE FIGURE, what it is compared against, and how the movement reads. The base
+  # computes the delta between the two.
   #
-  # positive_when :down
-  period_label "vs previous period"
+  # `t.previous` returning NIL means the trend is ABSENT rather than zero — a
+  # widget's first week has nothing to compare against, and the card drops the
+  # indicator rather than drawing a flat 0%.
+  #
+  # `t.positive_when` is `:up` unless you say otherwise: a widget counting
+  # something BAD — overdue work, low stock — says `:down`, and a rising number
+  # then reads red. Getting this wrong makes the card lie confidently, which is
+  # why it is declared rather than guessed.
+  trend do |t|
+    t.current { raise NotImplementedError, "<%= class_name %> must declare `t.current`" }
+    t.previous { nil }
+    # t.positive_when :down
+    t.period_label "vs previous period"
+  end
 
   # The history behind the fact: a sparkline at `medium`, an axed chart at
-  # `large`. Both blocks run against the widget, so they can share one query
-  # through a memoised private method.
-  series_labels { [] }
-  series_values { [] }
+  # `large`. Blocks run against the widget, so both can share one query through a
+  # memoised private method. Omit `series` entirely and the card draws no chart.
+  series do |s|
+    s.labels { [] }
+    s.values { [] }
+  end
 <% elsif pattern == 'progress' -%>
   # HOW FAR ALONG. The ring REPLACES the number as the headline, which is what
   # makes this a pattern rather than a list with a decoration.
-  def value
-    raise NotImplementedError, "<%= class_name %>#value"
+  #
+  # `g.max` defaults to 100, so a widget whose figure is already a percentage
+  # declares `g.value` alone. `g.label` runs against the widget, so it can read
+  # the resolved `max`.
+  goal do |g|
+    g.value { raise NotImplementedError, "<%= class_name %> must declare `g.value`" }
+    # g.max { Thing.count }
+    g.label { "of #{max}" }
   end
 
-  # What counts as done. Defaults to 100, so a widget whose figure is already a
-  # percentage implements `value` alone.
-  #
-  # def max = 100
-
-  goal_label { "of #{max}" }
-
-  # How you got there. Omit both and the ring stands alone.
-  series_values { [] }
+  # How you got there. Omit `series` entirely and the ring stands alone.
+  series { |s| s.values { [] } }
 <% end -%>
 end
 <% end -%>

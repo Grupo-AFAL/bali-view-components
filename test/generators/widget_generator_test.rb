@@ -44,11 +44,11 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     run_generator %w[Trending --pattern trend --size medium]
 
     assert_file "app/widgets/trending.rb" do |content|
-      assert_match(/def current/, content)
-      assert_match(/def previous/, content)
-      assert_match(/series_values/, content)
+      assert_match(/^  trend do \|t\|/, content)
+      assert_match(/t\.current/, content)
+      assert_match(/^  series do \|s\|/, content)
       assert_no_match(/^  list/, content)
-      assert_no_match(/goal_label/, content)
+      assert_no_match(/^  goal /, content)
     end
   end
 
@@ -57,8 +57,8 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/widgets/onboarding.rb" do |content|
       assert_match(/class Onboarding < Bali::Widget::ProgressBase/, content)
-      assert_match(/goal_label/, content)
-      assert_no_match(/def current/, content)
+      assert_match(/^  goal do \|g\|/, content)
+      assert_no_match(/^  trend do/, content)
     end
   end
 
@@ -69,7 +69,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     run_generator %w[Budget --pattern value --size small]
 
     assert_file "app/widgets/budget.rb" do |content|
-      assert_match(/def value/, content)
+      assert_match(/^  value \{/, content)
       assert_no_match(/^  list/, content)
       assert_no_match(/supports/, content)
     end

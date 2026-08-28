@@ -12,7 +12,7 @@ module DemoWidgets
   class UnavailableFeed < Bali::Widget::ValueBase
     default_size :small
 
-    def value = 0
+    value { 0 }
 
     def failed? = true
   end

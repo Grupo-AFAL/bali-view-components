@@ -20,24 +20,28 @@ class BaliWidgetComponentTest < ComponentTestCase
   def value_widget(size: :small, value: 2, **overrides)
     build(Bali::Widget::ValueBase, size, **overrides) do
       supports(*Bali::Widget::SIZES)
-      define_method(:value) { value }
+      value { value }
     end
   end
 
   def trend_widget(size: :medium, current: 12, previous: 6, series: [ 1, 4, 2 ], **overrides)
     build(Bali::Widget::TrendBase, size, **overrides) do
-      series_values { series } if series
-      define_method(:current) { current }
-      define_method(:previous) { previous }
+      trend do |t|
+        t.current current
+        t.previous previous
+      end
+      series { |s| s.values series } if series
     end
   end
 
   def progress_widget(size: :large, series: [ 3, 4 ], **overrides)
     build(Bali::Widget::ProgressBase, size, **overrides) do
-      goal_label { "of 10" }
-      series_values { series } if series
-      def value = 7
-      def max = 10
+      goal do |g|
+        g.value 7
+        g.max 10
+        g.label "of 10"
+      end
+      series { |s| s.values series } if series
     end
   end
 
@@ -165,7 +169,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     failing = Class.new(Bali::Widget::ValueBase) do
       def self.key = "stock"
       supports(*Bali::Widget::SIZES)
-      def value = raise("upstream is down")
+      value { raise("upstream is down") }
     end
 
     swallowing_load_errors do
@@ -211,9 +215,8 @@ class BaliWidgetComponentTest < ComponentTestCase
   def test_a_late_failure_still_finds_a_region_to_apologise_in
     late = Class.new(Bali::Widget::TrendBase) do
       def self.key = "stock"
-      series_values { raise "history is down" }
-      def current = 12
-      def previous = 6
+      series { |s| s.values { raise "history is down" } }
+      trend { |t| t.current 12; t.previous 6 }
     end
 
     swallowing_load_errors do
@@ -385,7 +388,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   # A radiogroup with one option is not a choice — and `ValueBase` supports one
   # size by default, which is the class's whole point.
   def test_a_widget_with_one_size_gets_no_picker_at_all
-    fixed = Class.new(Bali::Widget::ValueBase) { def self.key = "stock"; def value = 1 }
+    fixed = Class.new(Bali::Widget::ValueBase) { def self.key = "stock"; value { 1 } }
 
     render_inline(Bali::Widget::Component.new(fixed.new))
 

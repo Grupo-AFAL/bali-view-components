@@ -13,19 +13,21 @@ module DemoWidgets
 
     WEEKS = 6
 
-    positive_when :down
-    period_label "vs next month"
+    # A month-wide window rather than a week: the weekly buckets the series draws
+    # are ones and twos, where one task moving swings the percentage wildly, and a
+    # trend computed off noise is worse than no trend.
+    trend do |t|
+      t.current { upcoming.count { |task| task.due_date <= Date.current + 30 } }
+      t.previous do
+        upcoming.count { |task| task.due_date > Date.current + 30 && task.due_date <= Date.current + 60 }
+      end
+      t.positive_when :down
+      t.period_label "vs next month"
+    end
 
-    series_labels { by_week.keys }
-    series_values { by_week.values }
-
-    # A month-wide window rather than a week: the weekly buckets here are ones and
-    # twos, where one task moving swings the percentage wildly, and a trend
-    # computed off noise is worse than no trend.
-    def current = upcoming.count { |task| task.due_date <= Date.current + 30 }
-
-    def previous
-      upcoming.count { |t| t.due_date > Date.current + 30 && t.due_date <= Date.current + 60 }
+    series do |s|
+      s.labels { by_week.keys }
+      s.values { by_week.values }
     end
 
     private
