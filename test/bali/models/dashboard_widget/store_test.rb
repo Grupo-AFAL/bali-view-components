@@ -58,13 +58,14 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal [ "alpha" ], store.widgets.map(&:key)
   end
 
-  # THE SHAPE A CONTROLLER HAS. Strings out of `params`, with no lookup done —
-  # that lookup is the offering gate, and it belongs on this side of it.
-  def test_arrange_takes_key_and_size_pairs
+  # THE SHAPE A CONTROLLER HAS — `params.expect(widgets: [[:key, :size]])`
+  # verbatim, with no lookup done. That lookup is the offering gate, and it
+  # belongs on this side of it.
+  def test_arrange_takes_key_and_size_hashes
     store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
                                              offering: [ ALPHA.new, CHARLIE.new ])
 
-    store.arrange([ [ "charlie", "large" ], [ "alpha", nil ] ])
+    store.arrange([ { key: "charlie", size: "large" }, { key: "alpha", size: nil } ])
 
     assert_equal [ "charlie", "alpha" ], store.stored_keys
     assert_equal [ [ "charlie", "large" ], [ "alpha", "small" ] ],
@@ -74,12 +75,36 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   # An unauthorized, retired or hand-edited key finds nothing in the offering
   # and is dropped — which is the whole reason a controller may hand this raw
   # strings in the first place.
-  def test_arrange_drops_a_pair_whose_key_is_not_offered
+  def test_arrange_drops_an_item_whose_key_is_not_offered
     store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
 
-    store.arrange([ [ "payroll", "large" ], [ "alpha", "small" ] ])
+    store.arrange([ { key: "payroll", size: "large" }, { key: "alpha", size: "small" } ])
 
     assert_equal [ "alpha" ], store.stored_keys
+  end
+
+  # STRING KEYS TOO. `ActionController::Parameters` is indifferent, but a layout
+  # rebuilt from parsed JSON or a CSV import is not — and reading `item[:key]`
+  # off one would give nil for every row, drop every widget, and leave `arrange`
+  # reading the empty result as a RESET. Silent total data loss, from a hash
+  # spelled the other way.
+  def test_arrange_reads_string_keyed_items
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, CHARLIE.new ])
+
+    store.arrange([ { "key" => "charlie", "size" => "large" }, { "key" => "alpha" } ])
+
+    assert_equal [ "charlie", "alpha" ], store.stored_keys
+    assert_equal [ "large", "small" ], store.widgets.map { |placement| placement.size.to_s }
+  end
+
+  # An unpermitted `Parameters` is the same mistake made loudly, rather than a
+  # `to_h` that quietly returns something usable.
+  def test_arrange_refuses_unpermitted_parameters
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
+    unpermitted = ActionController::Parameters.new(widgets: [ { key: "alpha", size: "small" } ])[:widgets]
+
+    assert_raises(ActionController::UnfilteredParameters) { store.arrange(unpermitted) }
   end
 
   # A READ ROUND-TRIPS. `#widgets` hands back placements and this takes them,
@@ -87,7 +112,7 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
   def test_arrange_takes_the_placements_widgets_returned
     store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
                                              offering: [ ALPHA.new, CHARLIE.new ])
-    store.arrange([ [ "alpha", "small" ], [ "charlie", "large" ] ])
+    store.arrange([ { key: "alpha", size: "small" }, { key: "charlie", size: "large" } ])
 
     store.arrange(store.widgets.reverse)
 

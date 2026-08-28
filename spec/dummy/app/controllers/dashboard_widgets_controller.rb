@@ -78,10 +78,10 @@ class DashboardWidgetsController < ApplicationController
     store.widgets.find { |placement| placement.key == key }
   end
 
-  # JUST THE WIRE FORMAT. No lookup, no `Placement`, no offering: `arrange`
-  # resolves these strings against the offering itself and drops anything it
-  # cannot find, which is the boundary. All a host owns is the shape of its own
-  # params.
+  # JUST THE WIRE FORMAT, handed over as-is. No lookup, no `Placement`, no
+  # offering, and nothing to unpack: `arrange` takes `{ key:, size: }` items,
+  # resolves them against the offering itself, and drops anything it cannot
+  # find. All a host owns is the shape of its own params.
   #
   # The `blank?` guard runs BEFORE `expect`, deliberately: `expect` raises
   # `ParameterMissing` — a 400 — on an omitted `widgets` key AND on an empty
@@ -96,7 +96,7 @@ class DashboardWidgetsController < ApplicationController
   def submitted_layout
     return [] if params[:widgets].blank?
 
-    params.expect(widgets: [ [ :key, :size ] ]).map { |item| [ item[:key], item[:size] ] }
+    params.expect(widgets: [ [ :key, :size ] ])
   end
 
   # The picker submits membership, not an arrangement — `Store#choose` decides

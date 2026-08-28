@@ -156,7 +156,7 @@ module Bali
           # which is the narrower set. A widget that is authorized but was
           # never offered here passes the gate above and is dropped by that
           # one — and the instance that gets stored comes from one place.
-          arrange((survivors | by_key.keys).map { |key| [ key, stored[key] ] })
+          arrange((survivors | by_key.keys).map { |key| { key: key, size: stored[key] } })
         end
       end
 
@@ -165,17 +165,17 @@ module Bali
       #
       # TAKES EITHER SHAPE, and resolves both against the offering itself:
       #
-      #   store.arrange([[ "low_stock_items", "medium" ], [ "cost_spikes", nil ]])
+      #   store.arrange(params.expect(widgets: [[ :key, :size ]]))
       #   store.arrange(store.widgets)   # `[Placement]`, so a read round-trips
       #
-      # KEYS ARE THE POINT of the first one. A controller has strings from
-      # `params` and nothing else, and until this method took them, every host
-      # had to look each one up in the offering before calling — a `by_key` and
-      # a `Placement.new` in a controller, restated in every app, immediately
-      # ahead of the identical lookup this method does anyway. The offering is
-      # private state here; a caller doing the lookup had to keep its own copy
-      # of it. Now the host supplies the WIRE FORMAT and this supplies the
-      # meaning.
+      # THE FIRST ONE IS THE POINT. A controller has `{ key:, size: }` out of
+      # `params` and nothing else, and until this method took that shape, every
+      # host had to look each key up in the offering before calling — a `by_key`
+      # and a `Placement.new` in a controller, restated in every app,
+      # immediately ahead of the identical lookup this method does anyway. The
+      # offering is private state here; a caller doing the lookup had to keep
+      # its own copy of it. Now the host supplies the WIRE FORMAT and this
+      # supplies the meaning.
       #
       # A key that is not in the offering — unauthorized, retired, or hand-edited
       # into the payload — finds nothing and is DROPPED. Silently, because a role
@@ -251,10 +251,29 @@ module Bali
         by_key = Bali::Widget.by_key(offering)
 
         layout.filter_map do |item|
-          key, size = item.is_a?(Bali::Widget::Placement) ? [ item.key, item.size ] : item
+          key, size = fields_of(item)
           widget = by_key[key.to_s]
           Bali::Widget::Placement.new(widget: widget, size: size.presence) if widget
         end
+      end
+
+      # THROUGH `to_h`, which is doing two jobs beyond reading two fields.
+      #
+      # It makes key access INDIFFERENT, so `{ "key" => … }` out of parsed JSON
+      # or a CSV import works as well as `{ key: … }`. Reading `item[:key]`
+      # directly would return nil for the string-keyed one, and a nil key
+      # resolves to no widget — so every row would be dropped and `arrange`
+      # would read the empty result as a RESET. Silent total data loss is not a
+      # failure mode worth leaving in reach.
+      #
+      # And it makes an UNPERMITTED `ActionController::Parameters` raise
+      # `UnfilteredParameters` rather than quietly working, which is the loud
+      # version of the same mistake. Permitted params are a Hash by then, so
+      # nothing here knows what a controller is.
+      def fields_of(item)
+        return [ item.key, item.size ] if item.is_a?(Bali::Widget::Placement)
+
+        item.to_h.with_indifferent_access.values_at(:key, :size)
       end
 
       # The READ scope. `row_for` below spells the same four columns again on

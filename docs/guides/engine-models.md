@@ -663,12 +663,13 @@ class WidgetLayoutsController < ApplicationController
   # Memoised, so this one copy is what both the filter below and the store see.
   def offering = @offering ||= Widgets::ALL.select(&:authorized?)
 
-  # JUST THE WIRE FORMAT — `[["low_stock_items", "medium"], …]`. No lookup, no
-  # `Placement`, no offering: `arrange` resolves these strings itself.
+  # JUST THE WIRE FORMAT, handed over as-is. No lookup, no `Placement`, no
+  # offering, nothing to unpack: `arrange` takes `{ key:, size: }` items and
+  # resolves them itself.
   def submitted_layout
     return [] if params[:widgets].blank?
 
-    params.expect(widgets: [[:key, :size]]).map { |item| [item[:key], item[:size]] }
+    params.expect(widgets: [[:key, :size]])
   end
 end
 ```
@@ -694,8 +695,13 @@ Two lines of that method are load-bearing, though:
   request that deserves a 400. Nothing here is mass-assigned, so permitting buys no safety;
   the **shape** check is what earns the call.
 
-`arrange` also accepts the `Bali::Widget::Placement`s that `#widgets` returns, so a host that
-reorders what it read can write it straight back — `store.arrange(store.widgets.reverse)`.
+`arrange` reads its items through `to_h`, so string keys work as well as symbols — a layout
+rebuilt from parsed JSON is fine. That also means an **unpermitted** `Parameters` raises
+`ActionController::UnfilteredParameters` instead of quietly working, which is the loud version
+of forgetting to permit.
+
+It also accepts the `Bali::Widget::Placement`s that `#widgets` returns, so a host that reorders
+what it read can write it straight back — `store.arrange(store.widgets.reverse)`.
 
 Two behaviours are not obvious and matter:
 
