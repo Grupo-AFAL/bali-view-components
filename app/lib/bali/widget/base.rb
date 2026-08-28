@@ -93,6 +93,9 @@ module Bali
       # a ring all link somewhere just as a list does.
       class_attribute :_view_all_path, **ATTRIBUTE_OPTIONS
 
+      # The persisted identity. Derived unless a class says otherwise — see `.key`.
+      class_attribute :_key, **ATTRIBUTE_OPTIONS
+
       class << self
         # Validated at class-definition time, so a typo is a boot failure rather
         # than a KeyError the first time someone opens the dashboard.
@@ -130,10 +133,26 @@ module Bali
 
         def supported_sizes = _supported_sizes
 
-        # `Widgets::LowStockItems` -> `"low_stock_items"`, which is also the i18n
-        # scope and the persisted key. One fewer constant to keep in sync.
-        def key
-          @key ||= name.demodulize.underscore
+        # THE PERSISTED IDENTITY, and the i18n scope. `Widgets::LowStockItems` ->
+        # `"low_stock_items"`, so there is one fewer constant to keep in sync.
+        #
+        # DEMODULIZED ON PURPOSE, which means it is not unique by construction:
+        # `Reports::Overdue` and `Tasks::Overdue` derive the same key.
+        # `Bali::Widget.by_key` raises on that rather than letting one silently
+        # win, and the fix is to declare one here:
+        #
+        #   key "reports_overdue"
+        #
+        # NOT namespace-qualified, which would make keys unique for free. Two
+        # reasons: a qualified key is `constantize`-able, and this design's whole
+        # security property is that a submitted key becomes a widget only by
+        # being FOUND in the authorized offering, never by being resolved to a
+        # constant. And a stored key would then break every owner's dashboard the
+        # day a class moved namespace, where today that refactor is free.
+        def key(value = nil)
+          return self._key = value.to_s if value
+
+          _key || @key ||= name.demodulize.underscore
         end
 
         # Read with no argument, set with one. A widget with a single literal

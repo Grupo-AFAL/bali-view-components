@@ -511,7 +511,23 @@ files, under a plain `widgets.<key>.*` scope — deliberately NOT under `bali_vi
 where Bali keeps its own chrome (the Edit/Done labels, the size names, "Couldn't load"). Bali
 ships that chrome in `en` and `es`; the widget's own words are host content and it has none.
 
-The `key` is derived from the class name, so `LowStockItems` reads `widgets.low_stock_items.*`:
+The `key` is derived from the class name **without its namespace**, so `LowStockItems` reads
+`widgets.low_stock_items.*`. That means it is not unique by construction: `Reports::Overdue` and
+`Tasks::Overdue` derive the same key, and Bali raises `Bali::Widget::DuplicateKey` rather than
+letting one silently win. Declare one explicitly to disambiguate:
+
+```ruby
+class Overdue < Bali::Widget::ValueBase
+  key "tasks_overdue"
+end
+```
+
+Keys are deliberately *not* namespace-qualified. A qualified key would be `constantize`-able, and
+this design's security property is that a submitted key becomes a widget only by being found in
+the authorized offering — never by being resolved to a constant. It would also break every stored
+row the day a class moved namespace, where today that refactor is free.
+
+
 
 ```yaml
 en:
@@ -549,11 +565,77 @@ Bali calls it once or twice per request and **does not memoise for you**: its ow
 constant, and a host whose rule is expensive knows that where Bali cannot. Memoise in your own
 hook if it costs something.
 
-**You do not have to call it.** `Store`, `Layout.from` and `Layout.chosen` each gate the
-`offering:` they are handed, so a host that forgets cannot widen the boundary — a widget whose
+**You do not have to call it.** `Store`, `Layout.from`, `Layout.chosen` and `Bali::Widget.find`
+each gate the `offering:` they are handed, so a host that forgets cannot widen the boundary — a widget whose
 `authorized?` is false is not persistable and not renderable, whatever list you pass. Calling it
 yourself is still worth it when you want the authorized set for something else, such as building
 the picker's checkboxes; filtering twice is free.
+
+### The catalogue: resolving a stored key back to its class
+
+A stored row holds a `widget_key` and nothing else, and a key cannot be inverted — it is the class
+name **without** its namespace, so there is nothing to resolve it against. The catalogue is what
+resolves it, and **there is no list to maintain**:
+
+```ruby
+row.widget_class             # => MyApp::Widgets::LowStockItems, or nil if retired
+row.widget_class&.title      # for an admin table or an audit log
+Bali::Widget.class_for(key)  # the same lookup, without a row
+```
+
+**Widgets live in `app/widgets`**, which Rails autoloads like `app/models` — so
+`app/widgets/reports/overdue.rb` is `Reports::Overdue`. Bali reads that directory and takes every
+file whose constant is a `Bali::Widget::Base` subclass. Add a file, and the widget exists.
+
+Discovery reads the *directory*, not `Base.descendants`: descendants is every subclass anywhere,
+including your test fixtures and anything defined in a console. It is ordered by key, because an
+owner who has never customised sees the catalogue's order as their dashboard, and load order
+differs between environments.
+
+Override it for widgets Rails does not autoload — in a gem, an engine, or a conditional set:
+
+```ruby
+Rails.application.config.to_prepare { Bali::Widget.catalogue = [ … ] }
+```
+
+`to_prepare` and not a bare initializer: these are class objects, and Zeitwerk discards them on
+every reload.
+
+**The catalogue is not the offering.** It is everything that exists; the offering is what one
+owner may see, and it is the thing that carries default ORDER. `class_for` returns a CLASS on
+purpose — a class carries no authorization, so this cannot become a way round the gate. Nil for a
+retired widget is a normal answer: rows outlive the widgets that wrote them, which is why
+`widget_key` has no `inclusion` validation.
+
+To *render*, go through the offering — which most apps can now derive from the catalogue:
+
+```ruby
+def self.authorized_for(user)
+  Bali::Widget.authorized_for(Bali::Widget.catalogue.map { |klass| klass.new(user) })
+end
+```
+
+### Rendering one widget on its own
+
+A dashboard is not the only place a card belongs. To render a single one — on a show page, in a
+Turbo frame, in an email — look it up in your offering:
+
+```ruby
+widget = Bali::Widget.find(offering, params[:key])
+render Bali::Widget::Component.new(widget, size: :medium) if widget
+```
+
+`find` gates the offering like every other boundary, so a key the owner cannot see answers `nil`
+rather than rendering — and `nil` rather than raising, because a role revoked between rendering a
+page and following a link should degrade quietly.
+
+Inside an arrangement, ask the store instead — `store.find(key)` returns a `Placement`, so the
+card comes back at the size that owner chose:
+
+```ruby
+placement = store.find(params[:key])
+render Bali::Widget::Component.new(placement.widget, size: placement.size) if placement
+```
 
 ### Constructing a `Store`
 
