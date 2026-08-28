@@ -58,18 +58,20 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal [ "alpha" ], store.widgets.map(&:key)
   end
 
-  # `Layout` gates independently, so neither boundary relies on the other.
-  def test_layout_drops_a_key_the_owner_cannot_see
+  # `choose` gates on its own too, not only `arrange`. A picker submits
+  # membership rather than a layout, so it reaches a different method and would
+  # otherwise be an unguarded second door into the same table.
+  def test_choose_drops_a_widget_the_owner_cannot_see
     hidden = Class.new(Bali::Widget::ValueBase) do
       def self.key = "payroll"
       value { 999 }
       def authorized? = false
     end.new
-    params = { widgets: [ { key: "payroll", size: "small" } ] }.with_indifferent_access
 
-    assert_empty Bali::Widget::Layout.from(params, offering: [ hidden ])
-    assert_empty Bali::Widget::Layout.chosen({ widget_keys: [ "payroll" ] }.with_indifferent_access,
-                                             offering: [ hidden ])
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
+    store.choose([ ALPHA.new, hidden ])
+
+    assert_equal [ "alpha" ], store.stored_keys
   end
 
   # Bali does NOT memoise for a host: the default is a constant, and a host whose

@@ -566,11 +566,11 @@ Bali calls it once or twice per request and **does not memoise for you**: its ow
 constant, and a host whose rule is expensive knows that where Bali cannot. Memoise in your own
 hook if it costs something.
 
-**You do not have to call it.** `Store`, `Layout.from` and `Layout.chosen` each gate the
-`offering:` they are handed, so a host that forgets cannot widen the boundary — a widget whose
-`authorized?` is false is not persistable and not renderable, whatever list you pass. Calling it
-yourself is still worth it when you want the authorized set for something else, such as building
-the picker's checkboxes; filtering twice is free.
+**You do not have to call it.** `Store` gates the `offering:` it is handed — in its
+constructor, and again inside `arrange` and `choose` — so a host that forgets cannot widen the
+boundary: a widget whose `authorized?` is false is not persistable and not renderable, whatever
+list you pass. Calling it yourself is still worth it when you want the authorized set for
+something else, such as building the picker's checkboxes; filtering twice is free.
 
 ### Constructing a `Store`
 
@@ -649,30 +649,52 @@ widgets[][key]=low_stock_items&widgets[][size]=medium&widgets[][key]=cost_spikes
 ```ruby
 class WidgetLayoutsController < ApplicationController
   def update
-    layout.arrange(permitted_layout)
+    store.arrange(permitted_layout)
     head :no_content
   end
 
   private
 
-  def layout
-    Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
-                                     dashboard_key: "today", offering: offering)
+  def store
+    @store ||= Bali::DashboardWidget::Store.new(owner: current_user, context: @tenant.id.to_s,
+                                                dashboard_key: "today", offering: offering)
   end
 
-  # THE BOUNDARY. `Bali::Widget::Layout` does the lookup; you supply the
-  # offering. A submitted key becomes a widget only by being found in the
-  # already-authorized set — an unauthorized, retired or hand-edited key finds
-  # nothing and is dropped rather than rejected, so a role revoked between
-  # render and submit degrades quietly.
-  def permitted_layout = Bali::Widget::Layout.from(params, offering: offering)
+  # Memoised, so this one copy is what both the filter below and the store see.
+  def offering = @offering ||= Widgets::ALL.select(&:authorized?)
+
+  # THE BOUNDARY. A submitted key becomes a widget only by being FOUND in the
+  # already-authorized offering — an unauthorized, retired or hand-edited key
+  # finds nothing and is DROPPED rather than rejected, so a role revoked between
+  # render and submit degrades quietly instead of 422ing.
+  def permitted_layout
+    submitted = params[:widgets]
+    return [] if submitted.blank?
+
+    by_key = Bali::Widget.by_key(offering)
+    submitted.filter_map do |item|
+      widget = by_key[item[:key].to_s]
+      Bali::Widget::Placement.new(widget: widget, size: item[:size].presence) if widget
+    end
+  end
 end
 ```
 
-The `params[:widgets].blank?` guard runs **before** `params.expect`, deliberately:
-`expect` raises `ActionController::ParameterMissing` on both an omitted `widgets` key and
-an empty `widgets: []` — and an empty submission is not an error here, it is the reset
-gesture below.
+Copy that filter as written; two lines of it are load-bearing.
+
+`Bali::Widget.by_key` is what makes the lookup safe **by construction** rather than by
+convention: it is handed the widgets themselves, never a list of permitted keys to check
+against, so there is no call to forget. It re-gates on `authorized?` as it goes, so passing
+an already-filtered offering costs nothing.
+
+The `params[:widgets].blank?` guard runs **before** any parsing, deliberately: `params.expect`
+raises `ActionController::ParameterMissing` — a **400** — on both an omitted `widgets` key and
+an empty `widgets: []`, and only one of those is an error. Removing the last card submits
+nothing at all, and that is the reset gesture below, not a malformed request.
+
+`Store#arrange` gates against the offering again on its own, since it is the primitive you can
+reach directly from params. The filter above is the outer of two independent boundaries, not
+the only one.
 
 Two behaviours are not obvious and matter:
 

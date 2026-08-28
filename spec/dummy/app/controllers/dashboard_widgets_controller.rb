@@ -8,7 +8,7 @@
 # keeps CSRF protection on, like any host would.
 class DashboardWidgetsController < ApplicationController
   def index
-    @layout = layout
+    @store = store
   end
 
   # A resize changes the card's SHAPE, and the card's interior is server-rendered
@@ -20,7 +20,7 @@ class DashboardWidgetsController < ApplicationController
   # Every other gesture still answers 204: reorder and remove change position, not
   # shape, and the DOM the browser already has is correct.
   def update
-    layout.arrange(permitted_layout)
+    store.arrange(permitted_layout)
 
     resized = resized_widget
     return head :no_content unless resized
@@ -31,36 +31,39 @@ class DashboardWidgetsController < ApplicationController
     )
   end
 
-  # The picker: EVERY authorized widget, not just the chosen ones — `layout`
+  # The picker: EVERY authorized widget, not just the chosen ones — `store`
   # only reads what's already stored, and `offering` is what the picker's
-  # checkboxes have to be built from instead. `Layout#offering` is private on
+  # checkboxes have to be built from instead. `Store#offering` is private on
   # purpose (see its own comments), so the controller hands the view its own
   # copy rather than reaching around that boundary.
   def picker
-    @layout = layout
+    @store = store
     @offering = offering
   end
 
   def update_picker
-    layout.choose(permitted_widgets)
+    store.choose(permitted_widgets)
     redirect_to dashboard_widgets_path, notice: t('.success')
   end
 
   def reset
-    layout.reset
+    store.reset
     redirect_to dashboard_widgets_path, notice: t('.success')
   end
 
   private
 
-  def layout
-    @layout ||= Bali::DashboardWidget::Store.new(
+  def store
+    @store ||= Bali::DashboardWidget::Store.new(
       owner: current_user,
       dashboard_key: "demo",
       offering: offering
     )
   end
 
+  # MEMOISED, and both `permitted_layout` and `store` read this one copy. Two
+  # calls to `authorized_for` could disagree if a flag flipped between them,
+  # and a key that passed the params filter would then vanish in the store.
   def offering
     @offering ||= DemoWidgets.authorized_for(current_user)
   end
@@ -72,16 +75,38 @@ class DashboardWidgetsController < ApplicationController
     key = params[:resized_key].presence
     return if key.nil?
 
-    layout.widgets.find { |placement| placement.key == key }
+    store.widgets.find { |placement| placement.key == key }
   end
 
-  # THE BOUNDARY, both halves, and both of them library code now:
-  # `Bali::Widget::Layout` does the lookup and this supplies the offering. A
-  # submitted key becomes a widget only by being found in the already-authorized
-  # set — an unauthorized, retired or hand-edited key finds nothing and is
-  # dropped. That is the design's entire security property, and it used to be a
-  # dozen lines every host retyped out of a guide.
-  def permitted_layout = Bali::Widget::Layout.from(params, offering: offering)
+  # THE BOUNDARY. A submitted key becomes a widget only by being FOUND in the
+  # already-authorized offering: an unauthorized, retired or hand-edited key
+  # finds nothing and is DROPPED rather than rejected. Silently, because a role
+  # revoked between rendering the page and submitting it should degrade quietly,
+  # and because refusing a made-up key would confirm which keys are real.
+  #
+  # `Store#arrange` gates against the offering again on its own — it is the
+  # primitive a controller can reach directly — so this is the outer of two
+  # independent boundaries rather than the only one.
+  #
+  # The `blank?` guard runs BEFORE any parsing, deliberately: `params.expect`
+  # raises `ParameterMissing` on both an omitted `widgets` key AND an empty
+  # `widgets: []`, and only one of those is an error. Removing the last card
+  # submits nothing at all, which is the RESET gesture — 400ing there is a bug.
+  def permitted_layout
+    submitted = params[:widgets]
+    return [] if submitted.blank?
 
-  def permitted_widgets = Bali::Widget::Layout.chosen(params, offering: offering)
+    by_key = Bali::Widget.by_key(offering)
+    submitted.filter_map do |item|
+      widget = by_key[item[:key].to_s]
+      Bali::Widget::Placement.new(widget: widget, size: item[:size].presence) if widget
+    end
+  end
+
+  # The picker's payload. Membership only — `Store#choose` decides order and
+  # preserves stored sizes, so no `Placement` here.
+  def permitted_widgets
+    by_key = Bali::Widget.by_key(offering)
+    Array(params[:widget_keys]).filter_map { |key| by_key[key.to_s] }
+  end
 end

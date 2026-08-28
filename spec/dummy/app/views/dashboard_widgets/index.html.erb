@@ -11,7 +11,7 @@
         url: dashboard_widgets_path, add_path: dashboard_widgets_picker_path) do |grid| %>
     <%# A PLACEMENT is a widget at a size — the arrangement's own pairing, which
         the card is told rather than the widget carrying. %>
-    <% @layout.widgets.each do |placement| %>
+    <% @store.widgets.each do |placement| %>
       <% grid.with_widget(placement.widget, size: placement.size) %>
     <% end %>
   <% end %>

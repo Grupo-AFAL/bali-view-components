@@ -1,5 +1,5 @@
 <%# Every AUTHORIZED widget (`@offering`), not just the ones currently on the
-    dashboard (`@layout.visible_keys`) — that is what makes this a picker
+    dashboard (`@store.visible_keys`) — that is what makes this a picker
     rather than just the grid's own arrangement. Submitting writes membership
     through `Layout#choose`, which appends a re-added widget at the end and
     keeps a survivor's stored size — see the controller and
@@ -15,7 +15,7 @@
     <%= form_with url: dashboard_widgets_picker_path, method: :patch do |f| %>
       <%= render Bali::List::Component.new do |list| %>
         <% @offering.each do |widget| %>
-          <% checked = @layout.visible_keys.include?(widget.key) %>
+          <% checked = @store.visible_keys.include?(widget.key) %>
           <% list.with_item do |item| %>
             <% item.with_title do %>
               <%= label_tag "widget_#{widget.key}",
@@ -41,7 +41,7 @@
     <% end %>
   <% end %>
 
-  <% if @layout.customized? %>
+  <% if @store.customized? %>
     <div class="flex justify-end mt-4">
       <%= form_with url: reset_dashboard_widgets_path, method: :delete,
             data: { turbo_confirm: t('.restore_confirm') } do %>

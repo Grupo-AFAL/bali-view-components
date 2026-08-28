@@ -206,11 +206,11 @@ module Bali
       #
       #   def authorized? = context.has_any_role?(:finance)
       #
-      # NOT `authorized?`, which is what this was called and which named the wrong
-      # thing. Three boundaries ask this — `Store`, `Layout.from` and
-      # `Layout.chosen` — and none of them is asking "should this be on screen".
-      # They are asking whether the widget may be persisted, offered and
-      # rendered at all. A host reading `authorized?` could reasonably write a
+      # NOT `visible?`, which is what this was called and which named the wrong
+      # thing. Every boundary that asks — the `Store` constructor, `arrange`,
+      # `choose`, and a host's own params filter — is asking whether the widget
+      # may be persisted, offered and rendered AT ALL, not whether it should be
+      # on screen right now. A host reading `visible?` could reasonably write a
       # presentation condition into it and be surprised that it also governs
       # what the database will accept.
       #

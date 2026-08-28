@@ -198,8 +198,8 @@ module Bali
 
           # And gated against the offering, for the same reason as the dedupe
           # above: `arrange` is the primitive a host can reach directly, so it
-          # holds its own invariants rather than trusting a caller to have used
-          # `Layout.from`. The offering is already authorized by the constructor,
+          # holds its own invariants rather than trusting a caller to have
+          # filtered. The offering is already authorized by the constructor,
           # so a widget the owner cannot see finds no key here and is dropped —
           # silently, like every other unauthorized key, because a role revoked
           # between render and submit should degrade rather than 422.

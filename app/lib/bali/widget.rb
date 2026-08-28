@@ -86,9 +86,10 @@ module Bali
       # host's `authorized?` costs — never a widget query.
       #
       # IDEMPOTENT, deliberately: every boundary that takes an `offering:` runs
-      # this on what it is handed — `Store`, `Layout.from`, `Layout.chosen` — so
-      # a host that filters first pays only for the extra predicate calls, and
-      # one that forgets cannot widen the boundary.
+      # this on what it is handed — the `Store` constructor, `arrange`, `choose`
+      # and every host controller filtering params — so a host that filters
+      # first pays only for the extra predicate calls, and one that forgets
+      # cannot widen the boundary.
       def authorized_for(widgets)
         widgets.select(&:authorized?)
       end
