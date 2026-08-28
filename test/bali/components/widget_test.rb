@@ -60,6 +60,16 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   # The card is TOLD which size to draw. `build` sets `default_size` to match, so
   # a helper's `size:` reaches both the component and anything asking the class.
+  # `Rails.env` rather than a switch on `Bali::Widget`: the boundary reads the
+  # environment directly, so this is the only way to see what a developer sees.
+  def in_development
+    original = Rails.env
+    Rails.env = "development"
+    yield
+  ensure
+    Rails.env = original
+  end
+
   def card(widget, size: nil, **options)
     Bali::Widget::Component.new(widget, size: size || widget.class.default_size, **options)
   end
@@ -162,18 +172,39 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   # ---- the error boundary --------------------------------------------------
 
-  # A DELIBERATELY unavailable widget degrades even in development, where a
-  # plain exception is re-raised. "My source is down" is a fact a host reports,
-  # not a bug a developer can fix from a stack trace.
-  def test_an_unavailable_widget_degrades_without_raising
-    assert Bali::Widget.raise_load_errors?, "the safety net is off in test, so this proves the difference"
-
+  # THE ONE DISTINCTION THE BOUNDARY DRAWS, and it is only observable in
+  # development: everywhere else both cases degrade. A plain exception is a BUG
+  # and is re-raised where someone can fix it; `Unavailable` is a host saying
+  # "my source is down", which is a fact rather than a bug and gives a developer
+  # nothing to act on from a stack trace.
+  def test_only_a_bug_is_re_raised_in_development
+    broken = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "stock"
+      value { raise "upstream blew up" }
+    end
     unavailable = Class.new(Bali::Widget::ValueBase) do
       def self.key = "stock"
       value { raise Bali::Widget::Unavailable, "the feed is down" }
     end
 
-    render_inline(card(unavailable.new))
+    in_development do
+      assert_raises(RuntimeError) { render_inline(card(broken.new)) }
+
+      render_inline(card(unavailable.new))
+      assert_text "Couldn't load"
+    end
+  end
+
+  # And outside development BOTH degrade, because the person looking at the
+  # dashboard cannot fix either one and the other tiles are still worth
+  # rendering.
+  def test_everywhere_else_both_degrade
+    broken = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "stock"
+      value { raise "upstream blew up" }
+    end
+
+    render_inline(card(broken.new))
 
     assert_text "Couldn't load"
   end
@@ -232,13 +263,11 @@ class BaliWidgetComponentTest < ComponentTestCase
       value { raise("upstream is down") }
     end
 
-    swallowing_load_errors do
-      Bali::Widget::SIZES.each do |size|
-        render_inline(card(failing.new, size: size))
+    Bali::Widget::SIZES.each do |size|
+      render_inline(card(failing.new, size: size))
 
-        assert_text "Couldn't load", count: 1
-        refute_selector ".stat-value"
-      end
+      assert_text "Couldn't load", count: 1
+      refute_selector ".stat-value"
     end
   end
 
@@ -259,12 +288,10 @@ class BaliWidgetComponentTest < ComponentTestCase
       list { Struct.new(:rows) { def limit(n) = [ :a, :b ].first(n) }.new([]) }
     end
 
-    swallowing_load_errors do
-      render_inline(card(half_broken.new, size: :large))
+    render_inline(card(half_broken.new, size: :large))
 
-      assert_text "Couldn't load"
-      refute_selector "ul.list li"
-    end
+    assert_text "Couldn't load"
+    refute_selector "ul.list li"
   end
 
   # A FAILURE ANYWHERE IN THE RENDER degrades the whole tile, whenever it
@@ -282,13 +309,11 @@ class BaliWidgetComponentTest < ComponentTestCase
       trend { |t| t.current 12; t.previous 6 }
     end
 
-    swallowing_load_errors do
-      render_inline(card(late.new, size: :large))
+    render_inline(card(late.new, size: :large))
 
-      assert_text "Couldn't load", count: 1
-      assert_no_selector "canvas.chart", visible: :all
-      assert_no_selector "h5"
-    end
+    assert_text "Couldn't load", count: 1
+    assert_no_selector "canvas.chart", visible: :all
+    assert_no_selector "h5"
   end
 
   # THE `:small` HOLE. A widget missing a required declaration used to render a
@@ -318,14 +343,12 @@ class BaliWidgetComponentTest < ComponentTestCase
       list { Studio.all }
     end
 
-    swallowing_load_errors do
-      [ missing_current, missing_value, missing_row ].each do |klass|
-        Bali::Widget::SIZES.each do |size|
-          render_inline(card(klass.new, size: size))
+    [ missing_current, missing_value, missing_row ].each do |klass|
+      Bali::Widget::SIZES.each do |size|
+        render_inline(card(klass.new, size: size))
 
-          assert_text "Couldn't load", count: 1
-          refute_selector ".stat-value", text: "0"
-        end
+        assert_text "Couldn't load", count: 1
+        refute_selector ".stat-value", text: "0"
       end
     end
   end
@@ -348,13 +371,11 @@ class BaliWidgetComponentTest < ComponentTestCase
       trend { |t| t.current 5; t.previous { raise "previous is down" } }
     end
 
-    swallowing_load_errors do
-      [ broken_max, broken_previous ].each do |klass|
-        Bali::Widget::SIZES.each do |size|
-          render_inline(card(klass.new, size: size))
+    [ broken_max, broken_previous ].each do |klass|
+      Bali::Widget::SIZES.each do |size|
+        render_inline(card(klass.new, size: size))
 
-          assert_text "Couldn't load", count: 1
-        end
+        assert_text "Couldn't load", count: 1
       end
     end
   end
@@ -516,15 +537,4 @@ class BaliWidgetComponentTest < ComponentTestCase
   end
 
   private
-
-  # `raise_load_errors?` is a method rather than a constant precisely so a test
-  # can swap it: the safety net is OFF in development, so a test that wants to
-  # see the degraded card has to ask for production's behaviour.
-  def swallowing_load_errors
-    original = Bali::Widget.method(:raise_load_errors?)
-    Bali::Widget.define_singleton_method(:raise_load_errors?) { false }
-    yield
-  ensure
-    Bali::Widget.define_singleton_method(:raise_load_errors?, original)
-  end
 end

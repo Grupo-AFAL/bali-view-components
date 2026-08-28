@@ -105,7 +105,7 @@ module Bali
       # `Placement` resolves a nil or retired stored size to the widget's
       # default, so a row predating the size column still renders.
       def widgets
-        by_key = offering.index_by(&:key)
+        by_key = Bali::Widget.by_key(offering)
         chosen = rows.ordered.pluck(:widget_key, :size).filter_map do |key, size|
           widget = by_key[key]
           Bali::Widget::Placement.new(widget: widget, size: size) if widget
@@ -141,7 +141,9 @@ module Bali
       #
       # Takes WIDGETS, not keys — see `arrange`.
       def choose(widgets)
-        by_key = widgets.index_by(&:key)
+        # Through `Bali::Widget.by_key` like every other path: it gates what it
+        # is handed, and refuses a set where two widgets share a key.
+        by_key = Bali::Widget.by_key(widgets)
 
         rows.transaction do
           # One query for both the stored order and the stored sizes, rather
@@ -201,7 +203,7 @@ module Bali
           # so a widget the owner cannot see finds no key here and is dropped —
           # silently, like every other unauthorized key, because a role revoked
           # between render and submit should degrade rather than 422.
-          offered = offering.index_by(&:key)
+          offered = Bali::Widget.by_key(offering)
           deduped = deduped.select { |placement| offered.key?(placement.key) }
 
           next if deduped.empty?

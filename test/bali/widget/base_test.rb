@@ -130,6 +130,54 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     assert_equal "A very long title", klass.short_title
   end
 
+  # ---- keys ----------------------------------------------------------------
+
+  # A key is the class name WITHOUT its namespace, so it is not unique by
+  # construction. Silently keeping the last would drop a widget from the picker
+  # AND render the survivor's data under the other's stored rows — a
+  # data-integrity bug wearing a display bug's clothes.
+  def test_two_classes_sharing_a_key_is_loud
+    first = Class.new(Bali::Widget::ValueBase) { def self.name = "Reports::Overdue"; value { 1 } }
+    second = Class.new(Bali::Widget::ValueBase) { def self.name = "Tasks::Overdue"; value { 2 } }
+
+    error = assert_raises(Bali::Widget::DuplicateKey) do
+      Bali::Widget.by_key([ first.new, second.new ])
+    end
+
+    assert_match(/share the key "overdue"/, error.message)
+    assert_match(/Reports::Overdue, Tasks::Overdue/, error.message, "the message must name the classes")
+    assert_match(/key "something_else"/, error.message, "and the fix")
+  end
+
+  # TWO DIFFERENT CLASSES, not the same one twice. A repeated key is an ordinary
+  # submission — a picker can send one, and `Store#choose` dedupes it by design.
+  def test_the_same_widget_twice_is_not_a_collision
+    klass = Class.new(Bali::Widget::ValueBase) { def self.name = "Reports::Overdue"; value { 1 } }
+
+    assert_equal [ "overdue" ], Bali::Widget.by_key([ klass.new, klass.new ]).keys
+  end
+
+  # The fix, and the reason a key is a declaration rather than only a derivation.
+  def test_a_class_can_declare_its_own_key
+    klass = Class.new(Bali::Widget::ValueBase) do
+      def self.name = "Tasks::Overdue"
+      key "tasks_overdue"
+      value { 1 }
+    end
+
+    assert_equal "tasks_overdue", klass.key
+    assert_equal "tasks_overdue", klass.new.key
+  end
+
+  # NOT namespace-qualified, deliberately: a qualified key would be
+  # `constantize`-able, and a submitted key must become a widget only by being
+  # found in the authorized offering.
+  def test_a_derived_key_drops_the_namespace
+    klass = Class.new(Bali::Widget::ValueBase) { def self.name = "Deeply::Nested::LowStockItems"; value { 1 } }
+
+    assert_equal "low_stock_items", klass.key
+  end
+
   # ---- authorization -------------------------------------------------------
 
   def test_authorized_defaults_to_true_and_is_the_hosts_to_override

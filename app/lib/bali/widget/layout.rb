@@ -37,7 +37,7 @@ module Bali
           submitted = params[:widgets]
           return [] if submitted.blank?
 
-          by_key = Bali::Widget.authorized_for(offering).index_by(&:key)
+          by_key = Bali::Widget.by_key(offering)
           submitted.filter_map do |item|
             widget = by_key[item[:key].to_s]
             Bali::Widget::Placement.new(widget: widget, size: item[:size].presence) if widget
@@ -47,7 +47,7 @@ module Bali
         # The widgets for `Store#choose`, from a picker's `widget_keys[]`.
         # Membership only — `choose` decides order and preserves stored sizes.
         def chosen(params, offering:, key: :widget_keys)
-          by_key = Bali::Widget.authorized_for(offering).index_by(&:key)
+          by_key = Bali::Widget.by_key(offering)
           Array(params[key]).filter_map { |submitted| by_key[submitted.to_s] }
         end
       end

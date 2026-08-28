@@ -197,7 +197,7 @@ module Bali
         report(e)
         render self.class.degraded(widget)
       rescue StandardError, NotImplementedError => e
-        raise if Bali::Widget.raise_load_errors?
+        raise if Rails.env.development?
 
         report(e)
         render self.class.degraded(widget)

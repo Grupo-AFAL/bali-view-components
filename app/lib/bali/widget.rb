@@ -19,6 +19,23 @@ module Bali
     # production. This is the one a host can throw on purpose.
     Unavailable = Class.new(StandardError)
 
+    # TWO WIDGETS, ONE KEY. A key is the class name without its namespace, so
+    # `Reports::Overdue` and `Tasks::Overdue` collide — and an offering indexed
+    # by key would silently keep the last, dropping a widget from the picker and
+    # rendering the survivor's data under the other's stored rows.
+    #
+    # Loud, because it is a data-integrity bug that looks like a display bug.
+    class DuplicateKey < StandardError
+      def initialize(keys, widgets)
+        classes = widgets.select { |w| keys.include?(w.key) }.map { |w| w.class.name || w.class }.uniq
+        super(
+          "two widgets share the key #{keys.map(&:inspect).join(', ')} — #{classes.join(', ')}. " \
+          "A key is the class name without its namespace, so these collide. " \
+          "Declare one explicitly: `key \"something_else\"`."
+        )
+      end
+    end
+
     # Semantic, not Tailwind — and 2-D, adapted from iOS: `small` is 1x1,
     # `medium` 2x1, `large` 2x2. `large` is `medium`'s WIDTH at double HEIGHT,
     # which is why it earns more rows rather than wider ones.
@@ -65,17 +82,6 @@ module Bali
       # not render a dangling separator.
       def join(*parts) = parts.compact_blank.join(SEPARATOR)
 
-      # Whether a widget whose data read raises should take the request down with
-      # it. True in development and test, so a widget bug is loud where someone
-      # can fix it — this is what keeps `Base#safely` from being the blanket kind
-      # of rescue that turns a bug into a permanent shrug. False in production,
-      # where the person looking at the dashboard cannot fix it and the other
-      # tiles are still worth rendering.
-      #
-      # A method, not a constant: `Rails.env` is read per call, so a test can
-      # stub this without freezing the answer at boot.
-      def raise_load_errors? = Rails.env.local?
-
       # THE GATE. Un-loaded widget instances, so it costs only whatever the
       # host's `authorized?` costs — never a widget query.
       #
@@ -85,6 +91,27 @@ module Bali
       # one that forgets cannot widen the boundary.
       def authorized_for(widgets)
         widgets.select(&:authorized?)
+      end
+
+      # THE AUTHORIZED SET, INDEXED. Every boundary that turns a submitted or
+      # stored key into a widget looks it up HERE — never by checking it against
+      # a permitted list — so an unauthorized, retired or hand-edited key simply
+      # finds nothing. Gated on the way in, like everything that takes an
+      # offering, so a caller cannot widen the boundary by forgetting to filter.
+      #
+      # AND IT REFUSES TO INDEX A COLLISION. Keys are demodulized, so
+      # `Reports::Overdue` and `Tasks::Overdue` derive the same one — and
+      # indexing would silently keep the last, dropping a widget from the picker
+      # and rendering the survivor's data under the other's stored rows.
+      def by_key(widgets)
+        gated = authorized_for(widgets)
+        # TWO DIFFERENT CLASSES, not the same one twice. A repeated key is an
+        # ordinary submission — a picker can send one, and `Store#choose` dedupes
+        # it by design. Only distinct classes colliding is the data-integrity bug.
+        clashing = gated.group_by(&:key).select { |_, group| group.map(&:class).uniq.many? }.keys
+        raise DuplicateKey.new(clashing, gated) if clashing.any?
+
+        gated.index_by(&:key)
       end
     end
   end
