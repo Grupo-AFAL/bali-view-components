@@ -13,11 +13,10 @@ module DemoWidgets
     # description "List of active studios"
     # empty_message "No active studios"
 
-    # list scope: Studio.active, limit: 10, order_by: :name
+    list scope: Studio.active, limit: 10, order_by: :name
     # row_serializer ¿?
     # view_all_path
 
-    order_by :name
     row_title :name
     row_subtitle { |studio| subtitle(studio.country, studio.size&.humanize) }
     row_href { |studio| admin_studio_path(studio) }
@@ -25,7 +24,5 @@ module DemoWidgets
 
     # Costs one `EXISTS` — never a widget query.
     def visible? = Studio.active.exists?
-
-    def scope = Studio.active
   end
 end

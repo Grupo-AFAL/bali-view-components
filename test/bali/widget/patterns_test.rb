@@ -27,7 +27,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_a_list_without_a_row_title_says_so
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "untitled"
-      def scope = Studio.all
+      list { Studio.all }
     end
 
     error = assert_raises(NotImplementedError) { klass.new.items }
@@ -40,7 +40,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
       def self.key = "literal"
       row_title :name
       row_subtitle "In stock"
-      def scope = Studio.where(name: "Flour")
+      list { Studio.where(name: "Flour") }
     end
 
     Studio.create!(name: "Flour")
@@ -82,9 +82,8 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   def test_a_list_answers_count_and_a_capped_preview_from_one_scope
     widget = list_widget do
-      order_by :name
+      list(order_by: :name) { Studio.all }
       row_title :name
-      def scope = Studio.all
     end
 
     assert_equal Studio.count, widget.count
@@ -95,11 +94,10 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # record yielded, so it can reach route helpers and private methods.
   def test_row_fields_take_a_symbol_or_a_block
     widget = list_widget do
-      order_by :name
+      list(order_by: :name) { Studio.all }
       row_title :name
       row_subtitle { |studio| subtitle(studio.country, "studio") }
       row_href { |studio| "/studios/#{studio.id}" }
-      def scope = Studio.all
     end
     row = widget.items.first
 
@@ -113,9 +111,8 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_the_order_is_applied_before_the_preview_is_taken
     9.times { |i| Studio.create!(name: "Zed #{i}", country: "US", status: :active) }
     widget = list_widget do
-      order_by({ name: :desc })
       row_title :name
-      def scope = Studio.all
+      list(order_by: { name: :desc }) { Studio.all }
     end
 
     assert_equal "Zed 8", widget.items.first.title
@@ -125,7 +122,25 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_a_list_without_a_scope_says_so
     error = assert_raises(NotImplementedError) { list_widget { row_title :name }.count }
 
-    assert_match(/must define `#scope`/, error.message)
+    assert_match(/must declare `list`/, error.message)
+  end
+
+  # A class body runs once at boot, so a relation passed by value freezes
+  # whatever it closed over then — `Date.current` is the day the process
+  # started. The block form is re-read per render, which is why it is the one
+  # the docs lead with.
+  def test_a_block_scope_is_re_read_on_every_render
+    reads = 0
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "lazy"
+      row_title :name
+      list { Studio.all }
+    end
+    klass.define_method(:scope) { reads += 1; Studio.all }
+
+    2.times { klass.new.count }
+
+    assert_equal 2, reads
   end
 
   # ---- TrendBase -----------------------------------------------------------

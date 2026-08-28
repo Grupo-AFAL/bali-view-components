@@ -8,11 +8,10 @@ class BaliWidgetComponentTest < ComponentTestCase
   # answering only what it has.
   def list_widget(size: :medium, rows: 2, **overrides)
     build(Bali::Widget::ListBase, size, **overrides) do
-      order_by :name
       row_title :name
       row_subtitle :country
       view_all_path { "/studios" }
-      define_method(:scope) { rows.zero? ? Studio.none : Studio.limit(rows) }
+      list(order_by: :name) { rows.zero? ? Studio.none : Studio.limit(rows) }
     end
   end
 
@@ -189,7 +188,7 @@ class BaliWidgetComponentTest < ComponentTestCase
       # this one succeeds. The rows come from a second read that does not.
       row_title { |_record| raise "row source is down" }
       def count = 12
-      def scope = Struct.new(:rows) { def limit(n) = [ :a, :b ].first(n) }.new([])
+      list { Struct.new(:rows) { def limit(n) = [ :a, :b ].first(n) }.new([]) }
     end
 
     swallowing_load_errors do

@@ -18,6 +18,8 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     assert_file "app/widgets/low_stock_items.rb" do |content|
       assert_match(/class LowStockItems < Bali::Widget::ListBase/, content)
       assert_match(/default_size :medium/, content)
+      assert_match(/^  list\(order_by: :id\) do/, content)
+      assert_match(/^  row_title :name/, content)
     end
   end
 
@@ -36,7 +38,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
   # Each pattern scaffolds exactly the methods ITS base leaves abstract — which
   # is how a developer learns what a trend widget owes the card without reading
   # a guide. A trend needs two figures and the base computes the delta between
-  # them; it has no scope and no rows.
+  # them; it has no list and no rows.
   def test_a_trend_scaffolds_the_two_figures_its_base_compares
     run_generator %w[Trending --pattern trend --size medium]
 
@@ -44,7 +46,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
       assert_match(/def current/, content)
       assert_match(/def previous/, content)
       assert_match(/series_values/, content)
-      assert_no_match(/def scope/, content)
+      assert_no_match(/^  list/, content)
       assert_no_match(/goal_label/, content)
     end
   end
@@ -67,7 +69,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/widgets/budget.rb" do |content|
       assert_match(/def value/, content)
-      assert_no_match(/def scope/, content)
+      assert_no_match(/^  list/, content)
       assert_no_match(/supports/, content)
     end
   end

@@ -6,12 +6,11 @@ module DemoWidgets
 
     default_size :medium
 
-    order_by({ created_at: :desc })
+    list scope: Movie.all, order_by: { created_at: :desc }
+
     row_title :name
     row_subtitle { |movie| subtitle(movie.genre, movie.status.humanize) }
     row_href { |movie| admin_movie_path(movie) }
     view_all_path { admin_movies_path }
-
-    def scope = Movie.all
   end
 end

@@ -26,6 +26,7 @@ module Bali
         empty_message "Nothing running low"
 
 
+        list { FakeScope.new(rows) }
         row_title { |item| item[:title] }
         row_subtitle { |item| item[:subtitle] }
         row_href { |_item| "/lookbook" }
@@ -33,7 +34,7 @@ module Bali
 
         def count = rows
 
-        def scope = FakeScope.new(rows)
+
 
         # A stand-in for a relation: the card only ever asks a scope to count and
         # to hand back a capped preview, so a preview does not need a table.

@@ -271,13 +271,6 @@ module Bali
       rescue StandardError
         self.class.name || "anonymous"
       end
-
-      # Every pattern that reads records declares one. Must arrive ORDERED where
-      # order matters: paging a preview off an unordered relation is a different
-      # bug in every database.
-      def scope
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must define `#scope`."
-      end
     end
   end
 end

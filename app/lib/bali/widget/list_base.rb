@@ -7,12 +7,10 @@ module Bali
     #   class LowStockItems < Bali::Widget::ListBase
     #     default_size :medium
     #
-    #     order_by :name
+    #     list(order_by: :name) { Item.low_stock }
     #     row_title :name
     #     row_subtitle :outlet_name
     #     row_href { |item| item_path(item) }
-    #
-    #     def scope = Item.low_stock
     #   end
     #
     # The declarations are SYMBOLS SENT TO THE RECORD, which is the whole
@@ -21,20 +19,47 @@ module Bali
     # from a helper rather than read off the record, and `row_subtitle` accepts
     # either: a symbol for one attribute, a block when it composes two.
     class ListBase < Base
+      List = Data.define(:scope, :limit, :order_by) do
+        def initialize(scope:, limit: PREVIEW_ROWS, order_by: nil) = super
+      end
+
       Row = Data.define(:title, :subtitle, :href) do
         def initialize(title:, subtitle: nil, href: nil) = super
       end
 
-      class_attribute :_order_by, **Base::ATTRIBUTE_OPTIONS
+      # No default: a `List` needs a scope, and there is no sensible empty one.
+      # A widget that never declares `list` fails the way one that never defined
+      # `#scope` used to — loudly, naming the macro.
+      class_attribute :_list, **Base::ATTRIBUTE_OPTIONS
       class_attribute :_row_title, **Base::ATTRIBUTE_OPTIONS
       class_attribute :_row_subtitle, **Base::ATTRIBUTE_OPTIONS
       class_attribute :_row_href, **Base::ATTRIBUTE_OPTIONS
 
       class << self
-        # Applied to the scope before the preview is taken, never after: ordering
-        # a limited relation orders the eight rows you already picked, which is
-        # not the same query and usually not the one you meant.
-        def order_by(value) = self._order_by = value
+        # The whole collection in one declaration: what to read, how to sort it,
+        # how many to preview.
+        #
+        # `order_by` is applied to the scope BEFORE the preview is taken, never
+        # after — ordering a limited relation sorts the eight rows you already
+        # picked, which is not the same query and usually not the one you meant.
+        #
+        # PREFER THE BLOCK FORM. A class body is evaluated once at boot, so a
+        # relation passed by value freezes whatever it closed over then:
+        # `where(due_date: Date.current..)` is the day the process started, not
+        # today, and the widget quietly shows the wrong week until a redeploy.
+        # The block is re-evaluated per render and runs against the widget, so it
+        # can also reach `context` and private helpers:
+        #
+        #   list(order_by: :due_date) { Task.due_after(Date.current) }
+        #
+        # A bare relation still works for a genuinely static scope.
+        def list(scope: nil, limit: Base::PREVIEW_ROWS, order_by: nil, &block)
+          unless scope || block
+            raise ArgumentError, "`list` needs a scope: either `list(scope: …)` or `list { … }`."
+          end
+
+          self._list = List.new(scope: block || scope, limit: limit, order_by: order_by)
+        end
 
         def row_title(value = nil, &block) = self._row_title = value || block
 
@@ -56,16 +81,28 @@ module Bali
       # ORDER THEN LIMIT. The reverse reads the first eight rows the database
       # happens to return and sorts those.
       def previewable
-        ordered = _order_by.present? ? scope.order(_order_by) : scope
+        ordered = list.order_by.present? ? scope.order(list.order_by) : scope
 
-        ordered.limit(PREVIEW_ROWS)
+        ordered.limit(list.limit)
+      end
+
+      def list
+        _list || raise(NotImplementedError,
+                       "#{self.class.name || 'This widget'} must declare `list`.")
+      end
+
+      # Resolved per render, which is the point of the block form.
+      def scope
+        declared = list.scope
+
+        declared.is_a?(Proc) ? instance_exec(&declared) : declared
       end
 
       def row_for(record)
         # A list widget owes a title the way it owes a scope. Left to default to
         # nil, a widget with no `row_title` renders a column of blank rows and
         # looks like a data problem — so this fails the same loud way a missing
-        # `#scope` does, naming the macro that fixes it.
+        # `list` does, naming the macro that fixes it.
         unless _row_title
           raise NotImplementedError,
                 "#{self.class.name || 'This widget'} must declare `row_title`."

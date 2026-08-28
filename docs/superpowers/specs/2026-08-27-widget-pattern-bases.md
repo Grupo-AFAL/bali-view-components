@@ -45,7 +45,7 @@ cannot be spelled at all.
 | Base | Shows | Abstract | Declares |
 |---|---|---|---|
 | `ValueBase` | one figure | `value` | — |
-| `ListBase` | how many, and which | `scope` | `order_by`, `row_title`, `row_subtitle`, `row_href` |
+| `ListBase` | how many, and which | — | `list`, `row_title`, `row_subtitle`, `row_href` |
 | `TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values`, `series_type` |
 | `ProgressBase` | a ring toward a goal | `value` (`max` defaults 100) | `goal_label`, `series_labels`, `series_values`, `series_type` |
 
@@ -82,7 +82,7 @@ already absorbs its absence.
 So rows are left out because **no host dashboard has asked for them**, not because they are
 incoherent. **A widget that needs both a chart and a list is two widgets**, and the grid exists
 to put them side by side. If that stops being true, the change is a `Rows` concern supplying
-`scope`/`order_by`/`row_*` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
+`list`/`row_*` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
 for a card that is showing both.
 
 ## Failure is probed, not reported

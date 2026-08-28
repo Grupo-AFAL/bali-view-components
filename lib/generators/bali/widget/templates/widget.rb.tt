@@ -31,12 +31,18 @@ class <%= class_name %> < <%= parent_class %>
   #
   # def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
 <% elsif pattern == 'list' -%>
-  # THE SCOPE IS THE PRIMITIVE: `count` is the whole of it, and the preview rows
-  # are the first `PREVIEW_ROWS` after ordering. Leave the order to `order_by`
-  # below — paging a preview off an unordered relation is a different bug in
-  # every database, and `order_by` is applied before the limit rather than after.
-  def scope
-    raise NotImplementedError, "<%= class_name %>#scope"
+  # THE COLLECTION, in one declaration: `count` is the whole of it, and the
+  # preview rows are the first `limit` after ordering. `order_by` is applied
+  # BEFORE the limit — paging a preview off an unordered relation is a different
+  # bug in every database.
+  #
+  # A BLOCK, not `list scope: Thing.all`: a class body runs once at boot, so a
+  # relation passed by value freezes whatever it closed over then — a
+  # `Date.current` in it is the day the process started, not today. The block is
+  # re-read per render and runs against the widget, so it can reach `context` and
+  # private helpers.
+  list(order_by: :id) do
+    raise NotImplementedError, "<%= class_name %> must declare a `list` scope"
   end
 
   # What one row says. A Symbol is sent to the RECORD; a block runs against the
@@ -44,8 +50,10 @@ class <%= class_name %> < <%= parent_class %>
   # methods; a String is the value itself. `row_subtitle` takes any of the three
   # — a symbol for one attribute, a block when it composes two (where
   # `subtitle(a, b)` joins them the card's way), a string for a fixed label.
-  order_by :id
-  # row_title :name
+  #
+  # `row_title` is required: without it every row renders blank, which reads as a
+  # data problem rather than an unfinished widget.
+  row_title :name
   # row_subtitle :some_attribute
   # row_href { |record| record_path(record) }
 <% elsif pattern == 'trend' -%>

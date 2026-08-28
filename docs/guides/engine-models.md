@@ -299,7 +299,7 @@ owe:
 | Base | The card shows | You implement | You declare |
 |---|---|---|---|
 | `Bali::Widget::ValueBase` | one figure | `value` | `formatted_value` if the number is not the display |
-| `Bali::Widget::ListBase` | how many, and which | `scope` | `order_by`, `row_title`, `row_subtitle`, `row_href` |
+| `Bali::Widget::ListBase` | how many, and which | — | `list`, `row_title`, `row_subtitle`, `row_href` |
 | `Bali::Widget::TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values` |
 | `Bali::Widget::ProgressBase` | a ring toward a goal | `value`, `max` | `goal_label`, `series_labels`, `series_values` |
 
@@ -316,21 +316,31 @@ half a thing: `TrendBase#current` raises `NotImplementedError` until you write i
 class LowStockItems < Bali::Widget::ListBase
   default_size :medium
 
-  order_by     :name
+  list(order_by: :name) { Item.low_stock }
+
   row_title    :name
   row_subtitle :outlet_name
   row_href     { |item| item_path(item) }
 
   view_all_path { items_path }
-
-  def scope = Item.low_stock
 end
 ```
 
-**The scope is the primitive.** `count` and the preview rows both fall out of it, so a list
-widget states its collection once. Leave the ordering to `order_by`, which is applied *before*
-the preview is taken — ordering a limited relation sorts the eight rows you already picked,
-which is not the same query and usually not the one you meant.
+**`list` is the primitive.** `count` and the preview rows both fall out of one declaration, so
+a list widget states its collection once. `order_by` is applied *before* the preview is taken —
+ordering a limited relation sorts the eight rows you already picked, which is not the same query
+and usually not the one you meant. `limit:` defaults to `PREVIEW_ROWS`.
+
+**Pass a block, not a relation.** A class body runs once at boot, so `list scope: Task.where(due_date: Date.current..)`
+freezes the day the process started and quietly shows the wrong week until a redeploy. The block
+form is re-read on every render and runs against the widget, so it can reach `context` and
+private helpers:
+
+```ruby
+list(order_by: :due_date) { Task.due_after(Date.current) }
+```
+
+A bare `scope:` still works for a genuinely static relation.
 
 **The row declarations are symbols sent to the record**, which is the ergonomic point of them:
 `row_title :name` says everything `->(r) { r.name }` would. `row_href` takes a block, because a

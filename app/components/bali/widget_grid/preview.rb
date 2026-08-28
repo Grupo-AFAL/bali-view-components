@@ -25,10 +25,14 @@ module Bali
         end
 
         def self.list(key, size, count)
+          rows = Rows.new(count)
+
           named(Bali::Widget::ListBase, key, size) do
             row_title { |row| row[:title] }
             define_method(:count) { count }
-            define_method(:scope) { Rows.new(count) }
+            # The local, not `Rows.new(count)` — a `list` block is instance_exec'd
+            # against the widget, where `count` is the widget's own reader.
+            list { rows }
           end
         end
 

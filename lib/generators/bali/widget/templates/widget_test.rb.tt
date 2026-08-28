@@ -15,7 +15,7 @@ class <%= class_name %>Test < ActiveSupport::TestCase
   #
   # `failed?` is the one that matters: a widget swallows its own exceptions so a
   # single bad query cannot take the dashboard with it, which means a broken
-  # `<%= pattern == 'list' ? 'scope' : 'value' %>` renders a degraded card rather than raising here.
+  # `<%= pattern == 'list' ? 'list' : 'value' %>` renders a degraded card rather than raising here.
   def test_it_loads_without_failing
     refute_predicate widget, :failed?
 <% if pattern == 'value' -%>
