@@ -84,6 +84,23 @@ module Bali
           # sequence. That is why it is a list you write rather than something
           # Bali discovers — discovery can give you alphabetical and nothing else.
           #
+          # IT BELONGS TO THE DASHBOARD, not to the app. Two dashboards are two
+          # orderings, which may overlap; an app-wide `Widgets::ALL` stops being
+          # the right shape the moment there is a second one. Write the list
+          # here, in the controller that owns the dashboard, and the contents
+          # are visible where the dashboard is defined.
+          #
+          # A PROC OR A SYMBOL works too, and is resolved per request against
+          # the controller instance — for a catalog that cannot be known at
+          # class-definition time:
+          #
+          #   dashboard_widgets catalog: -> { Widgets::TODAY + current_tenant.extra_widgets }
+          #   dashboard_widgets catalog: :widgets_for_plan
+          #
+          # Reach for it only when you need it. A literal array is greppable and
+          # a proc is not, and per-owner differences are usually `authorized?`'s
+          # job rather than the catalog's.
+          #
           # Instantiating them is this concern's job, not yours. Every host that
           # has built one of these wrote the same `ALL.map { |k| k.new(actor) }`
           # wrapper by hand first.
@@ -161,8 +178,19 @@ module Bali
         # is what lets the picker list thirty widgets without loading thirty.
         def widget_offering
           @widget_offering ||= Bali::Widget.authorized_for(
-            Array(widget_catalog).map { |klass| klass.new(widget_actor) }
+            widget_catalog_classes.map { |klass| klass.new(widget_actor) }
           )
+        end
+
+        # Resolved per request, so a `catalog:` that is a proc or a method name
+        # sees `params`, the session and the current tenant. `instance_exec` for
+        # the proc rather than `call`, so it reads like the rest of a controller.
+        def widget_catalog_classes
+          case widget_catalog
+          when Proc   then Array(instance_exec(&widget_catalog))
+          when Symbol then Array(send(widget_catalog))
+          else Array(widget_catalog)
+          end
         end
 
         def widget_store

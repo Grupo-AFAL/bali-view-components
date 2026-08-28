@@ -646,7 +646,11 @@ a host writes a catalog, an owner and nothing else:
 class DashboardController < ApplicationController
   include Bali::Concerns::Controllers::DashboardWidgets
 
-  dashboard_widgets catalog: Widgets::ALL
+  dashboard_widgets catalog: [
+    OverdueTasks, ProductionBudget,   # the compact facts
+    CostSpikes,                       # the metric
+    LowStockItems                     # the list
+  ]
 
   private
 
@@ -676,8 +680,60 @@ on every gesture, and it answers `204` for a move but a Turbo Stream for a **res
 card's interior is server-rendered and a grown card would otherwise keep its smaller body.
 
 **`catalog:` is widget classes, and its order is the default dashboard** — an owner with no
-stored rows sees the offering in exactly that sequence. Instantiating and gating them is the
-concern's job; you do not write `ALL.map { |k| k.new(user) }`.
+stored rows sees the offering in exactly that sequence, top-left to bottom-right. Instantiating
+and gating them is the concern's job; you do not write `ALL.map { |k| k.new(user) }`.
+
+**It belongs to the dashboard, not to the app.** Write the list in the controller that owns the
+dashboard rather than in a shared `Widgets::ALL` constant: two dashboards are two orderings that
+may overlap, and one app-wide list stops being the right shape the moment there is a second one.
+
+#### More than one dashboard
+
+Each controller declares its own catalog, and `dashboard_key` defaults to `controller_path`, so
+two dashboards need no extra wiring. Rows are scoped by `(owner, context, dashboard_key)` — the
+same widget can sit on both at different sizes, and rearranging one never touches the other.
+
+```ruby
+class Sales::DashboardController < ApplicationController   # dashboard_key: "sales/dashboard"
+  include Bali::Concerns::Controllers::DashboardWidgets
+  dashboard_widgets catalog: [Revenue, Pipeline, TopAccounts]
+  …
+end
+```
+
+#### A catalog that is not known yet
+
+`catalog:` also takes a proc or a method name, resolved per request against the controller, for
+the cases a constant cannot express:
+
+```ruby
+dashboard_widgets catalog: -> { Widgets::TODAY + current_tenant.extra_widgets }
+dashboard_widgets catalog: :widgets_for_plan
+```
+
+Reach for it only when you need it — a literal array is greppable and a proc is not, and
+per-owner differences are usually `authorized?`'s job rather than the catalog's.
+
+#### Catching the widget you forgot to list
+
+The one cost of authoring the list is that a widget class you never added is on no dashboard,
+renders nowhere, and nothing says so. Bali ships the check rather than replacing the list:
+
+```ruby
+require "bali/testing/widget_catalog"
+
+class WidgetCatalogTest < ActiveSupport::TestCase
+  include Bali::Testing::WidgetCatalog
+
+  def test_every_widget_is_on_a_dashboard
+    assert_every_widget_catalogued DashboardController, Sales::DashboardController
+  end
+end
+```
+
+It reads the classes out of `app/widgets` on disk rather than from `Base.descendants`, which
+would sweep up every anonymous widget your own test suite has ever defined. Test-only, and
+`require`d explicitly — it globs and constantizes, which has no business happening at boot.
 
 #### Seams
 

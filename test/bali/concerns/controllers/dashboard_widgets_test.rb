@@ -72,6 +72,26 @@ class BaliDashboardWidgetsConcernTest < ActiveSupport::TestCase
     assert_equal :pundit_user, controller.send(:widget_offering).first.context
   end
 
+  # A PROC IS RESOLVED PER REQUEST, against the controller instance — so it can
+  # see `params`, the session and the current tenant, none of which exist when
+  # the class body runs.
+  def test_a_proc_catalog_is_resolved_against_the_controller
+    controller = controller_class(catalog: -> { chosen_widgets }).new
+    controller.define_singleton_method(:widget_owner) { :the_owner }
+    controller.define_singleton_method(:chosen_widgets) { [ ALPHA ] }
+
+    assert_equal [ "alpha" ], controller.send(:widget_offering).map(&:key)
+  end
+
+  def test_a_symbol_catalog_names_a_method_on_the_controller
+    controller = controller_class(catalog: :widgets_for_plan).new
+    controller.define_singleton_method(:widget_owner) { :the_owner }
+    controller.define_singleton_method(:widgets_for_plan) { [ ALPHA, HIDDEN ] }
+
+    # Still gated: laziness does not buy a way past `authorized?`.
+    assert_equal [ "alpha" ], controller.send(:widget_offering).map(&:key)
+  end
+
   def test_the_dashboard_key_defaults_to_the_controller_path
     assert_equal "dashboards", controller_class.widget_dashboard_key
     assert_equal "today", controller_class(dashboard_key: "today").widget_dashboard_key

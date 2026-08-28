@@ -13,7 +13,34 @@
 class DashboardWidgetsController < ApplicationController
   include Bali::Concerns::Controllers::DashboardWidgets
 
-  dashboard_widgets catalog: DemoWidgets::ALL, dashboard_key: "demo"
+  # THE CATALOG IS THIS DASHBOARD'S DEFAULT LAYOUT, which is why it lives here
+  # rather than in a `DemoWidgets::ALL` constant off to one side. Its ORDER is
+  # what a user with no stored rows sees, top-left to bottom-right — and a
+  # second dashboard would be a second ordering, not a second reader of one
+  # app-wide list.
+  #
+  # Ordered so it walks the ladders rather than the alphabet: the compact facts
+  # first, then the metric widgets that argue opposite directions, then the
+  # ring, then the list widgets it all grew out of.
+  dashboard_widgets dashboard_key: "demo", catalog: [
+    DemoWidgets::OverdueTasks,
+    DemoWidgets::ProductionBudget,
+    DemoWidgets::UnavailableFeed,
+    DemoWidgets::ReleaseReadiness,
+    DemoWidgets::SchemaHealth,
+    DemoWidgets::RatingsAudit,
+    DemoWidgets::ModernStudios,
+    DemoWidgets::CatalogCoverage,
+    DemoWidgets::StudioSizes,
+    DemoWidgets::IndieStudios,
+    DemoWidgets::StudioFoundings,
+    DemoWidgets::TaskLoad,
+    DemoWidgets::ProjectProgress,
+    DemoWidgets::RecentMovies,
+    DemoWidgets::ActiveStudios,
+    DemoWidgets::UpcomingTasks,
+    DemoWidgets::TopBudgetMovies
+  ]
 
   private
 

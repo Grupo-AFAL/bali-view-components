@@ -15,7 +15,9 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
   # What the concern builds for itself, rebuilt here so a test can look at the
   # rows behind a request.
   def offering
-    Bali::Widget.authorized_for(DemoWidgets::ALL.map { |klass| klass.new(User.demo) })
+    Bali::Widget.authorized_for(
+      DashboardWidgetsController.widget_catalog.map { |klass| klass.new(User.demo) }
+    )
   end
 
   def store
