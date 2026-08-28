@@ -21,25 +21,42 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # value. A string that meant "send this to the record" made one macro in the
   # set disagree with the rest, and failed as a `NoMethodError` on a method
   # named "In stock".
-  # The counterpart to a missing `#scope`. A list widget with no `row_title`
-  # used to render a column of blank rows, which reads as a data problem rather
-  # than an unfinished widget.
-  def test_a_list_without_a_row_title_says_so
+  # A list widget owes a `row` the way it owes a `list`. Without one there is
+  # nothing to build a row from, and `items` would otherwise fail deep inside
+  # the builder with a nil receiver.
+  def test_a_list_without_a_row_says_so
     klass = Class.new(Bali::Widget::ListBase) do
-      def self.key = "untitled"
+      def self.key = "unrowed"
       list { Studio.all }
     end
 
     error = assert_raises(NotImplementedError) { klass.new.items }
 
-    assert_match(/row_title/, error.message)
+    assert_match(/must declare `row`/, error.message)
+  end
+
+  # And a `row` that declares no title is the same class of mistake one level
+  # in: every row renders blank, which reads as a data problem rather than an
+  # unfinished widget. Checked once per render, not once per row.
+  def test_a_row_without_a_title_says_so
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "untitled"
+      list { Studio.all }
+      row { |r| r.subtitle :country }
+    end
+
+    error = assert_raises(NotImplementedError) { klass.new.items }
+
+    assert_match(/must declare `r.title`/, error.message)
   end
 
   def test_a_string_row_field_is_the_value_rather_than_a_method_name
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "literal"
-      row_title :name
-      row_subtitle "In stock"
+      row do |r|
+        r.title :name
+        r.subtitle "In stock"
+      end
       list { Studio.where(name: "Flour") }
     end
 
@@ -83,7 +100,9 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_a_list_answers_count_and_a_capped_preview_from_one_scope
     widget = list_widget do
       list { Studio.order(:name) }
-      row_title :name
+      row do |r|
+        r.title :name
+      end
     end
 
     assert_equal Studio.count, widget.count
@@ -95,9 +114,11 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_row_fields_take_a_symbol_or_a_block
     widget = list_widget do
       list { Studio.order(:name) }
-      row_title :name
-      row_subtitle { |studio| subtitle(studio.country, "studio") }
-      row_href { |studio| "/studios/#{studio.id}" }
+      row do |r|
+        r.title :name
+        r.subtitle { |studio| join(studio.country, "studio") }
+        r.href { |studio| "/studios/#{studio.id}" }
+      end
     end
     row = widget.items.first
 
@@ -111,7 +132,9 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   def test_the_order_is_applied_before_the_preview_is_taken
     9.times { |i| Studio.create!(name: "Zed #{i}", country: "US", status: :active) }
     widget = list_widget do
-      row_title :name
+      row do |r|
+        r.title :name
+      end
       list { Studio.order(name: :desc) }
     end
 
@@ -120,7 +143,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   end
 
   def test_a_list_without_a_scope_says_so
-    error = assert_raises(NotImplementedError) { list_widget { row_title :name }.count }
+    error = assert_raises(NotImplementedError) { list_widget { row { |r| r.title :name } }.count }
 
     assert_match(/must declare `list`/, error.message)
   end
@@ -136,10 +159,126 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # reloader re-runs the class body on every request, so this cannot reproduce
   # in development: it is a production-only, silent failure, which is why `list`
   # takes a block and nothing else.
+  # All three row fields take the same three forms. `row_href` used to be the
+  # exception — block only — so `row_href :url` raised `wrong number of
+  # arguments (given 1, expected 0)`, which names nothing about the API, and a
+  # fixed path had to be written as a block returning a constant.
+  def test_every_row_field_takes_a_symbol_a_block_or_a_string
+    Studio.create!(name: "Flour", country: "MX")
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "forms"
+      list { Studio.where(name: "Flour") }
+      row do |r|
+        r.title :name                              # sent to the record
+        r.subtitle "In stock"                      # the value itself
+        r.href { |studio| "/studios/#{studio.id}" } # run on the widget
+      end
+    end
+
+    row = klass.new.items.first
+
+    assert_equal "Flour", row.title
+    assert_equal "In stock", row.subtitle
+    assert_match(%r{\A/studios/\d+\z}, row.href)
+  end
+
+  def test_a_symbol_href_is_read_off_the_record_like_any_other_field
+    Studio.create!(name: "Flour", country: "MX")
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "symhref"
+      list { Studio.where(name: "Flour") }
+      row do |r|
+        r.title :name
+        r.href :country
+      end
+    end
+
+    assert_equal "MX", klass.new.items.first.href
+  end
+
+  # `count` and `previewable` both need the relation, and a block that does real
+  # work before returning one should not do it twice. The RELATION is memoised,
+  # never the rows — the two callers issue different queries off it, which is
+  # what lets a card say "3 of 214".
+  def test_the_scope_block_runs_once_per_render_but_still_issues_both_queries
+    builds = 0
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "once"
+      row do |r|
+        r.title :name
+      end
+    end
+    klass.list { builds += 1; Studio.where("name LIKE 'Once %'") }
+
+    9.times { |i| Studio.create!(name: "Once #{i}", country: "US") }
+    widget = klass.new
+
+    assert_equal 9, widget.count
+    assert_equal Bali::Widget::Base::PREVIEW_ROWS, widget.items.size
+    assert_equal 1, builds
+  end
+
+  # A CLASS-level invariant, so it is checked once per render rather than once
+  # per row — and reported for the widget, not for a record.
+  def test_the_missing_row_title_is_reported_once_not_once_per_row
+    3.times { |i| Studio.create!(name: "Untitled #{i}", country: "US") }
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "untitled2"
+      list { Studio.where("name LIKE 'Untitled %'") }
+    end
+
+    raised = 0
+    begin
+      klass.new.items
+    rescue NotImplementedError
+      raised += 1
+    end
+
+    assert_equal 1, raised
+  end
+
+  # Each setter writes its OWN attribute, so two `row` blocks merge field by
+  # field rather than the second replacing the first. That is what lets a shared
+  # module declare what two widgets have in common while each widget declares
+  # only what differs. A declaration stored whole would have forced that module
+  # to declare all three fields and call back into a method each widget had to
+  # remember to define — an unenforced contract failing inside `safely`.
+  def test_two_row_blocks_merge_field_by_field
+    Studio.create!(name: "Flour", country: "MX")
+    shared = Module.new do
+      def self.included(base)
+        base.row do |r|
+          r.title :name
+          r.href "/shared"
+        end
+      end
+    end
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "merged"
+      include shared
+      list { Studio.where(name: "Flour") }
+      row { |r| r.subtitle :country }
+    end
+
+    row = klass.new.items.first
+
+    assert_equal "Flour", row.title    # from the module
+    assert_equal "/shared", row.href   # from the module
+    assert_equal "MX", row.subtitle    # from the widget
+  end
+
+  def test_row_without_a_block_says_so
+    error = assert_raises(ArgumentError) { Class.new(Bali::Widget::ListBase) { row } }
+
+    assert_match(/needs a block/, error.message)
+  end
+
   def test_a_dated_scope_moves_with_the_clock
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "dated"
-      row_title :name
+      row do |r|
+        r.title :name
+      end
       list { Studio.where(created_at: Date.current.all_day) }
     end
 
@@ -153,7 +292,9 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     reads = 0
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "lazy"
-      row_title :name
+      row do |r|
+        r.title :name
+      end
     end
     # Counted INSIDE the declaration, which is the thing under test. Counting it
     # in a `define_method(:scope)` would override the resolution this asserts,

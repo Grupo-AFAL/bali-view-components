@@ -8,9 +8,12 @@ module DemoWidgets
 
     list { Movie.budgeted.order(budget: :desc) }
 
-    row_title :name
-    row_subtitle { |movie| subtitle(movie.genre, currency(movie.budget)) }
-    row_href { |movie| admin_movie_path(movie) }
+    row do |r|
+      r.title :name
+      r.subtitle { |movie| join(movie.genre, currency(movie.budget)) }
+      r.href { |movie| admin_movie_path(movie) }
+    end
+
     view_all_path { admin_movies_path }
 
     private

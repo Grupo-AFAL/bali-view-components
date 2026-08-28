@@ -299,7 +299,7 @@ owe:
 | Base | The card shows | You implement | You declare |
 |---|---|---|---|
 | `Bali::Widget::ValueBase` | one figure | `value` | `formatted_value` if the number is not the display |
-| `Bali::Widget::ListBase` | how many, and which | — | `list`, `row_title`, `row_subtitle`, `row_href` |
+| `Bali::Widget::ListBase` | how many, and which | — | `list`, `row` |
 | `Bali::Widget::TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values` |
 | `Bali::Widget::ProgressBase` | a ring toward a goal | `value`, `max` | `goal_label`, `series_labels`, `series_values` |
 
@@ -318,9 +318,11 @@ class LowStockItems < Bali::Widget::ListBase
 
   list { Item.low_stock.order(:name) }
 
-  row_title    :name
-  row_subtitle :outlet_name
-  row_href     { |item| item_path(item) }
+  row do |r|
+    r.title :name
+    r.subtitle :outlet_name
+    r.href { |item| item_path(item) }
+  end
 
   view_all_path { items_path }
 end
@@ -350,70 +352,34 @@ which is most widgets in a real app:
 list { Task.for_tenant(context.tenant).due_after(Date.current).order(:due_date) }
 ```
 
-**The row declarations are symbols sent to the record**, which is the ergonomic point of them:
-`row_title :name` says everything `->(r) { r.name }` would. `row_href` takes a block, because a
-path is built from a helper rather than read off the record, and `row_subtitle` accepts either
-— a symbol for one attribute, a block when it composes two.
+**`row` declares all three fields, and each takes the same three forms.** One rule, no
+exceptions:
 
-A **string is the value itself**, not a third spelling of "send this to the record": a symbol
-references, a string is. `row_subtitle "In stock"` labels every row the same way, and reads the
-same as the `title "Low stock items"` a few lines above it.
+| You write | It means |
+|---|---|
+| `r.title :name` | a **Symbol** is sent to the **record** |
+| `r.href { \|movie\| movie_path(movie) }` | a **block** runs on the **widget**, with the record yielded |
+| `r.subtitle "In stock"` | a **String** is the value itself |
 
-**Blocks run against the widget, so take the record as an argument — don't reach for it
-bare.** `size`, `count`, `items`, `title`, `key`, `description` and `subtitle` are all widget
-methods, and several are ordinary column names too: inside `row_subtitle { … }`, a bare `size`
-is the widget's size, not the record's. Always name the parameter:
+The Symbol is the point: `r.title :name` says everything `->(r) { r.name }` would. The block is
+for anything computed, and it runs against the widget rather than the record — which is what lets
+it reach route helpers, `context` and your own private methods. That is also why it takes the
+record as an argument instead of reading it off `self`.
 
-```ruby
-row_subtitle { |studio| subtitle(studio.country, studio.size&.humanize) }
-```
+`r.title` is required; a row with no title renders blank, which reads as a data problem rather
+than an unfinished widget, so it raises instead. `r.subtitle` and `r.href` are optional.
 
-A trend widget implements the two figures and lets the base compute the delta between them:
+Each setter writes its own attribute, so **two `row` blocks merge field by field** rather than
+the second replacing the first.
 
-```ruby
-class StudioFoundings < Bali::Widget::TrendBase
-  default_size :medium
-
-  period_label  "vs previous decade"
-  series_labels { decades.keys.map(&:to_s) }
-  series_values { decades.values }
-
-  view_all_path { admin_studios_path }
-
-  def current  = decades.values.last
-  def previous = decades.values[-2]
-
-  private
-
-  # Declaration blocks run against the widget, so private helpers and memoisation
-  # work exactly as they do in a method — which is how `series` and `trend` share
-  # one query.
-  def decades = @decades ||= Studio.group(…).count.sort.to_h
-end
-```
-
-`previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
-nothing to compare against, and the card drops the indicator rather than drawing a flat 0%.
-Every trend widget used to hand-roll `(((latest - previous) / previous.to_f) * 100).round`;
-it is written once in the base now, and `current`/`previous` is a contract you cannot
-half-implement.
-
-**`positive_when` is a declaration because getting it wrong makes the card lie.** "Up" is not
-universally good — overdue tasks up 12% and revenue up 12% are opposite news, and the direction
-alone cannot tell them apart. The card colours from whether the movement was *good*, so a widget
-counting something bad declares `positive_when :down` and a rising number then reads red.
-
-The simplest pattern is one figure:
+Because the block runs on the widget, **name the record parameter and use it** — don't reach for
+attributes bare. `size`, `count`, `items`, `title`, `key` and `join` are all widget methods, and
+several are ordinary column names too: inside `r.subtitle { … }`, a bare `size` is the widget's
+size, not the record's. `join(a, b)` is one you will want — it joins two parts with the card's
+separator and drops the blank ones, so a row with only one half renders no dangling divider.
 
 ```ruby
-class ProductionBudget < Bali::Widget::ValueBase
-  default_size :small
-
-  view_all_path { admin_movies_path }
-
-  def value = Movie.budgeted.sum(:budget).to_i
-  def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
-end
+r.subtitle { |studio| join(studio.country, studio.size&.humanize) }
 ```
 
 ### The sizes you offer are a promise about the data you have

@@ -63,7 +63,7 @@ module Bali
       # stub this without freezing the answer at boot.
       # Blank parts drop out, so a row with only one half does not render a
       # dangling separator.
-      def subtitle(*parts) = parts.compact_blank.join(SEPARATOR)
+      def join(*parts) = parts.compact_blank.join(SEPARATOR)
 
       def raise_load_errors? = Rails.env.local?
 

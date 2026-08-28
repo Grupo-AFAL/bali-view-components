@@ -12,9 +12,11 @@ class LowStockItems < Bali::Widget::ListBase
   default_size :medium
 
   order_by     :name
-  row_title    :name
-  row_subtitle :outlet_name
-  row_href     { |item| item_path(item) }
+  row do |r|
+    r.title :name
+    r.subtitle :outlet_name
+    r.href { |item| item_path(item) }
+  end
 
   def scope = Item.low_stock
 end
@@ -45,7 +47,7 @@ cannot be spelled at all.
 | Base | Shows | Abstract | Declares |
 |---|---|---|---|
 | `ValueBase` | one figure | `value` | — |
-| `ListBase` | how many, and which | — | `list`, `row_title`, `row_subtitle`, `row_href` |
+| `ListBase` | how many, and which | — | `list`, `row` |
 | `TrendBase` | a figure and how it moved | `current`, `previous` | `positive_when`, `period_label`, `series_labels`, `series_values`, `series_type` |
 | `ProgressBase` | a ring toward a goal | `value` (`max` defaults 100) | `goal_label`, `series_labels`, `series_values`, `series_type` |
 
@@ -82,7 +84,7 @@ already absorbs its absence.
 So rows are left out because **no host dashboard has asked for them**, not because they are
 incoherent. **A widget that needs both a chart and a list is two widgets**, and the grid exists
 to put them side by side. If that stops being true, the change is a `Rows` concern supplying
-`list`/`row_*` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
+`list`/`row` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
 for a card that is showing both.
 
 ## Failure is probed, not reported
@@ -168,6 +170,6 @@ reasoning in comments, and refuses a `--size` the pattern does not offer.
 
 ## What did not change
 
-`visible?`, `key`, the i18n scope, `PREVIEW_ROWS`, `Widget.abbreviate`, `Widget.subtitle`, the
+`visible?`, `key`, the i18n scope, `PREVIEW_ROWS`, `Widget.abbreviate`, `Widget.join` (was `Widget.subtitle`), the
 `Trend`/`Series`/`Goal` value objects (moved onto the patterns that own them), the card, the
 grid, the store, and the size picker.

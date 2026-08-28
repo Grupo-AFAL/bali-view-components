@@ -16,9 +16,11 @@ module DemoWidgets
           .order(:due_date)
     end
 
-    row_title :title
-    row_subtitle { |task| subtitle(task.project.name, task.priority.humanize) }
-    row_href { |task| admin_project_path(task.project) }
+    row do |r|
+      r.title :title
+      r.subtitle { |task| join(task.project.name, task.priority.humanize) }
+      r.href { |task| admin_project_path(task.project) }
+    end
     view_all_path { admin_projects_path }
   end
 end

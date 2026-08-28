@@ -214,9 +214,15 @@ module Bali
       # have asked for anything.
       def failed? = @failed.present?
 
-      # "3 left · Cocina". Here rather than reached through `Bali::Widget` so a
-      # row block can call it bare.
-      def subtitle(*parts) = Widget.subtitle(*parts)
+      # "3 left · Cocina" — the card's own separator, with blank parts dropped so
+      # a row with only one half does not render a dangling divider.
+      #
+      # An instance method rather than only `Bali::Widget.join` because a row
+      # block is `instance_exec`'d on the WIDGET, so this is reachable bare from
+      # exactly where it is used:
+      #
+      #   r.subtitle { |movie| join(movie.genre, movie.status.humanize) }
+      def join(*parts) = Widget.join(*parts)
 
       protected
 

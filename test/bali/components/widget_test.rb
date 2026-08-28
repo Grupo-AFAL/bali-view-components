@@ -8,8 +8,10 @@ class BaliWidgetComponentTest < ComponentTestCase
   # answering only what it has.
   def list_widget(size: :medium, rows: 2, **overrides)
     build(Bali::Widget::ListBase, size, **overrides) do
-      row_title :name
-      row_subtitle :country
+      row do |r|
+        r.title :name
+        r.subtitle :country
+      end
       view_all_path { "/studios" }
       list { rows.zero? ? Studio.none : Studio.order(:name).limit(rows) }
     end
@@ -186,7 +188,9 @@ class BaliWidgetComponentTest < ComponentTestCase
       def self.key = "stock"
       # Breaks where a real list widget breaks: `count` is its own query, and
       # this one succeeds. The rows come from a second read that does not.
-      row_title { |_record| raise "row source is down" }
+      row do |r|
+        r.title { |_record| raise "row source is down" }
+      end
       def count = 12
       list { Struct.new(:rows) { def limit(n) = [ :a, :b ].first(n) }.new([]) }
     end
@@ -366,7 +370,9 @@ class BaliWidgetComponentTest < ComponentTestCase
       def self.key = "stock"
       default_size :small
       supports :small, :medium
-      row_title :name
+      row do |r|
+        r.title :name
+      end
       def scope = Studio.all
     end
 

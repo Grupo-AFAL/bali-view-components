@@ -28,7 +28,9 @@ module Bali
           rows = Rows.new(count)
 
           named(Bali::Widget::ListBase, key, size) do
-            row_title { |row| row[:title] }
+            row do |r|
+              r.title { |row| row[:title] }
+            end
             define_method(:count) { count }
             # The local, not `Rows.new(count)` — a `list` block is instance_exec'd
             # against the widget, where `count` is the widget's own reader.

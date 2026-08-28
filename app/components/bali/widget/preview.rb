@@ -27,9 +27,11 @@ module Bali
 
 
         list { FakeScope.new(rows) }
-        row_title { |item| item[:title] }
-        row_subtitle { |item| item[:subtitle] }
-        row_href { |_item| "/lookbook" }
+        row do |r|
+          r.title { |item| item[:title] }
+          r.subtitle { |item| item[:subtitle] }
+          r.href "/lookbook"
+        end
         view_all_path { "/lookbook" }
 
         def count = rows
@@ -42,7 +44,7 @@ module Bali
           def count = size
           def order(*) = self
           def limit(n) = Array.new([ size, n ].min) do |i|
-            { title: "Ingredient #{i + 1}", subtitle: Bali::Widget.subtitle("#{i + 1} left", "Cocina") }
+            { title: "Ingredient #{i + 1}", subtitle: Bali::Widget.join("#{i + 1} left", "Cocina") }
           end
         end
       end

@@ -13,7 +13,9 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     short_title "Low stock"
     empty_message "Nothing running low"
 
-    row_title :title
+    row do |r|
+      r.title :title
+    end
     view_all_path { "/items" }
 
     def count = 1

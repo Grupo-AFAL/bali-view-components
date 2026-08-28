@@ -11,9 +11,11 @@ module DemoWidgets
 
     list { Studio.active.order(:name) }
 
-    row_title :name
-    row_subtitle { |studio| subtitle(studio.country, studio.size&.humanize) }
-    row_href { |studio| admin_studio_path(studio) }
+    row do |r|
+      r.title :name
+      r.subtitle { |studio| join(studio.country, studio.size&.humanize) }
+      r.href { |studio| admin_studio_path(studio) }
+    end
     view_all_path { admin_studios_path }
 
     # Costs one `EXISTS` — never a widget query.
