@@ -39,6 +39,52 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
                          .index_by(&:widget_key)
   end
 
+  # THE OFFERING IS THE FEATURE'S SECURITY PROPERTY — a submitted key becomes a
+  # widget only by being found in it — and until the Store gated it, that
+  # property rested on every host remembering one `authorized_for` call. A host
+  # passing its raw catalogue persisted and rendered widgets whose `authorized?`
+  # was false, silently.
+  def test_the_store_gates_the_offering_it_is_handed
+    hidden = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "payroll"
+      value { 999 }
+      def authorized? = false
+    end.new
+
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new, hidden ])
+    store.arrange([ { widget: hidden, size: :small }, { widget: ALPHA.new, size: :small } ])
+
+    assert_equal [ "alpha" ], store.stored_keys
+    assert_equal [ "alpha" ], store.widgets.map(&:key)
+  end
+
+  # `Layout` gates independently, so neither boundary relies on the other.
+  def test_layout_drops_a_key_the_owner_cannot_see
+    hidden = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "payroll"
+      value { 999 }
+      def authorized? = false
+    end.new
+    params = { widgets: [ { key: "payroll", size: "small" } ] }.with_indifferent_access
+
+    assert_empty Bali::Widget::Layout.from(params, offering: [ hidden ])
+    assert_empty Bali::Widget::Layout.chosen({ widget_keys: [ "payroll" ] }.with_indifferent_access,
+                                             offering: [ hidden ])
+  end
+
+  # Bali does NOT memoise for a host: the default is a constant, and a host whose
+  # rule is expensive knows that where Bali cannot. What matters is that the
+  # gating boundaries are few and named, not that they are one.
+  def test_each_gating_boundary_asks_once
+    calls = 0
+    widget = ALPHA.new
+    widget.define_singleton_method(:authorized?) { calls += 1; true }
+
+    Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ widget ])
+
+    assert_equal 1, calls
+  end
+
   def test_offering_is_required
     assert_raises(ArgumentError) do
       Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "today")

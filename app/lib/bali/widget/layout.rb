@@ -13,10 +13,12 @@ module Bali
     # filtering was a dozen lines in a documentation example, copied into each
     # app, and it is the entire security property of the feature.
     #
-    # `offering` is ALWAYS the already-authorized set. A submitted key becomes a
-    # widget only by looking it up there, so an unauthorized, retired or
-    # hand-edited key finds nothing. Safe by CONSTRUCTION rather than by
-    # filtering: there is no permitted-key list to pass and none to forget.
+    # `offering` is GATED HERE rather than assumed to arrive gated. A submitted
+    # key becomes a widget only by being found in the authorized set, so an
+    # unauthorized, retired or hand-edited key finds nothing. Safe by
+    # CONSTRUCTION rather than by convention: there is no permitted-key list to
+    # pass, and no host call to forget. `Bali::Widget.authorized_for` is
+    # idempotent, so a host that filters first pays nothing.
     #
     # Silently DROPPED rather than rejected. A role revoked between rendering the
     # page and submitting it should degrade quietly, not 422 — and refusing a
@@ -35,7 +37,7 @@ module Bali
           submitted = params[:widgets]
           return [] if submitted.blank?
 
-          by_key = offering.index_by(&:key)
+          by_key = Bali::Widget.authorized_for(offering).index_by(&:key)
           submitted.filter_map do |item|
             widget = by_key[item[:key].to_s]
             { widget: widget, size: item[:size].presence } if widget
@@ -45,7 +47,7 @@ module Bali
         # The widgets for `Store#choose`, from a picker's `widget_keys[]`.
         # Membership only — `choose` decides order and preserves stored sizes.
         def chosen(params, offering:, key: :widget_keys)
-          by_key = offering.index_by(&:key)
+          by_key = Bali::Widget.authorized_for(offering).index_by(&:key)
           Array(params[key]).filter_map { |submitted| by_key[submitted.to_s] }
         end
       end

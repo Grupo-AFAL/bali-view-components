@@ -143,9 +143,9 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     assert_raises(RuntimeError) { klass.new.count }
   end
 
-  def test_visible_defaults_to_true_and_is_the_hosts_to_override
-    assert_predicate Bare.new, :visible?
-    hidden = Class.new(Bali::Widget::Base) { def visible? = false }.new
+  def test_authorized_defaults_to_true_and_is_the_hosts_to_override
+    assert_predicate Bare.new, :authorized?
+    hidden = Class.new(Bali::Widget::Base) { def authorized? = false }.new
 
     assert_empty Bali::Widget.authorized_for([ hidden ])
   end

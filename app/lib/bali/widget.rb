@@ -52,25 +52,30 @@ module Bali
         "#{scaled}#{suffix}"
       end
 
-      # Whether a widget whose `#call` raises should take the request down with
-      # it. True in development and test, so a widget bug is loud where someone
-      # can fix it — this is what keeps `Base`'s rescue from being the blanket
-      # kind that turns a bug into a permanent shrug. False in production, where
-      # the person looking at the dashboard cannot fix it and the other tiles
-      # are still worth rendering.
-      #
-      # A method, not a constant: `Rails.env` is read per call so a test can
-      # stub this without freezing the answer at boot.
-      # Blank parts drop out, so a row with only one half does not render a
-      # dangling separator.
+      # "3 left · Cocina". Blank parts drop out, so a row with only one half does
+      # not render a dangling separator.
       def join(*parts) = parts.compact_blank.join(SEPARATOR)
 
+      # Whether a widget whose data read raises should take the request down with
+      # it. True in development and test, so a widget bug is loud where someone
+      # can fix it — this is what keeps `Base#safely` from being the blanket kind
+      # of rescue that turns a bug into a permanent shrug. False in production,
+      # where the person looking at the dashboard cannot fix it and the other
+      # tiles are still worth rendering.
+      #
+      # A method, not a constant: `Rails.env` is read per call, so a test can
+      # stub this without freezing the answer at boot.
       def raise_load_errors? = Rails.env.local?
 
-      # The gate. Un-called widget instances, so it costs only whatever the
-      # host's `visible?` costs — never a widget query.
+      # THE GATE. Un-loaded widget instances, so it costs only whatever the
+      # host's `authorized?` costs — never a widget query.
+      #
+      # IDEMPOTENT, deliberately: every boundary that takes an `offering:` runs
+      # this on what it is handed — `Store`, `Layout.from`, `Layout.chosen` — so
+      # a host that filters first pays only for the extra predicate calls, and
+      # one that forgets cannot widen the boundary.
       def authorized_for(widgets)
-        widgets.select(&:visible?)
+        widgets.select(&:authorized?)
       end
     end
   end

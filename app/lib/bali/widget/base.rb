@@ -58,7 +58,7 @@ module Bali
       #
       # DECLARED rather than inferred from the data. Inferring "this widget has no
       # series, so hide `large`" would mean loading every widget just to render a
-      # picker — collapsing the `visible?` / data split that lets a picker list
+      # picker — collapsing the `authorized?` / data split that lets a picker list
       # the authorized set without running a single query. It would also make the
       # offered sizes vary with the data: a widget whose series is empty this week
       # would silently stop offering a size the user had already chosen. Apple
@@ -170,9 +170,27 @@ module Bali
       delegate :key, :title, :short_title, :description, :empty_message,
                :supported_sizes, to: :class
 
-      # Overridden by the host. Bali owns the HOOK and never the rule: roles,
-      # tenancy and feature flags are things only the host can see.
-      def visible? = true
+      # MAY THIS OWNER SEE THIS WIDGET? Overridden by the host. Bali owns the
+      # hook and never the rule: roles, tenancy and feature flags are things
+      # only the host can see.
+      #
+      #   def authorized? = context.has_any_role?(:finance)
+      #
+      # NOT `authorized?`, which is what this was called and which named the wrong
+      # thing. Three boundaries ask this — `Store`, `Layout.from` and
+      # `Layout.chosen` — and none of them is asking "should this be on screen".
+      # They are asking whether the widget may be persisted, offered and
+      # rendered at all. A host reading `authorized?` could reasonably write a
+      # presentation condition into it and be surprised that it also governs
+      # what the database will accept.
+      #
+      # It may QUERY — the dummy app's `ActiveStudios` runs one `EXISTS` — but it
+      # must not run this widget's own DATA queries. That split is what lets a
+      # picker list thirty widgets without loading thirty widgets. Bali calls it
+      # once or twice per request and does not memoise for you: the default here
+      # is a constant, and a host whose rule is expensive knows that where Bali
+      # cannot.
+      def authorized? = true
 
       # ---- what the card asks -------------------------------------------------
       #

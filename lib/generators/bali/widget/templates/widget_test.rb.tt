@@ -32,8 +32,8 @@ class <%= class_name %>Test < ActiveSupport::TestCase
 <% end -%>
   end
 
-  def test_it_is_visible_by_default
-    assert_predicate widget, :visible?
+  def test_it_is_authorized_by_default
+    assert_predicate widget, :authorized?
   end
 end
 <% end -%>

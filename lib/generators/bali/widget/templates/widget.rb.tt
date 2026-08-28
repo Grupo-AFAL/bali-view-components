@@ -12,7 +12,7 @@ class <%= class_name %> < <%= parent_class %>
   # WITHOUT touching the database, which is what lets a picker list the
   # authorized set without loading a single widget.
   #
-  # def visible? = context.has_any_role?(:some_role)
+  # def authorized? = context.has_any_role?(:some_role)
 
   # Where the tile links. Route helpers are not available here by default: add
   # `include Rails.application.routes.url_helpers` to a concern your widgets

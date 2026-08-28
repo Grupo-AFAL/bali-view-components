@@ -12,7 +12,7 @@
 # `ActiveSupport::Concern` rather than a plain module on purpose: losing
 # `ApplicationWidget` costs a host its class-level shared behaviour too, and only
 # the `included do` / `class_methods do` form can give that back. A house
-# `i18n_scope`, a default `supports`, a shared `visible?` policy all go here.
+# `i18n_scope`, a default `supports`, a shared `authorized?` policy all go here.
 module WidgetRoutes
   extend ActiveSupport::Concern
 

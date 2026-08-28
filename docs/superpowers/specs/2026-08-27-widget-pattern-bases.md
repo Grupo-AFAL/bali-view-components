@@ -58,7 +58,7 @@ cannot be spelled at all.
 than being overridden. The only methods a host writes are private helpers two declarations share.
 
 `Base` holds what they share: `default_size`, `supports`, `view_all_path`, the copy macros,
-`visible?`, `key`, and the failure net.
+`authorized?`, `key`, and the failure net.
 
 ## `CheckBase` is ternary, and its name carries the polarity
 
@@ -86,6 +86,29 @@ signal. Composing it was the point: the pattern places a component, it does not 
 for the one pattern whose answer is falsy. `CheckBuilder` uses a sentinel instead. The other four
 are unaffected (no one declares `r.title false`), but the idiom is now known to be conditional on
 the field's values being truthy.
+
+## The offering is gated by the engine, not by convention
+
+`Base#authorized?` is the host's hook — roles, tenancy and feature flags are things only the host
+can see — and the **offering**, the set it produces, is the feature's entire security property: a
+submitted key becomes a widget only by being found there.
+
+That property used to rest on every host remembering one `Bali::Widget.authorized_for` call. A
+host passing its raw catalogue persisted and rendered widgets whose hook returned false, silently.
+So each boundary that receives an `offering:` now gates it: `Store.new`, `Layout.from`,
+`Layout.chosen`, and `Store#arrange` — the last for the same reason it already deduped, being the
+primitive a controller can reach directly from params. `authorized_for` is idempotent, so a host
+that filters first pays nothing.
+
+**Named for what it decides.** `visible?` would describe a presentation state; the hook governs
+whether a widget may be persisted, offered and rendered at all, and a host reading the former
+could reasonably write a display condition into it and be surprised that it also governs what the
+database accepts.
+
+**Not memoised by the engine.** Bali's default is a constant, and a host whose rule is expensive
+knows that where Bali cannot. The hook may query — the dummy app's `ActiveStudios` runs one
+`EXISTS` — but must not run the widget's own data queries, which is what lets a picker list thirty
+widgets without loading thirty widgets.
 
 ## `Charted` is a module, not a fifth base
 
@@ -183,7 +206,7 @@ declaration block would re-run on every read. The card asks `series` six to eigh
 The others offer all three.
 
 Inferring the set from the data — "no series, so no `large`" — would mean loading every widget
-to render a picker, collapsing the `visible?`/data split that lets the picker list the
+to render a picker, collapsing the `authorized?`/data split that lets the picker list the
 authorized set without a query. It would also make the offered sizes vary with the data: a
 widget whose series is empty this week would silently stop offering a size the user had already
 chosen. Apple declares `supportedFamilies` for the same two reasons.
@@ -242,7 +265,7 @@ otherwise lived only in the gem. It refuses a `--size` the pattern does not offe
 
 ## What did not change
 
-`visible?`, `key`, the i18n scope, `PREVIEW_ROWS`, `Widget.abbreviate`, `Widget.join` (was
+`key`, the i18n scope, `PREVIEW_ROWS`, `Widget.abbreviate`, `Widget.join` (was
 `Widget.subtitle`), the `Trend`/`Series`/`Goal`/`Row` value objects (moved onto the patterns that
 own them, `Series` onto `Charted`), the card's regions and layouts, the grid, the store, and the
 size picker.

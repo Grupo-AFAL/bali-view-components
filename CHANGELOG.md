@@ -32,6 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **`Bali::Widget::Base#authorized?` is the hook, and Bali gates the offering for you.** Who may
+  see which widget is your rule — roles, tenancy and feature flags are things only your app can
+  see — so Bali ships the hook and never the rule. It is named for what it decides: whether a
+  widget may be **persisted, offered and rendered at all**, not merely whether it is on screen.
+  `Store`, `Layout.from`, `Layout.chosen` and `Store#arrange` each gate the `offering:` they are
+  handed rather than trusting it to arrive gated, so a host that never calls `authorized_for`
+  cannot widen the boundary. It may query — the dummy app's `ActiveStudios` runs one `EXISTS` —
+  but it must not run the widget's own data queries, which is what lets a picker list thirty
+  widgets without loading thirty widgets.
 - **Widgets declare which sizes a user may choose.** `supports :small, :medium` alongside
   `default_size :small`, defaulting to what the pattern offers. Declare a subset when the widget has nothing to
   fill the others with — a bare count at `large` is a title, a number and most of a 2×2 cell
@@ -78,7 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `positive_when` because "up" is not universally good — the card colours from whether the
   movement was good, not which way it went. A widget that raises degrades its own tile
   instead of taking the page down. `Bali::Widget::Base` is what every widget shares
-  (`default_size`, `supports`, `visible?`, the copy macros);
+  (`default_size`, `supports`, `authorized?`, the copy macros);
   `Bali::DashboardWidget::Store` reads and writes the
   arrangement to the new `bali_dashboard_widgets` table, keyed by owner, tenant context and
   dashboard — and a host may swap in its own object implementing the same contract

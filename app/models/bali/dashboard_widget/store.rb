@@ -42,10 +42,10 @@ module Bali
     #
     # NOTE `context` here is the SCOPING STRING — a tenant id, or "" for a
     # single-tenant host. It is unrelated to `Bali::Widget::Base#context`, which
-    # is the actor object a host's `visible?` gates against. This class never
+    # is the actor object a host's `authorized?` gates against. This class never
     # sees that one.
     class Store
-      # The set the owner is being shown right now — already gated by the host.
+      # The set the owner is being shown right now.
       # State rather than an argument to three methods, because every one of them
       # needs it and all mean the same thing by it.
       #
@@ -54,11 +54,19 @@ module Bali
       # `arrange` would lose its delete half, since `[] - submitted` is `[]`;
       # `choose` would become a no-op; and `widgets` would render nothing. Three
       # wrong behaviours from one forgotten argument, none of them raising.
+      # GATED HERE, not merely expected to arrive gated. The offering is the
+      # feature's entire security property — a submitted key becomes a widget
+      # only by being found in it — and until this line that property depended
+      # on every host remembering one call. A host that passed its raw catalogue
+      # persisted and rendered widgets whose `authorized?` was false, silently.
+      #
+      # `authorized_for` is idempotent and memoised, so a host that filters first
+      # (as `docs/guides/engine-models.md` still tells it to) pays nothing.
       def initialize(owner:, dashboard_key:, offering:, context: "")
         @owner = owner
         @context = context.to_s
         @dashboard_key = dashboard_key.to_s
-        @offering = offering
+        @offering = Bali::Widget.authorized_for(offering)
       end
 
       # EVERY stored key, including rows for widgets the owner cannot currently
@@ -182,6 +190,18 @@ module Bali
           # dropping the rest with no error — so dedupe explicitly instead of
           # leaning on that.
           deduped = layout.uniq { |item| item[:widget].key }
+
+          # And gated against the offering, for the same reason as the dedupe
+          # above: `arrange` is the primitive a host can reach directly, so it
+          # holds its own invariants rather than trusting a caller to have used
+          # `Layout.from`. The offering is already authorized by the constructor,
+          # so a widget the owner cannot see finds no key here and is dropped —
+          # silently, like every other unauthorized key, because a role revoked
+          # between render and submit should degrade rather than 422.
+          offered = offering.index_by(&:key)
+          deduped = deduped.select { |item| offered.key?(item[:widget].key) }
+
+          next if deduped.empty?
 
           # One timestamp for the whole write. Stamping inside `row_for` gave the
           # rows of a single logical write microsecond-jittered `created_at`s.

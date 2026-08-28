@@ -437,7 +437,7 @@ yourself to override it.
 
 `supports` is **declared, never inferred from the data.** Inferring "this widget has no series,
 so hide `large`" would mean loading every widget just to render a picker — collapsing the
-`visible?`/data split that lets the picker list the authorized set without a single query. It
+`authorized?`/data split that lets the picker list the authorized set without loading a widget. It
 would also make the offered sizes vary with the data: a widget whose series is empty this week
 would silently stop offering a size the user had already chosen. Apple declares
 `supportedFamilies` for the same two reasons.
@@ -454,7 +454,7 @@ put `include Rails.application.routes.url_helpers` in a concern your widgets sha
 `spec/dummy/app/widgets/widget_routes.rb` does. (A shared `ApplicationWidget` superclass is not
 an option here — the superclass slot belongs to the pattern.)
 
-`visible?` is a HOOK, never a rule Bali owns: roles, tenancy and feature flags are things only
+`authorized?` is a HOOK, never a rule Bali owns: roles, tenancy and feature flags are things only
 your app can see, and it defaults to `true`. It must not touch the database — that split is what
 lets the picker list the offering without loading anything. `context` is whatever your app needs
 to gate on (a Pundit context, a user, nothing at all); Bali never reads it itself.
@@ -528,9 +528,20 @@ def offering
 end
 ```
 
-`Bali::Widget.authorized_for` just selects on `#visible?`. It costs only whatever your
-`visible?` bodies cost — never a widget query, since visibility and loading are
-deliberately kept separate.
+`Bali::Widget.authorized_for` selects on `#authorized?`. It costs only whatever your `authorized?`
+bodies cost — the hook **may** query (the dummy app's `ActiveStudios` runs one `EXISTS`), it just
+must not run the widget's own data queries. Authorization and loading are deliberately kept
+separate, which is what lets a picker list thirty widgets without loading thirty widgets.
+
+Bali calls it once or twice per request and **does not memoise for you**: its own default is a
+constant, and a host whose rule is expensive knows that where Bali cannot. Memoise in your own
+hook if it costs something.
+
+**You do not have to call it.** `Store`, `Layout.from` and `Layout.chosen` each gate the
+`offering:` they are handed, so a host that forgets cannot widen the boundary — a widget whose
+`authorized?` is false is not persistable and not renderable, whatever list you pass. Calling it
+yourself is still worth it when you want the authorized set for something else, such as building
+the picker's checkboxes; filtering twice is free.
 
 ### Constructing a `Store`
 
@@ -549,7 +560,7 @@ bought a saved line and a second name for one thing.
 
 Two different things are both called "context" here, and they are not the same one.
 `Store.new(context:)` is a scoping STRING — a tenant id — and it is unrelated to
-`Bali::Widget::Base#context`, the actor object a widget's `visible?` gates against.
+`Bali::Widget::Base#context`, the actor object a widget's `authorized?` gates against.
 `Store` never sees the actor object; `Base` never sees the scoping string.
 
 `Bali::DashboardWidget::Store` is the DEFAULT implementation, not a requirement. A host
