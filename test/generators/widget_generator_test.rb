@@ -18,7 +18,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     assert_file "app/widgets/low_stock_items.rb" do |content|
       assert_match(/class LowStockItems < Bali::Widget::ListBase/, content)
       assert_match(/default_size :medium/, content)
-      assert_match(/^  list\(order_by: :id\) do/, content)
+      assert_match(/^  list do/, content)
       assert_match(/^  row_title :name/, content)
     end
   end

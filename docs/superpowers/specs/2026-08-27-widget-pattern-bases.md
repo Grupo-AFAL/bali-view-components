@@ -138,6 +138,27 @@ end
 This is a real cost of the design and the one hosts will notice first. It is documented in
 `docs/guides/engine-models.md` and in the generated scaffold's comments.
 
+## `list` takes a block, not a relation
+
+`ListBase` declares its collection rather than defining a `#scope` method, which bundles the
+three coupled parameters — what to read, how to order it, how many to preview — at one call
+site where the old spelling let them drift.
+
+The block is the ONLY accepted form. An earlier draft also took `list scope: <relation>`, and
+that draft shipped the bug it enables, twice, in the same demo widget: a class body runs once at
+boot, so `where(due_date: Date.current..)` froze the process's start date and the tile showed
+the wrong week until a redeploy. The reloader re-runs the class body per request, so it could
+not reproduce in development. A hazard that is invisible where you develop and silent where it
+bites is not one to document; it is one to make unspellable.
+
+The block is also the only form that works at all for most real widgets: it runs against the
+widget, so it can reach `context` and be tenant- or user-scoped. A relation frozen into a class
+body cannot.
+
+Ordering goes inside the scope rather than in an `order_by:` keyword. Bali applies `limit` after
+the block returns, so order-then-limit still holds by construction, and there is one obvious
+place to write the ordering — the place a Rails developer would write it anyway.
+
 ## The generator
 
 `--pattern` no longer writes a declaration; it picks the superclass, and its vocabulary is the

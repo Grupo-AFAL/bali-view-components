@@ -316,7 +316,7 @@ half a thing: `TrendBase#current` raises `NotImplementedError` until you write i
 class LowStockItems < Bali::Widget::ListBase
   default_size :medium
 
-  list(order_by: :name) { Item.low_stock }
+  list { Item.low_stock.order(:name) }
 
   row_title    :name
   row_subtitle :outlet_name
@@ -327,20 +327,28 @@ end
 ```
 
 **`list` is the primitive.** `count` and the preview rows both fall out of one declaration, so
-a list widget states its collection once. `order_by` is applied *before* the preview is taken —
-ordering a limited relation sorts the eight rows you already picked, which is not the same query
-and usually not the one you meant. `limit:` defaults to `PREVIEW_ROWS`.
+a list widget states its collection once.
 
-**Pass a block, not a relation.** A class body runs once at boot, so `list scope: Task.where(due_date: Date.current..)`
-freezes the day the process started and quietly shows the wrong week until a redeploy. The block
-form is re-read on every render and runs against the widget, so it can reach `context` and
-private helpers:
+**Order the scope yourself**, in the scope — there is no `order_by:` keyword, because there is
+one obvious place to write it and it is the place you would write it anyway. Bali applies
+`limit` *after* your block returns, so ordering written inside the scope is always applied
+first. An unordered scope pages the preview off whatever the database happened to return, which
+is a different bug in every database. `limit:` defaults to `PREVIEW_ROWS` (8), which covers
+every built-in size; raise it only if you have also raised `Component.regions` past eight.
+
+**`list` takes a block and nothing else**, and that is deliberate rather than terse. A class
+body runs once at boot, so a relation written there closes over the moment the process started:
+`where(due_date: Date.current..)` would keep that day's window and the tile would show the wrong
+week until a redeploy. The reloader re-runs the class body on every request, so the bug cannot
+reproduce in development — it is silent, and only in production.
+
+The block is re-read on every render and runs against the widget, so it also reaches `context`
+and private helpers. A scope frozen into the class body could never be tenant- or user-scoped,
+which is most widgets in a real app:
 
 ```ruby
-list(order_by: :due_date) { Task.due_after(Date.current) }
+list { Task.for_tenant(context.tenant).due_after(Date.current).order(:due_date) }
 ```
-
-A bare `scope:` still works for a genuinely static relation.
 
 **The row declarations are symbols sent to the record**, which is the ergonomic point of them:
 `row_title :name` says everything `->(r) { r.name }` would. `row_href` takes a block, because a

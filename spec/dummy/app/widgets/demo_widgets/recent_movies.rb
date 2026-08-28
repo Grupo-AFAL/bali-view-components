@@ -6,7 +6,7 @@ module DemoWidgets
 
     default_size :medium
 
-    list scope: Movie.all, order_by: { created_at: :desc }
+    list { Movie.order(created_at: :desc) }
 
     row_title :name
     row_subtitle { |movie| subtitle(movie.genre, movie.status.humanize) }

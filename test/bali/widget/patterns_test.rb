@@ -82,7 +82,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   def test_a_list_answers_count_and_a_capped_preview_from_one_scope
     widget = list_widget do
-      list(order_by: :name) { Studio.all }
+      list { Studio.order(:name) }
       row_title :name
     end
 
@@ -94,7 +94,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # record yielded, so it can reach route helpers and private methods.
   def test_row_fields_take_a_symbol_or_a_block
     widget = list_widget do
-      list(order_by: :name) { Studio.all }
+      list { Studio.order(:name) }
       row_title :name
       row_subtitle { |studio| subtitle(studio.country, "studio") }
       row_href { |studio| "/studios/#{studio.id}" }
@@ -112,7 +112,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     9.times { |i| Studio.create!(name: "Zed #{i}", country: "US", status: :active) }
     widget = list_widget do
       row_title :name
-      list(order_by: { name: :desc }) { Studio.all }
+      list { Studio.order(name: :desc) }
     end
 
     assert_equal "Zed 8", widget.items.first.title
@@ -129,14 +129,36 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # whatever it closed over then — `Date.current` is the day the process
   # started. The block form is re-read per render, which is why it is the one
   # the docs lead with.
+  # THE BUG THE BLOCK EXISTS TO PREVENT, stated as a date rather than a counter.
+  # A class body runs once at boot, so a relation built there closes over the
+  # day the process started — `due_date: Date.current..` silently keeps
+  # yesterday's window and the tile shows the wrong week until a redeploy. The
+  # reloader re-runs the class body on every request, so this cannot reproduce
+  # in development: it is a production-only, silent failure, which is why `list`
+  # takes a block and nothing else.
+  def test_a_dated_scope_moves_with_the_clock
+    klass = Class.new(Bali::Widget::ListBase) do
+      def self.key = "dated"
+      row_title :name
+      list { Studio.where(created_at: Date.current.all_day) }
+    end
+
+    travel_to(Time.zone.parse("2026-01-01 09:00")) { Studio.create!(name: "Today") }
+
+    travel_to(Time.zone.parse("2026-01-01 12:00")) { assert_equal 1, klass.new.count }
+    travel_to(Time.zone.parse("2026-01-02 12:00")) { assert_equal 0, klass.new.count }
+  end
+
   def test_a_block_scope_is_re_read_on_every_render
     reads = 0
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "lazy"
       row_title :name
-      list { Studio.all }
     end
-    klass.define_method(:scope) { reads += 1; Studio.all }
+    # Counted INSIDE the declaration, which is the thing under test. Counting it
+    # in a `define_method(:scope)` would override the resolution this asserts,
+    # and would pass just as happily against a relation frozen at boot.
+    klass.list { reads += 1; Studio.all }
 
     2.times { klass.new.count }
 

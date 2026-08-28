@@ -11,7 +11,7 @@ class BaliWidgetComponentTest < ComponentTestCase
       row_title :name
       row_subtitle :country
       view_all_path { "/studios" }
-      list(order_by: :name) { rows.zero? ? Studio.none : Studio.limit(rows) }
+      list { rows.zero? ? Studio.none : Studio.order(:name).limit(rows) }
     end
   end
 

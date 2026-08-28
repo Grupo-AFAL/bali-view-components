@@ -31,17 +31,17 @@ class <%= class_name %> < <%= parent_class %>
   #
   # def formatted_value = "$#{Bali::Widget.abbreviate(value)}"
 <% elsif pattern == 'list' -%>
-  # THE COLLECTION, in one declaration: `count` is the whole of it, and the
-  # preview rows are the first `limit` after ordering. `order_by` is applied
-  # BEFORE the limit — paging a preview off an unordered relation is a different
-  # bug in every database.
+  # THE COLLECTION: `count` is the whole of it, and the preview rows are the
+  # first `limit` of it. ORDER IT — Bali applies the limit after this block
+  # returns, so ordering here is always applied first, and paging a preview off
+  # an unordered relation is a different bug in every database.
   #
-  # A BLOCK, not `list scope: Thing.all`: a class body runs once at boot, so a
-  # relation passed by value freezes whatever it closed over then — a
-  # `Date.current` in it is the day the process started, not today. The block is
-  # re-read per render and runs against the widget, so it can reach `context` and
-  # private helpers.
-  list(order_by: :id) do
+  # A BLOCK is the only form `list` takes. A class body runs once at boot, so a
+  # relation written there would freeze whatever it closed over — a
+  # `Date.current` in it is the day the process started, not today, and the
+  # reloader hides that in development. The block is re-read per render and runs
+  # against the widget, so it also reaches `context` and private helpers.
+  list do
     raise NotImplementedError, "<%= class_name %> must declare a `list` scope"
   end
 

@@ -7,58 +7,71 @@ module Bali
     #   class LowStockItems < Bali::Widget::ListBase
     #     default_size :medium
     #
-    #     list(order_by: :name) { Item.low_stock }
+    #     list { Item.low_stock.order(:name) }
+    #
     #     row_title :name
     #     row_subtitle :outlet_name
     #     row_href { |item| item_path(item) }
     #   end
     #
-    # The declarations are SYMBOLS SENT TO THE RECORD, which is the whole
+    # `list` is the primitive: `count` is the whole of it and the preview rows
+    # are the first `limit` of it, so the collection is stated once. It carries
+    # its own ordering, and Bali applies the limit afterwards.
+    #
+    # The ROW declarations are symbols sent to the RECORD, which is the whole
     # ergonomic win over a block per field — `row_title :name` says everything a
     # `->(r) { r.name }` would. `row_href` takes a block because a path is built
     # from a helper rather than read off the record, and `row_subtitle` accepts
-    # either: a symbol for one attribute, a block when it composes two.
+    # any of three: a symbol for one attribute, a block when it composes two, a
+    # string for a fixed label.
     class ListBase < Base
-      List = Data.define(:scope, :limit, :order_by) do
-        def initialize(scope:, limit: PREVIEW_ROWS, order_by: nil) = super
-      end
+      # `limit` is always passed by the macro below, which is the one place a
+      # `List` is built — so this carries no defaults of its own to fall out of
+      # step with that signature.
+      List = Data.define(:scope, :limit)
 
       Row = Data.define(:title, :subtitle, :href) do
         def initialize(title:, subtitle: nil, href: nil) = super
       end
 
+      # `Row` is public — the card reads `row.title` and a host can name one.
+      # A `List` is built in exactly one place and read only in here.
+      private_constant :List
+
       # No default: a `List` needs a scope, and there is no sensible empty one.
       # A widget that never declares `list` fails the way one that never defined
       # `#scope` used to — loudly, naming the macro.
-      class_attribute :_list, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_row_title, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_row_subtitle, **Base::ATTRIBUTE_OPTIONS
-      class_attribute :_row_href, **Base::ATTRIBUTE_OPTIONS
+      class_attribute :_list, **ATTRIBUTE_OPTIONS
+      class_attribute :_row_title, **ATTRIBUTE_OPTIONS
+      class_attribute :_row_subtitle, **ATTRIBUTE_OPTIONS
+      class_attribute :_row_href, **ATTRIBUTE_OPTIONS
 
       class << self
-        # The whole collection in one declaration: what to read, how to sort it,
-        # how many to preview.
+        # THE COLLECTION: what to read, and how many to preview.
         #
-        # `order_by` is applied to the scope BEFORE the preview is taken, never
-        # after — ordering a limited relation sorts the eight rows you already
-        # picked, which is not the same query and usually not the one you meant.
+        # Ordering goes INSIDE the scope — `list { Movie.order(created_at: :desc) }`
+        # — rather than in a keyword of its own. There is one obvious place to
+        # write it, it is the place a Rails developer would write it anyway, and
+        # `limit` is applied after the block returns, so a scope that orders
+        # itself is always ordered before it is paged.
         #
-        # PREFER THE BLOCK FORM. A class body is evaluated once at boot, so a
-        # relation passed by value freezes whatever it closed over then:
-        # `where(due_date: Date.current..)` is the day the process started, not
-        # today, and the widget quietly shows the wrong week until a redeploy.
-        # The block is re-evaluated per render and runs against the widget, so it
-        # can also reach `context` and private helpers:
+        # A BLOCK, always — there is no way to pass a relation by value, and that
+        # is the point. A class body is evaluated once at boot, so a relation
+        # given there freezes whatever it closed over: `where(due_date:
+        # Date.current..)` becomes the day the process started, and the tile shows
+        # the wrong week until a redeploy. The reloader re-runs the class body on
+        # every request, so that bug cannot reproduce in development and is silent
+        # in production — the worst shape an API hazard can have. It is not a
+        # hypothetical: this widget set shipped it twice.
         #
-        #   list(order_by: :due_date) { Task.due_after(Date.current) }
-        #
-        # A bare relation still works for a genuinely static scope.
-        def list(scope: nil, limit: Base::PREVIEW_ROWS, order_by: nil, &block)
-          unless scope || block
-            raise ArgumentError, "`list` needs a scope: either `list(scope: …)` or `list { … }`."
-          end
+        # The block is also the only form that WORKS. It runs against the widget,
+        # so it reaches `context` — a scope frozen into the class body can never
+        # be tenant- or user-scoped, which is most widgets in a real host. And it
+        # is shorter to write than the keyword it replaces.
+        def list(limit: Base::PREVIEW_ROWS, &block)
+          raise ArgumentError, "`list` needs a block: `list { Item.low_stock }`." unless block
 
-          self._list = List.new(scope: block || scope, limit: limit, order_by: order_by)
+          self._list = List.new(scope: block, limit: limit)
         end
 
         def row_title(value = nil, &block) = self._row_title = value || block
@@ -78,25 +91,23 @@ module Bali
 
       private
 
-      # ORDER THEN LIMIT. The reverse reads the first eight rows the database
-      # happens to return and sorts those.
-      def previewable
-        ordered = list.order_by.present? ? scope.order(list.order_by) : scope
-
-        ordered.limit(list.limit)
-      end
+      # ORDER THEN LIMIT, still guaranteed — by construction now rather than by a
+      # keyword. The scope carries its own `order`, and Bali applies `limit`
+      # AFTER the block returns, so ordering written inside the scope is always
+      # applied first. An unordered scope pages a preview off whatever the
+      # database happened to return, which is a different bug in every database.
+      #
+      # `scope`, not `list.scope`: the declaration is a Proc in the block form,
+      # and a Proc has no `limit`.
+      def previewable = scope.limit(list.limit)
 
       def list
         _list || raise(NotImplementedError,
                        "#{self.class.name || 'This widget'} must declare `list`.")
       end
 
-      # Resolved per render, which is the point of the block form.
-      def scope
-        declared = list.scope
-
-        declared.is_a?(Proc) ? instance_exec(&declared) : declared
-      end
+      # Re-read per render, which is the whole point of the block.
+      def scope = instance_exec(&list.scope)
 
       def row_for(record)
         # A list widget owes a title the way it owes a scope. Left to default to
