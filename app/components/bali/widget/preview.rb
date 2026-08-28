@@ -98,20 +98,13 @@ module Bali
         display_value { "$#{Bali::Widget.abbreviate(value)}" }
       end
 
-      # DECLARES the failure rather than raising to produce it, for the same
-      # reason `DemoWidgets::UnavailableFeed` does: `Base#failed?` probes with
-      # `count`, so a widget that really raised would surface it here — and
-      # `raise_load_errors?` is true in development, which would take the preview
-      # down instead of showing the tile it exists to show. The probe itself is
-      # covered in `test/bali/components/widget_test.rb`, where the environment
-      # can be stubbed.
       class DemoCheck < Bali::Widget::CheckBase
         include Sized
         title "Release readiness"
         short_title "Release"
         empty_message "Nothing to judge"
 
-        # An even `rows` passes, an odd one fails, and zero is the not-yet-known
+        # An even `count` passes, an odd one fails, and zero is the not-yet-known
         # third state — so the picker walks all three without a database.
         check do |c|
           c.value { rows.zero? ? nil : rows.even? }
@@ -122,14 +115,16 @@ module Bali
         view_all_path { "/lookbook" }
       end
 
+      # `Bali::Widget::Unavailable` rather than a bare raise: a widget whose
+      # source is down degrades without re-raising in development, where a plain
+      # exception is a bug and would take the preview down instead of showing
+      # the tile it exists to show.
       class DemoFailed < Bali::Widget::ValueBase
         title "Low stock items"
         short_title "Low stock"
         supports(*Bali::Widget::SIZES)
 
-        value { 0 }
-
-        def failed? = true
+        value { raise Bali::Widget::Unavailable, "the stock feed is down" }
       end
 
       # Keyed by the base each one demonstrates, so the picker and the class

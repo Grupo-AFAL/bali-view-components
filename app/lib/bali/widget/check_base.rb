@@ -111,19 +111,20 @@ module Bali
       # 1 once the check HAS an answer, either way. A failing check is not an
       # empty one, and `count.positive?` is what drives the card's muted
       # "nothing here" treatment and its "view all" link.
-      def count = @count ||= safely(0) { passing?.nil? ? 0 : 1 }
+      def count = @count ||= passing?.nil? ? 0 : 1
 
       # What the card prints beside the icon. Inside the net, because the labels
       # are host code.
-      def display_value = safely("—") { check_builder.label(self, passing?) }
+      def display_value = check_builder.label(self, passing?)
 
       # The card renders this through `Bali::BooleanIcon`, which owns the icon,
       # the colour and the screen-reader label for each of the three states.
       def state
         return @state if defined?(@state)
 
-        @state = safely(nil) { passing? }
+        @state = passing?
       end
+
 
       private
 

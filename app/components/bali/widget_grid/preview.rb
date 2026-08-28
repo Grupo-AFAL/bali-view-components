@@ -113,11 +113,10 @@ module Bali
                              })
       end
 
-      # The three extension points `default` never shows: a custom `heading` (which
-      # replaces the hint but CANNOT remove the Edit control), a widget filling the
-      # card's `body` slot instead of rendering a list, and — with `populated` off —
-      # the empty state, including the "Add widget" CTA that only appears when the
-      # host passed an `add_path`.
+      # The two extension points `default` never shows: a custom `heading` (which
+      # replaces the hint but CANNOT remove the Edit control), and — with
+      # `populated` off — the empty state, including the "Add widget" CTA that
+      # only appears when the host passed an `add_path`.
       #
       # @param populated toggle
       def with_slots(populated: true)

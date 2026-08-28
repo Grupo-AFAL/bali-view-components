@@ -10,6 +10,24 @@ module Bali
     # actually has. So the card talks to one uniform interface and never branches
     # on which kind of widget it is holding.
     #
+    # A WIDGET RAISES. It does not rescue itself, does not report, and has no
+    # `failed?` — `Bali::Widget::Component` is an ERROR BOUNDARY around one
+    # tile, and that is where a failure is caught, reported and turned into the
+    # degraded card.
+    #
+    # The rescue is a RENDERING concern: "one tile must not take the page down"
+    # is a fact about a page of twelve tiles, and a widget knows nothing about
+    # being one of them. `Movie.count` raising is ordinary, and `Movie` does not
+    # rescue itself either.
+    #
+    # Everything awkward about the alternative came from the widget swallowing:
+    # a `failed?` that answered wrong until something had been read, a `#load` to
+    # make it answer right, five per-pattern versions of that once `count` turned
+    # out not to mean "resolved", a fallback value on every read so a half-dead
+    # widget kept answering, and a `defined?` memo dance because a legitimate nil
+    # was indistinguishable from a swallowed failure. A boundary deletes all of
+    # it: the widget raises, and the card decides what a page does about it.
+    #
     # THE PATTERN IS THE TYPE. A widget picks exactly one of `ValueBase`,
     # `ListBase`, `TrendBase`, `ProgressBase` or `CheckBase`, and that is not a claim it
     # can contradict — it is what gives the class its declarations. Choosing
@@ -191,9 +209,7 @@ module Bali
       # WHERE THE TILE LINKS. A figure, a trend, a ring and a check all link
       # somewhere just as a list does, and no pattern overrides this — it is the
       # implementation rather than a default.
-      def view_all_path
-        safely(nil) { _view_all_path && instance_exec(&_view_all_path) }
-      end
+      def view_all_path = _view_all_path && instance_exec(&_view_all_path)
 
       def size = @size || self.class.default_size
 
@@ -211,69 +227,9 @@ module Bali
         dup.tap { |widget| widget.size = supported_sizes.include?(chosen) ? chosen : size }
       end
 
-      # ONE widget's failure must not take the page with it. A tile that vanishes
-      # reads as "nothing to see", which is the one thing a failure must not say,
-      # so a raising widget renders the degraded card instead.
-      #
-      # A PLAIN READER. `Bali::Widget::Component#before_render` does the loading,
-      # because deciding what a canvas needs read is the card's job and not the
-      # widget's — and the card branches on failure before it would otherwise
-      # have asked for anything.
-      def failed? = @failed.present?
-
       protected
 
       attr_writer :size
-
-      private
-
-      # Wraps every data read a pattern makes. Memoises the FAILURE as well as
-      # guarding the call: the card asks `count`, `items` and `view_all_path`
-      # separately, and a rescue that did not remember would re-run the raising
-      # query three times per tile.
-      #
-      # The SUCCESSES are memoised by the patterns themselves (`@count ||=`),
-      # and have to be: one card asks `count` five times — the headline, the
-      # empty state, the "view all" link and its label — and `display_value`
-      # reaches it from inside the widget, where no memo in the card can see the
-      # call. A widget is built per render, so the memo lives exactly as long as
-      # the answer is good for.
-      #
-      # `NotImplementedError` is named explicitly because it descends from
-      # `ScriptError`, NOT `StandardError` — a widget that forgets an abstract
-      # method is the most likely way to author a broken one, and the case the
-      # safety net most has to cover.
-      def safely(fallback)
-        return fallback if @failed
-
-        yield
-      rescue StandardError, NotImplementedError => e
-        raise if Widget.raise_load_errors?
-
-        @failed = e
-        report_failure(e)
-        fallback
-      end
-
-      # Tagged by widget key so an error reporter groups these per tile rather
-      # than piling every widget's failure under one controller action.
-      def report_failure(error)
-        Sentry.capture_exception(error, tags: { widget: failure_tag }) if defined?(Sentry)
-        Rails.logger.error(
-          "[bali/widget] #{failure_tag} failed to load — #{error.class}: #{error.message}\n" \
-          "#{error.backtrace&.first(5)&.join("\n")}"
-        )
-      end
-
-      # `key` raises for an anonymous class, which is CORRECT for `key` — it is
-      # the i18n scope and the persisted `widget_key`. But this is the reporting
-      # path, already inside a rescue, and an exception here would mask the
-      # failure it exists to record.
-      def failure_tag
-        key
-      rescue StandardError
-        self.class.name || "anonymous"
-      end
     end
   end
 end

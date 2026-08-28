@@ -49,7 +49,7 @@ module Bali
 
       # CLAMPED, and only for drawing: a ring has nowhere to put the eleventh of
       # ten, but "11 / 10" is a real and good state the caller may still want to
-      # print beside it. This is the ONLY implementation — `Bali::Widget::Goal`
+      # print beside it. This is the ONLY implementation — `Bali::Widget::Progress`
       # says what the goal is and this draws it.
       #
       # A `max` of zero is "no goal set" rather than an error — dividing by it

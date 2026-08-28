@@ -2648,13 +2648,12 @@ the default list:
 
 ```erb
 <%= render Bali::Widget::Component.new(compliance_widget) do |card| %>
-  <% card.with_body { render Compliance::TodayPanel::Component.new(widget.payload) } %>
 <% end %>
 ```
 
-**Slots:** `with_body` — replaces the row list with custom content. Still falls through to
-the compact stat at `small` even when filled — a ~215px card is not where custom content
-works.
+**Slots:** none. A widget's card is built from what its pattern declares — there is no way to
+inject markup into one, and at `small` there would be nowhere to put it: a ~215px tile is a
+single fact and a single tap target.
 
 See [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the
 widget contract (`Bali::Widget::Base`) and the persisted arrangement

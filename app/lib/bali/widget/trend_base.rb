@@ -137,18 +137,17 @@ module Bali
 
       # `to_i` because a widget with no data at all has a nil `current`, and the
       # card asks `count.positive?`.
-      def count = @count ||= safely(0) { current.to_i }
+      def count = @count ||= current.to_i
 
       # Memoised: the card asks `trend?` and then renders `trend`, and a nil trend
       # — the documented no-previous-period state — is what `||=` could not hold.
       def trend
         return @trend if defined?(@trend)
 
-        @trend = safely(nil) do
-          trend_builder.check!(self.class)
-          trend_builder.to_trend(self)
-        end
+        trend_builder.check!(self.class)
+        @trend = trend_builder.to_trend(self)
       end
+
 
       private
 

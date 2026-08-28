@@ -154,6 +154,60 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector(".stat-value", text: "1.2M")
   end
 
+  # ---- the error boundary --------------------------------------------------
+
+  # A DELIBERATELY unavailable widget degrades even in development, where a
+  # plain exception is re-raised. "My source is down" is a fact a host reports,
+  # not a bug a developer can fix from a stack trace.
+  def test_an_unavailable_widget_degrades_without_raising
+    assert Bali::Widget.raise_load_errors?, "the safety net is off in test, so this proves the difference"
+
+    unavailable = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "stock"
+      value { raise Bali::Widget::Unavailable, "the feed is down" }
+    end
+
+    render_inline(Bali::Widget::Component.new(unavailable.new))
+
+    assert_text "Couldn't load"
+  end
+
+  # THE TILE KEEPS ITS IDENTITY. The boundary wraps the CARD, not the whole
+  # component, because the section carries `data-widget-key`, the drag handle,
+  # the size picker and the `inert` target — unwinding the shell too would leave
+  # a failed widget undraggable, unresizable and invisible to the grid.
+  def test_a_degraded_tile_is_still_a_tile
+    broken = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "stock"
+      supports(*Bali::Widget::SIZES)
+      value { raise Bali::Widget::Unavailable, "down" }
+    end
+
+    render_inline(Bali::Widget::Component.new(broken.new.with_size(:large)))
+
+    assert_selector "section[data-widget-key='stock'][data-size='large']"
+    assert_selector ".handle"
+    assert_selector "[data-bali-widget-grid-edit-mode-target='inert']"
+    assert_text "Couldn't load"
+  end
+
+  # The partial card is DISCARDED rather than left above the apology: `render`
+  # returns the child's markup as a string, so an exception on the way through
+  # means nothing was appended.
+  def test_a_failure_mid_render_leaves_no_half_card
+    half = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "stock"
+      trend { |t| t.current 12; t.previous 6 }
+      series { |s| s.values { raise Bali::Widget::Unavailable, "history is down" } }
+    end
+
+    render_inline(Bali::Widget::Component.new(half.new.with_size(:large)))
+
+    assert_text "Couldn't load", count: 1
+    assert_no_selector "h5"
+    assert_no_selector "canvas.chart", visible: :all
+  end
+
   # ---- the degraded card ---------------------------------------------------
 
   # Checked before the size split, because a failed widget has `count: 0` and a
@@ -207,12 +261,15 @@ class BaliWidgetComponentTest < ComponentTestCase
     end
   end
 
-  # `before_render` loads `count` and the rows, because those are what every
-  # card reads. A series is read later, while the context region is being built
-  # — so this failure genuinely arrives after the first branch, and the detail
-  # region is what is left to carry the apology. Dropping that region (it has no
-  # rows and no empty state to show) would drop the message with it.
-  def test_a_late_failure_still_finds_a_region_to_apologise_in
+  # A FAILURE ANYWHERE IN THE RENDER degrades the whole tile, whenever it
+  # happens. There is no "early" and "late" any more: the boundary unwinds the
+  # subtree, so a series that raises while the chart is being built takes the
+  # card with it rather than leaving a headline above an apology.
+  #
+  # That is a deliberate change from the partial rendering this used to do. A
+  # widget that half-loaded is in an unknown state, and a figure you cannot
+  # corroborate is the thing the degraded tile exists to avoid printing.
+  def test_a_failure_while_rendering_degrades_the_whole_tile
     late = Class.new(Bali::Widget::TrendBase) do
       def self.key = "stock"
       series { |s| s.values { raise "history is down" } }
@@ -222,7 +279,9 @@ class BaliWidgetComponentTest < ComponentTestCase
     swallowing_load_errors do
       render_inline(Bali::Widget::Component.new(late.new.with_size(:large)))
 
-      assert_selector(".bali-widget-detail", text: "Couldn't load")
+      assert_text "Couldn't load", count: 1
+      assert_no_selector "canvas.chart", visible: :all
+      assert_no_selector "h5"
     end
   end
 
@@ -260,6 +319,35 @@ class BaliWidgetComponentTest < ComponentTestCase
 
           assert_text "Couldn't load", count: 1
           refute_selector ".stat-value", text: "0"
+        end
+      end
+    end
+  end
+
+  # EACH PATTERN RESOLVES WHAT ITS OWN CARD READS, and that list is not the same
+  # for all five. A `count` alone is enough for a figure, a list and a check, but
+  # not for the two whose headline is built from a second read: a progress widget
+  # whose `g.max` raised reported healthy, and the card then handed
+  # `Bali::Gauge` a nil goal and took the whole page down with an
+  # `ArgumentError`. That is why `#load` is per pattern rather than on `Base`.
+  def test_a_second_read_failing_still_degrades_the_tile
+    broken_max = Class.new(Bali::Widget::ProgressBase) do
+      def self.key = "stock"
+      supports(*Bali::Widget::SIZES)
+      goal { |g| g.value 5; g.max { raise "max is down" } }
+    end
+    broken_previous = Class.new(Bali::Widget::TrendBase) do
+      def self.key = "stock"
+      supports(*Bali::Widget::SIZES)
+      trend { |t| t.current 5; t.previous { raise "previous is down" } }
+    end
+
+    swallowing_load_errors do
+      [ broken_max, broken_previous ].each do |klass|
+        Bali::Widget::SIZES.each do |size|
+          render_inline(Bali::Widget::Component.new(klass.new.with_size(size)))
+
+          assert_text "Couldn't load", count: 1
         end
       end
     end
@@ -362,35 +450,6 @@ class BaliWidgetComponentTest < ComponentTestCase
   end
 
   # ---- the body slot -------------------------------------------------------
-
-  def test_body_slot_replaces_the_list
-    render_inline(Bali::Widget::Component.new(list_widget)) do |card|
-      card.with_body { "<p class='verdict'>All clear</p>".html_safe }
-    end
-
-    assert_selector("p.verdict")
-    assert_no_selector("ul.list li")
-  end
-
-  def test_body_slot_still_yields_to_the_summary_at_small
-    render_inline(Bali::Widget::Component.new(value_widget(size: :small))) do |card|
-      card.with_body { "<p class='verdict'>All clear</p>".html_safe }
-    end
-
-    assert_no_selector("p.verdict")
-    assert_selector(".stat-value", text: "2")
-  end
-
-  # A slot filled at the call site is an explicit instruction; a series is a data
-  # field. At `:inline` there is room for one of them.
-  def test_a_filled_body_slot_beats_the_chart_where_only_one_fits
-    render_inline(Bali::Widget::Component.new(trend_widget(size: :medium))) do |card|
-      card.with_body { "<p class='verdict'>All clear</p>".html_safe }
-    end
-
-    assert_selector("p.verdict")
-    assert_no_selector("canvas.chart", visible: :all)
-  end
 
   def test_the_chart_still_wins_when_no_slot_asked_for_the_space
     render_inline(Bali::Widget::Component.new(trend_widget(size: :medium)))

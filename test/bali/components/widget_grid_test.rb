@@ -95,16 +95,6 @@ class BaliWidgetGridComponentTest < ComponentTestCase
     )
   end
 
-  def test_a_widget_can_replace_its_body
-    render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout")) do |grid|
-      grid.with_widget(Stock.new) do |card|
-        card.with_body { "<p class='verdict'>All clear</p>".html_safe }
-      end
-    end
-
-    assert_selector("p.verdict", text: "All clear")
-  end
-
   def test_renders_the_add_tile_only_when_a_path_is_given
     render_inline(Bali::WidgetGrid::Component.new(url: "/l", add_path: "/widgets/edit")) do |grid|
       grid.with_widget(Stock.new)

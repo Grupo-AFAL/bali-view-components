@@ -186,18 +186,19 @@ module Bali
       def join(*parts) = Widget.join(*parts)
 
       def count
-        @count ||= safely(0) do
+        @count ||= begin
           row_builder.check!(self.class)
           scope.count.to_i
         end
       end
 
       def items
-        @items ||= safely([]) do
+        @items ||= begin
           row_builder.check!(self.class)
           previewable.map { |record| row_builder.to_row(self, record) }
         end
       end
+
 
       private
 

@@ -3,17 +3,14 @@
 module DemoWidgets
   # THE DEGRADED CARD, so the showcase has one.
   #
-  # It DECLARES the state rather than raising to produce it. A widget whose data
-  # actually raises gets here through `Base#safely`, but `raise_load_errors?` is
-  # true in development — the safety net working as designed — so a demo widget
-  # that really raised would take this page down instead of showing the tile it
-  # exists to show. The rescue is covered in `test/bali/widget/base_test.rb`,
-  # where the environment can be stubbed.
+  # `Bali::Widget::Unavailable` rather than a bare `raise`: a widget whose source
+  # is down is reporting a FACT, and the card degrades without re-raising in
+  # development. A plain exception is a BUG, and development would rightly show
+  # it — which would take this showcase down rather than demonstrate the tile it
+  # exists to demonstrate.
   class UnavailableFeed < Bali::Widget::ValueBase
     default_size :small
 
-    value { 0 }
-
-    def failed? = true
+    value { raise Bali::Widget::Unavailable, "the box office feed is down" }
   end
 end

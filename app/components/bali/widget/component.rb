@@ -72,11 +72,6 @@ module Bali
       # `elements` default it would otherwise fall back to.
       SPARK_DATASET = { pointRadius: 0, pointHoverRadius: 0 }.freeze
 
-      # Custom content for a widget that isn't a list. Replaces the shape enum
-      # the source app used, which had to name an app concept (`:verdict`)
-      # inside a library.
-      renders_one :body
-
       # ONE INTERFACE, straight off the widget. `Bali::Widget::Base` answers every
       # one of these — with a null where the pattern has nothing — so the card
       # never asks what kind of widget it is holding. A `ValueBase` returns no
@@ -85,47 +80,24 @@ module Bali
       # WHAT EVERY WIDGET ANSWERS. Five patterns, one interface, no type check
       # anywhere in this class or its template.
       delegate :key, :title, :short_title, :empty_message, :size, :supported_sizes,
-               :view_all_path, :failed?, to: :widget
+               :view_all_path, to: :widget
 
-      # WHAT ONLY SOME WIDGETS ANSWER, defaulted HERE rather than as nulls on
-      # `Bali::Widget::Base`.
+      # WHICH CARD DRAWS THIS WIDGET. The one place the shell asks what kind of
+      # widget it is holding — and it asks the WIDGET's own class, so a host's
+      # subclass of a pattern gets that pattern's card without registering
+      # anything.
       #
-      # The defaults exist for the CARD's benefit — it needs one interface so it
-      # can decide whether a region has anything to put in it — and a widget
-      # should not have to answer `goal` because some other pattern has goals.
-      # A `ValueBase` is not a thing with no ring; it is a thing with a figure.
-      #
-      # `try` rather than `respond_to?` at each call site: it returns nil for a
-      # method the widget does not define, and — unlike `method_missing` — still
-      # lets an error raised INSIDE the method through, so a pattern's broken
-      # `series` fails loudly instead of reading as "no chart".
-      #
-      # This also means an object answering none of them still renders: a host's
-      # own `Base` subclass gets a headline and nothing else, rather than a
-      # `NoMethodError`.
-      # HOW MANY, which is really "does this widget have anything" — the card
-      # reads it for the empty state, the headline dimming and the "view all"
-      # label. Every pattern answers it, and `CheckBase` has to bend to: its
-      # count is 1 once the check has an answer either way, which is a predicate
-      # wearing a numeric name. That bend is the reason this is defaulted here
-      # rather than required of every widget.
-      def count = widget.try(:count) || 0
-
-      # WHAT THE HEADLINE PRINTS. A pattern whose headline is not its count says
-      # so — `ValueBase` through its `display_value` declaration, `CheckBase`
-      # with its pass/fail label — and the rest get the abbreviated count, since
-      # a ~215px tile at `text-4xl` fits four to six characters.
-      def display_value = widget.try(:display_value) || Bali::Widget.abbreviate(count)
-
-      def items = widget.try(:items) || []
-
-      def trend = widget.try(:trend)
-
-      def series = widget.try(:series)
-
-      def goal = widget.try(:goal)
-
-      def state = widget.try(:state)
+      # A widget that is none of the five still renders: `Value` is the fallback,
+      # and it needs only `count` and `display_value`, which `Bali::Widget::Base`
+      # does not define but every real widget does.
+      # `**options` so a host can add a `data-testid`, an extra class, or a Turbo
+      # frame attribute to a card — the same passthrough every other component in
+      # this library offers on its root tag.
+      def initialize(widget, **options)
+        @widget = widget
+        @options = options
+        super()
+      end
 
       # A STABLE DOM ID so a host can address one card from a Turbo Stream. The
       # grid's own resize needs it — a card that changes shape has to come back
@@ -136,30 +108,28 @@ module Bali
       # legitimately needs to name.
       def self.dom_id(key) = "bali-widget-#{key}"
 
-      # `**options` so a host can add a `data-testid`, an extra class, or a
-      # Turbo frame attribute to a card — the same passthrough every other
-      # component in this library offers on its root tag.
-      def initialize(widget, **options)
-        @widget = widget
-        @options = options
-        super()
-      end
-
-      # THE CARD BRANCHES ON FAILURE FIRST, before it has asked the widget
-      # anything — and a widget reads lazily, so at that moment nothing has
-      # failed yet. Without this the card takes the healthy branch and renders a
-      # confident grey `0` for a widget that is actually broken, which is the one
-      # thing the degraded tile exists to prevent.
+      # THE ERROR BOUNDARY. One tile's failure must not take the page with it,
+      # and a tile that VANISHES reads as "nothing to see" — the one thing a
+      # failure must not say — so a raising widget renders the degraded card in
+      # its own place.
       #
-      # Loading belongs here rather than behind a probing `failed?`, because
-      # deciding what a canvas needs read is the CARD's job: `count` always,
-      # since every pattern defines it and every region depends on it, and
-      # `items` only where rows will actually render. A hero tile shows none, so
-      # it never pays for them.
-      def before_render
-        count
-        items if region.fetch(:rows).positive?
-      end
+      # HERE and not in the widget. The rescue is a RENDERING concern: "one of
+      # twelve tiles must not kill the page" is a fact about the page, and a
+      # widget knows nothing about being one of twelve. A widget raises like any
+      # other object and this decides what a page does about it — the same shape
+      # as a React error boundary, and as `react-island`'s own.
+      #
+      # `render_in` rather than a rescue inside the template: ViewComponent
+      # buffers the subtree, so unwinding here discards whatever markup had
+      # already been emitted. A rescue further in would leave half a card on the
+      # page above the apology.
+      #
+      # `NotImplementedError` is named explicitly because it descends from
+      # `ScriptError`, NOT `StandardError` — and a forgotten declaration is the
+      # most likely way to author a broken widget.
+      # The apology, as its own component so the boundary has something to render
+      # that cannot itself fail.
+      def self.degraded(widget) = Bali::Widget::Degraded::Component.new(widget)
 
       private
 
@@ -171,127 +141,87 @@ module Bali
       # single size gets no picker rather than a picker that cannot do anything.
       def resizable? = supported_sizes.many?
 
+      # The ONE fact about a size the shell reads; the card gets the whole region
+      # and never re-derives it, so `REGIONS` stays the single source of truth.
       def region = regions.fetch(size)
 
-      # The ONE fact about a size that the rest of this class reads. Every
-      # "what does this size look like" question resolves through `REGIONS`;
-      # nothing keys off `size` directly, or the table stops being the source of
-      # truth the moment someone adds a size.
-      def layout = region.fetch(:layout)
+      # The hero is a tighter card — one fact needs less room around it than a
+      # header, a chart and a breakdown do.
+      def hero? = region.fetch(:layout) == :hero
 
-      # The compact card: one fact, and the whole tile is the link. Keyed on
-      # `layout` rather than a row count of zero — a charted widget at `medium`
-      # also has no rows, and it is emphatically not a summary tile.
-      def summary? = layout == :hero
+      CARDS = {
+        Bali::Widget::ListBase => Bali::Widget::List::Component,
+        Bali::Widget::TrendBase => Bali::Widget::Trend::Component,
+        Bali::Widget::ProgressBase => Bali::Widget::Progress::Component,
+        Bali::Widget::CheckBase => Bali::Widget::Check::Component
+      }.freeze
 
-      # A region the widget has nothing to put in is not rendered. This is the
-      # degradation that keeps every pre-ladder widget working.
-      #
-      # A SERIES AND NOTHING ELSE. A goal is a HEADLINE — it replaces the
-      # number — and the context region can only ever draw a chart. Counting a
-      # goal here made the card reserve room for a chart that never rendered:
-      # at `medium` the detail region was suppressed and the tile showed a ring
-      # alone, where the same widget without a goal showed three rows.
-      def context? = region.fetch(:context).present? && series?
+      def card
+        klass = CARDS.find { |pattern, _| widget.is_a?(pattern) }&.last ||
+                Bali::Widget::Value::Component
 
-      def spark? = region.fetch(:context) == :spark
-
-      def series? = series&.charted? || false
-
-      def goal? = goal.present?
-
-      # A CHECK REPLACES THE NUMBER, the way a goal's ring does. Asked of the
-      # WIDGET rather than of `state`, because `state` is ternary: `false` and
-      # `nil` are both answers a check gives, so neither can mean "not a check".
-      def check? = widget.respond_to?(:state)
-
-      # The detail region is rendered only when it HAS something. An empty
-      # wrapper is not free: at `:stacked` it takes `flex-1` and squeezes the
-      # chart into two fifths of a canvas it could have had whole, and at
-      # `:split` it is a blank right-hand column. The number and ring ladders are
-      # documented as having no items, so this is the common case, not the edge.
-      #
-      # The counterpart to `context?`. Both answer "does this region have
-      # anything to put in it", and having only one of them was the whole defect.
-      #
-      # `failed?` because a failed detail region has an apology to show, and
-      # dropping the region would drop that with it. `before_render` has already
-      # attempted both reads, so this is a plain question by the time it is asked.
-      def detail? = body? || rows.any? || empty_state? || failed?
-
-      # ONE home for this rule. The template used to spell it inline as well,
-      # and two spellings of one rule is how the `context?` bug got in.
-      #
-      # Suppressed when a chart is already speaking for the card: "nothing to
-      # show" beside a populated sparkline is a contradiction.
-      def empty_state? = !any_items? && !context?
-
-      def rows = @rows ||= items.first(region.fetch(:rows))
-
-      def any_items? = count.positive?
-
-      def view_all_link? = any_items? && view_all_path.present?
-
-      def trend? = trend.present?
-
-      # The chart's share of the canvas, which differs by what it is SHARING
-      # WITH rather than by taste.
-      #
-      # At `:inline` it divides a row with the headline, so it takes the
-      # remaining width. At `:stacked` it sits ABOVE the breakdown, and there an
-      # even split starves the list and clips its last row; two fifths leaves the
-      # rows whole.
-      #
-      # `!detail?` is the condition those two fifths always depended on: with no
-      # breakdown beneath it, the chart takes the canvas. Without this the empty
-      # wrapper goes away and the whitespace it was holding stays — a chart in
-      # the top 40% of a card with dead space under it.
-      #
-      # THIS METHOD IS THE ONE PLACE that has to know about more than one region.
-      # `context?` and `detail?` each decide whether their OWN region renders;
-      # this decides how big one of them is GIVEN the other, which is why three
-      # bugs of the same shape all ended here. Anything that changes WHEN a
-      # region renders has to be checked against this line.
-      def context_classes
-        class_names(
-          "bali-widget-context min-h-0 min-w-0 overflow-hidden",
-          spark? || !detail? ? "flex-1" : "basis-2/5"
-        )
+        klass.new(widget, region: region)
       end
 
-      def chart_options
-        return SPARK_OPTIONS.deep_dup if spark?
+      # THE ERROR BOUNDARY, around the CARD and not around this component. One
+      # tile's failure must not take the page with it, and a tile that VANISHES
+      # reads as "nothing to see" — the one thing a failure must not say — so a
+      # raising widget gets the degraded body inside its own section.
+      #
+      # Around the card specifically, because the section carries the tile's
+      # whole identity: `data-widget-key`, the drag handle, the size picker, the
+      # `inert` target. Unwinding the shell too would leave a failed widget
+      # undraggable, unresizable and invisible to the grid's `toArray`.
+      #
+      # `render` returns the child's markup as a string, so an exception on the
+      # way through means nothing was appended — the partial card is discarded
+      # rather than left above the apology.
+      #
+      # HERE and not in the widget. The rescue is a RENDERING concern: "one of
+      # twelve tiles must not kill the page" is a fact about the page, and a
+      # widget knows nothing about being one of twelve. It raises like any other
+      # object; this decides what a page does about it — the same shape as a
+      # React error boundary, and as `react-island`'s own.
+      #
+      # `Unavailable` is caught first and never re-raised: a widget saying "my
+      # source is down" reports a fact, not a bug, and a stack trace in
+      # development gives a developer nothing to fix.
+      #
+      # `NotImplementedError` is named explicitly because it descends from
+      # `ScriptError`, NOT `StandardError` — and a forgotten declaration is the
+      # most likely way to author a broken widget.
+      def card_or_apology
+        render card
+      rescue Bali::Widget::Unavailable => e
+        report(e)
+        render self.class.degraded(widget)
+      rescue StandardError, NotImplementedError => e
+        raise if Bali::Widget.raise_load_errors?
 
-        # `precision: 0` when every value is a whole number, because most widget
-        # series are COUNTS and Chart.js's default tick algorithm happily offers
-        # "1.6" of them. Inferred rather than configured: a widget charting
-        # integers never wants fractional ticks, so there is nothing to ask it.
-        { plugins: { tooltip: { enabled: true } } }.tap do |options|
-          options[:scales] = { y: { ticks: { precision: 0 } } } if whole_numbers?
-        end
-      end
-
-      def whole_numbers?
-        series.values.all? { |value| value.is_a?(Integer) || value.to_f % 1 == 0 }
-      end
-
-      def chart_data
-        dataset = { label: short_title, data: series.values }
-        dataset = dataset.merge(SPARK_DATASET) if spark?
-
-        { labels: series.labels, datasets: [ dataset ] }
+        report(e)
+        render self.class.degraded(widget)
       end
 
       def card_classes
         class_names(
           "bali-widget-card",
-          summary? ? "p-4" : "p-6",
+          hero? ? "p-4" : "p-6",
           options[:class]
         )
       end
 
       def card_attributes
         options.except(:class)
+      end
+
+      # Tagged by widget key so an error reporter groups these per tile rather
+      # than piling every widget's failure under one controller action.
+      def report(error)
+        Sentry.capture_exception(error, tags: { widget: key }) if defined?(Sentry)
+        Rails.logger.error(
+          "[bali/widget] #{key} failed to load — #{error.class}: #{error.message}\n" \
+          "#{error.backtrace&.first(5)&.join("\n")}"
+        )
       end
     end
   end

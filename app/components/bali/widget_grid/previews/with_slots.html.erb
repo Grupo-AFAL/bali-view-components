@@ -8,18 +8,8 @@
     <% end %>
 
     <% if populated %>
-      <%# A widget whose body is not a list. This replaces the shape enum the
-          source app used, which had to name an app concept inside a library. %>
-      <% grid.with_widget(Bali::WidgetGrid::Preview::Demo.build('compliance_status', :medium, 3)) do |card| %>
-        <% card.with_body do %>
-          <div class="flex h-full flex-col items-center justify-center gap-2">
-            <span class="text-3xl">✅</span>
-            <p class="text-sm text-base-content/70">Todo en orden</p>
-          </div>
-        <% end %>
-      <% end %>
-
-      <% grid.with_widget(Bali::WidgetGrid::Preview::Demo.build('low_stock_items', :medium, 4)) %>
+      <% grid.with_widget(Bali::WidgetGrid::Preview::Demo.goal('compliance_status', :medium, 3)) %>
+      <% grid.with_widget(Bali::WidgetGrid::Preview::Demo.list('low_stock_items', :medium, 4)) %>
     <% end %>
   <% end %>
 </div>

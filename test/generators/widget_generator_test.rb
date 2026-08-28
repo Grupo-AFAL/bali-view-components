@@ -109,7 +109,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/widgets/low_stock_items_test.rb" do |content|
       assert_match(/assert_equal :large, widget.size/, content)
-      assert_match(/refute_predicate widget, :failed\?/, content)
+      assert_match(/assert_kind_of Integer, widget\.count/, content)
     end
   end
 

@@ -464,11 +464,21 @@ A list's preview is capped at `ListBase::PREVIEW_ROWS` (8 rows) while `count` re
 scope, which
 is what lets a widget stay ignorant of the size its card renders at.
 
-**One widget's failure must not take the page with it.** Every data read a pattern makes is
-wrapped, so a raising widget renders a degraded "Couldn't load" tile instead of a 500 — and
-memoises the failure, so the card's several questions do not re-run the broken query. In
-development and test the safety net is off (`Bali::Widget.raise_load_errors?`), because a widget
-bug there is a bug rather than a permanently apologetic tile.
+**One widget's failure must not take the page with it — but a widget does not rescue itself.**
+It raises like any other object, and `Bali::Widget::Component` is an ERROR BOUNDARY around one
+tile: it catches, reports, and renders a degraded "Couldn't load" card in that tile's place,
+keeping the section so the tile stays draggable and resizable. The rescue is a rendering concern
+— "one of twelve tiles must not kill the page" is a fact about the page, and a widget knows
+nothing about being one of twelve.
+
+In development and test the boundary RE-RAISES (`Bali::Widget.raise_load_errors?`), because a
+widget bug there is a bug rather than a permanently apologetic tile. The exception is
+`Bali::Widget::Unavailable`, which a host raises deliberately when a source is known to be down —
+that degrades everywhere, since there is nothing for a developer to fix:
+
+```ruby
+value { raise Bali::Widget::Unavailable, "the box office feed is down" }
+```
 
 ### The five ladders
 
@@ -593,7 +603,6 @@ default row list:
 
 ```erb
 <% grid.with_widget(widget) do |card| %>
-  <% card.with_body { render Compliance::TodayPanel::Component.new(widget.payload) } %>
 <% end %>
 ```
 

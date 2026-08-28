@@ -204,36 +204,46 @@ to put them side by side. If that stops being true, the change is a `Rows` conce
 `list`/`row` to `TrendBase` and `ProgressBase`, plus a row budget in `REGIONS`
 for a card that is showing both.
 
-## The card decides what to load, and validates while doing it
+## The card is an error boundary; the widget just raises
 
-`Base#failed?` is a plain reader. The loading happens in `Bali::Widget::Component#before_render`,
-which reads `count` always and `items` only where rows will render — a hero tile shows none, so
-it never pays for them.
+A widget does not rescue itself, has no `failed?`, and never reports. It raises like any other
+object, and `Bali::Widget::Component` catches — the same shape as a React error boundary, and as
+`react-island`'s own on the JavaScript side.
 
-It has to happen there, because the card branches on failure *first*, before it has asked the
-widget for anything, and a lazily-read widget has not failed yet at that moment. Leaving
-`failed?` to probe for itself worked but had to be explained in three files; deciding what a
-canvas needs read is the card's job, and `REGIONS` is where that is already written down.
+The rescue is a RENDERING concern. "One of twelve tiles must not kill the page" is a fact about a
+page, and a widget knows nothing about being one of twelve. `Movie.count` raising is ordinary,
+and `Movie` does not rescue itself either.
 
-**Every required declaration is validated from `count`**, which `before_render` reads at every
-size. That placement is load-bearing rather than incidental. Guarding only `#trend` and `#goal`
-left `:small` unprotected: the hero branch decides on `failed?` at the very top and never looks
-again, so a guard reached later fired *after* the card had committed to looking healthy — a
-widget missing `t.current` printed a confident grey `0` at its own default size while apologising
-correctly at the other two. That is precisely what the degraded tile exists to prevent.
+Everything awkward about the alternative came from the widget swallowing:
 
-A widget whose `count` survives and whose series does not is caught a second time by the detail
-region, which keeps itself rendered (`detail?` includes `failed?`) so the apology has somewhere
-to go.
+- a `failed?` that answered `false` until something had been read, so the card branching on it
+  first rendered a confident grey `0` for a broken widget
+- a `#load` to make it answer honestly, then five per-pattern versions once `count` turned out
+  not to mean "resolved" — a `ProgressBase` whose `g.max` raised reported healthy and handed
+  `Bali::Gauge` a nil goal, taking the page down
+- a fallback value on every read (`safely(0)`, `safely(nil)`, `safely([])`) so a half-dead widget
+  kept answering
+- a `defined?` memo dance, because a legitimately nil answer was indistinguishable from a
+  swallowed failure
+- failure needing two answers at two moments: resolved before the first branch, live again in the
+  region that discovered it late
 
-The wrapper memoises the failure as well as catching it: the card asks several questions, and a
-rescue that did not remember would re-run the broken query once per question. It names
-`NotImplementedError` explicitly, because that descends from `ScriptError` rather than
-`StandardError` — and a forgotten declaration is the most likely way to author a broken widget.
+The boundary deletes all of it.
 
-**Successes are memoised too**, by the patterns, with `defined?` rather than `||=`. `nil` is a
-documented answer here — no previous period, no series — and `||=` cannot hold it, so the
-declaration block would re-run on every read. The card asks `series` six to eight times per tile.
+**Around the CARD, not around the component.** The section carries the tile's identity —
+`data-widget-key`, the drag handle, the size picker, the `inert` target — so unwinding the shell
+too would leave a failed widget undraggable, unresizable and invisible to the grid's `toArray`.
+`render` returns the child's markup as a string, so an exception on the way through discards the
+partial card rather than leaving half of it above the apology.
+
+**`Bali::Widget::Unavailable` is the one exception a host throws on purpose**, for a source known
+to be down. It degrades everywhere, including development, because there is no bug to fix from a
+stack trace. Everything else is a bug: loud in development, degraded in production.
+
+**The cost, accepted:** partial rendering is gone. A widget whose series raised used to show its
+headline with an apology where the chart would be; now the whole tile apologises. That matches
+the rule already applied to a half-loaded count — a widget in an unknown state should not print a
+figure it cannot corroborate.
 
 ## Sizes are declared, never inferred
 

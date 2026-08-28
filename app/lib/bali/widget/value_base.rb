@@ -65,7 +65,7 @@ module Bali
 
       # `value` IS the count as far as the card is concerned — that is what makes
       # the empty state and the "view all" link work without a second reader.
-      def count = @count ||= safely(0) { value.to_i }
+      def count = @count ||= value.to_i
 
       # WHAT THE HEADLINE PRINTS. Wrapped here rather than by a hook on `Base`,
       # because everything a host writes has to run inside the failure net and
@@ -76,11 +76,9 @@ module Bali
       # printed anyway; declaring `display_value` is for when the number is not
       # the display.
       def display_value
-        safely("—") do
-          next Widget.abbreviate(count) if _display_value.nil?
+        return Widget.abbreviate(count) if _display_value.nil?
 
-          _display_value.is_a?(Proc) ? instance_exec(&_display_value) : _display_value
-        end
+        _display_value.is_a?(Proc) ? instance_exec(&_display_value) : _display_value
       end
     end
   end

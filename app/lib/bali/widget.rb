@@ -10,6 +10,15 @@ module Bali
   # directories that extend it (`app/lib/bali/widget/` and
   # `app/components/bali/widget/`) and `SIZES` would have nowhere to live.
   module Widget
+    # DELIBERATELY UNAVAILABLE, as opposed to broken. A widget raises this when
+    # its data source is known to be down — an upstream API returning 503, a
+    # feature switched off mid-request — and the card degrades WITHOUT
+    # re-raising in development, because there is no bug for a developer to fix.
+    #
+    # Every other exception is a bug: loud in development, degraded in
+    # production. This is the one a host can throw on purpose.
+    Unavailable = Class.new(StandardError)
+
     # Semantic, not Tailwind — and 2-D, adapted from iOS: `small` is 1x1,
     # `medium` 2x1, `large` 2x2. `large` is `medium`'s WIDTH at double HEIGHT,
     # which is why it earns more rows rather than wider ones.

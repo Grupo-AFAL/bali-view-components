@@ -123,17 +123,16 @@ module Bali
 
       # The ring is the headline, but `count` still gates the empty state and the
       # "view all" link, so it answers with what has been achieved.
-      def count = @count ||= safely(0) { value.to_i }
+      def count = @count ||= value.to_i
 
       # Memoised: the card asks `goal?` and then renders `goal.to_h`.
       def goal
         return @goal if defined?(@goal)
 
-        @goal = safely(nil) do
-          goal_builder.check!(self.class)
-          goal_builder.to_goal(self)
-        end
+        goal_builder.check!(self.class)
+        @goal = goal_builder.to_goal(self)
       end
+
 
       private
 

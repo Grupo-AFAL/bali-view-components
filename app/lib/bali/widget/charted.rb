@@ -134,7 +134,7 @@ module Bali
       def series
         return @series if defined?(@series)
 
-        @series = safely(nil) { _series_builder&.to_series(self) }
+        @series = _series_builder&.to_series(self)
       end
     end
   end
