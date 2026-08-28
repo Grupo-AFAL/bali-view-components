@@ -9,8 +9,7 @@ module Bali
         # of 10 shifts covered is a real and good state a ring cannot draw. Set
         # `max` to 0 for "no goal set" — configuration, not an error.
         #
-        # `size` picks the canvas the card is drawn on — the region it is handed
-        # decides the layout, not the card.
+        # `size` picks the canvas the card is drawn on.
         #
         # @param size select { choices: [small, medium, large] }
         # @param value number
@@ -23,7 +22,7 @@ module Bali
               short_title "Onboarding"
               empty_message "Nothing to track"
             end.tap { |k| k.goal { |g| g.value value.to_i; g.max max.to_i; g.label "of #{max}" } }.new,
-            region: Bali::Widget::Component.regions.fetch(size.to_sym)
+            size: size.to_sym
           )
         end
       end

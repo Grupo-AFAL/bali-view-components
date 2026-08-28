@@ -16,7 +16,7 @@ module Bali
         def default(size: :large, rows: 9)
           render Bali::Widget::List::Component.new(
             Bali::Widget::List::Preview.specimen(rows.to_i),
-            region: Bali::Widget::Component.regions.fetch(size.to_sym)
+            size: size.to_sym
           )
         end
 

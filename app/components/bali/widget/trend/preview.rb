@@ -35,7 +35,7 @@ module Bali
           widget.series { |s| s.values [ 3, 5, 4, 8, 6, 9, 12 ] } if charted
 
           render Bali::Widget::Trend::Component.new(
-            widget.new, region: Bali::Widget::Component.regions.fetch(size.to_sym)
+            widget.new, size: size.to_sym
           )
         end
       end

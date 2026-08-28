@@ -11,7 +11,7 @@ module Bali
     # the rest — so it reads one uniform interface and never branches on which
     # kind of widget it is holding.
     #
-    # It decides WHAT TO LOAD (`before_render`) and HOW MUCH FITS (`REGIONS`);
+    # It decides WHAT TO LOAD (`before_render`) and HOW MUCH FITS (`ROWS`);
     # the widget decides what the answers are.
     class Component < ApplicationViewComponent
       # What each canvas has room for. The card shows the SAME FACT at every
@@ -31,32 +31,26 @@ module Bali
       # `ListBase` overrides `items` and never `series`, `TrendBase` and
       # `ProgressBase` the reverse — so a card is never asked to fit both.
       # Reinstate one here if `TrendBase`/`ProgressBase` ever gain rows.
-      REGIONS = {
-        # A ~215px tile fits one fact and nothing else, and it is a single tap
-        # target — so no rows, and nothing inside may be focusable.
-        small: { layout: :hero, context: nil, rows: 0 },
-        # Fact on the left, sparkline on the right. Axis-less: below roughly 2x2
-        # a chart's axes cost more room than they explain.
-        medium: { layout: :inline, context: :spark, rows: 3 },
-        # Fact in a header band, chart under it, breakdown below that.
-        large: { layout: :stacked, context: :full, rows: 7 }
-      }.freeze
+      # THE ONLY THING A SIZE SAYS THAT THE SIZE ITSELF DOES NOT. How many rows a
+      # canvas has room for is a MEASUREMENT against Bali's own type sizes, and
+      # nothing else about a size needs writing down: hero, inline and stacked
+      # are one-to-one with small, medium and large, so a table naming them was
+      # `size` wearing a hat.
+      #
+      #   small   a ~215px tile fits one fact and nothing else, and is a single
+      #           tap target — so no rows, and nothing inside may be focusable
+      #   medium  fact on the left, three rows or a sparkline on the right
+      #   large   fact in a header band, chart under it, seven rows below that
+      #
+      # OVERRIDABLE, because a host with a larger base font, two-line subtitles
+      # or a denser theme gets clipping and, as a frozen constant, no way to say
+      # so — a library imposing not a philosophy but a measurement:
+      #
+      #   Bali::Widget::Component.rows_budget =
+      #     Bali::Widget::Component::ROWS.merge(large: 5)
+      ROWS = { small: 0, medium: 3, large: 7 }.freeze
 
-      # OVERRIDABLE, because `rows` is a pixel budget measured against Bali's
-      # own type sizes. A host with a larger base font, two-line
-      # subtitles or a denser theme gets clipping and, as a frozen constant, no
-      # way to say so — a library imposing not a philosophy but a MEASUREMENT.
-      #
-      # Set it in an initializer:
-      #
-      #   Bali::Widget::Component.regions = Bali::Widget::Component::REGIONS.deep_merge(
-      #     large: { rows: 5 }
-      #   )
-      #
-      # `layout` and `context` are structure rather than measurement — they name
-      # which regions exist and how they are arranged — so overriding those is
-      # possible and not the point of this.
-      class_attribute :regions, default: REGIONS
+      class_attribute :rows_budget, default: ROWS
 
       # `Bali::Chart` options that turn a chart into a sparkline. The library is
       # already dynamically imported (`chart/index.js`), so reusing it here costs
@@ -152,13 +146,9 @@ module Bali
       # single size gets no picker rather than a picker that cannot do anything.
       def resizable? = supported_sizes.many?
 
-      # The ONE fact about a size the shell reads; the card gets the whole region
-      # and never re-derives it, so `REGIONS` stays the single source of truth.
-      def region = regions.fetch(size)
-
       # The hero is a tighter card — one fact needs less room around it than a
       # header, a chart and a breakdown do.
-      def hero? = region.fetch(:layout) == :hero
+      def hero? = size == :small
 
       CARDS = {
         Bali::Widget::ListBase => Bali::Widget::List::Component,
@@ -171,7 +161,7 @@ module Bali
         klass = CARDS.find { |pattern, _| widget.is_a?(pattern) }&.last ||
                 Bali::Widget::Value::Component
 
-        klass.new(widget, region: region)
+        klass.new(widget, size: size)
       end
 
       # THE ERROR BOUNDARY, around the CARD and not around this component. One

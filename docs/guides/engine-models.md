@@ -340,7 +340,7 @@ one obvious place to write it and it is the place you would write it anyway. Bal
 `limit` *after* your block returns, so ordering written inside the scope is always applied
 first. An unordered scope pages the preview off whatever the database happened to return, which
 is a different bug in every database. `limit:` defaults to `ListBase::PREVIEW_ROWS` (8), which covers
-every built-in size; raise it only if you have also raised `Component.regions` past eight.
+every built-in size; raise it only if you have also raised `Component.rows_budget` past eight.
 
 **`list` takes a block and nothing else**, and that is deliberate rather than terse. A class
 body runs once at boot, so a relation written there closes over the moment the process started:

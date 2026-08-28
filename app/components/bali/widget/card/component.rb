@@ -27,18 +27,15 @@ module Bali
       # at `medium`, stacked at `large` — is here, because it is the same for
       # every type and getting it wrong is a layout bug rather than a data one.
       class Component < ApplicationViewComponent
-        # `region` rather than `size`: the card is handed what its canvas has
-        # room for and never re-derives it, so `REGIONS` stays the one place a
-        # size's shape is written down.
-        def initialize(widget, region:)
+        def initialize(widget, size:)
           @widget = widget
-          @region = region
+          @size = size
           super()
         end
 
         private
 
-        attr_reader :widget, :region
+        attr_reader :widget, :size
 
         delegate :key, :title, :short_title, :empty_message, :view_all_path, to: :widget
 
@@ -67,15 +64,18 @@ module Bali
 
         # ---- the arrangement, shared ----------------------------------------
 
-        def hero? = region.fetch(:layout) == :hero
+        # THE VOCABULARY SURVIVES AS PREDICATES even though the table did not: a
+        # hero is a DIFFERENT card, not a small one — no header, and the whole
+        # tile is one link — and that reads better here than `size == :small`.
+        def hero? = size == :small
 
-        def stacked? = region.fetch(:layout) == :stacked
+        def stacked? = size == :large
 
         # A CHART IS AXIS-LESS below `large`: a sparkline is a chart that has
         # given up its axes, not a different component.
-        def spark? = region.fetch(:context) == :spark
+        def spark? = size == :medium
 
-        def rows_budget = region.fetch(:rows)
+        def rows_budget = Bali::Widget::Component.rows_budget.fetch(size)
 
         # THE COUNT, which is really "does this widget have anything" — it drives
         # the empty state, the headline dimming and the "view all" label. Every

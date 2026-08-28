@@ -38,7 +38,7 @@ module Bali
       # rendered at. `count` comes from the whole scope, so the preview is
       # presentation rather than data — which is what keeps a widget from needing
       # to know its size. `Widget::Component` truncates to what the size has room
-      # for, and a host raising `Component.regions` past this raises `limit:` to
+      # for, and a host raising `Component.rows_budget` past this raises `limit:` to
       # match.
       PREVIEW_ROWS = 8
 

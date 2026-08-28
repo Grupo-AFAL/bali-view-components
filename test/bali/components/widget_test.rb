@@ -426,19 +426,22 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector("canvas.chart", visible: :all)
   end
 
-  # ---- regions -------------------------------------------------------------
+  # ---- the row budget ------------------------------------------------------
 
-  # `rows` is a pixel budget measured against Bali's own type sizes; a host with
-  # a larger base font had no way to say so.
+  # THE ONE THING A SIZE SAYS that the size itself does not. It is a pixel budget
+  # measured against Bali's own type sizes, and a host with a larger base font,
+  # two-line subtitles or a denser theme had no way to say so. Everything else a
+  # size used to carry — hero, inline, stacked, spark — is one-to-one with the
+  # size and is derived rather than tabulated.
   def test_the_row_budget_can_be_overridden_by_a_host
-    original = Bali::Widget::Component.regions
-    Bali::Widget::Component.regions = original.deep_merge(large: { rows: 2 })
+    original = Bali::Widget::Component.rows_budget
+    Bali::Widget::Component.rows_budget = original.merge(large: 2)
 
     render_inline(card(list_widget(size: :large, rows: 8)))
 
     assert_selector("ul.list li", count: 2)
   ensure
-    Bali::Widget::Component.regions = original
+    Bali::Widget::Component.rows_budget = original
   end
 
   # A region sized for content the widget never supplied leaves the card holding

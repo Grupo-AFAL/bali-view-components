@@ -28,8 +28,9 @@ module Bali
         private
 
         # A region the widget has nothing to put in is not rendered, and an empty
-        # series is a chart with nothing to draw.
-        def context? = region.fetch(:context).present? && charted?
+        # series is a chart with nothing to draw. A hero has no room for one at
+        # all.
+        def context? = !hero? && charted?
 
         def context
           render Bali::Chart::Component.new(

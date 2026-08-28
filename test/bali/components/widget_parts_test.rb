@@ -11,10 +11,6 @@ require "test_helper"
 # reachable only through a full card render three layers away from where they
 # live.
 class BaliWidgetCardsTest < ComponentTestCase
-  HERO = { layout: :hero, context: nil, rows: 0 }.freeze
-  INLINE = { layout: :inline, context: :spark, rows: 3 }.freeze
-  STACKED = { layout: :stacked, context: :full, rows: 7 }.freeze
-
   def value_widget(value: 42, **overrides)
     build(Bali::Widget::ValueBase, **overrides) { value { value } }
   end
@@ -32,7 +28,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # ---- Value ---------------------------------------------------------------
 
   def test_the_figure_is_the_headline
-    render_inline(Bali::Widget::Value::Component.new(value_widget, region: STACKED))
+    render_inline(Bali::Widget::Value::Component.new(value_widget, size: :large))
 
     assert_text "42"
   end
@@ -40,13 +36,13 @@ class BaliWidgetCardsTest < ComponentTestCase
   # A confident black zero and an all-clear zero look identical, so the card dims
   # the one that means nothing happened.
   def test_a_widget_with_nothing_to_report_is_dimmed
-    render_inline(Bali::Widget::Value::Component.new(value_widget(value: 0), region: STACKED))
+    render_inline(Bali::Widget::Value::Component.new(value_widget(value: 0), size: :large))
 
     assert_selector "[class*='text-base-content/30']"
   end
 
   def test_the_hero_figure_is_a_size_step_larger
-    render_inline(Bali::Widget::Value::Component.new(value_widget, region: HERO))
+    render_inline(Bali::Widget::Value::Component.new(value_widget, size: :small))
 
     assert_selector ".stat-value.text-4xl", text: "42"
     assert_no_selector "h5"
@@ -64,10 +60,10 @@ class BaliWidgetCardsTest < ComponentTestCase
   def test_the_card_truncates_to_what_the_canvas_has_room_for
     12.times { |i| Studio.create!(name: "S#{i}", country: "US") }
 
-    render_inline(Bali::Widget::List::Component.new(list_widget, region: INLINE))
+    render_inline(Bali::Widget::List::Component.new(list_widget, size: :medium))
     assert_selector "li", count: 3
 
-    render_inline(Bali::Widget::List::Component.new(list_widget, region: STACKED))
+    render_inline(Bali::Widget::List::Component.new(list_widget, size: :large))
     assert_selector "li", count: 7
   end
 
@@ -81,28 +77,28 @@ class BaliWidgetCardsTest < ComponentTestCase
   end
 
   def test_the_indicator_sits_beside_the_figure_and_under_it_on_the_hero
-    render_inline(Bali::Widget::Trend::Component.new(trend_widget, region: STACKED))
+    render_inline(Bali::Widget::Trend::Component.new(trend_widget, size: :large))
     assert_selector ".flex.items-center.gap-3 .text-success", visible: :all
 
-    render_inline(Bali::Widget::Trend::Component.new(trend_widget, region: HERO))
+    render_inline(Bali::Widget::Trend::Component.new(trend_widget, size: :small))
     assert_selector "p.mt-1.flex.justify-center .text-success", visible: :all
   end
 
   # A sparkline is a chart that has given up its axes, not a different component.
   def test_the_chart_drops_its_axes_below_large
-    render_inline(Bali::Widget::Trend::Component.new(trend_widget, region: INLINE))
+    render_inline(Bali::Widget::Trend::Component.new(trend_widget, size: :medium))
     spark = JSON.parse(page.find("canvas.chart", visible: :all)[:"data-chart-options-value"])
 
     assert_equal false, spark.dig("scales", "x", "display")
 
-    render_inline(Bali::Widget::Trend::Component.new(trend_widget, region: STACKED))
+    render_inline(Bali::Widget::Trend::Component.new(trend_widget, size: :large))
     full = JSON.parse(page.find("canvas.chart", visible: :all)[:"data-chart-options-value"])
 
     refute_equal false, full.dig("scales", "x", "display")
   end
 
   def test_a_trend_with_no_series_draws_no_chart
-    render_inline(Bali::Widget::Trend::Component.new(trend_widget(values: nil), region: STACKED))
+    render_inline(Bali::Widget::Trend::Component.new(trend_widget(values: nil), size: :large))
 
     assert_no_selector "canvas.chart", visible: :all
   end
@@ -117,7 +113,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # that a ring has nowhere to put, so the arc stops at full while the value
   # still reads true.
   def test_the_ring_clamps_without_lying_about_the_value
-    render_inline(Bali::Widget::Progress::Component.new(progress_widget(value: 11), region: STACKED))
+    render_inline(Bali::Widget::Progress::Component.new(progress_widget(value: 11), size: :large))
 
     assert_selector "[role='progressbar'][aria-valuenow='11']"
   end
@@ -125,7 +121,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # daisyUI's `.stat` is a GRID, so `text-align` does not move a grid item — the
   # ring sat off to the left of its own label until this wrapper went round it.
   def test_the_hero_ring_is_centred_by_a_flex_wrapper
-    render_inline(Bali::Widget::Progress::Component.new(progress_widget, region: HERO))
+    render_inline(Bali::Widget::Progress::Component.new(progress_widget, size: :small))
 
     assert_selector "div.flex.justify-center [role='progressbar']"
   end
@@ -140,7 +136,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # different from a check that answered no.
   def test_a_check_draws_three_states
     { true => "text-success", false => "text-error", nil => "text-base-content/40" }.each do |state, colour|
-      render_inline(Bali::Widget::Check::Component.new(check_widget(state), region: STACKED))
+      render_inline(Bali::Widget::Check::Component.new(check_widget(state), size: :large))
 
       assert_selector ".boolean-icon-component[class*='#{colour}']"
     end
@@ -149,7 +145,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # Colour alone separating pass from fail is WCAG 1.4.1, so the label is
   # announced as well as printed — in the widget's own words.
   def test_the_label_is_both_announced_and_printed
-    render_inline(Bali::Widget::Check::Component.new(check_widget(false), region: HERO))
+    render_inline(Bali::Widget::Check::Component.new(check_widget(false), size: :small))
 
     assert_selector ".sr-only", text: "Failing"
     assert_selector ".stat-value", text: "Failing"

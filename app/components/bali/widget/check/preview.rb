@@ -9,8 +9,7 @@ module Bali
         # different from one that answered no — and the label is printed AND
         # announced, so a screen reader hears the widget's own words.
         #
-        # `size` picks the canvas the card is drawn on — the region it is handed
-        # decides the layout, not the card.
+        # `size` picks the canvas the card is drawn on.
         #
         # @param size select { choices: [small, medium, large] }
         # @param state [Symbol] select [pass, fail, unknown]
@@ -29,7 +28,7 @@ module Bali
                 c.fail "Failing"
               end
             end.new,
-            region: Bali::Widget::Component.regions.fetch(size.to_sym)
+            size: size.to_sym
           )
         end
       end
