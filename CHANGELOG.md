@@ -80,6 +80,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fails separately: a grouping can have a perfect `GROUP BY` and still have no way to read a
   row's band, which is when it asks for `value:`.
 
+### Dependencies
+
+- **ViewComponent 4.12.0 → 4.15.0.** 4.14.0 es una corrección de **seguridad**
+  (CVE-2026-54497 / GHSA-8qw7-6phv-7q6p): una instancia de componente reutilizada podía
+  filtrar el `with_content` y el contenido de los slots `renders_one`/`renders_many` de un
+  render anterior al siguiente. Con ella vuelve `ViewComponent::ReusedInstanceError`, que
+  **revienta si se renderiza dos veces la MISMA instancia** — Bali no lo hace en ningún
+  lado (la suite pasa entera), pero un host que guarde un componente en una variable y lo
+  renderice en dos lugares sí se va a enterar al actualizar. 4.13.0 trae Turbo Streams de
+  componentes y menos asignaciones al renderizar; 4.15.0, caché opt-in por componente
+  (`ViewComponent::ExperimentallyCacheable`), experimental y sin uso todavía acá.
+- **Pagy 43.6.0 → 43.6.2.** Corrige los registros `nil` que devolvía una colección de tipo
+  Array al pasarse de página (upstream #919).
+- **Cypress 15.21.0 → 15.21.1** (solo desarrollo).
+- **daisyUI 5.7.20 → 5.7.22** en la app dummy. El rango de peer del paquete (`>=5.7.0`) no
+  cambia. Va acá y no en su propio PR porque Bali tiene que quedarse en la última daisyUI
+  para mantener alineadas a las apps del grupo.
 
 ## [v3.1.5] - 2026-08-27
 
