@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`group_by_attribute` accepts what the ordering already accepted: a `ransacker` or an
+  association path, not only a real column** (#1102). The two halves of a grouping were
+  built by different machinery. The `ORDER BY` went through Ransack, which resolves a
+  ransacker to its own Arel and an association path to the joined column — both worked. The
+  `GROUP BY` did `result.group(:the_symbol)`, and a symbol that is not a column reaches the
+  database as a bare identifier: `PG::UndefinedColumn: column "account_status" does not
+  exist`. So `sort "account_status asc"` was fine and `group(:account_status)` was a 500, on
+  the same declaration.
+
+  That is not an edge: the three things an admin wants to group accounts by — status,
+  company, department — are exactly those two shapes. The status *has* to be a ransacker (a
+  `ransackable_scope` does not fit in the advanced panel), and the other two live one
+  association away. It is what left a host's Users index with no grouping at all when it
+  migrated to the canonical DataTable.
+
+  The `GROUP BY` now runs on **the same Arel node Ransack gives the `ORDER BY`**, so the two
+  halves cannot drift apart. No join is added for it: the grouping is prepended as a sort
+  *before* the relation is evaluated, so by the time the counts run Ransack has already built
+  the join and the bind is memoized. A column outside `ransackable_attributes` still groups
+  by the bare symbol, exactly as in v3.1.
+
+  Reading **which band a row is in** is a Ruby question, not a SQL one, and the host answered
+  it with `record.public_send(attribute)` — a `NoMethodError` for an association path. Two
+  additions close that:
+
+  - `FilterForm#group_value_for(record)` is the row reader: the declared `value:` when there
+    is one, `public_send` otherwise, and `nil` when the grouping is off or suspended (so it
+    replaces the `applied && record.public_send(applied)` dance at every call site).
+  - `group_by_attribute` takes `value:` — how to read one row's band — and `sql:`, an
+    explicit expression for what neither a column nor a ransacker can name. `sql:` drives
+    **both** halves, because grouping by one expression and ordering by another groups
+    nothing; it is the only form that needs no Ransack-visible name. A String goes through
+    `Arel.sql`: it is the developer's SQL, and the raw `group_by` param still cannot be
+    anything but a declared name.
+
+- **A `group_by_attribute` that cannot work now raises when the form is built, not when
+  someone picks that grouping on screen** (#1102). `group_by_attribute :whatever` was
+  accepted in silence and failed — or worse, did not fail — only once a user chose it, which
+  turned a typo into a production 500 on a page that had loaded fine a thousand times. The
+  declaration is checked against the model as soon as the form has a scope, with a message
+  naming the fix, whether or not the request carries a `group_by` param. Same contract
+  `input:` and `auto_submit:` already have. The second half is checked separately because it
+  fails separately: a grouping can have a perfect `GROUP BY` and still have no way to read a
+  row's band, which is when it asks for `value:`.
+
+
 ## [v3.1.5] - 2026-08-27
 
 ### Added

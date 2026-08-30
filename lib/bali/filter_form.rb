@@ -563,7 +563,9 @@ module Bali
           relation = relation.where(date_range_attr => value)
         end
 
-        relation
+        # Va último y sobre la relación ya evaluada: el ORDER BY de una agrupación con `sql:`
+        # explícito no cabe en el param `s` de Ransack, que solo habla de nombres.
+        apply_group_by_sql_order(relation)
       end
     end
 
