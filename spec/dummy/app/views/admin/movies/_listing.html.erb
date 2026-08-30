@@ -131,12 +131,13 @@
 
         <% @movies.each do |movie| %>
           <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
-              dan N controles con el mismo nombre accesible. El valor del grupo tiene que
-              coincidir con una clave de group_counts; nil cuando la agrupación está apagada
-              O suspendida (de ahí `group_by_applied` y no `group_by`). %>
-          <% applied_group = @filter_form.group_by_applied %>
+              dan N controles con el mismo nombre accesible. `group_value_for` es el lector de
+              la banda: devuelve la llave CRUDA que hay que hacer coincidir con group_counts,
+              y nil cuando la agrupación está apagada O suspendida. Leerlo a mano con
+              `movie.public_send(...)` solo funciona para una columna — por un ransacker o un
+              camino de asociación pasa por el `value:` de la declaración (#1102). %>
           <% table.with_row(record_id: movie.id, select_label: movie.name,
-                            group: applied_group && movie.public_send(applied_group)) do %>
+                            group: @filter_form.group_value_for(movie)) do %>
             <td class="font-medium">
               <%= render Bali::Link::Component.new(name: movie.name, href: admin_movie_path(movie)) %>
             </td>

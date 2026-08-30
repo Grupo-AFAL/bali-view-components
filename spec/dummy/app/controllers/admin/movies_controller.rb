@@ -22,8 +22,16 @@ module Admin
         storage_id: 'admin_movies',
         # El control "Agrupar por" se auto-configura desde acá: esta página es la referencia
         # end-to-end del index canónico, así que tiene que ejercitar la familia de controles,
-        # no solo describirla.
-        group_by_attributes: %i[genre status],
+        # no solo describirla. Las TRES formas que Ransack sabe ordenar —y que desde #1102
+        # también agrupan— están representadas: columnas (`genre`, `status`), un `ransacker`
+        # (`budget_band`, un CASE en SQL con su gemelo en Ruby) y un camino de asociación,
+        # que necesita `value:` porque `movie.studio_name` no existe.
+        group_by_attributes: [
+          :genre,
+          :status,
+          { attribute: :budget_band, label: 'Budget' },
+          { attribute: :studio_name, label: 'Studio', value: ->(movie) { movie.studio&.name } }
+        ],
         # Storage default del engine (tabla bali_saved_views). El dueño va explícito porque
         # el FilterForm vive en el host; las mutaciones las resuelve el controller del engine
         # por `Bali.saved_views_owner` (ver config/initializers/bali.rb).
