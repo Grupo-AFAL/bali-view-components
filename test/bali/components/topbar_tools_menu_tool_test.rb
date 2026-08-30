@@ -8,12 +8,19 @@ require "test_helper"
 # rutas: es la ventaja concreta de recibir el contexto en vez de buscarlo.
 class BaliTopbarToolsMenuToolTest < ComponentTestCase
   # Un contexto de vista de mentiras: responde sólo a los helpers que se le declaran.
+  # `main_app:` le cuelga un proxy —el del host— igual que hace Rails en el contexto de un
+  # engine.
   class FakeContext
-    def initialize(rutas = {})
+    def initialize(rutas = {}, main_app: nil)
       @rutas = rutas
+      @main_app = main_app
     end
 
+    attr_reader :main_app
+
     def respond_to?(name, include_all = false)
+      return !@main_app.nil? if name == :main_app
+
       @rutas.key?(name) || super
     end
 
@@ -29,7 +36,7 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
   end
 
   def test_a_mounted_tool_is_available_when_the_context_knows_its_helper
-    context = FakeContext.new(letter_opener_web_path: "/letter_opener")
+    context = FakeContext.new({ letter_opener_web_path: "/letter_opener" })
 
     assert tool.available?(context)
     assert_equal "/letter_opener", tool.href(context)
@@ -37,6 +44,37 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
 
   def test_a_mounted_tool_is_not_available_when_the_context_does_not_know_its_helper
     assert_not tool.available?(FakeContext.new)
+  end
+
+  # El contexto de vista de una pantalla de ENGINE no conoce los helpers del host, y las
+  # cuatro apps del grupo sirven `/admin/auth/...` con el layout de la app — o sea que ese
+  # es el contexto contra el que se pinta este menú ahí. Sin la caída a `main_app`, migrar
+  # a este componente apagaría en silencio las herramientas montadas justo en esas
+  # pantallas. Medido en gobierno-corporativo sobre `BaliAuth::Admin::RolesController`.
+  def test_a_mounted_tool_resolves_through_main_app_in_an_engine_context
+    engine = FakeContext.new(main_app: FakeContext.new({ letter_opener_web_path: "/letter_opener" }))
+
+    assert tool.available?(engine)
+    assert_equal "/letter_opener", tool.href(engine)
+  end
+
+  # La regla del router se conserva entera del otro lado de la caída: un helper que tampoco
+  # existe en el host sigue sin ofrecerse. Si no, el menú pintaría un enlace muerto en cada
+  # pantalla de engine.
+  def test_a_helper_the_host_does_not_know_either_is_still_unavailable
+    engine = FakeContext.new(main_app: FakeContext.new({ otra_ruta_path: "/otra" }))
+
+    assert_not tool.available?(engine)
+    assert_nil tool.href(engine)
+  end
+
+  # El contexto directo gana sobre el proxy: en una pantalla del host `main_app` ni se
+  # consulta, así que la caída no puede cambiar lo que ya resolvía.
+  def test_the_direct_context_wins_over_main_app
+    context = FakeContext.new({ letter_opener_web_path: "/directo" },
+                              main_app: FakeContext.new({ letter_opener_web_path: "/por-el-proxy" }))
+
+    assert_equal "/directo", tool.href(context)
   end
 
   def test_an_external_tool_is_available_when_its_url_resolves
