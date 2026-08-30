@@ -1,7 +1,7 @@
 # Bali::Topbar::ToolsMenu — Design
 
 Date: 2026-08-29
-Status: Draft (brainstorming) — pendiente de revisión
+Status: Approved (brainstorming) — 2026-08-29
 
 ## Purpose
 
@@ -234,9 +234,14 @@ rápido expone un hueco en la API. identity al final.
 - **Migrar cuatro apps a la vez multiplica el radio.** Mitigación: una app por PR, y las
   pruebas de HTML servido de cada app son la red.
 
-## Preguntas abiertas
+## Decisiones cerradas
 
-1. ¿`meta:` libre o un `Entry` local por app para el gate? (Recomendación arriba: `meta:`.)
-2. ¿La gema debe traer etiquetas por defecto, o el host siempre pasa `name:`? La propuesta
-   es traerlas —homologa los textos y borra el desvío de identity—, a costa de que la gema
-   conozca seis claves de dominio.
+Las dos preguntas que este spec dejó abiertas quedaron resueltas al aprobarse:
+
+1. **El gate viaja en `meta:`**, un hash libre que la gema nunca lee. Se descarta el `Entry`
+   local por app: agrega un objeto en cada repo para transportar un solo valor. Si `meta:`
+   empieza a acumular claves, ésa es la señal de reconsiderarlo.
+2. **La gema trae las etiquetas por defecto** de las seis claves conocidas, con override del
+   host y `name:` explícito por herramienta. El costo aceptado es que la gema conozca seis
+   claves de dominio; a cambio homologa los textos en las cuatro apps y borra el último
+   desvío de identity (su prefijo `admin.nav.tools.*`).
