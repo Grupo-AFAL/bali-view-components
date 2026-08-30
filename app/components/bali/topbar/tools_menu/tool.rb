@@ -11,9 +11,14 @@ module Bali
       # autorización distintos usen el mismo componente).
       #
       # El `context` se RECIBE, no se busca. Es el contexto de vista donde el componente ya
-      # se está renderizando, no `Rails.application.routes.url_helpers`. Además de evitar
-      # el estado global, el contexto de vista resuelve los proxies de engine
-      # (`main_app.`, etc.) que el objeto global NO incluye.
+      # se está renderizando, no `Rails.application.routes.url_helpers`. Evita el estado
+      # global y se prueba con un doble, sin montar rutas.
+      #
+      # Límite: `route_helper` tiene que ser un helper al que el contexto responda
+      # DIRECTAMENTE. Uno detrás de un proxy de engine (`main_app.foo_path`,
+      # `bali_auth_admin.bar_path`) no se puede expresar hoy — por eso `initialize` exige
+      # que termine en `_path` o `_url`: cierra el caso donde alguien pasa el proxy pelado
+      # (`:main_app`) y `href` filtraría el `RoutesProxy` mismo en el atributo.
       Tool = Data.define(:key, :icon, :route_helper, :url, :in_app, :name, :meta) do
         def initialize(key:, icon:, route_helper: nil, url: nil, in_app: false, name: nil, meta: {})
           if route_helper && url
@@ -26,6 +31,15 @@ module Bali
             raise ArgumentError,
                   "a tool needs `route_helper:` (mounted in the host app) or `url:` (a lambda " \
                   "returning an external URL)."
+          end
+
+          if route_helper && !route_helper.to_s.end_with?("_path", "_url")
+            raise ArgumentError,
+                  "`route_helper:` has to be a route helper name ending in `_path` or " \
+                  "`_url` (e.g. `:mission_control_jobs_path`). `#{route_helper.inspect}` " \
+                  "looks like an engine proxy (`main_app`, `bali_auth_admin`), not a " \
+                  "helper — the proxy itself responds to `respond_to?`, and `href` would " \
+                  "return it verbatim instead of a URL."
           end
 
           super

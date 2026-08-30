@@ -89,15 +89,20 @@ Bali::Topbar::ToolsMenu::Tool.new(
 - `#in_app?` / `#new_tab?` — `new_tab?` es `!in_app?`.
 
 **El `context` se recibe, no se busca.** Es el contexto de vista donde el componente ya se
-está renderizando (`helpers`), no `Rails.application.routes.url_helpers`. Tres razones, y la
-tercera no es cosmética:
+está renderizando (`helpers`), no `Rails.application.routes.url_helpers`. Dos razones:
 
 1. La gema deja de alcanzar estado global; usa el colaborador que le dieron.
 2. Se prueba con un doble, sin montar rutas.
-3. **`Rails.application.routes.url_helpers` NO incluye los proxies de engine**
-   (`main_app.`, `bali_auth_admin.`), así que la implementación actual de las cuatro apps no
-   puede expresar una herramienta que viva detrás de uno. El contexto de vista sí. Es menos
-   acoplamiento **y** más capacidad.
+
+**Límite real, no capacidad nueva:** `route_helper` es un símbolo que va directo a
+`context.respond_to?` y `context.public_send`, sin travesía de proxy. Un helper detrás de
+un proxy de engine (`main_app.foo_path`, `bali_auth_admin.bar_path`) no se puede expresar
+hoy — ni con el contexto de vista ni con `Rails.application.routes.url_helpers`. Hoy
+ninguna de las cuatro apps que migran tiene una herramienta así; si aparece,
+`route_helper: :"main_app.foo_path"` desaparece del menú sin diagnóstico, igual que
+cualquier helper que el contexto no conozca. El caso peor —`route_helper: :main_app` a
+secas, que sí pasa `available?` y filtra el `RoutesProxy` en `href`— lo cierra `Tool.new`
+levantando `ArgumentError` cuando `route_helper` no termina en `_path` o `_url`.
 
 Verificado en gobierno-corporativo: sobre `@controller.view_context`,
 `respond_to?(:letter_opener_web_path)` → `true`, `respond_to?(:ruta_inexistente_path)` →

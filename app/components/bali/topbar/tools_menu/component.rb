@@ -50,8 +50,11 @@ module Bali
             default: [ :"bali_view.topbar.tools_menu.items.#{tool.key}", tool.key.to_s.humanize ])
         end
 
+        # Clave del host → clave de la gema. Mismo patrón que `label_for`, para que quien
+        # aprenda el override en los ítems lo encuentre también en el trigger.
         def trigger_label
-          @aria_label || t("bali_view.topbar.tools_menu.trigger_label")
+          @aria_label ||
+            t("topbar.tools_menu.trigger_label", default: :"bali_view.topbar.tools_menu.trigger_label")
         end
 
         def link_options(tool)

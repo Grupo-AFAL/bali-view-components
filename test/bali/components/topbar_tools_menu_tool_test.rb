@@ -88,6 +88,18 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
     assert_includes error.message, "route_helper"
   end
 
+  # El foot-gun real: `:main_app` a secas pasa como símbolo, `available?` da `true` (el
+  # contexto SÍ responde a él, porque es un proxy de engine), y `href` devolvería el
+  # `RoutesProxy` mismo en vez de una URL — un enlace roto renderizado sin error. Exigir el
+  # sufijo lo convierte en un `ArgumentError` al construir.
+  def test_a_route_helper_that_is_not_a_path_or_url_helper_raises
+    error = assert_raises(ArgumentError) do
+      Bali::Topbar::ToolsMenu::Tool.new(key: :x, icon: "wrench", route_helper: :main_app)
+    end
+
+    assert_includes error.message, "_path"
+  end
+
   # `meta` es del host: la gema lo transporta y nunca lo interpreta.
   def test_meta_round_trips_untouched
     con_meta = tool(meta: { gate: "system.admin" })

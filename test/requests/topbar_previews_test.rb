@@ -7,7 +7,7 @@ require "test_helper"
 # prueba la clase, no sus templates de preview (#1035). Igual que IconPreviewsTest: pedir
 # cada preview por HTTP es el único camino donde un template roto se manifiesta.
 class TopbarPreviewsTest < ActionDispatch::IntegrationTest
-  # Los seis `def` de Bali::Topbar::Preview; sin `@!group`, cada uno es una URL.
+  # Un `def` de Bali::Topbar::Preview por entrada; sin `@!group`, cada uno es una URL.
   PREVIEWS = %w[
     default
     search_only

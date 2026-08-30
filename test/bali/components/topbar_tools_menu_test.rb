@@ -81,16 +81,32 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector(".bali-topbar-tools-menu", text: "Mi etiqueta")
   end
 
+  # `:sentry` es ambigua a propósito de la vieja versión de esta prueba: la etiqueta de la
+  # gema y `humanize` coinciden ("Sentry"), así que pasaba igual con `label_for` vacío.
+  # `:mission_control` distingue de verdad: la gema dice "Jobs dashboard", humanize diría
+  # "Mission control".
   def test_a_known_key_uses_the_gems_label
-    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :sentry) ]))
+    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mission_control) ]))
 
-    assert_selector(".bali-topbar-tools-menu", text: "Sentry")
+    assert_selector(".bali-topbar-tools-menu", text: "Jobs dashboard")
   end
 
   def test_an_unknown_key_falls_back_to_humanize
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mi_herramienta) ]))
 
     assert_selector(".bali-topbar-tools-menu", text: "Mi herramienta")
+  end
+
+  # El override del host vive fuera del namespace de la gema: `topbar.tools_menu.items.<key>`,
+  # no `bali_view.topbar.tools_menu.items.<key>`. `label_for` lo mira primero.
+  def test_a_host_override_wins_over_the_gems_label
+    I18n.backend.store_translations(:en, topbar: { tools_menu: { items: { mission_control: "Panel propio" } } })
+
+    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mission_control) ]))
+
+    assert_selector(".bali-topbar-tools-menu", text: "Panel propio")
+  ensure
+    I18n.backend.reload!
   end
 
   # Es un control de sólo ícono: sin nombre accesible no tiene nombre en absoluto.
@@ -106,5 +122,16 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ], aria_label: "Utilities"))
 
     assert_selector('.bali-topbar-tools-menu [aria-label="Utilities"]')
+  end
+
+  # Misma cascada que `label_for` para los ítems: clave del host antes que la de la gema.
+  def test_the_trigger_label_can_be_overridden_via_i18n
+    I18n.backend.store_translations(:en, topbar: { tools_menu: { trigger_label: "Utils" } })
+
+    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ]))
+
+    assert_selector('.bali-topbar-tools-menu [aria-label="Utils"]')
+  ensure
+    I18n.backend.reload!
   end
 end
