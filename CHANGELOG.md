@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.2.1] - 2026-08-30
+
+### Fixed
+
+- **`Bali::Topbar::ToolsMenu` se apagaba en silencio en las pantallas de un engine.** Un
+  engine que pinta sus pantallas con el layout del host —`BaliAuth.configuration.admin_layout
+  = "application"`, que es como las cuatro apps del grupo sirven `/admin/auth/...`— renderiza
+  ese layout, y el topbar con él, contra el contexto de vista del ENGINE. Ahí los helpers de
+  ruta del host no existen: medido en gobierno-corporativo sobre
+  `BaliAuth::Admin::RolesController`, `respond_to?(:mission_control_jobs_path)` es `false`.
+
+  `Tool#available?` leía eso como "no está montada" y el menú **dejaba fuera justo las
+  herramientas montadas** —el panel de trabajos, el tablero de adopción, la bandeja de
+  correo— en esas pantallas y sólo ahí. Las externas seguían apareciendo, porque su `url:` no
+  consulta rutas, así que el menú quedaba a medias sin ningún error que lo delatara. Era una
+  regresión de la migración: las cuatro copias que este componente reemplaza resolvían contra
+  `Rails.application.routes.url_helpers`, que no depende del contexto.
+
+  `route_helper` se resuelve ahora contra el contexto y, si el contexto no lo conoce, contra
+  su `main_app` — el mismo proxy que el host ya escribe a mano en el resto de ese topbar. El
+  contexto directo gana, así que en una pantalla del host `main_app` ni se consulta y no
+  puede cambiar lo que ya resolvía; y la regla del router se conserva entera del otro lado de
+  la caída, porque `RoutesProxy#respond_to?` responde `false` para un helper que no existe.
+
 ## [v3.2.0] - 2026-08-30
 
 ### Added
