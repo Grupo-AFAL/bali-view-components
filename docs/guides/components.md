@@ -1498,6 +1498,48 @@ end
 Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
 ```
 
+##### What can be grouped by
+
+**The same three shapes Ransack sorts by** — a real column, a `ransacker`, or an
+association path. The `GROUP BY` runs on the very Arel the `ORDER BY` uses, so the
+two halves of a grouping cannot drift apart:
+
+```ruby
+class UsersFilterForm < Bali::FilterForm
+  group_by_attribute :status                              # column
+  group_by_attribute :account_status, label: "Estado"     # ransacker (a SQL CASE)
+  group_by_attribute :worker_legal_entity_name,           # association path
+                     label: "Empresa",
+                     value: ->(user) { user.worker&.legal_entity&.name }
+end
+```
+
+Each row still has to say **which band it is in**, and that is a Ruby question, not a
+SQL one. `form.group_value_for(record)` answers it: the declared `value:` when there
+is one, `record.public_send(attribute)` otherwise. A column and a ransacker with a
+Ruby twin need nothing; an association path has no `user.worker_legal_entity_name` to
+call, so it needs `value:`. Whatever it returns must equal the key the `GROUP BY`
+returned — the global-count lookup is by value.
+
+For an expression neither a column nor a ransacker can name, `sql:` is the escape
+hatch. It drives **both** halves — grouping by one expression and ordering by another
+groups nothing — so it needs no Ransack-visible name at all:
+
+```ruby
+group_by_attribute :budgeted,
+                   sql: -> { "CASE WHEN budget IS NULL THEN 'sin' ELSE 'con' END" },
+                   value: ->(movie) { movie.budget.present? ? "con" : "sin" }
+```
+
+A String `sql:` goes through `Arel.sql` — it is the developer's SQL, never the user's;
+the raw `group_by` param can only ever match a declared name.
+
+**A declaration that cannot work raises when the form is built**, not when someone
+picks that grouping on screen. `group_by_attribute :whatever` used to be accepted in
+silence and reach the database as a bare identifier — a `PG::UndefinedColumn` in
+production on a page that had loaded fine a thousand times. Same contract `input:` and
+`auto_submit:` already have.
+
 `group_by` is a **whitelisted top-level param** (not a `q[...]` predicate). The
 raw value only takes effect when it matches a declared attribute — anything else
 is ignored, so it can never reach `.group()`/`.order()` (Ransack does not
@@ -1523,7 +1565,7 @@ grouping exactly as it was left.
 |----------|-----|---------|
 | Is a grouping **chosen**? (state) | `group_by`, `group_by_active?` | Preservation: hidden fields, filters cache, saved-view payload |
 | Does this display mode **apply** grouping? (mode) | `group_by_applies?` | Visibility of the "Group by" control |
-| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, the `group:` value of each row |
+| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, `group_value_for` |
 | Chosen but not applied here | `group_by_suspended?` | The "Grouped by Genre — applies in table view" hint the DataTable paints where the control used to be |
 
 Use `group_by_applied` (not `group_by`) wherever you paint the grouping, and
@@ -1567,8 +1609,7 @@ counts when you pass `group_counts:`:
       <%= t.with_header(name: "Name", sort: :name) %>
       <%= t.with_header(name: "Genre", sort: :genre) %>
       <% @movies.each do |movie| %>
-        <% applied = @filter_form.group_by_applied %>
-        <%= t.with_row(group: applied && movie.public_send(applied)) do %>
+        <%= t.with_row(group: @filter_form.group_value_for(movie)) do %>
           <td><%= movie.name %></td>
           <td><%= movie.genre %></td>
         <% end %>

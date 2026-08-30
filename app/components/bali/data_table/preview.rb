@@ -70,8 +70,13 @@ module Bali
           filter_attribute :status, type: :select, options: [ %w[Done done], %w[Draft draft] ]
           filter_attribute :indie, type: :boolean
 
+          # Las tres formas que agrupan desde #1102: columnas, un `ransacker` (una expresión
+          # SQL — el GROUP BY sale de su propio Arel) y un camino de asociación, que lleva
+          # `value:` porque no hay `movie.studio_name` del que leer la banda de una fila.
           group_by_attribute :genre, label: "Genre"
           group_by_attribute :status, label: "Status"
+          group_by_attribute :budget_band, label: "Budget"
+          group_by_attribute :studio_name, label: "Studio", value: ->(movie) { movie.studio&.name }
 
           attribute :name_cont
           attribute :genre_eq
@@ -258,7 +263,7 @@ module Bali
       #
       # `bali/index_page/complete` renders this same body inside a page.
       # @param view select { choices: [table, grid, calendar] }
-      # @param group_by select { choices: ["", genre, status] }
+      # @param group_by select { choices: ["", genre, status, budget_band, studio_name] }
       def complete(view: :table, q: {}, page: 1, group_by: nil, saved_view: nil)
         render_with_template(
           template: "bali/data_table/previews/complete",
@@ -347,7 +352,13 @@ module Bali
       # Requires a `Bali::FilterForm` that declares grouping attributes (here via the
       # `group_by_attributes:` constructor option; the DSL is `group_by_attribute`).
       # group_by is a whitelisted top-level param — undeclared values are ignored.
-      # @param group_by select { choices: [none, genre, status] }
+      #
+      # Grouping accepts the SAME three shapes sorting does (#1102): a real column
+      # (`genre`, `status`), a `ransacker` (`budget_band`, a SQL CASE — the GROUP BY runs
+      # on the ransacker's own Arel) and an association path (`studio_name`, grouped over
+      # the joined column). A path has no `movie.studio_name` to read a row's band from,
+      # so its declaration carries `value:`.
+      # @param group_by select { choices: [none, genre, status, budget_band, studio_name] }
       # @param page number
       def with_grouping(group_by: "genre", page: 1)
         raw_group_by = group_by.to_s == "none" ? nil : group_by
@@ -359,18 +370,18 @@ module Bali
         )
         filter_form = Bali::FilterForm.new(
           Movie.all, filter_params,
-          group_by_attributes: %i[genre status]
+          group_by_attributes: [
+            :genre,
+            :status,
+            { attribute: :budget_band, label: "Budget" },
+            { attribute: :studio_name, label: "Studio", value: ->(movie) { movie.studio&.name } }
+          ]
         )
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
 
         render_with_template(
           template: "bali/data_table/previews/with_grouping",
-          locals: {
-            filter_form: filter_form,
-            pagy: pagy,
-            movies: movies,
-            group_attribute: filter_form.group_by_applied
-          }
+          locals: { filter_form: filter_form, pagy: pagy, movies: movies }
         )
       end
 

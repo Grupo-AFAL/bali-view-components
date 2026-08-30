@@ -49,11 +49,10 @@
       <% table.with_header(name: t('studios.columns.actions'), class: 'text-right') %>
 
       <% @studios.each do |studio| %>
-        <%# El valor del grupo tiene que coincidir con una clave de `group_counts`; `nil`
-            cuando la agrupación está apagada O suspendida — de ahí `group_by_applied` y no
-            `group_by`. %>
-        <% applied_group = @filter_form.group_by_applied %>
-        <% table.with_row(group: applied_group && studio.public_send(applied_group)) do %>
+        <%# `group_value_for` devuelve la llave CRUDA de la banda —la que hay que hacer
+            coincidir con `group_counts`— y `nil` cuando la agrupación está apagada O
+            suspendida. %>
+        <% table.with_row(group: @filter_form.group_value_for(studio)) do %>
           <td class="font-medium">
             <%= render Bali::Link::Component.new(
               name: studio.name,

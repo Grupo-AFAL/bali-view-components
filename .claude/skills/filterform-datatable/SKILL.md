@@ -92,15 +92,15 @@ saved views included; the only family it leaves out is host toolbar buttons.
         <% dt.with_table do %>
           <%# `group_counts:` + `group:` son lo que HACE VISIBLE la agrupación: sin los dos, el
               control ofrece agrupaciones cuyo único efecto es reordenar las filas sin ninguna
-              banda que lo explique. `group_by_applied` (no `group_by`) es nil cuando la
-              agrupación está apagada O suspendida. %>
+              banda que lo explique. `group_value_for` da la llave CRUDA de la banda —la que
+              `group_counts` usa de llave— y es nil cuando la agrupación está apagada O
+              suspendida. %>
           <%= render Bali::Table::Component.new(form: @filter_form, selectable: true,
                                                 group_counts: @filter_form.group_counts) do |t| %>
             <% t.with_header(name: 'Name', sort: :name) %>
-            <% applied = @filter_form.group_by_applied %>
             <% @movies.each do |movie| %>
               <% t.with_row(record_id: movie.id, select_label: movie.name,
-                            group: applied && movie.public_send(applied)) do %>
+                            group: @filter_form.group_value_for(movie)) do %>
                 <td><%= movie.name %></td>
               <% end %>
             <% end %>
@@ -280,7 +280,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `scope` | `ActiveRecord::Relation` | Required | Base scope to filter |
 | `params` | `Hash` | `{}` | Request params containing `q[...]` |
 | `storage_id` | `String` | `nil` | **The listing identity.** Filter-persistence cache key, DataTable container id, column-selector target (`#<id> table`) and localStorage key (`bali:columns:<id>`), and the saved-views scope. Without it a DataTable falls back to a random hex and column persistence turns itself off |
-| `group_by_attributes` | `Array<Symbol>` | `nil` | Groupable attributes; enables the "Group by" control |
+| `group_by_attributes` | `Array<Symbol, Hash>` | `nil` | Groupable attributes; enables the "Group by" control. A column, a `ransacker` or an association path — the same three shapes sorting takes. A hash entry carries `label:`, `sql:` (an explicit expression, which then drives the ordering too) and `value:` (how to read ONE row's band; required for an association path, which has no matching method). An attribute that is none of the three raises when the form is built |
 | `group_by_modes` | `Array<Symbol>` | `[:table]` | Display modes that APPLY grouping. Outside them the control hides and the grouping is suspended — but the param survives, so switching back finds it as it was left. Paint rows with `group_by_applied`, never `group_by` |
 | `view_param` | `Symbol` | `:view` | URL param carrying the display mode. Must be the SAME one the DataTable gets, or the DataTable raises `ArgumentError` at build time |
 | `display_mode` | `Symbol` | `nil` | The mode the listing RENDERS, for when the URL cannot say it. Only needed when the first declared view is not a grouping mode: without `?view=` the form would assume grouping applies and sort the cards by group. Pass what the DataTable gets (`params[:view] \|\| :grid`) |
