@@ -1,0 +1,18 @@
+<%= render Bali::Topbar::Component.new do |topbar| %>
+  <% topbar.with_action do %>
+    <%= render Bali::Topbar::ToolsMenu::Component.new(tools: [
+      Bali::Topbar::ToolsMenu::Tool.new(
+        key: :analytics, icon: "chart-line",
+        route_helper: :rails_health_check_path, in_app: true
+      ),
+      Bali::Topbar::ToolsMenu::Tool.new(
+        key: :rails_routes, icon: "route",
+        route_helper: :rails_health_check_path
+      ),
+      Bali::Topbar::ToolsMenu::Tool.new(
+        key: :repository, icon: "github",
+        url: -> { "https://github.com/Grupo-AFAL/bali-view-components" }
+      )
+    ]) %>
+  <% end %>
+<% end %>

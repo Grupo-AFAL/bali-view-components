@@ -367,6 +367,43 @@ One icon button for the `with_action` slot — the notification bell packaged. A
 - `active` - marks this as the current section: daisyUI's `btn-active` state, plus `aria-current="page"` when the control is a link
 - `max_count` - cap for an Integer `badge:` (default 99): anything above renders as "99+". Strings pass through untouched, so a host that formats its own count keeps full control
 
+##### Topbar::ToolsMenu
+
+The internal-tools dropdown for the `with_action` slot — jobs dashboard, adoption
+dashboard, captured email, Rails routes, repository, Sentry: four apps in the group each
+built this separately and converged, on their own, on the same mechanism. The component is
+domain-agnostic: it never evaluates permissions.
+
+```erb
+<% topbar.with_action do %>
+  <%= render Bali::Topbar::ToolsMenu::Component.new(tools: visible_internal_tools) %>
+<% end %>
+```
+
+**Options:**
+- `tools` (required) - array of `Tool`, **already filtered by permission** — the gem never
+  decides who can see what, only what exists in this environment
+- `icon` - trigger icon (default `"wrench"`)
+- `aria_label` - accessible name of the (icon-only) trigger; defaults to the translated
+  `"Tools"` / `"Herramientas"`
+- `align` - horizontal axis of the dropdown (default `:end`)
+
+A tool is dropped when it is not `available?` against the render's own view context, and
+the whole component renders nothing (`render?` → `false`) when none are left — a trigger
+that opens an empty panel is worse than not having one. Each item opens in a new tab
+**except** `in_app:` ones, which keep the host's chrome.
+
+`Bali::Topbar::ToolsMenu::Tool.new(key:, icon:, route_helper: nil, url: nil, in_app: false, name: nil, meta: {})`
+builds one entry. `route_helper` and `url` are exclusive and exactly one is required:
+`route_helper` is a route helper name the tool's *view context* (not
+`Rails.application.routes.url_helpers`) must respond to **directly** — it has to end in
+`_path` or `_url`, or `Tool.new` raises, because a name behind an engine proxy
+(`main_app.foo_path`) can't be expressed this way; `url` is a lambda re-read on every call.
+`key` picks the default label from six known translations (es/en); `name:` overrides it,
+and a host can override a known key too (`topbar.tools_menu.items.<key>`, same cascade for
+the trigger's own label via `topbar.tools_menu.trigger_label`). `meta` is free for the
+host — the gem carries it but never reads it.
+
 #### Card
 
 Content container with optional header, image, and actions.
