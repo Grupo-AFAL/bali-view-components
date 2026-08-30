@@ -280,7 +280,19 @@ git commit -m "feat(topbar): Tool, la regla del router del menú de herramientas
 **Files:**
 - Create: `app/components/bali/topbar/tools_menu/component.rb`
 - Create: `app/components/bali/topbar/tools_menu/component.html.erb`
+- Modify: `config/locales/bali_view.es.yml`
+- Modify: `config/locales/bali_view.en.yml`
 - Test: `test/bali/components/topbar_tools_menu_test.rb`
+
+> **Nota del controlador (ruling del barrido previo).** Las claves i18n estaban en la Task 3
+> y las pruebas de ésta las necesitan: la Task 2 habría commiteado con la suite en rojo. Se
+> mueven aquí para que la tarea termine verde y verificable por sí sola. La Task 3 se queda
+> con el preview.
+>
+> **Y ojo con el idioma:** el dummy corre las pruebas en **`en`**
+> (`spec/dummy/config/application.rb:36`, `default_locale = :en`), así que las aserciones de
+> etiquetas afirman el texto en inglés. Las traducciones al español se agregan igual —las dos
+> locales se tocan siempre juntas— pero no son las que se afirman aquí.
 
 **Interfaces:**
 - Consumes: `Bali::Topbar::ToolsMenu::Tool` de Task 1 (`#available?(context)`,
@@ -389,16 +401,18 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
   end
 
   # Es un control de sólo ícono: sin nombre accesible no tiene nombre en absoluto.
+  # El dummy corre en `en` (spec/dummy/config/application.rb): las etiquetas que se afirman
+  # aquí son las inglesas, aunque las dos locales se agreguen juntas.
   def test_the_trigger_has_an_accessible_name
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ]))
 
-    assert_selector('.bali-topbar-tools-menu [aria-label="Herramientas"]')
+    assert_selector('.bali-topbar-tools-menu [aria-label="Tools"]')
   end
 
   def test_the_accessible_name_can_be_overridden
-    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ], aria_label: "Utilidades"))
+    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ], aria_label: "Utilities"))
 
-    assert_selector('.bali-topbar-tools-menu [aria-label="Utilidades"]')
+    assert_selector('.bali-topbar-tools-menu [aria-label="Utilities"]')
   end
 end
 ```
@@ -508,37 +522,7 @@ Create `app/components/bali/topbar/tools_menu/component.html.erb`:
 <% end %>
 ```
 
-- [ ] **Step 4: Correr la prueba para verificar que pasa**
-
-Run: `mise x ruby@4.0.1 -- bin/rails test test/bali/components/topbar_tools_menu_test.rb`
-Expected: los casos de etiquetas y de `aria-label` FALLAN todavía — las claves i18n no
-existen (Task 3). El resto PASA. Anotar cuáles fallan y seguir; Task 3 los cierra.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add app/components/bali/topbar/tools_menu/ test/bali/components/topbar_tools_menu_test.rb
-git commit -m "feat(topbar): componente del menú de herramientas internas"
-```
-
----
-
-### Task 3: i18n y preview
-
-**Files:**
-- Modify: `config/locales/bali_view.es.yml`
-- Modify: `config/locales/bali_view.en.yml`
-- Modify: `app/components/bali/topbar/preview.rb`
-- Create: `app/components/bali/topbar/previews/tools_menu.html.erb`
-- Test: `test/bali/components/topbar_tools_menu_test.rb` (ya existe, de Task 2)
-
-**Interfaces:**
-- Consumes: `Component` de Task 2.
-- Produces: las claves `bali_view.topbar.tools_menu.trigger_label` y
-  `bali_view.topbar.tools_menu.items.{mission_control,analytics,letter_opener,rails_routes,repository,sentry}`
-  en **es** y **en**; y el preview `tools_menu` de Lookbook.
-
-- [ ] **Step 1: Agregar las claves en español**
+- [ ] **Step 4: Agregar las claves i18n en español**
 
 En `config/locales/bali_view.es.yml`, dentro de `topbar:` (que ya existe con `user_menu:`),
 agregar como hermano de `user_menu:`:
@@ -555,9 +539,10 @@ agregar como hermano de `user_menu:`:
           sentry: "Sentry"
 ```
 
-- [ ] **Step 2: Agregar las mismas claves en inglés**
+- [ ] **Step 5: Agregar las mismas claves en inglés**
 
-En `config/locales/bali_view.en.yml`, en la misma posición dentro de `topbar:`:
+En `config/locales/bali_view.en.yml`, en la misma posición dentro de `topbar:`. **Éstas son
+las que afirman las pruebas**, porque el dummy corre en `en`:
 
 ```yaml
       tools_menu:
@@ -571,12 +556,35 @@ En `config/locales/bali_view.en.yml`, en la misma posición dentro de `topbar:`:
           sentry: "Sentry"
 ```
 
-- [ ] **Step 3: Correr las pruebas del componente para verificar que ahora pasan todas**
+- [ ] **Step 6: Correr la prueba para verificar que pasa**
 
 Run: `mise x ruby@4.0.1 -- bin/rails test test/bali/components/topbar_tools_menu_test.rb`
 Expected: PASS — `12 runs, 0 failures, 0 errors`
 
-- [ ] **Step 4: Agregar el preview**
+- [ ] **Step 7: Commit**
+
+```bash
+git add app/components/bali/topbar/tools_menu/ test/bali/components/topbar_tools_menu_test.rb \
+        config/locales/bali_view.es.yml config/locales/bali_view.en.yml
+git commit -m "feat(topbar): componente del menú de herramientas internas"
+```
+
+---
+
+### Task 3: Preview de Lookbook
+
+**Files:**
+- Modify: `app/components/bali/topbar/preview.rb`
+- Create: `app/components/bali/topbar/previews/tools_menu.html.erb`
+- Modify: `test/requests/topbar_previews_test.rb`
+
+**Interfaces:**
+- Consumes: `Component` de Task 2 y `Tool` de Task 1; las claves i18n ya existen desde
+  Task 2.
+- Produces: el preview `tools_menu` de Lookbook, alcanzable en
+  `/lookbook/preview/bali/topbar/tools_menu`.
+
+- [ ] **Step 1: Agregar el preview**
 
 En `app/components/bali/topbar/preview.rb`, agregar el método:
 
@@ -612,7 +620,7 @@ Create `app/components/bali/topbar/previews/tools_menu.html.erb`:
 <% end %>
 ```
 
-- [ ] **Step 5: Registrar el preview en su prueba de request**
+- [ ] **Step 2: Registrar el preview en su prueba de request**
 
 `test/requests/topbar_previews_test.rb` enumera los previews del Topbar y pide cada uno por
 HTTP — es el único camino donde un template de preview roto se manifiesta (#1035). Agregar
@@ -630,23 +638,23 @@ HTTP — es el único camino donde un template de preview roto se manifiesta (#1
   ].freeze
 ```
 
-- [ ] **Step 6: Verificar que el preview renderiza**
+- [ ] **Step 3: Verificar que el preview renderiza**
 
 Run: `mise x ruby@4.0.1 -- bin/rails test test/requests/topbar_previews_test.rb`
 Expected: PASS — `1 runs, 0 failures, 0 errors` (el test recorre los siete previews).
 
-- [ ] **Step 7: Correr la suite completa**
+- [ ] **Step 4: Correr la suite completa**
 
 Run: `mise x ruby@4.0.1 -- bin/rails test`
 Expected: PASS — 0 failures, 0 errors.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add config/locales/bali_view.es.yml config/locales/bali_view.en.yml \
-        app/components/bali/topbar/preview.rb app/components/bali/topbar/previews/tools_menu.html.erb \
+git add app/components/bali/topbar/preview.rb \
+        app/components/bali/topbar/previews/tools_menu.html.erb \
         test/requests/topbar_previews_test.rb
-git commit -m "feat(topbar): etiquetas y preview del menú de herramientas"
+git commit -m "feat(topbar): preview del menú de herramientas"
 ```
 
 ---
