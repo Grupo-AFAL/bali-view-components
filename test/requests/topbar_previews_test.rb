@@ -15,6 +15,7 @@ class TopbarPreviewsTest < ActionDispatch::IntegrationTest
     without_mobile_trigger
     user_menu
     icon_actions
+    tools_menu
   ].freeze
 
   def test_every_topbar_preview_renders_over_the_request_path
