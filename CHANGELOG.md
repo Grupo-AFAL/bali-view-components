@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Topbar::ToolsMenu` — el menú de herramientas internas del topbar deja de estar
+  duplicado en cada app.** Panel de trabajos, tableros, bandeja de correo, repositorio,
+  monitoreo: cuatro apps del grupo lo construyeron por separado y convergieron por su cuenta
+  en el mismo mecanismo (dos de ellas byte-idénticas). El componente recibe herramientas
+  **ya filtradas por permiso** y resuelve dos cosas: cuáles existen en este ambiente y cómo
+  se pintan. **La gema no evalúa permisos** — los hosts no comparten vocabulario de
+  autorización (unos usan permisos con nombre, otros policies de Pundit), y dejar esa
+  decisión afuera es lo que permite que el mismo componente les sirva a todos sin casos
+  especiales. La disponibilidad la decide el ROUTER: cada `Tool` declara el NOMBRE de su
+  route helper y se pregunta si el contexto lo conoce, así que el menú **no puede ofrecer un
+  enlace que la app no responda** y una herramienta se enciende sola en cuanto su ruta se
+  monta — sin copiar la condición de ambiente del host, que es una duplicación que ya costó
+  caro (una bandeja de correo servida públicamente en producción). **El contexto se recibe,
+  no se busca**: se le pregunta al contexto de vista del render, no a
+  `Rails.application.routes.url_helpers` — además de evitar el estado global, eso resuelve
+  los proxies de engine (`main_app.`) que el objeto global no incluye. Cada ítem abre en
+  pestaña nueva **salvo** los `in_app:`, que son los que conservan el cromo del host:
+  mandarlos aparte dejaría la misma app abierta dos veces. Las etiquetas de las seis claves
+  conocidas vienen en la gema (es/en), con override del host y `name:` por herramienta.
+  Diseño: `docs/superpowers/specs/2026-08-29-topbar-tools-menu-design.md`.
+
 ## [v3.1.5] - 2026-08-27
 
 ### Added
