@@ -24,8 +24,15 @@ publicada para empezar, así que lleva su propio plan — ver "Después de este 
 
 - **Ruby siempre por `mise`**: los shims no resuelven solos. Todo comando va como
   `mise x ruby@4.0.1 -- <cmd>`.
-- **El `git push` también**: `.githooks/pre-push` corre la suite completa y necesita
-  `bundle` en el PATH. Empujar con `mise x ruby@4.0.1 -- git push`.
+- **`git commit` y `git push` también van por mise**: el repo tiene DOS hooks que necesitan
+  `bundle` en el PATH — `.githooks/pre-commit` corre `rubocop -a` sobre lo preparado, y
+  `.githooks/pre-push` corre la suite completa. Sin mise fallan con
+  `bundle: command not found`, que se lee como un problema del repo y no lo es. Usar
+  `mise x ruby@4.0.1 -- git commit` y `mise x ruby@4.0.1 -- git push`.
+- **Ojo con los lambdas vacíos en las pruebas**: `-> {}` lo lee rubocop como bloque con
+  espacio interior (`Layout/SpaceInsideBlockBraces`). El pre-commit lo autocorrige, pero
+  escribirlo como `-> { nil }` desde el principio evita que el hook modifique el archivo
+  bajo los pies.
 - **Antes de la primera corrida, compilar los assets del dummy** o la suite tira ~50 fallas
   fantasma de `The asset 'tailwind.css' was not found in the load path` (ver Task 0).
 - **Versión objetivo: `3.2.0`** en `lib/bali/version.rb` (hoy `3.1.5`). API nueva, sin
@@ -141,7 +148,7 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
   end
 
   def test_an_external_tool_whose_url_resolves_to_nil_is_not_available
-    external = tool(key: :sentry, route_helper: nil, url: -> {})
+    external = tool(key: :sentry, route_helper: nil, url: -> { nil })
 
     assert_not external.available?(FakeContext.new)
   end
