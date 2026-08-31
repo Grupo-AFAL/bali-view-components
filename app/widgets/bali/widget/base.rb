@@ -75,12 +75,8 @@ module Bali
         #
         #   supports :small, :medium, default: :medium
         #
-        # The pair used to be validated here, which made `default_size` and
-        # `supports` ORDER-DEPENDENT — `ValueBase` ships `supports :small`, so a
-        # widget writing `default_size :medium` above `supports :small, :medium`
-        # was rejected for a class that is perfectly valid once both lines have
-        # run. Ruby reads a class body top to bottom; a macro that cares which
-        # order two of them appear in is a trap. The check moved to the reader.
+        # The pair is validated on READ, not here — the two macros must work in
+        # either order. See `docs/reference/widget-design-notes.md`.
         def supports(*names, default: nil)
           unknown = names - SIZES
           raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
@@ -254,23 +250,27 @@ module Bali
       # `NoMethodError` a bare subclass used to raise from inside the card.
 
       # HOW MANY, OR HOW MUCH — whatever this widget's headline counts.
-      def count
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must subclass one of " \
-                                   "#{Bali::Widget::PATTERNS.join(', ')} — `count` comes from the pattern."
-      end
+      def count = pattern_required(:count)
 
       # HAS THIS WIDGET ANYTHING TO SAY? Drives the card's dimming, its empty
       # state and its "view all" link. NOT `count.positive?`: `count` is a figure
       # for some patterns, so a legitimate negative would read as "nothing here".
-      def any?
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must subclass one of " \
-                                   "#{Bali::Widget::PATTERNS.join(', ')} — `any?` comes from the pattern."
-      end
+      def any? = pattern_required(:any?)
 
       # WHAT THE HEADLINE PRINTS.
-      def display_value
-        raise NotImplementedError, "#{self.class.name || 'This widget'} must subclass one of " \
-                                   "#{Bali::Widget::PATTERNS.join(', ')} — `display_value` comes from the pattern."
+      def display_value = pattern_required(:display_value)
+
+      private
+
+      # FULLY QUALIFIED, because a host reads this message and then types what it
+      # says — and `class Foo < ValueBase` is a `NameError`.
+      def pattern_required(contract)
+        patterns = %w[ValueBase ListBase TrendBase ProgressBase CheckBase]
+                   .map { |pattern| "Bali::Widget::#{pattern}" }
+
+        raise NotImplementedError,
+              "#{self.class.name || 'This widget'} must subclass one of " \
+              "#{patterns.join(', ')} — `#{contract}` comes from the pattern."
       end
     end
   end

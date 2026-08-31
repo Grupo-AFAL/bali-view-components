@@ -46,7 +46,11 @@ module Bali
         #
         #   Bali::Widget::Card::Component.rows_budget =
         #     Bali::Widget::Card::Component::ROWS.merge(large: 5)
-        class_attribute :rows_budget, default: ROWS
+        # `instance_writer: false` for the reason `Bali::Widget::Base` gives: a
+        # generated instance writer silently shadows the class value for one
+        # object.
+        class_attribute :rows_budget, default: ROWS, instance_writer: false
+
         def initialize(widget, size:)
           @widget = widget
           @size = size
@@ -101,7 +105,14 @@ module Bali
         # STRAIGHT OFF THE WIDGET. Both are on `Bali::Widget::Base`, so there is
         # nothing to ask `try` about and no place left for the card to guess what
         # kind of widget it is holding.
-        def display_value = @display_value ||= widget.display_value
+        # `defined?` for the same reason as `any?` below: a widget may declare
+        # `display_value { nil }`, and `Check::Component` reads this three times
+        # per hero card.
+        def display_value
+          return @display_value if defined?(@display_value)
+
+          @display_value = widget.display_value
+        end
 
         # `defined?` rather than `||=`: `any?` exists to answer false sometimes,
         # and `muted?`, `empty_state?` and `view_all_link?` all ask — so `||=`

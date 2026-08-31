@@ -55,9 +55,7 @@ module Bali
       # live here rather than in three class attributes because a row is one
       # thing: it is built in one place and read in one place.
       #
-      # Each setter writes its OWN ivar, so two `row` blocks MERGE per field
-      # rather than the second replacing the first — which lets a shared module
-      # declare a title and an href while a widget declares only its subtitle.
+      # Setters merge per field — see `Bali::Widget::Builder`.
       class RowBuilder < Builder
         requires "r.title", block: "row"
 
@@ -114,19 +112,9 @@ module Bali
       class << self
         # THE COLLECTION: what to read, and how many to preview.
         #
-        # Ordering goes INSIDE the scope — `list { Movie.order(created_at: :desc) }`
-        # — rather than in a keyword of its own. There is one obvious place to
-        # write it, it is the place a Rails developer would write it anyway, and
-        # `limit` is applied after the block returns, so a scope that orders
-        # itself is always ordered before it is paged.
-        #
-        # A BLOCK, always. A class body is evaluated once at boot, so a relation
-        # given by value freezes whatever it closed over: `where(due_date:
-        # Date.current..)` becomes the day the process started and the tile shows
-        # the wrong week until a redeploy. The reloader re-runs class bodies in
-        # development, so it cannot reproduce there and is silent in production.
-        # The block also runs against the widget, so it reaches `context` — a
-        # frozen scope could never be tenant-scoped.
+        # A BLOCK, ALWAYS, and ordering goes inside it. A relation passed by value
+        # freezes whatever it closed over at boot — silent in production, and it
+        # shipped twice. See `docs/reference/widget-design-notes.md`.
         def list(limit: PREVIEW_ROWS, &block)
           raise ArgumentError, "`list` needs a block: `list { Item.low_stock }`." unless block
 

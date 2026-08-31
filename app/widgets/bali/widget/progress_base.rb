@@ -42,8 +42,7 @@ module Bali
       # its OWN ivar, so two `goal` blocks merge per field.
       class GoalBuilder < Builder
         requires "g.value", block: "goal"
-        # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
-        # private methods; anything else is the value itself.
+        # Block or value — see `Bali::Widget::Builder#resolve`.
         def value(value = nil, &block) = @value = block || value
 
         def max(value = nil, &block) = @max = block || value

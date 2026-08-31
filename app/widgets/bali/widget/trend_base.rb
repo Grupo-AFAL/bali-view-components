@@ -50,8 +50,7 @@ module Bali
           @positive_when = :up
         end
 
-        # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
-        # private methods; anything else is the value itself.
+        # Block or value — see `Bali::Widget::Builder#resolve`.
         def current(value = nil, &block) = @current = block || value
 
         # What `current` is compared against. NIL means the trend is ABSENT

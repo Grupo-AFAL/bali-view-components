@@ -10,6 +10,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 |----------|---------|
 | `docs/reference/afal-design-system.md` | AFAL design system alignment guide (Nexus/Scalo templates) |
 | `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
+| `docs/reference/widget-design-notes.md` | Why `Bali::Widget` is shaped the way it is |
 | `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
 | `docs/guides/components.md` | Full component catalog and usage guide |
 | `docs/guides/accessibility.md` | WCAG 2.1 accessibility standards |

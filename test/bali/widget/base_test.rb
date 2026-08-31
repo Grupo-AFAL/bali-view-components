@@ -177,7 +177,6 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   # does not carry one, and `Bali::Widget::Placement` pairs the two.
   def test_a_widget_does_not_carry_a_size
     refute_respond_to Bare.new, :size
-    refute_respond_to Bare.new, :with_size
     assert_equal Bali::Widget::SIZES.first, Bare.default_size
   end
 

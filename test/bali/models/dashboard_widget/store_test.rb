@@ -164,6 +164,24 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_match(/Reports::Overdue, Tasks::Overdue/, error.message)
   end
 
+  # ON WHAT WAS OFFERED, not on what survived `authorized?`. Checking the gated
+  # set makes a code bug into a per-user one: two colliding classes with one
+  # role-gated pass for every ordinary user and raise for the first admin,
+  # mid-render, in production.
+  def test_a_collision_hidden_behind_authorized_is_still_refused
+    first = Class.new(Bali::Widget::ValueBase) { def self.name = "Reports::Overdue"; value { 1 } }
+    second = Class.new(Bali::Widget::ValueBase) do
+      def self.name = "Tasks::Overdue"
+      value { 2 }
+      def authorized? = false
+    end
+
+    assert_raises(Bali::Widget::DuplicateKey) do
+      Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                       offering: [ first.new, second.new ])
+    end
+  end
+
   # And the same CLASS twice is not a collision. Only two distinct classes
   # deriving one key is the data-integrity bug; a repeated widget is an ordinary
   # submission, which `arrange` dedupes on write.

@@ -47,8 +47,7 @@ module Bali
           @value = UNSET
         end
 
-        # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
-        # private methods; anything else is the value itself.
+        # Block or value — see `Bali::Widget::Builder#resolve`.
         def value(value = UNSET, &block) = @value = block || value
 
         # What the tile says under the icon. Both default to the shared Bali

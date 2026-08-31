@@ -5,9 +5,10 @@ module Bali
     # WHAT EVERY DECLARATION BLOCK YIELDS — `row`, `trend`, `goal`, `check`,
     # `series`. Each subclass adds only its own setters.
     #
-    # Each setter writes its OWN ivar, so two blocks of the same kind MERGE per
+    # EACH SETTER WRITES ITS OWN IVAR, so two blocks of the same kind MERGE per
     # field rather than the second replacing the first — which lets a shared
-    # module declare what two widgets have in common.
+    # module declare what two widgets have in common while each declares what
+    # differs. Every builder inherits this; none of them restates it.
     class Builder
       class << self
         # The one declaration a widget cannot omit, in the spelling a host wrote:

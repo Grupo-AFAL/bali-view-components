@@ -21,21 +21,23 @@ module Bali
       # Gating here rather than trusting callers means a host that passes its raw
       # catalogue cannot persist widgets whose `authorized?` is false.
       def initialize(owner:, dashboard_key:, offering:, context: "")
+        # ON WHAT WAS OFFERED, not on what survived `authorized?`. A collision is
+        # a property of the CODE — which is why it left `by_key`, where it ran on
+        # every read, write and refresh poll — and checking the gated set would
+        # make it a property of the REQUEST again: two colliding classes with one
+        # role-gated would pass for every ordinary user and raise for the first
+        # admin, mid-render, in production.
+        #
+        # Here rather than only in the `dashboard_widgets` macro because this
+        # class is a documented standalone API, and a host skipping the concern
+        # got no check at all — `arrange` wrote one row for the shared key and
+        # `#widgets` served one widget's data under the other's rows.
+        Bali::Widget.check_keys!(offering)
+
         @owner = owner
         @context = context.to_s
         @dashboard_key = dashboard_key.to_s
         @offering = Bali::Widget.authorized_for(offering)
-        # HERE, not only in the `dashboard_widgets` macro. Two classes deriving
-        # one key is a property of the code, so it was moved out of `by_key` —
-        # which ran it on every store read, write and refresh poll — and into
-        # that macro. But this class is a documented standalone API, and a host
-        # skipping the concern then got no check at all: `arrange` wrote a row
-        # for the shared key and `#widgets` handed back whichever class the index
-        # kept, silently serving one widget's data under the other's rows.
-        #
-        # Once per Store rather than once per lookup, over an offering that is a
-        # handful of objects.
-        Bali::Widget.check_keys!(@offering)
       end
 
       def stored_keys = rows.ordered.pluck(:widget_key)
@@ -54,7 +56,7 @@ module Bali
       # whose flag is off, whose class was deleted, or that was hand-edited into
       # the table all collapse to the same `nil` from one lookup.
       def widgets
-        by_key = Bali::Widget.by_key(offering)
+        by_key = indexed
         chosen = rows.ordered.pluck(:widget_key, :size).filter_map do |key, size|
           widget = by_key[key]
           Bali::Widget::Placement.new(widget: widget, size: size) if widget
@@ -162,6 +164,17 @@ module Bali
 
       attr_reader :owner, :context, :dashboard_key, :offering
 
+      # THE OFFERING, INDEXED ONCE, and indexed DIRECTLY rather than through
+      # `Bali::Widget.by_key`. `by_key` re-gates what it is handed so a caller
+      # cannot widen the boundary by forgetting to filter — but this field was
+      # gated in the constructor and is never written again, so the re-gate is a
+      # second full pass of the host's `authorized?`, which may query.
+      #
+      # It added up: a refresh asked three times per widget (the controller's own
+      # pass, this constructor's, and `#widgets`) and an arrange four. Two now,
+      # and the remaining one belongs to the controller.
+      def indexed = @indexed ||= offering.index_by(&:key)
+
       # A submission -> gated `[Placement]`. Never sees a list of permitted keys
       # to check against — it maps over the widgets themselves, so it cannot
       # conjure one whatever arrives.
@@ -169,7 +182,7 @@ module Bali
       # A `Placement` is re-resolved rather than passed through, so the guarantee
       # holds for `store.arrange(other_store.widgets)` too.
       def resolve(layout)
-        by_key = Bali::Widget.by_key(offering)
+        by_key = indexed
 
         layout.filter_map do |item|
           key, size = fields_of(item)

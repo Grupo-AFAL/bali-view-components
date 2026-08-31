@@ -144,8 +144,8 @@ module Bali
       #
       # `pattern` picks the widget's BASE CLASS: `ValueBase`, `ListBase`,
       # `TrendBase`, `ProgressBase` or `CheckBase`. A widget is exactly one of them, and
-      # `ValueBase` offers `small` alone — pick a bigger size with it and the
-      # card falls back, which is `with_size`'s documented behaviour.
+      # `ValueBase` offers `small` alone — pick a bigger size with it and the card
+      # falls back, which is `Bali::Widget::Placement`'s documented behaviour.
       #
       # Toggle `editing` to see the edit chrome — a handle, a remove button and
       # the size picker — which the card always renders and CSS hides.

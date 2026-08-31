@@ -38,11 +38,6 @@ module Bali
     # falls back to the widget's default for a name it does not recognise.
     SIZES = %i[small medium large].freeze
 
-    # THE PATTERN IS THE TYPE. Named here so `Base` can say so when a widget
-    # subclasses it directly and the card then asks a question only a pattern
-    # can answer.
-    PATTERNS = %w[ValueBase ListBase TrendBase ProgressBase CheckBase].freeze
-
     # Largest first, so `find` returns the biggest unit that applies.
     ABBREVIATIONS = [ [ 1_000_000_000, "B" ], [ 1_000_000, "M" ], [ 1_000, "k" ] ].freeze
 

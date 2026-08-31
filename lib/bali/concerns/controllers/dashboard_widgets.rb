@@ -135,8 +135,10 @@ module Bali
         #
         # Each request rebuilds the whole offering — `#widgets` needs it for the
         # defaults fallback — so the cost is O(CATALOG), not O(tiles polled): a
-        # thirty-widget dashboard refreshing one tile still pays thirty
-        # `authorized?` calls, and `authorized?` may query.
+        # thirty-widget dashboard refreshing one tile pays sixty `authorized?`
+        # calls, once here and once in the `Store` constructor, and `authorized?`
+        # may query. `Store#indexed` is what keeps it at two passes rather than
+        # three.
         #
         # A KEY THAT RESOLVES TO NOTHING IS REMOVED, not merely skipped.
         # `authorized?` is asked again on every one of these requests, so a role
@@ -163,27 +165,9 @@ module Bali
           }
         end
 
-        private
-
-        # EVERY STREAM BUILDS ITS CARD HERE. A replaced `<section>` is a whole new
-        # element, so anything the original carried and this omits is gone for the
-        # life of the page — and `refresh_url` is exactly that: without it
-        # `refreshes?` is false, no `bali-widget-refresh` controller connects, and
-        # the card silently stops polling AND loses the freshness stamp that
-        # exists to disclose staleness. It then looks healthy forever.
-        #
-        # `arrange` shipped without it and nothing caught the difference, which is
-        # why the two callers now share one constructor rather than two spellings
-        # of it.
-        def card_for(placement)
-          Bali::Widget::Component.new(placement.widget, size: placement.size,
-                                      refresh_url: url_for(action: :refresh))
-        end
-
-        public
 
         # A "Personalise" button, for someone who has never customised. `adopt`
-        # decides whether there is anything to do from inside its own lock.
+        # is idempotent, so a second press — or a second tab — is a no-op.
         #
         # Redirects rather than `204`, because this one DOES change what renders:
         # the grid goes from defaults-by-absence to the same widgets stored
@@ -271,6 +255,21 @@ module Bali
           return if key.nil?
 
           placements_for([ key ]).first
+        end
+
+        # EVERY STREAM BUILDS ITS CARD HERE. A replaced `<section>` is a whole new
+        # element, so anything the original carried and this omits is gone for the
+        # life of the page — and `refresh_url` is exactly that: without it
+        # `refreshes?` is false, no `bali-widget-refresh` controller connects, and
+        # the card silently stops polling AND loses the freshness stamp that
+        # exists to disclose staleness. It then looks healthy forever.
+        #
+        # `arrange` shipped without it and nothing caught the difference, which is
+        # why the two callers now share one constructor rather than two spellings
+        # of it.
+        def card_for(placement)
+          Bali::Widget::Component.new(placement.widget, size: placement.size,
+                                      refresh_url: url_for(action: :refresh))
         end
 
         # PLACEMENTS, not widgets. A card has to come back at the size this owner

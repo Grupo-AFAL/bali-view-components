@@ -15,12 +15,8 @@ module Bali
     # whatever else it has. That is a supported state, not a missing declaration —
     # which is why there is no guard here, unlike `list` and `row`.
     #
-    # A MODULE, not a `ChartedBase` in the chain. `*Base` is host-facing
-    # vocabulary and THE PATTERN IS THE TYPE, so another one would read as
-    # another pattern to inherit from — but nothing inherits from this. It is a
-    # capability two patterns have, and a mixin keeps it available to a third:
-    # a list widget wanting a sparkline is `include Charted`, not a re-parenting
-    # `ListBase` could not do anyway.
+    # A MODULE, not a `ChartedBase` in the chain — a capability two patterns have
+    # rather than a kind of widget. See `docs/reference/widget-design-notes.md`.
     module Charted
       extend ActiveSupport::Concern
 
@@ -52,9 +48,7 @@ module Bali
           @type = type
         end
 
-        # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
-        # private methods; anything else is the value itself, which is what lets a
-        # fixed series be written `s.values [ 1, 2, 3 ]`.
+        # Block or value — see `Bali::Widget::Builder#resolve`.
         def labels(value = nil, &block) = @labels = block || value
 
         def values(value = nil, &block) = @values = block || value
