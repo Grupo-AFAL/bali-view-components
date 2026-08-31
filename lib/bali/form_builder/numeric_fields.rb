@@ -35,12 +35,20 @@ module Bali
 
       private
 
+      # `delimited` is on by default here and only here: an amount is the field
+      # where a missing thousands delimiter is a misreading waiting to happen,
+      # and this family already renders the `text` input the delimiter needs to
+      # survive being typed. `delimited: false` opts out — for a field whose
+      # value is read back by something that does not expect grouping.
       def numeric_options(options)
-        options.with_defaults(
+        opts = options.with_defaults(
           placeholder: 0,
           inputmode: "decimal",
-          pattern_type: :localized_number
+          pattern_type: :localized_number,
+          delimited: true
         )
+
+        opts[:delimited] ? delimited_number_options(opts) : opts
       end
 
       def numeric_addon(symbol)
