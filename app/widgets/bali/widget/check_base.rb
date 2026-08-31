@@ -32,9 +32,8 @@ module Bali
       supports :small
 
       # What `check` yields. Each setter writes its OWN ivar, so two `check`
-      # blocks merge per field — see the builder contract on `Base`.
-      class CheckBuilder < Builder
-        requires "c.value", block: "check"
+      # Setters merge per field — see `Base.declares`.
+      class CheckBuilder
         # `block || value` — the idiom every other builder uses — cannot work
         # here: `false` and `nil` are the two answers this pattern exists to
         # carry, and both are falsy, so a declared `c.value false` would read as
@@ -47,7 +46,6 @@ module Bali
           @value = UNSET
         end
 
-        # Block or value — see `Bali::Widget::Builder#resolve`.
         def value(value = UNSET, &block) = @value = block || value
 
         # What the tile says under the icon. Both default to the shared Bali
@@ -71,11 +69,24 @@ module Bali
           I18n.t("bali_view.widgets.check.#{passing ? 'pass' : 'fail'}")
         end
 
+        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
+        # `:small` card renders no rows and would otherwise never look, printing a
+        # confident number for a widget broken at every other size.
+        def check!(widget_class)
+          return unless @value.equal?(UNSET)
+
+          raise NotImplementedError,
+                "#{widget_class.name || 'This widget'} must declare " \
+                "`c.value` in its `check` block."
+        end
+
         private
 
-        # A SENTINEL, not nil: `c.value false` is a widget reporting a real
-        # failing check, and `@value.nil?` would read it as never declared.
-        def declared? = !@value.equal?(UNSET)
+        # A BLOCK runs against the WIDGET, so it reaches `context`, route helpers
+        # and private methods; anything else is the value itself.
+        def resolve(widget, field)
+          field.is_a?(Proc) ? widget.instance_exec(&field) : field
+        end
       end
       private_constant :CheckBuilder
 

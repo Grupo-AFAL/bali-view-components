@@ -55,10 +55,8 @@ module Bali
       # live here rather than in three class attributes because a row is one
       # thing: it is built in one place and read in one place.
       #
-      # Setters merge per field — see `Bali::Widget::Builder`.
-      class RowBuilder < Builder
-        requires "r.title", block: "row"
-
+      # Setters merge per field — see `Base.declares`.
+      class RowBuilder
         def title(value = nil, &block) = @title = block || value
 
         def subtitle(value = nil, &block) = @subtitle = block || value
@@ -74,6 +72,17 @@ module Bali
             subtitle: resolve_field(widget, @subtitle, record),
             href: resolve_field(widget, @href, record)
           )
+        end
+
+        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
+        # `:small` card renders no rows and would otherwise never look, printing a
+        # confident number for a widget broken at every other size.
+        def check!(widget_class)
+          return unless @title.nil?
+
+          raise NotImplementedError,
+                "#{widget_class.name || 'This widget'} must declare " \
+                "`r.title` in its `row` block."
         end
 
         private

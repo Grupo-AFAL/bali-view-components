@@ -40,9 +40,7 @@ module Bali
 
       # What `goal` yields — everything the ring is drawn from. Each setter writes
       # its OWN ivar, so two `goal` blocks merge per field.
-      class GoalBuilder < Builder
-        requires "g.value", block: "goal"
-        # Block or value — see `Bali::Widget::Builder#resolve`.
+      class GoalBuilder
         def value(value = nil, &block) = @value = block || value
 
         def max(value = nil, &block) = @max = block || value
@@ -66,6 +64,25 @@ module Bali
         # 100 by default, so a widget whose figure is already a percentage
         # declares `g.value` alone.
         def resolved_max(widget) = @max.nil? ? 100 : resolve(widget, @max)
+
+        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
+        # `:small` card renders no rows and would otherwise never look, printing a
+        # confident number for a widget broken at every other size.
+        def check!(widget_class)
+          return unless @value.nil?
+
+          raise NotImplementedError,
+                "#{widget_class.name || 'This widget'} must declare " \
+                "`g.value` in its `goal` block."
+        end
+
+        private
+
+        # A BLOCK runs against the WIDGET, so it reaches `context`, route helpers
+        # and private methods; anything else is the value itself.
+        def resolve(widget, field)
+          field.is_a?(Proc) ? widget.instance_exec(&field) : field
+        end
       end
       private_constant :GoalBuilder
 

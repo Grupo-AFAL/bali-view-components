@@ -44,8 +44,7 @@ module Bali
       # What `trend` yields — the two figures, and how the movement between them
       # reads. Each setter writes its OWN ivar, so two `trend` blocks merge per
       # field, the same rule as `row`, `series` and `goal`.
-      class TrendBuilder < Builder
-        requires "t.current", block: "trend"
+      class TrendBuilder
         def initialize
           @positive_when = :up
         end
@@ -80,6 +79,25 @@ module Bali
         def resolved_current(widget) = resolve(widget, @current)
 
         def resolved_previous(widget) = resolve(widget, @previous)
+
+        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
+        # `:small` card renders no rows and would otherwise never look, printing a
+        # confident number for a widget broken at every other size.
+        def check!(widget_class)
+          return if @current
+
+          raise NotImplementedError,
+                "#{widget_class.name || 'This widget'} must declare " \
+                "`t.current` in its `trend` block."
+        end
+
+        private
+
+        # A BLOCK runs against the WIDGET, so it reaches `context`, route helpers
+        # and private methods; anything else is the value itself.
+        def resolve(widget, field)
+          field.is_a?(Proc) ? widget.instance_exec(&field) : field
+        end
       end
       private_constant :TrendBuilder
 

@@ -43,12 +43,11 @@ module Bali
       # What `series` yields. Each setter writes its OWN ivar, so two `series`
       # blocks merge per field rather than the second replacing the first — the
       # same rule as `row`.
-      class SeriesBuilder < Builder
+      class SeriesBuilder
         def initialize(type)
           @type = type
         end
 
-        # Block or value — see `Bali::Widget::Builder#resolve`.
         def labels(value = nil, &block) = @labels = block || value
 
         def values(value = nil, &block) = @values = block || value
@@ -69,6 +68,14 @@ module Bali
           return if drawn.blank?
 
           Series.new(values: drawn, labels: resolve(widget, @labels) || [], type: @type)
+        end
+
+        private
+
+        # A BLOCK runs against the WIDGET, so it reaches `context`, route helpers
+        # and private methods; anything else is the value itself.
+        def resolve(widget, field)
+          field.is_a?(Proc) ? widget.instance_exec(&field) : field
         end
       end
 

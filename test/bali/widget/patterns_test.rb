@@ -633,4 +633,59 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     assert_equal false, child.new.passing?
     assert_equal "SHARED", parent.new.display_value
   end
+
+  # ---- the missing-declaration message ------------------------------------
+
+  # THE ONE THING THE DELETED `Builder` BASE CLASS WAS ACTUALLY PROTECTING.
+  # `check!` used to be inherited, so all four patterns raised in one voice by
+  # construction. They each own the method now — which reads better and killed a
+  # fragile derivation of an ivar name from the message string — so the shape is
+  # pinned here instead. This is the property; inheritance was only ever one way
+  # of holding it.
+  #
+  # NAMES THE WIDGET, THE DECLARATION AND THE BLOCK. A host who reads
+  # "must declare `t.current` in its `trend` block" can act without opening Bali;
+  # "undefined method" cannot be acted on at all.
+  MISSING_DECLARATIONS = {
+    Bali::Widget::ListBase => [ "r.title", "row" ],
+    Bali::Widget::TrendBase => [ "t.current", "trend" ],
+    Bali::Widget::ProgressBase => [ "g.value", "goal" ],
+    Bali::Widget::CheckBase => [ "c.value", "check" ]
+  }.freeze
+
+  def test_every_pattern_names_the_declaration_it_is_missing
+    MISSING_DECLARATIONS.each do |pattern, (declaration, block)|
+      widget = Class.new(pattern) do
+        def self.name = "Forgetful"
+        # the block is declared, but the required field inside it is not
+        public_send(block) { |_| }
+      end.new
+
+      error = assert_raises(NotImplementedError, "#{pattern} did not raise") { widget.count }
+
+      assert_equal "Forgetful must declare `#{declaration}` in its `#{block}` block.",
+                   error.message
+    end
+  end
+
+  # An anonymous class says something rather than "must declare `x` for nil".
+  def test_the_message_survives_a_widget_with_no_name
+    widget = Class.new(Bali::Widget::TrendBase) { trend { |_| } }.new
+
+    error = assert_raises(NotImplementedError) { widget.count }
+
+    assert_equal "This widget must declare `t.current` in its `trend` block.", error.message
+  end
+
+  # `c.value false` IS a declaration — the sentinel is what distinguishes it from
+  # never declaring, and inlining `check!` is where that could most easily have
+  # been lost.
+  def test_a_check_declaring_false_is_not_a_missing_declaration
+    widget = Class.new(Bali::Widget::CheckBase) do
+      def self.key = "declared_false"
+      check { |c| c.value false }
+    end.new
+
+    assert_equal false, widget.passing?
+  end
 end

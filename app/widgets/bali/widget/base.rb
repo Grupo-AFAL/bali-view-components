@@ -88,6 +88,12 @@ module Bali
 
         # DEFINES A DECLARATION MACRO — `row`, `trend`, `goal`, `check`, `series`.
         #
+        # EVERY BUILDER SETTER WRITES ITS OWN IVAR, so two blocks of the same kind
+        # MERGE per field rather than the second replacing the first — which lets
+        # a shared module declare what two widgets have in common while each
+        # declares what differs. That is a property of the builders; this is what
+        # makes it survive inheritance.
+        #
         # The `dup` is the part that matters: `class_attribute` copies on WRITE
         # and never on MUTATION, so without it two siblings overwrite each other's
         # fields, last class body loaded winning. It is SHALLOW, which suffices
