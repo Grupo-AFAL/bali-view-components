@@ -31,7 +31,6 @@ class BaliTestingWidgetCatalogTest < ActiveSupport::TestCase
     assert_every_widget_catalogued DashboardWidgetsController.widget_catalog, path: "app/widgets"
   end
 
-
   # Anonymous widget classes defined by other tests must not be reported. This
   # one exists only to be swept up by a `Base.descendants` implementation.
   ANONYMOUS = Class.new(Bali::Widget::ValueBase) do

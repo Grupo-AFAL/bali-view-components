@@ -621,7 +621,6 @@ class BaliWidgetComponentTest < ComponentTestCase
 
   private
 
-
   def volatile_widget
     Class.new(Bali::Widget::ValueBase) do
       def self.key = "volatile"

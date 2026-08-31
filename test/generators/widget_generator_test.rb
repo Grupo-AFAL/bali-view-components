@@ -121,14 +121,16 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
   #
   # Names the removed method rather than the current one, so this fails if it
   # ever comes back rather than merely drifting alongside it.
+  #
+  # READ FROM THE TEMPLATE, so this covers every pattern branch. Inspecting
+  # generated output would only ever cover the preamble plus whichever pattern
+  # the test happened to generate.
   def test_the_scaffolded_test_does_not_call_a_removed_api
-    run_generator %w[LowStockItems --size large]
+    template = Bali::Engine.root.join("lib/generators/bali/widget/templates/widget_test.rb.tt").read
 
-    assert_file "test/widgets/low_stock_items_test.rb" do |content|
-      refute_match(/widget\.size/, content,
-                   "a widget has no `size` — the same class is small for one owner and large " \
-                   "for another, which is what `Bali::Widget::Placement` is for")
-    end
+    refute_match(/widget\.size\b/, template,
+                 "a widget has no `size` — the same class is small for one owner and large " \
+                 "for another, which is what `Bali::Widget::Placement` is for")
   end
 
   # Every pattern's scaffold asserts something. `check` was scaffolding an empty

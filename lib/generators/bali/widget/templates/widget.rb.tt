@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+# THIS WIDGET IS RED UNTIL YOU FILL IN THE BLOCK BELOW. Every declaration
+# scaffolds a `raise NotImplementedError`, so the generated test errors on
+# `test_it_loads` until you replace it with your query — deliberately, because
+# the alternative is a scaffold that passes while showing nothing. Unlike Rails'
+# own scaffolds, which generate green because they have a model to read.
+
 <% module_namespacing do -%>
 class <%= class_name %> < <%= parent_class %>
   default_size :<%= options[:size] %>
