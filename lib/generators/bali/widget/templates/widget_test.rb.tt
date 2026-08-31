@@ -6,8 +6,11 @@ require "test_helper"
 class <%= class_name %>Test < ActiveSupport::TestCase
   def widget = <%= class_name %>.new(nil)
 
+  # THE CLASS, not the instance. Size is not a property of a widget — the same
+  # class is `small` for one owner and `large` for another — so a widget carries
+  # a DEFAULT and `Bali::Widget::Placement` pairs it with the owner's choice.
   def test_it_is_drawn_around_its_declared_size
-    assert_equal :<%= options[:size] %>, widget.size
+    assert_equal :<%= options[:size] %>, <%= class_name %>.default_size
   end
 
   # The card asks the widget directly — there is no result object between them —
@@ -28,6 +31,9 @@ class <%= class_name %>Test < ActiveSupport::TestCase
     assert(widget.trend.nil? || widget.trend.is_a?(Bali::Widget::TrendBase::Trend))
 <% elsif pattern == 'progress' -%>
     assert_kind_of Bali::Widget::ProgressBase::Goal, widget.goal
+<% elsif pattern == 'check' -%>
+    # nil is a legitimate answer: not yet known is the check's third state.
+    assert_includes [ true, false, nil ], widget.passing?
 <% end -%>
   end
 

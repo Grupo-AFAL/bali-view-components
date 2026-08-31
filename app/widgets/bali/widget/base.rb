@@ -233,8 +233,6 @@ module Bali
       # expensive knows that where Bali cannot.
       def authorized? = true
 
-      # Where the tile links. On `Base` because a figure, a trend and a ring all
-      # link somewhere just as a list does.
       def view_all_path = _view_all_path && instance_exec(&_view_all_path)
 
       # ---- what a PATTERN answers ----------------------------------------------

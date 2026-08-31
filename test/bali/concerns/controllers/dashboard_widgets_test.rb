@@ -72,8 +72,6 @@ class BaliDashboardWidgetsConcernTest < ActiveSupport::TestCase
     assert_equal :pundit_user, controller.send(:widget_offering).first.context
   end
 
-
-
   # A COLLISION IS A BOOT FAILURE, not a wrong dashboard — checked where the
   # catalog is declared rather than on every lookup, since whether two classes
   # derive the same key is a property of the code.

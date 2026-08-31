@@ -108,8 +108,42 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     run_generator %w[LowStockItems --size large]
 
     assert_file "test/widgets/low_stock_items_test.rb" do |content|
-      assert_match(/assert_equal :large, widget.size/, content)
+      assert_match(/assert_equal :large, LowStockItems\.default_size/, content)
       assert_match(/assert_kind_of Integer, widget\.count/, content)
+    end
+  end
+
+  # THE SCAFFOLD MUST CALL AN API THAT EXISTS. `test/widgets/` does not exist in
+  # this repo, so a generated widget test is never executed here — the assertion
+  # above only greps the file. That is how the scaffold went on calling
+  # `widget.size` after size moved to `Bali::Widget::Placement`: every generated
+  # test NoMethodError'd on its first line, which is the first thing a host runs.
+  #
+  # Names the removed method rather than the current one, so this fails if it
+  # ever comes back rather than merely drifting alongside it.
+  def test_the_scaffolded_test_does_not_call_a_removed_api
+    run_generator %w[LowStockItems --size large]
+
+    assert_file "test/widgets/low_stock_items_test.rb" do |content|
+      refute_match(/widget\.size/, content,
+                   "a widget has no `size` — the same class is small for one owner and large " \
+                   "for another, which is what `Bali::Widget::Placement` is for")
+    end
+  end
+
+  # Every pattern's scaffold asserts something. `check` was scaffolding an empty
+  # method body under a comment claiming to cover the whole interface.
+  #
+  # READ FROM THE TEMPLATE, not by generating five widgets: each run also inserts
+  # into the locale files, and five runs in one test collide on them.
+  def test_every_pattern_scaffolds_a_load_assertion
+    template = Bali::Engine.root.join("lib/generators/bali/widget/templates/widget_test.rb.tt").read
+    body = template[/def test_it_loads(.*?)\n  end/m, 1]
+
+    %w[value list trend progress check].each do |pattern|
+      branch = body[/pattern == '#{pattern}' -%>(.*?)<%/m, 1]
+
+      assert_match(/assert/, branch.to_s, "`--pattern #{pattern}` scaffolds no assertion")
     end
   end
 

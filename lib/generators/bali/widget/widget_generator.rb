@@ -8,8 +8,8 @@ module Bali
   #
   # THE PATTERN IS THE SUPERCLASS. `--pattern` does not write a declaration the
   # class could later contradict; it picks which of the five bases the widget
-  # inherits from, and that choice is what supplies its declarations and its
-  # declarations. So the scaffold is the documentation: a `trend` widget is
+  # inherits from, and that choice is what supplies its declarations. So the
+  # scaffold is the documentation: a `trend` widget is
   # generated with `t.current` raising and `t.previous` present, because those are
   # exactly what a trend widget owes the card.
   #

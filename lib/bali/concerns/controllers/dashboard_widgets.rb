@@ -165,7 +165,6 @@ module Bali
           }
         end
 
-
         # A "Personalise" button, for someone who has never customised. `adopt`
         # is idempotent, so a second press — or a second tab — is a no-op.
         #
