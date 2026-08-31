@@ -3,21 +3,20 @@
 module Bali
   module Widget
     module SizePicker
-      # The four-size chooser on a widget card's edit shelf.
+      # The size chooser on a widget card's edit shelf.
       #
       #   render Bali::Widget::SizePicker::Component.new(size: :medium, title: "Low stock")
       #
-      # Its own component because none of it is about showing a fact at four
+      # Its own component because none of it is about showing a fact at three
       # canvases: it is a roving-tabindex ARIA radiogroup that draws each size as
       # a lattice, and it kept three constants and a helper inside the card that
       # the card never used for anything else.
       #
-      # A REAL radiogroup, not a toggle group — the sizes are mutually
-      # exclusive, which is what the role exists for. It earns the role by
-      # honouring the whole pattern: one tab stop for the set, arrows to move
-      # within it, and selection following focus. Announcing radiogroup semantics
-      # without the keyboard behaviour assistive tech then expects is worse than
-      # an honest toggle group, which is what this used to be.
+      # A REAL radiogroup — the sizes are mutually exclusive, which is what the
+      # role exists for, and it earns the role by honouring the whole pattern: one
+      # tab stop for the set, arrows within it, selection following focus.
+      # Announcing radiogroup semantics without that keyboard behaviour is worse
+      # than an honest toggle group.
       #
       # The keyboard half lives in `WidgetGridController#sizeKeydown` — the card
       # is not the thing that moves, so the grid owns the gesture.
@@ -25,10 +24,10 @@ module Bali
         # Which of the 4x2 lattice cells each size fills, in the grid's own
         # reading order: left to right, top row then bottom.
         #
-        # The LATTICE is the point, not the fill. Four rectangles floating in
-        # whitespace are four masses with no shared origin — which is why
+        # The LATTICE is the point, not the fill. Loose rectangles floating in
+        # whitespace are masses with no shared origin — which is why
         # `medium` (2x1) and `large` (2x2), being the same WIDTH, were
-        # indistinguishable. The same four inside a visible 4x2 grid are a map.
+        # indistinguishable. The same glyphs inside a visible 4x2 grid are a map.
         CELLS = {
           small: [ 0 ],
           medium: [ 0, 1 ],

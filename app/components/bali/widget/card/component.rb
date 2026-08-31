@@ -64,9 +64,8 @@ module Bali
 
         # ---- the arrangement, shared ----------------------------------------
 
-        # THE VOCABULARY SURVIVES AS PREDICATES even though the table did not: a
-        # hero is a DIFFERENT card, not a small one — no header, and the whole
-        # tile is one link — and that reads better here than `size == :small`.
+        # A hero is a DIFFERENT card, not a small one — no header, and the whole
+        # tile is one link.
         def hero? = size == :small
 
         def stacked? = size == :large

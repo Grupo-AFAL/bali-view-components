@@ -26,20 +26,16 @@ module Bali
     #   a block   runs on the WIDGET         r.href { |m| movie_path(m) }
     #   a String  is the value itself        r.subtitle "In stock"
     #
-    # The symbol is the ergonomic point — `r.title :name` says everything a
-    # `->(r) { r.name }` would. The block is for anything computed, and it runs
-    # against the widget so it reaches route helpers, `context`, private methods
-    # and `join` — which is why it takes the record as an ARGUMENT rather than
-    # reading it off `self`.
+    # The block runs against the widget so it reaches route helpers, `context`,
+    # private methods and `join` — which is why it takes the record as an
+    # ARGUMENT rather than reading it off `self`.
     #
-    # `r.title` is required. The other two are optional and default to nil.
+    # `r.title` is required. The other two default to nil.
     class ListBase < Base
       # How many preview rows a list widget loads, regardless of the size it is
-      # rendered at. `count` comes from the whole scope, so the preview is
-      # presentation rather than data — which is what keeps a widget from needing
-      # to know its size. `Widget::Component` truncates to what the size has room
-      # for, and a host raising `Component.rows_budget` past this raises `limit:` to
-      # match.
+      # rendered at — which is what keeps a widget from needing to know its size.
+      # `count` still comes from the whole scope. A host raising
+      # `Component.rows_budget` past this raises `limit:` to match.
       PREVIEW_ROWS = 8
 
       # `limit` is always passed by the macro below, which is the one place a
@@ -95,12 +91,8 @@ module Bali
         # A SYMBOL is sent to the record; a BLOCK runs against the WIDGET with the
         # record yielded, so it can reach route helpers and private methods.
         #
-        # A STRING is the value itself, and used to be a third spelling of "send
-        # this to the record" — which made `r.subtitle "In stock"` a confusing
-        # `NoMethodError` at render time. It reads exactly like the `title "Low
-        # stock items"` a few lines above it in the same class body, and every
-        # other builder already treats a non-Proc as a literal. One feature
-        # cannot have two answers to what a string means.
+        # A STRING is the value itself, matching every other builder — `r.subtitle
+        # "In stock"` reads like the `title "Low stock items"` above it.
         def resolve(widget, field, record)
           case field
           when nil, String then field
@@ -111,9 +103,8 @@ module Bali
       end
       private_constant :RowBuilder
 
-      # No default: a `List` needs a scope, and there is no sensible empty one.
-      # A widget that never declares `list` fails the way one that never defined
-      # `#scope` used to — loudly, naming the macro.
+      # No default: a `List` needs a scope, and a widget that never declares
+      # `list` should fail loudly, naming the macro.
       class_attribute :_list, **ATTRIBUTE_OPTIONS
       class_attribute :_row_builder, **ATTRIBUTE_OPTIONS
 
@@ -126,19 +117,13 @@ module Bali
         # `limit` is applied after the block returns, so a scope that orders
         # itself is always ordered before it is paged.
         #
-        # A BLOCK, always — there is no way to pass a relation by value, and that
-        # is the point. A class body is evaluated once at boot, so a relation
-        # given there freezes whatever it closed over: `where(due_date:
-        # Date.current..)` becomes the day the process started, and the tile shows
-        # the wrong week until a redeploy. The reloader re-runs the class body on
-        # every request, so that bug cannot reproduce in development and is silent
-        # in production — the worst shape an API hazard can have. It is not a
-        # hypothetical: this widget set shipped it twice.
-        #
-        # The block is also the only form that WORKS. It runs against the widget,
-        # so it reaches `context` — a scope frozen into the class body can never
-        # be tenant- or user-scoped, which is most widgets in a real host. And it
-        # is shorter to write than the keyword it replaces.
+        # A BLOCK, always. A class body is evaluated once at boot, so a relation
+        # given by value freezes whatever it closed over: `where(due_date:
+        # Date.current..)` becomes the day the process started and the tile shows
+        # the wrong week until a redeploy. The reloader re-runs class bodies in
+        # development, so it cannot reproduce there and is silent in production.
+        # The block also runs against the widget, so it reaches `context` — a
+        # frozen scope could never be tenant-scoped.
         def list(limit: PREVIEW_ROWS, &block)
           raise ArgumentError, "`list` needs a block: `list { Item.low_stock }`." unless block
 
@@ -153,17 +138,13 @@ module Bali
         #     r.href { |movie| admin_movie_path(movie) }
         #   end
         #
-        # Each field takes the same three forms, and each writes its own ivar —
-        # so two `row` blocks merge field by field rather than the second
-        # replacing the first. That is what lets a shared module declare the
-        # fields two widgets have in common while each declares what differs.
+        # Each field writes its own ivar, so two `row` blocks merge field by
+        # field rather than the second replacing the first — which lets a shared
+        # module declare what two widgets have in common.
         #
-        # `r.title` is required; the other two default to nil.
-        #
-        # DUPS what it inherits. `class_attribute` copies on WRITE, never on
-        # mutation, so `||=` on an inherited builder would hand a subclass its
-        # parent's object — and two siblings would then overwrite each other's
-        # fields, last class body loaded winning.
+        # DUPS what it inherits: `class_attribute` copies on WRITE, never on
+        # mutation, so `||=` would hand a subclass its parent's builder and two
+        # siblings would overwrite each other.
         def row(&block)
           raise ArgumentError, "`row` needs a block: `row { |r| r.title :name }`." unless block
 
@@ -172,19 +153,15 @@ module Bali
         end
       end
 
-      # The row declaration is checked HERE as well as in `#items`, because a
-      # `:small` card renders no rows and would otherwise never look: `count`
-      # would succeed, the hero would print a confident number, and the widget
-      # would be broken at every other size with nothing on screen saying so.
-      # A list widget owes a `row` whatever size it happens to be drawn at.
-      # "3 left · Cocina" — the card's own separator, with blank parts dropped so
-      # a row with only one half does not render a dangling divider.
-      #
-      # HERE rather than on `Base`: every caller is an `r.subtitle` block, and a
-      # figure, a ring or a check has nothing to join. An instance method so a
-      # row block — `instance_exec`'d on the widget — can call it bare.
+      # "3 left · Cocina". On `ListBase` rather than `Base` because every caller
+      # is an `r.subtitle` block; an instance method so a row block —
+      # `instance_exec`'d on the widget — can call it bare.
       def join(*parts) = Widget.join(*parts)
 
+      # `check!` here as well as in `#items`, because a `:small` card renders no
+      # rows and would otherwise never look: `count` would succeed, the hero would
+      # print a confident number, and the widget would be broken at every other
+      # size with nothing on screen saying so.
       def count
         @count ||= begin
           row_builder.check!(self.class)
@@ -199,17 +176,14 @@ module Bali
         end
       end
 
-
       private
 
-      # ORDER THEN LIMIT, still guaranteed — by construction now rather than by a
-      # keyword. The scope carries its own `order`, and Bali applies `limit`
-      # AFTER the block returns, so ordering written inside the scope is always
-      # applied first. An unordered scope pages a preview off whatever the
-      # database happened to return, which is a different bug in every database.
+      # ORDER THEN LIMIT: the scope carries its own `order` and `limit` is applied
+      # after the block returns. An unordered scope previews whatever the database
+      # happened to return, which is a different bug in every database.
       #
-      # `scope`, not `list.scope`: the declaration is a Proc in the block form,
-      # and a Proc has no `limit`.
+      # `scope`, not `list.scope` — the declaration is a Proc, and a Proc has no
+      # `limit`.
       def previewable = scope.limit(list.limit)
 
       def list
@@ -217,12 +191,8 @@ module Bali
                        "#{self.class.name || 'This widget'} must declare `list`.")
       end
 
-      # Re-read per render, which is the whole point of the block — but ONCE per
-      # render: `count` and `previewable` both need it, and a block that does
-      # real work before returning its relation should not do it twice.
-      #
       # The RELATION is memoised, never the rows: `count` and `items` issue two
-      # different queries off this, which is what lets a card say "3 of 214".
+      # different queries off it, which is what lets a card say "3 of 214".
       def scope = @scope ||= instance_exec(&list.scope)
 
       def row_builder

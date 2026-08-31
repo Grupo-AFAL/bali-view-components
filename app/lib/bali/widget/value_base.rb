@@ -49,7 +49,7 @@ module Bali
       # THE SAME WORD AS THE MACRO ABOVE, deliberately: `value { … }` in a class
       # body is the class method, and a bare `value` anywhere else — including
       # inside `display_value { "$#{Widget.abbreviate(value)}" }` — is this one.
-      # It is the sharpest overload in the feature; the alternative was a second
+      # The alternative was a second
       # name for one concept, which reads worse in the class body where hosts
       # actually work.
       def value
@@ -72,7 +72,7 @@ module Bali
       # the declaration is host code — a raising format degrades this tile
       # instead of taking the page down.
       #
-      # Falls back to the abbreviated count, which is what the card would have
+      # Falls back to the abbreviated count, which is what the card would
       # printed anyway; declaring `display_value` is for when the number is not
       # the display.
       def display_value

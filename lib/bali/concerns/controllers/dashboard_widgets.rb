@@ -38,10 +38,6 @@ module Bali
       # what forces a host into a second controller, since the picker needs
       # that name.
       #
-      # NO ROUTES MACRO, deliberately. The three lines above are already plain
-      # Rails, and hiding which URLs exist to save two is a bad trade for the
-      # one file a developer will read when a path helper does not resolve.
-      #
       # ---- the seams ------------------------------------------------------
       #
       #   * `widget_owner`   — REQUIRED. Whose rows these are, usually
@@ -59,13 +55,7 @@ module Bali
       # `show` and `edit` render Bali's own templates, so a host that writes no
       # ERB still gets a working dashboard. Define `app/views/<controller>/show
       # .html.erb` (or `edit`) and yours wins — `_prefixes` puts the engine's
-      # behind the controller's own, which is the same mechanism a subclassed
-      # controller uses to inherit views.
-      #
-      # The picker's copy is the reason its default is worth shipping. "Unticking
-      # everything restores your defaults rather than emptying the dashboard" is
-      # counter-intuitive and true, and a host writing that page from scratch has
-      # no way to know it until a user complains.
+      # behind the controller's own.
       module DashboardWidgets
         extend ActiveSupport::Concern
 
@@ -80,30 +70,20 @@ module Bali
 
         class_methods do
           # `catalog` is widget CLASSES, and ITS ORDER IS THE DEFAULT DASHBOARD:
-          # an owner with no stored rows is shown the offering in exactly this
-          # sequence. That is why it is a list you write rather than something
-          # Bali discovers — discovery can give you alphabetical and nothing else.
+          # an owner with no stored rows sees the offering in exactly this
+          # sequence. That is why it is authored rather than discovered —
+          # discovery gives alphabetical and nothing else.
           #
-          # IT BELONGS TO THE DASHBOARD, not to the app. Two dashboards are two
-          # orderings, which may overlap; an app-wide `Widgets::ALL` stops being
-          # the right shape the moment there is a second one. Write the list
-          # here, in the controller that owns the dashboard, and the contents
-          # are visible where the dashboard is defined.
+          # It belongs to the DASHBOARD, not the app: two dashboards are two
+          # orderings, which may overlap.
           #
-          # A PROC OR A SYMBOL works too, and is resolved per request against
-          # the controller instance — for a catalog that cannot be known at
-          # class-definition time:
+          # A proc or a symbol works too, resolved per request against the
+          # controller, for a catalog not knowable at class-definition time:
           #
-          #   dashboard_widgets catalog: -> { Widgets::TODAY + current_tenant.extra_widgets }
-          #   dashboard_widgets catalog: :widgets_for_plan
+          #   dashboard_widgets catalog: -> { Widgets::TODAY + current_tenant.extras }
           #
-          # Reach for it only when you need it. A literal array is greppable and
-          # a proc is not, and per-owner differences are usually `authorized?`'s
-          # job rather than the catalog's.
-          #
-          # Instantiating them is this concern's job, not yours. Every host that
-          # has built one of these wrote the same `ALL.map { |k| k.new(actor) }`
-          # wrapper by hand first.
+          # Reach for it only when you need it — an array is greppable and a proc
+          # is not, and per-owner differences are usually `authorized?`'s job.
           def dashboard_widgets(catalog:, dashboard_key: nil)
             self.widget_catalog       = catalog
             self.widget_dashboard_key = (dashboard_key || controller_path).to_s
@@ -129,11 +109,11 @@ module Bali
           redirect_to widget_dashboard_path, notice: t("bali_view.widgets.notices.saved")
         end
 
-        # THE GRID'S ENDPOINT. Answers `204` for a gesture that changed position
-        # — the browser already moved the card, and re-rendering would replace
-        # the nodes SortableJS just placed — and a Turbo Stream for one that
-        # changed SHAPE, because a card's interior is server-rendered and a
-        # grown card would otherwise keep the body it had when it was small.
+        # THE GRID'S ENDPOINT. `204` for a gesture that changed position — the
+        # browser already moved the card, and re-rendering would replace the
+        # nodes SortableJS just placed — and a Turbo Stream for one that changed
+        # SHAPE, since a card's interior is server-rendered and a grown card
+        # would otherwise keep its smaller body.
         def arrange
           widget_store.arrange(submitted_layout)
 
@@ -146,15 +126,12 @@ module Bali
           )
         end
 
-        # Adopting the defaults, which is what a "Personalise" button does for
-        # someone who has never customised. `adopt` decides whether there is
-        # anything to do from inside its own lock — asking here and calling
-        # there would leave a window where a second tab's arrangement is
-        # flattened back to catalog order.
+        # A "Personalise" button, for someone who has never customised. `adopt`
+        # decides whether there is anything to do from inside its own lock.
         #
-        # Redirects rather than answering `204` like `arrange`, because this one
-        # DOES change what renders: the grid goes from defaults-by-absence to
-        # the same widgets stored explicitly, and comes back in edit mode.
+        # Redirects rather than `204`, because this one DOES change what renders:
+        # the grid goes from defaults-by-absence to the same widgets stored
+        # explicitly, and comes back in edit mode.
         def create
           widget_store.adopt
 
@@ -174,17 +151,15 @@ module Bali
         private
 
         # THE GATE, memoised. Un-loaded instances, so this costs only whatever
-        # the host's `authorized?` bodies cost and never a widget query — which
-        # is what lets the picker list thirty widgets without loading thirty.
+        # the host's `authorized?` bodies cost and never a widget query.
         def widget_offering
           @widget_offering ||= Bali::Widget.authorized_for(
             widget_catalog_classes.map { |klass| klass.new(widget_actor) }
           )
         end
 
-        # Resolved per request, so a `catalog:` that is a proc or a method name
-        # sees `params`, the session and the current tenant. `instance_exec` for
-        # the proc rather than `call`, so it reads like the rest of a controller.
+        # `instance_exec` rather than `call`, so a proc catalog reads like the
+        # rest of a controller.
         def widget_catalog_classes
           case widget_catalog
           when Proc   then Array(instance_exec(&widget_catalog))
@@ -211,26 +186,23 @@ module Bali
         def widget_context = ""
 
         # `url_for` rather than a named helper, so this works whatever a host
-        # called its route — `resource :dashboard` and `resource :dashboard_widgets`
-        # both resolve, and neither has to be declared here.
+        # called its route.
         def widget_dashboard_path(**options) = url_for(action: :show, **options)
 
         # ---- params ----------------------------------------------------------
 
-        # JUST THE WIRE FORMAT. `Store#arrange` resolves these against the
-        # offering itself and drops what it cannot find, so there is no lookup
-        # here and no permitted-key list to keep in step.
+        # JUST THE WIRE FORMAT — `Store#arrange` resolves these against the
+        # offering itself.
         #
-        # The `blank?` guard runs BEFORE `expect`, deliberately: `expect` raises
-        # `ParameterMissing` — a 400 — on an omitted `widgets` key AND on an
-        # empty `widgets: []`, and only one of those is an error. Removing the
-        # last card submits nothing at all, and that is the RESET gesture.
+        # The `blank?` guard runs BEFORE `expect`: `expect` raises
+        # `ParameterMissing` (a 400) on an omitted `widgets` key AND on an empty
+        # `widgets: []`, and only one of those is an error. Removing the last card
+        # submits nothing at all, and that is the RESET gesture.
         #
-        # `expect` rather than reading `params[:widgets]` directly, for the case
-        # the guard misses: `?widgets=lol` is a String, and indexing it with
-        # `[:key]` raises `TypeError` — a 500 for a request that deserves a 400.
-        # Nothing here is mass-assigned, so permitting buys no safety; the SHAPE
-        # check is what earns the call.
+        # `expect` rather than `params[:widgets]` for the case the guard misses:
+        # `?widgets=lol` is a String, and indexing it raises `TypeError` — a 500
+        # for a request that deserves a 400. Nothing is mass-assigned here, so the
+        # SHAPE check is what earns the call.
         def submitted_layout
           return [] if params[:widgets].blank?
 
@@ -238,11 +210,8 @@ module Bali
         end
 
         # THE PICKER'S BOUNDARY. A submitted key becomes a widget only by being
-        # found in the authorized offering, so an unauthorized, retired or
-        # hand-edited key finds nothing and is dropped — silently, because a
-        # role revoked between rendering the page and submitting it should
-        # degrade rather than 422, and because refusing a made-up key would
-        # confirm which keys are real.
+        # found in the authorized offering; anything else is dropped silently, so
+        # a role revoked between render and submit degrades rather than 422s.
         def submitted_widgets
           by_key = Bali::Widget.by_key(widget_offering)
 
@@ -250,8 +219,7 @@ module Bali
         end
 
         # Looked up in the arrangement just written, so it comes back at its NEW
-        # size. Nil for every gesture that is not a resize, and for a key outside
-        # the offering — the same boundary `arrange` enforced a line earlier.
+        # size. Nil for anything that is not a resize.
         def resized_placement
           key = params[:resized_key].presence
           return if key.nil?

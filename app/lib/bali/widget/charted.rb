@@ -15,40 +15,24 @@ module Bali
     # whatever else it has. That is a supported state, not a missing declaration —
     # which is why there is no guard here, unlike `list` and `row`.
     #
-    # A MODULE, NOT A `ChartedBase < Base` IN THE CHAIN. `Base → ChartedBase →
-    # {TrendBase, ProgressBase}` would work and would keep single inheritance, so
-    # this is a judgement rather than a rule:
-    #
-    #   `*Base` is host-facing vocabulary. `--pattern trend` scaffolds
-    #   `TrendBase`, the guide's table lists exactly four, and THE PATTERN IS THE
-    #   TYPE. A fifth `*Base` reads as a fifth pattern to inherit from, and
-    #   nothing inherits from this — it is a capability two patterns have, not a
-    #   kind of widget.
-    #
-    #   A middle class fixes a taxonomy; a mixin does not. Putting "charted" in
-    #   the chain commits to it being a LEVEL. It is not obviously one: a list
-    #   widget with a sparkline beside its count is a plausible thing to want, and
-    #   that is `include Charted` on `ListBase` — one line. With a middle class it
-    #   is a re-parenting, and `ListBase` cannot have two parents.
-    #
-    # Ruby draws the same line: `Comparable` and `Enumerable` are capabilities,
-    # inheritance is taxonomy. The name follows those rather than `Chartable` —
-    # a widget that includes this HAS a chart; it is not merely able to have one.
+    # A MODULE, not a `ChartedBase` in the chain. `*Base` is host-facing
+    # vocabulary and THE PATTERN IS THE TYPE, so another one would read as
+    # another pattern to inherit from — but nothing inherits from this. It is a
+    # capability two patterns have, and a mixin keeps it available to a third:
+    # a list widget wanting a sparkline is `include Charted`, not a re-parenting
+    # `ListBase` could not do anyway.
     module Charted
       extend ActiveSupport::Concern
 
       # WHAT A WIDGET CARD CAN ACTUALLY DRAW, which is narrower than what
-      # `Bali::Chart` accepts. `s.type` used to pass straight through to Chart.js
-      # unvalidated, so a typo emitted a canvas with `chart-type-value="banana"`
-      # — a blank tile and an error in the browser console, the silent failure
-      # this feature validates against everywhere else.
+      # `Bali::Chart` accepts. Unvalidated, a typo emits a canvas with
+      # `chart-type-value="banana"` — a blank tile and a console error.
       #
       # `:line` and `:bar` are the two that survive the size ladder. Both have
       # axes for `SPARK_OPTIONS` to strip below `large`, and both still read at a
       # 2x1. The axis-less types Chart.js offers — `pie`, `doughnut`, `polarArea`
       # — do not: a pie in a sparkline slot beside a headline is a smudge, and
-      # the card's own `whole_numbers?` tick precision is meaningless for one.
-      # A host wanting one of those wants `renders_one :body` and its own chart.
+      # the card's `whole_numbers?` tick precision is meaningless for one.
       TYPES = %i[line bar].freeze
 
       # `charted?` rather than `values.any?` at the call site: an empty series is
@@ -125,12 +109,9 @@ module Bali
       end
 
       # `defined?` rather than `@series ||=`: a widget with no series answers nil,
-      # which is the common case and exactly the one `||=` cannot memoise.
-      #
-      # The card asks through `series?`, `context?`, `empty_state?`, `detail?` and
-      # `context_classes`, then again for `series.type`, the chart data and the
-      # tick precision — five to eight times per tile, each rebuilding the object
-      # and re-running BOTH declaration blocks.
+      # which is the common case and exactly the one `||=` cannot memoise. The
+      # card asks five to eight times per tile, each one otherwise re-running both
+      # declaration blocks.
       def series
         return @series if defined?(@series)
 

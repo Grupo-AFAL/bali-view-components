@@ -4,29 +4,10 @@ module Bali
   class DashboardWidget
     # One owner's dashboard arrangement in one context: which widgets, in what
     # order, at what size. The only thing that reads or writes
-    # `bali_dashboard_widgets` — `Bali::DashboardWidget`, the AR model this
-    # class is nested under, is a row and nothing more; see its own comments.
+    # `bali_dashboard_widgets`.
     #
-    # NOTE `arrange` is `delete_all` + `insert_all`, so no row survives a
-    # rearrange — but `created_at` does: `arrange` reads the existing ones before
-    # it deletes and carries each surviving widget's forward, so "when did you
-    # first add this widget?" stays answerable across any number of drags. A
-    # widget that was absent is dated now, and `updated_at` is always now.
-    #
-    # `Store` ITSELF is not an ActiveRecord model, deliberately — a plain object
-    # scoped to one owner, one context and one dashboard, the same shape as
-    # `SavedView::Store`. There is no separate `dashboards` table backing that
-    # scope: owner + context + dashboard_key is pure join identity, and a table
-    # for it would buy only an owner, a context and two timestamps — bought with
-    # a migration and an extra read on every request, for a name we can have for
-    # free by scoping `DashboardWidget` rows directly. Promote it the day a
-    # dashboard has state of its own.
-    #
-    # THE CONTRACT a replacement must implement, if a host already persists
-    # dashboards elsewhere (an existing table, its own model) and wants to pass
-    # that object instead of this one — the same seam `SavedView::Store` proves
-    # (a phase-2 team-shared implementation is OTRA clase con este mismo
-    # contrato):
+    # THE CONTRACT, which a host that already persists dashboards can implement
+    # instead and pass in place of this class — it then never runs the migration:
     #
     #   - `widgets`         — the offering, subset/reordered/resized by what is stored
     #   - `stored_keys`     — every stored key, including ones the owner cannot see
@@ -37,32 +18,15 @@ module Bali
     #   - `adopt`           — write the defaults as rows, if none are stored yet
     #   - `reset`           — drop every row
     #
-    # This class is the DEFAULT implementation of that contract, not a
-    # requirement of it — a host supplying its own never runs
-    # `bali:install:migrations:dashboard_widgets`.
-    #
     # NOTE `context` here is the SCOPING STRING — a tenant id, or "" for a
-    # single-tenant host. It is unrelated to `Bali::Widget::Base#context`, which
-    # is the actor object a host's `authorized?` gates against. This class never
-    # sees that one.
+    # single-tenant host. Unrelated to `Bali::Widget::Base#context`, which is the
+    # actor a host's `authorized?` gates against. This class never sees that one.
     class Store
-      # The set the owner is being shown right now.
-      # State rather than an argument to three methods, because every one of them
-      # needs it and all mean the same thing by it.
-      #
-      # REQUIRED, with no default, and that is deliberate. An empty offer is a
-      # valid state (an owner authorized for nothing) but a terrible default:
-      # `arrange` would lose its delete half, since `[] - submitted` is `[]`;
-      # `choose` would become a no-op; and `widgets` would render nothing. Three
-      # wrong behaviours from one forgotten argument, none of them raising.
-      # GATED HERE, not merely expected to arrive gated. The offering is the
-      # feature's entire security property — a submitted key becomes a widget
-      # only by being found in it — and until this line that property depended
-      # on every host remembering one call. A host that passed its raw catalogue
-      # persisted and rendered widgets whose `authorized?` was false, silently.
-      #
-      # `authorized_for` is idempotent and memoised, so a host that filters first
-      # (as `docs/guides/engine-models.md` still tells it to) pays nothing.
+      # `offering` is REQUIRED and GATED HERE. An empty offer is a valid state but
+      # a disastrous default — `arrange` would lose its delete half, `choose`
+      # would no-op and `widgets` would render nothing, none of them raising.
+      # Gating here rather than trusting callers means a host that passes its raw
+      # catalogue cannot persist widgets whose `authorized?` is false.
       def initialize(owner:, dashboard_key:, offering:, context: "")
         @owner = owner
         @context = context.to_s
@@ -70,41 +34,21 @@ module Bali
         @offering = Bali::Widget.authorized_for(offering)
       end
 
-      # EVERY stored key, including rows for widgets the owner cannot currently
-      # see. Surfaces almost always want `visible_keys` instead.
       def stored_keys = rows.ordered.pluck(:widget_key)
 
-      # The stored keys the owner can actually see, in stored order.
-      #
-      # Asking `stored_keys` means "has this owner ever chosen anything"; asking
-      # this means "is there anything on their dashboard". A surface that wants
-      # the second and asks the first renders defaults while reporting the owner
-      # as customized.
+      # `stored_keys` answers "has this owner ever chosen anything"; this answers
+      # "is there anything on their dashboard". A surface that wants the second
+      # and asks the first renders defaults while calling the owner customized.
       def visible_keys = stored_keys & offering.map(&:key)
 
-      # VISIBLE keys, not rows. An owner whose only stored row is for a hidden
-      # widget has customized nothing they can see, and telling them otherwise
-      # offers "restore defaults" to someone already looking at defaults.
       def customized? = visible_keys.any?
 
-      # THE INVARIANT.
+      # Returns `Placement`s — a widget AT A SIZE, since size belongs to the
+      # arrangement rather than to the widget.
       #
-      # `offering` is ALWAYS the already-authorized set. This indexes what it
-      # holds and can only return members of that set; it cannot conjure a
-      # widget. Four failure modes collapse into the same `nil` from one lookup:
-      #
-      #   - a key for a widget whose role the owner lost -> not in `by_key`
-      #   - a key for a widget whose feature flag is off -> not in `by_key`
-      #   - a key for a widget deleted from the catalog  -> not in `by_key`
-      #   - a key hand-edited into the table              -> not in `by_key`
-      #
-      # Safe by CONSTRUCTION rather than by filtering: the method never sees a
-      # list of permitted keys to check against, it sees the widgets themselves
-      # and maps over them. That is the difference between a boundary and a habit.
-      # Returns `Bali::Widget::Placement`s — a widget AT A SIZE — because size is
-      # a fact about this owner's arrangement rather than about the widget.
-      # `Placement` resolves a nil or retired stored size to the widget's
-      # default, so a row predating the size column still renders.
+      # Can only return members of the offering, so a key whose role was revoked,
+      # whose flag is off, whose class was deleted, or that was hand-edited into
+      # the table all collapse to the same `nil` from one lookup.
       def widgets
         by_key = Bali::Widget.by_key(offering)
         chosen = rows.ordered.pluck(:widget_key, :size).filter_map do |key, size|
@@ -113,113 +57,64 @@ module Bali
         end
 
         # "No rows means never chose" is really "no VISIBLE rows means never
-        # chose": a dashboard holding only hidden ones would otherwise render
-        # empty rather than falling back.
+        # chose" — a dashboard holding only hidden ones would render empty
+        # rather than falling back.
         chosen.presence || offering.map { |widget| Bali::Widget::Placement.new(widget: widget) }
       end
 
-      # Membership, not order — what a picker submits.
+      # Membership, not order — what a picker submits. A picker renders in
+      # catalog order, so writing position from that order would reshuffle a
+      # dashboard the owner had arranged. Survivors keep their stored order;
+      # newly chosen widgets append.
       #
-      # A picker renders in stable catalog order, so writing position from THAT
-      # order would reshuffle a dashboard the owner had arranged. Survivors keep
-      # their stored order; newly chosen widgets append after them.
-      #
-      # `survivors | submitted` is set-equal to `submitted`: what was stored
-      # decides ORDER, never membership. The union also dedupes, so a payload
-      # naming one key twice cannot reach `insert_all` as two rows colliding on
-      # one unique index, which Postgres refuses outright.
-      #
-      # A re-chosen widget appends rather than returning to its old slot: absence
-      # of a row means "off", so "removed" and "re-added" are the same gesture
-      # twice.
-      #
-      # A newly chosen widget gets no size — "I have no opinion about how big
-      # this is", which is how a picker's tick-box behaves. A SURVIVOR keeps
-      # whatever size it already had stored: `arrange` is a full reconcile, so
-      # without carrying the old size forward here, every `choose` would quietly
-      # reset every widget back to its own default. Ticking a box cannot resize,
-      # but neither can leaving one ticked.
-      #
-      # Takes WIDGETS, not keys — see `arrange`.
+      # A survivor also keeps its stored SIZE. `arrange` is a full reconcile, so
+      # without carrying it forward here every `choose` would silently reset
+      # every sized card back to its default.
       def choose(widgets)
-        # Through `Bali::Widget.by_key` like every other path: it gates what it
-        # is handed, and refuses a set where two widgets share a key.
         by_key = Bali::Widget.by_key(widgets)
 
         rows.transaction do
-          # One query for both the stored order and the stored sizes, rather
-          # than `stored_keys` plus a second `pluck` for sizes — same two
-          # facts, one SELECT.
           stored = rows.ordered.pluck(:widget_key, :size).to_h
           survivors = stored.keys & by_key.keys
 
-          # KEYS, not widgets: `arrange` resolves them against the offering,
-          # which is the narrower set. A widget that is authorized but was
-          # never offered here passes the gate above and is dropped by that
-          # one — and the instance that gets stored comes from one place.
           arrange((survivors | by_key.keys).map { |key| { key: key, size: stored[key] } })
         end
       end
 
       # Reconcile to exactly `layout`, where POSITION IS THE INDEX and a missing
-      # size means "no opinion".
-      #
-      # TAKES EITHER SHAPE, and resolves both against the offering itself:
+      # size means "no opinion". Takes either shape:
       #
       #   store.arrange(params.expect(widgets: [[ :key, :size ]]))
       #   store.arrange(store.widgets)   # `[Placement]`, so a read round-trips
       #
-      # THE FIRST ONE IS THE POINT. A controller has `{ key:, size: }` out of
-      # `params` and nothing else, and until this method took that shape, every
-      # host had to look each key up in the offering before calling — a `by_key`
-      # and a `Placement.new` in a controller, restated in every app,
-      # immediately ahead of the identical lookup this method does anyway. The
-      # offering is private state here; a caller doing the lookup had to keep
-      # its own copy of it. Now the host supplies the WIRE FORMAT and this
-      # supplies the meaning.
-      #
-      # A key that is not in the offering — unauthorized, retired, or hand-edited
-      # into the payload — finds nothing and is DROPPED. Silently, because a role
-      # revoked between rendering the page and submitting it should degrade
-      # rather than 422, and because refusing a made-up key would confirm which
+      # THE BOUNDARY. Every key is resolved against the offering, and one that is
+      # not in it — unauthorized, retired, hand-edited into the payload — is
+      # DROPPED. Silently: a role revoked between render and submit should
+      # degrade rather than 422, and refusing a made-up key would confirm which
       # keys are real.
       #
-      # An EMPTY layout is a reset, which is what an emptied grid means: no rows
-      # means "never chose", so the next read restores every authorized widget.
+      # An EMPTY layout is a reset, which is what an emptied grid means.
       def arrange(layout)
         rows.transaction do
-          # BEFORE the delete, which is the only chance to read them. `arrange`
-          # is a reconcile rather than an upsert, so every row is destroyed and
-          # rebuilt on every gesture — without carrying these forward a widget
-          # that has sat on the dashboard for a year would get a fresh
-          # `created_at` each time anything was dragged.
-          #
-          # This is a second SELECT on the path `choose` already plucks once, and
-          # it is deliberately not folded into that one: `arrange` is the
-          # lower-level primitive a host's controller can call directly, so it
-          # has to hold this invariant on its own rather than trusting a caller
-          # to have read the rows for it.
+          # BEFORE the delete, the only chance to read them. This is a reconcile,
+          # not an upsert, so without carrying `created_at` forward a widget that
+          # has sat on the dashboard for a year is re-dated on every drag.
           born = rows.pluck(:widget_key, :created_at).to_h
 
           rows.delete_all
 
           next if layout.empty?
 
-          # RESOLVED FIRST, so everything below works in placements and the
-          # gate cannot be skipped by a caller who already had objects.
-          #
-          # Then deduped, because `insert_all` would otherwise emit
-          # `ON CONFLICT DO NOTHING` and silently keep only the FIRST
-          # occurrence of a repeated key, dropping the rest with no error.
-          # `choose`'s own union already dedupes before it calls here, but this
-          # is the primitive a host reaches directly from params, where nothing
-          # guarantees a unique key.
+          # Resolved before anything else, so the gate cannot be skipped by a
+          # caller who already had `Placement`s. Deduped because `insert_all`
+          # emits `ON CONFLICT DO NOTHING` and would otherwise keep only the
+          # first occurrence of a repeated key, dropping the rest with no error.
           deduped = resolve(layout).uniq(&:key)
 
           next if deduped.empty?
 
-          # One timestamp for the whole write. Stamping inside `row_for` gave the
-          # rows of a single logical write microsecond-jittered `created_at`s.
+          # One timestamp for the whole write; stamping inside `row_for` gave the
+          # rows of a single logical write jittered `created_at`s.
           now = Time.current
           Bali::DashboardWidget.insert_all(
             deduped.map.with_index { |placement, index| row_for(placement, index, now, born) }
@@ -227,23 +122,13 @@ module Bali
         end
       end
 
-      # "MAKE THE DEFAULTS MINE." A user who has never chosen is shown the whole
-      # offering by `#widgets` — but IMPLICITLY, by absence of rows, so there is
-      # nothing stored to rearrange and every drag would be writing the layout
-      # for the first time. This writes what they are already looking at, which
-      # is what a "Personalise" button means: the arrangement stops being a
-      # fallback and becomes theirs.
+      # "Make the defaults mine" — writes what an owner with no rows is already
+      # being shown, so the arrangement stops being a fallback and becomes
+      # something they can drag.
       #
-      # A NO-OP for someone who has already customized, and that question is
-      # answered from INSIDE the lock rather than by the caller asking first.
-      # Between a caller's check and this write, a second tab could arrange —
-      # and this would flatten it back to defaults, silently, on a button whose
-      # whole promise is that it changes nothing you can see.
-      #
-      # The lock is on the rows this owner already has. That is empty in the
-      # case this method exists for, which is the point: `SELECT … FOR UPDATE`
-      # on an empty set still serialises two concurrent `adopt`s through
-      # `arrange`'s own transaction, and the second one finds rows and stops.
+      # The no-op case is decided INSIDE the lock. Between a caller's own check
+      # and this write, a second tab could arrange, and this would flatten it
+      # back to defaults on a button that promises to change nothing visible.
       def adopt
         rows.transaction do
           rows.lock.pluck(:id)
@@ -253,8 +138,7 @@ module Bali
         end
       end
 
-      # "Restore defaults" and an emptied grid are the same gesture. No explicit
-      # transaction: one `DELETE` is already atomic, and it locks what it matches.
+      # No explicit transaction: one `DELETE` is already atomic.
       def reset
         rows.delete_all
       end
@@ -263,17 +147,12 @@ module Bali
 
       attr_reader :owner, :context, :dashboard_key, :offering
 
-      # A submission -> gated `[Placement]`. THE BOUNDARY: a submitted key
-      # becomes a widget only by being FOUND in the already-authorized offering,
-      # so the method never sees a list of permitted keys to check against — it
-      # sees the widgets themselves and maps over them. That is the difference
-      # between a boundary and a habit, and it is why this cannot conjure a
-      # widget no matter what arrives.
+      # A submission -> gated `[Placement]`. Never sees a list of permitted keys
+      # to check against — it maps over the widgets themselves, so it cannot
+      # conjure one whatever arrives.
       #
       # A `Placement` is re-resolved rather than passed through, so the guarantee
-      # holds for `store.arrange(other_store.widgets)` too. Its size survives the
-      # trip: `Placement` normalises at construction, so a size already resolved
-      # resolves to itself.
+      # holds for `store.arrange(other_store.widgets)` too.
       def resolve(layout)
         by_key = Bali::Widget.by_key(offering)
 
@@ -284,30 +163,21 @@ module Bali
         end
       end
 
-      # THROUGH `to_h`, which is doing two jobs beyond reading two fields.
+      # THROUGH `to_h`, doing two jobs beyond reading two fields.
       #
-      # It makes key access INDIFFERENT, so `{ "key" => … }` out of parsed JSON
-      # or a CSV import works as well as `{ key: … }`. Reading `item[:key]`
-      # directly would return nil for the string-keyed one, and a nil key
-      # resolves to no widget — so every row would be dropped and `arrange`
-      # would read the empty result as a RESET. Silent total data loss is not a
-      # failure mode worth leaving in reach.
+      # Key access becomes indifferent, so `{ "key" => … }` from parsed JSON
+      # works. Reading `item[:key]` directly returns nil there, every row is
+      # dropped, and `arrange` reads the empty result as a RESET — silent total
+      # data loss.
       #
-      # And it makes an UNPERMITTED `ActionController::Parameters` raise
-      # `UnfilteredParameters` rather than quietly working, which is the loud
-      # version of the same mistake. Permitted params are a Hash by then, so
-      # nothing here knows what a controller is.
+      # And an unpermitted `ActionController::Parameters` raises
+      # `UnfilteredParameters` rather than quietly working.
       def fields_of(item)
         return [ item.key, item.size ] if item.is_a?(Bali::Widget::Placement)
 
         item.to_h.with_indifferent_access.values_at(:key, :size)
       end
 
-      # The READ scope. `row_for` below spells the same four columns again on
-      # the write side — that one can't be collapsed into this: `insert_all`
-      # builds attribute hashes directly, bypassing the AR relation (and its
-      # validations) entirely, which is the whole point of using it for a bulk
-      # write.
       def rows
         Bali::DashboardWidget.where(owner: owner, context: context,
                                     dashboard_key: dashboard_key)
@@ -321,14 +191,9 @@ module Bali
           context: context, dashboard_key: dashboard_key,
           widget_key: key, position: index,
           size: placement.size.to_s,
-          # A widget that was already on the dashboard keeps the moment it
-          # arrived; one that was not is genuinely new and is dated now. A
-          # widget removed and later re-added is the second case, not the first
-          # — absence of a row means "off", so "removed" and "re-added" are the
-          # same gesture twice and there is nothing left to carry forward.
-          #
-          # `updated_at` is always `now`, which is the opposite promise and the
-          # true one: the row really was just rewritten.
+          # A widget already on the dashboard keeps the moment it arrived; one
+          # removed and re-added is genuinely new, since absence of a row means
+          # "off". `updated_at` is always now, which is the true claim.
           created_at: born.fetch(key, now), updated_at: now
         }
       end

@@ -2,60 +2,39 @@
 
 module Bali
   module Widget
-    # What every widget is, regardless of which ladder it walks.
-    #
-    # A widget is no longer a thing that BUILDS a result; it is a thing the card
-    # ASKS. `Base` answers every question the card has with a null — no rows, no
-    # trend, no series, no goal — and each pattern subclass overrides the ones it
-    # actually has. So the card talks to one uniform interface and never branches
-    # on which kind of widget it is holding.
+    # What every widget has, regardless of which ladder it walks. The data half
+    # lives on the pattern subclasses.
     #
     # A WIDGET RAISES. It does not rescue itself, does not report, and has no
-    # `failed?` — `Bali::Widget::Component` is an ERROR BOUNDARY around one
-    # tile, and that is where a failure is caught, reported and turned into the
-    # degraded card.
-    #
-    # The rescue is a RENDERING concern: "one tile must not take the page down"
-    # is a fact about a page of twelve tiles, and a widget knows nothing about
-    # being one of them. `Movie.count` raising is ordinary, and `Movie` does not
-    # rescue itself either.
-    #
-    # Everything awkward about the alternative came from the widget swallowing:
-    # a `failed?` that answered wrong until something had been read, a `#load` to
-    # make it answer right, five per-pattern versions of that once `count` turned
-    # out not to mean "resolved", a fallback value on every read so a half-dead
-    # widget kept answering, and a `defined?` memo dance because a legitimate nil
-    # was indistinguishable from a swallowed failure. A boundary deletes all of
-    # it: the widget raises, and the card decides what a page does about it.
+    # `failed?` — `Bali::Widget::Component` is an ERROR BOUNDARY around one tile,
+    # and that is where a failure is caught, reported and degraded. "One tile
+    # must not take the page down" is a fact about the page, and a widget knows
+    # nothing about being one of twelve.
     #
     # THE PATTERN IS THE TYPE. A widget picks exactly one of `ValueBase`,
-    # `ListBase`, `TrendBase`, `ProgressBase` or `CheckBase`, and that is not a claim it
-    # can contradict — it is what gives the class its declarations. Choosing
-    # `TrendBase` and not declaring `t.current` is a loud failure, not a card that
-    # renders half a thing.
+    # `ListBase`, `TrendBase`, `ProgressBase` or `CheckBase`, and that is not a
+    # claim it can contradict — it is what gives the class its declarations.
+    # Choosing `TrendBase` and not declaring `t.current` is a loud failure, not a
+    # card that renders half a thing.
     class Base
-      # Every declaration below is CLASS-level configuration. The instance writer
-      # `class_attribute` generates by default silently shadows the class value
-      # for one object, and the predicate is noise on forty-eight methods
-      # nothing calls. Instance READERS stay: the patterns read them.
+      # Class-level configuration. The instance writer `class_attribute` generates
+      # by default would silently shadow the class value for one object. Instance
+      # READERS stay: the patterns read them.
       ATTRIBUTE_OPTIONS = { instance_writer: false, instance_predicate: false }.freeze
 
-      # THE BUILDER CONTRACT, which every `list`/`row`/`series`/`trend`/`goal`
-      # declaration relies on and none of them restates:
+      # THE BUILDER CONTRACT, relied on by every `list`/`row`/`series`/`trend`/
+      # `goal` declaration and restated by none of them:
       #
-      #   1. A builder is held in a `class_attribute` and `dup`ed before it is
-      #      written to. `class_attribute` copies on WRITE and never on MUTATION,
-      #      so without the dup a subclass would be handed its parent's object and
-      #      two siblings would overwrite each other's fields — last class body
-      #      loaded winning, which presents as "widget B shows widget A's title"
-      #      and depends on autoload order.
+      #   1. A builder is `dup`ed before it is written to. `class_attribute`
+      #      copies on WRITE and never on MUTATION, so without the dup two
+      #      siblings overwrite each other's fields — last class body loaded
+      #      winning, presenting as "widget B shows widget A's title" and varying
+      #      with autoload order.
       #
-      #   2. That `dup` is SHALLOW, and shallow is sufficient only because every
-      #      setter ASSIGNS (`@title = block || value`) rather than mutating, and
-      #      no builder exposes a reader. This is a proof obligation, not a
-      #      shortcut: add an accumulating field (`r.tag <<`) or a reader that
-      #      hands out the ivar, and parent and child start sharing one object
-      #      through the copy. Add a `dup` of your own to the field if you do.
+      #   2. That `dup` is SHALLOW, which suffices only because every setter
+      #      ASSIGNS rather than mutates and no builder exposes a reader. Add an
+      #      accumulating field or a reader that hands out the ivar and parent and
+      #      child start sharing one object through the copy.
       #
       # `test/bali/widget/patterns_test.rb` pins (1) for all four builders.
 
@@ -63,17 +42,12 @@ module Bali
       # it no longer supports.
       class_attribute :_default_size, default: SIZES.first, **ATTRIBUTE_OPTIONS
 
-      # Which sizes a USER may choose, defaulting to all of them. Declare a subset
-      # when the widget has nothing to fill the others with — a bare figure at
-      # `large` is a title, a number and most of a 2x2 cell of whitespace.
+      # Which sizes a USER may choose. Declare a subset when the widget has
+      # nothing to fill the others with.
       #
-      # DECLARED rather than inferred from the data. Inferring "this widget has no
-      # series, so hide `large`" would mean loading every widget just to render a
-      # picker — collapsing the `authorized?` / data split that lets a picker list
-      # the authorized set without running a single query. It would also make the
-      # offered sizes vary with the data: a widget whose series is empty this week
-      # would silently stop offering a size the user had already chosen. Apple
-      # declares `supportedFamilies` for the same reasons.
+      # DECLARED rather than inferred from the data: inferring would mean loading
+      # every widget just to render a picker, and would make the offered sizes
+      # vary week to week as data comes and goes.
       class_attribute :_supported_sizes, default: SIZES, **ATTRIBUTE_OPTIONS
 
       # Copy is HOST content. It reads from i18n by default — `widgets.<key>.*` —
@@ -97,15 +71,11 @@ module Bali
       class_attribute :_key, **ATTRIBUTE_OPTIONS
 
       class << self
-        # Validated at class-definition time, so a typo is a boot failure rather
-        # than a KeyError the first time someone opens the dashboard.
-        #
         # Deliberately does NOT check `_supported_sizes`: `ValueBase` ships with
         # `[:small]`, so a widget widening it writes `default_size :medium` above
         # `supports :small, :medium` and the check would reject a legitimate
         # class. `supports` validates the pair instead, which makes the two
-        # ORDER-DEPENDENT — `supports` must come second. The generator scaffolds
-        # them that way round.
+        # ORDER-DEPENDENT — `supports` must come second.
         def default_size(name = nil)
           return _default_size if name.nil?
 
@@ -114,8 +84,6 @@ module Bali
           self._default_size = name
         end
 
-        # NOT `sizes`, which sits one letter from `size`. Echoes the
-        # `supportedFamilies` this model is adapted from.
         def supports(*names)
           unknown = names - SIZES
           raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
@@ -134,21 +102,17 @@ module Bali
         def supported_sizes = _supported_sizes
 
         # THE PERSISTED IDENTITY, and the i18n scope. `Widgets::LowStockItems` ->
-        # `"low_stock_items"`, so there is one fewer constant to keep in sync.
+        # `"low_stock_items"`.
         #
-        # DEMODULIZED ON PURPOSE, which means it is not unique by construction:
-        # `Reports::Overdue` and `Tasks::Overdue` derive the same key.
-        # `Bali::Widget.by_key` raises on that rather than letting one silently
-        # win, and the fix is to declare one here:
+        # DEMODULIZED ON PURPOSE, so not unique by construction:
+        # `Reports::Overdue` and `Tasks::Overdue` collide. `Bali::Widget.by_key`
+        # raises rather than letting one win, and the fix is `key "reports_overdue"`.
         #
-        #   key "reports_overdue"
-        #
-        # NOT namespace-qualified, which would make keys unique for free. Two
-        # reasons: a qualified key is `constantize`-able, and this design's whole
-        # security property is that a submitted key becomes a widget only by
-        # being FOUND in the authorized offering, never by being resolved to a
-        # constant. And a stored key would then break every owner's dashboard the
-        # day a class moved namespace, where today that refactor is free.
+        # NOT namespace-qualified, which would make keys unique for free: a
+        # qualified key is `constantize`-able, and the security property is that a
+        # submitted key becomes a widget only by being FOUND in the offering. A
+        # stored qualified key would also break every dashboard the day a class
+        # moved namespace.
         def key(value = nil)
           return self._key = value.to_s if value
 
@@ -200,33 +164,24 @@ module Bali
       delegate :key, :title, :short_title, :description, :empty_message,
                :supported_sizes, to: :class
 
-      # MAY THIS OWNER SEE THIS WIDGET? Overridden by the host. Bali owns the
-      # hook and never the rule: roles, tenancy and feature flags are things
-      # only the host can see.
+      # MAY THIS OWNER SEE THIS WIDGET? Overridden by the host — Bali owns the
+      # hook and never the rule.
       #
       #   def authorized? = context.has_any_role?(:finance)
       #
-      # NOT `visible?`, which is what this was called and which named the wrong
-      # thing. Every boundary that asks — the `Store` constructor, `arrange`,
-      # `choose`, and a host's own params filter — is asking whether the widget
-      # may be persisted, offered and rendered AT ALL, not whether it should be
-      # on screen right now. A host reading `visible?` could reasonably write a
-      # presentation condition into it and be surprised that it also governs
-      # what the database will accept.
+      # NOT `visible?`: this governs whether the widget may be persisted, offered
+      # and rendered AT ALL, not whether it should be on screen right now. Named
+      # `visible?`, a host could reasonably write a presentation condition into it
+      # and be surprised that it also governs what the database accepts.
       #
-      # It may QUERY — the dummy app's `ActiveStudios` runs one `EXISTS` — but it
-      # must not run this widget's own DATA queries. That split is what lets a
-      # picker list thirty widgets without loading thirty widgets. Bali calls it
-      # once or twice per request and does not memoise for you: the default here
-      # is a constant, and a host whose rule is expensive knows that where Bali
-      # cannot.
+      # It may QUERY, but must not run the widget's own DATA queries — that split
+      # is what lets a picker list thirty widgets without loading thirty. Not
+      # memoised for you: the default is a constant, and a host whose rule is
+      # expensive knows that where Bali cannot.
       def authorized? = true
 
-      # ---- what every widget has -----------------------------------------------
-
-      # WHERE THE TILE LINKS. A figure, a trend, a ring and a check all link
-      # somewhere just as a list does, and no pattern overrides this — it is the
-      # implementation rather than a default.
+      # Where the tile links. On `Base` because a figure, a trend and a ring all
+      # link somewhere just as a list does.
       def view_all_path = _view_all_path && instance_exec(&_view_all_path)
     end
   end

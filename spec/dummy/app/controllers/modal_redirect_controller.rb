@@ -6,9 +6,7 @@
 # That path runs only when a modal trigger's fetch is REDIRECTED — the modal
 # gives up on rendering a panel and turns into a navigation instead, replacing
 # `document.body` and pushing the destination's URL. Nothing else in the dummy
-# app reaches it, which is why its history behaviour went unverified while the
-# widget grid's equivalent was measured; see the note in
-# `docs/superpowers/specs/2026-08-25-widgets-and-widget-grid-design.md`.
+# app reaches it, which is why its history behaviour is unverified.
 class ModalRedirectController < ApplicationController
   def index; end
 

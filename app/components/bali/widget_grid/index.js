@@ -57,7 +57,7 @@ export class WidgetGridController extends Controller {
     this.persist()
   }
 
-  // `move` announces "position 3 of 9"; removing used to announce only the
+  // `move` announces "position 3 of 9"; removing announces only the
   // widget name. That is where a running count matters MOST: a screen-reader
   // user emptying a dashboard has no grid to glance at, so without this they
   // learn how many are left only by counting them again.

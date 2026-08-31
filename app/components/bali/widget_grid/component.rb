@@ -17,7 +17,7 @@ module Bali
       # dependency on the card.
       renders_many :widgets, "Bali::Widget::Component"
 
-      # Only the LEADING text, never the controls. An earlier version let a host
+      # Only the LEADING text, never the controls. Letting a host
       # replace the whole band, which silently deleted the Edit/Done buttons —
       # and since the grid is the only surface that offers edit mode, a host that
       # wanted a heading lost the feature with nothing to tell it so.
