@@ -42,7 +42,7 @@ module Bali
       def delimited_number_field(method, options)
         text_field(
           method,
-          delimited_number_options(options.except(*NATIVE_ONLY_ATTRIBUTES))
+          delimited_number_options(method, options.except(*NATIVE_ONLY_ATTRIBUTES))
             .with_defaults(inputmode: "decimal", pattern_type: :localized_number)
         )
       end

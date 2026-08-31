@@ -175,9 +175,9 @@ utility identifier is missing from it.
 
 Registering a subset is supported, but note which controllers the FormBuilder mounts
 on your behalf: leave one out and the field renders and submits exactly as before,
-with the behaviour silently missing. `number-format` is the one to watch — every
-`currency_group` and `percentage_group` asks for it, so without it those fields stop
-grouping their thousands as the amount is typed.
+with the behaviour silently missing. `number-format` is mounted by any numeric
+family given `delimited: true`, so an app that uses that option needs it registered
+or those fields quietly stop grouping.
 
 ### Component Controllers
 

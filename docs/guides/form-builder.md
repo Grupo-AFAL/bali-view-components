@@ -179,10 +179,15 @@ value with a delimiter in it — the browser hands back the empty string. `min`,
 where they would read at the call site like a bound the browser is checking and
 nothing would be checking it.
 
-`currency_group` and `percentage_group` already render that `text` input, so they
-are delimited **by default**; pass `delimited: false` to opt out. The live
-grouping is the [`number-format`](controllers.md#number-format) controller —
-register it (or `registerAll`) or the field is a plain text input.
+`currency_group` and `percentage_group` take the same `delimited: true` and pay
+less for it — they already render that `text` input, so only the submitted value
+changes. **No family groups by default.** The live grouping is the
+[`number-format`](controllers.md#number-format) controller — register it (or
+`registerAll`) or the field is a plain text input.
+
+`step_number_group` **refuses** it with an `ArgumentError`: its +/− buttons read
+the value with `parseFloat`, which stops at the first delimiter, and a text input
+drops the `min`/`max` they step between.
 
 Either way the value arrives as a String, so the model side below is not
 optional.
@@ -243,14 +248,24 @@ not, every locale falls back to Rails' English defaults and behaves as before.
 deliberately **not** set: it is inert on a `type="text"` input, and passing one
 only misleads the next person to read the markup.
 
-The delimiter is also **put there for you** now, by the
-[`number-format`](controllers.md#number-format) controller both helpers mount:
-the thousands group as the amount is typed, and a stored amount is grouped on
-connect. Before, the field merely *accepted* a delimiter the typist entered by
-hand — which is why so few of them ever carried one. `delimited: false` opts out,
-for a field whose value is read back by something that does not expect grouping.
-The controller has to be registered for any of this to happen; an app that only
-registers a subset of Bali's controllers gets the previous behaviour, unchanged.
+Both accept **`delimited: true`**, which puts the delimiter there for you instead
+of waiting for the typist: the thousands group as the amount is typed, and a
+stored amount arrives already grouped, in the locale of the request. Before, the
+field merely *accepted* a delimiter someone entered by hand — which is why so few
+amounts ever carried one.
+
+**It is opt-in, and that is not timidity.** The delimiter changes what the field
+submits, and a grouped amount only survives the trip if the model carries
+`currency_attribute`/`percentage_attribute` (below). Measured across the group's
+apps before this defaulted to off: twelve live call sites over `investment`,
+`expenses`, `unit_price`, `lunch_price`, `declared_value`, `cost` and three
+percentages — and **not one model including the concern**. Defaulting to on would
+have made every one of them start storing 1 on the next upgrade, with no
+exception and nothing in the log. So the switch lives at the call site, next to
+the model that can take the value back.
+
+The controller also has to be registered for any of it to happen; an app that
+registers only a subset of Bali's controllers gets a plain text input.
 
 The browser validates a string. Turning it back into a number is the model's
 job, and `Bali::Concerns::NumericAttributesWithCommas` does it against the same

@@ -39,7 +39,7 @@ controller by hand.
 | [`geocoder-maps`](#geocoder-maps) | Geocodes an address to a map marker and lat/lng fields | hand markup |
 | [`input-on-change`](#input-on-change) | Notifies the server (Turbo Stream) when an input changes | hand markup |
 | [`interact`](#interact) | Drag/resize an absolutely-positioned element with snapping | hand markup |
-| [`number-format`](#number-format) | Groups the thousands of an amount as it is typed | `f.currency_group`, `f.percentage_group`, `f.number_group` with `delimited: true` |
+| [`number-format`](#number-format) | Groups the thousands of an amount as it is typed | any numeric FormBuilder family with `delimited: true` |
 | [`print`](#print) | Prints the page on connect, closes the window on refocus | hand markup |
 | [`radio-buttons-group`](#radio-buttons-group) | Shows grouped content per selected toggler button | `f.radio_buttons_group` |
 | [`radio-toggle`](#radio-toggle) | Shows elements matching the selected radio's value | hand markup |
@@ -397,32 +397,33 @@ character is the decimal point. The FormBuilder fills both from
 The element has to be an input with a caret. A `type="number"` input refuses to
 store a value holding a delimiter — the browser hands back the empty string and
 reports no `selectionStart` — so the controller warns and leaves the field alone.
-That is also why `f.number_group` needs `delimited: true` to opt in: turning the
-delimiter on costs the field its native type, along with the `min`, `max` and
-`step` the browser only enforces there. `f.currency_group` and
-`f.percentage_group` already render a `text` input, so they are grouped by
-default; pass `delimited: false` to opt out.
+That is also why `delimited: true` is opt-in on every family: turning the
+delimiter on costs a `number_group` its native type, along with the `min`, `max`
+and `step` the browser only enforces there — and, on every family, it changes
+what the field **submits**.
 
 Three behaviours are worth knowing about:
 
 - **Deleting a delimiter deletes the digit behind it.** Backspace over a
   delimiter would otherwise look broken — the delimiter goes, the digits regroup,
   the same delimiter reappears in the same place, and holding the key down does
-  nothing forever.
+  nothing forever. Deletions carrying a modifier (`Option`, `Ctrl`, `Cmd`) are
+  left to the browser, which deletes by word and by line.
 - **A half-typed decimal is completed on blur.** `1500.` becomes `1,500` and
   `.5` becomes `0.5`. Both are rejected by the field's `pattern`, and discovering
   that at submit time from a browser bubble is worse than being corrected on the
   way out.
-- **A value from the server is grouped on connect, if it is a machine number.**
-  Rails renders a decimal as `1500200.75` — a dot, whatever the locale — so the
-  dot is translated to the locale's separator first. A field re-rendered after a
-  failed validation holds whatever the typist actually entered, and that is left
-  untouched: regrouping it would delete the very characters that made it invalid.
+- **The value found on connect is never touched.** Whether `1.500` is a machine
+  number or something the typist wrote is not decidable here: in Spanish the dot
+  is the *delimiter*, so one reading submits 1.5 and the other 1500, and each
+  corrupts the case it guessed wrong. Only the server knows, so the FormBuilder
+  groups the initial value itself — in the locale of the request, and only when
+  the model handed over a number rather than a string the typist submitted.
 
 The server half is `currency_attribute` / `percentage_attribute` from
 `Bali::Concerns::NumericAttributesWithCommas`. Without one of them on the model, a
 grouped amount reaches a numeric column as a String and Rails casts `"1,500,200"`
-to 1.
+to 1 — which is why the delimiter is never on by default.
 
 ## `print`
 

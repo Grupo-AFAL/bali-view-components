@@ -17,7 +17,7 @@ module Bali
       # the locale's decimal key on it. That is the only way to type an amount
       # on a touch device without switching keyboard planes.
       def numeric_group(method, **options)
-        opts = numeric_options(options)
+        opts = numeric_options(method, options)
 
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, opts) do
           text_field(method, opts)
@@ -30,25 +30,39 @@ module Bali
       # things that make the input usable on a phone and acceptant of a
       # localized amount — or silently go without them.
       def numeric_field(method, **options)
-        text_field(method, numeric_options(options))
+        text_field(method, numeric_options(method, options))
       end
 
       private
 
-      # `delimited` is on by default here and only here: an amount is the field
-      # where a missing thousands delimiter is a misreading waiting to happen,
-      # and this family already renders the `text` input the delimiter needs to
-      # survive being typed. `delimited: false` opts out — for a field whose
-      # value is read back by something that does not expect grouping.
-      def numeric_options(options)
+      # `delimited` is opt-in here too, and that is a deliberate reversal. An
+      # amount is exactly the field where a missing thousands delimiter is a
+      # misreading waiting to happen, so turning it on by default was tempting
+      # and looked free — this family already renders the `text` input the
+      # delimiter needs to survive being typed.
+      #
+      # It is not free. The delimiter changes what the field SUBMITS, and a
+      # grouped amount only survives the trip if the model carries
+      # `currency_attribute`/`percentage_attribute` from
+      # `Bali::Concerns::NumericAttributesWithCommas`. Without it Rails casts
+      # `"1,500,200"` to 1 — no exception, no validation error, a 1 in a money
+      # column. Measured across the group's apps before this defaulted to false:
+      # twelve live call sites over `investment`, `expenses`, `unit_price`,
+      # `lunch_price`, `declared_value`, `cost` and three percentages, and not one
+      # model including the concern. Every one of them would have started storing
+      # 1 on the upgrade, silently.
+      #
+      # Today those fields survive because nobody types the delimiter. Turning it
+      # on has to be a call site's decision, made next to the model that can take
+      # it back.
+      def numeric_options(method, options)
         opts = options.with_defaults(
           placeholder: 0,
           inputmode: "decimal",
-          pattern_type: :localized_number,
-          delimited: true
+          pattern_type: :localized_number
         )
 
-        opts[:delimited] ? delimited_number_options(opts) : opts
+        opts[:delimited] ? delimited_number_options(method, opts) : opts
       end
 
       def numeric_addon(symbol)

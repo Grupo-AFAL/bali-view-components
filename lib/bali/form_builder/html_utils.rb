@@ -300,12 +300,53 @@ module Bali
       # `pl`, `sv` — and joining-then-stripping would hand the controller an
       # empty string, turning the grouping off in precisely the locales whose
       # delimiter is hardest to type by hand.
-      def delimited_number_options(options)
+      def delimited_number_options(method, options)
         opts = prepend_controller(dup_options(options), NUMBER_FORMAT_CONTROLLER)
 
         opts[:data][:"#{NUMBER_FORMAT_CONTROLLER}-delimiter-value"] = number_delimiter
         opts[:data][:"#{NUMBER_FORMAT_CONTROLLER}-separator-value"] = number_separator
+
+        grouped = delimited_number_value(method, opts)
+        opts[:value] = grouped unless grouped.nil?
         opts
+      end
+
+      # The initial value, grouped here rather than in the browser, because in the
+      # browser it is not decidable. `1.500` is a machine number in English and a
+      # delimited fifteen hundred in Spanish, where the dot IS the delimiter — one
+      # reading submits 1.5, the other 1500, and each corrupts the case it guessed
+      # wrong. No amount of pattern-matching on the string settles it; only the
+      # object knows.
+      #
+      # Which is why the test is the *type*, not the shape. A Numeric came from the
+      # model. A String is what the typist submitted — `text_field` renders
+      # `<attr>_before_type_cast` precisely so a rejected form comes back showing
+      # it — and grouping that would delete the characters that made it invalid.
+      #
+      # Measured on a decimal column: `_before_type_cast` is a Float on a fresh
+      # record and after a reload, and a String only on the way back from a failed
+      # validation, where the cast value is already wrong (`"1,500,200"` casts to
+      # 1). So reading the cast value instead would replace the typist's input
+      # with the corruption.
+      #
+      # nil, not "", when there is nothing to group: `value: nil` would make Rails
+      # emit no value attribute at all and wipe the field on re-render.
+      def delimited_number_value(method, options)
+        return if options.key?(:value)
+
+        raw = raw_attribute_value(method)
+        return unless raw.is_a?(Numeric)
+
+        ActiveSupport::NumberHelper.number_to_delimited(
+          raw, delimiter: number_delimiter, separator: number_separator
+        )
+      end
+
+      def raw_attribute_value(method)
+        before_type_cast = "#{method}_before_type_cast"
+        return unless object.respond_to?(before_type_cast)
+
+        object.public_send(before_type_cast)
       end
 
       def field_options(method, options)

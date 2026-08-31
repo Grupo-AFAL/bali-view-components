@@ -61,8 +61,12 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "search_group" => ->(b, o) { b.search_group(:name, **o) },
     "currency_group" => ->(b, o) { b.currency_group(:name, **o) },
     "percentage_group" => ->(b, o) { b.percentage_group(:name, **o) },
-    "step_number_field" => ->(b, o) { b.step_number_field(:name, **o) },
-    "step_number_group" => ->(b, o) { b.step_number_group(:name, **o) },
+    # The one family that REFUSES a reserved key instead of consuming it:
+    # `delimited:` cannot mean anything on a stepper whose buttons read the value
+    # with `parseFloat`. It is dropped here so these two stay in the sweep for
+    # every other key; `step_number_fields_test` is what holds the refusal.
+    "step_number_field" => ->(b, o) { b.step_number_field(:name, **o.except(:delimited)) },
+    "step_number_group" => ->(b, o) { b.step_number_group(:name, **o.except(:delimited)) },
     "range_field" => ->(b, o) { b.range_field(:name, **o) },
     "range_group" => ->(b, o) { b.range_group(:name, **o) },
     "boolean_field" => ->(b, o) { b.boolean_field(:name, **o) },

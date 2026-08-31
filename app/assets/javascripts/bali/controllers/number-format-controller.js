@@ -26,6 +26,13 @@ import { Controller } from '@hotwired/stimulus'
  * The element has to be an input with a caret. A `type="number"` input refuses
  * to store a value holding a delimiter — the browser hands back the empty
  * string and reports no `selectionStart` — so there is nothing here it could do.
+ *
+ * It does NOT touch the value it finds on connect. Deciding whether `1.500` is a
+ * machine number or something the typist wrote is not decidable here: in Spanish
+ * the dot is the *delimiter*, so one reading submits 1.5 and the other 1500, and
+ * both corrupt the case they guessed wrong. Only the server knows which it is,
+ * so the FormBuilder groups the initial value itself and this controller starts
+ * from whatever it is handed.
  */
 export class NumberFormatController extends Controller {
   static values = {
@@ -45,8 +52,6 @@ export class NumberFormatController extends Controller {
     this.element.addEventListener('keydown', this.deleteAcrossDelimiter)
     this.element.addEventListener('input', this.format)
     this.element.addEventListener('blur', this.completeHalfTypedDecimal)
-
-    this.adoptServerValue()
   }
 
   disconnect () {
@@ -102,6 +107,11 @@ export class NumberFormatController extends Controller {
     const backspace = event.key === 'Backspace'
     if (!backspace && event.key !== 'Delete') return
 
+    // Word- and line-wise deletion is the browser's, and it deletes far more
+    // than the one character this redirect reasons about. Option+Backspace over
+    // a delimiter would otherwise lose its whole word and remove a single digit.
+    if (event.metaKey || event.ctrlKey || event.altKey) return
+
     const input = this.element
     // A selection deletes exactly what it covers, delimiters included.
     if (input.selectionStart !== input.selectionEnd) return
@@ -147,28 +157,6 @@ export class NumberFormatController extends Controller {
   }
 
   /**
-   * Rails renders a decimal as a machine number — `1500200.75`, a dot, whatever
-   * the locale. Grouping that as typed input would be a silent corruption
-   * wherever the dot is the *delimiter*: in Spanish it would be dropped as noise
-   * and the field would display, then resubmit, `150.020.075`. So the dot is
-   * translated to the locale's separator first.
-   *
-   * Only a machine-shaped value is touched. A field re-rendered after a failed
-   * validation holds whatever the typist actually entered, and regrouping that
-   * would delete the very characters that made it invalid — leaving them staring
-   * at a plausible number underneath an error message explaining it is not one.
-   */
-  adoptServerValue () {
-    if (!/^-?\d+(\.\d+)?$/.test(this.element.value)) return
-
-    // Replaced through a function, like `delimit` below: a `$` in a replacement
-    // string is a back-reference, and a separator is not the place to find out.
-    this.element.value = this.grouped(
-      this.element.value.replace('.', () => this.separatorValue)
-    )
-  }
-
-  /**
    * The field as it should read: a leading minus, the integer digits in groups
    * of three, and at most one decimal separator. Everything else the typist
    * produced was either a delimiter they typed themselves or a slip.
@@ -206,7 +194,7 @@ export class NumberFormatController extends Controller {
 
     let seen = 0
     for (let index = 0; index < value.length; index++) {
-      if (this.isStable(value[index])) seen++
+      if (this.isStable(value[index], index)) seen++
       if (seen === count) return index + 1
     }
 
@@ -214,13 +202,20 @@ export class NumberFormatController extends Controller {
   }
 
   stableCount (value) {
-    return [...value].filter(char => this.isStable(char)).length
+    return [...value].filter((char, index) => this.isStable(char, index)).length
   }
 
   // What grouping keeps, in the order it keeps it: the sign, the digits and the
   // decimal separator. Everything else in the field is a delimiter this
   // controller put there and is free to move.
-  isStable (char) {
-    return /\d/.test(char) || char === this.separatorValue || char === '-'
+  //
+  // The sign counts only where `grouped` keeps one — at the very front. A minus
+  // typed into the middle of a number is dropped, so counting it advanced the
+  // caret past a character that was not in the result and sent it to the end of
+  // the field: the exact drift this arithmetic exists to prevent.
+  isStable (char, index) {
+    if (char === '-') return index === 0
+
+    return /\d/.test(char) || char === this.separatorValue
   }
 }
