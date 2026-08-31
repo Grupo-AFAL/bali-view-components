@@ -455,14 +455,14 @@ class BaliWidgetComponentTest < ComponentTestCase
   # size used to carry — hero, inline, stacked, spark — is one-to-one with the
   # size and is derived rather than tabulated.
   def test_the_row_budget_can_be_overridden_by_a_host
-    original = Bali::Widget::Component.rows_budget
-    Bali::Widget::Component.rows_budget = original.merge(large: 2)
+    original = Bali::Widget::Card::Component.rows_budget
+    Bali::Widget::Card::Component.rows_budget = original.merge(large: 2)
 
     render_inline(card(list_widget(size: :large, rows: 8)))
 
     assert_selector("ul.list li", count: 2)
   ensure
-    Bali::Widget::Component.rows_budget = original
+    Bali::Widget::Card::Component.rows_budget = original
   end
 
   # A region sized for content the widget never supplied leaves the card holding

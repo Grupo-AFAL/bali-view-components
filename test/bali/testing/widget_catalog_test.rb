@@ -31,21 +31,6 @@ class BaliTestingWidgetCatalogTest < ActiveSupport::TestCase
     assert_every_widget_catalogued DashboardWidgetsController.widget_catalog, path: "app/widgets"
   end
 
-  # A LAZY CATALOG CANNOT BE READ HERE, and saying so is better than checking
-  # against an empty list and passing.
-  def test_a_lazy_catalog_says_it_cannot_be_checked
-    lazy = Class.new(ActionController::Base) do
-      define_singleton_method(:controller_path) { "lazy" }
-      define_singleton_method(:name) { "LazyDashboardController" }
-      include Bali::Concerns::Controllers::DashboardWidgets
-      dashboard_widgets catalog: -> { [] }
-    end
-
-    error = assert_raises(ArgumentError) { assert_every_widget_catalogued lazy }
-
-    assert_match "LazyDashboardController", error.message
-    assert_match "resolved per request", error.message
-  end
 
   # Anonymous widget classes defined by other tests must not be reported. This
   # one exists only to be swept up by a `Base.descendants` implementation.

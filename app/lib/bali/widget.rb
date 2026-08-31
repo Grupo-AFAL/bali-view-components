@@ -20,8 +20,8 @@ module Bali
     # keep the last, dropping a widget from the picker and rendering the
     # survivor's data under the other's stored rows.
     class DuplicateKey < StandardError
-      def initialize(keys, widgets)
-        classes = widgets.select { |w| keys.include?(w.key) }.map { |w| w.class.name || w.class }.uniq
+      def initialize(keys, classes)
+        classes = classes.select { |klass| keys.include?(klass.key) }.map { |k| k.name || k }.uniq
         super(
           "two widgets share the key #{keys.map(&:inspect).join(', ')} — #{classes.join(', ')}. " \
           "A key is the class name without its namespace, so these collide. " \
@@ -78,15 +78,26 @@ module Bali
       # stored key into a widget looks it up here — never by checking against a
       # permitted list — so an unauthorized, retired or hand-edited key finds
       # nothing.
-      def by_key(widgets)
-        gated = authorized_for(widgets)
-        # TWO DIFFERENT CLASSES, not the same one twice. A repeated key is an
-        # ordinary submission that `Store#choose` dedupes by design; only
-        # distinct classes colliding is the data-integrity bug.
-        clashing = gated.group_by(&:key).select { |_, group| group.map(&:class).uniq.many? }.keys
-        raise DuplicateKey.new(clashing, gated) if clashing.any?
+      #
+      # NO COLLISION CHECK HERE. Whether two classes derive the same key is a
+      # property of the code, not of the request: it cannot change between calls,
+      # and this runs on every store read, every write and every refresh poll.
+      # `check_keys!` does it once, where the catalog is declared.
+      def by_key(widgets) = authorized_for(widgets).index_by(&:key)
 
-        gated.index_by(&:key)
+      # RAISES IF TWO CLASSES SHARE A KEY. Called once per catalog — by
+      # `dashboard_widgets` at class-definition time, and by
+      # `Bali::Testing::WidgetCatalog` — so a collision is a boot failure rather
+      # than a wrong dashboard.
+      #
+      # TWO DIFFERENT CLASSES, not the same one twice. A repeated key is an
+      # ordinary submission that `Store#choose` dedupes by design; only distinct
+      # classes colliding is the data-integrity bug.
+      def check_keys!(classes)
+        clashing = classes.group_by { |klass| klass.key }
+                          .select { |_, group| group.uniq.many? }
+                          .keys
+        raise DuplicateKey.new(clashing, classes) if clashing.any?
       end
     end
   end

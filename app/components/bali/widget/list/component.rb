@@ -21,7 +21,7 @@ module Bali
           render Bali::Widget::Rows::Component.new(rows)
         end
 
-        def rows = @rows ||= widget.items.first(rows_budget)
+        def rows = @rows ||= widget.items.first(row_budget)
       end
     end
   end

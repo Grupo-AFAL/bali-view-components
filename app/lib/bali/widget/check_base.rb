@@ -117,13 +117,10 @@ module Bali
       # are host code.
       def display_value = check_builder.label(self, passing?)
 
-      # The card renders this through `Bali::BooleanIcon`, which owns the icon,
-      # the colour and the screen-reader label for each of the three states.
-      def state
-        return @state if defined?(@state)
+      # PASSING, FAILING, OR NOT YET KNOWN. A failing check is an answer, not an
+      # absence — only `nil` is nothing.
+      def any? = !passing?.nil?
 
-        @state = passing?
-      end
 
 
       private

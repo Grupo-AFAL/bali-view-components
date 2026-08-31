@@ -139,6 +139,14 @@ module Bali
       # card asks `count.positive?`.
       def count = @count ||= current.to_i
 
+      # WHAT THE HEADLINE PRINTS. A ~215px tile at `text-4xl` fits four to six
+      # characters, so the count is abbreviated.
+      def display_value = Bali::Widget.abbreviate(count)
+
+      # NON-ZERO, not positive. A trend reporting -12 has news; only a figure of
+      # zero is the ambiguous "nothing happened" the card dims.
+      def any? = !current.to_i.zero?
+
       # Memoised: the card asks `trend?` and then renders `trend`, and a nil trend
       # — the documented no-previous-period state — is what `||=` could not hold.
       def trend

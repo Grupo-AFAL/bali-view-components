@@ -567,15 +567,15 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
   # TERNARY, NOT BOOLEAN. `nil` is "not checked yet" — a different statement from
   # a failing check, and the distinction `Bali::BooleanIcon` already draws.
   def test_a_check_answers_true_false_or_not_yet_known
-    assert_equal true, check_widget { check { |c| c.value true } }.state
-    assert_equal false, check_widget { check { |c| c.value false } }.state
-    assert_nil check_widget { check { |c| c.value nil } }.state
+    assert_equal true, check_widget { check { |c| c.value true } }.passing?
+    assert_equal false, check_widget { check { |c| c.value false } }.passing?
+    assert_nil check_widget { check { |c| c.value nil } }.passing?
   end
 
   # A truthy non-boolean reads as true rather than leaking through as itself,
   # which is what lets `c.value { record }` work.
   def test_a_truthy_answer_collapses_to_true
-    assert_equal true, check_widget { check { |c| c.value "yes" } }.state
+    assert_equal true, check_widget { check { |c| c.value "yes" } }.passing?
   end
 
   # A FAILING CHECK IS NOT AN EMPTY ONE. `count.positive?` drives the card's
@@ -630,7 +630,7 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     end
     child = Class.new(parent) { def self.key = "cchild"; check { |c| c.value false } }
 
-    assert_equal false, child.new.state
+    assert_equal false, child.new.passing?
     assert_equal "SHARED", parent.new.display_value
   end
 end

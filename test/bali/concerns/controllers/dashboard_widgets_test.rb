@@ -72,24 +72,18 @@ class BaliDashboardWidgetsConcernTest < ActiveSupport::TestCase
     assert_equal :pundit_user, controller.send(:widget_offering).first.context
   end
 
-  # A PROC IS RESOLVED PER REQUEST, against the controller instance — so it can
-  # see `params`, the session and the current tenant, none of which exist when
-  # the class body runs.
-  def test_a_proc_catalog_is_resolved_against_the_controller
-    controller = controller_class(catalog: -> { chosen_widgets }).new
-    controller.define_singleton_method(:widget_owner) { :the_owner }
-    controller.define_singleton_method(:chosen_widgets) { [ ALPHA ] }
 
-    assert_equal [ "alpha" ], controller.send(:widget_offering).map(&:key)
-  end
 
-  def test_a_symbol_catalog_names_a_method_on_the_controller
-    controller = controller_class(catalog: :widgets_for_plan).new
-    controller.define_singleton_method(:widget_owner) { :the_owner }
-    controller.define_singleton_method(:widgets_for_plan) { [ ALPHA, HIDDEN ] }
+  # A COLLISION IS A BOOT FAILURE, not a wrong dashboard — checked where the
+  # catalog is declared rather than on every lookup, since whether two classes
+  # derive the same key is a property of the code.
+  def test_declaring_a_catalog_with_colliding_keys_raises
+    first = Class.new(Bali::Widget::ValueBase) { def self.name = "Reports::Overdue"; value { 1 } }
+    second = Class.new(Bali::Widget::ValueBase) { def self.name = "Tasks::Overdue"; value { 2 } }
 
-    # Still gated: laziness does not buy a way past `authorized?`.
-    assert_equal [ "alpha" ], controller.send(:widget_offering).map(&:key)
+    error = assert_raises(Bali::Widget::DuplicateKey) { controller_class(catalog: [ first, second ]) }
+
+    assert_match(/Reports::Overdue, Tasks::Overdue/, error.message)
   end
 
   def test_the_dashboard_key_defaults_to_the_controller_path

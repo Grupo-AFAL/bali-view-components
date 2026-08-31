@@ -67,6 +67,14 @@ module Bali
       # the empty state and the "view all" link work without a second reader.
       def count = @count ||= value.to_i
 
+      # NON-ZERO, NOT POSITIVE. `count` here is `value.to_i`, and a value widget's
+      # figure is not a tally — `ProductionBudget` reports dollars. A legitimate
+      # negative (a net loss, a delta, a temperature) used to answer "nothing
+      # here", dimming the card and suppressing its link. Zero stays dimmed,
+      # which is deliberate: a confident black zero and an all-clear zero look
+      # identical, so the card mutes the one that means nothing happened.
+      def any? = !value.to_i.zero?
+
       # WHAT THE HEADLINE PRINTS. Wrapped here rather than by a hook on `Base`,
       # because everything a host writes has to run inside the failure net and
       # the declaration is host code — a raising format degrades this tile

@@ -125,6 +125,13 @@ module Bali
       # "view all" link, so it answers with what has been achieved.
       def count = @count ||= value.to_i
 
+      # WHAT THE HEADLINE PRINTS. A ~215px tile at `text-4xl` fits four to six
+      # characters, so the count is abbreviated.
+      def display_value = Bali::Widget.abbreviate(count)
+
+      # Non-zero, not positive — see `ValueBase#any?`.
+      def any? = !value.to_i.zero?
+
       # Memoised: the card asks `goal?` and then renders `goal.to_h`.
       def goal
         return @goal if defined?(@goal)

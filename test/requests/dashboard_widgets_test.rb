@@ -115,6 +115,35 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
     assert_equal %w[overdue_tasks], store.stored_keys
   end
 
+  # THE RESIZE STREAM MUST REBUILD A LIVE CARD. A replaced `<section>` is a new
+  # element: anything the original carried and the replacement omits is gone for
+  # the life of the page. `arrange` once omitted `refresh_url`, so resizing a
+  # refreshing widget killed its polling AND the freshness stamp meant to
+  # disclose that — the card looked healthy forever. Cypress drove this branch
+  # and asserted only `data-size`, so nothing caught it.
+  def test_a_resized_card_comes_back_still_able_to_refresh
+    patch arrange_dashboard_widgets_path, params: {
+      widgets: [ { key: "project_progress", size: "medium" } ],
+      resized_key: "project_progress"
+    }
+
+    assert_response :success
+    assert_includes response.body, "bali-widget-refresh"
+    assert_includes response.body, "bali-widget-freshness"
+  end
+
+  # And a widget that never asked to refresh still must not gain a controller
+  # just because the resize path now always passes the URL.
+  def test_a_resized_static_card_gains_no_refresh_controller
+    patch arrange_dashboard_widgets_path, params: {
+      widgets: [ { key: "overdue_tasks", size: "small" } ],
+      resized_key: "overdue_tasks"
+    }
+
+    assert_response :success
+    refute_includes response.body, "bali-widget-refresh"
+  end
+
   # ONE URL FOR EVERY WIDGET: the card sends its own key and gets itself back as
   # a stream. `ProjectProgress` is the demo widget that declares `refresh_every`.
   def test_refresh_streams_back_the_named_card

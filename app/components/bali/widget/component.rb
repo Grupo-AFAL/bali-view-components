@@ -20,28 +20,13 @@ module Bali
       # Truncation lives here rather than in the widget: the widget answers which
       # rows matter, the card answers how many fit.
       #
-      # OVERRIDABLE, because a host with a larger base font or a denser theme gets
-      # clipping and, as a frozen constant, no way to say so:
-      #
-      #   Bali::Widget::Component.rows_budget =
-      #     Bali::Widget::Component::ROWS.merge(large: 5)
+      # Override per host through `Card::Component.rows_budget`, which is where
+      # it is read.
       ROWS = { small: 0, medium: 3, large: 7 }.freeze
 
-      class_attribute :rows_budget, default: ROWS
-
-      # `Bali::Chart` options that turn a chart into a sparkline. The library is
-      # already dynamically imported (`chart/index.js`), so reusing it here costs
-      # an instance and a canvas rather than a bundle.
-      SPARK_OPTIONS = {
-        scales: { x: { display: false }, y: { display: false } },
-        plugins: { tooltip: { enabled: false } }
-      }.freeze
-
-      # NOT `elements: { point: { radius: 0 } }`, which is the obvious spelling
-      # and does nothing here: `Chart::Dataset#to_h` writes `pointRadius` onto
-      # every line dataset explicitly, and a dataset-level value beats the
-      # `elements` default it would otherwise fall back to.
-      SPARK_DATASET = { pointRadius: 0, pointHoverRadius: 0 }.freeze
+      # The `<time>` reads its own age, so it stays honest while a card sits
+      # unrefreshed. A minute is as often as "12 minutes ago" can change.
+      FRESHNESS_TICK = 60_000
 
       # WHAT EVERY WIDGET ANSWERS, whatever its pattern — so the shell needs no
       # type check.
@@ -76,10 +61,6 @@ module Bali
       # outside this component needs to name.
       def self.dom_id(key) = "bali-widget-#{key}"
 
-      # The apology, as its own component so the boundary has something to render
-      # that cannot itself fail.
-      def self.degraded(widget) = Bali::Widget::Degraded::Component.new(widget)
-
       private
 
       attr_reader :widget, :size, :refresh_url, :rendered_at, :options
@@ -101,18 +82,6 @@ module Bali
       # starts CLAIMING to be current when it has stopped being so. This is the
       # card refusing to make that claim.
       #
-      # `sr-only` until the controller says otherwise: a healthy card says
-      # nothing to a sighted reader, and a screen-reader user can still go and
-      # find out how old the number is — which they cannot do by noticing it
-      # change, the way a sighted user can.
-      def freshness_classes
-        class_names("bali-widget-freshness", "sr-only": true)
-      end
-
-      # The `<time>` reads its own age, so it stays honest while a card sits
-      # unrefreshed. A minute is as often as "12 minutes ago" can change.
-      FRESHNESS_TICK = 60_000
-
       def dom_id = self.class.dom_id(key)
 
       # A radiogroup with one option is not a choice. A widget that offers a
@@ -125,19 +94,16 @@ module Bali
 
       # WHICH CARD DRAWS THIS WIDGET — the one place the shell asks what kind of
       # widget it holds, and it asks the widget's own class, so a host's subclass
-      # of a pattern gets that pattern's card without registering anything.
-      CARDS = {
-        Bali::Widget::ListBase => Bali::Widget::List::Component,
-        Bali::Widget::TrendBase => Bali::Widget::Trend::Component,
-        Bali::Widget::ProgressBase => Bali::Widget::Progress::Component,
-        Bali::Widget::CheckBase => Bali::Widget::Check::Component
-      }.freeze
-
-      # A widget matching none of the five still renders: `Value` is the fallback
-      # and needs only `count` and `display_value`.
+      # of a pattern gets that pattern's card for free. `Value` is the fallback,
+      # needing only `count` and `display_value`.
       def card
-        klass = CARDS.find { |pattern, _| widget.is_a?(pattern) }&.last ||
-                Bali::Widget::Value::Component
+        klass = case widget
+        when Bali::Widget::ListBase then Bali::Widget::List::Component
+        when Bali::Widget::TrendBase then Bali::Widget::Trend::Component
+        when Bali::Widget::ProgressBase then Bali::Widget::Progress::Component
+        when Bali::Widget::CheckBase then Bali::Widget::Check::Component
+        else Bali::Widget::Value::Component
+        end
 
         klass.new(widget, size: size)
       end
@@ -165,12 +131,12 @@ module Bali
         render card
       rescue Bali::Widget::Unavailable => e
         report(e)
-        render self.class.degraded(widget)
+        render Bali::Widget::Degraded::Component.new(widget)
       rescue StandardError, NotImplementedError => e
         raise if Rails.env.development?
 
         report(e)
-        render self.class.degraded(widget)
+        render Bali::Widget::Degraded::Component.new(widget)
       end
 
       def card_classes

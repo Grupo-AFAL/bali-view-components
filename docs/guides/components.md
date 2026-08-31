@@ -2611,7 +2611,7 @@ only thing a size says that the size itself does not. If your base font is large
 subtitles wrap to two lines, set your own in an initializer rather than living with clipping:
 
 ```ruby
-Bali::Widget::Component.rows_budget =
+Bali::Widget::Card::Component.rows_budget =
   Bali::Widget::Component::ROWS.merge(large: 5)
 ```
 

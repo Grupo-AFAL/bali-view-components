@@ -79,23 +79,25 @@ module Bali
           # It belongs to the DASHBOARD, not the app: two dashboards are two
           # orderings, which may overlap.
           #
-          # A proc or a symbol works too, resolved per request against the
-          # controller, for a catalog not knowable at class-definition time:
+          # AN ARRAY OF CLASSES, and only that. A proc catalog was offered here
+          # briefly and removed: nothing could read it statically, so
+          # `Bali::Testing::WidgetCatalog` needed a branch to refuse it and the
+          # key check below could not run at all. Per-owner differences are
+          # `authorized?`'s job.
           #
-          #   dashboard_widgets catalog: -> { Widgets::TODAY + current_tenant.extras }
-          #
-          # Reach for it only when you need it — an array is greppable and a proc
-          # is not, and per-owner differences are usually `authorized?`'s job.
+          # Keys are checked HERE, once, rather than on every lookup — whether two
+          # classes derive the same key is a property of the code, not of a
+          # request.
           def dashboard_widgets(catalog:, dashboard_key: nil)
+            Bali::Widget.check_keys!(Array(catalog))
+
             self.widget_catalog       = catalog
             self.widget_dashboard_key = (dashboard_key || controller_path).to_s
           end
 
-          # Bali's templates, behind the controller's own. Rails memoises
-          # `_prefixes`, so this is computed once per class like the original.
-          def _prefixes
-            @_widget_prefixes ||= super + %w[bali/dashboard_widgets]
-          end
+          # Bali's templates, behind the controller's own. Rails already memoises
+          # `_prefixes`, so this must not memoise again.
+          def _prefixes = super + %w[bali/dashboard_widgets]
         end
 
         # ---- the surfaces ---------------------------------------------------
@@ -124,7 +126,7 @@ module Bali
 
           render turbo_stream: turbo_stream.replace(
             Bali::Widget::Component.dom_id(resized.key),
-            renderable: Bali::Widget::Component.new(resized.widget, size: resized.size)
+            renderable: card_for(resized)
           )
         end
 
@@ -153,17 +155,33 @@ module Bali
           missing = Array(params[:keys]).map(&:to_s) - found.map(&:key)
 
           streams = found.map { |placement|
-            turbo_stream.replace(
-              Bali::Widget::Component.dom_id(placement.key),
-              renderable: Bali::Widget::Component.new(placement.widget, size: placement.size,
-                                                      refresh_url: url_for(action: :refresh))
-            )
+            turbo_stream.replace(Bali::Widget::Component.dom_id(placement.key),
+                                 renderable: card_for(placement))
           }
 
           render turbo_stream: streams + missing.map { |key|
             turbo_stream.remove(Bali::Widget::Component.dom_id(key))
           }
         end
+
+        private
+
+        # EVERY STREAM BUILDS ITS CARD HERE. A replaced `<section>` is a whole new
+        # element, so anything the original carried and this omits is gone for the
+        # life of the page — and `refresh_url` is exactly that: without it
+        # `refreshes?` is false, no `bali-widget-refresh` controller connects, and
+        # the card silently stops polling AND loses the freshness stamp that
+        # exists to disclose staleness. It then looks healthy forever.
+        #
+        # `arrange` shipped without it and nothing caught the difference, which is
+        # why the two callers now share one constructor rather than two spellings
+        # of it.
+        def card_for(placement)
+          Bali::Widget::Component.new(placement.widget, size: placement.size,
+                                      refresh_url: url_for(action: :refresh))
+        end
+
+        public
 
         # A "Personalise" button, for someone who has never customised. `adopt`
         # decides whether there is anything to do from inside its own lock.
@@ -193,20 +211,12 @@ module Bali
         # the host's `authorized?` bodies cost and never a widget query.
         def widget_offering
           @widget_offering ||= Bali::Widget.authorized_for(
-            widget_catalog_classes.map { |klass| klass.new(widget_actor) }
+            Array(widget_catalog).map { |klass| klass.new(widget_actor) }
           )
         end
 
         # `instance_exec` rather than `call`, so a proc catalog reads like the
         # rest of a controller.
-        def widget_catalog_classes
-          case widget_catalog
-          when Proc   then Array(instance_exec(&widget_catalog))
-          when Symbol then Array(send(widget_catalog))
-          else Array(widget_catalog)
-          end
-        end
-
         def widget_store
           @widget_store ||= Bali::DashboardWidget::Store.new(
             owner: widget_owner, context: widget_context,

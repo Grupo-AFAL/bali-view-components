@@ -141,7 +141,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     second = Class.new(Bali::Widget::ValueBase) { def self.name = "Tasks::Overdue"; value { 2 } }
 
     error = assert_raises(Bali::Widget::DuplicateKey) do
-      Bali::Widget.by_key([ first.new, second.new ])
+      Bali::Widget.check_keys!([ first, second ])
     end
 
     assert_match(/share the key "overdue"/, error.message)
@@ -155,6 +155,7 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     klass = Class.new(Bali::Widget::ValueBase) { def self.name = "Reports::Overdue"; value { 1 } }
 
     assert_equal [ "overdue" ], Bali::Widget.by_key([ klass.new, klass.new ]).keys
+    Bali::Widget.check_keys!([ klass, klass ]) # must not raise
   end
 
   # The fix, and the reason a key is a declaration rather than only a derivation.

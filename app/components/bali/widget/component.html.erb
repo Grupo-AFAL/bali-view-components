@@ -87,14 +87,14 @@
 
   <%# HOW OLD THIS IS, and only on a card that claims to keep itself current.
       Hidden from sight until the controller marks the card stale — see
-      `freshness_classes` — so a working dashboard says nothing and a stopped one
+      the refresh controller — so a working dashboard says nothing and a stopped one
       stops pretending. A screen reader finds it either way.
 
       On a `small` card it never becomes visible: a hero is one fact and one tap
       target, and a badge is the third thing on a tile designed to hold one. The
       `<time>` is still there to be read. %>
   <% if refreshes? %>
-    <div class="<%= freshness_classes %>"
+    <div class="bali-widget-freshness sr-only"
          data-bali-widget-refresh-target="freshness"
          data-hero="<%= hero? %>">
       <%= t('bali_view.widgets.updated') %>

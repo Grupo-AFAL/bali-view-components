@@ -44,16 +44,7 @@ module Bali
       def bali_catalog_classes(catalog)
         return Array(catalog) unless catalog.respond_to?(:widget_catalog)
 
-        declared = catalog.widget_catalog
-        # A lazy catalog is a controller-instance expression; there is nothing to
-        # read statically. Say so rather than silently checking against nothing.
-        if declared.is_a?(Proc) || declared.is_a?(Symbol)
-          raise ArgumentError,
-                "#{catalog.name}'s catalog is #{declared.inspect}, which is resolved per request and " \
-                "cannot be read here. Pass the widget classes directly instead."
-        end
-
-        Array(declared)
+        Array(catalog.widget_catalog)
       end
 
       # FROM THE FILESYSTEM, not `Base.descendants`. Descendants sweeps up every

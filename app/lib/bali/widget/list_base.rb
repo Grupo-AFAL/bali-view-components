@@ -35,7 +35,7 @@ module Bali
       # How many preview rows a list widget loads, regardless of the size it is
       # rendered at — which is what keeps a widget from needing to know its size.
       # `count` still comes from the whole scope. A host raising
-      # `Component.rows_budget` past this raises `limit:` to match.
+      # `Card::Component.rows_budget` past this raises `limit:` to match.
       PREVIEW_ROWS = 8
 
       # `limit` is always passed by the macro below, which is the one place a
@@ -168,6 +168,15 @@ module Bali
           scope.count.to_i
         end
       end
+
+      # A LIST'S COUNT REALLY IS A TALLY, so positive is the honest test here —
+      # unlike the patterns whose `count` is a figure that can legitimately be
+      # negative.
+      def any? = count.positive?
+
+      # WHAT THE HEADLINE PRINTS. A ~215px tile at `text-4xl` fits four to six
+      # characters, so the count is abbreviated.
+      def display_value = Bali::Widget.abbreviate(count)
 
       def items
         @items ||= begin

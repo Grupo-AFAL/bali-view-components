@@ -27,6 +27,12 @@ module Bali
       # at `medium`, stacked at `large` — is here, because it is the same for
       # every type and getting it wrong is a layout bug rather than a data one.
       class Component < ApplicationViewComponent
+        # OVERRIDABLE, because a host with a larger base font or a denser theme
+        # gets clipping and, as a frozen constant, no way to say so:
+        #
+        #   Bali::Widget::Card::Component.rows_budget =
+        #     Bali::Widget::Component::ROWS.merge(large: 5)
+        class_attribute :rows_budget, default: Bali::Widget::Component::ROWS
         def initialize(widget, size:)
           @widget = widget
           @size = size
@@ -74,20 +80,16 @@ module Bali
         # given up its axes, not a different component.
         def spark? = size == :medium
 
-        def rows_budget = Bali::Widget::Component.rows_budget.fetch(size)
+        def row_budget = self.class.rows_budget.fetch(size)
 
-        # THE COUNT, which is really "does this widget have anything" — it drives
-        # the empty state, the headline dimming and the "view all" label. Every
-        # pattern answers it.
         def count = @count ||= widget.count
 
-        # WHAT THE HEADLINE PRINTS. A type whose headline is not its count says
-        # so — `ValueBase` through its `display_value` declaration, `CheckBase`
-        # with its pass/fail label — and the rest get the abbreviated count,
-        # since a ~215px tile at `text-4xl` fits four to six characters.
-        def display_value = @display_value ||= widget.try(:display_value) || Bali::Widget.abbreviate(count)
+        # STRAIGHT OFF THE WIDGET. Both are on `Bali::Widget::Base`, so there is
+        # nothing to ask `try` about and no place left for the card to guess what
+        # kind of widget it is holding.
+        def display_value = @display_value ||= widget.display_value
 
-        def any? = count.positive?
+        def any? = @any ||= widget.any?
 
         # A confident black zero and an all-clear zero look identical, so the
         # card dims the one that means nothing happened.

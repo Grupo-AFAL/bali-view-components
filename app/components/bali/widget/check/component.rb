@@ -38,7 +38,7 @@ module Bali
         # hero tile wants it bigger than a header row does.
         def icon
           render Bali::BooleanIcon::Component.new(
-            value: widget.state, label: label, class: hero? ? "scale-150" : "scale-125"
+            value: widget.passing?, label: label, class: hero? ? "scale-150" : "scale-125"
           )
         end
 
