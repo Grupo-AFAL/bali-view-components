@@ -64,6 +64,9 @@ module Bali
         @widget = widget
         @size = size&.to_sym || widget.class.default_size
         @refresh_url = refresh_url
+        # WHEN THIS ANSWER WAS TRUE. Stamped at construction rather than read in
+        # the template, so a card and its own freshness claim cannot disagree.
+        @rendered_at = Time.current
         @options = options
         super()
       end
@@ -79,7 +82,7 @@ module Bali
 
       private
 
-      attr_reader :widget, :size, :refresh_url, :options
+      attr_reader :widget, :size, :refresh_url, :rendered_at, :options
 
       # BOTH HALVES OR NEITHER. A widget that declares an interval on a page that
       # gave no URL cannot poll, and a URL alone has no interval to poll on.
@@ -88,6 +91,27 @@ module Bali
       # Milliseconds, because that is what `setTimeout` takes and converting in
       # JS would put a unit conversion on the far side of a `data-` attribute.
       def refresh_interval = (widget.refresh_every * 1000).round
+
+      # HOW OLD THIS CARD IS, and it is present on every refreshing card rather
+      # than only on a stale one.
+      #
+      # A refresh that fails is silent by design — the card keeps showing the
+      # last good answer, which is still true, just older. That silence is right
+      # for a failure the user cannot act on, and wrong the moment the card
+      # starts CLAIMING to be current when it has stopped being so. This is the
+      # card refusing to make that claim.
+      #
+      # `sr-only` until the controller says otherwise: a healthy card says
+      # nothing to a sighted reader, and a screen-reader user can still go and
+      # find out how old the number is — which they cannot do by noticing it
+      # change, the way a sighted user can.
+      def freshness_classes
+        class_names("bali-widget-freshness", "sr-only": true)
+      end
+
+      # The `<time>` reads its own age, so it stays honest while a card sits
+      # unrefreshed. A minute is as often as "12 minutes ago" can change.
+      FRESHNESS_TICK = 60_000
 
       def dom_id = self.class.dom_id(key)
 

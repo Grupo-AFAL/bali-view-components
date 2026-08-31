@@ -113,4 +113,73 @@ describe('a widget refreshes itself', () => {
 
     cy.get(card(REFRESHING)).should('have.attr', 'data-size', 'medium')
   })
+
+  // ---- the freshness stamp -------------------------------------------------
+
+  // A working dashboard says nothing. The stamp is in the DOM for a screen
+  // reader and invisible to everyone else.
+  it('keeps the age out of sight while the card is healthy', () => {
+    // `sr-only` clips to 1px rather than removing the box, so Cypress still calls
+    // it visible — the class is the mechanism, so the class is what to assert.
+    cy.get(`${card(REFRESHING)} .bali-widget-freshness`).should('have.class', 'sr-only')
+    cy.get(`${card(REFRESHING)} .bali-widget-freshness time`).should('have.attr', 'datetime')
+  })
+
+  // ONE FAILURE IS NOT STALE. A dropped packet or a redeploy heals on the next
+  // tick, and a badge that appears and vanishes is worse than no badge.
+  it('says nothing after a single failure', () => {
+    cy.intercept('GET', '**/dashboard_widgets/refresh*', { forceNetworkError: true }).as('failed')
+
+    cy.window().then((win) => controllerFor(win, REFRESHING).refresh())
+    cy.wait('@failed')
+
+    cy.get(`${card(REFRESHING)} .bali-widget-freshness`).should('have.class', 'sr-only')
+  })
+
+  // TWO IN A ROW IS A CARD THAT HAS STOPPED, and it stops claiming to be current.
+  it('reveals how old it is once it has stopped refreshing', () => {
+    cy.intercept('GET', '**/dashboard_widgets/refresh*', { forceNetworkError: true }).as('failed')
+
+    cy.window().then((win) => {
+      const controller = controllerFor(win, REFRESHING)
+      return controller.refresh().then(() => controller.refresh())
+    })
+
+    cy.get(`${card(REFRESHING)} .bali-widget-freshness`).should('not.have.class', 'sr-only')
+    // The data itself is untouched: the last good answer is still true, just older.
+    cy.get(`${card(REFRESHING)} .bali-widget-body`).should('be.visible')
+  })
+
+  // A SKIP IS NOT A MISS. A dashboard sitting in a background tab has not
+  // stopped working, and badging it would be wrong twice over — it heals the
+  // moment the tab comes back.
+  it('does not go stale from deferred ticks', () => {
+    cy.visit(`${appOrigin}/dashboard_widgets?editing=1`)
+
+    cy.window().then((win) => {
+      const controller = controllerFor(win, REFRESHING)
+      return controller.refresh().then(() => controller.refresh()).then(() => controller.refresh())
+    })
+
+    cy.get(`${card(REFRESHING)} .bali-widget-freshness`).should('have.class', 'sr-only')
+  })
+
+  // Never on a hero: one fact and one tap target is the whole contract of a
+  // 215px tile. The `<time>` stays in the DOM, so a screen reader still knows.
+  it('never shows the badge on a small card', () => {
+    cy.intercept('PATCH', '**/dashboard_widgets/arrange').as('arrange')
+    cy.visit(`${appOrigin}/dashboard_widgets?editing=1`)
+    cy.get(`${card(REFRESHING)} [data-widget-size="small"]`).click()
+    cy.wait('@arrange')
+    cy.visit(`${appOrigin}/dashboard_widgets`)
+    cy.get(card(REFRESHING)).should('have.attr', 'data-size', 'small')
+
+    cy.intercept('GET', '**/dashboard_widgets/refresh*', { forceNetworkError: true }).as('failed')
+    cy.window().then((win) => {
+      const controller = controllerFor(win, REFRESHING)
+      return controller.refresh().then(() => controller.refresh())
+    })
+
+    cy.get(`${card(REFRESHING)} .bali-widget-freshness`).should('have.class', 'sr-only')
+  })
 })

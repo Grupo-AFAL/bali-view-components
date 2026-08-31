@@ -754,6 +754,28 @@ preview, a test, or on its own outside a dashboard degrades to static rather tha
 A failed refresh is **silent**, unlike a failed save. A save that fails loses work the user
 did; a refresh that fails loses nothing, since the card keeps showing the last good answer.
 
+**But a card that has stopped refreshing stops claiming to be current.** Every refreshing card
+carries a `<time>` saying how old it is. It is `sr-only` while things are working — a healthy
+dashboard costs a sighted reader nothing — and the controller reveals it after **two**
+consecutive failures. One failure is a dropped packet or a redeploy and heals on the next tick;
+a badge that appears and vanishes is worse than no badge.
+
+There is deliberately **no "auto-refreshes every 30s" label**. Knowing the interval is not
+actionable, and it would be the third thing on a tile designed to hold one fact. The useful
+signal is not that a card refreshes but that it has *stopped*, so nothing shows until then.
+
+Two consequences worth knowing:
+
+- **A deferred tick is not a failure.** A hidden tab, edit mode or focus inside the card defer
+  without counting, so a dashboard sitting in a background tab never badges itself stale.
+- **The badge never appears on a `small` card.** A hero is one fact and one tap target; the
+  `<time>` is still in the DOM there, so a screen reader can find the age, but nothing is shown.
+
+Because the `<time>` is always present, a screen-reader user can ask how fresh a number is at
+any moment — which is the one thing they cannot do by watching it change, the way a sighted
+user can. Refreshes are not announced: two tiles on 20- and 60-second clocks would interrupt
+continuously, which is worse than silence.
+
 **If you know when your data changes, don't poll.** `Bali::Widget::Component.dom_id(key)` is
 public and stable, so a host can `broadcast_replace_to` that id from its own model callback
 and skip this entirely. Polling is the default because a widget counting `Task.overdue` has no

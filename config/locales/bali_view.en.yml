@@ -717,6 +717,7 @@ en:
         up: "up %{delta}"
         down: "down %{delta}"
         flat: "no change"
+      updated: "Updated"
       picker:
         title: "Your widgets"
         subtitle: "Choose what appears on your dashboard."

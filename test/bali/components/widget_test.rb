@@ -576,8 +576,45 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector "[data-bali-widget-refresh-interval-value='90000']"
   end
 
+  # PRESENT ON EVERY REFRESHING CARD, and hidden from sight until the controller
+  # says the card has stopped. A screen-reader user can find the age at any time;
+  # a sighted one is told only when it starts to matter.
+  def test_a_refreshing_card_carries_its_age_hidden
+    render_inline(Bali::Widget::Component.new(volatile_widget.new, size: :medium,
+                                              refresh_url: "/dashboard/refresh"))
+
+    assert_selector ".bali-widget-freshness.sr-only", visible: :all
+    assert_selector ".bali-widget-freshness time[datetime]", visible: :all
+    assert_selector "[data-bali-widget-refresh-target='freshness']", visible: :all
+  end
+
+  # A card that never claimed to keep itself current has nothing to disclaim.
+  def test_a_static_card_has_no_freshness_stamp
+    render_inline(card(steady_widget.new))
+
+    assert_no_selector ".bali-widget-freshness", visible: :all
+  end
+
+  # The hero flags itself, because the badge must never become visible there —
+  # one fact and one tap target is the whole contract of a 215px tile.
+  def test_the_hero_marks_its_stamp_as_never_visible
+    render_inline(Bali::Widget::Component.new(volatile_widget.new, size: :small,
+                                              refresh_url: "/dashboard/refresh"))
+
+    assert_selector ".bali-widget-freshness[data-hero='true']", visible: :all
+  end
+
   private
 
+
+  def volatile_widget
+    Class.new(Bali::Widget::ValueBase) do
+      def self.key = "volatile"
+      supports :small, :medium, :large
+      refresh_every 30.seconds
+      value { 7 }
+    end
+  end
 
   def steady_widget
     Class.new(Bali::Widget::ValueBase) do

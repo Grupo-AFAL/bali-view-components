@@ -698,6 +698,7 @@ es:
         up: "subió %{delta}"
         down: "bajó %{delta}"
         flat: "sin cambios"
+      updated: "Actualizado"
       picker:
         title: "Tus widgets"
         subtitle: "Elige qué aparece en tu tablero."

@@ -107,3 +107,15 @@
 .bali-widget-card[data-size="small"] .bali-widget-detail {
   @apply hidden;
 }
+
+/* HOW OLD THIS CARD IS, revealed only once it has stopped refreshing.
+ *
+ * `sr-only` is on the element from the server and removed by
+ * `bali-widget-refresh` after two consecutive failures, so a healthy card costs
+ * a sighted reader nothing and a screen-reader user can find the age either way.
+ *
+ * Muted rather than red: the number on the card is still true, just older. This
+ * is the card declining to imply it is current — not an error state. */
+.bali-widget-freshness {
+  @apply mt-2 flex items-center gap-1 text-xs text-base-content/50;
+}

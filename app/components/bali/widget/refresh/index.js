@@ -16,14 +16,22 @@ import { Controller } from '@hotwired/stimulus'
 // `setInterval`. An interval on a soon-to-be-destroyed controller would keep the
 // old timer alive across the swap until GC, double-firing for a beat.
 export class WidgetRefreshController extends Controller {
+  static targets = ['freshness']
   static values = {
     url: String,
     // Milliseconds. Ruby converts, so no unit maths happens on this side.
     interval: Number
   }
 
+  // TWO consecutive failures, not one. A single failed request is a dropped
+  // packet, a redeploy, a laptop lid — announcing that would cry wolf on a
+  // dashboard that is about to heal itself on the next tick. Two in a row is a
+  // card that has actually stopped.
+  static STALE_AFTER = 2
+
   connect () {
     this.inFlight = false
+    this.misses = 0
     // Bound once so `removeEventListener` in `disconnect` can find it again.
     this.onVisibility = () => this.visibilityChanged()
     document.addEventListener('visibilitychange', this.onVisibility)
@@ -75,6 +83,11 @@ export class WidgetRefreshController extends Controller {
   }
 
   async refresh () {
+    // A SKIP IS NOT A MISS. Every reason `skip` returns true is a deliberate
+    // deferral — nobody is looking, the grid is being edited, focus is in the
+    // way — and none of them means the card has stopped working. Counting them
+    // would put a "stale" badge on a dashboard that was merely in a background
+    // tab, and then clear it a moment later.
     if (this.skip()) return this.schedule()
 
     this.inFlight = true
@@ -90,13 +103,23 @@ export class WidgetRefreshController extends Controller {
         cache: 'no-store'
       })
 
-      if (response.ok) await this.renderStream(response)
+      if (!response.ok) throw new Error(`refresh failed: ${response.status}`)
+
+      await this.renderStream(response)
+      // No `misses = 0` on the way out: a successful refresh REPLACES this
+      // element, so the count dies with this controller and the replacement
+      // starts at zero. The counter only ever accumulates across failures,
+      // which are the case where nothing was replaced.
     } catch (error) {
       // SILENT BY DESIGN, unlike the grid's writes. A failed save loses work the
       // user did and has to be announced; a failed refresh loses nothing — the
       // card keeps showing the last good answer, which is still true, just older.
       // Announcing it would interrupt a screen-reader user over nothing.
+      //
+      // What it must NOT do is let the card go on implying it is current, which
+      // is what the freshness stamp is for.
       console.error(error)
+      this.missed()
     } finally {
       this.inFlight = false
     }
@@ -105,6 +128,22 @@ export class WidgetRefreshController extends Controller {
     // element: the new controller schedules its own tick, and re-arming here
     // would leave a detached duplicate running.
     if (this.element.isConnected) this.schedule()
+  }
+
+  // STOPS THE CARD CLAIMING TO BE CURRENT. It does not hide the data or mark it
+  // wrong — the last good answer is still true, just older — it only reveals how
+  // old, and lets the reader decide.
+  //
+  // Never on a hero: a `small` tile is one fact and one tap target, and a badge
+  // is the third thing on a card designed to hold one. The `<time>` stays in the
+  // DOM there, so a screen reader can still find the age.
+  missed () {
+    this.misses += 1
+    if (this.misses < this.constructor.STALE_AFTER) return
+    if (!this.hasFreshnessTarget) return
+    if (this.freshnessTarget.dataset.hero === 'true') return
+
+    this.freshnessTarget.classList.remove('sr-only')
   }
 
   // Its own method so a test can observe it, and matching the grid's.
