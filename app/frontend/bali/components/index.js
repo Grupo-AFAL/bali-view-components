@@ -116,7 +116,8 @@ export {
   TooltipController,
   TreeViewItemController,
   WidgetGridController,
-  WidgetGridEditModeController
+  WidgetGridEditModeController,
+  WidgetRefreshController
 }
 
 /**

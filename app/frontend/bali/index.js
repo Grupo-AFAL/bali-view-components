@@ -130,7 +130,8 @@ export {
   TooltipController,
   TreeViewItemController,
   WidgetGridController,
-  WidgetGridEditModeController
+  WidgetGridEditModeController,
+  WidgetRefreshController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 
