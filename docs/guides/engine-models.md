@@ -952,7 +952,9 @@ end
 ```
 
 It checks shape, not semantics — the eight messages exist and the reads answer in the right
-shapes. Your own tests cover what they mean. Bali's own `Store` is held to it too.
+shapes. It also **calls** `arrange([])` and `choose([])` rather than inspecting their arity, so
+give it a scratch store: an empty layout is the documented reset and will clear the one you
+hand it. Your own tests cover what they mean. Bali's own `Store` is held to it too.
 
 A replacement also has to hold the boundary itself: `Store` refuses an offering where two
 widget classes derive the same key, and yours should.

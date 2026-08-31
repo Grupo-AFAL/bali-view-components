@@ -21,7 +21,8 @@ module Bali
     #   end
     #
     # SHAPE ONLY — the eight messages exist, the reads answer usefully, and the
-    # two writes can actually be called. Not that the semantics are right, which
+    # two writes can actually be called. IT WRITES: give it a scratch store, not
+    # one holding rows you care about. Not that the semantics are right, which
     # is what a replacement's own tests are for. What it buys is that the list
     # stops being prose: add a method to `Store` without adding it here and the
     # omission is visible, rather than surfacing as a NoMethodError in a host
@@ -62,8 +63,12 @@ module Bali
         # every delegating wrapper — `delegate`, `def_delegator` and
         # `SimpleDelegator` all produce `def choose(...)`, arity -1 — which is the
         # likeliest replacement of all: someone wrapping Bali's own Store to add a
-        # cache or an audit log. An empty layout is the documented reset, so both
-        # are safe to run against a real store.
+        # cache or an audit log.
+        #
+        # THESE REALLY WRITE. An empty layout is the documented reset, so
+        # `arrange([])` clears the store it is given — hand this a SCRATCH store
+        # scoped to a throwaway owner or dashboard_key, never one holding rows
+        # you want to keep.
         store.arrange([])
         store.choose([])
       end
