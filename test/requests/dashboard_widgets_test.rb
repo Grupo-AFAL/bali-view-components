@@ -147,14 +147,54 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
     assert_match(/data-size="small"/, response.body)
   end
 
-  # The same silent drop as every other boundary — an unauthorized, retired or
-  # invented key is simply absent from the response.
-  def test_refresh_ignores_a_key_outside_the_offering
+  # A key outside the offering is REMOVED rather than replaced — one stream each,
+  # and only the real one carries a card.
+  def test_refresh_replaces_what_it_resolves_and_removes_what_it_cannot
     get refresh_dashboard_widgets_path(keys: %w[payroll_secrets project_progress]),
         headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    assert_equal 1, response.body.scan("<turbo-stream").size
-    refute_includes response.body, "payroll_secrets"
+    assert_equal 2, response.body.scan("<turbo-stream").size
+    assert_equal 1, response.body.scan(%(action="replace")).size
+    assert_equal 1, response.body.scan(%(action="remove")).size
+    assert_includes response.body, %(target="#{Bali::Widget::Component.dom_id('project_progress')}")
+    # Only the key it was handed comes back for the unresolved one; no card.
+    assert_equal 1, response.body.scan("<section").size
+  end
+
+  # AUTHORIZATION IS ASKED AGAIN ON EVERY REFRESH, not just at page load — and a
+  # role revoked while the page was open must not leave the tile sitting there
+  # showing what it held before. `ActiveStudios#authorized?` is
+  # `Studio.active.exists?`, so it is a real rule this test can flip.
+  def test_refresh_removes_a_card_whose_authorization_was_revoked
+    Studio.create!(name: "Probe", status: :active)
+    assert_includes offering.map(&:key), "active_studios"
+
+    get refresh_dashboard_widgets_path(keys: [ "active_studios" ]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_includes response.body, %(action="replace")
+
+    Studio.update_all(status: :inactive)
+    refute_includes offering.map(&:key), "active_studios"
+
+    get refresh_dashboard_widgets_path(keys: [ "active_studios" ]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_includes response.body, %(action="remove")
+    refute_includes response.body, %(action="replace")
+    # The response carries the key the client sent and nothing else — no title,
+    # no figure, none of the widget's own content.
+    refute_includes response.body, "<section"
+  end
+
+  # An invented key gets the same `remove` a revoked one does, so the response
+  # shape cannot be used to ask which keys are real. `remove` on an id that is
+  # not on the page is a client-side no-op.
+  def test_refresh_answers_an_invented_key_the_same_way_as_a_revoked_one
+    get refresh_dashboard_widgets_path(keys: [ "payroll_secrets" ]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_includes response.body, %(action="remove")
+    refute_includes response.body, "<section"
   end
 
   def test_update_picker_chooses_membership_and_drops_unauthorized_keys

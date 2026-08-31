@@ -776,6 +776,12 @@ any moment — which is the one thing they cannot do by watching it change, the 
 user can. Refreshes are not announced: two tiles on 20- and 60-second clocks would interrupt
 continuously, which is worse than silence.
 
+**Authorization is re-checked on every refresh**, not just at page load — the offering is
+rebuilt per request, so `authorized?` runs again each time. A key that no longer resolves comes
+back as a `remove` rather than a replace, so a role revoked while the page was open takes the
+tile off the dashboard within one interval instead of leaving it frozen on what it held before.
+An invented key gets the same `remove`, so the response cannot be used to ask which keys exist.
+
 **If you know when your data changes, don't poll.** `Bali::Widget::Component.dom_id(key)` is
 public and stable, so a host can `broadcast_replace_to` that id from its own model callback
 and skip this entirely. Polling is the default because a widget counting `Task.overdue` has no

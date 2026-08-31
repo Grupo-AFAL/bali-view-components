@@ -137,15 +137,31 @@ module Bali
         # avoidable, so batching several tiles into one tick stays a JS-only
         # change.
         #
-        # A key outside the offering finds nothing and is simply absent from the
-        # response — the same silent drop as everywhere else.
+        # A KEY THAT RESOLVES TO NOTHING IS REMOVED, not merely skipped.
+        # `authorized?` is asked again on every one of these requests, so a role
+        # revoked while the page was open drops the widget from the offering —
+        # and answering with nothing would leave the card sitting there showing
+        # what it held before, indefinitely, looking healthy. Nothing new leaks
+        # (the response carries no widget data), but the tile outlives the
+        # permission. Removing it is what the next page load would do anyway.
+        #
+        # Safe to emit for an invented key too: `remove` on an id that is not on
+        # the page is a no-op, and the response is identical either way, so it
+        # confirms nothing about which keys are real.
         def refresh
-          render turbo_stream: placements_for(params[:keys]).map { |placement|
+          found = placements_for(params[:keys])
+          missing = Array(params[:keys]).map(&:to_s) - found.map(&:key)
+
+          streams = found.map { |placement|
             turbo_stream.replace(
               Bali::Widget::Component.dom_id(placement.key),
               renderable: Bali::Widget::Component.new(placement.widget, size: placement.size,
                                                       refresh_url: url_for(action: :refresh))
             )
+          }
+
+          render turbo_stream: streams + missing.map { |key|
+            turbo_stream.remove(Bali::Widget::Component.dom_id(key))
           }
         end
 
