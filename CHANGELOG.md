@@ -11,64 +11,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Separador de miles en vivo mientras se escribe: `delimited: true` (`number-format`).**
-  El campo de importe ya *aceptaba* el separador —el `pattern` lo validaba desde v3 y
-  `NumericAttributesWithCommas` lo volvía a convertir a número— pero nadie lo ponía:
-  había que teclear las comas a mano, así que en la práctica casi ningún importe las
-  llevaba. Ahora `1500200` se lee `1,500,200` tecla por tecla, y el cursor se queda
-  donde el usuario lo dejó en vez de saltar al final.
+- **`delimited: true` agrupa los miles mientras se escribe** en `currency_group`/`currency_field`,
+  `percentage_group`/`percentage_field` y `number_group`/`number_field`. `1500200` se lee
+  `1,500,200` tecla por tecla, el cursor se queda donde el usuario lo dejó, y un importe
+  guardado llega ya agrupado en el locale de la petición. Es el controlador Stimulus
+  `number-format`, nuevo — hay que registrarlo (o usar `registerAll`) o el campo queda como
+  texto plano.
 
-  Lo toman `currency_group`/`currency_field`, `percentage_group`/`percentage_field` y
-  `number_group`/`number_field`.
+  ```erb
+  <%= f.currency_group :price, delimited: true %>
+  <%= f.number_group :budget, delimited: true %>
+  ```
 
-  **Es opt-in en todas, y eso no es timidez.** El separador cambia lo que el campo
-  ENVÍA, y un importe agrupado sólo sobrevive el viaje si el modelo trae
-  `currency_attribute`/`percentage_attribute`. Sin eso Rails castea `"1,500,200"` a
-  **1** — sin excepción, sin error de validación, un 1 en una columna de dinero.
-  Medido en las apps del grupo antes de decidirlo: doce call sites vivos sobre
-  `investment`, `expenses`, `unit_price`, `lunch_price`, `declared_value`, `cost` y
-  tres porcentajes, y **ni un modelo con el concern**. Activarlo por omisión habría
-  hecho que las doce empezaran a guardar 1 en la siguiente actualización, en silencio.
+  **Es opt-in en todas las familias, y hay que leer esto antes de encenderlo.** El separador
+  cambia lo que el campo ENVÍA, y un importe agrupado sólo sobrevive el viaje si el modelo
+  trae `currency_attribute`/`percentage_attribute` de
+  `Bali::Concerns::NumericAttributesWithCommas`. Sin eso Rails castea `"1,500,200"` a **1**:
+  sin excepción, sin error de validación, un 1 en una columna de dinero. Medido en las apps
+  del grupo: doce call sites vivos de estos campos y ni un modelo con el concern — por eso no
+  se activa solo.
 
-  En `number_group` cuesta además el tipo nativo: un `input type="number"` se niega a
-  guardar un valor con separador —el navegador devuelve cadena vacía y no reporta
-  cursor—, así que el campo pasa a `text` con `inputmode="decimal"` y el `pattern` del
-  locale, y `min`/`max`/`step` se descartan con el tipo. Sobre un `text` los tres son
-  inertes, y pintarlos diría en el call site que el navegador valida un límite que
-  nadie valida. Es la misma medición que retiró `step` de `numeric_group` en v3.
+  En `number_group` cuesta además el tipo nativo. Un `input type="number"` no puede contener
+  un separador, así que el campo pasa a `text` con `inputmode="decimal"` y el `pattern` del
+  locale, y **`min`, `max` y `step` se descartan** con el tipo: sobre un `text` los tres son
+  inertes.
 
-  El delimitador y el separador decimal viajan al controlador como values en lugar de
-  resolverse con `Intl`: `Intl` los leería del locale del NAVEGADOR mientras el valor
-  enviado se parsea con el de Rails, así que un usuario con navegador en inglés
-  llenando un formulario en español habría tenido las dos mitades en desacuerdo sobre
-  cuál carácter es el punto decimal — el error que ese concern existe para evitar, una
-  capa más arriba. Se asignan además directo y no por `prepend_values`, que junta con
-  espacio y luego hace `strip`: el delimitador ES un espacio en `fr`, `pl` y `sv`, así
-  que habría llegado vacío y apagado el formateo justo en los locales cuyo delimitador
-  es más difícil de teclear a mano.
+### Changed
 
-  **El valor inicial lo agrupa el servidor**, no el controlador, porque en el
-  navegador no es decidible: `1.500` es un número de máquina en inglés y mil
-  quinientos delimitado en español, y cada lectura corrompe el caso que adivinó mal.
-  El FormBuilder lo agrupa en el locale de la petición y **sólo cuando el modelo
-  entregó un número** — un `String` es lo que el usuario envió (`text_field` pinta
-  `_before_type_cast` justamente para que un formulario rechazado regrese mostrándolo)
-  y agruparlo borraría los caracteres que lo hacían inválido.
-
-  Dos detalles del tecleo que se midieron antes de darlos por buenos: borrar sobre un
-  separador borra el dígito de atrás —sin eso el retroceso parece tecla muerta— salvo
-  cuando la tecla trae modificador, porque el borrado por palabra y por línea es del
-  navegador; y un decimal a medio escribir se completa al salir del campo (`1500.` →
-  `1,500`, `.5` → `0.5`), porque el `pattern` rechaza las dos formas y enterarse al
-  enviar es peor que corregirlo al salir.
-
-- **`step_number_group`/`step_number_field` rechazan `delimited:` con `ArgumentError`.**
-  Ahí la opción no tiene significado coherente y antes producía un widget roto en
-  silencio: un `text` con `data-step-number-input-target="input"` Y
-  `data-controller="number-format"` sobre el mismo elemento, con `min`/`max`
-  descartados. Los dos controladores escribían el mismo valor, `parseFloat("1,500")`
-  le daba 1 al de pasos, y los botones contaban desde 1 sin límites sobre un campo que
-  mostraba mil quinientos.
+- **`step_number_group`/`step_number_field` levantan `ArgumentError` si reciben `delimited:`.**
+  La opción no tiene ahí significado coherente y antes producía un widget roto en silencio:
+  los dos controladores sobre el mismo input, `parseFloat("1,500")` dándole 1 al de pasos, y
+  `min`/`max` descartados.
 
 ## [v3.2.1] - 2026-08-30
 
