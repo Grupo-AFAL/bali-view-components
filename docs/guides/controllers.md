@@ -1,6 +1,6 @@
 # Stimulus Utility Controllers
 
-Bali ships 24 standalone Stimulus controllers that work independently of any
+Bali ships 25 standalone Stimulus controllers that work independently of any
 ViewComponent. They live in `app/assets/javascripts/bali/controllers/` and are
 registered by `registerAll` under the identifiers below — the `CONTROLLERS` map in
 `app/frontend/bali/controllers/index.js`. How to register them (all at once, or one
@@ -33,6 +33,7 @@ controller by hand.
 | [`geocoder-maps`](#geocoder-maps) | Geocodes an address to a map marker and lat/lng fields | hand markup |
 | [`input-on-change`](#input-on-change) | Notifies the server (Turbo Stream) when an input changes | hand markup |
 | [`interact`](#interact) | Drag/resize an absolutely-positioned element with snapping | hand markup |
+| [`number-format`](#number-format) | Groups the thousands of an amount as it is typed | `f.currency_group`, `f.percentage_group`, `f.number_group` with `delimited: true` |
 | [`print`](#print) | Prints the page on connect, closes the window on refocus | hand markup |
 | [`radio-buttons-group`](#radio-buttons-group) | Shows grouped content per selected toggler button | `f.radio_buttons_group` |
 | [`radio-toggle`](#radio-toggle) | Shows elements matching the selected radio's value | hand markup |
@@ -353,6 +354,57 @@ While moving it dispatches `bali:interact:dragging` / `drag-end` / `resizing` /
 you register the controller under a different identifier. A `link` target makes a
 click (small movement, under 500 ms) fall through to the link instead of being
 swallowed as a drag.
+
+## `number-format`
+
+Groups the thousands of a numeric text input while it is being typed: `1500200`
+reads `1,500,200` keystroke by keystroke, and the caret stays where the typist
+left it instead of jumping to the end of the field.
+
+```html
+<input type="text" inputmode="decimal"
+       data-controller="number-format"
+       data-number-format-delimiter-value=","
+       data-number-format-separator-value=".">
+```
+
+Both separators are values rather than something the controller resolves, and
+that is the only reason it takes configuration at all. `Intl` would read them
+from the **browser's** locale, while the value it produces is parsed back with
+Rails' — via `Bali::Concerns::NumericAttributesWithCommas`. Someone on an English
+browser filling a Spanish form would have had the two halves disagree about which
+character is the decimal point. The FormBuilder fills both from
+`number.format.delimiter` and `number.format.separator`.
+
+The element has to be an input with a caret. A `type="number"` input refuses to
+store a value holding a delimiter — the browser hands back the empty string and
+reports no `selectionStart` — so the controller warns and leaves the field alone.
+That is also why `f.number_group` needs `delimited: true` to opt in: turning the
+delimiter on costs the field its native type, along with the `min`, `max` and
+`step` the browser only enforces there. `f.currency_group` and
+`f.percentage_group` already render a `text` input, so they are grouped by
+default; pass `delimited: false` to opt out.
+
+Three behaviours are worth knowing about:
+
+- **Deleting a delimiter deletes the digit behind it.** Backspace over a
+  delimiter would otherwise look broken — the delimiter goes, the digits regroup,
+  the same delimiter reappears in the same place, and holding the key down does
+  nothing forever.
+- **A half-typed decimal is completed on blur.** `1500.` becomes `1,500` and
+  `.5` becomes `0.5`. Both are rejected by the field's `pattern`, and discovering
+  that at submit time from a browser bubble is worse than being corrected on the
+  way out.
+- **A value from the server is grouped on connect, if it is a machine number.**
+  Rails renders a decimal as `1500200.75` — a dot, whatever the locale — so the
+  dot is translated to the locale's separator first. A field re-rendered after a
+  failed validation holds whatever the typist actually entered, and that is left
+  untouched: regrouping it would delete the very characters that made it invalid.
+
+The server half is `currency_attribute` / `percentage_attribute` from
+`Bali::Concerns::NumericAttributesWithCommas`. Without one of them on the model, a
+grouped amount reaches a numeric column as a String and Rails casts `"1,500,200"`
+to 1.
 
 ## `print`
 

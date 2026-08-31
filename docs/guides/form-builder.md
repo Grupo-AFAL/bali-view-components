@@ -151,7 +151,41 @@ Standard text input with DaisyUI styling.
 ```erb
 <%= f.number_group :quantity %>
 <%= f.number_group :quantity, min: 0, max: 100, step: 1 %>
+<%= f.number_group :budget, delimited: true %>
 ```
+
+**Options:**
+- `min`, `max`, `step` — the native constraints, enforced by the browser
+- `delimited` — group the thousands as the amount is typed (default: `false`)
+
+#### `delimited: true`
+
+Groups the integer digits on every keystroke, so `1500200` reads `1,500,200`
+while it is being typed. Reach for it on the figures long enough to be misread
+on sight — a budget, a mileage, a peso amount.
+
+It is opt-in here, and it is not free:
+
+| | `number_group` | `number_group, delimited: true` |
+|---|---|---|
+| input type | `number` | `text` |
+| `min` / `max` / `step` | enforced by the browser | **dropped** — inert on a text input |
+| format check | native | `pattern`, built from the active locale |
+| phone keyboard | numeric | numeric, via `inputmode="decimal"` |
+
+The type change is not a choice: a `type="number"` input refuses to store a
+value with a delimiter in it — the browser hands back the empty string. `min`,
+`max` and `step` go with it rather than being rendered onto the text input,
+where they would read at the call site like a bound the browser is checking and
+nothing would be checking it.
+
+`currency_group` and `percentage_group` already render that `text` input, so they
+are delimited **by default**; pass `delimited: false` to opt out. The live
+grouping is the [`number-format`](controllers.md#number-format) controller —
+register it (or `registerAll`) or the field is a plain text input.
+
+Either way the value arrives as a String, so the model side below is not
+optional.
 
 ### step_number_group / step_number_field
 
@@ -209,6 +243,15 @@ not, every locale falls back to Rails' English defaults and behaves as before.
 deliberately **not** set: it is inert on a `type="text"` input, and passing one
 only misleads the next person to read the markup.
 
+The delimiter is also **put there for you** now, by the
+[`number-format`](controllers.md#number-format) controller both helpers mount:
+the thousands group as the amount is typed, and a stored amount is grouped on
+connect. Before, the field merely *accepted* a delimiter the typist entered by
+hand — which is why so few of them ever carried one. `delimited: false` opts out,
+for a field whose value is read back by something that does not expect grouping.
+The controller has to be registered for any of this to happen; an app that only
+registers a subset of Bali's controllers gets the previous behaviour, unchanged.
+
 The browser validates a string. Turning it back into a number is the model's
 job, and `Bali::Concerns::NumericAttributesWithCommas` does it against the same
 locale:
@@ -223,7 +266,8 @@ end
 ```
 
 Without the concern the parameter arrives as the string the user typed, and
-Rails' own cast reads `"1.234,56"` as `1.234`.
+Rails' own cast reads `"1.234,56"` as `1.234`. The same applies to
+`number_group` once it is `delimited: true`: `"1,500,200"` cast by Rails is 1.
 
 ### range_group / range_field
 
