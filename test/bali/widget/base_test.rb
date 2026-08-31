@@ -92,12 +92,60 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   end
 
   # Otherwise the widget renders at a size its own picker cannot get back to.
+  # ON READ, not when either macro runs — see the next test for why.
   def test_the_default_must_be_one_a_user_can_choose
-    error = assert_raises(ArgumentError) do
-      Class.new(Bali::Widget::Base) { default_size :large; supports :small, :medium }
-    end
+    klass = Class.new(Bali::Widget::Base) { default_size :large; supports :small, :medium }
+
+    error = assert_raises(ArgumentError) { klass.default_size }
 
     assert_match(/must be one a user can choose/, error.message)
+  end
+
+  # AND A CATALOG TURNS THAT BACK INTO A BOOT FAILURE for every widget a host
+  # actually put on a dashboard, since the macro runs after all class bodies.
+  def test_a_catalog_refuses_a_widget_whose_default_it_does_not_offer
+    klass = Class.new(Bali::Widget::ValueBase) do
+      def self.name = "Broken"
+      default_size :large
+      supports :small, :medium
+      value { 1 }
+    end
+
+    assert_raises(ArgumentError) { Bali::Widget.check_catalog!([ klass ]) }
+  end
+
+  # THE ORDER THE TWO MACROS APPEAR IN MUST NOT MATTER. Ruby reads a class body
+  # top to bottom, and `ValueBase` ships `supports :small` — so a widget widening
+  # it writes `default_size :medium` above `supports :small, :medium`, which the
+  # old eager check rejected for a class that is perfectly valid.
+  def test_default_size_may_be_declared_before_or_after_supports
+    before = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "before"
+      default_size :medium
+      supports :small, :medium
+      value { 1 }
+    end
+    after = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "after"
+      supports :small, :medium
+      default_size :medium
+      value { 1 }
+    end
+
+    assert_equal :medium, before.default_size
+    assert_equal :medium, after.default_size
+  end
+
+  # And one line does both.
+  def test_supports_can_carry_the_default
+    klass = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "one_line"
+      supports :small, :medium, default: :medium
+      value { 1 }
+    end
+
+    assert_equal :medium, klass.default_size
+    assert_equal %i[small medium], klass.supported_sizes
   end
 
   def test_offering_nothing_is_refused

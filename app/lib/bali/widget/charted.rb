@@ -47,7 +47,7 @@ module Bali
       # What `series` yields. Each setter writes its OWN ivar, so two `series`
       # blocks merge per field rather than the second replacing the first — the
       # same rule as `row`.
-      class SeriesBuilder
+      class SeriesBuilder < Builder
         def initialize(type)
           @type = type
         end
@@ -76,16 +76,9 @@ module Bali
 
           Series.new(values: drawn, labels: resolve(widget, @labels) || [], type: @type)
         end
-
-        private
-
-        def resolve(widget, field)
-          field.is_a?(Proc) ? widget.instance_exec(&field) : field
-        end
       end
 
       included do
-        class_attribute :_series_builder, **Base::ATTRIBUTE_OPTIONS
         # `:line` for a trend, `:bar` for a breakdown — the including pattern says
         # which, and a widget overrides it with `s.type`.
         #
@@ -94,17 +87,12 @@ module Bali
         # subclass declares a series. `ProgressBase` does, two lines after
         # `include Charted`.
         class_attribute :_default_series_type, default: :line, **Base::ATTRIBUTE_OPTIONS
-      end
 
-      class_methods do
-        # DUPS what it inherits, for the same reason `row` does: `class_attribute`
-        # copies on write and never on mutation, so a subclass would otherwise be
-        # handed its parent's builder and two siblings would overwrite each other.
-        def series(&block)
-          raise ArgumentError, "`series` needs a block: `series { |s| s.values [ 1, 2 ] }`." unless block
-
-          self._series_builder = _series_builder&.dup || SeriesBuilder.new(_default_series_type)
-          block.call(_series_builder)
+        # SEEDED FROM CLASS STATE, which is why `declares` takes a block: the
+        # including pattern chooses the default type, and a widget overrides it
+        # with `s.type`.
+        declares :series, hint: "series { |s| s.values [ 1, 2 ] }" do
+          SeriesBuilder.new(_default_series_type)
         end
       end
 

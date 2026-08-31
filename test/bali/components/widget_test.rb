@@ -604,6 +604,21 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector ".bali-widget-freshness[data-hero='true']", visible: :all
   end
 
+  # A SIZE THE WIDGET DOES NOT SUPPORT falls back rather than rendering a
+  # radiogroup with no checked button — which has no tab stop, so the control is
+  # unreachable by keyboard. `Placement` already did this for stored sizes; a
+  # host reaching the constructor directly gets the same treatment.
+  def test_an_unsupported_size_falls_back_to_the_default
+    narrow = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "narrow"
+      value { 1 }
+    end
+
+    render_inline(Bali::Widget::Component.new(narrow.new, size: :large))
+
+    assert_selector "[data-size='small']"
+  end
+
   private
 
 

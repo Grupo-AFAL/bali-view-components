@@ -7,16 +7,9 @@ module Bali
       #
       #   render Bali::Widget::SizePicker::Component.new(size: :medium, title: "Low stock")
       #
-      # Its own component because none of it is about showing a fact at three
-      # canvases: it is a roving-tabindex ARIA radiogroup that draws each size as
-      # a lattice, and it kept three constants and a helper inside the card that
-      # the card never used for anything else.
-      #
-      # A REAL radiogroup — the sizes are mutually exclusive, which is what the
-      # role exists for, and it earns the role by honouring the whole pattern: one
-      # tab stop for the set, arrows within it, selection following focus.
-      # Announcing radiogroup semantics without that keyboard behaviour is worse
-      # than an honest toggle group.
+      # A REAL roving-tabindex ARIA radiogroup: one tab stop for the set, arrows
+      # within it, selection following focus. Announcing radiogroup semantics
+      # without that keyboard behaviour is worse than an honest toggle group.
       #
       # The keyboard half lives in `WidgetGridController#sizeKeydown` — the card
       # is not the thing that moves, so the grid owns the gesture.
@@ -34,11 +27,10 @@ module Bali
           large: [ 0, 1, 4, 5 ]
         }.freeze
 
-        # The empty cell is a CONSTANT — `base-content`, never `current` —
-        # because a frame of reference that changes with the state it frames is
-        # not a reference. Deriving it from the button's text colour stacked two
-        # opacities into 9% ink on white: invisible, which collapsed the map back
-        # into the mass it replaced.
+        # The empty cell is a CONSTANT — `base-content`, never `current`: a frame
+        # of reference that changes with the state it frames is not a reference,
+        # and deriving it from the button's text colour stacked two opacities into
+        # invisibility.
         CELL_FILLED = "rounded-[1px] bg-base-content/45 " \
                       "group-hover:bg-base-content/70 group-aria-checked:bg-primary"
         CELL_EMPTY = "rounded-[1px] bg-base-content/20 group-aria-checked:bg-primary/25"

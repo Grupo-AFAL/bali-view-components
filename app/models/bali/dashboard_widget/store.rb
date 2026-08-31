@@ -126,12 +126,19 @@ module Bali
       # being shown, so the arrangement stops being a fallback and becomes
       # something they can drag.
       #
-      # The no-op case is decided INSIDE the lock. Between a caller's own check
-      # and this write, a second tab could arrange, and this would flatten it
-      # back to defaults on a button that promises to change nothing visible.
+      # THE OWNER ROW IS WHAT GETS LOCKED, not this owner's widget rows. Locking
+      # `rows` was the obvious thing and bought nothing in the case that matters:
+      # `SELECT … FOR UPDATE` over an empty scope locks no rows and cannot stop a
+      # phantom insert, and empty is precisely the never-customised state `adopt`
+      # exists for. Two concurrent adopts both passed the guard; interleaved with
+      # an `arrange`, `insert_all`'s `ON CONFLICT DO NOTHING` then merged two
+      # layouts and dropped the overlap silently.
+      #
+      # The owner is a row that always exists, so locking it serialises every
+      # dashboard write for that owner and the second caller finds rows and stops.
       def adopt
         rows.transaction do
-          rows.lock.pluck(:id)
+          owner.class.lock.find(owner.id)
           next if visible_keys.any?
 
           arrange(offering.map { |widget| { key: widget.key } })

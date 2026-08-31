@@ -8,20 +8,9 @@ module Bali
       #
       #   render Bali::Widget::Rows::Component.new(rows)
       #
-      # `Rows`, not `List` — `Bali::List::Component` is a different component in
-      # this library and the card explicitly does NOT use it (see below), so a
-      # `Bali::Widget::List` would invite exactly the confusion this name avoids.
-      # It also says what it renders: `Bali::Widget::ListBase::Row` objects, which
-      # are plain values, so this never touches a model.
-      #
-      # NOT `Bali::List`, considered and ruled out: its `Item` puts title and
-      # subtitle in a bare `<div>` with no way to set a class, and a widget row
-      # needs `min-w-0` on that wrapper — which is precisely what makes
-      # `truncate` work inside a flex row. Its defaults differ too
-      # (`font-semibold`/`text-sm` against this card's `font-medium`/`text-xs`),
-      # so composing it means five overrides to defeat five defaults and still
-      # leaves the truncation broken. A row that fails to truncate looks fine
-      # until a long title arrives, which is why this note exists.
+      # NOT `Bali::List::Component`, which cannot set a class on the wrapper its
+      # `Item` puts title and subtitle in — and a widget row needs `min-w-0`
+      # there, which is what makes `truncate` work inside a flex row.
       class Component < ApplicationViewComponent
         def initialize(rows, **options)
           @rows = rows

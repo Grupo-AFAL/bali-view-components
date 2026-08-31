@@ -85,24 +85,53 @@ module Bali
         # class. `supports` validates the pair instead, which makes the two
         # ORDER-DEPENDENT — `supports` must come second.
         def default_size(name = nil)
-          return _default_size if name.nil?
+          return validated_default_size if name.nil?
 
           raise ArgumentError, "unknown widget size #{name.inspect}" unless SIZES.include?(name)
 
           self._default_size = name
         end
 
-        def supports(*names)
+        # `default:` so widening a restricted pattern is ONE line:
+        #
+        #   supports :small, :medium, default: :medium
+        #
+        # The pair used to be validated here, which made `default_size` and
+        # `supports` ORDER-DEPENDENT — `ValueBase` ships `supports :small`, so a
+        # widget writing `default_size :medium` above `supports :small, :medium`
+        # was rejected for a class that is perfectly valid once both lines have
+        # run. Ruby reads a class body top to bottom; a macro that cares which
+        # order two of them appear in is a trap. The check moved to the reader.
+        def supports(*names, default: nil)
           unknown = names - SIZES
           raise ArgumentError, "unknown widget size(s) #{unknown.inspect}" if unknown.any?
           raise ArgumentError, "a widget must support at least one size" if names.empty?
-          unless names.include?(_default_size)
-            raise ArgumentError,
-                  "#{name_for_error} defaults to #{_default_size.inspect} but only offers " \
-                  "#{names.inspect} — the default must be one a user can choose."
-          end
 
           self._supported_sizes = names
+          default_size(default) if default
+        end
+
+        # DEFINES A DECLARATION MACRO — `row`, `trend`, `goal`, `check`, `series`.
+        # Each was five identical lines in five files, and the `dup` in the
+        # middle is the part that matters: `class_attribute` copies on WRITE and
+        # never on MUTATION, so without it a subclass is handed its PARENT's
+        # builder and two siblings overwrite each other's fields, last class body
+        # loaded winning. That presents as "widget B shows widget A's title" and
+        # varies with autoload order.
+        #
+        # `build` is a block so a pattern can seed its builder from class state —
+        # `Charted` passes its `_default_series_type`.
+        def declares(name, hint:, &build)
+          attribute = :"_#{name}_builder"
+          class_attribute attribute, **ATTRIBUTE_OPTIONS
+
+          define_singleton_method(name) do |&block|
+            raise ArgumentError, "`#{name}` needs a block: `#{hint}`." unless block
+
+            builder = public_send(attribute)
+            public_send(:"#{attribute}=", builder&.dup || instance_exec(&build))
+            block.call(public_send(attribute))
+          end
         end
 
         def view_all_path(&block) = self._view_all_path = block
@@ -186,6 +215,18 @@ module Bali
         end
 
         def name_for_error = name || "This widget"
+
+        # CHECKED ON READ, so the two macros can appear in either order. A class
+        # that never renders never asks — which is why `dashboard_widgets` runs
+        # `Bali::Widget.check_catalog!` and turns this back into a boot failure
+        # for every widget a host actually put on a dashboard.
+        def validated_default_size
+          return _default_size if _supported_sizes.include?(_default_size)
+
+          raise ArgumentError,
+                "#{name_for_error} defaults to #{_default_size.inspect} but only offers " \
+                "#{_supported_sizes.inspect} — the default must be one a user can choose."
+        end
       end
 
       attr_reader :context

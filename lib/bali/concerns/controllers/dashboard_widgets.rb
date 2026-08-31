@@ -64,9 +64,6 @@ module Bali
         included do
           class_attribute :widget_catalog, :widget_dashboard_key, instance_writer: false
 
-          # Read by the templates. A controller assigning `@store = widget_store`
-          # so a template can reach the memo is a self-assignment that looks
-          # redundant, gets deleted, and takes the page down with it.
           helper_method :widget_store, :widget_offering
         end
 
@@ -85,11 +82,10 @@ module Bali
           # key check below could not run at all. Per-owner differences are
           # `authorized?`'s job.
           #
-          # Keys are checked HERE, once, rather than on every lookup — whether two
-          # classes derive the same key is a property of the code, not of a
-          # request.
+          # Checked HERE, once: colliding keys and a default size a widget does
+          # not offer are properties of the code, not of a request.
           def dashboard_widgets(catalog:, dashboard_key: nil)
-            Bali::Widget.check_keys!(Array(catalog))
+            Bali::Widget.check_catalog!(Array(catalog))
 
             self.widget_catalog       = catalog
             self.widget_dashboard_key = (dashboard_key || controller_path).to_s
@@ -134,10 +130,10 @@ module Bali
         # streams that card back — so a widget that declares `refresh_every` needs
         # no route, no action and no controller of its own.
         #
-        # `keys` PLURAL even though a card sends one: every request rebuilds the
-        # whole offering to resolve a key, which is the security boundary and not
-        # avoidable, so batching several tiles into one tick stays a JS-only
-        # change.
+        # `keys` PLURAL even though a card sends one, so batching several tiles
+        # into one tick stays a JS-only change. Each request does rebuild the
+        # whole offering — `#widgets` needs it for the defaults fallback — which
+        # is worth revisiting if a dashboard ever polls more than a few tiles.
         #
         # A KEY THAT RESOLVES TO NOTHING IS REMOVED, not merely skipped.
         # `authorized?` is asked again on every one of these requests, so a role

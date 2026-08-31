@@ -40,7 +40,8 @@ module Bali
 
       # What `goal` yields — everything the ring is drawn from. Each setter writes
       # its OWN ivar, so two `goal` blocks merge per field.
-      class GoalBuilder
+      class GoalBuilder < Builder
+        requires "g.value", block: "goal"
         # A block is `instance_exec`'d on the WIDGET, so it reaches `context` and
         # private methods; anything else is the value itself.
         def value(value = nil, &block) = @value = block || value
@@ -66,35 +67,12 @@ module Bali
         # 100 by default, so a widget whose figure is already a percentage
         # declares `g.value` alone.
         def resolved_max(widget) = @max.nil? ? 100 : resolve(widget, @max)
-
-        def check!(widget_class)
-          return if @value
-
-          raise NotImplementedError,
-                "#{widget_class.name || 'This widget'} must declare `g.value` in its `goal` block."
-        end
-
-        private
-
-        def resolve(widget, field)
-          field.is_a?(Proc) ? widget.instance_exec(&field) : field
-        end
       end
       private_constant :GoalBuilder
 
-      class_attribute :_goal_builder, **ATTRIBUTE_OPTIONS
-
-      class << self
-        # THE RING'S CAPTION. Optional — a ring with no label still draws its
-        # percentage.
-        #
-        # DUPS what it inherits, for the same reason `row` and `series` do.
-        def goal(&block)
-          raise ArgumentError, "`goal` needs a block: `goal { |g| g.value { Item.done.count } }`." unless block
-
-          self._goal_builder = _goal_builder&.dup || GoalBuilder.new
-          block.call(_goal_builder)
-        end
+      # EVERYTHING THE RING IS DRAWN FROM.
+      declares :goal, hint: "goal { |g| g.value { Item.done.count } }" do
+        GoalBuilder.new
       end
 
       # How far along, and what counts as done. READERS over the declaration

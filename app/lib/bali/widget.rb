@@ -93,6 +93,14 @@ module Bali
       # TWO DIFFERENT CLASSES, not the same one twice. A repeated key is an
       # ordinary submission that `Store#choose` dedupes by design; only distinct
       # classes colliding is the data-integrity bug.
+      # EVERYTHING ABOUT A CATALOG THAT CANNOT CHANGE BETWEEN REQUESTS, checked
+      # once where the catalog is declared. Reading `default_size` is what
+      # validates it against `supports`.
+      def check_catalog!(classes)
+        check_keys!(classes)
+        classes.each(&:default_size)
+      end
+
       def check_keys!(classes)
         clashing = classes.group_by { |klass| klass.key }
                           .select { |_, group| group.uniq.many? }

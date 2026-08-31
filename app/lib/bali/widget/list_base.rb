@@ -58,7 +58,9 @@ module Bali
       # Each setter writes its OWN ivar, so two `row` blocks MERGE per field
       # rather than the second replacing the first — which lets a shared module
       # declare a title and an href while a widget declares only its subtitle.
-      class RowBuilder
+      class RowBuilder < Builder
+        requires "r.title", block: "row"
+
         def title(value = nil, &block) = @title = block || value
 
         def subtitle(value = nil, &block) = @subtitle = block || value
@@ -74,16 +76,6 @@ module Bali
             subtitle: resolve(widget, @subtitle, record),
             href: resolve(widget, @href, record)
           )
-        end
-
-        # A list widget owes a title the way it owes a `list`. Left unset, every
-        # row renders blank, which reads as a data problem rather than an
-        # unfinished widget. Checked once per render by `#items`, not once per row.
-        def check!(widget_class)
-          return if @title
-
-          raise NotImplementedError,
-                "#{widget_class.name || 'This widget'} must declare `r.title` in its `row` block."
         end
 
         private
@@ -106,7 +98,14 @@ module Bali
       # No default: a `List` needs a scope, and a widget that never declares
       # `list` should fail loudly, naming the macro.
       class_attribute :_list, **ATTRIBUTE_OPTIONS
-      class_attribute :_row_builder, **ATTRIBUTE_OPTIONS
+
+      # WHAT ONE ROW SAYS. Each field takes the same three forms, and each writes
+      # its own ivar — so two `row` blocks merge field by field rather than the
+      # second replacing the first, which lets a shared module declare what two
+      # widgets have in common.
+      declares :row, hint: "row { |r| r.title :name }" do
+        RowBuilder.new
+      end
 
       class << self
         # THE COLLECTION: what to read, and how many to preview.
@@ -128,28 +127,6 @@ module Bali
           raise ArgumentError, "`list` needs a block: `list { Item.low_stock }`." unless block
 
           self._list = List.new(scope: block, limit: limit)
-        end
-
-        # WHAT ONE ROW SAYS, as one declaration:
-        #
-        #   row do |r|
-        #     r.title :name
-        #     r.subtitle { |movie| join(movie.genre, movie.status.humanize) }
-        #     r.href { |movie| admin_movie_path(movie) }
-        #   end
-        #
-        # Each field writes its own ivar, so two `row` blocks merge field by
-        # field rather than the second replacing the first — which lets a shared
-        # module declare what two widgets have in common.
-        #
-        # DUPS what it inherits: `class_attribute` copies on WRITE, never on
-        # mutation, so `||=` would hand a subclass its parent's builder and two
-        # siblings would overwrite each other.
-        def row(&block)
-          raise ArgumentError, "`row` needs a block: `row { |r| r.title :name }`." unless block
-
-          self._row_builder = _row_builder&.dup || RowBuilder.new
-          block.call(_row_builder)
         end
       end
 

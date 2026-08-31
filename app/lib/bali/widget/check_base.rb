@@ -33,7 +33,8 @@ module Bali
 
       # What `check` yields. Each setter writes its OWN ivar, so two `check`
       # blocks merge per field — see the builder contract on `Base`.
-      class CheckBuilder
+      class CheckBuilder < Builder
+        requires "c.value", block: "check"
         # `block || value` — the idiom every other builder uses — cannot work
         # here: `false` and `nil` are the two answers this pattern exists to
         # carry, and both are falsy, so a declared `c.value false` would read as
@@ -71,31 +72,17 @@ module Bali
           I18n.t("bali_view.widgets.check.#{passing ? 'pass' : 'fail'}")
         end
 
-        def check!(widget_class)
-          return unless @value.equal?(UNSET)
-
-          raise NotImplementedError,
-                "#{widget_class.name || 'This widget'} must declare `c.value` in its `check` block."
-        end
-
         private
 
-        def resolve(widget, field)
-          field.is_a?(Proc) ? widget.instance_exec(&field) : field
-        end
+        # A SENTINEL, not nil: `c.value false` is a widget reporting a real
+        # failing check, and `@value.nil?` would read it as never declared.
+        def declared? = !@value.equal?(UNSET)
       end
       private_constant :CheckBuilder
 
-      class_attribute :_check_builder, **ATTRIBUTE_OPTIONS
-
-      class << self
-        # DUPS what it inherits, for the reason given on `Base::ATTRIBUTE_OPTIONS`.
-        def check(&block)
-          raise ArgumentError, "`check` needs a block: `check { |c| c.value { Thing.ok? } }`." unless block
-
-          self._check_builder = _check_builder&.dup || CheckBuilder.new
-          block.call(_check_builder)
-        end
+      # THE ANSWER, AND ITS TWO LABELS.
+      declares :check, hint: "check { |c| c.value { Thing.ok? } }" do
+        CheckBuilder.new
       end
 
       # The answer: `true`, `false`, or `nil` for not yet known. Validated here

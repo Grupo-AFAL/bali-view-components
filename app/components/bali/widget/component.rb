@@ -47,7 +47,7 @@ module Bali
       # `refresh_every` in those places degrades to static rather than erroring.
       def initialize(widget, size: nil, refresh_url: nil, **options)
         @widget = widget
-        @size = size&.to_sym || widget.class.default_size
+        @size = resolve_size(size, widget)
         @refresh_url = refresh_url
         # WHEN THIS ANSWER WAS TRUE. Stamped at construction rather than read in
         # the template, so a card and its own freshness claim cannot disagree.
@@ -64,6 +64,19 @@ module Bali
       private
 
       attr_reader :widget, :size, :refresh_url, :rendered_at, :options
+
+      # THE SAME RULE `Placement` APPLIES, because a host can reach this
+      # constructor directly — `grid.with_widget(widget, size: :bogus)` — and a
+      # size the widget does not support renders a radiogroup with no checked
+      # button and therefore no tab stop: a control nobody can reach by keyboard.
+      # Falling back is what a stored size that has since been retired already
+      # does, so an unknown one behaves the same way rather than differently.
+      def resolve_size(size, widget)
+        chosen = size&.to_sym
+        return chosen if widget.supported_sizes.include?(chosen)
+
+        widget.class.default_size
+      end
 
       # BOTH HALVES OR NEITHER. A widget that declares an interval on a page that
       # gave no URL cannot poll, and a URL alone has no interval to poll on.

@@ -353,21 +353,11 @@ export class WidgetGridController extends Controller {
 //
 //   <div data-controller="bali-widget-grid bali-widget-grid-edit-mode" ...>
 //
-// NAMED FOR ITS CONSUMER, and that is a deliberate retraction. This shipped
-// briefly as a general `edit-mode` controller in
-// `app/assets/javascripts/bali/controllers/`, with a catalog entry inviting
-// hosts to use it anywhere. It has no widget code in it, which is why it is a
-// separate class — but it had exactly one caller, and the page proving it worked
-// standalone was scaffolding written to justify the move. A documented general
-// controller is a public promise, and a promise with no caller is maintenance
-// for nothing.
-//
-// It is also what Bali's own CSS means by editing: `.editing .bali-widget-card`,
-// `-edit-toolbar`, `-edit-shelf`, `-body`. A host using this elsewhere would
-// supply all of that themselves, so "general" was doing less work than it looked.
-//
-// Promote it the day something else needs it. Until then the name says what is
-// true.
+// NAMED FOR ITS CONSUMER. It has no widget code in it, which is why it is a
+// separate class — but it is what Bali's own CSS means by editing
+// (`.editing .bali-widget-card`, `-edit-toolbar`, `-edit-shelf`, `-body`), so a
+// host reusing it elsewhere would have to supply all of that. Promote it the day
+// something else needs it.
 export class WidgetGridEditModeController extends Controller {
   static targets = ['enter', 'leave', 'inert', 'announcer']
   static classes = ['editing']

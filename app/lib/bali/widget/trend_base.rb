@@ -44,7 +44,8 @@ module Bali
       # What `trend` yields — the two figures, and how the movement between them
       # reads. Each setter writes its OWN ivar, so two `trend` blocks merge per
       # field, the same rule as `row`, `series` and `goal`.
-      class TrendBuilder
+      class TrendBuilder < Builder
+        requires "t.current", block: "trend"
         def initialize
           @positive_when = :up
         end
@@ -80,36 +81,12 @@ module Bali
         def resolved_current(widget) = resolve(widget, @current)
 
         def resolved_previous(widget) = resolve(widget, @previous)
-
-        def check!(widget_class)
-          return if @current
-
-          raise NotImplementedError,
-                "#{widget_class.name || 'This widget'} must declare `t.current` in its `trend` block."
-        end
-
-        private
-
-        def resolve(widget, field)
-          field.is_a?(Proc) ? widget.instance_exec(&field) : field
-        end
       end
       private_constant :TrendBuilder
 
-      class_attribute :_trend_builder, **ATTRIBUTE_OPTIONS
-
-      class << self
-        # HOW THE MOVEMENT READS. Optional: a widget that declares no `trend` block
-        # still gets a delta, drawn neutral and unlabelled.
-        #
-        # DUPS what it inherits — `class_attribute` copies on write and never on
-        # mutation, so a subclass would otherwise share its parent's builder.
-        def trend(&block)
-          raise ArgumentError, "`trend` needs a block: `trend { |t| t.current { Item.count } }`." unless block
-
-          self._trend_builder = _trend_builder&.dup || TrendBuilder.new
-          block.call(_trend_builder)
-        end
+      # HOW THE MOVEMENT READS.
+      declares :trend, hint: "trend { |t| t.current { Item.count } }" do
+        TrendBuilder.new
       end
 
       # READERS over the declaration. Memoised with `defined?` rather than `||=`,
