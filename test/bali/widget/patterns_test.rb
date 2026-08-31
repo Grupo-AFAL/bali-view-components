@@ -378,20 +378,32 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
 
   # A CLASS-level invariant, so it is checked once per render rather than once
   # per row — and reported for the widget, not for a record.
+  #
+  # THIS TEST USED TO PROVE NOTHING, twice over: it stubbed `row_for`, which
+  # `ListBase` has never defined, so the counter could not move whatever the
+  # guard did; and its widget declared no `row` at all, so the
+  # `NotImplementedError` it caught was "must declare `row`" rather than the
+  # missing-title guard it is named for. It declares a row WITHOUT a title now,
+  # and counts on the object that actually builds rows.
   def test_the_missing_row_title_is_checked_before_the_row_loop_not_inside_it
     3.times { |i| Studio.create!(name: "Untitled #{i}", country: "US") }
     klass = Class.new(Bali::Widget::ListBase) do
       def self.key = "untitled2"
       list { Studio.where("name LIKE 'Untitled %'") }
+      row { |r| r.subtitle :country }
     end
+    widget = klass.new
 
     # Counting raises cannot tell "checked once up front" from "checked on the
     # first row and short-circuited" — both raise once. Counting how many RECORDS
     # the row builder saw can: a guard inside the loop would have touched one.
     seen = 0
-    klass.class_eval { define_method(:row_for) { |record| seen += 1; super(record) } }
+    builder = widget.send(:row_builder)
+    builder.define_singleton_method(:to_row) { |_widget, _record| seen += 1 }
 
-    assert_raises(NotImplementedError) { klass.new.items }
+    error = assert_raises(NotImplementedError) { widget.items }
+
+    assert_match(/must declare `r.title`/, error.message, "it must be the TITLE guard that fired")
     assert_equal 0, seen, "the guard ran inside the row loop, not before it"
   end
 

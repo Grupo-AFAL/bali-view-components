@@ -65,9 +65,7 @@ module Bali
         # declares `g.value` alone.
         def resolved_max(widget) = @max.nil? ? 100 : resolve(widget, @max)
 
-        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
-        # `:small` card renders no rows and would otherwise never look, printing a
-        # confident number for a widget broken at every other size.
+        # Called from `count`, which the card reads at every size.
         def check!(widget_class)
           return unless @value.nil?
 

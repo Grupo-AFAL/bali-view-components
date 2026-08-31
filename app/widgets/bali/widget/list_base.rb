@@ -74,8 +74,8 @@ module Bali
           )
         end
 
-        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
-        # `:small` card renders no rows and would otherwise never look, printing a
+        # FROM `count`, not only from `items`: a `:small` card renders no rows, so
+        # a guard that only ran in the row loop would let the hero print a
         # confident number for a widget broken at every other size.
         def check!(widget_class)
           return unless @title.nil?
@@ -87,9 +87,8 @@ module Bali
 
         private
 
-        # NOT an override of `Builder#resolve` — a row resolves against a RECORD
-        # as well as the widget, so it takes a third argument and needs its own
-        # name rather than silently shadowing the shared one.
+        # A ROW RESOLVES AGAINST A RECORD as well as the widget, which is why
+        # this takes a third argument and why no other builder shares it.
         #
         # A SYMBOL is sent to the record; a BLOCK runs against the WIDGET with the
         # record yielded, so it can reach route helpers and private methods.

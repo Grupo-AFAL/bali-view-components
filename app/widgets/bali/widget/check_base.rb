@@ -31,8 +31,7 @@ module Bali
     class CheckBase < Base
       supports :small
 
-      # What `check` yields. Each setter writes its OWN ivar, so two `check`
-      # Setters merge per field — see `Base.declares`.
+      # What `check` yields. Setters merge per field — see `Base.declares`.
       class CheckBuilder
         # `block || value` — the idiom every other builder uses — cannot work
         # here: `false` and `nil` are the two answers this pattern exists to
@@ -69,9 +68,7 @@ module Bali
           I18n.t("bali_view.widgets.check.#{passing ? 'pass' : 'fail'}")
         end
 
-        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
-        # `:small` card renders no rows and would otherwise never look, printing a
-        # confident number for a widget broken at every other size.
+        # Called from `count`, which the card reads at every size.
         def check!(widget_class)
           return unless @value.equal?(UNSET)
 

@@ -49,7 +49,6 @@ module Bali
           @positive_when = :up
         end
 
-        # Block or value — see `Bali::Widget::Builder#resolve`.
         def current(value = nil, &block) = @current = block || value
 
         # What `current` is compared against. NIL means the trend is ABSENT
@@ -80,9 +79,7 @@ module Bali
 
         def resolved_previous(widget) = resolve(widget, @previous)
 
-        # CALLED FROM THE PATTERN'S PRIMARY READER, not only its richest one: a
-        # `:small` card renders no rows and would otherwise never look, printing a
-        # confident number for a widget broken at every other size.
+        # Called from `count`, which the card reads at every size.
         def check!(widget_class)
           return if @current
 
