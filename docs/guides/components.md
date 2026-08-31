@@ -2612,7 +2612,7 @@ subtitles wrap to two lines, set your own in an initializer rather than living w
 
 ```ruby
 Bali::Widget::Card::Component.rows_budget =
-  Bali::Widget::Component::ROWS.merge(large: 5)
+  Bali::Widget::Card::Component::ROWS.merge(large: 5)
 ```
 
 **Answer a resize with the card.** Resizing writes a single attribute client-side, but the

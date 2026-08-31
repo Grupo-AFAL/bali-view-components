@@ -6,17 +6,10 @@ module Bali
     # order, at what size. The only thing that reads or writes
     # `bali_dashboard_widgets`.
     #
-    # THE CONTRACT, which a host that already persists dashboards can implement
-    # instead and pass in place of this class — it then never runs the migration:
-    #
-    #   - `widgets`         — the offering, subset/reordered/resized by what is stored
-    #   - `stored_keys`     — every stored key, including ones the owner cannot see
-    #   - `visible_keys`    — stored keys the owner can currently see, in stored order
-    #   - `customized?`     — whether there is anything visible to reset
-    #   - `choose(widgets)` — membership only; survivors keep stored order and size
-    #   - `arrange(layout)` — full reconcile to exactly `layout`
-    #   - `adopt`           — write the defaults as rows, if none are stored yet
-    #   - `reset`           — drop every row
+    # A host that already persists dashboards can pass its own object instead and
+    # never run the migration. `Bali::Testing::StoreContract` is the contract —
+    # an assertion a replacement includes and runs, rather than a paragraph here
+    # that nothing checks and the next refactor silently invalidates.
     #
     # NOTE `context` here is the SCOPING STRING — a tenant id, or "" for a
     # single-tenant host. Unrelated to `Bali::Widget::Base#context`, which is the
@@ -32,6 +25,17 @@ module Bali
         @context = context.to_s
         @dashboard_key = dashboard_key.to_s
         @offering = Bali::Widget.authorized_for(offering)
+        # HERE, not only in the `dashboard_widgets` macro. Two classes deriving
+        # one key is a property of the code, so it was moved out of `by_key` —
+        # which ran it on every store read, write and refresh poll — and into
+        # that macro. But this class is a documented standalone API, and a host
+        # skipping the concern then got no check at all: `arrange` wrote a row
+        # for the shared key and `#widgets` handed back whichever class the index
+        # kept, silently serving one widget's data under the other's rows.
+        #
+        # Once per Store rather than once per lookup, over an offering that is a
+        # handful of objects.
+        Bali::Widget.check_keys!(@offering)
       end
 
       def stored_keys = rows.ordered.pluck(:widget_key)
@@ -126,19 +130,23 @@ module Bali
       # being shown, so the arrangement stops being a fallback and becomes
       # something they can drag.
       #
-      # THE OWNER ROW IS WHAT GETS LOCKED, not this owner's widget rows. Locking
-      # `rows` was the obvious thing and bought nothing in the case that matters:
-      # `SELECT … FOR UPDATE` over an empty scope locks no rows and cannot stop a
-      # phantom insert, and empty is precisely the never-customised state `adopt`
-      # exists for. Two concurrent adopts both passed the guard; interleaved with
-      # an `arrange`, `insert_all`'s `ON CONFLICT DO NOTHING` then merged two
-      # layouts and dropped the overlap silently.
+      # IDEMPOTENT RATHER THAN LOCKED. Two concurrent adopts compute the same
+      # defaults from the same offering and write the same rows, so the race has
+      # one outcome whichever order it runs in.
       #
-      # The owner is a row that always exists, so locking it serialises every
-      # dashboard write for that owner and the second caller finds rows and stops.
+      # Two locks were tried here and both were wrong. Locking `rows` bought
+      # nothing in the case this method exists for: `SELECT … FOR UPDATE` over an
+      # empty scope locks nothing. Locking the OWNER row was worse — that is the
+      # host's table, so an engine would be holding `FOR UPDATE` on host data in
+      # a lock order the host cannot see or order against, and it still only
+      # serialised `adopt` against `adopt` while `arrange`, `choose` and `reset`
+      # took no lock at all.
+      #
+      # An `adopt` interleaved with an `arrange` is still last-write-wins. If that
+      # ever needs defending, the primitive is an advisory lock keyed on
+      # `[owner, dashboard_key]` taken by ALL FOUR writers — not one.
       def adopt
         rows.transaction do
-          owner.class.lock.find(owner.id)
           next if visible_keys.any?
 
           arrange(offering.map { |widget| { key: widget.key } })

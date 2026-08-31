@@ -116,8 +116,6 @@ module Bali
       # card asks `count.positive?`.
       def count = @count ||= current.to_i
 
-      # WHAT THE HEADLINE PRINTS. A ~215px tile at `text-4xl` fits four to six
-      # characters, so the count is abbreviated.
       def display_value = Bali::Widget.abbreviate(count)
 
       # NON-ZERO, not positive. A trend reporting -12 has news; only a figure of
@@ -132,7 +130,6 @@ module Bali
         trend_builder.check!(self.class)
         @trend = trend_builder.to_trend(self)
       end
-
 
       private
 

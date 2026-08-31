@@ -593,11 +593,9 @@ Two different things are both called "context" here, and they are not the same o
 `Store` never sees the actor object; `Base` never sees the scoping string.
 
 `Bali::DashboardWidget::Store` is the DEFAULT implementation, not a requirement. A host
-that already persists dashboards elsewhere — an existing table, its own model — can
-implement the same contract (`widgets`, `stored_keys`, `visible_keys`, `customized?`,
-`choose`, `arrange`, `reset`) and pass that object wherever a `Store` is expected instead;
-such a host never runs `bali:install:migrations:dashboard_widgets`. See the class comment
-on `Bali::DashboardWidget::Store` for the contract in full.
+that already persists dashboards elsewhere — an existing table, its own model — can pass
+its own object wherever a `Store` is expected, and never runs
+`bali:install:migrations:dashboard_widgets`. See **Bring your own store** below.
 
 ### Rendering
 
@@ -935,15 +933,33 @@ and back on, does not silently erase someone's arrangement.
 `Bali::DashboardWidget::Store` is the **default** implementation of the contract above, not
 a requirement of it — the same seam `Bali::SavedView::Store` offers for saved views. A host
 that already persists dashboards elsewhere (an existing table, its own model) can write a
-plain object with the same seven methods (`widgets`, `stored_keys`, `visible_keys`,
-`customized?`, `choose`, `arrange`, `reset`) and pass it anywhere this guide passes a
-`Store` — the grid, the controller, the picker all just call methods on whatever they were
-handed. That host never installs `bali_dashboard_widgets` and never runs
-`bali:install:migrations:dashboard_widgets`; nothing in Bali requires the table to exist.
+plain object and pass it anywhere this guide passes a `Store` — the grid, the controller and
+the picker all just call methods on whatever they were handed. That host never installs
+`bali_dashboard_widgets`; nothing in Bali requires the table to exist.
+
+**Hold it to the contract**, rather than to a list in a comment that nothing checks:
+
+```ruby
+require "bali/testing/store_contract"
+
+class MyDashboardStoreTest < ActiveSupport::TestCase
+  include Bali::Testing::StoreContract
+
+  def test_it_can_stand_in_for_balis_own
+    assert_bali_store_contract MyDashboardStore.new(owner: user, offering: [OverdueTasks])
+  end
+end
+```
+
+It checks shape, not semantics — the eight messages exist and the reads answer in the right
+shapes. Your own tests cover what they mean. Bali's own `Store` is held to it too.
+
+A replacement also has to hold the boundary itself: `Store` refuses an offering where two
+widget classes derive the same key, and yours should.
 
 ### There is no locking, and that turned out fine
 
-`choose` and `arrange` do not lock their scope's rows before writing — an earlier version
+`choose`, `arrange`, `reset` and `adopt` do not lock before writing — earlier versions
 did (`SELECT ... FOR UPDATE` inside the transaction), but it bought nothing a plain
 `delete_all` doesn't already buy: it cannot lock rows that don't exist yet, so a
 first-ever write is unserialized with or without it; it does not prevent a lost update
@@ -953,6 +969,13 @@ dummy app runs — `.lock` emits no `FOR UPDATE` at all, so the guarantee was re
 PostgreSQL to begin with. It was two extra `SELECT`s per write for a promise the code's
 own comments already conceded it couldn't keep, so it was removed rather than kept as
 reassurance.
+
+`adopt` later reintroduced a lock twice, and both were wrong in ways this section already
+predicted: locking its own rows, which are empty in exactly the case `adopt` exists for; and
+then locking the **owner** row, which is the host's table — an engine holding `FOR UPDATE` on
+host data, in a lock order the host cannot see, while still serializing only `adopt` against
+`adopt`. `adopt` is idempotent instead: two concurrent calls compute the same defaults from
+the same offering, so the race has one outcome.
 
 What actually happens on a race: two concurrent writes for the same owner both delete
 what's there and insert their own layout; the later commit wins wholesale, no exception,

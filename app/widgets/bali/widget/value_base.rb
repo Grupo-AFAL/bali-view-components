@@ -37,8 +37,8 @@ module Bali
           self._value = block || value
         end
 
-        # What the headline PRINTS, when the number is not the display. A ~215px
-        # tile at `text-4xl` fits four to six characters, so `Widget.abbreviate`
+        # What the headline PRINTS, when the number is not the display.
+        # `Widget.abbreviate`
         # is usually part of the answer. The block reads `value`.
         def display_value(value = nil, &block) = self._display_value = block || value
       end

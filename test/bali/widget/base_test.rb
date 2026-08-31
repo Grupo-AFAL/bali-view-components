@@ -26,8 +26,22 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
   # nobody — a widget RAISES, and `Bali::Widget::Component` is the error boundary
   # that catches it.
   def test_base_does_not_answer_for_patterns_it_is_not
-    %i[count display_value items trend series goal state failed? load safely].each do |pattern_read|
+    %i[items trend series goal state failed? load safely].each do |pattern_read|
       refute_respond_to Bare.new, pattern_read
+    end
+  end
+
+  # THE THREE THE CARD ASKS EVERY WIDGET are declared here and implemented
+  # nowhere — the contract stated once, since the card cannot ask what kind of
+  # widget it is holding. `Base` cannot answer them because each means something
+  # different per pattern.
+  def test_base_declares_the_pattern_contract_without_answering_it
+    %i[count any? display_value].each do |contract|
+      assert_respond_to Bare.new, contract
+
+      error = assert_raises(NotImplementedError) { Bare.new.public_send(contract) }
+      assert_match(/must subclass one of/, error.message)
+      assert_match(/ValueBase/, error.message, "the message must name the patterns")
     end
   end
 
@@ -42,11 +56,14 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
     assert_respond_to Class.new(Bali::Widget::ListBase) { def self.key = "l" }.new, :items
   end
 
-  # A widget that is none of the five still gets a card: the shell falls back to
-  # `Value`, which needs only a count and a headline. A host's own `Base`
-  # subclass renders rather than raising, and it does not have to register
-  # anything for that to be true.
-  def test_a_widget_that_is_no_pattern_at_all_still_has_a_card
+  # A WIDGET THAT IS NONE OF THE FIVE FAILS BY NAME. THE PATTERN IS THE TYPE, so
+  # subclassing `Base` directly is not a supported thing — and it used to fail as
+  # a bare `NoMethodError` from inside the card, which told a host nothing.
+  #
+  # RENDERED, not merely constructed. The version of this test that only checked
+  # which card class was chosen stayed green through a refactor that broke the
+  # rendering outright, because the class is picked before anything is asked.
+  def test_a_widget_that_is_no_pattern_at_all_fails_by_name
     counted = Class.new(Bali::Widget::Base) do
       def self.key = "counted"
       title "Counted"
@@ -55,8 +72,11 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
       def count = 3
     end.new
 
-    assert_kind_of Bali::Widget::Value::Component,
-                   Bali::Widget::Component.new(counted).send(:card)
+    error = assert_raises(NotImplementedError) do
+      Bali::Widget::Card::Component.new(counted, size: :small).send(:display_value)
+    end
+
+    assert_match(/must subclass one of/, error.message)
   end
 
   # And each pattern reaches its own card, chosen from the widget's class rather

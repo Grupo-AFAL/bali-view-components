@@ -78,6 +78,8 @@ module Bali
         end
       end
 
+      private_constant :SeriesBuilder
+
       included do
         # `:line` for a trend, `:bar` for a breakdown — the including pattern says
         # which, and a widget overrides it with `s.type`.

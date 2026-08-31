@@ -22,11 +22,6 @@ module Bali
       # READERS stay: the patterns read them.
       ATTRIBUTE_OPTIONS = { instance_writer: false, instance_predicate: false }.freeze
 
-      # The `dup` in `declares` is SHALLOW, which suffices only because every
-      # builder setter ASSIGNS rather than mutates and none exposes a reader. Add
-      # an accumulating field, or a reader that hands out the ivar, and parent and
-      # child start sharing one object through the copy. See `patterns_test.rb`.
-
       # The canvas the widget is drawn around, and the fallback for a stored size
       # it no longer supports.
       class_attribute :_default_size, default: SIZES.first, **ATTRIBUTE_OPTIONS
@@ -68,11 +63,6 @@ module Bali
       class_attribute :_key, **ATTRIBUTE_OPTIONS
 
       class << self
-        # Deliberately does NOT check `_supported_sizes`: `ValueBase` ships with
-        # `[:small]`, so a widget widening it writes `default_size :medium` above
-        # `supports :small, :medium` and the check would reject a legitimate
-        # class. `supports` validates the pair instead, which makes the two
-        # ORDER-DEPENDENT — `supports` must come second.
         def default_size(name = nil)
           return validated_default_size if name.nil?
 
@@ -101,9 +91,12 @@ module Bali
         end
 
         # DEFINES A DECLARATION MACRO — `row`, `trend`, `goal`, `check`, `series`.
+        #
         # The `dup` is the part that matters: `class_attribute` copies on WRITE
         # and never on MUTATION, so without it two siblings overwrite each other's
-        # fields, last class body loaded winning.
+        # fields, last class body loaded winning. It is SHALLOW, which suffices
+        # only because every builder setter assigns rather than mutates and none
+        # exposes a reader — see `patterns_test.rb`.
         #
         # `build` is a block so a pattern can seed its builder from class state.
         def declares(name, hint:, &build)
@@ -113,11 +106,14 @@ module Bali
           define_singleton_method(name) do |&block|
             raise ArgumentError, "`#{name}` needs a block: `#{hint}`." unless block
 
-            builder = public_send(attribute)
-            public_send(:"#{attribute}=", builder&.dup || instance_exec(&build))
-            block.call(public_send(attribute))
+            builder = public_send(attribute)&.dup || instance_exec(&build)
+            public_send(:"#{attribute}=", builder)
+            block.call(builder)
           end
         end
+        # Plumbing, not part of the DSL a host writes. Receiverless calls from a
+        # class body still reach it, which is the only way it is ever used.
+        private :declares
 
         def view_all_path(&block) = self._view_all_path = block
 
@@ -244,6 +240,38 @@ module Bali
       # Where the tile links. On `Base` because a figure, a trend and a ring all
       # link somewhere just as a list does.
       def view_all_path = _view_all_path && instance_exec(&_view_all_path)
+
+      # ---- what a PATTERN answers ----------------------------------------------
+      #
+      # DECLARED HERE, IMPLEMENTED NOWHERE. The card asks every widget these three
+      # and cannot ask what kind it is holding, so the contract has to be stated
+      # once — but `Base` cannot answer them, because each means something
+      # different per pattern: `count` is rows for a list and a dollar sum for a
+      # figure. The same shape `Card::Component` uses for `headline`.
+      #
+      # A widget subclassing `Base` directly is not a supported thing: THE PATTERN
+      # IS THE TYPE, and these say so by name rather than through the
+      # `NoMethodError` a bare subclass used to raise from inside the card.
+
+      # HOW MANY, OR HOW MUCH — whatever this widget's headline counts.
+      def count
+        raise NotImplementedError, "#{self.class.name || 'This widget'} must subclass one of " \
+                                   "#{Bali::Widget::PATTERNS.join(', ')} — `count` comes from the pattern."
+      end
+
+      # HAS THIS WIDGET ANYTHING TO SAY? Drives the card's dimming, its empty
+      # state and its "view all" link. NOT `count.positive?`: `count` is a figure
+      # for some patterns, so a legitimate negative would read as "nothing here".
+      def any?
+        raise NotImplementedError, "#{self.class.name || 'This widget'} must subclass one of " \
+                                   "#{Bali::Widget::PATTERNS.join(', ')} — `any?` comes from the pattern."
+      end
+
+      # WHAT THE HEADLINE PRINTS.
+      def display_value
+        raise NotImplementedError, "#{self.class.name || 'This widget'} must subclass one of " \
+                                   "#{Bali::Widget::PATTERNS.join(', ')} — `display_value` comes from the pattern."
+      end
     end
   end
 end

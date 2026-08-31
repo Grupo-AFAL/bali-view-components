@@ -72,20 +72,24 @@ module Bali
         # one builder belongs to the class and serves every instance of it.
         def to_row(widget, record)
           Row.new(
-            title: resolve(widget, @title, record),
-            subtitle: resolve(widget, @subtitle, record),
-            href: resolve(widget, @href, record)
+            title: resolve_field(widget, @title, record),
+            subtitle: resolve_field(widget, @subtitle, record),
+            href: resolve_field(widget, @href, record)
           )
         end
 
         private
 
+        # NOT an override of `Builder#resolve` — a row resolves against a RECORD
+        # as well as the widget, so it takes a third argument and needs its own
+        # name rather than silently shadowing the shared one.
+        #
         # A SYMBOL is sent to the record; a BLOCK runs against the WIDGET with the
         # record yielded, so it can reach route helpers and private methods.
         #
         # A STRING is the value itself, matching every other builder — `r.subtitle
         # "In stock"` reads like the `title "Low stock items"` above it.
-        def resolve(widget, field, record)
+        def resolve_field(widget, field, record)
           case field
           when nil, String then field
           when Symbol then record.public_send(field)
@@ -151,8 +155,6 @@ module Bali
       # negative.
       def any? = count.positive?
 
-      # WHAT THE HEADLINE PRINTS. A ~215px tile at `text-4xl` fits four to six
-      # characters, so the count is abbreviated.
       def display_value = Bali::Widget.abbreviate(count)
 
       def items

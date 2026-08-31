@@ -27,12 +27,26 @@ module Bali
       # at `medium`, stacked at `large` — is here, because it is the same for
       # every type and getting it wrong is a layout bug rather than a data one.
       class Component < ApplicationViewComponent
+        # HOW MANY ROWS EACH CANVAS FITS — the only thing a size says that the size
+        # itself does not, and a MEASUREMENT against Bali's own type sizes:
+        #
+        #   small   a ~215px tile fits one fact and nothing else
+        #   medium  fact on the left, three rows or a sparkline on the right
+        #   large   fact in a header band, chart under it, seven rows below
+        #
+        # Truncation lives here rather than in the widget: the widget answers which
+        # rows matter, the card answers how many fit.
+        #
+        # Override per host through `Card::Component.rows_budget`, which is where
+        # it is read.
+        ROWS = { small: 0, medium: 3, large: 7 }.freeze
+
         # OVERRIDABLE, because a host with a larger base font or a denser theme
         # gets clipping and, as a frozen constant, no way to say so:
         #
         #   Bali::Widget::Card::Component.rows_budget =
-        #     Bali::Widget::Component::ROWS.merge(large: 5)
-        class_attribute :rows_budget, default: Bali::Widget::Component::ROWS
+        #     Bali::Widget::Card::Component::ROWS.merge(large: 5)
+        class_attribute :rows_budget, default: ROWS
         def initialize(widget, size:)
           @widget = widget
           @size = size
@@ -89,7 +103,15 @@ module Bali
         # kind of widget it is holding.
         def display_value = @display_value ||= widget.display_value
 
-        def any? = @any ||= widget.any?
+        # `defined?` rather than `||=`: `any?` exists to answer false sometimes,
+        # and `muted?`, `empty_state?` and `view_all_link?` all ask — so `||=`
+        # would re-invoke the widget three times on exactly the cards where the
+        # answer is interesting.
+        def any?
+          return @any if defined?(@any)
+
+          @any = widget.any?
+        end
 
         # A confident black zero and an all-clear zero look identical, so the
         # card dims the one that means nothing happened.
@@ -105,7 +127,6 @@ module Bali
         # wrapper is not free: stacked it takes `flex-1` and squeezes the chart
         # into two fifths of a canvas it could have had whole, and inline it is a
         # blank right-hand column.
-        #
         def detail? = detail_content.present? || empty_state?
 
         # THE ONE METHOD that has to know about more than one region. `context?`

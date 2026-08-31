@@ -10,20 +10,6 @@ module Bali
     # picker, `data-widget-key` — picks the card for the widget's pattern, and is
     # the ERROR BOUNDARY around it. The card itself draws the body.
     class Component < ApplicationViewComponent
-      # HOW MANY ROWS EACH CANVAS FITS — the only thing a size says that the size
-      # itself does not, and a MEASUREMENT against Bali's own type sizes:
-      #
-      #   small   a ~215px tile fits one fact and nothing else
-      #   medium  fact on the left, three rows or a sparkline on the right
-      #   large   fact in a header band, chart under it, seven rows below
-      #
-      # Truncation lives here rather than in the widget: the widget answers which
-      # rows matter, the card answers how many fit.
-      #
-      # Override per host through `Card::Component.rows_budget`, which is where
-      # it is read.
-      ROWS = { small: 0, medium: 3, large: 7 }.freeze
-
       # The `<time>` reads its own age, so it stays honest while a card sits
       # unrefreshed. A minute is as often as "12 minutes ago" can change.
       FRESHNESS_TICK = 60_000
@@ -65,18 +51,12 @@ module Bali
 
       attr_reader :widget, :size, :refresh_url, :rendered_at, :options
 
-      # THE SAME RULE `Placement` APPLIES, because a host can reach this
-      # constructor directly — `grid.with_widget(widget, size: :bogus)` — and a
+      # THROUGH `Placement`, which already owns this rule — a host can reach this
+      # constructor directly (`grid.with_widget(widget, size: :bogus)`), and a
       # size the widget does not support renders a radiogroup with no checked
-      # button and therefore no tab stop: a control nobody can reach by keyboard.
-      # Falling back is what a stored size that has since been retired already
-      # does, so an unknown one behaves the same way rather than differently.
-      def resolve_size(size, widget)
-        chosen = size&.to_sym
-        return chosen if widget.supported_sizes.include?(chosen)
-
-        widget.class.default_size
-      end
+      # button and so no tab stop: a control nobody can reach by keyboard.
+      # Restating the rule here is how the two drift apart.
+      def resolve_size(size, widget) = Bali::Widget::Placement.new(widget: widget, size: size).size
 
       # BOTH HALVES OR NEITHER. A widget that declares an interval on a page that
       # gave no URL cannot poll, and a URL alone has no interval to poll on.
@@ -86,15 +66,6 @@ module Bali
       # JS would put a unit conversion on the far side of a `data-` attribute.
       def refresh_interval = (widget.refresh_every * 1000).round
 
-      # HOW OLD THIS CARD IS, and it is present on every refreshing card rather
-      # than only on a stale one.
-      #
-      # A refresh that fails is silent by design — the card keeps showing the
-      # last good answer, which is still true, just older. That silence is right
-      # for a failure the user cannot act on, and wrong the moment the card
-      # starts CLAIMING to be current when it has stopped being so. This is the
-      # card refusing to make that claim.
-      #
       def dom_id = self.class.dom_id(key)
 
       # A radiogroup with one option is not a choice. A widget that offers a

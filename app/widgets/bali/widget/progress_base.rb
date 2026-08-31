@@ -103,8 +103,6 @@ module Bali
       # "view all" link, so it answers with what has been achieved.
       def count = @count ||= value.to_i
 
-      # WHAT THE HEADLINE PRINTS. A ~215px tile at `text-4xl` fits four to six
-      # characters, so the count is abbreviated.
       def display_value = Bali::Widget.abbreviate(count)
 
       # Non-zero, not positive — see `ValueBase#any?`.
@@ -117,7 +115,6 @@ module Bali
         goal_builder.check!(self.class)
         @goal = goal_builder.to_goal(self)
       end
-
 
       private
 

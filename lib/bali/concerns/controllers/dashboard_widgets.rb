@@ -131,9 +131,12 @@ module Bali
         # no route, no action and no controller of its own.
         #
         # `keys` PLURAL even though a card sends one, so batching several tiles
-        # into one tick stays a JS-only change. Each request does rebuild the
-        # whole offering — `#widgets` needs it for the defaults fallback — which
-        # is worth revisiting if a dashboard ever polls more than a few tiles.
+        # into one tick stays a JS-only change.
+        #
+        # Each request rebuilds the whole offering — `#widgets` needs it for the
+        # defaults fallback — so the cost is O(CATALOG), not O(tiles polled): a
+        # thirty-widget dashboard refreshing one tile still pays thirty
+        # `authorized?` calls, and `authorized?` may query.
         #
         # A KEY THAT RESOLVES TO NOTHING IS REMOVED, not merely skipped.
         # `authorized?` is asked again on every one of these requests, so a role
@@ -211,8 +214,6 @@ module Bali
           )
         end
 
-        # `instance_exec` rather than `call`, so a proc catalog reads like the
-        # rest of a controller.
         def widget_store
           @widget_store ||= Bali::DashboardWidget::Store.new(
             owner: widget_owner, context: widget_context,

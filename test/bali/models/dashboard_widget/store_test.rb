@@ -147,6 +147,34 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal [ "large" ], store.widgets.map { |placement| placement.size.to_s }
   end
 
+  # A STORE BUILT WITHOUT THE CONCERN STILL REFUSES A COLLISION. This class is a
+  # documented standalone API, and when the key check lived only in the
+  # `dashboard_widgets` macro a host skipping it got none: `arrange` wrote one
+  # row for the shared key and `#widgets` served one widget's data under the
+  # other's stored rows, silently.
+  def test_a_store_refuses_an_offering_where_two_classes_share_a_key
+    first = Class.new(Bali::Widget::ValueBase) { def self.name = "Reports::Overdue"; value { 111 } }
+    second = Class.new(Bali::Widget::ValueBase) { def self.name = "Tasks::Overdue"; value { 222 } }
+
+    error = assert_raises(Bali::Widget::DuplicateKey) do
+      Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                       offering: [ first.new, second.new ])
+    end
+
+    assert_match(/Reports::Overdue, Tasks::Overdue/, error.message)
+  end
+
+  # And the same CLASS twice is not a collision. Only two distinct classes
+  # deriving one key is the data-integrity bug; a repeated widget is an ordinary
+  # submission, which `arrange` dedupes on write.
+  def test_a_store_accepts_the_same_widget_class_twice
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, ALPHA.new ])
+    store.arrange([ { key: "alpha" }, { key: "alpha" } ])
+
+    assert_equal [ "alpha" ], store.stored_keys
+  end
+
   # `choose` gates on its own too, not only `arrange`. A picker submits
   # membership rather than a layout, so it reaches a different method and would
   # otherwise be an unguarded second door into the same table.

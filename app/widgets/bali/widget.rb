@@ -38,6 +38,11 @@ module Bali
     # falls back to the widget's default for a name it does not recognise.
     SIZES = %i[small medium large].freeze
 
+    # THE PATTERN IS THE TYPE. Named here so `Base` can say so when a widget
+    # subclasses it directly and the card then asks a question only a pattern
+    # can answer.
+    PATTERNS = %w[ValueBase ListBase TrendBase ProgressBase CheckBase].freeze
+
     # Largest first, so `find` returns the biggest unit that applies.
     ABBREVIATIONS = [ [ 1_000_000_000, "B" ], [ 1_000_000, "M" ], [ 1_000, "k" ] ].freeze
 
@@ -101,10 +106,12 @@ module Bali
         classes.each(&:default_size)
       end
 
-      def check_keys!(classes)
-        clashing = classes.group_by { |klass| klass.key }
-                          .select { |_, group| group.uniq.many? }
-                          .keys
+      # TAKES CLASSES OR INSTANCES, because both callers are real: the
+      # `dashboard_widgets` macro has classes, and `Store` — which a host may
+      # construct on its own, without the concern — has an offering of instances.
+      def check_keys!(widgets)
+        classes = widgets.map { |widget| widget.is_a?(Class) ? widget : widget.class }
+        clashing = classes.group_by(&:key).select { |_, group| group.uniq.many? }.keys
         raise DuplicateKey.new(clashing, classes) if clashing.any?
       end
     end

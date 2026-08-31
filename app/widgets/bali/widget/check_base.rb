@@ -108,8 +108,6 @@ module Bali
       # absence — only `nil` is nothing.
       def any? = !passing?.nil?
 
-
-
       private
 
       def check_builder

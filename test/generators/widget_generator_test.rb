@@ -113,7 +113,7 @@ class BaliWidgetGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  # `default_size` is validated at class-definition time so a typo is a boot
+  # the generator validates the pair before writing the file so a typo is a boot
   # failure. The generator refuses earlier still — nothing is written at all.
   def test_refuses_a_size_that_is_not_in_the_vocabulary
     run_generator %w[LowStockItems --size enormous]

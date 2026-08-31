@@ -32,12 +32,11 @@ class CreateBaliDashboardWidgets < ActiveRecord::Migration[7.0]
       # Nullable on purpose: "no opinion", so the widget renders at the size it
       # was drawn around. A row predating a resize still renders. Limited to
       # 32 rather than left at Postgres's default 255: `Bali::Widget::SIZES`
-      # names are short, `with_size` already ignores anything it doesn't
-      # recognize, and the cap only guards against an authenticated user
-      # inflating their own rows, so it can afford to be generous rather than
-      # exact. Real only on an adapter that enforces column length — SQLite's
-      # type affinity ignores it entirely, so this is a Postgres/MySQL-only
-      # guard, same caveat as the locking limits below.
+      # names are short, `Bali::Widget::Placement` resolves a name it does not
+      # recognise back to the widget's default, and the cap only guards against
+      # an authenticated user inflating their own rows — so it can afford to be
+      # generous rather than exact. Real only on an adapter that enforces column
+      # length: SQLite's type affinity ignores it entirely.
       t.string :size, limit: 32
 
       t.timestamps
