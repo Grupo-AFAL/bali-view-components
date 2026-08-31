@@ -22,21 +22,10 @@ module Bali
       # READERS stay: the patterns read them.
       ATTRIBUTE_OPTIONS = { instance_writer: false, instance_predicate: false }.freeze
 
-      # THE BUILDER CONTRACT, relied on by every `list`/`row`/`series`/`trend`/
-      # `goal` declaration and restated by none of them:
-      #
-      #   1. A builder is `dup`ed before it is written to. `class_attribute`
-      #      copies on WRITE and never on MUTATION, so without the dup two
-      #      siblings overwrite each other's fields — last class body loaded
-      #      winning, presenting as "widget B shows widget A's title" and varying
-      #      with autoload order.
-      #
-      #   2. That `dup` is SHALLOW, which suffices only because every setter
-      #      ASSIGNS rather than mutates and no builder exposes a reader. Add an
-      #      accumulating field or a reader that hands out the ivar and parent and
-      #      child start sharing one object through the copy.
-      #
-      # `test/bali/widget/patterns_test.rb` pins (1) for all four builders.
+      # The `dup` in `declares` is SHALLOW, which suffices only because every
+      # builder setter ASSIGNS rather than mutates and none exposes a reader. Add
+      # an accumulating field, or a reader that hands out the ivar, and parent and
+      # child start sharing one object through the copy. See `patterns_test.rb`.
 
       # The canvas the widget is drawn around, and the fallback for a stored size
       # it no longer supports.
@@ -112,15 +101,11 @@ module Bali
         end
 
         # DEFINES A DECLARATION MACRO — `row`, `trend`, `goal`, `check`, `series`.
-        # Each was five identical lines in five files, and the `dup` in the
-        # middle is the part that matters: `class_attribute` copies on WRITE and
-        # never on MUTATION, so without it a subclass is handed its PARENT's
-        # builder and two siblings overwrite each other's fields, last class body
-        # loaded winning. That presents as "widget B shows widget A's title" and
-        # varies with autoload order.
+        # The `dup` is the part that matters: `class_attribute` copies on WRITE
+        # and never on MUTATION, so without it two siblings overwrite each other's
+        # fields, last class body loaded winning.
         #
-        # `build` is a block so a pattern can seed its builder from class state —
-        # `Charted` passes its `_default_series_type`.
+        # `build` is a block so a pattern can seed its builder from class state.
         def declares(name, hint:, &build)
           attribute = :"_#{name}_builder"
           class_attribute attribute, **ATTRIBUTE_OPTIONS

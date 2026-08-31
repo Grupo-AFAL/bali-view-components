@@ -72,9 +72,9 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     siblings = send(:sibling_constants, preview)
 
     assert_includes siblings, "Component", "app/components/bali/widget/component.rb"
-    assert_includes siblings, "Base", "app/lib/bali/widget/base.rb"
-    assert_includes siblings, "ListBase", "app/lib/bali/widget/list_base.rb"
-    assert_includes siblings, "TrendBase", "app/lib/bali/widget/trend_base.rb"
+    assert_includes siblings, "Base", "app/widgets/bali/widget/base.rb"
+    assert_includes siblings, "ListBase", "app/widgets/bali/widget/list_base.rb"
+    assert_includes siblings, "TrendBase", "app/widgets/bali/widget/trend_base.rb"
   end
 
   private
@@ -87,13 +87,19 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
   # archivo o un directorio hermano de `preview.rb`.
   def sibling_constants(preview_path)
     dir = File.dirname(preview_path)
-    # El namespace de un componente puede abarcar DOS raíces de autoload: `app/components`
-    # y `app/lib`. `Bali::Widget::Component` vive en la primera y `Bali::Widget::Base`,
-    # `Result` y `Row` en la segunda — Zeitwerk las define todas dentro del MISMO módulo,
-    # así que son hermanas por igual y el bug de #843 les aplica por igual. Mirar solo el
-    # directorio del preview dejaba ciegas a las de `app/lib`: un `Result.new` pelado ahí
+    # El namespace de un componente puede abarcar VARIAS raíces de autoload:
+    # `Bali::Widget::Component` vive en `app/components` y `Bali::Widget::Base` en
+    # `app/widgets`. Zeitwerk las define todas dentro del MISMO módulo, así que son
+    # hermanas por igual y el bug de #843 les aplica por igual. Mirar solo el
+    # directorio del preview dejaba ciegas a las demás: una constante pelada ahí
     # pasaba el guard y reventaba en la request.
-    dirs = [ dir, Bali::Engine.root.join("app/lib/bali", File.basename(dir)).to_s ]
+    #
+    # DERIVADO de `eager_load_paths`, no una copia suya: cuando `app/lib/bali/widget`
+    # se mudó a `app/widgets/bali/widget`, una lista escrita a mano aquí habría
+    # seguido pasando mientras el guard miraba un directorio que ya no existe.
+    dirs = [ dir ] + Bali::Engine.config.eager_load_paths.map { |root|
+      File.join(root.to_s, "bali", File.basename(dir))
+    }
 
     # Un directorio sin `.rb` adentro (`previews/`, `svg/`) no es un namespace para Zeitwerk.
     basenames = dirs.flat_map do |d|
