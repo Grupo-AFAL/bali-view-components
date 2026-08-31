@@ -36,9 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   see which widget is your rule — roles, tenancy and feature flags are things only your app can
   see — so Bali ships the hook and never the rule. It is named for what it decides: whether a
   widget may be **persisted, offered and rendered at all**, not merely whether it is on screen.
-  `Store`, `Layout.from`, `Layout.chosen` and `Store#arrange` each gate the `offering:` they are
-  handed rather than trusting it to arrive gated, so a host that never calls `authorized_for`
-  cannot widen the boundary. It may query — the dummy app's `ActiveStudios` runs one `EXISTS` —
+  The `Store` constructor, `#arrange` and `#choose` each gate the `offering:` they are handed
+  rather than trusting it to arrive gated, so a host that never calls `authorized_for` cannot
+  widen the boundary — and `Store` refuses an offering in which two widget classes derive the
+  same key. It may query — the dummy app's `ActiveStudios` runs one `EXISTS` —
   but it must not run the widget's own data queries, which is what lets a picker list thirty
   widgets without loading thirty widgets.
 - **Widgets declare which sizes a user may choose.** `supports :small, :medium` alongside
@@ -62,9 +63,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   --pattern list --size medium` scaffolds that pattern's methods and the four locale keys in
   every locale your app has — `widgets.<key>.{title,short_title,description,empty}` is easy
   to forget one of, and `description` only ever shows in a picker.
-  **`Bali::Widget::Layout.from(params, offering:)` ships the security boundary** that was a
-  dozen lines of param filtering every host copied out of the guide.
-  `Bali::Widget::Component.regions` is overridable, because the row budgets are pixel
+  **`Bali::Concerns::Controllers::DashboardWidgets` ships the whole controller** — six actions,
+  three seams and default templates for the grid and the picker — so the param filtering every
+  host used to copy out of the guide is gone: `Store#arrange` takes
+  `params.expect(widgets: [[:key, :size]])` and resolves the keys itself.
+  `Bali::Widget::Card::Component.rows_budget` is overridable, because the row budgets are pixel
   measurements against Bali's own type sizes and a host with a larger base font could not say
   so. Because the superclass slot belongs to the pattern, shared behaviour goes in a concern
   rather than an `ApplicationWidget` — see `docs/guides/engine-models.md`, and
@@ -90,10 +93,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`default_size`, `supports`, `authorized?`, the copy macros);
   `Bali::DashboardWidget::Store` reads and writes the
   arrangement to the new `bali_dashboard_widgets` table, keyed by owner, tenant context and
-  dashboard — and a host may swap in its own object implementing the same contract
-  instead; `Bali::WidgetGrid::Component` renders it. Bali ships no
-  controller and no routes — a host builds the already-authorized `offering:` and routes
-  its own PATCH endpoint. Install the table with
+  dashboard — and a host may swap in its own object implementing the same contract, held to
+  it by `Bali::Testing::StoreContract`; `Bali::WidgetGrid::Component` renders it.
+  `Bali::Widget::Placement` is a widget AT A SIZE, because size is a per-owner arrangement
+  fact rather than a property of the widget — the same class is `small` for one person and
+  `large` for another.
+
+  **`Bali::Concerns::Controllers::DashboardWidgets` is the whole controller.** Include it,
+  name a catalog, say who owns the rows, and six actions are wired — the grid, the picker, and
+  the four writes behind them — with default templates for the two pages, which a host
+  overrides by creating its own. Three route lines and no ERB required. `Store#adopt` backs a
+  "Personalise" button: it writes the defaults an owner is already being shown, so the
+  arrangement stops being a fallback and becomes something they can drag.
+  `Bali::Testing::WidgetCatalog` asserts every widget class is on some dashboard, since a
+  catalog is authored rather than discovered — its ORDER is the default layout.
+
+  **`refresh_every 30.seconds` keeps a card current.** The card asks the server for itself on
+  that interval and swaps in the turbo-stream that comes back — one URL for every widget, and
+  the card returns at the size that owner stored. A hidden tab, edit mode, an in-flight
+  request or focus inside the card all defer a tick rather than cancelling it. A failed
+  refresh is silent, because it loses nothing — **but a card that has stopped refreshing stops
+  claiming to be current**: every refreshing card carries a `<time>`, hidden while healthy and
+  revealed after two consecutive failures. There is deliberately no "auto-refreshes every 30s"
+  label; the useful signal is that it has stopped.
+
+  Install the table with
   `bin/rails bali:install:migrations:dashboard_widgets`; see
   [`docs/guides/engine-models.md`](docs/guides/engine-models.md#dashboard-widgets-bali_dashboard_widgets)
   for the widget contract, the write-path security boundary, and `Store`'s method table.
