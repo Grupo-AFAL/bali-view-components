@@ -90,6 +90,18 @@ module Bali
         seconds time_24hr default_date min_time max_time
       ].freeze
 
+      # The non-model escape hatch of #547: the name and id Rails derives from the
+      # form object are the wrong ones when there is no object to derive them from.
+      # Reserved, because Bali reads them itself — until #1111 they were absent from
+      # this list and honoured by three families only (`select_group`,
+      # `slim_select_group` and `block_editor_group`). Everywhere else the key fell
+      # through to Rails, which forwards what it does not recognise: `file_group
+      # :file, input_name: "import[file]"` painted `input_name="import[file]"` on the
+      # input, left the name Rails had derived, and the POST hit
+      # `params.require(:import)` and 400'd.
+      # `test/bali/form_builder/input_name_option_test.rb` is the list now.
+      NON_MODEL_OPTIONS = %i[input_name input_id].freeze
+
       # The canonical list: every option Bali reads itself. None of them is a
       # valid HTML attribute, and Rails' tag helpers forward whatever they do not
       # recognise straight onto the element — so they all have to be gone before
@@ -99,7 +111,9 @@ module Bali
       # keys a single family reuses under a different meaning (`size` and `color`
       # are daisyUI variants for a checkbox but real attributes on a text input);
       # those are stripped next to the helper that gives them that meaning.
-      RESERVED_OPTIONS = (WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS).freeze
+      RESERVED_OPTIONS = (
+        WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS + NON_MODEL_OPTIONS
+      ).freeze
 
       # Attributes that only mean something on a native form control, dropped by
       # the families that render something else. Both reached them because both
@@ -121,6 +135,33 @@ module Bali
       # rows are as meaningless there as a validation bubble.
       CONTROL_ONLY_OPTIONS = %i[required size].freeze
 
+      # Keys that read like a Bali option, are not one, and are not valid HTML
+      # attributes either — so Rails forwarded them onto the element and the thing
+      # the call site asked for never happened. Both are measured in #1111.
+      #
+      # `hint:` is the one Bali itself invited: the docs call the paragraph under a
+      # control a "hint" while the option that renders it is `help:`. On the families
+      # that build the element's attributes out of the same hash it painted
+      # `hint="Formato CSV…"` on the element; on the four that take a second `html:`
+      # hash — the three selects and `radio_group` — it was dropped without a trace.
+      # Either way the help text was invisible and nothing said so.
+      #
+      # `input_options:` is v2 muscle memory for "attributes for the element".
+      # `file_group :file, input_options: { name: "import[file]" }` emitted
+      # `name="file"`, so `params.require(:import)` 400'd and Turbo swallowed the
+      # response — a CSV upload screen that did nothing, for weeks, with a green suite.
+      #
+      # Warned rather than raised, the way #1092 settled it for the editor's moved
+      # kwargs: the call site is already broken, and a raise turns a wrong help text
+      # into a 500 on upgrade.
+      MISTAKEN_OPTIONS = {
+        hint: "the help text under a control is `help:`",
+        input_options: "attributes for the element are the options themselves, or `html:` " \
+                       "on the select, slim_select, time_zone_select and radio families; " \
+                       "to override the name or id Rails derives from the form object, " \
+                       "`input_name:` / `input_id:`"
+      }.freeze
+
       # The single extraction point. Everything that delegates to Rails goes
       # through here, so no module needs its own `delete`/`except` for the keys
       # above, and none of them can drift out of sync with this list.
@@ -129,7 +170,8 @@ module Bali
       # reusing one options hash across two fields leaks the first field's
       # classes and Stimulus actions into the second.
       def html_attributes(options)
-        options.except(*RESERVED_OPTIONS)
+        warn_mistaken_options(options)
+        options.except(*RESERVED_OPTIONS, *MISTAKEN_OPTIONS.keys)
       end
 
       # `html_attributes` for a family that renders a widget rather than a
@@ -281,6 +323,7 @@ module Bali
         )
 
         counter_attributes(attributes) if char_counter?(options)
+        apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes, method, options)
       end
@@ -294,6 +337,7 @@ module Bali
         )
 
         counter_attributes(attributes) if stimulus_counter?(options)
+        apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes, method, options)
       end
@@ -301,13 +345,34 @@ module Bali
       # Escape hatch for non-model forms (issue #547): `input_name:` / `input_id:`
       # in the options hash override the name/id Rails derives from the form
       # object. Explicit `name:` / `id:` in html_options still win.
+      #
+      # Called by every family whose control is a native named input. Before #1111 it
+      # had two callers — `select_field` and `slim_select_field` — which is what made
+      # the option a trap everywhere else; see NON_MODEL_OPTIONS. The families that
+      # do NOT call it are named, with the reason each cannot, in
+      # `test/bali/form_builder/input_name_option_test.rb`.
+      #
+      # Plain `name:` and `id:` are promoted the same way, which only does anything
+      # on the families that take a second `html:` hash. On the other ten the two
+      # hashes are one, so `html_attributes` has already put both on the element and
+      # the `||=` is a no-op. On the select three it was a real hole: a top-level
+      # `name:` was handed to Rails' `select` as a field option, which does not read
+      # it, and vanished — and a top-level `id:` vanished the same way while
+      # `control_id` went on pointing the caption's `for` at it, so the `<label for>`
+      # named an element that was not in the document and the control had no
+      # accessible name at all. Measured on `select_group`, `slim_select_group` and
+      # `time_zone_select_group` (#1111).
       def apply_input_name_options(options, html_options)
-        html_options[:name] ||= options[:input_name] if options[:input_name]
-        html_options[:id] ||= options[:input_id] if options[:input_id]
+        name = options[:input_name] || options[:name]
+        id = options[:input_id] || options[:id]
+
+        html_options[:name] ||= name if name
+        html_options[:id] ||= id if id
         html_options
       end
 
       def field_helper(method, field, options = {})
+        warn_mistaken_options(options)
         messages = error_and_help(method, options)
 
         left_addon = options[:addon_left]
@@ -427,6 +492,32 @@ module Bali
       end
 
       private
+
+      # Two funnels, because a mistaken key can be in either hash a helper takes:
+      # `html_attributes` sees the one on its way to the element (where `hint="…"`
+      # was landing), `field_helper` sees the group's own — which is the only one
+      # `radio_group` and the three select families ever put it in. The families
+      # that reach neither call this directly; `block_editor_field` is the one.
+      #
+      # One warning per key per builder, not per field: a form repeating the same
+      # typo on six inputs has one thing wrong with it, and six identical lines is
+      # how a log gets skimmed. The guard is also what keeps a single field going
+      # through both funnels from warning twice.
+      def warn_mistaken_options(options)
+        return unless options.is_a?(Hash)
+
+        @warned_mistaken_options ||= []
+
+        MISTAKEN_OPTIONS.each do |key, correction|
+          next unless options.key?(key)
+          next if @warned_mistaken_options.include?(key)
+
+          @warned_mistaken_options << key
+          Bali.deprecator.warn(
+            "Bali::FormBuilder: `#{key}:` is not an option, so it was ignored — #{correction}."
+          )
+        end
+      end
 
       # The `data` of the `.control` div. It is the caller's own `control_data:`
       # until a counter or auto-grow is asked for, and then it is also where the

@@ -58,7 +58,16 @@ module Bali
       ).freeze
 
       def block_editor_field(method, **options)
-        opts = options.except(*FIELD_GROUP_OPTIONS, :format, :input_name)
+        # This family never reaches `html_attributes`, so it needs its own call to
+        # the guard: the component forwards anything it does not recognise onto its
+        # wrapper div, which is where `hint="…"` was landing (#1111).
+        warn_mistaken_options(options)
+        # `input_id:` is stripped and not honoured: the hidden input's id is the
+        # component's own, derived alongside the editor's container id, and a
+        # `<legend>` caption (`control_id: false`) points at nothing to keep honest.
+        opts = options.except(*FIELD_GROUP_OPTIONS, :format,
+                              *HtmlUtils::NON_MODEL_OPTIONS,
+                              *HtmlUtils::MISTAKEN_OPTIONS.keys)
         format = (options[:format] || DEFAULT_RICH_TEXT_FORMAT).to_sym
 
         component_options = opts.merge(

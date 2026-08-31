@@ -528,7 +528,7 @@ Highlighting on is worth it for documentation-style content; for a description f
 | `f.rich_text_group` / `f.rich_text` | `:simple` | `:markdown` | Description and note fields: bold/italic/lists over a plain text column |
 | `f.block_editor_group` / `f.block_editor` | `:full` | `:markdown` | Full block editing; pass `format: :json` for BlockNote's native document JSON |
 
-The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint, errors); the bare variants render just the editor. Both derive `input_name` from the attribute and read the current value from the model through the prop matching `format:`, so no `markdown_content:` / `html_content:` / `initial_content:` is needed at the call site. Any other option is forwarded to `Bali::BlockEditor::Component`.
+The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, `help:` text, errors); the bare variants render just the editor. Both derive `input_name` from the attribute and read the current value from the model through the prop matching `format:`, so no `markdown_content:` / `html_content:` / `initial_content:` is needed at the call site. Any other option is forwarded to `Bali::BlockEditor::Component`.
 
 > **Not to be confused with `f.rich_text_area_group`.** That one is the ActionText/Trix helper and has nothing to do with this component -- different editor, different storage, different dependencies. The name similarity is unfortunate; check which one you are calling.
 
@@ -938,6 +938,7 @@ Comments are configured through a single `comments:` **Hash**:
 | `users_url` | `String` | Remote endpoint for user resolution |
 | `url` | `String` or `:auto` | REST API base URL for persistent thread storage (in-memory when omitted). `:auto` points at the engine's own endpoints and requires `commentable:` |
 | `commentable` | Active Record | The host record the threads belong to. Only read when `url: :auto` |
+| `sidebar` | `:interactive` / `:read_only` | Whether the threads panel carries its own reply box, reaction button and per-comment actions. Default `:interactive` |
 
 > **Comments are on only when `comments:` is a non-empty Hash.** `comments: true` and `comments: {}` both leave them off, silently -- a truthy non-Hash is not a configuration. There is no separate `comments_user:` / `comments_url:` / `comments_users:` / `comments_users_url:` argument: passing those at the top level does not configure anything, they fall through to `**options` and end up as HTML attributes on the wrapper `div`.
 
@@ -996,9 +997,33 @@ end
 
 1. **Creating a comment**: Select text in the editor and click the comment button in the formatting toolbar. A floating composer appears to write the initial comment.
 2. **Viewing threads**: Click on highlighted (commented) text to see the thread in a floating popover. The threads sidebar on the right shows all comment threads.
-3. **Replying**: Click a thread to expand it and add replies.
+3. **Replying**: Click a thread to expand it and add replies -- from the floating popover at the anchor, or from the card in the threads sidebar.
 4. **Resolving**: Mark threads as resolved when the discussion is complete. Resolved threads are dimmed in the sidebar.
 5. **Reactions**: Add emoji reactions to individual comments.
+
+#### A read-only threads panel
+
+`sidebar: :read_only` turns the panel into a list you read: threads still render,
+resolved state still shows, and the reply box, the reaction button and the
+per-comment action menu are hidden there. Writing then happens at the anchor, in
+the floating popover.
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+  title: @document.title,
+  initial_content: @document.content,
+  document_url: document_path(@document),
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash,
+                        sidebar: :read_only } }
+) %>
+```
+
+> Until v3.1 this was the only behaviour, and it was not a choice -- three CSS rules
+> hid all three controls in every sidebar while the paragraph above promised replies
+> and reactions from the panel. The case that made it a defect rather than a
+> preference: a thread whose anchor had been deleted ("Contenido original eliminado")
+> has no popover to open, so with the panel inert there was no way to answer it at
+> all (#1111).
 
 ### Storage
 

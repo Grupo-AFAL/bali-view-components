@@ -126,6 +126,7 @@
     <%# Right: Comments Panel %>
     <% if comments? %>
       <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden"
+           data-comments-sidebar="<%= comments_sidebar_read_only? ? 'read-only' : 'interactive' %>"
            data-document-editor-target="commentsPanel">
         <div class="p-4">
           <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3"><%= t('.comments') %></h3>

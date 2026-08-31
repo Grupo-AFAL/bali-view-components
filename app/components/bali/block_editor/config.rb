@@ -115,6 +115,40 @@ module Bali
         )
       end
 
+      SIDEBARS = %i[interactive read_only].freeze
+
+      # Whether the threads sidebar carries its own reply box, reaction button and
+      # per-comment actions, or is a list you read. Read by CSS through a data
+      # attribute the two components put on the sidebar's container.
+      #
+      # Interactive is the default and, until #1111, was the documented behaviour
+      # that the CSS denied: three `display: none !important` rules hid all three
+      # controls in every sidebar, while ninety lines further down the same file
+      # styled the reply box as if it were visible. A thread whose anchor had been
+      # deleted was then unreachable — the floating composer opens from the anchor,
+      # and there was no anchor left — so the only way to answer it was gone.
+      #
+      # `sidebar: :read_only` is that behaviour, kept for a host that wants the
+      # panel to be a record rather than a place to write: threads still render,
+      # resolved state still shows, and the writing happens at the anchor.
+      #
+      # Raises on an unknown mode rather than falling back, the way `size_variant`
+      # does: a typo that silently means "interactive" is how the sidebar got here.
+      def comments_sidebar
+        return :interactive unless comments.is_a?(Hash)
+
+        value = (comments.symbolize_keys[:sidebar] || :interactive).to_sym
+        return value if SIDEBARS.include?(value)
+
+        raise ArgumentError,
+              "comments: { sidebar: #{value.inspect} } is not a sidebar mode. " \
+              "Valid: #{SIDEBARS.map(&:inspect).join(', ')}."
+      end
+
+      def comments_sidebar_read_only?
+        comments_sidebar == :read_only
+      end
+
       def to_h
         ATTRIBUTES.index_with { |name| public_send(name) }
       end

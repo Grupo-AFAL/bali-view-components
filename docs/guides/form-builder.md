@@ -325,10 +325,17 @@ hash** only, so a `help:` written next to `label:` — where every single-hash
 field type reads it — reached the wrapper and never reached the paragraph. It
 disappeared with no error and no warning.
 
+`name:` and `id:` reach the `<select>` from either hash. `html:` is the more
+specific one and wins; a top-level one is promoted, which is what the other ten
+families have always done. Before v3.1 a top-level `name:` was silently dropped,
+and a top-level `id:` was dropped while the caption's `for` went on pointing at it
+— a `<label for>` naming an element that was not in the document, so the control
+had no accessible name at all (#1111).
+
 **Non-model forms** (`form_with url:` without a model): pass `input_name:` /
-`input_id:` to namespace the rendered `<select>` under a param key. Also
-supported by `slim_select_group`. An explicit `name:`/`id:` in `html:` still
-wins.
+`input_id:` to namespace the rendered control under a param key. See
+[Non-model forms](#non-model-forms) — it works on every field type, not just the
+selects. An explicit `name:`/`id:` in `html:` still wins.
 
 ```erb
 <%= f.select_group :approver_id, approvers, input_name: "thing[approver_id]" %>
@@ -573,7 +580,12 @@ the button row and the radio lists it switches between.
 ```erb
 <%= f.file_group :avatar %>
 <%= f.file_group :documents, multiple: true %>
+<%= f.file_group :file, help: "CSV con columnas: nombre, correo, área" %>
 ```
+
+The text under the control is `help:`. See
+[Non-model forms](#non-model-forms) for `input_name:`, which is what names the input on a
+form with no model behind it.
 
 ### direct_upload_group
 
@@ -896,6 +908,56 @@ unsubmittable, so those families need a model validation instead of the attribut
 The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
 declares every family in one of the two camps and fails when a new family lands in
 neither.
+
+### Non-model forms
+
+`form_with url: ..., scope: :import` builds a form with no object behind it, so there is
+nothing for Rails to derive a control's `name` and `id` from. `input_name:` /
+`input_id:` are the escape hatch, one field at a time:
+
+```erb
+<%= form_with url: imports_path, scope: :import do |f| %>
+  <%= f.error_summary %>
+  <%= f.file_group :file, input_name: "import[file]", accept: ".csv",
+        help: "CSV con columnas: nombre, correo, área" %>
+<% end %>
+<%# => <input type="file" name="import[file]" accept=".csv"> — params.require(:import) works %>
+```
+
+Both are honoured by every family whose control is a native named input, and by the
+three families whose control is a widget over a hidden field — the hidden field is what
+the form submits, so that is what gets renamed. An explicit `name:` / `id:` still wins
+over either.
+
+Four families take `input_name:` and not `input_id:`, because they have no single id to
+give: `radio_group` (Rails suffixes each button's id with its own value),
+`block_editor_group` / `rich_text_group` (the hidden input's id is the component's own),
+and `coordinates_polygon_group` / `time_period_group` (a hidden input is not labelable).
+`submit_*`, `radio_buttons_group`, `direct_upload_group`,
+`recurrent_event_rule_group` and `dynamic_fields_group` take neither, for want of one
+control to rename.
+
+The authoritative list lives in `test/bali/form_builder/input_name_option_test.rb`, which
+declares every family in one of the two camps and fails when a new family lands in
+neither.
+
+> Before v3.1 the pair was read by the select families only. Everywhere else it fell
+> through to Rails, which forwards what it does not recognise — the input came out
+> carrying `input_name="import[file]"` as a literal HTML attribute while still submitting
+> under the name Rails had derived, so `params.require(:import)` raised a 400 that Turbo
+> swallowed and the screen sat there unchanged (#1111).
+
+`error_summary` works on these forms too: it renders nothing rather than raising when
+there is no object, so it can sit at the top of the form unconditionally and show
+whatever `error:` the fields were given.
+
+### `hint:` is not an option — the help text is `help:`
+
+There is no `hint:`. It is not a Bali option and not a valid HTML attribute either, so
+until v3.1 it was forwarded onto the element (`<input hint="Formato CSV…">`) and the
+text appeared nowhere on screen. It now warns through `Bali.deprecator` and is dropped.
+Same for `input_options:`, which is v2 muscle memory for "attributes for the element":
+those are the options themselves, or `html:` on the families that take two hashes.
 
 ### Density (`size:`)
 

@@ -597,4 +597,26 @@ class BaliBlockEditorComponentTest < ComponentTestCase
   def react_translations
     JSON.parse(page.find("[data-block-editor-translations-value]", visible: :all)["data-block-editor-translations-value"])
   end
+
+  # The inline sidebar renders inside `.block-editor-component`, so that is where
+  # the flag the CSS reads has to be. See #1111 and `Config#comments_sidebar`.
+  def test_the_threads_sidebar_flag_is_absent_when_it_is_interactive
+    render_inline(Bali::BlockEditor::Component.new(config: { comments: { url: "/c" } }))
+
+    assert_no_selector(".block-editor-component[data-comments-sidebar]")
+  end
+
+  def test_the_threads_sidebar_flag_lands_on_the_root_when_read_only_is_asked_for
+    render_inline(
+      Bali::BlockEditor::Component.new(config: { comments: { url: "/c", sidebar: :read_only } })
+    )
+
+    assert_selector(".block-editor-component[data-comments-sidebar='read-only']")
+  end
+
+  def test_an_unknown_sidebar_mode_raises_at_the_call_site
+    assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(config: { comments: { sidebar: :nope } })
+    end
+  end
 end

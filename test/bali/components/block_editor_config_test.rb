@@ -61,6 +61,37 @@ class BaliBlockEditorConfigTest < ComponentTestCase
     assert_same config, config.merge({})
   end
 
+  # The threads sidebar was read-only by CSS and by nothing else: three
+  # `display: none !important` rules against a docs page that promised replies and
+  # reactions from the panel, and a `.bn-thread-composer` styled ninety lines below
+  # as though it were visible. Interactive is the default; read-only is a mode a
+  # host asks for by name (#1111).
+  def test_the_threads_sidebar_is_interactive_unless_asked_otherwise
+    assert_equal :interactive, Config.new.comments_sidebar
+    assert_equal :interactive, Config.new(comments: { url: "/c" }).comments_sidebar
+    refute_predicate Config.new(comments: { url: "/c" }), :comments_sidebar_read_only?
+  end
+
+  def test_read_only_is_a_mode_the_host_can_ask_for
+    config = Config.new(comments: { url: "/c", sidebar: :read_only })
+
+    assert_equal :read_only, config.comments_sidebar
+    assert_predicate config, :comments_sidebar_read_only?
+  end
+
+  def test_the_mode_reads_a_string_key_too
+    assert_predicate Config.wrap(comments: { "sidebar" => "read_only" }), :comments_sidebar_read_only?
+  end
+
+  def test_an_unknown_mode_names_itself_instead_of_falling_back
+    error = assert_raises(ArgumentError) do
+      Config.new(comments: { sidebar: :readonly }).comments_sidebar
+    end
+
+    assert_match(/sidebar: :readonly.*is not a sidebar mode/, error.message)
+    assert_match(/:interactive, :read_only/, error.message)
+  end
+
   def test_two_configs_with_the_same_attributes_are_equal
     assert_equal Config.new(ai_url: "/ai"), Config.new(ai_url: "/ai")
     refute_equal Config.new(ai_url: "/ai"), Config.new(ai_url: "/other")

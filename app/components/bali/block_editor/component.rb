@@ -149,6 +149,9 @@ module Bali
         # -1 stands for "not configured": 0 is a real value that turns polling off,
         # so it cannot double as the unset marker.
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
+        # Read for its side effect: it raises on an unknown mode, and raising here
+        # rather than at render time puts the error on the call site.
+        @config.comments_sidebar
 
         Config.warn_stray_keywords(options, component: self.class.name)
 
@@ -156,6 +159,15 @@ module Bali
         @options = prepend_class_name(@options, size_class(size))
         @options = prepend_controller(@options, "block-editor")
         @options = prepend_values(@options, "block-editor", controller_values)
+
+        # Read by CSS, not by the controller: what the sidebar hides is a look, and
+        # the sidebar itself is React's. An attribute on the root is the one hook
+        # both the inline sidebar and the portaled one sit under -- see
+        # `Config#comments_sidebar`. The portaled case needs its own copy on the
+        # container the host renders (DocumentEditor does exactly that).
+        if @config.comments_sidebar_read_only?
+          @options = prepend_data_attribute(@options, "comments-sidebar", "read-only")
+        end
       end
 
       # Two things can only be resolved here, both for the same reason: the view
