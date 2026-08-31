@@ -7,6 +7,7 @@ module DemoWidgets
   # pattern rather than a list with a decoration.
   class ProjectProgress < Bali::Widget::ProgressBase
     default_size :large
+    refresh_every 20.seconds
 
     # ALL FOUR DECLARATIONS OFF ONE QUERY. Blocks are `instance_exec`'d on the
     # widget, so they can share a memoised private method — which is the point of

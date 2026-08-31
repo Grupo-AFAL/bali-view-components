@@ -662,6 +662,7 @@ end
 # config/routes.rb
 resource :dashboard, only: %i[show create edit update destroy] do
   patch :arrange
+  get :refresh
 end
 ```
 
@@ -673,6 +674,7 @@ end
 | `arrange` | `PATCH /dashboard/arrange` | drag, resize, remove (`Store#arrange`) |
 | `destroy` | `DELETE /dashboard` | restore defaults (`Store#reset`) |
 | `create` | `POST /dashboard` | adopt the defaults (`Store#adopt`), then edit mode |
+| `refresh` | `GET /dashboard/refresh` | re-render the named cards (`?keys[]=`) |
 
 The human-facing pair is plain REST — `edit` renders the form, `update` saves it. `arrange` is
 verb-named and separate because it is not a form: it is what the grid's own JavaScript PATCHes
@@ -713,6 +715,49 @@ dashboard_widgets catalog: :widgets_for_plan
 
 Reach for it only when you need it — a literal array is greppable and a proc is not, and
 per-owner differences are usually `authorized?`'s job rather than the catalog's.
+
+#### Keeping a widget current
+
+A widget that goes stale between page loads declares how fast:
+
+```ruby
+class OverdueTasks < Bali::Widget::ValueBase
+  refresh_every 30.seconds
+  value { Task.overdue.count }
+end
+```
+
+The card then asks the server for itself on that interval and swaps in the
+turbo-stream that comes back — the same exchange a resize already uses, without the write.
+**One URL for every widget:** the card sends its own key to `refresh`, so a widget needs no
+route, action or controller of its own. The key is resolved against the offering like any
+other, and the card comes back at the size **this owner stored**, not the widget's default.
+
+`refresh_every` is off unless declared: most widgets answer a question that does not change
+between page loads, and polling them costs a query per tile per interval for nothing. The
+minimum is 5 seconds, checked at class-definition time — `0.5` for `5` is a plausible typo
+that turns one tile into a load generator.
+
+A card refreshes only when the page supplied a `refresh_url:`, so a widget rendered in a
+preview, a test, or on its own outside a dashboard degrades to static rather than erroring.
+`Bali::WidgetGrid::Component` passes it to every card for you.
+
+**Four things stop a tick,** all of which defer rather than cancel — a refresh is never urgent:
+
+| | |
+|---|---|
+| the tab is hidden | a backgrounded dashboard would otherwise poll for hours; it refreshes on return |
+| the grid is in edit mode | SortableJS is tracking those nodes, and a replacement mid-drag drops the one under the pointer |
+| a request is in flight | a slow server must not accumulate a queue of stale requests |
+| focus is inside the card | a replaced element takes focus to `<body>` with it |
+
+A failed refresh is **silent**, unlike a failed save. A save that fails loses work the user
+did; a refresh that fails loses nothing, since the card keeps showing the last good answer.
+
+**If you know when your data changes, don't poll.** `Bali::Widget::Component.dom_id(key)` is
+public and stable, so a host can `broadcast_replace_to` that id from its own model callback
+and skip this entirely. Polling is the default because a widget counting `Task.overdue` has no
+single model event to hang a broadcast on — but one that mirrors a record does.
 
 #### Catching the widget you forgot to list
 

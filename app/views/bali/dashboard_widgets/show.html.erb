@@ -5,7 +5,8 @@
     host called the route. %>
 <%= render Bali::WidgetGrid::Component.new(
       url: url_for(action: :arrange),
-      add_path: url_for(action: :edit)) do |grid| %>
+      add_path: url_for(action: :edit),
+      refresh_url: url_for(action: :refresh)) do |grid| %>
   <%# A PLACEMENT is a widget AT A SIZE — the arrangement's own pairing, which the
       card is told rather than the widget carrying it. %>
   <% widget_store.widgets.each do |placement| %>

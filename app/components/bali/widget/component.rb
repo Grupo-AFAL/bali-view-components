@@ -56,9 +56,14 @@ module Bali
       # rendering one card outside an arrangement wants. A stored size arrives
       # through `Bali::Widget::Placement`, which has already resolved a retired or
       # nil one.
-      def initialize(widget, size: nil, **options)
+      # `refresh_url` is where the card re-fetches itself. Omitted, the card
+      # never polls — which is what a preview, a test, or a host rendering one
+      # tile outside a dashboard wants, and why a widget declaring
+      # `refresh_every` in those places degrades to static rather than erroring.
+      def initialize(widget, size: nil, refresh_url: nil, **options)
         @widget = widget
         @size = size&.to_sym || widget.class.default_size
+        @refresh_url = refresh_url
         @options = options
         super()
       end
@@ -74,7 +79,15 @@ module Bali
 
       private
 
-      attr_reader :widget, :size, :options
+      attr_reader :widget, :size, :refresh_url, :options
+
+      # BOTH HALVES OR NEITHER. A widget that declares an interval on a page that
+      # gave no URL cannot poll, and a URL alone has no interval to poll on.
+      def refreshes? = refresh_url.present? && widget.refresh_every.present?
+
+      # Milliseconds, because that is what `setTimeout` takes and converting in
+      # JS would put a unit conversion on the far side of a `data-` attribute.
+      def refresh_interval = (widget.refresh_every * 1000).round
 
       def dom_id = self.class.dom_id(key)
 

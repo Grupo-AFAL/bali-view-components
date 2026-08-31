@@ -102,6 +102,7 @@ Rails.application.routes.draw do
   # itself uses `url_for(action:)` and does not care what this is called.
   resource :dashboard_widgets, only: %i[show create edit update destroy] do
     patch :arrange
+    get :refresh
   end
 
   get 'users', to: 'users#index'

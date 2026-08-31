@@ -115,6 +115,48 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
     assert_equal %w[overdue_tasks], store.stored_keys
   end
 
+  # ONE URL FOR EVERY WIDGET: the card sends its own key and gets itself back as
+  # a stream. `ProjectProgress` is the demo widget that declares `refresh_every`.
+  def test_refresh_streams_back_the_named_card
+    get refresh_dashboard_widgets_path(keys: [ "project_progress" ]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_equal 1, response.body.scan("<turbo-stream").size
+    assert_includes response.body, %(target="#{Bali::Widget::Component.dom_id('project_progress')}")
+  end
+
+  # Several keys in one request, so batching tiles into one tick stays a change
+  # in the JavaScript alone.
+  def test_refresh_takes_several_keys_at_once
+    get refresh_dashboard_widgets_path(keys: %w[project_progress recent_movies]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_equal 2, response.body.scan("<turbo-stream").size
+  end
+
+  # THE SIZE THE OWNER STORED, not the widget's default. Rendering the bare
+  # widget would fall back to `default_size` and silently un-resize every card a
+  # refresh touched.
+  def test_refresh_renders_the_card_at_its_stored_size
+    patch arrange_dashboard_widgets_path, params: { widgets: [ { key: "recent_movies", size: "small" } ] }
+
+    get refresh_dashboard_widgets_path(keys: [ "recent_movies" ]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_match(/data-size="small"/, response.body)
+  end
+
+  # The same silent drop as every other boundary — an unauthorized, retired or
+  # invented key is simply absent from the response.
+  def test_refresh_ignores_a_key_outside_the_offering
+    get refresh_dashboard_widgets_path(keys: %w[payroll_secrets project_progress]),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_equal 1, response.body.scan("<turbo-stream").size
+    refute_includes response.body, "payroll_secrets"
+  end
+
   def test_update_picker_chooses_membership_and_drops_unauthorized_keys
     patch dashboard_widgets_path, params: {
       widget_keys: [ "overdue_tasks", "recent_movies", "totally_made_up_widget" ]

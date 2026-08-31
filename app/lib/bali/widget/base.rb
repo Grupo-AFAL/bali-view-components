@@ -50,6 +50,10 @@ module Bali
       # vary week to week as data comes and goes.
       class_attribute :_supported_sizes, default: SIZES, **ATTRIBUTE_OPTIONS
 
+      # The shortest interval `refresh_every` accepts. Not a guess about what is
+      # useful — a floor under what is affordable.
+      MINIMUM_REFRESH = 5
+
       # Copy is HOST content. It reads from i18n by default — `widgets.<key>.*` —
       # and a class may set a literal instead, which is what a widget with one
       # hardcoded string wants rather than four locale keys.
@@ -57,6 +61,10 @@ module Bali
       class_attribute :_short_title, **ATTRIBUTE_OPTIONS
       class_attribute :_description, **ATTRIBUTE_OPTIONS
       class_attribute :_empty_message, **ATTRIBUTE_OPTIONS
+      # How often the card re-fetches itself, or nil for never. A property of the
+      # DATA — how fast it goes stale — so it belongs to the widget rather than
+      # to the arrangement or the page.
+      class_attribute :_refresh_every, **ATTRIBUTE_OPTIONS
 
       # Bali's own chrome lives under `bali_view.widgets.*`; this is the scope a
       # host's titles live in.
@@ -144,6 +152,33 @@ module Bali
           value.nil? ? (_empty_message || translate(:empty)) : (self._empty_message = value)
         end
 
+        # OPT-IN, and off by default: most widgets answer a question that does
+        # not change between page loads, and polling them costs a query per tile
+        # per interval for nothing.
+        #
+        #   refresh_every 30.seconds
+        #
+        # Read with no argument, like every other declaration here — without the
+        # guard, `refresh_every` in a reader position would silently switch
+        # refreshing off.
+        #
+        # FLOORED, because the cost is paid by the server and a plausible typo
+        # (`0.5` for `5`) turns one tile into a load generator. Validated at
+        # class-definition time, so it is a boot failure rather than a surprise
+        # in production.
+        def refresh_every(value = nil)
+          return _refresh_every if value.nil?
+
+          seconds = value.to_f
+          if seconds < MINIMUM_REFRESH
+            raise ArgumentError,
+                  "#{name_for_error} asks to refresh every #{seconds}s; the minimum is " \
+                  "#{MINIMUM_REFRESH}s. Each refresh is a request and a query per tile."
+          end
+
+          self._refresh_every = seconds
+        end
+
         private
 
         def translate(suffix, **options)
@@ -161,7 +196,7 @@ module Bali
         @context = context
       end
 
-      delegate :key, :title, :short_title, :description, :empty_message,
+      delegate :key, :title, :short_title, :description, :empty_message, :refresh_every,
                :supported_sizes, to: :class
 
       # MAY THIS OWNER SEE THIS WIDGET? Overridden by the host — Bali owns the

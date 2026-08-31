@@ -34,6 +34,7 @@ import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
 import { WidgetGridController, WidgetGridEditModeController } from '../../../components/bali/widget_grid/index'
+import { WidgetRefreshController } from '../../../components/bali/widget/refresh/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -158,6 +159,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   hovercard: HovercardController,
   kanban: KanbanController,
   reveal: RevealController,
+  'bali-widget-refresh': WidgetRefreshController,
   'bali-widget-grid': WidgetGridController,
   'bali-widget-grid-edit-mode': WidgetGridEditModeController,
   'sortable-list': SortableListController,

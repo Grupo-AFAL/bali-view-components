@@ -536,5 +536,53 @@ class BaliWidgetComponentTest < ComponentTestCase
     JSON.parse(page.find("canvas.chart", visible: :all)["data-chart-options-value"])
   end
 
+  # ---- self-refresh --------------------------------------------------------
+
+  # BOTH HALVES OR NEITHER. A widget with an interval on a page that gave no URL
+  # cannot poll, so the card renders static rather than wiring a dead controller.
+  def test_a_card_polls_only_when_it_has_both_an_interval_and_a_url
+    volatile = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "volatile"
+      refresh_every 30.seconds
+      value { 7 }
+    end
+
+    render_inline(Bali::Widget::Component.new(volatile.new, refresh_url: "/dashboard/refresh"))
+    assert_selector "[data-controller~='bali-widget-refresh']"
+
+    render_inline(Bali::Widget::Component.new(volatile.new))
+    assert_no_selector "[data-controller~='bali-widget-refresh']"
+  end
+
+  # A widget that never asked to refresh must not poll just because the page
+  # offered a URL — every card on a dashboard is handed one.
+  def test_a_card_without_an_interval_never_polls
+    render_inline(card(steady_widget.new, refresh_url: "/dashboard/refresh"))
+
+    assert_no_selector "[data-controller~='bali-widget-refresh']"
+  end
+
+  # MILLISECONDS, converted here so no unit maths happens on the far side of a
+  # `data-` attribute.
+  def test_the_interval_reaches_the_dom_in_milliseconds
+    volatile = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "volatile"
+      refresh_every 90.seconds
+      value { 7 }
+    end
+
+    render_inline(Bali::Widget::Component.new(volatile.new, refresh_url: "/dashboard/refresh"))
+
+    assert_selector "[data-bali-widget-refresh-interval-value='90000']"
+  end
+
   private
+
+
+  def steady_widget
+    Class.new(Bali::Widget::ValueBase) do
+      def self.key = "steady"
+      value { 1 }
+    end
+  end
 end

@@ -186,4 +186,61 @@ class BaliWidgetBaseTest < ActiveSupport::TestCase
 
     assert_empty Bali::Widget.authorized_for([ hidden ])
   end
+
+  # ---- refresh_every -------------------------------------------------------
+
+  # Reads with no argument, like every other declaration on `Base`. Without the
+  # guard a reader call silently switches refreshing off.
+  def test_refresh_every_reads_when_given_no_argument
+    widget = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "volatile"
+      refresh_every 30.seconds
+      value { 1 }
+    end
+
+    assert_equal 30.0, widget.refresh_every
+    assert_equal 30.0, widget.refresh_every, "reading must not clear it"
+    assert_equal 30.0, widget.new.refresh_every
+  end
+
+  # OFF unless asked for. Most widgets answer a question that does not change
+  # between page loads.
+  def test_refresh_every_is_nil_by_default
+    widget = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "steady"
+      value { 1 }
+    end
+
+    assert_nil widget.refresh_every
+  end
+
+  # `0.5` for `5` is a plausible typo that turns one tile into a load generator,
+  # so it fails at class-definition time rather than in production.
+  def test_refresh_every_refuses_an_interval_below_the_floor
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::Widget::ValueBase) do
+        def self.key = "greedy"
+        refresh_every 0.5
+        value { 1 }
+      end
+    end
+
+    assert_match(/minimum is #{Bali::Widget::Base::MINIMUM_REFRESH}/, error.message)
+  end
+
+  # Inherited like every other declaration, and overridable.
+  def test_refresh_every_is_inherited_and_overridable
+    parent = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "parent_widget"
+      refresh_every 60
+      value { 1 }
+    end
+    child = Class.new(parent) do
+      def self.key = "child_widget"
+      refresh_every 10
+    end
+
+    assert_equal 60.0, parent.refresh_every, "the child must not write through to its parent"
+    assert_equal 10.0, child.refresh_every
+  end
 end

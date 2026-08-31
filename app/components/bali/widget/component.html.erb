@@ -27,6 +27,13 @@
          data-widget-title="<%= short_title %>"
          data-size="<%= size %>"
          aria-label="<%= short_title %>"
+         <%# The card polls itself: one controller per tile rather than one for
+             the grid, so a card rendered on its own still refreshes. %>
+         <% if refreshes? %>
+           data-controller="bali-widget-refresh"
+           data-bali-widget-refresh-url-value="<%= refresh_url %>"
+           data-bali-widget-refresh-interval-value="<%= refresh_interval %>"
+         <% end %>
          class="<%= card_classes %>"
          <%= tag.attributes(card_attributes) %>>
   <div class="bali-widget-edit-toolbar">

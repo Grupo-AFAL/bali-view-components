@@ -15,7 +15,11 @@ module Bali
     class Component < ApplicationViewComponent
       # A string rather than the constant, so this class carries no load-order
       # dependency on the card.
-      renders_many :widgets, "Bali::Widget::Component"
+      # The slot builds each card, so `refresh_url` is injected here rather than
+      # asked of every caller — `grid.with_widget(widget, size:)` is unchanged.
+      renders_many :widgets, ->(widget, **options) {
+        Bali::Widget::Component.new(widget, refresh_url: refresh_url, **options)
+      }
 
       # Only the LEADING text, never the controls. Letting a host
       # replace the whole band, which silently deleted the Edit/Done buttons —
@@ -45,16 +49,19 @@ module Bali
       # because a host may already use `editing` for something of their own, and
       # because a knob only reachable from hand-written markup is not reachable:
       # a host renders this component, it does not write the data attributes.
-      def initialize(url:, add_path: nil, editing_param: "editing", **options)
+      # `refresh_url` is handed to every card, so a widget declaring
+      # `refresh_every` starts polling without the host wiring anything per tile.
+      def initialize(url:, add_path: nil, refresh_url: nil, editing_param: "editing", **options)
         @url = url
         @add_path = add_path
+        @refresh_url = refresh_url
         @editing_param = editing_param
         @options = build_options(options)
       end
 
       private
 
-      attr_reader :url, :add_path, :editing_param, :options
+      attr_reader :url, :add_path, :refresh_url, :editing_param, :options
 
       def build_options(opts)
         opts = prepend_controller(opts, "bali-widget-grid bali-widget-grid-edit-mode")

@@ -20,6 +20,7 @@ module Bali
       #   # config/routes.rb
       #   resource :dashboard, only: %i[show create edit update destroy] do
       #     patch :arrange
+      #     get :refresh
       #   end
       #
       # | action    | verb + path             | what it is                        |
@@ -30,6 +31,7 @@ module Bali
       # | `arrange` | `PATCH  /dashboard/arrange` | drag, resize, remove          |
       # | `destroy` | `DELETE /dashboard`     | restore defaults                  |
       # | `create`  | `POST   /dashboard`     | adopt the defaults, then edit     |
+      # | `refresh` | `GET    /dashboard/refresh` | re-render named cards         |
       #
       # THE HUMAN PAIR IS PLAIN REST — `edit` renders the form, `update` saves
       # it. `arrange` is verb-named and off to the side because it is not a
@@ -124,6 +126,27 @@ module Bali
             Bali::Widget::Component.dom_id(resized.key),
             renderable: Bali::Widget::Component.new(resized.widget, size: resized.size)
           )
+        end
+
+        # ONE URL FOR EVERY WIDGET. The card sends its own key, this finds it and
+        # streams that card back — so a widget that declares `refresh_every` needs
+        # no route, no action and no controller of its own.
+        #
+        # `keys` PLURAL even though a card sends one: every request rebuilds the
+        # whole offering to resolve a key, which is the security boundary and not
+        # avoidable, so batching several tiles into one tick stays a JS-only
+        # change.
+        #
+        # A key outside the offering finds nothing and is simply absent from the
+        # response — the same silent drop as everywhere else.
+        def refresh
+          render turbo_stream: placements_for(params[:keys]).map { |placement|
+            turbo_stream.replace(
+              Bali::Widget::Component.dom_id(placement.key),
+              renderable: Bali::Widget::Component.new(placement.widget, size: placement.size,
+                                                      refresh_url: url_for(action: :refresh))
+            )
+          }
         end
 
         # A "Personalise" button, for someone who has never customised. `adopt`
@@ -224,7 +247,20 @@ module Bali
           key = params[:resized_key].presence
           return if key.nil?
 
-          widget_store.widgets.find { |placement| placement.key == key }
+          placements_for([ key ]).first
+        end
+
+        # PLACEMENTS, not widgets. A card has to come back at the size this owner
+        # stored it at — rendering the bare widget would fall back to
+        # `default_size` and silently un-resize every card it touched.
+        #
+        # Reads the arrangement, so it is also the boundary: a key that is not on
+        # this owner's dashboard, or not in the offering, matches nothing.
+        def placements_for(keys)
+          wanted = Array(keys).map(&:to_s)
+          return [] if wanted.empty?
+
+          widget_store.widgets.select { |placement| wanted.include?(placement.key) }
         end
       end
     end

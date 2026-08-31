@@ -5,6 +5,9 @@ module DemoWidgets
     include WidgetRoutes
 
     default_size :medium
+    # A slower interval than ProjectProgress, so the demo shows two tiles on
+    # their own clocks rather than one shared tick.
+    refresh_every 60.seconds
 
     list { Movie.order(created_at: :desc) }
 
