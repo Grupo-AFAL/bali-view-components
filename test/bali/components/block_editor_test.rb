@@ -12,6 +12,53 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     Bali.block_editor_enabled = @original_enabled
   end
 
+  # #1091 — el formato de persistencia pasa a ser del host y deja de depender de si alguien
+  # dejó un comentario.
+  def test_format_accepts_the_two_pinned_json_shapes
+    %i[blocks prosemirror].each do |format|
+      render_inline(Bali::BlockEditor::Component.new(format: format, input_name: "doc[content]"))
+
+      assert_selector("[data-block-editor-format-value='#{format}']", visible: :all)
+    end
+  end
+
+  def test_format_rejects_an_unknown_value_instead_of_serializing_json_in_silence
+    error = assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(format: :prose)
+    end
+
+    assert_match "unknown format", error.message
+    assert_match "prosemirror", error.message
+  end
+
+  # El input declara en qué forma está su valor, para que el host no la adivine por la
+  # estructura. Lo pone el servidor y lo mantiene al día `useContentSync`.
+  def test_the_hidden_input_declares_the_shape_of_the_stored_content
+    render_inline(Bali::BlockEditor::Component.new(
+                    input_name: "doc[content]",
+                    initial_content: [ { "id" => "1", "type" => "paragraph" } ]
+                  ))
+
+    assert_selector("input[data-content-format='blocks']", visible: :all)
+  end
+
+  def test_the_hidden_input_declares_prosemirror_content_as_such
+    render_inline(Bali::BlockEditor::Component.new(
+                    input_name: "doc[content]",
+                    initial_content: { "type" => "doc", "content" => [] }
+                  ))
+
+    assert_selector("input[data-content-format='prosemirror']", visible: :all)
+  end
+
+  def test_the_hidden_input_declares_a_non_json_format_as_itself
+    render_inline(Bali::BlockEditor::Component.new(
+                    input_name: "doc[content]", format: :markdown, markdown_content: "# Hola"
+                  ))
+
+    assert_selector("input[data-content-format='markdown']", visible: :all)
+  end
+
   def test_renders_block_editor_component
     render_inline(Bali::BlockEditor::Component.new)
     assert_selector("div.block-editor-component")

@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Rails' own default healthcheck route (what `rails new` generates on 7.1+). Not
+  # added automatically by the framework — a real app has to opt in, and this dummy
+  # never had. Kept here rather than a bespoke test route because it is genuinely
+  # representative of "a route mounted directly on the host, no engine involved":
+  # exactly what `Bali::Topbar::ToolsMenu::Tool#route_helper` is for.
+  get 'up' => 'rails/health#show', as: :rails_health_check
+
   # Marketing / Landing
   root 'dashboard#index'
   get 'landing', to: 'pages#landing'

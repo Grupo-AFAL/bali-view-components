@@ -18,6 +18,23 @@ module Bali
         lg: "block-editor-size-lg"
       }.freeze
 
+      # Cómo se escribe el contenido en el hidden input.
+      #
+      # Los tres primeros son los de siempre. Los dos últimos existen porque `:json` es
+      # ADAPTATIVO y esa era la trampa (#1091): BlockNote borra las marcas de comentario de
+      # `editor.document`, así que con comentarios encendidos el editor cambia solo a la
+      # forma ProseMirror para no perderlas — y eso no lo dispara el host, lo dispara el
+      # primer usuario que deje un comentario. Con auto-guardado, ese comentario reescribe
+      # la columna en un esquema distinto sin que nadie lo pida, y todo lo que la lee del
+      # lado de Rails (referencias, indexado, diffs, export) se encuentra otra cosa.
+      #
+      # `:blocks` fija `editor.document` y `:prosemirror` fija la forma ProseMirror. Fijar
+      # `:blocks` con comentarios encendidos PIERDE el anclaje de cada hilo —los hilos
+      # sobreviven en su store, las marcas no—, así que el editor lo avisa por consola la
+      # primera vez que descarta una. Es un intercambio que el host puede querer; lo que no
+      # puede es que se lo hagan sin avisar.
+      FORMATS = %i[json blocks prosemirror html markdown].freeze
+
       # Distinguishes "the caller did not pass this" from "the caller passed the
       # value that happens to be the default". Without it, `config:` could not be
       # overridden by an explicit `comments: false` or `upload_url: nil`, because
@@ -55,6 +72,7 @@ module Bali
         comments: UNSET,
         comments_container_id: nil,
         config: nil,
+        readonly: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
@@ -76,17 +94,28 @@ module Bali
         @html_content = html_content
         @markdown_content = markdown_content
         @input_name = input_name
-        @format = format
+        @format = validated_format(format)
         @preset = preset
         # Sigue a la app por default: un editor en inglés dentro de una UI en
         # español es el error más visible de una instalación sin configurar.
         @locale = locale || I18n.locale.to_s.split("-").first
         @syntax_highlighting = @config.syntax_highlighting
         @syntax_highlighting = Bali.block_editor_syntax_highlighting if @syntax_highlighting.nil?
-        @editable = editable
+        @editable = resolve_editable(editable, readonly)
         @placeholder = placeholder
         @upload_url_auto = (@config.upload_url == :auto)
-        @upload_url = @config.upload_url == :auto ? nil : @config.upload_url
+        @upload_url = @upload_url_auto ? nil : @config.upload_url
+
+        # Un visor no sube archivos, y no pasar `upload_url:` no APAGA las subidas: las
+        # ENCIENDE, porque su default es `:auto` y eso resuelve al endpoint del engine.
+        # `:auto` ya lo contemplaba —`resolve_auto_upload_url` mira `editable?`—, pero una
+        # url explícita no, así que una pantalla de solo lectura seguía aceptando subidas:
+        # blobs `unattached` que la purga de huérfanos del host se lleva a los siete días
+        # (#1092). La regla queda entera: sin edición no hay subida, venga de donde venga.
+        unless @editable
+          @upload_url_auto = false
+          @upload_url = nil
+        end
         @theme = theme
         @export = @config.export
         @export_filename = @config.export_filename || "document"
@@ -120,6 +149,8 @@ module Bali
         # -1 stands for "not configured": 0 is a real value that turns polling off,
         # so it cannot double as the unset marker.
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
+
+        Config.warn_stray_keywords(options, component: self.class.name)
 
         @options = prepend_class_name(options, "block-editor-component")
         @options = prepend_class_name(@options, size_class(size))
@@ -176,14 +207,41 @@ module Bali
       # It must round-trip the ORIGINAL content: if the user submits without
       # touching the editor, an empty value here would silently blank the field.
       def hidden_input_value
-        case @format.to_sym
+        case @format
         when :markdown then @markdown_content.to_s
         when :html then @html_content.to_s
         else serialized_content
         end
       end
 
+      # En qué forma está el valor que el input lleva AHORA, para el que lo lea antes de
+      # que el editor monte y lo reescriba. El editor mantiene el atributo al día en cada
+      # escritura (`useContentSync`), y del lado de Rails la misma pregunta la responde
+      # `Bali::BlockEditor.content_format` sobre la columna.
+      def content_format
+        return @format if %i[html markdown].include?(@format)
+
+        Bali::BlockEditor.content_format(@initial_content)&.to_s
+      end
+
       private
+
+      # @deprecated `readonly:` es el nombre de Rails y la primera conjetura de cualquiera,
+      #   y hasta v3.1 era una trampa muda: no es parámetro del componente, así que caía en
+      #   `**options` y salía como `readonly="readonly"` en un `<div>`, donde no significa
+      #   nada. Dos pantallas "de solo lectura" de una app anfitriona eran editables, y
+      #   además aceptaban subidas, porque `upload_url:` por omisión es `:auto` (#1092).
+      #   Se elimina en 4.0.
+      def resolve_editable(editable, readonly)
+        return editable if readonly.nil?
+
+        Bali.deprecator.warn(
+          "Bali::BlockEditor(readonly:) is deprecated and is removed in 4.0. " \
+          "Write `editable: #{!readonly}`."
+        )
+
+        !readonly
+      end
 
       # A disabled component renders an empty string: no markup, no controller,
       # no error — and `assert_response :success` still passes. That silence is
@@ -196,6 +254,17 @@ module Bali
       # attribute on the input families, and now reachable through
       # `block_editor_group` (#1076) — into a NoMethodError; letting it miss
       # the fetch instead keeps the rejection one clear message.
+      # Un `format:` desconocido caía en el `else` y salía como JSON: un host que pidió
+      # markdown se llevaba JSON sin enterarse. Mismo contrato que `size_class`.
+      def validated_format(format)
+        key = format.respond_to?(:to_sym) ? format.to_sym : format
+        return key if FORMATS.include?(key)
+
+        raise ArgumentError,
+              "#{self.class.name}: unknown format #{format.inspect}. " \
+              "Valid: #{FORMATS.map(&:inspect).join(', ')}."
+      end
+
       def size_class(size)
         return SIZES[:md] if size.nil?
 

@@ -7,6 +7,7 @@ require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
 require_relative "filter_form/saved_views_configuration"
 require_relative "filter_form/enum_casting"
+require_relative "filter_form/default_filters"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -52,6 +53,7 @@ module Bali
     include GroupByConfiguration
     include SavedViewsConfiguration
     include EnumCasting
+    include DefaultFilters
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
 
@@ -119,7 +121,13 @@ module Bali
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
       #   (default :eq; the advanced UI lets the user pick the operator)
       # @param blank [String, Proc] Blank option text for the simple UI
-      # @param default [String] Default value for the simple UI
+      # @param default [String, Boolean, Hash, Proc] The value this listing opens on.
+      #   It preselects the simple control, and it is what
+      #   {Bali::FilterForm::DefaultFilters.default_filter_params} emits so that
+      #   `Bali::Filterable#redirect_to_default_filters` can put it in the URL — which
+      #   is what makes it actually filter, survive sorting and paging, and stay
+      #   removable. Needs a UI to live in: raises when the attribute is offered in
+      #   neither (`simple: false, advanced: false`).
       # @param icon [String] Icon name for the simple UI
       # @param step [Numeric] Step for the :number_range simple widget
       # @param placeholder_min [String] Min placeholder for :number_range
@@ -167,6 +175,7 @@ module Bali
         type = type.to_sym
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
         validate_auto_submit(key, resolved_input, auto_submit)
+        validate_default(key, default, simple, advanced)
 
         filter_attributes << {
           key: key.to_sym,
@@ -215,6 +224,20 @@ module Bali
                                "widget; pass input: (one of #{SIMPLE_INPUTS.join(', ')}) or " \
                                "declare quick text search with search_fields"
         end
+      end
+
+      # A `default:` is the question the listing opens with, so it has to be visible and
+      # removable somewhere — the simple control or the advanced panel. On an attribute
+      # offered in NEITHER it would apply and there would be no way to see or drop it,
+      # which is precisely the silent mismatch `default_filter_params` exists to end.
+      # Fails at class-definition time, like the two guards around it (#1096).
+      def validate_default(key, default, simple, advanced)
+        return if default.nil? || default == ""
+        return if simple || advanced
+
+        raise ArgumentError, "filter_attribute #{key}: default: needs a UI to live in — " \
+                             "declare `simple: true`, or leave `advanced:` on. A default " \
+                             "on an attribute offered nowhere filters invisibly."
       end
 
       # Fails at class-definition time rather than rendering a row whose `auto_submit:`
@@ -429,12 +452,24 @@ module Bali
     # How many values are narrowing this listing right now. The quick search counts
     # as one: it cuts the result exactly like any other filter, and a toolbar that
     # reads "0 filters" over 3 of 200 rows is telling the user something false.
+    # Cuántos y si hay alguno, sobre las DOS mitades por las que se puede recortar un
+    # listado: la plana (`active_filters`) y la anidada del panel avanzado
+    # (`applied_filter_conditions`). No se derivan del hash solo porque el hash no puede
+    # llevar la mitad anidada — ver el comentario de `active_filters` y el de
+    # `FilterGroupParser#applied_filter_conditions`.
+    #
+    # #1085: `Table` elige su estado vacío con `active_filters?`, así que un listado
+    # recortado a cero DESDE EL PANEL AVANZADO pintaba "Aún no hay entidades" sobre un
+    # catálogo de 1,563 — el listado le echaba la culpa a los datos de lo que habían hecho
+    # los filtros. Es el mismo defecto que el comentario de `active_filters` documenta
+    # haber arreglado para la búsqueda y los filtros simples; la tercera fuente se quedó
+    # fuera porque es la única que no viaja plana.
     def active_filters_count
-      active_filters.size
+      active_filters.size + applied_filter_conditions.size
     end
 
     def active_filters?
-      active_filters.any?
+      active_filters.any? || applied_filter_conditions.any?
     end
 
     # Every value narrowing the listing right now, keyed the way the query carries
@@ -452,6 +487,12 @@ module Bali
     # `active_filters?`, so a search or a simple filter that cut the result to zero
     # got "No records yet" plus an invitation to create one, instead of "No results"
     # — the listing blamed the data for what the filters had done.
+    #
+    # The advanced panel is the one source that is NOT here, and on purpose: its conditions
+    # travel nested (`q[g][0][name_cont]`) while this hash is re-emitted flat under `q`, so
+    # a condition put in here would go out TWICE — once nested by
+    # `ActiveFilterParams.group_pairs` and once flat by this hash. It is counted separately;
+    # `active_filters?` above sums the two halves (#1085).
     #
     # `"s"` is Ransack's *sort* param, not a filter, and stays out.
     #
@@ -522,7 +563,9 @@ module Bali
           relation = relation.where(date_range_attr => value)
         end
 
-        relation
+        # Va último y sobre la relación ya evaluada: el ORDER BY de una agrupación con `sql:`
+        # explícito no cabe en el param `s` de Ransack, que solo habla de nombres.
+        apply_group_by_sql_order(relation)
       end
     end
 

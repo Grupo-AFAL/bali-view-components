@@ -295,6 +295,16 @@ What this does and does not buy you:
 ) %>
 ```
 
+`editable: false` also turns uploads off, whatever `upload_url:` says. That is worth stating
+because the default is the other way round: **not passing `upload_url:` does not disable
+uploads, it enables them** — the default is `:auto`, which resolves to the engine's own
+endpoint. A viewer that still accepted uploads was collecting unattached blobs nobody could
+see (#1092).
+
+`readonly:` is accepted as a deprecated alias of `editable: false` and is removed in 4.0. It
+used to be a silent no-op: not a parameter, so it landed in `**options` and was painted as
+`readonly="readonly"` on a `<div>`, where it means nothing — the screen stayed editable.
+
 ### Inside a Form
 
 When `input_name` is provided, the editor syncs its content to a hidden input field. Use `format:` to control the serialization format.
@@ -313,9 +323,82 @@ When `input_name` is provided, the editor syncs its content to a hidden input fi
 ```
 
 **Format options:**
-- `:json` (default) -- Serializes as BlockNote JSON. Lossless round-trip. Recommended when the content never leaves the editor.
+- `:json` (default) -- Serializes as BlockNote JSON. Lossless round-trip. **Adaptive** — see below.
+- `:blocks` -- Always `editor.document`: an Array of blocks.
+- `:prosemirror` -- Always the ProseMirror document: `{ "type": "doc", … }`.
 - `:html` -- Serializes as HTML via `blocksToHTMLLossy`. Lossy (some block-level metadata may be lost).
 - `:markdown` -- Serializes as Markdown via `blocksToMarkdownLossy`. Lossy, but keeps the column readable by everything else in the app: search, plain-text exports, APIs, LLM prompts.
+
+An unknown `format:` raises rather than falling through to JSON.
+
+#### The two JSON shapes
+
+`:json` writes **one of two shapes**, and which one is not a preference — it is whether the
+document holds a comment mark. BlockNote strips those from `editor.document`, so the editor
+switches to the ProseMirror document to keep them:
+
+| | `:blocks` (`editor.document`) | `:prosemirror` (`getJSON()`) |
+|---|---|---|
+| Root | `Array` of blocks | `{ "type": "doc", "content": [...] }` |
+| Wrappers | none | `blockGroup` / `blockContainer` |
+| Node properties | `props` | `attrs` |
+| Tables | `{ "type": "tableContent", "rows": [...] }` | `table` → `tableRow` → `tableCell` |
+
+That switch is not triggered by the host: it is triggered by **the first user who leaves a
+comment**, and with auto-save that comment rewrites the column into the other schema without
+anyone asking. Everything server-side that reads it — extracting references, indexing text,
+diffing versions, exporting — then meets a shape it was not written for (#1091).
+
+So pin the shape when the column is read by anything other than the editor:
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  initial_content: @document.content,
+  input_name: 'document[content]',
+  format: :blocks,
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash } }
+) %>
+```
+
+`format: :blocks` with comments on is a **trade-off**: the threads survive in their store,
+their anchors do not, because the anchor is the mark `editor.document` strips. The editor
+warns in the console the first time it drops one. `format: :prosemirror` keeps everything and
+pins the other shape.
+
+#### Through the wrappers
+
+`DocumentEditor` takes `format:` too and hands it to the editor it mounts — and when you do
+not pass one, **it pins `:prosemirror` as soon as `comments:` is on** (#1098). That screen is
+the one the adaptive default hurts most: comments plus auto-save means the first reader to
+comment rewrites the column's schema. Pinning writes from the very first save what the
+adaptive shape was going to write anyway, only declared. An explicit `format:` always wins,
+`:json` included — a host that wants the adaptive behaviour asks for it and gets it.
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+  title: @document.title,
+  initial_content: @document.content,
+  document_url: document_path(@document),
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash } }
+) %>
+<%# no format: → :prosemirror, because comments are on %>
+```
+
+`DocumentPage` does **not** take `format:` and raises if you pass one: it mounts a read-only
+editor with no `input_name`, so it renders no hidden input and there is nothing to serialize.
+The keyword would be an option that does nothing — and left to fall through it would paint
+`format="blocks"` on the wrapper div in silence, which is the failure mode of #1092.
+
+Two ways to tell what you were handed:
+
+```ruby
+Bali::BlockEditor.content_format(@document.content)  # => :blocks, :prosemirror or nil
+```
+
+```js
+// The hidden input declares it, server-rendered and kept up to date on every write
+outputElement.dataset.contentFormat // => "blocks" | "prosemirror" | "html" | "markdown"
+```
 
 Each format has a matching input prop, so the stored value is *parsed* rather than shown as raw source:
 
@@ -459,13 +542,14 @@ The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint,
 | `html_content` | `String` | `nil` | HTML string to parse into blocks on mount |
 | `markdown_content` | `String` | `nil` | Markdown string to parse into blocks on mount |
 | `input_name` | `String` | `nil` | Hidden input `name` attribute for form submission |
-| `format` | `Symbol` | `:json` | Serialization format: `:json`, `:html` or `:markdown` |
+| `format` | `Symbol` | `:json` | Serialization format: `:json` (adaptive), `:blocks`, `:prosemirror`, `:html` or `:markdown`. See [The two JSON shapes](#the-two-json-shapes) |
 | `preset` | `Symbol` | `:full` | UI preset: `:full` or `:simple` (see [Presets](#presets)) |
 | `size` | `Symbol` | `:md` | Text size of the editor body: `:xs`, `:sm`, `:md` or `:lg` (see [Text size](#text-size)) |
 | `syntax_highlighting` | `Boolean` | `true` | Highlight code blocks with Shiki. `false` never loads `shiki` |
-| `editable` | `Boolean` | `true` | Whether the editor is editable |
+| `editable` | `Boolean` | `true` | Whether the editor is editable. `false` also turns uploads off |
+| `readonly` | `Boolean` | — | **Deprecated**, removed in 4.0. Alias of `editable: !readonly` |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
-| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes |
+| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes; `nil` turns uploads off, and so does `editable: false` |
 | `theme` | `Symbol` | `:light` | Editor theme: `:light` or `:dark` |
 | `export` | `Boolean`, `Array` | `false` | Enable export. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
 | `export_filename` | `String` | `'document'` | Base filename for exported files (without extension) |

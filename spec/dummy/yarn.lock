@@ -1097,10 +1097,10 @@ d3-zoom@^3.0.0:
     d3-selection "2 - 3"
     d3-transition "2 - 3"
 
-daisyui@5.7.20:
-  version "5.7.20"
-  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.7.20.tgz#002ce272df6790c345f3ac4955c5984e44a4201d"
-  integrity sha512-qoL9qXXo/K/MzcteD1SvZOSeBaL8F9qBJvwX3KEpiVHQLzIEtGkNl/ZznSI7J0d+qnQJa2dAAFzTFDAx9df1rw==
+daisyui@5.7.22:
+  version "5.7.22"
+  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.7.22.tgz#84cd50a8ea918fcdbff971f8d1059500afaca4ff"
+  integrity sha512-pYii+2NCN0+OIL6Lpuc054LK0QJeNv+GRK9UzN1GRmjdYhYO6WFl0QLoj5oPcitPD7o+okiiI0SKFkn641TxmA==
 
 date-fns@^4.1.0:
   version "4.1.0"

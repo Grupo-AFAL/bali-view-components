@@ -367,6 +367,43 @@ One icon button for the `with_action` slot — the notification bell packaged. A
 - `active` - marks this as the current section: daisyUI's `btn-active` state, plus `aria-current="page"` when the control is a link
 - `max_count` - cap for an Integer `badge:` (default 99): anything above renders as "99+". Strings pass through untouched, so a host that formats its own count keeps full control
 
+##### Topbar::ToolsMenu
+
+The internal-tools dropdown for the `with_action` slot — jobs dashboard, adoption
+dashboard, captured email, Rails routes, repository, Sentry: four apps in the group each
+built this separately and converged, on their own, on the same mechanism. The component is
+domain-agnostic: it never evaluates permissions.
+
+```erb
+<% topbar.with_action do %>
+  <%= render Bali::Topbar::ToolsMenu::Component.new(tools: visible_internal_tools) %>
+<% end %>
+```
+
+**Options:**
+- `tools` (required) - array of `Tool`, **already filtered by permission** — the gem never
+  decides who can see what, only what exists in this environment
+- `icon` - trigger icon (default `"wrench"`)
+- `aria_label` - accessible name of the (icon-only) trigger; defaults to the translated
+  `"Tools"` / `"Herramientas"`
+- `align` - horizontal axis of the dropdown (default `:end`)
+
+A tool is dropped when it is not `available?` against the render's own view context, and
+the whole component renders nothing (`render?` → `false`) when none are left — a trigger
+that opens an empty panel is worse than not having one. Each item opens in a new tab
+**except** `in_app:` ones, which keep the host's chrome.
+
+`Bali::Topbar::ToolsMenu::Tool.new(key:, icon:, route_helper: nil, url: nil, in_app: false, name: nil, meta: {})`
+builds one entry. `route_helper` and `url` are exclusive and exactly one is required:
+`route_helper` is a route helper name the tool's *view context* (not
+`Rails.application.routes.url_helpers`) must respond to **directly** — it has to end in
+`_path` or `_url`, or `Tool.new` raises, because a name behind an engine proxy
+(`main_app.foo_path`) can't be expressed this way; `url` is a lambda re-read on every call.
+`key` picks the default label from six known translations (es/en); `name:` overrides it,
+and a host can override a known key too (`topbar.tools_menu.items.<key>`, same cascade for
+the trigger's own label via `topbar.tools_menu.trigger_label`). `meta` is free for the
+host — the gem carries it but never reads it.
+
 #### Card
 
 Content container with optional header, image, and actions.
@@ -755,9 +792,25 @@ bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
 - `brand` - Simple text brand. For richer brand (logo + text, custom HTML), use the `with_brand` slot instead
 - `aria_label` - Accessible name of the `<nav>` landmark (default: translated "Sidebar")
 - `group_behavior` - `:expandable` (default, DaisyUI collapse) or `:dropdown` (hover dropdown for nested items)
+- `reveal_current` - Scroll the menu so the current page's item is in view (default: true)
 
 Renders a `<nav aria-label>` whose items are a `ul`/`li` list, with `aria-current="page"` on the
 item pointing at the current page.
+
+**The current item is scrolled into view on connect.** Every navigation re-renders the sidebar
+and its scroll returns to the top, so in a menu taller than the screen the active item lands
+out of view and the sidebar stops answering "where am I" — the whole reason it highlights
+anything. `fixed: true` makes it more likely, since the sidebar is pinned and the menu scrolls
+inside it (#1099).
+
+It only ever moves the menu's own `scrollTop`, never the page's, and it does nothing when the
+item is already visible, so there is no jump on the pages that were fine. In a **closed mobile
+drawer** it waits: that panel is `inert` and translated off screen, so it is revealed when the
+drawer opens instead. Pass `reveal_current: false` for a sidebar whose scroll position is
+yours to manage.
+
+Turning it on is also what makes an inline, non-collapsible sidebar carry the Stimulus
+controller at all — before, that combination got none.
 
 #### SideMenu::Trigger
 
@@ -1404,6 +1457,30 @@ Caveats:
   `bali_view.table.ungrouped`). When **no** row has a `group:`, the table renders
   exactly as it does without the feature — no header rows.
 
+**Translating the band label** — the band is labelled with the raw group value, which for
+an enum is the database's (`table`, `view`). Do **not** translate it by passing the
+translated string as `group:`: the keys of `group_counts` are the ones the `GROUP BY`
+returned, so the lookup misses and the header silently falls back to the page-local count —
+the very thing `group_counts` exists to avoid. The label is resolved when the band is
+painted instead:
+
+```erb
+<%# The common case: one key per value, same convention as Bali::Tag.for(i18n_scope:) %>
+<%= render Bali::Table::Component.new(form: @filter_form,
+                                      group_counts: @filter_form.group_counts,
+                                      group_i18n_scope: "movies.genres") do |table| %>
+  <% table.with_row(group: movie.genre) do %><%# still the raw value %><% end %>
+<% end %>
+
+<%# The escape hatch, for a label that is not a key-per-value lookup %>
+<%= render Bali::Table::Component.new(group_counts: counts,
+                                      group_label: ->(value) { value.to_date.strftime("%B %Y") }) %>
+```
+
+`group_label:` wins over `group_i18n_scope:`. Neither sees `nil`, the SQL NULL band — that
+one already has its own translatable key. And because the label never reaches the row, the
+group's select-all token keeps deriving from the value rather than from its translation.
+
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
 `Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
 the query, counts are global, and the "Agrupar por" control persists the choice
@@ -1420,6 +1497,48 @@ end
 # or, without subclassing:
 Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
 ```
+
+##### What can be grouped by
+
+**The same three shapes Ransack sorts by** — a real column, a `ransacker`, or an
+association path. The `GROUP BY` runs on the very Arel the `ORDER BY` uses, so the
+two halves of a grouping cannot drift apart:
+
+```ruby
+class UsersFilterForm < Bali::FilterForm
+  group_by_attribute :status                              # column
+  group_by_attribute :account_status, label: "Estado"     # ransacker (a SQL CASE)
+  group_by_attribute :worker_legal_entity_name,           # association path
+                     label: "Empresa",
+                     value: ->(user) { user.worker&.legal_entity&.name }
+end
+```
+
+Each row still has to say **which band it is in**, and that is a Ruby question, not a
+SQL one. `form.group_value_for(record)` answers it: the declared `value:` when there
+is one, `record.public_send(attribute)` otherwise. A column and a ransacker with a
+Ruby twin need nothing; an association path has no `user.worker_legal_entity_name` to
+call, so it needs `value:`. Whatever it returns must equal the key the `GROUP BY`
+returned — the global-count lookup is by value.
+
+For an expression neither a column nor a ransacker can name, `sql:` is the escape
+hatch. It drives **both** halves — grouping by one expression and ordering by another
+groups nothing — so it needs no Ransack-visible name at all:
+
+```ruby
+group_by_attribute :budgeted,
+                   sql: -> { "CASE WHEN budget IS NULL THEN 'sin' ELSE 'con' END" },
+                   value: ->(movie) { movie.budget.present? ? "con" : "sin" }
+```
+
+A String `sql:` goes through `Arel.sql` — it is the developer's SQL, never the user's;
+the raw `group_by` param can only ever match a declared name.
+
+**A declaration that cannot work raises when the form is built**, not when someone
+picks that grouping on screen. `group_by_attribute :whatever` used to be accepted in
+silence and reach the database as a bare identifier — a `PG::UndefinedColumn` in
+production on a page that had loaded fine a thousand times. Same contract `input:` and
+`auto_submit:` already have.
 
 `group_by` is a **whitelisted top-level param** (not a `q[...]` predicate). The
 raw value only takes effect when it matches a declared attribute — anything else
@@ -1446,7 +1565,7 @@ grouping exactly as it was left.
 |----------|-----|---------|
 | Is a grouping **chosen**? (state) | `group_by`, `group_by_active?` | Preservation: hidden fields, filters cache, saved-view payload |
 | Does this display mode **apply** grouping? (mode) | `group_by_applies?` | Visibility of the "Group by" control |
-| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, the `group:` value of each row |
+| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, `group_value_for` |
 | Chosen but not applied here | `group_by_suspended?` | The "Grouped by Genre — applies in table view" hint the DataTable paints where the control used to be |
 
 Use `group_by_applied` (not `group_by`) wherever you paint the grouping, and
@@ -1490,8 +1609,7 @@ counts when you pass `group_counts:`:
       <%= t.with_header(name: "Name", sort: :name) %>
       <%= t.with_header(name: "Genre", sort: :genre) %>
       <% @movies.each do |movie| %>
-        <% applied = @filter_form.group_by_applied %>
-        <%= t.with_row(group: applied && movie.public_send(applied)) do %>
+        <%= t.with_row(group: @filter_form.group_value_for(movie)) do %>
           <td><%= movie.name %></td>
           <td><%= movie.genre %></td>
         <% end %>
@@ -3440,6 +3558,12 @@ makes it a first-class popover attribute with no new API.
   `persist_enabled:`, and anything the form takes). Configure the identity once:
   `Bali.filter_context = ->(controller) { controller.current_account&.id }`. A DataTable
   whose toggle is about to render over a form nobody wired warns in dev/test.
+
+  `filter_persistence_enabled?(storage_id = nil)` is the same opt-in read, public: anything
+  a host decides from the toggle — the default filters below, a banner, a different empty
+  state — asks for it here instead of spelling the `bali_persist_<storage_id>` cookie
+  itself. With no argument it answers for the current listing.
+
 - Date range "between" operator with Flatpickr
 
 **Modes:**
@@ -3463,6 +3587,58 @@ The search input includes a clear button (x) that appears when text is entered. 
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
+
+#### A listing that opens filtered (`default:` + `redirect_to_default_filters`)
+
+Some listings open on a question rather than on everything: a people catalogue shows the
+active roster, not the group's whole history. **That default belongs in the URL**, and the
+controller puts it there:
+
+```ruby
+class PeopleFilterForm < Bali::FilterForm
+  filter_attribute :employment_status, type: :select, simple: true, default: 'active',
+    options: -> { Person.employment_statuses.keys.map { |s| [s.humanize, s] } }
+end
+
+def index
+  return if redirect_to_default_filters(PeopleFilterForm)
+
+  @filter_form = filter_form(PeopleFilterForm, policy_scope(Person))
+end
+```
+
+`/people` becomes `/people?q[employment_status_eq]=active`, and from there the default is a
+filter like any other — visible in its own control, removable, shareable in a link.
+
+**Why the URL and not the scope.** Everything the `DataTable` builds afterwards is built
+from `params`: the sortable headers delegate to Ransack's `sort_link`, which composes its
+href out of the URL, and so does the pagination. A default injected into the scope or into
+`ransack_params` survives neither — the screen opens filtered, the user sorts a column, and
+the population silently changes. A default living only in the widget has the same problem
+from the other side: the select reads "Active" over a listing that shows everyone.
+
+`FilterForm.default_filter_params` is what the redirect emits, and it shapes each default
+the way the UI that owns its attribute reads it back: **flat** under `q` for a
+`simple: true` attribute, so the value lands in its own control; as a condition of the
+**advanced panel's first group** otherwise, so it renders as a removable pill.
+
+**Four things turn the redirect off**, each of them the user having already answered:
+
+| Gate | Why |
+|---|---|
+| `q` in the URL | They filtered, sorted, or emptied the panel — a sorted URL carries `q[s]` |
+| `clear_filters` | They cleared on purpose; the redirect would undo the click |
+| `saved_view` | A view is a complete state, not something to merge a default into |
+| Filter persistence on | The toggle promises "remember what I chose"; a default written on every bare entry would be stored as the last state and nothing else would ever restore |
+
+A listing built with instance-level `simple_filters:` has no class to ask — pass the `q`
+hash straight in: `redirect_to_default_filters({ estado_eq: 'activo' })` (braces required,
+a bare hash reads as keyword arguments). `storage_id:` takes the listing's persistence
+identity when it is not the one `filter_form` derives.
+
+A `default:` on an attribute offered in neither UI (`simple: false, advanced: false`) raises
+at class-definition time: it would have no control to sit in and no pill to remove, so it
+would filter invisibly.
 
 #### Quick search (`search:`)
 
@@ -4084,6 +4260,40 @@ module Admin
   end
 end
 ```
+
+**The concern overrides in BOTH directions, and only one of them is obvious.** Downward is
+the line in the snippet: a `layout "admin"` in a subclass wins over the concern's and takes
+the layout skipping with it, so declare it as `self.conditional_layout`. A **conditional**
+`layout "x", only: :full` does not escape that either, and its shape is worse: `only:`/
+`except:` generates an *instance* method `_conditional_layout?`, and the `_layout` the
+concern installs on `ApplicationController` calls that same method by dynamic dispatch — so
+the condition switches off the concern for the controller's *other* actions too, which fall
+to `layouts/application` without ever calling `conditionally_skip_layout`. A per-action
+layout is written as an override instead, because `conditional_layout` is a `class_attribute`
+and cannot vary by action:
+
+```ruby
+def conditionally_skip_layout
+  action_name == 'full' ? 'app_layout_preview' : super
+end
+```
+
+Upward is the one that surprised an app in production: `layout :a_symbol` compiles to *"call
+the method; if it returns `nil`, look up `layouts/<implied name>` and only if THAT misses,
+call `super`"*, and
+since the concern is included in `ApplicationController` the implied name is `application` —
+a template every app has. The lookup always hits, so **`super` never runs and any `layout`
+declared by an ancestor is unreachable**, gem-supplied ones included.
+
+The one every Hotwire app has is turbo-rails', which declares
+`layout -> { "turbo_rails/frame" if turbo_frame_request? }` on `ActionController::Base`. The
+concern answers the frame itself (#1097), so a `Turbo-Frame` request gets
+`turbo_rails/frame` rather than the full application shell — an app that supplies its own
+`app/views/layouts/turbo_rails/frame.html.erb` still wins. Precedence is **drawer, then
+frame, then `conditional_layout`**: `false` is smaller than the frame layout and a response
+headed for a `#main-drawer` does not want even its `<html>`, while an admin shell inside a
+frame is exactly the duplicated chrome a frame exists to avoid. Any *other* layout an
+ancestor declares still needs the host to name it in `conditional_layout`.
 
 **Escape hatches.** `card:` and `heading:` always win, `card: true` or `heading: :h1`
 inside a drawer included. For the breadcrumbs and the back button the hatch is

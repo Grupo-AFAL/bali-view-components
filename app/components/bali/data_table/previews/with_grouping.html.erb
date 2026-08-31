@@ -10,9 +10,10 @@
       <%= t.with_header(name: 'Status', sort: :status) %>
 
       <% movies.each do |movie| %>
-        <%# group value must match a group_counts key (raw enum/string) so the
-            global total resolves; nil when grouping is off. %>
-        <%= t.with_row(group: group_attribute && movie.public_send(group_attribute)) do %>
+        <%# `group_value_for` returns the RAW group key — the one `group_counts` is keyed
+            by — and nil when grouping is off. For `budget_band` it goes through the
+            ransacker's Ruby twin; for `studio_name` through the declared `value:`. %>
+        <%= t.with_row(group: filter_form.group_value_for(movie)) do %>
           <td class="font-medium"><%= movie.name %></td>
           <td><%= movie.genre %></td>
           <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>

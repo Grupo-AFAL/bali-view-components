@@ -643,6 +643,15 @@ en:
       user_menu:
         trigger_label: "User menu for %{name}"
         sign_out: "Sign out"
+      tools_menu:
+        trigger_label: "Tools"
+        items:
+          mission_control: "Jobs dashboard"
+          analytics: "Adoption dashboard"
+          letter_opener: "Captured email"
+          rails_routes: "Rails routes"
+          repository: "Repository"
+          sentry: "Sentry"
     qr_code:
       label: "QR code"
     qr_scanner:

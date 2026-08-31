@@ -580,3 +580,12 @@ es:
     description: Descripcion
     created_at: Creado
     updated_at: Actualizado
+
+  # Cadenas solo del preview. Viven acá y no en los locales de la gema a proposito: un
+  # preview se renderiza en el contexto de i18n del HOST, y `bali_view.*` es la superficie
+  # publica de la gema.
+  lookbook:
+    asset_kinds:
+      table: Tabla
+      view: Vista
+      restricted: Restringido

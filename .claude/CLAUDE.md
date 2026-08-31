@@ -72,6 +72,10 @@ changes if either is behind, then run the full test suite.
 Rubocop and Minitest run automatically via `.githooks` (pre-commit and pre-push). Cypress does
 not — run `yarn run cy:run` yourself when you touch JS, and confirm the Lookbook preview renders.
 
+**The PR body opens with `Closes #NNN` — in English.** GitHub only closes the issue on merge with
+`Closes` / `Fixes` / `Resolves`. «Cierra #NNN» reads fine and closes nothing. The rest of the body
+stays in Spanish. Enforced by `.claude/hooks/pr-closes-keyword.sh` (PreToolUse).
+
 ## Which CSS layer a rule belongs in
 
 Since v3 the package's CSS sits in three deliberate positions. Put a new rule in the wrong

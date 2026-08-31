@@ -111,6 +111,7 @@
       <div class="px-12 py-8">
         <%= render Bali::BlockEditor::Component.new(
           config: config,
+          format: editor_format,
           initial_content: initial_content,
           editable: editable?,
           input_name: editable? ? input_name : nil,

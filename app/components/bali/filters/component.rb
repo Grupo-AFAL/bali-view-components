@@ -120,9 +120,12 @@ module Bali
         @search.param_name
       end
 
+      # Misma regla que decide qué viaja y que la que cuenta `FilterForm#active_filters_count`
+      # (#1085): un `between` con los dos extremos en blanco pasa `present?` por ser un Hash,
+      # así que el badge decía "1 filtro" sobre una fila que no aportaba un solo par.
       def active_filter_count
         @filter_groups.sum do |group|
-          group[:conditions]&.count { |c| c[:attribute].present? && c[:value].present? } || 0
+          Array(group[:conditions]).count { |c| ActiveFilterParams.applied?(c) }
         end
       end
 

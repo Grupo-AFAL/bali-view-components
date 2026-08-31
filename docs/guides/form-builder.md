@@ -349,6 +349,13 @@ Enhanced select with search, multi-select, and AJAX support.
 <%# With search %>
 <%= f.slim_select_group :user, [], show_search: true, ajax_url: search_users_path, ajax_param_name: 'q' %>
 
+<%# Scoped by another field: "Resource type" narrows what "Resource" can find %>
+<%= f.slim_select_group :resource_id, [],
+      ajax_url: search_resources_path, ajax_param_name: 'q',
+      ajax_value_name: 'id', ajax_text_name: 'name',
+      ajax_extra_params: { only_active: true },
+      ajax_param_selectors: { type: '#assignment_resource_type' } %>
+
 <%# Allow creating new items %>
 <%= f.slim_select_group :category, categories, add_items: true %>
 ```
@@ -368,6 +375,28 @@ Enhanced select with search, multi-select, and AJAX support.
 - `ajax_param_name` - Query parameter name (default: "q")
 - `ajax_value_name` - Value field in response
 - `ajax_text_name` - Text field in response
+- `ajax_extra_params` - Hash merged into every search: the scope you already know when the
+  page renders
+- `ajax_param_selectors` - Hash of `param => CSS selector`, read **on every search**: the
+  scope that lives in another field
+
+The search fires at two characters and sends the term under `ajax_param_name`. Anything
+else it should carry goes through the last two options, and the difference between them is
+*when the value is known*. `ajax_extra_params` is fixed at render time. `ajax_param_selectors`
+is resolved at the moment of each search, which is what makes a **dependent select** work:
+the user picks a resource type, and the next keystroke in the resource field searches
+inside that type. The selector is a plain CSS selector against the document — the field it
+points at does not have to belong to the form, or to Bali.
+
+A field left empty sends **no parameter at all** rather than an empty one: on the server,
+`type=` and no `type` are different questions, and "no narrowing" is the right answer when
+nothing is chosen. A selector that matches nothing warns in the console — that is the
+failure this exists to remove, because a filter that silently stops narrowing looks exactly
+like a working widget that returns the whole universe.
+
+What stays yours: **clearing the selection** when the field it depends on changes. A
+resource picked under one type is not valid under the next, and the component does not
+touch a value the user chose.
 
 ### time_zone_select_group
 
