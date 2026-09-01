@@ -450,11 +450,26 @@ export class WidgetGridEditModeController extends Controller {
     this.announce(editing ? this.onTextValue : this.offTextValue)
   }
 
+  // THROUGH TURBO WHEN TURBO IS THERE, and this is not a preference. Turbo keeps
+  // its own history: every entry it creates carries
+  // `state.turbo = { restorationIdentifier, restorationIndex }`, and its
+  // `popstate` handler does NOTHING for an entry without that key.
+  //
+  // So a raw `history.pushState` here left orphan entries Turbo would later
+  // refuse to restore: Edit, Done, follow a card's link, then Back — the URL
+  // changed to the dashboard and the previous page stayed on screen. Two clicks
+  // meant two orphans, so one Back appeared to do nothing at all.
+  //
+  // `Turbo.session.history` is semi-private, which is the cost. It is the same
+  // call `filters_controller.js` already makes for the same reason, and the same
+  // fallback for a host running without Turbo.
   push (editing) {
     const url = new URL(window.location.href)
     if (editing) url.searchParams.set(this.paramValue, '1')
     else url.searchParams.delete(this.paramValue)
-    window.history.pushState({}, '', url)
+
+    if (window.Turbo) window.Turbo.session.history.push(url)
+    else window.history.pushState({}, '', url)
   }
 
   // Same clear-then-set as the grid controller: they share one announcer node,
