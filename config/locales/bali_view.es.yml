@@ -371,8 +371,10 @@ es:
         go_to_slide: "Ir a diapositiva %{number}"
     calendar:
       header:
+        day: Día
         week: Semana
         month: Mes
+        year: Año
         previous: Anterior
         next: Siguiente
     gantt:

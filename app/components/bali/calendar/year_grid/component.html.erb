@@ -1,0 +1,44 @@
+<%# The month columns are written as literal responsive utilities, not assembled
+    in Ruby: Tailwind's scanner reads these files as text and cannot see a class
+    that only exists after string interpolation. %>
+<div class="year-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  <% months.each do |month| %>
+    <div class="year-month">
+      <%# The summary sits right after the month name, not pushed to the far edge of
+          the column: at four columns a `justify-between` row parks it against the NEXT
+          month's heading, where it reads as that month's number. Measured at 1440px —
+          each column is 328px wide, and the badge landed 280px from its own title. %>
+      <div class="flex items-baseline gap-2 mb-2">
+        <h4 class="font-semibold text-base-content"><%= month_name(month) %></h4>
+        <% summary = month_summary_for(month) %>
+        <% if summary.present? %>
+          <%= render Bali::Tag::Component.new(text: summary, color: :ghost, size: :sm) %>
+        <% end %>
+      </div>
+
+      <div class="year-month-grid grid grid-cols-7 gap-0.5">
+        <%# aria-hidden: every cell already carries its own full date — an
+            aria-label on the links, `<time datetime>` on the rest — so the
+            initials are decoration for a screen reader. %>
+        <% weekday_initials.each do |initial| %>
+          <div class="year-weekday text-center text-[0.625rem] text-base-content/50" aria-hidden="true"><%= initial %></div>
+        <% end %>
+
+        <% month_days(month).each do |day| %>
+          <% if day.nil? %>
+            <div class="year-blank aspect-square" aria-hidden="true"></div>
+          <% elsif hover?(day) %>
+            <%# w-full beats hover_card/index.css's `w-max` — that sheet is in
+                @layer components and this is a utility. %>
+            <%= render Bali::HoverCard::Component.new(placement: "top", class: "w-full") do |card| %>
+              <% card.with_trigger { day_cell(day) } %>
+              <%= render template, events: events_on(day), period: :year, day: day %>
+            <% end %>
+          <% else %>
+            <%= day_cell(day) %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

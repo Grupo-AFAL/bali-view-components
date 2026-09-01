@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       include Normalization
 
-      PERIODS = %i[month week day].freeze
+      PERIODS = %i[month week day year].freeze
 
       # Public readers for template access
       attr_reader :start_date, :period, :start_attribute, :show_date, :template
@@ -24,15 +24,30 @@ module Bali
 
       # @param template [String] Path to an HTML template with the content of each day.
       # @param start_date [Date, String] The date to start the calendar from.
-      # @param period [Symbol] The period of the calendar: :month, :week, or :day.
+      # @param period [Symbol] The period of the calendar: :month, :week, :day or :year.
       # @param events [Array] Events to display, must respond to `start_attribute`.
       # @param start_attribute [Symbol] Method to call on each event for the start date.
       # @param end_attribute [Symbol] Method to call on each event for the end date.
       # @param weekdays_only [Boolean] Show only Monday-Friday (default: false).
+      #   IGNORED by `period: :year`, deliberately. In the month view the host is
+      #   choosing a working agenda and knows the weekend is out of scope; in a
+      #   year-long density map, dropping two columns would make a Saturday event
+      #   vanish with nothing on screen saying it had. A map that hides days is
+      #   not a map, so the year grid always draws seven.
       # @param show_date [Boolean] Display the date number or not.
       # @param weekly_title_class [String] Extra classes for the day number in week view.
+      # @param day_url [Proc, nil] Year view only. `->(day, events) { url }`; nil, or a
+      #   nil return, leaves that day unlinked. There is no default destination — the
+      #   component does not know the host's routes.
+      # @param day_variant [Proc, nil] Year view only. `->(day, events) { :success }`,
+      #   a name from Bali::Color::NAMES, validated. ONE colour per day: see the header
+      #   of Bali::Calendar::YearGrid::Component for why it is not a gradient.
+      # @param month_summary [Proc, nil] Year view only. `->(month, events) { "11" }`,
+      #   drawn beside the month name. Receives the first day of the month and that
+      #   month's events; the component supplies the events, the host the wording.
       # `**options` is accepted and ignored: it has never reached the markup, and letting
       # a stray keyword through is what the previous signature did.
+      # rubocop:disable Metrics/ParameterLists
       def initialize(template: nil,
                      start_date: nil,
                      period: :month,
@@ -42,7 +57,11 @@ module Bali
                      weekdays_only: false,
                      show_date: true,
                      weekly_title_class: nil,
+                     day_url: nil,
+                     day_variant: nil,
+                     month_summary: nil,
                      **_options)
+        # rubocop:enable Metrics/ParameterLists
         @template = template
         @start_date = normalize_date(start_date)
         @period = normalize_period(period)
@@ -52,6 +71,9 @@ module Bali
         @weekdays_only = weekdays_only
         @show_date = show_date
         @weekly_title_class = weekly_title_class
+        @day_url = day_url
+        @day_variant = day_variant
+        @month_summary = month_summary
       end
 
       # @return [Array<Date>] All dates to display in the calendar
@@ -59,6 +81,7 @@ module Bali
         @date_range ||= case period
         when :month then month_date_range
         when :week then start_date.all_week.to_a
+        when :year then (start_date.beginning_of_year..start_date.end_of_year).to_a
         else [ start_date ]
         end
       end
@@ -122,6 +145,24 @@ module Bali
         period == :week
       end
 
+      def year_view?
+        period == :year
+      end
+
+      # The twelve-month grid, built here so both the default template and the
+      # +mobile one render the same thing from one call.
+      def year_grid_component
+        YearGrid::Component.new(
+          start_date: start_date,
+          events_by_date: sorted_events,
+          template: template,
+          show_date: show_date,
+          day_url: @day_url,
+          day_variant: @day_variant,
+          month_summary: @month_summary
+        )
+      end
+
       def show_weekends?
         !@weekdays_only
       end
@@ -145,7 +186,11 @@ module Bali
 
       # @return [String] CSS classes for the card that frames the grid
       def card_class
-        month_view? ? "month-view" : "week-view"
+        case period
+        when :year then "year-view"
+        when :month then "month-view"
+        else "week-view"
+        end
       end
 
       private

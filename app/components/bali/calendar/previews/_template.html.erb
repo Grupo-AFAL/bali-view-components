@@ -1,3 +1,14 @@
-<% events&.each do |event| %>
-  <%= render Bali::Tag::Component.new(text: event.name, color: :primary, size: :sm) %>
+<%# One partial for both views, which is the point of `template:`: the host writes
+    it once and the calendar hands it the same three locals in month and in year.
+    In the year view it renders inside the hover card, so it names the day too —
+    the cell it hangs off is a number in a grid of twelve. %>
+<% if period == :year %>
+  <div class="text-xs font-semibold mb-1 whitespace-nowrap">
+    <%= day.day %> <%= t('date.month_names')[day.month] %>
+  </div>
 <% end %>
+<div class="flex flex-col gap-1 items-start">
+  <% events&.each do |event| %>
+    <%= render Bali::Tag::Component.new(text: event.name, color: event.status || :primary, size: :sm) %>
+  <% end %>
+</div>

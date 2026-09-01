@@ -7,6 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Calendar::Component` gana la vista de año (`period: :year`): doce meses en
+  miniatura como mapa de densidad.** Un día sin eventos se apaga, un día con eventos toma
+  el color que devuelve el ANFITRIÓN, y el partial que ya escribió para la vista de mes se
+  reusa tal cual dentro del hover. El componente sigue sin vocabulario propio: `day_url`,
+  `day_variant` y `month_summary` son tres lambdas opcionales, las tres pueden ser `nil`, y
+  toda la semántica entra por ahí. **`day_url: nil` significa que el día NO es enlace** —
+  la gema no inventa un destino que no conoce.
+
+  **Un solo color por día, más un punto.** Un día puede tener eventos que el anfitrión
+  considera de estados distintos; la celda toma exactamente uno, el que devuelva
+  `day_variant`, porque el anfitrión es el único que sabe cuál de sus propios estados manda.
+  Lo que agrega el componente es `has-multiple`: un punto en la esquina que dice «aquí hay
+  más de uno», y la lista completa dentro del hover. El degradado era la alternativa y es
+  peor: **medida a 1280px la celda es de 45px y en móvil de ~20px**, y dos colores en ese
+  espacio no codifican orden —nada indica cuál mitad va primero— mientras que la mezcla
+  entre ambos se lee como un tercer estado que nadie definió. El punto dice «hay más» y
+  nada más, que es lo único que el componente realmente sabe.
+
+  **`weekdays_only` se ignora en `:year`**, sin error. En la vista de mes el anfitrión está
+  eligiendo una agenda laboral y sabe que el fin de semana está fuera de alcance; en un mapa
+  de un año entero, quitar dos columnas haría desaparecer un evento de sábado sin que nada
+  en pantalla lo delate. Un mapa que esconde días deja de ser un mapa, así que la retícula
+  siempre dibuja siete columnas (hay prueba que lo fija).
+
+  **Tippy se monta sólo en los días con eventos.** El controlador `hovercard` crea su
+  instancia en `connect()`, no al pasar el mouse, así que una vista de año sin restricción
+  monta una por día. Medido en Chrome sobre el preview de Lookbook, mismo año y mismos
+  datos: **36 instancias contra 365** (los eventos de ejemplo caen en 3 días distintos por
+  mes), y el HTML de la página pasa de **311,471 bytes a 118,396** — 193 KB menos, 2.6×.
+  El tiempo desde el inicio de la navegación hasta que las 365 celdas tienen su tippy
+  montado, tres corridas de cada una: **739.9 ms de promedio con la restricción (745.6 /
+  733.9 / 740.2) contra 773.4 ms sin ella (794.9 / 769.3 / 755.9)**, ≈33 ms por 329
+  instancias de más, ≈0.10 ms cada una. El tiempo es el número chico; el que importa es que
+  no se paga nada por 329 popups vacíos.
+
+  **En celular la vista de año sí se pinta.** `component.html+mobile.erb` —el único archivo
+  `+mobile` del paquete— ramifica ahora por periodo: con `:year` pinta la misma retícula
+  (una columna de meses en móvil, 2 en `sm`, 3 en `lg`, 4 en `xl`), y con `:month`, `:week`
+  o `:day` sigue pintando exactamente la vista de día de siempre. Reemplazar un año entero
+  por un solo día no es una degradación, es otro dato.
+
+  Nombres de mes e iniciales de día salen siempre de I18n (`date.month_names`, que es
+  1-indexado, y `date.abbr_day_names`, que empieza en domingo y se rota al primer día de
+  la semana que declare `Date.beginning_of_week`). Verificado en inglés y en español.
+
+- **El conmutador de periodo del header acepta un arreglo además de un booleano.**
+  `period_switch: true` sigue significando exactamente `%i[week month]`, en ese orden:
+  ningún anfitrión que no toque la llave ve un botón nuevo. `false` sigue ocultando todo, y
+  quien quiera el año lo pide: `period_switch: %i[month year]`. Un valor que no sea un
+  periodo válido se descarta antes de llegar a la traducción. El header navega por año
+  (`beginning_of_year ± 1.year`) y, en `period: :year`, el `<h3>` muestra sólo el año —
+  nombrar un mes en una vista que abarca los doce sería equivocado, no sólo redundante.
+  Traducciones nuevas `year`/`day` en `bali_view.calendar.header`, en es y en en.
+
+  Nota sobre una inconsistencia que se conserva a propósito: `extra_params(:prev)` y
+  `(:next)` mandan `period:` como símbolo y los botones de periodo como cadena. Las dos
+  formas sobreviven igual a `to_query`, y uniformarlas cambiaría el query string de todos
+  los anfitriones por nada.
+
+  Verificación de no regresión, en navegador: capturas de la vista de mes y semana **sin**
+  eventos ni `template:` (`calendar/without_header` y `default?weekdays_only=true`) antes y
+  después del cambio, comparadas pixel a pixel con ImageMagick — **0 píxeles distintos**.
+  Las que sí difieren (0.28% y 0.14% de la imagen) lo hacen únicamente en las etiquetas de
+  los eventos, y por el partial de ejemplo `previews/_template.html.erb`, que se reescribió
+  para servir a las dos vistas; el marcado del componente no cambió.
+
 ## [v3.2.1] - 2026-08-30
 
 ### Fixed

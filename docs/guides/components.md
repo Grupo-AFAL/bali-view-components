@@ -3486,7 +3486,7 @@ a filter panel, use the FormBuilder's `search_group`.
 
 #### Calendar
 
-Month, week, or day calendar that displays events grouped by date, with optional navigation header and custom day templates.
+Month, week, day, or year calendar that displays events grouped by date, with optional navigation header and custom day templates.
 
 ```erb
 <%= render Bali::Calendar::Component.new(
@@ -3503,20 +3503,48 @@ Month, week, or day calendar that displays events grouped by date, with optional
 **Options:**
 - `template` - Path to an HTML partial rendered for each day's events (default: nil)
 - `start_date` - Date or string to center the calendar on (default: `Date.current`)
-- `period` - Calendar view, one of `:month`, `:week`, or `:day` (default: `:month`)
+- `period` - Calendar view, one of `:month`, `:week`, `:day`, or `:year` (default: `:month`)
 - `events` - Array of events; each must respond to `start_attribute` (default: `[]`)
 - `start_attribute` - Method called on each event for its start date (default: `:start_time`)
 - `end_attribute` - Method called on each event for its end date, enables multi-day events (default: `:end_time`)
 - `weekdays_only` - Show only Monday-Friday (default: false)
 - `show_date` - Display the day number in each cell (default: true)
 - `weekly_title_class` - Extra classes for the day number, aimed at week view (default: nil)
+- `day_url` - Year view only. `->(day, events) { url }`; `nil`, or a `nil` return, leaves that day unlinked (default: nil)
+- `day_variant` - Year view only. `->(day, events) { :success }`, a name from `Bali::Color::NAMES` (default: nil)
+- `month_summary` - Year view only. `->(month, events) { "11" }`, drawn beside the month name (default: nil)
 
 **Slots:** `header` (navigation with period switch, accepts `route_path:` and `period_switch:`), `footer`.
+
+**Year view.** `period: :year` draws twelve miniature months as a density map. A day with no
+events is dimmed; a day with events takes the colour `day_variant` returns, and a day holding
+more than one gets a `has-multiple` dot in the corner — one colour per day, because only the
+host knows which of its own states outranks the others. The `template:` partial is rendered
+inside a hover card on the days that have events, with the same three locals as the month view
+(`events:`, `period:`, `day:`), so one partial serves both. All three lambdas are optional.
+
+```erb
+<%= render Bali::Calendar::Component.new(
+  period: :year,
+  start_date: params[:start_time],
+  events: @events,
+  template: 'events/calendar_event',
+  day_url: ->(day, _events) { events_path(start_time: day, period: :day) },
+  day_variant: ->(_day, events) { events.first.status_color },
+  month_summary: ->(_month, events) { events.size.to_s }
+) do |c| %>
+  <% c.with_header(route_path: events_path, period_switch: %i[month year]) %>
+<% end %>
+```
+
+`weekdays_only` is ignored by the year view: a map that hides Saturdays hides events. The
+header's `period_switch:` takes an array as well as a boolean — `true` still means exactly
+`%i[week month]`, so the year button has to be asked for.
 
 `start_date` and `period` normally arrive from the query string — the header's prev/next
 and period links write them back to `route_path` — so both degrade rather than raise:
 anything `Date.parse` cannot read becomes `Date.current`, and any period outside
-`:month`/`:week`/`:day` becomes `:month`. Handing `params[:start_time]` straight to the
+`:month`/`:week`/`:day`/`:year` becomes `:month`. Handing `params[:start_time]` straight to the
 component is safe.
 
 The component renders its own `Bali::Card`, so do not wrap it in another one.

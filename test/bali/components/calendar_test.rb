@@ -347,6 +347,342 @@ class BaliCalendarComponentTest < ComponentTestCase
 
     assert_selector("td.day > div.text-error")
   end
+  # year view
+  #
+  # normalize_period degrades anything it does not recognise to :month WITHOUT
+  # raising, so a year view that was never wired up would still answer 200 and
+  # paint a month. Every assertion below has to name something only twelve
+  # months can produce; "it rendered" proves nothing here.
+
+  def test_year_is_a_period_rather_than_falling_back_to_month
+    @options.merge!(period: "year")
+    assert_equal(:year, component.period)
+    assert(component.year_view?)
+    refute(component.month_view?)
+  end
+
+  def test_year_view_renders_twelve_months
+    @options.merge!(start_date: "2020-06-15", period: :year)
+    render_inline(component)
+
+    assert_selector(".year-view")
+    assert_selector(".year-month", count: 12)
+    assert_no_selector("table")
+  end
+
+  def test_year_view_names_every_month
+    @options.merge!(start_date: "2020-06-15", period: :year)
+    render_inline(component)
+
+    %w[January February March April May June
+       July August September October November December].each do |month|
+      assert_selector(".year-month h4", text: month)
+    end
+  end
+
+  def test_year_view_draws_every_day_of_the_year
+    @options.merge!(start_date: "2020-06-15", period: :year)
+    render_inline(component)
+
+    assert_selector(".year-day", count: 366)
+  end
+
+  def test_year_view_keeps_seven_columns_when_weekdays_only_is_set
+    @options.merge!(start_date: "2020-06-15", period: :year, weekdays_only: true)
+    render_inline(component)
+
+    assert_selector(".year-weekday", count: 84) # 12 months x 7 columns
+    assert_selector(".year-day", count: 366)
+  end
+
+  def test_year_view_labels_the_weekdays_from_the_first_day_of_the_week
+    @options.merge!(start_date: "2020-06-15", period: :year)
+    render_inline(component)
+
+    initials = page.all(".year-weekday").first(7).map(&:text)
+    assert_equal(%w[Mon Tue Wed Thu Fri Sat Sun], initials)
+  end
+
+  def test_year_view_dims_days_without_events
+    @options.merge!(start_date: "2020-06-15", period: :year)
+    render_inline(component)
+
+    assert_selector(".year-day.text-base-content\\/40", count: 366)
+  end
+
+  def test_year_view_highlights_days_with_events
+    @options.merge!(start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ])
+    render_inline(component)
+
+    assert_selector(".year-day.bg-base-content\\/20", count: 1)
+  end
+
+  def test_year_view_paints_the_day_with_the_variant_the_host_returns
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      day_variant: ->(_day, _events) { :success }
+    )
+    render_inline(component)
+
+    assert_selector(".year-day.bg-success", count: 1)
+  end
+
+  def test_year_view_rejects_a_variant_that_is_not_a_bali_colour
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      day_variant: ->(_day, _events) { :chartreuse }
+    )
+
+    error = assert_raises(ArgumentError) { render_inline(component) }
+    assert_match(/day_variant/, error.message)
+  end
+
+  # One colour per day and a dot for the rest: the host owns the precedence
+  # between its own states, the component only knows how many there are.
+  def test_year_view_marks_a_day_holding_more_than_one_event
+    @options.merge!(
+      start_date: "2020-01-01", period: :year,
+      events: [ year_event("2020-03-05"), year_event("2020-03-05"), year_event("2020-04-02") ]
+    )
+    render_inline(component)
+
+    assert_selector(".year-day.has-multiple", count: 1)
+  end
+
+  def test_year_view_does_not_link_a_day_without_a_day_url
+    @options.merge!(start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ])
+    render_inline(component)
+
+    assert_no_selector(".year-month a")
+    assert_selector("time.year-day", count: 366)
+  end
+
+  def test_year_view_links_the_days_the_day_url_names
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      day_url: ->(day, events) { "/days/#{day}" if events.any? }
+    )
+    render_inline(component)
+
+    assert_selector("a.year-day[href='/days/2020-03-05']", count: 1)
+    assert_selector("a.year-day", count: 1)
+    assert_selector("a.year-day[aria-label='5 March 2020']", count: 1)
+  end
+
+  # A bare <span> maps to `generic`, which ARIA does not name, so the full date on an
+  # unlinked cell rides on <time datetime> instead of an aria-label that does nothing.
+  def test_year_view_carries_the_machine_readable_date_on_every_unlinked_day
+    @options.merge!(start_date: "2020-01-01", period: :year)
+    render_inline(component)
+
+    assert_selector("time.year-day[datetime='2020-03-05']", count: 1)
+    assert_selector("time.year-day", count: 366)
+  end
+
+  def test_month_summary_receives_the_month_and_its_own_events
+    seen = []
+    @options.merge!(
+      start_date: "2020-01-01", period: :year,
+      events: [ year_event("2020-03-05"), year_event("2020-03-19") ],
+      month_summary: lambda { |month, events|
+        seen << [ month, events.size ]
+        "#{events.size} on"
+      }
+    )
+    render_inline(component)
+
+    assert_selector(".year-month", text: "2 on", count: 1)
+    assert_equal(12, seen.size)
+    assert_equal([ Date.parse("2020-03-01"), 2 ], seen[2])
+  end
+
+  def test_month_summary_is_omitted_when_the_host_returns_nothing
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, month_summary: ->(_month, _events) { nil }
+    )
+    render_inline(component)
+
+    assert_no_selector(".year-month .badge")
+  end
+
+  # Tippy is mounted per hover card, so a year of empty cells would cost 365
+  # instances to show 365 empty popups.
+  def test_year_view_mounts_a_hover_card_only_on_days_with_events
+    @options.merge!(
+      start_date: "2020-01-01", period: :year,
+      events: [ year_event("2020-03-05"), year_event("2020-08-11") ],
+      template: "calendar_fixtures/day"
+    )
+    render_inline(component)
+
+    assert_selector(".year-month .hover-card-component", count: 2)
+  end
+
+  def test_year_view_renders_no_hover_card_without_a_template
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ]
+    )
+    render_inline(component)
+
+    assert_no_selector(".hover-card-component")
+  end
+
+  def test_year_view_renders_with_all_three_lambdas_nil
+    @options.merge!(start_date: "2020-01-01", period: :year)
+    render_inline(component)
+
+    assert_selector(".year-month", count: 12)
+  end
+
+  # The names come from I18n, never from a literal: `date.month_names` is 1-indexed
+  # and `date.abbr_day_names` starts on Sunday, so both are easy to get subtly wrong
+  # in a grid that starts on Monday.
+  def test_year_view_names_the_months_and_weekdays_in_spanish
+    @options.merge!(start_date: "2020-06-15", period: :year)
+    I18n.with_locale(:es) { render_inline(component) }
+
+    assert_selector(".year-month h4", text: "Enero")
+    assert_selector(".year-month h4", text: "Diciembre")
+    assert_equal(%w[Lun Mar Mié Jue Vie Sáb Dom],
+                 page.all(".year-weekday").first(7).map(&:text))
+  end
+
+  def test_year_view_header_shows_the_year_in_spanish_too
+    @options.merge!(start_date: "2020-03-03", period: :year)
+    I18n.with_locale(:es) do
+      render_inline(component) do |c|
+        c.with_header(start_date: "2020-03-03", period: :year, route_path: "/c",
+                      period_switch: %i[month year])
+      end
+    end
+
+    assert_selector(".header h3.text-2xl", text: "2020")
+    assert_selector(".header a.btn", text: "Año")
+    assert_selector(".header a.btn", text: "Mes")
+  end
+
+  # The one +mobile template in the package answers "phone" with the day view for
+  # every other period; the year grid reflows instead of being replaced.
+  def test_year_view_is_drawn_on_mobile_too
+    @options.merge!(start_date: "2020-01-01", period: :year)
+    with_variant(:mobile) { render_inline(component) }
+
+    assert_selector(".year-view")
+    assert_selector(".year-month", count: 12)
+    assert_no_selector(".day-view")
+  end
+
+  def test_year_view_marks_the_card_with_year_view
+    @options.merge!(start_date: "2020-01-01", period: :year)
+    render_inline(component)
+
+    assert_selector(".calendar-component > .card.year-view")
+    assert_no_selector(".month-view")
+    assert_no_selector(".week-view")
+  end
+  # header — year navigation
+
+  def test_prev_start_date_year_returns_first_date_of_last_year
+    prev_date = Date.current
+    render_inline(component) do |c|
+      prev_date = c.with_header(start_date: "2020-03-03", period: :year).prev_start_date
+    end
+    assert_equal(Date.parse("2019-01-01"), prev_date)
+  end
+
+  def test_next_start_date_year_returns_first_date_of_next_year
+    next_date = Date.current
+    render_inline(component) do |c|
+      next_date = c.with_header(start_date: "2020-03-03", period: :year).next_start_date
+    end
+    assert_equal(Date.parse("2021-01-01"), next_date)
+  end
+
+  def test_extra_params_returns_params_for_year_view
+    params = {}
+    render_inline(component) do |c|
+      params = c.with_header(start_date: "2020-02-02").extra_params(:year)
+    end
+    assert_equal({ start_time: Date.parse("2020-02-02"), period: "year" }, params)
+  end
+
+  # The round trip #route builds, which is what a host actually clicks.
+  def test_route_for_the_year_button_carries_the_period_and_the_date
+    href = ""
+    render_inline(component) do |c|
+      header = c.with_header(start_date: "2020-02-02", route_path: "/calendar?q=x")
+      href = header.route(header.extra_params(:year))
+    end
+
+    assert_equal("/calendar?period=year&q=x&start_time=2020-02-02", href)
+  end
+
+  def test_header_shows_only_the_year_in_the_year_view
+    @options.merge!(start_date: "2020-03-03", period: :year)
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-03-03", period: :year)
+    end
+
+    assert_selector(".header h3.text-2xl", text: "2020")
+    assert_no_selector(".header h3.text-2xl", text: "March")
+  end
+  # header — period_switch takes an array as well as a boolean
+
+  def test_period_switch_true_still_renders_exactly_week_and_month
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar", period_switch: true)
+    end
+
+    assert_selector(".header a.btn", text: "Week")
+    assert_selector(".header a.btn", text: "Month")
+    assert_no_selector(".header a.btn", text: "Year")
+    assert_no_selector(".header a.btn", text: "Day")
+  end
+
+  def test_period_switch_false_renders_no_switch_at_all
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar", period_switch: false)
+    end
+
+    assert_no_selector(".header a.btn", text: "Week")
+    assert_no_selector(".header a.btn", text: "Month")
+    assert_no_selector(".header a.btn", text: "Year")
+  end
+
+  def test_period_switch_accepts_an_array_of_periods
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar",
+                    period: :year, period_switch: %i[month year])
+    end
+
+    assert_selector(".header a.btn", text: "Month")
+    assert_selector(".header a.btn", text: "Year")
+    assert_no_selector(".header a.btn", text: "Week")
+  end
+
+  def test_period_switch_outlines_every_period_but_the_current_one
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar",
+                    period: :year, period_switch: %i[month year])
+    end
+
+    assert_selector(".header a.btn-outline", text: "Month")
+    assert_no_selector(".header a.btn-outline", text: "Year")
+  end
+
+  def test_period_switch_drops_a_value_that_is_not_a_period
+    header = Bali::Calendar::Header::Component.new(
+      start_date: "2020-01-01", route_path: "/calendar", period_switch: %i[month decade]
+    )
+
+    assert_equal([ :month ], header.switch_periods)
+  end
+
+  private
+
+  def year_event(date)
+    Struct.new(:start_time).new(Date.parse(date))
+  end
 end
 
 class BaliCalendarEventGrouperTest < ActiveSupport::TestCase
