@@ -139,17 +139,19 @@ module Bali
       # controller never connects, with no error anywhere. `WidgetGrid::Component`
       # already composes its own wiring this way.
       def card_attributes
-        # `except` copies the OUTER hash only, and `prepend_*` mutates `[:data]`
-        # in place — so a caller reusing one options hash across cards
-        # (`widgets.each { grid.with_widget(_1, **attrs) }`) accumulated tokens:
-        # `data-controller="bali-widget-refresh bali-widget-refresh …"`, two
-        # controller instances and two polling timers on one tile, and a
-        # `-url-value` of "/refresh /refresh" that 404s. Cards render in a loop,
-        # which is exactly where a shared hash is natural.
-        attributes = options.except(:class)
+        # DETACHED ABOVE THE GUARD, deliberately. Cards render in a loop —
+        # `widgets.each { grid.with_widget(_1, **attrs) }` — which is where one
+        # shared options hash is the natural thing to write, and it is how this
+        # shipped broken once: `data-controller="bali-widget-refresh
+        # bali-widget-refresh …"` and a `-url-value` of "/refresh /refresh".
+        #
+        # Above the guard rather than below it because the non-refreshing path
+        # prepends nothing TODAY. Detaching next to the first `prepend_*` would
+        # leave the next person to add one there writing into the caller's hash,
+        # and no test would catch it: the accumulation is only visible on a card
+        # that refreshes.
+        attributes = detach_data(options.except(:class))
         return attributes unless refreshes?
-
-        attributes = attributes.merge(data: attributes[:data]&.dup || {})
 
         attributes = prepend_controller(attributes, "bali-widget-refresh")
         prepend_values(attributes, "bali-widget-refresh",
