@@ -125,9 +125,12 @@ module Bali
           #
           # This is the invariant `Bali::DashboardWidget` documents and the reason
           # `scope :ordered` tie-breaks on `widget_key`: a hidden row keeps its
-          # position while the visible ones renumber around it, so positions
-          # collide and gaps are normal. The `_ordering` index is deliberately not
-          # unique. `arrange` used to be the one writer that broke it.
+          # ROW — its size and its `created_at` — while the visible ones renumber
+          # around it, so positions collide and gaps are normal. The stored
+          # `position` survives too but means little alone: where the widget
+          # lands when it comes back depends on where the visible ones moved to.
+          # The `_ordering` index is deliberately not unique. `arrange` used to
+          # be the one writer that broke it.
           rows.where(widget_key: offering.map(&:key)).delete_all
 
           next if layout.empty?

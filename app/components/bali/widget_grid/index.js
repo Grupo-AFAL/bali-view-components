@@ -63,7 +63,11 @@ export class WidgetGridController extends Controller {
     // a keyboard user loses their place in a twelve-card grid. Deleting is the
     // gesture where losing your place costs most.
     const cards = this.cards
-    const next = cards[cards.indexOf(card) + 1] ?? cards[cards.indexOf(card) - 1]
+    // Guarded like `move`: `closest` can match a card nested inside another
+    // grid, which is not in `this.cards` (`:scope >`). `indexOf` is then -1 and
+    // `cards[-1 + 1]` is `cards[0]` — focus silently jumping to the FIRST card.
+    const at = cards.indexOf(card)
+    const next = at === -1 ? null : (cards[at + 1] ?? cards[at - 1])
 
     card.remove()
     this.focusHandle(next)

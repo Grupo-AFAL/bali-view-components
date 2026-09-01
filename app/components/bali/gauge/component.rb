@@ -69,6 +69,10 @@ module Bali
       #
       # `aria-valuenow` carries the UNCLAMPED value, because that is the true
       # reading; only the drawing is clamped.
+      private
+
+      attr_reader :value, :max, :label, :size, :color, :options
+
       def aria_attributes
         {
           role: "progressbar",
@@ -78,10 +82,6 @@ module Bali
           "aria-label": label.presence || t("bali_view.gauge.default_label", percentage: percentage)
         }
       end
-
-      private
-
-      attr_reader :value, :max, :label, :size, :color, :options
 
       def gauge_classes
         class_names("bali-gauge radial-progress", COLORS[color],

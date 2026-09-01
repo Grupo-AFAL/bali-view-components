@@ -66,9 +66,11 @@ module Bali
         # cache or an audit log.
         #
         # THESE REALLY WRITE. An empty layout is the documented reset, so
-        # `arrange([])` clears the store it is given — hand this a SCRATCH store
-        # scoped to a throwaway owner or dashboard_key, never one holding rows
-        # you want to keep.
+        # `arrange([])` clears the rows THIS STORE'S OFFERING COVERS — hand this
+        # a SCRATCH store scoped to a throwaway owner or dashboard_key, never one
+        # holding rows you want to keep. (Rows outside the offering survive, but
+        # do not lean on that: a replacement is free to clear everything and
+        # still meet this contract, which is shape only.)
         store.arrange([])
         store.choose([])
       end

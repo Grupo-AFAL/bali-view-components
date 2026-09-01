@@ -13,8 +13,6 @@ module Bali
     # see which widget is the host's rule, and the write goes through
     # `Bali::DashboardWidget::Store`.
     class Component < ApplicationViewComponent
-      # A string rather than the constant, so this class carries no load-order
-      # dependency on the card.
       # The slot builds each card, so `refresh_url` is injected here rather than
       # asked of every caller — `grid.with_widget(widget, size:)` is unchanged.
       renders_many :widgets, ->(widget, **options) {
@@ -65,6 +63,10 @@ module Bali
       attr_reader :url, :add_path, :refresh_url, :editing_param, :options
 
       def build_options(opts)
+        # `[:data]` is duped before `prepend_*` touches it: those helpers mutate
+        # in place, so a caller reusing one options hash across two grids would
+        # get doubled controller names on the second. See `Widget::Component`.
+        opts = opts.merge(data: opts[:data]&.dup || {})
         opts = prepend_controller(opts, "bali-widget-grid bali-widget-grid-edit-mode")
         opts = prepend_values(opts, "bali-widget-grid", widget_grid_values)
         opts = prepend_values(opts, "bali-widget-grid-edit-mode", edit_mode_values)
