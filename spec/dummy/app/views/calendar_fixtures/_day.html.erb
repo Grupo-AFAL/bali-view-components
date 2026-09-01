@@ -1,0 +1,7 @@
+<%# Stands in for a host's `template:` partial in test/bali/components/calendar_test.rb.
+    It lives in the dummy app because that is where the test suite's view paths point:
+    app/components is on the ENGINE's autoload path, not on anybody's view path, so
+    the Lookbook preview partial next to the component is unreachable from a test. %>
+<div class="calendar-fixture-day" data-period="<%= period %>" data-day="<%= day %>">
+  <%= events.size %>
+</div>

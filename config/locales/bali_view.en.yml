@@ -375,8 +375,10 @@ en:
         go_to_slide: "Go to slide %{number}"
     calendar:
       header:
+        day: Day
         week: Week
         month: Month
+        year: Year
         previous: Previous
         next: Next
     gantt:
