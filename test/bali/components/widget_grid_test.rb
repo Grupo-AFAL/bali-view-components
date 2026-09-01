@@ -175,4 +175,29 @@ class BaliWidgetGridComponentTest < ComponentTestCase
       visible: :all
     )
   end
+  # The grid's half of the same defect the card carries a test for. Smaller
+  # exposure — a page renders one grid, and `build_options` runs on the kwargs
+  # rest hash, so the OUTER level was never shared — but `[:data]` is the
+  # caller's own object either way, and without this the dup in `build_options`
+  # looks redundant to the next person to read it.
+  #
+  # `assert_equal` on the whole attribute, not `assert_includes`: a substring
+  # assertion passes against "bali-widget-grid bali-widget-grid …" too, which is
+  # how the card's version of this went unnoticed.
+  def test_building_two_grids_from_one_options_hash_leaves_it_alone
+    attributes = { data: { controller: "my-tooltip" } }
+
+    2.times do
+      render_inline(Bali::WidgetGrid::Component.new(url: "/widget_layout", **attributes))
+
+      assert_selector(
+        "[data-controller='bali-widget-grid bali-widget-grid-edit-mode my-tooltip']",
+        visible: :all
+      )
+      assert_selector("[data-bali-widget-grid-url-value='/widget_layout']", visible: :all)
+    end
+
+    assert_equal({ controller: "my-tooltip" }, attributes[:data],
+                 "the caller's hash is the caller's — a component may not write to it")
+  end
 end
