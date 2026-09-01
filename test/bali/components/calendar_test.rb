@@ -534,6 +534,53 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".year-month", count: 12)
   end
 
+  # month_size — the level names the MONTH, not the view
+
+  def test_month_size_defaults_to_md
+    @options.merge!(start_date: "2020-01-01", period: :year)
+    render_inline(component)
+
+    assert_includes(year_grid_classes,
+                    Bali::Calendar::YearGrid::Component::MONTH_SIZES.fetch(:md))
+  end
+
+  def test_every_month_size_emits_its_own_track_minimum
+    Bali::Calendar::YearGrid::Component::MONTH_SIZES.each do |size, css|
+      @options.merge!(start_date: "2020-01-01", period: :year, month_size: size)
+      render_inline(component)
+
+      assert_includes(year_grid_classes, css, "month_size: #{size.inspect}")
+    end
+  end
+
+  def test_month_size_accepts_the_string_form_too
+    @options.merge!(start_date: "2020-01-01", period: :year, month_size: "lg")
+    render_inline(component)
+
+    assert_includes(year_grid_classes,
+                    Bali::Calendar::YearGrid::Component::MONTH_SIZES.fetch(:lg))
+  end
+
+  # Written in code, never read off a query string, so an unknown level is a
+  # mistake to report — the opposite call from normalize_period.
+  def test_month_size_rejects_a_level_that_is_not_on_the_scale
+    @options.merge!(start_date: "2020-01-01", period: :year, month_size: :enormous)
+
+    error = assert_raises(ArgumentError) { render_inline(component) }
+    assert_match(/month_size/, error.message)
+    assert_match(/:xs, :sm, :md, :lg, :xl/, error.message)
+  end
+
+  # The ramp of breakpoints this replaced measured the VIEWPORT, so a calendar in a
+  # 400px drawer on a wide screen drew four columns 76px wide with 9px day cells.
+  # `auto-fit` measures the container instead. Nobody may put the ramp back.
+  def test_year_grid_emits_no_breakpoint_column_classes
+    @options.merge!(start_date: "2020-01-01", period: :year)
+    render_inline(component)
+
+    refute_match(/(sm|md|lg|xl):grid-cols-/, year_grid_classes)
+  end
+
   # The names come from I18n, never from a literal: `date.month_names` is 1-indexed
   # and `date.abbr_day_names` starts on Sunday, so both are easy to get subtly wrong
   # in a grid that starts on Monday.
@@ -679,6 +726,10 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
 
   private
+
+  def year_grid_classes
+    page.find(".year-grid")[:class]
+  end
 
   def year_event(date)
     Struct.new(:start_time).new(Date.parse(date))

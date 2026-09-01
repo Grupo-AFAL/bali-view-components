@@ -49,6 +49,31 @@ module Bali
         DAY_CLASSES = "year-day relative flex items-center justify-center " \
                       "aspect-square rounded-sm text-[0.6875rem] leading-none"
 
+        # How wide one miniature month is allowed to get before the row takes
+        # another one. The level names the MONTH, not the view: `xs` is small
+        # months and therefore many per row, `xl` is large months and few.
+        #
+        # `auto-fit` and not a ramp of `sm:`/`lg:`/`xl:` breakpoints, because a
+        # breakpoint measures the VIEWPORT and this has to measure the
+        # CONTAINER: a calendar dropped into a 400px drawer on a wide screen
+        # would otherwise draw four columns squeezed into 400px. The
+        # `min(Xrem, 100%)` is the guard for the other direction — when the
+        # container is narrower than the track minimum, the minimum collapses to
+        # the container instead of overflowing it.
+        #
+        # Literal strings and not a custom property. `split_view/index.css`
+        # documents the escape hatch to `--bali-*` variables, but its reason is a
+        # RUNTIME value: a width the host types in, which Tailwind cannot know at
+        # build time. Five named levels are a closed set, so they stay in the
+        # utility system where a host can still override them with a class.
+        MONTH_SIZES = {
+          xs: "grid-cols-[repeat(auto-fit,minmax(min(10rem,100%),1fr))]",
+          sm: "grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))]",
+          md: "grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),1fr))]",
+          lg: "grid-cols-[repeat(auto-fit,minmax(min(26rem,100%),1fr))]",
+          xl: "grid-cols-[repeat(auto-fit,minmax(min(34rem,100%),1fr))]"
+        }.freeze
+
         # `date.abbr_day_names` is indexed by wday, so index 0 is Sunday. The
         # grid starts on whatever `Date.beginning_of_week` says, the same day the
         # month view's rows start on, so the initials are rotated to match rather
@@ -65,8 +90,13 @@ module Bali
         #   Bali::Color::NAMES. nil falls back to a neutral highlight.
         # @param month_summary [Proc, nil] `->(month, events) { "11" }`, drawn beside
         #   the month name. Receives the first day of the month and that MONTH's events.
+        # @param month_size [Symbol] How big one miniature month gets: :xs, :sm, :md,
+        #   :lg, :xl. The name is the MONTH's size, so :xs fits many per row and :xl
+        #   few. The browser decides the count from the container's width.
+        # rubocop:disable Metrics/ParameterLists
         def initialize(start_date:, events_by_date: {}, template: nil, show_date: true,
-                       day_url: nil, day_variant: nil, month_summary: nil)
+                       day_url: nil, day_variant: nil, month_summary: nil, month_size: :md)
+          # rubocop:enable Metrics/ParameterLists
           @start_date = start_date
           @events_by_date = events_by_date
           @template = template
@@ -74,9 +104,10 @@ module Bali
           @day_url = day_url
           @day_variant = day_variant
           @month_summary = month_summary
+          @month_size_class = month_size_class!(month_size)
         end
 
-        attr_reader :start_date, :template, :show_date
+        attr_reader :start_date, :template, :show_date, :month_size_class
 
         # @return [Array<Date>] The first day of each of the twelve months.
         def months
@@ -172,6 +203,18 @@ module Bali
         end
 
         private
+
+        # `month_size:` is written by a developer, never read off a query string,
+        # so an unknown level is a mistake to report rather than one to survive.
+        # The opposite call from `normalize_period`, which degrades precisely
+        # because a visitor can put anything in the URL.
+        def month_size_class!(size)
+          MONTH_SIZES.fetch(size&.to_sym) do
+            raise ArgumentError,
+                  "#{self.class}: unknown month_size #{size.inspect}. " \
+                  "Valid: #{MONTH_SIZES.keys.map(&:inspect).join(', ')}."
+          end
+        end
 
         def first_wday
           WDAYS.index(Date.beginning_of_week) || 1

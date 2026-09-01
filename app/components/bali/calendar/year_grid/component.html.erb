@@ -1,7 +1,9 @@
-<%# The month columns are written as literal responsive utilities, not assembled
-    in Ruby: Tailwind's scanner reads these files as text and cannot see a class
-    that only exists after string interpolation. %>
-<div class="year-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+<%# The column count is the browser's, not ours: `month_size_class` names a track
+    minimum and `auto-fit` fits as many as the CONTAINER holds. See MONTH_SIZES in
+    ./component.rb for why that is not a ramp of breakpoints. The class itself comes
+    from a literal table there — Tailwind's scanner reads these files as text and
+    cannot see a class assembled by interpolation. %>
+<div class="year-grid grid <%= month_size_class %> gap-4">
   <% months.each do |month| %>
     <div class="year-month">
       <%# The summary sits right after the month name, not pushed to the far edge of

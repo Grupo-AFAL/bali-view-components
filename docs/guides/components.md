@@ -3513,6 +3513,7 @@ Month, week, day, or year calendar that displays events grouped by date, with op
 - `day_url` - Year view only. `->(day, events) { url }`; `nil`, or a `nil` return, leaves that day unlinked (default: nil)
 - `day_variant` - Year view only. `->(day, events) { :success }`, a name from `Bali::Color::NAMES` (default: nil)
 - `month_summary` - Year view only. `->(month, events) { "11" }`, drawn beside the month name (default: nil)
+- `month_size` - Year view only. How big one miniature month gets: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`). Unknown levels raise `ArgumentError`
 
 **Slots:** `header` (navigation with period switch, accepts `route_path:` and `period_switch:`), `footer`.
 
@@ -3540,6 +3541,13 @@ inside a hover card on the days that have events, with the same three locals as 
 `weekdays_only` is ignored by the year view: a map that hides Saturdays hides events. The
 header's `period_switch:` takes an array as well as a boolean — `true` still means exactly
 `%i[week month]`, so the year button has to be asked for.
+
+**`month_size` names the size of the MONTH, not of the view**, so `:xs` means small months and
+many per row, `:xl` large months and few. How many actually fit is the browser's answer: the level
+sets a track minimum and CSS `auto-fit` fills the row against the **container's** width, not the
+viewport's. That is why a calendar inside a 400px drawer stacks to one readable column even on a
+wide screen, where a viewport breakpoint would have drawn four columns 76px wide. Measured at
+1440px, `:xs` fits 7 months per row, `:sm` 5, `:md` 4, `:lg` 3 and `:xl` 2.
 
 `start_date` and `period` normally arrive from the query string — the header's prev/next
 and period links write them back to `route_path` — so both degrade rather than raise:

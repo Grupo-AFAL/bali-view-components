@@ -54,6 +54,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   1-indexado, y `date.abbr_day_names`, que empieza en domingo y se rota al primer día de
   la semana que declare `Date.beginning_of_week`). Verificado en inglés y en español.
 
+  **`month_size:` decide qué tan grande es una miniatura; el navegador decide cuántas caben.**
+  Cinco niveles —`xs`, `sm`, `md` (default), `lg`, `xl`— con la escala del paquete. El nivel
+  nombra el **MES**, no la vista: `xs` son meses chicos y por eso muchos por fila, `xl` meses
+  grandes y pocos. Se puede leer al revés, así que está dicho en el YARD y en la guía.
+
+  El mecanismo es `grid-cols-[repeat(auto-fit,minmax(min(Xrem,100%),1fr))]` y no una rampa de
+  `sm:`/`lg:`/`xl:`, porque un breakpoint mide el **viewport** y esto tiene que medir el
+  **contenedor**. La diferencia no es teórica: medido a 1440px con el calendario metido en un
+  cajón de 400px, la rampa dibujaba **4 columnas de 76px con celdas de día de 9.1px** —
+  ilegible— y `auto-fit` dibuja **1 columna de 352px con celdas de 48.6px**. El `min(Xrem,100%)`
+  es el seguro del otro lado: cuando el contenedor es más angosto que el mínimo de la pista, el
+  mínimo colapsa al contenedor en vez de desbordarlo (verificado: `scrollWidth == clientWidth`
+  en los cinco niveles a 390px y en cajones de 400 y 700px).
+
+  Los cinco valores son **medidos, no calculados**. Meses por fila a 1440px / 1280px / 390px:
+  `xs` 7 / 6 / 1, `sm` 5 / 5 / 1, `md` 4 / 3 / 1, `lg` 3 / 2 / 1, `xl` 2 / 2 / 1; celda de día a
+  1440px: 24.1px, 35.3px, 44.6px, 60.8px y 93.2px. Tres de los cinco se corrigieron contra la
+  medición: `md` iba a ser 21rem y daba 3 columnas a 1440px en vez de las 4 que ya se ven hoy —
+  quedó en **20rem**, y a 1440px el diff pixel a pixel contra la versión anterior da **0 píxeles
+  distintos**, que es el requisito de que nadie que ya use la vista note el cambio; `lg` (28rem)
+  y `xl` (40rem) daban ambos 2 columnas a 1440px, indistinguibles entre sí, y quedaron en
+  **26rem** y **34rem** para que la escalera sea monótona. Los valores se eligieron dentro de la
+  intersección de las ventanas válidas con y sin barra de desplazamiento vertical (contenedor de
+  1345px y de 1360px), así que la cuenta de columnas no cambia cuando aparece la barra.
+
+  Las clases van como cadenas literales en una tabla, no como custom property.
+  `split_view/index.css` documenta el escape a variables `--bali-*`, pero su razón es un valor de
+  **runtime** —un ancho que teclea el anfitrión, que Tailwind no puede conocer al compilar—.
+  Cinco niveles son un conjunto cerrado, así que se quedan en el sistema de utilidades, donde un
+  anfitrión todavía puede ganarles con una clase. Un `month_size:` desconocido levanta
+  `ArgumentError` con la lista de válidos: se escribe en código, no llega de la query string, así
+  que aquí sí se reporta el error en vez de degradarlo como hace `normalize_period`.
+
 - **El conmutador de periodo del header acepta un arreglo además de un booleano.**
   `period_switch: true` sigue significando exactamente `%i[week month]`, en ese orden:
   ningún anfitrión que no toque la llave ve un botón nuevo. `false` sigue ocultando todo, y

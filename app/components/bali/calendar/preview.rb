@@ -45,7 +45,12 @@ module Bali
       # The three lambdas are all optional; turn them off to see the grid with
       # nothing but the on/off signal.
       #
+      # `month_size` names the size of the MONTH, not of the view: `xs` fits many
+      # small months per row, `xl` few large ones. Resize the preview pane and the
+      # count follows the container, with no breakpoint involved.
+      #
       # @param start_date text "Any date in the year to draw"
+      # @param month_size select { choices: [xs, sm, md, lg, xl] }
       # @param show_date toggle "Display day numbers"
       # @param weekdays_only toggle "Ignored by the year view — the grid stays at seven columns"
       # @param with_events toggle "Display sample events (and their hover cards)"
@@ -53,14 +58,16 @@ module Bali
       # @param with_day_variant toggle "Colour each day from its events"
       # @param with_month_summary toggle "Label each month with its event count"
       # rubocop:disable Metrics/ParameterLists
-      def year(start_date: nil, show_date: true, weekdays_only: false, with_events: true,
-               with_day_url: true, with_day_variant: true, with_month_summary: true)
+      def year(start_date: nil, month_size: :md, show_date: true, weekdays_only: false,
+               with_events: true, with_day_url: true, with_day_variant: true,
+               with_month_summary: true)
         # rubocop:enable Metrics/ParameterLists
         with_events = ActiveModel::Type::Boolean.new.cast(with_events)
 
         render(Bali::Calendar::Component.new(
                  start_date: start_date || Date.current.beginning_of_year,
                  period: :year,
+                 month_size: month_size,
                  weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
                  show_date: ActiveModel::Type::Boolean.new.cast(show_date),
                  events: with_events ? year_sample_events : [],

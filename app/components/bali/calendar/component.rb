@@ -45,6 +45,12 @@ module Bali
       # @param month_summary [Proc, nil] Year view only. `->(month, events) { "11" }`,
       #   drawn beside the month name. Receives the first day of the month and that
       #   month's events; the component supplies the events, the host the wording.
+      # @param month_size [Symbol] Year view only. How big one miniature month gets:
+      #   :xs, :sm, :md (default), :lg, :xl. The level names the MONTH, not the view,
+      #   so :xs means small months and many per row, :xl large months and few. How
+      #   many actually fit is the browser's answer, measured against the CONTAINER.
+      #   An unknown level raises ArgumentError — it is written in code, not read off
+      #   a query string.
       # `**options` is accepted and ignored: it has never reached the markup, and letting
       # a stray keyword through is what the previous signature did.
       # rubocop:disable Metrics/ParameterLists
@@ -60,6 +66,7 @@ module Bali
                      day_url: nil,
                      day_variant: nil,
                      month_summary: nil,
+                     month_size: :md,
                      **_options)
         # rubocop:enable Metrics/ParameterLists
         @template = template
@@ -74,6 +81,7 @@ module Bali
         @day_url = day_url
         @day_variant = day_variant
         @month_summary = month_summary
+        @month_size = month_size
       end
 
       # @return [Array<Date>] All dates to display in the calendar
@@ -159,7 +167,8 @@ module Bali
           show_date: show_date,
           day_url: @day_url,
           day_variant: @day_variant,
-          month_summary: @month_summary
+          month_summary: @month_summary,
+          month_size: @month_size
         )
       end
 
