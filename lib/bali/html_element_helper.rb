@@ -38,23 +38,16 @@ module Bali
       options
     end
 
-    # A copy of `options` that the `prepend_*` family can safely be pointed at.
+    # A copy of `options` the `prepend_*` family can safely be pointed at. They
+    # write to `options[:data][key]` in place, and `dup`, `merge` and `except`
+    # all copy the OUTER level only — so a component prepending onto the hash a
+    # host handed it writes back into the host's hash.
     #
-    # They write to `options[:data][key]` IN PLACE, and every way of copying a
-    # hash in Ruby — `dup`, `merge`, `except` — copies the OUTER level only. So a
-    # component that prepends onto the options hash a host handed it writes back
-    # into the host's hash. Render N of something from one shared hash and the
-    # second gets the first's wiring on top of its own:
-    # `data-controller="x x"`, two Stimulus instances on one element.
+    # Shallow on purpose: every write in the family lands at depth 2 as a freshly
+    # interpolated String.
     #
-    # SHALLOW ON PURPOSE. Every write in the family lands at depth 2, as a
-    # freshly interpolated String (`prepend_values` runs its argument through
-    # `normalize_data_attribute_value` first, so even a Hash arrives copied).
-    # Nothing writes deeper, so nothing deeper needs severing.
-    #
-    # Call it ONCE, where the options enter the component, not next to the first
-    # `prepend_*`. The point is that everything after it is safe — including a
-    # `prepend_*` added later, on a path that has none today.
+    # Call it where the options ENTER the component, not next to the first
+    # `prepend_*`, so a `prepend_*` added later is safe too.
     def detach_data(options)
       return options unless options.key?(:data)
 

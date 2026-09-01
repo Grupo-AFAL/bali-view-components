@@ -63,8 +63,6 @@ module Bali
       attr_reader :url, :add_path, :refresh_url, :editing_param, :options
 
       def build_options(opts)
-        # Detached first, so every line below is writing to our own hash rather
-        # than the host's. See `detach_data`.
         opts = detach_data(opts)
         opts = prepend_controller(opts, "bali-widget-grid bali-widget-grid-edit-mode")
         opts = prepend_values(opts, "bali-widget-grid", widget_grid_values)

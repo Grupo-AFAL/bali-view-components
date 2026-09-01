@@ -47,9 +47,8 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     options = @helper.prepend_class_name({ class: "list" }, "is-active")
     assert_equal("is-active list", options[:class])
   end
-  # THE GUARANTEE, stated as the caller sees it: prepend onto the result and the
-  # input is untouched. Asserting the copy's identity would pass for a `dup` that
-  # is never used; this fails unless the severing actually holds through a write.
+  # Through a real write, not by asserting the copy's identity — that would pass
+  # for a `dup` nothing ever uses.
   def test_prepending_onto_a_detached_copy_leaves_the_original_alone
     original = { data: { controller: "my-tooltip" } }
 
@@ -65,18 +64,15 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     assert_equal({ controller: "my-tooltip" }, detached[:data])
   end
 
-  # Without this it hands back a hash carrying an empty `data:` the caller never
-  # asked for — harmless in markup, but it makes `detach_data` something you have
-  # to think about before calling rather than something you always call.
+  # So it is always safe to call, rather than something to think about first.
   def test_detach_data_leaves_a_hash_without_data_exactly_as_it_found_it
     options = { id: "card" }
 
     assert_same(options, @helper.detach_data(options))
   end
 
-  # The un-detached call is what every other caller in the codebase still does,
-  # so the hazard the copy exists for is worth pinning: this is the behaviour,
-  # not an accident to be fixed in place.
+  # Pinned because 39 other call sites still do this: it is the documented
+  # behaviour of the family, not an accident to be fixed in place.
   def test_prepending_straight_onto_a_shared_hash_writes_through_to_it
     shared = { data: { controller: "my-tooltip" } }
 

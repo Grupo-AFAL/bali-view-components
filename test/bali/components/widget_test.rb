@@ -642,11 +642,8 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_equal 1, section.scan(/data-controller=/).size, "one attribute on the card, not two"
   end
 
-  # ONE HASH, THREE CARDS — the natural way to render a grid, and the shape the
-  # test above renders exactly once and so never caught. `Hash#except` copies the
-  # outer hash only, so `prepend_*` reached the caller's `data:` and each card
-  # inherited the last one's wiring: two `bali-widget-refresh` instances polling
-  # one tile, and a `-url-value` of "/refresh /refresh" that 404s.
+  # Not a duplicate of the test above: that one renders a single card, which is
+  # the one shape that cannot show a card writing into the caller's hash.
   def test_rendering_many_cards_from_one_options_hash_leaves_it_alone
     volatile = Class.new(Bali::Widget::ValueBase) do
       def self.key = "volatile"

@@ -175,15 +175,9 @@ class BaliWidgetGridComponentTest < ComponentTestCase
       visible: :all
     )
   end
-  # The grid's half of the same defect the card carries a test for. Smaller
-  # exposure — a page renders one grid, and `build_options` runs on the kwargs
-  # rest hash, so the OUTER level was never shared — but `[:data]` is the
-  # caller's own object either way, and without this the dup in `build_options`
-  # looks redundant to the next person to read it.
-  #
   # `assert_equal` on the whole attribute, not `assert_includes`: a substring
   # assertion passes against "bali-widget-grid bali-widget-grid …" too, which is
-  # how the card's version of this went unnoticed.
+  # half of why the card's version of this bug went unnoticed.
   def test_building_two_grids_from_one_options_hash_leaves_it_alone
     attributes = { data: { controller: "my-tooltip" } }
 
