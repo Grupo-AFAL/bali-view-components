@@ -88,8 +88,22 @@ module Bali
                     SIZES.fetch(size, SIZES[:md]), options[:class])
       end
 
+      # THE CALLER'S ARIA WINS. Both hashes used to be written to the tag
+      # separately, `aria_attributes` first — so
+      # `Gauge::Component.new(value: 3, max: 10, "aria-label": "Shifts covered")`
+      # emitted two `aria-label` attributes and the parser kept the first: the
+      # generic default. The accessible name the caller asked for was discarded
+      # in silence, which is the worst way to lose one.
+      #
+      # `aria: { label: … }` is normalised too, since Rails accepts both
+      # spellings and only one of them would otherwise override.
       def gauge_attributes
-        options.except(:class, :style)
+        given = options.except(:class, :style)
+        nested = given.delete(:aria) || {}
+
+        aria_attributes
+          .merge(nested.to_h { |key, value| [ :"aria-#{key.to_s.tr('_', '-')}", value ] })
+          .merge(given)
       end
 
       # daisyUI reads the arc from `--value`, so this one inline custom property

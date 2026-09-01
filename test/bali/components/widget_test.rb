@@ -619,6 +619,29 @@ class BaliWidgetComponentTest < ComponentTestCase
     assert_selector "[data-size='small']"
   end
 
+  # A HOST'S OWN `data:` MUST SURVIVE. The refresh wiring used to be written
+  # straight into the template beside `tag.attributes(card_attributes)`, so a
+  # host passing `data: { controller: "my-tooltip" }` on a refreshing widget got
+  # TWO `data-controller` attributes — the parser keeps the first and their
+  # controller never connects, with no error anywhere.
+  def test_a_hosts_own_controller_merges_with_the_refresh_wiring
+    volatile = Class.new(Bali::Widget::ValueBase) do
+      def self.key = "volatile"
+      refresh_every 30.seconds
+      value { 7 }
+    end
+
+    render_inline(Bali::Widget::Component.new(volatile.new, refresh_url: "/dashboard/refresh",
+                                              data: { controller: "my-tooltip" }))
+
+    controllers = page.find("section")[:"data-controller"]
+    assert_includes controllers, "my-tooltip"
+    assert_includes controllers, "bali-widget-refresh"
+    # On the SECTION only — nested components legitimately have their own.
+    section = page.native.to_html[/<section\b[^>]*>/]
+    assert_equal 1, section.scan(/data-controller=/).size, "one attribute on the card, not two"
+  end
+
   private
 
   def volatile_widget

@@ -3,15 +3,9 @@
 # One person's dashboard arrangement: which widgets, in what order, at what size.
 #
 # CHECKED IN so `bin/rails db:migrate` on a fresh clone builds a working demo at
-# /dashboard_widgets. A real host installs it instead with
-# `bin/rails bali:install:migrations:dashboard_widgets`, which copies this same
-# file and renumbers it to the moment of the install.
-#
-# KEPT AT THE ENGINE'S OWN TIMESTAMP rather than renumbered, and that is
-# load-bearing: `db/schema.rb` is stamped `2026_08_25_120000`, so `db:schema:load`
-# marks this version migrated and leaves nothing pending. Renumber it to `now` and
-# a developer who loads the schema — which is what CI and `bin/setup` do — is then
-# offered a pending migration that fails on a table that already exists.
+# /dashboard_widgets, and KEPT AT THE ENGINE'S OWN TIMESTAMP so `db:schema:load`
+# marks it migrated and leaves nothing pending. A real host installs it with
+# `bin/rails bali:install:migrations:dashboard_widgets`.
 #
 # `owner` is polymorphic because the engine cannot know whether a host's user is
 # a `User`, a `Member` or an `Employee` — which is also why the table named for
@@ -57,8 +51,15 @@ class CreateBaliDashboardWidgets < ActiveRecord::Migration[7.0]
     add_index :bali_dashboard_widgets,
               %i[owner_type owner_id context dashboard_key widget_key],
               unique: true, name: "index_bali_dashboard_widgets_uniqueness"
+    # `widget_key` LAST, matching `scope :ordered`'s `order(:position, :widget_key)`.
+    # The tie-break is not decoration: a row for a widget the owner cannot see
+    # keeps its position while the visible ones renumber around it, so two rows
+    # can share a position and Postgres would otherwise return them in an
+    # arbitrary order — making `stored_keys` nondeterministic and `choose`'s
+    # "survivors keep their stored order" guarantee unstable. An index that stops
+    # at `position` cannot serve that sort.
     add_index :bali_dashboard_widgets,
-              %i[owner_type owner_id context dashboard_key position],
+              %i[owner_type owner_id context dashboard_key position widget_key],
               name: "index_bali_dashboard_widgets_ordering"
   end
 end

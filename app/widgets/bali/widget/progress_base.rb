@@ -26,16 +26,6 @@ module Bali
 
       Goal = Data.define(:value, :max, :label) do
         def initialize(value:, max: 100, label: nil) = super
-
-        # CLAMPED for drawing only: 11 of 10 shifts covered is a real and good
-        # state that a ring has nowhere to put, so `value` still reads true.
-        # A `max` of zero is "no goal set" — a configuration state, not an error,
-        # and dividing by it would take a page down over one misconfiguration.
-        def percentage
-          return 0.0 if max.to_f.zero?
-
-          (value.to_f / max.to_f * 100).clamp(0.0, 100.0)
-        end
       end
 
       # What `goal` yields — everything the ring is drawn from. Each setter writes

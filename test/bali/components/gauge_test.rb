@@ -48,4 +48,31 @@ class BaliGaugeComponentTest < ComponentTestCase
 
     assert_selector("[aria-label='70% complete']")
   end
+
+  # A CALLER'S ACCESSIBLE NAME MUST WIN. The ARIA contract and the caller's
+  # options were written to the tag as two separate `tag.attributes` calls, the
+  # contract first — so a caller's `aria-label` was emitted second, the parser
+  # kept the first, and the generic default silently replaced the name they asked
+  # for. Both spellings Rails accepts are covered.
+  def test_a_callers_aria_label_overrides_the_default
+    render_inline(Bali::Gauge::Component.new(value: 3, max: 10, "aria-label": "Shifts covered"))
+
+    assert_selector "[aria-label='Shifts covered']"
+    assert_equal 1, page.native.to_html.scan(/aria-label=/).size, "one attribute, not two"
+  end
+
+  def test_a_callers_nested_aria_hash_overrides_the_default
+    render_inline(Bali::Gauge::Component.new(value: 3, max: 10, aria: { label: "Shifts covered" }))
+
+    assert_selector "[aria-label='Shifts covered']"
+    assert_equal 1, page.native.to_html.scan(/aria-label=/).size, "one attribute, not two"
+  end
+
+  # And the contract still ships when the caller says nothing.
+  def test_the_progressbar_contract_survives_the_merge
+    render_inline(Bali::Gauge::Component.new(value: 3, max: 10))
+
+    assert_selector "[role='progressbar'][aria-valuenow='3'][aria-valuemin='0'][aria-valuemax='10']"
+    assert_selector "[aria-label]"
+  end
 end

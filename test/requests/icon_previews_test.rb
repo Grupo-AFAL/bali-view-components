@@ -80,7 +80,10 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
   private
 
   def preview_files
-    Dir[Bali::Engine.root.join("app/components/bali/*/preview.rb")].sort
+    # `**`, not `*`: a component's preview can be nested — `widget/list/preview.rb`,
+    # `form/select/preview.rb` — and a single level checked 90 of 131 previews,
+    # leaving every nested one free to reintroduce #843.
+    Dir[Bali::Engine.root.join("app/components/bali/**/preview.rb")].sort
   end
 
   # Los nombres de constante que Zeitwerk define *dentro* del namespace del componente: un
@@ -97,9 +100,16 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     # DERIVADO de `eager_load_paths`, no una copia suya: cuando `app/lib/bali/widget`
     # se mudó a `app/widgets/bali/widget`, una lista escrita a mano aquí habría
     # seguido pasando mientras el guard miraba un directorio que ya no existe.
-    dirs = [ dir ] + Bali::Engine.config.eager_load_paths.map { |root|
-      File.join(root.to_s, "bali", File.basename(dir))
-    }
+    # THE PATH RELATIVE TO ITS OWN ROOT, never `File.basename`. That shortcut is
+    # only correct for a first-level `Bali::<Name>`: for `widget/list/preview.rb`
+    # the basename is `list`, so it would scan `bali/list` and offer
+    # `Bali::List`'s constants as siblings of `Bali::Widget::List::Preview` —
+    # unrelated names, and a guard that flags them is a guard nobody trusts.
+    roots = Bali::Engine.config.eager_load_paths.map(&:to_s)
+    root = roots.find { |candidate| dir.start_with?("#{candidate}/") }
+    relative = root ? dir.delete_prefix("#{root}/") : File.basename(dir)
+
+    dirs = roots.map { |candidate| File.join(candidate, relative) }.uniq
 
     # Un directorio sin `.rb` adentro (`previews/`, `svg/`) no es un namespace para Zeitwerk.
     basenames = dirs.flat_map do |d|

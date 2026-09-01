@@ -47,8 +47,15 @@ class CreateBaliDashboardWidgets < ActiveRecord::Migration[7.0]
     add_index :bali_dashboard_widgets,
               %i[owner_type owner_id context dashboard_key widget_key],
               unique: true, name: "index_bali_dashboard_widgets_uniqueness"
+    # `widget_key` LAST, matching `scope :ordered`'s `order(:position, :widget_key)`.
+    # The tie-break is not decoration: a row for a widget the owner cannot see
+    # keeps its position while the visible ones renumber around it, so two rows
+    # can share a position and Postgres would otherwise return them in an
+    # arbitrary order — making `stored_keys` nondeterministic and `choose`'s
+    # "survivors keep their stored order" guarantee unstable. An index that stops
+    # at `position` cannot serve that sort.
     add_index :bali_dashboard_widgets,
-              %i[owner_type owner_id context dashboard_key position],
+              %i[owner_type owner_id context dashboard_key position widget_key],
               name: "index_bali_dashboard_widgets_ordering"
   end
 end

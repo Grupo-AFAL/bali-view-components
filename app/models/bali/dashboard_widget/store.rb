@@ -40,7 +40,15 @@ module Bali
         @offering = Bali::Widget.authorized_for(offering)
       end
 
-      def stored_keys = rows.ordered.pluck(:widget_key)
+      # MEMOISED, because the picker asks `visible_keys` once per offered widget
+      # while building its checkboxes — seventeen identical SELECTs on the dummy's
+      # catalogue — and `customized?` asks again at the bottom of the same page.
+      #
+      # INVALIDATED BY THE WRITERS, which is the part a bare `||=` gets wrong:
+      # the same `Store` is read before and after its own `arrange`, and `adopt`
+      # does exactly that — it asks `visible_keys`, writes, and the caller then
+      # reads the keys back. A stale memo answers with what was there before.
+      def stored_keys = @stored_keys ||= rows.ordered.pluck(:widget_key)
 
       # `stored_keys` answers "has this owner ever chosen anything"; this answers
       # "is there anything on their dashboard". A surface that wants the second
@@ -101,13 +109,26 @@ module Bali
       #
       # An EMPTY layout is a reset, which is what an emptied grid means.
       def arrange(layout)
+        @stored_keys = nil
+
         rows.transaction do
           # BEFORE the delete, the only chance to read them. This is a reconcile,
           # not an upsert, so without carrying `created_at` forward a widget that
           # has sat on the dashboard for a year is re-dated on every drag.
           born = rows.pluck(:widget_key, :created_at).to_h
 
-          rows.delete_all
+          # ONLY THE ROWS THIS OFFERING COVERS. A widget behind a feature flag
+          # that is off, or a role the owner just lost, is absent from the
+          # offering — and `delete_all` would take its row with it, permanently:
+          # the owner still has rows, so `#widgets` never falls back to defaults,
+          # and the widget does not reappear when the flag comes back.
+          #
+          # This is the invariant `Bali::DashboardWidget` documents and the reason
+          # `scope :ordered` tie-breaks on `widget_key`: a hidden row keeps its
+          # position while the visible ones renumber around it, so positions
+          # collide and gaps are normal. The `_ordering` index is deliberately not
+          # unique. `arrange` used to be the one writer that broke it.
+          rows.where(widget_key: offering.map(&:key)).delete_all
 
           next if layout.empty?
 
@@ -157,6 +178,7 @@ module Bali
 
       # No explicit transaction: one `DELETE` is already atomic.
       def reset
+        @stored_keys = nil
         rows.delete_all
       end
 

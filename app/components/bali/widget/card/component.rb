@@ -138,7 +138,18 @@ module Bali
         # wrapper is not free: stacked it takes `flex-1` and squeezes the chart
         # into two fifths of a canvas it could have had whole, and inline it is a
         # blank right-hand column.
-        def detail? = detail_content.present? || empty_state?
+        # MEMOISED with `defined?`, like `any?` and `display_value` above, because
+        # `detail_content` RENDERS — `List` returns a whole `Widget::Rows`
+        # component — and the card asks for it four times: `detail?` twice inside
+        # `detail_region`'s guards, `context_classes`, and the template's own
+        # `present?` before it prints. Three of those renders were thrown away.
+        def detail_body
+          return @detail_body if defined?(@detail_body)
+
+          @detail_body = detail_content
+        end
+
+        def detail? = detail_body.present? || empty_state?
 
         # THE ONE METHOD that has to know about more than one region. `context?`
         # and `detail?` each decide whether their OWN region renders; this

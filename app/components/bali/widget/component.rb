@@ -14,10 +14,11 @@ module Bali
       # unrefreshed. A minute is as often as "12 minutes ago" can change.
       FRESHNESS_TICK = 60_000
 
-      # WHAT EVERY WIDGET ANSWERS, whatever its pattern — so the shell needs no
-      # type check.
-      delegate :key, :title, :short_title, :empty_message, :supported_sizes,
-               :view_all_path, to: :widget
+      # WHAT THE SHELL ITSELF NEEDS, and only that: the key for the DOM id and the
+      # payload, the short title for the label, the sizes for the picker.
+      # `title`, `empty_message` and `view_all_path` belong to the BODY, and
+      # `Card::Component` reaches them on its own.
+      delegate :key, :short_title, :supported_sizes, to: :widget
 
       # SIZE IS TOLD, NOT ASKED — it is a per-owner arrangement fact, not a
       # property of the widget, so the same class is `small` for one person and
@@ -131,8 +132,19 @@ module Bali
         )
       end
 
+      # THROUGH `prepend_*`, not written separately in the template. The refresh
+      # wiring is `data-controller` and two values, and a host may pass its own
+      # `data: { controller: "my-tooltip" }` for the same tile. Emitting both
+      # produces a duplicate attribute: the parser keeps the FIRST and the host's
+      # controller never connects, with no error anywhere. `WidgetGrid::Component`
+      # already composes its own wiring this way.
       def card_attributes
-        options.except(:class)
+        attributes = options.except(:class)
+        return attributes unless refreshes?
+
+        attributes = prepend_controller(attributes, "bali-widget-refresh")
+        prepend_values(attributes, "bali-widget-refresh",
+                       url: refresh_url, interval: refresh_interval)
       end
 
       # Tagged by widget key so an error reporter groups these per tile rather

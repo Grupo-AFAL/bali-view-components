@@ -11,6 +11,22 @@ import { patch } from '@rails/request.js'
 //
 // Entering edit mode is `EditModeController`'s job; the two are composed on one
 // element and share no state.
+// ONE ANNOUNCER, shared by both controllers because they share the announcer
+// NODE — the grid announces moves and removals, edit mode announces the mode
+// itself, and a live region only announces changes.
+//
+// Clearing first, exactly as `kanban` does: writing the same string twice is not
+// a DOM change, so arrowing a card twice in the same direction would be silent
+// the second time without this.
+function announceTo (target, message) {
+  if (!target || !message) return
+
+  target.textContent = ''
+  window.requestAnimationFrame(() => {
+    target.textContent = message
+  })
+}
+
 export class WidgetGridController extends Controller {
   static targets = ['grid', 'announcer']
   static values = {
@@ -102,8 +118,12 @@ export class WidgetGridController extends Controller {
     this.persist()
   }
 
+  // Scoped to THIS card's own picker: a nested card carries one too, and a
+  // descendant query would read the inner card's size for the outer one.
   currentSize (card) {
-    return card.querySelector('[data-widget-size][aria-checked="true"]')?.dataset.widgetSize
+    return card.querySelector(
+      ':scope > .bali-widget-edit-shelf [data-widget-size][aria-checked="true"]'
+    )?.dataset.widgetSize
   }
 
   // The size picker is a radiogroup, so the whole set is ONE tab stop and the
@@ -152,7 +172,7 @@ export class WidgetGridController extends Controller {
   applySize (card, size) {
     card.dataset.size = size
 
-    card.querySelectorAll('[data-widget-size]').forEach(button => {
+    card.querySelectorAll(':scope > .bali-widget-edit-shelf [data-widget-size]').forEach(button => {
       const chosen = button.dataset.widgetSize === size
       button.setAttribute('aria-checked', String(chosen))
       // The roving half of the roving tabindex: the group keeps exactly one tab
@@ -206,20 +226,16 @@ export class WidgetGridController extends Controller {
     this.persist()
   }
 
+  // `:scope >`, not a descendant search. A host can render a card INSIDE another
+  // card's body, and a descendant query would then count it twice — inflating the
+  // "position N of M" a screen reader hears and putting a nested key into the
+  // payload the grid PATCHes.
   get cards () {
-    return Array.from(this.gridTarget.querySelectorAll('[data-widget-key]'))
+    return Array.from(this.gridTarget.querySelectorAll(':scope > [data-widget-key]'))
   }
 
-  // Clearing first, exactly as `kanban` does: writing the same string twice is not
-  // a DOM change, and a live region only announces changes — so arrowing a card
-  // back to a position it already announced would go silent.
   announce (message) {
-    if (!this.hasAnnouncerTarget || !message) return
-
-    this.announcerTarget.textContent = ''
-    window.requestAnimationFrame(() => {
-      this.announcerTarget.textContent = message
-    })
+    announceTo(this.hasAnnouncerTarget ? this.announcerTarget : null, message)
   }
 
   // Debounced AND serialized, for two different failures.
@@ -472,14 +488,7 @@ export class WidgetGridEditModeController extends Controller {
     else window.history.pushState({}, '', url)
   }
 
-  // Same clear-then-set as the grid controller: they share one announcer node,
-  // and a live region only announces changes.
   announce (message) {
-    if (!this.hasAnnouncerTarget || !message) return
-
-    this.announcerTarget.textContent = ''
-    window.requestAnimationFrame(() => {
-      this.announcerTarget.textContent = message
-    })
+    announceTo(this.hasAnnouncerTarget ? this.announcerTarget : null, message)
   }
 }

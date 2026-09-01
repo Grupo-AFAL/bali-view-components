@@ -106,10 +106,15 @@ export class WidgetRefreshController extends Controller {
       if (!response.ok) throw new Error(`refresh failed: ${response.status}`)
 
       await this.renderStream(response)
-      // No `misses = 0` on the way out: a successful refresh REPLACES this
-      // element, so the count dies with this controller and the replacement
-      // starts at zero. The counter only ever accumulates across failures,
-      // which are the case where nothing was replaced.
+
+      // RESET EXPLICITLY, rather than relying on the element being replaced. A
+      // successful refresh usually does replace it, and the count dies with this
+      // controller — but not always: `renderStream` returns early without
+      // `window.Turbo`, and a `204` or a body carrying no `<turbo-stream>` is a
+      // fine answer that replaces nothing. Two failures separated by one of those
+      // no-ops would mark the card stale without it having failed twice in a row,
+      // which is the only distinction `STALE_AFTER` exists to draw.
+      this.misses = 0
     } catch (error) {
       // SILENT BY DESIGN, unlike the grid's writes. A failed save loses work the
       // user did and has to be announced; a failed refresh loses nothing — the

@@ -193,6 +193,66 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal [ "alpha" ], store.stored_keys
   end
 
+  # A ROW FOR A WIDGET THE OWNER CANNOT CURRENTLY SEE SURVIVES A REARRANGE.
+  # `arrange` used to `delete_all` and reinsert only the offering, so a widget
+  # behind a feature flag lost its row the first time the user dragged anything —
+  # permanently, because the owner still had rows and `#widgets` therefore never
+  # fell back to defaults. This is the invariant `Bali::DashboardWidget` documents
+  # and the reason `scope :ordered` tie-breaks on `widget_key`.
+  def test_arrange_keeps_rows_for_widgets_outside_the_offering
+    hidden = Class.new(Bali::Widget::ValueBase) { def self.key = "flagged"; value { 2 } }
+
+    with_flag = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                                 offering: [ ALPHA.new, hidden.new ])
+    with_flag.arrange([ { key: "alpha" }, { key: "flagged" } ])
+    assert_equal %w[alpha flagged], with_flag.stored_keys
+
+    # The flag goes off, so `flagged` leaves the offering — and the user drags.
+    without = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
+    without.arrange([ { key: "alpha" } ])
+
+    assert_equal [ "alpha" ], without.widgets.map(&:key), "it must not RENDER while hidden"
+    assert_includes without.stored_keys, "flagged", "but its row must survive"
+
+    # And it comes back when the flag does.
+    restored = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                                offering: [ ALPHA.new, hidden.new ])
+    assert_includes restored.widgets.map(&:key), "flagged"
+  end
+
+  # THE MEMO MUST NOT OUTLIVE A WRITE. The picker asks `visible_keys` once per
+  # offered widget, so `stored_keys` is memoised — but the same Store is read
+  # before and after its own `arrange`, and a bare `||=` answers the second read
+  # with what was there before the write.
+  def test_stored_keys_is_re_read_after_a_write
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d",
+                                             offering: [ ALPHA.new, CHARLIE.new ])
+    assert_empty store.stored_keys
+
+    store.arrange([ { key: "alpha" } ])
+    assert_equal [ "alpha" ], store.stored_keys, "stale after arrange"
+
+    store.choose([ CHARLIE.new ])
+    assert_equal [ "charlie" ], store.stored_keys, "stale after choose"
+
+    store.reset
+    assert_empty store.stored_keys, "stale after reset"
+  end
+
+  # And it really is memoised WITHIN a read, which is what the picker needs.
+  def test_stored_keys_is_read_once_per_store
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
+    store.arrange([ { key: "alpha" } ])
+
+    queries = 0
+    counter = ->(*, payload) { queries += 1 unless payload[:name] == "SCHEMA" }
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      5.times { store.visible_keys }
+    end
+
+    assert_equal 1, queries, "the picker asks once per offered widget"
+  end
+
   # `choose` gates on its own too, not only `arrange`. A picker submits
   # membership rather than a layout, so it reaches a different method and would
   # otherwise be an unguarded second door into the same table.

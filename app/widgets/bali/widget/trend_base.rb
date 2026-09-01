@@ -67,11 +67,16 @@ module Bali
 
         # Reads through the widget's memoised `#current`/`#previous`, never its
         # own `resolved_*` — those exist only for those readers to call.
+        # BOTH SIDES GUARDED. `previous` being nil is the documented no-prior-period
+        # state, but `current` is nil too until the first measurement arrives —
+        # `#count` says so — and `nil - 10` is a `NoMethodError` that degrades the
+        # tile in production and takes the page down in development.
         def to_trend(widget)
+          now = widget.current
           before = widget.previous
-          return if before.nil? || before.to_f.zero?
+          return if now.nil? || before.nil? || before.to_f.zero?
 
-          Trend.new(delta: (((widget.current - before) / before.to_f) * 100).round,
+          Trend.new(delta: (((now - before) / before.to_f) * 100).round,
                     period: @period_label, positive_when: @positive_when)
         end
 

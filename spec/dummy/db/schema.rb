@@ -53,22 +53,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
     t.index ["user_type", "user_id"], name: "index_bali_acknowledgments_on_user"
   end
 
-  create_table "bali_content_versions", force: :cascade do |t|
-    t.integer "author_id"
-    t.string "author_name", null: false
-    t.string "author_type"
-    t.json "content"
-    t.datetime "created_at", null: false
-    t.json "metadata", default: {}, null: false
-    t.integer "record_id", null: false
-    t.string "record_type", null: false
-    t.string "summary", limit: 255
-    t.datetime "updated_at", null: false
-    t.integer "version_number", null: false
-    t.index ["author_type", "author_id"], name: "index_bali_content_versions_on_author"
-    t.index ["record_type", "record_id", "version_number"], name: "index_bali_content_versions_uniqueness", unique: true
-  end
-
   create_table "bali_block_editor_comments", force: :cascade do |t|
     t.integer "block_editor_thread_id", null: false
     t.json "body"
@@ -101,6 +85,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
     t.index ["commentable_type", "commentable_id"], name: "index_bali_block_editor_threads_on_commentable"
   end
 
+  create_table "bali_content_versions", force: :cascade do |t|
+    t.integer "author_id"
+    t.string "author_name", null: false
+    t.string "author_type"
+    t.json "content"
+    t.datetime "created_at", null: false
+    t.json "metadata", default: {}, null: false
+    t.integer "record_id", null: false
+    t.string "record_type", null: false
+    t.string "summary", limit: 255
+    t.datetime "updated_at", null: false
+    t.integer "version_number", null: false
+    t.index ["author_type", "author_id"], name: "index_bali_content_versions_on_author"
+    t.index ["record_type", "record_id", "version_number"], name: "index_bali_content_versions_uniqueness", unique: true
+  end
 
   create_table "bali_dashboard_widgets", force: :cascade do |t|
     t.string "context", default: "", null: false
@@ -112,7 +111,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
     t.string "size"
     t.datetime "updated_at", null: false
     t.string "widget_key", null: false
-    t.index ["owner_type", "owner_id", "context", "dashboard_key", "position"], name: "index_bali_dashboard_widgets_ordering"
+    t.index ["owner_type", "owner_id", "context", "dashboard_key", "position", "widget_key"], name: "index_bali_dashboard_widgets_ordering"
     t.index ["owner_type", "owner_id", "context", "dashboard_key", "widget_key"], name: "index_bali_dashboard_widgets_uniqueness", unique: true
   end
 

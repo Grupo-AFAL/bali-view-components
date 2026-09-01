@@ -42,8 +42,8 @@
       `@layer components` regardless of specificity. %>
   <% detail_region = capture do %>
     <div class="bali-widget-detail flex min-h-0 flex-1 flex-col overflow-hidden">
-      <% if detail_content.present? %>
-        <%= detail_content %>
+      <% if detail_body.present? %>
+        <%= detail_body %>
       <% elsif empty_state? %>
         <p class="flex-1 place-content-center text-center text-sm text-base-content/40">
           <%= empty_message %>

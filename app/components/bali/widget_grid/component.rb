@@ -57,6 +57,7 @@ module Bali
         @refresh_url = refresh_url
         @editing_param = editing_param
         @options = build_options(options)
+        super()
       end
 
       private

@@ -544,23 +544,25 @@ class BaliWidgetPatternsTest < ActiveSupport::TestCase
     assert_equal 3, widget.goal.value
     assert_equal 12, widget.goal.max
     assert_equal "of 12", widget.goal.label
-    assert_in_delta 25.0, widget.goal.percentage
   end
 
-  # A ring has nowhere to draw the eleventh of ten, but "11 / 10" is a real and
-  # good state — so only the drawing is clamped.
-  def test_the_percentage_clamps_without_touching_the_value
+  # THE VALUE IS NOT CLAMPED. Eleven of ten shifts covered is a real and good
+  # state; only the DRAWING has nowhere to put it, which is `Bali::Gauge`'s
+  # problem and is tested there — `Goal` carried a second, diverged `percentage`
+  # (Float against the Gauge's Integer) that nothing in the library called.
+  def test_a_goal_past_its_max_keeps_the_true_value
     widget = progress_widget { goal { |g| g.value 11; g.max 10 } }
 
-    assert_in_delta 100.0, widget.goal.percentage
     assert_equal 11, widget.goal.value
+    assert_equal 10, widget.goal.max
   end
 
-  # "No goal set" is a configuration state, not an error.
-  def test_a_zero_max_reads_as_empty_rather_than_dividing_by_zero
+  # "No goal set" is a configuration state, not an error — the ring reads empty
+  # rather than dividing by zero. Also `Bali::Gauge`'s test.
+  def test_a_zero_max_is_a_configuration_state_not_an_error
     widget = progress_widget { goal { |g| g.value 5; g.max 0 } }
 
-    assert_in_delta 0.0, widget.goal.percentage
+    assert_equal 0, widget.goal.max
   end
 
   def test_a_progress_widget_charts_in_bars_by_default
