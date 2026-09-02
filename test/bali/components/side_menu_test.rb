@@ -168,16 +168,44 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("[data-controller~='side-menu']")
   end
 
-  # One menu renders no switcher, so nothing changes for a sidebar that had no reason to
-  # carry a controller.
-  def test_a_single_menu_still_leaves_an_inline_sidebar_without_a_controller
+  # This used to assert the opposite: one menu renders no switcher, so an inline sidebar
+  # had "no reason" to carry a controller. Keeping the current page's item in view is the
+  # reason, and it is not tied to any option — `.sidebar-menu` scrolls on every sidebar,
+  # including this one, so every sidebar needs the controller. Turbo Drive rebuilds that
+  # scroll container on each visit and it comes back at the top; only the controller puts
+  # it back where the page you are on can be seen.
+  def test_a_plain_inline_sidebar_carries_the_controller_too
     @options[:fixed] = false
     render_inline(component) do |c|
       c.with_menu_switch(title: "Back of House", href: "/boh", icon: "chef-hat", active: true)
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
     end
     assert_no_selector(".menu-switcher > details")
-    assert_no_selector("[data-controller~='side-menu']")
+    assert_selector("[data-controller~='side-menu']")
+  end
+
+  # The scroll container the controller measures against. It is the only scrolling part of
+  # the sidebar — the chrome row, the switcher and the pinned bottom section sit outside
+  # it — so the reveal has something stable to aim at.
+  def test_the_menu_body_is_the_scroll_container
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector(".sidebar-menu.overflow-auto", visible: :all)
+  end
+
+  # `aria-current="page"` is the anchor the controller scrolls to, so it has to land on
+  # the link for the current page and nowhere else.
+  def test_the_current_page_link_is_marked_for_the_reveal
+    @options[:current_path] = "/movies"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+        list.with_item(name: "Item 2", href: "/studios")
+      end
+    end
+    assert_selector("a[aria-current='page']", text: "Item 1", visible: :all)
+    assert_no_selector("a[aria-current='page']", text: "Item 2", visible: :all)
   end
 
   def test_scrim_is_hidden_from_assistive_tech_and_closes_the_menu

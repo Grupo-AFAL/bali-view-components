@@ -124,6 +124,21 @@ module Bali
         )
       end
 
+      # @label Active Item In View
+      # Un menú más alto que el sidebar hace scroll en su propio contenedor. Turbo Drive
+      # reemplaza el `<body>` en cada visita, así que ese contenedor se reconstruye y
+      # vuelve a `scrollTop: 0` — el item de la página en la que estás quedaba debajo del
+      # corte, invisible. El controlador trae a la vista el enlace con
+      # `aria-current="page"` al conectar, con el mínimo desplazamiento posible: si ya se
+      # veía, no mueve nada.
+      # @param path text
+      def active_item_in_view(path: "/reports/revenue")
+        render_with_template(
+          template: "bali/side_menu/previews/active_item_in_view",
+          locals: { path: path }
+        )
+      end
+
       # @label With Trigger (keyboard)
       # `Bali::SideMenu::Trigger::Component` is the single control that opens the sidebar —
       # the same button Topbar, AppLayout and Navbar::Burger render. It is a real `<button>`,

@@ -11,6 +11,16 @@ const OVERLAY_QUERY = '(max-width: 1023.98px)'
 // event, so the panel stayed open over the rest of the page.
 const SWITCHER = '.menu-switcher > details'
 
+// The scrolling half of the sidebar. Everything else in the <nav> — the chrome row,
+// the module switcher, the pinned bottom section — sits outside it and never moves,
+// which is why the reveal below measures against this element and not the panel.
+const SCROLLER = '.sidebar-menu'
+
+// `aria-current="page"` is on exactly the link pointing at the page you are on
+// (Item::Component#current_page?), so it is the anchor — not `.active`, which a
+// parent also carries while a child route is open.
+const CURRENT_PAGE = '[aria-current="page"]'
+
 const FOCUSABLE = [
   'a[href]',
   'button:not([disabled])',
@@ -38,6 +48,8 @@ const FOCUSABLE = [
  * A `menuId` that is absent or matching addresses this menu, which keeps the
  * detail-less `bali:side-menu:toggle` that NavbarController still dispatches
  * working.
+ *
+ * It also owns where the menu is scrolled to on arrival — see `revealActiveItem`.
  */
 export class SideMenuController extends Controller {
   static values = {
@@ -49,6 +61,9 @@ export class SideMenuController extends Controller {
     this.lastTrigger = null
     this.overlayQuery = window.matchMedia(OVERLAY_QUERY)
     this.restoreCollapseState()
+    // After it, not before: collapsing swaps which copy of each item is displayed and
+    // changes the menu's height, and the reveal measures both.
+    this.revealActiveItem()
 
     this.onGlobalToggle = event => this.forThisMenu(event) && this.toggle(event)
     this.onGlobalOpen = event => this.forThisMenu(event) && this.open(event)
@@ -245,6 +260,67 @@ export class SideMenuController extends Controller {
   forThisMenu (event) {
     const menuId = event?.detail?.menuId
     return !menuId || menuId === this.element.id
+  }
+
+  // ── Keeping the current page in view ───────────────────────────────────
+
+  get scroller () {
+    return this.element.querySelector(SCROLLER)
+  }
+
+  // Each item renders twice — once for the expanded sidebar, once for the collapsed
+  // rail — and CSS shows exactly one, so both copies carry `aria-current`. The
+  // visible one is the one whose position means anything. Scoped to the scroller
+  // because a pinned bottom item lives outside it and would measure as "far above".
+  get currentPageItem () {
+    const scroller = this.scroller
+    if (!scroller) return null
+
+    return Array.from(scroller.querySelectorAll(CURRENT_PAGE)).find(
+      el => el.offsetParent !== null || el.getClientRects().length > 0
+    )
+  }
+
+  /**
+   * Brings the current page's item into view when the menu is taller than the
+   * sidebar.
+   *
+   * WHY THIS EXISTS. The menu scrolls inside `.sidebar-menu`, not inside the window.
+   * Turbo Drive replaces the `<body>` on every visit, so that div is destroyed and
+   * rebuilt from the new response and is born at `scrollTop: 0` — click a section
+   * near the bottom of a long menu and you land on its page with the item you just
+   * chose scrolled out of sight. Turbo does not cover this: its scroll restoration
+   * only ever touches the document, and here the document does not scroll at all.
+   *
+   * Runs on `connect`, which Stimulus fires on the new element during `turbo:render`,
+   * before the frame is painted — so the menu is already in the right place rather
+   * than jumping there afterwards. A first load gets the same treatment for free.
+   *
+   * `scrollIntoView({ block: 'nearest' })` is the behaviour, written out by hand
+   * because the real one walks up the ancestor chain: on a host page whose content
+   * column scrolls, it would drag the article along with the sidebar. Assigning
+   * `scrollTop` moves this container and nothing else.
+   */
+  revealActiveItem () {
+    const scroller = this.scroller
+    const item = this.currentPageItem
+    if (!scroller || !item) return
+
+    const overflow = scroller.scrollHeight - scroller.clientHeight
+    if (overflow <= 0) return
+
+    const menuBox = scroller.getBoundingClientRect()
+    const itemBox = item.getBoundingClientRect()
+
+    // The smallest move that lands the item inside the box, and zero when it is
+    // already there — browsing the menu and then picking something near the top
+    // must not yank the list around.
+    let delta = 0
+    if (itemBox.bottom > menuBox.bottom) delta = itemBox.bottom - menuBox.bottom
+    else if (itemBox.top < menuBox.top) delta = itemBox.top - menuBox.top
+    if (delta === 0) return
+
+    scroller.scrollTop = Math.min(Math.max(scroller.scrollTop + delta, 0), overflow)
   }
 
   // ── Desktop collapse ───────────────────────────────────────────────────

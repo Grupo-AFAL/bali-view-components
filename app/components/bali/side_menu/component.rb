@@ -97,18 +97,23 @@ module Bali
         )
       end
 
-      # `multiple_menus?` joins the two states that already asked for the controller
-      # because the module switcher now needs it too: a `<details>` closes on its own
-      # `<summary>` and on nothing else, so click-outside and Escape are JavaScript
-      # (#830). Without this a sidebar that is neither collapsible nor fixed — which is
-      # exactly what the switcher preview composes — got no controller at all and the
-      # panel stayed open over the page.
+      # The controller is unconditional, and the condition it replaces is worth keeping
+      # in view because it grew wrong twice. It started as "collapsible or fixed", then
+      # had to take `multiple_menus?` when the module switcher arrived: a `<details>`
+      # closes on its own `<summary>` and on nothing else, so click-outside and Escape
+      # are JavaScript (#830), and a sidebar that was neither collapsible nor fixed —
+      # exactly what the switcher preview composes — got no controller and left the
+      # panel open over the page.
+      #
+      # Keeping the current page's item in view is the third reason, and unlike the
+      # other two it is not tied to any option: `.sidebar-menu` scrolls on every
+      # sidebar, so every sidebar needs the controller. The list of exceptions was the
+      # bug. Nothing else in the controller runs unasked — the drawer work is behind
+      # `fixedValue`, collapsing behind `collapsibleValue`, and the switcher handlers
+      # no-op when there is no `<details>` to close.
       def container_data
         data = (@options[:data] || {}).dup
-        data[:controller] = class_names(
-          data[:controller],
-          { "side-menu" => @collapsible || @fixed || multiple_menus? }
-        )
+        data[:controller] = class_names(data[:controller], "side-menu")
         data[:side_menu_collapsible_value] = @collapsible
         data[:side_menu_fixed_value] = @fixed
         data
