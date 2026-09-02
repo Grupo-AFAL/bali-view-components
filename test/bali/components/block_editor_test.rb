@@ -619,4 +619,29 @@ class BaliBlockEditorComponentTest < ComponentTestCase
       Bali::BlockEditor::Component.new(config: { comments: { sidebar: :nope } })
     end
   end
+
+  # The root flag only covers the sidebar that renders inside the root, and
+  # `comments_container_id:` portals it out of there — into markup Rails does not
+  # render the contents of. So the mode also travels as a Stimulus value, and the
+  # React wrapper puts it on that container. Without it, `sidebar: :read_only` plus
+  # `comments_container_id:` was a mode that silently did nothing (#1113).
+  def test_the_sidebar_mode_travels_to_the_react_wrapper
+    render_inline(
+      Bali::BlockEditor::Component.new(
+        config: { comments: { url: "/c", sidebar: :read_only } },
+        comments_container_id: "host-panel"
+      )
+    )
+
+    assert_selector("[data-block-editor-comments-sidebar-value='read-only']", visible: :all)
+    assert_selector("[data-block-editor-comments-container-id-value='host-panel']", visible: :all)
+  end
+
+  # Both modes are written, so a host reading the value can tell "interactive" apart
+  # from "this editor is too old to say".
+  def test_the_interactive_mode_is_named_in_the_value_too
+    render_inline(Bali::BlockEditor::Component.new(config: { comments: { url: "/c" } }))
+
+    assert_selector("[data-block-editor-comments-sidebar-value='interactive']", visible: :all)
+  end
 end

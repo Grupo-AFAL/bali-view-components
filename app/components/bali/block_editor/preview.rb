@@ -215,6 +215,27 @@ module Bali
         )
       end
 
+      # @label Read-only threads sidebar (portaled)
+      # The same mode, with the panel rendered in a container of the host's through
+      # `comments_container_id:` — the shape a two-column layout actually has.
+      #
+      # It is here because the mode used to end at the editor's own root: the flag the
+      # CSS reads was on `.block-editor-component`, and portaling takes the sidebar out
+      # of it, so `sidebar: :read_only` rendered a fully interactive panel with no error
+      # and no warning (#1113). The flag now travels with the portal.
+      # @param editable toggle
+      def with_portaled_read_only_comments_sidebar(editable: true)
+        render_with_template(
+          template: 'bali/block_editor/previews/with_portaled_read_only_comments_sidebar',
+          locals: {
+            editable: editable,
+            content: commented_document.to_json,
+            comments: { user: sample_comments_user, users: sample_comments_users,
+                        threads: sample_comment_threads, sidebar: :read_only }
+          }
+        )
+      end
+
       # @label Pinned content format
       # `format:` decide en qué forma se escribe el JSON, y hasta v3.1.3 con `:json` no lo
       # decidía el host: el primer comentario del documento cambiaba la forma sola, porque

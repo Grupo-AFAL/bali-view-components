@@ -587,25 +587,28 @@
  * opens from the anchor, and there was no anchor left.
  *
  * So interactive is the default now, and read-only is a mode a host asks for. The
- * attribute is on the root of each sidebar's container -- `.block-editor-component`
- * for the inline sidebar, `.document-editor-panel` for the portaled one -- because
- * the sidebar element itself is React's and Rails does not render it.
+ * flag is a `data-comments-sidebar` on an ANCESTOR of the sidebar, because the
+ * sidebar element itself is React's and Rails does not render it. Three things put
+ * it there: `.block-editor-component` for the inline sidebar, `.document-editor-panel`
+ * for DocumentEditor's, and the React wrapper on whatever container
+ * `comments_container_id:` names.
  *
- * Shared between inline (.block-editor-component) and portaled (.document-editor-panel) sidebars. */
-:is(.block-editor-component, .document-editor-panel)[data-comments-sidebar="read-only"]
-  .bn-threads-sidebar .bn-action-toolbar,
-:is(.block-editor-component, .document-editor-panel)[data-comments-sidebar="read-only"]
-  .bn-threads-sidebar .bn-comment-actions-wrapper {
+ * Deliberately NOT scoped to those two class names. `comments_container_id:` is a
+ * public option and it portals the sidebar out of both of them, so a selector that
+ * named them was a mode that silently did nothing for every other portaling host —
+ * `sidebar: :read_only` rendering a fully interactive panel (#1113). Any ancestor
+ * carrying the attribute now counts, which is also the escape hatch for a host that
+ * puts the sidebar somewhere Bali never sees. */
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-action-toolbar,
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-comment-actions-wrapper {
   display: none !important;
 }
 
-:is(.block-editor-component, .document-editor-panel)[data-comments-sidebar="read-only"]
-  .bn-threads-sidebar .bn-thread-composer {
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-thread-composer {
   display: none !important;
 }
 
-:is(.block-editor-component, .document-editor-panel)[data-comments-sidebar="read-only"]
-  .bn-threads-sidebar .bn-comment-add-reaction {
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-comment-add-reaction {
   display: none !important;
 }
 

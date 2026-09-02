@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Ver el arreglo de abajo: interactivo pasa a ser el comportamiento por omisión, y solo
   lectura queda como un modo que el anfitrión pide por su nombre, para un panel que quiere
   ser un registro y no un lugar donde se escribe. Un modo desconocido levanta `ArgumentError`
-  en el sitio de llamada en vez de caerse a un default. Preview:
-  **BlockEditor → Read-only threads sidebar**.
+  en el sitio de llamada en vez de caerse a un default. El modo funciona también con el panel
+  portaleado por `comments_container_id:`. Previews: **BlockEditor → Read-only threads
+  sidebar** y **Read-only threads sidebar (portaled)**.
 
 - **`input_name:` / `input_id:` llegan a todas las familias del FormBuilder.** La escotilla
   para formularios sin modelo (#547) la leían tres familias; ahora la lee cada una cuyo
@@ -88,8 +89,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Lo que lo volvía defecto y no preferencia: un hilo cuyo ancla se borró («Contenido original
   eliminado») no tiene popover que abrir, así que no quedaba **ninguna** vía para responderle.
-  Verificado en navegador sobre `/lookbook/preview/bali/document_editor/default`, que trae dos
-  hilos huérfanos: antes inertes, ahora con su caja de respuesta.
+  Verificado en navegador sobre `/lookbook/preview/bali/block_editor/with_comments`, que trae
+  sus hilos en memoria: al seleccionar la tarjeta, la caja de respuesta mide 30×260 donde
+  antes medía 0×0.
+
+- **El modo del panel de hilos terminaba en la raíz del editor, así que `comments_container_id:`
+  lo anulaba en silencio.** La bandera que lee el CSS se pintaba en `.block-editor-component`,
+  y esa opción —pública y documentada— portalea el sidebar fuera de ahí. Pedir
+  `sidebar: :read_only` junto con ella rendereaba un panel enteramente interactivo: ni error,
+  ni aviso, la contraria de lo que decía el sitio de llamada. DocumentEditor era el único
+  anfitrión que portalea y funcionaba, y sólo porque pinta su propio panel marcado alrededor
+  del contenedor.
+
+  La bandera viaja ahora con el portal: el wrapper de React la pone sobre el contenedor que
+  nombra `comments_container_id:` —Rails no pinta lo que hay adentro—, y el selector dejó de
+  exigir una de esas dos clases, así que también sirve como escotilla para un anfitrión que
+  monte el sidebar donde Bali no lo ve. Medido en navegador sobre la preview nueva
+  **BlockEditor → Read-only threads sidebar (portaled)**: con la bandera el composer queda en
+  `display: none`; quitándosela a mano vuelve a `flex` con 30px de alto.
+
+- **`input_name:` le quitaba a un control `multiple` el `[]` que lo hace un arreglo.**
+  `add_default_name_and_id` de Rails es
+  `options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }`: el
+  sufijo vive dentro del bloque, así que un nombre dado por la escotilla nunca lo recibía.
+  `file_group :documents, multiple: true, input_name: "import[documents]"` mandaba los tres
+  archivos elegidos bajo una sola llave, Rack se quedaba con el último y
+  `params[:import][:documents]` era un archivo y no un arreglo — sin error, que es la forma de
+  falla que persigue todo este lote. El sufijo se agrega ahora, no se duplica si ya venía
+  escrito, y sigue al elemento y no al sitio de llamada: `slim_select_group` lee `multiple:`
+  sólo de `html:`, así que uno de primer nivel deja el `<select>` de un solo valor y el nombre
+  pelado.
+
+- **En las tres familias de select, un `id:` escrito en `html:` dejaba al control sin nombre
+  accesible.** La otra puerta al hueco de arriba, y la que sobrevivió a su arreglo: `html:` es
+  el hash más específico y el que gana en el elemento, pero `control_id` lee el hash del grupo
+  y ahí `:id` no llega —`WRAPPER_OPTIONS` no puede contenerlo, porque `RESERVED_OPTIONS` se
+  construye a partir de él y le arrancaría el id a todos los elementos del builder—. Así que
+  `f.select_group :status, opciones, label: "Status", html: { id: "status-select" }` pintaba
+  `<label for="movie_status">` contra `<select id="status-select">`: un `for` que nombra un id
+  que no está en el documento (WCAG 4.1.2). El pie de la leyenda sigue ahora el mismo orden de
+  precedencia que el elemento, y un `control_id:` explícito —`false` incluido— sigue ganando.
+
+- **Un `sidebar:` que no fuera simbolizable moría con `NoMethodError` en vez del
+  `ArgumentError` que el método promete.** `comments: { sidebar: true }` —que es como se lee
+  «prendé el panel»— hacía `true.to_sym`: un 500 que no nombra ni la opción ni los modos
+  válidos, justo desde el método cuyo trabajo es nombrar los dos. Ahora sólo se simboliza un
+  Symbol o un String, y el mensaje nombra el valor tal como se escribió (`""` ya no aparece
+  como `:""`).
 
 
 ## [v3.2.1] - 2026-08-30

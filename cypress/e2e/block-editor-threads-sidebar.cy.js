@@ -42,8 +42,8 @@ const CONTROLES = [
   ['.bn-comment-actions-wrapper', 'el menú de acciones del comentario']
 ]
 
-const montarHilo = () =>
-  cy.get('.bn-threads-sidebar').first().then($sidebar => {
+const montarHilo = (raiz = '.bn-threads-sidebar') =>
+  cy.get(raiz).first().then($sidebar => {
     const host = $sidebar[0].ownerDocument.createElement('div')
     host.dataset.test = 'sonda-hilo'
     host.innerHTML = hilo
@@ -51,6 +51,32 @@ const montarHilo = () =>
   })
 
 const sonda = selector => cy.get(`[data-test="sonda-hilo"] ${selector}`)
+
+// El markup de arriba es sintético a propósito —Mantine sólo monta esos controles con
+// un hover o un click de verdad— pero eso deja el arreglo colgando de un supuesto que
+// nada verifica: que BlockNote SIGA emitiendo estas clases. Si un bump de versión
+// renombra `.bn-thread-composer`, la sonda sigue verde y el defecto vuelve entero y en
+// silencio. Esto no prueba comportamiento; falla el día que la clase deje de existir,
+// que es lo que hacía falta.
+//
+// Va aparte y sobre el DOM sin tocar: el hilo sintético cuelga de un `.bn-threads-sidebar`
+// real, y BlockNote rastrea el mouse sobre el documento entero —`findClosestEditorElement`
+// sube por el nodo bajo el cursor— así que un click con ese markup montado revienta en
+// su propio manejador.
+describe('BlockEditor: las clases de BlockNote de las que cuelga el modo', () => {
+  const CLASES = ['.bn-thread-composer', '.bn-comment-editor', '.bn-comment-actions-wrapper']
+
+  CLASES.forEach(clase => {
+    it(`BlockNote sigue emitiendo ${clase} en el DOM real`, () => {
+      cy.viewport(1280, 900)
+      cy.visit('/bali/block_editor/with_comments')
+      cy.get('.bn-with-comments > .bn-container > .bn-editor').should('contain.text', 'Keyboard shortcuts')
+      cy.get('.bn-threads-sidebar .bn-thread').first().click()
+
+      cy.get(`.bn-threads-sidebar ${clase}`).should('exist')
+    })
+  })
+})
 
 describe('BlockEditor: panel de hilos interactivo (por omisión)', () => {
   beforeEach(() => {
@@ -102,5 +128,53 @@ describe('BlockEditor: panel de hilos con `sidebar: :read_only`', () => {
   // Lo que el modo NO se lleva: el hilo se sigue leyendo entero.
   it('sigue mostrando el hilo', () => {
     sonda('.bn-thread-comment').should('be.visible')
+  })
+})
+
+// El modo terminaba en la raíz del editor: la bandera que lee el CSS estaba en
+// `.block-editor-component`, y `comments_container_id:` —opción pública y
+// documentada— saca el sidebar de ahí. `sidebar: :read_only` pintaba entonces un panel
+// enteramente interactivo, sin error y sin aviso: se pedía una cosa y pasaba la
+// contraria (#1113). La bandera viaja ahora con el portal, puesta por el wrapper de
+// React sobre el contenedor del anfitrión, porque Rails no pinta lo que hay adentro.
+describe('BlockEditor: panel de hilos portaleado con `sidebar: :read_only`', () => {
+  beforeEach(() => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/block_editor/with_portaled_read_only_comments_sidebar')
+    cy.get('.bn-container > .bn-editor').should('contain.text', 'Keyboard shortcuts')
+    cy.get('#panel-de-hilos .bn-threads-sidebar').should('exist')
+    montarHilo('#panel-de-hilos .bn-threads-sidebar')
+  })
+
+  it('marca el contenedor del anfitrión, que Rails no pinta por dentro', () => {
+    cy.get('#panel-de-hilos').should('have.attr', 'data-comments-sidebar', 'read-only')
+  })
+
+  // El contenedor no es `.block-editor-component` ni `.document-editor-panel`, que es
+  // justo lo que el selector anterior exigía.
+  CONTROLES.forEach(([selector, nombre]) => {
+    it(`esconde ${nombre}`, () => {
+      sonda(selector).then($control => {
+        expect(window.getComputedStyle($control[0]).display, `${nombre} está oculto`)
+          .to.equal('none')
+      })
+    })
+  })
+})
+
+// La otra mitad del modo: el panel deja de ser donde se escribe, y el ancla sigue
+// siéndolo. Un hilo sin popover que abrir es lo que volvía defecto al panel inerte.
+// Aparte, y sin el hilo sintético montado, por la misma razón que el canario.
+describe('BlockEditor: el ancla sigue siendo donde se escribe', () => {
+  it('abre un composer con alto real en el popover', () => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/block_editor/with_portaled_read_only_comments_sidebar')
+    cy.get('.bn-container > .bn-editor').should('contain.text', 'Keyboard shortcuts')
+    cy.get('#panel-de-hilos .bn-thread').first().click()
+
+    cy.get('[data-floating-ui-portal] .bn-thread-composer').should($composer => {
+      expect(window.getComputedStyle($composer[0]).display).to.not.equal('none')
+      expect($composer[0].getBoundingClientRect().height).to.be.greaterThan(0)
+    })
   })
 })

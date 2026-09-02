@@ -161,12 +161,16 @@ module Bali
         @options = prepend_values(@options, "block-editor", controller_values)
 
         # Read by CSS, not by the controller: what the sidebar hides is a look, and
-        # the sidebar itself is React's. An attribute on the root is the one hook
-        # both the inline sidebar and the portaled one sit under -- see
-        # `Config#comments_sidebar`. The portaled case needs its own copy on the
-        # container the host renders (DocumentEditor does exactly that).
+        # the sidebar itself is React's. The root is the ancestor the INLINE sidebar
+        # sits under -- see `Config#comments_sidebar`.
+        #
+        # It is not the ancestor of a portaled one: `comments_container_id:` moves
+        # the sidebar into markup this component does not render the contents of, so
+        # the flag reaches that container through the Stimulus value below and the
+        # effect in BlockNoteEditorWrapper.jsx (#1113). DocumentEditor also writes it
+        # on its own panel, which is server-rendered and so beats React to it.
         if @config.comments_sidebar_read_only?
-          @options = prepend_data_attribute(@options, "comments-sidebar", "read-only")
+          @options = prepend_data_attribute(@options, "comments-sidebar", comments_sidebar_attribute)
         end
       end
 
@@ -234,6 +238,13 @@ module Bali
         return @format if %i[html markdown].include?(@format)
 
         Bali::BlockEditor.content_format(@initial_content)&.to_s
+      end
+
+      # The mode as the `data-comments-sidebar` attribute spells it: Ruby writes
+      # `:read_only`, CSS reads `read-only`. One place, so the root attribute, the
+      # Stimulus value and the portaled container cannot drift apart.
+      def comments_sidebar_attribute
+        @config.comments_sidebar.to_s.tr("_", "-")
       end
 
       private
@@ -327,6 +338,9 @@ module Bali
           table_of_contents_container_id: @table_of_contents_container_id || "",
           comments: @comments,
           comments_container_id: @comments_container_id || "",
+          # The mode as CSS spells it. Read by the React wrapper for the portaled
+          # sidebar only -- see the effect in BlockNoteEditorWrapper.jsx.
+          comments_sidebar: comments_sidebar_attribute,
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,

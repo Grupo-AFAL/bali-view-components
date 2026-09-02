@@ -194,6 +194,118 @@ class BaliFormBuilderInputNameOptionTest < FormBuilderTestCase
                  "#{mismatched.join("\n")}"
   end
 
+  # The other door into the same accessibility failure, and the one the PR review
+  # caught: `html: { id: }` is the route this guide calls "the most specific and the
+  # one that wins", and it reached the `<select>` while the caption went on pointing
+  # at Rails' derived id. `control_id` reads the group hash, and the group hash is
+  # built out of WRAPPER_OPTIONS, which cannot hold `:id` — RESERVED_OPTIONS is built
+  # from it and would strip the id off every element in the builder (#1113).
+  def test_the_caption_and_the_control_agree_on_an_id_written_in_the_html_hash
+    mismatched = TWO_HASH_FAMILIES.filter_map do |name, render|
+      html = render.call(builder, { label: "Status", html: { id: NEW_ID } })
+      fragment = Nokogiri::HTML5.fragment(html.to_s)
+      control = fragment.at_css("select")
+      caption = fragment.at_css("label[for]")
+
+      unless control && caption && control["id"] == caption["for"] && control["id"] == NEW_ID
+        "#{name}: control id #{control&.[]("id").inspect}, label for #{caption&.[]("for").inspect}"
+      end
+    end
+
+    assert_empty mismatched,
+                 "A `<label for>` pointing at an id the control does not carry:\n" \
+                 "#{mismatched.join("\n")}"
+  end
+
+  # Same precedence for the caption as for the element: `apply_input_name_options`
+  # only fills an id `html:` did not already set, so the caption has to follow
+  # `html:` too or the two disagree again.
+  def test_the_html_hash_wins_over_a_top_level_id
+    html = builder.select_group(:status, [ %w[One 1] ], id: NEW_ID, label: "Status",
+                                                        html: { id: "html_id" })
+    fragment = Nokogiri::HTML5.fragment(html.to_s)
+
+    assert_equal "html_id", fragment.at_css("select")["id"]
+    assert_equal "html_id", fragment.at_css("label[for]")["for"]
+  end
+
+  # `control_id:` is the key that names the caption's target, so it still outranks
+  # both — including `control_id: false`, which is how a group holding several
+  # controls keeps a `<legend>` that points at nothing.
+  def test_an_explicit_control_id_still_wins_over_both_hashes
+    html = builder.select_group(:status, [ %w[One 1] ], label: "Status",
+                                                        control_id: "caption_target",
+                                                        html: { id: NEW_ID })
+    fragment = Nokogiri::HTML5.fragment(html.to_s)
+
+    assert_equal NEW_ID, fragment.at_css("select")["id"]
+    assert_equal "caption_target", fragment.at_css("label[for]")["for"]
+  end
+
+  def test_a_legend_is_still_reachable_through_control_id_false
+    html = builder.select_group(:status, [ %w[One 1] ], label: "Status", control_id: false,
+                                                        html: { id: NEW_ID })
+
+    assert_html html, "legend", text: "Status"
+    refute_html html, "label[for]"
+  end
+
+  # `multiple` is what makes a control submit a list, and Rails spells that in the
+  # name — but `add_default_name_and_id` only appends the `[]` to a name it derived
+  # itself, so a name this hatch supplies never got one. Three chosen files arrived
+  # as one, silently (#1113).
+  # `multiple:` reaches the element by a different route per family, so each lambda
+  # writes it where that family reads it: SlimSelect's `<select>` always carries a
+  # `multiple` key of its own, which is why a top-level one never gets there.
+  MULTIPLE_FAMILIES = {
+    "file_group" => ->(b, o) { b.file_group(:name, **o) },
+    "select_group" => ->(b, o) { b.select_group(:status, [ %w[One 1] ], **o) },
+    "slim_select_group" => lambda { |b, o|
+      b.slim_select_group(:status, [ %w[One 1] ], html: o.slice(:multiple),
+                                                  **o.except(:multiple))
+    }
+  }.freeze
+
+  def test_a_renamed_multiple_control_still_submits_an_array
+    missing = MULTIPLE_FAMILIES.filter_map do |name, render|
+      names = control_names(render.call(builder, { multiple: true, input_name: NEW_NAME }))
+      "#{name}: #{names.inspect}" unless names.uniq == [ "#{NEW_NAME}[]" ]
+    end
+
+    assert_empty missing,
+                 "A multiple control renamed by the hatch lost the `[]` that makes it " \
+                 "an array:\n#{missing.join("\n")}"
+  end
+
+  def test_a_name_that_already_ends_in_brackets_is_not_doubled
+    html = builder.file_group(:name, multiple: true, input_name: "#{NEW_NAME}[]")
+
+    assert_equal [ "#{NEW_NAME}[]" ], control_names(html).uniq
+  end
+
+  def test_a_control_that_is_not_multiple_keeps_the_bare_name
+    kept = MULTIPLE_FAMILIES.filter_map do |name, render|
+      names = control_names(render.call(builder, { input_name: NEW_NAME }))
+      "#{name}: #{names.inspect}" unless names.uniq == [ NEW_NAME ]
+    end
+
+    assert_empty kept, "A single-value control was named as an array:\n#{kept.join("\n")}"
+  end
+
+  # The suffix follows the element, not the call site. SlimSelect's `<select>` always
+  # carries a `multiple` key of its own, so Rails never copies a top-level
+  # `multiple: true` onto it and the control is not multiple however the option was
+  # written — naming it as an array would be the same silent mis-submission the other
+  # way round.
+  def test_the_suffix_follows_the_element_and_not_the_option
+    html = builder.slim_select_group(:status, [ %w[One 1] ], multiple: true,
+                                                             input_name: NEW_NAME)
+    select = Nokogiri::HTML5.fragment(html.to_s).at_css("select")
+
+    assert_nil select["multiple"]
+    assert_equal NEW_NAME, select["name"]
+  end
+
   # `html:` is still the more specific hash and still wins.
   def test_the_html_hash_wins_over_a_top_level_name
     html = builder.select_group(:status, [ %w[One 1] ], name: NEW_NAME, html: { name: "html[name]" })

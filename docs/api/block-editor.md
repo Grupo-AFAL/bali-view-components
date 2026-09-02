@@ -1018,12 +1018,29 @@ the floating popover.
 ) %>
 ```
 
+The mode is carried by a `data-comments-sidebar` attribute on an **ancestor** of the
+sidebar, because the sidebar element itself is React's and Rails does not render it.
+Bali puts it there for you in all three arrangements: on `.block-editor-component` for
+the inline panel, on `.document-editor-panel` for DocumentEditor's, and -- through the
+React wrapper -- on whatever container `comments_container_id:` names. A host that
+mounts the sidebar somewhere Bali never sees can write the attribute itself.
+
+Anything but `:interactive` or `:read_only` raises `ArgumentError` at the call site,
+naming the value and the two modes, rather than falling back to a mode nobody asked
+for.
+
 > Until v3.1 this was the only behaviour, and it was not a choice -- three CSS rules
 > hid all three controls in every sidebar while the paragraph above promised replies
 > and reactions from the panel. The case that made it a defect rather than a
 > preference: a thread whose anchor had been deleted ("Contenido original eliminado")
 > has no popover to open, so with the panel inert there was no way to answer it at
 > all (#1111).
+>
+> In v3.1 the mode reached only the editor's own root, so pairing it with
+> `comments_container_id:` -- a public, documented option that portals the sidebar out
+> of that root -- rendered a fully interactive panel with no error and no warning
+> (#1113). DocumentEditor was the one portaling caller that worked, and only because it
+> renders its own flagged panel around the container.
 
 ### Storage
 

@@ -327,10 +327,25 @@ disappeared with no error and no warning.
 
 `name:` and `id:` reach the `<select>` from either hash. `html:` is the more
 specific one and wins; a top-level one is promoted, which is what the other ten
-families have always done. Before v3.1 a top-level `name:` was silently dropped,
-and a top-level `id:` was dropped while the caption's `for` went on pointing at it
-— a `<label for>` naming an element that was not in the document, so the control
-had no accessible name at all (#1111).
+families have always done. **The caption follows the same order**, so the
+`<label for>` names the id the `<select>` really carries whichever hash it was
+written in:
+
+```erb
+<%= f.select_group :status, statuses, label: "Status", html: { id: "status-select" } %>
+<%# => <label for="status-select">Status</label> and <select id="status-select"> %>
+```
+
+Before v3.1 a top-level `name:` was silently dropped, and a top-level `id:` was
+dropped while the caption's `for` went on pointing at it — a `<label for>` naming
+an element that was not in the document, so the control had no accessible name at
+all (#1111). The `html:` half of the same hole outlived that fix by one release:
+the id reached the element and the caption kept pointing at Rails' derived one
+(#1113).
+
+`control_id:` still outranks both, for a caption that has to name something else —
+and `control_id: false` keeps the `<legend>`, for a group that holds no single
+control a `for` could reach.
 
 **Non-model forms** (`form_with url:` without a model): pass `input_name:` /
 `input_id:` to namespace the rendered control under a param key. See
@@ -940,6 +955,21 @@ control to rename.
 The authoritative list lives in `test/bali/form_builder/input_name_option_test.rb`, which
 declares every family in one of the two camps and fails when a new family lands in
 neither.
+
+**`multiple:` keeps its `[]`.** Rails spells "this control submits a list" in the name,
+but it only appends the suffix to a name it derived itself — so a name given here used
+to arrive without one, three chosen files were submitted under one key, Rack kept the
+last, and `params[:import][:documents]` was a file instead of an array. Silently. The
+suffix is added now, and never doubled if you write it yourself:
+
+```erb
+<%= f.file_group :documents, multiple: true, input_name: "import[documents]" %>
+<%# => <input type="file" multiple name="import[documents][]"> %>
+```
+
+It follows the element, not the call site: `slim_select_group` reads `multiple:` from
+`html:` only, so a top-level one leaves the `<select>` single-valued and the name stays
+bare (#1113).
 
 > Before v3.1 the pair was read by the select families only. Everywhere else it fell
 > through to Rails, which forwards what it does not recognise — the input came out

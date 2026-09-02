@@ -76,6 +76,30 @@ describe('DocumentEditor: visor de solo lectura', () => {
   })
 })
 
+// `contentChanged` filtra por dos clases de BlockNote, y el markup de arriba es
+// sintético a propósito —el composer flotante sólo lo abre un click sobre un ancla
+// real—, así que el arreglo cuelga de un supuesto que nada verifica: que BlockNote SIGA
+// emitiendo esas clases. Si un bump de versión renombra `.bn-comment-editor`, la sonda
+// sigue verde y el defecto de #1111 vuelve entero, en silencio, sobre el mismo caso que
+// se midió. Esto no prueba comportamiento; falla el día que la clase deje de existir.
+//
+// Acá va la mitad que este preview alcanza sin datos: el sidebar se monta con el panel,
+// haya hilos o no. `.bn-comment-editor` necesita un hilo, y los hilos de este preview
+// salen de la base (`commentable_id=1`), que los seeds no llenan — se canaria en
+// `block-editor-threads-sidebar.cy.js`, sobre los hilos en memoria de su preview.
+describe('DocumentEditor: las clases de las que depende el filtro', () => {
+  it('BlockNote sigue emitiendo .bn-threads-sidebar en el DOM real', () => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/document_editor/default')
+    areaEditor().find('.bn-editor').should('contain.text', 'Project Overview')
+
+    cy.get('[data-document-editor-target="commentsToggle"]').click()
+
+    cy.get('[data-document-editor-target="commentsPanel"] .bn-threads-sidebar')
+      .should('exist')
+  })
+})
+
 describe('DocumentEditor: editor con auto_save apagado', () => {
   beforeEach(() => visitar(''))
 

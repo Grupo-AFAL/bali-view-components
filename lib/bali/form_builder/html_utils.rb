@@ -195,11 +195,36 @@ module Bali
       # The first hash wins on a conflict: it is the caller's primary one, the
       # one holding `label:`.
       def group_options(options, *others)
-        others.compact.each_with_object(options.dup) do |other, merged|
+        merged = others.compact.each_with_object(options.dup) do |other, acc|
           other.slice(*WRAPPER_OPTIONS).each do |key, value|
-            merged[key] = value unless merged.key?(key)
+            acc[key] = value unless acc.key?(key)
           end
         end
+
+        derive_control_id(merged, others)
+      end
+
+      # The other half of the `<label for>` hole #1111 measured on the top-level
+      # `id:`. `control_id` reads the group hash, and the group hash is built out of
+      # WRAPPER_OPTIONS — which does not include `:id`, and cannot: RESERVED_OPTIONS
+      # is built from it, and `html_attributes` would then strip the id off every
+      # element in the builder. So on the three families that take a second `html:`
+      # hash, `html: { id: "status-select" }` reached the `<select>` and nothing
+      # else: the caption went on pointing at Rails' derived `movie_status`, an id
+      # not in the document, and the control had no accessible name (WCAG 4.1.2).
+      #
+      # It is the element hash that wins here, and not the top-level `id:`, because
+      # that is the order `apply_input_name_options` resolves them in — `||=` on a
+      # key `html_attributes` has already copied over. An explicit `control_id:`
+      # still wins over both, including `control_id: false`, which is how a group
+      # holding several controls keeps its `<legend>`.
+      def derive_control_id(group, others)
+        return group if group.key?(:control_id)
+
+        id = others.compact.filter_map { |other| other[:id].presence }.first
+        return group unless id
+
+        group.merge(control_id: id)
       end
 
       # `prepend_action` and friends mutate in place, and that includes the
@@ -366,9 +391,47 @@ module Bali
         name = options[:input_name] || options[:name]
         id = options[:input_id] || options[:id]
 
-        html_options[:name] ||= name if name
+        html_options[:name] ||= array_name(name, options, html_options) if name
         html_options[:id] ||= id if id
         html_options
+      end
+
+      # `multiple` is what makes a control submit a list, and Rails spells that in
+      # the name — but only in a name it derived itself. `add_default_name_and_id`
+      # is `options["name"] = options.fetch("name") { tag_name(multiple, index) }`,
+      # so the `[]` is inside the block and a name this hatch supplies never gets
+      # one. `file_group :documents, multiple: true, input_name: "import[documents]"`
+      # then submitted three chosen files under one un-suffixed key, Rack kept the
+      # last, and `params[:import][:documents]` was a file instead of an array —
+      # silently, which is the shape of failure #1111 is about. Measured on
+      # `file_group` and `select_group` (#1113).
+      #
+      # A name already ending in `[]` is left alone, so writing the suffix by hand
+      # keeps working and never doubles.
+      def array_name(name, options, html_options)
+        return name unless multiple_control?(options, html_options)
+        return name if name.to_s.end_with?("[]")
+
+        "#{name}[]"
+      end
+
+      # Whether the element this name lands on will really be `multiple` — which is
+      # not the same question as "did the caller write `multiple:` somewhere".
+      #
+      # It is Rails' own rule, copied for the reason it exists: `select_content_tag`
+      # moves `:multiple` out of the field options onto the element only when the
+      # element does not already carry the key. SlimSelect's `<select>` always
+      # carries it — `build_html_options` writes `multiple: false` so its own widget
+      # can read it — so on that family a top-level `multiple: true` never reaches
+      # the element at all. Reading "either hash" instead would suffix the name of a
+      # single-value select, which is the same silent mis-submission the other way
+      # round: `params[:import][:tags]` an array of one where the form sends a value.
+      def multiple_control?(options, html_options)
+        if html_options.key?(:multiple) || html_options.key?("multiple")
+          return html_options[:multiple] || html_options["multiple"]
+        end
+
+        options[:multiple] || options["multiple"]
       end
 
       def field_helper(method, field, options = {})

@@ -92,6 +92,27 @@ class BaliBlockEditorConfigTest < ComponentTestCase
     assert_match(/:interactive, :read_only/, error.message)
   end
 
+  # The promise above is the whole point of raising, so it has to hold for every
+  # wrong value and not only for the ones that happen to symbolize. `sidebar: true`
+  # — which is how someone reads "turn the panel on" — used to reach `true.to_sym`
+  # and die of NoMethodError: a 500 naming neither the option nor the modes, from
+  # the one method whose job is to name both (#1113).
+  def test_a_value_that_is_not_a_mode_name_names_itself_too
+    [ true, 1, "", [], { sidebar: :read_only } ].each do |value|
+      error = assert_raises(ArgumentError, "sidebar: #{value.inspect}") do
+        Config.new(comments: { sidebar: value }).comments_sidebar
+      end
+
+      assert_match(/is not a sidebar mode/, error.message)
+      assert_includes error.message, value.inspect
+    end
+  end
+
+  # `nil` is not a wrong value: it is the key absent, which is the default.
+  def test_an_explicit_nil_is_the_default_and_not_an_error
+    assert_equal :interactive, Config.new(comments: { url: "/c", sidebar: nil }).comments_sidebar
+  end
+
   def test_two_configs_with_the_same_attributes_are_equal
     assert_equal Config.new(ai_url: "/ai"), Config.new(ai_url: "/ai")
     refute_equal Config.new(ai_url: "/ai"), Config.new(ai_url: "/other")

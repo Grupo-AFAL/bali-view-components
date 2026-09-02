@@ -134,11 +134,20 @@ module Bali
       #
       # Raises on an unknown mode rather than falling back, the way `size_variant`
       # does: a typo that silently means "interactive" is how the sidebar got here.
+      #
+      # Only a Symbol or a String is symbolized, and the message names the value as
+      # it was written. `sidebar: true` — which is how someone reads "turn the panel
+      # on" — used to reach `true.to_sym` and die of `NoMethodError` instead: a 500
+      # naming neither the option nor the modes, from the one method whose job is to
+      # name both (#1113).
       def comments_sidebar
         return :interactive unless comments.is_a?(Hash)
 
-        value = (comments.symbolize_keys[:sidebar] || :interactive).to_sym
-        return value if SIDEBARS.include?(value)
+        value = comments.symbolize_keys[:sidebar]
+        return :interactive if value.nil?
+
+        mode = value.is_a?(Symbol) || value.is_a?(String) ? value.to_sym : value
+        return mode if SIDEBARS.include?(mode)
 
         raise ArgumentError,
               "comments: { sidebar: #{value.inspect} } is not a sidebar mode. " \
