@@ -97,20 +97,15 @@ module Bali
         )
       end
 
-      # The controller is unconditional, and the condition it replaces is worth keeping
-      # in view because it grew wrong twice. It started as "collapsible or fixed", then
-      # had to take `multiple_menus?` when the module switcher arrived: a `<details>`
-      # closes on its own `<summary>` and on nothing else, so click-outside and Escape
-      # are JavaScript (#830), and a sidebar that was neither collapsible nor fixed —
-      # exactly what the switcher preview composes — got no controller and left the
-      # panel open over the page.
+      # Unconditional: `.sidebar-menu` scrolls on every sidebar, so every sidebar needs the
+      # controller to keep the current page in view. The condition this replaces was a list
+      # of exceptions that grew wrong twice (#830); git holds that history.
       #
-      # Keeping the current page's item in view is the third reason, and unlike the
-      # other two it is not tied to any option: `.sidebar-menu` scrolls on every
-      # sidebar, so every sidebar needs the controller. The list of exceptions was the
-      # bug. Nothing else in the controller runs unasked — the drawer work is behind
-      # `fixedValue`, collapsing behind `collapsibleValue`, and the switcher handlers
-      # no-op when there is no `<details>` to close.
+      # One consequence worth knowing: a sidebar that is not `fixed:` now answers the
+      # detail-less `bali:side-menu:toggle` broadcast too, toggling `is-active` and emitting
+      # `bali:side-menu:state`. The class does nothing outside `--fixed`, so there is no
+      # visual change — but the state event now also comes from sidebars that are not
+      # drawers. Do not read it as "a drawer opened".
       def container_data
         data = (@options[:data] || {}).dup
         data[:controller] = class_names(data[:controller], "side-menu")

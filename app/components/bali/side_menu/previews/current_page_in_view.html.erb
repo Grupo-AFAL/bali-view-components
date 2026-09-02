@@ -1,8 +1,7 @@
-<%# El sidebar se recorta a 380px para que el menú tenga que hacer scroll: es la
-    condición en la que vive el bug — el item activo queda debajo del corte y
-    Turbo entrega cada página con el contenedor en scrollTop 0. %>
+<%# El sidebar se recorta a 380px para que el menú tenga que hacer scroll: es la condición
+    en la que vive el bug. El porqué completo está en `revealCurrentPage` (index.js). %>
 <div class="h-[380px] w-xs bg-base-200 p-4">
-  <%= render Bali::SideMenu::Component.new(current_path: path, fixed: false, class: 'h-full') do |c|
+  <%= render Bali::SideMenu::Component.new(current_path: path, fixed: false, collapsible: collapsible, class: 'h-full') do |c|
     c.with_list(title: 'Navigation') do |list|
       list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'monitor-dot')
       list.with_item(name: 'Products', href: '/products', icon: 'package')
@@ -26,6 +25,15 @@
       # El destino de esta preview: penúltimo item, muy por debajo del corte.
       list.with_item(name: 'Revenue', href: '/reports/revenue', icon: 'coins')
       list.with_item(name: 'Taxes', href: '/reports/taxes', icon: 'landmark')
+
+      # Un grupo anidado, y al final del menú a propósito: en el rail colapsado sus hijos
+      # viven en un panel `display: none`, así que el único elemento visible que dice
+      # "estás aquí" es este disparador. Sin él la preview no alcanzaba ni el rail
+      # colapsado ni el modo dropdown, que es por lo que el no-op pasó desapercibido.
+      list.with_item(name: 'Ledger', icon: 'book-open') do |item|
+        item.with_item(name: 'Entries', href: '/ledger/entries')
+        item.with_item(name: 'Balances', href: '/ledger/balances')
+      end
     end
   end %>
 </div>

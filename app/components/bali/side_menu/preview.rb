@@ -124,18 +124,21 @@ module Bali
         )
       end
 
-      # @label Active Item In View
-      # Un menú más alto que el sidebar hace scroll en su propio contenedor. Turbo Drive
-      # reemplaza el `<body>` en cada visita, así que ese contenedor se reconstruye y
-      # vuelve a `scrollTop: 0` — el item de la página en la que estás quedaba debajo del
-      # corte, invisible. El controlador trae a la vista el enlace con
-      # `aria-current="page"` al conectar, con el mínimo desplazamiento posible: si ya se
-      # veía, no mueve nada.
+      # @label Current Page In View
+      # Un menú más alto que el sidebar hace scroll en su propio contenedor, que Turbo
+      # reconstruye en cada visita — el porqué está en el docblock de `revealCurrentPage`
+      # (`side_menu/index.js`). El controlador trae a la vista la página actual al conectar,
+      # con el mínimo desplazamiento: si ya se veía, no mueve nada.
+      #
+      # Con `collapsible` activado y `path` en `/ledger/balances` se ve el otro caso: en el
+      # rail colapsado los hijos del grupo están en un panel cerrado, así que lo que entra
+      # en vista es el disparador del grupo.
       # @param path text
-      def active_item_in_view(path: "/reports/revenue")
+      # @param collapsible toggle
+      def current_page_in_view(path: "/reports/revenue", collapsible: false)
         render_with_template(
-          template: "bali/side_menu/previews/active_item_in_view",
-          locals: { path: path }
+          template: "bali/side_menu/previews/current_page_in_view",
+          locals: { path: path, collapsible: collapsible }
         )
       end
 

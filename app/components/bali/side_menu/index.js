@@ -49,7 +49,7 @@ const FOCUSABLE = [
  * detail-less `bali:side-menu:toggle` that NavbarController still dispatches
  * working.
  *
- * It also owns where the menu is scrolled to on arrival — see `revealActiveItem`.
+ * It also owns where the menu is scrolled to on arrival — see `revealCurrentPage`.
  */
 export class SideMenuController extends Controller {
   static values = {
@@ -63,7 +63,7 @@ export class SideMenuController extends Controller {
     this.restoreCollapseState()
     // After it, not before: collapsing swaps which copy of each item is displayed and
     // changes the menu's height, and the reveal measures both.
-    this.revealActiveItem()
+    this.revealCurrentPage()
 
     this.onGlobalToggle = event => this.forThisMenu(event) && this.toggle(event)
     this.onGlobalOpen = event => this.forThisMenu(event) && this.open(event)
@@ -268,59 +268,61 @@ export class SideMenuController extends Controller {
     return this.element.querySelector(SCROLLER)
   }
 
-  // Each item renders twice — once for the expanded sidebar, once for the collapsed
-  // rail — and CSS shows exactly one, so both copies carry `aria-current`. The
-  // visible one is the one whose position means anything. Scoped to the scroller
-  // because a pinned bottom item lives outside it and would measure as "far above".
-  get currentPageItem () {
+  // Each item renders twice — once for the expanded sidebar, once for the collapsed rail —
+  // and CSS shows exactly one, so both copies carry `aria-current`. The visible one is the
+  // one whose position means anything. Scoped to the scroller because a pinned bottom item
+  // lives outside it and would measure as "far above".
+  //
+  // A link inside a popup stands in for the trigger that opens it. On the collapsed rail
+  // and in `group_behavior: :dropdown` the panel is `display: none` and the child link is
+  // the only thing carrying `aria-current` — a parent hands it to its active child, so the
+  // rail icon has none. Without this the getter found nothing there and the reveal was a
+  // silent no-op. Expanded mode is untouched: an accordion child's ancestors are
+  // `.collapse-content` → `.collapse` → `li` → `ul`, and the flyout `.dropdown` is that
+  // accordion's sibling, not its ancestor.
+  get revealTarget () {
     const scroller = this.scroller
     if (!scroller) return null
 
-    return Array.from(scroller.querySelectorAll(CURRENT_PAGE)).find(
-      el => el.offsetParent !== null || el.getClientRects().length > 0
-    )
+    return Array.from(scroller.querySelectorAll(CURRENT_PAGE))
+      .map(link => link.closest('.dropdown') ?? link)
+      .find(el => el.offsetParent !== null || el.getClientRects().length > 0)
   }
 
   /**
-   * Brings the current page's item into view when the menu is taller than the
-   * sidebar.
+   * Brings the current page's item into view when the menu is taller than the sidebar.
    *
-   * WHY THIS EXISTS. The menu scrolls inside `.sidebar-menu`, not inside the window.
-   * Turbo Drive replaces the `<body>` on every visit, so that div is destroyed and
-   * rebuilt from the new response and is born at `scrollTop: 0` — click a section
-   * near the bottom of a long menu and you land on its page with the item you just
-   * chose scrolled out of sight. Turbo does not cover this: its scroll restoration
-   * only ever touches the document, and here the document does not scroll at all.
+   * The menu scrolls inside `.sidebar-menu`, not inside the window. Turbo Drive replaces
+   * the `<body>` on every visit, so that div is destroyed, rebuilt from the new response
+   * and born at `scrollTop: 0` — click a section near the bottom of a long menu and you
+   * land on its page with the item you just chose scrolled out of sight. Turbo does not
+   * cover this: its scroll restoration only ever touches the document, and here the
+   * document does not scroll at all.
+   *
+   * Not `data-turbo-permanent`, which is the tempting answer: the markup differs per page
+   * — `aria-current`, `.active`, the accordion's `checked` — so keeping the old node would
+   * freeze the previous page's highlight.
    *
    * Runs on `connect`, which Stimulus fires on the new element during `turbo:render`,
-   * before the frame is painted — so the menu is already in the right place rather
-   * than jumping there afterwards. A first load gets the same treatment for free.
+   * before the frame is painted — so the menu arrives in the right place rather than
+   * jumping there afterwards. A first load gets the same treatment for free.
    *
-   * `scrollIntoView({ block: 'nearest' })` is the behaviour, written out by hand
-   * because the real one walks up the ancestor chain: on a host page whose content
-   * column scrolls, it would drag the article along with the sidebar. Assigning
-   * `scrollTop` moves this container and nothing else.
+   * `scrollIntoView({ block: 'nearest' })` is the behaviour, written out by hand because
+   * the real one walks up the ancestor chain: on a host page whose content column scrolls,
+   * it would drag the article along with the sidebar. Assigning `scrollTop` moves this
+   * container and nothing else — and the browser clamps the assignment, so the two
+   * branches below are the whole of "smallest move, nothing when it already fits".
    */
-  revealActiveItem () {
+  revealCurrentPage () {
     const scroller = this.scroller
-    const item = this.currentPageItem
-    if (!scroller || !item) return
+    const target = this.revealTarget
+    if (!scroller || !target) return
 
-    const overflow = scroller.scrollHeight - scroller.clientHeight
-    if (overflow <= 0) return
+    const menu = scroller.getBoundingClientRect()
+    const item = target.getBoundingClientRect()
 
-    const menuBox = scroller.getBoundingClientRect()
-    const itemBox = item.getBoundingClientRect()
-
-    // The smallest move that lands the item inside the box, and zero when it is
-    // already there — browsing the menu and then picking something near the top
-    // must not yank the list around.
-    let delta = 0
-    if (itemBox.bottom > menuBox.bottom) delta = itemBox.bottom - menuBox.bottom
-    else if (itemBox.top < menuBox.top) delta = itemBox.top - menuBox.top
-    if (delta === 0) return
-
-    scroller.scrollTop = Math.min(Math.max(scroller.scrollTop + delta, 0), overflow)
+    if (item.bottom > menu.bottom) scroller.scrollTop += item.bottom - menu.bottom
+    else if (item.top < menu.top) scroller.scrollTop += item.top - menu.top
   }
 
   // ── Desktop collapse ───────────────────────────────────────────────────
