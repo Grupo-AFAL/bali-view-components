@@ -137,6 +137,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Symbol o un String, y el mensaje nombra el valor tal como se escribió (`""` ya no aparece
   como `:""`).
 
+## [v3.3.0] - 2026-08-31
+
+### Added
+
+- **`delimited: true` agrupa los miles mientras se escribe** en `currency_group`/`currency_field`,
+  `percentage_group`/`percentage_field` y `number_group`/`number_field`. `1500200` se lee
+  `1,500,200` tecla por tecla, el cursor se queda donde el usuario lo dejó, y un importe
+  guardado llega ya agrupado en el locale de la petición. Es el controlador Stimulus
+  `number-format`, nuevo — hay que registrarlo (o usar `registerAll`) o el campo queda como
+  texto plano.
+
+  ```erb
+  <%= f.currency_group :price, delimited: true %>
+  <%= f.number_group :budget, delimited: true %>
+  ```
+
+  **Es opt-in en todas las familias, y hay que leer esto antes de encenderlo.** El separador
+  cambia lo que el campo ENVÍA, y un importe agrupado sólo sobrevive el viaje si el modelo
+  trae `currency_attribute`/`percentage_attribute` de
+  `Bali::Concerns::NumericAttributesWithCommas`. Sin eso Rails castea `"1,500,200"` a **1**:
+  sin excepción, sin error de validación, un 1 en una columna de dinero. Medido en las apps
+  del grupo: doce call sites vivos de estos campos y ni un modelo con el concern — por eso no
+  se activa solo.
+
+  En `number_group` cuesta además el tipo nativo. Un `input type="number"` no puede contener
+  un separador, así que el campo pasa a `text` con `inputmode="decimal"` y el `pattern` del
+  locale, y **`min`, `max` y `step` se descartan** con el tipo: sobre un `text` los tres son
+  inertes.
+
+### Changed
+
+- **`step_number_group`/`step_number_field` levantan `ArgumentError` si reciben `delimited:`.**
+  La opción no tiene ahí significado coherente y antes producía un widget roto en silencio:
+  los dos controladores sobre el mismo input, `parseFloat("1,500")` dándole 1 al de pasos, y
+  `min`/`max` descartados.
 
 ## [v3.2.1] - 2026-08-30
 

@@ -118,6 +118,7 @@ pin "bali/controllers/focus-on-connect-controller", to: "bali/controllers/focus-
 pin "bali/controllers/print-controller", to: "bali/controllers/print-controller.js"
 pin "bali/controllers/slim-select-controller", to: "bali/controllers/slim-select-controller.js"
 pin "bali/controllers/step-number-input-controller", to: "bali/controllers/step-number-input-controller.js"
+pin "bali/controllers/number-format-controller", to: "bali/controllers/number-format-controller.js"
 
 # Bali component controllers
 pin "bali/bulk_actions", to: "bali/bulk_actions/index.js"
@@ -167,10 +168,16 @@ application.register("dropdown", DropdownController)
 
 ### Utility Controllers
 
-All 24 standalone controllers — identifier, what each does, and a minimal markup
+All 25 standalone controllers — identifier, what each does, and a minimal markup
 example — are catalogued in the [Stimulus utility controllers guide](controllers.md).
 That page is the single source of truth: `yarn check:manifest` fails if a registered
 utility identifier is missing from it.
+
+Registering a subset is supported, but note which controllers the FormBuilder mounts
+on your behalf: leave one out and the field renders and submits exactly as before,
+with the behaviour silently missing. `number-format` is mounted by any numeric
+family given `delimited: true`, so an app that uses that option needs it registered
+or those fields quietly stop grouping.
 
 ### Component Controllers
 
