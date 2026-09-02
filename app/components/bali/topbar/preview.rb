@@ -48,6 +48,13 @@ module Bali
       def icon_actions
         render_with_template(template: "bali/topbar/previews/icon_actions")
       end
+
+      # @label Tools Menu
+      # Topbar with the internal tools menu: a mounted tool that keeps the host chrome
+      # (same tab), a mounted tool with its own chrome, and an external link.
+      def tools_menu
+        render_with_template(template: "bali/topbar/previews/tools_menu")
+      end
     end
   end
 end

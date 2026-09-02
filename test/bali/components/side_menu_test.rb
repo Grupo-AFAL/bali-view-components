@@ -168,32 +168,18 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("[data-controller~='side-menu']")
   end
 
-  # This used to assert the opposite: one menu renders no switcher, so an inline sidebar had
-  # "no reason" to carry a controller. Keeping the current page in view is the reason, and
-  # it is not option-shaped — see the note on `container_data`.
-  def test_a_plain_inline_sidebar_carries_the_controller_too
+  # One menu renders no switcher, so the switcher is not what asks for the controller here.
+  # `reveal_current: false` isolates that: the reveal asks for it too since #1099, and
+  # without turning it off this would pass for the wrong reason.
+  def test_a_single_menu_is_not_by_itself_a_reason_to_carry_a_controller
     @options[:fixed] = false
+    @options[:reveal_current] = false
     render_inline(component) do |c|
       c.with_menu_switch(title: "Back of House", href: "/boh", icon: "chef-hat", active: true)
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
     end
     assert_no_selector(".menu-switcher > details")
-    assert_selector("[data-controller~='side-menu']")
-  end
-
-  # `aria-current="page"` is the anchor SideMenuController scrolls to, so it has to land on
-  # the link for the current page and nowhere else. The controller reaches for it by
-  # `.sidebar-menu [aria-current="page"]`, so both halves are pinned here.
-  def test_the_current_page_link_is_marked_inside_the_scroll_container
-    @options[:current_path] = "/movies"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "Item 1", href: "/movies")
-        list.with_item(name: "Item 2", href: "/studios")
-      end
-    end
-    assert_selector(".sidebar-menu a[aria-current='page']", text: "Item 1", visible: :all)
-    assert_no_selector("a[aria-current='page']", text: "Item 2", visible: :all)
+    assert_no_selector("[data-controller~='side-menu']")
   end
 
   def test_scrim_is_hidden_from_assistive_tech_and_closes_the_menu
@@ -625,6 +611,77 @@ class BaliSideMenuComponentTest < ComponentTestCase
           active_when: %r{\A/departments/\d+/(merges|source_links)}
         )
         list.with_item(name: "Department Types", href: "/department_types")
+      end
+    end
+  end
+end
+
+# #1099 — el ítem activo queda fuera de vista tras navegar, porque cada navegación
+# re-renderiza el sidebar y su scroll vuelve arriba. El scroll en sí es del controller
+# (lo cubre cypress/e2e/side-menu-reveal-current.cy.js); acá se fija el interruptor y las
+# dos cosas del markup de las que depende, que son las que un host no puede emitir.
+class BaliSideMenuRevealCurrentTest < ComponentTestCase
+  def test_revealing_is_on_by_default_and_says_nothing_about_it
+    render_menu
+
+    assert_no_selector("[data-side-menu-reveal-current-value]")
+  end
+
+  def test_the_opt_out_is_the_only_thing_that_gets_emitted
+    render_menu(reveal_current: false)
+
+    assert_selector("[data-side-menu-reveal-current-value='false']")
+  end
+
+  # El menú scrollea cuando es más alto que su caja, lo que no tiene nada que ver con estar
+  # anclado ni con poder colapsarse. Un sidebar inline y no colapsable habría sido el único
+  # caso que el reveal se saltaba en silencio — el mismo error que #830 ya había cometido
+  # con el switcher.
+  def test_an_inline_sidebar_gets_the_controller_because_the_reveal_needs_one
+    render_menu(fixed: false, collapsible: false)
+
+    assert_selector("[data-controller~='side-menu']")
+  end
+
+  def test_turning_the_reveal_off_takes_that_reason_away_again
+    render_menu(fixed: false, collapsible: false, reveal_current: false)
+
+    assert_no_selector("[data-controller~='side-menu']")
+  end
+
+  # Lo que el controller busca. Renombrar cualquiera de los dos rompe el reveal en
+  # silencio, que es exactamente por qué esto vive en la gema y no en el host.
+  def test_the_menu_scroller_the_controller_scrolls_is_still_named_sidebar_menu
+    render_menu
+
+    assert_selector(".sidebar-menu.overflow-auto")
+  end
+
+  def test_only_the_link_for_the_current_page_carries_aria_current
+    render_menu
+
+    assert_selector(".sidebar-menu a[href='/reports'][aria-current='page']", visible: :all)
+    assert_no_selector(".sidebar-menu a[href='/dashboard'][aria-current='page']", visible: :all)
+  end
+
+  # Un ítem simple se renderiza DOS veces —expandido y la versión icon-only del rail— y las
+  # dos llevan `aria-current`, porque las dos SON el enlace de esta página: cuál se ve lo
+  # decide el CSS. Por eso el controller no puede usar `querySelector` a secas — la mitad de
+  # las veces mediría un nodo en `display: none`, cuyos rects son todos cero.
+  def test_the_current_link_is_rendered_once_per_rail_state
+    render_menu
+
+    assert_selector(".sidebar-menu [aria-current='page']", count: 2, visible: :all)
+    assert_selector(".sidebar-menu .side-menu-expanded[aria-current='page']", visible: :all)
+  end
+
+  private
+
+  def render_menu(**options)
+    render_inline(Bali::SideMenu::Component.new(current_path: "/reports", **options)) do |menu|
+      menu.with_list(title: "Main") do |list|
+        list.with_item(name: "Dashboard", href: "/dashboard")
+        list.with_item(name: "Reports", href: "/reports")
       end
     end
   end

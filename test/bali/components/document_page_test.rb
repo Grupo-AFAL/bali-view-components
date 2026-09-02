@@ -286,3 +286,29 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_selector(".flex.items-center.gap-2.flex-wrap")
   end
 end
+
+# #1098 — DocumentPage monta el mismo editor interno que DocumentEditor, pero en modo
+# lectura: sin `input_name` no hay hidden input, así que no hay nada que serializar y
+# `format:` no tendría dónde actuar. Se dice en voz alta en vez de pintarse como atributo.
+class BaliDocumentPageFormatTest < ComponentTestCase
+  def test_format_is_rejected_instead_of_painted_as_an_html_attribute
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::DocumentPage::Component.new(
+        title: "My Document", initial_content: [ { type: "paragraph" } ], format: :blocks
+      ))
+    end
+
+    assert_match "never writes", error.message
+    assert_match "Bali::DocumentEditor", error.message
+  end
+
+  # La razón por la que se rechaza, fijada: esta página no persiste nada.
+  def test_the_page_mounts_a_read_only_editor_with_no_input_to_persist
+    render_inline(Bali::DocumentPage::Component.new(
+      title: "My Document", initial_content: [ { type: "paragraph" } ]
+    ))
+
+    assert_selector(".block-editor-component", visible: :all)
+    assert_no_selector("input[type='hidden'][data-block-editor-target]", visible: :all)
+  end
+end

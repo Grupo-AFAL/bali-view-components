@@ -642,6 +642,15 @@ es:
       user_menu:
         trigger_label: "Menú de usuario de %{name}"
         sign_out: "Cerrar sesión"
+      tools_menu:
+        trigger_label: "Herramientas"
+        items:
+          mission_control: "Panel de trabajos"
+          analytics: "Tablero de adopción"
+          letter_opener: "Bandeja de correo"
+          rails_routes: "Rutas de Rails"
+          repository: "Repositorio"
+          sentry: "Sentry"
     qr_code:
       label: "Código QR"
     qr_scanner:

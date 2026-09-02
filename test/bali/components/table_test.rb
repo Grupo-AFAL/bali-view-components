@@ -161,6 +161,28 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".empty-table p", text: "No Records")
   end
 
+  # #1085 — con un FilterForm de verdad, no un Struct: el defecto era que el panel avanzado
+  # no llegaba a `active_filters?`, así que un listado recortado a cero DESDE EL PANEL
+  # ofrecía "Aún no hay registros — creá el primero" sobre un catálogo entero.
+  def test_empty_states_reads_the_advanced_panel_as_filtered
+    grouped = ActionController::Parameters.new(q: { g: { "0" => { name_cont: "NO_EXISTE" } } })
+    @options = { form: Bali::FilterForm.new(Movie.all, grouped) }
+
+    render_inline(component) { |c| c.with_new_record_link(name: "Add", href: "#", modal: false) }
+
+    assert_selector(".empty-table p", text: "No Results")
+    assert_no_selector(".empty-table a", text: "Add")
+  end
+
+  def test_empty_states_still_reads_an_untouched_advanced_panel_as_empty
+    grouped = ActionController::Parameters.new(q: { g: { "0" => { name_cont: "" } } })
+    @options = { form: Bali::FilterForm.new(Movie.all, grouped) }
+
+    render_inline(component)
+
+    assert_selector(".empty-table p", text: "No Records")
+  end
+
   def test_empty_states_renders_a_table_with_new_record_link
     render_inline(component) do |c|
       c.with_new_record_link(name: "Add New Record", href: "#", modal: false)
@@ -735,6 +757,81 @@ class BaliTableComponentTest < ComponentTestCase
     end
     # "Sur" is not in group_counts → page-local count (1), no crash
     assert_selector("tr.bali-table-group-row td", text: "Sur (1)")
+  end
+
+  # #1086 — la banda rotulaba con el valor de la base (`table`, `view`), y traducirlo por el
+  # camino obvio —pasar la etiqueta como `group:`— costaba el conteo GLOBAL: las llaves de
+  # `group_counts` son las que devolvió el GROUP BY, así que la búsqueda fallaba y el
+  # encabezado caía al conteo de la página.
+  def test_grouping_translates_the_band_label_through_an_i18n_scope
+    I18n.backend.store_translations(:en, movies: { genres: { action: "Acción" } })
+    @options = { group_counts: { "action" => 30 }, group_i18n_scope: "movies.genres" }
+
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "action") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", text: "Acción (30) — showing 1")
+  end
+
+  def test_grouping_translates_the_band_label_through_a_callable
+    @options = { group_counts: { "action" => 30 },
+                 group_label: ->(value) { value.to_s.upcase } }
+
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "action") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", text: "ACTION (30) — showing 1")
+  end
+
+  # El rótulo es del ENCABEZADO: el valor que lleva la fila —y con él el token del
+  # seleccionar-todo del grupo— sigue siendo el crudo.
+  def test_grouping_label_does_not_reach_the_group_selection_token
+    @options = { selectable: true, group_label: ->(_value) { "Traducido" } }
+
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "action", record_id: "1") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", text: "Traducido")
+    assert_selector("[data-bulk-actions-group*='group-action-']", visible: :all)
+  end
+
+  def test_grouping_a_callable_wins_over_the_scope
+    I18n.backend.store_translations(:en, movies: { genres: { action: "Acción" } })
+    @options = { group_i18n_scope: "movies.genres", group_label: ->(_value) { "Del lambda" } }
+
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "action") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", text: "Del lambda (1)")
+  end
+
+  # `nil` es la banda del NULL de SQL: ya tiene su clave traducible y no pasa por el hook.
+  def test_grouping_the_null_band_keeps_its_own_key
+    @options = { group_i18n_scope: "movies.genres" }
+
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "action") { "<td>A</td>".html_safe }
+      c.with_row(group: nil) { "<td>B</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", text: "Ungrouped (1)")
+  end
+
+  def test_grouping_rejects_a_group_label_that_is_not_callable
+    error = assert_raises(ArgumentError) do
+      Bali::Table::Component.new(group_label: "movies.genres")
+    end
+
+    assert_match "group_i18n_scope", error.message
   end
 
   def test_grouping_global_count_for_nil_group_value

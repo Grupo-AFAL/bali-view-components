@@ -59,13 +59,7 @@ module Bali
         pairs = []
 
         Array(filter_groups).each_with_index do |group, index|
-          # Se descartan las filas vacías del builder Y las que no producen ningún par real
-          # (un `between` con ambos extremos en blanco pasa `present?` por ser un Hash, y
-          # emitía un grupo fantasma: solo los `m`, sin una sola condición).
-          conditions = (group[:conditions] || []).select do |condition|
-            condition[:attribute].present? && condition[:value].present? &&
-              condition_pairs(condition, 0).any?
-          end
+          conditions = (group[:conditions] || []).select { |condition| applied?(condition) }
           next if conditions.empty?
 
           pairs << [ "q[g][#{index}][m]", group[:combinator] ] if group[:combinator].present?
@@ -74,6 +68,22 @@ module Bali
 
         pairs << [ "q[m]", combinator ] if pairs.any? && combinator.present?
         pairs
+      end
+
+      # ¿Esta condición del builder recorta algo? Se descartan las filas vacías Y las que no
+      # producen ningún par real: un `between` con los dos extremos en blanco pasa `present?`
+      # por ser un Hash, y emitía un grupo fantasma —solo el `m`, sin una sola condición—.
+      #
+      # Es la única definición de "condición aplicada" que hay: la usan tanto lo que VIAJA
+      # (`group_pairs`) como lo que se CUENTA (`FilterForm#active_filters_count`, el badge del
+      # panel). Dos reglas distintas para la misma pregunta es como el panel avanzado quedó
+      # fuera de `active_filters?` para empezar (#1085).
+      #
+      # @param condition [Hash] `{ attribute:, operator:, value: }` tal como lo arma
+      #   `FilterGroupParser`
+      def applied?(condition)
+        condition[:attribute].present? && condition[:value].present? &&
+          condition_pairs(condition, 0).any?
       end
 
       # Lo que un host puede escribir en `filter_params:`, en la forma que los componentes

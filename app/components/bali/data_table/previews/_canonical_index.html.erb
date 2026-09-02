@@ -142,14 +142,14 @@
         <%= t.with_header(name: 'Indie', sort: :indie, class: 'text-center') %>
 
         <% movies.each do |movie| %>
-          <%# El valor del grupo tiene que coincidir con una clave de group_counts (el enum
-              o el string crudo); nil cuando la agrupación está apagada O suspendida fuera de
-              la tabla (de ahí `group_by_applied` y no `group_by`). %>
+          <%# `group_value_for` devuelve la llave CRUDA de la banda (el enum o el string que
+              devolvió el GROUP BY), y nil cuando la agrupación está apagada O suspendida
+              fuera de la tabla. Es también lo único que sabe leer la banda de un ransacker o
+              de un camino de asociación (#1102). %>
           <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
               dan N controles con el mismo nombre accesible ("Select row"). %>
-          <% applied_group = filter_form.group_by_applied %>
           <%= t.with_row(record_id: movie.id, select_label: movie.name,
-                         group: applied_group && movie.public_send(applied_group)) do %>
+                         group: filter_form.group_value_for(movie)) do %>
             <td class="font-medium"><%= movie.name %></td>
             <td><%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %></td>
             <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>

@@ -118,6 +118,18 @@ end
 
 Two gotchas, both load-bearing:
 
+- **A slot name is never an option.** `Card::Component.new(title: "Data")` used to be
+  accepted in silence: `title:` is not a parameter, so it fell into `**options` and was
+  painted as the root element's HTML `title` attribute — a tooltip where a heading should
+  be, with valid HTML and no exception (#1081). `ApplicationViewComponent.new` now raises
+  an `ArgumentError` naming the `with_*` setter whenever a keyword collides with a slot
+  the class declares **and** the initializer has no parameter by that name. A component
+  may declare both — `PageHeader` takes `title:` as its shorthand and `with_title` as the
+  full form — and that keeps working, because the rule is not "the name is a slot" but
+  "the keyword has nowhere else to go". To set the HTML attribute on purpose, write the
+  key as a string: `Card::Component.new("title" => "Tooltip")`. `Bali.raise_on_slot_keyword_conflict`
+  gates it — it defaults to on outside production, the same posture as
+  `raise_on_missing_translations`.
 - **`renders_many :actions` is consumed as `with_action`**, one call per item. The
   plural `with_actions` writer exists but takes a collection — passing it a block
   silently renders nothing.

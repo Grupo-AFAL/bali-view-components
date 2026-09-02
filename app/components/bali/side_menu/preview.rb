@@ -74,6 +74,29 @@ module Bali
         render_with_template(template: "bali/side_menu/previews/active_when")
       end
 
+      # @label Reveal current item
+      # @param reveal_current toggle
+      # @param fixed toggle
+      # Cada navegación re-renderiza el sidebar y su scroll vuelve arriba. En un menú más
+      # alto que la pantalla eso deja el ítem activo FUERA DE VISTA: llegás a una página y
+      # el menú no te muestra dónde estás.
+      #
+      # Este preview recorta el menú a 380 px con 18 entradas y la página actual
+      # (`/reports/audit-log`) casi al final. Con el toggle encendido —el default— el menú
+      # abre ya scrolleado hasta "Audit Log"; apagalo y recargá para ver el problema.
+      #
+      # Solo mueve el scroll del propio menú, nunca el de la página, y no hace nada cuando
+      # el ítem ya se ve. Encendé `fixed` y angostá la ventana por debajo de `lg` para el
+      # otro caso: ahí el sidebar es un drawer, y mientras está cerrado está `inert` y fuera
+      # de pantalla, así que el reveal ESPERA a que se abra — medirlo antes gastaría el
+      # scroll en un panel que nadie está viendo.
+      def reveal_current(reveal_current: true, fixed: false)
+        render_with_template(
+          template: "bali/side_menu/previews/reveal_current",
+          locals: { reveal_current: reveal_current, fixed: fixed }
+        )
+      end
+
       # @label Collapsible Sidebar
       # Sidebar that can collapse to icon-only mode. Click the toggle button to collapse/expand.
       # The collapse state is persisted in localStorage.
@@ -121,24 +144,6 @@ module Bali
         render_with_template(
           template: "bali/side_menu/previews/with_bottom_groups",
           locals: { collapsible: collapsible }
-        )
-      end
-
-      # @label Current Page In View
-      # Un menú más alto que el sidebar hace scroll en su propio contenedor, que Turbo
-      # reconstruye en cada visita — el porqué está en el docblock de `revealCurrentPage`
-      # (`side_menu/index.js`). El controlador trae a la vista la página actual al conectar,
-      # con el mínimo desplazamiento: si ya se veía, no mueve nada.
-      #
-      # Con `collapsible` activado y `path` en `/ledger/balances` se ve el otro caso: en el
-      # rail colapsado los hijos del grupo están en un panel cerrado, así que lo que entra
-      # en vista es el disparador del grupo.
-      # @param path text
-      # @param collapsible toggle
-      def current_page_in_view(path: "/reports/revenue", collapsible: false)
-        render_with_template(
-          template: "bali/side_menu/previews/current_page_in_view",
-          locals: { path: path, collapsible: collapsible }
         )
       end
 

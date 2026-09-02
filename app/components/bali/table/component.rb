@@ -19,6 +19,11 @@ module Bali
                              "that is `with_bulk_actions`, standalone it is the default " \
                              "`variant: :floating` bar."
 
+      GROUP_LABEL_NOT_CALLABLE = "Bali::Table(group_label:) takes something that responds " \
+                                 "to `call` and returns the band's label — a lambda over " \
+                                 "the raw group value. For a plain key-per-value lookup, " \
+                                 "`group_i18n_scope:` is the shorter spelling."
+
       ROW_SELECTABLE_WITHOUT_TABLE = "with_row(selectable: true) needs the table to be " \
                                      "`selectable: true`: the checkbox column and the " \
                                      "select-all header are the table's, not the row's. A " \
@@ -68,15 +73,25 @@ module Bali
       #   bajo un solo `Bali::BulkActions`: cada cabecera marca lo suyo y el contador sigue
       #   siendo uno, el total. Sin él, la cabecera marca todo lo que el controlador vea,
       #   que con una sola tabla es exactamente lo mismo de siempre.
+      # @param group_i18n_scope [String, nil] Traduce el rótulo de cada banda de grupo como
+      #   `"#{scope}.#{value}"` — la misma convención de `Bali::Tag.for(i18n_scope:)`, para
+      #   el caso que es casi siempre: agrupar por un enum. `group_counts` sigue con sus
+      #   llaves crudas y `with_row(group:)` sigue llevando el valor crudo.
+      # @param group_label [Proc, nil] La escapatoria, cuando el rótulo no sale de una clave
+      #   por valor (una fecha, un rango, un id que hay que resolver). Recibe el valor crudo
+      #   y devuelve el rótulo. Gana sobre `group_i18n_scope:`.
       def initialize(form: nil, selectable: false, select_group: nil, sticky_headers: false,
-                     group_counts: {}, **options)
+                     group_counts: {}, group_i18n_scope: nil, group_label: nil, **options)
         raise ArgumentError, REMOVED_BULK_ACTIONS if options.key?(:bulk_actions)
+        raise ArgumentError, GROUP_LABEL_NOT_CALLABLE if group_label && !group_label.respond_to?(:call)
 
         @form = form
         @selectable = selectable
         @select_group = select_group.presence
         @sticky_headers = sticky_headers
         @group_counts = group_counts || {}
+        @group_i18n_scope = group_i18n_scope.presence
+        @group_label = group_label
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = build_container_options(options.delete(:table_container) || {})
         @options = prepend_class_name(hyphenize_keys(options), TABLE_CLASSES)
@@ -134,8 +149,24 @@ module Bali
         [ select_group, "group", slug, digest ].compact.join("-")
       end
 
+      # El rótulo de la banda de grupo, resuelto AL PINTAR y no en `with_row(group:)`.
+      #
+      # Es lo que permite traducir un enum sin perder el conteo global (#1086): las llaves
+      # de `group_counts` son las que devolvió el `GROUP BY` —crudas—, así que el valor que
+      # lleva la fila tiene que seguir siendo el crudo para que `global_group_count` lo
+      # encuentre. Pasar la etiqueta traducida como `group:` hacía fallar esa búsqueda y el
+      # encabezado caía al conteo de la PÁGINA, que es justo lo que `group_counts` existe
+      # para evitar. Con el rótulo acá, `group_token` (el seleccionar-todo del grupo)
+      # también sigue derivándose del valor y no de su traducción.
+      #
+      # `nil` es la banda del NULL de SQL y no pasa por ninguno de los dos: ya tiene su
+      # propia clave traducible, `.ungrouped`.
       def group_label(value)
-        value.nil? ? t(".ungrouped") : value.to_s
+        return t(".ungrouped") if value.nil?
+        return @group_label.call(value).to_s if @group_label
+        return I18n.t("#{@group_i18n_scope}.#{value}") if @group_i18n_scope
+
+        value.to_s
       end
 
       def group_selectable?(group)

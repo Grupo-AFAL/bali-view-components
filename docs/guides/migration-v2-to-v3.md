@@ -380,6 +380,13 @@ The moved keys are `ai_url`, `mentions_url`, `mentions`, `references_url`,
 `auto_save:`, `auto_save_delay:`, `input_name:` — is unchanged, because it is genuinely the
 editor's own rather than a forwarded copy.
 
+Since v3.1.4 a moved key passed loose says so: it is not a parameter of any of the three
+components, so it lands in their `**options` and is painted as an HTML attribute of the root
+element — valid HTML, no error, and the feature silently left at its default. Three views in
+one app had AI, export, references and comments off from the day of the migration and nothing
+said so. They now warn through `Bali.deprecator` on the first render, naming the keys and the
+`config:` they belong in.
+
 `config:` accepts a Hash or a `Bali::BlockEditor::Config`. Building the object once is the
 point of the change — an app with one editor setup can now declare it in a helper and hand the
 same value to every editor:

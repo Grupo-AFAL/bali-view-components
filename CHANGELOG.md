@@ -7,17 +7,284 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.2.1] - 2026-08-30
+
 ### Fixed
 
-- **DataTable: the controls collapsed into the `⋯` menu open over the table again.** Above
-  the `sm` breakpoint a nested dropdown inside the `⋯` floats, which is what a popover
-  inside another has to do — but the menu's own `overflow-y: auto` clipped it, and a scroll
-  container can only contain what is in flow. Measured at 1440px on a toolbar wide enough
-  to collapse Views: of its panel only a border peeked out and `elementFromPoint` at its
-  centre returned a `<td>`, so the control was unusable at exactly the widths where the `⋯`
-  is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
-  that stacks the children in flow, the two being halves of one decision — and floating, a
-  child adds no height, so above the breakpoint there is nothing to cap. (#1080)
+- **`Bali::Topbar::ToolsMenu` se apagaba en silencio en las pantallas de un engine.** Un
+  engine que pinta sus pantallas con el layout del host —`BaliAuth.configuration.admin_layout
+  = "application"`, que es como las cuatro apps del grupo sirven `/admin/auth/...`— renderiza
+  ese layout, y el topbar con él, contra el contexto de vista del ENGINE. Ahí los helpers de
+  ruta del host no existen: medido en gobierno-corporativo sobre
+  `BaliAuth::Admin::RolesController`, `respond_to?(:mission_control_jobs_path)` es `false`.
+
+  `Tool#available?` leía eso como "no está montada" y el menú **dejaba fuera justo las
+  herramientas montadas** —el panel de trabajos, el tablero de adopción, la bandeja de
+  correo— en esas pantallas y sólo ahí. Las externas seguían apareciendo, porque su `url:` no
+  consulta rutas, así que el menú quedaba a medias sin ningún error que lo delatara. Era una
+  regresión de la migración: las cuatro copias que este componente reemplaza resolvían contra
+  `Rails.application.routes.url_helpers`, que no depende del contexto.
+
+  `route_helper` se resuelve ahora contra el contexto y, si el contexto no lo conoce, contra
+  su `main_app` — el mismo proxy que el host ya escribe a mano en el resto de ese topbar. El
+  contexto directo gana, así que en una pantalla del host `main_app` ni se consulta y no
+  puede cambiar lo que ya resolvía; y la regla del router se conserva entera del otro lado de
+  la caída, porque `RoutesProxy#respond_to?` responde `false` para un helper que no existe.
+
+## [v3.2.0] - 2026-08-30
+
+### Added
+
+- **`Bali::Topbar::ToolsMenu` — el menú de herramientas internas del topbar deja de estar
+  duplicado en cada app.** Panel de trabajos, tableros, bandeja de correo, repositorio,
+  monitoreo: cuatro apps del grupo lo construyeron por separado y convergieron por su cuenta
+  en el mismo mecanismo (dos de ellas byte-idénticas). El componente recibe herramientas
+  **ya filtradas por permiso** y resuelve dos cosas: cuáles existen en este ambiente y cómo
+  se pintan. **La gema no evalúa permisos** — los hosts no comparten vocabulario de
+  autorización (unos usan permisos con nombre, otros policies de Pundit), y dejar esa
+  decisión afuera es lo que permite que el mismo componente les sirva a todos sin casos
+  especiales. La disponibilidad la decide el ROUTER: cada `Tool` declara el NOMBRE de su
+  route helper y se pregunta si el contexto lo conoce, así que el menú **no puede ofrecer un
+  enlace cuyo helper no exista** (un `constraints` en la ruta sí puede dejarla montada pero
+  inalcanzable para este usuario — eso el menú no lo sabe) y una herramienta se enciende sola
+  en cuanto su ruta se monta — sin copiar la condición de ambiente del host, que es una
+  duplicación que ya costó caro (una bandeja de correo servida públicamente en producción).
+  **El contexto se recibe, no se busca**: se le pregunta al contexto de vista del render, no
+  a `Rails.application.routes.url_helpers`, lo que evita el estado global y se prueba con un
+  doble sin montar rutas. Cada ítem abre en pestaña nueva **salvo** los `in_app:`, que son
+  los que conservan el cromo del host: mandarlos aparte dejaría la misma app abierta dos
+  veces. Las etiquetas de las seis claves conocidas vienen en la gema (es/en), con override
+  del host y `name:` por herramienta. Diseño:
+  `docs/superpowers/specs/2026-08-29-topbar-tools-menu-design.md`.
+
+### Fixed
+
+- **`group_by_attribute` accepts what the ordering already accepted: a `ransacker` or an
+  association path, not only a real column** (#1102). The two halves of a grouping were
+  built by different machinery. The `ORDER BY` went through Ransack, which resolves a
+  ransacker to its own Arel and an association path to the joined column — both worked. The
+  `GROUP BY` did `result.group(:the_symbol)`, and a symbol that is not a column reaches the
+  database as a bare identifier: `PG::UndefinedColumn: column "account_status" does not
+  exist`. So `sort "account_status asc"` was fine and `group(:account_status)` was a 500, on
+  the same declaration.
+
+  That is not an edge: the three things an admin wants to group accounts by — status,
+  company, department — are exactly those two shapes. The status *has* to be a ransacker (a
+  `ransackable_scope` does not fit in the advanced panel), and the other two live one
+  association away. It is what left a host's Users index with no grouping at all when it
+  migrated to the canonical DataTable.
+
+  The `GROUP BY` now runs on **the same Arel node Ransack gives the `ORDER BY`**, so the two
+  halves cannot drift apart. No join is added for it: the grouping is prepended as a sort
+  *before* the relation is evaluated, so by the time the counts run Ransack has already built
+  the join and the bind is memoized. A column outside `ransackable_attributes` still groups
+  by the bare symbol, exactly as in v3.1.
+
+  Reading **which band a row is in** is a Ruby question, not a SQL one, and the host answered
+  it with `record.public_send(attribute)` — a `NoMethodError` for an association path. Two
+  additions close that:
+
+  - `FilterForm#group_value_for(record)` is the row reader: the declared `value:` when there
+    is one, `public_send` otherwise, and `nil` when the grouping is off or suspended (so it
+    replaces the `applied && record.public_send(applied)` dance at every call site).
+  - `group_by_attribute` takes `value:` — how to read one row's band — and `sql:`, an
+    explicit expression for what neither a column nor a ransacker can name. `sql:` drives
+    **both** halves, because grouping by one expression and ordering by another groups
+    nothing; it is the only form that needs no Ransack-visible name. A String goes through
+    `Arel.sql`: it is the developer's SQL, and the raw `group_by` param still cannot be
+    anything but a declared name.
+
+- **A `group_by_attribute` that cannot work now raises when the form is built, not when
+  someone picks that grouping on screen** (#1102). `group_by_attribute :whatever` was
+  accepted in silence and failed — or worse, did not fail — only once a user chose it, which
+  turned a typo into a production 500 on a page that had loaded fine a thousand times. The
+  declaration is checked against the model as soon as the form has a scope, with a message
+  naming the fix, whether or not the request carries a `group_by` param. Same contract
+  `input:` and `auto_submit:` already have. The second half is checked separately because it
+  fails separately: a grouping can have a perfect `GROUP BY` and still have no way to read a
+  row's band, which is when it asks for `value:`.
+
+### Dependencies
+
+- **ViewComponent 4.12.0 → 4.15.0.** 4.14.0 es una corrección de **seguridad**
+  (CVE-2026-54497 / GHSA-8qw7-6phv-7q6p): una instancia de componente reutilizada podía
+  filtrar el `with_content` y el contenido de los slots `renders_one`/`renders_many` de un
+  render anterior al siguiente. Con ella vuelve `ViewComponent::ReusedInstanceError`, que
+  **revienta si se renderiza dos veces la MISMA instancia** — Bali no lo hace en ningún
+  lado (la suite pasa entera), pero un host que guarde un componente en una variable y lo
+  renderice en dos lugares sí se va a enterar al actualizar. 4.13.0 trae Turbo Streams de
+  componentes y menos asignaciones al renderizar; 4.15.0, caché opt-in por componente
+  (`ViewComponent::ExperimentallyCacheable`), experimental y sin uso todavía acá.
+- **Pagy 43.6.0 → 43.6.2.** Corrige los registros `nil` que devolvía una colección de tipo
+  Array al pasarse de página (upstream #919).
+- **Cypress 15.21.0 → 15.21.1** (solo desarrollo).
+- **daisyUI 5.7.20 → 5.7.22** en la app dummy. El rango de peer del paquete (`>=5.7.0`) no
+  cambia. Va acá y no en su propio PR porque Bali tiene que quedarse en la última daisyUI
+  para mantener alineadas a las apps del grupo.
+
+## [v3.1.5] - 2026-08-27
+
+### Added
+
+- **`Bali::SideMenu` scrolls the current page's item into view, and `reveal_current:` turns
+  it off.** Every navigation re-renders the sidebar and its scroll returns to the top, so in
+  a menu taller than the screen the **active item lands out of view**: you arrive at a page
+  and the sidebar does not show you where you are — the one question it highlights anything
+  to answer. It is universal for any app whose menu outgrows the viewport, and `fixed: true`
+  makes it more likely, since the sidebar is pinned and the menu scrolls inside it.
+
+  This belongs to the component and not to the host, which is what a host app patching it
+  from outside with its own 30-line Stimulus proved: the three things that patch depended on
+  are all emitted here — `.sidebar-menu` as the scroller, `aria-current="page"` on exactly
+  one link (whose rule, *a parent highlights while a child route is open but only the link
+  for the page you are ON is current*, is decided in `item/component.rb`), and the root
+  element itself. Rename any of them and the patch stops working in silence. And a host
+  cannot know **when** to measure: `restoreCollapseState()` reads localStorage and toggles
+  `is-collapsed`, which changes the rail's width and with it every position, so an external
+  controller can only guess with `requestAnimationFrame`. In here it is the next line.
+
+  It moves the menu's own `scrollTop` and nothing else — deliberately not
+  `scrollIntoView({ block: 'nearest' })`, which also scrolls whatever ancestors it needs up
+  to the document, so an inline sidebar below the fold would jump the whole page on load. It
+  does nothing when the item is already visible, and in a **closed mobile drawer** it waits
+  for `open()` rather than measuring an `inert` panel that is off screen. A simple item
+  renders twice — expanded and collapsed icon-only — and both carry `aria-current`, so it
+  measures whichever one the rail is actually showing.
+
+  One behaviour change comes with it: an **inline, non-collapsible sidebar now carries the
+  Stimulus controller**, which it did not before. The menu scrolls whenever it is taller than
+  its box, which has nothing to do with being pinned or collapsible, so that combination
+  would have been the one case the reveal silently skipped — the same mistake #830 made with
+  the module switcher. `reveal_current: false` takes the reason away again. (#1099)
+- **`Bali::DocumentEditor` takes `format:`, and pins `:prosemirror` by itself when comments
+  are on.** `format:` (#1091, v3.1.4) is what stops the editor's JSON shape from depending on
+  whether anyone has commented yet — but it only reached the editor when the host mounted
+  `Bali::BlockEditor` directly. `DocumentEditor` neither accepted it nor forwarded it, and
+  `Config` leaves it out on purpose ("each wrapper decides those for itself"). The wrapper
+  was not deciding: **the screen that needs the pin most — a document editor with comments
+  and auto-save — had no public channel to set it** and stayed on the adaptive `:json` the
+  whole option exists to end. A host app had to reach in with a `prepend` on
+  `BlockEditor::Component#initialize` (Grupo-AFAL/gobierno-corporativo#868), which is the
+  shape of workaround #884 had just finished removing from that repo.
+
+  It accepts `format:` now and forwards it, and when nobody names one it decides: with
+  `comments:` on the default is **`:prosemirror`**, the only combination that loses nothing.
+  `:json` switches to that very shape the moment a comment mark appears — triggered by the
+  first reader, not by the host — and with auto-save that schema rewrite reaches the column
+  unasked. Pinning writes from the first save what the adaptive shape was going to write
+  anyway, only declared. (`:blocks` is not a candidate: it drops every thread's anchor.) An
+  explicit `format:` always wins, `:json` included.
+
+  `Bali::DocumentPage` deliberately does **not** take it, and raises if you pass one: it
+  mounts its editor with `editable: false` and no `input_name`, so it renders no hidden input
+  and has nothing to serialize. Accepting it would be an option that does nothing, and
+  letting it fall through to `**options` paints `format="blocks"` on the wrapper div in
+  silence — the failure mode of #1092. (#1098)
+- **A listing can open on a question, and the question lives in the URL: `default:` now
+  reaches Ransack through `Bali::Filterable#redirect_to_default_filters`.** A people
+  catalogue that should open on the active roster rather than on the group's whole history
+  had nowhere correct to say so. Not the scope and not `ransack_params`, because everything
+  the `DataTable` builds afterwards is built from `params` — `Bali::Table::Header::Component`
+  delegates to Ransack's `sort_link`, which composes its href out of the URL, and so does the
+  pagination. A default injected underneath survives neither: the screen opens filtered, the
+  user sorts a column, and **the population changes** from active roster to full history with
+  nothing on screen to explain it. And not the widget either, which is where `default:`
+  stopped until now: it preselected the SimpleFilters control and never reached Ransack, so
+  the select read "Active" over a listing that showed everyone — the same disagreement from
+  the other side.
+
+  `FilterForm.default_filter_params` turns every declared `default:` into the `q` params
+  that apply it, each shaped the way the UI that owns its attribute reads it back: flat under
+  `q` for a `simple: true` attribute, so the value lands *in* its own control; as a condition
+  of the advanced panel's first group otherwise, so it renders as a pill the user can remove.
+  The controller half is one line, and it is the one that puts them in the URL:
+
+  ```ruby
+  class PeopleFilterForm < Bali::FilterForm
+    filter_attribute :employment_status, type: :select, simple: true, default: 'active',
+      options: -> { Person.employment_statuses.keys.map { |s| [s.humanize, s] } }
+  end
+
+  def index
+    return if redirect_to_default_filters(PeopleFilterForm)
+
+    @filter_form = filter_form(PeopleFilterForm, policy_scope(Person))
+  end
+  ```
+
+  `/people` becomes `/people?q[employment_status_eq]=active`, and from there the default is a
+  filter like any other: visible, removable, shareable in a link, and still applied after
+  sorting and paging. **Four things turn the redirect off, and each one is the user having
+  already answered** — `q` in the URL (they filtered, sorted, or emptied the panel),
+  `clear_filters` (they cleared on purpose, and the redirect would undo the click),
+  `saved_view` (a view is a complete state, not something to merge a default into), and
+  filter persistence being on for that listing. The last one is the subtle one: the toggle
+  promises "remember what I chose", and a default written into the URL on every bare entry is
+  filter params as far as the form can tell, so it would be stored as the last state and
+  nothing else would ever be restored — persistence off for that listing, silently. A listing
+  built with instance-level `simple_filters:` has no class to ask; pass the `q` hash straight
+  in (`redirect_to_default_filters({ estado_eq: 'activo' })` — the braces matter, a bare hash
+  would be read as keyword arguments).
+
+  One new guard comes with it, at class-definition time like the two already in
+  `filter_attribute`: a `default:` on an attribute offered in **neither** UI
+  (`simple: false, advanced: false`) now raises. Such a default has no control to sit in and
+  no pill to remove, so it would filter invisibly — the exact failure the rest of this entry
+  is about. The combination was inert before, so nothing that worked stops working. (#1096)
+- **`Bali::Filterable#filter_persistence_enabled?` is public API.** The only place that knew
+  the `bali_persist_<storage_id>` cookie's name was a private method of the concern, so a host
+  deciding anything at all from the opt-in — the redirect above, a banner, a different empty
+  state — had either to call private API or to duplicate the convention in application code.
+  Both break in silence when the gem changes the name, which is the failure mode the concern
+  exists to remove. With no argument it answers for the current listing, deriving the
+  `storage_id` exactly as `filter_form` does. The old private
+  `bali_filter_persistence_cookie?` still answers, warning through `Bali.deprecator`, and is
+  removed in 4.0. (#1096)
+
+### Fixed
+
+- **`Bali::LayoutConcern` no longer makes turbo-rails' Turbo Frame layout unreachable: every
+  frame request was getting the whole application shell.** An app that included the concern in
+  its `ApplicationController` answered a `Turbo-Frame` request with the full `AppLayout` —
+  sidebar, topbar, header — inside the `<turbo-frame>`. No exception, no warning, no log line:
+  it is seen as a duplicated side menu inside a panel, or by a test that counts the chrome. It
+  affected *every* controller at once, because the concern is included once and inherited.
+
+  The mechanism is `layout :a_symbol`. `ActionView::Layouts#_write_layout_method` compiles it
+  to "call the method; **if it returns `nil`, look up `layouts/<implied name>` and only if THAT
+  misses, call `super`**". `conditional_layout` is a `class_attribute` with no default, so
+  outside a drawer the method returned `nil` — and since the concern is included in
+  `ApplicationController`, the implied name is `application`, a template every real app has.
+  The lookup always hit, `super` never ran, and the
+  `layout -> { "turbo_rails/frame" if turbo_frame_request? }` that turbo-rails declares on
+  `ActionController::Base` was dead for as long as the concern was included. Put shortly: the
+  concern turned "I have no opinion about the layout" into "use `layouts/application`, no
+  matter what", and with that it ate any `layout` declared further up the chain — turbo-rails
+  is simply the one every Hotwire app has.
+
+  `conditionally_skip_layout` now answers the frame itself, since there is no falling through
+  to it. Precedence is drawer, then frame, then `conditional_layout`: `false` (no layout at
+  all) is smaller than the frame layout and a response headed for a `#main-drawer` does not
+  want even that `<html>`, and an admin shell inside a frame is the duplicated chrome the frame
+  exists to avoid. turbo-rails is not a dependency of this gem, so the predicate is asked for
+  with `respond_to?(:turbo_frame_request?, true)` — **`include_all` and not a plain
+  `respond_to?`**, because turbo-rails declares it under its own `private` and the obvious
+  spelling answers `false` in every app that has the gem. An app supplying its own
+  `app/views/layouts/turbo_rails/frame.html.erb` still wins: the concern names the same path
+  turbo-rails does.
+
+  **Measured while fixing it, and now documented:** a *conditional* `layout "x", only: :full`
+  in a subclass does not merely pick that action's layout — `only:`/`except:` generates an
+  instance method `_conditional_layout?`, which the concern's own `_layout` calls by dynamic
+  dispatch, so the condition switches the concern off for that controller's **other** actions
+  too. They fall to `layouts/application` without ever reaching `conditionally_skip_layout`,
+  which means neither the drawer nor the frame is answered there. The dummy's
+  `SplitViewsController` had exactly that shape and now writes its per-action layout as an
+  override calling `super`, which is what the guide recommends — `conditional_layout` is a
+  `class_attribute` and cannot vary by action. (#1097)
+
+## [v3.1.4] - 2026-08-25
+
 ### Added
 
 - **`bali:install:migrations:<feature>` installs one engine table instead of all five.**
@@ -32,6 +299,104 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **`slim_select_*` in ajax mode can send more than the search term: `ajax_extra_params:`
+  and `ajax_param_selectors:`.** The remote search sent one parameter to one fixed URL, so
+  a *dependent select* — "Resource type" narrowing what "Resource" searches, "Country"
+  narrowing "City" — had no native spelling: the term travelled alone and the endpoint
+  could not know which catalogue to look in. `ajax_extra_params:` is a hash merged into
+  every search, for scope already known when the page renders. `ajax_param_selectors:` is
+  a `param => CSS selector` hash resolved **on every search**, which is what makes the
+  dependent case work — the selector points anywhere in the document, so the field it
+  reads need not belong to the form or to Bali. An empty field sends no parameter rather
+  than an empty one, and a selector that matches nothing warns in the console: a filter
+  that silently stops narrowing is indistinguishable from a working widget. This replaces
+  the workaround of rewriting the controller's own `ajaxUrlValue` from an app-side
+  Stimulus, which leaned on the URL being re-read per search. (#1084)
+- **`Bali::Table` can translate its group band label without losing the global count:
+  `group_i18n_scope:` and `group_label:`.** The band was labelled with the raw column
+  value, which for an enum is the database's — "table (5)" on a Spanish page. The obvious
+  fix, passing the translated string as `with_row(group:)`, cost the global count:
+  `group_counts` is keyed by whatever the `GROUP BY` returned, so the lookup missed and the
+  header fell back to the count of the *page*, which is the one thing `group_counts` exists
+  to prevent. Hosts were left translating both sides and remembering to do it in two
+  places. The label is now resolved when the band is painted: `group_i18n_scope:` reads
+  `"<scope>.<value>"` — the same convention as `Bali::Tag.for(i18n_scope:)` — and
+  `group_label:` takes a callable over the raw value for anything that is not a
+  key-per-value lookup. Rows keep carrying the raw value, so `group_counts` and the group's
+  select-all token are untouched. The SQL NULL band keeps its own `bali_view.table.ungrouped`
+  key. (#1086)
+- **`format:` gains `:blocks` and `:prosemirror`, so the shape the editor persists is the
+  host's decision.** `format: :json` writes one of two incompatible JSON schemas — an Array
+  of blocks with `props`, or `{"type": "doc"}` with `blockGroup`/`blockContainer` wrappers
+  and `attrs` — and which one is not a preference: comment marks only survive in the
+  ProseMirror document, so the editor switches as soon as the document holds one. That
+  switch is triggered by **the first user who leaves a comment**, and with auto-save their
+  comment rewrites the host's column into the other schema without anyone asking; every
+  server-side reader (reference extraction, search indexing, version diffs, export) then
+  meets a shape it was not written for. One host lost a document's stored references to it,
+  silently, because the extractor found none and deleted what it did not find. `:blocks` and
+  `:prosemirror` pin one shape. Pinning `:blocks` with comments on drops the comment anchors
+  — the marks *are* the anchors — so the editor says so in the console the first time it
+  does, rather than losing them the way this whole option exists to stop. Two ways to tell
+  what you were handed: `Bali::BlockEditor.content_format(content)` from Ruby, and the hidden
+  input's `data-content-format`, server-rendered and kept up to date on every write, from JS.
+  An unknown `format:` now raises instead of falling through to JSON. (#1091)
+
+### Fixed
+
+- **DataTable: the controls collapsed into the `⋯` menu open over the table again.** Above
+  the `sm` breakpoint a nested dropdown inside the `⋯` floats, which is what a popover
+  inside another has to do — but the menu's own `overflow-y: auto` clipped it, and a scroll
+  container can only contain what is in flow. Measured at 1440px on a toolbar wide enough
+  to collapse Views: of its panel only a border peeked out and `elementFromPoint` at its
+  centre returned a `<td>`, so the control was unusable at exactly the widths where the `⋯`
+  is the only way to reach it. The height cap now carries the same `max-sm:` as the rule
+  that stacks the children in flow, the two being halves of one decision — and floating, a
+  child adds no height, so above the breakpoint there is nothing to cap. (#1080)
+- **Passing a component's own slot name as a keyword now raises instead of vanishing.**
+  `Card::Component.new(title: "Data")` was accepted in silence: `title:` is not a
+  parameter, so it fell into the component's `**options` and was painted as the root
+  element's HTML `title` attribute — a tooltip where a heading should be. Valid HTML, no
+  exception, no warning, and the text still in the body, so even an `assert_match` in a
+  test passed; ten cards in one host app went months without their heading. The mistake
+  reads as correct because sibling components (StatCard, `Tabs#with_tab`, Message) do take
+  `title:` as a parameter. `ApplicationViewComponent.new` now raises an `ArgumentError`
+  naming the `with_*` setter whenever a keyword collides with a slot the class declares
+  **and** the initializer has no parameter by that name — so a component that declares
+  both, like `PageHeader`, is untouched, and a component with no `**options` is left to
+  Ruby's own "unknown keyword". This covers every component in the library, not just Card.
+  To set the HTML attribute on purpose, write the key as a string:
+  `Card::Component.new("title" => "Tooltip")`. `Bali.raise_on_slot_keyword_conflict` gates
+  it, defaulting to on outside production. (#1081)
+- **A listing narrowed only from the advanced filters panel no longer blames the data for
+  it.** `Table` picks between its two empty states with `FilterForm#active_filters?`, and
+  that summed three of the four ways a listing can be narrowed: the `filter_attribute`
+  values, the simple filters and the quick search. The advanced panel was missing, because
+  it is the one that does not travel flat — its conditions are `q[g][N][attr_pred]`, and
+  the flat hash cannot hold them without emitting each one twice. So a catalogue of 1,563
+  rows cut to zero from the panel rendered "No records yet" plus "create the first one".
+  The panel is now counted as its own half and `active_filters?` (and
+  `active_filters_count`) sums both. What counts as an applied condition is
+  `Filters::ActiveFilterParams.applied?` — the same rule that decides what actually
+  travels in the query, so a builder row with no value, or a `between` with both ends
+  blank, is not a filter for either. That rule also backs the panel's own badge, which
+  used to count an empty `between` as one filter. (#1085)
+- **The BlockEditor keyword arguments that used to be a silent no-op now say so.** All three
+  editor surfaces end in `**options`, which is painted onto the root element, so a keyword
+  the component does not declare produced valid HTML, no error, no warning, and the feature
+  left at its default. Two shapes of that cost one host app real defects. **The v2 spellings:**
+  `ai_url:`, `export:`, `references_url:` and `comments:` travel inside `config:` since v3, and
+  passed loose they landed in `**options` — three views had AI, export, references and comments
+  off from the day of the migration, and `DocumentPage`'s reference chips rendered with the
+  default icon and label. Any `Config` key passed loose to `BlockEditor`, `DocumentEditor` or
+  `DocumentPage` now warns through `Bali.deprecator`, naming the keys and the `config:` they
+  belong in. **`readonly:`** is the Rails word and the obvious guess; it was painted as
+  `readonly="readonly"` on a `<div>`, where it means nothing, so two "read-only" screens were
+  editable. It is now a deprecated alias of `editable: !readonly`, removed in 4.0. And
+  **`editable: false` turns uploads off**, whatever `upload_url:` says — the default is
+  `:auto`, so *not* passing the key does not disable uploads, it enables them, and those two
+  screens were accepting uploads into unattached blobs nobody could see. `:auto` already
+  checked `editable?`; an explicit URL did not, and now the rule is whole. (#1092)
 
 ## [v3.1.3] - 2026-08-23
 

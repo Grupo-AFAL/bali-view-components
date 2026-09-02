@@ -11,15 +11,12 @@ const OVERLAY_QUERY = '(max-width: 1023.98px)'
 // event, so the panel stayed open over the rest of the page.
 const SWITCHER = '.menu-switcher > details'
 
-// The scrolling half of the sidebar. Everything else in the <nav> — the chrome row,
-// the module switcher, the pinned bottom section — sits outside it and never moves,
-// which is why the reveal below measures against this element and not the panel.
-const SCROLLER = '.sidebar-menu'
-
-// `aria-current="page"` is on exactly the link pointing at the page you are on
-// (Item::Component#current_page?), so it is the anchor — not `.active`, which a
-// parent also carries while a child route is open.
-const CURRENT_PAGE = '[aria-current="page"]'
+// The scrolling half of the sidebar, and the one link inside it that points at the page
+// you are on. Both are emitted by this component (`component.html.erb` and
+// `item/component.rb#aria_current`), which is the whole reason the reveal belongs here:
+// a host patching it from outside is reaching into markup the gem owns and can rename.
+const MENU_SCROLLER = '.sidebar-menu'
+const CURRENT_ITEM = '[aria-current="page"]'
 
 const FOCUSABLE = [
   'a[href]',
@@ -48,22 +45,18 @@ const FOCUSABLE = [
  * A `menuId` that is absent or matching addresses this menu, which keeps the
  * detail-less `bali:side-menu:toggle` that NavbarController still dispatches
  * working.
- *
- * It also owns where the menu is scrolled to on arrival — see `revealCurrentPage`.
  */
 export class SideMenuController extends Controller {
   static values = {
     collapsible: Boolean,
-    fixed: Boolean
+    fixed: Boolean,
+    revealCurrent: { type: Boolean, default: true }
   }
 
   connect () {
     this.lastTrigger = null
     this.overlayQuery = window.matchMedia(OVERLAY_QUERY)
     this.restoreCollapseState()
-    // After it, not before: collapsing swaps which copy of each item is displayed and
-    // changes the menu's height, and the reveal measures both.
-    this.revealCurrentPage()
 
     this.onGlobalToggle = event => this.forThisMenu(event) && this.toggle(event)
     this.onGlobalOpen = event => this.forThisMenu(event) && this.open(event)
@@ -82,6 +75,9 @@ export class SideMenuController extends Controller {
     this.overlayQuery.addEventListener('change', this.onOverlayChange)
 
     this.syncInert()
+    // Last on purpose: it measures, and everything above it moves things. See the note
+    // on the method.
+    this.revealCurrentItem()
   }
 
   disconnect () {
@@ -145,6 +141,10 @@ export class SideMenuController extends Controller {
     this.syncInert()
     this.broadcastState()
     this.focusFirstItem()
+    // `connect` skipped it while this was a closed drawer — see `revealCurrentItem`. This
+    // is the first moment the panel is on screen, and it goes after `focusFirstItem`
+    // because focusing a link scrolls it into view and would undo the reveal.
+    this.revealCurrentItem()
   }
 
   close () {
@@ -241,6 +241,55 @@ export class SideMenuController extends Controller {
     )
   }
 
+  // ── Reveal the current item ────────────────────────────────────────────
+
+  // Every navigation re-renders the sidebar and its scroll goes back to the top, so in a
+  // menu taller than the screen the active item lands out of view: you arrive at a page
+  // and the menu does not show you where you are.
+  //
+  // This lives in the component and not in the host because all three things it needs are
+  // the component's: `.sidebar-menu` as the scroller, `aria-current="page"` on exactly one
+  // link (whose rule — a parent highlights while a child route is open, but only the link
+  // for the page you are ON is `current`) is decided in `item/component.rb`, and this very
+  // root element. A host patching it from outside also cannot know WHEN to measure:
+  // `restoreCollapseState()` reads localStorage and toggles `is-collapsed`, which changes
+  // the width of the rail and with it every position — an external controller can only
+  // guess at that with `requestAnimationFrame`. In here it is simply the next line.
+  revealCurrentItem () {
+    if (!this.revealCurrentValue) return
+    // A closed drawer is `inert` and translated off screen. Measuring it gives the
+    // positions of a panel nobody is looking at, and the scroll would be spent before it
+    // is ever seen; `open()` asks again once it is on screen.
+    if (this.isOverlay && !this.isOpen) return
+
+    const menu = this.element.querySelector(MENU_SCROLLER)
+    const current = menu && this.visibleCurrentItem(menu)
+    if (!current) return
+
+    const menuRect = menu.getBoundingClientRect()
+    const itemRect = current.getBoundingClientRect()
+    const above = itemRect.top - menuRect.top
+    const below = itemRect.bottom - menuRect.bottom
+    if (above >= 0 && below <= 0) return
+
+    // Moving `scrollTop` by hand rather than `scrollIntoView({ block: 'nearest' })`:
+    // `scrollIntoView` also scrolls whatever ancestors it needs to, up to the document,
+    // so an INLINE sidebar (`fixed: false`) that sits below the fold would jump the whole
+    // page on load. This can only ever move this one container.
+    menu.scrollTop += above < 0 ? above : below
+  }
+
+  // A simple item renders TWICE — `.side-menu-expanded` and the collapsed icon-only
+  // version — and both carry `aria-current="page"`, because both are the link for this
+  // page and only CSS decides which one the rail is showing. So a bare `querySelector`
+  // has a 50% chance of measuring a `display: none` node whose every rect reads 0. Same
+  // check covers a link inside a collapsed group, which has no box either.
+  visibleCurrentItem (menu) {
+    return Array.from(menu.querySelectorAll(CURRENT_ITEM)).find(
+      el => el.getClientRects().length > 0
+    )
+  }
+
   // Runs in the same task as `open`, which is only safe because `syncInert`
   // already cleared the attribute — see the note there.
   focusFirstItem () {
@@ -260,69 +309,6 @@ export class SideMenuController extends Controller {
   forThisMenu (event) {
     const menuId = event?.detail?.menuId
     return !menuId || menuId === this.element.id
-  }
-
-  // ── Keeping the current page in view ───────────────────────────────────
-
-  get scroller () {
-    return this.element.querySelector(SCROLLER)
-  }
-
-  // Each item renders twice — once for the expanded sidebar, once for the collapsed rail —
-  // and CSS shows exactly one, so both copies carry `aria-current`. The visible one is the
-  // one whose position means anything. Scoped to the scroller because a pinned bottom item
-  // lives outside it and would measure as "far above".
-  //
-  // A link inside a popup stands in for the trigger that opens it. On the collapsed rail
-  // and in `group_behavior: :dropdown` the panel is `display: none` and the child link is
-  // the only thing carrying `aria-current` — a parent hands it to its active child, so the
-  // rail icon has none. Without this the getter found nothing there and the reveal was a
-  // silent no-op. Expanded mode is untouched: an accordion child's ancestors are
-  // `.collapse-content` → `.collapse` → `li` → `ul`, and the flyout `.dropdown` is that
-  // accordion's sibling, not its ancestor.
-  get revealTarget () {
-    const scroller = this.scroller
-    if (!scroller) return null
-
-    return Array.from(scroller.querySelectorAll(CURRENT_PAGE))
-      .map(link => link.closest('.dropdown') ?? link)
-      .find(el => el.offsetParent !== null || el.getClientRects().length > 0)
-  }
-
-  /**
-   * Brings the current page's item into view when the menu is taller than the sidebar.
-   *
-   * The menu scrolls inside `.sidebar-menu`, not inside the window. Turbo Drive replaces
-   * the `<body>` on every visit, so that div is destroyed, rebuilt from the new response
-   * and born at `scrollTop: 0` — click a section near the bottom of a long menu and you
-   * land on its page with the item you just chose scrolled out of sight. Turbo does not
-   * cover this: its scroll restoration only ever touches the document, and here the
-   * document does not scroll at all.
-   *
-   * Not `data-turbo-permanent`, which is the tempting answer: the markup differs per page
-   * — `aria-current`, `.active`, the accordion's `checked` — so keeping the old node would
-   * freeze the previous page's highlight.
-   *
-   * Runs on `connect`, which Stimulus fires on the new element during `turbo:render`,
-   * before the frame is painted — so the menu arrives in the right place rather than
-   * jumping there afterwards. A first load gets the same treatment for free.
-   *
-   * `scrollIntoView({ block: 'nearest' })` is the behaviour, written out by hand because
-   * the real one walks up the ancestor chain: on a host page whose content column scrolls,
-   * it would drag the article along with the sidebar. Assigning `scrollTop` moves this
-   * container and nothing else — and the browser clamps the assignment, so the two
-   * branches below are the whole of "smallest move, nothing when it already fits".
-   */
-  revealCurrentPage () {
-    const scroller = this.scroller
-    const target = this.revealTarget
-    if (!scroller || !target) return
-
-    const menu = scroller.getBoundingClientRect()
-    const item = target.getBoundingClientRect()
-
-    if (item.bottom > menu.bottom) scroller.scrollTop += item.bottom - menu.bottom
-    else if (item.top < menu.top) scroller.scrollTop += item.top - menu.top
   }
 
   // ── Desktop collapse ───────────────────────────────────────────────────
