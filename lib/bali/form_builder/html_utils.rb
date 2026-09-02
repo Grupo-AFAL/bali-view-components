@@ -60,6 +60,10 @@ module Bali
       # name that says so.
       PATTERN_TYPES = %i[number_with_commas localized_number].freeze
 
+      # The Stimulus controller that groups thousands as the amount is typed. See
+      # `delimited_number_options`.
+      NUMBER_FORMAT_CONTROLLER = "number-format"
+
       # Options the wrapper markup consumes: the fieldset caption, the help text
       # under the control, the `.control` div and the addons around the input.
       # `control_id` is the id the caption's `for` points at — read by
@@ -77,7 +81,7 @@ module Bali
       # them are read before the input is rendered.
       HELPER_OPTIONS = %i[
         pattern_type symbol char_counter auto_grow attachments select_class
-        choose_file_text non_selected_text file_class icon
+        choose_file_text non_selected_text file_class icon delimited
         subtract_data add_data button_class text
       ].freeze
 
@@ -262,10 +266,87 @@ module Bali
       # The `default:` pair is Rails' own English fallback, so a host without
       # rails-i18n keeps exactly the pattern it had before.
       def localized_number_pattern
-        delimiter = Regexp.escape(I18n.t("number.format.delimiter", default: ","))
-        separator = Regexp.escape(I18n.t("number.format.separator", default: "."))
+        delimiter = Regexp.escape(number_delimiter)
+        separator = Regexp.escape(number_separator)
 
         "^(\\d+|\\d{1,3}(#{delimiter}\\d{3})*)(#{separator}\\d+)?$"
+      end
+
+      def number_delimiter
+        I18n.t("number.format.delimiter", default: ",")
+      end
+
+      def number_separator
+        I18n.t("number.format.separator", default: ".")
+      end
+
+      # Mounts `number-format`, which groups the integer digits on every
+      # keystroke: an amount reads `1,500,200` as it is typed rather than after a
+      # round trip. Until now the delimiter was something the typist had to enter
+      # by hand — the field accepted it, and `NumericAttributesWithCommas` parsed
+      # it back out, but nobody put it there.
+      #
+      # Both separators are handed over as values rather than resolved in the
+      # browser. `Intl` would read them from the browser's locale while the
+      # submitted value is parsed with Rails', so a user on an English browser
+      # filling a Spanish form would have had the two halves disagree on which
+      # character is the decimal point — which is the bug that concern exists to
+      # prevent, one layer up.
+      #
+      # The two values are assigned rather than prepended. `prepend_values`
+      # space-joins onto whatever is already there and then strips, which is
+      # exactly right for a token list like `data-action` and silently wrong
+      # here: the thousands delimiter is a plain space in several locales — `fr`,
+      # `pl`, `sv` — and joining-then-stripping would hand the controller an
+      # empty string, turning the grouping off in precisely the locales whose
+      # delimiter is hardest to type by hand.
+      def delimited_number_options(method, options)
+        opts = prepend_controller(dup_options(options), NUMBER_FORMAT_CONTROLLER)
+
+        opts[:data][:"#{NUMBER_FORMAT_CONTROLLER}-delimiter-value"] = number_delimiter
+        opts[:data][:"#{NUMBER_FORMAT_CONTROLLER}-separator-value"] = number_separator
+
+        grouped = delimited_number_value(method, opts)
+        opts[:value] = grouped unless grouped.nil?
+        opts
+      end
+
+      # The initial value, grouped here rather than in the browser, because in the
+      # browser it is not decidable. `1.500` is a machine number in English and a
+      # delimited fifteen hundred in Spanish, where the dot IS the delimiter — one
+      # reading submits 1.5, the other 1500, and each corrupts the case it guessed
+      # wrong. No amount of pattern-matching on the string settles it; only the
+      # object knows.
+      #
+      # Which is why the test is the *type*, not the shape. A Numeric came from the
+      # model. A String is what the typist submitted — `text_field` renders
+      # `<attr>_before_type_cast` precisely so a rejected form comes back showing
+      # it — and grouping that would delete the characters that made it invalid.
+      #
+      # Measured on a decimal column: `_before_type_cast` is a Float on a fresh
+      # record and after a reload, and a String only on the way back from a failed
+      # validation, where the cast value is already wrong (`"1,500,200"` casts to
+      # 1). So reading the cast value instead would replace the typist's input
+      # with the corruption.
+      #
+      # nil, not "", when there is nothing to group: `value: nil` would make Rails
+      # emit no value attribute at all and wipe the field on re-render.
+      def delimited_number_value(method, options)
+        return if options.key?(:value)
+
+        raw = raw_attribute_value(method)
+        return unless raw.is_a?(Numeric)
+
+        ActiveSupport::NumberHelper.number_to_delimited(
+          raw, delimiter: number_delimiter, separator: number_separator
+        )
+      end
+
+      def raw_attribute_value(method)
+        before_type_cast = "#{method}_before_type_cast"
+        return unless object.respond_to?(before_type_cast)
+
+        object.public_send(before_type_cast)
       end
 
       def field_options(method, options)

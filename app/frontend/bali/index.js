@@ -68,6 +68,7 @@ export {
   GeocoderMapsController,
   InputOnChangeController,
   InteractController,
+  NumberFormatController,
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
