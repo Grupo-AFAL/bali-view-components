@@ -1,0 +1,79 @@
+<%# Two controllers, composed. `bali-widget-grid-edit-mode` toggles the mode and
+    remembers it in the URL; `bali-widget-grid` moves cards and writes the
+    sequence. Separate classes because they are separate jobs — they share one
+    announcer node and no code — but both belong to the grid, which is the only
+    thing that uses either. %>
+<%= tag.div(**options) do %>
+  <div class="mb-4 flex items-center justify-between gap-2">
+    <% if heading? %>
+      <%= heading %>
+    <% else %>
+      <p class="text-sm text-base-content/60"><%= t('bali_view.widgets.edit.hint') %></p>
+    <% end %>
+
+    <%# Structural, not part of the overridable slot — see `renders_one :heading`.
+        Enter and leave occupy the same slot: the control you press to leave
+        should be where the one you pressed to enter was. %>
+    <span data-bali-widget-grid-edit-mode-target="enter">
+      <%= render Bali::Button::Component.new(
+            name: t('bali_view.widgets.edit.edit'), icon: 'pencil',
+            variant: :ghost, size: :sm,
+            data: { action: 'bali-widget-grid-edit-mode#enter' }) %>
+    </span>
+    <span data-bali-widget-grid-edit-mode-target="leave" hidden>
+      <%= render Bali::Button::Component.new(
+            name: t('bali_view.widgets.edit.done'),
+            variant: :primary, size: :sm,
+            data: { action: 'bali-widget-grid-edit-mode#leave' }) %>
+    </span>
+  </div>
+
+  <%# ONE live region for both controllers. A sighted user sees the card move; a
+      screen-reader user gets this or silence. %>
+  <p role="status" aria-live="polite" class="sr-only"
+     data-bali-widget-grid-target="announcer"
+     data-bali-widget-grid-edit-mode-target="announcer"></p>
+
+  <% if widgets.any? %>
+    <%= render Bali::SortableList::Component.new(**sortable_options) do %>
+      <% widgets.each do |widget| %>
+        <%= widget %>
+      <% end %>
+
+      <%# The "+" tile sits where the widget will land, which teaches the grid in
+          a way a header button cannot. It carries no `.handle`, which is the only
+          reason it cannot be dragged — the same rule as every card.
+
+          `Bali::Link::Component`, like the same tile in the empty state below,
+          rather than a bare `<a>` — see `.claude/CLAUDE.md`'s component-composition
+          rule. `plain: true` is required: the default `base_class` is `"link
+          inline-flex items-center gap-1"`, which fights `ADD_TILE_CLASSES`'s own
+          `flex flex-col items-center` on the `display` property; `plain: true`
+          drops that down to a bare `"flex items-center gap-2"`. %>
+      <% if add_path.present? %>
+        <%= render Bali::Link::Component.new(
+              href: add_path, plain: true, class: ADD_TILE_CLASSES, data: { size: 'small' }) do |c| %>
+          <% c.with_icon('plus', size: :medium) %>
+          <span class="text-sm font-medium"><%= t('bali_view.widgets.edit.add') %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% elsif empty_state? %>
+    <%= empty_state %>
+  <% else %>
+    <%= render Bali::EmptyState::Component.new(
+          title: t('bali_view.widgets.empty.title'),
+          description: t('bali_view.widgets.empty.description'),
+          icon: 'sparkles') do |empty| %>
+      <%# The "+" tile otherwise lives only in the populated branch, so without
+          this a host that configured `add_path:` has no way to add its FIRST
+          widget — the empty state is exactly when it matters most. %>
+      <% if add_path.present? %>
+        <% empty.with_cta do %>
+          <%= render Bali::Link::Component.new(
+                name: t('bali_view.widgets.edit.add'), href: add_path, variant: :primary) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

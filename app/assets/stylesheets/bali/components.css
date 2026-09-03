@@ -4,9 +4,11 @@
  * Imported by ../bali.css; hosts do not import this file directly.
  *
  * Layers: see the header of ../bali.css. Everything goes into
- * @layer components so host utility classes win, except the three unlayered
- * sheets at the bottom, which exist to beat rules daisyUI emits inside
- * @layer utilities. Each of those explains itself in its own header.
+ * @layer components so host utility classes win, except the unlayered sheets
+ * grouped at the bottom, which exist to beat rules daisyUI emits inside
+ * @layer utilities. Each of those explains itself in its own header. Counted
+ * rather than named here on purpose — the count went stale the last two times
+ * one was added.
  */
 
 /* Navigation Components */
@@ -18,6 +20,8 @@
 @import "../../../components/bali/calendar/index.css" layer(components);
 @import "../../../components/bali/chart/index.css" layer(components);
 @import "../../../components/bali/gantt/index.css" layer(components);
+@import "../../../components/bali/widget/index.css" layer(components);
+@import "../../../components/bali/widget_grid/index.css" layer(components);
 @import "../../../components/bali/carousel/index.css" layer(components);
 @import "../../../components/bali/timeline/index.css" layer(components);
 @import "../../../components/bali/tooltip/index.css" layer(components);
@@ -57,3 +61,6 @@
 @import "../../../components/bali/toast/index.css";
 /* Fights the drawer's own `p-6` utility on `.drawer-inner`. */
 @import "../../../components/bali/feedback_widget/index.css";
+/* daisyUI's `.radial-progress` paints only the filled arc; this gives it a
+   track, so a gauge at 0% is an empty ring rather than a bare dot. */
+@import "../../../components/bali/gauge/daisyui-overrides.css";

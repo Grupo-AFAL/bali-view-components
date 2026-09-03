@@ -2623,6 +2623,162 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 **Slots:** `with_item(name:, path:)` — items nest recursively via a block to build sub-trees.
 
+#### Widget
+
+One card in a user-arrangeable dashboard, rendered at one of three sizes. Takes a widget
+instance, not its data, so the card can derive a widget's copy from `widget.key` and
+delegate `count`/`items`/`view_all_path` without knowing where they came from. Meant to
+render inside `Bali::WidgetGrid::Component`, not alone.
+
+**The size changes how much context the same fact gets — never the subject.** Three regions
+fill in as the canvas grows:
+
+| Size | Grid | Shows |
+|---|---|---|
+| `small` | 1×1 | The fact alone. The whole tile is one link, and nothing inside it is focusable. |
+| `medium` | 2×1 | The fact, and a sparkline beside it — axis-less, because below roughly 2×2 axes cost more room than they explain. |
+| `large` | 2×2 | The fact, a chart with axes, and the breakdown below. |
+
+**The pattern is the type.** A widget inherits from one of five bases, and that choice is what
+gives it its rungs — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many and which),
+`TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal) and `CheckBase`
+(does it pass?). The card
+asks the widget directly; there is no result object between them, and `Base` answers every
+question a pattern does not have with a null, so the card reads one interface at every size.
+
+```ruby
+class OverdueTasks < Bali::Widget::TrendBase
+  default_size :medium
+
+  # "Up" is NOT universally good. Overdue tasks up 12% and revenue up 12% are opposite
+  # news, so the widget says which direction is good and the card colours from that.
+  # Get this wrong and the trend indicator confidently lies.
+  trend do |t|
+    t.current  { 8 }
+    t.previous { 4 }
+    t.positive_when :down
+    t.period_label "vs last week"
+  end
+
+  series do |s|
+    s.labels %w[Mon Tue Wed Thu]
+    s.values [ 3, 5, 4, 8 ]
+  end
+
+  view_all_path { tasks_path }
+
+end
+```
+
+`t.previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
+nothing to compare against, and the card drops the indicator rather than drawing a flat 0%.
+
+For the ring ladder — progress toward a goal, then how you got there — the ring replaces the
+number as the headline at every size:
+
+```ruby
+class Onboarding < Bali::Widget::ProgressBase
+  default_size :large
+
+  goal do |g|
+    g.value 7
+    g.max   10
+    g.label { "of #{max}" }
+  end
+
+  series { |s| s.values [ 2, 4, 3, 6, 7 ] }
+end
+```
+
+For a pass/fail state, `CheckBase` is ternary — `nil` means "not checked yet" and draws a muted
+icon, distinct from a failing check:
+
+```ruby
+class BackupsHealthy < Bali::Widget::CheckBase
+  default_size :small
+
+  check do |c|
+    c.value { Backup.last&.succeeded? }
+    c.pass  "Healthy"
+    c.fail  "Failing"
+  end
+end
+```
+
+Phrase it so `true` is good — the card colours from the value, and the check's name is what
+carries the polarity.
+
+`ValueBase` and `CheckBase` offer `small` alone, because one fact at `large` is a title, an
+answer and most of a 2×2 cell of whitespace; the other three offer all three sizes. Say `supports` in the
+class body to override that.
+
+`display_value` is what the headline actually prints, defaulting to an abbreviation of
+`count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
+six characters. Set it explicitly for a headline that isn't a count — `"72%"`, `"$1.2k"`.
+
+**The edit-mode param is configurable.** The grid remembers the mode in the URL so Back
+leaves the mode rather than the page. It defaults to `?editing`; pass `editing_param:` when
+your app already uses that name for something of its own:
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(url: …, editing_param: "arranging") %>
+```
+
+**The row budget is overridable.** It is a pixel measurement against Bali's own type sizes — the
+only thing a size says that the size itself does not. If your base font is larger, or your
+subtitles wrap to two lines, set your own in an initializer rather than living with clipping:
+
+```ruby
+Bali::Widget::Card::Component.rows_budget =
+  Bali::Widget::Card::Component::ROWS.merge(large: 5)
+```
+
+**Answer a resize with the card.** Resizing writes a single attribute client-side, but the
+card's interior is server-rendered — so a card grown from `medium` to `large` would keep the
+axis-less sparkline and missing breakdown it had at the smaller size. The grid sends
+`resized_key` alongside the layout for exactly this, and a host that answers with a Turbo
+Stream gets the right card back for one widget query on an already-debounced write:
+
+`Bali::Concerns::Controllers::DashboardWidgets` does this for you — its `arrange` action is
+exactly the code below. By hand:
+
+```ruby
+def arrange
+  store.arrange(submitted_layout)
+
+  resized = store.widgets.find { |placement| placement.key == params[:resized_key].presence }
+  return head :no_content unless resized
+
+  render turbo_stream: turbo_stream.replace(
+    Bali::Widget::Component.dom_id(resized.key),
+    renderable: Bali::Widget::Component.new(resized.widget, size: resized.size)
+  )
+end
+```
+
+`head :no_content` remains a valid answer for every gesture — reorder and remove change
+position, not shape, so the DOM the browser already has is correct. Only a resize needs the
+round trip.
+
+```erb
+<%= render Bali::Widget::Component.new(low_stock_items_widget) %>
+```
+
+The card that gets built is decided by the widget's pattern — `ValueBase` renders a figure,
+`ListBase` a list, `TrendBase` a chart — so there is nothing to pass and nothing to pick:
+
+```erb
+<%= render Bali::Widget::Component.new(compliance_widget, size: :medium) %>
+```
+
+**Slots:** none. A widget's card is built from what its pattern declares — there is no way to
+inject markup into one, and at `small` there would be nowhere to put it: a ~215px tile is a
+single fact and a single tap target.
+
+See [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the
+widget contract (`Bali::Widget::Base`) and the persisted arrangement
+(`Bali::DashboardWidget::Store`).
+
 ---
 
 ### Interactive Components
@@ -3312,6 +3468,43 @@ mouse-only.
 - `handle` - CSS selector for the drag handle; without one, whole items are draggable (default: `nil`)
 - `disabled` - Disable dragging (default: `false`)
 - `animation` - Drag animation duration in milliseconds (default: `150`)
+
+#### WidgetGrid
+
+The bento: an arrangeable grid of `Bali::Widget::Component` cards a user can drag,
+arrow-key move, resize and remove, with the whole layout persisted on every gesture.
+Composes two Stimulus controllers on one wrapper — `bali-widget-grid` (moves cards, writes
+the sequence) and `edit-mode` (toggles edit mode, remembers it in the URL).
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(
+      url: widget_layout_path, add_path: edit_user_widgets_path) do |grid| %>
+  <% @widgets.each do |widget| %>
+    <% grid.with_widget(widget) %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `url` - Endpoint every gesture PATCHes the whole arrangement to (required) — Bali ships
+  no controller or routes; see [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets)
+- `add_path` - Where the dashed "+" tile (and the empty state's own call to action) link to
+  add a widget; omit to hide both (default: `nil`)
+
+**Slots:**
+- `with_widget` — one `Bali::Widget::Component` per card; yield to fill that card's `body`
+  slot
+- `with_heading` — replaces only the leading text next to the Edit/Done controls, which
+  stay structural and always render — a heading override cannot delete the grid's only
+  entry point into edit mode
+- `with_empty_state` — replaces the default `Bali::EmptyState` shown when there are no
+  widgets
+
+Built on `Bali::SortableList`, but cards are plain children rather than
+`Bali::SortableList::Item::Component`s — that variant requires an `update_url:` per item
+and carries list-row styling that fights the bento. See [Dashboard
+widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the widget
+contract and the write path this component's `url:` PATCHes to.
 
 ---
 

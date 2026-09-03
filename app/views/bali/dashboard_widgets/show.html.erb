@@ -1,0 +1,15 @@
+<%# Bali's default dashboard. Override by creating `show.html.erb` under your own
+    controller's view directory — `_prefixes` puts yours ahead of this one.
+
+    `url_for(action:)` rather than a named path helper, so this renders whatever a
+    host called the route. %>
+<%= render Bali::WidgetGrid::Component.new(
+      url: url_for(action: :arrange),
+      add_path: url_for(action: :edit),
+      refresh_url: url_for(action: :refresh)) do |grid| %>
+  <%# A PLACEMENT is a widget AT A SIZE — the arrangement's own pairing, which the
+      card is told rather than the widget carrying it. %>
+  <% widget_store.widgets.each do |placement| %>
+    <% grid.with_widget(placement.widget, size: placement.size) %>
+  <% end %>
+<% end %>

@@ -1,0 +1,11 @@
+<span class="<%= classes %>" <%= tag.attributes(@options.except(:class)) %>>
+  <%= render Bali::Icon::Component.new(icon, size: :small, class: 'w-3 h-3') %>
+  <%# The arrow is `aria-hidden` through `Bali::Icon`; this is the announced
+      text, and the visible delta below is hidden from assistive tech so the
+      figure is not read twice. %>
+  <span class="sr-only"><%= label %></span>
+  <span aria-hidden="true"><%= delta %></span>
+  <% if period? %>
+    <span class="text-base-content/50"><%= period %></span>
+  <% end %>
+</span>

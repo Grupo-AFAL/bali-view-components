@@ -465,6 +465,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check are unchanged — and installing the next feature months later is safe to repeat.
   The umbrella task still copies all five and now prints the per-feature list first.
   (#1079)
+- **`Bali::Widget::Base#authorized?` is the hook, and Bali gates the offering for you.** Who may
+  see which widget is your rule — roles, tenancy and feature flags are things only your app can
+  see — so Bali ships the hook and never the rule. It is named for what it decides: whether a
+  widget may be **persisted, offered and rendered at all**, not merely whether it is on screen.
+  The `Store` constructor, `#arrange` and `#choose` each gate the `offering:` they are handed
+  rather than trusting it to arrive gated, so a host that never calls `authorized_for` cannot
+  widen the boundary — and `Store` refuses an offering in which two widget classes derive the
+  same key. It may query — the dummy app's `ActiveStudios` runs one `EXISTS` —
+  but it must not run the widget's own data queries, which is what lets a picker list thirty
+  widgets without loading thirty widgets.
+- **Widgets declare which sizes a user may choose.** `supports :small, :medium` alongside
+  `default_size :small`, defaulting to what the pattern offers. Declare a subset when the widget has nothing to
+  fill the others with — a bare count at `large` is a title, a number and most of a 2×2 cell
+  of whitespace. A widget offering one size gets no picker at all. Declared rather than
+  inferred from the data, because `authorized_for` never loads data (inferring would run
+  every widget's query just to draw a picker) and because offered sizes that varied with the
+  data would silently drop a size the user had already chosen. Unofferable is not
+  unrenderable: a stored row naming an unsupported size falls back to the widget's default.
+- **Widget authoring got a real API: the pattern is the type.** A widget inherits one of
+  five bases — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many, and which),
+  `TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal), `CheckBase`
+  (does it pass?) — and that
+  choice supplies both the declarations it may use and the methods it owes. A widget is
+  exactly one of them, so a class cannot describe a shape it does not have, and one that
+  forgets an abstract method raises `NotImplementedError` naming it rather than rendering
+  half a thing. `TrendBase` computes the delta, so no widget hand-rolls
+  `((current - previous) / previous.to_f * 100).round` again, and `previous` returning `nil`
+  means the trend is absent rather than zero. `bin/rails g bali:widget LowStockItems
+  --pattern list --size medium` scaffolds that pattern's methods and the four locale keys in
+  every locale your app has — `widgets.<key>.{title,short_title,description,empty}` is easy
+  to forget one of, and `description` only ever shows in a picker.
+  **`Bali::Concerns::Controllers::DashboardWidgets` ships the whole controller** — six actions,
+  three seams and default templates for the grid and the picker — so the param filtering every
+  host used to copy out of the guide is gone: `Store#arrange` takes
+  `params.expect(widgets: [[:key, :size]])` and resolves the keys itself.
+  `Bali::Widget::Card::Component.rows_budget` is overridable, because the row budgets are pixel
+  measurements against Bali's own type sizes and a host with a larger base font could not say
+  so. Because the superclass slot belongs to the pattern, shared behaviour goes in a concern
+  rather than an `ApplicationWidget` — see `docs/guides/engine-models.md`, and
+  `spec/dummy/app/widgets/widget_routes.rb` for the route-helper case.
+- **`Bali::Gauge`: a radial progress ring.** The circular half of what `Bali::Progress` does
+  linearly, over daisyUI's `radial-progress` — CSS-only, so a page of them costs no
+  JavaScript. Carries the full `progressbar` ARIA contract, which daisyUI's own markup does
+  not: the arc is drawn from a CSS custom property that assistive technology cannot see, so
+  without it the control is invisible rather than merely unlabelled. `value` past `max` fills
+  the ring while `aria-valuenow` still reports the true figure.
+- **`Bali::Widget` and `Bali::WidgetGrid`: a user-arrangeable bento dashboard.** Three card
+  sizes, drag and arrow-key reorder, resize and remove, with the whole layout persisted on
+  every gesture. **The size changes how much context the same fact gets, never the subject**:
+  `small` is the fact alone, `medium` adds a sparkline beside it, and `large` a chart with
+  axes and the breakdown below. Which rungs a card shows follows from the widget's
+  pattern; a region the widget has nothing to fill is simply not rendered. A resize sends `resized_key` with the
+  layout, so a host can answer with a Turbo Stream replacing that one card — the interior is
+  server-rendered, and a grown card needs its real body back rather than the one it had at
+  the smaller size. Every other gesture still takes a `204`. `TrendBase` declares
+  `positive_when` because "up" is not universally good — the card colours from whether the
+  movement was good, not which way it went. A widget that raises degrades its own tile
+  instead of taking the page down. `Bali::Widget::Base` is what every widget shares
+  (`default_size`, `supports`, `authorized?`, the copy macros);
+  `Bali::DashboardWidget::Store` reads and writes the
+  arrangement to the new `bali_dashboard_widgets` table, keyed by owner, tenant context and
+  dashboard — and a host may swap in its own object implementing the same contract, held to
+  it by `Bali::Testing::StoreContract`; `Bali::WidgetGrid::Component` renders it.
+  `Bali::Widget::Placement` is a widget AT A SIZE, because size is a per-owner arrangement
+  fact rather than a property of the widget — the same class is `small` for one person and
+  `large` for another.
+
+  **`Bali::Concerns::Controllers::DashboardWidgets` is the whole controller.** Include it,
+  name a catalog, say who owns the rows, and six actions are wired — the grid, the picker, and
+  the four writes behind them — with default templates for the two pages, which a host
+  overrides by creating its own. Three route lines and no ERB required. `Store#adopt` backs a
+  "Personalise" button: it writes the defaults an owner is already being shown, so the
+  arrangement stops being a fallback and becomes something they can drag.
+  `Bali::Testing::WidgetCatalog` asserts every widget class is on some dashboard, since a
+  catalog is authored rather than discovered — its ORDER is the default layout.
+
+  **`refresh_every 30.seconds` keeps a card current.** The card asks the server for itself on
+  that interval and swaps in the turbo-stream that comes back — one URL for every widget, and
+  the card returns at the size that owner stored. A hidden tab, edit mode, an in-flight
+  request or focus inside the card all defer a tick rather than cancelling it. A failed
+  refresh is silent, because it loses nothing — **but a card that has stopped refreshing stops
+  claiming to be current**: every refreshing card carries a `<time>`, hidden while healthy and
+  revealed after two consecutive failures. There is deliberately no "auto-refreshes every 30s"
+  label; the useful signal is that it has stopped.
+
+  Install the table with
+  `bin/rails bali:install:migrations:dashboard_widgets`; see
+  [`docs/guides/engine-models.md`](docs/guides/engine-models.md#dashboard-widgets-bali_dashboard_widgets)
+  for the widget contract, the write-path security boundary, and `Store`'s method table.
 - **`slim_select_*` in ajax mode can send more than the search term: `ajax_extra_params:`
   and `ajax_param_selectors:`.** The remote search sent one parameter to one fixed URL, so
   a *dependent select* — "Resource type" narrowing what "Resource" searches, "Country"
