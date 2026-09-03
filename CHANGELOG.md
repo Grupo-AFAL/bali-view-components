@@ -26,6 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
+  renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
+  de Windows la tecla ⌘ no existe: la pista señalaba algo que no se puede pulsar. Qué teclado
+  hay enfrente solo lo sabe el navegador —sniffear el User-Agent se vuelve mentira en cuanto
+  la página se cachea o se sirve desde un CDN—, así que la corrige el controlador Stimulus al
+  conectar: `⌘K` en Mac, `Ctrl K` en lo demás.
+
+  El acorde no cambia: `⌘K` y `Ctrl+K` siguen abriendo la paleta en las dos plataformas, lo
+  único que elegía bando era la etiqueta. `shortcut_label:` pasa a valer `:auto` por omisión
+  (antes la cadena `"⌘K"`); una String se sigue renderizando literal y ya nunca se reescribe,
+  y `nil` sigue ocultando la pista. Un disparador hecho a mano —el que reemplaza al de la
+  casa por el slot `with_trigger`— se apunta poniendo `data-command-target="shortcut"` en su
+  propio `kbd`.
+
 - **Responder un comentario marcaba el documento como «Cambios sin guardar», aunque el editor
   fuera de solo lectura.** El listener de `input` del DocumentEditor cuelga del CONTENEDOR del
   área del editor —BlockNote construye su ProseMirror del lado del cliente, así que al

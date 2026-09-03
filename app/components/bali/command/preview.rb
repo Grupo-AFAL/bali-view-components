@@ -6,7 +6,8 @@ module Bali
       # @label Default
       # Command palette with grouped pages, recents, and quick actions.
       # The search-well trigger is the component's own default — no slot needed.
-      # Click it or press ⌘K (Mac) / Ctrl+K to open.
+      # Click it or press ⌘K (Mac) / Ctrl+K to open — and the hint on the
+      # trigger says whichever of the two this machine actually has.
       def default
         render_with_template(template: "bali/command/previews/default")
       end
