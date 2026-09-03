@@ -129,7 +129,10 @@ export {
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
-  TreeViewItemController
+  TreeViewItemController,
+  WidgetGridController,
+  WidgetGridEditModeController,
+  WidgetRefreshController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 

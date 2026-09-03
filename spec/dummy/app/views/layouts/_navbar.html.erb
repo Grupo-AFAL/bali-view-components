@@ -8,6 +8,7 @@
   <% nav.with_menu do |menu| %>
     <%# Standard navigation items %>
     <% menu.with_start_item(name: t('navbar.dashboard'), href: root_path) %>
+    <% menu.with_start_item(name: t('navbar.widgets'), href: dashboard_widgets_path) %>
     <% menu.with_start_item(name: t('navbar.movies'), href: admin_movies_path) %>
     <% menu.with_start_item(name: 'Studios', href: admin_studios_path) %>
     <% menu.with_start_item(name: t('navbar.showcase'), href: showcase_path) %>

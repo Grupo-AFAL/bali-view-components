@@ -62,19 +62,60 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     MSG
   end
 
+  # El guard sirve de poco si no ve a la mitad de las hermanas. `Bali::Widget` es el primer
+  # namespace de la gema que abarca dos raíces de autoload, y ahí se notó: `sibling_constants`
+  # solo miraba el directorio del propio preview, así que descubría `Component` y no `Base`
+  # ni las clases de patrón. Este test fija que las descubra todas, porque la única señal de que
+  # falta una es un 500 en la request — nunca en `bin/rails runner`.
+  def test_sibling_discovery_spans_both_autoload_roots
+    preview = Bali::Engine.root.join("app/components/bali/widget/preview.rb").to_s
+    siblings = send(:sibling_constants, preview)
+
+    assert_includes siblings, "Component", "app/components/bali/widget/component.rb"
+    assert_includes siblings, "Base", "app/widgets/bali/widget/base.rb"
+    assert_includes siblings, "ListBase", "app/widgets/bali/widget/list_base.rb"
+    assert_includes siblings, "TrendBase", "app/widgets/bali/widget/trend_base.rb"
+  end
+
   private
 
   def preview_files
-    Dir[Bali::Engine.root.join("app/components/bali/*/preview.rb")].sort
+    # `**`, not `*`: a component's preview can be nested — `widget/list/preview.rb`,
+    # `form/select/preview.rb` — and a single level checked 90 of 131 previews,
+    # leaving every nested one free to reintroduce #843.
+    Dir[Bali::Engine.root.join("app/components/bali/**/preview.rb")].sort
   end
 
   # Los nombres de constante que Zeitwerk define *dentro* del namespace del componente: un
   # archivo o un directorio hermano de `preview.rb`.
   def sibling_constants(preview_path)
     dir = File.dirname(preview_path)
+    # El namespace de un componente puede abarcar VARIAS raíces de autoload:
+    # `Bali::Widget::Component` vive en `app/components` y `Bali::Widget::Base` en
+    # `app/widgets`. Zeitwerk las define todas dentro del MISMO módulo, así que son
+    # hermanas por igual y el bug de #843 les aplica por igual. Mirar solo el
+    # directorio del preview dejaba ciegas a las demás: una constante pelada ahí
+    # pasaba el guard y reventaba en la request.
+    #
+    # DERIVADO de `eager_load_paths`, no una copia suya: cuando `app/lib/bali/widget`
+    # se mudó a `app/widgets/bali/widget`, una lista escrita a mano aquí habría
+    # seguido pasando mientras el guard miraba un directorio que ya no existe.
+    # THE PATH RELATIVE TO ITS OWN ROOT, never `File.basename`. That shortcut is
+    # only correct for a first-level `Bali::<Name>`: for `widget/list/preview.rb`
+    # the basename is `list`, so it would scan `bali/list` and offer
+    # `Bali::List`'s constants as siblings of `Bali::Widget::List::Preview` —
+    # unrelated names, and a guard that flags them is a guard nobody trusts.
+    roots = Bali::Engine.config.eager_load_paths.map(&:to_s)
+    root = roots.find { |candidate| dir.start_with?("#{candidate}/") }
+    relative = root ? dir.delete_prefix("#{root}/") : File.basename(dir)
+
+    dirs = roots.map { |candidate| File.join(candidate, relative) }.uniq
+
     # Un directorio sin `.rb` adentro (`previews/`, `svg/`) no es un namespace para Zeitwerk.
-    basenames = Dir["#{dir}/*.rb"].map { |f| File.basename(f, ".rb") } +
-                Dir["#{dir}/*/"].select { |d| Dir["#{d}**/*.rb"].any? }.map { |d| File.basename(d) }
+    basenames = dirs.flat_map do |d|
+      Dir["#{d}/*.rb"].map { |f| File.basename(f, ".rb") } +
+        Dir["#{d}/*/"].select { |sub| Dir["#{sub}**/*.rb"].any? }.map { |sub| File.basename(sub) }
+    end
 
     basenames.reject { |b| b == "preview" }
              .map { |b| b.split("_").map(&:capitalize).join }

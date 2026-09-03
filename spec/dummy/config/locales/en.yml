@@ -5,6 +5,7 @@ en:
   # Navigation
   navbar:
     dashboard: Dashboard
+    widgets: Widgets
     movies: Movies
     showcase: Showcase
     landing: Landing
@@ -66,6 +67,106 @@ en:
     hour: Hour
     activity: Activity
     today: Today
+
+  # The real widget dashboard demo page (see DashboardWidgetsController) —
+  # copy for the page chrome around Bali::WidgetGrid::Component. Distinct from
+  # `widgets.*` below, which is each WIDGET's own copy.
+  dashboard_widgets:
+    title: Widgets
+    subtitle: Your own arrangement — drag, resize or remove a card; it's saved automatically.
+
+  # A widget's title/short_title/description/empty come from THIS scope, not
+  # `bali_view.widgets.*` (that's Bali's own chrome — the Edit/Done labels, the
+  # size names). See docs/guides/engine-models.md, "Dashboard widgets".
+  widgets:
+    production_budget:
+      title: Production budget
+      short_title: Budget
+      description: Every budgeted movie in the catalog, added up
+      empty: Nothing budgeted yet
+    studio_foundings:
+      title: Studios founded
+      short_title: Studios
+      description: Partner studios by the decade they were founded
+      empty: No studios on record
+      period: vs previous decade
+    task_load:
+      title: Upcoming workload
+      short_title: Workload
+      description: Unfinished tasks by the week they fall due
+      empty: Nothing on the schedule
+      period: vs next month
+    project_progress:
+      title: Project progress
+      short_title: Progress
+      description: Completed tasks against everything on the board
+      empty: Nothing finished yet
+      of_total: "of %{count}"
+    release_readiness:
+      title: Release readiness
+      short_title: Release
+      description: Whether any high-priority work is still blocking a release
+      empty: Nothing to judge yet
+    schema_health:
+      title: Catalogue health
+      short_title: Catalogue
+      description: Whether every movie carries a genre
+      empty: Nothing to check
+    ratings_audit:
+      title: Ratings audit
+      short_title: Ratings
+      description: Whether every movie has been rated — pending until the first one is
+      empty: No ratings recorded yet
+    modern_studios:
+      title: Studios since 2000
+      short_title: Since 2000
+      description: How many studios were founded this century, against the 1990s
+      empty: None on record
+    catalog_coverage:
+      title: Movies finished
+      short_title: Finished
+      description: How many movies have wrapped, drawn as a ring
+      empty: No studios yet
+    studio_sizes:
+      title: Studio sizes
+      short_title: Sizes
+      description: How many studios have a size on record, and how those split
+      empty: No movies yet
+    indie_studios:
+      title: Independent studios
+      short_title: Independents
+      description: Studios flagged independent — none are, so this is the empty state
+      empty: No independent studios on record
+    unavailable_feed:
+      title: Box office feed
+      short_title: Box office
+      description: A widget whose data source is down, so the degraded card has somewhere to show
+      empty: Nothing to show
+    overdue_tasks:
+      title: Overdue tasks
+      short_title: Overdue
+      description: Tasks past their due date, across every project
+      empty: Nothing overdue
+    recent_movies:
+      title: Recent movies
+      short_title: Recent movies
+      description: The newest movies added to the catalog
+      empty: No movies yet
+    active_studios:
+      title: Active studios
+      short_title: Active studios
+      description: Partner studios currently active
+      empty: No active studios
+    upcoming_tasks:
+      title: Upcoming tasks
+      short_title: Upcoming
+      description: Tasks due today or later, soonest first
+      empty: Nothing on the schedule
+    top_budget_movies:
+      title: Top budget movies
+      short_title: Top budget
+      description: The biggest budgets in the catalog, highest first
+      empty: No budgeted movies yet
 
   # Movies
   movies:
