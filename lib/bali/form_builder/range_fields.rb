@@ -108,6 +108,7 @@ module Bali
         attributes[:min] ||= 0
         attributes[:max] ||= 100
         attributes[:step] ||= 1
+        apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes.merge(class: range_class), method, options)
       end

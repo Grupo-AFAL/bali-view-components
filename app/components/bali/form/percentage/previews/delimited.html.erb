@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.percentage_group :percentage, symbol: symbol, delimited: true %>
+<% end %>

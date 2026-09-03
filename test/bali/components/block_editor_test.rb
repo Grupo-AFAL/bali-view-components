@@ -597,4 +597,51 @@ class BaliBlockEditorComponentTest < ComponentTestCase
   def react_translations
     JSON.parse(page.find("[data-block-editor-translations-value]", visible: :all)["data-block-editor-translations-value"])
   end
+
+  # The inline sidebar renders inside `.block-editor-component`, so that is where
+  # the flag the CSS reads has to be. See #1111 and `Config#comments_sidebar`.
+  def test_the_threads_sidebar_flag_is_absent_when_it_is_interactive
+    render_inline(Bali::BlockEditor::Component.new(config: { comments: { url: "/c" } }))
+
+    assert_no_selector(".block-editor-component[data-comments-sidebar]")
+  end
+
+  def test_the_threads_sidebar_flag_lands_on_the_root_when_read_only_is_asked_for
+    render_inline(
+      Bali::BlockEditor::Component.new(config: { comments: { url: "/c", sidebar: :read_only } })
+    )
+
+    assert_selector(".block-editor-component[data-comments-sidebar='read-only']")
+  end
+
+  def test_an_unknown_sidebar_mode_raises_at_the_call_site
+    assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(config: { comments: { sidebar: :nope } })
+    end
+  end
+
+  # The root flag only covers the sidebar that renders inside the root, and
+  # `comments_container_id:` portals it out of there — into markup Rails does not
+  # render the contents of. So the mode also travels as a Stimulus value, and the
+  # React wrapper puts it on that container. Without it, `sidebar: :read_only` plus
+  # `comments_container_id:` was a mode that silently did nothing (#1113).
+  def test_the_sidebar_mode_travels_to_the_react_wrapper
+    render_inline(
+      Bali::BlockEditor::Component.new(
+        config: { comments: { url: "/c", sidebar: :read_only } },
+        comments_container_id: "host-panel"
+      )
+    )
+
+    assert_selector("[data-block-editor-comments-sidebar-value='read-only']", visible: :all)
+    assert_selector("[data-block-editor-comments-container-id-value='host-panel']", visible: :all)
+  end
+
+  # Both modes are written, so a host reading the value can tell "interactive" apart
+  # from "this editor is too old to say".
+  def test_the_interactive_mode_is_named_in_the_value_too
+    render_inline(Bali::BlockEditor::Component.new(config: { comments: { url: "/c" } }))
+
+    assert_selector("[data-block-editor-comments-sidebar-value='interactive']", visible: :all)
+  end
 end

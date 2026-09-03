@@ -18,6 +18,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     field_class: "leaked-field", field_data: { leaked: "field" },
     control_id: "leaked-control-id",
     pattern_type: :number_with_commas, symbol: "@", char_counter: { max: 10 },
+    delimited: true,
     auto_grow: true, select_class: "leaked-select", choose_file_text: "Leaked choose",
     non_selected_text: "Leaked empty", file_class: "leaked-file", icon: "star",
     subtract_data: { leaked: "subtract" }, add_data: { leaked: "add" },
@@ -25,7 +26,8 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     mode: "range", alt_input: true, alt_input_class: "leaked-alt", alt_format: "d/m/Y",
     allow_input: true, disable_weekends: true, disabled_dates: [], min_date: "2026-01-01",
     max_date: "2026-12-31", seconds: true, time_24hr: true, default_date: "2026-01-01",
-    min_time: "08:00", max_time: "18:00"
+    min_time: "08:00", max_time: "18:00",
+    input_name: "leaked[name]", input_id: "leaked-id"
   }.freeze
 
   # `attachments` and `wrapper_options` are nested hashes read before render, and
@@ -60,8 +62,12 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "search_group" => ->(b, o) { b.search_group(:name, **o) },
     "currency_group" => ->(b, o) { b.currency_group(:name, **o) },
     "percentage_group" => ->(b, o) { b.percentage_group(:name, **o) },
-    "step_number_field" => ->(b, o) { b.step_number_field(:name, **o) },
-    "step_number_group" => ->(b, o) { b.step_number_group(:name, **o) },
+    # The one family that REFUSES a reserved key instead of consuming it:
+    # `delimited:` cannot mean anything on a stepper whose buttons read the value
+    # with `parseFloat`. It is dropped here so these two stay in the sweep for
+    # every other key; `step_number_fields_test` is what holds the refusal.
+    "step_number_field" => ->(b, o) { b.step_number_field(:name, **o.except(:delimited)) },
+    "step_number_group" => ->(b, o) { b.step_number_group(:name, **o.except(:delimited)) },
     "range_field" => ->(b, o) { b.range_field(:name, **o) },
     "range_group" => ->(b, o) { b.range_group(:name, **o) },
     "boolean_field" => ->(b, o) { b.boolean_field(:name, **o) },
