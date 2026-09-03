@@ -447,6 +447,13 @@ Both `default_size` and `supports` are validated at class-definition time, and `
 additionally rejects a default the user could not choose — a typo is a boot failure, not a
 `KeyError` the first time someone opens the dashboard.
 
+**Changing a `default_size` does not move a dashboard that already exists.** Every write
+persists a concrete size — `Bali::Widget::Placement` resolves an omitted or retired name to
+`default_size` at construction, and that is what is stored — so an arrangement is frozen at
+the sizes its owner was shown. A new default reaches dashboards written after it, and leaves
+the rest exactly where their owners left them, deliberately: a layout must not rearrange
+itself under someone because a library was upgraded. To move existing rows, migrate them.
+
 ### What every widget gets from `Base`
 
 `view_all_path` is on `Base` rather than on `ListBase`, because a figure, a trend and a ring
@@ -701,19 +708,6 @@ class Sales::DashboardController < ApplicationController   # dashboard_key: "sal
 end
 ```
 
-#### A catalog that is not known yet
-
-`catalog:` also takes a proc or a method name, resolved per request against the controller, for
-the cases a constant cannot express:
-
-```ruby
-dashboard_widgets catalog: -> { Widgets::TODAY + current_tenant.extra_widgets }
-dashboard_widgets catalog: :widgets_for_plan
-```
-
-Reach for it only when you need it — a literal array is greppable and a proc is not, and
-per-owner differences are usually `authorized?`'s job rather than the catalog's.
-
 #### Keeping a widget current
 
 A widget that goes stale between page loads declares how fast:
@@ -914,8 +908,8 @@ Two behaviours are not obvious and matter:
 | `#visible_keys` | stored keys ∩ offering keys, in stored order |
 | `#customized?` | `visible_keys.any?` — whether there is anything visible to reset |
 | `#choose(widgets)` | membership only: survivors keep their stored order, newly chosen widgets append. Re-supplies each survivor's stored size internally, because `arrange` (below) is a full reconcile — without that, every `choose` would silently reset every already-sized card back to its default |
-| `#arrange(layout)` | reconciles to exactly `layout` — an ordered list of `{ key:, size: }` items (what `params.expect` gives you) or `Placement`s (what `#widgets` gives you), where position is the array index. Resolves every key against the offering and drops what it cannot find. `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" (the widget renders at the size it was drawn around). A repeated key is deduped, keeping the first occurrence, before the insert — `choose`'s own union already guarantees uniqueness, but `arrange` is the lower-level primitive a host's controller can reach directly from params, and `insert_all`'s `ON CONFLICT DO NOTHING` would otherwise silently drop everything after the first without raising |
-| `#adopt` | writes the offering as rows, **only** if nothing visible is stored yet — turns a defaults-by-absence dashboard into one the owner can rearrange. A no-op otherwise, decided inside its own lock so a second tab's arrangement cannot be flattened |
+| `#arrange(layout)` | reconciles to exactly `layout` — an ordered list of `{ key:, size: }` items (what `params.expect` gives you) or `Placement`s (what `#widgets` gives you), where position is the array index. Resolves every key against the offering and drops what it cannot find. `delete_all` then `insert_all`, **not** an upsert, and an omitted `size` means "no opinion" — resolved to the widget's `default_size` and **stored as that name**, so the arrangement is frozen at the size its owner was shown rather than tracking a default that may later change. A repeated key is deduped, keeping the first occurrence, before the insert — `choose`'s own union already guarantees uniqueness, but `arrange` is the lower-level primitive a host's controller can reach directly from params, and `insert_all`'s `ON CONFLICT DO NOTHING` would otherwise silently drop everything after the first without raising |
+| `#adopt` | writes the offering as rows, **only** if nothing visible is stored yet — turns a defaults-by-absence dashboard into one the owner can rearrange. A no-op otherwise — idempotent rather than locked, so two concurrent adopts compute the same defaults and write the same rows (see "There is no locking", below) |
 | `#reset` | drops every row — what "restore defaults" and an emptied grid both mean |
 
 `arrange` rebuilds every row, but `created_at` is not rebuilt with them: it reads the

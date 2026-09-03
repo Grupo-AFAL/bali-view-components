@@ -33,9 +33,20 @@ class CreateBaliDashboardWidgets < ActiveRecord::Migration[7.0]
       t.string :widget_key, null: false
       t.integer :position, null: false
 
-      # Nullable on purpose: "no opinion", so the widget renders at the size it
-      # was drawn around. A row predating a resize still renders. Limited to
-      # 32 rather than left at Postgres's default 255: `Bali::Widget::SIZES`
+      # NULLABLE, BUT NOT WRITTEN NULL BY BALI. Every writer persists a concrete
+      # name: `Bali::Widget::Placement` resolves an omitted or retired size to
+      # the widget's `default_size` at construction, and `Store#row_for` stores
+      # what it resolved. So an arrangement is FROZEN at the sizes its owner was
+      # shown — changing a widget's `default_size` later moves new dashboards and
+      # leaves existing ones alone, deliberately: a layout must not rearrange
+      # itself under someone because a library was upgraded.
+      #
+      # Nullable anyway, for the two cases Bali does not write: a row predating
+      # this column, and a host calling `Store#arrange` against its own table
+      # without one. Both still render — `Placement` falls back — which is why
+      # this stayed a nullable column rather than becoming NOT NULL.
+      #
+      # Limited to 32 rather than left at Postgres's default 255: `Bali::Widget::SIZES`
       # names are short, `Bali::Widget::Placement` resolves a name it does not
       # recognise back to the widget's default, and the cap only guards against
       # an authenticated user inflating their own rows — so it can afford to be

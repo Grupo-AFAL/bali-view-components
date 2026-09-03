@@ -253,6 +253,25 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     assert_equal 1, queries, "the picker asks once per offered widget"
   end
 
+  # `choose` used to read the same scope twice inside one transaction — its own
+  # `(widget_key, size)` and then `arrange`'s `(widget_key, created_at)`. One
+  # SELECT serves both, and this pins it: the rows are already in hand there,
+  # which is the only reason `reconcile` takes `born:` rather than querying.
+  def test_choose_reads_the_rows_once
+    store = Bali::DashboardWidget::Store.new(owner: owner, dashboard_key: "d", offering: [ ALPHA.new ])
+    store.arrange([ { key: "alpha" } ])
+
+    selects = 0
+    counter = ->(*, payload) {
+      selects += 1 if payload[:sql].start_with?("SELECT") && payload[:name] != "SCHEMA"
+    }
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      store.choose([ ALPHA.new ])
+    end
+
+    assert_equal 1, selects
+  end
+
   # `choose` gates on its own too, not only `arrange`. A picker submits
   # membership rather than a layout, so it reaches a different method and would
   # otherwise be an unguarded second door into the same table.
@@ -385,6 +404,90 @@ class BaliDashboardWidgetStoreTest < ActiveSupport::TestCase
     store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new, size: "enormous") ])
 
     assert_equal :small, store.widgets.first.size
+  end
+
+  # ---- what the `size` column means ------------------------------------------
+  #
+  # EVERY WRITE STORES A CONCRETE NAME. `Placement` resolves an omitted or
+  # retired size to the widget's `default_size` at construction, and that is what
+  # is persisted — so an arrangement is FROZEN at the sizes its owner was shown,
+  # and changing a widget's `default_size` later moves new dashboards without
+  # rearranging existing ones under their owners.
+  #
+  # The column is nullable anyway, for rows Bali did not write. These tests exist
+  # because that gap between "nullable" and "never written null" is exactly the
+  # kind of thing a migration comment starts lying about.
+
+  def test_an_omitted_size_is_stored_as_the_widgets_default
+    store.arrange([ { key: "charlie", size: "large" }, { key: "alpha", size: nil } ])
+
+    assert_equal "large", rows_by_key["charlie"].size
+    assert_equal "small", rows_by_key["alpha"].size
+  end
+
+  # A retired name is not stored either: it falls back for rendering, and the
+  # fallback is what gets written, so the dead name does not survive one drag.
+  def test_a_retired_size_is_stored_as_the_widgets_default
+    store.arrange([ Bali::Widget::Placement.new(widget: ALPHA.new, size: "enormous") ])
+
+    assert_equal "small", rows_by_key["alpha"].size
+  end
+
+  def test_adopt_stores_each_widgets_default_size
+    store.adopt
+
+    assert_equal({ "alpha" => "small", "bravo" => "medium", "charlie" => "large" },
+                 rows_by_key.transform_values(&:size))
+  end
+
+  # THE OTHER HALF OF THE SAME PROMISE. A dashboard is frozen at the sizes its
+  # owner was shown, so raising a widget's `default_size` must NOT move a card
+  # they already have — only a dashboard that has not been written yet.
+  def test_raising_a_default_size_leaves_an_existing_dashboard_alone
+    klass = self.class.widget("delta", :small)
+    offer = -> { [ klass.new ] }
+    Bali::DashboardWidget::Store.new(owner: owner, context: "1", dashboard_key: "today",
+                                     offering: offer.call).adopt
+
+    klass.default_size :large
+
+    reread = Bali::DashboardWidget::Store.new(owner: owner, context: "1",
+                                              dashboard_key: "today", offering: offer.call)
+
+    assert_equal :small, reread.widgets.first.size
+  end
+
+  # A REPLACEMENT STORE'S OWN PLACEMENT TYPE IS STILL A PLACEMENT.
+  # `Bali::Testing::StoreContract` asks only that a placement RESPOND to
+  # `widget`/`size`/`key`, and the guide tells that host to write
+  # `store.arrange(store.widgets)` — so a type check against Bali's own class
+  # sent every one of those items down the wire branch, where `to_h` has no
+  # `:key`. Every item dropped, the empty result read as a RESET, and the
+  # `delete_all` already committed: the round-trip the guide recommends wiped
+  # the dashboard, silently, in a host that had passed the contract.
+  def test_it_accepts_a_placement_from_a_replacement_store
+    # Shaped like Bali's own: `key` is DERIVED from the widget rather than being
+    # a field, so it is absent from `to_h` — which is exactly what made the wire
+    # branch drop the whole layout instead of raising.
+    foreign = Data.define(:widget, :size) do
+      def key = widget.key
+    end
+
+    store.arrange([ foreign.new(widget: CHARLIE.new, size: "large"),
+                    foreign.new(widget: ALPHA.new, size: nil) ])
+
+    assert_equal %w[charlie alpha], keys_of(store.widgets)
+    assert_equal "large", rows_by_key["charlie"].size
+  end
+
+  # And the wire branch still owns everything that does NOT carry a widget —
+  # including a plain Hash, which answers `respond_to?(:key)` because `Hash#key`
+  # looks up by value. Asking that question instead would raise `ArgumentError`
+  # on the commonest input there is.
+  def test_a_hash_is_still_read_as_a_wire_item
+    store.arrange([ { key: "charlie", size: "large" } ])
+
+    assert_equal %w[charlie], keys_of(store.widgets)
   end
 
   def test_a_stored_key_outside_the_offering_renders_nothing_and_is_not_visible

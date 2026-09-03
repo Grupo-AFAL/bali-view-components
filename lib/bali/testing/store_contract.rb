@@ -46,6 +46,11 @@ module Bali
         # PLACEMENTS, not widgets. The controller reads `.widget` and `.size` off
         # each one and matches `.key` against submitted params, so an Array alone
         # says nothing about whether a replacement is usable.
+        #
+        # `widget` is LOAD-BEARING beyond being read: `Store#arrange` asks for it
+        # to tell a placement from a `{ key:, size: }` wire item, so a placement
+        # answering only `size` and `key` is parsed as the wrong thing and
+        # dropped. Weakening this assertion re-opens that.
         assert_kind_of Array, store.widgets, "`widgets` must return an Array"
         store.widgets.each do |placement|
           assert_respond_to placement, :widget, "`widgets` returns placements, not widgets"

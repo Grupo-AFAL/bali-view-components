@@ -84,14 +84,22 @@ module Bali
       # A survivor also keeps its stored SIZE. `arrange` is a full reconcile, so
       # without carrying it forward here every `choose` would silently reset
       # every sized card back to its default.
+      #
+      # ONE SELECT for all three columns — the two this needs and the
+      # `created_at` map `reconcile` needs. The rows are already in scope here,
+      # so a second read of the same scope inside the same transaction would
+      # answer with what this one already has.
       def choose(widgets)
         by_key = Bali::Widget.by_key(widgets)
 
         rows.transaction do
-          stored = rows.ordered.pluck(:widget_key, :size).to_h
-          survivors = stored.keys & by_key.keys
+          stored = rows.ordered.pluck(:widget_key, :size, :created_at)
+          sizes = stored.to_h { |key, size, _| [ key, size ] }
+          born = stored.to_h { |key, _, at| [ key, at ] }
+          survivors = sizes.keys & by_key.keys
+          layout = (survivors | by_key.keys).map { |key| { key: key, size: sizes[key] } }
 
-          arrange((survivors | by_key.keys).map { |key| { key: key, size: stored[key] } })
+          reconcile(layout, born: born)
         end
       end
 
@@ -109,45 +117,11 @@ module Bali
       #
       # An EMPTY layout is a reset, which is what an emptied grid means.
       def arrange(layout)
-        @stored_keys = nil
-
-        rows.transaction do
-          # BEFORE the delete, the only chance to read them. This is a reconcile,
-          # not an upsert, so without carrying `created_at` forward a widget that
-          # has sat on the dashboard for a year is re-dated on every drag.
-          born = rows.pluck(:widget_key, :created_at).to_h
-
-          # ONLY THE ROWS THIS OFFERING COVERS. A widget behind a feature flag
-          # that is off, or a role the owner just lost, is absent from the
-          # offering — and `delete_all` would take its row with it, permanently:
-          # the owner still has rows, so `#widgets` never falls back to defaults,
-          # and the widget does not reappear when the flag comes back.
-          #
-          # This is the invariant `Bali::DashboardWidget` documents and the reason
-          # `scope :ordered` tie-breaks on `widget_key`: a hidden row keeps its
-          # ROW — its size and its `created_at` — while the visible ones renumber
-          # around it, so positions collide and gaps are normal. The `_ordering`
-          # index is deliberately not unique. `arrange` used to be the one writer
-          # that broke it.
-          rows.where(widget_key: offering.map(&:key)).delete_all
-
-          next if layout.empty?
-
-          # Resolved before anything else, so the gate cannot be skipped by a
-          # caller who already had `Placement`s. Deduped because `insert_all`
-          # emits `ON CONFLICT DO NOTHING` and would otherwise keep only the
-          # first occurrence of a repeated key, dropping the rest with no error.
-          deduped = resolve(layout).uniq(&:key)
-
-          next if deduped.empty?
-
-          # One timestamp for the whole write; stamping inside `row_for` gave the
-          # rows of a single logical write jittered `created_at`s.
-          now = Time.current
-          Bali::DashboardWidget.insert_all(
-            deduped.map.with_index { |placement, index| row_for(placement, index, now, born) }
-          )
-        end
+        # READ BEFORE `reconcile` DELETES, which is the only chance: this is a
+        # reconcile, not an upsert, so without carrying `created_at` forward a
+        # widget that has sat on the dashboard for a year is re-dated on every
+        # drag.
+        rows.transaction { reconcile(layout, born: rows.pluck(:widget_key, :created_at).to_h) }
       end
 
       # "Make the defaults mine" — writes what an owner with no rows is already
@@ -187,6 +161,51 @@ module Bali
 
       attr_reader :owner, :context, :dashboard_key, :offering
 
+      # THE WRITE ITSELF, shared by `arrange` and `choose` and always inside
+      # their transaction.
+      #
+      # `born` is the `widget_key -> created_at` map, and its ONE PRECONDITION is
+      # that the caller read it before calling: the delete below is the point of
+      # no return. A parameter rather than a query because `choose` already holds
+      # the rows — see there.
+      #
+      # Invalidates the memo for BOTH callers, which is why it lives here rather
+      # than in each of them.
+      def reconcile(layout, born:)
+        @stored_keys = nil
+
+        # ONLY THE ROWS THIS OFFERING COVERS. A widget behind a feature flag that
+        # is off, or a role the owner just lost, is absent from the offering —
+        # and `delete_all` would take its row with it, permanently: the owner
+        # still has rows, so `#widgets` never falls back to defaults, and the
+        # widget does not reappear when the flag comes back.
+        #
+        # This is the invariant `Bali::DashboardWidget` documents and the reason
+        # `scope :ordered` tie-breaks on `widget_key`: a hidden row keeps its ROW
+        # — its size and its `created_at` — while the visible ones renumber
+        # around it, so positions collide and gaps are normal. The `_ordering`
+        # index is deliberately not unique. `arrange` used to be the one writer
+        # that broke it.
+        rows.where(widget_key: offering.map(&:key)).delete_all
+
+        return if layout.empty?
+
+        # Resolved before anything else, so the gate cannot be skipped by a
+        # caller who already had `Placement`s. Deduped because `insert_all` emits
+        # `ON CONFLICT DO NOTHING` and would otherwise keep only the first
+        # occurrence of a repeated key, dropping the rest with no error.
+        deduped = resolve(layout).uniq(&:key)
+
+        return if deduped.empty?
+
+        # One timestamp for the whole write; stamping inside `row_for` gave the
+        # rows of a single logical write jittered `created_at`s.
+        now = Time.current
+        Bali::DashboardWidget.insert_all(
+          deduped.map.with_index { |placement, index| row_for(placement, index, now, born) }
+        )
+      end
+
       # THE OFFERING, INDEXED ONCE, and indexed DIRECTLY rather than through
       # `Bali::Widget.by_key`. `by_key` re-gates what it is handed so a caller
       # cannot widen the boundary by forgetting to filter — but this field was
@@ -214,17 +233,29 @@ module Bali
         end
       end
 
-      # THROUGH `to_h`, doing two jobs beyond reading two fields.
+      # A PLACEMENT IS ANYTHING CARRYING A WIDGET, not only Bali's own class.
+      # `Bali::Testing::StoreContract` invites a host to bring its own store, and
+      # `arrange(store.widgets)` is a documented round-trip — so a replacement
+      # whose placements are its own type reached the wire branch below, where
+      # `to_h` has no `:key`, every item was dropped, and `reconcile` read the
+      # empty result as a RESET. It had already run `delete_all`. Silent total
+      # data loss on the one call the guide tells that host to make.
+      #
+      # `widget` rather than `key` is the question asked: a plain Hash answers
+      # `respond_to?(:key)` — `Hash#key` looks up by VALUE — and `item.key` would
+      # then raise `ArgumentError` on every wire item.
+      #
+      # THROUGH `to_h` otherwise, doing two jobs beyond reading two fields.
       #
       # Key access becomes indifferent, so `{ "key" => … }` from parsed JSON
       # works. Reading `item[:key]` directly returns nil there, every row is
-      # dropped, and `arrange` reads the empty result as a RESET — silent total
-      # data loss.
+      # dropped, and `arrange` reads the empty result as a RESET — the same
+      # silent total data loss, from the other direction.
       #
       # And an unpermitted `ActionController::Parameters` raises
       # `UnfilteredParameters` rather than quietly working.
       def fields_of(item)
-        return [ item.key, item.size ] if item.is_a?(Bali::Widget::Placement)
+        return [ item.key, item.size ] if item.respond_to?(:widget)
 
         item.to_h.with_indifferent_access.values_at(:key, :size)
       end
@@ -241,6 +272,14 @@ module Bali
           owner_type: owner.class.polymorphic_name, owner_id: owner.id,
           context: context, dashboard_key: dashboard_key,
           widget_key: key, position: index,
+          # ALWAYS A CONCRETE NAME. `Placement` resolves an omitted or retired
+          # size to the widget's `default_size` at construction, and that is what
+          # is written — so an arrangement is FROZEN at the sizes its owner was
+          # actually shown. Changing a widget's `default_size` later moves new
+          # dashboards and leaves existing ones exactly where their owners left
+          # them, which is the point: a layout must not rearrange itself under
+          # someone because a library was upgraded. The migration comment on the
+          # column says the same thing; `store_test.rb` pins it.
           size: placement.size.to_s,
           # A widget already on the dashboard keeps the moment it arrived; one
           # removed and re-added is genuinely new, since absence of a row means
