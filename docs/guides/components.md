@@ -870,11 +870,11 @@ Picking between the last three is about what should happen to the group *as the 
 - `trigger_label` - Text of the default trigger (default "Search…"/"Buscar…" via i18n). Independent of `placeholder` — the trigger is usually shorter
 - `density` - `:default` (44px rows) or `:compact` (32px rows)
 - `no_results_text` / `no_results_subtitle` - Empty-state copy
-- `shortcut_label` - Display label for the shortcut hint on the default trigger (default `⌘K`; `nil` hides it). Actual binding is hardcoded to ⌘K/Ctrl+K
+- `shortcut_label` - Display label for the shortcut hint on the default trigger. `:auto` (default) renders `⌘K` and lets the Stimulus controller rewrite it to `Ctrl K` on a machine that is not a Mac — the server cannot know which keyboard is in front of the user, and a cached page would hand one machine's answer to every other one. A String is rendered literally and never rewritten; `nil` hides the hint. The binding itself accepts both chords on both platforms; only the label picks a side
 
 **Triggers:**
 - Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it
-- `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name
+- `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name. A hand-rolled trigger that wants the same platform-aware hint puts `data-command-target="shortcut"` on its own `kbd` — the controller fills it in
 - Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 

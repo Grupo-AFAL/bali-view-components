@@ -242,6 +242,30 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_no_selector("button.bali-command-trigger kbd")
   end
 
+  # The hint the component renders itself is marked as the controller's to
+  # rewrite: ⌘ is the pre-JavaScript label, corrected to "Ctrl K" on a keyboard
+  # that has no ⌘ key. The server cannot make that call — a cached page would
+  # hand one machine's answer to every other machine.
+
+  def test_the_default_shortcut_hint_is_marked_for_the_controller_to_rewrite
+    render_inline(Bali::Command::Component.new)
+    assert_selector("button.bali-command-trigger kbd[data-command-target='shortcut']",
+                    text: Bali::Command::Component::AUTO_SHORTCUT_LABEL)
+  end
+
+  def test_an_unknown_shortcut_label_mode_raises_instead_of_becoming_the_hint
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Command::Component.new(shortcut_label: :mac))
+    end
+    assert_match(/Unknown shortcut_label :mac/, error.message)
+  end
+
+  def test_an_explicit_shortcut_label_is_rendered_literally_and_left_alone
+    render_inline(Bali::Command::Component.new(shortcut_label: "F3"))
+    assert_selector("button.bali-command-trigger kbd", text: "F3")
+    assert_no_selector("button.bali-command-trigger kbd[data-command-target='shortcut']")
+  end
+
   def test_a_trigger_slot_replaces_the_default_trigger
     render_inline(Bali::Command::Component.new) do |c|
       c.with_trigger { "<button class='my-trigger'>Go</button>".html_safe }

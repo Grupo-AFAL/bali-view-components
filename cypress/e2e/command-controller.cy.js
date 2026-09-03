@@ -127,4 +127,46 @@ describe('CommandController', () => {
       cy.get('@turboVisit').should('have.been.calledWith', '/lookbook')
     })
   })
+
+  // The trigger's hint is server-rendered, so the HTML says ⌘K to everyone.
+  // Only the browser knows which keyboard is in front of the user, so the
+  // controller is what corrects it — a Windows user was being pointed at a key
+  // their keyboard does not have. Both platforms are stubbed rather than
+  // trusting the machine running Cypress, which is a Mac locally and Linux in
+  // CI.
+  context('the shortcut hint on the trigger', () => {
+    const visitAs = (platform, uaPlatform) =>
+      cy.visit('/bali/command/default', {
+        onBeforeLoad (win) {
+          Object.defineProperty(win.navigator, 'platform', {
+            value: platform, configurable: true
+          })
+          Object.defineProperty(win.navigator, 'userAgentData', {
+            value: uaPlatform ? { platform: uaPlatform } : undefined,
+            configurable: true
+          })
+        }
+      })
+
+    const hint = () =>
+      cy.get('.bali-command-trigger kbd[data-command-target="shortcut"]')
+
+    it('reads ⌘K on a Mac', () => {
+      visitAs('MacIntel', 'macOS')
+
+      hint().should('have.text', '⌘K')
+    })
+
+    it('reads Ctrl K on Windows', () => {
+      visitAs('Win32', 'Windows')
+
+      hint().should('have.text', 'Ctrl K')
+    })
+
+    it('falls back to navigator.platform when userAgentData is missing', () => {
+      visitAs('Linux x86_64', null)
+
+      hint().should('have.text', 'Ctrl K')
+    })
+  })
 })
