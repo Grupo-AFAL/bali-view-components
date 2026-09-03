@@ -7,6 +7,136 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`comments: { sidebar: :read_only }` — el panel de hilos deja de ser inerte por decreto.**
+  Ver el arreglo de abajo: interactivo pasa a ser el comportamiento por omisión, y solo
+  lectura queda como un modo que el anfitrión pide por su nombre, para un panel que quiere
+  ser un registro y no un lugar donde se escribe. Un modo desconocido levanta `ArgumentError`
+  en el sitio de llamada en vez de caerse a un default. El modo funciona también con el panel
+  portaleado por `comments_container_id:`. Previews: **BlockEditor → Read-only threads
+  sidebar** y **Read-only threads sidebar (portaled)**.
+
+- **`input_name:` / `input_id:` llegan a todas las familias del FormBuilder.** La escotilla
+  para formularios sin modelo (#547) la leían tres familias; ahora la lee cada una cuyo
+  control es un input nativo con nombre, más las tres cuyo control es un widget sobre un
+  campo oculto (ese oculto es lo que el formulario manda, así que es lo que se renombra).
+  `test/bali/form_builder/input_name_option_test.rb` declara cada familia en uno de los dos
+  bandos y falla si aparece una que no esté en ninguno.
+
+### Fixed
+
+- **Responder un comentario marcaba el documento como «Cambios sin guardar», aunque el editor
+  fuera de solo lectura.** El listener de `input` del DocumentEditor cuelga del CONTENEDOR del
+  área del editor —BlockNote construye su ProseMirror del lado del cliente, así que al
+  conectar no hay otra cosa a la que colgarse— y el composer flotante vive DENTRO de ese
+  contenedor. Su `input` burbujeaba, `contentChanged` llamaba a `scheduleSave` y `_dirty`
+  quedaba en `true`.
+
+  Con `auto_save: false` nada volvía a limpiarlo: el aviso se quedaba para siempre sobre un
+  documento que quien lee no puede haber cambiado ni puede guardar. Con `auto_save: true` el
+  defecto estaba igual, tapado por un guardado que era un no-op de contenido. Medido paso a
+  paso sobre `editable: false, auto_save: false`: el aviso aparecía en la primera tecla dentro
+  de la caja de respuesta.
+
+  `contentChanged` ignora ahora lo que nace en un editor de comentario
+  (`.bn-comment-editor`, la clase del contenedor anidado que BlockNote emite por cada cuerpo
+  de comentario, en el panel y en el popover flotante por igual) y en el sidebar de hilos. Un
+  `input` del ProseMirror del documento sigue marcándolo — la otra mitad, fijada en
+  `cypress/e2e/document-editor-comment-dirty.cy.js`.
+
+- **`file_group` y las otras diez familias descartaban en silencio el `input_name:` que se les
+  pasaba.** La llave no estaba en `RESERVED_OPTIONS`, así que caía a Rails, que reenvía lo que
+  no reconoce: el input salía con `input_name="import[file]"` como atributo literal y seguía
+  mandándose con el nombre que Rails derivó del objeto del formulario. En un controlador con
+  `params.require(:import)` eso es un **400** que Turbo se come sin pintar nada — la persona
+  elige el archivo, pulsa el botón y la pantalla queda idéntica. Medido en ocho de los catorce
+  helpers `_group`.
+
+- **En las tres familias de select, un `name:` o un `id:` escrito arriba se perdía — y el
+  `<label for>` seguía apuntando al id perdido.** Encontrado tirando del título del punto 2
+  del issue. Esas familias toman los atributos del elemento en `html:`, así que un `name:`
+  de primer nivel se le pasaba a `select` de Rails como opción del campo —que no la lee— y
+  desaparecía. Con `id:` era peor: desaparecía igual, pero `control_id` seguía leyéndolo para
+  el `for` de la leyenda, así que el `<label for="custom">` nombraba un elemento que no
+  estaba en el documento y **el control quedaba sin nombre accesible**. Medido en
+  `select_group`, `slim_select_group` y `time_zone_select_group`; las otras diez familias
+  nunca lo tuvieron, porque ahí los dos hashes son uno solo. Ahora los dos suben al elemento,
+  y un `html:` explícito sigue ganando.
+
+- **`error_summary` reventaba en un formulario sin registro detrás.** `form_with url: ...,
+  scope: :algo` deja `object` en **`false`**, no en `nil`, y el navegador seguro no atrapa
+  `false`: `undefined method 'errors' for false`, un 500 al ABRIR la pantalla. Es
+  `object.respond_to?(:errors)` ahora, como el resto del builder ya lo hacía.
+
+- **`hint:` no se pintaba y se fugaba como atributo HTML.** No es una opción de Bali —el texto
+  de ayuda bajo un control es `help:`— y tampoco es un atributo HTML válido, así que salía
+  `<input hint="Formato CSV…">` y la ayuda no aparecía en ningún lado. Lo invitaban los docs
+  del propio Bali, que llamaban «hint» al párrafo que `help:` pinta; corregido ahí también.
+
+  `hint:` e `input_options:` (memoria muscular de v2 para «atributos del elemento») avisan
+  ahora por `Bali.deprecator` nombrando qué escribir en su lugar, y se descartan antes de
+  llegar al DOM. Un aviso por llave y por formulario, no por campo. Es `warn` y no `raise`
+  por la misma razón que en #1092: el sitio de llamada ya está roto, y un `raise` convierte
+  un texto de ayuda mal escrito en un 500 al actualizar.
+
+- **El panel de hilos era de solo lectura por CSS y por nada más.** Tres reglas
+  `display: none !important` escondían la caja de responder, el botón de reacción y la barra
+  de acciones en TODOS los sidebars, mientras noventa líneas más abajo el mismo archivo
+  estilizaba `.bn-thread-composer` con margen, borde superior y `min-height` — o sea, como si
+  se viera. Ganaba el `!important`: el composer existía en el DOM con rect 0×0, y los docs
+  prometían responder y reaccionar desde el panel.
+
+  Lo que lo volvía defecto y no preferencia: un hilo cuyo ancla se borró («Contenido original
+  eliminado») no tiene popover que abrir, así que no quedaba **ninguna** vía para responderle.
+  Verificado en navegador sobre `/lookbook/preview/bali/block_editor/with_comments`, que trae
+  sus hilos en memoria: al seleccionar la tarjeta, la caja de respuesta mide 30×260 donde
+  antes medía 0×0.
+
+- **El modo del panel de hilos terminaba en la raíz del editor, así que `comments_container_id:`
+  lo anulaba en silencio.** La bandera que lee el CSS se pintaba en `.block-editor-component`,
+  y esa opción —pública y documentada— portalea el sidebar fuera de ahí. Pedir
+  `sidebar: :read_only` junto con ella rendereaba un panel enteramente interactivo: ni error,
+  ni aviso, la contraria de lo que decía el sitio de llamada. DocumentEditor era el único
+  anfitrión que portalea y funcionaba, y sólo porque pinta su propio panel marcado alrededor
+  del contenedor.
+
+  La bandera viaja ahora con el portal: el wrapper de React la pone sobre el contenedor que
+  nombra `comments_container_id:` —Rails no pinta lo que hay adentro—, y el selector dejó de
+  exigir una de esas dos clases, así que también sirve como escotilla para un anfitrión que
+  monte el sidebar donde Bali no lo ve. Medido en navegador sobre la preview nueva
+  **BlockEditor → Read-only threads sidebar (portaled)**: con la bandera el composer queda en
+  `display: none`; quitándosela a mano vuelve a `flex` con 30px de alto.
+
+- **`input_name:` le quitaba a un control `multiple` el `[]` que lo hace un arreglo.**
+  `add_default_name_and_id` de Rails es
+  `options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }`: el
+  sufijo vive dentro del bloque, así que un nombre dado por la escotilla nunca lo recibía.
+  `file_group :documents, multiple: true, input_name: "import[documents]"` mandaba los tres
+  archivos elegidos bajo una sola llave, Rack se quedaba con el último y
+  `params[:import][:documents]` era un archivo y no un arreglo — sin error, que es la forma de
+  falla que persigue todo este lote. El sufijo se agrega ahora, no se duplica si ya venía
+  escrito, y sigue al elemento y no al sitio de llamada: `slim_select_group` lee `multiple:`
+  sólo de `html:`, así que uno de primer nivel deja el `<select>` de un solo valor y el nombre
+  pelado.
+
+- **En las tres familias de select, un `id:` escrito en `html:` dejaba al control sin nombre
+  accesible.** La otra puerta al hueco de arriba, y la que sobrevivió a su arreglo: `html:` es
+  el hash más específico y el que gana en el elemento, pero `control_id` lee el hash del grupo
+  y ahí `:id` no llega —`WRAPPER_OPTIONS` no puede contenerlo, porque `RESERVED_OPTIONS` se
+  construye a partir de él y le arrancaría el id a todos los elementos del builder—. Así que
+  `f.select_group :status, opciones, label: "Status", html: { id: "status-select" }` pintaba
+  `<label for="movie_status">` contra `<select id="status-select">`: un `for` que nombra un id
+  que no está en el documento (WCAG 4.1.2). El pie de la leyenda sigue ahora el mismo orden de
+  precedencia que el elemento, y un `control_id:` explícito —`false` incluido— sigue ganando.
+
+- **Un `sidebar:` que no fuera simbolizable moría con `NoMethodError` en vez del
+  `ArgumentError` que el método promete.** `comments: { sidebar: true }` —que es como se lee
+  «prendé el panel»— hacía `true.to_sym`: un 500 que no nombra ni la opción ni los modos
+  válidos, justo desde el método cuyo trabajo es nombrar los dos. Ahora sólo se simboliza un
+  Symbol o un String, y el mensaje nombra el valor tal como se escribió (`""` ya no aparece
+  como `:""`).
+
 ## [v3.3.0] - 2026-08-31
 
 ### Added

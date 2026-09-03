@@ -84,6 +84,13 @@ module Bali
         @editable
       end
 
+      # The threads sidebar is portaled into the panel below, so it sits outside
+      # `.block-editor-component` and the flag that component carries never reaches
+      # it. The panel gets its own copy. See `BlockEditor::Config#comments_sidebar`.
+      def comments_sidebar_read_only?
+        @config.comments_sidebar_read_only?
+      end
+
       def comments?
         @config.comments.present?
       end

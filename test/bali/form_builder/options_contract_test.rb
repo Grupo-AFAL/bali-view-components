@@ -26,7 +26,8 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     mode: "range", alt_input: true, alt_input_class: "leaked-alt", alt_format: "d/m/Y",
     allow_input: true, disable_weekends: true, disabled_dates: [], min_date: "2026-01-01",
     max_date: "2026-12-31", seconds: true, time_24hr: true, default_date: "2026-01-01",
-    min_time: "08:00", max_time: "18:00"
+    min_time: "08:00", max_time: "18:00",
+    input_name: "leaked[name]", input_id: "leaked-id"
   }.freeze
 
   # `attachments` and `wrapper_options` are nested hashes read before render, and

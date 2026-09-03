@@ -150,9 +150,10 @@ module Bali
       #
       # The partial gets the outer builder as `f` — there is no nested object to
       # build one from — so a Bali group takes that name through `name:`, which
-      # Rails' `add_default_name_and_id` leaves alone when it is present. Not
-      # `input_name:`: that escape hatch is only read by `select_group` and
-      # `slim_select_group`, and elsewhere it lands as a literal HTML attribute.
+      # Rails' `add_default_name_and_id` leaves alone when it is present.
+      # `input_name:` reaches every family since #1111 and would work here too;
+      # `name:` stays because it is the one spelling that also works when the
+      # partial reaches for a plain Rails helper.
       def render_array_fields(partial, method, item:, index:)
         @template.render(partial, f: self, object: object, item: item, index: index,
                                   name_prefix: array_name_prefix(method))

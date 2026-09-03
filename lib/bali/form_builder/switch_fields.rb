@@ -87,6 +87,7 @@ module Bali
         ].compact.join(" ")
 
         attributes = html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
+        apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes, method, options)
       end
