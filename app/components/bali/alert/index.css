@@ -1,0 +1,16 @@
+/* Bali Alert — the component's own look, in @layer components (assigned from
+ * ../../../assets/stylesheets/bali/components.css), so a host utility on the
+ * template beats it with no `!` variant.
+ *
+ * The soft variant's TEXT colour lives in ./daisyui-overrides.css, unlayered,
+ * because it has to outrank daisyUI's `.alert-soft { color }`. This file carries
+ * the other half of that decision: the icon stays in the accent colour, which is
+ * what tells a soft warning apart from a soft info at a glance now that the text
+ * no longer does (#1126). Nothing in daisyUI sets `color` on the icon — it only
+ * inherits — so a layered rule is enough here. `currentColor` is the fallback for
+ * a soft alert with no colour class, where there is no `--alert-color` to keep.
+ */
+
+.alert-soft > .icon-component {
+  color: var(--alert-color, currentColor);
+}

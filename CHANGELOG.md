@@ -26,6 +26,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Alert` y `Tag` en `style: :soft` pintaban el texto del mismo tono que su fondo.** daisyUI 5
+  da a la variante soft `color: var(--alert-color)` sobre un fondo que es ese mismo acento al
+  8%, y en un tema claro el acento es claro por diseño —es un color de fondo—, así que el
+  texto quedaba claro sobre claro. Medido en el navegador con el tema `afal`, contraste del
+  texto contra el fondo del propio alert: warning 1.63:1, success 1.83, info 1.99, error
+  2.55, con el mínimo AA en 4.5. Un aviso ámbar con título, párrafo y lista no se leía
+  (#1126). En `Tag` lo mismo, y además `neutral` soft en `afal-dark` daba 1.67 — el mismo
+  defecto visto desde el otro lado.
+
+  No se usa el token `*-content`, que era la propuesta: ese token es el texto para el acento
+  **sólido**, así que es oscuro donde el acento es claro —bien en un tema claro, mal en uno
+  oscuro, donde el fondo soft es un tinte del acento sobre un `base-100` oscuro. Medido con
+  el token sin condición: `afal-dark` cae a 1.03–1.12 en los cuatro colores. En su lugar el
+  texto se ancla al par que todo tema garantiza que contrasta —`base-content` sobre
+  `base-100`, que el tinte del 8% apenas mueve— y se tiñe un 40% hacia el acento para que
+  el color siga leyéndose como el color (la proporción de los alerts «subtle» de Bootstrap
+  5.3). Peor caso por tema después del cambio: afal 5.74 · costa-norte 6.60 · daisyUI light
+  7.02 · afal-dark 6.62 · daisyUI dark 4.86; todos pasan AA. El icono del `Alert` conserva
+  el acento, que es lo que sigue diciendo «warning» de un vistazo.
+
+  Las dos reglas viven sin capa (`alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`)
+  porque `.alert-soft` y `.badge-soft` salen de daisyUI en `@layer utilities` y una capa le
+  gana a cualquier especificidad; `cypress/e2e/soft-variant-contrast.cy.js` es la medición,
+  guardada, sobre cuatro temas. Preview nuevo: **Alert → Soft, with a body**. Un anfitrión
+  que quiera otro color de texto en un soft lo pide con una utilidad importante
+  (`!text-warning`), como con toda regla sin capa.
+
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
   de Windows la tecla ⌘ no existe: la pista señalaba algo que no se puede pulsar. Qué teclado

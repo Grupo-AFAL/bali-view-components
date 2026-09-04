@@ -118,6 +118,18 @@ module Bali
 
       # @label All Combinations
       # Shows all alert variants: colors, sizes, styles, and a full color x style matrix.
+      # @label Soft, with a body
+      # @param color select [info, success, warning, error]
+      # The case #1126 was reported on: a soft warning with a title, a paragraph,
+      # a list and links. daisyUI paints the soft text in the accent colour over a
+      # tint of that same accent — light-on-light on a light theme — and Bali's
+      # override (alert/daisyui-overrides.css) gives it a colour that contrasts
+      # while the icon keeps the accent. Switch the theme to afal-dark to see the
+      # same rule hold where the `*-content` token would not have.
+      def soft_block(color: :warning)
+        render_with_template(locals: { color: color.to_sym })
+      end
+
       def all_combinations
         render_with_template
       end

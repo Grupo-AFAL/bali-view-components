@@ -1,0 +1,15 @@
+<div class="flex flex-col gap-4 max-w-2xl">
+  <%= render Bali::Alert::Component.new(color: color, style: :soft, icon: true,
+        title: "Unidades cuyo gerente no tiene usuario") do %>
+    <p>El padrón trae el número de empleado pero ningún usuario lo reclama.</p>
+    <ul class="list-disc pl-5 mt-1">
+      <li><%= render Bali::Link::Component.new(name: "124 · CABO", href: "#") %></li>
+      <li><%= render Bali::Link::Component.new(name: "131 · ENSENADA", href: "#") %></li>
+    </ul>
+  <% end %>
+
+  <div class="flex flex-wrap gap-2">
+    <%= render Bali::Tag::Component.new(text: "12 unidades", color: color, style: :soft) %>
+    <%= render Bali::Tag::Component.new(text: "3 sin gerente", color: color, style: :soft, icon: "triangle-alert") %>
+  </div>
+</div>
