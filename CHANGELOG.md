@@ -26,6 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`file_group(required: true)` dejaba mudo el botón de envío.** La familia esconde el
+  `<input type="file">` nativo (`display: none`) y dibuja un botón en su lugar, pero el
+  `required` llegaba igual al input oculto. El navegador valida un control oculto y no
+  puede enfocarlo, así que `form.reportValidity()` —lo que llama `submit_group(...,
+  drawer: true)` desde #894— devolvía `false`, no anclaba globo en ningún lado y
+  registraba en consola «An invalid form control with name='…' is not focusable». Sin
+  petición, sin mensaje, sin nada (#1125).
+
+  Es el mismo modo de fallo que se cerró para slim-select en #895 y lleva la misma
+  respuesta: el atributo llega a un control sobre el que el navegador puede avisar, o no
+  llega a nada. `file_group`/`file_field` pasan al bando de los que lo descartan en
+  `test/bali/form_builder/required_option_test.rb`; la presencia se valida en el modelo y
+  `error_summary` la cuenta tras el 422. Nada cambia de aspecto.
+
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
   de Windows la tecla ⌘ no existe: la pista señalaba algo que no se puede pulsar. Qué teclado

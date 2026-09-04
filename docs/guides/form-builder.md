@@ -661,6 +661,11 @@ The text under the control is `help:`. See
 [Non-model forms](#non-model-forms) for `input_name:`, which is what names the input on a
 form with no model behind it.
 
+`required:` is dropped here, not forwarded: the native input is hidden behind the button,
+and a hidden control the browser cannot focus turns `reportValidity()` into a silent
+`false` — the submit button stops working with no message (#1125). Validate presence on
+the model instead; see [`required:`](#required-is-a-plain-html-passthrough--and-not-every-family-has-a-control-to-put-it-on).
+
 ### direct_upload_group
 
 Active Storage direct upload support.
@@ -971,13 +976,22 @@ These options work across most field types:
 
 `required:` is not a Bali option: it reaches the control as the HTML attribute on the
 families whose control is a native input (`text_*`, `email_*`, `number_*`, `date_*`,
-`select_*`, `boolean_*`, `switch_*`, `file_*`, and the rest of the native-control
-families), and is **dropped silently** by the families whose visible control is a widget
-over a hidden field — `slim_select_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
+`select_*`, `boolean_*`, `switch_*`, and the rest of the native-control families), and
+is **dropped silently** by the families whose visible control is a widget over a hidden
+field — `slim_select_*`, `file_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
 `block_editor_*`, `rich_text_area_*`, `coordinates_polygon_*`,
 `recurrent_event_rule_*`, `direct_upload_*`, `time_period_*` and the submit pair. A
 `required` on a `type="hidden"` input would either do nothing or, worse, make the form
 unsubmittable, so those families need a model validation instead of the attribute.
+
+`file_*` is on the dropped side for the "worse" reason, and it is worth knowing why: its
+control is a real `<input type="file">`, but the family hides it (`display: none`) and
+draws a button in its place. The browser still validates a hidden control and can never
+focus it, so `form.reportValidity()` — which is what a `submit_group(..., drawer: true)`
+calls — returns false, shows no bubble, and logs "An invalid form control with name='…' is
+not focusable". The submit button went mute: no request, no message (#1125). The attribute
+is not emitted now; validate presence on the model and let `error_summary` say so after
+the 422.
 
 The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
 declares every family in one of the two camps and fails when a new family lands in
