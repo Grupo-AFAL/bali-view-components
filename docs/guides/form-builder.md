@@ -661,10 +661,11 @@ The text under the control is `help:`. See
 [Non-model forms](#non-model-forms) for `input_name:`, which is what names the input on a
 form with no model behind it.
 
-`required:` is dropped here, not forwarded: the native input is hidden behind the button,
-and a hidden control the browser cannot focus turns `reportValidity()` into a silent
-`false` — the submit button stops working with no message (#1125). Validate presence on
-the model instead; see [`required:`](#required-is-a-plain-html-passthrough--and-not-every-family-has-a-control-to-put-it-on).
+`required:` marks the caption with an asterisk and is dropped from the input: the native
+input is hidden behind the button, and a hidden control the browser cannot focus turns
+`reportValidity()` into a silent `false` — the submit button stops working with no message
+(#1125). Validate presence on the model as well; see
+[`required:`](#required-is-a-plain-html-passthrough--and-not-every-family-has-a-control-to-put-it-on).
 
 ### direct_upload_group
 
@@ -992,6 +993,13 @@ calls — returns false, shows no bubble, and logs "An invalid form control with
 not focusable". The submit button went mute: no request, no message (#1125). The attribute
 is not emitted now; validate presence on the model and let `error_summary` say so after
 the 422.
+
+**Whichever camp the family is in, the caption says so.** `required: true` — at the top
+level, or in `html:` on the families that take one — appends a red asterisk to the
+`<label>`/`<legend>`, hidden from screen readers, plus a visually hidden "required"
+(`bali_view.form_builder.required`) for them. On the dropped families that mark is the
+only thing the option produces; on the rest it is the first, before the browser complains.
+The submit pair renders no caption and takes no mark.
 
 The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
 declares every family in one of the two camps and fails when a new family lands in

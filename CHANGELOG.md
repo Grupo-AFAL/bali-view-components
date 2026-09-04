@@ -38,7 +38,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   respuesta: el atributo llega a un control sobre el que el navegador puede avisar, o no
   llega a nada. `file_group`/`file_field` pasan al bando de los que lo descartan en
   `test/bali/form_builder/required_option_test.rb`; la presencia se valida en el modelo y
-  `error_summary` la cuenta tras el 422. Nada cambia de aspecto.
+  `error_summary` la cuenta tras el 422.
+
+  Y la marca de obligatorio se expresa donde el usuario sí la ve: **`required: true` pone un
+  asterisco en la etiqueta del `FieldGroupWrapper`, en todas las familias** —arriba, o en
+  `html:` en las que llevan ese hash—, con un «obligatorio» oculto a la vista para el lector
+  de pantalla (`bali_view.form_builder.required`). En las familias que descartan el atributo
+  es lo único que la opción produce; en las demás es la primera señal, antes de que el
+  navegador se queje. Es un cambio visible: cada `required: true` que ya esté escrito en
+  una app pasa a mostrar el asterisco (medido en las apps del grupo: 57 sitios, 55 en
+  afal-apps; ninguna etiqueta lo escribía a mano, así que no se duplica).
 
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
