@@ -3529,7 +3529,10 @@ makes it a first-class popover attribute with no new API.
 ```
 
 **Features:**
-- Multiple filter groups with AND/OR combinators
+- Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
+  (AND) unless the user switches a row to OR — the seed used to be OR, so a second
+  condition widened the listing instead of narrowing it (#1121); a group that arrives in
+  the URL with `m=or` keeps it. Groups combine with AND.
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted

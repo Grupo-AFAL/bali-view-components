@@ -192,7 +192,7 @@ module Bali
 
       def default_filter_group
         {
-          combinator: "or",
+          combinator: FilterGroup::Component::DEFAULT_COMBINATOR,
           conditions: [ default_condition ]
         }
       end

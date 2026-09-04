@@ -318,7 +318,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
     assert_empty(@form.active_filters)
     assert_equal(
-      [ [ "q[g][0][m]", "or" ], [ "q[g][0][name_cont]", "Iron" ] ],
+      [ [ "q[g][0][m]", "and" ], [ "q[g][0][name_cont]", "Iron" ] ],
       Bali::Filters::ActiveFilterParams.for_filter_form(@form)
     )
   end
@@ -500,6 +500,21 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
   def test_group_combinator_collapses_a_value_that_is_not_a_combinator
     filter_params = { g: { "0" => { name_cont: "Iron", m: "<script>alert(1)</script>" } } }
+    @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+    assert_equal("and", @form.filter_groups.first[:combinator])
+  end
+
+  # A group with no `m` is what Ransack ANDs (`Nodes::Grouping` with a nil combinator),
+  # so the panel has to say AND for it. It used to say OR — the seed every new group was
+  # born with — while the listing was already the intersection (#1121).
+  def test_a_group_without_a_combinator_parses_as_and_which_is_what_ransack_applies
+    filter_params = { g: { "0" => { name_cont: "Iron", genre_eq: "action" } } }
+    @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+    assert_equal("and", @form.filter_groups.first[:combinator])
+  end
+
+  def test_a_group_that_chose_or_keeps_it
+    filter_params = { g: { "0" => { name_cont: "Iron", genre_eq: "action", m: "or" } } }
     @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
     assert_equal("or", @form.filter_groups.first[:combinator])
   end
