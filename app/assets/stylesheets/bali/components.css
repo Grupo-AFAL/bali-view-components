@@ -65,7 +65,8 @@
 /* daisyUI's `.radial-progress` paints only the filled arc; this gives it a
    track, so a gauge at 0% is an empty ring rather than a bare dot. */
 @import "../../../components/bali/gauge/daisyui-overrides.css";
-/* daisyUI's soft variants paint the text in the accent colour over a tint of that
-   same accent; these give it a colour that contrasts (#1126). */
+/* daisyUI's soft, outline and dash variants paint the text in the accent colour
+   over a tint of that same accent or over the bare page; these give it a colour
+   that contrasts (#1126). */
 @import "../../../components/bali/alert/daisyui-overrides.css";
 @import "../../../components/bali/tag/daisyui-overrides.css";

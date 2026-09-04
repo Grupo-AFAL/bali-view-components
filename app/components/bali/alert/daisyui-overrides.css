@@ -1,30 +1,36 @@
-/* Alert — the rule that has to outrank daisyUI's `.alert-soft`.
+/* Alert — the rule that has to outrank daisyUI's `.alert-soft`, `.alert-outline`
+ * and `.alert-dash`.
  *
  * WHY THIS FILE IS UNLAYERED
  * --------------------------
- * daisyUI 5 emits `.alert-soft` inside `@layer utilities` (sublayer `daisyui.l1`)
- * and gives it
+ * daisyUI 5 emits the three variants inside `@layer utilities` (sublayer
+ * `daisyui.l1`) and gives them
  *
- *   color: var(--alert-color, var(--color-base-content));
- *   background: color-mix(in oklab, var(--alert-color, …) 8%, var(--color-base-100));
+ *   .alert-soft    { color: var(--alert-color, var(--color-base-content));
+ *                    background: color-mix(in oklab, var(--alert-color, …) 8%, var(--color-base-100)) }
+ *   .alert-outline { color: var(--alert-color); background-color: #0000 }
+ *   .alert-dash    { color: var(--alert-color); background-color: #0000; border-style: dashed }
  *
- * — the accent colour as TEXT, over an 8% tint of that same accent. Layers beat
- * specificity, so this declaration in `@layer components` loses however it is
- * written; unlayered is the only position that wins. It fits the rule of thumb
- * in `.claude/CLAUDE.md`: the right-most compound is a daisyUI class and the
- * only declaration set here is one daisyUI sets itself.
+ * — the accent colour as TEXT, over an 8% tint of that same accent (soft) or over
+ * the bare page (outline, dash). Layers beat specificity, so this declaration in
+ * `@layer components` loses however it is written; unlayered is the only position
+ * that wins. It fits the rule of thumb in `.claude/CLAUDE.md`: the right-most
+ * compound is a daisyUI class and the only declaration set here is one daisyUI
+ * sets itself.
  *
  * WHAT IT FIXES (#1126)
  * ---------------------
  * On a light theme the accent is light by design (it is a *background* colour:
- * `--color-warning` in `afal` is #FBBD23), so accent-on-tint is light-on-light.
- * Measured in the browser on `bali/alert/all_combinations`, WCAG contrast of the
- * text against the alert's own background, theme `afal`:
+ * `--color-warning` in `afal` is #FBBD23), so accent-on-tint and accent-on-white
+ * are light-on-light. Measured in the browser on `bali/alert/all_combinations`,
+ * WCAG contrast of the text against the background it sits on, theme `afal`:
  *
- *   warning 1.63 · success 1.83 · info 1.99 · error 2.55     (AA normal text: 4.5)
+ *   soft     warning 1.63 · success 1.83 · info 1.99 · error 2.55
+ *   outline  warning 1.69 · success 1.92 · info 2.10 · error 2.75   (AA: 4.5)
+ *   dash     same as outline
  *
  * A soft warning alert with a paragraph and a list was unreadable, which is what
- * the report shows.
+ * the report shows; outline and dash were the same defect on a white ground.
  *
  * WHY NOT THE `*-content` TOKEN
  * -----------------------------
@@ -48,14 +54,18 @@
  * All pass AA; 30% would reach AAA everywhere but loses most of the hue. The
  * `cypress/e2e/soft-variant-contrast.cy.js` spec is that measurement, kept.
  *
- * The icon keeps the accent — see ./index.css. With no colour class there is no
+ * The icon keeps the accent — see ./index.css — and so does the border: daisyUI
+ * draws it from `--alert-border-color`, which this file does not touch, so an
+ * outline alert is still a coloured ring. With no colour class there is no
  * `--alert-color`, both sides of the mix are base-content, and nothing changes.
  *
- * A host that wants a different text colour on a soft alert escapes this rule
+ * A host that wants a different text colour on one of these escapes this rule
  * the way it escapes every unlayered one: an important utility (`!text-warning`).
  */
 
-.alert-soft {
+.alert-soft,
+.alert-outline,
+.alert-dash {
   color: color-mix(
     in oklab,
     var(--alert-color, var(--color-base-content)) 40%,

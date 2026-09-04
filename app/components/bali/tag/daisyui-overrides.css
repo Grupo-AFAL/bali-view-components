@@ -1,28 +1,41 @@
-/* Tag — the rule that has to outrank daisyUI's `.badge-soft`.
+/* Tag — the rules that have to outrank daisyUI's `.badge-soft`, `.badge-outline`
+ * and `.badge-dash`.
  *
  * WHY THIS FILE IS UNLAYERED
  * --------------------------
  * Same shape as ../alert/daisyui-overrides.css, and read that header for the
- * measurements and the reasoning: daisyUI 5 emits `.badge-soft` inside
- * `@layer utilities` with `color: var(--badge-color, var(--color-base-content))`
- * — the accent as text over an 8% tint of itself — and only an unlayered rule
- * can change that declaration. Right-most compound a daisyUI class, one
- * declaration daisyUI also sets.
+ * measurements and the reasoning: daisyUI 5 emits the three variants inside
+ * `@layer utilities` with `color: var(--badge-color, …)` — the accent as text,
+ * over an 8% tint of itself (soft) or over the bare page (outline, dash) — and
+ * only an unlayered rule can change that declaration. Right-most compound a
+ * daisyUI class, only declarations daisyUI also sets.
  *
  * Measured on `bali/tag/all_combinations` before the change, text against the
- * pill's own background: theme `afal` warning 1.63 · success 1.83 · info 1.99 ·
- * accent 2.04 · error 2.55 · primary 3.38 · secondary 3.86; and `afal-dark`
- * neutral 1.67 — a dark neutral over a dark tint, the same defect from the other
- * side, which is why the answer cannot be "use the `*-content` token".
+ * background it sits on, theme `afal`: soft warning 1.63 · success 1.83 · info
+ * 1.99 · accent 2.04 · error 2.55 · primary 3.38 · secondary 3.86; outline/dash
+ * warning 1.69 · success 1.92 · info 2.10 · accent 2.15 · error 2.75. And on the
+ * dark themes `neutral` fails the other way round — soft 1.67 on `afal-dark`,
+ * dash 1.26 on daisyUI's `dark` — a dark neutral over a dark ground, which is
+ * why the answer cannot be "use the `*-content` token".
  *
  * The whole pill takes the mixed colour, icon included: at 10–18px the glyph is
- * part of the label, not a signal of its own the way the alert's icon is.
+ * part of the label, not a signal of its own the way the alert's icon is. The
+ * ring of outline and dash stays in the accent: daisyUI draws it with
+ * `border-color: currentColor`, so it has to be restated from `--badge-color`
+ * once the text stops being the accent.
  */
 
-.badge-soft {
+.badge-soft,
+.badge-outline,
+.badge-dash {
   color: color-mix(
     in oklab,
     var(--badge-color, var(--color-base-content)) 40%,
     var(--color-base-content)
   );
+}
+
+.badge-outline,
+.badge-dash {
+  border-color: var(--badge-color, currentColor);
 }
