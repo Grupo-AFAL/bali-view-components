@@ -501,12 +501,15 @@ module Bali
       #
       # It is Rails' own rule, copied for the reason it exists: `select_content_tag`
       # moves `:multiple` out of the field options onto the element only when the
-      # element does not already carry the key. SlimSelect's `<select>` always
-      # carries it — `build_html_options` writes `multiple: false` so its own widget
-      # can read it — so on that family a top-level `multiple: true` never reaches
-      # the element at all. Reading "either hash" instead would suffix the name of a
-      # single-value select, which is the same silent mis-submission the other way
-      # round: `params[:import][:tags]` an array of one where the form sends a value.
+      # element does not already carry the key, so `html:` wins over the top level.
+      # SlimSelect's `<select>` always carries the key — `build_html_options` seeds it
+      # so its own widget can read it — and until #1123 it seeded a flat `false`, which
+      # blocked the copy and left a top-level `multiple: true` off the element for
+      # good; it now seeds through this same method, so the element and the name are
+      # decided by one rule. Reading "either hash" here instead would suffix the name
+      # of a select that `html: { multiple: false }` keeps single-valued, which is the
+      # same silent mis-submission the other way round: `params[:import][:tags]` an
+      # array of one where the form sends a value.
       def multiple_control?(options, html_options)
         if html_options.key?(:multiple) || html_options.key?("multiple")
           return html_options[:multiple] || html_options["multiple"]

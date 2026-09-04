@@ -26,6 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`slim_select_group(:tags, …, multiple: true)` rendía un select de un solo valor.**
+  `multiple:` sólo se leía de `html:`; escrito arriba, junto a `label:`, se descartaba en
+  silencio, mientras que en `select_group` las dos formas funcionan. La causa:
+  `build_html_options` sembraba siempre `multiple: false` en el elemento, y
+  `select_content_tag` de Rails copia el `:multiple` de primer nivel al elemento **sólo si
+  el elemento no trae ya la llave** (#1123). La semilla ahora sale de los dos hashes por la
+  misma regla que ya decidía el sufijo `[]` del nombre —`html:` gana—, así que el elemento y
+  el nombre siguen de acuerdo: `<select multiple name="movie[tags][]">`.
+
+  Medido antes de cambiarlo: en las cinco apps del grupo ningún call site pasa `multiple:`
+  arriba (33 lo pasan en `html:` o en el hash posicional viejo, que ya era el del
+  elemento), así que nada cambia de forma al actualizar. `test_the_suffix_follows_the_element_and_not_the_option`
+  afirmaba el comportamiento viejo y cambia con él.
+
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
   de Windows la tecla ⌘ no existe: la pista señalaba algo que no se puede pulsar. Qué teclado
