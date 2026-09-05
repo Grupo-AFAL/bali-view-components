@@ -250,7 +250,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dependencies
 
 - **Cypress 15.21.1 → 16.0.0** (solo desarrollo). Consolida el PR de dependabot #1133. Lo que
-  Cypress 16 rompe y nos toca: pide Node 22/24/≥26 (CI y la Beelink van en 22), quita
+  Cypress 16 rompe y nos toca: pide Node 22/24/≥26 —el job de StandardJS seguía en 20 y su
+  `yarn install` reventaba con el pin nuevo; pasa a 22 como `test.yml` y `cypress.yml`—, quita
   `cy.exec()`/`cy.end()` (no se usaban) y retira `experimentalMemoryManagement`, que
   `cypress.config.cjs` tenía en `true` para evitar los cierres del renderer de Electron;
   lo reemplaza `manageBrowserMemory`, encendido por omisión, así que la opción sale del
