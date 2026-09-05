@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Alert`: el cuerpo del bloque iba dentro de un `<span>`.** Con `title:` (y sin él) el
+  contenido se envolvía en un elemento inline, así que una `<ul>` o un `<p>` adentro era
+  block-in-inline: HTML inválido que el navegador pinta igual y el validador rechaza
+  (#1120). El envoltorio pasa a `<div>` en los dos casos. No cambia nada a la vista —el
+  alert es un grid y su columna un flex column, así que el `display` del envoltorio nunca
+  llegaba al layout; medido con capturas idénticas byte a byte de `default`, `closable` y
+  `with_icon` antes y después—. Preview nuevo: **Alert → With block content**.
+
 - **Filters: agregar una segunda condición a un grupo UNÍA en vez de acotar.** El combinador
   con que nace un grupo (`q[g][N][m]`) era `or`, clavado en cuatro lugares —el parser, el
   componente, el grupo y el controlador Stimulus—, así que «marca = WCP» (5 filas) más
