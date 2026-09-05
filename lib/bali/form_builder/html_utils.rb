@@ -178,6 +178,25 @@ module Bali
         options.except(*RESERVED_OPTIONS, *MISTAKEN_OPTIONS.keys)
       end
 
+      # The mark a required field's caption carries: an asterisk for the eye, hidden
+      # from the reader, and a word for the reader. `required:` is a plain attribute
+      # the builder forwards to the control, and on the families whose control cannot
+      # carry it — a hidden file input, SlimSelect's clipped `<select>` — the call
+      # site's intent used to reach nothing the user could see; on the rest it showed
+      # only once the browser complained. The native attribute already announces
+      # "required" where it exists, so the hidden word is the only announcement
+      # where it does not (#1125). Public: FieldGroupWrapper draws it into the
+      # `<label>`/`<legend>`, and the checkbox and toggle into the label beside the
+      # box, which is the caption those two families have.
+      def required_marker
+        @template.tag.span(class: "text-error ms-0.5") do
+          @template.safe_join([
+            @template.tag.span("*", aria: { hidden: true }),
+            @template.tag.span(I18n.t("bali_view.form_builder.required"), class: "sr-only")
+          ])
+        end
+      end
+
       # `html_attributes` for a family that renders a widget rather than a
       # control. See CONTROL_ONLY_OPTIONS.
       def widget_attributes(options)
@@ -205,7 +224,21 @@ module Bali
           end
         end
 
+        carry_required(merged, others)
         derive_control_id(merged, others)
+      end
+
+      # `required` is not a WRAPPER_OPTION and cannot be one — RESERVED_OPTIONS is built
+      # from that list and `html_attributes` would strip it off every control. But the
+      # caption marks a required field (#1125), and on the families that take a second
+      # `html:` hash that is where the docs send the attribute, so the group hash has to
+      # learn about it from there. Only ever set to true, never copied as false: a
+      # top-level `required:` already sits in `options` and wins.
+      def carry_required(merged, others)
+        return merged if merged.key?(:required) || merged.key?("required")
+
+        merged[:required] = true if others.compact.any? { |other| other[:required] || other["required"] }
+        merged
       end
 
       # The other half of the `<label for>` hole #1111 measured on the top-level
@@ -275,7 +308,11 @@ module Bali
         text = options.fetch(:text) { translate_attribute(method) }
         return if text == false
 
-        content_tag(:span, text)
+        # The box's caption is the only caption these two families show by default
+        # (`label: false` on the wrapper), so the required mark goes here (#1125).
+        return content_tag(:span, text) unless options[:required] || options["required"]
+
+        content_tag(:span, @template.safe_join([ text, required_marker ]))
       end
 
       # nil when no caption will be rendered, so nothing ever points an

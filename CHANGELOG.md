@@ -39,6 +39,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   arriba (33 lo pasan en `html:` o en el hash posicional viejo, que ya era el del
   elemento), así que nada cambia de forma al actualizar. `test_the_suffix_follows_the_element_and_not_the_option`
   afirmaba el comportamiento viejo y cambia con él.
+- **`file_group(required: true)` dejaba mudo el botón de envío.** La familia esconde el
+  `<input type="file">` nativo (`display: none`) y dibuja un botón en su lugar, pero el
+  `required` llegaba igual al input oculto. El navegador valida un control oculto y no
+  puede enfocarlo, así que `form.reportValidity()` —lo que llama `submit_group(...,
+  drawer: true)` desde #894— devolvía `false`, no anclaba globo en ningún lado y
+  registraba en consola «An invalid form control with name='…' is not focusable». Sin
+  petición, sin mensaje, sin nada (#1125).
+
+  Es el mismo modo de fallo que se cerró para slim-select en #895 y lleva la misma
+  respuesta: el atributo llega a un control sobre el que el navegador puede avisar, o no
+  llega a nada. `file_group`/`file_field` pasan al bando de los que lo descartan en
+  `test/bali/form_builder/required_option_test.rb`; la presencia se valida en el modelo y
+  `error_summary` la cuenta tras el 422.
+
+  Y la marca de obligatorio se expresa donde el usuario sí la ve: **`required: true` pone un
+  asterisco en la etiqueta del `FieldGroupWrapper`, en todas las familias** —arriba, o en
+  `html:` en las que llevan ese hash—, con un «obligatorio» oculto a la vista para el lector
+  de pantalla (`bali_view.form_builder.required`). En las familias que descartan el atributo
+  es lo único que la opción produce; en las demás es la primera señal, antes de que el
+  navegador se queje. Es un cambio visible: cada `required: true` que ya esté escrito en
+  una app pasa a mostrar el asterisco (medido en las apps del grupo: 57 sitios, 55 en
+  afal-apps; ninguna etiqueta lo escribía a mano, así que no se duplica).
+- **El `@source` de `engine.css` no escaneaba `.jsx`: Gantt y BlockEditor perdían sus clases
+  en silencio.** El glob decía `*.{rb,erb,js}`, y los diez archivos `.jsx` de la gema —los de
+  `gantt/` y los de `block_editor/`— escriben clases de Tailwind que ningún otro archivo usa.
+  Un host por la ruta documentada (`@import "../builds/tailwind/bali"`) compilaba sin aviso
+  y se quedaba sin medio centenar de clases: `cursor-col-resize`, `rotate-45`, `inset-y-0`,
+  `h-[21px]`, `decoration-dotted`… Medido con el binario de `tailwindcss-ruby` sobre esta
+  rama: 762 selectores de clase únicos con el glob viejo, 816 con `jsx` —54 ganadas, ninguna
+  perdida. No se había notado porque el `@source` a `node_modules` que el `@import` vino
+  a reemplazar sí los alcanzaba, por la detección automática de Tailwind (#1124).
+
+  El glob pasa a `*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` —las extensiones que aún no existen en
+  el árbol van listadas de antemano, para que la siguiente no reabra el mismo agujero— y
+  `test/bali/tailwind_engine_css_test.rb` barre cada archivo del árbol que pueda llevar una
+  clase y falla con el primero que ningún `@source` alcance. Como el `exports` del
+  `package.json` publica ese mismo archivo, el arreglo cubre a la vez a los hosts que lo
+  importan por npm.
 
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
