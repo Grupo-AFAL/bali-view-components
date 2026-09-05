@@ -118,6 +118,15 @@ module Bali
 
       # @label All Combinations
       # Shows all alert variants: colors, sizes, styles, and a full color x style matrix.
+      # @label With block content
+      # @param color select [info, success, warning, error, neutral]
+      # A title over a list of records with links — the alert #1120 was reported on.
+      # The body is a `<div>`, so a `<ul>` or a `<p>` inside it is valid HTML; it used
+      # to be a `<span>`, which browsers painted the same and validators rejected.
+      def with_block_content(color: :warning)
+        render_with_template(locals: { color: color.to_sym })
+      end
+
       # @label Tinted styles, with a body
       # @param color select [info, success, warning, error]
       # @param style select [soft, outline, dash]
