@@ -29,7 +29,6 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     "date_group" => ->(b, o) { b.date_group(:release_date, **o) },
     "datetime_group" => ->(b, o) { b.datetime_group(:release_date, **o) },
     "time_group" => ->(b, o) { b.time_group(:duration, **o) },
-    "file_group" => ->(b, o) { b.file_group(:name, **o) },
     "search_group" => ->(b, o) { b.search_group(:name, **o) },
     "currency_group" => ->(b, o) { b.currency_group(:budget, **o) },
     "percentage_group" => ->(b, o) { b.percentage_group(:budget, **o) },
@@ -60,8 +59,16 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
   # remembering: its per-input attributes travel in `html:`, so a top-level
   # `required:` is a group option and never reaches a radio. Passing it in
   # `html:` does reach them — asserted below.
+  #
+  # `file_group` is the third kind, and the one #1125 was about: its control is a real
+  # `<input type="file">`, but the family hides it with `display: none` and draws a button
+  # in its place. A hidden control is still validated and can never be focused, so
+  # `form.reportValidity()` returns false, shows nothing, and logs "An invalid form control
+  # with name='…' is not focusable" — the submit button goes mute. Same dead end as
+  # slim-select, same answer: the attribute is not emitted.
   DROPS = {
     "slim_select_group" => ->(b, o) { b.slim_select_group(:status, [], html: o) },
+    "file_group" => ->(b, o) { b.file_group(:name, **o) },
     "radio_group" => ->(b, o) { b.radio_group(:status, [ %w[One 1] ], **o) },
     "radio_buttons_group" => ->(b, o) { b.radio_buttons_group(:status, { a: [ %w[One 1] ] }, **o) },
     "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
@@ -112,6 +119,37 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
                  "#{emitted.join("\n")}"
   end
 
+  # Whichever camp a family is in, the caption says what the call site said: the
+  # families that drop the attribute have nowhere else to say it, and the ones that
+  # carry it would otherwise mark the field only once the browser complains (#1125).
+  # The caption is the wrapper's `<label>`/`<legend>` — or, for the checkbox and the
+  # toggle, the label beside the box, the only caption those two show by default. The
+  # submit pair renders no caption and is left out on purpose.
+  def test_required_marks_the_caption_on_every_family_that_has_one
+    unmarked = CARRIES.merge(DROPS).except("submit_field", "submit_group", "text_field").filter_map do |name, render|
+      html = render.call(builder, { required: true })
+      name unless marked?(html)
+    end
+
+    assert_empty unmarked, "`required: true` left the caption unmarked on: #{unmarked.inspect}"
+  end
+
+  def test_nothing_is_marked_without_required
+    marked = CARRIES.merge(DROPS).filter_map do |name, render|
+      name if marked?(render.call(builder, {}))
+    end
+
+    assert_empty marked, "a caption was marked as required with no `required:` at all: #{marked.inspect}"
+  end
+
+  def test_a_required_file_group_says_so_in_the_caption_and_nowhere_else
+    html = builder.file_group(:name, required: true)
+    fragment = Nokogiri::HTML5.fragment(html.to_s)
+
+    assert_empty required_elements(html)
+    assert_equal "*", fragment.at_css(".fieldset-legend span[aria-hidden]").text
+  end
+
   # The other half of `radio_group`'s story: the attribute is not lost, it is in
   # the hash the family reads element attributes from.
   def test_radio_group_puts_required_on_its_inputs_when_it_travels_in_html
@@ -129,6 +167,10 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     html = builder.slim_select_group(:status, [ %w[One 1] ], required: true)
 
     assert_empty required_elements(html)
+  end
+
+  def test_file_field_drops_required_like_its_group
+    assert_empty required_elements(builder.file_field(:name, required: true))
   end
 
   def test_slim_select_field_drops_required_like_its_group
@@ -169,6 +211,16 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
   end
 
   private
+
+  # The mark is the pair `Bali::FormBuilder#required_marker` draws: a hidden asterisk
+  # and a visually hidden word, inside a `<label>` or `<legend>`.
+  def marked?(html)
+    fragment = Nokogiri::HTML5.fragment(html.to_s)
+    word = I18n.t("bali_view.form_builder.required")
+
+    fragment.css("label span.sr-only, legend span.sr-only").any? { |node| node.text == word } &&
+      fragment.css("label span[aria-hidden], legend span[aria-hidden]").any? { |node| node.text == "*" }
+  end
 
   def option_values(html)
     Nokogiri::HTML5.fragment(html.to_s).css("option").map { |option| option["value"].to_s }

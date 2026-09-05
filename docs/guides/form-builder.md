@@ -425,7 +425,7 @@ Enhanced select with search, multi-select, and AJAX support.
 <%= f.slim_select_group :category, Category.all.map { |c| [c.name, c.id] } %>
 
 <%# Multi-select %>
-<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, html: { multiple: true } %>
+<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, multiple: true %>
 
 <%# With search %>
 <%= f.slim_select_group :user, [], show_search: true, ajax_url: search_users_path, ajax_param_name: 'q' %>
@@ -660,6 +660,12 @@ the button row and the radio lists it switches between.
 The text under the control is `help:`. See
 [Non-model forms](#non-model-forms) for `input_name:`, which is what names the input on a
 form with no model behind it.
+
+`required:` marks the caption with an asterisk and is dropped from the input: the native
+input is hidden behind the button, and a hidden control the browser cannot focus turns
+`reportValidity()` into a silent `false` — the submit button stops working with no message
+(#1125). Validate presence on the model as well; see
+[`required:`](#required-is-a-plain-html-passthrough--and-not-every-family-has-a-control-to-put-it-on).
 
 ### direct_upload_group
 
@@ -971,13 +977,29 @@ These options work across most field types:
 
 `required:` is not a Bali option: it reaches the control as the HTML attribute on the
 families whose control is a native input (`text_*`, `email_*`, `number_*`, `date_*`,
-`select_*`, `boolean_*`, `switch_*`, `file_*`, and the rest of the native-control
-families), and is **dropped silently** by the families whose visible control is a widget
-over a hidden field — `slim_select_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
+`select_*`, `boolean_*`, `switch_*`, and the rest of the native-control families), and
+is **dropped silently** by the families whose visible control is a widget over a hidden
+field — `slim_select_*`, `file_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
 `block_editor_*`, `rich_text_area_*`, `coordinates_polygon_*`,
 `recurrent_event_rule_*`, `direct_upload_*`, `time_period_*` and the submit pair. A
 `required` on a `type="hidden"` input would either do nothing or, worse, make the form
 unsubmittable, so those families need a model validation instead of the attribute.
+
+`file_*` is on the dropped side for the "worse" reason, and it is worth knowing why: its
+control is a real `<input type="file">`, but the family hides it (`display: none`) and
+draws a button in its place. The browser still validates a hidden control and can never
+focus it, so `form.reportValidity()` — which is what a `submit_group(..., drawer: true)`
+calls — returns false, shows no bubble, and logs "An invalid form control with name='…' is
+not focusable". The submit button went mute: no request, no message (#1125). The attribute
+is not emitted now; validate presence on the model and let `error_summary` say so after
+the 422.
+
+**Whichever camp the family is in, the caption says so.** `required: true` — at the top
+level, or in `html:` on the families that take one — appends a red asterisk to the
+`<label>`/`<legend>`, hidden from screen readers, plus a visually hidden "required"
+(`bali_view.form_builder.required`) for them. On the dropped families that mark is the
+only thing the option produces; on the rest it is the first, before the browser complains.
+The submit pair renders no caption and takes no mark.
 
 The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
 declares every family in one of the two camps and fails when a new family lands in
@@ -1026,9 +1048,11 @@ suffix is added now, and never doubled if you write it yourself:
 <%# => <input type="file" multiple name="import[documents][]"> %>
 ```
 
-It follows the element, not the call site: `slim_select_group` reads `multiple:` from
-`html:` only, so a top-level one leaves the `<select>` single-valued and the name stays
-bare (#1113).
+It follows the element, not the call site — and the element follows both hashes, `html:`
+first: on `slim_select_group` a top-level `multiple: true` used to be discarded in silence
+(the `<select>` came out single-valued, the name stayed bare), while the same spelling
+worked on `select_group`. Since #1123 it reaches the element either way, and an
+`html: { multiple: false }` is what keeps a select single-valued when both are written.
 
 > Before v3.1 the pair was read by the select families only. Everywhere else it fell
 > through to Rails, which forwards what it does not recognise — the input came out

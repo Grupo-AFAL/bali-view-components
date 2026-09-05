@@ -192,6 +192,9 @@ en:
 
     # Form builder
     form_builder:
+      # Read to screen readers next to the caption of a required field; the asterisk
+      # beside it is aria-hidden (#1125).
+      required: "required"
       date_fields:
         # Placeholder shown when `allow_input: true` and no explicit `alt_format:`
         # is given. Mirrors flatpickr's non-localized "F j, Y" token order (month

@@ -189,6 +189,9 @@ es:
 
     # Form builder
     form_builder:
+      # Read to screen readers next to the caption of a required field; the asterisk
+      # beside it is aria-hidden (#1125).
+      required: "obligatorio"
       date_fields:
         # Coincide con el orden de tokens no localizado de flatpickr ("F j, Y":
         # nombre de mes, día, año) en vez del orden habitual en español, porque
