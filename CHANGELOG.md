@@ -40,6 +40,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   siendo la forma de pedir la unión. Los grupos entre sí siguen combinándose con AND.
   Los previews de Filters con filtros iniciales y el `complete` del DataTable muestran el
   comportamiento; `cypress/e2e/filters-controller.cy.js` fija lo que viaja.
+- **`Alert` y `Tag` en `style: :soft` pintaban el texto del mismo tono que su fondo — y
+  `:outline` y `:dash`, del mismo tono que la página.** daisyUI 5 da a las tres variantes
+  `color: var(--alert-color)`: el acento como texto, sobre un fondo que es ese mismo acento
+  al 8% (soft) o sobre la página desnuda (outline, dash). En un tema claro el acento es claro
+  por diseño —es un color de fondo—, así que el texto quedaba claro sobre claro. Medido en el
+  navegador con el tema `afal`, contraste del texto contra el fondo sobre el que se apoya:
+  soft warning 1.63:1, success 1.83, info 1.99, error 2.55; outline y dash 1.69, 1.92, 2.10,
+  2.75; el mínimo AA es 4.5. Un aviso ámbar con título, párrafo y lista no se leía (#1126).
+  En `Tag` lo mismo, y además `neutral` fallaba al revés en los temas oscuros (soft 1.67 en
+  `afal-dark`, dash 1.26 en el `dark` de daisyUI) — el mismo defecto visto desde el otro lado.
+
+  No se usa el token `*-content`, que era la propuesta: ese token es el texto para el acento
+  **sólido**, así que es oscuro donde el acento es claro —bien en un tema claro, mal en uno
+  oscuro, donde el fondo soft es un tinte del acento sobre un `base-100` oscuro. Medido con
+  el token sin condición: `afal-dark` cae a 1.03–1.12 en los cuatro colores. En su lugar el
+  texto se ancla al par que todo tema garantiza que contrasta —`base-content` sobre
+  `base-100`, que el tinte del 8% apenas mueve— y se tiñe un 40% hacia el acento para que
+  el color siga leyéndose como el color (la proporción de los alerts «subtle» de Bootstrap
+  5.3). Peor caso por tema después del cambio, sobre las tres variantes: afal 5.74 ·
+  costa-norte 6.58 · daisyUI light 7.02 · afal-dark 6.62 · daisyUI dark 4.74; todos pasan
+  AA. El icono del `Alert` y el borde de outline/dash conservan el acento, que es lo que
+  sigue diciendo «warning» de un vistazo (en `Tag` el anillo se restablece desde
+  `--badge-color`, porque daisyUI lo dibuja con `currentColor`).
+
+  Las reglas viven sin capa (`alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`)
+  porque las tres variantes salen de daisyUI en `@layer utilities` y una capa le gana a
+  cualquier especificidad; `cypress/e2e/soft-variant-contrast.cy.js` es la medición,
+  guardada, sobre cuatro temas y las tres variantes. Preview nuevo: **Alert → Tinted
+  styles, with a body**. Un anfitrión que quiera otro color de texto en una de ellas lo
+  pide con una utilidad importante (`!text-warning`), como con toda regla sin capa.
+- **`slim_select_group(:tags, …, multiple: true)` rendía un select de un solo valor.**
+  `multiple:` sólo se leía de `html:`; escrito arriba, junto a `label:`, se descartaba en
+  silencio, mientras que en `select_group` las dos formas funcionan. La causa:
+  `build_html_options` sembraba siempre `multiple: false` en el elemento, y
+  `select_content_tag` de Rails copia el `:multiple` de primer nivel al elemento **sólo si
+  el elemento no trae ya la llave** (#1123). La semilla ahora sale de los dos hashes por la
+  misma regla que ya decidía el sufijo `[]` del nombre —`html:` gana—, así que el elemento y
+  el nombre siguen de acuerdo: `<select multiple name="movie[tags][]">`.
+
+  Medido antes de cambiarlo: en las cinco apps del grupo ningún call site pasa `multiple:`
+  arriba (33 lo pasan en `html:` o en el hash posicional viejo, que ya era el del
+  elemento), así que nada cambia de forma al actualizar. `test_the_suffix_follows_the_element_and_not_the_option`
+  afirmaba el comportamiento viejo y cambia con él.
+- **`file_group(required: true)` dejaba mudo el botón de envío.** La familia esconde el
+  `<input type="file">` nativo (`display: none`) y dibuja un botón en su lugar, pero el
+  `required` llegaba igual al input oculto. El navegador valida un control oculto y no
+  puede enfocarlo, así que `form.reportValidity()` —lo que llama `submit_group(...,
+  drawer: true)` desde #894— devolvía `false`, no anclaba globo en ningún lado y
+  registraba en consola «An invalid form control with name='…' is not focusable». Sin
+  petición, sin mensaje, sin nada (#1125).
+
+  Es el mismo modo de fallo que se cerró para slim-select en #895 y lleva la misma
+  respuesta: el atributo llega a un control sobre el que el navegador puede avisar, o no
+  llega a nada. `file_group`/`file_field` pasan al bando de los que lo descartan en
+  `test/bali/form_builder/required_option_test.rb`; la presencia se valida en el modelo y
+  `error_summary` la cuenta tras el 422.
+
+  Y la marca de obligatorio se expresa donde el usuario sí la ve: **`required: true` pone un
+  asterisco en la etiqueta del `FieldGroupWrapper`, en todas las familias** —arriba, o en
+  `html:` en las que llevan ese hash—, con un «obligatorio» oculto a la vista para el lector
+  de pantalla (`bali_view.form_builder.required`). En las familias que descartan el atributo
+  es lo único que la opción produce; en las demás es la primera señal, antes de que el
+  navegador se queje. Es un cambio visible: cada `required: true` que ya esté escrito en
+  una app pasa a mostrar el asterisco (medido en las apps del grupo: 57 sitios, 55 en
+  afal-apps; ninguna etiqueta lo escribía a mano, así que no se duplica).
+- **El `@source` de `engine.css` no escaneaba `.jsx`: Gantt y BlockEditor perdían sus clases
+  en silencio.** El glob decía `*.{rb,erb,js}`, y los diez archivos `.jsx` de la gema —los de
+  `gantt/` y los de `block_editor/`— escriben clases de Tailwind que ningún otro archivo usa.
+  Un host por la ruta documentada (`@import "../builds/tailwind/bali"`) compilaba sin aviso
+  y se quedaba sin medio centenar de clases: `cursor-col-resize`, `rotate-45`, `inset-y-0`,
+  `h-[21px]`, `decoration-dotted`… Medido con el binario de `tailwindcss-ruby` sobre esta
+  rama: 762 selectores de clase únicos con el glob viejo, 816 con `jsx` —54 ganadas, ninguna
+  perdida. No se había notado porque el `@source` a `node_modules` que el `@import` vino
+  a reemplazar sí los alcanzaba, por la detección automática de Tailwind (#1124).
+
+  El glob pasa a `*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` —las extensiones que aún no existen en
+  el árbol van listadas de antemano, para que la siguiente no reabra el mismo agujero— y
+  `test/bali/tailwind_engine_css_test.rb` barre cada archivo del árbol que pueda llevar una
+  clase y falla con el primero que ningún `@source` alcance. Como el `exports` del
+  `package.json` publica ese mismo archivo, el arreglo cubre a la vez a los hosts que lo
+  importan por npm.
 
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado

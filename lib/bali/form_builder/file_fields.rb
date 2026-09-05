@@ -72,9 +72,17 @@ module Bali
         end
       end
 
+      # `required` is dropped, not forwarded: on this family it is a constraint the user can
+      # never be told about. The native input is `display: none` (INPUT_CLASS) — correct, the
+      # CTA is what the user sees and clicks — and the browser still validates a hidden
+      # control but cannot focus it, so `form.reportValidity()` returns false, anchors no
+      # bubble anywhere and logs "An invalid form control with name='…' is not focusable".
+      # The submit button goes mute: no request, no message (#1125). Same dead end
+      # SlimSelect hit in #895, same answer — the attribute reaches a control the browser
+      # can report on, or it reaches nothing. Presence is the model's to validate.
       def build_file_input_options(options)
         # Override class completely - file input must be hidden (not styled as DaisyUI input)
-        opts = dup_options(options).merge(class: INPUT_CLASS)
+        opts = dup_options(options).except(:required, "required").merge(class: INPUT_CLASS)
         opts = prepend_action(opts, "file-input#onChange")
         prepend_data_attribute(opts, :file_input_target, :input)
       end

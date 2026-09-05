@@ -292,14 +292,26 @@ class BaliFormBuilderInputNameOptionTest < FormBuilderTestCase
     assert_empty kept, "A single-value control was named as an array:\n#{kept.join("\n")}"
   end
 
-  # The suffix follows the element, not the call site. SlimSelect's `<select>` always
-  # carries a `multiple` key of its own, so Rails never copies a top-level
-  # `multiple: true` onto it and the control is not multiple however the option was
-  # written — naming it as an array would be the same silent mis-submission the other
-  # way round.
+  # The suffix follows the element, not the call site. Until #1123 SlimSelect's `<select>`
+  # always carried a `multiple` key of its own, so a top-level `multiple: true` never
+  # reached it and this test pinned a bare name on a single-valued select. The seed now
+  # yields to the top-level option, so the element IS multiple and the name follows it —
+  # the same rule, read off the element, with the element finally saying what the call
+  # site said.
   def test_the_suffix_follows_the_element_and_not_the_option
     html = builder.slim_select_group(:status, [ %w[One 1] ], multiple: true,
                                                              input_name: NEW_NAME)
+    select = Nokogiri::HTML5.fragment(html.to_s).at_css("select")
+
+    assert_equal "multiple", select["multiple"]
+    assert_equal "#{NEW_NAME}[]", select["name"]
+  end
+
+  # And the other way round: the element is what decides, so `html: { multiple: false }`
+  # over a top-level `multiple: true` keeps the name bare.
+  def test_the_suffix_follows_the_element_when_html_says_single
+    html = builder.slim_select_group(:status, [ %w[One 1] ], multiple: true, input_name: NEW_NAME,
+                                                             html: { multiple: false })
     select = Nokogiri::HTML5.fragment(html.to_s).at_css("select")
 
     assert_nil select["multiple"]
