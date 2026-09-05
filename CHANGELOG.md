@@ -247,6 +247,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Symbol o un String, y el mensaje nombra el valor tal como se escribió (`""` ya no aparece
   como `:""`).
 
+### Dependencies
+
+- **Cypress 15.21.1 → 16.0.0** (solo desarrollo). Consolida el PR de dependabot #1133. Lo que
+  Cypress 16 rompe y nos toca: pide Node 22/24/≥26 (CI y la Beelink van en 22), quita
+  `cy.exec()`/`cy.end()` (no se usaban) y retira `experimentalMemoryManagement`, que
+  `cypress.config.cjs` tenía en `true` para evitar los cierres del renderer de Electron;
+  lo reemplaza `manageBrowserMemory`, encendido por omisión, así que la opción sale del
+  archivo y `numTestsKeptInMemory: 0` se queda. Electron queda deprecado como navegador
+  (sigue funcionando; CI corre Chrome).
+- **Lookbook 2.3.14 → 2.3.15** (solo desarrollo; PR de dependabot #1132). Corrige un XSS
+  en los campos de parámetros y opciones de visualización del inspector (upstream #801) y
+  admite Rouge 5.x.
+- **browserslist 4.28.1 → 4.28.9** en el `yarn.lock` de la raíz, transitiva de Babel: cierra
+  la alerta de seguridad de dependabot (rango vulnerable ≤ 4.28.6). Sin cambio en
+  `package.json`; el lock se re-resolvió dentro del rango declarado.
+- **`@tiptap/*` 3.29.2 → 3.31.3** en la app dummy, los doce paquetes en bloque, transitivos
+  de BlockNote 0.53: cierra la alerta de dependabot sobre `@tiptap/core` (< 3.30.4). El
+  rango de peer del paquete (`>=2.0.0`) no cambia.
+
 ## [v3.3.0] - 2026-08-31
 
 ### Added
