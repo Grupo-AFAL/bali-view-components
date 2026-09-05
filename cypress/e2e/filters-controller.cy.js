@@ -53,9 +53,34 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][name_cont]', 'Alien']
       ])
+    })
+
+    // The seed of a fresh group is AND: a second condition narrows the listing. It was
+    // OR, so «brand = WCP» (5 rows) plus «district = I» came back with 23 — the opposite
+    // of what "add a filter" means (#1121). The toggle on the row is how a user asks for
+    // the union, and a group that arrives with `m=or` keeps it (asserted server-side).
+    it('narrows with a second condition rather than widening', () => {
+      cy.visit('/bali/filters/default')
+      openPanel()
+      cy.get(attribute).select('name')
+      cy.get(value).type('Alien')
+      cy.get('[data-action="filter-group#addCondition"]').click()
+      cy.get(attribute).eq(1).select('email')
+      cy.get(value).eq(1).type('ripley')
+      captureSubmission()
+
+      cy.get(applyButton).click()
+
+      filterParams().should('deep.equal', [
+        ['q[g][0][m]', 'and'],
+        ['q[g][0][name_cont]', 'Alien'],
+        ['q[g][0][email_cont]', 'ripley']
+      ])
+      cy.get('[data-filter-group-target="combinatorToggle"] [data-combinator="and"]')
+        .should('have.attr', 'aria-pressed', 'true')
     })
 
     // The inline panel never had a quick search by design, so `popover: false` is the
@@ -69,7 +94,7 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][name_cont]', 'Alien']
       ])
     })
@@ -89,7 +114,7 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][genre_eq]', 'Drama']
       ])
     })
@@ -108,7 +133,7 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][genre_eq]', 'Comedy']
       ])
     })
@@ -141,7 +166,7 @@ describe('FiltersController', () => {
 
       cy.get(applyButton).click()
 
-      filterParams().should('deep.equal', [['q[g][0][m]', 'or']])
+      filterParams().should('deep.equal', [['q[g][0][m]', 'and']])
       cy.get('[data-condition-target="hint"]').should('have.class', 'is-shown')
     })
   })

@@ -26,6 +26,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Filters: agregar una segunda condición a un grupo UNÍA en vez de acotar.** El combinador
+  con que nace un grupo (`q[g][N][m]`) era `or`, clavado en cuatro lugares —el parser, el
+  componente, el grupo y el controlador Stimulus—, así que «marca = WCP» (5 filas) más
+  «distrito = I» devolvía 23. Es lo contrario de lo que alguien espera al «agregar un
+  filtro», y además era lo contrario de lo que la consulta hacía con un grupo que llegaba
+  sin `m`: Ransack lo combina con AND, y el panel pintaba OR encima (#1121).
+
+  El grupo nuevo nace ahora en `and`, escrito una sola vez en
+  `Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR` y leído desde el parser, el
+  panel, la plantilla de «Agregar grupo» y el `reset()` del controlador. Un grupo que ya
+  viene en la URL con `m=or` conserva su elección, y el toggle AND/O de cada fila sigue
+  siendo la forma de pedir la unión. Los grupos entre sí siguen combinándose con AND.
+  Los previews de Filters con filtros iniciales y el `complete` del DataTable muestran el
+  comportamiento; `cypress/e2e/filters-controller.cy.js` fija lo que viaja.
 - **`Alert` y `Tag` en `style: :soft` pintaban el texto del mismo tono que su fondo — y
   `:outline` y `:dash`, del mismo tono que la página.** daisyUI 5 da a las tres variantes
   `color: var(--alert-color)`: el acento como texto, sobre un fondo que es ese mismo acento

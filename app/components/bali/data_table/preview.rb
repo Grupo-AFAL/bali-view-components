@@ -260,6 +260,10 @@ module Bali
       # - Below `sm` the secondary controls fold into the `⋯` menu
       # - Export is not a toolbar control: it lives in the page's `⋯` (`page.with_export`),
       #   which is why it only shows up in `bali/index_page/complete`
+      # - In the filters panel, a second condition added to a group NARROWS the listing:
+      #   «genre = Drama» then «status = released» returns the intersection. The seed was
+      #   OR and the second condition widened the result (#1121); the AND/OR toggle on
+      #   the row is how a user asks for the union
       #
       # `bali/index_page/complete` renders this same body inside a page.
       # @param view select { choices: [table, grid, calendar] }

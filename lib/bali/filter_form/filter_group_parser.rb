@@ -11,6 +11,11 @@ module Bali
     # This module parses these into a component-friendly structure:
     #   [{ combinator: 'or', conditions: [{attribute: 'name', ...}, ...] }]
     #
+    # A group that arrives without `m` (or with one that is not a combinator) is read as
+    # AND — `Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR` — because that is
+    # what Ransack applies to it; the panel used to paint OR over a query that was
+    # already the intersection (#1121).
+    #
     module FilterGroupParser
       # The two values Ransack's `m` accepts. `q[m]` arrives from the URL and from stored
       # payloads (filter cache, saved views), and what lands in @combinator is re-emitted —
@@ -149,7 +154,8 @@ module Bali
         end
 
         {
-          combinator: sanitized_combinator(group_params[:m]) || "or",
+          combinator: sanitized_combinator(group_params[:m]) ||
+            Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR,
           conditions: conditions.presence || [ default_filter_condition ]
         }
       end
