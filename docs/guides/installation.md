@@ -106,7 +106,7 @@ Create `app/assets/tailwind/application.css` (or similar):
 }
 ```
 
-> **Note**: Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript — `modal/index.js` swaps the submit button for `loading loading-spinner loading-sm` while a drawer form is in flight — and the FormBuilder, which lives entirely under `lib/bali/form_builder/`, is the only place that writes the error and state classes: `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`, `toggle-error`, `fieldset-label`, the whole `range-*` family. `engine.css` scans `app/**/*.{rb,erb,js}` and `lib/bali/**/*.rb` for exactly that reason; scanning only `app/` would compile without a warning and silently drop every form error style.
+> **Note**: Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript — `modal/index.js` swaps the submit button for `loading loading-spinner loading-sm` while a drawer form is in flight — and the FormBuilder, which lives entirely under `lib/bali/form_builder/`, is the only place that writes the error and state classes: `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`, `toggle-error`, `fieldset-label`, the whole `range-*` family. `engine.css` scans `app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` and `lib/bali/**/*.rb` for exactly that reason; scanning only `app/` would compile without a warning and silently drop every form error style, and a glob without `jsx` compiled just as quietly while leaving out 54 classes of Gantt and BlockEditor — the React components — which is how v3.2.1 shipped (#1124).
 >
 > `app/assets/builds` is already in the `.gitignore` tailwindcss-rails installs; the generated file is never committed. Do **not** write a `@source` glob at the gem directory yourself (`vendor/bundle/...`, `/usr/local/bundle/...`): the path differs per machine, and a glob that matches nothing does not fail — it silently leaves every Bali class out of the build.
 >
@@ -337,16 +337,20 @@ Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-pr
 
 ```css
 /* Correct - scans the components (app/) AND the FormBuilder (lib/) */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}";
 @source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 
 /* Wrong - misses lib/: every FormBuilder state class (input-error, select-error,
    fieldset-label, the range-* family) is silently absent from the build, so
    invalid fields render with no error border */
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}";
 
 /* Wrong - misses JS-written classes (the drawer submit spinner, for one) */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+
+/* Wrong - misses the React components: Gantt and BlockEditor are .jsx, and
+   every class only they use is silently absent (#1124) */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
 
 /* Wrong - only scans ERB, misses Ruby files where most classes are defined */
 @source "../../../node_modules/bali-view-components/app/components/**/*.erb";
@@ -358,7 +362,7 @@ Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-pr
 
 The Tailwind build isn't scanning Bali component files.
 
-**Fix:** Ensure your CSS has both `@source` globs: `node_modules/bali-view-components/app/**/*.{rb,erb,js}` and `node_modules/bali-view-components/lib/bali/**/*.rb`.
+**Fix:** Ensure your CSS has both `@source` globs: `node_modules/bali-view-components/app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` and `node_modules/bali-view-components/lib/bali/**/*.rb`.
 
 ### "Unknown Stimulus controller"
 
