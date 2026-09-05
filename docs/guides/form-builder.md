@@ -425,7 +425,7 @@ Enhanced select with search, multi-select, and AJAX support.
 <%= f.slim_select_group :category, Category.all.map { |c| [c.name, c.id] } %>
 
 <%# Multi-select %>
-<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, html: { multiple: true } %>
+<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, multiple: true %>
 
 <%# With search %>
 <%= f.slim_select_group :user, [], show_search: true, ajax_url: search_users_path, ajax_param_name: 'q' %>
@@ -1048,9 +1048,11 @@ suffix is added now, and never doubled if you write it yourself:
 <%# => <input type="file" multiple name="import[documents][]"> %>
 ```
 
-It follows the element, not the call site: `slim_select_group` reads `multiple:` from
-`html:` only, so a top-level one leaves the `<select>` single-valued and the name stays
-bare (#1113).
+It follows the element, not the call site — and the element follows both hashes, `html:`
+first: on `slim_select_group` a top-level `multiple: true` used to be discarded in silence
+(the `<select>` came out single-valued, the name stayed bare), while the same spelling
+worked on `select_group`. Since #1123 it reaches the element either way, and an
+`html: { multiple: false }` is what keeps a select single-valued when both are written.
 
 > Before v3.1 the pair was read by the select families only. Everywhere else it fell
 > through to Rails, which forwards what it does not recognise — the input came out

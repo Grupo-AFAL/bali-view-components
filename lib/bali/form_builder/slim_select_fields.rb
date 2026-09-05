@@ -43,7 +43,7 @@ module Bali
 
       def slim_select_field(method, values, *legacy, html: {}, **options)
         options, html_options = legacy_option_hashes(:slim_select_field, legacy, html, options)
-        merged_html = apply_input_name_options(options, build_html_options(html_options))
+        merged_html = apply_input_name_options(options, build_html_options(html_options, options))
         merged_options = drop_unenforceable_required(build_options(options), merged_html)
         # `merged_html` carries the real HTML attributes — the Stimulus target
         # among them — so it stays untouched. The caption keys travel separately.
@@ -138,11 +138,21 @@ module Bali
         )
       end
 
-      def build_html_options(html_options)
+      # The `multiple` key is always seeded on the element so the widget can read it — but
+      # seeded from BOTH hashes, not as a flat `false`. Rails' `select_content_tag` copies a
+      # top-level `:multiple` onto the element only when the element does not already carry
+      # the key, so the old `multiple: false` blocked that copy every time: written next to
+      # `label:`, `multiple: true` was discarded in silence and the select came out
+      # single-valued, while the same spelling works on `select_group` (#1123). `html:` is
+      # the more specific hash and still wins when both are written — the precedence
+      # `multiple_control?` already applies when it decides the `[]` suffix, so the name
+      # and the element keep agreeing.
+      def build_html_options(html_options, options = {})
         default_data = { slim_select_target: "select" }
         user_data = html_options[:data] || {}
+        multiple = multiple_control?(options, html_options) ? true : false
 
-        { multiple: false, data: default_data.merge(user_data) }.merge(html_options.except(:data))
+        { multiple: multiple, data: default_data.merge(user_data) }.merge(html_options.except(:data))
       end
 
       def build_wrapper(method, options, html_options, select_class, variant = nil, &)
