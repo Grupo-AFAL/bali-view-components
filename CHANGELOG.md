@@ -48,6 +48,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   navegador se queje. Es un cambio visible: cada `required: true` que ya esté escrito en
   una app pasa a mostrar el asterisco (medido en las apps del grupo: 57 sitios, 55 en
   afal-apps; ninguna etiqueta lo escribía a mano, así que no se duplica).
+- **El `@source` de `engine.css` no escaneaba `.jsx`: Gantt y BlockEditor perdían sus clases
+  en silencio.** El glob decía `*.{rb,erb,js}`, y los diez archivos `.jsx` de la gema —los de
+  `gantt/` y los de `block_editor/`— escriben clases de Tailwind que ningún otro archivo usa.
+  Un host por la ruta documentada (`@import "../builds/tailwind/bali"`) compilaba sin aviso
+  y se quedaba sin medio centenar de clases: `cursor-col-resize`, `rotate-45`, `inset-y-0`,
+  `h-[21px]`, `decoration-dotted`… Medido con el binario de `tailwindcss-ruby` sobre esta
+  rama: 762 selectores de clase únicos con el glob viejo, 816 con `jsx` —54 ganadas, ninguna
+  perdida. No se había notado porque el `@source` a `node_modules` que el `@import` vino
+  a reemplazar sí los alcanzaba, por la detección automática de Tailwind (#1124).
+
+  El glob pasa a `*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` —las extensiones que aún no existen en
+  el árbol van listadas de antemano, para que la siguiente no reabra el mismo agujero— y
+  `test/bali/tailwind_engine_css_test.rb` barre cada archivo del árbol que pueda llevar una
+  clase y falla con el primero que ningún `@source` alcance. Como el `exports` del
+  `package.json` publica ese mismo archivo, el arreglo cubre a la vez a los hosts que lo
+  importan por npm.
 
 - **La pista del atajo del `Command` decía `⌘K` también en Windows.** El disparador lo
   renderiza el servidor, así que la misma cadena le llegaba a todo el mundo, y en un teclado
