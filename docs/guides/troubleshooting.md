@@ -235,7 +235,7 @@ Or set as default:
 
 ```ruby
 # config/initializers/bali.rb
-ActionView::Base.default_form_builder = Bali::FormBuilder
+Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"
 ```
 
 ---
