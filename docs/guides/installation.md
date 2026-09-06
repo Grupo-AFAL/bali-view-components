@@ -220,8 +220,11 @@ To use Bali's enhanced form helpers, configure it as the default form builder:
 ```ruby
 # config/initializers/bali.rb
 
-# Set as default form builder globally
-ActionView::Base.default_form_builder = Bali::FormBuilder
+# Set as default form builder globally. Use the config key, not
+# `ActionView::Base.default_form_builder = ...`: touching ActionView::Base from an
+# initializer fires every `on_load(:action_view)` hook before the autoloader is
+# ready, which breaks engines that include helpers there (bali-analytics does).
+Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"
 
 # Or configure per-form
 # <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>

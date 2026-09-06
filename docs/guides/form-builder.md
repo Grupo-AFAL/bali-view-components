@@ -19,8 +19,14 @@ Bali extends Rails' `ActionView::Helpers::FormBuilder` with DaisyUI-styled form 
 
 ```ruby
 # config/initializers/bali.rb
-ActionView::Base.default_form_builder = Bali::FormBuilder
+Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"
 ```
+
+Use the config key rather than assigning `ActionView::Base.default_form_builder` directly:
+referencing `ActionView::Base` from an initializer fires every `on_load(:action_view)` hook
+before the autoloader is set up, which breaks engines that include autoloaded helpers there
+(bali-analytics does). Rails applies the config key in its own hook, and the String is
+constantized on first use.
 
 Or use per-form:
 

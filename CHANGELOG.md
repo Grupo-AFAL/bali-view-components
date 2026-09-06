@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Las guías recomendaban `ActionView::Base.default_form_builder = Bali::FormBuilder` en un
+  initializer, y esa línea rompe el boot de una app que monte bali-analytics.** Referenciar
+  `ActionView::Base` durante `load_config_initializers` dispara los hooks `on_load(:action_view)`
+  antes de que exista el autoloader, y el `include BaliAnalytics::BeaconHelper` del engine muere con
+  `uninitialized constant`. Instalación, FormBuilder y solución de problemas pasan a
+  `Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"`: la clave que
+  documenta Rails, aplicada por su railtie en su propio hook y sin constantizar nada temprano.
+  Encontrado al poner el builder por omisión en las seis apps del grupo.
+
 ## [v3.3.0] - 2026-09-05
 
 ### Added
