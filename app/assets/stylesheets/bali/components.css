@@ -39,6 +39,9 @@
 @import "../../../components/bali/toast_container/index.css" layer(components);
 @import "../../../components/bali/feedback_widget/index.css" layer(components);
 
+/* Deferred loading */
+@import "../../../components/bali/frame/index.css" layer(components);
+
 /* Unlayered on purpose. Order of the first three is the pre-v3 order of those
    sheets, so their mutual cascade is unchanged. The two `daisyui-overrides` below
    them, and the toast sheet, share no selector with anything here. */

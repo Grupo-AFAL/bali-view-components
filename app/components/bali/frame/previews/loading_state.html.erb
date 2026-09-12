@@ -1,0 +1,12 @@
+<%# Estado [busy] forzado a mano para ver el placeholder sin un backend que
+    responda el src. En vivo, Turbo pone y quita [busy] solo. %>
+<div class="frame-loader">
+  <div class="frame-loading">
+    <div class="flex items-center justify-center gap-2 py-6 text-sm text-base-content/60">
+      <span class="loading loading-spinner loading-sm"></span> Cargando…
+    </div>
+  </div>
+  <turbo-frame id="frame-preview-busy" busy>
+    <div class="p-4">Este contenido queda oculto mientras el frame está [busy].</div>
+  </turbo-frame>
+</div>

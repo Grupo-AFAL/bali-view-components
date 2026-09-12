@@ -1,0 +1,8 @@
+<%= tag.div(**wrapper_attributes) do %>
+  <div class="frame-loading">
+    <%= loading? ? loading : default_loading %>
+  </div>
+  <%= tag.turbo_frame(**frame_attributes) do %>
+    <%= content.presence || (loading? ? loading : default_loading) %>
+  <% end %>
+<% end %>

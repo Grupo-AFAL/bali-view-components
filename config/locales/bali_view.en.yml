@@ -332,6 +332,8 @@ en:
       clear_image: Clear image
     loader:
       loading: Loading...
+    frame:
+      loading: Loading...
     turbo_native_app:
       sign_out:
         name: Sign out
