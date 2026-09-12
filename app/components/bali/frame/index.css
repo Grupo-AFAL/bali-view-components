@@ -1,0 +1,21 @@
+/* Bali::Frame — carga diferida de `<turbo-frame>` con swap a un placeholder.
+ *
+ * Turbo marca el frame con [busy] durante CUALQUIER carga: la diferida inicial
+ * (loading: :lazy con src) y cada recarga dirigida al frame (un link con
+ * data-turbo-frame, un botón de "Refrescar"). Mientras está [busy] mostramos la
+ * card hermana .frame-loading y ocultamos el frame, así el contenido se
+ * reemplaza por el indicador de carga y vuelve al terminar. Puro CSS, sin JS —
+ * :has() sobre el atributo [busy] que Turbo ya maneja, sin costura que abortar
+ * ni re-disparar.
+ */
+.frame-loading {
+  display: none;
+}
+
+.frame-loader:has(turbo-frame[busy]) .frame-loading {
+  display: block;
+}
+
+.frame-loader:has(turbo-frame[busy]) turbo-frame {
+  display: none;
+}
