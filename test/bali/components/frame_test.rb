@@ -53,6 +53,14 @@ class BaliFrameComponentTest < ComponentTestCase
     assert_no_selector("div.frame-loading span.loading", visible: :all)
   end
 
+  def test_deferred_frame_with_loading_slot_shows_it_in_the_sibling_and_the_frame
+    render_inline(Bali::Frame::Component.new(id: "report", src: "/r", loading: :lazy)) do |frame|
+      frame.with_loading { "skeleton a medida" }
+    end
+    assert_selector("div.frame-loading", text: "skeleton a medida", visible: :all)
+    assert_selector("turbo-frame#report", text: "skeleton a medida", visible: :all)
+  end
+
   def test_options_passthrough_accepts_custom_classes_on_wrapper
     render_inline(Bali::Frame::Component.new(id: "report", class: "my-frame"))
     assert_selector("div.frame-loader.my-frame")
