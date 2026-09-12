@@ -112,18 +112,21 @@ class BaliTooltipComponentTest < ComponentTestCase
     assert_selector('#tooltip-1[role="tooltip"]')
   end
 
-  def test_append_to_defaults_to_parent
+  # #992: the composition the library promotes (AppLayout with viewport lock)
+  # gives `<main>` an `overflow-y: auto` that clipped every in-place balloon, so
+  # `:body` is the default and `:parent` the opt-in.
+  def test_append_to_defaults_to_body
     render_inline(Bali::Tooltip::Component.new) do |c|
       c.with_trigger { c.tag.span "Hover" }
     end
-    assert_selector('[data-tooltip-append-to-value="parent"]')
+    assert_selector('[data-tooltip-append-to-value="body"]')
   end
 
-  def test_append_to_body_sets_body_value
-    render_inline(Bali::Tooltip::Component.new(append_to: :body)) do |c|
+  def test_append_to_parent_keeps_the_balloon_in_place
+    render_inline(Bali::Tooltip::Component.new(append_to: :parent)) do |c|
       c.with_trigger { c.tag.span "Hover" }
     end
-    assert_selector('[data-tooltip-append-to-value="body"]')
+    assert_selector('[data-tooltip-append-to-value="parent"]')
   end
 
   def test_append_to_accepts_css_selector_string

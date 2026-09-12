@@ -1,0 +1,15 @@
+<div class="grid gap-8 md:grid-cols-2">
+  <div>
+    <h3 class="font-semibold mb-2">No <code>size:</code></h3>
+    <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+      <%= render 'bali/form/sizes/previews/fields', form: form, size: nil %>
+    <% end %>
+  </div>
+
+  <div>
+    <h3 class="font-semibold mb-2"><code>size: :sm</code></h3>
+    <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+      <%= render 'bali/form/sizes/previews/fields', form: form, size: :sm %>
+    <% end %>
+  </div>
+</div>

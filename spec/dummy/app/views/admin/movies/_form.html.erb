@@ -61,12 +61,14 @@
     <%# Block Editor - Rich Description with JSON round-trip.
         Por el FormBuilder y no por el componente: `block_editor_group` arma el `<legend>`, el
         `input_name` y el valor inicial desde el modelo. La etiqueta escrita a mano que estaba
-        acá era el único control del formulario de referencia sin su grupo. %>
+        acá era el único control del formulario de referencia sin su grupo.
+        `size: :sm` viaja del helper al componente — la vía que #1076 destapó. %>
     <div class="mt-4">
       <%= f.block_editor_group :rich_description,
             label: t('movies.form.rich_description'),
             format: :json,
             editable: true,
+            size: :sm,
             placeholder: t('movies.form.enter_rich_description') %>
     </div>
 

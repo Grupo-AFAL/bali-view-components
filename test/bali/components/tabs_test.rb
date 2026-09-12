@@ -280,4 +280,151 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector('[role="tablist"]')
     assert_no_selector("nav")
   end
+
+  def test_count_renders_a_badge_after_the_title
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Inbox", active: true, count: 12) { "Content" }
+    end
+
+    assert_selector("a.tab span.badge", text: "12")
+    # The count is information, not decoration: it stays in the accessible name.
+    assert_selector("a.tab", text: /Inbox\s+12/)
+  end
+
+  def test_count_of_zero_still_renders
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Done", active: true, count: 0) { "Content" }
+    end
+
+    assert_selector("a.tab span.badge", text: "0")
+  end
+
+  def test_count_accepts_a_string
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Inbox", active: true, count: "99+") { "Content" }
+    end
+
+    assert_selector("a.tab span.badge", text: "99+")
+  end
+
+  def test_without_count_there_is_no_badge
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", active: true) { "Content" }
+    end
+
+    assert_no_selector("a.tab .badge")
+  end
+
+  def test_count_renders_in_navigation_mode
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Mine", href: "/mine", count: 3)
+      c.with_tab(title: "Team", href: "/team", count: 12)
+    end
+
+    assert_selector('nav a[href="/mine"] span.badge', text: "3")
+    assert_selector('nav a[href="/team"] span.badge', text: "12")
+  end
+
+  # A count is sometimes an alarm, not just an amount: "3 blocking questions"
+  # should not look like "3 items". `count_color:` takes the same semantic
+  # table every other `color:` does (#1064).
+  def test_count_color_paints_the_badge
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Discovery", active: true, count: 3, count_color: :warning) { "Content" }
+    end
+
+    assert_selector("a.tab span.badge.badge-warning", text: "3")
+  end
+
+  def test_count_color_paints_the_badge_in_navigation_mode
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Mine", href: "/mine", count: 3, count_color: :error)
+    end
+
+    assert_selector('nav a[href="/mine"] span.badge.badge-error', text: "3")
+  end
+
+  def test_without_count_color_the_badge_stays_neutral
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Inbox", active: true, count: 12) { "Content" }
+    end
+
+    badge = page.find("a.tab span.badge")
+    assert_equal("badge badge-sm ml-1", badge[:class])
+  end
+
+  def test_count_color_rejects_an_unknown_name
+    error = assert_raises(ArgumentError) do
+      Bali::Tabs::Tab::Component.new(title: "Inbox", count: 3, count_color: :danger)
+    end
+    assert_match(/count_color/, error.message)
+  end
+
+  # `Bali::Color.name!` validates against NAMES while the badge class is a bare
+  # COUNT_COLORS lookup, and `class_names` drops a nil silently — so a name
+  # added to NAMES without a matching entry here would validate and then render
+  # neutral. Same guard Timeline keeps on its COLORS maps.
+  def test_count_color_covers_every_bali_color_name
+    assert(Bali::Tabs::Tab::Component::COUNT_COLORS.frozen?)
+    assert_equal(Bali::Color::NAMES, Bali::Tabs::Tab::Component::COUNT_COLORS.keys)
+
+    Bali::Color::NAMES.each do |name|
+      render_inline(Bali::Tabs::Component.new) do |c|
+        c.with_tab(title: "Tab", active: true, count: 1, count_color: name) { "Content" }
+      end
+      assert_selector("a.tab span.badge.badge-#{name}", text: "1")
+    end
+  end
+
+  # In navigation mode there is no panel div for the tab options to land on,
+  # so they used to vanish. They belong to the `<a>`.
+  def test_navigation_mode_passes_tab_options_to_the_link
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one", class: "custom-tab", data: { bali_test: "tab-link" })
+    end
+
+    assert_selector('nav a.tab.custom-tab[href="/one"][data-bali-test="tab-link"]')
+  end
+
+  def test_navigation_mode_link_does_not_inherit_the_hidden_panel_class
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab 1", href: "/one")
+      c.with_tab(title: "Tab 2", href: "/two")
+    end
+
+    assert_no_selector("nav a.hidden", visible: :all)
+  end
+
+  def test_navigation_mode_emits_turbo_action_advance_by_default
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one")
+    end
+
+    assert_selector('nav a[href="/one"][data-turbo-action="advance"]')
+  end
+
+  def test_navigation_mode_turbo_action_false_omits_the_attribute
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one", turbo_action: false)
+    end
+
+    assert_selector('nav a[href="/one"]')
+    assert_no_selector("nav a[data-turbo-action]")
+  end
+
+  def test_navigation_mode_passes_a_custom_turbo_action_through
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one", turbo_action: :replace)
+    end
+
+    assert_selector('nav a[href="/one"][data-turbo-action="replace"]')
+  end
+
+  def test_panel_mode_does_not_emit_turbo_action
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", active: true) { "Content" }
+    end
+
+    assert_no_selector("a.tab[data-turbo-action]")
+  end
 end

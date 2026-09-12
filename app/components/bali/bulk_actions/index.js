@@ -14,11 +14,19 @@ export class BulkActionsController extends Controller {
     'selectedLabelOne',
     'selectedLabelOther',
     'selectAll',
-    'toolbar'
+    'toolbar',
+    'selectAllOffer',
+    'selectAllNotice',
+    'selectAllFilteredField'
   ]
 
   static values = {
-    selectedIds: { type: Array, default: [] }
+    selectedIds: { type: Array, default: [] },
+    // Estado de runtime, no del servidor: arranca apagado siempre. El N sí viene del
+    // servidor, pero en un data attribute del propio nodo de la oferta y no como value,
+    // porque dentro de un DataTable el controlador vive en el contenedor de la tabla —
+    // un value tendría que emitirse desde dos componentes distintos y podrían discrepar.
+    selectAllFiltered: { type: Boolean, default: false }
   }
 
   connect () {
@@ -57,8 +65,14 @@ export class BulkActionsController extends Controller {
     if (item) this.toggle(item)
   }
 
+  // Un `selectAll` que lleva `data-bulk-actions-group` solo alcanza a las filas que declaran
+  // ese id; sin el atributo alcanza a todas, que es el seleccionar-todo de siempre. Así N
+  // listados caben bajo UN controlador —un solo contador, una sola barra— sin instancias
+  // anidadas, que Stimulus repartiría por ancestro más cercano dejando la barra sin filas.
   toggleAll = (event) => {
-    this.selectableItems.forEach(item => this.setSelected(item, event.target.checked))
+    const items = this.itemsInGroup(event.target.dataset.bulkActionsGroup)
+
+    items.forEach(item => this.setSelected(item, event.target.checked))
     this.syncSelectedIds()
   }
 
@@ -97,12 +111,27 @@ export class BulkActionsController extends Controller {
     if (checkbox) checkbox.checked = selected
   }
 
+  // Sale del modo "todos los filtrados" en cuanto la selección deja de cubrir la página
+  // entera — patrón Gmail: des-checkear una fila te devuelve a la selección por página en
+  // vez de encerrarte en un estado del que solo se sale por el ✕. Por eso los checkboxes
+  // NO se deshabilitan durante el modo.
+  selectAllFiltered = () => {
+    if (this.totalCount <= 0) return
+
+    this.selectAllFilteredValue = true
+    this.update()
+  }
+
   // Derivado, nunca incremental: seleccionar-todo y limpiar mueven muchas filas de una
   // y un contador incremental se llenaría de duplicados o de ids fantasma.
   syncSelectedIds = () => {
     this.selectedIdsValue = this.selectableItems
       .filter(item => item.classList.contains(SELECTED_CLASS))
       .map(item => toInt(item.dataset.recordId))
+
+    if (this.selectAllFilteredValue && !this.pageFullySelected) {
+      this.selectAllFilteredValue = false
+    }
 
     this.update()
   }
@@ -111,32 +140,111 @@ export class BulkActionsController extends Controller {
     return this.itemTargets.filter(item => item.dataset.recordId)
   }
 
+  // Los ids de grupo de una fila son una LISTA separada por espacios, como las clases: una
+  // fila puede estar a la vez en el grupo de su tabla y en el de su sub-encabezado, y cada
+  // seleccionar-todo ve el suyo. Sin grupo, el universo es la selección entera.
+  itemsInGroup = (group) => {
+    if (!group) return this.selectableItems
+
+    return this.selectableItems.filter(item => this.groupsOf(item).includes(group))
+  }
+
+  groupsOf = (item) => (item.dataset.bulkActionsGroup || '').split(/\s+/).filter(Boolean)
+
+  get pageFullySelected () {
+    const total = this.selectableItems.length
+
+    return total > 0 && this.selectedIdsValue.length === total
+  }
+
+  // Cuántos registros tiene el resultado filtrado completo. El servidor lo pinta en el nodo
+  // de la oferta; sin oferta no hay modo y el modo no puede encenderse.
+  get totalCount () {
+    if (!this.hasSelectAllOfferTarget) return 0
+
+    return toInt(this.selectAllOfferTarget.dataset.totalCount)
+  }
+
+  // Lo que la barra REPRESENTA: N en modo "todos los filtrados", los ids marcados si no.
+  get selectionCount () {
+    return this.selectAllFilteredValue ? this.totalCount : this.selectedIdsValue.length
+  }
+
   update = () => {
     this.updateBulkActionsSelectedIds()
+    this.updateSelectAllFilteredFields()
     this.updateActionsContainer()
     this.updateSelectedCount()
     this.updateSelectAll()
+    this.updateSelectAllFilteredBar()
     this.updateToolbar()
     this.announceSelection()
+    this.notifySelectionChange()
   }
 
+  // Un evento, y emitido acá y no al final de `syncSelectedIds`, porque `update` es el único
+  // punto por el que pasan TODOS los caminos —incluido `selectAllFiltered`, que no toca ids—.
+  // Un consumidor que se enganche al `change` de cada casilla se pierde los que escriben
+  // `checkbox.checked` por asignación (doble clic, el ✕, "todos los filtrados"): asignar la
+  // propiedad no dispara el evento nativo. Con este, el consumidor se declara en el HTML:
+  //
+  //   data-action="bulk-actions:change@window->mi-controlador#sync"
+  notifySelectionChange = () => {
+    this.dispatch('change', {
+      detail: {
+        selectedIds: this.selectedIdsValue,
+        selectAllFiltered: this.selectAllFilteredValue,
+        count: this.selectionCount
+      }
+    })
+  }
+
+  // En modo "todos los filtrados" los ids se vacían a propósito: el servidor re-deriva el
+  // scope de los `q[...]` que viajan en el mismo POST, así que una lista de ids de la página
+  // visible solo podría contradecirlo.
   updateBulkActionsSelectedIds = () => {
+    const ids = JSON.stringify(this.selectAllFilteredValue ? [] : this.selectedIdsValue)
+
     this.bulkActionTargets.forEach(action => {
       if (action.tagName.toLowerCase() === 'a') {
         const url = new URL(action.href)
-        url.searchParams.set('selected_ids', JSON.stringify(this.selectedIdsValue))
+        url.searchParams.set('selected_ids', ids)
+        if (this.hasSelectAllOfferTarget) {
+          url.searchParams.set('select_all_filtered', String(this.selectAllFilteredValue))
+        }
 
         action.href = url.href
       } else {
-        action.value = JSON.stringify(this.selectedIdsValue)
+        action.value = ids
       }
     })
+  }
+
+  updateSelectAllFilteredFields = () => {
+    this.selectAllFilteredFieldTargets.forEach(field => {
+      field.value = String(this.selectAllFilteredValue)
+    })
+  }
+
+  // La oferta solo tiene sentido cuando la página está entera y hay más resultados detrás;
+  // el aviso la reemplaza mientras el modo está encendido.
+  updateSelectAllFilteredBar = () => {
+    if (!this.hasSelectAllOfferTarget) return
+
+    const offered = !this.selectAllFilteredValue && this.pageFullySelected &&
+      this.totalCount > this.selectableItems.length
+
+    this.selectAllOfferTarget.classList.toggle('hidden', !offered)
+
+    if (this.hasSelectAllNoticeTarget) {
+      this.selectAllNoticeTarget.classList.toggle('hidden', !this.selectAllFilteredValue)
+    }
   }
 
   updateActionsContainer = () => {
     if (!this.hasActionsContainerTarget) return
 
-    if (this.selectedIdsValue.length > 0) {
+    if (this.selectionCount > 0) {
       this.actionsContainerTarget.classList.remove('hidden')
     } else {
       this.actionsContainerTarget.classList.add('hidden')
@@ -145,26 +253,29 @@ export class BulkActionsController extends Controller {
 
   updateSelectedCount = () => {
     if (this.hasSelectedCountTarget) {
-      this.selectedCountTarget.innerText = this.selectedIdsValue.length
+      this.selectedCountTarget.innerText = this.selectionCount
     }
 
     if (!this.hasSelectedLabelOneTarget || !this.hasSelectedLabelOtherTarget) return
 
     // El plural lo sirve el servidor en dos nodos: acá solo se elige cuál se ve, así no
     // hay que interpolar i18n en JS.
-    const one = this.selectedIdsValue.length === 1
+    const one = this.selectionCount === 1
     this.selectedLabelOneTarget.classList.toggle('hidden', !one)
     this.selectedLabelOtherTarget.classList.toggle('hidden', one)
   }
 
+  // Todos los seleccionar-todo, cada uno contra SU universo: el de la cabecera de la tabla
+  // contra sus filas, el del encabezado de un grupo contra las de ese grupo. Se cuenta sobre
+  // la clase y no sobre `selectedIdsValue`, que es la selección entera y no sabe de grupos.
   updateSelectAll = () => {
-    if (!this.hasSelectAllTarget) return
+    this.selectAllTargets.forEach(checkbox => {
+      const items = this.itemsInGroup(checkbox.dataset.bulkActionsGroup)
+      const selected = items.filter(item => item.classList.contains(SELECTED_CLASS)).length
 
-    const total = this.selectableItems.length
-    const selected = this.selectedIdsValue.length
-
-    this.selectAllTarget.checked = total > 0 && selected === total
-    this.selectAllTarget.indeterminate = selected > 0 && selected < total
+      checkbox.checked = items.length > 0 && selected === items.length
+      checkbox.indeterminate = selected > 0 && selected < items.length
+    })
   }
 
   // El cambio de selección no mueve el foco, así que sin anunciarlo el usuario de lector de
@@ -172,9 +283,18 @@ export class BulkActionsController extends Controller {
   announceSelection = () => {
     if (!this.hasAnnouncementTarget) return
 
-    const count = this.selectedIdsValue.length
+    const count = this.selectionCount
     if (count === 0) {
       this.announcementTarget.textContent = ''
+      return
+    }
+
+    // Entrar al modo "todos los filtrados" es un cambio de MODO, no un conteo más. Anunciando
+    // solo el número, el lector de pantalla pasaba de "5 seleccionados" a "1248 seleccionados"
+    // sin nada que dijera que la selección ya no es la página que se está mirando. La frase
+    // completa la sirve el servidor en el aviso, así que se reusa en vez de armarla en JS.
+    if (this.selectAllFilteredValue && this.hasSelectAllNoticeTarget) {
+      this.announcementTarget.textContent = this.selectAllNoticeTarget.textContent.trim()
       return
     }
 
@@ -186,6 +306,6 @@ export class BulkActionsController extends Controller {
   updateToolbar = () => {
     if (!this.hasToolbarTarget) return
 
-    this.toolbarTarget.classList.toggle('hidden', this.selectedIdsValue.length > 0)
+    this.toolbarTarget.classList.toggle('hidden', this.selectionCount > 0)
   }
 }

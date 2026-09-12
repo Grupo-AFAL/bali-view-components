@@ -1,0 +1,36 @@
+<div class="max-w-2xl space-y-4 p-4">
+  <%= render Bali::Alert::Component.new(color: :info, style: :soft, icon: true) do %>
+    A pattern, not a component: the form below belongs to the host application.
+    It posts nowhere in this preview — what is worth trying is the client-side
+    half. Reject with the notes empty and the browser stops you; Approve with
+    them empty goes through.
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+    <% card.with_title('Purchase request #4821') %>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
+      <% c.with_step(title: 'Submitted', state: :success, date: 'Jul 1') %>
+      <% c.with_step(title: 'Area manager', state: :success, date: 'Jul 2') %>
+      <% c.with_step(title: 'Legal review', state: :current, assignee: 'Carmen Ríos') %>
+      <% c.with_step(title: 'Director signature', state: :pending) %>
+    <% end %>
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+    <% card.with_title('Your decision') %>
+    <%# One form, two submits told apart by name/value: the controller reads
+        params[:decision] and the notes are typed once whichever way it goes.
+        `required` demands a reason to reject; `formnovalidate` lets Approve
+        skip it. %>
+    <%= form_with url: '/lookbook', method: :post, builder: Bali::FormBuilder do |f| %>
+      <%= f.text_area_group :notes, label: 'Notes for the record', rows: 3, required: true %>
+      <div class="flex flex-wrap gap-2">
+        <%= f.submit_field 'Approve', variant: :success,
+              name: 'decision', value: 'approve', formnovalidate: true %>
+        <%= f.submit_field 'Reject', variant: :error, style: :outline,
+              name: 'decision', value: 'reject',
+              data: { turbo_confirm: 'Reject this request? The route ends here.' } %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

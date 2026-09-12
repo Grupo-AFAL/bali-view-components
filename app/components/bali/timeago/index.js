@@ -48,7 +48,9 @@ export class TimeagoController extends Controller {
   }
 
   update () {
-    this.element.innerHTML = this.isValid
+    // Both branches are plain text (date-fns output, or the raw value echoed back on the
+    // invalid path). textContent, not innerHTML: the raw value can be host/user data.
+    this.element.textContent = this.isValid
       ? formatDistanceToNow(this.date, this.options)
       : this.datetimeValue
   }

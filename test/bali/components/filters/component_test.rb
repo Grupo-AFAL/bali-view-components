@@ -52,6 +52,22 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector('[data-filters-target="addGroupButton"]')
   end
 
+  # The seed of a group nobody has touched yet: the live group's hidden `q[g][0][m]` and
+  # the `<template>` the Stimulus controller clones for "Add group". Both used to be OR,
+  # so adding a second condition widened the listing instead of narrowing it (#1121).
+  # Ransack ANDs a group with no `m`, so AND is also what the panel would have applied
+  # had the field not travelled at all.
+  def test_a_fresh_panel_seeds_its_groups_with_and
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes
+    ))
+
+    assert_selector "input[name='q[g][0][m]'][value='and']", visible: :all
+    # `rendered_content`, not `page`: the `<template>` for "Add group" is inert to CSS.
+    seeds = rendered_content.scan(/data-filter-group-combinator-value="(\w+)"/).flatten
+    assert_equal %w[and and], seeds, "the live group and the group template must both seed AND"
+  end
+
   def test_with_initial_filter_groups_renders_pre_populated_conditions
     filter_groups = [
       {

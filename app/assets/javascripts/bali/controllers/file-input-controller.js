@@ -1,7 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
 
-// TODO: Add tests (Issue: #156)
-
 /**
  * File Input Controller
  * Displays the selected filename in the correct place.

@@ -1,0 +1,236 @@
+/* SplitView Component
+ *
+ * Three things live here rather than as utilities on the template:
+ *
+ *   1. The grid tracks. The master width is a runtime value, so
+ *      `lg:grid-cols-[420px_1fr]` cannot work — Tailwind only emits arbitrary
+ *      values it can read in the source at build time. The component writes
+ *      `--bali-split-master-width` into a style attribute and this rule reads it.
+ *   2. The scroll helper. `--bali-split-master-max-h` is the knob a host turns
+ *      when its own chrome is taller or shorter than the default assumption.
+ *   3. The row highlight, keyed on `aria-current`. The Stimulus controller only
+ *      moves the attribute; the look follows from here, so the selected style
+ *      cannot fall out of the Tailwind build the way a class list toggled from
+ *      JavaScript can.
+ *
+ * `@layer components` on purpose: a host utility on the container (`gap-6`,
+ * `lg:items-stretch`) beats everything below, which is the point.
+ */
+
+.split-view-component {
+  @apply grid grid-cols-1 gap-4 items-start;
+}
+
+/* `lg` — the breakpoint gc's inbox splits at, and the one the stacked mobile
+   behaviour is documented against. */
+@media (width >= 64rem) {
+  .split-view-component {
+    grid-template-columns: var(--bali-split-master-width, 420px) 1fr;
+  }
+}
+
+/* Opt-in, applied by the host to whatever part of the master should scroll —
+   usually the list alone, so tabs above it and pagination below it stay put.
+   The component cannot place this itself without dictating the master's
+   anatomy. */
+.split-view-scroll {
+  overflow-y: auto;
+  max-height: var(--bali-split-master-max-h, calc(100vh - 20rem));
+}
+
+/* ── Row states ───────────────────────────────────────────────────────────
+   The selection bar is an INSET BOX-SHADOW and not a left border, measured:
+   a row separator is written `border-b border-base-200/70`, and Tailwind's
+   `border-<color>` utility sets the colour of all four sides, not just the one
+   the `border-b` drew. That utility lives in Tailwind's utilities layer, which
+   beats `@layer components` outright — so a `border-l-primary` here rendered
+   base-200 on the selected row and the highlight was invisible. box-shadow is
+   a property no border utility claims, it paints inside the padding box so it
+   needs no transparent border reserved for it, and the selection therefore
+   moves between rows without shifting any text.
+
+   The tint is still a background, which a host CAN override with a utility of
+   its own — that one is deliberate: a row with its own background is a host
+   saying so. */
+.split-view-row {
+  @apply block transition-[background-color,box-shadow];
+}
+
+.split-view-row:hover {
+  @apply bg-base-200/50;
+}
+
+.split-view-row[aria-current] {
+  @apply bg-primary/5;
+  box-shadow: inset 3px 0 0 0 var(--color-primary);
+}
+
+/* ── The structured list ──────────────────────────────────────────────────
+   Padding and the separator live here, not as utilities on the row template,
+   so a host can still change them from a utility class — which is the whole
+   reason component CSS sits in this layer.
+
+   The separator is `border-b-base-200/70` and NOT `border-base-200/70`: the
+   all-sides colour utility would set the left border too, and the selection
+   bar's history (see the row rules above) is exactly that collision. */
+.split-view-item {
+  @apply px-4 py-3 border-b border-b-base-200/70;
+}
+
+.split-view-list-empty {
+  @apply px-4;
+}
+
+/* ── The filter band ──────────────────────────────────────────────────────
+   `flex-wrap` is the fix for the bug that produced this design: the band used
+   to host a filter form whose controls laid out in a row, and a master column
+   is ~420px wide, so they ran off the edge. Pills wrap onto a second line
+   instead — which is what the inbox this was generalised from does, and the
+   reason it never had the problem.
+
+   Everything below is a state or a default a state overrides, so all of it has
+   to live in this sheet rather than as utilities on the template: a utility
+   would beat `[aria-current]` from the utilities layer and the active pill
+   would look like an inactive one. */
+.split-view-list-filters {
+  @apply flex flex-wrap gap-2 px-4 py-3 border-b border-b-base-200;
+}
+
+.split-view-filter {
+  @apply px-2.5 py-1 rounded text-xs font-medium transition-colors
+         bg-base-200 text-base-content/70;
+}
+
+.split-view-filter:hover {
+  @apply bg-base-300;
+}
+
+/* `data-active` and not `[aria-current]`: in `filter_mode: :multi` several pills
+   are active at once, and `aria-current` cannot mean "all of these" — so only
+   :single emits it. Hanging the look off the data attribute keeps the two pills
+   identical on screen while their semantics differ, which is the point. */
+.split-view-filter[data-active="true"] {
+  @apply bg-primary text-primary-content;
+}
+
+.split-view-filter-count {
+  @apply opacity-70 ml-1;
+}
+
+.split-view-sentinel {
+  @apply flex items-center justify-center gap-2 px-4 py-6 text-xs text-base-content/60;
+}
+
+.split-view-sentinel-error {
+  @apply flex items-center gap-2 text-error;
+}
+
+/* `hidden` is how the controller switches between loading, end-of-list and
+   error, and how the sentinel stays out of sight until JavaScript connects. It
+   works by `display: none` in the UA stylesheet — the weakest origin there is,
+   so ANY author `display` beats it, including the `@apply flex` two rules up.
+   Measured: the sentinel computed `flex` with the attribute set, so a reader
+   without JavaScript saw a spinner that would never resolve. These two rules
+   are what make the attribute mean what it says. */
+.split-view-sentinel[hidden],
+.split-view-sentinel-error[hidden] {
+  display: none;
+}
+
+/* ── height: :full ────────────────────────────────────────────────────────
+   The split fills the nearest ancestor with a definite height, and each pane
+   scrolls on its own — the inbox shape. There is no measurement and no magic
+   offset anywhere in it: `height: 100%` plus a flex chain, so it fills whatever
+   bounded box you put it in and fills NOTHING if there is no such box. That is
+   the honest failure mode, and the reason the pairing with
+   `AppLayout viewport_locked: true` is documented rather than guessed at (the
+   same reasoning that kept a `calc(100vh - 17rem)` out of the Kanban).
+
+   Only from `lg` up. Below it the panes are stacked one above the other, and
+   two stacked panes cannot both fill one screen — `:full` there would be a
+   master and a detail fighting over the same viewport. Stacked keeps the
+   ordinary page scroll, which is what a phone wants anyway. */
+@media (width >= 64rem) {
+  .split-view-component--full {
+    @apply h-full min-h-0 items-stretch;
+  }
+
+  /* The chain from the grid cell down to the scrolling list. Every link needs
+     `min-h-0`: a flex item defaults to `min-height: auto`, which refuses to
+     shrink below its content, and one link missing it is enough for the scroll
+     never to engage and the whole thing to overflow instead. */
+  .split-view-component--full .split-view-master,
+  .split-view-component--full .split-view-master > .card,
+  .split-view-component--full .split-view-master > .card > .card-body,
+  .split-view-component--full .split-view-list {
+    @apply flex flex-col min-h-0;
+  }
+
+  .split-view-component--full .split-view-master > .card,
+  .split-view-component--full .split-view-master > .card > .card-body,
+  .split-view-component--full .split-view-list {
+    @apply flex-1;
+  }
+
+  /* The bands above and below the rows keep their height; the rows take the rest. */
+  .split-view-component--full .split-view-list-header,
+  .split-view-component--full .split-view-list-filters,
+  .split-view-component--full [data-split-view-list-target="pagination"] {
+    @apply shrink-0;
+  }
+
+  /* `max-height: none` because the flex chain governs the height now. Leaving
+     the var in place would cap the list at `calc(100vh - 20rem)` inside a pane
+     that is already exactly as tall as it should be. */
+  .split-view-component--full .split-view-scroll {
+    @apply flex-1 min-h-0;
+    max-height: none;
+  }
+
+  .split-view-component--full .split-view-detail {
+    @apply overflow-y-auto min-h-0;
+  }
+}
+
+/* ── Making the documented pairing actually pair ──────────────────────────
+   `height: :full` resolves `height: 100%` against its parent, and AppLayout's
+   body container is `height: auto` — it wraps its content. So under a locked
+   viewport the container stopped at the split's own height and the split
+   stopped with it: measured at 629px inside a 1086px `<main>`, i.e. filling
+   nothing while claiming to fill everything.
+
+   These two rules close that gap, and they live HERE rather than in
+   `app_layout/index.css` because they exist for `:full` and nothing else. The
+   `:has()` is what keeps them off every other locked page: a layout with
+   ordinary content is byte-for-byte what it was.
+
+   `flex: 1 1 0%` and not `flex: 1 0 auto`. The first shipped version used
+   `1 0 auto` — "grow to fill the screen, never shrink below the content" — but
+   basis `auto` makes the container's hypothetical size its CONTENT size, and
+   shrink `0` means it never comes back down: with a list taller than the
+   viewport (a real inbox's normal state) the container never clamps, the page
+   scrolls as a whole, each pane's own scroll never engages, and the
+   infinite-scroll sentinel — permanently visible — fetches every page at once.
+   Measured in afal-apps' inbox with 87 items: a 7537px container inside a
+   1061px `<main>`. Basis `0%` sizes the container purely by grow — exactly the
+   leftover space — and `min-height: 0` lets it hand that bound down. The
+   `:content` case never hits this rule (no `--full` child), so nothing else
+   changes. The dummy's reference page missed this for a whole beta because its
+   page ONE was shorter than the viewport; it now paginates large enough to
+   reproduce (see `SplitViewsController::FULL_PER_PAGE`).
+
+   The split has to be a DIRECT child of the body container. A wrapper in
+   between is a link in the chain with `height: auto`, and the fill dies there —
+   give that wrapper `h-full min-h-0` if you need one. */
+@media (width >= 64rem) {
+  .app-layout--viewport-locked
+    main:has(> .app-layout-body-container > .split-view-component--full) {
+    @apply flex flex-col;
+  }
+
+  .app-layout--viewport-locked
+    .app-layout-body-container:has(> .split-view-component--full) {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+}

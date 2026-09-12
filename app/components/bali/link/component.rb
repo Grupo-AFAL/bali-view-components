@@ -4,6 +4,7 @@ module Bali
   module Link
     class Component < ApplicationViewComponent
       include Bali::DeprecatedIconName
+      include Bali::LocalOverlay
 
       # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy.
       VARIANTS = Bali::ButtonTaxonomy::VARIANTS
@@ -26,6 +27,11 @@ module Bali
 
       # @param icon [String, Symbol] Icon name, drawn before the label.
       # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
+      # @param modal [Boolean, Hash] `true` fetches the href into the shared modal;
+      #   `{ id: }` does the same into the modal with that id; `{ id:, local: true }`
+      #   opens a modal already rendered on the page as it is — no fetch, and `id:` is
+      #   mandatory (Bali::LocalOverlay). `{ size: }` composes with all three.
+      # @param drawer [Boolean, Hash] Same contract as `modal:`, for the drawer.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         href:,
@@ -66,9 +72,11 @@ module Bali
         @disabled = disabled
         @plain = plain
         @modal = modal
-        @modal_options = normalize_options(modal)
+        @modal_options = normalize_overlay_options(modal)
         @drawer = drawer
-        @drawer_options = normalize_options(drawer)
+        @drawer_options = normalize_overlay_options(drawer)
+        validate_local_overlay!(:modal, @modal_options)
+        validate_local_overlay!(:drawer, @drawer_options)
         @authorized = authorized
         @responsive = responsive
         @options = options
@@ -156,17 +164,25 @@ module Bali
       def add_stimulus_actions(data)
         return if Bali.native_app || @disabled
 
-        if modal_enabled?
-          data[:action] = prepend_value(data[:action], "modal#open")
-          data[:turbo] = false # Prevent Turbo Drive from also handling the click
-          data[:modal_size] = @modal_options[:size] if @modal_options[:size]
+        add_overlay_data(data, :modal, @modal_options) if modal_enabled?
+        add_overlay_data(data, :drawer, @drawer_options) if drawer_enabled?
+      end
+
+      # Remote mode (`modal#open`) fetches the href; local mode (`modal#openLocal`)
+      # names an overlay already rendered on the page and opens it as it is. Either
+      # way `data-turbo: false` keeps Turbo Drive from also handling the click, and
+      # `id:` lands as `data-modal-id` / `data-drawer-id` — in remote mode it addresses
+      # one overlay among several, in local mode it is mandatory (see Bali::LocalOverlay).
+      def add_overlay_data(data, kind, overlay_options)
+        if local_overlay?(overlay_options)
+          add_local_overlay_data(data, kind, overlay_options)
+        else
+          data[:action] = prepend_value(data[:action], "#{kind}#open")
+          data[:"#{kind}_id"] = overlay_options[:id] if overlay_options[:id]
         end
 
-        return unless drawer_enabled?
-
-        data[:action] = prepend_value(data[:action], "drawer#open")
-        data[:turbo] = false # Prevent Turbo Drive from also handling the click
-        data[:drawer_size] = @drawer_options[:size] if @drawer_options[:size]
+        data[:turbo] = false
+        data[:"#{kind}_size"] = overlay_options[:size] if overlay_options[:size]
       end
 
       def add_method_attributes(data)
@@ -186,9 +202,6 @@ module Bali
       def modal_enabled? = @modal.present?
       def drawer_enabled? = @drawer.present?
       def responsive_icon_only? = @responsive && button_style? && @icon.present?
-
-      # Normalize option to hash format. Supports: true, { size: :lg }
-      def normalize_options(value) = value.is_a?(Hash) ? value.symbolize_keys : {}
     end
   end
 end

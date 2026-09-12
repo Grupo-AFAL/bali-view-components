@@ -10,6 +10,10 @@ module Bali
       DEFAULT_BORDER_RADIUS = 6
       DEFAULT_POINT_RADIUS = 4
       DEFAULT_POINT_HOVER_RADIUS = 6
+      # White separates the point from its own line; a default, not a lock —
+      # a hollow marker (transparent fill) needs to pick its own ring (#1065).
+      DEFAULT_POINT_BORDER_COLOR = "#ffffff"
+      DEFAULT_POINT_BORDER_WIDTH = 2
       EXTRACTED_OPTIONS = %i[tension borderWidth borderColor backgroundColor rounded pointRadius
                              pointHoverRadius].freeze
 
@@ -50,8 +54,8 @@ module Bali
           result[:pointRadius] = @options.fetch(:pointRadius, DEFAULT_POINT_RADIUS)
           result[:pointHoverRadius] = @options.fetch(:pointHoverRadius, DEFAULT_POINT_HOVER_RADIUS)
           result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor, border_colors.first)
-          result[:pointBorderColor] = "#ffffff"
-          result[:pointBorderWidth] = 2
+          result[:pointBorderColor] = @options.fetch(:pointBorderColor, DEFAULT_POINT_BORDER_COLOR)
+          result[:pointBorderWidth] = @options.fetch(:pointBorderWidth, DEFAULT_POINT_BORDER_WIDTH)
         end
 
         result

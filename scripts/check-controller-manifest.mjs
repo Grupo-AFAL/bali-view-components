@@ -16,7 +16,10 @@
  *   2. no Stimulus identifier is claimed twice across the two bundles;
  *   3. every controller in a CONTROLLERS map is re-exported from the package root;
  *   4. every *Controller class in the source tree is reachable -- either through a
- *      CONTROLLERS map or through one of the optional entry points below.
+ *      CONTROLLERS map or through one of the optional entry points below;
+ *   5. every identifier in the utility bundle's CONTROLLERS map is documented in
+ *      the controllers catalog (docs/guides/controllers.md and its Lookbook
+ *      mirror), so the catalog cannot silently fall behind a new controller.
  *
  * Check 4 is the one that would have caught the three lost controllers.
  *
@@ -45,6 +48,7 @@ const PACKAGE_ROOT_ENTRY = 'app/frontend/bali/index.js'
 const OPTIONAL_ENTRY_CONTROLLERS = {
   BlockEditorController: 'app/frontend/bali/block-editor.js',
   ChartController: 'app/frontend/bali/charts.js',
+  GanttController: 'app/frontend/bali/gantt.js',
   RichTextEditorController: 'app/frontend/bali/rich-text-editor.js'
 }
 
@@ -216,6 +220,32 @@ if (unreachableOptional.length) {
     'does not export them:',
     unreachableOptional.map(([name, entry]) => `${name} is not exported by ${entry}`)
   )
+}
+
+// --- Check 5: the utility identifiers are documented in the catalog -------------
+
+const CATALOG_PAGES = [
+  'docs/guides/controllers.md',
+  'spec/dummy/app/views/lookbook/pages/02_guides/03_controllers.md.erb'
+]
+
+const utilityBundlePath = BUNDLES[0].path
+const utilityIdentifiers = [...identifiers]
+  .filter(([, path]) => path === utilityBundlePath)
+  .map(([identifier]) => identifier)
+
+for (const page of CATALOG_PAGES) {
+  const catalog = read(page)
+  const undocumented = utilityIdentifiers.filter(
+    identifier => !catalog.includes(`\`${identifier}\``)
+  )
+  if (undocumented.length) {
+    report(
+      `${page}: identifiers registered by ${utilityBundlePath} but missing from the catalog. ` +
+      'Document each one (backticked, with a markup example):',
+      undocumented
+    )
+  }
 }
 
 // --- Result --------------------------------------------------------------------

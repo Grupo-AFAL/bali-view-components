@@ -548,7 +548,7 @@
             <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
               <% dropdown.with_item(href: '#', icon: 'download') { t('showcase.download') } %>
               <% dropdown.with_item(href: '#', icon: 'share-2') { t('showcase.share') } %>
-              <% dropdown.with_item(href: '#', icon: 'trash', class: 'text-error') { t('common.delete') } %>
+              <% dropdown.with_item(href: '#', icon: 'trash-2', class: 'text-error') { t('common.delete') } %>
             <% end %>
           <% end %>
         <% end %>
@@ -563,7 +563,7 @@
             <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
               <% dropdown.with_item(href: '#', icon: 'download') { t('showcase.download') } %>
               <% dropdown.with_item(href: '#', icon: 'share-2') { t('showcase.share') } %>
-              <% dropdown.with_item(href: '#', icon: 'trash', class: 'text-error') { t('common.delete') } %>
+              <% dropdown.with_item(href: '#', icon: 'trash-2', class: 'text-error') { t('common.delete') } %>
             <% end %>
           <% end %>
         <% end %>
@@ -578,7 +578,7 @@
             <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
               <% dropdown.with_item(href: '#', icon: 'download') { t('showcase.download') } %>
               <% dropdown.with_item(href: '#', icon: 'share-2') { t('showcase.share') } %>
-              <% dropdown.with_item(href: '#', icon: 'trash', class: 'text-error') { t('common.delete') } %>
+              <% dropdown.with_item(href: '#', icon: 'trash-2', class: 'text-error') { t('common.delete') } %>
             <% end %>
           <% end %>
         <% end %>
@@ -782,13 +782,15 @@
       <div>
         <h4 class="font-medium mb-2"><%= t('showcase.auto_submit') %></h4>
         <%# Dropping the addon is what turns the submit button off; the form submits
-            on input instead, through the submit-on-change controller. %>
-        <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
+            on input instead, through the submit-on-change controller. `debouncedSubmit`
+            and not `submit`, so a typed word is one request and not one per letter. %>
+        <%# `/showcase`, which is the route (`/pages/showcase` 404s), so the demo really submits. %>
+        <%= form_with url: '/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
           <div class="max-w-md">
             <%= f.search_group :query,
                   placeholder: t('showcase.start_typing'),
                   addon_right: nil,
-                  data: { action: 'submit-on-change#submit' } %>
+                  data: { action: 'submit-on-change#debouncedSubmit' } %>
           </div>
         <% end %>
       </div>
@@ -880,7 +882,7 @@
         { type: 'text', text: ', mentions (', styles: {} },
         { type: 'mention', props: { user: 'Alice Johnson', id: '1' } },
         { type: 'text', text: '), entity references (', styles: {} },
-        { type: 'entityReference', props: { entityType: 'project', entityId: '1', entityName: 'Q4 Release' } },
+        { type: 'entityReference', props: { entityType: 'Project', entityId: '1', entityName: 'Q4 Release' } },
         { type: 'text', text: '), and more.', styles: {} }
       ] },
       { type: 'heading', content: [{ type: 'text', text: 'Text Formatting', styles: {} }], props: { level: 2 } },
@@ -910,9 +912,9 @@
         { type: 'text', text: 'Assigned to ', styles: {} },
         { type: 'mention', props: { user: 'Bob Smith', id: '2' } },
         { type: 'text', text: ' — related to ', styles: {} },
-        { type: 'entityReference', props: { entityType: 'task', entityId: '3', entityName: 'Fix login bug' } },
+        { type: 'entityReference', props: { entityType: 'Task', entityId: '3', entityName: 'Fix login bug' } },
         { type: 'text', text: ' and ', styles: {} },
-        { type: 'entityReference', props: { entityType: 'document', entityId: '1', entityName: 'Architecture Decision Record' } },
+        { type: 'entityReference', props: { entityType: 'Document', entityId: '1', entityName: 'Architecture Decision Record' } },
         { type: 'text', text: '.', styles: {} }
       ] },
       { type: 'heading', content: [{ type: 'text', text: 'Blockquote', styles: {} }], props: { level: 3 } },
@@ -922,7 +924,7 @@
       ] },
       { type: 'divider' },
       { type: 'heading', content: [{ type: 'text', text: 'Code Block', styles: {} }], props: { level: 3 } },
-      { type: 'codeBlock', content: [{ type: 'text', text: "render Bali::BlockEditor::Component.new(\n  mentions_url: '/users',\n  references_url: '/entity_references',\n  references_resolve_url: '/entity_references/resolve',\n  export: true\n)", styles: {} }], props: { language: 'ruby' } },
+      { type: 'codeBlock', content: [{ type: 'text', text: "render Bali::BlockEditor::Component.new(\n  mentions_url: '/users',\n  references_url: '/bali/entity_references',\n  references_resolve_url: '/bali/entity_references/resolve',\n  export: true\n)", styles: {} }], props: { language: 'ruby' } },
       { type: 'heading', content: [{ type: 'text', text: 'Table', styles: {} }], props: { level: 3 } },
       { type: 'table', content: {
         type: 'tableContent',
@@ -967,10 +969,12 @@
       export_filename: 'block-editor-showcase',
       ai_url: '/block_editor/ai',
       mentions_url: '/users',
-      references_url: '/entity_references',
-      references_resolve_url: '/entity_references/resolve',
+      references_url: '/bali/entity_references',
+      references_resolve_url: '/bali/entity_references/resolve',
+      # Comments are stored in memory here. The persistent store hangs threads off a
+      # host record (`url` :auto plus `commentable`), and the showcase is not one —
+      # /documents/:id is the page that demonstrates the real thing.
       comments: {
-        url: '/block_editor_comments',
         user: { id: '1', username: 'Demo User' },
         users_url: '/users'
       }

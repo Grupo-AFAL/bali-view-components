@@ -85,6 +85,7 @@ export default function BlockNoteEditorWrapper ({
   tableOfContentsContainerId,
   comments: commentsEnabled = false,
   commentsContainerId,
+  commentsSidebar = 'interactive',
   commentsUrl,
   commentsUser,
   commentsUsers,
@@ -411,6 +412,37 @@ export default function BlockNoteEditorWrapper ({
       }
     })()
   }, [editor, htmlContent, markdownContent, parsedContent])
+
+  // What the sidebar's mode hides is a look, so it is CSS — and CSS needs an
+  // ancestor to hang the flag off. Rails puts it on the editor's root, which is an
+  // ancestor of the inline sidebar and stops being one the moment
+  // `comments_container_id:` portals the sidebar into a container of the host's.
+  // Rails cannot put it there either: that container is the host's markup, and its
+  // contents are React's. So the flag travels with the portal.
+  //
+  // Without this, `comments: { sidebar: :read_only }` plus `comments_container_id:`
+  // rendered a fully interactive panel — no error, no warning, the opposite of what
+  // the call site asked for (#1113). DocumentEditor was the only portaling caller
+  // that worked, and only because it happens to render its own flagged panel
+  // around the container.
+  //
+  // Both modes are written, not just `read-only`: the attribute is the documented
+  // hook, and a host reading it should not have to tell "interactive" apart from
+  // "this editor is too old to say".
+  useEffect(() => {
+    if (!commentsEnabled || !commentsContainerId) return
+
+    const container = document.getElementById(commentsContainerId)
+    if (!container) return
+
+    const previous = container.getAttribute('data-comments-sidebar')
+    container.setAttribute('data-comments-sidebar', commentsSidebar)
+
+    return () => {
+      if (previous === null) container.removeAttribute('data-comments-sidebar')
+      else container.setAttribute('data-comments-sidebar', previous)
+    }
+  }, [commentsEnabled, commentsContainerId, commentsSidebar])
 
   // Custom toolbar when AI is enabled (to add the AI button) or in the simple
   // preset (to cut the toolbar down to inline formatting).

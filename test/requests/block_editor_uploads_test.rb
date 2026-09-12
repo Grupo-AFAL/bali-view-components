@@ -11,7 +11,9 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     @orig_max_size       = Bali.block_editor_max_upload_size
 
     Bali.block_editor_enabled               = true
-    Bali.block_editor_upload_authorize      = nil
+    # Uploads deny by default since v3.1; the validation/handler tests below are
+    # about what happens AFTER authorization, so they run with it opened.
+    Bali.block_editor_upload_authorize      = ->(_controller) { true }
     Bali.block_editor_upload_handler        = nil
     Bali.block_editor_allowed_upload_types  = nil
     Bali.block_editor_max_upload_size       = nil
@@ -77,6 +79,12 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     json = response.parsed_body
     assert_includes(json["error"], "exceeds")
+  end
+
+  def test_post_bali_block_editor_uploads_denies_by_default_when_authorize_is_unset
+    Bali.block_editor_upload_authorize = nil
+    post bali.block_editor_uploads_path, params: { file: valid_image }
+    assert_response :forbidden
   end
 
   def test_post_bali_block_editor_uploads_with_authorization_returns_forbidden_when_authorize_lambda_returns_false

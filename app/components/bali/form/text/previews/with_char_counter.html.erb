@@ -1,0 +1,6 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_group :text, label: 'Headline', char_counter: { max: max_length },
+                      help: 'The counter turns red past the maximum; nothing stops the typing' %>
+  <%= form.text_group :url, label: 'Slug', char_counter: true,
+                      help: 'Without a max it just counts' %>
+<% end %>

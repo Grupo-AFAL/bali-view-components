@@ -1,0 +1,44 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+<% module_namespacing do -%>
+class <%= class_name %>Test < ActiveSupport::TestCase
+  def widget = <%= class_name %>.new(nil)
+
+  # THE CLASS, not the instance. Size is not a property of a widget — the same
+  # class is `small` for one owner and `large` for another — so a widget carries
+  # a DEFAULT and `Bali::Widget::Placement` pairs it with the owner's choice.
+  def test_it_is_drawn_around_its_declared_size
+    assert_equal :<%= options[:size] %>, <%= class_name %>.default_size
+  end
+
+  # The card asks the widget directly — there is no result object between them —
+  # so this is the whole interface a <%= pattern %> widget has to answer.
+  #
+  # A widget RAISES; `Bali::Widget::Component` is the error boundary that turns
+  # that into a degraded tile. So this asserts the reads themselves, and a broken
+  # one fails here loudly rather than being swallowed.
+  def test_it_loads
+<% if pattern == 'value' -%>
+    assert_kind_of Integer, widget.count
+<% elsif pattern == 'list' -%>
+    assert_kind_of Integer, widget.count
+    assert_operator widget.items.size, :<=, Bali::Widget::ListBase::PREVIEW_ROWS
+<% elsif pattern == 'trend' -%>
+    assert_kind_of Integer, widget.count
+    # nil is a legitimate answer: no previous period means no trend to draw.
+    assert(widget.trend.nil? || widget.trend.is_a?(Bali::Widget::TrendBase::Trend))
+<% elsif pattern == 'progress' -%>
+    assert_kind_of Bali::Widget::ProgressBase::Goal, widget.goal
+<% elsif pattern == 'check' -%>
+    # nil is a legitimate answer: not yet known is the check's third state.
+    assert_includes [ true, false, nil ], widget.passing?
+<% end -%>
+  end
+
+  def test_it_is_authorized_by_default
+    assert_predicate widget, :authorized?
+  end
+end
+<% end -%>

@@ -1,5 +1,14 @@
 import { Controller } from '@hotwired/stimulus'
 
+// Widgets the panel renders whose popup lives OUTSIDE it: flatpickr portals its
+// calendar and SlimSelect its `.ss-content`, both to `<body>`, so
+// `dropdownTarget.contains(target)` answers "outside" about a click the reader
+// made on this panel's own controls. The calendar was excused here from the
+// start; the slim select — which every select-type condition mounts — was not,
+// so typing in its search box closed the panel (#1013, the same defect the
+// Drawer had).
+const PORTALED_POPUPS = '.flatpickr-calendar, .ss-content'
+
 /**
  * Main controller for the Filters component.
  * Handles adding/removing groups, form submission, and URL management.
@@ -198,8 +207,8 @@ export class FiltersController extends Controller {
       return
     }
 
-    // Don't close if clicking on Flatpickr calendar (rendered outside dropdown)
-    if (target.closest && target.closest('.flatpickr-calendar')) {
+    // Don't close on a widget whose popup renders outside the dropdown
+    if (target.closest && target.closest(PORTALED_POPUPS)) {
       return
     }
 
@@ -346,6 +355,8 @@ export class FiltersController extends Controller {
     const buttons = container.querySelectorAll('[data-combinator]')
     buttons.forEach((btn) => {
       const btnCombinator = btn.dataset.combinator
+      // aria-pressed mirrors the visual state for screen readers (#1028).
+      btn.setAttribute('aria-pressed', String(btnCombinator === combinator))
       if (btnCombinator === combinator) {
         btn.classList.remove('btn-outline')
         btn.classList.add('btn-primary')
@@ -501,28 +512,36 @@ export class FiltersController extends Controller {
    */
   createCombinatorDivider () {
     // Get current combinator value from existing hidden input
-    const currentCombinator = this.hasGroupCombinatorTarget
-      ? this.groupCombinatorTarget.value
-      : 'and'
+    // The combinator is a two-value toggle. Normalize to a known value instead of
+    // trusting the hidden input verbatim: its `.value` is the decoded `q[m]`, which the
+    // server sanitizes but which also reaches this template literal — an unexpected value
+    // would break out of the attribute. Anything that is not 'or' is 'and'.
+    const currentCombinator =
+      this.hasGroupCombinatorTarget && this.groupCombinatorTarget.value === 'or'
+        ? 'or'
+        : 'and'
 
     // Get translated labels with fallbacks
     const andLabel = this.t.combinators?.and || 'AND'
     const orLabel = this.t.combinators?.or || 'OR'
 
+    const toggleLabel = this.t.combinator_toggle || 'Combine conditions with'
     const divider = document.createElement('div')
     divider.className = 'flex items-center justify-center gap-2 my-2'
     divider.innerHTML = `
       <div class="flex-1 border-t border-base-300"></div>
       <input type="hidden" name="q[m]" value="${currentCombinator}" data-filters-target="groupCombinator">
-      <div class="join" data-filters-target="groupCombinatorToggle">
+      <div class="join" role="group" aria-label="${toggleLabel}" data-filters-target="groupCombinatorToggle">
         <button type="button"
                 class="join-item btn btn-xs w-10 ${currentCombinator === 'and' ? 'btn-primary' : 'btn-outline'}"
+                aria-pressed="${currentCombinator === 'and'}"
                 data-action="filters#setGroupCombinator"
                 data-combinator="and">
           ${andLabel}
         </button>
         <button type="button"
                 class="join-item btn btn-xs w-10 ${currentCombinator === 'or' ? 'btn-primary' : 'btn-outline'}"
+                aria-pressed="${currentCombinator === 'or'}"
                 data-action="filters#setGroupCombinator"
                 data-combinator="or">
           ${orLabel}

@@ -42,6 +42,38 @@ describe('DataTable: el popover del ⋯', () => {
     })
   })
 
+  // #1080: flotar no alcanza, hay que flotar POR ENCIMA de la banda de contenido. El panel
+  // del ⋯ tiene su propio contexto de apilamiento (absolute + z-index), asi que un hijo
+  // absoluto de adentro se pinta arriba de la tabla — salvo que un ancestro con
+  // `overflow` lo RECORTE, que es lo que hacia el `overflow-y-auto` del contenedor del
+  // menu. Recortado, del panel asomaba un borde y `elementFromPoint` en su centro devolvia
+  // un `<td>`: el control quedaba inservible justo en los anchos donde el ⋯ es la unica
+  // salida. Se mide con hit-testing y no con clases porque el sintoma es de pintado.
+  it('deja el panel del hijo clicable por encima de la tabla', () => {
+    cy.viewport(1440, 900)
+    estudios()
+    cy.get('[data-toolbar-overflow-target="overflow"]').should('not.have.class', 'hidden')
+    disparadorPuntos().click()
+    primerHijo().click()
+
+    contenidoDelHijo()
+      .should('be.visible')
+      .then($sub => {
+        const panel = $sub[0]
+        const b = panel.getBoundingClientRect()
+        const puntos = [
+          ['arriba', b.top + 4],
+          ['al medio', b.top + b.height / 2],
+          ['abajo', b.bottom - 4]
+        ]
+
+        puntos.forEach(([donde, y]) => {
+          const encima = panel.ownerDocument.elementFromPoint(b.left + b.width / 2, y)
+          expect(panel.contains(encima), `${donde} el panel recibe el click`).to.equal(true)
+        })
+      })
+  })
+
   // En un telefono apilar en flujo sigue siendo lo razonable, y es la razon por la que la
   // regla existe: anidados y absolutos se posicionan contra el contenedor y se salen del
   // viewport (medido: left -115px en 375px).

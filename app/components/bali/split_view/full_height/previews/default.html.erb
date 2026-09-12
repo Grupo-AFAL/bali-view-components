@@ -1,0 +1,37 @@
+<%# `height: :full` needs an ancestor with a definite height, so this scenario
+    renders the whole pairing rather than a bare component: AppLayout with
+    `viewport_locked: true` stops the body scrolling and makes <main> that box.
+    The split then fills it and each pane scrolls on its own.
+
+    Scenario-level `@layout app_layout_preview`, because AppLayout renders its
+    own <body> and the ordinary preview layout already has one. %>
+<%= render Bali::AppLayout::Component.new(viewport_locked: true, app_name: "MovieDB") do |layout| %>
+  <% layout.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: "split-view-detail", height: :full) do |split| %>
+      <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
+                         item_name: "películas") do |list| %>
+        <% movies.each do |movie| %>
+          <% list.with_item(
+            id: movie.id,
+            href: "/split-view/full?selected=#{movie.id}",
+            title: movie.name,
+            subtitle: movie.studio&.name,
+            meta: movie.production_ends_on && l(movie.production_ends_on, format: :short)
+          ) do |row| %>
+            <% row.with_tag(text: movie.genre, color: :info) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% split.with_detail do %>
+        <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+          <% card.with_title(selected.name, class: "text-lg", data: { testid: "detail-title" }) %>
+          <%= render Bali::DescriptionList::Component.new(columns: 2) do |items| %>
+            <% items.with_item(label: "Género", value: selected.genre) %>
+            <% items.with_item(label: "Estudio", value: selected.studio&.name) %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

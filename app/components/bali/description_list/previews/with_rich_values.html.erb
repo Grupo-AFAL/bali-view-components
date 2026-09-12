@@ -1,0 +1,12 @@
+<%= render Bali::DescriptionList::Component.new(columns: 2) do |c| %>
+  <% c.with_item(label: 'Status') do %>
+    <%= render Bali::Tag::Component.new(text: 'Active', color: :success) %>
+  <% end %>
+  <% c.with_item(label: 'Priority') do %>
+    <%= render Bali::Tag::Component.new(text: 'High', color: :warning) %>
+  <% end %>
+  <% c.with_item(label: 'Website') do %>
+    <a href="#" class="link link-primary">grupoafal.com</a>
+  <% end %>
+  <% c.with_item(label: 'Owner', value: 'Juan Pérez') %>
+<% end %>

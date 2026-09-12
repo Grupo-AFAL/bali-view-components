@@ -62,6 +62,19 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_selector(".cmd-row-title", text: "Settings")
   end
 
+  def test_group_and_item_pass_html_attributes_through
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_group(name: "Pages", class: "custom-group", data: { role: "nav" }) do |g|
+        g.with_item(title: "Dashboard", href: "/dashboard",
+                    class: "custom-row", data: { testid: "row-dash" })
+      end
+    end
+    # Host class composes with the component's own; host data merges over the
+    # component's command-target/mode without clobbering it.
+    assert_selector("div.custom-group[data-command-target='group'][data-role='nav']")
+    assert_selector("button.cmd-row.custom-row[data-command-target='row'][data-testid='row-dash']")
+  end
+
   def test_item_href_is_html_escaped_in_data_attribute
     # Regression: previously used `html_safe` on a string concatenation, which
     # could let an attacker inject attribute markup if href came from user input.
@@ -101,6 +114,16 @@ class BaliCommandComponentTest < ComponentTestCase
       end
     end
     assert_selector("[data-command-target='group'][data-mode='action']")
+  end
+
+  def test_group_navigation_mode
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_group(name: "Pages", mode: :navigation) do |g|
+        g.with_item(title: "Accounts")
+      end
+    end
+    assert_selector("[data-command-target='group'][data-mode='navigation']")
+    assert_selector("[data-command-target='row'][data-mode='navigation']")
   end
 
   def test_invalid_group_mode_falls_back_to_searchable
@@ -217,6 +240,30 @@ class BaliCommandComponentTest < ComponentTestCase
   def test_shortcut_label_nil_hides_the_kbd_hint_on_the_default_trigger
     render_inline(Bali::Command::Component.new(shortcut_label: nil))
     assert_no_selector("button.bali-command-trigger kbd")
+  end
+
+  # The hint the component renders itself is marked as the controller's to
+  # rewrite: ⌘ is the pre-JavaScript label, corrected to "Ctrl K" on a keyboard
+  # that has no ⌘ key. The server cannot make that call — a cached page would
+  # hand one machine's answer to every other machine.
+
+  def test_the_default_shortcut_hint_is_marked_for_the_controller_to_rewrite
+    render_inline(Bali::Command::Component.new)
+    assert_selector("button.bali-command-trigger kbd[data-command-target='shortcut']",
+                    text: Bali::Command::Component::AUTO_SHORTCUT_LABEL)
+  end
+
+  def test_an_unknown_shortcut_label_mode_raises_instead_of_becoming_the_hint
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Command::Component.new(shortcut_label: :mac))
+    end
+    assert_match(/Unknown shortcut_label :mac/, error.message)
+  end
+
+  def test_an_explicit_shortcut_label_is_rendered_literally_and_left_alone
+    render_inline(Bali::Command::Component.new(shortcut_label: "F3"))
+    assert_selector("button.bali-command-trigger kbd", text: "F3")
+    assert_no_selector("button.bali-command-trigger kbd[data-command-target='shortcut']")
   end
 
   def test_a_trigger_slot_replaces_the_default_trigger

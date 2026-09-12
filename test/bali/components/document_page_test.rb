@@ -25,6 +25,17 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_selector(".breadcrumbs")
   end
 
+  # DocumentPage reparte sus opciones con `slice(*PAGE_OPTIONS)`: si `:heading` no está en
+  # esa lista, no llega al concern y termina como atributo HTML del contenedor.
+  def test_heading_reaches_the_page_header_through_the_options_slice
+    render_inline(Bali::DocumentPage::Component.new(title: "My Document", heading: :h3)) do |page|
+      page.with_body { "Content" }
+    end
+
+    assert_selector("h3.title", text: "My Document")
+    assert_no_selector(".document-page-component[heading]")
+  end
+
   def test_renders_actions
     render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
       page.with_action { "Edit Button" }
@@ -273,5 +284,31 @@ class BaliDocumentPageComponentTest < ComponentTestCase
       page.with_body { "Content" }
     end
     assert_selector(".flex.items-center.gap-2.flex-wrap")
+  end
+end
+
+# #1098 — DocumentPage monta el mismo editor interno que DocumentEditor, pero en modo
+# lectura: sin `input_name` no hay hidden input, así que no hay nada que serializar y
+# `format:` no tendría dónde actuar. Se dice en voz alta en vez de pintarse como atributo.
+class BaliDocumentPageFormatTest < ComponentTestCase
+  def test_format_is_rejected_instead_of_painted_as_an_html_attribute
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::DocumentPage::Component.new(
+        title: "My Document", initial_content: [ { type: "paragraph" } ], format: :blocks
+      ))
+    end
+
+    assert_match "never writes", error.message
+    assert_match "Bali::DocumentEditor", error.message
+  end
+
+  # La razón por la que se rechaza, fijada: esta página no persiste nada.
+  def test_the_page_mounts_a_read_only_editor_with_no_input_to_persist
+    render_inline(Bali::DocumentPage::Component.new(
+      title: "My Document", initial_content: [ { type: "paragraph" } ]
+    ))
+
+    assert_selector(".block-editor-component", visible: :all)
+    assert_no_selector("input[type='hidden'][data-block-editor-target]", visible: :all)
   end
 end

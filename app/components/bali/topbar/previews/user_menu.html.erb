@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-8 p-8 min-h-[400px]">
+  <div>
+    <p class="text-sm text-base-content/60 mb-2">
+      Full: photo, email, items and sign out (delete via a real form)
+    </p>
+    <%= render Bali::Topbar::UserMenu::Component.new(
+      name: 'Ana García López',
+      email: 'ana@example.com',
+      avatar_url: 'avatar.png',
+      align: :start,
+      sign_out: { href: '#' }
+    ) do |menu| %>
+      <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+      <% menu.with_item(name: 'Settings', href: '#', icon: 'settings') %>
+    <% end %>
+  </div>
+
+  <div>
+    <p class="text-sm text-base-content/60 mb-2">
+      No photo: initials derived from the name, deterministic colour (see Avatar)
+    </p>
+    <%= render Bali::Topbar::UserMenu::Component.new(
+      name: 'Benito Juárez',
+      email: 'benito@example.com',
+      align: :start,
+      sign_out: { href: '#' }
+    ) do |menu| %>
+      <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+    <% end %>
+  </div>
+
+  <div>
+    <p class="text-sm text-base-content/60 mb-2">
+      Without <code>sign_out:</code> the item simply is not there — no default route
+    </p>
+    <%= render Bali::Topbar::UserMenu::Component.new(name: 'Carla Ruiz', align: :start) do |menu| %>
+      <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+    <% end %>
+  </div>
+</div>

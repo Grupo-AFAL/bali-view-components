@@ -1,0 +1,109 @@
+{
+  "__comment": "Frozen sample of TDFlow::GanttSerializer#as_json (afal-apps, app/models/td_flow/gantt_serializer.rb @ 05/08/2026). The Bali::Gantt::Data contract generalizes this shape; test/bali/components/gantt/serializer_contract_test.rb maps it with the documented renames (stages→groups, tasks→items, title→name, stage_id→group_id, parent_*_id→parent_id, critical_task_ids→critical_ids) and proves nothing the island consumes is lost.",
+  "tasks": [
+    {
+      "id": 101,
+      "stage_id": 11,
+      "parent_task_id": null,
+      "title": "Levantamiento de requerimientos",
+      "starts_on": "2026-05-04",
+      "ends_on": "2026-05-15",
+      "duration_days": 10,
+      "percent_complete": 100,
+      "status": "complete",
+      "priority": "high",
+      "is_critical": true,
+      "slack_days": 0,
+      "row_kind": "task",
+      "assignee": { "id": 7, "name": "Ana Luz Durán", "initials": "AD" }
+    },
+    {
+      "id": 102,
+      "stage_id": 11,
+      "parent_task_id": 101,
+      "title": "Entrevistas con usuarios",
+      "starts_on": "2026-05-06",
+      "ends_on": "2026-05-12",
+      "duration_days": 5,
+      "percent_complete": 60,
+      "status": "in_progress",
+      "priority": "normal",
+      "is_critical": false,
+      "slack_days": 3,
+      "row_kind": "subtask",
+      "assignee": null
+    },
+    {
+      "id": 103,
+      "stage_id": 12,
+      "parent_task_id": null,
+      "title": "Diseño de arquitectura",
+      "starts_on": "2026-05-18",
+      "ends_on": "2026-06-05",
+      "duration_days": 15,
+      "percent_complete": 0,
+      "status": "backlog",
+      "priority": "urgent",
+      "is_critical": true,
+      "slack_days": 0,
+      "row_kind": "task",
+      "assignee": { "id": 9, "name": "Bruno Ortega", "initials": "BO" }
+    },
+    {
+      "id": 104,
+      "stage_id": 13,
+      "parent_task_id": null,
+      "title": "Definir plan de pruebas",
+      "starts_on": null,
+      "ends_on": null,
+      "duration_days": null,
+      "percent_complete": 0,
+      "status": "backlog",
+      "priority": "low",
+      "is_critical": false,
+      "slack_days": 0,
+      "row_kind": "task",
+      "assignee": null
+    }
+  ],
+  "dependencies": [
+    {
+      "id": 9001,
+      "predecessor_id": 101,
+      "successor_id": 103,
+      "dependency_type": "finish_to_start",
+      "lag_days": 0
+    }
+  ],
+  "critical_task_ids": [101, 103],
+  "window": { "starts_on": "2026-05-04", "ends_on": "2026-06-05" },
+  "stages": [
+    {
+      "id": 11,
+      "name": "Descubrimiento",
+      "position": 1,
+      "status": "in_progress",
+      "parent_stage_id": null,
+      "starts_on": "2026-05-04",
+      "ends_on": "2026-05-15"
+    },
+    {
+      "id": 12,
+      "name": "Diseño",
+      "position": 2,
+      "status": "backlog",
+      "parent_stage_id": null,
+      "starts_on": "2026-05-18",
+      "ends_on": "2026-06-05"
+    },
+    {
+      "id": 13,
+      "name": "Diseño técnico",
+      "position": 0,
+      "status": "backlog",
+      "parent_stage_id": 12,
+      "starts_on": null,
+      "ends_on": null
+    }
+  ]
+}

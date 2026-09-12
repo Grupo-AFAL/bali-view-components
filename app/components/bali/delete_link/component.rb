@@ -20,7 +20,9 @@ module Bali
       # `text-error` on top of it would be red text on a red fill.
       COLOURLESS_VARIANTS = %i[ghost link].freeze
 
-      DEFAULT_ICON = "trash"
+      # Spelled `trash-2` since #902: the mapping entry that made `trash` draw
+      # this glyph is gone, and the default keeps the drawing it always had.
+      DEFAULT_ICON = "trash-2"
 
       # The one component where `icon:` is not the old value under a new name: it also
       # takes `true`, which is what the pair `icon: true` + `icon_name: 'x'` collapsed into.

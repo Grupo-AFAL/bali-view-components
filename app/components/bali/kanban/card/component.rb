@@ -19,12 +19,15 @@ module Bali
 
         attr_reader :update_url, :label, :options
 
+        # Host options pass through — `data:` MERGES under the component's own
+        # keys instead of being dropped (#1027): the column-lock recipe
+        # components.md documents (`data: { sortable_item_pull: "false" }`)
+        # depends on it reaching the card element.
         def html_attributes
-          attrs = {
-            class: class_names("card bg-base-100 card-border p-3", options[:class]),
-            role: "listitem"
-          }
-          data = {}
+          attrs = options.except(:class, :data)
+          attrs[:class] = class_names("card bg-base-100 card-border p-3", options[:class])
+          attrs[:role] ||= "listitem"
+          data = (options[:data] || {}).dup
           data[:sortable_update_url] = update_url if update_url
           data[:kanban_card_label] = label if label
           attrs[:data] = data if data.any?

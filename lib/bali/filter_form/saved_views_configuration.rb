@@ -175,7 +175,9 @@ module Bali
       def apply_saved_view_state
         payload = normalized_view_payload(current_saved_view)
         @groupings = payload["groupings"]
-        @combinator = payload["combinator"]
+        # A view saved before combinator sanitization landed could still carry a poisoned
+        # `m`; collapse it here too, so an old payload cannot re-emit it.
+        @combinator = sanitized_combinator(payload["combinator"])
         @search_value = payload["search_value"]
         # Mismo contrato que `attributes`: REEMPLAZA, no mergea. Un payload viejo, guardado
         # antes de que la llave existiera, llega sin ella y limpia los simplificados — que es

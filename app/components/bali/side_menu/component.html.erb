@@ -83,7 +83,7 @@
           <%= active_menu %>
           <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'menu-switcher-chevron ml-auto size-4 text-base-content/50') %>
         </summary>
-        <ul class="dropdown-content menu bg-base-100 rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2 shadow-lg">
+        <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
           <% authorized_menus.each do |menu| %>
             <li>
               <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">

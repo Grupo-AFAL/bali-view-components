@@ -60,8 +60,10 @@ module Bali
       # @label Accessible Data Table
       # A canvas is pixels: `role="img"` and a name are all the accessibility
       # tree gets from it, and neither carries a number. The `data_table` slot
-      # renders an `sr-only` table with the same figures, which is the only way
-      # a screen reader user reads a value off the chart.
+      # renders a visually hidden table (Bali's `.chart-fallback-table`) with
+      # the same figures — the only way a screen reader user reads a value off
+      # the chart, and the chart's no-JS fallback: with scripting off the table
+      # is revealed in place of the empty canvas box (#1067).
       def with_data_table
         render_with_template
       end

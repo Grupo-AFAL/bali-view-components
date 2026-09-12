@@ -1,0 +1,45 @@
+<%# Un menú deliberadamente más alto que su contenedor, con el ítem activo cerca del final:
+    es la única forma de ver el comportamiento, porque en un menú que entra en pantalla no
+    hay nada que revelar. `h-[380px]` recorta; las 18 entradas desbordan. %>
+<%# `fixed: true` convierte el sidebar en drawer por debajo de `lg`, que es el caso donde
+    el reveal tiene que ESPERAR: un drawer cerrado está `inert` y fuera de pantalla. %>
+<div class="h-[380px] bg-base-200 p-4">
+  <% if fixed %>
+    <div class="mb-2"><%= render Bali::SideMenu::Trigger::Component.new %></div>
+  <% end %>
+  <%# `h-full` en el nav: sin una altura definida el flex crece con su contenido y
+      `.sidebar-menu` (que es `grow overflow-auto`) nunca llega a scrollear. %>
+  <div class="w-xs h-full">
+    <%= render Bali::SideMenu::Component.new(current_path: '/reports/audit-log',
+                                             fixed: fixed,
+                                             reveal_current: reveal_current,
+                                             class: 'h-full') do |c|
+      c.with_list(title: 'Workspace') do |list|
+        list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
+        list.with_item(name: 'Inbox', href: '/inbox', icon: 'inbox')
+        list.with_item(name: 'Tasks', href: '/tasks', icon: 'check-square')
+        list.with_item(name: 'Calendar', href: '/calendar', icon: 'calendar')
+        list.with_item(name: 'Documents', href: '/documents', icon: 'file-text')
+        list.with_item(name: 'Projects', href: '/projects', icon: 'kanban')
+      end
+
+      c.with_list(title: 'Catalogs') do |list|
+        list.with_item(name: 'People', href: '/people', icon: 'users')
+        list.with_item(name: 'Suppliers', href: '/suppliers', icon: 'truck')
+        list.with_item(name: 'Contracts', href: '/contracts', icon: 'file-signature')
+        list.with_item(name: 'Assets', href: '/assets', icon: 'package')
+        list.with_item(name: 'Locations', href: '/locations', icon: 'map-pin')
+        list.with_item(name: 'Cost Centers', href: '/cost_centers', icon: 'wallet')
+      end
+
+      c.with_list(title: 'Reports') do |list|
+        list.with_item(name: 'Overview', href: '/reports', icon: 'bar-chart-3', match: :exact)
+        list.with_item(name: 'Headcount', href: '/reports/headcount', icon: 'user-check')
+        list.with_item(name: 'Spend', href: '/reports/spend', icon: 'dollar-sign')
+        list.with_item(name: 'Compliance', href: '/reports/compliance', icon: 'shield-check')
+        list.with_item(name: 'Audit Log', href: '/reports/audit-log', icon: 'scroll-text')
+        list.with_item(name: 'Exports', href: '/reports/exports', icon: 'download')
+      end
+    end %>
+  </div>
+</div>

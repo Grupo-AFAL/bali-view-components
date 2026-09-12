@@ -21,6 +21,12 @@ class UsersController < ApplicationController
       users = users.select { |u| u[:name].downcase.include?(query) }
     end
 
+    # El recorte que viaja junto al término, para el preview `remote_dependent` del
+    # slim_select: `family` sale de otro campo del formulario (`ajax_param_selectors`) y
+    # `source` es fijo (`ajax_extra_params`). Sin `family` no hay recorte, que es lo que
+    # tiene que pasar cuando el campo del que depende está vacío.
+    users = users.select { |u| u[:name].end_with?(params[:family]) } if params[:family].present?
+
     render json: users
   end
 end

@@ -6,6 +6,35 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
+      # The size of the text the editor renders, as one class on the wrapper.
+      # BlockNote sizes the editor body once and derives everything inside it --
+      # headings, lists, quotes, table cells -- in `em` off that value, so a
+      # single font-size scales the whole document in proportion. `index.css`
+      # holds the actual measurements.
+      SIZES = {
+        xs: "block-editor-size-xs",
+        sm: "block-editor-size-sm",
+        md: "block-editor-size-md",
+        lg: "block-editor-size-lg"
+      }.freeze
+
+      # Cómo se escribe el contenido en el hidden input.
+      #
+      # Los tres primeros son los de siempre. Los dos últimos existen porque `:json` es
+      # ADAPTATIVO y esa era la trampa (#1091): BlockNote borra las marcas de comentario de
+      # `editor.document`, así que con comentarios encendidos el editor cambia solo a la
+      # forma ProseMirror para no perderlas — y eso no lo dispara el host, lo dispara el
+      # primer usuario que deje un comentario. Con auto-guardado, ese comentario reescribe
+      # la columna en un esquema distinto sin que nadie lo pida, y todo lo que la lee del
+      # lado de Rails (referencias, indexado, diffs, export) se encuentra otra cosa.
+      #
+      # `:blocks` fija `editor.document` y `:prosemirror` fija la forma ProseMirror. Fijar
+      # `:blocks` con comentarios encendidos PIERDE el anclaje de cada hilo —los hilos
+      # sobreviven en su store, las marcas no—, así que el editor lo avisa por consola la
+      # primera vez que descarta una. Es un intercambio que el host puede querer; lo que no
+      # puede es que se lo hagan sin avisar.
+      FORMATS = %i[json blocks prosemirror html markdown].freeze
+
       # Distinguishes "the caller did not pass this" from "the caller passed the
       # value that happens to be the default". Without it, `config:` could not be
       # overridden by an explicit `comments: false` or `upload_url: nil`, because
@@ -25,6 +54,7 @@ module Bali
         syntax_highlighting: UNSET,
         editable: true,
         placeholder: nil,
+        size: :md,
         upload_url: UNSET,
         theme: :light,
         export: UNSET,
@@ -42,6 +72,7 @@ module Bali
         comments: UNSET,
         comments_container_id: nil,
         config: nil,
+        readonly: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
@@ -63,17 +94,28 @@ module Bali
         @html_content = html_content
         @markdown_content = markdown_content
         @input_name = input_name
-        @format = format
+        @format = validated_format(format)
         @preset = preset
         # Sigue a la app por default: un editor en inglés dentro de una UI en
         # español es el error más visible de una instalación sin configurar.
         @locale = locale || I18n.locale.to_s.split("-").first
         @syntax_highlighting = @config.syntax_highlighting
         @syntax_highlighting = Bali.block_editor_syntax_highlighting if @syntax_highlighting.nil?
-        @editable = editable
+        @editable = resolve_editable(editable, readonly)
         @placeholder = placeholder
         @upload_url_auto = (@config.upload_url == :auto)
-        @upload_url = @config.upload_url == :auto ? nil : @config.upload_url
+        @upload_url = @upload_url_auto ? nil : @config.upload_url
+
+        # Un visor no sube archivos, y no pasar `upload_url:` no APAGA las subidas: las
+        # ENCIENDE, porque su default es `:auto` y eso resuelve al endpoint del engine.
+        # `:auto` ya lo contemplaba —`resolve_auto_upload_url` mira `editable?`—, pero una
+        # url explícita no, así que una pantalla de solo lectura seguía aceptando subidas:
+        # blobs `unattached` que la purga de huérfanos del host se lleva a los siete días
+        # (#1092). La regla queda entera: sin edición no hay subida, venga de donde venga.
+        unless @editable
+          @upload_url_auto = false
+          @upload_url = nil
+        end
         @theme = theme
         @export = @config.export
         @export_filename = @config.export_filename || "document"
@@ -92,6 +134,14 @@ module Bali
         comments_config = @config.comments.is_a?(Hash) ? @config.comments.transform_keys(&:to_sym) : nil
         @comments       = comments_config.present?
         @comments_url   = comments_config&.fetch(:url, nil)
+        # `url: :auto` (#706) points the editor at the engine's own endpoints for one
+        # host record. It needs the view context to build the path, so all initialize
+        # does is remember the intent and check the record is usable -- raising here
+        # rather than in before_render puts the error on the call site.
+        @comments_url_auto = (@comments_url == :auto)
+        @comments_url = nil if @comments_url_auto
+        @comments_commentable = comments_config&.fetch(:commentable, nil)
+        validate_comments_commentable! if @comments_url_auto
         @comments_user  = comments_config&.fetch(:user, nil)
         @comments_users = comments_config&.fetch(:users, nil)
         @comments_users_url = comments_config&.fetch(:users_url, nil)
@@ -99,10 +149,29 @@ module Bali
         # -1 stands for "not configured": 0 is a real value that turns polling off,
         # so it cannot double as the unset marker.
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
+        # Read for its side effect: it raises on an unknown mode, and raising here
+        # rather than at render time puts the error on the call site.
+        @config.comments_sidebar
+
+        Config.warn_stray_keywords(options, component: self.class.name)
 
         @options = prepend_class_name(options, "block-editor-component")
+        @options = prepend_class_name(@options, size_class(size))
         @options = prepend_controller(@options, "block-editor")
         @options = prepend_values(@options, "block-editor", controller_values)
+
+        # Read by CSS, not by the controller: what the sidebar hides is a look, and
+        # the sidebar itself is React's. The root is the ancestor the INLINE sidebar
+        # sits under -- see `Config#comments_sidebar`.
+        #
+        # It is not the ancestor of a portaled one: `comments_container_id:` moves
+        # the sidebar into markup this component does not render the contents of, so
+        # the flag reaches that container through the Stimulus value below and the
+        # effect in BlockNoteEditorWrapper.jsx (#1113). DocumentEditor also writes it
+        # on its own panel, which is server-rendered and so beats React to it.
+        if @config.comments_sidebar_read_only?
+          @options = prepend_data_attribute(@options, "comments-sidebar", comments_sidebar_attribute)
+        end
       end
 
       # Two things can only be resolved here, both for the same reason: the view
@@ -113,6 +182,7 @@ module Bali
         @options = prepend_values(@options, "block-editor", { translations: translations_json })
 
         resolve_auto_upload_url
+        resolve_auto_comments_url
       end
 
       def editable?
@@ -153,20 +223,82 @@ module Bali
       # It must round-trip the ORIGINAL content: if the user submits without
       # touching the editor, an empty value here would silently blank the field.
       def hidden_input_value
-        case @format.to_sym
+        case @format
         when :markdown then @markdown_content.to_s
         when :html then @html_content.to_s
         else serialized_content
         end
       end
 
+      # En qué forma está el valor que el input lleva AHORA, para el que lo lea antes de
+      # que el editor monte y lo reescriba. El editor mantiene el atributo al día en cada
+      # escritura (`useContentSync`), y del lado de Rails la misma pregunta la responde
+      # `Bali::BlockEditor.content_format` sobre la columna.
+      def content_format
+        return @format if %i[html markdown].include?(@format)
+
+        Bali::BlockEditor.content_format(@initial_content)&.to_s
+      end
+
+      # The mode as the `data-comments-sidebar` attribute spells it: Ruby writes
+      # `:read_only`, CSS reads `read-only`. One place, so the root attribute, the
+      # Stimulus value and the portaled container cannot drift apart.
+      def comments_sidebar_attribute
+        @config.comments_sidebar.to_s.tr("_", "-")
+      end
+
       private
+
+      # @deprecated `readonly:` es el nombre de Rails y la primera conjetura de cualquiera,
+      #   y hasta v3.1 era una trampa muda: no es parámetro del componente, así que caía en
+      #   `**options` y salía como `readonly="readonly"` en un `<div>`, donde no significa
+      #   nada. Dos pantallas "de solo lectura" de una app anfitriona eran editables, y
+      #   además aceptaban subidas, porque `upload_url:` por omisión es `:auto` (#1092).
+      #   Se elimina en 4.0.
+      def resolve_editable(editable, readonly)
+        return editable if readonly.nil?
+
+        Bali.deprecator.warn(
+          "Bali::BlockEditor(readonly:) is deprecated and is removed in 4.0. " \
+          "Write `editable: #{!readonly}`."
+        )
+
+        !readonly
+      end
 
       # A disabled component renders an empty string: no markup, no controller,
       # no error — and `assert_response :success` still passes. That silence is
       # the single most common way this component is mis-installed, so say so
       # loudly where it is safe to: logs always, plus a visible placeholder in
       # development and test (see component.html.erb).
+      # nil renders the default; anything unknown raises instead of defaulting in
+      # silence -- the same contract Bali::Alert and Bali::Tag use.
+      # `size.to_sym` would turn an Integer — the value that means the HTML
+      # attribute on the input families, and now reachable through
+      # `block_editor_group` (#1076) — into a NoMethodError; letting it miss
+      # the fetch instead keeps the rejection one clear message.
+      # Un `format:` desconocido caía en el `else` y salía como JSON: un host que pidió
+      # markdown se llevaba JSON sin enterarse. Mismo contrato que `size_class`.
+      def validated_format(format)
+        key = format.respond_to?(:to_sym) ? format.to_sym : format
+        return key if FORMATS.include?(key)
+
+        raise ArgumentError,
+              "#{self.class.name}: unknown format #{format.inspect}. " \
+              "Valid: #{FORMATS.map(&:inspect).join(', ')}."
+      end
+
+      def size_class(size)
+        return SIZES[:md] if size.nil?
+
+        key = size.respond_to?(:to_sym) ? size.to_sym : size
+        SIZES.fetch(key) do
+          raise ArgumentError,
+                "#{self.class.name}: unknown size #{size.inspect}. " \
+                "Valid: #{SIZES.keys.map(&:inspect).join(', ')}."
+        end
+      end
+
       def warn_disabled
         Rails.logger.warn(
           "[Bali] BlockEditor::Component was rendered but `Bali.block_editor_enabled` is false, " \
@@ -206,6 +338,9 @@ module Bali
           table_of_contents_container_id: @table_of_contents_container_id || "",
           comments: @comments,
           comments_container_id: @comments_container_id || "",
+          # The mode as CSS spells it. Read by the React wrapper for the portaled
+          # sidebar only -- see the effect in BlockNoteEditorWrapper.jsx.
+          comments_sidebar: comments_sidebar_attribute,
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,
@@ -243,8 +378,39 @@ module Bali
         return unless resolved
 
         @upload_url = resolved
+        # Same string key `prepend_values` uses -- see resolve_auto_comments_url. This
+        # one happened to work with a symbol only because `prepend_values` skips nil
+        # values, so there was nothing to collide with.
         @options[:data] ||= {}
-        @options[:data][:'block-editor-upload-url-value'] = resolved
+        @options[:data]["block-editor-upload-url-value"] = resolved
+      end
+
+      # The commentable is the whole point of `:auto`: the engine scopes every one of
+      # the nine endpoints to it, and `RESTThreadStore._buildUrl` carries the query
+      # string from this base URL to all of them.
+      def resolve_auto_comments_url
+        return unless @comments_url_auto
+
+        resolved = resolve_engine_threads_path
+        return unless resolved
+
+        @comments_url = resolved
+        # The STRING key is the one `prepend_values` already wrote in initialize (with
+        # `""`, since the URL was not known yet). A symbol key here would add a second
+        # data attribute instead of replacing that one, and the empty one -- being
+        # first -- is the one the browser reads.
+        @options[:data] ||= {}
+        @options[:data]["block-editor-comments-url-value"] = resolved
+      end
+
+      def validate_comments_commentable!
+        return if @comments_commentable.respond_to?(:id) &&
+                  @comments_commentable.class.respond_to?(:polymorphic_name)
+
+        raise ArgumentError,
+              "comments: { url: :auto } requires `commentable:` to be an Active Record " \
+              "record (got #{@comments_commentable.inspect}). The engine scopes threads " \
+              "to it; there is no unscoped thread list."
       end
 
       def export_values
@@ -260,6 +426,17 @@ module Bali
         nil
       end
 
+      # nil when the host did not mount the engine, same as uploads: the editor falls
+      # back to the in-memory store instead of pointing at a URL that answers 404.
+      def resolve_engine_threads_path
+        helpers.bali.block_editor_threads_path(
+          commentable_type: @comments_commentable.class.polymorphic_name,
+          commentable_id: @comments_commentable.id
+        )
+      rescue NoMethodError
+        nil
+      end
+
       def serialized_content
         case @initial_content
         when Hash, Array
@@ -271,10 +448,15 @@ module Bali
         end
       end
 
+      # Sin `references_config:` explícito manda el registry (#708): declarar un tipo en
+      # `Bali.entity_reference_types` con su `display:` basta para que su chip salga con su
+      # icono, su etiqueta y su color, sin repetir la declaración en cada editor. Un hash
+      # explícito sigue ganando — un editor puede pintar un tipo distinto al del registry.
       def serialized_references_config
-        return "{}" if @references_config.blank?
+        config = @references_config.presence || Bali.entity_references_config
+        return "{}" if config.blank?
 
-        @references_config.transform_keys(&:to_s).to_json
+        config.transform_keys(&:to_s).to_json
       end
 
       def serialized_mentions

@@ -7,6 +7,7 @@ export class LocationsMapController extends Controller {
   static targets = ['map', 'location', 'card']
   static values = {
     enableClustering: Boolean,
+    fitToLocations: Boolean,
     zoom: { type: Number, default: 12 },
     centerLatitude: { type: Number, default: TIJUANA_LAT },
     centerLongitude: { type: Number, default: TIJUANA_LNG },
@@ -32,9 +33,29 @@ export class LocationsMapController extends Controller {
       this.loadLocations()
       this.initializeMap()
       this.addMarkers()
+
+      if (this.fitToLocationsValue) this.fitMapToLocations()
     } catch (error) {
       console.error(error)
     }
+  }
+
+  // Frames every location instead of trusting center/zoom. fitBounds picks
+  // whatever zoom contains the bounds — for a single location (or a very tight
+  // cluster) that is street level, so zoomValue acts as the ceiling the map
+  // never zooms in past.
+  fitMapToLocations = () => {
+    if (this.locations.length === 0) return
+
+    const bounds = new this.googleMaps.LatLngBounds()
+    this.locations.forEach(({ lat, lng }) => bounds.extend({ lat, lng }))
+
+    const listener = this.map.addListener('bounds_changed', () => {
+      listener.remove()
+      if (this.map.getZoom() > this.zoomValue) this.map.setZoom(this.zoomValue)
+    })
+
+    this.map.fitBounds(bounds)
   }
 
   initializeMap = () => {

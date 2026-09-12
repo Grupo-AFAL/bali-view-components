@@ -36,7 +36,7 @@ module Bali
                 name: 'Delete',
                 variant: :error,
                 size: :sm,
-                icon: 'trash'
+                icon: 'trash-2'
               ))
             end
           end
@@ -58,7 +58,7 @@ module Bali
                 variant: :error,
                 size: :sm,
                 outline: true,
-                icon: 'trash'
+                icon: 'trash-2'
               ))
             end
           end
@@ -75,7 +75,7 @@ module Bali
                 name: 'Delete',
                 variant: :ghost,
                 size: :sm,
-                icon: 'trash'
+                icon: 'trash-2'
               ))
             end
 

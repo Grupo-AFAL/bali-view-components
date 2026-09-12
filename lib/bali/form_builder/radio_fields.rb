@@ -26,7 +26,8 @@ module Bali
         xs: "radio-xs",
         sm: "radio-sm",
         md: "radio-md",
-        lg: "radio-lg"
+        lg: "radio-lg",
+        xl: "radio-xl"
       }.freeze
 
       COLORS = {
@@ -109,20 +110,27 @@ module Bali
       # `html_options`, so the pair of hashes has to be read together to know
       # which ids `aria-describedby` may name.
       def build_radio_input_options(method, html_options, options = {})
-        size = html_options[:size]
         color = html_options[:color]
         custom_class = html_options[:class]
 
         radio_class = [
           RADIO_CLASS,
-          SIZES[size],
+          size_variant(html_options, SIZES),
           COLORS[color],
-          (errors?(method) ? "radio-error" : nil),
+          (errors?(method, options) ? "radio-error" : nil),
           custom_class
         ].compact.join(" ")
 
         attributes = html_attributes(html_options).except(:class, *RADIO_OPTIONS)
                                                   .merge(class: radio_class)
+
+        # Only the name half: every radio in a group shares one, which is exactly what
+        # the escape hatch is for, but they cannot share an id — Rails suffixes each
+        # with its own value, and forcing one would hand N elements the same id.
+        # A plain top-level `name:` is promoted too, for the same reason it is on the
+        # select families: the group hash is not where the element reads it from.
+        shared_name = options[:input_name] || options[:name]
+        attributes[:name] ||= shared_name if shared_name
 
         merge_aria_attributes(attributes, method, options)
       end

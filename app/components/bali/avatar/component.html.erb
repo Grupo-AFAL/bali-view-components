@@ -1,11 +1,13 @@
-<%= tag.div class: container_classes, **@options.except(:class) do %>
-  <%= tag.div class: [inner_classes, (placeholder_classes if placeholder?)].compact do %>
-    <% if placeholder? %>
-      <%= placeholder %>
-    <% elsif picture? %>
+<%= tag.div class: container_classes, **container_attributes do %>
+  <%= tag.div(**inner_attributes) do %>
+    <% if picture? %>
       <%= picture %>
     <% elsif @src.present? %>
-      <%= image_tag @src, alt: @options[:alt] || '', class: 'w-full h-full object-cover', loading: 'lazy', decoding: 'async' %>
+      <%= image_tag @src, alt: image_alt, class: 'w-full h-full object-cover', loading: 'lazy', decoding: 'async' %>
+    <% elsif placeholder? %>
+      <%= placeholder %>
+    <% elsif initials? %>
+      <span aria-hidden="true"><%= initials %></span>
     <% end %>
   <% end %>
 <% end %>

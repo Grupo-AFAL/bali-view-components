@@ -27,6 +27,19 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :name, :tag_name, :options
 
+      # Every name the direct-Lucide step can serve, enumerated from the SVG
+      # files the gem ships (lucide-rails has no list API). Only the error
+      # path reads it — it feeds "did you mean" for names the mapping no
+      # longer carries, e.g. `arrow_left` → `arrow-left` (#902 removed the
+      # identity entries that used to cover those). Memoized: the set is
+      # fixed for the life of the process.
+      def self.lucide_icon_names
+        @lucide_icon_names ||= LucideRails::GEM_ROOT
+                               .glob("icons/stripped/*.svg")
+                               .map { |file| file.basename(".svg").to_s }
+                               .sort.freeze
+      end
+
       SIZES = {
         small: "size-4",
         medium: "size-8",
@@ -109,9 +122,13 @@ module Bali
       def render_lucide_icon(lucide_name)
         svg_content = LucideRails::IconProvider.icon(lucide_name)
 
+        # `default_options` carries "width"/"height" as String keys (24); the
+        # Symbol overrides below would serialize as a SECOND pair, and HTML
+        # parsers keep the first — so 24 always won and `size:` never reached
+        # the SVG (#986).
         tag.svg(
           svg_content.html_safe,
-          **LucideRails.default_options,
+          **LucideRails.default_options.except("width", "height"),
           width: pixel_size,
           height: pixel_size,
           class: "lucide-icon"
@@ -166,18 +183,31 @@ module Bali
       # Matching ignores the difference between dashes and underscores, because
       # the removed legacy step accepted both spellings of every name it
       # served — without that, `arrow_left` suggests nothing at all instead of
-      # the `arrow-left` that replaces it.
+      # the `arrow-left` that replaces it. Candidates cover everything the
+      # pipeline can actually serve: the mapping's keys, the full Lucide set,
+      # and the kept icons.
       #
       # @param name [String] the icon name that wasn't found
       # @return [Array<String>] up to 3 similar icon names
       def find_similar_icons(name)
         needle = comparable_name(name)
-        all_names = LucideMapping.bali_names + KeptIcons::ALL
+        all_names = LucideMapping.bali_names + self.class.lucide_icon_names + KeptIcons::ALL
 
         all_names.select do |candidate|
           comparable = comparable_name(candidate)
           comparable.include?(needle) || needle.include?(comparable)
-        end.first(3)
+        end.uniq.sort_by { |candidate| [ suggestion_rank(candidate, needle), candidate ] }.first(3)
+      end
+
+      # Exact match (modulo dash/underscore) first, then prefix, then the rest.
+      # Without the ranking, `first(3)` truncates in pool order and `panel_left`
+      # loses `panel-left` itself to `layout-panel-left` (#985).
+      def suggestion_rank(candidate, needle)
+        comparable = comparable_name(candidate)
+        return 0 if comparable == needle
+        return 1 if comparable.start_with?(needle)
+
+        2
       end
 
       def comparable_name(name)

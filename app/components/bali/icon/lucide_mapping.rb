@@ -10,15 +10,34 @@ module Bali
     #   LucideMapping.find('edit') # => 'pencil'
     #   LucideMapping.find('unknown') # => nil
     #
-    # rubocop:disable Metrics/ClassLength
     class LucideMapping
       # This map is consulted BEFORE the name is tried as a Lucide icon, so a
       # key that is itself a current Lucide name and points at a different
       # glyph shadows the real icon — the honest spelling becomes unreachable,
-      # with no error and no warning. Do not add entries like that; the test
-      # freezes the known leftovers so the set can only shrink (see the
-      # shadowing test in lucide_mapping_test.rb, and the issue it names for
-      # the five still pending a decision).
+      # with no error and no warning. Do not add entries like that; the
+      # shadowing test in lucide_mapping_test.rb freezes the set so it can
+      # only shrink. `trash`, `cog`, `expand`, `indent` and `outdent` were
+      # removed for exactly that (#902) and now draw their real Lucide glyph.
+      #
+      # Three shadowing entries stay, deliberately:
+      #
+      # * `check-circle` => `circle-check`: Lucide renamed check-circle to
+      #   circle-check in 2023, and the `check-circle` file lucide-rails still
+      #   ships is the legacy glyph (the check overflowing the circle).
+      #   Pointing at the modern canonical drawing is the correct behaviour,
+      #   and the entry keeps working the day lucide-rails drops the file.
+      # * `edit` => `pencil`: `edit` in Lucide is a deprecated alias whose
+      #   real rename was `square-pen` — NOT `pencil`. The target is the
+      #   v1/v2 visual continuity, chosen on purpose; dropping the entry
+      #   would swap every measured call site from a pencil to a
+      #   pencil-in-square without gaining a current name.
+      # * `plus-circle` => `circle-plus`: same rename story as check-circle,
+      #   but the legacy file draws the same thing — the entry only protects
+      #   against the alias file being dropped.
+      #
+      # Identity entries ("check" => "check", …) are dead weight — the
+      # direct-Lucide step resolves them identically — and the same test
+      # keeps them out.
       #
       # Mapping from Bali icon names to Lucide icon names
       MAPPING = {
@@ -29,142 +48,76 @@ module Bali
         "info-circle" => "info",
         "info-circle-alt" => "info",
         "success" => "circle-check",
-        "check" => "check",
         "check-circle" => "circle-check",
         "times" => "x",
         "times-circle" => "circle-x",
-        "question_circle" => "circle-help",
+        "question-circle" => "circle-help",
 
         # Arrows & Navigation
-        "arrow-left" => "arrow-left",
-        "arrow-right" => "arrow-right",
         "arrow-right-up" => "arrow-up-right",
         "arrow-back" => "chevron-left",
         "arrow-forward" => "chevron-right",
-        "chevron-down" => "chevron-down",
-        "chevron-left" => "chevron-left",
-        "chevron-right" => "chevron-right",
         "chevron-doble-down" => "chevrons-down",
         "chevron-doble-up" => "chevrons-up",
         "angle-double-down" => "chevrons-down",
         "angle-double-up" => "chevrons-up",
         "long-arrow-alt-left" => "arrow-left",
         "external-link-alt" => "external-link",
-        "expand" => "maximize",
-
-        # Text Formatting
-        "align-left" => "align-left",
-        "align-center" => "align-center",
-        "align-right" => "align-right",
-        "bold" => "bold",
-        "italic" => "italic",
-        "underline" => "underline",
-        "strikethrough" => "strikethrough",
-        "indent" => "indent-increase",
-        "outdent" => "indent-decrease",
 
         # Files & Documents
         "attachment" => "paperclip",
         "file-export" => "file-output",
         "file-certificate" => "file-badge",
-        "copy" => "copy",
-        "sticky-note" => "sticky-note",
 
         # Actions
         "edit" => "pencil",
         "edit-alt" => "pen",
-        "pen" => "pen",
-        "trash" => "trash-2",
         "trash-alt" => "trash",
-        "plus" => "plus",
         "plus-circle" => "circle-plus",
-        "minus" => "minus",
-        "search" => "search",
         "search-minus" => "zoom-out",
         "search-plus" => "zoom-in",
-        "filter" => "filter",
         "filter-alt" => "sliders-horizontal",
-        "download" => "download",
-        "upload" => "upload",
         "cloud-upload-alt" => "cloud-upload",
         "print" => "printer",
 
         # UI Elements
-        "cog" => "settings",
         "ellipsis-h" => "ellipsis",
         "more" => "more-horizontal",
-        "list" => "list",
-        "table" => "table",
         "dashboard" => "layout-dashboard",
-        "home" => "home",
-        "door-open" => "door-open",
-        "bookmark" => "bookmark",
-        "star" => "star",
-        "bell" => "bell",
         "notification" => "bell-ring",
         "handle" => "grip-vertical",
-        "link" => "link",
         "link-alt" => "link-2",
 
-        # Media
-        "image" => "image",
-        "images" => "images",
-        "camera" => "camera",
-
         # Communication
-        "mail" => "mail",
         "comment" => "message-circle",
-        "phone" => "phone",
         "phone-plus" => "phone-call",
         "square-phone" => "phone",
 
         # Users
-        "user" => "user",
-        "users" => "users",
-        "user-plus" => "user-plus",
         "address-book" => "contact",
         "face-profile" => "user",
 
         # Business & Finance
         "business" => "building-2",
-        "store" => "store",
-        "wallet" => "wallet",
         "wallet-alt" => "wallet-cards",
-        "credit-card" => "credit-card",
         "credit-card-alt" => "credit-card",
-        "coins" => "coins",
-        "receipt" => "receipt",
-        "shopping-cart" => "shopping-cart",
-        "tags" => "tags",
-        "badge-percent" => "badge-percent",
 
         # Calendar & Time
         "calendar-alt" => "calendar",
-        "clock" => "clock",
 
         # Charts
-        "chart-line" => "chart-line",
         "project-diagram" => "workflow",
 
         # Objects
-        "lightbulb" => "lightbulb",
-        "gift" => "gift",
-        "truck" => "truck",
         "truck-loading" => "truck",
         "trophy-alt" => "trophy",
-        "weight" => "weight",
         "books" => "library",
         "box-archive" => "archive",
         "checklist" => "list-checks",
-        "shapes" => "shapes",
-        "infinity" => "infinity",
         "magic-wand" => "wand-2",
-        "sparkles" => "sparkles",
         "fire-alt" => "flame",
-        "snowflake" => "snowflake",
 
         # People & Body
-        "baby" => "baby",
         "child" => "baby",
         "running" => "person-standing",
 
@@ -173,12 +126,9 @@ module Bali
         "capsules" => "pill",
 
         # Places & Travel
-        "bed" => "bed",
         "chair" => "armchair",
         "map-marker-alt" => "map-pin",
         "map-marked-alt" => "map",
-        "pin" => "pin",
-        "toilet" => "toilet",
 
         # Food & Drink
         "cutlery" => "utensils",
@@ -223,6 +173,5 @@ module Bali
         MAPPING.values.uniq
       end
     end
-    # rubocop:enable Metrics/ClassLength
   end
 end

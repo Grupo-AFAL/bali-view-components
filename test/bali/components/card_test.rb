@@ -198,4 +198,30 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector(".card.card-lg")
   end
+
+  def test_href_renders_the_root_as_a_link_with_hover_affordance
+    render_inline(Bali::Card::Component.new(href: "/movies/1")) do
+      "Content"
+    end
+    assert_selector("a.card[href='/movies/1']", text: "Content")
+    assert_selector("a.card.transition-shadow.hover\\:shadow-md")
+    assert_no_selector("div.card")
+  end
+
+  def test_without_href_the_root_stays_a_div_without_hover_affordance
+    render_inline(Bali::Card::Component.new) do
+      "Content"
+    end
+    assert_selector("div.card")
+    assert_no_selector("a.card")
+    assert_no_selector(".transition-shadow")
+  end
+
+  def test_href_composes_with_the_other_card_options
+    render_inline(Bali::Card::Component.new(href: "/movies/1", style: :bordered, size: :sm,
+                                            class: "w-96")) do
+      "Content"
+    end
+    assert_selector("a.card.card-border.card-sm.w-96[href='/movies/1']")
+  end
 end

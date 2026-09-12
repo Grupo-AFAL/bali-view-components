@@ -46,14 +46,28 @@ module Bali
       # straight onto the wrapper div as an HTML attribute — `label="..."` and
       # `help="..."` would end up in the markup.
       #
-      # `CONTROL_ONLY_OPTIONS` rides along for the same reason: this editor has
-      # no input of its own to carry them.
+      # `CONTROL_ONLY_OPTIONS` rides along for the same reason — minus `:size`.
+      # On the input families that option can only be the HTML attribute, but on
+      # this component it is API: the text scale. Stripping it here made the
+      # option unreachable from the helper, silently — every editor rendered
+      # `md` no matter what the call site said (#1076). `:required` stays: the
+      # editor is a widget over a hidden field, which constraint validation
+      # never reads (see required_option_test.rb).
       FIELD_GROUP_OPTIONS = (
-        HtmlUtils::WRAPPER_OPTIONS + HtmlUtils::CONTROL_ONLY_OPTIONS
+        HtmlUtils::WRAPPER_OPTIONS + HtmlUtils::CONTROL_ONLY_OPTIONS - [ :size ]
       ).freeze
 
       def block_editor_field(method, **options)
-        opts = options.except(*FIELD_GROUP_OPTIONS, :format, :input_name)
+        # This family never reaches `html_attributes`, so it needs its own call to
+        # the guard: the component forwards anything it does not recognise onto its
+        # wrapper div, which is where `hint="…"` was landing (#1111).
+        warn_mistaken_options(options)
+        # `input_id:` is stripped and not honoured: the hidden input's id is the
+        # component's own, derived alongside the editor's container id, and a
+        # `<legend>` caption (`control_id: false`) points at nothing to keep honest.
+        opts = options.except(*FIELD_GROUP_OPTIONS, :format,
+                              *HtmlUtils::NON_MODEL_OPTIONS,
+                              *HtmlUtils::MISTAKEN_OPTIONS.keys)
         format = (options[:format] || DEFAULT_RICH_TEXT_FORMAT).to_sym
 
         component_options = opts.merge(

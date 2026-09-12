@@ -76,6 +76,24 @@ describe('CommandController', () => {
         .should('not.have.class', 'hidden')
       cy.contains('[data-command-target="group"]', 'Actions').should('be.visible')
     })
+
+    it('shows navigation rows on open and narrows them as the query is typed', () => {
+      // Browsable the moment the palette opens — what :searchable cannot do
+      cy.contains('.cmd-row', 'Policies').should('not.have.class', 'hidden')
+      cy.contains('.cmd-row', 'Committees').should('not.have.class', 'hidden')
+
+      cy.get('[data-command-target="input"]').type('Committees')
+
+      // ...and filtered once there is a query — what :action cannot do
+      cy.contains('.cmd-row', 'Committees').should('not.have.class', 'hidden')
+      cy.contains('.cmd-row', 'Policies').should('have.class', 'hidden')
+    })
+
+    it('counts a matching navigation row as a result, so no empty state shows', () => {
+      cy.get('[data-command-target="input"]').type('Committees')
+
+      cy.get('[data-command-target="noResults"]').should('have.class', 'hidden')
+    })
   })
 
   context('keyboard navigation', () => {
@@ -107,6 +125,48 @@ describe('CommandController', () => {
 
       cy.get('[data-command-target="input"]').type('{enter}')
       cy.get('@turboVisit').should('have.been.calledWith', '/lookbook')
+    })
+  })
+
+  // The trigger's hint is server-rendered, so the HTML says ⌘K to everyone.
+  // Only the browser knows which keyboard is in front of the user, so the
+  // controller is what corrects it — a Windows user was being pointed at a key
+  // their keyboard does not have. Both platforms are stubbed rather than
+  // trusting the machine running Cypress, which is a Mac locally and Linux in
+  // CI.
+  context('the shortcut hint on the trigger', () => {
+    const visitAs = (platform, uaPlatform) =>
+      cy.visit('/bali/command/default', {
+        onBeforeLoad (win) {
+          Object.defineProperty(win.navigator, 'platform', {
+            value: platform, configurable: true
+          })
+          Object.defineProperty(win.navigator, 'userAgentData', {
+            value: uaPlatform ? { platform: uaPlatform } : undefined,
+            configurable: true
+          })
+        }
+      })
+
+    const hint = () =>
+      cy.get('.bali-command-trigger kbd[data-command-target="shortcut"]')
+
+    it('reads ⌘K on a Mac', () => {
+      visitAs('MacIntel', 'macOS')
+
+      hint().should('have.text', '⌘K')
+    })
+
+    it('reads Ctrl K on Windows', () => {
+      visitAs('Win32', 'Windows')
+
+      hint().should('have.text', 'Ctrl K')
+    })
+
+    it('falls back to navigator.platform when userAgentData is missing', () => {
+      visitAs('Linux x86_64', null)
+
+      hint().should('have.text', 'Ctrl K')
     })
   })
 })

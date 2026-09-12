@@ -1,0 +1,8 @@
+<%# locals: component %>
+<%# Every Gantt preview renders through here, because the component alone is
+    not the whole circuit: the island's bundle is published to the page by these
+    metas, and the main bundle's startIslandLoader('gantt') watches for the
+    controller and injects them. In a host app the metas live in the layout
+    <head> — see docs/api/gantt.md. %>
+<%= react_island_meta_tags('gantt', js: 'gantt-island.js', css: 'gantt-island.css') %>
+<%= render component %>

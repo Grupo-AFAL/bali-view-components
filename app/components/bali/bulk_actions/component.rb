@@ -9,8 +9,17 @@ module Bali
       # `xs` (24px) deja 4px de aire arriba y abajo sin tocar el alto total —que tiene que
       # seguir siendo el de la toolbar que reemplaza—. La barra flotante no tiene ese límite
       # y conserva `sm`. Un `size:` explícito en la acción gana sobre ambos.
+      #
+      # `select_all_filtered:` y `filter_params:` van DESPUÉS del splat: son del componente,
+      # no de quien declara la acción — la barra es la única que sabe si el modo "los N
+      # filtrados" está disponible, y las acciones tienen que estar de acuerdo entre ellas.
       renders_many :actions, ->(**options) do
-        Action::Component.new(size: toolbar? ? :xs : :sm, **options)
+        Action::Component.new(
+          size: toolbar? ? :xs : :sm,
+          **options,
+          select_all_filtered: select_all_filtered?,
+          filter_params: filter_params
+        )
       end
       renders_many :items, Item::Component
 
@@ -45,7 +54,12 @@ module Bali
                            "bg-primary/10 ring-1 ring-primary/20 px-3",
         toolbar_counter_wrapper: "flex items-center gap-1 text-sm shrink-0",
         toolbar_counter: "font-semibold",
-        toolbar_actions_wrapper: "flex flex-wrap items-center gap-2 flex-1"
+        toolbar_actions_wrapper: "flex flex-wrap items-center gap-2 flex-1",
+        # La oferta y el aviso viven DENTRO del contenedor de acciones, no sueltos en la
+        # barra: en la variante flotante ese contenedor es el único que tiene fondo
+        # (`bg-base-100`), y fuera de él el texto quedaba sobre el fondo de la página.
+        select_all_offer: "hidden shrink-0",
+        select_all_notice: "hidden shrink-0 text-sm italic opacity-70"
       }.freeze
 
       # @param variant [Symbol] :floating (barra fija abajo) o :toolbar (fila contextual)
@@ -54,10 +68,32 @@ module Bali
       #   `bulk-actions` anidados se reparten los targets (Stimulus asigna cada target a su
       #   ancestro con controlador más cercano), así que la barra no vería las filas y el
       #   contador quedaría clavado en 0 — sin error, en silencio.
-      def initialize(variant: :floating, standalone: true, **options)
+      # @param total_count [Integer, nil] Cuántos registros tiene el resultado filtrado
+      #   COMPLETO, no la página. Con este dato la barra ofrece "Seleccionar los N
+      #   resultados" cuando la selección ya cubre la página entera; sin él no hay oferta y
+      #   la selección sigue siendo estrictamente la página visible. El DataTable lo saca de
+      #   su `pagy`.
+      # @param filter_params [Array<Array>, Hash] Los `q[...]` vigentes del listado, que cada
+      #   acción re-emite como hidden fields para que el servidor pueda re-derivar el mismo
+      #   scope (`MyFilterForm.new(scope, params).result`, el mismo código del index). Se
+      #   aceptan pares `[name, value]` ya serializados o un hash anidado (`{ q: { ... } }`).
+      #   El DataTable lo arma solo desde su `filter_form`.
+      def initialize(variant: :floating, standalone: true, total_count: nil, filter_params: [],
+                     **options)
         @variant = VARIANTS.include?(variant&.to_sym) ? variant.to_sym : :floating
         @standalone = standalone
+        @total_count = total_count&.to_i
+        @filter_params = Bali::Filters::ActiveFilterParams.normalize(filter_params)
         @options = options
+      end
+
+      attr_reader :total_count, :filter_params
+
+      # La oferta necesita un N que decir. Sin `total_count` no hay modo "todos los filtrados"
+      # en ninguna parte: ni oferta, ni hidden `select_all_filtered`, ni re-emisión de
+      # filtros — el POST de una barra que no lo pide sale byte por byte como salía antes.
+      def select_all_filtered?
+        @total_count.to_i.positive?
       end
 
       def toolbar?

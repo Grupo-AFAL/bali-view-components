@@ -176,4 +176,17 @@ class BaliStatCardComponentTest < ComponentTestCase
       render_inline(Bali::StatCard::Component.new(**default_attrs, value: "78%"))
       assert_text("78%")
   end
+
+  def test_href_renders_the_whole_card_as_a_link
+    render_inline(Bali::StatCard::Component.new(**default_attrs, href: "/users"))
+    assert_selector("a.card[href='/users']", text: "Total Users")
+    assert_selector("a.card.transition-shadow.hover\\:shadow-md")
+    assert_no_selector("div.card")
+  end
+
+  def test_without_href_the_card_stays_a_div
+    render_inline(Bali::StatCard::Component.new(**default_attrs))
+    assert_selector("div.card")
+    assert_no_selector("a.card")
+  end
 end

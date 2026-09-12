@@ -1,0 +1,21 @@
+<%# El select dependiente: la búsqueda remota se acota con lo elegido acá arriba. El campo
+    del que depende es un `<select>` cualquiera —no tiene que ser del form ni de Bali—,
+    porque `ajax_param_selectors` lo ubica por selector CSS y lo lee en cada búsqueda. %>
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <label class="label" for="user-family">Family</label>
+  <select id="user-family" class="select select-bordered mb-4">
+    <option value="">All families</option>
+    <option value="Doe">Doe</option>
+    <option value="Smith">Smith</option>
+    <option value="Wayne">Wayne</option>
+  </select>
+
+  <%= form.slim_select_field :name, options,
+        ajax_param_name: 'q',
+        ajax_value_name: 'id',
+        ajax_text_name: 'full_name',
+        ajax_url: '/users.json',
+        ajax_extra_params: { source: 'bali' },
+        ajax_param_selectors: { family: '#user-family' },
+        ajax_placeholder: 'Start typing to get results...' %>
+<% end %>

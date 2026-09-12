@@ -1,0 +1,22 @@
+<%# El caso #984 completo: AppLayout monta `modal drawer` en <main> (default) y el form
+    de la página hardcodea `drawer: true` — el patrón que el uso correcto evita con
+    `drawer: page.drawer?`, pero que un host puede traer hardcodeado. El form manda por
+    GET a este mismo preview, así que el query string de abajo es la prueba de que el
+    submit salió por el camino normal del browser. %>
+<%= render Bali::AppLayout::Component.new(modal: true, drawer: true, flash: {}) do |layout| %>
+  <% layout.with_body do %>
+    <div class="max-w-md space-y-4 p-4">
+      <h1 class="text-lg font-semibold">Orphan drawer form (#984)</h1>
+
+      <%= form_with url: request.path, method: :get, builder: Bali::FormBuilder do |f| %>
+        <%= hidden_field_tag :probe, "1" %>
+        <%= f.text_field :name, value: params[:name] %>
+        <%= f.submit_group "Crear", drawer: true, cancel_path: "#{request.path}?cancelled=1" %>
+      <% end %>
+
+      <p class="text-sm" data-testid="query">
+        Query string: <code><%= request.query_string.presence || "(empty)" %></code>
+      </p>
+    </div>
+  <% end %>
+<% end %>

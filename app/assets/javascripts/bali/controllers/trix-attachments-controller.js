@@ -1,6 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
 
-// TODO: Add tests (Issue: #225)
 export class TrixAttachmentsController extends Controller {
   static values = { maxSize: Number, errorMessage: String }
 

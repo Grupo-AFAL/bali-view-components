@@ -12,6 +12,53 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     Bali.block_editor_enabled = @original_enabled
   end
 
+  # #1091 — el formato de persistencia pasa a ser del host y deja de depender de si alguien
+  # dejó un comentario.
+  def test_format_accepts_the_two_pinned_json_shapes
+    %i[blocks prosemirror].each do |format|
+      render_inline(Bali::BlockEditor::Component.new(format: format, input_name: "doc[content]"))
+
+      assert_selector("[data-block-editor-format-value='#{format}']", visible: :all)
+    end
+  end
+
+  def test_format_rejects_an_unknown_value_instead_of_serializing_json_in_silence
+    error = assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(format: :prose)
+    end
+
+    assert_match "unknown format", error.message
+    assert_match "prosemirror", error.message
+  end
+
+  # El input declara en qué forma está su valor, para que el host no la adivine por la
+  # estructura. Lo pone el servidor y lo mantiene al día `useContentSync`.
+  def test_the_hidden_input_declares_the_shape_of_the_stored_content
+    render_inline(Bali::BlockEditor::Component.new(
+                    input_name: "doc[content]",
+                    initial_content: [ { "id" => "1", "type" => "paragraph" } ]
+                  ))
+
+    assert_selector("input[data-content-format='blocks']", visible: :all)
+  end
+
+  def test_the_hidden_input_declares_prosemirror_content_as_such
+    render_inline(Bali::BlockEditor::Component.new(
+                    input_name: "doc[content]",
+                    initial_content: { "type" => "doc", "content" => [] }
+                  ))
+
+    assert_selector("input[data-content-format='prosemirror']", visible: :all)
+  end
+
+  def test_the_hidden_input_declares_a_non_json_format_as_itself
+    render_inline(Bali::BlockEditor::Component.new(
+                    input_name: "doc[content]", format: :markdown, markdown_content: "# Hola"
+                  ))
+
+    assert_selector("input[data-content-format='markdown']", visible: :all)
+  end
+
   def test_renders_block_editor_component
     render_inline(Bali::BlockEditor::Component.new)
     assert_selector("div.block-editor-component")
@@ -80,6 +127,60 @@ class BaliBlockEditorComponentTest < ComponentTestCase
   def test_applies_custom_css_classes
     render_inline(Bali::BlockEditor::Component.new(class: "custom-class"))
     assert_selector("div.block-editor-component.custom-class")
+  end
+
+  def test_defaults_to_the_medium_text_size
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector("div.block-editor-component.block-editor-size-md")
+  end
+
+  def test_applies_the_requested_text_size_class
+    render_inline(Bali::BlockEditor::Component.new(size: :sm))
+    assert_selector("div.block-editor-component.block-editor-size-sm")
+  end
+
+  def test_accepts_a_string_text_size
+    render_inline(Bali::BlockEditor::Component.new(size: "lg"))
+    assert_selector("div.block-editor-component.block-editor-size-lg")
+  end
+
+  def test_treats_a_nil_text_size_as_the_default
+    render_inline(Bali::BlockEditor::Component.new(size: nil))
+    assert_selector("div.block-editor-component.block-editor-size-md")
+  end
+
+  def test_keeps_custom_classes_alongside_the_text_size
+    render_inline(Bali::BlockEditor::Component.new(size: :xs, class: "custom-class"))
+    assert_selector("div.block-editor-component.block-editor-size-xs.custom-class")
+  end
+
+  # An Integer is what `size:` means on the input families (the HTML
+  # attribute), and it can now arrive here through `block_editor_group`
+  # (#1076) — the rejection must be the clear ArgumentError, not a
+  # NoMethodError out of `4.to_sym`.
+  def test_a_size_that_cannot_name_a_scale_raises_with_the_valid_names
+    error = assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(size: 4)
+    end
+    assert_match(/unknown size 4/, error.message)
+    assert_match(/:xs/, error.message)
+  end
+
+  # The size must never reach the wrapper as an HTML attribute: every keyword the
+  # component does not name is forwarded onto the div, and `size="sm"` on a div is
+  # a silent no-op that looks like it worked.
+  def test_does_not_leak_the_text_size_as_an_html_attribute
+    render_inline(Bali::BlockEditor::Component.new(size: :sm))
+    assert_no_selector("div.block-editor-component[size]", visible: :all)
+  end
+
+  def test_raises_on_an_unknown_text_size
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::BlockEditor::Component.new(size: :huge))
+    end
+
+    assert_includes error.message, "unknown size :huge"
+    assert_includes error.message, ":xs, :sm, :md, :lg"
   end
 
   def test_sets_controller_data_attribute
@@ -170,6 +271,28 @@ class BaliBlockEditorComponentTest < ComponentTestCase
   def test_with_comments_applies_comments_url_data_value_for_rest_persistence
     render_inline(Bali::BlockEditor::Component.new(comments: { url: "/block_editor_comments", user: { id: "1", username: "Alice" } }))
     assert_selector('[data-block-editor-comments-url-value="/block_editor_comments"]')
+  end
+
+  # #706 — `:auto` points the store at the engine's endpoints for one record. The
+  # commentable travels in the query string, which is what scopes all nine of them:
+  # RESTThreadStore._buildUrl keeps it on every sub-request.
+  def test_with_comments_auto_url_resolves_the_engine_path_scoped_to_the_commentable
+    document = Document.create!(title: "Contrato", author_name: "Ana", content: [])
+    render_inline(Bali::BlockEditor::Component.new(
+                    comments: { url: :auto, commentable: document, user: { id: "1", username: "Alice" } }
+                  ))
+
+    url = page.find("[data-block-editor-comments-url-value]")[:"data-block-editor-comments-url-value"]
+    assert_equal "/bali/block_editor_comments?commentable_id=#{document.id}&commentable_type=Document", url
+  end
+
+  # Failing loudly beats an editor that silently reads someone else's threads, or none.
+  def test_with_comments_auto_url_without_a_commentable_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::BlockEditor::Component.new(comments: { url: :auto, user: { id: "1", username: "Alice" } }))
+    end
+
+    assert_match(/commentable/, error.message)
   end
 
   def test_with_comments_defaults_comments_url_to_empty_string
@@ -422,9 +545,103 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_includes react_translations["user_fallback"], "%{id}"
   end
 
+  # references_config derivado del registry (#708)
+
+  def test_the_registry_display_config_reaches_the_editor_without_declaring_it_again
+    with_entity_reference_types do
+      render_inline(Bali::BlockEditor::Component.new)
+
+      assert_equal({ "icon" => "▧", "label" => "Documento", "color" => "success" },
+                   react_references_config["Document"])
+    end
+  end
+
+  def test_an_explicit_references_config_wins_over_the_registry
+    with_entity_reference_types do
+      render_inline(Bali::BlockEditor::Component.new(
+                      references_config: { "Document" => { icon: "★", label: "Otro", color: "warning" } }
+                    ))
+
+      assert_equal "★", react_references_config.dig("Document", "icon")
+    end
+  end
+
+  def test_a_type_without_display_stays_out_of_the_config
+    with_entity_reference_types do
+      render_inline(Bali::BlockEditor::Component.new)
+
+      assert_not react_references_config.key?("Task"), "sin display: no hay nada que configurar"
+    end
+  end
+
   private
+
+  def with_entity_reference_types
+    original = Bali.entity_reference_types
+    Bali.entity_reference_types = {
+      "Document" => { search_scope: -> { Document.all }, lookup_scope: -> { Document.all },
+                      search_fields: %i[title], display_field: :title,
+                      display: { icon: "▧", label: "Documento", color: "success" } },
+      "Task" => { search_scope: -> { Task.all }, lookup_scope: -> { Task.all },
+                  search_fields: %i[title], display_field: :title }
+    }
+    yield
+  ensure
+    Bali.entity_reference_types = original
+  end
+
+  def react_references_config
+    JSON.parse(page.find("[data-block-editor-references-config-value]", visible: :all)["data-block-editor-references-config-value"])
+  end
 
   def react_translations
     JSON.parse(page.find("[data-block-editor-translations-value]", visible: :all)["data-block-editor-translations-value"])
+  end
+
+  # The inline sidebar renders inside `.block-editor-component`, so that is where
+  # the flag the CSS reads has to be. See #1111 and `Config#comments_sidebar`.
+  def test_the_threads_sidebar_flag_is_absent_when_it_is_interactive
+    render_inline(Bali::BlockEditor::Component.new(config: { comments: { url: "/c" } }))
+
+    assert_no_selector(".block-editor-component[data-comments-sidebar]")
+  end
+
+  def test_the_threads_sidebar_flag_lands_on_the_root_when_read_only_is_asked_for
+    render_inline(
+      Bali::BlockEditor::Component.new(config: { comments: { url: "/c", sidebar: :read_only } })
+    )
+
+    assert_selector(".block-editor-component[data-comments-sidebar='read-only']")
+  end
+
+  def test_an_unknown_sidebar_mode_raises_at_the_call_site
+    assert_raises(ArgumentError) do
+      Bali::BlockEditor::Component.new(config: { comments: { sidebar: :nope } })
+    end
+  end
+
+  # The root flag only covers the sidebar that renders inside the root, and
+  # `comments_container_id:` portals it out of there — into markup Rails does not
+  # render the contents of. So the mode also travels as a Stimulus value, and the
+  # React wrapper puts it on that container. Without it, `sidebar: :read_only` plus
+  # `comments_container_id:` was a mode that silently did nothing (#1113).
+  def test_the_sidebar_mode_travels_to_the_react_wrapper
+    render_inline(
+      Bali::BlockEditor::Component.new(
+        config: { comments: { url: "/c", sidebar: :read_only } },
+        comments_container_id: "host-panel"
+      )
+    )
+
+    assert_selector("[data-block-editor-comments-sidebar-value='read-only']", visible: :all)
+    assert_selector("[data-block-editor-comments-container-id-value='host-panel']", visible: :all)
+  end
+
+  # Both modes are written, so a host reading the value can tell "interactive" apart
+  # from "this editor is too old to say".
+  def test_the_interactive_mode_is_named_in_the_value_too
+    render_inline(Bali::BlockEditor::Component.new(config: { comments: { url: "/c" } }))
+
+    assert_selector("[data-block-editor-comments-sidebar-value='interactive']", visible: :all)
   end
 end

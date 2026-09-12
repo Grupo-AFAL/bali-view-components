@@ -40,6 +40,19 @@ module Bali
         end
       end
 
+      # Clickable Card
+      # ---------------
+      # `href:` renders the card's root as an `<a>` with a hover shadow
+      # affordance. Content must not contain links or buttons then — interactive
+      # content inside an `<a>` is invalid HTML.
+      def clickable
+        render Card::Component.new(href: '/lookbook', style: :bordered, class: 'w-96') do |c|
+          c.with_title('Clickable Card')
+
+          tag.p('The whole card is one link. Use it for drill-downs where the card is the target.')
+        end
+      end
+
       # @!endgroup
 
       # @!group Headers
@@ -60,7 +73,7 @@ module Bali
       # Add an icon to draw attention to the card's purpose.
       def header_with_icon
         render Card::Component.new(class: 'w-96') do |c|
-          c.with_header(title: 'Settings', subtitle: 'Manage your preferences', icon: 'cog')
+          c.with_header(title: 'Settings', subtitle: 'Manage your preferences', icon: 'settings')
 
           tag.p('Icons help users quickly identify the card\'s purpose.')
         end

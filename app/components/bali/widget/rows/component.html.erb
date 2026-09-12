@@ -1,0 +1,21 @@
+<ul class="<%= classes %>" <%= tag.attributes(@options.except(:class)) %>>
+  <% @rows.each do |row| %>
+    <li class="list-row px-0">
+      <%# `min-w-0` is what makes `truncate` work inside a flex row: a flex
+          item's default `min-width:auto` refuses to shrink below its content,
+          so without it a long title pushes through the card's edge instead of
+          being cut. %>
+      <div class="list-col-grow min-w-0">
+        <% if row.href %>
+          <%= link_to row.title, row.href,
+                class: 'font-medium text-base-content hover:text-primary transition-colors block truncate' %>
+        <% else %>
+          <p class="font-medium text-base-content truncate"><%= row.title %></p>
+        <% end %>
+        <% if row.subtitle.present? %>
+          <p class="text-xs text-base-content/60 mt-0.5 truncate"><%= row.subtitle %></p>
+        <% end %>
+      </div>
+    </li>
+  <% end %>
+</ul>

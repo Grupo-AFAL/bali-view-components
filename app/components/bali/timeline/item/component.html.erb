@@ -1,13 +1,19 @@
 <li>
   <%= tag.hr(class: line_classes, style: line_style) %>
-  <div class="<%= content_box_classes %>">
+  <% if timestamp_present? && !compact %>
+    <div class="<%= timestamp_side_classes %>"><%= timestamp_content %></div>
+  <% end %>
+  <%= tag.send(box_tag_name, **content_box_options) do %>
     <% if heading.present? %>
-      <p class="font-semibold"><%= heading %></p>
+      <p class="<%= heading_classes %>"><%= heading %></p>
+    <% end %>
+    <% if timestamp_present? && compact %>
+      <p class="<%= box_timestamp_classes %>"><%= timestamp_content %></p>
     <% end %>
     <%= content %>
-  </div>
+  <% end %>
   <%= tag.div(class: marker_classes, style: marker_style) do %>
     <%= render Bali::Icon::Component.new(display_icon, size: :small) %>
   <% end %>
-  <%= tag.hr(class: line_classes, style: line_style) %>
+  <%= tag.hr(class: line_after_classes, style: line_after_style) %>
 </li>

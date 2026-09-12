@@ -8,7 +8,6 @@ import { Controller } from '@hotwired/stimulus'
  * https://daisyui.com/components/loading/
  */
 
-// TODO: Add tests (Issue: #144)
 export class SubmitButtonController extends Controller {
   connect () {
     this.element.addEventListener('turbo:submit-start', this.disableButton)

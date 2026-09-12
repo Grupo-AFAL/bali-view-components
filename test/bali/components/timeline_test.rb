@@ -198,6 +198,176 @@ class BaliTimelineComponentTest < ComponentTestCase
     assert_selector(".timeline-content-box", count: 2)
   end
 
+  def test_compact_adds_the_daisyui_compact_class
+    render_inline(Bali::Timeline::Component.new(compact: true))
+    assert_selector("ul.timeline.timeline-vertical.timeline-compact")
+  end
+
+  def test_compact_is_off_by_default
+    render_inline(Bali::Timeline::Component.new)
+    assert_no_selector("ul.timeline-compact")
+  end
+
+  def test_compact_places_every_item_on_the_end_side_regardless_of_position
+    render_inline(Bali::Timeline::Component.new(compact: true, position: :center)) do |c|
+      3.times { |i| c.with_item(heading: "Event #{i}") }
+    end
+    assert_selector(".timeline-content-box.timeline-end", count: 3)
+    assert_no_selector(".timeline-content-box.timeline-start")
+  end
+
+  def test_state_done_resolves_check_icon_and_primary_colour
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(state: :done, heading: "Done")
+    end
+    assert_selector(".timeline-middle.text-primary")
+    assert_selector('.timeline-middle svg path[d="m9 12 2 2 4-4"]')
+    assert_selector("hr.bg-primary", count: 2)
+  end
+
+  def test_state_current_resolves_dot_icon_and_primary_colour
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(state: :current, heading: "Here")
+    end
+    assert_selector(".timeline-middle.text-primary")
+    assert_selector('.timeline-middle svg circle[r="1"]')
+  end
+
+  def test_state_pending_keeps_the_plain_circle_and_mutes_the_heading
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(state: :pending, heading: "Later")
+    end
+    assert_selector(".timeline-middle.text-base-content")
+    assert_no_selector(".timeline-middle svg path")
+    assert_no_selector('.timeline-middle svg circle[r="1"]')
+    assert_selector('p.font-semibold[class~="text-base-content/60"]', text: "Later")
+    assert_no_selector("hr.bg-primary")
+  end
+
+  def test_state_accepts_a_string
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(state: "done")
+    end
+    assert_selector(".timeline-middle.text-primary")
+  end
+
+  def test_state_is_overridable_by_explicit_icon_and_color
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(state: :done, icon: "circle", color: :warning)
+    end
+    assert_selector(".timeline-middle.text-warning")
+    assert_no_selector(".timeline-middle svg path")
+  end
+
+  def test_state_unknown_raises_with_the_valid_names
+    error = assert_raises(ArgumentError) do
+      Bali::Timeline::Item::Component.new(state: :finished)
+    end
+    assert_includes(error.message, "unknown state :finished")
+    assert_includes(error.message, ":done, :current, :pending")
+  end
+
+  def test_href_renders_the_content_box_as_a_link_with_hover_feedback
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Clickable", href: "/shipments/42")
+    end
+    assert_selector('a.timeline-box.timeline-content-box[href="/shipments/42"]')
+    assert_selector("a.timeline-content-box.hover\\:bg-base-200.transition-colors")
+  end
+
+  def test_without_href_the_content_box_stays_a_div
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Static")
+    end
+    assert_selector("div.timeline-content-box")
+    assert_no_selector("a.timeline-content-box")
+  end
+
+  def test_item_options_land_on_the_content_box
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Actionable", data: { action: "click->drawer#open" })
+    end
+    assert_selector('.timeline-content-box[data-action="click->drawer#open"]')
+  end
+
+  def test_item_class_option_composes_with_the_box_classes
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Styled", class: "my-box")
+    end
+    assert_selector(".timeline-box.timeline-content-box.my-box")
+  end
+
+  def test_timestamp_renders_on_the_free_side_of_the_line
+    render_inline(Bali::Timeline::Component.new(position: :left)) do |c|
+      c.with_item(heading: "Event", timestamp: "Jul 28, 09:14")
+    end
+    # Box on the start side, so the timestamp takes the end side.
+    assert_selector('div.timeline-end[class~="text-base-content/60"]', text: "Jul 28, 09:14")
+    assert_no_selector(".timeline-content-box", text: "Jul 28, 09:14")
+  end
+
+  def test_timestamp_takes_the_start_side_when_the_box_is_on_the_end
+    render_inline(Bali::Timeline::Component.new(position: :right)) do |c|
+      c.with_item(heading: "Event", timestamp: "Jul 28, 09:14")
+    end
+    assert_selector('div.timeline-start[class~="text-base-content/60"]', text: "Jul 28, 09:14")
+  end
+
+  def test_timestamp_localizes_non_strings
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Event", timestamp: Time.utc(2026, 7, 28, 9, 14))
+    end
+    assert_selector("div.timeline-end", text: /Jul/)
+  end
+
+  def test_timestamp_falls_inside_the_box_as_a_muted_line_when_compact
+    render_inline(Bali::Timeline::Component.new(compact: true)) do |c|
+      c.with_item(heading: "Package received", timestamp: "Jul 28, 09:14 · A. García")
+    end
+    assert_selector('.timeline-content-box p[class~="text-base-content/60"]',
+                    text: "Jul 28, 09:14 · A. García")
+    assert_no_selector("div.timeline-start")
+  end
+
+  def test_timestamp_slot_wins_over_the_keyword
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Event", timestamp: "keyword") do |item|
+        item.with_timestamp { '<time id="rich-ts">Jul 29</time>'.html_safe }
+      end
+    end
+    assert_selector("div.timeline-end time#rich-ts", text: "Jul 29")
+    assert_no_selector("div.timeline-end", text: "keyword")
+  end
+
+  def test_line_below_an_item_takes_the_colour_of_the_item_that_follows
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "First", color: :primary)
+      c.with_item(heading: "Second", color: :info)
+    end
+
+    first, second = page.all("li", visible: :all)
+    assert_includes(first.all("hr", visible: :all).first[:class].to_s, "bg-primary")
+    assert_includes(first.all("hr", visible: :all).last[:class].to_s, "bg-info")
+    assert(second.all("hr", visible: :all).all? { |hr| hr[:class].to_s.include?("bg-info") })
+  end
+
+  def test_line_below_the_last_item_keeps_its_own_colour
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Only", color: :primary)
+    end
+    assert_selector("hr.bg-primary", count: 2)
+  end
+
+  def test_line_below_follows_a_custom_colored_next_item
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "First", color: :primary)
+      c.with_item(heading: "Second", custom_color: "#123456")
+    end
+
+    first = page.all("li", visible: :all).first
+    assert_includes(first.all("hr", visible: :all).last[:style].to_s, "#123456")
+  end
+
   def test_deprecated_slots_with_tag_item_still_renders_and_warns
     message = capture_bali_deprecation do
       render_inline(Bali::Timeline::Component.new) do |c|
@@ -286,6 +456,16 @@ class BaliTimelineItemComponentTest < ComponentTestCase
   def test_rendered_standalone_it_defaults_to_the_start_side
     render_inline(Bali::Timeline::Item::Component.new(heading: "Solo"))
     assert_selector(".timeline-start.timeline-box.timeline-content-box", count: 1)
+  end
+
+  def test_constants_defines_frozen_states_hash
+    assert(Bali::Timeline::Item::Component::STATES.frozen?)
+    assert_equal(%i[done current pending], Bali::Timeline::Item::Component::STATES.keys)
+  end
+
+  def test_constants_done_is_primary_not_success
+    assert_equal({ icon: "circle-check", color: :primary },
+                 Bali::Timeline::Item::Component::STATES[:done])
   end
 end
 

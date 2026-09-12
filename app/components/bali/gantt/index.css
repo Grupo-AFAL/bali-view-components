@@ -1,0 +1,19 @@
+/* Bali::Gantt (#704, trimmed by #970) — what is left of the server-rendered
+ * sheet now that the island is the only renderer: the loading skeleton's name
+ * column, so the placeholder has the same left column width as the board that
+ * replaces it. Everything else here (rows, bars, grid lines, the today marker,
+ * milestones, the legend swatch and the assignee chip) belonged to the
+ * `:static` board and went with it.
+ *
+ * The ISLAND's own CSS is app/components/bali/gantt/flow.css, bundled through
+ * the gantt entry — not part of the Tailwind build and never imported here.
+ *
+ * Imported from bali/components.css with layer(components) on purpose (D7):
+ * nothing here fights daisyUI, and host utility classes must keep winning. */
+.bali-gantt {
+  --gantt-name-col: 256px;
+}
+
+.bali-gantt-name-cell {
+  width: var(--gantt-name-col);
+}

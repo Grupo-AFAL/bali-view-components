@@ -21,7 +21,9 @@ export class TooltipController extends Controller {
     placement: { type: String, default: 'top' },
     // See Bali::Tooltip::Component::DEFAULT_TRIGGER for why this is `focusin`.
     trigger: { type: String, default: 'mouseenter focusin' },
-    appendTo: { type: String, default: 'parent' }
+    // 'body' matches Bali::Tooltip::Component's default (#992) so a hand-mounted
+    // controller behaves like a rendered component.
+    appendTo: { type: String, default: 'body' }
   }
 
   async connect () {
@@ -125,8 +127,9 @@ export class TooltipController extends Controller {
   }
 
   // Resolves the `appendTo` value into a tippy.js `appendTo` option.
-  // 'parent' keeps the balloon inside the trigger (default). 'body' or a
-  // CSS selector portals it out of clipping ancestors.
+  // 'body' (default, #992) portals the balloon out of clipping ancestors —
+  // AppLayout's own `<main>` is one. 'parent' keeps it inside the trigger's
+  // subtree; a CSS selector picks a specific portal.
   //
   // A modal overlay overrides all three: everything outside its subtree is inert,
   // so a balloon portaled to <body> is painted under the overlay and stops taking

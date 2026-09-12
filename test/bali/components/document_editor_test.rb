@@ -275,6 +275,42 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
     assert_selector("[data-document-editor-restore-version-url-value='/documents/1/revisions/restore']")
   end
 
+  # --- `:auto`, the mounted engine's endpoints (#707) -------------------------
+
+  # `:auto` points both URLs at Bali::ContentVersionsController, which needs the record
+  # named in the query string because its routes are not nested under the host's.
+  def test_auto_urls_resolve_to_the_mounted_engine_for_the_given_record
+    document = Document.create!(title: "Acta", author_name: "Ana")
+
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "Acta",
+      initial_content: [],
+      document_url: "/documents/#{document.id}",
+      versions_url: :auto,
+      restore_version_url: :auto,
+      record: document
+    ))
+
+    assert_selector("[data-document-editor-versions-url-value='" \
+                    "/bali/content_versions?record_id=#{document.id}&record_type=Document']")
+    assert_selector("[data-document-editor-restore-version-url-value='" \
+                    "/bali/content_versions/restore?record_id=#{document.id}&record_type=Document']")
+  end
+
+  # Without a record there is nothing to name, so the panel stays off instead of
+  # rendering one whose every request would 404.
+  def test_auto_without_a_record_leaves_the_history_panel_off
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "Acta",
+      initial_content: [],
+      document_url: "/documents/1",
+      versions_url: :auto
+    ))
+
+    assert_no_selector("[data-action*='document-editor#toggleHistory']")
+    assert_selector("[data-document-editor-versions-url-value='']")
+  end
+
   # The PATCH payload root and the hidden input name both used to hardcode
   # "document", which assumed every host named its model Document.
   def test_param_key_defaults_to_document_and_drives_the_input_name
@@ -457,5 +493,85 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
     end
     assert_includes rendered_content, 'data-bali-confirm-title="Restaurar versión"'
     assert_includes rendered_content, 'data-bali-confirm-cancel="Cancelar"'
+  end
+end
+
+# #1098 — `format:` fija la forma persistida (#1091), pero hasta ahora solo si el host
+# montaba el BlockEditor directo: este wrapper ni lo aceptaba ni lo reenviaba, así que la
+# pantalla que más lo necesita —comentarios encendidos y auto-guardado— se quedaba con el
+# `:json` adaptativo.
+class BaliDocumentEditorFormatTest < ComponentTestCase
+  def test_an_explicit_format_reaches_the_inner_block_editor
+    render_editor(format: :blocks)
+
+    assert_selector("[data-block-editor-format-value='blocks']", visible: :all)
+  end
+
+  def test_without_comments_the_default_is_still_the_adaptive_json
+    render_editor
+
+    assert_selector("[data-block-editor-format-value='json']", visible: :all)
+  end
+
+  # `:json` cambia SOLO a ProseMirror en cuanto alguien deja un comentario, y con
+  # auto-guardado esa reescritura de esquema llega a la columna sin que nadie la pida.
+  # Fijarla es escribir desde el primer guardado lo que el adaptativo iba a escribir igual.
+  def test_with_comments_on_the_default_pins_prosemirror
+    render_editor(config: { comments: true })
+
+    assert_selector("[data-block-editor-format-value='prosemirror']", visible: :all)
+  end
+
+  def test_a_comments_hash_counts_as_comments_on
+    render_editor(config: { comments: { url: "/threads" } })
+
+    assert_selector("[data-block-editor-format-value='prosemirror']", visible: :all)
+  end
+
+  # El host que quiere el adaptativo lo pide y se lo lleva: el explícito gana sobre el
+  # default opinado, incluso cuando coincide con el valor que el default reemplazaría.
+  def test_an_explicit_json_wins_over_the_opinionated_default
+    render_editor(format: :json, config: { comments: true })
+
+    assert_selector("[data-block-editor-format-value='json']", visible: :all)
+  end
+
+  # La validación es una sola y vive en BlockEditor: el wrapper no la copia.
+  def test_an_unknown_format_still_raises_through_the_inner_component
+    error = assert_raises(ArgumentError) { render_editor(format: :prose) }
+
+    assert_match "unknown format", error.message
+  end
+
+  private
+
+  def render_editor(**options)
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document", initial_content: [], document_url: "/documents/1", **options
+    ))
+  end
+
+  # The threads sidebar is portaled into this panel, so it sits outside
+  # `.block-editor-component` and needs the flag on the panel itself (#1111).
+  def test_the_comments_panel_is_interactive_by_default
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { comments: { url: "/c" } }
+    ))
+
+    assert_selector(".document-editor-panel[data-comments-sidebar='interactive']", visible: :all)
+  end
+
+  def test_the_comments_panel_can_be_asked_for_read_only
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { comments: { url: "/c", sidebar: :read_only } }
+    ))
+
+    assert_selector(".document-editor-panel[data-comments-sidebar='read-only']", visible: :all)
   end
 end

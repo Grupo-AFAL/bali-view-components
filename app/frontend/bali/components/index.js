@@ -15,6 +15,7 @@
  */
 
 import { installConfirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog'
+import { AppLayoutController } from '../../../components/bali/app_layout/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
 import { DropdownController } from '../../../components/bali/dropdown/index'
@@ -28,9 +29,12 @@ import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
 import { BulkActionsController } from '../../../components/bali/bulk_actions/index'
 import { CarouselController } from '../../../components/bali/carousel/index'
+import { ChatController } from '../../../components/bali/chat/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
+import { WidgetGridController, WidgetGridEditModeController } from '../../../components/bali/widget_grid/index'
+import { WidgetRefreshController } from '../../../components/bali/widget/refresh/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -59,14 +63,19 @@ import { TreeViewItemController } from '../../../components/bali/tree_view/item/
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
+import { QrScannerController } from '../../../components/bali/qr_scanner/index'
 import { ToastContainerController } from '../../../components/bali/toast_container/index'
+import { SplitViewController } from '../../../components/bali/split_view/index'
+import { SplitViewListController } from '../../../components/bali/split_view/list/index'
 
 export {
   AlertController,
+  AppLayoutController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,
   CarouselController,
+  ChatController,
   ClipboardController,
   ColumnSelectorController,
   CommandController,
@@ -88,6 +97,7 @@ export {
   ModalController,
   MultiSelectController,
   NavbarController,
+  QrScannerController,
   RateController,
   RecurrentEventRuleController,
   RevealController,
@@ -96,13 +106,18 @@ export {
   SideMenuFlyoutController,
   SideMenuTriggerController,
   SortableListController,
+  SplitViewController,
+  SplitViewListController,
   StatusController,
   TabsController,
   TimeagoController,
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
-  TreeViewItemController
+  TreeViewItemController,
+  WidgetGridController,
+  WidgetGridEditModeController,
+  WidgetRefreshController
 }
 
 /**
@@ -122,6 +137,7 @@ export {
  */
 export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   // Core
+  'app-layout': AppLayoutController,
   modal: ModalController,
   drawer: DrawerController,
   dropdown: DropdownController,
@@ -139,13 +155,18 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   // Interactive
   'bulk-actions': BulkActionsController,
   carousel: CarouselController,
+  chat: ChatController,
   clipboard: ClipboardController,
   hovercard: HovercardController,
   kanban: KanbanController,
   reveal: RevealController,
+  'bali-widget-refresh': WidgetRefreshController,
+  'bali-widget-grid': WidgetGridController,
+  'bali-widget-grid-edit-mode': WidgetGridEditModeController,
   'sortable-list': SortableListController,
   tooltip: TooltipController,
   status: StatusController,
+  'qr-scanner': QrScannerController,
 
   // Form
   'image-field': ImageFieldController,
@@ -184,7 +205,11 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'feedback-widget': FeedbackWidgetController,
 
   // Command palette
-  command: CommandController
+  command: CommandController,
+
+  // Master-detail
+  'split-view': SplitViewController,
+  'split-view-list': SplitViewListController
 })
 
 /**

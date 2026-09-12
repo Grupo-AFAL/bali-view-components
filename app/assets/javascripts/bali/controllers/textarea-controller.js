@@ -33,7 +33,7 @@ export class TextareaController extends Controller {
   }
 
   updateCounter () {
-    if (!this.hasCounterTarget) return
+    if (!this.hasCounterTarget || !this.hasInputTarget) return
 
     const length = this.inputTarget.value.length
     const max = this.maxLengthValue
@@ -46,8 +46,13 @@ export class TextareaController extends Controller {
     }
   }
 
+  // `auto_grow` is a textarea's option: an `<input>` has no height to grow into,
+  // so the text field helper never gives its control the input target even
+  // though both share this controller (#723). Without the guard, connecting on
+  // a text field written `auto_grow: true` throws "Missing target element" —
+  // where it used to do nothing at all, which is the right answer.
   setupAutoGrow () {
-    if (!this.autoGrowValue) return
+    if (!this.autoGrowValue || !this.hasInputTarget) return
 
     // Store initial height as minimum
     if (this.minHeightValue === 0) {

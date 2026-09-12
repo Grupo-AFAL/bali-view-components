@@ -7,10 +7,10 @@ import {
   nextSibling
 } from '../utils/domHelpers.js'
 
-// TODO: Add tests (Issue: #155)
+// Contract frozen by cypress/e2e/dynamic-fields-controller.cy.js (#155/#715).
 
 export class DynamicFieldsController extends Controller {
-  static targets = ['template', 'container', 'button']
+  static targets = ['template', 'container', 'button', 'ordinal']
   static values = {
     size: Number,
     fieldsSelector: String,
@@ -33,27 +33,67 @@ export class DynamicFieldsController extends Controller {
       ? this.templateFragmentWithoutDuplicates()
       : this.templateFragment()
 
-    const positionInput = template.querySelector('[data-position]')
-    if (positionInput) positionInput.value = this.sizeValue
     this.containerTarget.appendChild(template)
+    this.renumber()
 
     if (this.isAtMaximumSize()) {
       this.buttonTarget.setAttribute('disabled', true)
     }
   }
 
+  // A row the user never saved has nothing to destroy server-side, so it leaves
+  // the DOM outright; only a persisted one is hidden and flagged, because the
+  // server needs its id back to know what to delete.
   removeFields (e) {
     e.preventDefault()
     this.sizeValue -= 1
 
     const fieldsContainer = e.target.closest(this.fieldsSelectorValue)
-    fieldsContainer.style.display = 'none'
-    removeNonHiddenFormElements(fieldsContainer)
-    fieldsContainer.querySelector('.destroy-flag').value = true
+
+    const idInput = this.idInputFor(fieldsContainer)
+
+    if (idInput && idInput.value !== '') {
+      fieldsContainer.style.display = 'none'
+      removeNonHiddenFormElements(fieldsContainer)
+
+      const destroyFlag = fieldsContainer.querySelector('.destroy-flag')
+      if (destroyFlag) destroyFlag.value = true
+    } else {
+      // A blank id would submit as a new, empty record once the row it belongs
+      // to is gone.
+      if (idInput && !fieldsContainer.contains(idInput)) idInput.remove()
+      fieldsContainer.remove()
+    }
+
+    this.renumber()
 
     if (this.hasButtonTarget && this.buttonTarget.hasAttribute('disabled')) {
       this.buttonTarget.removeAttribute('disabled')
     }
+  }
+
+  // A record the server already knows about carries its primary key in a hidden
+  // input, and Rails emits that input only for a persisted record — so finding
+  // one with a value is what separates "hide and flag for destruction" from
+  // "drop the row".
+  //
+  // It is not necessarily inside the row: `fields_for` appends it *after* the
+  // block it renders, so it lands as a sibling unless the partial emitted it
+  // itself. What both placements share is the row's name prefix, so that is
+  // what this matches on rather than a position in the DOM.
+  idInputFor (fieldsContainer) {
+    const inside = fieldsContainer.querySelector("input[name$='[id]']")
+    if (inside) return inside
+
+    const named = fieldsContainer.querySelector('[name]')
+    if (!named) return null
+
+    const prefix = named.getAttribute('name').replace(/\[[^[\]]*\]$/, '')
+    // Array mode (`movie[steps][][role]`) has no per-row prefix to match on,
+    // and no ids either.
+    if (prefix === '' || prefix.endsWith('[]')) return null
+
+    return this.element.querySelector(`input[name="${prefix}[id]"]`)
   }
 
   moveUp (e) {
@@ -66,7 +106,7 @@ export class DynamicFieldsController extends Controller {
     )
 
     this.swapElements(fieldsContainer1, fieldsContainer2)
-    this.resetPositionValues()
+    this.renumber()
   }
 
   moveDown (e) {
@@ -79,7 +119,7 @@ export class DynamicFieldsController extends Controller {
     )
 
     this.swapElements(fieldsContainer1, fieldsContainer2)
-    this.resetPositionValues()
+    this.renumber()
   }
 
   swapElements (elm1, elm2) {
@@ -93,12 +133,41 @@ export class DynamicFieldsController extends Controller {
     parent.insertBefore(elm1, next2)
   }
 
+  // Both numberings count only the rows still in play: a row hidden by
+  // removeFields is on its way to being destroyed, so leaving it in the count
+  // would open a gap in the positions the server persists and skip a number in
+  // the list the user reads.
+  renumber () {
+    this.resetPositionValues()
+    this.resetOrdinals()
+  }
+
   resetPositionValues () {
-    this.element
-      .querySelectorAll(this.fieldsSelectorValue)
-      .forEach((fields, index) => {
-        fields.querySelector('[data-position]').value = index + 1
-      })
+    this.liveRows().forEach((fields, index) => {
+      const positionInput = fields.querySelector('[data-position]')
+      if (positionInput) positionInput.value = index + 1
+    })
+  }
+
+  // The target holds the number alone. Any punctuation around it ("1.", "#1")
+  // belongs to the markup outside the target, so it survives renumbering.
+  //
+  // Queried straight off the row rather than through `ordinalTargets`: Stimulus
+  // registers targets from a MutationObserver, so a row appended microseconds
+  // ago is not in that list yet.
+  resetOrdinals () {
+    this.liveRows().forEach((fields, index) => {
+      const ordinal = fields.querySelector(
+        '[data-dynamic-fields-target~="ordinal"]'
+      )
+      if (ordinal) ordinal.textContent = index + 1
+    })
+  }
+
+  liveRows () {
+    return Array.from(
+      this.element.querySelectorAll(this.fieldsSelectorValue)
+    ).filter(row => row.style.display !== 'none')
   }
 
   templateFragment () {

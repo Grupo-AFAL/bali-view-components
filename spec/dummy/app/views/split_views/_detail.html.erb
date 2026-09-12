@@ -1,0 +1,11 @@
+<%# Card emits its own `.card-body`; a second one by hand doubles the padding (#833). %>
+<%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+  <% card.with_title(movie.name, class: 'text-lg', data: { testid: 'detail-title' }) %>
+
+  <%= render Bali::DescriptionList::Component.new(columns: 2) do |list| %>
+    <% list.with_item(label: 'Género', value: movie.genre) %>
+    <% list.with_item(label: 'Estudio', value: movie.studio&.name) %>
+    <% list.with_item(label: 'Estado', value: movie.status.to_s.humanize) %>
+    <% list.with_item(label: 'Presupuesto', value: number_to_currency(movie.budget, precision: 0)) %>
+  <% end %>
+<% end %>

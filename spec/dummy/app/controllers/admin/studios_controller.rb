@@ -77,9 +77,11 @@ module Admin
     # El listado, en un solo lugar: lo arma `index` y lo pinta el partial que comparten la
     # página y el refresh del drawer.
     def load_listing
-      @filter_form = Bali::FilterForm.new(
+      # `Bali::Filterable#filter_form` (#999): context y persist_enabled derivados — ver el
+      # comentario gemelo en Admin::MoviesController#index.
+      @filter_form = filter_form(
+        Bali::FilterForm,
         Studio.all,
-        params,
         simple_filters: Studio.filter_options,
         search_fields: %i[name],
         search_icon: 'search',
@@ -94,16 +96,12 @@ module Admin
         # FilterForm vive en el host; las mutaciones las resuelve el controller del engine por
         # `Bali.saved_views_owner` (ver config/initializers/bali.rb).
         saved_views_store: :default,
-        saved_views_owner: current_user,
-        # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
-        # ApplicationController#filter_context): dos visitantes se pisan los filtros.
-        context: filter_context,
-        persist_enabled: cookies['bali_persist_admin_studios'] == '1'
+        saved_views_owner: current_user
       )
 
       # `.order(:name)` se apendea DESPUÉS del orden de Ransack, así que un clic en un
       # encabezado sigue mandando; esto solo fija el desempate.
-      @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
+      @pagy, @studios = pagy(@filter_form.result.order(:name), limit: 10)
     end
   end
 end

@@ -14,7 +14,7 @@
     <% if tabs.any? %>
       <div class="tabs-content pt-4">
         <% tabs.each_with_index do |tab, index| %>
-          <%= tag.div(**tab.options,
+          <%= tag.div(**tab.panel_options,
                 id: "tabpanel-#{index}",
                 role: 'tabpanel',
                 'aria-labelledby': "tab-#{index}",

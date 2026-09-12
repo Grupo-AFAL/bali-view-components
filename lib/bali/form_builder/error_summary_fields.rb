@@ -15,8 +15,13 @@ module Bali
       # @example With custom title
       #   <%= f.error_summary(title: "Please fix the following errors:") %>
       #
+      # `respond_to?` and not `object&.errors`: `form_with url: ..., scope: :thing`
+      # — a form with no model behind it — leaves `object` as **false**, not nil,
+      # and safe navigation does not catch false. `undefined method 'errors' for
+      # false`, on the render that OPENS the screen (#1111). Every other helper in
+      # the builder already guards this way; this one was the exception.
       def error_summary(title: nil, **)
-        return "".html_safe unless object&.errors&.any?
+        return "".html_safe unless object.respond_to?(:errors) && object.errors.any?
 
         @template.render(
           Bali::Form::Errors::Component.new(

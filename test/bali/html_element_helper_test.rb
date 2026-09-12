@@ -47,4 +47,38 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     options = @helper.prepend_class_name({ class: "list" }, "is-active")
     assert_equal("is-active list", options[:class])
   end
+  # Through a real write, not by asserting the copy's identity — that would pass
+  # for a `dup` nothing ever uses.
+  def test_prepending_onto_a_detached_copy_leaves_the_original_alone
+    original = { data: { controller: "my-tooltip" } }
+
+    @helper.prepend_controller(@helper.detach_data(original), "modal")
+
+    assert_equal({ controller: "my-tooltip" }, original[:data])
+  end
+
+  def test_detach_data_carries_the_data_across
+    detached = @helper.detach_data({ id: "card", data: { controller: "my-tooltip" } })
+
+    assert_equal("card", detached[:id])
+    assert_equal({ controller: "my-tooltip" }, detached[:data])
+  end
+
+  # So it is always safe to call, rather than something to think about first.
+  def test_detach_data_leaves_a_hash_without_data_exactly_as_it_found_it
+    options = { id: "card" }
+
+    assert_same(options, @helper.detach_data(options))
+  end
+
+  # Pinned because 39 other call sites still do this: it is the documented
+  # behaviour of the family, not an accident to be fixed in place.
+  def test_prepending_straight_onto_a_shared_hash_writes_through_to_it
+    shared = { data: { controller: "my-tooltip" } }
+
+    2.times { @helper.prepend_controller(shared.dup, "modal") }
+
+    assert_equal("modal modal my-tooltip", shared[:data][:controller],
+                 "`dup` copies the outer hash only — this is why `detach_data` exists")
+  end
 end

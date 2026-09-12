@@ -5,6 +5,12 @@ module Bali
     class Component < ApplicationViewComponent
       renders_one :toolbar
 
+      # Distingue "el host no pasó `format:`" de "pasó el valor que resulta ser el default",
+      # que es lo que hace posible el default opinado de abajo sin quitarle al host la
+      # posibilidad de pedir `:json` a propósito. Mismo centinela que BlockEditor::Component.
+      UNSET = Object.new.freeze
+      private_constant :UNSET
+
       # Every URL the controller talks to is declared here. It used to build two of
       # them by string interpolation -- `"#{document_url}/restore_version"` and
       # `"#{versions_url}/#{id}"` -- which made the host's routing file a guess the
@@ -17,25 +23,41 @@ module Bali
         close_url: nil,
         versions_url: nil,
         restore_version_url: nil,
+        record: nil,
         param_key: :document,
         editable: true,
         auto_save: true,
         auto_save_delay: 30000,
         input_name: nil,
         config: nil,
+        format: UNSET,
+        readonly: nil,
         **options
       )
         @title = title
         @initial_content = initial_content
         @document_url = document_url
         @close_url = close_url || document_url
-        @versions_url = versions_url
         @param_key = param_key.to_s
+
+        # `:auto` means "the mounted engine's own endpoints" (#707) and needs the record
+        # to name in the query string, since those routes are not nested. Same shape as
+        # BlockEditor's `upload_url: :auto`; resolved in `before_render`, where the view
+        # context that owns the route helpers finally exists.
+        @record = record
+        @versions_url_auto = (versions_url == :auto)
+        @versions_url = @versions_url_auto ? nil : versions_url
+        @restore_version_url_auto = (restore_version_url == :auto)
         # Kept derivable so an app whose routes already match does not have to
         # declare it, but it is now a value the host can name rather than one the
         # controller invents.
-        @restore_version_url = restore_version_url || "#{document_url}/restore_version"
-        @editable = editable
+        @restore_version_url =
+          if @restore_version_url_auto
+            nil
+          else
+            restore_version_url || "#{document_url}/restore_version"
+          end
+        @editable = resolve_editable(editable, readonly)
         @auto_save = auto_save
         @auto_save_delay = auto_save_delay
         @input_name = input_name || "#{@param_key}[content]"
@@ -44,13 +66,29 @@ module Bali
         # forward untouched now travel as one value. See Bali::BlockEditor::Config.
         @config = Bali::BlockEditor::Config.wrap(config)
         @config = @config.merge(export_filename: title.parameterize) if @config.export_filename.blank?
+        @editor_format = resolve_format(format)
+
+        Bali::BlockEditor::Config.warn_stray_keywords(options, component: self.class.name)
 
         @options = options
         @instance_id = SecureRandom.hex(4)
       end
 
+      # Engine route helpers need a view context, which does not exist in `initialize`.
+      # Same reason `BlockEditor::Component#before_render` resolves its upload URL there.
+      def before_render
+        resolve_auto_version_urls
+      end
+
       def editable?
         @editable
+      end
+
+      # The threads sidebar is portaled into the panel below, so it sits outside
+      # `.block-editor-component` and the flag that component carries never reaches
+      # it. The panel gets its own copy. See `BlockEditor::Config#comments_sidebar`.
+      def comments_sidebar_read_only?
+        @config.comments_sidebar_read_only?
       end
 
       def comments?
@@ -67,10 +105,71 @@ module Bali
 
       private
 
+      # La forma en que se persiste el contenido, cuando el host no la nombra (#1098).
+      #
+      # `format:` no viaja en `config:` a propósito —"cada wrapper decide"— y este wrapper no
+      # lo decidía: no lo aceptaba ni lo reenviaba, así que la pantalla que MÁS lo necesita
+      # (un editor de documentos con comentarios y auto-guardado) se quedaba con el `:json`
+      # adaptativo que #1091 existe para terminar. Ahora lo acepta, y cuando no se lo pasan
+      # lo decide de verdad.
+      #
+      # Con `comments:` encendido eso es `:prosemirror`, que es la única combinación que no
+      # pierde nada: `:json` cambia SOLO a esa misma forma en cuanto alguien deja un
+      # comentario —lo dispara el primer lector, no el host— y con auto-guardado esa
+      # reescritura de esquema llega a la columna sin que nadie la pida. Fijarla es escribir
+      # desde el primer guardado lo que el adaptativo iba a escribir igual, pero declarado.
+      # (`:blocks` no sirve de default: pierde el anclaje de cada hilo.)
+      #
+      # Un `format:` explícito gana siempre, `:json` incluido: un host que quiere el
+      # adaptativo lo pide y se lo lleva.
+      def resolve_format(format)
+        return format unless format == UNSET
+
+        @config.comments.present? ? :prosemirror : :json
+      end
+
+      # @deprecated Ver Bali::BlockEditor::Component#resolve_editable. Se elimina en 4.0.
+      def resolve_editable(editable, readonly)
+        return editable if readonly.nil?
+
+        Bali.deprecator.warn(
+          "Bali::DocumentEditor(readonly:) is deprecated and is removed in 4.0. " \
+          "Write `editable: #{!readonly}`."
+        )
+
+        !readonly
+      end
+
       attr_reader :title, :initial_content, :document_url, :close_url,
                   :versions_url, :restore_version_url, :param_key,
                   :auto_save, :auto_save_delay, :input_name,
-                  :config, :options, :instance_id
+                  :config, :editor_format, :options, :instance_id
+
+      # Without a record there is nothing to name in the query string, so `:auto` resolves
+      # to nothing and the history panel simply does not render: an off switch beats a
+      # panel whose every request 404s. The engine also has to be mounted -- if it is not,
+      # the route helper raises and the same silence applies.
+      def resolve_auto_version_urls
+        return unless @versions_url_auto || @restore_version_url_auto
+        return if @record.nil?
+
+        record_params = {
+          record_type: @record.class.polymorphic_name,
+          record_id: @record.id
+        }
+
+        @versions_url = engine_path(:content_versions_path, record_params) if @versions_url_auto
+        return unless @restore_version_url_auto
+
+        @restore_version_url = engine_path(:restore_content_versions_path, record_params) ||
+                               "#{document_url}/restore_version"
+      end
+
+      def engine_path(helper, params)
+        helpers.bali.public_send(helper, params)
+      rescue NoMethodError
+        nil
+      end
 
       def toc_container_id
         "document-editor-toc-#{instance_id}"

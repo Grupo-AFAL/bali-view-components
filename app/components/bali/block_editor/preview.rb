@@ -4,12 +4,18 @@ module Bali
   module BlockEditor
     # rubocop:disable Metrics/ClassLength
     class Preview < ApplicationViewComponentPreview
+      # `size:` scales the whole document at once. BlockNote derives headings,
+      # lists, quotes and table cells in `em` off a single body font-size, so
+      # every size below keeps the same proportions -- `:sm` is the same document
+      # at 14px, not a paragraph that has drifted away from its headings.
       # @param editable toggle
       # @param placeholder text
-      def default(editable: true, placeholder: 'Start typing...')
+      # @param size select { choices: [xs, sm, md, lg] }
+      def default(editable: true, placeholder: 'Start typing...', size: :md)
         render BlockEditor::Component.new(
           editable: editable,
-          placeholder: placeholder
+          placeholder: placeholder,
+          size: size.to_sym
         )
       end
 
@@ -20,10 +26,12 @@ module Bali
         )
       end
 
-      def with_initial_content
+      # @param size select { choices: [xs, sm, md, lg] }
+      def with_initial_content(size: :md)
         render BlockEditor::Component.new(
           initial_content: sample_content.to_json,
-          editable: true
+          editable: true,
+          size: size.to_sym
         )
       end
 
@@ -86,14 +94,15 @@ module Bali
       # and returns `[{entityType:, entityId:, entityName:}, ...]`.
       # Pass `references_resolve_url:` for batch name resolution on load.
       #
-      # This preview uses the dummy app's `/entity_references` endpoint.
+      # This preview uses the engine endpoint (Bali::EntityReferencesController); the dummy
+      # declares its types in `Bali.entity_reference_types`.
       # @param placeholder text
       def with_entity_references(placeholder: 'Type # to reference an entity...')
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
-          references_url: '/entity_references',
-          references_resolve_url: '/entity_references/resolve'
+          references_url: '/bali/entity_references',
+          references_resolve_url: '/bali/entity_references/resolve'
         )
       end
 
@@ -112,7 +121,7 @@ module Bali
       def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true,
                         table_of_contents: false, comments: false)
         comments_config = if comments
-                            { url: '/block_editor_comments', user: sample_comments_user,
+                            { url: demo_comments_url, user: sample_comments_user,
                               users: sample_comments_users }
                           else
                             false
@@ -129,8 +138,8 @@ module Bali
           export_filename: 'my-document',
           ai_url: '/block_editor/ai',
           mentions_url: '/users',
-          references_url: '/entity_references',
-          references_resolve_url: '/entity_references/resolve',
+          references_url: '/bali/entity_references',
+          references_resolve_url: '/bali/entity_references/resolve',
           initial_content: full_featured_content.to_json
         )
       end
@@ -165,20 +174,83 @@ module Bali
       end
 
       # @label With Comments (Persistent)
-      # Enables inline commenting with database persistence via REST API.
-      # Comments survive page reloads. Requires the dummy app server
-      # running (`cd spec/dummy && bin/dev`) and the migration applied
-      # (`cd spec/dummy && bin/rails db:migrate`).
+      # Enables inline commenting with database persistence, through the engine's own
+      # endpoints. Comments survive page reloads. Requires the dummy app server
+      # running (`cd spec/dummy && bin/dev`).
       #
-      # The `comments_url` param points to the REST endpoint that
-      # implements the ThreadStore contract (see RESTThreadStore.js).
+      # **This is not the API you write.** A host passes the record the threads belong
+      # to and lets Bali resolve the URL:
+      #
+      #     comments: { url: :auto, commentable: @document, user: ... }
+      #
+      # A preview owns no record, so it spells the resolved path out instead — see
+      # `demo_comments_url` and docs/guides/engines.md.
       # @param editable toggle
       def with_persistent_comments(editable: true)
         render BlockEditor::Component.new(
           editable: editable,
-          comments: { url: '/block_editor_comments', user: sample_comments_user,
+          comments: { url: demo_comments_url, user: sample_comments_user,
                       users: sample_comments_users },
           initial_content: sample_content.to_json
+        )
+      end
+
+      # @label Read-only threads sidebar
+      # `comments: { sidebar: :read_only }` turns the threads panel into a list you read:
+      # the threads render and resolved state still shows, but the reply box, the reaction
+      # button and the per-comment action menu are hidden there. Writing happens at the
+      # anchor, in the floating popover.
+      #
+      # Compare with **With Comments (In-Memory)** above, which is the default
+      # (`:interactive`) and lets a thread be answered from the card itself. Until v3.1
+      # this preview WAS that one: the panel was inert in both, and a thread whose anchor
+      # had been deleted could not be answered at all (#1111).
+      # @param editable toggle
+      def with_read_only_comments_sidebar(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          comments: { user: sample_comments_user, users: sample_comments_users,
+                      threads: sample_comment_threads, sidebar: :read_only },
+          initial_content: commented_document.to_json
+        )
+      end
+
+      # @label Read-only threads sidebar (portaled)
+      # The same mode, with the panel rendered in a container of the host's through
+      # `comments_container_id:` — the shape a two-column layout actually has.
+      #
+      # It is here because the mode used to end at the editor's own root: the flag the
+      # CSS reads was on `.block-editor-component`, and portaling takes the sidebar out
+      # of it, so `sidebar: :read_only` rendered a fully interactive panel with no error
+      # and no warning (#1113). The flag now travels with the portal.
+      # @param editable toggle
+      def with_portaled_read_only_comments_sidebar(editable: true)
+        render_with_template(
+          template: 'bali/block_editor/previews/with_portaled_read_only_comments_sidebar',
+          locals: {
+            editable: editable,
+            content: commented_document.to_json,
+            comments: { user: sample_comments_user, users: sample_comments_users,
+                        threads: sample_comment_threads, sidebar: :read_only }
+          }
+        )
+      end
+
+      # @label Pinned content format
+      # `format:` decide en qué forma se escribe el JSON, y hasta v3.1.3 con `:json` no lo
+      # decidía el host: el primer comentario del documento cambiaba la forma sola, porque
+      # BlockNote borra las marcas de comentario de `editor.document` (#1091).
+      #
+      # Los tres editores de acá abajo cargan EL MISMO documento, que ya trae marcas de
+      # comentario, y escriben en un input distinto cada uno. Escribí en cualquiera y mirá
+      # el `value` y el `data-content-format` de su input: el primero conserva las marcas y
+      # cambia de forma, los otros dos se quedan en la que el host pidió.
+      def with_pinned_format
+        render_with_template(
+          template: 'bali/block_editor/previews/with_pinned_format',
+          locals: { content: commented_document.to_json,
+                    comments: { user: sample_comments_user, users: sample_comments_users,
+                                threads: sample_comment_threads } }
         )
       end
 
@@ -195,6 +267,15 @@ module Bali
       end
 
       private
+
+      # The engine scopes every comment endpoint to the record the threads belong to
+      # (#706), and a preview owns no record — so the two previews that need real
+      # persistence name the dummy app's first seeded document by hand. In an app the
+      # equivalent is `comments: { url: :auto, commentable: record }`, which resolves to
+      # exactly this path; nobody should copy the literal.
+      def demo_comments_url
+        '/bali/block_editor_comments?commentable_type=Document&commentable_id=1'
+      end
 
       def sample_users
         [
@@ -377,7 +458,13 @@ module Bali
           },
           {
             type: 'bulletListItem',
-            content: [{ type: 'text', text: 'Third bullet item', styles: {} }]
+            content: [{ type: 'text', text: 'Third bullet item', styles: {} }],
+            children: [
+              {
+                type: 'bulletListItem',
+                content: [{ type: 'text', text: 'Nested bullet item', styles: {} }]
+              }
+            ]
           },
           # Numbered list items
           {

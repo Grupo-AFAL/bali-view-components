@@ -13,7 +13,7 @@ import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_
  */
 export class DocumentEditorController extends Controller {
   static targets = [
-    'titleInput', 'tocPanel', 'tocContainer',
+    'titleInput', 'tocPanel', 'tocContainer', 'tocToggle',
     'commentsPanel', 'commentsToggle',
     'historyPanel', 'historyToggle',
     'versionsList', 'versionsError', 'versionsEmpty',
@@ -96,6 +96,10 @@ export class DocumentEditorController extends Controller {
     if (this.hasTocPanelTarget) {
       this.tocPanelTarget.classList.toggle('hidden', !this.tocOpenValue)
     }
+    // aria-expanded mirrors the panel the toggle controls (#1028).
+    if (this.hasTocToggleTarget) {
+      this.tocToggleTarget.setAttribute('aria-expanded', String(this.tocOpenValue))
+    }
   }
 
   toggleComments () {
@@ -116,9 +120,11 @@ export class DocumentEditorController extends Controller {
     }
     if (this.hasCommentsToggleTarget) {
       this.commentsToggleTarget.classList.toggle('btn-active', this.panelValue === 'comments')
+      this.commentsToggleTarget.setAttribute('aria-expanded', String(this.panelValue === 'comments'))
     }
     if (this.hasHistoryToggleTarget) {
       this.historyToggleTarget.classList.toggle('btn-active', this.panelValue === 'history')
+      this.historyToggleTarget.setAttribute('aria-expanded', String(this.panelValue === 'history'))
     }
   }
 
@@ -126,7 +132,23 @@ export class DocumentEditorController extends Controller {
     this.scheduleSave()
   }
 
-  contentChanged () {
+  // `input` is listened for on the editor AREA, not on the document's ProseMirror:
+  // BlockNote builds that node itself, client-side, so at connect time there is
+  // nothing else to bind to. Everything the editor renders is inside that
+  // container, and every comment body is its own nested BlockNote instance — so
+  // typing a reply raised `input` on the container and the document went dirty.
+  //
+  // On a read-only viewer (`auto_save: false`) nothing ever cleared it again:
+  // "Unsaved changes" sat over a document the reader could not have changed and
+  // could not save. Measured step by step in #1111 on `editable: false,
+  // auto_save: false` — the badge appeared on the first keystroke in the reply box.
+  //
+  // `.bn-comment-editor` is the class BlockNote puts on that nested container, in
+  // the threads sidebar and in the floating composer alike, so one check covers
+  // both routes into a thread.
+  contentChanged (event) {
+    if (event?.target?.closest?.('.bn-comment-editor, .bn-threads-sidebar')) return
+
     this.scheduleSave()
   }
 

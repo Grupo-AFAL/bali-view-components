@@ -31,6 +31,27 @@ module Bali
       def with_footer
         render_with_template
       end
+
+      # @label Scrollable Board
+      # A real board: `layout: :flow` lays all columns on one horizontally
+      # scrolling row (the `:grid` default caps at 4), and `height: :viewport`
+      # caps the board to the visible viewport so each column's card list
+      # scrolls internally instead of stretching the page.
+      #
+      # The `:viewport` height is `calc(100vh - var(--bali-kanban-offset, 17rem))`
+      # — override `--bali-kanban-offset` on any ancestor to match your app's
+      # header chrome.
+      #
+      # The empty column keeps a visible drop area (dashed border) driven by
+      # CSS `:has()`, so it reacts live: drag the last card out of a column and
+      # the affordance appears; hover a drag over the empty column and it
+      # yields to SortableJS's preview.
+      #
+      # "Blocked" is rendered with `disabled: true`, so its cards cannot be
+      # dragged out.
+      def scrollable_board
+        render_with_template
+      end
     end
   end
 end

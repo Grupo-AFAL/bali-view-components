@@ -10,12 +10,12 @@
         <% end %>
       <% end %>
       <% if data_table? %>
-        <div class="sr-only"><%= data_table %></div>
+        <div class="chart-fallback-table"><%= data_table %></div>
       <% end %>
     </div>
   </div>
 <% else %>
-  <div class="chart-component">
+  <div class="<%= wrapper_classes %>">
     <% if title %>
       <h3 class="text-base font-semibold text-base-content mb-3"><%= title %></h3>
     <% end %>
@@ -25,7 +25,7 @@
       <% end %>
     <% end %>
     <% if data_table? %>
-      <div class="sr-only"><%= data_table %></div>
+      <div class="chart-fallback-table"><%= data_table %></div>
     <% end %>
   </div>
 <% end %>

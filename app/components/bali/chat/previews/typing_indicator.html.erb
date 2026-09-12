@@ -1,0 +1,46 @@
+<div class="p-6 bg-base-200 min-h-[420px]">
+  <div class="max-w-2xl mx-auto space-y-6">
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Visible</h3>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::TypingIndicator::Component.new(
+              id: 'typing-visible', visible: true, author: 'Assistant',
+              show_label: show_label
+            ) do |indicator| %>
+          <% indicator.with_avatar do %>
+            <%= render Bali::Avatar::Component.new(initials: 'AI', size: :xs) %>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">On the reader's side</h3>
+      <p class="text-xs text-base-content/50">
+        Same options as a bubble: <code>position:</code> and <code>color:</code> match
+        the message it stands in for.
+      </p>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <%= render Bali::Chat::TypingIndicator::Component.new(
+              id: 'typing-end', visible: true, position: :end, color: :primary,
+              show_label: show_label
+            ) %>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      <h3 class="text-sm font-semibold text-base-content/60">Hidden</h3>
+      <p class="text-xs text-base-content/50">
+        The default. The node is in the DOM below with <code>hidden</code> on it —
+        inspect the box, there is nothing to see. That is the point: the id a Turbo
+        Stream targets survives every toggle.
+      </p>
+      <div class="rounded-box border border-base-300 border-dashed bg-base-100 p-4">
+        <%= render Bali::Chat::TypingIndicator::Component.new(id: 'typing-hidden') %>
+        <p class="text-xs text-base-content/40">(hidden indicator lives here)</p>
+      </div>
+    </section>
+
+  </div>
+</div>

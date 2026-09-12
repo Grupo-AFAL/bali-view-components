@@ -6,6 +6,13 @@ module Bali
       WRAPPER_CLASS = "slim-select"
       SELECT_CLASS = "select select-bordered"
       TOGGLE_BUTTON_CLASS = "ss-toggle-btn"
+
+      # The one density SlimSelect has CSS for (#521, `bali/slim_select.css`).
+      # It stays a one-key map on purpose: the widget is drawn by SlimSelect, not
+      # by daisyUI, so a `:lg` here would name a class no stylesheet defines.
+      # `size_variant` raises on the other symbols rather than dropping them,
+      # which is the whole point of routing through it — the previous lookup
+      # returned nil for `:lg` and the field silently came out full-size.
       SIZE_CLASSES = { sm: "slim-select-sm" }.freeze
 
       DEFAULT_OPTIONS = {
@@ -36,22 +43,31 @@ module Bali
 
       def slim_select_field(method, values, *legacy, html: {}, **options)
         options, html_options = legacy_option_hashes(:slim_select_field, legacy, html, options)
-        merged_html = apply_input_name_options(options, build_html_options(html_options))
+        merged_html = apply_input_name_options(options, build_html_options(html_options, options))
         merged_options = drop_unenforceable_required(build_options(options), merged_html)
         # `merged_html` carries the real HTML attributes — the Stimulus target
         # among them — so it stays untouched. The caption keys travel separately.
         group = group_options(options, merged_html)
 
+        # The density is the wrapper's, so the `<select>` must not keep the key:
+        # it used to reach the element by both routes at once and paint a
+        # `size="sm"` next to the class — invisible, since the select is clipped
+        # to 1x1, and invalid all the same.
+        variant = select_size_variant(options, html_options, SIZE_CLASSES)
+        merged_options = merged_options.except(:size) if variant
+
         # `widget_attributes`, not `html_attributes`: this family cannot carry `required`.
         # See #drop_unenforceable_required.
         attributes = widget_attributes(merged_html)
+        attributes.delete(:size) if variant
         attributes[:class] = field_class_name(
           method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
-          error_class: "select-error"
+          error_class: "select-error", options: group
         )
         merge_aria_attributes(attributes, method, group)
 
-        field = build_wrapper(method, merged_options, attributes, merged_html[:select_class]) do
+        field = build_wrapper(method, merged_options, attributes,
+                              merged_html[:select_class], variant) do
           build_select_content(method, values, merged_options, attributes)
         end
 
@@ -122,15 +138,27 @@ module Bali
         )
       end
 
-      def build_html_options(html_options)
+      # The `multiple` key is always seeded on the element so the widget can read it — but
+      # seeded from BOTH hashes, not as a flat `false`. Rails' `select_content_tag` copies a
+      # top-level `:multiple` onto the element only when the element does not already carry
+      # the key, so the old `multiple: false` blocked that copy every time: written next to
+      # `label:`, `multiple: true` was discarded in silence and the select came out
+      # single-valued, while the same spelling works on `select_group` (#1123). `html:` is
+      # the more specific hash and still wins when both are written — the precedence
+      # `multiple_control?` already applies when it decides the `[]` suffix, so the name
+      # and the element keep agreeing.
+      def build_html_options(html_options, options = {})
         default_data = { slim_select_target: "select" }
         user_data = html_options[:data] || {}
+        multiple = multiple_control?(options, html_options) ? true : false
 
-        { multiple: false, data: default_data.merge(user_data) }.merge(html_options.except(:data))
+        { multiple: multiple, data: default_data.merge(user_data) }.merge(html_options.except(:data))
       end
 
-      def build_wrapper(method, options, html_options, select_class, &)
-        content_tag(:div, wrapper_attributes(method, options, html_options, select_class), &)
+      def build_wrapper(method, options, html_options, select_class, variant = nil, &)
+        content_tag(
+          :div, wrapper_attributes(method, options, html_options, select_class, variant), &
+        )
       end
 
       def build_select_content(method, values, options, html_options)
@@ -192,11 +220,10 @@ module Bali
       # The wrapper id used to be a bare `#{method}_select_div`, which ignored the
       # object name, the index and any nested-attribute path — so two forms for
       # the same model on one page emitted the very same id twice.
-      def wrapper_attributes(method, options, html_options, select_class)
-        size_class = SIZE_CLASSES[options[:size]&.to_sym]
+      def wrapper_attributes(method, options, html_options, select_class, variant = nil)
         {
           id: field_id(method, "select_div"),
-          class: class_names([ WRAPPER_CLASS, size_class, select_class ].compact),
+          class: class_names([ WRAPPER_CLASS, variant, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
       end
@@ -219,6 +246,15 @@ module Bali
           slim_select_ajax_value_name_value: options[:ajax_value_name],
           slim_select_ajax_text_name_value: options[:ajax_text_name],
           slim_select_ajax_url_value: options[:ajax_url],
+          # Everything the remote search sends BESIDES the search term (#1084). Fixed
+          # scope known at render time goes in `ajax_extra_params`; scope that depends on
+          # another field of the form goes in `ajax_param_selectors`, a
+          # `param => CSS selector` map the controller reads on every keystroke. Without
+          # them the term travelled alone, and the only way to narrow a remote select by
+          # a sibling field was for the app to rewrite this controller's `ajaxUrlValue`
+          # from the outside — a Stimulus per form, leaning on an internal.
+          slim_select_ajax_extra_params_value: options[:ajax_extra_params],
+          slim_select_ajax_param_selectors_value: options[:ajax_param_selectors],
           slim_select_ajax_placeholder_value: options[:ajax_placeholder],
           slim_select_after_change_fetch_url_value: options[:after_change_fetch_url],
           slim_select_after_change_fetch_method_value: options[:after_change_fetch_method],

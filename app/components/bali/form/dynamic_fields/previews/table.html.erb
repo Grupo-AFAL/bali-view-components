@@ -1,0 +1,20 @@
+<%# Table mode: the container target is the `<tbody>` the helper renders, and
+    the header — label, add button and the `<template>` holding a `<tr>` — sits
+    outside the `<table>`, the only place the HTML parser leaves it alone. %>
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Characters as table rows</h3>
+
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.dynamic_fields_group :characters,
+        table: true,
+        partial: 'character_row_fields',
+        columns: ['#', 'Character', ''],
+        table_class: 'table table-sm',
+        label: 'Characters',
+        button_text: 'Add Character' %>
+
+    <div class="mt-4">
+      <%= f.submit 'Save Movie', class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

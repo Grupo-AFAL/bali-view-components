@@ -1,0 +1,20 @@
+<div class="max-w-xl space-y-4 p-4">
+  <%= render Bali::Alert::Component.new(color: :info, style: :soft, icon: true) do %>
+    The route is provisional until the request is typed: steps the final route
+    omits will appear as skipped.
+  <% end %>
+
+  <%= render Bali::WorkflowSteps::Component.new do |c| %>
+    <% c.with_step(title: 'Request submitted', state: :success,
+                   assignee: 'Luis Pérez', date: 'Jul 1, 2026') %>
+    <% c.with_step(title: 'Technical validation', state: :skipped) do %>
+      <%= render Bali::Tag::Component.new(text: 'Skipped by typing', size: :sm) %>
+    <% end %>
+    <% c.with_step(title: 'Area manager approval', state: :current,
+                   assignee: 'Ana Gutiérrez') %>
+    <% c.with_step(title: 'Board ratification', state: :skipped) do %>
+      <%= render Bali::Tag::Component.new(text: 'Skipped by typing', size: :sm) %>
+    <% end %>
+    <% c.with_step(title: 'Director signature', state: :pending) %>
+  <% end %>
+</div>

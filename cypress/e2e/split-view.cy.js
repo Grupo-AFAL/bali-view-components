@@ -1,0 +1,321 @@
+// Against `custom_master`, the free-slot escape hatch: these are the base
+// component's guarantees — frame swap, highlight, history — and they have to
+// hold for a listing a host wired by hand, not only for `with_list`. The
+// structured API has its own spec.
+//
+// The point of SplitView is what does NOT happen on a row click: the master
+// pane must survive untouched, keeping its scroll position and its DOM, while
+// only the detail frame is replaced. Every assertion here is about that, so the
+// tests mark a live node and measure geometry rather than reading text.
+describe('SplitView', () => {
+  const masterList = () => cy.get('[data-testid="master-list"]')
+
+  context('default (no selection, advance on)', () => {
+    beforeEach(() => {
+      cy.visit('/bali/split_view/custom_master')
+      // Stamped on the live node: a re-render of the master would replace it and
+      // the attribute would be gone.
+      masterList().invoke('attr', 'data-sentinel', 'kept')
+    })
+
+    it('starts on the empty detail with no row selected', () => {
+      // 10s y no los 4s default: primera consulta tras un visit frío — en CI el
+      // primer render del preview (dev mode, templates sin compilar, runner
+      // cargado) ha tardado más que el timeout y este assert era el flake más
+      // frecuente de la suite. Si vuelve a fallar con 10s, ya no es timing: el
+      // workflow ahora sube screenshots para verlo.
+      cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+      cy.get('.split-view-row[aria-current]').should('not.exist')
+    })
+
+    it('replaces only the detail frame when a row is clicked', () => {
+      cy.get('.split-view-row').eq(2).click()
+
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.get('.split-view-detail .empty-state-component').should('not.exist')
+      // Same master node as before the click.
+      masterList().should('have.attr', 'data-sentinel', 'kept')
+      cy.get('.split-view-row').should('have.length', 8)
+    })
+
+    it('keeps the master scroll position across the swap', () => {
+      masterList().scrollTo(0, 120)
+      masterList().its('0.scrollTop').should('be.greaterThan', 0).then((before) => {
+        // `scrollBehavior: false` or Cypress scrolls the row into view before
+        // clicking and moves the very scrollTop this test is about. Row 3 is
+        // already on screen at this offset.
+        cy.get('.split-view-row').eq(3).click({ scrollBehavior: false })
+        cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+        masterList().its('0.scrollTop').should('eq', before)
+      })
+    })
+
+    it('moves aria-current to the clicked row and nowhere else', () => {
+      cy.get('.split-view-row').eq(1).click()
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+      cy.get('.split-view-row').eq(1).should('have.attr', 'aria-current', 'true')
+
+      cy.get('.split-view-row').eq(4).click()
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+      cy.get('.split-view-row').eq(4).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-row').eq(1).should('not.have.attr', 'aria-current')
+    })
+
+    // The selection bar has to be an inset box-shadow rather than a left
+    // border: the rows here carry `border-b border-base-200/70`, the idiom for
+    // a separator, and that colour utility claims all four sides from
+    // Tailwind's utilities layer — which beats @layer components. A
+    // `border-l-primary` in the component sheet renders base-200 under it and
+    // the highlight disappears. This test fails if anyone moves it back.
+    it('paints the selected row from CSS the row separator cannot override', () => {
+      cy.get('.split-view-row').eq(1).as('row')
+      cy.get('@row').should('have.css', 'box-shadow', 'none')
+
+      cy.get('@row').click()
+      // Not just /inset/: a shadow mid-transition, or one whose colour failed to
+      // resolve, still reads `... 0px 0px 0px 0px inset` and would pass that.
+      // The 3px offset and a non-transparent colour are the bar itself.
+      cy.get('@row')
+        .should('have.css', 'box-shadow')
+        .and('include', '3px')
+        .and('include', 'inset')
+        .and('not.match', /^(rgba\(0, 0, 0, 0\)|oklab\(0 0 0 \/ 0\))/)
+    })
+
+    it('does not reserve layout space for the selection bar', () => {
+      cy.get('.split-view-row').eq(1).then(($row) => {
+        const before = $row[0].getBoundingClientRect()
+        cy.get('.split-view-row').eq(1).click()
+        cy.get('.split-view-row').eq(1).should('have.attr', 'aria-current', 'true')
+        cy.get('.split-view-row').eq(1).then(($after) => {
+          const after = $after[0].getBoundingClientRect()
+          expect(after.width).to.eq(before.width)
+          expect(after.left).to.eq(before.left)
+        })
+      })
+    })
+
+    it('advances the URL and restores the preview on back', () => {
+      cy.get('.split-view-row').eq(3).invoke('attr', 'href').then((href) => {
+        cy.get('.split-view-row').eq(3).click()
+        cy.location('pathname').should('eq', '/split-view')
+        cy.location('search').should('eq', href.split('?')[1] ? `?${href.split('?')[1]}` : '')
+
+        cy.go('back')
+        cy.location('pathname').should('include', '/lookbook/preview/bali/split_view/custom_master')
+        // Mismo margen que el assert de carga fría: la restauración del back
+        // puede rerenderizar el preview completo en CI.
+        cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+        // The highlight has to rewind with the frame. Turbo caches the snapshot
+        // of the page it leaves, and it takes it AFTER the controller has moved
+        // aria-current — so without the `turbo:before-cache` rewind this page
+        // came back showing a selected row next to an empty detail.
+        cy.get('.split-view-row[aria-current]').should('not.exist')
+      })
+    })
+  })
+
+  context('with_selection (server-painted selection)', () => {
+    it('renders the detail and the highlight without any JS having run', () => {
+      cy.visit('/bali/split_view/with_selection')
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+    })
+  })
+
+  context('without_advance', () => {
+    it('swaps the frame but leaves the history alone', () => {
+      cy.visit('/bali/split_view/without_advance')
+      cy.get('.split-view-detail').should('not.have.attr', 'data-turbo-action')
+
+      cy.get('.split-view-row').eq(2).click()
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.location('pathname').should('include', '/lookbook/preview/bali/split_view/without_advance')
+    })
+  })
+
+  // Which row a location selects, driven straight at the controller with a
+  // history entry and a popstate. Deliberately not through `cy.go('back')`:
+  // that also exercises Turbo's snapshot cache, and the rule under test is the
+  // controller's alone — given this URL, which row is current.
+  context('deciding which row a location selects', () => {
+    const traverseTo = search =>
+      cy.window().then((win) => {
+        win.history.pushState({}, '', `/split-view${search}`)
+        win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+      })
+
+    beforeEach(() => {
+      cy.visit('/bali/split_view/custom_master')
+      cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
+        cy.wrap(new URL(href, 'http://example.test').searchParams.get('selected')).as('id')
+      })
+    })
+
+    it('selects the row whose href the location satisfies', function () {
+      traverseTo(`?selected=${this.id}`)
+      cy.get(`#split-view-row-${this.id}`).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+    })
+
+    // The regression this replaced an exact string comparison for: the row href
+    // and the location are built by different code paths, so the location can
+    // carry params the href never had and list them in another order.
+    it('still selects it when the location carries extra params, in any order', function () {
+      traverseTo(`?sort=name&selected=${this.id}&page=2`)
+      cy.get(`#split-view-row-${this.id}`).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+    })
+
+    it('selects nothing when no row href is satisfied', function () {
+      traverseTo(`?selected=${this.id}`)
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+
+      traverseTo('?sort=name')
+      cy.get('.split-view-row[aria-current]').should('not.exist')
+    })
+  })
+
+  context('responsive layout', () => {
+    it('puts the panes side by side from lg up and stacks them below it', () => {
+      cy.visit('/bali/split_view/custom_master')
+
+      cy.viewport(1280, 800)
+      cy.get('.split-view-component')
+        .should('have.css', 'grid-template-columns')
+        .and('match', /^420px /)
+
+      cy.viewport(700, 800)
+      cy.get('.split-view-component')
+        .invoke('css', 'grid-template-columns')
+        .should((columns) => {
+          expect(columns.split(' ')).to.have.length(1)
+        })
+    })
+
+    it('honours a custom master_width through the CSS custom property', () => {
+      cy.viewport(1280, 800)
+      cy.visit('/bali/split_view/custom_master?master_width=320px')
+      cy.get('.split-view-component')
+        .should('have.css', 'grid-template-columns')
+        .and('match', /^320px /)
+    })
+  })
+})
+
+// #1012 — un frame que el lector navegó en página no puede llegar al caché de
+// snapshots de Turbo todavía con su `src`: al restaurar, Turbo recarga todo
+// frame con `src`, esa recarga vuelve a disparar el `advance` del propio frame,
+// y quien apretó atrás termina empujado de vuelta al detalle que acababa de
+// dejar. En CI pasaba ~1 de cada 3 corridas; local, nunca — el snapshot se toma
+// antes de que llegue la respuesta del frame y sale limpio por casualidad.
+//
+// Por eso el disparo del evento es explícito: el bug no depende de que el
+// usuario haga nada distinto, sino de CUÁNDO Turbo lee el DOM, y eso no se
+// puede pedir desde un test. Lo que sí es determinista —y es el contrato— es
+// qué queda en el DOM cuando `turbo:before-cache` corre.
+//
+// El rebobinado quita SOLO el `src`, no el contenido: el `advance` de un click
+// (`data-turbo-action="advance"`, willRender: false) dispara `turbo:before-cache`
+// contra la página que SIGUE en pantalla, así que borrar el detalle aquí vaciaba
+// el panel que el lector acababa de abrir, en cada click. Quitar el `src` es lo
+// que #1012 necesita; que la lista vuelva vacía al restaurar lo hace
+// `syncFrameFromLocation` según la URL (ver "restores the preview on back").
+describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
+  beforeEach(() => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+    cy.get('.split-view-row').eq(2).click()
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+  })
+
+  it('rewinds the navigated frame so the snapshot cannot re-advance', () => {
+    cy.get('.split-view-detail').should('have.attr', 'src')
+
+    cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
+
+    // Sin `src` no hay recarga al restaurar, y sin recarga no hay advance.
+    cy.get('.split-view-detail').should('not.have.attr', 'src')
+    // Y el detalle que el lector está viendo NO se destruye: el before-cache de
+    // un advance corre sobre la página que se queda.
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+  })
+
+  // La otra mitad: ir HACIA una URL que selecciona una fila DISTINTA de la que
+  // el panel muestra tiene que refetchear, porque el frame quedó rebobinado al
+  // cachearse y su contenido es de otra fila. (Ir hacia la MISMA fila ya no
+  // refetchea: el stash de #1029 reconoce el panel como correcto — ver el
+  // describe de abajo.)
+  it('points the frame at the row a traversal selects when the pane shows another', () => {
+    cy.get('.split-view-row').eq(1).invoke('attr', 'href').then((otherHref) => {
+      cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+
+      cy.window().then((win) => {
+        win.history.pushState({}, '', otherHref)
+        win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+      })
+
+      cy.get('.split-view-detail').should('have.attr', 'src', otherHref)
+      // Y esperar el detalle: si el test termina con el fetch del frame en
+      // vuelo, el `cy.visit` del test siguiente descarga la página, el fetch
+      // se aborta y Cypress le atribuye el AbortError al test equivocado.
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+    })
+  })
+
+  // El caso simétrico del anterior, y el corazón de #1029: el rebobinado dejó
+  // el panel sin `src` pero MOSTRANDO el detalle correcto; volver a esa misma
+  // URL no debe refetchear nada.
+  it('leaves the frame alone when the traversal lands on what it already shows', () => {
+    cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
+      cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+
+      cy.intercept('GET', '/split-view*').as('detail')
+
+      cy.window().then((win) => {
+        win.history.pushState({}, '', href)
+        win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+      })
+
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.wait(400)
+      cy.get('@detail.all').should('have.length', 0)
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+    })
+  })
+})
+
+// #1029 — el guard del refetch comparaba el `src` del frame (que Turbo deja
+// ABSOLUTO tras navegar) contra el `href` de la fila (relativo, tal como se
+// escribió), así que nunca coincidían: cada popstate reescribía el `src` y
+// refetcheaba un detalle que ya estaba en pantalla. El guard compara ahora
+// las dos URLs resueltas contra el documento.
+describe('SplitView: a traversal to the URL the frame already shows (#1029)', () => {
+  it('re-derives the highlight without refetching the detail', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+
+    cy.get('.split-view-row').eq(2).click()
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+
+    cy.intercept('GET', '/split-view*').as('detail')
+
+    // La URL no cambia: el popstate llega estando ya en la entrada que el
+    // frame muestra (un back que vuelve exactamente aquí).
+    cy.window().then((win) => {
+      win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
+    })
+
+    // El highlight se re-deriva igual (la URL sigue seleccionando la fila)...
+    cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+
+    // ...pero el frame no se vuelve a pedir: ya muestra este detalle. La
+    // espera fija es deliberada — "no hubo request" necesita dejar pasar el
+    // tiempo en el que habría ocurrido.
+    cy.wait(400)
+    cy.get('@detail.all').should('have.length', 0)
+  })
+})

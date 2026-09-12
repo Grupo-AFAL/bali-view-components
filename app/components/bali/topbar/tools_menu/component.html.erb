@@ -1,0 +1,14 @@
+<%= render Bali::Dropdown::Component.new(**dropdown_options) do |dropdown| %>
+  <% dropdown.with_trigger(variant: :icon, title: trigger_label, "aria-label": trigger_label) do %>
+    <%= render Bali::Icon::Component.new(icon, size: :small) %>
+  <% end %>
+
+  <% visible_tools.each do |tool| %>
+    <% dropdown.with_item(
+         href: href_for(tool),
+         name: label_for(tool),
+         icon: tool.icon,
+         **link_options(tool)
+       ) %>
+  <% end %>
+<% end %>

@@ -10,6 +10,9 @@ class ApplicationController < ActionController::Base
   # layout propio lo declara con `self.conditional_layout = "..."`, no con `layout "..."`:
   # `layout` en la subclase pisa al del concern y se lleva puesto el apagado.
   include Bali::LayoutConcern
+  # `filter_form(Klass, scope)` con el circuito de la persistencia cerrado (#999):
+  # storage_id derivado, cookie leída, context desde `Bali.filter_context`.
+  include Bali::Filterable
 
   around_action :switch_locale
 
@@ -30,6 +33,8 @@ class ApplicationController < ActionController::Base
   # se veía porque no se guardaba nada; con una caché real el dummy tiene que demostrar el
   # patrón AISLADO, que es el que una app host va a copiar. El demo tiene un solo usuario, así
   # que la identidad que separa acá es el navegador.
+  # Lo lee `Bali.filter_context` (ver config/initializers/bali.rb): el demo tiene un solo
+  # usuario, así que la identidad que separa la persistencia es el navegador.
   def filter_context
     session[:visitor_token] ||= SecureRandom.hex(8)
   end

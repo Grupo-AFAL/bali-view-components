@@ -68,6 +68,7 @@ export {
   GeocoderMapsController,
   InputOnChangeController,
   InteractController,
+  NumberFormatController,
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
@@ -84,10 +85,12 @@ export { registerAll as registerAllControllers } from './controllers/index'
 // Re-export all core component controllers (excludes heavy modules)
 export {
   AlertController,
+  AppLayoutController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,
   CarouselController,
+  ChatController,
   ClipboardController,
   ColumnSelectorController,
   CommandController,
@@ -109,6 +112,7 @@ export {
   ModalController,
   MultiSelectController,
   NavbarController,
+  QrScannerController,
   RateController,
   RecurrentEventRuleController,
   RevealController,
@@ -117,13 +121,18 @@ export {
   SideMenuFlyoutController,
   SideMenuTriggerController,
   SortableListController,
+  SplitViewController,
+  SplitViewListController,
   StatusController,
   TabsController,
   TimeagoController,
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
-  TreeViewItemController
+  TreeViewItemController,
+  WidgetGridController,
+  WidgetGridEditModeController,
+  WidgetRefreshController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 

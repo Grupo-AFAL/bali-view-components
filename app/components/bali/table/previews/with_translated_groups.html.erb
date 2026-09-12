@@ -1,0 +1,42 @@
+<div class="p-4 space-y-8">
+  <div>
+    <h2 class="text-lg font-semibold">group_i18n_scope: — un enum</h2>
+    <p class="text-sm text-base-content/60">
+      El rótulo se resuelve como <code>lookbook.asset_kinds.&lt;valor&gt;</code>. Las filas
+      siguen llevando el valor crudo, así que los conteos son los globales.
+    </p>
+  </div>
+
+  <%= render(Bali::Table::Component.new(group_counts: counts,
+                                        group_i18n_scope: 'lookbook.asset_kinds')) do |c| %>
+    <%= c.with_headers(headers) %>
+    <% records.each do |record| %>
+      <%= c.with_row(group: record[:kind]) do %>
+        <td class="font-medium"><%= record[:asset] %></td>
+        <td><%= record[:owner] %></td>
+        <td><%= record[:rows] %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <div>
+    <h2 class="text-lg font-semibold">group_label: — la escapatoria</h2>
+    <p class="text-sm text-base-content/60">
+      Un callable sobre el valor crudo, para el rótulo que no sale de una clave por valor.
+    </p>
+  </div>
+
+  <%= render(Bali::Table::Component.new(
+        group_counts: counts,
+        group_label: ->(value) { "#{value.to_s.humanize} assets" }
+      )) do |c| %>
+    <%= c.with_headers(headers) %>
+    <% records.each do |record| %>
+      <%= c.with_row(group: record[:kind]) do %>
+        <td class="font-medium"><%= record[:asset] %></td>
+        <td><%= record[:owner] %></td>
+        <td><%= record[:rows] %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

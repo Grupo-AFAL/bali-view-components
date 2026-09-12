@@ -117,9 +117,13 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_html(result, 'input[accept=".jpg,.png"]')
   end
 
-  def test_html_attributes_passthrough_accepts_required_attribute
+  # The input is `display: none`, so a `required` on it is one the browser validates but
+  # can never report: `reportValidity()` returns false with no bubble and the submit goes
+  # mute (#1125). The contract lives in required_option_test.rb; this pins the element.
+  def test_html_attributes_passthrough_drops_required_from_the_hidden_input
     result = builder.file_field(:cover_photo, required: true)
-    assert_html(result, "input[required]")
+    assert_html(result, "input.hidden")
+    refute_html(result, "input[required]")
   end
 
   def test_html_attributes_passthrough_accepts_custom_data_attributes
@@ -170,8 +174,12 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_equal "text-sm text-base-content/60 truncate", Bali::FormBuilder::FileFields::FILENAME_CLASS
   end
 
+  # The density left the constant when `size:` started choosing it (#723); it is
+  # appended at render time, and `DEFAULT_CTA_SIZE` is what a call site that says
+  # nothing still gets.
   def test_constants_has_cta_class_constant
-    assert_equal "btn btn-soft btn-primary btn-sm gap-2", Bali::FormBuilder::FileFields::CTA_CLASS
+    assert_equal "btn btn-soft btn-primary gap-2", Bali::FormBuilder::FileFields::CTA_CLASS
+    assert_equal "btn-sm", Bali::FormBuilder::FileFields::DEFAULT_CTA_SIZE
   end
 
   def test_constants_has_label_class_constant

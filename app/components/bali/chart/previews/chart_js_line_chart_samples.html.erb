@@ -172,6 +172,35 @@
 </div>
 
 <div class='mb-6'>
+  <p class='title'>Line Chart Hollow Markers</p>
+  <p class='mb-2 text-sm'>
+    A hollow marker is a transparent fill plus a colored ring:
+    <code>pointBackgroundColor</code> transparent and <code>pointBorderColor</code> set by the
+    caller. The ring color is a default (white), not a lock — this is how a suppressed or
+    estimated value is drawn apart from measured ones (#1065).
+  </p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Measured',
+            data: [12, 19, 14, 23, 17, 25, 21]
+          },
+          {
+            label: 'Suppressed (<5)',
+            data: [2, nil, 3, nil, 2, nil, 1],
+            pointBackgroundColor: 'rgba(0, 0, 0, 0)',
+            pointBorderColor: 'rgba(100, 116, 139, 0.90)',
+            pointBorderWidth: 2
+          }
+        ]
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
   <p class='title'>Line Chart Stepped</p>
 
   <%= render Bali::Chart::Component.new(

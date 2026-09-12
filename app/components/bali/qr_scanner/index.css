@@ -1,0 +1,87 @@
+/* QR scanner viewfinder.
+ *
+ * @layer components (see the import in ../../../assets/stylesheets/bali/components.css):
+ * every rule here is a default a host utility should beat. `class: 'max-w-full'`
+ * or `class: 'aspect-video'` on the component overrides the box below without a
+ * `!` in sight.
+ *
+ * The panels are white on a dark scrim regardless of theme, and that is not an
+ * oversight: what they sit on is the camera preview — a black box before the
+ * stream arrives and arbitrary photography after — not a themed surface. Theme
+ * colours here would be unreadable exactly when the panel matters most. Same
+ * reasoning as the always-black-on-white QR code in bali/qr_code.
+ */
+
+.qr-scanner-component {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 24rem;
+}
+
+.qr-scanner-viewport {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-box, 1rem);
+  background-color: #000;
+}
+
+.qr-scanner-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* `cover` fills the box instead of letterboxing it, and qr-scanner reads
+   * `object-fit` off the computed style when it places its scan-region
+   * highlight — so the frame it draws stays on the part of the picture the
+   * visitor can actually see. */
+  object-fit: cover;
+}
+
+/* A layer over the whole viewport that never eats a click of its own: while
+ * scanning, every panel is hidden and this is all that is left on top of the
+ * preview. The panels take their pointer events back, because two of them
+ * carry a button. */
+.qr-scanner-states {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.qr-scanner-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  text-align: center;
+  pointer-events: auto;
+  color: #fff;
+  background-color: color-mix(in oklab, #000 72%, transparent);
+}
+
+.qr-scanner-panel__title {
+  font-weight: 600;
+}
+
+.qr-scanner-panel__description {
+  font-size: 0.875rem;
+  line-height: 1.35;
+  opacity: 0.8;
+}
+
+/* The buttons in the panels are plain daisyUI `btn-primary` on purpose. An
+ * outline or ghost button takes its colour from the surrounding text, which on
+ * this scrim is white — and no rule here could put it back: daisyUI 5 emits
+ * `.btn` inside @layer utilities, and a layer beats this one outright however
+ * specific the selector. A filled button carries its own two colours and needs
+ * nothing from the cascade. */
+
+.qr-scanner-hint {
+  font-size: 0.875rem;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+}

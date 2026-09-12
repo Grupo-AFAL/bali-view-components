@@ -3,7 +3,7 @@ import { Controller } from '@hotwired/stimulus'
 /**
  * Shows different elements based on the value of a radio button
  *
- * <div data-controller="radio-toggle" data-toggle-radio-current-value="one">
+ * <div data-controller="radio-toggle" data-radio-toggle-current-value="one">
  *   <input type="radio" data-action="radio-toggle#change" value="one">
  *   <input type="radio" data-action="radio-toggle#change" value="two">
  *
@@ -19,7 +19,7 @@ import { Controller } from '@hotwired/stimulus'
  *
  * Shows the same result with multiple radio buttons value
  *
- * <div data-controller="radio-toggle" data-toggle-radio-current-value="one">
+ * <div data-controller="radio-toggle" data-radio-toggle-current-value="one">
  *   <input type="radio" data-action="radio-toggle#change" value="one">
  *   <input type="radio" data-action="radio-toggle#change" value="two">
  *
@@ -34,7 +34,6 @@ import { Controller } from '@hotwired/stimulus'
  *
  */
 
-// TODO: Add tests (Issue: #143)
 export class RadioToggleController extends Controller {
   static targets = ['element']
   static values = { current: String }

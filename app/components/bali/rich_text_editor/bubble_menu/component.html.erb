@@ -4,17 +4,18 @@
       <span class="text" data-rich-text-editor-target="nodeSelectTrigger"><%= t('.nodes.text') %></span>
       <%= render Bali::Icon::Component.new('chevron-down', class: 'dropdown-icon') %>
     <% end %>
-    <%= c.with_item(class: 'text', data: { action: 'rich-text-editor#setParagraph', 'rich-text-editor-target': 'text' }) { t('.nodes.text') } %>
-    <%= c.with_item(class: 'h1', data: { action: 'rich-text-editor#toggleH1', 'rich-text-editor-target': 'h1' }) { t('.nodes.h1') } %>
-    <%= c.with_item(class: 'h2', data: { action: 'rich-text-editor#toggleH2', 'rich-text-editor-target': 'h2' }) { t('.nodes.h2') } %>
-    <%= c.with_item(class: 'h3', data: { action: 'rich-text-editor#toggleH3', 'rich-text-editor-target': 'h3' }) { t('.nodes.h3') } %>
-    <%= c.with_item(class: 'ul', data: { action: 'rich-text-editor#toggleBulletList', 'rich-text-editor-target': 'ul' }) { t('.nodes.bullet_list') } %>
-    <%= c.with_item(class: 'ol', data: { action: 'rich-text-editor#toggleOrderedList', 'rich-text-editor-target': 'ol' }) { t('.nodes.ordered_list') } %>
-    <%= c.with_item(class: 'blockquote', data: { action: 'rich-text-editor#toggleBlockquote', 'rich-text-editor-target': 'blockquote' }) { t('.nodes.quote') } %>
-    <%= c.with_item(class: 'codeBlock', data: { action: 'rich-text-editor#toggleCodeBlock', 'rich-text-editor-target': 'codeBlock' }) { t('.nodes.code') } %>
+    <%= c.with_item(tag: :button, class: 'text', data: { action: 'rich-text-editor#setParagraph', 'rich-text-editor-target': 'text' }) { t('.nodes.text') } %>
+    <%= c.with_item(tag: :button, class: 'h1', data: { action: 'rich-text-editor#toggleH1', 'rich-text-editor-target': 'h1' }) { t('.nodes.h1') } %>
+    <%= c.with_item(tag: :button, class: 'h2', data: { action: 'rich-text-editor#toggleH2', 'rich-text-editor-target': 'h2' }) { t('.nodes.h2') } %>
+    <%= c.with_item(tag: :button, class: 'h3', data: { action: 'rich-text-editor#toggleH3', 'rich-text-editor-target': 'h3' }) { t('.nodes.h3') } %>
+    <%= c.with_item(tag: :button, class: 'ul', data: { action: 'rich-text-editor#toggleBulletList', 'rich-text-editor-target': 'ul' }) { t('.nodes.bullet_list') } %>
+    <%= c.with_item(tag: :button, class: 'ol', data: { action: 'rich-text-editor#toggleOrderedList', 'rich-text-editor-target': 'ol' }) { t('.nodes.ordered_list') } %>
+    <%= c.with_item(tag: :button, class: 'blockquote', data: { action: 'rich-text-editor#toggleBlockquote', 'rich-text-editor-target': 'blockquote' }) { t('.nodes.quote') } %>
+    <%= c.with_item(tag: :button, class: 'codeBlock', data: { action: 'rich-text-editor#toggleCodeBlock', 'rich-text-editor-target': 'codeBlock' }) { t('.nodes.code') } %>
   <% end %>
   <%= render Bali::Dropdown::Component.new(align: :end, close_on_click: false, data: { 'rich-text-editor-target': 'linkPanel' }) do |c| %>
-    <% c.with_trigger(class: 'toolbar-link mark link', data: { action: 'rich-text-editor#openLinkPanel', 'rich-text-editor-target': 'link' }) do %>
+    <% c.with_trigger(class: 'toolbar-link mark link', 'aria-label': t('.actions.link'),
+         data: { action: 'rich-text-editor#openLinkPanel', 'rich-text-editor-target': 'link' }) do %>
       <%= render Bali::Icon::Component.new('link') %>
     <% end %>
     <div class="link-panel">
@@ -39,7 +40,8 @@
   <% end %>
   <% if images_url.present? %>
     <%= render Bali::Dropdown::Component.new(align: :end, data: { 'rich-text-editor-target': 'imagePanel' }) do |c| %>
-      <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#toggleImagePanel' }) do %>
+      <% c.with_trigger(class: 'toolbar-link', 'aria-label': t('.actions.image'),
+           data: { action: 'rich-text-editor#toggleImagePanel' }) do %>
         <div class="flex items-center">
           <%= render Bali::Icon::Component.new('image') %>
         </div>
@@ -48,37 +50,38 @@
     <% end %>
   <% end %>
   <%= render Bali::Dropdown::Component.new(align: :end, data: { 'rich-text-editor-target': 'tablePanel' }) do |c| %>
-    <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#openTablePanel' }) do %>
+    <% c.with_trigger(class: 'toolbar-link', 'aria-label': t('.actions.table'),
+         data: { action: 'rich-text-editor#openTablePanel' }) do %>
       <%= render Bali::Icon::Component.new('table') %>
     <% end %>
-    <%= c.with_item(data: { action: 'rich-text-editor#insertTable' }) { t('.table.insert') } %>
-    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#addColumnBefore', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_left') } %>
-    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#addColumnAfter', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_right') } %>
-    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#addRowBefore', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_above') } %>
-    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#addRowAfter', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_below') } %>
-    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteColumn', 'rich-text-editor-target': 'tableModifier' }) { t('.table.remove_column') } %>
-    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteRow', 'rich-text-editor-target': 'tableModifier' }) { t('.table.remove_row') } %>
+    <%= c.with_item(tag: :button, data: { action: 'rich-text-editor#insertTable' }) { t('.table.insert') } %>
+    <%= c.with_item(tag: :button, class: 'modifier disabled', data: { action: 'rich-text-editor#addColumnBefore', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_left') } %>
+    <%= c.with_item(tag: :button, class: 'modifier disabled', data: { action: 'rich-text-editor#addColumnAfter', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_right') } %>
+    <%= c.with_item(tag: :button, class: 'modifier disabled', data: { action: 'rich-text-editor#addRowBefore', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_above') } %>
+    <%= c.with_item(tag: :button, class: 'modifier disabled', data: { action: 'rich-text-editor#addRowAfter', 'rich-text-editor-target': 'tableModifier' }) { t('.table.insert_below') } %>
+    <%= c.with_item(tag: :button, class: 'modifier disabled', data: { action: 'rich-text-editor#deleteColumn', 'rich-text-editor-target': 'tableModifier' }) { t('.table.remove_column') } %>
+    <%= c.with_item(tag: :button, class: 'modifier disabled', data: { action: 'rich-text-editor#deleteRow', 'rich-text-editor-target': 'tableModifier' }) { t('.table.remove_row') } %>
   <% end %>
-  <a class="toolbar-link mark bold" data-action="rich-text-editor#toggleBold" data-rich-text-editor-target="bold">
+  <button type="button" class="toolbar-link mark bold" aria-label="<%= t('.actions.bold') %>" data-action="rich-text-editor#toggleBold" data-rich-text-editor-target="bold">
     <%= render Bali::Icon::Component.new('bold') %>
-  </a>
-  <a class="toolbar-link mark italic" data-action="rich-text-editor#toggleItalic" data-rich-text-editor-target="italic">
+  </button>
+  <button type="button" class="toolbar-link mark italic" aria-label="<%= t('.actions.italic') %>" data-action="rich-text-editor#toggleItalic" data-rich-text-editor-target="italic">
     <%= render Bali::Icon::Component.new('italic') %>
-  </a>
-  <a class="toolbar-link mark underline" data-action="rich-text-editor#toggleUnderline" data-rich-text-editor-target="underline">
+  </button>
+  <button type="button" class="toolbar-link mark underline" aria-label="<%= t('.actions.underline') %>" data-action="rich-text-editor#toggleUnderline" data-rich-text-editor-target="underline">
     <%= render Bali::Icon::Component.new('underline') %>
-  </a>
-  <a class="toolbar-link mark strike" data-action="rich-text-editor#toggleStrike" data-rich-text-editor-target="strike">
+  </button>
+  <button type="button" class="toolbar-link mark strike" aria-label="<%= t('.actions.strikethrough') %>" data-action="rich-text-editor#toggleStrike" data-rich-text-editor-target="strike">
     <%= render Bali::Icon::Component.new('strikethrough') %>
-  </a>
-  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignLeft" data-rich-text-editor-target="alignLeft">
+  </button>
+  <button type="button" class="toolbar-link" aria-label="<%= t('.actions.align_left') %>" data-action="rich-text-editor#setTextAlignLeft" data-rich-text-editor-target="alignLeft">
     <%= render Bali::Icon::Component.new('align-left') %>
-  </a>
-  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignCenter" data-rich-text-editor-target="alignCenter">
+  </button>
+  <button type="button" class="toolbar-link" aria-label="<%= t('.actions.align_center') %>" data-action="rich-text-editor#setTextAlignCenter" data-rich-text-editor-target="alignCenter">
     <%= render Bali::Icon::Component.new('align-center') %>
-  </a>
-  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignRight" data-rich-text-editor-target="alignRight">
+  </button>
+  <button type="button" class="toolbar-link" aria-label="<%= t('.actions.align_right') %>" data-action="rich-text-editor#setTextAlignRight" data-rich-text-editor-target="alignRight">
     <%= render Bali::Icon::Component.new('align-right') %>
-  </a>
-  <input type="color" class="color-selector" data-action="rich-text-editor#setColor" data-rich-text-editor-target="color" />
+  </button>
+  <input type="color" class="color-selector" aria-label="<%= t('.actions.text_color') %>" data-action="rich-text-editor#setColor" data-rich-text-editor-target="color" />
 <% end %>

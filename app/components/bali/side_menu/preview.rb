@@ -13,6 +13,36 @@ module Bali
         )
       end
 
+      # @param theme select { choices: [dark, ~] }
+      # @label Dark chrome
+      # A dark sidebar next to a light page — the shape every AFAL app
+      # hand-rolls. `theme:` emits `data-theme` on the `<nav>`, and daisyUI
+      # resolves its colour variables against the nearest ancestor that carries
+      # one, so the rest of the page keeps the document's theme.
+      #
+      # ```erb
+      # <%= render Bali::SideMenu::Component.new(current_path: request.path,
+      #                                          theme: 'costa-norte-dark') do |menu| %>
+      # ```
+      #
+      # The theme here is daisyUI's own `dark`, on purpose: **the gem ships the
+      # mechanism, not the colours.** A brand's teal-and-gold chrome is not
+      # something every app wants, so the token list to define your own is in
+      # the [custom themes guide](../../../../docs/guides/custom-themes.md).
+      #
+      # Switch the param to `~` to compare against an unthemed sidebar. Open
+      # **Configuration** in both: on a dark surface daisyUI's soft shadow is
+      # invisible and a `base-100` panel is the same colour as the rail it opens
+      # from, so a themed sidebar gets a lighter panel, a real border and a
+      # stronger shadow. That fix comes with the theme; nothing changes for a
+      # sidebar without one.
+      def dark_chrome(theme: "dark")
+        render_with_template(
+          template: "bali/side_menu/previews/dark_chrome",
+          locals: { theme: theme.to_s }
+        )
+      end
+
       # @label Expandable Groups
       # Nested menu items that expand/collapse on click using DaisyUI collapse component.
       # This is the default behavior.
@@ -42,6 +72,29 @@ module Bali
       # `/departments/1/merges/new`, so "Departments" stays active.
       def active_when
         render_with_template(template: "bali/side_menu/previews/active_when")
+      end
+
+      # @label Reveal current item
+      # @param reveal_current toggle
+      # @param fixed toggle
+      # Cada navegación re-renderiza el sidebar y su scroll vuelve arriba. En un menú más
+      # alto que la pantalla eso deja el ítem activo FUERA DE VISTA: llegás a una página y
+      # el menú no te muestra dónde estás.
+      #
+      # Este preview recorta el menú a 380 px con 18 entradas y la página actual
+      # (`/reports/audit-log`) casi al final. Con el toggle encendido —el default— el menú
+      # abre ya scrolleado hasta "Audit Log"; apagalo y recargá para ver el problema.
+      #
+      # Solo mueve el scroll del propio menú, nunca el de la página, y no hace nada cuando
+      # el ítem ya se ve. Encendé `fixed` y angostá la ventana por debajo de `lg` para el
+      # otro caso: ahí el sidebar es un drawer, y mientras está cerrado está `inert` y fuera
+      # de pantalla, así que el reveal ESPERA a que se abra — medirlo antes gastaría el
+      # scroll en un panel que nadie está viendo.
+      def reveal_current(reveal_current: true, fixed: false)
+        render_with_template(
+          template: "bali/side_menu/previews/reveal_current",
+          locals: { reveal_current: reveal_current, fixed: fixed }
+        )
       end
 
       # @label Collapsible Sidebar

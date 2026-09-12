@@ -123,4 +123,65 @@ class BaliFormBuilderNumberFieldsTest < FormBuilderTestCase
     result = builder.number_field(:budget, disabled: true)
     assert_html(result, "input[disabled]")
   end
+
+  # #number_field with delimited: true
+  #
+  # The live thousands delimiter costs the field its native type: a `number`
+  # input refuses to store a value with a delimiter in it, reporting the empty
+  # string and no caret. So `delimited` is opt-in here, and turning it on swaps
+  # the input for the `text` one `currency_group` has rendered since v3.
+
+  def test_delimited_number_field_renders_a_text_input
+    result = builder.number_field(:budget, delimited: true)
+    assert_html(result, 'input#movie_budget[type="text"][name="movie[budget]"]')
+  end
+
+  def test_delimited_number_field_mounts_the_live_formatter
+    result = builder.number_field(:budget, delimited: true)
+    assert_html(result, 'input[data-controller="number-format"]')
+  end
+
+  def test_delimited_number_field_asks_for_the_decimal_keyboard
+    result = builder.number_field(:budget, delimited: true)
+    assert_html(result, 'input[inputmode="decimal"]')
+  end
+
+  def test_delimited_number_field_accepts_a_grouped_amount
+    pattern = builder.number_field(:budget, delimited: true).to_s[/pattern="([^"]*)"/, 1]
+
+    assert_match Regexp.new(pattern), "1,500,200.75"
+  end
+
+  # `min`, `max` and `step` are only enforced on a native `number` input.
+  # Rendering them on the text one would read at the call site like a bound the
+  # browser is checking and there would be nothing checking it — the same
+  # measurement that retired `step` from `numeric_group`.
+  def test_delimited_number_field_drops_the_attributes_only_a_number_input_enforces
+    result = builder.number_field(:budget, delimited: true, min: 0, max: 1_000_000, step: 0.01)
+
+    assert_no_match(/\b(min|max|step)=/, result.to_s)
+  end
+
+  def test_undelimited_number_field_keeps_its_native_type
+    result = builder.number_field(:budget)
+
+    assert_html(result, 'input[type="number"]')
+    assert_no_match(/number-format/, result.to_s)
+  end
+
+  def test_delimited_number_group_still_renders_its_fieldset_and_legend
+    result = builder.number_group(:budget, delimited: true)
+
+    assert_html(result, "fieldset.fieldset")
+    assert_html(result, "label.fieldset-legend", text: "Budget")
+    assert_html(result, 'input[type="text"][data-controller="number-format"]')
+  end
+
+  def test_delimited_number_field_keeps_reporting_its_errors
+    resource.errors.add(:budget, "must be positive")
+    result = builder.number_field(:budget, delimited: true)
+
+    assert_html(result, "input.input.input-error")
+    assert_html(result, "p.text-error", text: "Budget must be positive")
+  end
 end

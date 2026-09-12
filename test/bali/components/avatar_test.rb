@@ -119,6 +119,118 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_selector('img[src*="avatar.png"]')
   end
 
+  def test_initials_derives_first_and_last_word_initials_from_name
+    render_inline(Bali::Avatar::Component.new(name: "Ana García"))
+    assert_selector(".avatar.avatar-placeholder")
+    assert_text("AG")
+  end
+
+  def test_initials_derives_from_first_and_last_word_on_compound_names
+    render_inline(Bali::Avatar::Component.new(name: "Ana García López"))
+    assert_text("AL")
+    render_inline(Bali::Avatar::Component.new(name: "María de la Luz"))
+    assert_text("ML")
+  end
+
+  def test_initials_derives_a_single_letter_from_a_single_word_name
+    render_inline(Bali::Avatar::Component.new(name: "Cher"))
+    assert_text("C")
+  end
+
+  def test_initials_upcases_unicode_letters
+    render_inline(Bali::Avatar::Component.new(name: "álvaro núñez"))
+    assert_text("ÁN")
+  end
+
+  def test_initials_explicit_initials_override_the_derivation
+    render_inline(Bali::Avatar::Component.new(name: "Ana García", initials: "ZZ"))
+    assert_text("ZZ")
+    assert_no_text("AG")
+  end
+
+  def test_initials_renders_with_explicit_initials_and_no_name
+    render_inline(Bali::Avatar::Component.new(initials: "AG"))
+    assert_selector(".avatar.avatar-placeholder")
+    assert_text("AG")
+  end
+
+  def test_initials_applies_a_deterministic_background_from_the_status_palette
+    render_inline(Bali::Avatar::Component.new(name: "Ana García"))
+    pair = Bali::Status::Component::PALETTE[:red] # crc32("Ana García") % 10 → :red
+    assert_selector("[style='background-color: #{pair[:bg]}; color: #{pair[:fg]};']")
+  end
+
+  def test_initials_same_name_renders_the_same_style_on_every_render
+    first = render_inline(Bali::Avatar::Component.new(name: "Juan Pérez")).css("[style]").first["style"]
+    second = render_inline(Bali::Avatar::Component.new(name: "Juan Pérez")).css("[style]").first["style"]
+    assert_equal(first, second)
+  end
+
+  def test_initials_color_seed_is_the_name_when_both_name_and_initials_are_given
+    with_both = render_inline(
+      Bali::Avatar::Component.new(name: "Ana García", initials: "ZZ")
+    ).css("[style]").first["style"]
+    with_name = render_inline(Bali::Avatar::Component.new(name: "Ana García")).css("[style]").first["style"]
+    assert_equal(with_name, with_both)
+  end
+
+  def test_initials_does_not_use_the_static_neutral_placeholder_colors
+    render_inline(Bali::Avatar::Component.new(name: "Ana García"))
+    assert_no_selector(".bg-neutral")
+  end
+
+  def test_initials_applies_the_placeholder_text_size_for_the_avatar_size
+    render_inline(Bali::Avatar::Component.new(name: "Ana García", size: :xl))
+    assert_selector(".text-3xl")
+  end
+
+  def test_initials_src_wins_over_name
+    render_inline(Bali::Avatar::Component.new(src: "/avatar.png", name: "Ana García"))
+    assert_selector('img[src*="avatar.png"]')
+    assert_no_selector(".avatar-placeholder")
+    assert_no_text("AG")
+  end
+
+  def test_initials_picture_slot_wins_over_name
+    render_inline(Bali::Avatar::Component.new(name: "Ana García")) do |c|
+      c.with_picture(image_url: "/custom-avatar.png")
+    end
+    assert_selector('img[src*="custom-avatar.png"]')
+    assert_no_text("AG")
+  end
+
+  def test_initials_manual_placeholder_slot_wins_over_derived_initials
+    render_inline(Bali::Avatar::Component.new(name: "Ana García")) do |c|
+      c.with_placeholder { "XY" }
+    end
+    assert_text("XY")
+    assert_no_text("AG")
+  end
+
+  def test_accessibility_name_adds_role_img_aria_label_and_title_on_initials_avatars
+    render_inline(Bali::Avatar::Component.new(name: "Ana García"))
+    assert_selector('.avatar[role="img"][aria-label="Ana García"][title="Ana García"]')
+  end
+
+  def test_accessibility_name_becomes_the_image_alt_when_src_is_present
+    render_inline(Bali::Avatar::Component.new(src: "/avatar.png", name: "Ana García"))
+    assert_selector('img[alt="Ana García"]')
+    assert_selector('.avatar[title="Ana García"]')
+    assert_no_selector('.avatar[role="img"]')
+  end
+
+  def test_accessibility_explicit_alt_wins_over_name_for_the_image
+    render_inline(Bali::Avatar::Component.new(src: "/avatar.png", name: "Ana García", alt: "Profile"))
+    assert_selector('img[alt="Profile"]')
+  end
+
+  def test_accessibility_without_name_no_role_aria_label_or_title_is_added
+    render_inline(Bali::Avatar::Component.new(initials: "AG"))
+    assert_no_selector(".avatar[role]")
+    assert_no_selector(".avatar[aria-label]")
+    assert_no_selector(".avatar[title]")
+  end
+
   def test_presence_indicator_renders_online_status
     render_inline(Bali::Avatar::Component.new(src: "/default.png", status: :online))
     assert_selector(".avatar.avatar-online")

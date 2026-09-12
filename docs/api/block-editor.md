@@ -26,9 +26,36 @@ yarn add shiki
 
 You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.52.1`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.53.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
+
+**Keep exactly one copy of each `prosemirror-*` package in the bundle.** This one has a signature symptom: the editor mounts, renders and accepts typing, but **Enter does nothing** -- the caret stays on the same line and the console shows
+
+```
+RangeError: Can not convert <> to a Fragment (looks like multiple versions of prosemirror-model were loaded)
+    at Transaction.split
+```
+
+ProseMirror validates nodes with `instanceof` against its own copy of the classes, so two copies in one bundle make `splitBlock` -- which is what Enter runs -- throw. Nothing else breaks, which is why it survives a smoke test.
+
+The duplicate comes from the lockfile, not from your code. With Yarn 1 it appears when you bump `@blocknote/*`: the new package asks for a range the existing lock entry does not literally list, so yarn adds a **second** entry instead of re-resolving the first, even when one version satisfies both. Check with:
+
+```bash
+find node_modules -type d -name prosemirror-model -maxdepth 4
+```
+
+More than one hit means you have it. The fix is to force a single copy in your `package.json`:
+
+```json
+"resolutions": {
+  "prosemirror-model": "^1.25.11",
+  "prosemirror-transform": "^1.12.0",
+  "prosemirror-view": "^1.42.2"
+}
+```
+
+then `yarn install` and rebuild. Re-check after every `@blocknote/*` upgrade: `resolutions` keeps the tree deduped but the pinned floor has to move with the editor.
 
 > **Node >= 22 is required to install this.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. On Node 20, `yarn install` stops with `error lib0@1.0.0-rc.22: The engine "node" is incompatible with this module` and `Found incompatible module` -- an install-time failure, not a runtime one, so you will see it immediately rather than in production. This repository's own CI moved from Node 20 to 22 for exactly this reason. `lib0` is the only package in the tree that asks for 22.
 
@@ -151,13 +178,14 @@ This is the setup the lazy path replaces: everything travels in `application.js`
 
 Four optional features are built on **BlockNote XL** packages, licensed `GPL-3.0 OR PROPRIETARY`.
 
-### Licence facts as of `@blocknote/*` 0.52.1
+### Licence facts as of `@blocknote/*` 0.53.0
 
-Measured on the versions this repository installs. Re-check with
+Measured on the versions this repository installs (the 0.52.1 column re-checked at 0.53.0:
+all seven `license` fields are identical). Re-check with
 `npm view @blocknote/<pkg>@<version> license`, and for what ships in the published gem/npm
 package, the `files` array in the repository root `package.json`.
 
-| Package | `license` field at 0.52.1 | `license` field at 0.46.2 | Reached from |
+| Package | `license` field at 0.52.1–0.53.0 | `license` field at 0.46.2 | Reached from |
 |---|---|---|---|
 | `@blocknote/core` | `MPL-2.0` | `MPL-2.0` | static import, always |
 | `@blocknote/react` | `MPL-2.0` | `MPL-2.0` | static import, always |
@@ -267,6 +295,16 @@ What this does and does not buy you:
 ) %>
 ```
 
+`editable: false` also turns uploads off, whatever `upload_url:` says. That is worth stating
+because the default is the other way round: **not passing `upload_url:` does not disable
+uploads, it enables them** — the default is `:auto`, which resolves to the engine's own
+endpoint. A viewer that still accepted uploads was collecting unattached blobs nobody could
+see (#1092).
+
+`readonly:` is accepted as a deprecated alias of `editable: false` and is removed in 4.0. It
+used to be a silent no-op: not a parameter, so it landed in `**options` and was painted as
+`readonly="readonly"` on a `<div>`, where it means nothing — the screen stayed editable.
+
 ### Inside a Form
 
 When `input_name` is provided, the editor syncs its content to a hidden input field. Use `format:` to control the serialization format.
@@ -285,9 +323,82 @@ When `input_name` is provided, the editor syncs its content to a hidden input fi
 ```
 
 **Format options:**
-- `:json` (default) -- Serializes as BlockNote JSON. Lossless round-trip. Recommended when the content never leaves the editor.
+- `:json` (default) -- Serializes as BlockNote JSON. Lossless round-trip. **Adaptive** — see below.
+- `:blocks` -- Always `editor.document`: an Array of blocks.
+- `:prosemirror` -- Always the ProseMirror document: `{ "type": "doc", … }`.
 - `:html` -- Serializes as HTML via `blocksToHTMLLossy`. Lossy (some block-level metadata may be lost).
 - `:markdown` -- Serializes as Markdown via `blocksToMarkdownLossy`. Lossy, but keeps the column readable by everything else in the app: search, plain-text exports, APIs, LLM prompts.
+
+An unknown `format:` raises rather than falling through to JSON.
+
+#### The two JSON shapes
+
+`:json` writes **one of two shapes**, and which one is not a preference — it is whether the
+document holds a comment mark. BlockNote strips those from `editor.document`, so the editor
+switches to the ProseMirror document to keep them:
+
+| | `:blocks` (`editor.document`) | `:prosemirror` (`getJSON()`) |
+|---|---|---|
+| Root | `Array` of blocks | `{ "type": "doc", "content": [...] }` |
+| Wrappers | none | `blockGroup` / `blockContainer` |
+| Node properties | `props` | `attrs` |
+| Tables | `{ "type": "tableContent", "rows": [...] }` | `table` → `tableRow` → `tableCell` |
+
+That switch is not triggered by the host: it is triggered by **the first user who leaves a
+comment**, and with auto-save that comment rewrites the column into the other schema without
+anyone asking. Everything server-side that reads it — extracting references, indexing text,
+diffing versions, exporting — then meets a shape it was not written for (#1091).
+
+So pin the shape when the column is read by anything other than the editor:
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  initial_content: @document.content,
+  input_name: 'document[content]',
+  format: :blocks,
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash } }
+) %>
+```
+
+`format: :blocks` with comments on is a **trade-off**: the threads survive in their store,
+their anchors do not, because the anchor is the mark `editor.document` strips. The editor
+warns in the console the first time it drops one. `format: :prosemirror` keeps everything and
+pins the other shape.
+
+#### Through the wrappers
+
+`DocumentEditor` takes `format:` too and hands it to the editor it mounts — and when you do
+not pass one, **it pins `:prosemirror` as soon as `comments:` is on** (#1098). That screen is
+the one the adaptive default hurts most: comments plus auto-save means the first reader to
+comment rewrites the column's schema. Pinning writes from the very first save what the
+adaptive shape was going to write anyway, only declared. An explicit `format:` always wins,
+`:json` included — a host that wants the adaptive behaviour asks for it and gets it.
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+  title: @document.title,
+  initial_content: @document.content,
+  document_url: document_path(@document),
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash } }
+) %>
+<%# no format: → :prosemirror, because comments are on %>
+```
+
+`DocumentPage` does **not** take `format:` and raises if you pass one: it mounts a read-only
+editor with no `input_name`, so it renders no hidden input and there is nothing to serialize.
+The keyword would be an option that does nothing — and left to fall through it would paint
+`format="blocks"` on the wrapper div in silence, which is the failure mode of #1092.
+
+Two ways to tell what you were handed:
+
+```ruby
+Bali::BlockEditor.content_format(@document.content)  # => :blocks, :prosemirror or nil
+```
+
+```js
+// The hidden input declares it, server-rendered and kept up to date on every write
+outputElement.dataset.contentFormat // => "blocks" | "prosemirror" | "html" | "markdown"
+```
 
 Each format has a matching input prop, so the stored value is *parsed* rather than shown as raw source:
 
@@ -351,6 +462,42 @@ Markdown is a lossy target by construction (BlockNote names the serializer `bloc
 
 ---
 
+## Text size
+
+`size:` sets how large the editor renders its content.
+
+| `size:` | Body text | h1 | h2 | h3 |
+|---------|-----------|----|----|----|
+| `:xs` | 0.75rem (12px) | 36px | 24px | 15.6px |
+| `:sm` | 0.875rem (14px) | 42px | 28px | 18.2px |
+| `:md` (default) | 1rem (16px) | 48px | 32px | 20.8px |
+| `:lg` | 1.125rem (18px) | 54px | 36px | 23.4px |
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  markdown_content: @task.description,
+  input_name: 'task[description]',
+  preset: :simple,
+  size: :sm
+) %>
+```
+
+**The scale is uniform.** BlockNote declares the size of the editor body once and derives everything inside it in `em` -- headings at `3em`/`2em`/`1.3em`/`1em`/`.9em`/`.8em`, and `font-size: inherit` for paragraphs, list items, quotes and table cells. Changing `size:` therefore moves the whole document in proportion; it never leaves the paragraphs at one scale and the headings at another.
+
+The geometry a list is read by scales with it: the bullet gutter, the indent per nesting level and the height of a check row are all part of the text's rhythm, and at 12px text a 24px gutter reads as a list whose markers have drifted away from it. Code blocks scale too. Every one of these spells exactly the px it always did at `:md`.
+
+The editor **chrome** does not scale: toolbars, the side menu, the slash menu and the comment thread cards keep their size at every setting. They are UI rather than content, and shrinking a menu below its hit target is not what a compact field asked for.
+
+`size:` pairs naturally with `preset: :simple`, which already shortens the editor to textarea height -- together they turn the editor into something that reads as a form field rather than a document canvas. It is forwarded by the FormBuilder helpers like any other option:
+
+```erb
+<%= f.rich_text_group :description, size: :sm %>
+```
+
+An unknown size raises `ArgumentError` at the call site rather than silently falling back to the default.
+
+---
+
 ## Syntax highlighting
 
 Code blocks are highlighted with [Shiki](https://shiki.style/) by default (`syntax_highlighting: true`). Turning it off swaps in BlockNote's plain code block and never loads `shiki`:
@@ -381,7 +528,7 @@ Highlighting on is worth it for documentation-style content; for a description f
 | `f.rich_text_group` / `f.rich_text` | `:simple` | `:markdown` | Description and note fields: bold/italic/lists over a plain text column |
 | `f.block_editor_group` / `f.block_editor` | `:full` | `:markdown` | Full block editing; pass `format: :json` for BlockNote's native document JSON |
 
-The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint, errors); the bare variants render just the editor. Both derive `input_name` from the attribute and read the current value from the model through the prop matching `format:`, so no `markdown_content:` / `html_content:` / `initial_content:` is needed at the call site. Any other option is forwarded to `Bali::BlockEditor::Component`.
+The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, `help:` text, errors); the bare variants render just the editor. Both derive `input_name` from the attribute and read the current value from the model through the prop matching `format:`, so no `markdown_content:` / `html_content:` / `initial_content:` is needed at the call site. Any other option is forwarded to `Bali::BlockEditor::Component`.
 
 > **Not to be confused with `f.rich_text_area_group`.** That one is the ActionText/Trix helper and has nothing to do with this component -- different editor, different storage, different dependencies. The name similarity is unfortunate; check which one you are calling.
 
@@ -395,12 +542,14 @@ The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint,
 | `html_content` | `String` | `nil` | HTML string to parse into blocks on mount |
 | `markdown_content` | `String` | `nil` | Markdown string to parse into blocks on mount |
 | `input_name` | `String` | `nil` | Hidden input `name` attribute for form submission |
-| `format` | `Symbol` | `:json` | Serialization format: `:json`, `:html` or `:markdown` |
+| `format` | `Symbol` | `:json` | Serialization format: `:json` (adaptive), `:blocks`, `:prosemirror`, `:html` or `:markdown`. See [The two JSON shapes](#the-two-json-shapes) |
 | `preset` | `Symbol` | `:full` | UI preset: `:full` or `:simple` (see [Presets](#presets)) |
+| `size` | `Symbol` | `:md` | Text size of the editor body: `:xs`, `:sm`, `:md` or `:lg` (see [Text size](#text-size)) |
 | `syntax_highlighting` | `Boolean` | `true` | Highlight code blocks with Shiki. `false` never loads `shiki` |
-| `editable` | `Boolean` | `true` | Whether the editor is editable |
+| `editable` | `Boolean` | `true` | Whether the editor is editable. `false` also turns uploads off |
+| `readonly` | `Boolean` | — | **Deprecated**, removed in 4.0. Alias of `editable: !readonly` |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
-| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes |
+| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes; `nil` turns uploads off, and so does `editable: false` |
 | `theme` | `Symbol` | `:light` | Editor theme: `:light` or `:dark` |
 | `export` | `Boolean`, `Array` | `false` | Enable export. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
 | `export_filename` | `String` | `'document'` | Base filename for exported files (without extension) |
@@ -603,7 +752,14 @@ Entity references let users type `#` to reference domain objects like tasks, pro
 
 ### Setup
 
-Entity references require two endpoints:
+Entity references require two endpoints. **The engine ships both** — declare your
+referenceable types once in `Bali.entity_reference_types` and point the editor at
+`bali.entity_references_path` / `bali.resolve_entity_references_path`. That registry also
+feeds `references_config`, so the chips get their icon, label and color without a second
+declaration. See the entity references section of `docs/guides/engines.md`.
+
+The rest of this section documents the wire contract, which is what you implement yourself
+if you don't mount the engine:
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
@@ -780,7 +936,9 @@ Comments are configured through a single `comments:` **Hash**:
 | `user` | `Hash` | Current user authoring comments: `{ id:, username:, avatar_url: }`. `id` and `username` are required, `avatar_url` optional |
 | `users` | `Array` | Static user list for resolution: `[{ id:, username:, avatar_url: }, ...]` |
 | `users_url` | `String` | Remote endpoint for user resolution |
-| `url` | `String` | REST API base URL for persistent thread storage (in-memory when omitted) |
+| `url` | `String` or `:auto` | REST API base URL for persistent thread storage (in-memory when omitted). `:auto` points at the engine's own endpoints and requires `commentable:` |
+| `commentable` | Active Record | The host record the threads belong to. Only read when `url: :auto` |
+| `sidebar` | `:interactive` / `:read_only` | Whether the threads panel carries its own reply box, reaction button and per-comment actions. Default `:interactive` |
 
 > **Comments are on only when `comments:` is a non-empty Hash.** `comments: true` and `comments: {}` both leave them off, silently -- a truthy non-Hash is not a configuration. There is no separate `comments_user:` / `comments_url:` / `comments_users:` / `comments_users_url:` argument: passing those at the top level does not configure anything, they fall through to `**options` and end up as HTML attributes on the wrapper `div`.
 
@@ -839,9 +997,50 @@ end
 
 1. **Creating a comment**: Select text in the editor and click the comment button in the formatting toolbar. A floating composer appears to write the initial comment.
 2. **Viewing threads**: Click on highlighted (commented) text to see the thread in a floating popover. The threads sidebar on the right shows all comment threads.
-3. **Replying**: Click a thread to expand it and add replies.
+3. **Replying**: Click a thread to expand it and add replies -- from the floating popover at the anchor, or from the card in the threads sidebar.
 4. **Resolving**: Mark threads as resolved when the discussion is complete. Resolved threads are dimmed in the sidebar.
 5. **Reactions**: Add emoji reactions to individual comments.
+
+#### A read-only threads panel
+
+`sidebar: :read_only` turns the panel into a list you read: threads still render,
+resolved state still shows, and the reply box, the reaction button and the
+per-comment action menu are hidden there. Writing then happens at the anchor, in
+the floating popover.
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+  title: @document.title,
+  initial_content: @document.content,
+  document_url: document_path(@document),
+  config: { comments: { url: :auto, commentable: @document, user: current_user_hash,
+                        sidebar: :read_only } }
+) %>
+```
+
+The mode is carried by a `data-comments-sidebar` attribute on an **ancestor** of the
+sidebar, because the sidebar element itself is React's and Rails does not render it.
+Bali puts it there for you in all three arrangements: on `.block-editor-component` for
+the inline panel, on `.document-editor-panel` for DocumentEditor's, and -- through the
+React wrapper -- on whatever container `comments_container_id:` names. A host that
+mounts the sidebar somewhere Bali never sees can write the attribute itself.
+
+Anything but `:interactive` or `:read_only` raises `ArgumentError` at the call site,
+naming the value and the two modes, rather than falling back to a mode nobody asked
+for.
+
+> Until v3.1 this was the only behaviour, and it was not a choice -- three CSS rules
+> hid all three controls in every sidebar while the paragraph above promised replies
+> and reactions from the panel. The case that made it a defect rather than a
+> preference: a thread whose anchor had been deleted ("Contenido original eliminado")
+> has no popover to open, so with the panel inert there was no way to answer it at
+> all (#1111).
+>
+> In v3.1 the mode reached only the editor's own root, so pairing it with
+> `comments_container_id:` -- a public, documented option that portals the sidebar out
+> of that root -- rendered a fully interactive panel with no error and no warning
+> (#1113). DocumentEditor was the one portaling caller that worked, and only because it
+> renders its own flagged panel around the container.
 
 ### Storage
 
@@ -849,7 +1048,35 @@ end
 
 When `comments[:url]` is not provided, comments are stored **in-memory** -- they exist only for the duration of the editor session and are lost on page reload. This is suitable for previews, demos, and single-session review workflows.
 
-#### REST Persistence
+#### The engine's own storage (`url: :auto`)
+
+Since v3.1 the engine ships the storage itself -- three tables, three controllers and the
+nine endpoints below. Point the editor at them with `:auto` plus the record the threads
+belong to:
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    url: :auto,
+    commentable: @document,
+    user: { id: current_user.id.to_s, username: current_user.name },
+    users_url: users_path
+  }
+) %>
+```
+
+It resolves to `bali.block_editor_threads_path(commentable_type:, commentable_id:)` for that
+record; `RESTThreadStore` keeps the query string on all nine sub-requests, so the scope
+travels for free. Passing `:auto` without a `commentable:` raises -- there is no unscoped
+thread list.
+
+Installing the migration and configuring who may comment on what
+(`Bali.block_editor_commentables`, `Bali.block_editor_comments_user`,
+`Bali.block_editor_comments_authorize`) is covered in
+[docs/guides/engines.md](../guides/engines.md), together with the permission matrix and the
+migration path for apps that already had their own tables.
+
+#### REST Persistence (your own endpoints)
 
 Pass `comments[:url]` to persist comments to a database via REST API:
 
@@ -1119,14 +1346,16 @@ The `submit` event is what triggers the flush, so a form sent through the legacy
 
 ### Version compatibility
 
-The peer range is `@blocknote/* >= 0.52.1`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `spec/dummy` pins 0.52.1 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
+The peer range is `@blocknote/* >= 0.53.0`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `spec/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
 
 The lower bound is not cosmetic:
+
+- **0.53** is the first release carrying [TypeCellOS/BlockNote#2912](https://github.com/TypeCellOS/BlockNote/pull/2912): on `<= 0.52.1`, a browser extension that rewrites the editor's DOM (Dark Reader, Grammarly, page translators) sends the side menus into a re-render loop -- `Maximum update depth exceeded` in the console, a frozen tab in the worst case (#908). The wrapper cannot fix that from outside; the floor moving past it is the fix.
 
 - **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions. The submit flush depends on this directly: it has to write the hidden input *during* the `submit` event, and it cannot await anything there.
 - **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. On 0.52.1 a cell containing `A|B` survives a Markdown round-trip -- `blocksToMarkdownLossy` emits `A\|B` and the table keeps its three columns.
 
-**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.52-only API, so an app on 0.51.x will most likely keep working -- but it is outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
+**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.53-only API, so an app on 0.52.x will most likely keep working -- but it carries the render-loop bug the floor exists to exclude, sits outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
 
 ### File Structure
 
@@ -1187,8 +1416,9 @@ The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/r
 | Console: `Failed to load AI modules` / `PDF export failed` | The XL packages for that feature are not installed | Install them deliberately -- read [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in) first |
 | Content saved is one edit behind | The form was submitted through `form.submit()`, which fires no `submit` event, so the flush never ran | Use `form.requestSubmit()` or a normal Turbo/Rails submit |
 | Comments never appear | `comments:` was given something other than a non-empty Hash | See [Comments](#comments) |
-| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.52.1`, the declared and tested range |
+| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.53.0`, the declared and tested range |
 | A menu never opens, or content silently fails to serialise, with no error | `@blocknote/*` packages installed at different versions | Pin them all to the same version -- see [Step 1](#step-1----npm-packages) |
+| Console: `Maximum update depth exceeded` while typing, or when closing a drawer/modal that holds the editor -- yet the content saves correctly | A browser extension that rewrites the editor's DOM (Dark Reader, Grammarly, page translators) feeds attribute mutations into ProseMirror's DOM observer, and in BlockNote <= 0.52.1 the node views do not ignore non-content mutations, so the side menus re-render in a loop until React cuts it off ([TypeCellOS/BlockNote#2818](https://github.com/TypeCellOS/BlockNote/issues/2818); fixed by [#2912](https://github.com/TypeCellOS/BlockNote/pull/2912), first released in 0.53.0) | No data is lost -- the hidden input is written outside React. Seeing this means the app is on `<= 0.52.1`: upgrade every `@blocknote/*` package to `>= 0.53.0` (same version, as always -- the declared floor since v3.1) |
 
 ---
 

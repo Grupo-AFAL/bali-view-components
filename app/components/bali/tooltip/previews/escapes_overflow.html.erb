@@ -2,18 +2,18 @@
   <div class="relative w-40 h-20 overflow-hidden border border-base-300 rounded flex items-center justify-center">
     <%= render Bali::Tooltip::Component.new(placement: :top) do |c| %>
       <% c.with_trigger do %>
-        <span class="btn btn-sm">Clipped (parent)</span>
+        <span class="btn btn-sm btn-primary">Escapes (default)</span>
       <% end %>
-      <p>The default balloon is clipped by the overflow-hidden container.</p>
+      <p>The default (`append_to: :body`) portals the balloon out of the overflow-hidden container.</p>
     <% end %>
   </div>
 
   <div class="relative w-40 h-20 overflow-hidden border border-base-300 rounded flex items-center justify-center">
-    <%= render Bali::Tooltip::Component.new(placement: :top, append_to: :body) do |c| %>
+    <%= render Bali::Tooltip::Component.new(placement: :top, append_to: :parent) do |c| %>
       <% c.with_trigger do %>
-        <span class="btn btn-sm btn-primary">Escapes (body)</span>
+        <span class="btn btn-sm">Clipped (:parent)</span>
       <% end %>
-      <p>This balloon is portaled to &lt;body&gt; and escapes the container.</p>
+      <p>Opting into `append_to: :parent` keeps the balloon in place — and clipped here.</p>
     <% end %>
   </div>
 </div>

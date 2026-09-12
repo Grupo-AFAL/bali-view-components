@@ -2,6 +2,10 @@
 @plugin "daisyui" {
   themes: light --default, dark;
 }
+/* Same pairing afal-apps ships: daisyUI maps the prose palette onto the theme,
+   and bali/prose-invert.css (imported below via bali.css) keeps `prose-invert`
+   functional on top of that mapping (#1063). */
+@plugin "@tailwindcss/typography";
 
 /* ==============================================
    Source Paths - Tailwind class scanning
@@ -13,9 +17,12 @@
 @source "../../javascript/**/*.js";
 @source "../../../public/*.html";
 
-/* Bali ViewComponents sources (via node_modules symlink) */
-@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+/* Bali ViewComponents sources. Deliberately the exact line README.md and
+   installation.md hand to hosts, so the documented import is the one this
+   app's build actually exercises (#983). tailwindcss-rails writes
+   app/assets/builds/tailwind/bali.css from the gem's engine.css before every
+   build, and that generated file is what resolves to this tree. */
+@import "../builds/tailwind/bali";
 
 /* Responsive Bali::Columns classes — Tailwind's scanner can't detect colon-prefixed
    variants assembled via Ruby string interpolation in .rb files */
@@ -36,3 +43,5 @@
 
 /* Bali custom themes */
 @import "bali-view-components/css/themes/costa-norte.css";
+@import "bali-view-components/css/themes/afal.css";
+@import "bali-view-components/css/themes/afal-dark.css";

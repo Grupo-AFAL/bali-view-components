@@ -146,9 +146,14 @@ module Bali
         end
       end
 
+      # `alt_input: true` makes flatpickr hide the real input and draw a second
+      # one from this class list, so a density asked for on the field has to be
+      # in here too — otherwise the only input the user sees is the one that
+      # never got it.
       def alt_input_class(method, options)
-        base_class = options[:alt_input_class] || HtmlUtils::INPUT_BASE_CLASS
-        field_class_name(method, base_class)
+        base_class = options[:alt_input_class] ||
+                     [ HtmlUtils::INPUT_BASE_CLASS, size_variant(options) ].compact.join(" ")
+        field_class_name(method, base_class, options: options)
       end
 
       def previous_date_button

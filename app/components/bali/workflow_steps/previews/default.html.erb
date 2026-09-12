@@ -1,0 +1,24 @@
+<div class="max-w-xl p-4">
+  <%= render Bali::WorkflowSteps::Component.new do |c| %>
+    <% c.with_step(title: 'Request submitted', state: :success,
+                   assignee: 'Luis Pérez', date: 'Jul 1, 2026 · 09:14') %>
+    <% c.with_step(title: 'Area manager approval', state: :success,
+                   assignee: 'Ana Gutiérrez', date: 'Jul 2, 2026 · 16:40') do %>
+      Approved. Budget confirmed against Q3 allocation.
+    <% end %>
+    <% c.with_step(title: 'Legal review', state: :warning,
+                   assignee: 'Carmen Ríos', date: 'Jul 4, 2026 · 11:02') do %>
+      Returned with observations: clause 7 needs the updated liability wording.
+    <% end %>
+    <% c.with_step(title: 'Compliance check', state: :error,
+                   assignee: 'Jorge Medina', date: 'Jul 5, 2026 · 10:26') do %>
+      Rejected: missing appendix B (vendor due-diligence form).
+    <% end %>
+    <% c.with_step(title: 'Compliance check (resubmission)', state: :current,
+                   assignee: 'Jorge Medina') %>
+    <% c.with_step(title: 'Finance sign-off', state: :skipped) do %>
+      <%= render Bali::Tag::Component.new(text: 'Skipped', size: :sm) %>
+    <% end %>
+    <% c.with_step(title: 'Director signature', state: :pending) %>
+  <% end %>
+</div>

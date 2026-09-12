@@ -30,6 +30,7 @@ module Bali
         @form = form
         @method = method
         @label_options = normalize_label_options(options[:label])
+        @required = options[:required] || options["required"] ? true : false
         @field_class = options[:field_class]
         @field_data = options[:field_data]
         @type = options[:type]
@@ -46,6 +47,8 @@ module Bali
       private
 
       attr_reader :form, :method, :label_options, :field_class, :field_data, :type, :control_id
+
+      def required? = @required
 
       # Derived with Rails' own `field_id`, so it follows the same namespace,
       # index and nested-attribute rules as the control and the error/help
@@ -67,15 +70,26 @@ module Bali
       end
 
       def simple_legend
-        caption_tag(class: LEGEND_CLASSES) { label_text }
+        caption_tag(class: LEGEND_CLASSES) { caption_text }
       end
 
       def legend_with_tooltip
         caption_tag(class: legend_classes) do
           tag.span(class: LEGEND_TEXT_CLASSES) do
-            safe_join([ label_text, tooltip_icon ])
+            safe_join([ caption_text, tooltip_icon ])
           end
         end
+      end
+
+      # The caption says what the call site said: `required:` marks it, on every
+      # family, with the builder's own marker — see `Bali::FormBuilder#required_marker`
+      # for why (#1125).
+      # One span for text and mark together: `.fieldset-legend` is a flex row with
+      # daisyUI's own gap, and as separate items the asterisk drifted 8px from the word.
+      def caption_text
+        return label_text unless required?
+
+        tag.span(safe_join([ label_text, @form.required_marker ]))
       end
 
       # The caption always carries an id, whichever element it turns out to be:
@@ -93,13 +107,11 @@ module Bali
         @label_options[:text] || @form.translate_attribute(@method)
       end
 
+      # Through Bali::HelpTip (#993), so the help icon on a form field and the
+      # one a host renders next to a table header are the same component — this
+      # used to build the Tooltip+Icon pair privately, and hosts rewrote it.
       def tooltip_icon
-        render(Bali::Tooltip::Component.new) do |tooltip|
-          tooltip.with_trigger do
-            render(Bali::Icon::Component.new("info-circle", class: "size-4 text-base-content/60"))
-          end
-          @label_options[:tooltip]
-        end
+        render(Bali::HelpTip::Component.new(@label_options[:tooltip]))
       end
 
       def legend_classes

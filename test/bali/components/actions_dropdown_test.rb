@@ -88,4 +88,17 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     assert_selector('div.dropdown > ul[role="menu"].dropdown-content')
     assert_no_selector(".hover-card-component")
   end
+
+  # The preset inherits the full item routing (#641): POST as a real `button_to` and the
+  # local-modal item as a real `<button>` — the two shapes the apps used to hand-roll
+  # inside the block.
+  def test_the_preset_inherits_post_and_local_modal_items
+    render_inline(Bali::ActionsDropdown::Component.new) do |c|
+      c.with_item(name: "Approve", href: "/approve", method: :post)
+      c.with_item(name: "Edit health", modal: { id: "health-modal", local: true })
+    end
+
+    assert_selector("li > form.contents[action='/approve']", visible: :all)
+    assert_selector("button[role='menuitem'][data-modal-id='health-modal']")
+  end
 end

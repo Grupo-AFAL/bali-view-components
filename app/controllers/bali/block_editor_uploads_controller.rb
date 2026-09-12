@@ -64,12 +64,27 @@ module Bali
     class UploadError < StandardError; end
     class NotAuthorizedError < StandardError; end
 
+    UNCONFIGURED_UPLOAD_MESSAGE =
+      "Bali::BlockEditorUploadsController denied an upload because " \
+      "`Bali.block_editor_upload_authorize` is not configured. Since v3.1 this endpoint " \
+      "denies by default, like every other engine controller. Set the lambda to decide who " \
+      "may upload, e.g. `Bali.block_editor_upload_authorize = ->(c) { c.current_user.present? }` " \
+      "(or `->(_) { true }` to keep it open on a fully-internal app)."
+
     private
 
+    # Default-deny, matching the engine's other gates: an unconfigured endpoint
+    # is closed, not open. An unset lambda logs an actionable warning so the
+    # 403 is diagnosable, then denies.
     def authorize_upload!
-      return unless Bali.block_editor_upload_authorize
+      authorizer = Bali.block_editor_upload_authorize
 
-      raise NotAuthorizedError unless Bali.block_editor_upload_authorize.call(self)
+      unless authorizer
+        Rails.logger.warn(UNCONFIGURED_UPLOAD_MESSAGE) if defined?(Rails) && Rails.respond_to?(:logger)
+        raise NotAuthorizedError
+      end
+
+      raise NotAuthorizedError unless authorizer.call(self)
     end
 
     def validate_file!(file)

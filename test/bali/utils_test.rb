@@ -86,3 +86,47 @@ class BaliUtilsTest < ActiveSupport::TestCase
     assert_nil(@helper.test_id_attr(nil))
   end
 end
+
+class ColorCalculatorContext
+  include Bali::Utils::ColorCalculator
+end
+
+class BaliUtilsColorCalculatorTest < ActiveSupport::TestCase
+  def setup
+    @helper = ColorCalculatorContext.new
+  end
+
+  def test_deterministic_color_returns_a_bg_fg_pair_from_the_status_palette
+    pair = @helper.deterministic_color("Ana García")
+
+    assert_includes(Bali::Status::Component::PALETTE.values, pair)
+    assert(pair.key?(:bg))
+    assert(pair.key?(:fg))
+  end
+
+  def test_deterministic_color_is_stable_for_the_same_seed
+    assert_equal(@helper.deterministic_color("Ana García"),
+                 @helper.deterministic_color("Ana García"))
+  end
+
+  # String#hash is randomized per process; the mapping must survive restarts,
+  # so it is pinned to Zlib.crc32 and these seeds assert the exact colour.
+  def test_deterministic_color_mapping_is_stable_across_processes
+    palette = Bali::Status::Component::PALETTE
+
+    assert_equal(palette[:red], @helper.deterministic_color("Ana García"))
+    assert_equal(palette[:green], @helper.deterministic_color("Juan Pérez"))
+  end
+
+  def test_deterministic_color_never_picks_slate_or_gray
+    excluded = Bali::Status::Component::PALETTE.values_at(:slate, :gray)
+
+    1_000.times do |i|
+      refute_includes(excluded, @helper.deterministic_color("seed-#{i}"))
+    end
+  end
+
+  def test_deterministic_color_accepts_a_nil_seed
+    assert_includes(Bali::Status::Component::PALETTE.values, @helper.deterministic_color(nil))
+  end
+end

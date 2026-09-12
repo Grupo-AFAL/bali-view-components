@@ -46,11 +46,22 @@ module Bali
         )
       end
 
-      # Full named palette gallery.
+      # Full named palette gallery. The twelve pairs are public API:
+      # `Bali::Status.palette(:green)` returns the `{ bg:, fg: }` hex pair for
+      # painting something that is not a pill (a Gantt bar) in the same colour.
       def palette
         render_with_template(locals: {
           swatches: Bali::Status::Component::PALETTE.keys
         })
+      end
+
+      # @label Enum map (Status.for)
+      # `Bali::Status.for(value, map:, i18n_scope:)` mirrors `Bali::Tag.for`:
+      # the same host-owned map builds the whole `options:` array, so it powers
+      # the editable panel too. Recipe and the Tag vs Status criterion:
+      # docs/guides/enum-badges.md.
+      def enum_map
+        render_with_template
       end
 
       # Editable pill inside an overflow-x container (proves the panel is not clipped).

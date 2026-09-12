@@ -4,6 +4,7 @@ module Bali
   module Dropdown
     class Component < ApplicationViewComponent
       include Bali::DeprecatedIconName
+      include Bali::LocalOverlay
 
       # daisyUI 5 splits a dropdown's position along two axes and gives each its own class.
       # This component used to fold both into one `align:` keyword that could spell four of
@@ -53,6 +54,9 @@ module Bali
       #   `:title` (encabezado de sección: agrupa los items que le siguen).
       # @param icon [String, Symbol] icon name — one spelling whichever component the item
       #   turns out to be.
+      # @param modal [Boolean, Hash] con `href:`, el modo remoto de Bali::Link (`true` o
+      #   `{ id: }`); `{ id:, local: true }` abre un modal YA renderizado en la página, sin
+      #   fetch — y sin `href:` el item se vuelve un `<button>` de verdad. Ídem `drawer:`.
       renders_many :items, ->(method: :get, href: nil, tag: :link, icon: nil,
                               icon_name: nil, **options) do
         icon = item_icon(icon, icon_name)
@@ -63,7 +67,13 @@ module Bali
         when :button
           ActionItem::Component.new(icon: icon, **options)
         else
-          build_link_item(method: method, href: href, icon: icon, **options)
+          if href.nil? && local_overlay_trigger?(options)
+            # Un item que solo abre un overlay local no navega a ningún lado: sin href el
+            # `<a>` ni siquiera es enfocable, así que el item es el botón de acción.
+            ActionItem::Component.new(icon: icon, **options)
+          else
+            build_link_item(method: method, href: href, icon: icon, **options)
+          end
         end
       end
 
@@ -177,7 +187,8 @@ module Bali
         options[:role] ||= "menuitem"
         options = prepend_class_name(options, "menu-item w-full text-left")
 
-        if method&.to_sym == :delete
+        case method&.to_sym
+        when :delete
           # `form_class: "contents"` explícito, porque acá SÍ es item de menú: daisyUI pinta
           # el item sobre `li > *` salvo que sea un `.btn`, y el `<form>` de `button_to` no lo
           # es. Fuera del árbol de cajas, el botón es el item (#829). Antes esto lo deducía
@@ -185,6 +196,13 @@ module Bali
           # que un call site lo pueda pisar.
           DeleteLink::Component.new(
             href: href, plain: true, icon: icon, form_class: "contents", **options
+          )
+        when :post, :patch, :put
+          # `button_to` real, como el item :delete y por lo que ya pagó #829: un `<a
+          # data-turbo-method>` degrada a GET sin JS y es un link que muta estado. Cambio
+          # anunciado en v3.1 (#641) — el markup del item pasa de `<a>` a `<form><button>`.
+          ButtonToItem::Component.new(
+            href: href, method: method.to_sym, icon: icon, form_class: "contents", **options
           )
         else
           Link::Component.new(method: method, href: href, plain: true, icon: icon, **options)

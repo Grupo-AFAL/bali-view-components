@@ -14,7 +14,8 @@ module Bali
         xs: "range-xs",
         sm: "range-sm",
         md: "range-md",
-        lg: "range-lg"
+        lg: "range-lg",
+        xl: "range-xl"
       }.freeze
 
       COLORS = {
@@ -95,9 +96,9 @@ module Bali
         range_class = [
           RANGE_CLASS,
           "w-full",
-          SIZES[options[:size]],
+          size_variant(options, SIZES),
           COLORS[options[:color]],
-          (errors?(method) ? "range-error" : nil),
+          (errors?(method, options) ? "range-error" : nil),
           options[:class]
         ].compact.join(" ")
 
@@ -107,6 +108,7 @@ module Bali
         attributes[:min] ||= 0
         attributes[:max] ||= 100
         attributes[:step] ||= 1
+        apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes.merge(class: range_class), method, options)
       end

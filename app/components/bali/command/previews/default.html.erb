@@ -7,7 +7,11 @@
     class: 'max-w-md'
   ) do |c| %>
 
-    <% c.with_group(name: 'Pages') do |g| %>
+    <%# A directory of pages is `:navigation`: browsable the moment the palette
+        opens, narrowed as soon as the user types. `:searchable` would leave the
+        panel empty on open, and `:action` — the mode hosts reached for to avoid
+        that — never filters (#1016). %>
+    <% c.with_group(name: 'Pages', mode: :navigation) do |g| %>
       <% g.with_item(title: 'Policies', meta: 'Regulations', icon: 'book-open', href: '/lookbook') %>
       <% g.with_item(title: 'Procedures', meta: 'Operations', icon: 'list-checks', href: '/lookbook') %>
       <% g.with_item(title: 'Committees', meta: 'Structure', icon: 'users', href: '/lookbook') %>

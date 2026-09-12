@@ -1,0 +1,30 @@
+<%# One map, declared once (in a host helper in a real app), drives the
+    read-only pill, the editable pill and — through Bali::Status.palette —
+    anything else painted in the state's colour. %>
+<% map = {
+     pending: :slate,
+     in_progress: :blue,
+     done: { color: :green, label: 'Completed!' }
+   } %>
+
+<div class="flex flex-col gap-4">
+  <div class="flex items-center gap-2">
+    <% %i[pending in_progress done].each do |state| %>
+      <%= render Bali::Status.for(state, map: map) %>
+    <% end %>
+  </div>
+
+  <div>
+    <%= render Bali::Status.for(
+          'in_progress',
+          map: map,
+          form: { url: '/lookbook', method: :patch, param: 'thing[status]' }
+        ) %>
+  </div>
+
+  <div class="flex items-center gap-2 text-sm">
+    <span>Same colour outside the pill via <code>Bali::Status.palette</code>:</span>
+    <% pair = Bali::Status.palette(:blue) %>
+    <span class="inline-block h-4 w-16 rounded" style="background-color: <%= pair[:bg] %>"></span>
+  </div>
+</div>

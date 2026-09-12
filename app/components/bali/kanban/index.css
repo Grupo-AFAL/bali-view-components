@@ -1,0 +1,34 @@
+/* Bali Kanban — the card list's min-height and the empty-column affordance.
+ *
+ * Both rules set `min-height`, and that is why both live here instead of as
+ * utilities on the template: a default and the state that overrides it must
+ * share a layer (see .claude/CLAUDE.md). A `min-h-0` utility on the list would
+ * sit in @layer utilities and beat the empty-state rule below no matter what.
+ *
+ * `min-height: 0` is what lets the list actually scroll on a height-capped
+ * board: the list is a `flex-1` item and a flex item's default `min-height:
+ * auto` refuses to shrink below its content, so without this rule the column
+ * grows and the page scrolls instead (#643).
+ *
+ * The empty state is `:not(:has(*))` — no element children — rather than a
+ * render-time `cards.empty?` flag because the DOM changes under drag and
+ * server-rendered flags do not: drag the last card out and the affordance has
+ * to appear on a list that rendered full; hover a drag over an empty column
+ * and SortableJS inserts its ghost (a child element, so `:has(*)` matches) and
+ * the affordance correctly yields to the preview. The 100px floor is the drop
+ * area the template used to carry as `min-h-[100px]`.
+ *
+ * Imported into @layer components: a host utility (`min-h-40`, `border-solid`)
+ * still wins, and daisyUI declares nothing on these classes, so there is
+ * nothing in @layer utilities to fight.
+ */
+
+.kanban-column-list {
+  min-height: 0;
+}
+
+.kanban-column-list:not(:has(*)) {
+  min-height: 100px;
+  border-radius: var(--radius-box, 1rem);
+  border: 1px dashed color-mix(in oklab, var(--color-base-300) 70%, transparent);
+}

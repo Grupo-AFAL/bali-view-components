@@ -107,40 +107,43 @@ All buttons, links, and controls must have:
 
 ### Forms
 
+The FormBuilder produces all of this — the associated label, the described-by wiring for
+help and error text, the `aria-invalid` on error — so the accessible form is the default
+one:
+
 ```erb
-<%# GOOD - Associated label %>
-<div class="form-control">
-  <label class="label" for="email">
-    <span class="label-text">Email</span>
-  </label>
-  <input type="email" id="email" class="input input-bordered"
-         aria-describedby="email-hint email-error">
-  <label class="label" id="email-hint">
-    <span class="label-text-alt">We'll never share your email</span>
-  </label>
-</div>
+<%# GOOD - the FormBuilder wires label, help and error for you %>
+<%= f.email_group :email, help: "We'll never share your email" %>
+<%= f.password_group :password, error: "Password must be at least 8 characters" %>
+```
 
-<%# GOOD - Error state %>
-<div class="form-control">
-  <label class="label" for="password">
-    <span class="label-text">Password</span>
-  </label>
-  <input type="password" id="password" 
-         class="input input-bordered input-error"
-         aria-invalid="true"
-         aria-describedby="password-error">
-  <label class="label" id="password-error">
-    <span class="label-text-alt text-error">
-      Password must be at least 8 characters
-    </span>
-  </label>
-</div>
+Writing the markup by hand, this is what it has to amount to (daisyUI 5's `fieldset`
+vocabulary — `form-control`/`label-text`/`input-bordered` were daisyUI 4 and no longer
+exist):
 
-<%# BAD - No label association %>
-<div class="form-control">
-  <span class="label-text">Email</span>
+```erb
+<%# GOOD - associated label, described-by help (what email_group renders) %>
+<fieldset class="fieldset">
+  <label class="fieldset-legend" for="email">Email</label>
+  <input type="email" id="email" class="input" aria-describedby="email-hint">
+  <p class="fieldset-label" id="email-hint">We'll never share your email</p>
+</fieldset>
+
+<%# GOOD - error state %>
+<fieldset class="fieldset">
+  <label class="fieldset-legend" for="password">Password</label>
+  <input type="password" id="password" class="input input-error"
+         aria-invalid="true" aria-describedby="password-error">
+  <p class="fieldset-label text-error" id="password-error">
+    Password must be at least 8 characters
+  </p>
+</fieldset>
+
+<%# BAD - no label association %>
+<fieldset class="fieldset">
+  <span>Email</span>
   <input type="email" class="input">
-</div>
+</fieldset>
 ```
 
 ### Images
@@ -438,7 +441,7 @@ content inside the tag is only surfaced when canvas itself is unsupported.
 ```erb
 <%= render Bali::Chart::Component.new(data: @sales, title: 'Weekly sales') do |c| %>
   <% c.with_data_table do %>
-    <%# a real <table>, rendered sr-only next to the canvas %>
+    <%# a real <table>, visually hidden next to the canvas %>
   <% end %>
 <% end %>
 ```
@@ -447,6 +450,9 @@ content inside the tag is only surfaced when canvas itself is unsupported.
   so a generic name beats none.
 - A name is not a number. The `data_table` slot is the only way a screen reader user reads
   a value off the chart.
+- The same table is the chart's no-JS fallback: with scripting off the canvas never draws,
+  so `@media (scripting: none)` reveals the table and collapses the empty canvas box
+  instead of leaving a container-height hole.
 
 The same reasoning drives `Bali::Heatmap`: axis labels are `<th scope="col">` and
 `<th scope="row">` so both axes reach the cell as headers, and each cell carries its value
@@ -637,17 +643,14 @@ Below the `lg` breakpoint the sidebar is a modal drawer:
 Run these checks on every component:
 
 ```ruby
-# spec/support/accessibility_helpers.rb
-RSpec.configure do |config|
-  config.include AccessibilityHelpers, type: :component
-end
-
+# test/support/accessibility_helpers.rb — the repo's suite is Minitest;
+# include this in your ComponentTestCase (Capybara matchers are available
+# through ViewComponent::TestHelpers).
 module AccessibilityHelpers
-  def expect_accessible(page)
-    # Check for basic accessibility issues
-    expect(page).not_to have_css("img:not([alt])")
-    expect(page).not_to have_css("input:not([id])")
-    expect(page).not_to have_css("label:not([for])")
+  def assert_basic_a11y
+    assert_no_selector("img:not([alt])", visible: :all)
+    assert_no_selector("input:not([type=hidden]):not([id])", visible: :all)
+    assert_no_selector("label:not([for])", visible: :all)
   end
 end
 ```

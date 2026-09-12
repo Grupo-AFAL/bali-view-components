@@ -53,9 +53,34 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][name_cont]', 'Alien']
       ])
+    })
+
+    // The seed of a fresh group is AND: a second condition narrows the listing. It was
+    // OR, so «brand = WCP» (5 rows) plus «district = I» came back with 23 — the opposite
+    // of what "add a filter" means (#1121). The toggle on the row is how a user asks for
+    // the union, and a group that arrives with `m=or` keeps it (asserted server-side).
+    it('narrows with a second condition rather than widening', () => {
+      cy.visit('/bali/filters/default')
+      openPanel()
+      cy.get(attribute).select('name')
+      cy.get(value).type('Alien')
+      cy.get('[data-action="filter-group#addCondition"]').click()
+      cy.get(attribute).eq(1).select('email')
+      cy.get(value).eq(1).type('ripley')
+      captureSubmission()
+
+      cy.get(applyButton).click()
+
+      filterParams().should('deep.equal', [
+        ['q[g][0][m]', 'and'],
+        ['q[g][0][name_cont]', 'Alien'],
+        ['q[g][0][email_cont]', 'ripley']
+      ])
+      cy.get('[data-filter-group-target="combinatorToggle"] [data-combinator="and"]')
+        .should('have.attr', 'aria-pressed', 'true')
     })
 
     // The inline panel never had a quick search by design, so `popover: false` is the
@@ -69,7 +94,7 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][name_cont]', 'Alien']
       ])
     })
@@ -89,7 +114,7 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][genre_eq]', 'Drama']
       ])
     })
@@ -108,7 +133,7 @@ describe('FiltersController', () => {
       cy.get(applyButton).click()
 
       filterParams().should('deep.equal', [
-        ['q[g][0][m]', 'or'],
+        ['q[g][0][m]', 'and'],
         ['q[g][0][genre_eq]', 'Comedy']
       ])
     })
@@ -141,7 +166,7 @@ describe('FiltersController', () => {
 
       cy.get(applyButton).click()
 
-      filterParams().should('deep.equal', [['q[g][0][m]', 'or']])
+      filterParams().should('deep.equal', [['q[g][0][m]', 'and']])
       cy.get('[data-condition-target="hint"]').should('have.class', 'is-shown')
     })
   })
@@ -170,5 +195,37 @@ describe('FiltersController', () => {
         expect(params.get('q[g][0][name_cont]')).to.equal('Alien')
       })
     })
+  })
+})
+
+// #1013 — la misma familia que el drawer, en el panel: el `.ss-content` de un
+// valor de tipo select se portalea a <body>, fuera del dropdown, así que
+// `dropdownTarget.contains(target)` decía "afuera" y cerraba el panel al tocar
+// el buscador del slim select. `closeOnClickOutside` ya excusaba el calendario
+// de flatpickr por selector; el slim select se había quedado fuera de esa lista.
+describe('FiltersController: widgets portaleados dentro del panel', () => {
+  const panel = '[data-filters-target="dropdownContent"]'
+
+  beforeEach(() => {
+    // El widget de valor aparece al elegir un atributo de tipo select, y ahi es
+    // donde el panel monta un slim-select (filters/condition/component.html.erb).
+    cy.visit('/bali/data_table/complete')
+    cy.get('[data-filters-target="dropdown"] > button').click()
+    cy.get('[data-condition-target="attribute"]').select('genre')
+    cy.get(panel).should('not.have.class', 'hidden')
+  })
+
+  it('keeps the panel open while searching in a slim select value', () => {
+    cy.get('[data-condition-target="valueContainer"] .ss-main').click()
+    cy.get('.ss-content .ss-search input').should('be.visible').click().type('a')
+
+    cy.get(panel).should('not.have.class', 'hidden')
+  })
+
+  // El control: un click de verdad afuera sigue cerrando el panel.
+  it('still closes on a real outside click', () => {
+    cy.get('body').click('bottomRight')
+
+    cy.get(panel).should('have.class', 'hidden')
   })
 })

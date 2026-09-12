@@ -1,0 +1,7 @@
+<div class="p-6">
+  <%= render Bali::WidgetGrid::Component.new(url: '/widget_layout', add_path: add_path) do |grid| %>
+    <% widgets.each do |widget| %>
+      <% grid.with_widget(widget) %>
+    <% end %>
+  <% end %>
+</div>

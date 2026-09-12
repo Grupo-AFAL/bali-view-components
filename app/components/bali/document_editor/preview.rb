@@ -27,8 +27,11 @@ module Bali
           editable: editable,
           auto_save: false,
           config: {
+            # The engine scopes comments to the record they belong to (#706), and a
+            # preview owns none — so this names the dummy's first seeded document by
+            # hand. An app writes `url: :auto, commentable: record` and gets this path.
             comments: {
-              url: "/block_editor_comments",
+              url: "/bali/block_editor_comments?commentable_type=Document&commentable_id=1",
               user: { id: "user-1", username: "Demo User" },
               users: [
                 { id: "user-1", username: "Demo User" },

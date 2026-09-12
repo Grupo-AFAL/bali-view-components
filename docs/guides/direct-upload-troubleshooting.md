@@ -98,7 +98,8 @@ For network issues:
 - User can click the retry button
 - Consider informing users about stable connections for large files
 
-For URL expiration (signed URLs expire in ~1 hour by default):
+For URL expiration (signed service URLs expire in **5 minutes** by default —
+`ActiveStorage.service_urls_expire_in`):
 ```ruby
 # config/environments/production.rb
 # Increase expiration for large file uploads
@@ -414,7 +415,7 @@ config.active_storage.logger = Logger.new(STDOUT)
 | No chunked uploads | Single PUT request for entire file | Consider separate chunking solution for files >1GB |
 | Client validation is UX only | Attackers can bypass `accept` parameter | Always validate server-side |
 | No offline queuing | Uploads require active connection | Inform users to maintain connection |
-| URL expiration | Signed URLs expire (~1 hour default) | Increase expiration for large files |
+| URL expiration | Signed URLs expire (5 minutes default) | Increase expiration for large files |
 
 ---
 

@@ -5,8 +5,8 @@ require "test_helper"
 class BaliIconLucideMappingTest < ActiveSupport::TestCase
   def test_find_returns_lucide_name_for_mapped_bali_icon
     assert_equal("pencil", Bali::Icon::LucideMapping.find("edit"))
-    assert_equal("trash-2", Bali::Icon::LucideMapping.find("trash"))
-    assert_equal("settings", Bali::Icon::LucideMapping.find("cog"))
+    assert_equal("circle-check", Bali::Icon::LucideMapping.find("check-circle"))
+    assert_equal("trash", Bali::Icon::LucideMapping.find("trash-alt"))
   end
 
   def test_find_returns_nil_for_unmapped_icons
@@ -19,8 +19,8 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
   end
 
   def test_mapped_returns_true_for_mapped_icons
-    assert(Bali::Icon::LucideMapping.mapped?("user"))
-    assert(Bali::Icon::LucideMapping.mapped?("check"))
+    assert(Bali::Icon::LucideMapping.mapped?("edit"))
+    assert(Bali::Icon::LucideMapping.mapped?("plus-circle"))
   end
 
   def test_mapped_returns_false_for_unmapped_icons
@@ -31,9 +31,8 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
   def test_bali_names_returns_all_bali_icon_names_that_have_mappings
     names = Bali::Icon::LucideMapping.bali_names
     assert_includes(names, "edit")
-    assert_includes(names, "trash")
-    assert_includes(names, "user")
-    assert_includes(names, "check")
+    assert_includes(names, "check-circle")
+    assert_includes(names, "trash-alt")
     refute_includes(names, "visa")
     refute_includes(names, "whatsapp")
   end
@@ -41,33 +40,75 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
   def test_lucide_names_returns_unique_lucide_names_used_in_mappings
     names = Bali::Icon::LucideMapping.lucide_names
     assert_includes(names, "pencil")
-    assert_includes(names, "trash-2")
-    assert_includes(names, "user")
-    assert_includes(names, "check")
+    assert_includes(names, "circle-check")
+    assert_includes(names, "trash")
     assert_equal(names.size, names.uniq.size)
   end
 
   # Resolution consults MAPPING before trying the name as a Lucide icon, so a
   # key that is ALSO a current Lucide name and points at a different glyph
   # shadows the real icon: the honest spelling of that name becomes
-  # unreachable, silently. `grid` and `file-signature` were removed for exactly
-  # that. The keys below are the known leftovers, frozen in BOTH directions —
-  # a new shadowing entry fails this test, and removing one obliges updating
-  # the list, which is the paper trail we want. Measured SVG against SVG on
-  # lucide-rails 0.7.4 (what Gemfile.lock pins — the determinism comes from the
-  # lock, not from the gemspec cap): only `plus-circle` still draws the same
-  # thing as its target; the other seven redirect to a genuinely different
-  # glyph, and #902 tracks deciding each of them.
+  # unreachable, silently. `grid` and `file-signature` were removed for
+  # exactly that pre-v3.0, and #902 removed `trash`, `cog`, `expand`,
+  # `indent` and `outdent` (see REMOVED_SHADOWED_KEYS below). The keys here
+  # are the deliberate survivors, frozen in BOTH directions — a new shadowing
+  # entry fails this test, and removing one obliges updating the list, which
+  # is the paper trail we want. Measured SVG against SVG on lucide-rails
+  # 0.7.4 (what Gemfile.lock pins — the determinism comes from the lock, not
+  # from the gemspec cap): `plus-circle` draws the same thing as its target;
+  # `check-circle` and `edit` redirect on purpose, because their "honest"
+  # spellings are deprecated Lucide aliases — a legacy glyph and a name whose
+  # real rename is `square-pen`. The header of lucide_mapping.rb tells the
+  # full story.
   KNOWN_SHADOWED_KEYS = %w[
     plus-circle
-    check-circle cog edit expand indent outdent trash
+    check-circle edit
   ].freeze
+
+  # The five keys #902 removed: each was shadowing a current Lucide name with
+  # a different glyph. They must stay out of MAPPING, and their honest
+  # spelling must keep resolving through the pipeline's step 2 — if either
+  # half fails, the shadowing came back or the pinned lucide-rails dropped
+  # the file, and both deserve a red build.
+  REMOVED_SHADOWED_KEYS = %w[cog expand indent outdent trash].freeze
 
   def test_no_mapping_key_shadows_a_current_lucide_name_beyond_the_known_set
     shadowed = Bali::Icon::LucideMapping::MAPPING
                  .select { |key, target| key != target && lucide_icon?(key) }
                  .keys.sort
     assert_equal(KNOWN_SHADOWED_KEYS.sort, shadowed)
+  end
+
+  def test_removed_shadowed_keys_stay_out_of_the_mapping_and_resolve_as_lucide
+    REMOVED_SHADOWED_KEYS.each do |name|
+      refute(Bali::Icon::LucideMapping.mapped?(name),
+             "#{name} was removed from MAPPING by #902; do not reintroduce it")
+      assert(lucide_icon?(name),
+             "#{name} must resolve as a direct Lucide icon (pipeline step 2)")
+    end
+  end
+
+  def test_mapping_carries_no_identity_entries
+    identity = Bali::Icon::LucideMapping::MAPPING.select { |key, target| key == target }.keys
+    assert_empty(identity,
+                 "identity entries are dead weight — the direct-Lucide step already " \
+                 "resolves these names: #{identity.inspect}")
+  end
+
+  # #987: the one underscored key (a v1-hash leftover) made the "Did you mean"
+  # suggest exactly the spelling the migration guide tells hosts not to adopt.
+  # Keys are dashed like every name the pipeline serves; the underscore was
+  # the accident, not the contract.
+  def test_mapping_keys_carry_no_underscores
+    underscored = Bali::Icon::LucideMapping::MAPPING.keys.grep(/_/)
+    assert_empty(underscored,
+                 "mapping keys are dashed — an underscored key turns the error " \
+                 "message into a rename trap (#987): #{underscored.inspect}")
+  end
+
+  def test_question_circle_resolves_via_the_dashed_key
+    assert_equal("circle-help", Bali::Icon::LucideMapping.find("question-circle"))
+    refute(Bali::Icon::LucideMapping.mapped?("question_circle"))
   end
 
   def test_mapping_constant_is_frozen

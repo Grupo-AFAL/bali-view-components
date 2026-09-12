@@ -24,7 +24,14 @@
             <% end %>
           </div>
 
-          <div class="mt-4 flex justify-end">
+          <div class="mt-4 flex justify-end gap-2">
+            <%= render Bali::Link::Component.new(
+              name: 'View Timeline',
+              href: admin_project_path(project, view: 'timeline'),
+              variant: :ghost,
+              size: :sm,
+              icon: 'chart-gantt'
+            ) %>
             <%= render Bali::Link::Component.new(
               name: 'View Board',
               href: admin_project_path(project),

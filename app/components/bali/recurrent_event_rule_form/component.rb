@@ -130,6 +130,18 @@ module Bali
         end
       end
 
+      # The first frequency the host allows, in the order the select lists them.
+      # Without it the select opens on the first of the catalogue — disabled
+      # whenever `frequency_options` excludes it — and the controller, which
+      # syncs the select against the rule it just parsed, put it back there. A
+      # form submitted untouched then persisted a frequency the host had
+      # forbidden (#1051). The JS default rule reads this same selection.
+      def default_frequency
+        name = DEFAULT_FREQUENCIES.find { |frequency| allowed_frequencies.include?(frequency) }
+
+        FREQUENCIES[(name || DEFAULT_FREQUENCIES.first).to_sym]
+      end
+
       def ending_options
         [
           [ t(".never"), "" ],

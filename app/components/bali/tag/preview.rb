@@ -39,6 +39,33 @@ module Bali
         )
       end
 
+      # The `icon:` keyword draws the glyph before the text at the pill's own
+      # font-size, so it fits every badge size — including `xs`, whose pill is
+      # only 16px tall. The `with_icon` slot takes options and wins over the
+      # keyword when both are given.
+      # @param icon text
+      # @param size [Symbol] select [xs, sm, md, lg, xl]
+      # @param color [Symbol] select [neutral, primary, secondary, accent, ghost, info, success, warning, error]
+      # @param style [Symbol] select [~, outline, soft, dash]
+      def with_icon(icon: 'check', size: :md, color: :success, style: nil)
+        render Bali::Tag::Component.new(
+          text: 'Done',
+          icon: icon,
+          size: size,
+          color: color,
+          style: style
+        )
+      end
+
+      # @label Enum map (Tag.for)
+      # `Bali::Tag.for(value, map:, i18n_scope:)` is the enum-badge sugar: the
+      # value → color/icon map is declared once (in a host helper) instead of
+      # once per call site. An unmapped value raises unless `default:` is
+      # given. Recipe and the Tag vs Status criterion: docs/guides/enum-badges.md.
+      def enum_map
+        render_with_template
+      end
+
       # @label All Combinations
       # Shows all tag variants organized by category: colors, sizes, styles,
       # rounded, clickable, custom colors, and a full color x style matrix.

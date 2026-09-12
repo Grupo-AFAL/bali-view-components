@@ -2,14 +2,18 @@
   <%= content %>
 <% else %>
   <%= tag.tr(**tr_options) do %>
-    <% if @selectable %>
+    <% if @select_column %>
+      <%# La celda se pinta aunque la fila NO sea seleccionable: si la tabla trae la columna
+          y una fila se la salta, las columnas de esa fila se corren una posición. %>
       <%= tag.td(class: 'w-4') do %>
-        <%# `change->` explícito: el default de Stimulus para un input es `input`, y `change`
-            además NO se dispara cuando el JS setea `.checked` (sin eso, sincronizar el
-            checkbox desde el controlador vuelve a entrar al mismo handler). %>
-        <%= tag.input(type: 'checkbox', class: 'checkbox checkbox-sm', value: @record_id,
-                      'aria-label': select_label,
-                      data: { action: 'change->bulk-actions#toggleItem' }) %>
+        <% if @selectable %>
+          <%# `change->` explícito: el default de Stimulus para un input es `input`, y `change`
+              además NO se dispara cuando el JS setea `.checked` (sin eso, sincronizar el
+              checkbox desde el controlador vuelve a entrar al mismo handler). %>
+          <%= tag.input(type: 'checkbox', class: 'checkbox checkbox-sm', value: @record_id,
+                        'aria-label': select_label,
+                        data: { action: 'change->bulk-actions#toggleItem' }) %>
+        <% end %>
       <% end %>
     <% end %>
     <%= content %>

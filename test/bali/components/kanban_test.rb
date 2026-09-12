@@ -71,6 +71,20 @@ class BaliKanbanComponentTest < ComponentTestCase
     assert_no_selector("[data-sortable-update-url]")
   end
 
+  # #1027: `data:` del host se descartaba en silencio — y components.md manda
+  # exactamente `data: { sortable_item_pull: "false" }` para fijar una tarjeta
+  # a su columna. El merge preserva las claves propias del componente.
+  def test_card_merges_host_data_and_options
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card(update_url: "/tasks/1", id: "card-1",
+                      data: { sortable_item_pull: "false" }) { "Pinned" }
+      end
+    end
+
+    assert_selector("#card-1[data-sortable-item-pull='false'][data-sortable-update-url='/tasks/1']")
+  end
+
   def test_column_auto_counts_cards
     render_inline(Bali::Kanban::Component.new) do |k|
       k.with_column(title: "Todo", status: "todo") do |col|
@@ -254,5 +268,112 @@ class BaliKanbanComponentTest < ComponentTestCase
     end
 
     assert_selector("[data-kanban-card-label='Design landing page']")
+  end
+
+  def test_flow_layout_renders_a_scrolling_row_instead_of_a_grid
+    render_inline(Bali::Kanban::Component.new(layout: :flow)) do |k|
+      5.times { |i| k.with_column(title: "Col #{i}", status: "s#{i}") }
+    end
+
+    assert_selector("div.flex.gap-4.overflow-x-auto")
+    assert_no_selector("div.grid")
+  end
+
+  def test_flow_layout_gives_columns_a_fixed_width
+    render_inline(Bali::Kanban::Component.new(layout: :flow)) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_selector(".kanban-column.w-72.shrink-0")
+  end
+
+  def test_grid_layout_leaves_column_width_to_the_grid
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_no_selector(".kanban-column.w-72")
+  end
+
+  def test_unknown_layout_raises
+    error = assert_raises(ArgumentError) { Bali::Kanban::Component.new(layout: :columns) }
+    assert_match(/Unknown Bali::Kanban layout/, error.message)
+  end
+
+  def test_viewport_height_caps_the_board
+    render_inline(Bali::Kanban::Component.new(height: :viewport)) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    container_class = page.find(".kanban-component > div:not(.sr-only)")[:class]
+    assert_includes(container_class, "h-[calc(100vh-var(--bali-kanban-offset,17rem))]")
+  end
+
+  def test_height_accepts_a_custom_class
+    render_inline(Bali::Kanban::Component.new(height: "h-96")) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_selector(".kanban-component > div.h-96")
+  end
+
+  def test_no_height_by_default
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    container_class = page.find(".kanban-component > div:not(.sr-only)")[:class]
+    refute_match(/\bh-/, container_class)
+  end
+
+  def test_unknown_height_raises
+    error = assert_raises(ArgumentError) { Bali::Kanban::Component.new(height: :full) }
+    assert_match(/Unknown Bali::Kanban height/, error.message)
+  end
+
+  # The flex-col + min-h-0 pair is what makes a height-capped board scroll per
+  # column: without min-h-0 the column refuses to shrink below its content and
+  # the page scrolls instead.
+  def test_column_is_a_flex_column_that_can_shrink
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_selector(".kanban-column.flex.flex-col.min-h-0")
+  end
+
+  def test_card_list_scrolls_internally_and_fills_the_column
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_selector(".kanban-column-list.overflow-y-auto.flex-1")
+  end
+
+  # The list's min-height moved to kanban/index.css so the empty-column
+  # affordance (same property, same layer) can override it. A min-h utility
+  # here would win over both and kill the affordance.
+  def test_card_list_carries_no_min_height_utility
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    refute_match(/min-h/, page.find(".kanban-column-list")[:class])
+  end
+
+  def test_column_forwards_disabled_to_the_sortable_list
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Blocked", status: "blocked", disabled: true)
+    end
+
+    assert_selector("[data-sortable-list-disabled-value='true']")
+  end
+
+  def test_column_is_not_disabled_by_default
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_selector("[data-sortable-list-disabled-value='false']")
   end
 end

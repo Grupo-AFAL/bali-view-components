@@ -5,3 +5,7 @@
 <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
 <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
 <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+<%# Where a page publishes the asset paths of a React island bundle — the
+    digested paths are only known server-side, so the layout hands them to the
+    loader (docs/api/react-island.md, step 4 of docs/api/gantt.md). %>
+<%= yield(:head) %>

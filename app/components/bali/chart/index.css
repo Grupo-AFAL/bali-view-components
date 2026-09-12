@@ -1,0 +1,48 @@
+/*
+ * Chart — the data_table fallback and the no-script path (#1067).
+ *
+ * `.chart-fallback-table` is the wrapper around the `with_data_table` slot.
+ * Visually hidden by default (the same declarations as Tailwind's `sr-only`),
+ * it comes back when scripting is off — and a default and the state that
+ * overrides it must share a layer (see bali.css), which the `sr-only` utility
+ * on the template could not: a components-layer reveal loses to a
+ * utilities-layer hide no matter how specific.
+ *
+ * Without JS the canvas never draws, and its inline fallback content (the
+ * spinner) only paints when <canvas> itself is unsupported — so the chart
+ * used to leave a container-height hole and nothing else. `scripting: none`
+ * reveals the table and collapses the empty canvas box instead. Browsers
+ * without the `scripting` media feature (pre-2023) ignore the block and keep
+ * the old behavior; screen readers with JS on read the table exactly as
+ * before.
+ */
+
+.chart-fallback-table {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@media (scripting: none) {
+  .chart-fallback-table {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+
+  /* The empty canvas box keeps its height preset without JS; collapse it so
+     the table takes the chart's place instead of sitting under a hole. */
+  .chart-container:has(+ .chart-fallback-table) {
+    display: none;
+  }
+}

@@ -1,0 +1,49 @@
+<%# El estado sale del query que el propio form mandó, no de un `@param` de Lookbook: es lo
+    que hace que las pills vuelvan pintadas y que la fila se pueda usar sin el botón. %>
+<%
+  q = params.fetch(:q, {})
+  status = q[:status_eq].presence
+  kinds = Array(q[:kind_in]).compact_blank
+  genre = q[:genre_eq].presence
+
+  filters = [
+    {
+      attribute: :status,
+      collection: status_choices,
+      label: 'Status',
+      type: :radio_group,
+      auto_submit: true,
+      value: status
+    },
+    {
+      attribute: :kind,
+      collection: kind_choices,
+      label: 'Kind',
+      type: :toggle_group,
+      predicate: :in,
+      auto_submit: true,
+      value: kinds.presence
+    },
+    {
+      attribute: :genre,
+      collection: genre_choices,
+      label: 'Genre',
+      type: :select,
+      blank: 'All genres',
+      auto_submit: true,
+      value: genre
+    }
+  ]
+%>
+
+<%# `request.path` y no un literal, para que cada click aterrice de vuelta en este preview. %>
+<%= render Bali::DataTable::SimpleFilters::Component.new(
+      url: request.path,
+      filters: filters,
+      show_clear: status.present? || kinds.any? || genre.present?
+    ) %>
+
+<p class="mt-6 text-sm" data-testid="query">
+  Query string:
+  <code><%= request.query_string.presence || '(empty)' %></code>
+</p>

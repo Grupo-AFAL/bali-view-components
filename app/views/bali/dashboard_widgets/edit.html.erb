@@ -1,0 +1,55 @@
+<%# Bali's default widget picker. Override by creating `edit.html.erb` under your
+    own controller's view directory.
+
+    EVERY AUTHORIZED WIDGET (`widget_offering`), not just the ones currently on the
+    dashboard (`widget_store.visible_keys`) — that is what makes this a picker
+    rather than a second view of the grid's arrangement. %>
+<%= render Bali::PageHeader::Component.new(
+      title: t('bali_view.widgets.picker.title'),
+      subtitle: t('bali_view.widgets.picker.subtitle'),
+      back: { href: url_for(action: :show) }) %>
+
+<div class="mt-6 max-w-2xl mx-auto">
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <%= form_with url: url_for(action: :update), method: :patch do %>
+      <%= render Bali::List::Component.new do |list| %>
+        <% widget_offering.each do |widget| %>
+          <% list.with_item do |item| %>
+            <% item.with_title do %>
+              <%= label_tag "widget_#{widget.key}",
+                    class: 'flex items-center gap-3 font-semibold cursor-pointer' do %>
+                <%= check_box_tag 'widget_keys[]', widget.key,
+                      widget_store.visible_keys.include?(widget.key),
+                      id: "widget_#{widget.key}", class: 'checkbox checkbox-primary' %>
+                <%= widget.title %>
+              <% end %>
+            <% end %>
+            <% item.with_subtitle(widget.description) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# SAY THIS OUT LOUD. No stored rows is indistinguishable from "never
+          chose" — `Store#widgets` falls back to the whole offering — so unticking
+          everything restores the defaults rather than emptying the dashboard. The
+          gesture reads the other way round, and a host writing this page from
+          scratch has no way to know until a user complains. %>
+      <div class="flex items-center justify-between gap-4 mt-4">
+        <p class="text-sm text-base-content/60"><%= t('bali_view.widgets.picker.unchecking_all') %></p>
+        <%= render Bali::Button::Component.new(
+              name: t('bali_view.widgets.picker.save'), variant: :primary, type: :submit) %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if widget_store.customized? %>
+    <div class="flex justify-end mt-4">
+      <%= form_with url: url_for(action: :destroy), method: :delete,
+            data: { turbo_confirm: t('bali_view.widgets.picker.restore_confirm') } do %>
+        <%= render Bali::Button::Component.new(
+              name: t('bali_view.widgets.picker.restore_defaults'),
+              variant: :ghost, icon: 'rotate-ccw', type: :submit) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

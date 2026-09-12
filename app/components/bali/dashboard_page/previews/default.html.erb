@@ -6,7 +6,7 @@
     <%= render Bali::Button::Component.new(name: "Export", variant: :ghost, icon: "download") %>
   <% end %>
 
-  <% page.with_stat(label: "Total Movies", value: "1,234", icon: "film", color: :primary) %>
+  <% page.with_stat(label: "Total Movies", value: "1,234", icon: "film", color: :primary, href: "/lookbook") %>
   <% page.with_stat(label: "Studios", value: "56", icon: "building-2", color: :secondary) %>
   <% page.with_stat(label: "Revenue", value: "$45.2K", icon: "dollar-sign", color: :success, change: "+12.5%") %>
   <% page.with_stat(label: "Users", value: "892", icon: "users", color: :info, change: "+3.2%") %>

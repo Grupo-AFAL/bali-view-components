@@ -1,0 +1,20 @@
+<%# The whole builder at one density. `size` is nil in the default column, and
+    every helper treats a nil option as "say nothing", so the same partial
+    renders both sides of the comparison. %>
+<%= form.text_group :text, label: 'Title', size: size %>
+<%= form.email_group :email, label: 'Email', size: size,
+                     help: 'The invalid one, so the error paragraph is on screen' %>
+<%= form.select_group :select, [['Draft', 1], ['Published', 2]],
+                      label: 'Status', size: size, include_blank: true %>
+<%= form.slim_select_group :select, [['Draft', 1], ['Published', 2]],
+                           label: 'Status (SlimSelect)', size: size %>
+<%= form.text_area_group :text, label: 'Notes', size: size, rows: 3 %>
+<%= form.date_group :date, label: 'Release date', size: size %>
+<%= form.currency_group :currency, label: 'Budget', size: size %>
+<%= form.file_group :text, label: 'Attachment', size: size %>
+<%= form.range_group :number, label: 'Rating', size: size, min: 0, max: 10 %>
+<%= form.boolean_group :boolean, label: 'Indie', size: size %>
+<%= form.switch_group :boolean, label: 'Published', size: size %>
+<%= form.radio_group :select, [['Yes', 1], ['No', 2]], label: 'Approved',
+                     html: { size: size, orientation: :horizontal } %>
+<%= form.submit_group 'Save', size: size %>

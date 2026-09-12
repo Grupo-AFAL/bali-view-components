@@ -61,9 +61,10 @@ module Bali
         render_with_template
       end
 
-      # Portals the balloon to <body> with `append_to: :body` so it escapes a
-      # clipping ancestor. Both triggers sit inside an `overflow-hidden` box:
-      # the default (`:parent`) balloon is clipped, the `:body` one escapes.
+      # Both triggers sit inside an `overflow-hidden` box. Since #992 the
+      # default (`:body`) portals the balloon out and escapes the clip;
+      # `append_to: :parent` is the opt-in that keeps the balloon in place —
+      # and shows exactly the clipping that made `:body` the default.
       def escapes_overflow
         render_with_template
       end

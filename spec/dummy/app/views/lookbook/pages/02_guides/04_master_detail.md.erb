@@ -1,0 +1,251 @@
+---
+title: Master-Detail Screens
+label: Master-Detail
+---
+
+# Master-Detail Screens
+
+The inbox shape: a list on the left, the detail of the selected row on the right.
+Clicking a row swaps only the right column, so the list keeps its scroll position
+and its highlight.
+
+`Bali::SplitView::Component` owns the grid, the Turbo Frame around the detail, the
+Stimulus controller that moves the highlight — **and the listing**. The detail pane
+stays completely yours.
+
+- Previews: [SplitView](/lookbook/inspect/bali/split_view/default) ·
+  [multi filters](/lookbook/inspect/bali/split_view/multi_filters) ·
+  [height :full](/lookbook/inspect/bali/split_view/full_height/default) ·
+  [custom master](/lookbook/inspect/bali/split_view/custom_master)
+- Working reference in this app: [/split-view](/split-view)
+- Full guide, with the recipes this page leaves out: `docs/guides/master-detail.md`
+
+## The shape
+
+```erb
+<%%= render Bali::SplitView::Component.new(frame_id: "inbox-detail") do |split| %>
+  <%% split.with_list(header: "Inbox", count: @pagy.count,
+                     selected: params[:selected], pagy: @pagy) do |list| %>
+    <%% @items.each do |item| %>
+      <%% list.with_item(id: item.id, href: inbox_path(selected: item.id),
+                        title: item.title, subtitle: item.subtitle,
+                        icon: item.icon, meta: item.due_label,
+                        meta_color: (:error if item.overdue?)) do |row| %>
+        <%% row.with_tag(text: item.kind_label, color: :info) %>
+      <%% end %>
+    <%% end %>
+  <%% end %>
+
+  <%% if @selected %>
+    <%% split.with_detail { render "detail_pane", item: @selected } %>
+  <%% else %>
+    <%% split.with_empty_detail do %>
+      <%%= render Bali::EmptyState::Component.new(title: "Select an item", icon: "inbox") %>
+    <%% end %>
+  <%% end %>
+<%% end %>
+```
+
+**Nothing above says how a row is wired.** `data-turbo-frame`,
+`data-split-view-target`, `data-action` and `aria-current` are written by the
+component — they were the same four attributes in every host template, and one of
+them missing meant a row that silently reloaded the whole page. Selection is
+decided once: `with_list(selected:)` takes the id of the selected record, each item
+its own `id:`.
+
+`frame_id:` is required. `master_width:` (default `"420px"`) sets the left column
+from `lg` up; below `lg` the panes stack, master on top. `advance:` (default `true`)
+makes the selection deep-linkable.
+
+`with_item` takes `title:` and `href:` (required), plus `id:`, `subtitle:`, `icon:`,
+`meta:`, `meta_color:`, any number of `with_tag(text:, color:)`, and a block for
+free content under the subtitle. The fields are the union of the two production
+listings this was generalised from, not a copy of either — the full comparison is
+in `docs/guides/master-detail.md`.
+
+The free `master` slot is still there, unchanged, for a listing this shape does not
+fit.
+
+## Filling the screen: `height: :full`
+
+`height: :content` (default) grows with the content and lets the page scroll.
+`height: :full` fills the screen and gives **each pane its own scrollbar** — the
+inbox shape.
+
+```erb
+<%%= render Bali::AppLayout::Component.new(viewport_locked: true) do |layout| %>
+  <%% layout.with_body do %>
+    <%%= render Bali::SplitView::Component.new(frame_id: "inbox-detail", height: :full) do |split| %>
+```
+
+**That pairing is the recipe.** `:full` is `height: 100%` plus a flex chain — no
+measured offsets, no `calc(100vh - …)`, no JavaScript — and a percentage height
+needs an ancestor with a definite one. `viewport_locked: true` is what makes
+`<main>` that box. Without a bounded ancestor `:full` fills nothing, visibly; a
+component that guessed at your chrome's height would be wrong on every screen it
+was not written for. The split has to be a **direct child** of the body container.
+
+Below `lg` it is inert: the panes are stacked, and two stacked panes cannot both
+fill one screen. `max_height:` belongs to `:content` — in `:full` the flex chain
+decides. And infinite scroll simply gets a taller container: the sentinel stays in
+view and keeps loading until the pane is full.
+
+Reference page: [/split-view/full](/split-view/full).
+
+## Paging: infinite by default
+
+Give `with_list` a `pagy:` and the listing pages itself:
+
+- it renders **ordinary pagination controls** plus a sentinel below the rows;
+- the `split-view-list` controller hides the controls on connect and watches the
+  sentinel with an `IntersectionObserver` rooted on the scroll area;
+- as the sentinel comes into view it fetches **the same index URL one page further
+  on**, lifts the rows out of the reply and appends them.
+
+That order is the point: the controls are in the markup and enhancement removes
+them, so a reader without JavaScript gets working pagination rather than a spinner
+that never resolves. Nothing is needed on the server — no `respond_to`, no Turbo
+Stream, no partial extracted for the purpose — and the rows arrive with their
+wiring because the component rendered them.
+
+Corners: a deep link to a record on a later page shows its detail immediately and
+lights its row up when that page loads; going back after scrolling keeps the pages
+already appended instead of resetting to page one; a page that fails to load offers
+a retry that asks for the same page again.
+
+## The Rails side
+
+One action renders both the full page and the frame response — no second
+controller, no `respond_to`:
+
+```ruby
+class InboxController < ApplicationController
+  def show
+    @items    = filter(current_user.inbox_items)
+    @selected = @items.find_by(id: params[:selected])
+  end
+end
+```
+
+Loaded cold, `/inbox?selected=42` renders the whole page with row 42 highlighted.
+Reached by a row click, Turbo fetches the same URL and takes only the frame out
+of the reply.
+
+Order the list deterministically: the master is not re-rendered on a row click,
+so an `updated_at` ordering will disagree with itself once the detail writes.
+
+## The row
+
+```erb
+<%%= link_to inbox_path(selected: item.id, **@filters),
+      class: "split-view-row px-4 py-3 border-b border-base-200/70",
+      aria: { current: (item == @selected ? "true" : nil) },
+      data: { turbo_frame: "inbox-detail",
+              split_view_target: "row",
+              action: "click->split-view#select" } do %>
+  <div class="font-medium text-sm truncate"><%%= item.title %></div>
+<%% end %>
+```
+
+- **`split-view-row`** carries the look, including the selected state.
+- **`aria-current` from the server** paints the selection on first render and
+  after every full-page navigation. The controller only covers clicks in between.
+- **Carry the current filters in the href** — it is the URL the selection
+  deep-links to.
+- **Do not add `data-turbo-action` to the row.** The frame has it, and a
+  link-level one wins, silently defeating `advance: false`.
+
+## Making the list scroll
+
+`.split-view-scroll` is opt-in and goes around the part of the master that should
+scroll — usually the list alone, so tabs above it and pagination below it stay
+put. Its height is `var(--bali-split-master-max-h, calc(100vh - 20rem))`; set the
+variable on the element when your chrome is taller or shorter.
+
+```erb
+<div class="split-view-scroll" style="--bali-split-master-max-h: 26rem">
+```
+
+## Styling the selected row
+
+The selected row is `.split-view-row[aria-current]` — a tint plus an inset
+`box-shadow` bar down the left edge. It is a shadow and not a left border on
+purpose: rows are separated with `border-b border-base-200/70`, and Tailwind's
+`border-<color>` utility sets all four sides from the utilities layer, which beats
+`@layer components`. A `border-l-primary` in Bali's sheet renders base-200 under
+it and the highlight disappears.
+
+To add to the look rather than replace it:
+
+```erb
+<div data-controller="split-view" data-split-view-selected-class="ring-2 ring-primary">
+```
+
+## When the detail request fails
+
+Two different things happen, and the error response decides which:
+
+- **A response that says to reload** — Rails' own exception page, or any page with
+  `<meta name="turbo-visit-control" content="reload">` — makes Turbo abandon the
+  frame and visit the URL as a whole page.
+- **Anything else with no matching frame** is **ignored**: the pane keeps the
+  detail it already had, while the highlight has already moved to the row that
+  failed. The two disagree until the next click, and nothing looks broken.
+
+Three ways out of the second, cheapest first: render the error *inside* the frame
+(the only one that keeps the user where they were); add the `turbo-visit-control`
+meta to the error page to get the first behaviour; or handle `turbo:frame-missing`
+yourself with `event.preventDefault()`. Which is right depends on whether a failed
+detail is an expected outcome on that screen or a defect.
+
+## Filtering the list
+
+`with_filter` adds a pill to a band between the header and the rows — **outside**
+the scroll area so the pills stay put while the rows move under them, **inside** the
+card so they read as part of the listing.
+
+**Every pill is a link, and the component builds the URL** from the current request:
+
+```erb
+<%% Inbox::BUCKETS.each do |bucket| %>
+  <%% list.with_filter(label: t("inbox.buckets.#{bucket}"),
+                      param: :bucket, value: bucket,
+                      count: @bucket_counts[bucket]) %>
+<%% end %>
+```
+
+No form, no submit button, no clear button — a filter is a query param the action
+reads (`params[:bucket]`). `label:` is required, plus either `param:`/`value:` or an
+explicit `href:`; `count:` renders after the label (`0` included).
+
+**Two modes**, picked with `with_list(filter_mode:)`:
+
+- `:single` (default) — a bucket strip. One value at a time; clicking another pill
+  replaces it, clicking the active one drops the param. That is what replaces Clear.
+- `:multi` — independent toggles over a multi-valued param (`"q[status_in]"`). Each
+  pill adds or removes **its** value and leaves the others alone.
+
+Every other param survives a click. **`page` does not**: filtering starts the listing
+over, and page 4 of an unfiltered list is nowhere in a filtered one.
+
+**Filtering does nothing to the rest, and that is the design.** A pill click is an
+ordinary full-page GET: the server renders page one so the infinite scroll resets,
+and the filter travels into the pages the sentinel fetches because the next URL comes
+from the request the server answered.
+
+**The state without `aria-pressed`**, which browsers drop on `role=link`: `:single`
+marks the one active pill `aria-current="true"`; `:multi` cannot, since several are
+current at once; and both put an `sr-only` note in the active pill saying clicking
+removes it. The look hangs off `data-active`, so the modes look identical while the
+semantics differ.
+
+**One group, and it wraps.** The band is a single set of pills — not a filter panel.
+A master column is ~420px wide, and the band this replaced held a form whose controls
+ran off that edge.
+
+## What this is not## What this is not## What this is not
+
+- **Not a list component** — the rows are yours.
+- **Not a filter or pagination host** — those go in `master` as content.
+- **Not a re-render** — never answer a row click by re-rendering the master; it
+  loses the scroll position, which is what the pattern exists to keep.

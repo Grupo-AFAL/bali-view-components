@@ -56,10 +56,13 @@
                data-controller="multi-select"
                data-multi-select-translations-value="<%= multi_select_translations_json %>"
                data-condition-target="value">
+            <%# Un div con role=button no dispara click con Enter/Espacio como un
+                <button> real: el teclado necesita sus propias actions (#1028). %>
             <div tabindex="0"
                  role="button"
+                 aria-haspopup="listbox"
                  class="select select-bordered select-sm w-full flex items-center cursor-pointer"
-                 data-action="click->multi-select#toggle"
+                 data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
                  data-multi-select-target="trigger">
               <span class="flex-1 truncate text-left" data-multi-select-target="label">
                 <%= t('bali_view.filters.select_values') %>
@@ -239,6 +242,7 @@
     <button type="button"
             class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-error hover:bg-error/10"
             data-action="condition#remove"
+            aria-label="<%= t('bali_view.filters.remove_condition') %>"
             title="<%= t('bali_view.filters.remove_condition') %>">
       <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
     </button>

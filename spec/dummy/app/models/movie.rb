@@ -26,6 +26,20 @@ class Movie < ApplicationRecord
   attribute :cover_photo
   attribute :available_region
 
+  # Un `ransacker` es la única forma de meter una expresión SQL en el panel avanzado —un
+  # `ransackable_scope` no cabe ahí— y desde #1102 también AGRUPA, no solo ordena: el
+  # `GROUP BY` sale de este mismo Arel. `#budget_band` es su gemelo en Ruby, el que lee la
+  # banda de UNA fila; los dos tienen que devolver las mismas etiquetas o el conteo global
+  # del encabezado no se encuentra.
+  BUDGET_BANDS = { "blockbuster" => 50_000_000, "mid" => 5_000_000 }.freeze
+
+  ransacker :budget_band do |parent|
+    Arel::Nodes::Case.new
+      .when(parent.table[:budget].gteq(BUDGET_BANDS["blockbuster"])).then("blockbuster")
+      .when(parent.table[:budget].gteq(BUDGET_BANDS["mid"])).then("mid")
+      .else("indie")
+  end
+
   scope :budgeted, -> { where(budget: 1..) }
   scope :indie, -> { where(indie: true) }
   scope :top_rated, ->(limit: 5) { includes(:studio).order(rating: :desc).limit(limit) }
@@ -61,6 +75,15 @@ class Movie < ApplicationRecord
 
   def status_color
     done? ? :success : :warning
+  end
+
+  # El gemelo en Ruby del ransacker `budget_band`: mismo umbral, mismas etiquetas. Un budget
+  # nulo cae en "indie" del lado de SQL (`NULL >= x` es NULL, así que gana el ELSE) y tiene
+  # que caer ahí también acá.
+  def budget_band
+    return "indie" if budget.blank?
+
+    BUDGET_BANDS.find { |_band, floor| budget >= floor }&.first || "indie"
   end
 
   def reorder_characters(ordered_ids)

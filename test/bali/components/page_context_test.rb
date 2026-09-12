@@ -133,6 +133,80 @@ class BaliPageContextTest < ComponentTestCase
     assert_text("Form")
   end
 
+  # --- heading level (#1055) -------------------------------------------------------------
+
+  # The heading is the fourth contextual axis, after `back:`, the breadcrumbs and the Card:
+  # inside a drawer the page underneath already holds the document's `h1`, so the panel's
+  # title steps down to `h2` instead of duplicating it.
+
+  def test_a_drawer_lowers_the_heading_to_h2
+    render_form_page(context: :drawer)
+
+    assert_selector("h2.title", text: "New Studio")
+    assert_no_selector("h1")
+  end
+
+  def test_a_page_keeps_the_h1
+    render_form_page(context: :page)
+
+    assert_selector("h1.title", text: "New Studio")
+  end
+
+  def test_a_drawer_request_lowers_the_heading_when_autodetecting
+    with_request_url DRAWER_URL do
+      render_form_page
+    end
+
+    assert_selector("h2.title", text: "New Studio")
+  end
+
+  # Same contract as `card:`: `nil` hands the decision to the context, an explicit value
+  # wins in BOTH directions.
+  def test_an_explicit_heading_survives_the_drawer_context
+    render_form_page(context: :drawer, heading: :h1)
+
+    assert_selector("h1.title", text: "New Studio")
+  end
+
+  def test_an_explicit_heading_survives_the_page_context
+    render_form_page(context: :page, heading: :h3)
+
+    assert_selector("h3.title", text: "New Studio")
+  end
+
+  def test_an_unknown_heading_raises
+    error = assert_raises(ArgumentError) do
+      Bali::FormPage::Component.new(title: "New Studio", heading: :div)
+    end
+
+    assert_match(/Unknown heading: :div/, error.message)
+    assert_match(/h1, h2, h3, h4, h5, h6/, error.message)
+  end
+
+  # También los valores que ni siquiera responden a `to_sym`: `2` es plausible porque los
+  # niveles de encabezado son idiomáticamente enteros (aria-level), y `false` por analogía
+  # con `card: false`, su gemelo de escape en la misma firma. El mismo ArgumentError que
+  # nombra los valores válidos, no un NoMethodError que no explica nada.
+  def test_a_non_symbolizable_heading_raises_the_same_argument_error
+    [ 2, false ].each do |value|
+      error = assert_raises(ArgumentError) do
+        Bali::FormPage::Component.new(title: "New Studio", heading: value)
+      end
+
+      assert_match(/Unknown heading: #{value.inspect}/, error.message)
+      assert_match(/h1, h2, h3, h4, h5, h6/, error.message)
+    end
+  end
+
+  def test_show_page_lowers_its_heading_in_a_drawer
+    render_inline(Bali::ShowPage::Component.new(title: "Studio", context: :drawer)) do |page|
+      page.with_body { "Details" }
+    end
+
+    assert_selector("h2.title", text: "Studio")
+    assert_no_selector("h1")
+  end
+
   # --- the predicate the host reads ------------------------------------------------------
 
   def test_drawer_predicate_is_yielded_to_the_block

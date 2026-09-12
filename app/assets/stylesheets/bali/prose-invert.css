@@ -1,0 +1,66 @@
+/*
+ * prose-invert vs daisyUI's `:root .prose` (#1063).
+ *
+ * The rule this file has to beat: daisyUI maps Tailwind Typography's palette
+ * onto the theme with `:root .prose { --tw-prose-body: … }` (specificity
+ * (0,2,0), inside @layer utilities). The plugin's own `.prose-invert` is
+ * (0,1,0), so daisyUI's mapping ALWAYS wins — layer order and class order are
+ * irrelevant — and `prose prose-invert` on a dark surface renders base-content
+ * DARK text with no error anywhere. Measured on afal-apps' interview chat:
+ * the computed <p> color stayed `--tw-prose-body` (base-content at 80%) while
+ * `--tw-prose-invert-body` sat unread on the same element.
+ *
+ * The fix restores the promise the class makes: consume the `invert` palette.
+ * Same var list as the plugin's `.prose-invert` (the `--tw-prose-invert-*`
+ * values themselves are defined by `.prose` and its theme modifiers, which
+ * daisyUI does not touch). Unlayered so it outranks daisyUI's utilities-layer
+ * rule regardless of import order — see the layer table in bali.css.
+ *
+ * Inert without the typography plugin: nothing consumes these variables and
+ * the selector only matches markup that opted in with `prose-invert`.
+ *
+ * Scope: the bare `prose-invert` token. A variant-prefixed form
+ * (`dark:prose-invert`) compiles to a (0,1,0) utility that daisyUI's mapping
+ * still outranks — under daisyUI that pattern is redundant anyway, because
+ * dark themes flip `base-content` and the mapping follows.
+ *
+ * The second rule counters the other half of daisyUI's mapping: its inline
+ * code chip (`:root .prose :where(code):not(pre>code)`, (0,2,2)) paints
+ * `background-color: base-200` with no `color`, so on a light theme an
+ * inverted bubble would show near-white text on a near-white chip. Deriving
+ * the chip from currentColor (the inverted code color) keeps the affordance
+ * on any surface without reaching for theme tokens that point the wrong way.
+ */
+
+:root .prose-invert {
+  --tw-prose-body: var(--tw-prose-invert-body);
+  --tw-prose-headings: var(--tw-prose-invert-headings);
+  --tw-prose-lead: var(--tw-prose-invert-lead);
+  --tw-prose-links: var(--tw-prose-invert-links);
+  --tw-prose-bold: var(--tw-prose-invert-bold);
+  --tw-prose-counters: var(--tw-prose-invert-counters);
+  --tw-prose-bullets: var(--tw-prose-invert-bullets);
+  --tw-prose-hr: var(--tw-prose-invert-hr);
+  --tw-prose-quotes: var(--tw-prose-invert-quotes);
+  --tw-prose-quote-borders: var(--tw-prose-invert-quote-borders);
+  --tw-prose-captions: var(--tw-prose-invert-captions);
+  --tw-prose-kbd: var(--tw-prose-invert-kbd);
+  --tw-prose-kbd-shadows: var(--tw-prose-invert-kbd-shadows);
+  --tw-prose-code: var(--tw-prose-invert-code);
+  --tw-prose-pre-code: var(--tw-prose-invert-pre-code);
+  --tw-prose-pre-bg: var(--tw-prose-invert-pre-bg);
+  --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
+  --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
+}
+
+/* The @supports guard exists because the compiler emits a solid
+   `currentColor` fallback before each color-mix() declaration — on a browser
+   without color-mix that fallback would paint the chip solid white under
+   white text. Guarded, such a browser skips the rule and keeps daisyUI's
+   readable (if un-inverted) chip instead. */
+@supports (background-color: color-mix(in oklab, red 10%, transparent)) {
+  :root .prose-invert :where(code):not(pre > code) {
+    background-color: color-mix(in oklab, currentColor 12%, transparent);
+    border-color: color-mix(in oklab, currentColor 25%, transparent);
+  }
+}

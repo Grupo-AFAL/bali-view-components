@@ -1,3 +1,8 @@
 <%= tag.send(tag_name, class: component_classes, **html_attributes) do %>
+  <% if icon? %>
+    <%= icon %>
+  <% elsif @icon.present? %>
+    <%= render Bali::Icon::Component.new(@icon, size: keyword_icon_size) %>
+  <% end %>
   <%= text || content %>
 <% end %>

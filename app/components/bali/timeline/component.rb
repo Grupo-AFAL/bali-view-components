@@ -19,6 +19,9 @@ module Bali
       # Base classes for the timeline container
       BASE_CLASSES = "timeline timeline-vertical"
 
+      # DaisyUI modifier that collapses the timeline to a single column
+      COMPACT_CLASS = "timeline-compact"
+
       # Position modifiers for timeline layout
       # - :left   - Default, items on the start side
       # - :center - Items alternate between both sides
@@ -41,15 +44,24 @@ module Bali
         item: {
           as: :item,
           renders: lambda { |**options|
-            Timeline::Item::Component.new(side: next_item_side, **options)
+            item = Timeline::Item::Component.new(side: next_item_side, compact: @compact, **options)
+            # The line below an item takes the colour of the item that follows,
+            # so a coloured line reads as "travelled this far". Headers do not
+            # take part: their lines stay DaisyUI's default.
+            @previous_item&.next_item_for_line = item
+            @previous_item = item
+            item
           }
         }
       }
 
       # @param position [:left, :center, :right] Timeline layout position
+      # @param compact [Boolean] Collapse to a single column (DaisyUI timeline-compact).
+      #   Every content box lands on the end side, so `position:` no longer alternates.
       # @param options [Hash] Additional HTML attributes for the container
-      def initialize(position: :left, **options)
+      def initialize(position: :left, compact: false, **options)
         @position = position.to_sym
+        @compact = compact
         @options = options
         @item_index = 0
       end
@@ -74,11 +86,14 @@ module Bali
 
       private
 
-      attr_reader :position, :options
+      attr_reader :position, :compact, :options
 
       # Alternation counts items only, so a header between two items no longer
-      # flips the side the way the old `li:nth-child(odd)` rule did.
+      # flips the side the way the old `li:nth-child(odd)` rule did. Compact
+      # collapses everything to one column, so the side is always :end there —
+      # DaisyUI relocates the start area into the same column anyway.
       def next_item_side
+        return :end if compact
         return SIDES.fetch(position, :start) unless position == :center
 
         side = @item_index.even? ? :start : :end
@@ -87,7 +102,12 @@ module Bali
       end
 
       def component_classes
-        class_names(BASE_CLASSES, POSITIONS.fetch(position, ""), options[:class])
+        class_names(
+          BASE_CLASSES,
+          POSITIONS.fetch(position, ""),
+          compact && COMPACT_CLASS,
+          options[:class]
+        )
       end
 
       def container_options

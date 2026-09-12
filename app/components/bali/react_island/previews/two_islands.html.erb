@@ -1,0 +1,23 @@
+<%= react_island_meta_tags('react-island-demo', js: 'island-demo.js') %>
+
+<div class="flex flex-col gap-6">
+  <div class="flex gap-6">
+    <div
+      data-controller="react-island-demo"
+      data-react-island-demo-label-value="Island A"
+      data-react-island-demo-start-value="10"
+    ></div>
+
+    <div
+      data-controller="react-island-demo"
+      data-react-island-demo-label-value="Island B"
+      data-react-island-demo-start-value="20"
+    ></div>
+  </div>
+
+  <%= render Bali::Link::Component.new(
+        name: 'Single island',
+        href: '/lookbook/preview/bali/react_island/default',
+        data: { testid: 'goto-default' }
+      ) %>
+</div>

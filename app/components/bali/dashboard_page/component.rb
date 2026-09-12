@@ -2,7 +2,7 @@
 
 module Bali
   module DashboardPage
-    Stat = Data.define(:label, :value, :icon, :change, :color)
+    Stat = Data.define(:label, :value, :icon, :change, :color, :href)
 
     class Component < ApplicationViewComponent
       include PageComponents::Shared
@@ -26,10 +26,14 @@ module Bali
 
       # Se guardan los ARGUMENTOS y no el contenido renderizado porque cada stat es un
       # Bali::StatCard de verdad y su `change` entra por el slot `footer`. Mismo patrón que
-      # `with_secondary_action`.
-      def with_stat(label:, value:, icon: nil, change: nil, color: :primary)
-        @stat_items << Stat.new(label: label, value: value, icon: icon, change: change, color: color)
+      # `with_secondary_action`. `href:` viaja al StatCard: la tarjeta entera se vuelve
+      # un `<a>` (drill-down KPI → listado).
+      # rubocop:disable Metrics/ParameterLists
+      def with_stat(label:, value:, icon: nil, change: nil, color: :primary, href: nil)
+        @stat_items << Stat.new(label: label, value: value, icon: icon, change: change,
+                                color: color, href: href)
       end
+      # rubocop:enable Metrics/ParameterLists
 
       private
 

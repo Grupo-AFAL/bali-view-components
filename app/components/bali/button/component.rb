@@ -4,6 +4,7 @@ module Bali
   module Button
     class Component < ApplicationViewComponent
       include Bali::DeprecatedIconName
+      include Bali::LocalOverlay
 
       # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy for
       # why `outline` is a `style:` here and no longer a `variant:`.
@@ -25,11 +26,17 @@ module Bali
       #   `:reset`) — never a look. Bali::Link used to take a `type:` that meant the colour,
       #   and it is gone in v3 exactly because of this collision.
       # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
+      # @param modal [Hash] `{ id: "health-modal", local: true }` — the button opens a
+      #   modal already rendered on the page, by name. Only the local mode: a button has
+      #   no href to fetch, so the remote mode stays on Bali::Link. `id:` is mandatory.
+      # @param drawer [Hash] Same contract as `modal:`, for a drawer.
       # rubocop:disable Metrics/ParameterLists
       def initialize(name: nil, variant: nil, style: nil, size: nil, icon: nil,
                      icon_name: nil, type: :button, disabled: false, loading: false,
-                     responsive: true, **options)
+                     responsive: true, modal: false, drawer: false, **options)
         @name = name
+        @modal_options = validate_local_only_overlay!(:modal, modal)
+        @drawer_options = validate_local_only_overlay!(:drawer, drawer)
         @variant_class = Bali::ButtonTaxonomy.variant!(self.class, variant)
         @style_class = Bali::ButtonTaxonomy.style!(self.class, style)
         @size_class = Bali::ButtonTaxonomy.size!(self.class, size)
@@ -75,6 +82,7 @@ module Bali
         )
         attrs[:"aria-busy"] = "true" if @loading
         attrs[:"aria-label"] = @name if responsive_icon_only? && @name.present?
+        attrs[:data] = local_overlay_trigger_data(attrs[:data], @modal_options, @drawer_options)
         attrs.compact
       end
 

@@ -36,9 +36,23 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector("span.icon-component[style*='--bali-icon-size: 24px']")
   end
 
+  # Deliberately NOT 24: Lucide's default is 24, so a 24px fixture passes even
+  # when the override is silently discarded — which is exactly how #986 hid.
   def test_sizes_numeric_size_passes_pixel_size_to_lucide_svg
-    render_inline(Bali::Icon::Component.new("user", size: 24))
-    assert_selector("svg[width='24'][height='24']")
+    render_inline(Bali::Icon::Component.new("user", size: 32))
+    assert_selector("svg[width='32'][height='32']")
+  end
+
+  # #986: `LucideRails.default_options` carries "width"/"height" as String keys
+  # and the Symbol overrides serialized as a second pair; HTML parsers keep the
+  # first, so every SVG came out 24x24 outside Bali's CSS. Nokogiri also drops
+  # the duplicate, so this asserts on the raw rendered string.
+  def test_sizes_svg_carries_a_single_width_height_pair
+    render_inline(Bali::Icon::Component.new("user", size: 32))
+    # Lookbehind: `stroke-width="2"` is not a width attribute.
+    assert_equal(1, rendered_content.scan(/(?<!-)width="/).size)
+    assert_equal(1, rendered_content.scan(/(?<!-)height="/).size)
+    refute_match(/(?<!-)width="24"/, rendered_content)
   end
 
   def test_sizes_numeric_size_drops_named_size_classes
@@ -92,6 +106,29 @@ class BaliIconComponentTest < ComponentTestCase
       render_inline(Bali::Icon::Component.new("arrow_left"))
     end
     assert_includes(error.message, "arrow-left")
+  end
+
+  # #987: the mapping's key is dashed now, so the underscored accident raises
+  # and the suggestion points at the spelling the migration guide recommends —
+  # not the other way around, which is what the v1-leftover key produced.
+  def test_resolution_pipeline_question_circle_resolves_and_the_underscored_form_suggests_it
+    render_inline(Bali::Icon::Component.new("question-circle"))
+    assert_selector("svg.lucide-icon")
+
+    error = assert_raises(Bali::Icon::Options::IconNotAvailable) do
+      render_inline(Bali::Icon::Component.new("question_circle"))
+    end
+    assert_includes(error.message, "question-circle")
+  end
+
+  # #985: suggestions rank the exact (dash/underscore-normalized) match first,
+  # so `panel_left` cannot lose `panel-left` itself to `layout-panel-left`
+  # when `first(3)` truncates.
+  def test_resolution_pipeline_suggestions_rank_the_exact_match_first
+    error = assert_raises(Bali::Icon::Options::IconNotAvailable) do
+      render_inline(Bali::Icon::Component.new("panel_left"))
+    end
+    assert_match(/Did you mean: panel-left(,|\?)/, error.message)
   end
 
   def test_resolution_pipeline_with_invalid_icon_name_raises_iconnotavailable_error

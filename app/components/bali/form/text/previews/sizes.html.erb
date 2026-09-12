@@ -1,0 +1,9 @@
+<%= form_with(url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_group :extra_small, size: :xs, placeholder: 'size: :xs' %>
+  <%= form.text_group :small, size: :sm, placeholder: 'size: :sm' %>
+  <%= form.text_group :medium, size: :md, placeholder: 'size: :md' %>
+  <%= form.text_group :large, size: :lg, placeholder: 'size: :lg' %>
+  <%= form.text_group :extra_large, size: :xl, placeholder: 'size: :xl' %>
+  <%= form.text_group :attribute_size, size: 8,
+                      help: 'size: 8 is the HTML attribute — width in characters' %>
+<% end %>

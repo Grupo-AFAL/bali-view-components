@@ -30,6 +30,16 @@ class BaliPageHeaderComponentTest < ComponentTestCase
     assert_selector(".level-left p.subtitle", text: "Subtitle")
   end
 
+  # `heading:` names the element of the constructor-provided title, the same thing `tag:`
+  # does on the slot. It exists so the page components can lower the level contextually
+  # (#1055) without giving up the shared TITLE_CLASSES that passing `title:` buys them.
+  def test_heading_param_names_the_element_of_the_constructor_title
+    render_inline(Bali::PageHeader::Component.new(title: "Title", heading: :h2))
+
+    assert_selector(".level-left h2.title.text-2xl", text: "Title")
+    assert_no_selector("h1")
+  end
+
   def test_rendering_with_title_and_subtitle_as_slots_when_using_text_param_renders
     render_inline(Bali::PageHeader::Component.new) do |c|
       c.with_title("Title")

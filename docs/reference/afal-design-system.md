@@ -1,224 +1,139 @@
 # AFAL Design System Reference
 
-This document provides guidance for aligning Bali ViewComponents with the AFAL design system, based on the DaisyUI templates (Nexus and Scalo) documented in the AFAL handbook.
+How Bali ViewComponents and the AFAL design system line up. Since v3 the design system
+is not an aspiration in a handbook — **it ships in this gem**: daisyUI 5 on Tailwind 4,
+the brand themes as importable CSS, and the components as the shared vocabulary every
+AFAL app renders. When this document and the code disagree, the code wins; fix the
+document.
 
-## Design System Location
+## What the design system is, concretely
 
-The complete design system reference is maintained in the AFAL handbook repository:
+1. **daisyUI 5 semantic classes** on Tailwind CSS 4. Bali tracks the latest of both
+   deliberately (see `.claude/CLAUDE.md`, "Dependency Version Alignment") so every
+   AFAL app stays on one version of the vocabulary.
+2. **The shipped themes** (`css/themes/`): `afal` (the canonical brand palette that
+   gobierno-corporativo, afal-apps, identity and opina used to copy by hand),
+   `afal-dark` (draft), and `costa-norte`. Adoption, the chrome-theme pattern for
+   dark sidebars, and the structural-token rules live in
+   `docs/guides/custom-themes.md`.
+3. **The components** in `app/components/bali/` — always composed instead of raw
+   daisyUI markup (`.claude/CLAUDE.md`, "Component Composition"). The catalogue is
+   `docs/guides/components.md`.
 
-```
-afal/handbook/design-system/
-├── DESIGN-SYSTEM.md              # Complete component catalog
-├── .claude/CLAUDE.md             # Quick AI reference
-├── nexus-html@3.2.0/             # Admin dashboard template
-│   ├── .clinerules/daisyui.md    # Complete daisyUI 5 reference
-│   ├── .clinerules/nexus.md      # Nexus-specific patterns
-│   └── src/partials/             # Component implementations
-└── scalo-html@3.1.0/             # Marketing/landing template
-    └── src/partials/             # Marketing components
-```
+## Semantic color, always
 
-## When to Reference
+Components speak daisyUI's semantic names — never fixed Tailwind colors — so every
+theme restyles them for free:
 
-| Building This... | Reference This |
-|------------------|----------------|
-| Admin UI components | Nexus (`nexus-html@3.2.0/src/partials/`) |
-| Dashboard stats, charts | Nexus `partials/blocks/stats/` |
-| Data tables | Nexus `partials/interactions/datatables/` |
-| Form interactions | Nexus `partials/interactions/` |
-| Landing pages | Scalo (`scalo-html@3.1.0/src/partials/`) |
-| Pricing sections | Scalo `partials/*/pricing.html` |
-| Marketing heroes | Scalo `partials/*/hero.html` |
-| Testimonials | Scalo `partials/*/testimonials.html` |
+| Semantic color | Usage |
+|----------------|-------|
+| `primary` / `secondary` / `accent` | Actions and highlights |
+| `neutral` | Neutral emphasis |
+| `base-100/200/300` + `base-content` | Surfaces (lightest to darkest) and text on them |
+| `info` / `success` / `warning` / `error` | Status (it is `error`, never `danger`) |
 
-## Bali Component ↔ DaisyUI Alignment
+Use `*-content` on colored backgrounds (`primary-content` on `bg-primary`). Where a
+palette must NOT follow the theme (record-status tags a host keys by value), `Tag`
+and `EnumBadge` take the fixed status palette (`:slate :red :amber :green …`) as a
+deliberate, documented exception — see `docs/guides/enum-badges.md`.
 
-### Core Components (Already Migrated Pattern)
+Two structural rules with measurements behind them:
 
-| Bali Component | DaisyUI Classes | Handbook Reference |
-|----------------|-----------------|-------------------|
-| `Bali::Card` | `card bg-base-100 card-border` | Nexus stats blocks |
-| `Bali::Modal` | `modal modal-box` | DaisyUI modal pattern |
-| `Bali::Tabs` | `tabs tabs-box tab` | Nexus/Scalo tabs |
-| `Bali::Dropdown` | `dropdown dropdown-content menu` | DaisyUI dropdown |
-| `Bali::Table` | `table table-zebra` | Nexus datatables |
-| `Bali::Progress` | `progress progress-*` | DaisyUI progress |
-| `Bali::Avatar` | `avatar` | DaisyUI avatar |
-| `Bali::Tooltip` | `tooltip tooltip-*` | DaisyUI tooltip |
-| `Bali::Stepper` | `steps step step-*` | DaisyUI steps |
-| `Bali::Timeline` | `timeline timeline-*` | DaisyUI timeline |
-| `Bali::Drawer` | `drawer drawer-content drawer-side` | Nexus sidebar |
-| `Bali::Notification` | `alert alert-*` | DaisyUI alert |
+- The eight shared tokens (`--radius-*`, `--size-*`, `--border`, `--depth`, `--noise`)
+  are fallbacks in `@layer base` (`bali/theme-fallbacks.css`). A host **cannot**
+  override them from `@theme {}` — that compiles to `@layer theme`, which loses to
+  `base` outright. Details and the measured table: the file's header and
+  `docs/guides/custom-themes.md`.
+- Which CSS layer any new rule belongs in is specified in `.claude/CLAUDE.md`
+  ("Which CSS layer a rule belongs in").
 
-### Recommended New Components (From Templates)
+## Bali component ↔ daisyUI alignment
 
-These patterns exist in Nexus/Scalo but not yet in Bali:
+Verified against the components as shipped — note the ones that are deliberately NOT
+the daisyUI widget of the same name:
 
-| Pattern | Source | Priority |
-|---------|--------|----------|
-| Stats Card with Trend | `nexus/partials/blocks/stats/minimal.html` | High |
-| AI Prompt Bar | `nexus/partials/blocks/prompt-bar/` | Medium |
-| Pricing Card | `scalo/partials/*/pricing.html` | Medium |
-| Feature Check List | Scalo pricing sections | Low |
-| Section Header | Scalo section patterns | Low |
-| Testimonial Card | `scalo/partials/*/testimonials.html` | Low |
+| Bali component | Renders | Notes |
+|----------------|---------|-------|
+| `Button` / `Link` / `DeleteLink` | `btn btn-*` | One shared table, three axes: `variant:` (colour), `style:` (`outline`/`soft`), `size:` — `Bali::ButtonTaxonomy` |
+| `Card` / `StatCard` | `card bg-base-100 card-border` | StatCard is the Nexus stats pattern, packaged |
+| `Table` | `table table-zebra` in an `overflow-x-auto` container | |
+| `Tabs` | `tabs` (`tabs-box`/`tabs-border` styles) | ARIA tabs pattern when panelled |
+| `Dropdown` | `dropdown dropdown-content menu` | |
+| `Modal` | **native `<dialog>`** + daisyUI box styling | Top layer, inert page, Escape from the element — not daisyUI's checkbox modal |
+| `Drawer` | **native `<dialog>`**, slide-in panel | NOT daisyUI's `drawer`/`drawer-content`/`drawer-side` — those classes appear nowhere in Bali |
+| `Tooltip` | **tippy.js balloon**, portalled to `<body>` by default (#992) | NOT daisyUI's CSS tooltip |
+| `Alert` | `alert alert-*` | `Notification`/`Message` are its deprecated v2 shells |
+| `Progress` | `progress progress-*` | |
+| `Avatar` | `avatar` (photo, or derived initials) | |
+| `Stepper` / `WorkflowSteps` | `steps step-*` | Axis is `orientation:` on both |
+| `Timeline` | `timeline timeline-*` | |
 
-## Component Implementation Checklist
-
-When creating or migrating a Bali component:
-
-### 1. Check Design System First
-
-```bash
-# Search for similar patterns in the handbook
-grep -r "component-name" /path/to/handbook/design-system/
-```
-
-### 2. Use DaisyUI Semantic Classes
-
-```ruby
-# GOOD: DaisyUI classes
-def card_classes
-  class_names('card', 'bg-base-100', 'card-border', SIZES[@size])
-end
-
-# BAD: Raw Tailwind only
-def card_classes
-  'rounded-lg border border-gray-200 bg-white p-4'
-end
-```
-
-### 3. Use Semantic Colors
-
-```ruby
-# GOOD: Theme-aware
-VARIANTS = {
-  primary: 'btn-primary',
-  success: 'btn-success',
-  error: 'btn-error'  # NOT "danger"
-}.freeze
-
-# BAD: Fixed colors
-VARIANTS = {
-  primary: 'bg-blue-500 text-white',
-  danger: 'bg-red-500 text-white'
-}.freeze
-```
-
-### 4. Match Template Patterns
-
-Before implementing, check if Nexus/Scalo has a similar component:
-
-```erb
-<%# Check: handbook/design-system/nexus-html@3.2.0/src/partials/ %>
-<%# Match the HTML structure and classes %>
-```
-
-## Stat Card Pattern (Example)
-
-From Nexus `partials/blocks/stats/minimal.html`:
-
-```erb
-<%# Bali implementation should match this pattern %>
-<div class="card bg-base-100 card-border">
-  <div class="card-body">
-    <p class="text-base-content/60 text-xs font-medium tracking-wide uppercase">
-      <%= label %>
-    </p>
-    <div class="mt-4 flex items-end justify-end gap-2 text-sm">
-      <p class="text-2xl/none font-semibold"><%= value %></p>
-      <% if trend.present? %>
-        <div class="<%= trend_positive? ? 'text-success' : 'text-error' %> flex items-center gap-0.5 px-1 font-medium">
-          <span class="iconify lucide--arrow-<%= trend_positive? ? 'up' : 'down' %> size-3.5"></span>
-          <%= trend %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-</div>
-```
+The daisyUI-native rows exist so hosts inherit theme/token changes for free; the
+native-element rows exist because the platform primitive (top layer, focus, Escape)
+beats the CSS reimplementation — see `docs/guides/overlays-and-the-top-layer.md`.
 
 ## Icons
 
-Bali uses Lucide icons (via Iconify), matching the templates:
+Icons are **Lucide, inlined as SVG by `lucide-rails`** through the `Bali::Icon`
+pipeline — there is no Iconify anywhere in this repo, and no icon font. Never write a
+raw `<span class="iconify lucide--home">`; render the component and read the pipeline
+before assuming a name maps:
 
 ```erb
-<%# Bali Icon component %>
-<%= render Bali::Icon::Component.new(name: 'home') %>
-
-<%# Raw Iconify (template style) %>
-<span class="iconify lucide--home size-4"></span>
+<%= render Bali::Icon::Component.new('circle-help', class: 'size-4') %>
 ```
 
-Common sizes: `size-3.5`, `size-4`, `size-4.5`, `size-5`, `size-6`
+- `app/components/bali/icon/component.rb` — the resolution pipeline
+- `app/components/bali/icon/lucide_mapping.rb` — legacy Bali names → Lucide (authoritative)
+- `app/components/bali/icon/kept_icons.rb` — brand, regional and custom-domain SVGs
 
-## Color Reference
+Sizing is Tailwind (`size-3.5`, `size-4`, `size-5`, `size-6`) or the component's
+`size:` keyword where it has one.
 
-| Semantic Color | Usage |
-|----------------|-------|
-| `primary` | Main actions, key UI elements |
-| `secondary` | Secondary actions |
-| `accent` | Highlights, special features |
-| `neutral` | Neutral backgrounds, borders |
-| `base-100/200/300` | Surface colors (lightest to darkest) |
-| `success` | Positive states, confirmations |
-| `warning` | Caution, pending states |
-| `error` | Errors, destructive actions |
-| `info` | Informational messages |
+## The handbook templates (Nexus / Scalo)
 
-Use `*-content` for text on colored backgrounds:
-- `primary-content` on `bg-primary`
-- `base-content` on `bg-base-*`
+The AFAL handbook keeps the purchased daisyUI templates as **visual reference for
+patterns Bali does not have yet**:
 
-## Typography Patterns
-
-From the templates:
-
-```html
-<!-- Section title -->
-<p class="text-center text-2xl font-semibold sm:text-3xl">Title</p>
-
-<!-- Section description -->
-<p class="text-base-content/80 max-w-lg">Description text</p>
-
-<!-- Small label -->
-<p class="text-base-content/60 text-xs font-medium tracking-wide uppercase">LABEL</p>
-
-<!-- Large stat value -->
-<p class="text-2xl/none font-semibold">1,234</p>
+```
+afal/handbook/design-system/
+├── DESIGN-SYSTEM.md      # component catalog
+├── nexus-html@*/         # admin dashboard template
+└── scalo-html@*/         # marketing/landing template
 ```
 
-## Responsive Patterns
+| Building this… | Look at |
+|----------------|---------|
+| Admin UI, dashboards, datatables | Nexus `src/partials/` |
+| Landing pages, pricing, heroes, testimonials | Scalo `src/partials/` |
 
-Match the template breakpoints:
+The workflow when a host needs a pattern Bali lacks: check the templates for the
+AFAL-approved look, then build it **as a Bali component with Bali primitives** (never
+by pasting template HTML into a host — template markup uses Iconify spans and
+unthemed structures that do not belong here). `StatCard` is the worked example of a
+Nexus pattern that graduated into the gem, and `Kanban`, `Gantt` and `SplitView`
+followed the same route from host needs; candidates with a single consumer are
+tracked in #730.
 
-```ruby
-# Responsive classes in components
-def responsive_grid_classes
-  'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-end
+## Verifying alignment
 
-def responsive_padding
-  'py-8 md:py-12 lg:py-16 2xl:py-28'
-end
-```
+1. **Lookbook** (`cd spec/dummy && bin/dev`, port 3001) next to the handbook
+   template, and under each theme — the Theme Sampler previews render components
+   under `afal`/`afal-dark`/`costa-norte`.
+2. **Minitest** (the suite is not RSpec) asserts semantic classes:
 
-## Testing Against Design System
+   ```ruby
+   assert_selector(".card.bg-base-100.card-border")
+   assert_selector(".text-success")   # never .text-green-500
+   ```
 
-1. **Visual comparison**: Open Lookbook alongside the handbook templates
-2. **Class verification**: Ensure generated classes match template patterns
-3. **Theme testing**: Verify components work in light and dark themes
-
-```ruby
-# In RSpec tests
-expect(page).to have_css('.card.bg-base-100.card-border')
-expect(page).to have_css('.text-success')  # Not .text-green-500
-```
+3. **Dark/chrome**: the `dark_chrome` SideMenu preview sanity-checks a chrome theme
+   against light content (`docs/guides/custom-themes.md`).
 
 ## Resources
 
-- **AFAL Handbook Design System**: `handbook/design-system/DESIGN-SYSTEM.md`
-- **daisyUI 5 Complete Reference**: `handbook/design-system/nexus-html@3.2.0/.clinerules/daisyui.md`
-- **Nexus AI Guide**: `handbook/design-system/nexus-html@3.2.0/.clinerules/nexus.md`
-- **daisyUI Official Docs**: https://daisyui.com/components/
-- **Tailwind CSS Docs**: https://tailwindcss.com/docs
+- `docs/guides/custom-themes.md` — themes, chrome theme, structural tokens
+- `docs/guides/components.md` — the component catalogue
+- `docs/guides/accessibility.md` — WCAG 2.1 standards
+- **daisyUI docs**: https://daisyui.com/components/
+- **AFAL handbook**: `handbook/design-system/DESIGN-SYSTEM.md`

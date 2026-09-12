@@ -1,0 +1,10 @@
+<div class="max-w-2xl">
+  <%= render Bali::Alert::Component.new(color: color, icon: true, title: "Restaurantes sin gerente") do %>
+    <p>El padrón trae el número de empleado pero ningún usuario lo reclama.</p>
+    <ul class="list-disc pl-5 mt-1">
+      <li><%= render Bali::Link::Component.new(name: "124 · CABO", href: "#") %></li>
+      <li><%= render Bali::Link::Component.new(name: "131 · ENSENADA", href: "#") %></li>
+      <li><%= render Bali::Link::Component.new(name: "140 · LA PAZ", href: "#") %></li>
+    </ul>
+  <% end %>
+</div>

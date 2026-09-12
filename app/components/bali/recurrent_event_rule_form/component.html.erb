@@ -13,7 +13,7 @@
       <div class="flex flex-wrap items-center gap-3">
         <%# Frequency selector %>
         <div class="form-control">
-          <%= select_tag :freq, options_for_select(frequency_options),
+          <%= select_tag :freq, options_for_select(frequency_options, default_frequency),
               id: control_id('freq'),
               aria: { label: t('.frequency_label') },
               class: 'select select-bordered select-sm',

@@ -184,6 +184,32 @@ module Bali
           )
         end
 
+        STATUS_CHOICES = [%w[Draft draft], %w[Published published], %w[Archived archived]].freeze
+        KIND_CHOICES = [%w[Public public], %w[Private private]].freeze
+        GENRE_CHOICES = [%w[Action action], %w[Comedy comedy], %w[Drama drama]].freeze
+
+        # @label Auto Submit
+        # Pills and selects that filter on change. `auto_submit: true` per filter
+        # mounts `submit-on-change` on the row and wires that filter's controls to
+        # it, so there is nothing left to press — the Filter button stays for the
+        # filters that did not opt in (#996 added the native select: its change
+        # fires when the menu closes on a selection, a completed choice).
+        #
+        # The form GETs this same URL and the template reads the values back out of the
+        # `q` params, so the row really round-trips: the query string below is what the
+        # last click sent, and the pills come back showing it. No Lookbook `@param`s
+        # here for that reason — the state of this preview is the query string.
+        def auto_submit
+          render_with_template(
+            template: 'bali/data_table/simple_filters/previews/auto_submit',
+            locals: {
+              status_choices: Bali::DataTable::SimpleFilters::Preview::STATUS_CHOICES,
+              kind_choices: Bali::DataTable::SimpleFilters::Preview::KIND_CHOICES,
+              genre_choices: Bali::DataTable::SimpleFilters::Preview::GENRE_CHOICES
+            }
+          )
+        end
+
         # @label Date Range
         # Single date picker that selects a range of dates.
         #
@@ -194,6 +220,39 @@ module Bali
               attribute: :created_at,
               label: 'Created between',
               type: :date_range,
+              value: created_at.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: created_at.present?
+          )
+        end
+
+        # @label Date Range Presets
+        # `presets:` turns the range picker into a period select — "This month" instead of
+        # two dates — with the picker behind its "Custom…" option.
+        #
+        # The chosen token travels in the SAME param the explicit range does
+        # (`q[created_at]=this_month`) and `Bali::Types::DateRangeValue` resolves it against
+        # `Time.zone` on every query. That is why a saved view built on one still means
+        # "this month" next month, which a stored pair of dates cannot.
+        #
+        # Pass `presets: true` for every token in `Bali::DateRangePresets::TOKENS`, or an
+        # array to pick and order them. Only `date_range` takes them: "this week" is not a
+        # value a single date can hold.
+        #
+        # @param created_at select { choices: ["", today, this_week, this_month, last_7_days, last_30_days, "2026-01-01 to 2026-03-31"] }
+        def date_range_presets(created_at: '')
+          filters = [
+            {
+              attribute: :created_at,
+              label: 'Created between',
+              type: :date_range,
+              icon: 'calendar',
+              presets: %i[today this_week this_month last_7_days last_30_days],
               value: created_at.presence
             }
           ]

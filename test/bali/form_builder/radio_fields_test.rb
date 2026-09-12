@@ -151,7 +151,7 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
   # SIZES constant
 
   def test_sizes_constant_includes_all_daisyui_radio_sizes
-    assert_equal %i[xs sm md lg].sort, Bali::FormBuilder::RadioFields::SIZES.keys.sort
+    assert_equal %i[xs sm md lg xl].sort, Bali::FormBuilder::RadioFields::SIZES.keys.sort
   end
 
   def test_sizes_constant_maps_to_correct_daisyui_classes

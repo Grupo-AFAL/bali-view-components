@@ -30,6 +30,21 @@ module Bali
         render_with_template
       end
 
+      # `mode: :selector` is for the control's second job: slicing the data shown
+      # (months window, scenario, year) instead of switching sibling views. The
+      # links still navigate — the slice travels in the query string — but the
+      # active option announces `aria-current="true"` instead of `"page"`.
+      # Selectors go without icons (`icon:` is optional) and usually compact
+      # (`:xs`): a control that slices data should not dress up as tabs.
+      # @param size [Symbol] select [xs, sm, md, lg, xl]
+      def selector(size: :xs)
+        render ViewSwitch::Component.new(aria_label: "Months window", mode: :selector, size: size) do |switch|
+          switch.with_view(name: "12 months", href: "/lookbook?months=12", active: true)
+          switch.with_view(name: "24 months", href: "/lookbook?months=24")
+          switch.with_view(name: "36 months", href: "/lookbook?months=36")
+        end
+      end
+
       # Views accept extra HTML options, e.g. data: { turbo_action: 'replace' }
       # so switching views replaces (not pushes) the history entry.
       def with_turbo_action

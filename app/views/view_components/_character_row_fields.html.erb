@@ -1,0 +1,14 @@
+<%# Table mode (`table: true`): the row partial is the `<tr>` itself, because the
+    container the helper renders is the `<tbody>`. Same nested builder as the
+    default mode — only the element around the fields changes. %>
+<tr class="character-fields">
+  <td class="w-12">
+    <span class="badge badge-neutral" data-dynamic-fields-target="ordinal"><%= f.index.to_i + 1 %></span>
+  </td>
+  <td>
+    <%= f.text_field :name, placeholder: 'Character name' %>
+  </td>
+  <td class="text-right">
+    <%= f.link_to_remove_fields 'Remove', class: 'btn btn-error btn-sm' %>
+  </td>
+</tr>

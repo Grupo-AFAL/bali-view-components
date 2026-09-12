@@ -1,0 +1,82 @@
+<%# Freezes the positions/reordering contract of dynamic-fields-controller
+    (#715 PR1, covered by cypress/e2e/dynamic-fields-controller.cy.js).
+
+    The markup is wired by hand on purpose: `f.dynamic_fields_group` does not
+    emit `[data-position]` inputs nor moveUp/moveDown buttons yet — host apps
+    (costa-norte route stops, afal-apps monetary lines) build this markup
+    themselves, so the preview mirrors that usage instead of going through
+    the helper. %>
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Sortable Characters</h3>
+
+  <div id="sortable-characters"
+       data-controller="dynamic-fields"
+       data-dynamic-fields-size-value="3"
+       data-dynamic-fields-fields-selector-value=".character-fields">
+    <div class="flex justify-between items-center">
+      <label class="label">Characters</label>
+      <div class="flex items-center">
+        <button type="button"
+                class="btn btn-primary"
+                data-dynamic-fields-target="button"
+                data-action="dynamic-fields#addFields">Add Character</button>
+        <template data-dynamic-fields-target="template">
+          <div class="character-fields card bg-base-200 p-4 mb-2">
+            <div class="flex items-center gap-4">
+              <input type="hidden"
+                     name="movie[characters_attributes][new_record][position]"
+                     data-position>
+              <div class="flex-1">
+                <input type="text"
+                       class="input w-full"
+                       name="movie[characters_attributes][new_record][name]"
+                       placeholder="Character name">
+              </div>
+              <div class="flex-none flex items-center gap-1">
+                <button type="button" class="btn btn-sm"
+                        data-action="dynamic-fields#moveUp">Up</button>
+                <button type="button" class="btn btn-sm"
+                        data-action="dynamic-fields#moveDown">Down</button>
+                <button type="button" class="btn btn-error btn-sm"
+                        data-action="dynamic-fields#removeFields">Remove</button>
+                <input type="hidden"
+                       name="movie[characters_attributes][new_record][_destroy]"
+                       class="destroy-flag">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div data-dynamic-fields-target="container">
+      <% %w[Alpha Beta Gamma].each_with_index do |name, index| %>
+        <div class="character-fields card bg-base-200 p-4 mb-2">
+          <div class="flex items-center gap-4">
+            <input type="hidden"
+                   name="movie[characters_attributes][<%= index %>][position]"
+                   value="<%= index + 1 %>"
+                   data-position>
+            <div class="flex-1">
+              <input type="text"
+                     class="input w-full"
+                     name="movie[characters_attributes][<%= index %>][name]"
+                     value="<%= name %>">
+            </div>
+            <div class="flex-none flex items-center gap-1">
+              <button type="button" class="btn btn-sm"
+                      data-action="dynamic-fields#moveUp">Up</button>
+              <button type="button" class="btn btn-sm"
+                      data-action="dynamic-fields#moveDown">Down</button>
+              <button type="button" class="btn btn-error btn-sm"
+                      data-action="dynamic-fields#removeFields">Remove</button>
+              <input type="hidden"
+                     name="movie[characters_attributes][<%= index %>][_destroy]"
+                     class="destroy-flag">
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

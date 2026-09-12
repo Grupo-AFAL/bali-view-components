@@ -1,0 +1,6 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.number_group :number,
+      delimited: true,
+      label: 'Budget',
+      help: 'Type a long amount — the thousands group themselves as you go.' %>
+<% end %>

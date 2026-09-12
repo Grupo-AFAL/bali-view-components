@@ -26,6 +26,13 @@ module Bali
         @metadata_open = metadata_open
         @config = Bali::BlockEditor::Config.wrap(config)
         @options = options.except(*PAGE_OPTIONS)
+
+        # Los tres `references_*` de esta página también se mudaron a `config:` en v3, y
+        # sueltos se pintaban como atributos del div: los chips de referencia de la ficha
+        # publicada salían con el ícono y la etiqueta por omisión, sin re-resolver el
+        # nombre, y nada lo decía (#1092).
+        Bali::BlockEditor::Config.warn_stray_keywords(@options, component: self.class.name)
+        reject_format_keyword
       end
 
       # @deprecated El slot se llama `body` desde v3, igual que en los otros cuatro page
@@ -51,6 +58,23 @@ module Bali
       end
 
       private
+
+      # `format:` fija la forma en que el editor ESCRIBE el contenido, y esta página no
+      # escribe: monta su BlockEditor con `editable: false` y sin `input_name`, así que no
+      # renderiza hidden input y no hay nada que serializar. Aceptarlo y reenviarlo sería
+      # API muerta —un keyword que se puede pasar y no hace nada—, y dejarlo caer en
+      # `**options` lo pinta como `format="blocks"` en el div, en silencio, que es la trampa
+      # de #1092. Así que se dice en voz alta y se nombra el componente que sí lo toma.
+      #
+      # Es un raise y no un warn porque no hay nada que deprecar: nunca significó nada acá.
+      def reject_format_keyword
+        return unless @options.key?(:format)
+
+        raise ArgumentError,
+              "#{self.class.name}: `format:` pins how the editor WRITES content, and this " \
+              "page never writes — it mounts a read-only editor with no input. Pass it to " \
+              "Bali::DocumentEditor or Bali::BlockEditor, which persist."
+      end
 
       attr_reader :initial_content, :config, :options
 

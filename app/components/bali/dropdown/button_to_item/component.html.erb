@@ -1,0 +1,9 @@
+<%= button_to href, method: method, form: form_options, form_class: form_class,
+              class: button_classes, **button_options do %>
+  <% if icon.present? %>
+    <%= render Bali::Icon::Component.new(icon, size: :small) %>
+  <% end %>
+
+  <%= name %>
+  <%= content %>
+<% end %>

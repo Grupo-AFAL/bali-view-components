@@ -24,11 +24,14 @@
           <%= filter[:value_label] %>
         </span>
 
+        <%# aria-label nombra QUÉ filtro quita: la barra lista varios botones
+            visualmente idénticos y "Remove filter" a secas no los distingue (#1028). %>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle h-5 w-5 min-h-0 hover:bg-error/20 hover:text-error"
                 data-action="applied-tags#removeFilter"
                 data-group-index="<%= filter[:group_index] %>"
                 data-condition-index="<%= filter[:condition_index] %>"
+                aria-label="<%= "#{t('bali_view.filters.remove_filter')}: #{filter[:attribute_label]} #{filter[:operator_label]} #{filter[:value_label]}" %>"
                 title="<%= t('bali_view.filters.remove_filter') %>">
           <%= render Bali::Icon::Component.new('times', class: 'w-2.5 h-2.5') %>
         </button>

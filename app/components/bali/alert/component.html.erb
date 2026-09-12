@@ -1,3 +1,7 @@
+<%# The body is a <div>, not a <span>: a list or a paragraph inside a <span> is
+    block-in-inline, invalid HTML the browser paints anyway (#1120). The alert is a
+    grid and its column a flex column, so the wrapper's own display never reached
+    the layout — a <div> draws the same for a one-liner and takes any content. %>
 <%= tag.div(role: role, **options) do %>
   <% if icon? %>
     <%= render Bali::Icon::Component.new(icon_name, size: :small) %>
@@ -9,10 +13,10 @@
       <% elsif header? %>
         <%= header %>
       <% end %>
-      <span><%= content %></span>
+      <div><%= content %></div>
     </div>
   <% else %>
-    <span><%= content %></span>
+    <div><%= content %></div>
   <% end %>
   <% if closable? %>
     <%= render close_button %>

@@ -19,6 +19,12 @@ module Bali
       # `preset`, `placeholder`, `theme`, `table_of_contents*`, `show_export_buttons`
       # and `comments_container_id` -- each wrapper decides those for itself, and a
       # shared value would be a wrapper silently overriding its own layout.
+      # OJO con `comments`: encenderlo cambia la FORMA en que el editor persiste el
+      # contenido, porque las marcas de comentario solo sobreviven en el JSON de
+      # ProseMirror. Con el `format: :json` por omisión eso pasa solo, en cuanto alguien
+      # comenta. Si algo fuera del editor lee esa columna, fijá la forma con
+      # `format: :blocks` o `:prosemirror` — ver el comentario de FORMATS en
+      # BlockEditor::Component (#1091).
       ATTRIBUTES = %i[
         ai_url
         mentions_url
@@ -79,6 +85,77 @@ module Bali
         @multi_column = multi_column
         @upload_url = upload_url
         @syntax_highlighting = syntax_highlighting
+      end
+
+      # Una llave de config pasada SUELTA, dicha en voz alta.
+      #
+      # Desde v3 estas llaves viajan adentro de `config:`. Sueltas no son parámetro de
+      # ninguno de los tres componentes, así que caen en su `**options` y se pintan como
+      # atributos del div raíz: HTML válido, sin error, sin advertencia, y la característica
+      # se queda en su valor por omisión. En una app anfitriona, IA, export, referencias y
+      # comentarios llevaban apagados desde la migración a v3 en las tres vistas que montan
+      # el DocumentEditor, y nada lo delataba salvo mirar el DOM (#1092).
+      #
+      # Es un `deprecator.warn` y no un raise porque son las llaves de v2: la migración
+      # pasa de "funciona hasta que alguien mire el DOM" a "lo dice el log en el primer
+      # render", sin tirar la pantalla de nadie.
+      #
+      # @param options [Hash] lo que sobró en el `**options` del componente
+      # @param component [String] el nombre a nombrar en el aviso
+      def self.warn_stray_keywords(options, component:)
+        stray = options.keys.map(&:to_sym) & ATTRIBUTES
+        return if stray.empty?
+
+        Bali.deprecator.warn(
+          "#{component}: #{stray.map { |key| "`#{key}:`" }.to_sentence} " \
+          "#{stray.one? ? "travels" : "travel"} inside `config:` since v3, so " \
+          "#{stray.one? ? "it was" : "they were"} ignored and painted as an HTML attribute " \
+          "of the root element. Write " \
+          "`config: { #{stray.map { |key| "#{key}: ..." }.join(", ")} }`."
+        )
+      end
+
+      SIDEBARS = %i[interactive read_only].freeze
+
+      # Whether the threads sidebar carries its own reply box, reaction button and
+      # per-comment actions, or is a list you read. Read by CSS through a data
+      # attribute the two components put on the sidebar's container.
+      #
+      # Interactive is the default and, until #1111, was the documented behaviour
+      # that the CSS denied: three `display: none !important` rules hid all three
+      # controls in every sidebar, while ninety lines further down the same file
+      # styled the reply box as if it were visible. A thread whose anchor had been
+      # deleted was then unreachable — the floating composer opens from the anchor,
+      # and there was no anchor left — so the only way to answer it was gone.
+      #
+      # `sidebar: :read_only` is that behaviour, kept for a host that wants the
+      # panel to be a record rather than a place to write: threads still render,
+      # resolved state still shows, and the writing happens at the anchor.
+      #
+      # Raises on an unknown mode rather than falling back, the way `size_variant`
+      # does: a typo that silently means "interactive" is how the sidebar got here.
+      #
+      # Only a Symbol or a String is symbolized, and the message names the value as
+      # it was written. `sidebar: true` — which is how someone reads "turn the panel
+      # on" — used to reach `true.to_sym` and die of `NoMethodError` instead: a 500
+      # naming neither the option nor the modes, from the one method whose job is to
+      # name both (#1113).
+      def comments_sidebar
+        return :interactive unless comments.is_a?(Hash)
+
+        value = comments.symbolize_keys[:sidebar]
+        return :interactive if value.nil?
+
+        mode = value.is_a?(Symbol) || value.is_a?(String) ? value.to_sym : value
+        return mode if SIDEBARS.include?(mode)
+
+        raise ArgumentError,
+              "comments: { sidebar: #{value.inspect} } is not a sidebar mode. " \
+              "Valid: #{SIDEBARS.map(&:inspect).join(', ')}."
+      end
+
+      def comments_sidebar_read_only?
+        comments_sidebar == :read_only
       end
 
       def to_h

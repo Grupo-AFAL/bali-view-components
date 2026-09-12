@@ -11,7 +11,17 @@ module Bali
     # This module parses these into a component-friendly structure:
     #   [{ combinator: 'or', conditions: [{attribute: 'name', ...}, ...] }]
     #
+    # A group that arrives without `m` (or with one that is not a combinator) is read as
+    # AND — `Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR` — because that is
+    # what Ransack applies to it; the panel used to paint OR over a query that was
+    # already the intersection (#1121).
+    #
     module FilterGroupParser
+      # The two values Ransack's `m` accepts. `q[m]` arrives from the URL and from stored
+      # payloads (filter cache, saved views), and what lands in @combinator is re-emitted —
+      # hidden fields, cached state, saved-view payloads, and the Filters controller's
+      # innerHTML — so anything outside this list collapses to nil instead of traveling.
+      COMBINATORS = %w[and or].freeze
       extend ActiveSupport::Concern
 
       # Ransack operators ordered by specificity (longer operators first to avoid partial matches)
@@ -55,6 +65,27 @@ module Bali
         @combinator
       end
 
+      # Las condiciones del panel avanzado que de verdad recortan el listado, en una lista
+      # plana (el grupo al que pertenecen no cambia si una condición cuenta o no).
+      #
+      # Existe porque el panel avanzado viaja APARTE del resto: sus condiciones son
+      # `q[g][N][attr_pred]`, mientras que los `filter_attribute`, los filtros simples y la
+      # búsqueda rápida viven planos bajo `q` y son lo que responde `active_filters`. Ese
+      # hash no las puede incluir sin romperse —se re-emite como pares `q[...]`, así que una
+      # condición de grupo saldría DOS veces, plana y anidada—, de modo que la mitad
+      # anidada se cuenta desde acá y `active_filters?` suma las dos (#1085).
+      #
+      # Qué cuenta como aplicada lo decide `ActiveFilterParams.applied?`, que es la misma
+      # regla que decide qué VIAJA. Si contáramos con una regla propia, un `between` vacío
+      # diría "filtrado" sin aportar un solo par a la query.
+      def applied_filter_conditions
+        filter_groups.flat_map do |group|
+          Array(group[:conditions]).select do |condition|
+            Bali::Filters::ActiveFilterParams.applied?(condition)
+          end
+        end
+      end
+
       # Get detailed information about each active filter condition.
       # Useful for displaying filter pills/tags with human-readable labels.
       #
@@ -84,6 +115,11 @@ module Bali
       end
 
       private
+
+      def sanitized_combinator(value)
+        value = value.to_s
+        COMBINATORS.include?(value) ? value : nil
+      end
 
       # Parse a single filter group from Ransack params into component structure.
       # Consolidates gteq/lteq pairs into 'between' operator for better UX.
@@ -118,7 +154,8 @@ module Bali
         end
 
         {
-          combinator: group_params[:m] || "or",
+          combinator: sanitized_combinator(group_params[:m]) ||
+            Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR,
           conditions: conditions.presence || [ default_filter_condition ]
         }
       end

@@ -195,6 +195,34 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'select[multiple="multiple"]')
   end
 
+  # `multiple:` written at the top level, next to `label:`, used to be discarded in silence:
+  # `build_html_options` always seeded `multiple: false` on the element, and Rails copies a
+  # top-level `:multiple` onto the element only when the element does not carry the key.
+  # The select came out single-valued and nothing said so, while the very same spelling
+  # works on `select_group` (#1123). The seed now yields to either hash.
+  def test_a_top_level_multiple_reaches_the_select
+    result = builder.slim_select_group(:status, Movie.statuses.to_a, multiple: true)
+    assert_html(result, 'select[multiple="multiple"][name="movie[status][]"]')
+  end
+
+  def test_a_top_level_multiple_reaches_the_select_on_the_bare_field_too
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, multiple: true)
+    assert_html(result, 'select[multiple="multiple"][name="movie[status][]"]')
+  end
+
+  # `html:` is the more specific hash and still wins when both are written.
+  def test_the_html_hash_wins_over_a_top_level_multiple
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, multiple: true, html: { multiple: false })
+    refute_html(result, "select[multiple]")
+    assert_html(result, 'select[name="movie[status]"]')
+  end
+
+  def test_a_select_without_multiple_anywhere_stays_single_valued
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    refute_html(result, "select[multiple]")
+    assert_html(result, 'select[name="movie[status]"]')
+  end
+
   # stimulus data values
 
   def test_slim_select_field_stimulus_data_values_sets_close_on_select_value
@@ -294,6 +322,35 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_text_name: "name")
     assert_html(result, 'div[data-slim-select-ajax-text-name-value="name"]')
+  end
+
+  # #1084: lo que la búsqueda remota manda además del término. Los dos viajan como JSON en
+  # el data attribute porque el value de Stimulus es un Object.
+  def test_slim_select_field_ajax_extra_params_travel_as_json
+    result = builder.slim_select_field(:status, Movie.statuses.to_a,
+                                       ajax_url: "/api/search",
+                                       ajax_extra_params: { scope: "active", source: "bali" })
+
+    assert_html(result,
+                'div[data-slim-select-ajax-extra-params-value=\'{"scope":"active","source":"bali"}\']')
+  end
+
+  def test_slim_select_field_ajax_param_selectors_travel_as_json
+    result = builder.slim_select_field(:status, Movie.statuses.to_a,
+                                       ajax_url: "/api/search",
+                                       ajax_param_selectors: { type: "#assignable_type" })
+
+    assert_html(result,
+                'div[data-slim-select-ajax-param-selectors-value=\'{"type":"#assignable_type"}\']')
+  end
+
+  # Un data attribute con "null" adentro no es lo mismo que no tener el attribute: el
+  # value de Stimulus lo parsearía y el default `{}` no aplicaría.
+  def test_slim_select_field_omits_the_extra_ajax_params_when_not_provided
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, ajax_url: "/api/search")
+
+    refute_match(/data-slim-select-ajax-extra-params-value/, result)
+    refute_match(/data-slim-select-ajax-param-selectors-value/, result)
   end
 
   def test_slim_select_field_ajax_options_sets_ajax_placeholder_value

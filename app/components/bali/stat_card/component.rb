@@ -28,21 +28,25 @@ module Bali
       # @param icon [String] Lucide icon name
       # @param color [Symbol] Semantic colour of the icon badge (Bali::Color::NAMES)
       # @param custom_color [String, nil] Hex colour for the icon badge
+      # @param href [String, nil] Renders the whole card as an `<a>` (KPI drill-down).
+      #   The `footer` slot must not contain links then — an `<a>` inside an `<a>` is
+      #   invalid HTML.
       # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
       # rubocop:disable Metrics/ParameterLists
       def initialize(title:, value:, icon: nil, color: DEFAULT_COLOR, custom_color: nil,
-                     icon_name: nil, **options)
+                     href: nil, icon_name: nil, **options)
         # rubocop:enable Metrics/ParameterLists
         @title = title
         @value = value
         @icon = icon || deprecated_icon_name(icon_name)
         @custom_color = Bali::Color.hex!(self.class, custom_color)
         @color = @custom_color ? nil : Bali::Color.name!(self.class, color || DEFAULT_COLOR)
+        @href = href
         @options = options
       end
 
       def card_options
-        @options.merge(style: :bordered)
+        @options.merge(style: :bordered, href: @href)
       end
 
       def icon_container_classes

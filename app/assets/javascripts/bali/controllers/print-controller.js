@@ -6,7 +6,6 @@ import { Controller } from '@hotwired/stimulus'
  * This controller is responsible for printing the current page.
  */
 
-// TODO: Add tests (Issue: #142)
 export class PrintController extends Controller {
   connect () {
     window.print()

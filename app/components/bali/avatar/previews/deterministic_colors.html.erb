@@ -1,0 +1,13 @@
+<% names = [
+     'Ana García', 'Juan Pérez', 'Ana García López', 'María de la Luz',
+     'Cher', 'álvaro núñez', 'Luisa Fernández', 'Carlos Mendoza',
+     'Sofía Ramírez', 'Pedro Alcántara', 'Lucía Ortega', 'Miguel Ángel Ríos'
+   ] %>
+<div class="flex flex-wrap gap-6">
+  <% names.each do |name| %>
+    <div class="flex w-24 flex-col items-center gap-2">
+      <%= render Bali::Avatar::Component.new(name: name, size: :md) %>
+      <span class="text-center text-xs text-base-content/70"><%= name %></span>
+    </div>
+  <% end %>
+</div>

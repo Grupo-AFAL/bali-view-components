@@ -49,6 +49,10 @@ export const Mention = createReactInlineContentSpec(
   }
 )
 
+// Schemes an entity reference chip may link to. Anything else (javascript:, data:) renders
+// as plain text instead of an anchor.
+const SAFE_URL_SCHEME = /^(https?:|mailto:|\/|#)/i
+
 // Entity reference inline content - renders as a styled chip with type icon and label
 export const EntityReference = createReactInlineContentSpec(
   {
@@ -80,8 +84,13 @@ export const EntityReference = createReactInlineContentSpec(
         </span>
       )
 
-      if (url) {
-        return <a href={url} className='bn-entity-reference-link'>{chip}</a>
+      // `url` viaja DENTRO del contenido guardado, así que lo escribe quien pueda editar el
+      // documento — y cuando la resolución no corre (sin referencesResolveUrl, o si el fetch
+      // falla) llega tal cual hasta el href. React renderea un `javascript:` con nada más que
+      // un warning en consola, así que el esquema se valida aquí.
+      const href = SAFE_URL_SCHEME.test(url || '') ? url : null
+      if (href) {
+        return <a href={href} className='bn-entity-reference-link'>{chip}</a>
       }
       return chip
     }

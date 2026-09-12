@@ -69,12 +69,17 @@ Create `app/assets/tailwind/application.css` (or similar):
 /* =============================================
    Bali ViewComponents - Tailwind class scanning
    =============================================
-   IMPORTANT: Tailwind v4 needs to scan Bali's Ruby and ERB files
-   to detect utility classes used in components. The gem installs
-   to a system directory outside your project, but the npm package
-   mirrors all source files in node_modules.
-*/
-@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+   Tailwind v4 needs to scan Bali's Ruby, ERB *and JS* files to detect
+   the utility classes its components use, and the gem installs to a
+   system directory outside your project. The gem resolves that itself:
+   it ships app/assets/tailwind/bali/engine.css with its @source globs
+   relative to itself, and tailwindcss-rails (>= 4.3) writes
+   app/assets/builds/tailwind/bali.css — an @import to that file's real
+   path on this machine — before every tailwindcss:build,
+   tailwindcss:watch and assets:precompile (`bin/rails
+   tailwindcss:engines` runs that step alone). One import, nothing to
+   keep in sync when the gem moves. */
+@import "../builds/tailwind/bali";
 
 /* =============================================
    Bali CSS Import
@@ -101,7 +106,11 @@ Create `app/assets/tailwind/application.css` (or similar):
 }
 ```
 
-> **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). Without it, Tailwind won't detect these classes and components will appear unstyled.
+> **Note**: Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript — `modal/index.js` swaps the submit button for `loading loading-spinner loading-sm` while a drawer form is in flight — and the FormBuilder, which lives entirely under `lib/bali/form_builder/`, is the only place that writes the error and state classes: `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`, `toggle-error`, `fieldset-label`, the whole `range-*` family. `engine.css` scans `app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` and `lib/bali/**/*.rb` for exactly that reason; scanning only `app/` would compile without a warning and silently drop every form error style, and a glob without `jsx` compiled just as quietly while leaving out 54 classes of Gantt and BlockEditor — the React components — which is how v3.2.1 shipped (#1124).
+>
+> `app/assets/builds` is already in the `.gitignore` tailwindcss-rails installs; the generated file is never committed. Do **not** write a `@source` glob at the gem directory yourself (`vendor/bundle/...`, `/usr/local/bundle/...`): the path differs per machine, and a glob that matches nothing does not fail — it silently leaves every Bali class out of the build.
+>
+> If your app builds Tailwind without tailwindcss-rails, import the same file from the npm package instead: `@import "bali-view-components/tailwind/engine.css";`. `@source` paths resolve relative to the stylesheet that declares them, so both routes scan the same tree.
 
 ### Overriding Bali styles
 
@@ -157,8 +166,8 @@ import { Application } from "@hotwired/stimulus"
 const application = Application.start()
 
 // Register Bali controllers
-import { registerControllers } from "bali-view-components"
-registerControllers(application)
+import { registerAll } from "bali-view-components"
+registerAll(application)
 
 export { application }
 ```
@@ -170,7 +179,7 @@ If using Vite or esbuild:
 ```javascript
 // app/javascript/controllers/index.js
 import { Application } from "@hotwired/stimulus"
-import { registerControllers } from "bali-view-components"
+import { registerAll } from "bali-view-components"
 
 const application = Application.start()
 
@@ -179,7 +188,7 @@ import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
 // Register all Bali controllers
-registerControllers(application)
+registerAll(application)
 
 export { application }
 ```
@@ -211,8 +220,11 @@ To use Bali's enhanced form helpers, configure it as the default form builder:
 ```ruby
 # config/initializers/bali.rb
 
-# Set as default form builder globally
-ActionView::Base.default_form_builder = Bali::FormBuilder
+# Set as default form builder globally. Use the config key, not
+# `ActionView::Base.default_form_builder = ...`: touching ActionView::Base from an
+# initializer fires every `on_load(:action_view)` hook before the autoloader is
+# ready, which breaks engines that include helpers there (bali-analytics does).
+Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"
 
 # Or configure per-form
 # <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
@@ -248,7 +260,7 @@ Components behind their own entry point carry their own dependency sets, which a
 | Entry point | Dependency set |
 |-------------|----------------|
 | `bali-view-components/charts` | `chart.js` |
-| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.52.1, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
+| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.53.0, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
 | `bali-view-components/rich-text-editor` | The `@tiptap/*` set plus `lowlight`, `highlight.js` and `tippy.js`. **Deprecated in v3, removed in v4** — migrate to the block editor. |
 
 ### Flatpickr Setup
@@ -287,7 +299,7 @@ See [External Services](external-services.md) for the full setup.
 ```bash
 bundle exec rails console
 > Bali::VERSION
-=> "2.0.3"  # or current version
+=> "3.1.0.beta.13"  # or current version
 ```
 
 ### 2. Check Component Rendering
@@ -322,13 +334,26 @@ Open browser console and look for:
 
 ### Components unstyled or classes missing
 
-Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). If components appear unstyled or specific classes aren't working, Tailwind isn't scanning the component files.
+Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) — under `app/` **and** under `lib/` (the FormBuilder). If components appear unstyled or specific classes aren't working, Tailwind isn't scanning the component files.
 
-**Fix:** Ensure your `@source` directive scans Bali's source files in node_modules:
+**Fix:** Ensure your `@source` directives scan Bali's source files in node_modules — both lines:
 
 ```css
-/* Correct - scans all Ruby and ERB files */
+/* Correct - scans the components (app/) AND the FormBuilder (lib/) */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+
+/* Wrong - misses lib/: every FormBuilder state class (input-error, select-error,
+   fieldset-label, the range-* family) is silently absent from the build, so
+   invalid fields render with no error border */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}";
+
+/* Wrong - misses JS-written classes (the drawer submit spinner, for one) */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+
+/* Wrong - misses the React components: Gantt and BlockEditor are .jsx, and
+   every class only they use is silently absent (#1124) */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb,js}";
 
 /* Wrong - only scans ERB, misses Ruby files where most classes are defined */
 @source "../../../node_modules/bali-view-components/app/components/**/*.erb";
@@ -340,13 +365,13 @@ Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-pr
 
 The Tailwind build isn't scanning Bali component files.
 
-**Fix:** Ensure `@source` paths in your CSS point to `node_modules/bali-view-components/app/**/*.{rb,erb}`.
+**Fix:** Ensure your CSS has both `@source` globs: `node_modules/bali-view-components/app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` and `node_modules/bali-view-components/lib/bali/**/*.rb`.
 
 ### "Unknown Stimulus controller"
 
 Controllers aren't registered.
 
-**Fix:** Ensure `registerControllers(application)` is called in your JavaScript.
+**Fix:** Ensure `registerAll(application)` is called in your JavaScript.
 
 ### "Can't find bali-view-components CSS"
 
@@ -358,9 +383,9 @@ Package not installed or wrong import path.
 
 ### Icons not showing
 
-Bali uses Lucide icons via Iconify.
+Bali uses Lucide icons, rendered as inline `<svg>` markup via the `lucide-rails` gem — there is no external icon font or CDN to load.
 
-**Fix:** Ensure your app includes Iconify or the icon CSS is loaded. Icons should render as `<span class="iconify lucide--icon-name">`.
+**Fix:** Check the icon name against [lucide.dev/icons](https://lucide.dev/icons) or `Bali::Icon::LucideMapping` (old Bali names). An unresolvable name raises `Bali::Options::IconNotAvailable` instead of rendering silently blank.
 
 ### Modal or Drawer visible on page load
 

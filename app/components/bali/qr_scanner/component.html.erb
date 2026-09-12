@@ -1,0 +1,59 @@
+<%= tag.div(**container_attributes) do %>
+  <div class="qr-scanner-viewport">
+    <%= tag.video(nil, **video_attributes) %>
+
+    <%# One live region around every panel, rather than one per panel: the states
+        are mutually exclusive, so a screen reader should hear the transition
+        once — "requesting camera access", then "camera access blocked". %>
+    <div class="qr-scanner-states" aria-live="polite">
+      <%= tag.div(**panel_attributes(:idle)) do %>
+        <%= render Bali::Icon::Component.new("scan-line", size: 40, class: "opacity-70") %>
+        <p class="qr-scanner-panel__title"><%= panel_label(:idle, :title) %></p>
+        <%= render Bali::Button::Component.new(
+              name: panel_label(:idle, :start),
+              variant: :primary,
+              size: :sm,
+              data: { action: "qr-scanner#start" }
+            ) %>
+      <% end %>
+
+      <%= tag.div(**panel_attributes(:requesting)) do %>
+        <span class="loading loading-spinner loading-lg" aria-hidden="true"></span>
+        <p class="qr-scanner-panel__title"><%= panel_label(:requesting, :title) %></p>
+      <% end %>
+
+      <%= tag.div(**panel_attributes(:scanned)) do %>
+        <%= render Bali::Icon::Component.new("circle-check-big", size: 40, class: "text-success") %>
+        <p class="qr-scanner-panel__title"><%= panel_label(:scanned, :title) %></p>
+        <%= render Bali::Button::Component.new(
+              name: panel_label(:scanned, :restart),
+              variant: :primary,
+              size: :sm,
+              data: { action: "qr-scanner#start" }
+            ) %>
+      <% end %>
+
+      <%= tag.div(**panel_attributes(:denied)) do %>
+        <%= render Bali::Icon::Component.new("camera-off", size: 40, class: "opacity-70") %>
+        <p class="qr-scanner-panel__title"><%= panel_label(:denied, :title) %></p>
+        <p class="qr-scanner-panel__description"><%= panel_label(:denied, :description) %></p>
+        <%= render Bali::Button::Component.new(
+              name: panel_label(:denied, :retry),
+              variant: :primary,
+              size: :sm,
+              data: { action: "qr-scanner#start" }
+            ) %>
+      <% end %>
+
+      <%= tag.div(**panel_attributes(:unavailable)) do %>
+        <%= render Bali::Icon::Component.new("camera-off", size: 40, class: "opacity-70") %>
+        <p class="qr-scanner-panel__title"><%= panel_label(:unavailable, :title) %></p>
+        <p class="qr-scanner-panel__description"><%= panel_label(:unavailable, :description) %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <% if hint.present? %>
+    <p class="qr-scanner-hint"><%= hint %></p>
+  <% end %>
+<% end %>
