@@ -35,6 +35,11 @@ class BaliFrameComponentTest < ComponentTestCase
     assert_selector("div.frame-loading", text: "Consultando…", visible: :all)
   end
 
+  def test_default_placeholder_spinner_is_announced_to_assistive_tech
+    render_inline(Bali::Frame::Component.new(id: "report", text: "Consultando…"))
+    assert_selector('div.frame-loading span.loading[role="status"][aria-label="Consultando…"]', visible: :all)
+  end
+
   def test_block_content_becomes_the_frame_content
     render_inline(Bali::Frame::Component.new(id: "report")) { "contenido cargado" }
     assert_selector("turbo-frame#report", text: "contenido cargado", visible: :all)

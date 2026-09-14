@@ -11,7 +11,10 @@ module Bali
     # card hermana `.frame-loading` y oculta el frame: el contenido se reemplaza
     # por el indicador de carga y vuelve al terminar. Puro CSS, sin JS.
     #
-    # Diferido (el `src` trae el contenido; el placeholder se ve mientras llega):
+    # Con `src`, el contenido llega en un request aparte y el placeholder se ve
+    # mientras llega. `loading: :lazy` difiere ese request hasta que el frame es
+    # visible; sin `loading`, Turbo lo dispara al instante (eager). Los dos son
+    # "diferidos" en el sentido de un request aparte:
     #
     #   <%= render Bali::Frame::Component.new(
     #         id: "report", src: report_path, loading: :lazy, text: "Consultando…") %>
@@ -25,7 +28,7 @@ module Bali
     #
     # Placeholder a medida (una card, un skeleton) vía el slot `loading`:
     #
-    #   <%= render Bali::Frame::Component.new(id: "report", src: report_path) do |frame| %>
+    #   <%= render Bali::Frame::Component.new(id: "report", src: report_path, loading: :lazy) do |frame| %>
     #     <% frame.with_loading do %><%= render Bali::Skeleton::Component.new %><% end %>
     #   <% end %>
     class Component < ApplicationViewComponent
@@ -57,10 +60,15 @@ module Bali
 
       # Placeholder por default: spinner chico + texto, centrado y atenuado. Se
       # usa en la card hermana y como contenido inicial de un frame diferido,
-      # salvo que el host pase su propio slot `loading`.
+      # salvo que el host pase su propio slot `loading`. El spinner lleva
+      # role="status" + aria-label (como Bali::Loader): al hacerse visible con
+      # [busy], la tecnología asistiva anuncia que está cargando.
       def default_loading
         tag.div(class: "flex items-center justify-center gap-2 py-6 text-sm text-base-content/60") do
-          safe_join([ tag.span(class: "loading loading-spinner loading-sm"), display_text ])
+          safe_join([
+            tag.span(class: "loading loading-spinner loading-sm", role: "status", aria: { label: display_text }),
+            display_text
+          ])
         end
       end
 

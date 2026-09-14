@@ -8,14 +8,17 @@
  * :has() sobre el atributo [busy] que Turbo ya maneja, sin costura que abortar
  * ni re-disparar.
  */
+/* Todo con hijo directo (`>`): si el contenido del frame trae OTRO turbo-frame
+   y ese se pone [busy], el wrapper externo no debe reaccionar ni esconder su
+   propio frame. `:has(> turbo-frame[busy])` mira solo el frame propio. */
 .frame-loading {
   display: none;
 }
 
-.frame-loader:has(turbo-frame[busy]) .frame-loading {
+.frame-loader:has(> turbo-frame[busy]) > .frame-loading {
   display: block;
 }
 
-.frame-loader:has(turbo-frame[busy]) turbo-frame {
+.frame-loader:has(> turbo-frame[busy]) > turbo-frame {
   display: none;
 }
