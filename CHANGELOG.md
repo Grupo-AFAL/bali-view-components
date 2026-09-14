@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Frame::Component` — un `<turbo-frame>` con carga diferida y swap a un placeholder mientras carga.** Turbo marca el frame con `[busy]` durante cualquier carga —la diferida inicial (`loading: :lazy` con `src`) y cada recarga dirigida al frame (un link con `data-turbo-frame`, un botón de "Refrescar")—. Mientras está `[busy]`, el CSS co-localizado (`app/components/bali/frame/index.css`, un `:has(turbo-frame[busy])`) muestra la card hermana `.frame-loading` y oculta el frame: el contenido se reemplaza por el indicador de carga y vuelve al terminar. Puro CSS, sin JS, sin costura que abortar ni re-disparar. El placeholder por default es un spinner chico + texto (i18n `bali_view.frame.loading`, personalizable con `text:`); para un placeholder a medida —una card, un `Bali::Skeleton`— está el slot `loading`. Con `src` es diferido; con un bloque, el bloque es el contenido del frame. Nace del patrón que costa-norte repetía a mano en su pantalla de existencias reales; verificado en navegador ahí (la tabla se reemplaza por "Consultando…" al refrescar y vuelve al terminar).
+
 ### Fixed
 
 - **Las guías recomendaban `ActionView::Base.default_form_builder = Bali::FormBuilder` en un

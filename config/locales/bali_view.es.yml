@@ -361,6 +361,8 @@ es:
       clear_image: Borrar imagen
     loader:
       loading: Cargando...
+    frame:
+      loading: Cargando...
     turbo_native_app:
       sign_out:
         name: Cerrar sesión
