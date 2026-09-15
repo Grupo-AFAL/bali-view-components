@@ -199,6 +199,7 @@ or those fields quietly stop grouping.
 | `RateController` | Star rating |
 | `AvatarController` | User avatars |
 | `BulkActionsController` | Bulk selection actions |
+| `TableGroupsController` | Collapsible group bands in `Bali::Table` |
 | `ImageFieldController` | Image upload field |
 | `LocationsMapController` | Google Maps display |
 

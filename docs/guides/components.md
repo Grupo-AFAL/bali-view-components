@@ -1481,6 +1481,49 @@ painted instead:
 one already has its own translatable key. And because the label never reaches the row, the
 group's select-all token keeps deriving from the value rather than from its translation.
 
+**Collapsible groups** — `collapsible_groups: true` turns every band into a disclosure
+button that folds and unfolds the rows of its run, driven by the `table-groups` Stimulus
+controller (registered by `registerAllComponents`). The state lives in the DOM — `aria-expanded`
+on the button, `hidden` on the rows — so a Turbo cache restore keeps it, and **without JS
+nothing is hidden**: the server only marks the button, and the controller folds the rows on
+connect. `collapsed_groups:` names the bands born folded: a list of raw values (string/symbol
+tolerant, like `group_counts`), a callable over the raw value, or `true` for all of them. It
+needs `collapsible_groups:` — a group born folded with nothing to unfold it raises.
+
+```erb
+<%= render Bali::Table::Component.new(id: "portfolio", collapsible_groups: true,
+                                      collapsed_groups: %w[retired],
+                                      group_counts: counts,
+                                      group_i18n_scope: "initiatives.statuses") do |table| %>
+  <%# Rich band: the block runs once per group, with the label and count already resolved %>
+  <% table.with_group_header do |group| %>
+    <span class="size-2 rounded-sm <%= STATUS_DOTS.fetch(group.value) %>"></span>
+    <span><%= group.label %></span>
+    <%= render Bali::Tag::Component.new(text: group.count, size: :sm, style: :soft) %>
+    <span class="ml-auto text-xs font-normal text-base-content/60"><%= summaries[group.value] %></span>
+  <% end %>
+
+  <% @initiatives.each do |initiative| %>
+    <% table.with_row(group: initiative.status, id: dom_id(initiative)) do %><%# ... %><% end %>
+  <% end %>
+<% end %>
+```
+
+`with_group_header { |group| }` replaces the band's default text — `group` carries `value`,
+`rows`, the translated `label` and the global `count` (the run size when there is no global
+one), so the host paints a colour dot, a pill and a summary without redoing either lookup. It
+works with or without `collapsible_groups:`; with it, the content sits **inside** the
+disclosure button and is its accessible name, so keep it static — a link or a button in
+there is a control inside a control. The group select-all, on a selectable table, stays in
+its own cell outside the button and still marks the folded rows.
+
+Each row gets an `id` for the button's `aria-controls` — the one you pass to `with_row`, or
+`<container id>-<group token>-row-<n>` otherwise. Give the table an `id:` (or a `form:`)
+when you want those ids deterministic; without one the prefix is random, so two collapsible
+tables on the same page never share an id. A `skip_tr: true` row owns its `<tr>` and stays
+out of the folding. The same group value reappearing further down is the same group, as it
+is for selection: folding one of its bands folds both runs.
+
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
 `Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
 the query, counts are global, and the "Agrupar por" control persists the choice
