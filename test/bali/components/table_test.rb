@@ -844,4 +844,234 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_selector("tr.bali-table-group-row td", text: "Ungrouped (12) — showing 1")
   end
+
+  # ---------------------------------------------------------------------------
+  # Grupos plegables
+  # ---------------------------------------------------------------------------
+
+  def render_collapsible(**options, &block)
+    @options = { collapsible_groups: true }.merge(options)
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      block.call(c)
+    end
+  end
+
+  # Sin la opción, una tabla agrupada sale como salía: ni botón, ni controlador, ni token ni
+  # id en las filas. Es lo que garantiza que un anfitrión en v3.3.1 no vea nada distinto.
+  def test_grouped_tables_carry_no_collapse_markup_unless_asked_for
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    assert_no_selector("[data-controller]")
+    assert_no_selector("tr.bali-table-group-row button")
+    assert_no_selector("[data-group-token]")
+    assert_no_selector("tbody tr[id]")
+  end
+
+  def test_collapsible_groups_turn_each_band_into_a_disclosure_button
+    render_collapsible do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>B</td>".html_safe }
+      c.with_row(group: "Sur") { "<td>C</td>".html_safe }
+    end
+
+    assert_selector(".table-component[data-controller='table-groups']")
+    assert_selector("tr.bali-table-group-row td button[type='button'][aria-expanded='true']" \
+                    "[data-table-groups-target='trigger'][data-action='click->table-groups#toggle']",
+                    count: 2)
+    assert_selector("tr.bali-table-group-row button", text: "Norte (2)")
+    assert_selector("tr.bali-table-group-row button", text: "Sur (1)")
+    assert_selector("tr.bali-table-group-row button svg")
+  end
+
+  # El botón controla exactamente las filas de su corrida: los ids que lista son los de esas
+  # filas, y cada fila lleva el token con el que el controlador la encuentra.
+  def test_the_trigger_controls_the_rows_of_its_group
+    render_collapsible(id: "leaders") do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>B</td>".html_safe }
+      c.with_row(group: "Sur") { "<td>C</td>".html_safe }
+    end
+
+    token = Bali::Table::Component.new.group_token("Norte")
+    trigger = page.find("tr.bali-table-group-row button[data-group-token='#{token}']")
+    controlled = trigger["aria-controls"].split(" ")
+
+    assert_equal([ "leaders-#{token}-row-1", "leaders-#{token}-row-2" ], controlled)
+    controlled.each do |id|
+      assert_selector("tbody tr##{id}[data-table-groups-target='row'][data-group-token='#{token}']")
+    end
+    assert_selector("tbody tr[data-group-token='#{token}']", count: 2)
+    assert_selector("tbody tr[data-group-token]", count: 3)
+  end
+
+  def test_a_row_id_given_by_the_host_is_the_one_the_trigger_controls
+    render_collapsible do |c|
+      c.with_row(group: "Norte", id: "movie_7") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row button[aria-controls='movie_7']")
+    assert_selector("tbody tr#movie_7[data-table-groups-target='row']")
+  end
+
+  # Sin `id:` en la tabla el prefijo es aleatorio: dos tablas plegables en la misma página no
+  # pueden compartir ids de fila, y `aria-controls` apuntaría a la equivocada.
+  def test_row_ids_get_a_random_prefix_when_the_table_has_no_id
+    render_collapsible do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    id = page.find("tbody tr[data-table-groups-target='row']")[:id]
+    assert_match(/\Atable-\h{6}-group-norte-\h{6}-row-1\z/, id)
+    assert_selector("tr.bali-table-group-row button[aria-controls='#{id}']")
+  end
+
+  # El estado inicial va en el botón y NUNCA en la fila: el controlador esconde las filas al
+  # conectar, así que sin JS todo queda visible.
+  def test_collapsed_groups_lists_the_values_that_are_born_folded
+    render_collapsible(collapsed_groups: [ "Sur" ]) do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Sur") { "<td>B</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row button[aria-expanded='true']", text: "Norte")
+    assert_selector("tr.bali-table-group-row button[aria-expanded='false']", text: "Sur")
+    assert_no_selector("tbody tr[hidden]", visible: :all)
+  end
+
+  def test_collapsed_groups_matches_a_symbol_value_against_a_string_entry
+    render_collapsible(collapsed_groups: %w[active]) do |c|
+      c.with_row(group: :active) { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row button[aria-expanded='false']")
+  end
+
+  def test_collapsed_groups_takes_a_callable_over_the_raw_value
+    render_collapsible(collapsed_groups: ->(value) { value == "Sur" }) do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Sur") { "<td>B</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row button[aria-expanded='true']", text: "Norte")
+    assert_selector("tr.bali-table-group-row button[aria-expanded='false']", text: "Sur")
+  end
+
+  def test_collapsed_groups_true_folds_every_band
+    render_collapsible(collapsed_groups: true) do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: nil) { "<td>B</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row button[aria-expanded='false']", count: 2)
+  end
+
+  def test_collapsed_groups_without_collapsible_groups_raises
+    error = assert_raises(ArgumentError) { Bali::Table::Component.new(collapsed_groups: [ "Sur" ]) }
+
+    assert_match("collapsible_groups: true", error.message)
+  end
+
+  # `group_header:` caería en `**options` y saldría como atributo del `<table>` (#1081).
+  def test_group_header_as_a_keyword_raises_instead_of_leaking_to_the_table
+    error = assert_raises(ArgumentError) { Bali::Table::Component.new(group_header: "x") }
+
+    assert_match("with_group_header", error.message)
+  end
+
+  # El bloque recibe el grupo ya resuelto —rótulo traducido, conteo global— para no rehacer
+  # ninguno de los dos, y lo que devuelve reemplaza al texto por default.
+  def test_with_group_header_paints_the_band_from_the_block
+    @options = { group_counts: { "action" => 30 }, group_label: ->(value) { value.to_s.upcase } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_group_header do |group|
+        "<span class='dot'></span><b>#{group.label}</b> <i>#{group.count}</i> " \
+        "#{group.rows.size} #{group.value}".html_safe
+      end
+      c.with_row(group: "action") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td span.dot")
+    assert_selector("tr.bali-table-group-row td b", text: "ACTION")
+    assert_selector("tr.bali-table-group-row td i", text: "30")
+    assert_selector("tr.bali-table-group-row td", text: "ACTION 30 1 action")
+    assert_no_selector("tr.bali-table-group-row td", text: "(30)")
+  end
+
+  def test_with_group_header_count_falls_back_to_the_run_size
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_group_header { |group| "#{group.label}: #{group.count}" }
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>B</td>".html_safe }
+      c.with_row(group: nil) { "<td>C</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row td", text: "Norte: 2")
+    assert_selector("tr.bali-table-group-row td", text: "Ungrouped: 1")
+  end
+
+  def test_with_group_header_escapes_what_the_block_returns_unless_it_is_safe
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_group_header { |group| "<b>#{group.label}</b>" }
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    assert_no_selector("tr.bali-table-group-row td b")
+    assert_selector("tr.bali-table-group-row td", text: "<b>Norte</b>")
+  end
+
+  # Con plegado, el contenido del bloque es el NOMBRE del botón: va adentro, junto al chevron.
+  def test_with_group_header_goes_inside_the_collapse_trigger
+    render_collapsible do |c|
+      c.with_group_header { |group| "<em>#{group.label}</em>".html_safe }
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    assert_selector("tr.bali-table-group-row button span.icon-component + em", text: "Norte")
+  end
+
+  # La casilla del grupo sigue en SU celda, fuera del botón —un control dentro de otro es
+  # HTML inválido—, y la fila lleva los dos atributos: el de selección y el de plegado. Que
+  # el seleccionar-todo marque filas plegadas lo cubre Cypress: el controlador de selección
+  # no mira visibilidad.
+  def test_collapsible_and_selectable_keep_the_group_checkbox_outside_the_trigger
+    render_collapsible(selectable: true, collapsed_groups: true) do |c|
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    token = Bali::Table::Component.new(selectable: true).group_token("Norte")
+    assert_selector("tr.bali-table-group-row td.w-4 input[data-bulk-actions-group='#{token}']")
+    assert_no_selector("tr.bali-table-group-row button input")
+    assert_selector("tr[data-record-id='1'][data-bulk-actions-group='#{token}'][data-group-token='#{token}']")
+  end
+
+  # Una fila `skip_tr: true` pinta su propio `<tr>`: ni id, ni token, ni la lista el botón.
+  def test_skip_tr_rows_stay_out_of_the_collapse
+    render_collapsible do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte", skip_tr: true) { "<tr class='mine'><td>B</td></tr>".html_safe }
+    end
+
+    assert_selector("tr.mine")
+    assert_no_selector("tr.mine[data-group-token]")
+    assert_equal(1, page.find("tr.bali-table-group-row button")["aria-controls"].split(" ").size)
+  end
+
+  # Pidió plegar y no agrupa: es una tabla plana, y sale como tal — sin controlador siquiera.
+  def test_collapsible_groups_without_any_group_renders_a_plain_table
+    render_collapsible do |c|
+      c.with_row { "<td>A</td>".html_safe }
+    end
+
+    assert_no_selector("tr.bali-table-group-row")
+    assert_no_selector("[data-controller]")
+    assert_no_selector("[data-group-token]")
+    assert_no_selector("tbody tr[id]")
+  end
 end

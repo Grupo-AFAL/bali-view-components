@@ -29,7 +29,34 @@ module Bali
                                      "select-all header are the table's, not the row's. A " \
                                      "row can only opt OUT, with `selectable: false`."
 
-      RowGroup = Struct.new(:value, :rows)
+      # Un grupo que nace plegado necesita el botón que lo despliega, y sin la opción no lo
+      # hay: quedarían filas escondidas sin forma de verlas.
+      COLLAPSED_WITHOUT_COLLAPSIBLE = "Bali::Table(collapsed_groups:) needs " \
+                                      "`collapsible_groups: true`: a group born folded needs " \
+                                      "the trigger that unfolds it, and without the option " \
+                                      "there is none."
+
+      # `group_header:` caería en `**options` como atributo del `<table>` (#1081). El
+      # encabezado enriquecido es un bloque porque recibe CADA grupo al pintar, y un slot de
+      # ViewComponent se captura una sola vez.
+      GROUP_HEADER_IS_A_BLOCK = "Bali::Table(group_header:) is not an option. Declare it as " \
+                                "a block — `table.with_group_header { |group| ... }` — it " \
+                                "is called once per band with the group's `value`, `rows`, " \
+                                "`label` and `count`."
+
+      # El botón de la banda es UN disclosure (WAI-ARIA): `aria-expanded` lleva el estado y
+      # `aria-controls` las filas que pliega. `group/table-group` es un grupo NOMBRADO para
+      # que el chevron gire con el `aria-expanded` de este botón y no con el de cualquier
+      # `.group` ancestro (un `Bali::Reveal` alrededor de la tabla, por ejemplo).
+      GROUP_TRIGGER_CLASSES = "group/table-group flex w-full items-center gap-2 text-left " \
+                              "cursor-pointer"
+      GROUP_CHEVRON_CLASSES = "shrink-0 transition-transform -rotate-90 " \
+                              "group-aria-expanded/table-group:rotate-0"
+
+      # `label` y `count` van resueltos para que un `with_group_header` no tenga que rehacer
+      # la traducción ni la búsqueda en `group_counts`: `count` es el total global cuando se
+      # conoce y el tamaño de la corrida cuando no, lo mismo que muestra el texto por default.
+      RowGroup = Struct.new(:value, :rows, :label, :count)
 
       renders_many :headers, ->(name: nil, sort: nil, **options) do
         Header::Component.new(form: @form, name: name, sort: sort, **options)
@@ -43,11 +70,14 @@ module Bali
       # Los grupos de selección se resuelven al RENDERIZAR, no acá: `grouped?` depende de
       # TODAS las filas y cuando este lambda corre solo existen las anteriores.
       renders_many :rows, ->(skip_tr: false, selectable: nil, group: nil, **options) do
+        sequence = next_row_sequence
+
         Row::Component.new(
           skip_tr: skip_tr,
           selectable: row_selectable(selectable),
           select_column: selectable?,
           select_groups: -> { selection_groups_for(group) },
+          collapse: -> { collapse_attributes_for(group, sequence) },
           group: group,
           **options
         )
@@ -62,7 +92,7 @@ module Bali
       renders_one :no_records_notification
       renders_one :no_results_notification
 
-      attr_reader :options, :tbody_options, :table_container_options
+      attr_reader :options, :tbody_options
 
       # @param selectable [Boolean] Columna de checkbox + seleccionar-todo cableada al
       #   controlador `bulk-actions`, que debe vivir en algún ancestro (el DataTable lo
@@ -80,10 +110,19 @@ module Bali
       # @param group_label [Proc, nil] La escapatoria, cuando el rótulo no sale de una clave
       #   por valor (una fecha, un rango, un id que hay que resolver). Recibe el valor crudo
       #   y devuelve el rótulo. Gana sobre `group_i18n_scope:`.
+      # @param collapsible_groups [Boolean] Cada banda de grupo pasa a ser un botón que
+      #   pliega y despliega sus filas (controlador `table-groups`). Sin JS todo queda
+      #   visible: el servidor nunca esconde una fila, solo marca el estado en el botón.
+      # @param collapsed_groups [Array, Proc, true, nil] Qué grupos nacen plegados: una lista
+      #   de valores crudos (con la misma tolerancia string/símbolo de `group_counts`), un
+      #   callable sobre el valor crudo, o `true` para todos. Exige `collapsible_groups:`.
       def initialize(form: nil, selectable: false, select_group: nil, sticky_headers: false,
-                     group_counts: {}, group_i18n_scope: nil, group_label: nil, **options)
+                     group_counts: {}, group_i18n_scope: nil, group_label: nil,
+                     collapsible_groups: false, collapsed_groups: nil, **options)
         raise ArgumentError, REMOVED_BULK_ACTIONS if options.key?(:bulk_actions)
+        raise ArgumentError, GROUP_HEADER_IS_A_BLOCK if options.key?(:group_header)
         raise ArgumentError, GROUP_LABEL_NOT_CALLABLE if group_label && !group_label.respond_to?(:call)
+        raise ArgumentError, COLLAPSED_WITHOUT_COLLAPSIBLE if collapsed_groups.present? && !collapsible_groups
 
         @form = form
         @selectable = selectable
@@ -92,17 +131,47 @@ module Bali
         @group_counts = group_counts || {}
         @group_i18n_scope = group_i18n_scope.presence
         @group_label = group_label
+        @collapsible_groups = collapsible_groups
+        @collapsed_groups = collapsed_groups
+        @row_sequence = 0
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = build_container_options(options.delete(:table_container) || {})
         @options = prepend_class_name(hyphenize_keys(options), TABLE_CLASSES)
+      end
+
+      # Encabezado de grupo enriquecido: el bloque recibe cada `RowGroup` al pintar la banda
+      # —`value`, `rows`, `label`, `count`— y lo que devuelve reemplaza al texto de
+      # `group_header_text`. Es para pintar un punto de color, el rótulo, el conteo y un
+      # resumen; NO para meter controles: con `collapsible_groups:` el contenido vive dentro
+      # del botón de plegado, y un botón dentro de otro es HTML inválido.
+      def with_group_header(&block)
+        @group_header_block = block
+        self
+      end
+
+      def group_header?
+        !@group_header_block.nil?
       end
 
       def container_id
         @options[:id] || @form&.id
       end
 
+      # El controlador de plegado se emite solo cuando hay algo que plegar: una tabla que
+      # pidió `collapsible_groups:` y al final no agrupa es una tabla plana, y sale como tal.
+      # `detach_data` porque `prepend_controller` escribe en `options[:data]` en el lugar.
+      def table_container_options
+        return @table_container_options unless collapsible_groups? && grouped?
+
+        prepend_controller(detach_data(@table_container_options), "table-groups")
+      end
+
       def selectable?
         @selectable
+      end
+
+      def collapsible_groups?
+        @collapsible_groups
       end
 
       def visible_headers
@@ -119,7 +188,7 @@ module Bali
       def row_groups
         rows
           .chunk_while { |previous, current| previous.group == current.group }
-          .map { |run| RowGroup.new(run.first.group, run) }
+          .map { |run| build_row_group(run.first.group, run) }
       end
 
       def group_colspan
@@ -180,14 +249,57 @@ module Bali
       # "Norte (30) — mostrando 25". Without a global count it falls back to the
       # page-local run size (v1 behavior).
       def group_header_text(group)
-        label = group_label(group.value)
         total = global_group_count(group.value)
 
-        return t(".group_count", group: label, count: group.rows.size) if total.nil?
+        return t(".group_count", group: group.label, count: group.rows.size) if total.nil?
 
-        text = t(".group_count", group: label, count: total)
+        text = t(".group_count", group: group.label, count: total)
         text += " — #{t('.group_partial', shown: group.rows.size)}" if group.rows.size < total
         text
+      end
+
+      # Lo que va en la celda de la banda: el bloque de `with_group_header` si lo hay, el
+      # texto de siempre si no. `view_context.capture` y no `capture` a secas, que es como
+      # ViewComponent evalúa su propio `content`: el bloque se escribió en la plantilla del
+      # anfitrión y escribe en el buffer de ESA vista.
+      def group_header_content(group)
+        return group_header_text(group) unless group_header?
+
+        view_context.capture(group, &@group_header_block)
+      end
+
+      def group_header_cell_options
+        {
+          colspan: visible_headers.count,
+          class: class_names("bg-base-300 font-semibold text-sm text-base-content",
+                             "border-l-4 border-l-primary" => !selectable?)
+        }
+      end
+
+      # El estado inicial lo lleva el botón, no las filas: el controlador lo lee al conectar y
+      # esconde las filas él. Un `hidden` puesto por el servidor sería definitivo sin JS.
+      def group_collapsed?(group)
+        return false unless collapsible_groups?
+        return @collapsed_groups.call(group.value) if @collapsed_groups.respond_to?(:call)
+        return @collapsed_groups if [ true, false, nil ].include?(@collapsed_groups)
+
+        collapsed_values_include?(group.value)
+      end
+
+      def group_trigger_options(group)
+        {
+          type: "button",
+          class: GROUP_TRIGGER_CLASSES,
+          aria: { expanded: !group_collapsed?(group), controls: group_row_ids(group).join(" ").presence }.compact,
+          data: { action: "click->table-groups#toggle", table_groups_target: "trigger",
+                  group_token: group_token(group.value) }
+        }
+      end
+
+      # Las filas que el botón declara controlar. Una fila `skip_tr: true` pinta su propio
+      # `<tr>` y queda fuera: ni id ni plegado, el anfitrión es dueño de ese markup.
+      def group_row_ids(group)
+        group.rows.filter_map(&:tr_id)
       end
 
       # Free-form content given by the caller for the current empty situation
@@ -216,6 +328,41 @@ module Bali
         raise ArgumentError, ROW_SELECTABLE_WITHOUT_TABLE if row_option && !selectable?
 
         row_option
+      end
+
+      def build_row_group(value, run)
+        RowGroup.new(value, run, group_label(value), global_group_count(value) || run.size)
+      end
+
+      def next_row_sequence
+        @row_sequence += 1
+      end
+
+      # Lo que la fila necesita para plegarse —su token de grupo y el id que el botón de la
+      # banda lista en `aria-controls`—, resuelto AL PINTAR como `select_groups`: `grouped?`
+      # depende de todas las filas. `nil` cuando la tabla no pliega o no agrupa, y la fila
+      # sale como salía.
+      def collapse_attributes_for(group_value, sequence)
+        return unless collapsible_groups? && grouped?
+
+        token = group_token(group_value)
+        { token: token, id: "#{row_id_prefix}-#{token}-row-#{sequence}" }
+      end
+
+      # Los ids de fila cuelgan del id del contenedor cuando lo hay, para que dos tablas
+      # plegables en la misma página no se pisen. Sin él, un sufijo aleatorio —el mismo
+      # recurso de `Bali::Reveal`—: un id duplicado es HTML inválido y `aria-controls`
+      # apuntaría a la tabla equivocada. Con `id:` los ids son deterministas.
+      def row_id_prefix
+        @row_id_prefix ||= container_id || "table-#{SecureRandom.hex(3)}"
+      end
+
+      # La misma tolerancia string/símbolo de `global_group_count`: la lista la escribe el
+      # anfitrión y el valor lo trae la fila, y no siempre coinciden en tipo.
+      def collapsed_values_include?(value)
+        values = Array(@collapsed_groups)
+
+        values.include?(value) || (!value.nil? && values.map(&:to_s).include?(value.to_s))
       end
 
       # Tolerant lookup of the global total for a group value. SQL group keys are
