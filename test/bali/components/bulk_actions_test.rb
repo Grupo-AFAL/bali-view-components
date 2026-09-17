@@ -137,9 +137,10 @@ class BaliBulkActionsComponentTest < ComponentTestCase
   # El marcado embarcado no puede depender de la configuración del anfitrión: el `form_with`
   # de la acción declara el builder de Rails, así que rinde igual con y sin
   # `default_form_builder = Bali::FormBuilder` puesto por el host (#1137). Sin ese `builder:`,
-  # `form.submit` salía como `<button class="btn btn-primary">`: se perdían el `name="commit"`
-  # del POST y el `data-disable-with` que frena el doble envío, y el `btn-primary` del builder
-  # quedaba pegado delante de la variante real (`btn btn-primary btn btn-sm btn-error`).
+  # `form.submit` salía como `<button class="btn btn-primary">`: se perdía el `name="commit"`
+  # del POST y el `btn-primary` del builder quedaba pegado delante de la variante real
+  # (`btn btn-primary btn btn-sm btn-error`). El `data-disable-with` vuelve con el `<input>`,
+  # pero es solo un hecho del marcado: lo lee rails-ujs, que ninguna app del grupo tiene.
   def test_an_actions_form_renders_the_same_under_the_hosts_default_builder
     render_action = lambda do
       render_inline(Bali::BulkActions::Action::Component.new(
@@ -154,6 +155,19 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     # `page` quedó en el segundo render (el del builder de Bali por omisión).
     assert_selector("form[action='/delete'] input[type='submit'][name='commit'].btn.btn-error")
     assert_selector("form[action='/delete'] input[type='submit'][data-disable-with]")
+  end
+
+  # `builder:` va ANTES del splat de `**form_options` a propósito: es un default de la gema,
+  # no un candado, así que un `builder:` que el host pase a `with_action` tiene que seguir
+  # ganando. Vivía solo en un comentario.
+  def test_a_builder_passed_to_with_action_still_wins_over_the_gems_default
+    render_inline(@component) do |c|
+      c.with_action(label: "Delete", href: "/delete", variant: :error, builder: Bali::FormBuilder)
+    end
+
+    # El marcado del builder de Bali: `submit` es un `<button>` dentro de su `div.inline`.
+    assert_selector("form[action='/delete'] div.inline button[type='submit']", text: "Delete")
+    assert_no_selector("form[action='/delete'] input[type='submit']")
   end
 
   def test_actions_with_delete_method_renders_as_a_form_with_hidden_method_field

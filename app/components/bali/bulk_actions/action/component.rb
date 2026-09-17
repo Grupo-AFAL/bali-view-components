@@ -108,14 +108,15 @@ module Bali
 
         # `builder:` explícito: el form de una acción no puede cambiar de forma porque el
         # anfitrión declare `default_form_builder = Bali::FormBuilder` (lo que recomienda
-        # docs/guides/installation.md y lo que tienen encendido casi todas las apps del grupo).
+        # docs/guides/installation.md y lo que tienen encendido las seis apps del grupo).
         # Con el builder de Bali, `form.submit` salía como `<button class="btn btn-primary">`:
-        # se perdían el `name="commit"` del POST y el `data-disable-with` que frena el doble
-        # envío en una acción masiva destructiva, y el `btn-primary` del builder quedaba pegado
+        # se perdía el `name="commit"` del POST y el `btn-primary` del builder quedaba pegado
         # delante de la variante real (`btn btn-primary btn btn-sm btn-error`, con cuál pinta
-        # decidido por el orden de la hoja y no por la acción) (#1137). Va antes del splat a
-        # propósito: un `builder:` que el host pase a `with_action` sigue ganando. Pasar este
-        # form al idioma del builder de Bali es otra discusión, apartada para v4 (#903).
+        # decidido por el orden de la hoja y no por la acción) (#1137). El `data-disable-with`
+        # vuelve con el `<input>`, pero no cuenta como argumento: lo lee rails-ujs y ninguna
+        # de las seis apps lo tiene. Va antes del splat a propósito: un `builder:` que el host
+        # pase a `with_action` sigue ganando, y eso lo cubre una prueba. Pasar este form al
+        # idioma del builder de Bali es otra discusión, apartada para v4 (#903).
         def render_form_action
           helpers.form_with(url: href, method: method, class: "contents",
                             builder: ActionView::Helpers::FormBuilder, **form_options) do |form|

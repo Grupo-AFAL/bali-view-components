@@ -61,11 +61,12 @@
           <li class="hidden" data-saved-views-target="renameForm" data-saved-views-id="<%= view.id %>">
             <%# `builder:` explícito: un form interno de la gema no puede cambiar de forma porque
                 el anfitrión declare `default_form_builder = Bali::FormBuilder` (lo que recomienda
-                docs/guides/installation.md y lo que tienen encendido casi todas las apps del
-                grupo). Sin él, `f.text_field` salía envuelto en `div.control` con la clase
-                `input` repetida y `f.submit` como `<button>`, perdiendo el `name="commit"` del
-                POST y el `data-disable-with` contra el doble envío (#1137). Pasar estos forms al
-                idioma del builder de Bali es otra discusión, apartada para v4 (#903). %>
+                docs/guides/installation.md y lo que tienen encendido las seis apps del grupo).
+                Sin él, `f.text_field` salía envuelto en `div.control` con la clase `input`
+                repetida y `f.submit` como `<button>`, perdiendo el `name="commit"` del POST
+                (#1137). El `data-disable-with` vuelve con el `<input>` pero no cuenta como
+                argumento: lo lee rails-ujs y ninguna de las seis apps lo tiene. Pasar estos
+                forms al idioma del builder de Bali es otra discusión, apartada para v4 (#903). %>
             <%= form_with url: view_url(view), method: :patch, class: 'flex gap-1 p-1',
                   builder: ActionView::Helpers::FormBuilder do |f| %>
               <%# id explícito por vista: N forms de renombrar + el de guardar generaban N+1

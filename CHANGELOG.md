@@ -46,28 +46,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que la gema renderiza por su cuenta —renombrar, actualizar y guardar una vista, y el POST de
   cada acción masiva— no declaraban builder, así que tomaban el del host. Con
   `config.action_view.default_form_builder = "Bali::FormBuilder"` puesto —lo que recomienda
-  `docs/guides/installation.md` y lo que tienen encendido cinco de las seis apps del grupo—,
+  `docs/guides/installation.md` y lo que tienen encendido las seis apps del grupo—,
   `f.text_field` salía envuelto en un `div.control` y con la clase `input` repetida (`grow`
   queda inerte dentro del wrapper), y `f.submit` salía como `<button>`: sin el `name="commit"`
-  del POST, sin el `data-disable-with` contra el doble envío, y con el `btn-primary` del
-  builder pegado delante de la variante real de la acción (`btn btn-primary btn btn-sm
-  btn-error`, con cuál pinta decidido por el orden de la hoja de estilos y no por la acción).
-  Los cuatro declaran ahora `builder: ActionView::Helpers::FormBuilder`, así que rinden el
-  mismo marcado con o sin el default del anfitrión; una prueba nueva renderiza los dos
-  componentes bajo los dos defaults y compara el HTML, para que no vuelva a depender de la
-  configuración del host (#1137).
+  del POST y con el `btn-primary` del builder pegado delante de la variante real de la acción
+  (`btn btn-primary btn btn-sm btn-error`, con cuál pinta decidido por el orden de la hoja de
+  estilos y no por la acción). Los cuatro declaran ahora
+  `builder: ActionView::Helpers::FormBuilder`, así que rinden el mismo marcado con o sin el
+  default del anfitrión; una prueba nueva renderiza los dos componentes bajo los dos defaults
+  y compara el HTML, para que no vuelva a depender de la configuración del host (#1137).
 
-  **La trampa: en esas cinco apps el marcado de producción SÍ cambia al subir.** En
-  gobierno-corporativo son 21 vistas con vistas guardadas y 6 con acciones masivas; en
-  afal-apps, 11 y 3; y además centinela-web (4), identity (1) y costa-norte (1). Ahí esos
-  botones vuelven de `<button>` a `<input type="submit">`, recuperan `name="commit"` y
-  `data-disable-with`, y **pierden el spinner** del controlador `submit-button`: el
-  controlador sigue en el `<form>`, pero reemplaza el `innerHTML` del submitter y eso no hace
-  nada sobre un `<input>`. Ese spinner nunca fue intencional en estos forms —sin el default
-  del anfitrión nunca lo tuvieron—, pero es visible. Una prueba de host que buscara
-  `input[type=submit]` en la barra de acciones masivas vuelve a encontrarlo. Reescribir estos
-  forms en el idioma del builder de Bali (que es la otra salida posible) sigue apartado para
-  v4 (#903).
+  **La trampa: en cinco de las seis apps el marcado de producción SÍ cambia al subir.** El
+  default lo tienen las seis (`git grep -l default_form_builder origin/main -- config` da un
+  hit en cada una), pero la superficie donde se nota son cinco: medido con
+  `git grep -l with_saved_views origin/main -- app` y su par `with_bulk_actions`, son
+  gobierno-corporativo (23 vistas con vistas guardadas, 3 con acciones masivas), afal-apps
+  (11 y 3), centinela-web (4 y 0), identity (0 y 1) y costa-norte (0 y 1). opina tiene el
+  default puesto y ni una vista de las dos (0 y 0), así que ahí no cambia nada.
+
+  Lo que se ve en esas cinco: los submits vuelven de `<button>` a `<input type="submit">` y
+  recuperan `name="commit"`. **La única diferencia visual es la etiqueta del botón
+  "Actualizar «nombre»"** (`.update_current` del dropdown de vistas guardadas), que es de
+  ancho completo (`btn-block`) y lleva `justify-start gap-2`: sobre el `<button>` del builder,
+  `justify-start` gana al `justify-content: center` de `.btn` y corre la etiqueta a la
+  izquierda; sobre un `<input type="submit">` no hay ítems flex que alinear, así que las dos
+  clases quedan inertes y la etiqueta vuelve al centro.
+  Medido en Chromium contra el `tailwind.css` compilado de gobierno-corporativo: el texto pasa
+  de arrancar a 8px del borde izquierdo a quedar con 135px de margen a cada lado, y un control
+  sin `justify-start` cae exactamente sobre el mismo centro.
+
+  El `data-disable-with` que también vuelve con el `<input>` es solo un hecho del marcado: lo
+  lee rails-ujs, y ninguna de las seis lo tiene (`git grep -lE "rails-ujs|@rails/ujs|jquery-rails"
+  origin/main` no da un solo hit fuera de una línea de CHANGELOG en afal-apps). No frena
+  ningún doble envío en estas apps. Tampoco hay spinner que perder: el `submit-button` lo
+  monta `Bali::FormHelper#form_with`, que es opt-in del anfitrión —solo el dummy lo incluye—
+  y ninguna de las seis lo incluye, así que estos forms nunca lo tuvieron. Una prueba de host
+  que buscara `input[type=submit]` en la barra de acciones masivas vuelve a encontrarlo.
+  Reescribir estos forms en el idioma del builder de Bali (que es la otra salida posible)
+  sigue apartado para v4 (#903).
 
 ## [v3.3.1] - 2026-09-14
 
