@@ -124,6 +124,7 @@ export {
   SplitViewController,
   SplitViewListController,
   StatusController,
+  TableGroupsController,
   TabsController,
   TimeagoController,
   ToastContainerController,

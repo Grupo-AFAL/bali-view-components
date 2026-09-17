@@ -19,6 +19,7 @@ import { AppLayoutController } from '../../../components/bali/app_layout/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
 import { DropdownController } from '../../../components/bali/dropdown/index'
+import { TableGroupsController } from '../../../components/bali/table/index'
 import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
@@ -109,6 +110,7 @@ export {
   SplitViewController,
   SplitViewListController,
   StatusController,
+  TableGroupsController,
   TabsController,
   TimeagoController,
   ToastContainerController,
@@ -141,6 +143,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   modal: ModalController,
   drawer: DrawerController,
   dropdown: DropdownController,
+  'table-groups': TableGroupsController,
   tabs: TabsController,
   navbar: NavbarController,
   'side-menu': SideMenuController,

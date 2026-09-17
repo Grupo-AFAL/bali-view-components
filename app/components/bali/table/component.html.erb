@@ -36,9 +36,20 @@
                   <% end %>
                 <% end %>
               <% end %>
-              <%= tag.td(group_header_text(group), colspan: visible_headers.count,
-                         class: class_names("bg-base-300 font-semibold text-sm text-base-content",
-                                            "border-l-4 border-l-primary" => !selectable?)) %>
+              <% if collapsible_groups? %>
+                <%# La banda entera es el botón: el chevron gira con `aria-expanded` y el
+                    contenido —texto o bloque de `with_group_header`— es su nombre accesible.
+                    La casilla del grupo queda AFUERA, en su celda: un control dentro de
+                    otro es HTML inválido. %>
+                <%= tag.td(**group_header_cell_options) do %>
+                  <%= tag.button(**group_trigger_options(group)) do %>
+                    <%= render Bali::Icon::Component.new('chevron-down', class: Bali::Table::Component::GROUP_CHEVRON_CLASSES) %>
+                    <%= group_header_content(group) %>
+                  <% end %>
+                <% end %>
+              <% else %>
+                <%= tag.td(group_header_content(group), **group_header_cell_options) %>
+              <% end %>
             </tr>
             <% group.rows.each do |row| %><%= row %><% end %>
           <% end %>

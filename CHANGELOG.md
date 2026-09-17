@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Table(collapsible_groups: true)` — las bandas de grupo se pliegan.** Cada fila de
+  grupo pasa a ser un botón de disclosure (`aria-expanded` + `aria-controls`) que esconde y
+  muestra las filas de su corrida, con el controlador Stimulus nuevo `table-groups` (lo
+  registra `registerAllComponents`). El estado vive en el DOM —`aria-expanded` en el botón,
+  `hidden` en las filas— y lo aplica el controlador al conectar, así que un restore de caché
+  de Turbo lo conserva y **sin JS nada se esconde**: el servidor nunca emite `hidden`, ni para
+  los grupos que nacen plegados. `collapsed_groups:` dice cuáles nacen así: una lista de valores
+  crudos (tolerante string/símbolo, como `group_counts`), un callable sobre el valor, o `true`
+  para todos; pedirlo sin `collapsible_groups:` levanta `ArgumentError`, porque un grupo
+  plegado sin botón que lo abra son filas perdidas. La selección por grupo sigue viva plegada:
+  la casilla queda en su celda, fuera del botón, y `bulk-actions` no mira visibilidad.
+
+  ```erb
+  <%= render Bali::Table::Component.new(collapsible_groups: true, collapsed_groups: %w[retired]) do |t| %>
+    <% t.with_group_header do |group| %>
+      <span class="size-2 rounded-sm bg-primary"></span>
+      <span><%= group.label %></span>
+      <%= render Bali::Tag::Component.new(text: group.count, size: :sm, style: :soft) %>
+    <% end %>
+  <% end %>
+  ```
+
+  Y con él, **`with_group_header { |group| }`**: la banda deja de ser solo texto. El bloque
+  corre una vez por grupo con `value`, `rows`, el `label` ya traducido y el `count` ya global,
+  para pintar punto de color, pill y resumen sin rehacer ninguna de las dos búsquedas. Va con
+  o sin plegado; con plegado el contenido vive dentro del botón y es su nombre accesible, así
+  que nada interactivo ahí adentro. Nace del rediseño del portafolio de TDFlow (afal-apps),
+  cuyo prototipo agrupa las iniciativas por estado con bandas plegables y encabezado rico; sin
+  la opción, una tabla agrupada sale byte a byte como en v3.3.1.
+
 ## [v3.3.1] - 2026-09-14
 
 ### Added
