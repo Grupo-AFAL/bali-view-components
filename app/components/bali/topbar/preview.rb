@@ -50,12 +50,14 @@ module Bali
       end
 
       # @label Tools Menu
-      # Topbar with the internal tools menu: the jobs dashboard, a mounted tool that keeps
-      # the host chrome (same tab), a mounted tool with its own chrome, and an external link.
+      # Topbar with the internal tools menu: a mounted tool that brings its own chrome (new
+      # tab), a mounted tool that keeps the host chrome (same tab), a second one with its own
+      # chrome, and an external link.
       #
-      # `:flightdeck` and `:mission_control` are both translated by the gem and to the same
-      # label ("Jobs dashboard" / "Panel de trabajos"): they are two gems for one screen, and
-      # an app that migrates from one to the other changes the key and nothing else.
+      # The first item repeats a mechanism on purpose — what it adds is the key. `:flightdeck`
+      # and `:mission_control` are both translated by the gem and to the same label ("Jobs
+      # dashboard" / "Panel de trabajos"): they are two gems for one screen, and an app that
+      # migrates from one to the other changes the key and nothing else.
       def tools_menu
         render_with_template(template: "bali/topbar/previews/tools_menu")
       end

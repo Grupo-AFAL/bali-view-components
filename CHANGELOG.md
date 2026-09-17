@@ -22,12 +22,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   primero la clave del host (`topbar.tools_menu.items.flightdeck`) y sólo después la de la gema,
   así que en las cuatro apps el override propio sigue ganando y la etiqueta que se pinta es la
   misma de antes. El beneficio llega en el siguiente bump de cada app: pueden borrar sus dos
-  entradas de locale y la etiqueta la pone la gema. Ojo con costa-norte, que es el único caso
-  donde el borrado no es trivial de leer: corre su español como `es-MX`
-  (`config.i18n.default_locale = :"es-MX"`) y la gema traduce bajo `:es`, así que alcanza la
-  etiqueta por `config.i18n.fallbacks = [ :es, :en ]` — verificado en
-  `config/application.rb:35-40`. Si esa cadena de fallbacks desapareciera, borrar el override
-  dejaría la etiqueta en inglés, no vacía.
+  entradas de locale y la etiqueta la pone la gema.
+
+  **Al borrar, borra LAS DOS entradas en el mismo commit.** La cascada no alterna clave por
+  clave dentro de un locale: el `t` de Action View parte el `default:` en una llamada a I18n
+  por alternativa, así que la clave del host se agota en TODA la cadena de fallbacks antes de
+  que se pruebe la de la gema — y un override que sobreviva en `en` le gana a la etiqueta `es`
+  de la gema. Medido rindiendo el componente con `locale = :es` y `fallbacks = [ :en ]` (la
+  forma de identity, centinela-web y gobierno-corporativo): borrando sólo la entrada `es`, la
+  pantalla en español pasa a decir «Jobs dashboard»; con las dos borradas dice «Panel de
+  trabajos», la de la gema.
+
+  **costa-norte no es un caso aparte, aunque corra `es-MX`** (`config/application.rb:35-40`).
+  Llega a la etiqueta `es` de la gema por la descomposición del tag, no por la lista
+  `config.i18n.fallbacks = [ :es, :en ]`: `I18n::Locale::Fallbacks#compute` antepone
+  `self_and_parents` (`es-MX` → `es`) a los defaults configurados. Medido: con
+  `fallbacks = true` —cadena `[:"es-MX", :es]`, sin lista ninguna— borrar las dos entradas
+  deja la misma «Panel de trabajos». Lo que sí rompe el salto es que `:es` salga de la cadena,
+  y ahí la consecuencia nunca es una etiqueta vacía, porque la cascada termina en `humanize`:
+  sin fallbacks del todo se pinta «Flightdeck», y con `:es` fuera de `available_locales` —el
+  salto se descarta como `InvalidLocale` y la cadena sigue a `:en`— se pinta la etiqueta
+  inglesa de la gema, «Jobs dashboard».
 
   **`mission_control` se queda.** No es un alias ni un renombre: afal-apps sigue montando
   `mission_control-jobs` (`app/models/internal_tools.rb`), así que las dos claves conviven y
