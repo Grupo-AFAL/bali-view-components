@@ -31,7 +31,15 @@
     <% if date.present? %>
       <p class="workflow-step-date"><%= date %></p>
     <% end %>
-    <% if content? %>
+    <%# `content?` only says that a block was passed, not that it rendered
+        anything: a host that decides inside the block — the usual
+        `<% if comment %>` around a step's note — gets a true from it on every
+        step and an empty `.workflow-step-comment` dragging its `mt-1`.
+        `content.present?` asks the rendered string instead, and `blank?`
+        already covers the whitespace-only case. Evaluating it here costs no
+        second render: ViewComponent memoises the capture, so the `content`
+        below is the same string. %>
+    <% if content.present? %>
       <div class="workflow-step-comment"><%= content %></div>
     <% end %>
   </div>

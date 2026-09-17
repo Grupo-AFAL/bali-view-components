@@ -186,6 +186,33 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_no_selector(".workflow-step-comment")
   end
 
+  # A host writes "the comment, if there is one" by deciding inside the block,
+  # and ViewComponent's `content?` is true for any block whatever it renders.
+  # An empty container is not an invisible one — it carries `mt-1` — so every
+  # step without a comment grew by a margin over nothing.
+  def test_a_block_that_renders_nothing_draws_no_comment_container
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal", state: :success) { "" }
+    end
+    assert_no_selector(".workflow-step-comment", visible: :all)
+  end
+
+  def test_a_block_of_only_whitespace_draws_no_comment_container
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal", state: :success) { "\n      \n" }
+    end
+    assert_no_selector(".workflow-step-comment", visible: :all)
+  end
+
+  # The whitespace an ERB block leaves around real content must not read as
+  # blank — the fix has to drop the empty container, not the working one.
+  def test_a_block_padded_with_whitespace_still_renders_its_comment
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal", state: :error) { "\n  Rejected: missing appendix B.\n" }
+    end
+    assert_selector(".workflow-step-comment", text: "Rejected: missing appendix B.")
+  end
+
   def test_pending_and_skipped_titles_read_muted
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Done", state: :success)
