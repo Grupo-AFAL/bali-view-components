@@ -39,6 +39,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuyo prototipo agrupa las iniciativas por estado con bandas plegables y encabezado rico; sin
   la opción, una tabla agrupada sale byte a byte como en v3.3.1.
 
+### Fixed
+
+- **El selector de columnas borraba la banda de grupo —y el estado vacío— al esconder una
+  columna.** `column-selector` aplica la visibilidad POR ÍNDICE sobre toda fila del `tbody`, y
+  dos filas de `Bali::Table` no llevan una celda por columna: la banda de grupo (un `td` con
+  `colspan`, precedido por la celda del seleccionar-todo cuando la tabla es `selectable:`) y el
+  estado vacío (un `td` que cubre la tabla entera). Ahí el `td` número N no es la columna N, así
+  que esconder la primera columna escondía la banda completa o el mensaje de «no hay resultados»
+  —este último, vivo en cualquier listado sin resultados con el selector encendido—. El
+  controlador salta ahora cualquier celda que abarque varias columnas, en el `tbody` y en el
+  `tfoot`, donde una fila de totales con `colspan` tenía el mismo defecto.
+
+  Con el `collapsible_groups:` de esta misma versión la banda dejó de ser decoración: contiene el
+  ÚNICO botón que despliega las filas de su grupo, y con `collapsed_groups:` esas filas nacen
+  escondidas. Esconder una columna en una tabla con grupos plegados las dejaba inalcanzables sin
+  recargar la página. Visto en el portafolio de TDFlow (afal-apps) y en el listado de maestros de
+  gobierno-corporativo.
+
+  La guarda va sobre la CELDA y no sobre la fila a propósito, y esa es la trampa para quien toque
+  esto después: el `<tr>` del estado vacío no lleva clase propia, así que un
+  `tr:not(.bali-table-group-row)` arregla la banda y deja el otro caso roto. Lo que las dos filas
+  comparten es el `colspan` de la celda. La composición está en el preview nuevo **DataTable ›
+  With Column Selector (grouped)**, con una banda plegada y un listado sin resultados.
+
+  Es la mitad de #1144 que se podía arreglar sin decidir nada: el selector sigue persistiendo los
+  índices VISIBLES en `localStorage`, así que una columna agregada después nace oculta para quien
+  ya tenía preferencias guardadas. Cambiar eso es cambiar el formato que también lee
+  `saved_views_controller.js` y que viaja dentro de una vista guardada, y esa decisión sigue
+  abierta.
+
 ## [v3.3.1] - 2026-09-14
 
 ### Added

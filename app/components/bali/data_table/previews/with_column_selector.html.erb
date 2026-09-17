@@ -1,0 +1,64 @@
+<%# El selector de columnas sobre una tabla AGRUPADA: la composición donde esconder una
+    columna borraba la celda equivocada (#1144). La banda de grupo y el estado vacío son las
+    dos filas que NO llevan una celda por columna, así que el `td` número N de esas filas no
+    es la columna N; el selector las deja en paz y esconde solo lo que sí es una columna.
+
+    `persist: false` en los dos: el preview muestra el estado recién servido y no las
+    columnas que otra visita dejó guardadas en localStorage. %>
+<div class="p-4 space-y-8">
+  <div>
+    <h2 class="text-lg font-semibold">Grouped listing</h2>
+    <p class="text-sm text-base-content/60">
+      Uncheck "Initiative" in the Columns menu: the bands keep their row — including the
+      folded "Proyecto asignado", with the button that unfolds it.
+    </p>
+  </div>
+
+  <%= render Bali::DataTable::Component.new(url: request.path, id: 'grouped-columns') do |dt| %>
+    <% dt.with_column_selector(persist: false) do |cs| %>
+      <% cs.with_column(index: 0, label: 'Initiative') %>
+      <% cs.with_column(index: 1, label: 'Area') %>
+      <% cs.with_column(index: 2, label: 'Leader') %>
+      <% cs.with_column(index: 3, label: 'Quadrant') %>
+    <% end %>
+
+    <% dt.with_table do %>
+      <%= render Bali::Table::Component.new(collapsible_groups: true,
+                                            collapsed_groups: %w[in_project],
+                                            group_label: ->(value) { stages.fetch(value) }) do |t| %>
+        <%= t.with_headers(headers) %>
+        <% records.each do |record| %>
+          <%= t.with_row(group: record[:stage]) do %>
+            <td class="font-medium"><%= record[:title] %></td>
+            <td class="text-base-content/70"><%= record[:area] %></td>
+            <td class="text-base-content/70"><%= record[:leader] %></td>
+            <td><%= record[:quadrant] %></td>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <div>
+    <h2 class="text-lg font-semibold">The same selector with no results</h2>
+    <p class="text-sm text-base-content/60">
+      The empty state is a single cell spanning the whole table, on a row that carries no
+      class of its own: hiding a column used to delete the message.
+    </p>
+  </div>
+
+  <%= render Bali::DataTable::Component.new(url: request.path, id: 'empty-columns') do |dt| %>
+    <% dt.with_column_selector(persist: false) do |cs| %>
+      <% cs.with_column(index: 0, label: 'Initiative') %>
+      <% cs.with_column(index: 1, label: 'Area') %>
+      <% cs.with_column(index: 2, label: 'Leader') %>
+      <% cs.with_column(index: 3, label: 'Quadrant') %>
+    <% end %>
+
+    <% dt.with_table do %>
+      <%= render Bali::Table::Component.new do |t| %>
+        <%= t.with_headers(headers) %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
