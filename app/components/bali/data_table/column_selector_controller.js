@@ -133,6 +133,9 @@ export default class extends Controller {
    * abarca MÁS de una columna. En una tabla de UNA sola columna visible no abarca más de
    * una —la banda sale con `colspan="1"` y el estado vacío también—, así que esconder esa
    * única columna se los lleva igual. El CHANGELOG de #1144 guarda la medición.
+   *
+   * Tampoco encoge la celda que abarca una columna oculta: conserva su `colspan`, así que una fila
+   * de totales cuya etiqueta cubre esa columna queda una columna más ancha que el encabezado.
    */
   columnCell (cells, index) {
     let column = 0

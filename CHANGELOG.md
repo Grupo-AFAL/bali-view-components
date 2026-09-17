@@ -78,6 +78,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   numerar las columnas desde el servidor, que es un cambio de formato que este PR no hace: queda
   escrito acá y en el comentario de `columnCell` para que el siguiente no lo redescubra.
 
+  **Segundo límite, también medido.** Una celda que abarca varias columnas no se esconde, pero
+  tampoco se encoge: conserva su `colspan` aunque una de las columnas que cubre esté oculta. En
+  la fila de totales del preview, cuya etiqueta abarca «Initiative» y «Area», esconder
+  «Initiative» deja la fila una columna más ancha que el encabezado y corre los totales
+  siguientes a la derecha: «6 líderes» queda bajo «Quadrant». Antes del arreglo esa fila también
+  se desalineaba, de otra forma. Hoy no tiene superficie: ninguna vista de afal-apps ni de
+  gobierno-corporativo combina el selector de columnas con `with_footer` (medido sobre
+  `origin/main`). El arreglo sería ajustar el `colspan` al vuelo, que es otro contrato para el
+  controlador y queda fuera de este corte.
+
   La composición está en el preview nuevo **DataTable › With Column Selector (grouped)**, con los
   tres listados que cubre `cypress/e2e/data-table-column-selector.cy.js`: uno agrupado con una
   banda plegada y fila de totales, uno agrupado y `selectable:` —el de gobierno-corporativo,
