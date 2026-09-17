@@ -112,18 +112,26 @@ module Bali
 
       private
 
+      # One long name here too: the month view's cell is a `table-fixed` column,
+      # which is the narrowest place this partial ever renders.
       def sample_events
         [
-          Bali::Calendar::Previews::Event.new(start_time: Date.current, name: 'Today Event'),
-          Bali::Calendar::Previews::Event.new(start_time: Date.current - 1.day, name: 'Yesterday'),
-          Bali::Calendar::Previews::Event.new(start_time: Date.current + 2.days, name: 'Upcoming'),
-          Bali::Calendar::Previews::Event.new(start_time: Date.current - 3.days, name: 'Past Event')
+          build_event(Date.current, 'Today Event', nil),
+          build_event(Date.current - 1.day, 'Yesterday', nil),
+          build_event(Date.current + 2.days, 'Upcoming, with a deliberately long name that wraps onto several lines', nil),
+          build_event(Date.current - 3.days, 'Past Event', nil)
         ]
       end
 
       # Scattered across the whole year so the grid has something to show in every
       # month, with a few days deliberately holding two events of different status —
       # that is the case `has-multiple` exists for.
+      #
+      # The 11th of every month carries a DELIBERATELY LONG name. A preview whose
+      # every label is "Item 5-B" answers nothing about the case a host actually
+      # ships: tippy caps the hover card at 350px, and a name only fits because it
+      # is short. Keep one long name here so the wrapping stays visible to whoever
+      # changes this partial next.
       def year_sample_events
         year = Date.current.year
         statuses = %i[success warning error info]
@@ -133,15 +141,23 @@ module Bali
 
           [
             build_event(first + 4, "Item #{month}-A", statuses[month % 4]),
-            build_event(first + 11, "Item #{month}-B", statuses[(month + 1) % 4]),
+            build_event(first + 11, "Item #{month}-B, with a deliberately long name that wraps onto several lines",
+                        statuses[(month + 1) % 4]),
             build_event(first + 11, "Item #{month}-C", statuses[(month + 2) % 4]),
             build_event(first + 19, "Item #{month}-D", statuses[(month + 3) % 4])
           ]
         end
       end
 
+      # Every sample event gets a `url`, so the previews demonstrate the thing the
+      # month view has always had and the year view was never shown doing: one
+      # event, one destination. It points at this same preview because Lookbook is
+      # the only route the gem can be sure exists.
       def build_event(date, name, status)
-        Bali::Calendar::Previews::Event.new(start_time: date, name: name, status: status)
+        Bali::Calendar::Previews::Event.new(
+          start_time: date, name: name, status: status,
+          url: "/lookbook/preview/bali/calendar/default?start_date=#{date}"
+        )
       end
 
       # A day is a link only where there is something to open — the nil return is

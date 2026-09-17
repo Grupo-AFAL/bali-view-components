@@ -7,8 +7,31 @@
     <%= day.day %> <%= t('date.month_names')[day.month] %>
   </div>
 <% end %>
+<%# `href:` is what makes ONE EVENT clickable, and it is a different link from the
+    calendar's `day_url`: that one covers the whole day cell, this one opens the
+    item. In the year view this renders inside the hover card, which tippy mounts
+    with `interactive: true` — the pointer can travel off the day square and into
+    the card, so these links are reachable there exactly as they are in the month
+    view. `Bali::Tag::Component` renders an `<a>` as soon as `href:` is present and
+    a `<div>` when it is nil, so an event with no destination stays unlinked
+    without the partial branching.
+
+    `whitespace-normal h-auto py-1` is the documented opt-out from
+    `tag/index.css`'s `white-space: nowrap`. The nowrap default is right for a
+    table cell — #655 — and wrong here: a hover card is where the host expects to
+    READ the name, and tippy caps the box at 350px. Measured before this opt-out,
+    a nowrap pill holding a name of about sixty characters was 367px wide and drew
+    its own background 29px past the card's right edge. `h-auto` comes with it
+    because daisyUI pins `.badge` to `height: var(--size)`; wrapping without it is
+    the other half of #655, where the extra lines render outside the pill. %>
 <div class="flex flex-col gap-1 items-start">
   <% events&.each do |event| %>
-    <%= render Bali::Tag::Component.new(text: event.name, color: event.status || :primary, size: :sm) %>
+    <%= render Bali::Tag::Component.new(
+          text: event.name,
+          href: event.try(:url),
+          color: event.status || :primary,
+          size: :sm,
+          class: 'whitespace-normal h-auto py-1 text-left'
+        ) %>
   <% end %>
 </div>

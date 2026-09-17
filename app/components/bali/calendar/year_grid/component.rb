@@ -23,6 +23,22 @@ module Bali
       # nothing tells the reader which half is "first" — and the blend between
       # them reads as a third state nobody defined. A dot says "more" and says
       # nothing else, which is the only thing the component actually knows.
+      #
+      # TWO LINKS, TWO QUESTIONS
+      # ------------------------
+      # `day_url` links the DAY — one destination for the whole square, drawn by
+      # this component. Links on individual EVENTS come from the host's
+      # `template:` partial, the same one the month view renders, and they work
+      # inside the hover card: the hovercard controller mounts tippy with
+      # `interactive: true`, so the pointer can leave the day square, travel over
+      # the gap and land on a link without the card closing on the way. The month
+      # view's clickable event needs nothing added to be clickable here.
+      #
+      # What DOES change between the two views is the room the partial gets.
+      # Tippy caps the card at 350px, so a name that fits a table cell can
+      # overflow here — and `tag/index.css` makes a `.tag-component` nowrap on
+      # purpose (#655), which turns that overflow into a pill drawn outside the
+      # card. `previews/_template.html.erb` shows the opt-out.
       class Component < ApplicationViewComponent
         # Keyed by Bali::Color::NAMES. Spelled out, never interpolated: Tailwind
         # only emits a class it can find as a literal string in a source file, so
