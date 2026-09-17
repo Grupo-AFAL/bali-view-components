@@ -1155,7 +1155,9 @@ positional.
 - `date` - Preformatted date/time text; the component does not format
 - `number` - Circle content, overriding the automatic numbering
 - Content block - Free markup rendered under the meta lines (a rejection
-  comment, a `Bali::Tag`, links)
+  comment, a `Bali::Tag`, links). A block that renders blank draws no comment
+  container, so deciding *inside* the block — "the comment, if there is one" —
+  leaves the step exactly as one declared with no block at all.
 
 The connector under each circle takes the state of the **next** step, so the
 line arrives coloured at the step that owns that verdict — the component

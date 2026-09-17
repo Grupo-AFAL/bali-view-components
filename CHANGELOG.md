@@ -80,6 +80,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Bali::WorkflowSteps` pintaba un `.workflow-step-comment` vacío cuando el bloque del paso
+  no rendereaba nada.** El template preguntaba por `content?`, y `content?` de ViewComponent
+  contesta si se **pasó** un bloque, no si ese bloque escribió algo: el anfitrión que decide
+  adentro —el `if` dentro del `with_step`, que es como se escribe «el comentario, si lo hay»—
+  recibía `true` en todos los pasos y se llevaba un `div` vacío arrastrando su `mt-1`. La
+  condición pasa a `content.present?`, que mira la cadena ya rendereada y, por `blank?`, cubre
+  también el bloque de puros espacios; evaluarla ahí no cuesta un render extra porque
+  ViewComponent memoiza la captura y el `<%= content %>` de abajo reusa esa misma cadena. Un
+  bloque con contenido real no cambia, espacios alrededor incluidos. Encontrado en afal-apps
+  (`communications/campaigns/_approval_panel`), donde cada aprobación sin comentario que no
+  fuera el paso activo sumaba ese margen de más. (parte de #1145)
 - **El selector de columnas borraba la banda de grupo —y el estado vacío— al esconder una
   columna.** `column-selector` aplica la visibilidad POR ÍNDICE sobre toda fila del `tbody`, y
   dos filas de `Bali::Table` no llevan una celda por columna: la banda de grupo (un `td` con
