@@ -8,21 +8,23 @@
   </div>
   <div class="flex items-center gap-3">
     <h3 class="text-2xl font-bold">
-      <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
+      <%# A year view spans every month, so naming one of them in the title would be
+          wrong rather than merely redundant. %>
+      <% if period == :year %>
+        <%= start_date.year %>
+      <% else %>
+        <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
+      <% end %>
     </h3>
-    <% if period_switch && route_path.present? %>
-      <%= render Bali::Link::Component.new(
-            name: t('bali_view.calendar.header.week'),
-            href: route(extra_params(:week)),
-            variant: :primary,
-            style: (:outline if period == :month)
-          ) %>
-      <%= render Bali::Link::Component.new(
-            name: t('bali_view.calendar.header.month'),
-            href: route(extra_params(:month)),
-            variant: :primary,
-            style: (:outline if period == :week)
-          ) %>
+    <% if period_switch? %>
+      <% switch_periods.each do |switch_period| %>
+        <%= render Bali::Link::Component.new(
+              name: t("bali_view.calendar.header.#{switch_period}"),
+              href: route(extra_params(switch_period)),
+              variant: :primary,
+              style: switch_style(switch_period)
+            ) %>
+      <% end %>
     <% end %>
   </div>
   <div class="flex-none">

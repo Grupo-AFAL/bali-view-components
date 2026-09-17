@@ -63,4 +63,31 @@
       }
     }
   }
+
+  /* Year view — twelve miniature months as a density map.
+   *
+   * The cells are drawn with utilities in year_grid/component.rb and its
+   * template; only the two things that have no utility live here.
+   *
+   * `has-multiple` is the "more than one event on this day" marker: a dot in
+   * the corner, deliberately not a second colour. A cell is ~20px on a phone,
+   * and two colours in that space encode no order — nothing says which half
+   * comes first — while the blend between them reads as a state the host never
+   * defined. The colour stays the host's single answer (Bali::Calendar's
+   * `day_variant`); the dot only says "there is more", and the hover card
+   * carries the list.
+   *
+   * `year-today` and not `today`: `.today` above is `!important` and would
+   * repaint the day's background over whatever `day_variant` returned. A ring
+   * marks the day without taking the colour away from it. */
+  .year-view {
+    .year-day.has-multiple::after {
+      content: '';
+      @apply absolute top-px right-px size-1 rounded-full bg-current opacity-60;
+    }
+
+    .year-day.year-today {
+      @apply ring-1 ring-base-content/50;
+    }
+  }
 }

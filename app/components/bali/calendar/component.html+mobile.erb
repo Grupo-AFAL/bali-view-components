@@ -1,19 +1,34 @@
-<div class="calendar-component">
-  <div class="day-view">
-    <%= render(Bali::Columns::Component.new(class: 'gap-0')) do |c| %>
-      <%= c.with_column(class: 'flex-none') do %>
-        <%= link_to render(Bali::Icon::Component.new('chevron-left')), url_for(prev_day), title: t('bali_view.calendar.header.previous') %>
-      <% end %>
-      <%= c.with_column(class: 'text-center') do %>
-        <span class="text-lg text-base-content/70 font-normal">
-          <%= l(start_date, format: :long_with_day) %>
-        </span>
-      <% end %>
-      <%= c.with_column(class: 'flex-none') do %>
-        <%= link_to render(Bali::Icon::Component.new('chevron-right')), url_for(next_day), title: t('bali_view.calendar.header.next') %>
-      <% end %>
+<%# The only +mobile template in the package. It has always answered "phone" with
+    the day view, whatever `period:` said, and for :month/:week/:day it still does.
+    :year is the exception because the year grid is not a table: its months are a
+    responsive grid that reflows to one column, so the phone gets the same map the
+    desktop gets rather than a single day standing in for a whole year. %>
+<% if year_view? %>
+  <div class="calendar-component">
+    <%= render Bali::Card::Component.new(class: card_class) do %>
+      <%= header %>
+      <%= render year_grid_component %>
+      <%= footer %>
     <% end %>
-    <div class="divider"></div>
-    <%= render template, events: sorted_events[start_date], period: :day, day: start_date %>
   </div>
-</div>
+<% else %>
+  <div class="calendar-component">
+    <div class="day-view">
+      <%= render(Bali::Columns::Component.new(class: 'gap-0')) do |c| %>
+        <%= c.with_column(class: 'flex-none') do %>
+          <%= link_to render(Bali::Icon::Component.new('chevron-left')), url_for(prev_day), title: t('bali_view.calendar.header.previous') %>
+        <% end %>
+        <%= c.with_column(class: 'text-center') do %>
+          <span class="text-lg text-base-content/70 font-normal">
+            <%= l(start_date, format: :long_with_day) %>
+          </span>
+        <% end %>
+        <%= c.with_column(class: 'flex-none') do %>
+          <%= link_to render(Bali::Icon::Component.new('chevron-right')), url_for(next_day), title: t('bali_view.calendar.header.next') %>
+        <% end %>
+      <% end %>
+      <div class="divider"></div>
+      <%= render template, events: sorted_events[start_date], period: :day, day: start_date %>
+    </div>
+  </div>
+<% end %>
