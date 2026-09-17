@@ -39,6 +39,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuyo prototipo agrupa las iniciativas por estado con bandas plegables y encabezado rico; sin
   la opción, una tabla agrupada sale byte a byte como en v3.3.1.
 
+### Fixed
+
+- **Los forms internos de `Bali::DataTable::SavedViews` y `Bali::BulkActions::Action` cambiaban
+  de forma cuando el anfitrión ponía `Bali::FormBuilder` por omisión.** Los cuatro `form_with`
+  que la gema renderiza por su cuenta —renombrar, actualizar y guardar una vista, y el POST de
+  cada acción masiva— no declaraban builder, así que tomaban el del host. Con
+  `config.action_view.default_form_builder = "Bali::FormBuilder"` puesto —lo que recomienda
+  `docs/guides/installation.md` y lo que tienen encendido cinco de las seis apps del grupo—,
+  `f.text_field` salía envuelto en un `div.control` y con la clase `input` repetida (`grow`
+  queda inerte dentro del wrapper), y `f.submit` salía como `<button>`: sin el `name="commit"`
+  del POST, sin el `data-disable-with` contra el doble envío, y con el `btn-primary` del
+  builder pegado delante de la variante real de la acción (`btn btn-primary btn btn-sm
+  btn-error`, con cuál pinta decidido por el orden de la hoja de estilos y no por la acción).
+  Los cuatro declaran ahora `builder: ActionView::Helpers::FormBuilder`, así que rinden el
+  mismo marcado con o sin el default del anfitrión; una prueba nueva renderiza los dos
+  componentes bajo los dos defaults y compara el HTML, para que no vuelva a depender de la
+  configuración del host (#1137).
+
+  **La trampa: en esas cinco apps el marcado de producción SÍ cambia al subir.** En
+  gobierno-corporativo son 21 vistas con vistas guardadas y 6 con acciones masivas; en
+  afal-apps, 11 y 3; y además centinela-web (4), identity (1) y costa-norte (1). Ahí esos
+  botones vuelven de `<button>` a `<input type="submit">`, recuperan `name="commit"` y
+  `data-disable-with`, y **pierden el spinner** del controlador `submit-button`: el
+  controlador sigue en el `<form>`, pero reemplaza el `innerHTML` del submitter y eso no hace
+  nada sobre un `<input>`. Ese spinner nunca fue intencional en estos forms —sin el default
+  del anfitrión nunca lo tuvieron—, pero es visible. Una prueba de host que buscara
+  `input[type=submit]` en la barra de acciones masivas vuelve a encontrarlo. Reescribir estos
+  forms en el idioma del builder de Bali (que es la otra salida posible) sigue apartado para
+  v4 (#903).
+
 ## [v3.3.1] - 2026-09-14
 
 ### Added

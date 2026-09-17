@@ -134,6 +134,28 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector("input.btn.btn-sm.btn-error")
   end
 
+  # El marcado embarcado no puede depender de la configuración del anfitrión: el `form_with`
+  # de la acción declara el builder de Rails, así que rinde igual con y sin
+  # `default_form_builder = Bali::FormBuilder` puesto por el host (#1137). Sin ese `builder:`,
+  # `form.submit` salía como `<button class="btn btn-primary">`: se perdían el `name="commit"`
+  # del POST y el `data-disable-with` que frena el doble envío, y el `btn-primary` del builder
+  # quedaba pegado delante de la variante real (`btn btn-primary btn btn-sm btn-error`).
+  def test_an_actions_form_renders_the_same_under_the_hosts_default_builder
+    render_action = lambda do
+      render_inline(Bali::BulkActions::Action::Component.new(
+        label: "Delete", href: "/delete", variant: :error
+      )).to_html
+    end
+
+    with_rails_default = render_action.call
+    with_bali_default = with_default_form_builder(Bali::FormBuilder) { render_action.call }
+
+    assert_equal(with_rails_default, with_bali_default)
+    # `page` quedó en el segundo render (el del builder de Bali por omisión).
+    assert_selector("form[action='/delete'] input[type='submit'][name='commit'].btn.btn-error")
+    assert_selector("form[action='/delete'] input[type='submit'][data-disable-with]")
+  end
+
   def test_actions_with_delete_method_renders_as_a_form_with_hidden_method_field
     render_inline(@component) do |c|
       c.with_action(label: "Remove", href: "/remove", method: :delete)

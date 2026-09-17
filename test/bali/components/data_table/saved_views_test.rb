@@ -327,4 +327,27 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     ids = page.native.css("input[type='text']").map { |input| input["id"] }.compact
     assert_equal ids.uniq.size, ids.size, "los ids de los inputs de nombre deben ser únicos"
   end
+
+  # El marcado embarcado no puede depender de la configuración del anfitrión: los tres forms
+  # del dropdown (renombrar, actualizar y guardar) declaran el builder de Rails, así que rinden
+  # igual con y sin `default_form_builder = Bali::FormBuilder` puesto por el host (#1137).
+  # Quitar ese `builder:` de la vista devuelve `f.text_field` a `div.control` y `f.submit` a
+  # `<button>`, y esta comparación falla.
+  def test_the_internal_forms_render_the_same_under_the_hosts_default_builder
+    # El estado desviado de su vista de origen es el que deja los tres forms en pantalla.
+    state = ActionController::Parameters.new(view_origin: "7", q: { g: { "0" => { name_i_cont: "verde" } } })
+    with_rails_default = render_component(form(state, views_store: origin_store)).to_html
+    with_bali_default = with_default_form_builder(Bali::FormBuilder) do
+      render_component(form(state, views_store: origin_store)).to_html
+    end
+
+    assert_equal with_rails_default, with_bali_default
+
+    # `page` quedó en el segundo render (el del builder de Bali por omisión): lo concreto que
+    # se perdía ahí era el submit plano de Rails con su `name="commit"`, y el input se iba
+    # envuelto en el `div.control` del builder. `visible: :all` porque el form de guardar nace
+    # oculto.
+    assert_selector "form[action='/vistas/7'] input[type='submit'][name='commit']", visible: :all
+    assert_no_selector "div.control", visible: :all
+  end
 end
