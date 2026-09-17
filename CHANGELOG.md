@@ -78,6 +78,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuyo prototipo agrupa las iniciativas por estado con bandas plegables y encabezado rico; sin
   la opción, una tabla agrupada sale byte a byte como en v3.3.1.
 
+### Fixed
+
+- **El selector de columnas borraba la banda de grupo —y el estado vacío— al esconder una
+  columna.** `column-selector` aplica la visibilidad POR ÍNDICE sobre toda fila del `tbody`, y
+  dos filas de `Bali::Table` no llevan una celda por columna: la banda de grupo (un `td` con
+  `colspan`, precedido por la celda del seleccionar-todo cuando la tabla es `selectable:`) y el
+  estado vacío (un `td` que cubre la tabla entera). Ahí el `td` número N no es la columna N, así
+  que esconder la primera columna escondía la banda completa o el mensaje de «no hay resultados»
+  —este último, vivo en cualquier listado sin resultados con el selector encendido—.
+
+  Con el `collapsible_groups:` de esta misma versión la banda dejó de ser decoración: contiene el
+  ÚNICO botón que despliega las filas de su grupo, y con `collapsed_groups:` esas filas nacen
+  escondidas. Esconder una columna en una tabla con grupos plegados las dejaba inalcanzables sin
+  recargar la página. Visto en el portafolio de TDFlow (afal-apps) y en el listado de maestros de
+  gobierno-corporativo.
+
+  El índice del selector es una POSICIÓN DE COLUMNA —la del `thead`—, así que el controlador
+  recorre ahora la fila sumando `colSpan` hasta llegar a ella, en el `tbody` y en el `tfoot`. La
+  fila de totales tenía el mismo defecto en su versión más dañina: no borraba la celda, borraba
+  **la de al lado**. Medido en el preview nuevo, cuya fila de totales es `6 iniciativas`
+  (`colspan="2"`) · `6 líderes` · `4 cuadrantes`, escondiendo "Leader" (índice 2): antes quedaba
+  `4 cuadrantes` con `display: none` y `6 líderes` visible; ahora se esconde `6 líderes`. Esa
+  rama del controlador viajaba sin una sola aserción y sin nada que la ejerciera: `with_footer`
+  está probado en `table_test.rb`, pero ninguna tabla con `tfoot` pasaba por el selector.
+
+  La guarda va sobre la CELDA y no sobre la fila a propósito, y esa es la trampa para quien toque
+  esto después: el `<tr>` del estado vacío no lleva clase propia, así que un
+  `tr:not(.bali-table-group-row)` arregla la banda y deja el otro caso roto. Lo que las tres
+  filas raras comparten es el `colspan` de la celda, y eso se ve desde la celda.
+
+  **Límite conocido, medido y no supuesto.** Lo que distingue a esas filas es que su celda abarca
+  MÁS de una columna, y en una tabla de UNA sola columna visible no abarca más de una: el
+  `colspan` de la banda es `visible_headers.count` y el del estado vacío `group_colspan`, así que
+  los dos salen con `colspan="1"` y son indistinguibles de una celda de columna. Esconder esa
+  única columna se los lleva igual que antes del arreglo. Un listado de una columna con selector
+  de columnas es una rareza —el selector existe para tablas anchas— y distinguirlos pediría
+  numerar las columnas desde el servidor, que es un cambio de formato que este PR no hace: queda
+  escrito acá y en el comentario de `columnCell` para que el siguiente no lo redescubra.
+
+  **Segundo límite, también medido.** Una celda que abarca varias columnas no se esconde, pero
+  tampoco se encoge: conserva su `colspan` aunque una de las columnas que cubre esté oculta. En
+  la fila de totales del preview, cuya etiqueta abarca «Initiative» y «Area», esconder
+  «Initiative» deja la fila una columna más ancha que el encabezado y corre los totales
+  siguientes a la derecha: «6 líderes» queda bajo «Quadrant». Antes del arreglo esa fila también
+  se desalineaba, de otra forma. Hoy no tiene superficie: ninguna vista de afal-apps ni de
+  gobierno-corporativo combina el selector de columnas con `with_footer` (medido sobre
+  `origin/main`). El arreglo sería ajustar el `colspan` al vuelo, que es otro contrato para el
+  controlador y queda fuera de este corte.
+
+  La composición está en el preview nuevo **DataTable › With Column Selector (grouped)**, con los
+  tres listados que cubre `cypress/e2e/data-table-column-selector.cy.js`: uno agrupado con una
+  banda plegada y fila de totales, uno agrupado y `selectable:` —el de gobierno-corporativo,
+  donde la banda lleva DOS celdas y las columnas de datos arrancan en el índice 1, después de la
+  de selección— y uno sin resultados.
+
+  Es la mitad de #1144 que se podía arreglar sin decidir nada: el selector sigue persistiendo los
+  índices VISIBLES en `localStorage`, así que una columna agregada después nace oculta para quien
+  ya tenía preferencias guardadas. Cambiar eso es cambiar el formato que también lee
+  `saved_views_controller.js` y que viaja dentro de una vista guardada, y esa decisión sigue
+  abierta.
+- **Los forms internos de `Bali::DataTable::SavedViews` y `Bali::BulkActions::Action` cambiaban
+  de forma cuando el anfitrión ponía `Bali::FormBuilder` por omisión.** Los cuatro `form_with`
+  que la gema renderiza por su cuenta —renombrar, actualizar y guardar una vista, y el POST de
+  cada acción masiva— no declaraban builder, así que tomaban el del host. Con
+  `config.action_view.default_form_builder = "Bali::FormBuilder"` puesto —lo que recomienda
+  `docs/guides/installation.md` y lo que tienen encendido las seis apps del grupo—,
+  `f.text_field` salía envuelto en un `div.control` y con la clase `input` repetida (`grow`
+  queda inerte dentro del wrapper), y `f.submit` salía como `<button>`: sin el `name="commit"`
+  del POST y con el `btn-primary` del builder pegado delante de la variante real de la acción
+  (`btn btn-primary btn btn-sm btn-error`, con cuál pinta decidido por el orden de la hoja de
+  estilos y no por la acción). Los cuatro declaran ahora
+  `builder: ActionView::Helpers::FormBuilder`, así que rinden el mismo marcado con o sin el
+  default del anfitrión; una prueba nueva renderiza los dos componentes bajo los dos defaults
+  y compara el HTML, para que no vuelva a depender de la configuración del host (#1137).
+
+  **La trampa: en cinco de las seis apps el marcado de producción SÍ cambia al subir.** El
+  default lo tienen las seis (`git grep -l default_form_builder origin/main -- config` da un
+  hit en cada una), pero la superficie donde se nota son cinco: medido con
+  `git grep -l with_saved_views origin/main -- app` y su par `with_bulk_actions`, son
+  gobierno-corporativo (23 vistas con vistas guardadas, 3 con acciones masivas), afal-apps
+  (11 y 3), centinela-web (4 y 0), identity (0 y 1) y costa-norte (0 y 1). opina tiene el
+  default puesto y ni una vista de las dos (0 y 0), así que ahí no cambia nada.
+
+  Lo que se ve en esas cinco: los submits vuelven de `<button>` a `<input type="submit">` y
+  recuperan `name="commit"`. **La única diferencia visual es la etiqueta del botón
+  "Actualizar «nombre»"** (`.update_current` del dropdown de vistas guardadas), que es de
+  ancho completo (`btn-block`) y lleva `justify-start gap-2`: sobre el `<button>` del builder,
+  `justify-start` gana al `justify-content: center` de `.btn` y corre la etiqueta a la
+  izquierda; sobre un `<input type="submit">` no hay ítems flex que alinear, así que las dos
+  clases quedan inertes y la etiqueta vuelve al centro.
+  Medido en Chromium contra el `tailwind.css` compilado de gobierno-corporativo: el texto pasa
+  de arrancar a 8px del borde izquierdo a quedar con 135px de margen a cada lado, y un control
+  sin `justify-start` cae exactamente sobre el mismo centro.
+
+  El `data-disable-with` que también vuelve con el `<input>` es solo un hecho del marcado: lo
+  lee rails-ujs, y ninguna de las seis lo tiene (`git grep -lE "rails-ujs|@rails/ujs|jquery-rails"
+  origin/main` no da un solo hit fuera de una línea de CHANGELOG en afal-apps). No frena
+  ningún doble envío en estas apps. Tampoco hay spinner que perder: el `submit-button` lo
+  monta `Bali::FormHelper#form_with`, que es opt-in del anfitrión —solo el dummy lo incluye—
+  y ninguna de las seis lo incluye, así que estos forms nunca lo tuvieron. Una prueba de host
+  que buscara `input[type=submit]` en la barra de acciones masivas vuelve a encontrarlo.
+  Reescribir estos forms en el idioma del builder de Bali (que es la otra salida posible)
+  sigue apartado para v4 (#903).
+
 ## [v3.3.1] - 2026-09-14
 
 ### Added

@@ -38,6 +38,37 @@ module Bali
         { key: :created_at, label: "Created At", type: :date }
       ].freeze
 
+      # Fixtures del selector de columnas sobre una tabla AGRUPADA (#1144). Del portafolio
+      # de TDFlow, que es donde se vio: bandas por etapa del embudo, una de ellas plegada.
+      COLUMN_SELECTOR_HEADERS = [
+        { name: "Initiative" },
+        { name: "Area" },
+        { name: "Leader" },
+        { name: "Quadrant" }
+      ].freeze
+
+      COLUMN_SELECTOR_STAGES = {
+        "prioritization" => "Priorización",
+        "business_case" => "Caso de negocio",
+        "in_project" => "Proyecto asignado"
+      }.freeze
+
+      # Pre-ordenadas por etapa, como exige la agrupación.
+      COLUMN_SELECTOR_RECORDS = [
+        { stage: "prioritization", title: "Firma electrónica de contratos con proveedores",
+          area: "Legal", leader: "Mariana Escobedo", quadrant: "1 - Quick win" },
+        { stage: "prioritization", title: "Chatbot de soporte interno de TI",
+          area: "Tecnología", leader: "Óscar Lomelí", quadrant: "3 - Relleno" },
+        { stage: "business_case", title: "Migrar los reportes de cierre a BI",
+          area: "Finanzas", leader: "Ana Sofía Treviño", quadrant: "2 - Estratégica" },
+        { stage: "business_case", title: "Monitoreo IoT de temperatura en cadena de frío",
+          area: "Operación", leader: "Raúl Cardona", quadrant: "4 - Evitar" },
+        { stage: "in_project", title: "Tablero de nivel de servicio para atención a clientes",
+          area: "Comercial", leader: "Diana Guerrero", quadrant: "2 - Estratégica" },
+        { stage: "in_project", title: "Rediseño del proceso de alta de colaboradores",
+          area: "Recursos Humanos", leader: "Nancy Morales", quadrant: "2 - Estratégica" }
+      ].freeze
+
       # Store en memoria para el preview de vistas guardadas (B2): cumple el contrato de
       # SavedViewsConfiguration sin tocar storage real.
       PreviewSavedView = Struct.new(:id, :name, :payload, keyword_init: true)
@@ -416,6 +447,34 @@ module Bali
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES,
             display_mode: actual_display_mode
+          }
+        )
+      end
+
+      # @label With Column Selector (grouped)
+      # The column selector over a GROUPED table — the composition where hiding a column used
+      # to hide the wrong cell (#1144).
+      #
+      # Three kinds of row carry no cell per column: the group band (one `td` with `colspan`,
+      # preceded by the select-all cell when the table is `selectable:`), the empty state (one
+      # `td` covering the whole table) and a `tfoot` totals row whose label spans several
+      # columns. Applying visibility BY INDEX wiped the band — with the fold button inside it —
+      # or the "no results" message, and in the footer it hid the cell NEXT to the one it meant.
+      # The controller now walks the row adding up `colSpan`, so the guard is on the CELL and
+      # its column position: `tr:not(.bali-table-group-row)` would fix the band and leave the
+      # empty state broken, because that row carries no class.
+      #
+      # "Proyecto asignado" is born folded: its button is the ONLY thing that can bring those
+      # rows back, so losing it left them unreachable without a reload. The second listing is
+      # the same table `selectable:` — the band then carries TWO cells and the data columns
+      # start at index 1 — and the third is the selector over a table with no results.
+      def with_column_selector
+        render_with_template(
+          template: "bali/data_table/previews/with_column_selector",
+          locals: {
+            headers: COLUMN_SELECTOR_HEADERS,
+            stages: COLUMN_SELECTOR_STAGES,
+            records: COLUMN_SELECTOR_RECORDS
           }
         )
       end
