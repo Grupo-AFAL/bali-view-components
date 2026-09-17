@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::Topbar::ToolsMenu` traduce `flightdeck`** (#1138). Cuatro apps del grupo
+  —identity, centinela-web, costa-norte y gobierno-corporativo— cambiaron
+  `mission_control-jobs` por `solid_queue-flightdeck` como panel de Solid Queue, y con la gema
+  cambió la clave del ítem. La gema no la conocía, así que cada app cargó la etiqueta en su
+  propio `config/locales`: ocho entradas (es + en por app) de la misma cadena, que es justo la
+  duplicación que este componente existe para evitar. Ahora `flightdeck` viene en
+  `bali_view.topbar.tools_menu.items` con la etiqueta de siempre, «Panel de trabajos» /
+  «Jobs dashboard», byte a byte la que las apps ya muestran.
+
+  **Esto no cambia ninguna pantalla el día del corte, y es a propósito.** `label_for` consulta
+  primero la clave del host (`topbar.tools_menu.items.flightdeck`) y sólo después la de la gema,
+  así que en las cuatro apps el override propio sigue ganando y la etiqueta que se pinta es la
+  misma de antes. El beneficio llega en el siguiente bump de cada app: pueden borrar sus dos
+  entradas de locale y la etiqueta la pone la gema. Ojo con costa-norte, que es el único caso
+  donde el borrado no es trivial de leer: corre su español como `es-MX`
+  (`config.i18n.default_locale = :"es-MX"`) y la gema traduce bajo `:es`, así que alcanza la
+  etiqueta por `config.i18n.fallbacks = [ :es, :en ]` — verificado en
+  `config/application.rb:35-40`. Si esa cadena de fallbacks desapareciera, borrar el override
+  dejaría la etiqueta en inglés, no vacía.
+
+  **`mission_control` se queda.** No es un alias ni un renombre: afal-apps sigue montando
+  `mission_control-jobs` (`app/models/internal_tools.rb`), así que las dos claves conviven y
+  resuelven a la misma etiqueta. Quien migre de una gema a la otra cambia la clave y nada más.
+
 - **`Bali::Table(collapsible_groups: true)` — las bandas de grupo se pliegan.** Cada fila de
   grupo pasa a ser un botón de disclosure (`aria-expanded` + `aria-controls`) que esconde y
   muestra las filas de su corrida, con el controlador Stimulus nuevo `table-groups` (lo

@@ -651,6 +651,7 @@ es:
         trigger_label: "Herramientas"
         items:
           mission_control: "Panel de trabajos"
+          flightdeck: "Panel de trabajos"
           analytics: "Tablero de adopción"
           letter_opener: "Bandeja de correo"
           rails_routes: "Rutas de Rails"
