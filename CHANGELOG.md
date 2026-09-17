@@ -47,9 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `colspan`, precedido por la celda del seleccionar-todo cuando la tabla es `selectable:`) y el
   estado vacío (un `td` que cubre la tabla entera). Ahí el `td` número N no es la columna N, así
   que esconder la primera columna escondía la banda completa o el mensaje de «no hay resultados»
-  —este último, vivo en cualquier listado sin resultados con el selector encendido—. El
-  controlador salta ahora cualquier celda que abarque varias columnas, en el `tbody` y en el
-  `tfoot`, donde una fila de totales con `colspan` tenía el mismo defecto.
+  —este último, vivo en cualquier listado sin resultados con el selector encendido—.
 
   Con el `collapsible_groups:` de esta misma versión la banda dejó de ser decoración: contiene el
   ÚNICO botón que despliega las filas de su grupo, y con `collapsed_groups:` esas filas nacen
@@ -57,11 +55,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   recargar la página. Visto en el portafolio de TDFlow (afal-apps) y en el listado de maestros de
   gobierno-corporativo.
 
+  El índice del selector es una POSICIÓN DE COLUMNA —la del `thead`—, así que el controlador
+  recorre ahora la fila sumando `colSpan` hasta llegar a ella, en el `tbody` y en el `tfoot`. La
+  fila de totales tenía el mismo defecto en su versión más dañina: no borraba la celda, borraba
+  **la de al lado**. Medido en el preview nuevo, cuya fila de totales es `6 iniciativas`
+  (`colspan="2"`) · `6 líderes` · `4 cuadrantes`, escondiendo "Leader" (índice 2): antes quedaba
+  `4 cuadrantes` con `display: none` y `6 líderes` visible; ahora se esconde `6 líderes`. Esa
+  rama del controlador viajaba sin una sola aserción y sin nada que la ejerciera: `with_footer`
+  está probado en `table_test.rb`, pero ninguna tabla con `tfoot` pasaba por el selector.
+
   La guarda va sobre la CELDA y no sobre la fila a propósito, y esa es la trampa para quien toque
   esto después: el `<tr>` del estado vacío no lleva clase propia, así que un
-  `tr:not(.bali-table-group-row)` arregla la banda y deja el otro caso roto. Lo que las dos filas
-  comparten es el `colspan` de la celda. La composición está en el preview nuevo **DataTable ›
-  With Column Selector (grouped)**, con una banda plegada y un listado sin resultados.
+  `tr:not(.bali-table-group-row)` arregla la banda y deja el otro caso roto. Lo que las tres
+  filas raras comparten es el `colspan` de la celda, y eso se ve desde la celda.
+
+  **Límite conocido, medido y no supuesto.** Lo que distingue a esas filas es que su celda abarca
+  MÁS de una columna, y en una tabla de UNA sola columna visible no abarca más de una: el
+  `colspan` de la banda es `visible_headers.count` y el del estado vacío `group_colspan`, así que
+  los dos salen con `colspan="1"` y son indistinguibles de una celda de columna. Esconder esa
+  única columna se los lleva igual que antes del arreglo. Un listado de una columna con selector
+  de columnas es una rareza —el selector existe para tablas anchas— y distinguirlos pediría
+  numerar las columnas desde el servidor, que es un cambio de formato que este PR no hace: queda
+  escrito acá y en el comentario de `columnCell` para que el siguiente no lo redescubra.
+
+  La composición está en el preview nuevo **DataTable › With Column Selector (grouped)**, con los
+  tres listados que cubre `cypress/e2e/data-table-column-selector.cy.js`: uno agrupado con una
+  banda plegada y fila de totales, uno agrupado y `selectable:` —el de gobierno-corporativo,
+  donde la banda lleva DOS celdas y las columnas de datos arrancan en el índice 1, después de la
+  de selección— y uno sin resultados.
 
   Es la mitad de #1144 que se podía arreglar sin decidir nada: el selector sigue persistiendo los
   índices VISIBLES en `localStorage`, así que una columna agregada después nace oculta para quien

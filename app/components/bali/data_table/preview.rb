@@ -455,17 +455,19 @@ module Bali
       # The column selector over a GROUPED table — the composition where hiding a column used
       # to hide the wrong cell (#1144).
       #
-      # Two rows of `Bali::Table` carry no cell per column: the group band (one `td` with
-      # `colspan`, preceded by the select-all cell when the table is `selectable:`) and the
-      # empty state (one `td` covering the whole table). Applying visibility BY INDEX to every
-      # `tbody` row wiped the band — with the fold button inside it — or the "no results"
-      # message. The controller now skips any cell that spans several columns, so the guard is
-      # on the CELL: `tr:not(.bali-table-group-row)` would fix the band and leave the empty
-      # state broken, because that row carries no class.
+      # Three kinds of row carry no cell per column: the group band (one `td` with `colspan`,
+      # preceded by the select-all cell when the table is `selectable:`), the empty state (one
+      # `td` covering the whole table) and a `tfoot` totals row whose label spans several
+      # columns. Applying visibility BY INDEX wiped the band — with the fold button inside it —
+      # or the "no results" message, and in the footer it hid the cell NEXT to the one it meant.
+      # The controller now walks the row adding up `colSpan`, so the guard is on the CELL and
+      # its column position: `tr:not(.bali-table-group-row)` would fix the band and leave the
+      # empty state broken, because that row carries no class.
       #
       # "Proyecto asignado" is born folded: its button is the ONLY thing that can bring those
       # rows back, so losing it left them unreachable without a reload. The second listing is
-      # the same selector over a table with no results.
+      # the same table `selectable:` — the band then carries TWO cells and the data columns
+      # start at index 1 — and the third is the selector over a table with no results.
       def with_column_selector
         render_with_template(
           template: "bali/data_table/previews/with_column_selector",

@@ -115,20 +115,35 @@ export default class extends Controller {
   /**
    * La celda que ES la columna `index` en esa fila, o null cuando el índice no la nombra.
    *
-   * La guarda va sobre la CELDA y no sobre la fila a propósito: `Bali::Table` pinta dos
-   * clases de fila sin una celda por columna —la banda de grupo (su `td` lleva `colspan`,
-   * precedido o no por la celda del seleccionar-todo) y el estado vacío (un `td` que cubre
-   * la tabla entera)— y solo la primera lleva clase propia, así que un
-   * `tr:not(.bali-table-group-row)` arreglaría la banda y dejaría el otro caso roto. Lo que
-   * las dos filas comparten es el `colspan` de la celda, y eso se ve desde la celda.
+   * El índice del selector es una POSICIÓN DE COLUMNA —la del `thead`—, y en una fila con
+   * `colspan` esa posición no es el número de celda: hay que ir sumando `colSpan` hasta
+   * llegar a ella. `Bali::Table` pinta tres filas donde la cuenta se separa: la banda de
+   * grupo (su `td` lleva `colspan`, precedido o no por la celda del seleccionar-todo), el
+   * estado vacío (un `td` que cubre la tabla entera) y una fila de totales en el `tfoot`,
+   * cuya etiqueta abarca varias columnas. Solo la primera lleva clase propia, así que un
+   * `tr:not(.bali-table-group-row)` arreglaría la banda y dejaría las otras dos rotas: por
+   * eso la guarda va sobre la CELDA y no sobre la fila.
    *
-   * Esconderla por índice borraba la cosa equivocada: la banda entera —con el botón de
-   * plegado adentro, y con `collapsed_groups:` sus filas quedan inalcanzables sin recargar—
-   * o el mensaje de «no hay resultados».
+   * Por índice crudo se escondía la cosa equivocada: la banda entera —con el botón de
+   * plegado adentro, y con `collapsed_groups:` sus filas quedaban inalcanzables sin
+   * recargar—, el mensaje de «no hay resultados», o —en el `tfoot`— el total de la columna
+   * de al lado.
+   *
+   * LÍMITE CONOCIDO, medido y no supuesto: lo que distingue a esas filas es que su celda
+   * abarca MÁS de una columna. En una tabla de UNA sola columna visible no abarca más de
+   * una —la banda sale con `colspan="1"` y el estado vacío también—, así que esconder esa
+   * única columna se los lleva igual. El CHANGELOG de #1144 guarda la medición.
    */
   columnCell (cells, index) {
-    const cell = cells[index]
+    let column = 0
 
-    return cell && cell.colSpan <= 1 ? cell : null
+    for (const cell of cells) {
+      if (column === index) return cell.colSpan <= 1 ? cell : null
+      if (column > index) return null
+
+      column += cell.colSpan
+    }
+
+    return null
   }
 }
