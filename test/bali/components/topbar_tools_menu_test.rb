@@ -91,6 +91,16 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector(".bali-topbar-tools-menu", text: "Jobs dashboard")
   end
 
+  # `:flightdeck` es el panel de trabajos de las apps que cambiaron mission_control-jobs por
+  # solid_queue-flightdeck (#1138). Distingue igual que `:mission_control`: la gema dice
+  # "Jobs dashboard" y humanize diría "Flightdeck". `:mission_control` se queda —afal-apps
+  # sigue en esa gema—, así que las dos claves conviven con la misma etiqueta.
+  def test_the_flightdeck_key_uses_the_gems_label
+    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :flightdeck) ]))
+
+    assert_selector(".bali-topbar-tools-menu", text: "Jobs dashboard")
+  end
+
   def test_an_unknown_key_falls_back_to_humanize
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mi_herramienta) ]))
 
