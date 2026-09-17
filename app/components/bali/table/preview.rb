@@ -108,6 +108,56 @@ module Bali
         { name: 'State' }
       ].freeze
 
+      COLLAPSIBLE_HEADERS = [
+        { name: 'Title' },
+        { name: 'Area' },
+        { name: 'Leader' },
+        { name: 'Quadrant' }
+      ].freeze
+
+      # Del portafolio de TDFlow: cada banda es un estado del embudo y lleva punto de color,
+      # rótulo, conteo y un resumen — lo que el texto por default de la banda no puede
+      # pintar. Las clases van LITERALES en el hash: Tailwind v4 purga las interpoladas.
+      COLLAPSIBLE_STATUSES = {
+        'prioritization' => { label: 'Priorización', dot: 'bg-primary',
+                              summary: 'Revisión y sello del equipo de TD' },
+        'business_case' => { label: 'Caso de negocio', dot: 'bg-secondary',
+                             summary: 'Modelo financiero en construcción' },
+        'pending_approval' => { label: 'Pendiente de aprobación', dot: 'bg-warning',
+                                summary: 'Cifras congeladas en el gate' },
+        'in_project' => { label: 'Proyecto asignado', dot: 'bg-success',
+                          summary: 'Ejecución en curso' },
+        'measuring' => { label: 'Medición de valor', dot: 'bg-info',
+                         summary: 'Midiendo el beneficio prometido' }
+      }.freeze
+
+      # Pre-ordenadas por estado, como exige la agrupación.
+      COLLAPSIBLE_RECORDS = [
+        { id: 62, status: 'prioritization', title: 'Firma electrónica de contratos con proveedores',
+          area: 'Legal', leader: 'Mariana Escobedo', quadrant: '1 · Quick win' },
+        { id: 58, status: 'prioritization', title: 'Chatbot de soporte interno de TI',
+          area: 'Tecnología', leader: 'Óscar Lomelí', quadrant: '3 · Relleno' },
+        { id: 51, status: 'business_case', title: 'Migrar los reportes de cierre a BI',
+          area: 'Finanzas', leader: 'Ana Sofía Treviño', quadrant: '2 · Estratégica' },
+        { id: 47, status: 'business_case', title: 'Monitoreo IoT de temperatura en cadena de frío',
+          area: 'Operación', leader: 'Raúl Cardona', quadrant: '4 · Evitar' },
+        { id: 38, status: 'pending_approval', title: 'Portal de autoservicio para constancias laborales',
+          area: 'Recursos Humanos', leader: 'Nancy Morales', quadrant: '1 · Quick win' },
+        { id: 33, status: 'in_project', title: 'Tablero de nivel de servicio para atención a clientes',
+          area: 'Comercial', leader: 'Diana Guerrero', quadrant: '2 · Estratégica' },
+        { id: 28, status: 'measuring', title: 'Rediseño del proceso de alta de colaboradores',
+          area: 'Recursos Humanos', leader: 'Nancy Morales', quadrant: '2 · Estratégica' },
+        { id: 21, status: 'measuring', title: 'Centralizar el catálogo de proveedores',
+          area: 'Compras', leader: 'Mariana Escobedo', quadrant: '1 · Quick win' }
+      ].freeze
+
+      # Totales del GROUP BY, con llaves crudas: la página muestra dos de las nueve en
+      # priorización, así que esa banda dice "(9) — mostrando 2".
+      COLLAPSIBLE_COUNTS = {
+        'prioritization' => 9, 'business_case' => 2, 'pending_approval' => 1,
+        'in_project' => 1, 'measuring' => 2
+      }.freeze
+
       # Solo los propuestos se aprueban en masa; aprobados y retirados están en la misma
       # página porque el listado es uno solo, y no participan de la selección.
       CATALOG_RECORDS = [
@@ -182,6 +232,33 @@ module Bali
             headers: GROUPING_ENUM_HEADERS,
             records: GROUPING_ENUM_RECORDS,
             counts: GROUPING_ENUM_COUNTS
+          }
+        )
+      end
+
+      # @label Collapsible groups
+      # `collapsible_groups: true` turns every group band into a disclosure button that folds
+      # and unfolds the rows of its run (Stimulus `table-groups`). The state lives in the DOM
+      # — `aria-expanded` on the button, `hidden` on the rows — so without JS nothing is
+      # hidden: the server only marks the button, and the controller folds the rows on
+      # connect. `collapsed_groups:` names the bands born folded (raw values, a callable, or
+      # `true` for all of them).
+      #
+      # `with_group_header { |group| }` replaces the band's text with the block's output:
+      # `group` carries `value`, `rows`, the translated `label` and the global `count`, so
+      # the host paints a colour dot, a pill and a summary without redoing either lookup.
+      # Keep it static — the content sits inside the disclosure button.
+      #
+      # The second table shows that folding and selection coexist: the group select-all
+      # stays in its own cell, outside the button, and still selects the folded rows.
+      def collapsible_groups
+        render_with_template(
+          template: 'bali/table/previews/collapsible_groups',
+          locals: {
+            headers: COLLAPSIBLE_HEADERS,
+            statuses: COLLAPSIBLE_STATUSES,
+            records: COLLAPSIBLE_RECORDS,
+            counts: COLLAPSIBLE_COUNTS
           }
         )
       end

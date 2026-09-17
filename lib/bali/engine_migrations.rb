@@ -7,9 +7,10 @@ module Bali
   # The migrations the engine ships, one per feature, and how to install just ONE of them.
   #
   # Rails' own `bali:install:migrations` copies every migration an engine ships. Bali ships
-  # five and they are unrelated to each other — an app that adopts saved views also gets
-  # content versions, entity references, acknowledgments and block editor comments, four
-  # tables it never asked for in the `db/schema.rb` every one of its PRs reviews (#1079).
+  # six and they are unrelated to each other — an app that adopts saved views also gets
+  # content versions, entity references, acknowledgments, block editor comments and
+  # dashboard widgets: five tables it never asked for in the `db/schema.rb` every one of
+  # its PRs reviews (#1079).
   # The guide's per-feature sections all pointed at that one command, so following the
   # recipe literally was the way to hit it.
   #
@@ -42,7 +43,7 @@ module Bali
       # own task uses — over a directory holding just that file. Narrowing what is offered
       # to the copier, rather than reimplementing it, is what keeps the renumbering, the
       # `.bali.rb` scope suffix and the already-installed check identical to installing all
-      # five.
+      # six.
       def install(feature, destination:, on_skip: nil, on_copy: nil)
         source = path_for(feature)
 

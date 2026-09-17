@@ -399,7 +399,7 @@ builds one entry. `route_helper` and `url` are exclusive and exactly one is requ
 `Rails.application.routes.url_helpers`) must respond to **directly** — it has to end in
 `_path` or `_url`, or `Tool.new` raises, because a name behind an engine proxy
 (`main_app.foo_path`) can't be expressed this way; `url` is a lambda re-read on every call.
-`key` picks the default label from six known translations (es/en); `name:` overrides it,
+`key` picks the default label from seven known translations (es/en); `name:` overrides it,
 and a host can override a known key too (`topbar.tools_menu.items.<key>`, same cascade for
 the trigger's own label via `topbar.tools_menu.trigger_label`). `meta` is free for the
 host — the gem carries it but never reads it.
@@ -870,11 +870,11 @@ Picking between the last three is about what should happen to the group *as the 
 - `trigger_label` - Text of the default trigger (default "Search…"/"Buscar…" via i18n). Independent of `placeholder` — the trigger is usually shorter
 - `density` - `:default` (44px rows) or `:compact` (32px rows)
 - `no_results_text` / `no_results_subtitle` - Empty-state copy
-- `shortcut_label` - Display label for the shortcut hint on the default trigger (default `⌘K`; `nil` hides it). Actual binding is hardcoded to ⌘K/Ctrl+K
+- `shortcut_label` - Display label for the shortcut hint on the default trigger. `:auto` (default) renders `⌘K` and lets the Stimulus controller rewrite it to `Ctrl K` on a machine that is not a Mac — the server cannot know which keyboard is in front of the user, and a cached page would hand one machine's answer to every other one. A String is rendered literally and never rewritten; `nil` hides the hint. The binding itself accepts both chords on both platforms; only the label picks a side
 
 **Triggers:**
 - Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it
-- `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name
+- `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name. A hand-rolled trigger that wants the same platform-aware hint puts `data-command-target="shortcut"` on its own `kbd` — the controller fills it in
 - Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 
@@ -1155,7 +1155,9 @@ positional.
 - `date` - Preformatted date/time text; the component does not format
 - `number` - Circle content, overriding the automatic numbering
 - Content block - Free markup rendered under the meta lines (a rejection
-  comment, a `Bali::Tag`, links)
+  comment, a `Bali::Tag`, links). A block that renders blank draws no comment
+  container, so deciding *inside* the block — "the comment, if there is one" —
+  leaves the step exactly as one declared with no block at all.
 
 The connector under each circle takes the state of the **next** step, so the
 line arrives coloured at the step that owns that verdict — the component
@@ -1480,6 +1482,49 @@ painted instead:
 `group_label:` wins over `group_i18n_scope:`. Neither sees `nil`, the SQL NULL band — that
 one already has its own translatable key. And because the label never reaches the row, the
 group's select-all token keeps deriving from the value rather than from its translation.
+
+**Collapsible groups** — `collapsible_groups: true` turns every band into a disclosure
+button that folds and unfolds the rows of its run, driven by the `table-groups` Stimulus
+controller (registered by `registerAllComponents`). The state lives in the DOM — `aria-expanded`
+on the button, `hidden` on the rows — so a Turbo cache restore keeps it, and **without JS
+nothing is hidden**: the server only marks the button, and the controller folds the rows on
+connect. `collapsed_groups:` names the bands born folded: a list of raw values (string/symbol
+tolerant, like `group_counts`), a callable over the raw value, or `true` for all of them. It
+needs `collapsible_groups:` — a group born folded with nothing to unfold it raises.
+
+```erb
+<%= render Bali::Table::Component.new(id: "portfolio", collapsible_groups: true,
+                                      collapsed_groups: %w[retired],
+                                      group_counts: counts,
+                                      group_i18n_scope: "initiatives.statuses") do |table| %>
+  <%# Rich band: the block runs once per group, with the label and count already resolved %>
+  <% table.with_group_header do |group| %>
+    <span class="size-2 rounded-sm <%= STATUS_DOTS.fetch(group.value) %>"></span>
+    <span><%= group.label %></span>
+    <%= render Bali::Tag::Component.new(text: group.count, size: :sm, style: :soft) %>
+    <span class="ml-auto text-xs font-normal text-base-content/60"><%= summaries[group.value] %></span>
+  <% end %>
+
+  <% @initiatives.each do |initiative| %>
+    <% table.with_row(group: initiative.status, id: dom_id(initiative)) do %><%# ... %><% end %>
+  <% end %>
+<% end %>
+```
+
+`with_group_header { |group| }` replaces the band's default text — `group` carries `value`,
+`rows`, the translated `label` and the global `count` (the run size when there is no global
+one), so the host paints a colour dot, a pill and a summary without redoing either lookup. It
+works with or without `collapsible_groups:`; with it, the content sits **inside** the
+disclosure button and is its accessible name, so keep it static — a link or a button in
+there is a control inside a control. The group select-all, on a selectable table, stays in
+its own cell outside the button and still marks the folded rows.
+
+Each row gets an `id` for the button's `aria-controls` — the one you pass to `with_row`, or
+`<container id>-<group token>-row-<n>` otherwise. Give the table an `id:` (or a `form:`)
+when you want those ids deterministic; without one the prefix is random, so two collapsible
+tables on the same page never share an id. A `skip_tr: true` row owns its `<tr>` and stays
+out of the folding. The same group value reappearing further down is the same group, as it
+is for selection: folding one of its bands folds both runs.
 
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
 `Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
@@ -2623,6 +2668,162 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 **Slots:** `with_item(name:, path:)` — items nest recursively via a block to build sub-trees.
 
+#### Widget
+
+One card in a user-arrangeable dashboard, rendered at one of three sizes. Takes a widget
+instance, not its data, so the card can derive a widget's copy from `widget.key` and
+delegate `count`/`items`/`view_all_path` without knowing where they came from. Meant to
+render inside `Bali::WidgetGrid::Component`, not alone.
+
+**The size changes how much context the same fact gets — never the subject.** Three regions
+fill in as the canvas grows:
+
+| Size | Grid | Shows |
+|---|---|---|
+| `small` | 1×1 | The fact alone. The whole tile is one link, and nothing inside it is focusable. |
+| `medium` | 2×1 | The fact, and a sparkline beside it — axis-less, because below roughly 2×2 axes cost more room than they explain. |
+| `large` | 2×2 | The fact, a chart with axes, and the breakdown below. |
+
+**The pattern is the type.** A widget inherits from one of five bases, and that choice is what
+gives it its rungs — `Bali::Widget::ValueBase` (one figure), `ListBase` (how many and which),
+`TrendBase` (a figure and how it moved), `ProgressBase` (a ring toward a goal) and `CheckBase`
+(does it pass?). The card
+asks the widget directly; there is no result object between them, and `Base` answers every
+question a pattern does not have with a null, so the card reads one interface at every size.
+
+```ruby
+class OverdueTasks < Bali::Widget::TrendBase
+  default_size :medium
+
+  # "Up" is NOT universally good. Overdue tasks up 12% and revenue up 12% are opposite
+  # news, so the widget says which direction is good and the card colours from that.
+  # Get this wrong and the trend indicator confidently lies.
+  trend do |t|
+    t.current  { 8 }
+    t.previous { 4 }
+    t.positive_when :down
+    t.period_label "vs last week"
+  end
+
+  series do |s|
+    s.labels %w[Mon Tue Wed Thu]
+    s.values [ 3, 5, 4, 8 ]
+  end
+
+  view_all_path { tasks_path }
+
+end
+```
+
+`t.previous` returning **`nil` means the trend is absent, not zero** — a widget's first week has
+nothing to compare against, and the card drops the indicator rather than drawing a flat 0%.
+
+For the ring ladder — progress toward a goal, then how you got there — the ring replaces the
+number as the headline at every size:
+
+```ruby
+class Onboarding < Bali::Widget::ProgressBase
+  default_size :large
+
+  goal do |g|
+    g.value 7
+    g.max   10
+    g.label { "of #{max}" }
+  end
+
+  series { |s| s.values [ 2, 4, 3, 6, 7 ] }
+end
+```
+
+For a pass/fail state, `CheckBase` is ternary — `nil` means "not checked yet" and draws a muted
+icon, distinct from a failing check:
+
+```ruby
+class BackupsHealthy < Bali::Widget::CheckBase
+  default_size :small
+
+  check do |c|
+    c.value { Backup.last&.succeeded? }
+    c.pass  "Healthy"
+    c.fail  "Failing"
+  end
+end
+```
+
+Phrase it so `true` is good — the card colours from the value, and the check's name is what
+carries the polarity.
+
+`ValueBase` and `CheckBase` offer `small` alone, because one fact at `large` is a title, an
+answer and most of a 2×2 cell of whitespace; the other three offer all three sizes. Say `supports` in the
+class body to override that.
+
+`display_value` is what the headline actually prints, defaulting to an abbreviation of
+`count` (`1_234_567` → `"1.2M"`) because a ~215px tile at `text-4xl` has room for four to
+six characters. Set it explicitly for a headline that isn't a count — `"72%"`, `"$1.2k"`.
+
+**The edit-mode param is configurable.** The grid remembers the mode in the URL so Back
+leaves the mode rather than the page. It defaults to `?editing`; pass `editing_param:` when
+your app already uses that name for something of its own:
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(url: …, editing_param: "arranging") %>
+```
+
+**The row budget is overridable.** It is a pixel measurement against Bali's own type sizes — the
+only thing a size says that the size itself does not. If your base font is larger, or your
+subtitles wrap to two lines, set your own in an initializer rather than living with clipping:
+
+```ruby
+Bali::Widget::Card::Component.rows_budget =
+  Bali::Widget::Card::Component::ROWS.merge(large: 5)
+```
+
+**Answer a resize with the card.** Resizing writes a single attribute client-side, but the
+card's interior is server-rendered — so a card grown from `medium` to `large` would keep the
+axis-less sparkline and missing breakdown it had at the smaller size. The grid sends
+`resized_key` alongside the layout for exactly this, and a host that answers with a Turbo
+Stream gets the right card back for one widget query on an already-debounced write:
+
+`Bali::Concerns::Controllers::DashboardWidgets` does this for you — its `arrange` action is
+exactly the code below. By hand:
+
+```ruby
+def arrange
+  store.arrange(submitted_layout)
+
+  resized = store.widgets.find { |placement| placement.key == params[:resized_key].presence }
+  return head :no_content unless resized
+
+  render turbo_stream: turbo_stream.replace(
+    Bali::Widget::Component.dom_id(resized.key),
+    renderable: Bali::Widget::Component.new(resized.widget, size: resized.size)
+  )
+end
+```
+
+`head :no_content` remains a valid answer for every gesture — reorder and remove change
+position, not shape, so the DOM the browser already has is correct. Only a resize needs the
+round trip.
+
+```erb
+<%= render Bali::Widget::Component.new(low_stock_items_widget) %>
+```
+
+The card that gets built is decided by the widget's pattern — `ValueBase` renders a figure,
+`ListBase` a list, `TrendBase` a chart — so there is nothing to pass and nothing to pick:
+
+```erb
+<%= render Bali::Widget::Component.new(compliance_widget, size: :medium) %>
+```
+
+**Slots:** none. A widget's card is built from what its pattern declares — there is no way to
+inject markup into one, and at `small` there would be nowhere to put it: a ~215px tile is a
+single fact and a single tap target.
+
+See [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the
+widget contract (`Bali::Widget::Base`) and the persisted arrangement
+(`Bali::DashboardWidget::Store`).
+
 ---
 
 ### Interactive Components
@@ -3313,6 +3514,43 @@ mouse-only.
 - `disabled` - Disable dragging (default: `false`)
 - `animation` - Drag animation duration in milliseconds (default: `150`)
 
+#### WidgetGrid
+
+The bento: an arrangeable grid of `Bali::Widget::Component` cards a user can drag,
+arrow-key move, resize and remove, with the whole layout persisted on every gesture.
+Composes two Stimulus controllers on one wrapper — `bali-widget-grid` (moves cards, writes
+the sequence) and `edit-mode` (toggles edit mode, remembers it in the URL).
+
+```erb
+<%= render Bali::WidgetGrid::Component.new(
+      url: widget_layout_path, add_path: edit_user_widgets_path) do |grid| %>
+  <% @widgets.each do |widget| %>
+    <% grid.with_widget(widget) %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `url` - Endpoint every gesture PATCHes the whole arrangement to (required) — Bali ships
+  no controller or routes; see [Dashboard widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets)
+- `add_path` - Where the dashed "+" tile (and the empty state's own call to action) link to
+  add a widget; omit to hide both (default: `nil`)
+
+**Slots:**
+- `with_widget` — one `Bali::Widget::Component` per card; yield to fill that card's `body`
+  slot
+- `with_heading` — replaces only the leading text next to the Edit/Done controls, which
+  stay structural and always render — a heading override cannot delete the grid's only
+  entry point into edit mode
+- `with_empty_state` — replaces the default `Bali::EmptyState` shown when there are no
+  widgets
+
+Built on `Bali::SortableList`, but cards are plain children rather than
+`Bali::SortableList::Item::Component`s — that variant requires an `update_url:` per item
+and carries list-row styling that fights the bento. See [Dashboard
+widgets](engine-models.md#dashboard-widgets-bali_dashboard_widgets) for the widget
+contract and the write path this component's `url:` PATCHes to.
+
 ---
 
 ### Form Components
@@ -3336,7 +3574,10 @@ makes it a first-class popover attribute with no new API.
 ```
 
 **Features:**
-- Multiple filter groups with AND/OR combinators
+- Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
+  (AND) unless the user switches a row to OR — the seed used to be OR, so a second
+  condition widened the listing instead of narrowing it (#1121); a group that arrives in
+  the URL with `m=or` keeps it. Groups combine with AND.
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted

@@ -1,0 +1,20 @@
+<%# El panel de hilos vive en un contenedor del anfitrión, no al lado del editor.
+    Bali no pinta nada adentro de `#panel-de-hilos` —eso lo portalea React—, así que
+    la bandera del modo tiene que viajar con el portal. Si no viaja, la caja de
+    responder y el menú de acciones se ven acá aunque se haya pedido `:read_only`. %>
+<div class="flex gap-4">
+  <%# `min-w-0`: el editor trae ancho mínimo propio, y sin esto la columna que crece
+      no se deja encoger y el panel se sale de la pantalla. %>
+  <div class="grow min-w-0">
+    <%= render Bali::BlockEditor::Component.new(
+          editable: editable,
+          comments: comments,
+          comments_container_id: 'panel-de-hilos',
+          initial_content: content
+        ) %>
+  </div>
+
+  <aside id="panel-de-hilos"
+         class="bn-mantine w-80 shrink-0 border-l border-base-300 overflow-y-auto p-4">
+  </aside>
+</div>

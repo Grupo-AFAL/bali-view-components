@@ -93,6 +93,25 @@ Rails.application.routes.draw do
   get 'tab2', to: 'tabs#tab2'
   get 'tab3', to: 'tabs#tab3'
   patch 'sortable_list', to: 'sortable_list#update'
+  resource :widget_layout, only: :update
+
+  # Scaffolding for `cypress/e2e/modal-history.cy.js`. `modal_redirect#go` exists
+  # only to redirect, which is the one condition that sends `ModalController#open`
+  # down `_replaceBodyAndURL` — the body-swapping branch whose Back behaviour was
+  # previously untested.
+  get 'modal_redirect', to: 'modal_redirect#index', as: :modal_redirect
+  get 'modal_redirect/go', to: 'modal_redirect#go', as: :modal_redirect_go
+  get 'modal_redirect/landing', to: 'modal_redirect#landing', as: :modal_redirect_landing
+
+  # The real widget dashboard demo, as opposed to the Lookbook preview's stub
+  # above. A SINGULAR resource — there is one dashboard per user, not a collection.
+  # Named `dashboard_widgets` so the path helper keeps that name; the concern
+  # itself uses `url_for(action:)` and does not care what this is called.
+  resource :dashboard_widgets, only: %i[show create edit update destroy] do
+    patch :arrange
+    get :refresh
+  end
+
   get 'users', to: 'users#index'
 
   # BlockEditor. Comment threads are NOT here anymore: the engine owns the nine

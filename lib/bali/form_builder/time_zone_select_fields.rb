@@ -51,6 +51,7 @@ module Bali
           class: [ base, html_options[:class] ].compact.join(" ")
         )
         attributes.delete(:size) if variant
+        apply_input_name_options(group, attributes)
 
         merge_aria_attributes(attributes, method, group)
       end

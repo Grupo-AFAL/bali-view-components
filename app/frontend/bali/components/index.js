@@ -19,6 +19,7 @@ import { AppLayoutController } from '../../../components/bali/app_layout/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
 import { DropdownController } from '../../../components/bali/dropdown/index'
+import { TableGroupsController } from '../../../components/bali/table/index'
 import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
@@ -33,6 +34,8 @@ import { ChatController } from '../../../components/bali/chat/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
+import { WidgetGridController, WidgetGridEditModeController } from '../../../components/bali/widget_grid/index'
+import { WidgetRefreshController } from '../../../components/bali/widget/refresh/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -107,12 +110,16 @@ export {
   SplitViewController,
   SplitViewListController,
   StatusController,
+  TableGroupsController,
   TabsController,
   TimeagoController,
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
-  TreeViewItemController
+  TreeViewItemController,
+  WidgetGridController,
+  WidgetGridEditModeController,
+  WidgetRefreshController
 }
 
 /**
@@ -136,6 +143,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   modal: ModalController,
   drawer: DrawerController,
   dropdown: DropdownController,
+  'table-groups': TableGroupsController,
   tabs: TabsController,
   navbar: NavbarController,
   'side-menu': SideMenuController,
@@ -155,6 +163,9 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   hovercard: HovercardController,
   kanban: KanbanController,
   reveal: RevealController,
+  'bali-widget-refresh': WidgetRefreshController,
+  'bali-widget-grid': WidgetGridController,
+  'bali-widget-grid-edit-mode': WidgetGridEditModeController,
   'sortable-list': SortableListController,
   tooltip: TooltipController,
   status: StatusController,

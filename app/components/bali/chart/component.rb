@@ -45,7 +45,13 @@ module Bali
         sm: "h-[180px]",
         md: "h-[250px]",
         lg: "h-[350px]",
-        xl: "h-[450px]"
+        xl: "h-[450px]",
+        # Fills whatever box it is given instead of naming a pixel height. For a
+        # chart inside a flex container of unknown height — a dashboard tile,
+        # a resizable panel — where every fixed preset is either clipped or
+        # overflows. `min-h-0` because a flex child's default `min-height:auto`
+        # refuses to shrink below its content and would push the box open.
+        fit: "h-full min-h-0"
       }.freeze
 
       # A canvas is opaque to assistive tech: whatever Chart.js paints into it is
@@ -126,6 +132,19 @@ module Bali
 
       def render_card?
         @card_style != :none
+      end
+
+      # `h-full` only means anything if every ancestor between it and the sized
+      # box also has a height. The wrapper below the component root is plain
+      # `chart-component`, with no height at all, so `:fit`'s `h-full` resolved
+      # against an auto-height parent and collapsed to the canvas's own reported
+      # size. This is what makes `:fit` actually fit.
+      def fit?
+        @height == :fit
+      end
+
+      def wrapper_classes
+        token_list("chart-component", "flex h-full min-h-0 flex-col": fit?)
       end
 
       def container_classes

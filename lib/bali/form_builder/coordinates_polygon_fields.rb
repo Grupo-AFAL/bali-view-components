@@ -30,13 +30,22 @@ module Bali
             [
               clear_buttons,
               tag.div(class: MAP_CLASSES, data: { drawing_maps_target: "map" }),
-              hidden_field(method, value: value, data: { drawing_maps_target: "polygonField" })
+              hidden_field(method, polygon_field_options(options, value))
             ]
           )
         end
       end
 
       private
+
+      # `input_name:` names the hidden field the map writes into — the only control
+      # this family submits. Not `input_id:`: the caption is a `<legend>` here
+      # (`control_id: false`), so there is nothing pointing at an id to keep honest.
+      def polygon_field_options(options, value)
+        attributes = { value: value, data: { drawing_maps_target: "polygonField" } }
+        attributes[:name] = options[:input_name] if options[:input_name]
+        attributes
+      end
 
       def serialize_value(value)
         value.is_a?(String) ? value : value.to_json

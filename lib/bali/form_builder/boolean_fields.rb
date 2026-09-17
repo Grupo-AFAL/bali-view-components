@@ -97,6 +97,7 @@ module Bali
 
         attributes = html_attributes(options).except(*CHECKBOX_OPTIONS)
                                              .merge(class: checkbox_class)
+        apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes, method, options)
       end

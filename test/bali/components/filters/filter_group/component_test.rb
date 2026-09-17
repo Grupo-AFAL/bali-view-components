@@ -87,13 +87,23 @@ class BaliFiltersFilterGroupComponentTest < ComponentTestCase
     assert_selector("button[aria-pressed='false']", text: "OR")
   end
 
-  def test_combinator_defaults_to_or
+  # Adding a condition to a group narrows the listing, which is what a user means by
+  # "add a filter". The seed used to be OR, so the second condition widened the result
+  # instead — 5 rows, then 23 (#1121). A group that chose OR keeps it: see below.
+  def test_combinator_defaults_to_and
     component = Bali::Filters::FilterGroup::Component.new(
       group: { conditions: [ { attribute: "", operator: "cont", value: "" } ] },
       index: 0,
       available_attributes: @available_attributes
     )
-    assert_equal("or", component.combinator)
+    assert_equal("and", component.combinator)
+  end
+
+  def test_a_nil_group_is_seeded_with_and
+    component = Bali::Filters::FilterGroup::Component.new(
+      group: nil, index: 0, available_attributes: @available_attributes
+    )
+    assert_equal("and", component.combinator)
   end
 
   def test_combinator_uses_the_group_combinator_value

@@ -195,6 +195,47 @@ module Bali
         )
       end
 
+      # @label Read-only threads sidebar
+      # `comments: { sidebar: :read_only }` turns the threads panel into a list you read:
+      # the threads render and resolved state still shows, but the reply box, the reaction
+      # button and the per-comment action menu are hidden there. Writing happens at the
+      # anchor, in the floating popover.
+      #
+      # Compare with **With Comments (In-Memory)** above, which is the default
+      # (`:interactive`) and lets a thread be answered from the card itself. Until v3.1
+      # this preview WAS that one: the panel was inert in both, and a thread whose anchor
+      # had been deleted could not be answered at all (#1111).
+      # @param editable toggle
+      def with_read_only_comments_sidebar(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          comments: { user: sample_comments_user, users: sample_comments_users,
+                      threads: sample_comment_threads, sidebar: :read_only },
+          initial_content: commented_document.to_json
+        )
+      end
+
+      # @label Read-only threads sidebar (portaled)
+      # The same mode, with the panel rendered in a container of the host's through
+      # `comments_container_id:` — the shape a two-column layout actually has.
+      #
+      # It is here because the mode used to end at the editor's own root: the flag the
+      # CSS reads was on `.block-editor-component`, and portaling takes the sidebar out
+      # of it, so `sidebar: :read_only` rendered a fully interactive panel with no error
+      # and no warning (#1113). The flag now travels with the portal.
+      # @param editable toggle
+      def with_portaled_read_only_comments_sidebar(editable: true)
+        render_with_template(
+          template: 'bali/block_editor/previews/with_portaled_read_only_comments_sidebar',
+          locals: {
+            editable: editable,
+            content: commented_document.to_json,
+            comments: { user: sample_comments_user, users: sample_comments_users,
+                        threads: sample_comment_threads, sidebar: :read_only }
+          }
+        )
+      end
+
       # @label Pinned content format
       # `format:` decide en qué forma se escribe el JSON, y hasta v3.1.3 con `:json` no lo
       # decidía el host: el primer comentario del documento cambiaba la forma sola, porque

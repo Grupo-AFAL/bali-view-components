@@ -227,4 +227,27 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
     assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "input join-item text-center"
     assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "[appearance:textfield]"
   end
+  # `delimited:` reached `number_field` and quietly produced a broken widget: a
+  # `text` input carrying BOTH `data-step-number-input-target="input"` and
+  # `data-controller="number-format"`, with `min`/`max` dropped on the way. The
+  # step controller reads the value with `parseFloat`, which stops at the first
+  # delimiter, so the buttons counted from 1 with no bounds on a field displaying
+  # fifteen hundred.
+  def test_delimited_is_refused_rather_than_rendered_broken
+    error = assert_raises(ArgumentError) do
+      builder.step_number_field(:budget, delimited: true)
+    end
+
+    assert_match(/parseFloat/, error.message)
+  end
+
+  def test_the_group_refuses_it_too
+    assert_raises(ArgumentError) { builder.step_number_group(:budget, delimited: true) }
+  end
+
+  def test_delimited_false_is_not_treated_as_asking_for_it
+    result = builder.step_number_field(:budget, delimited: false)
+
+    assert_html(result, 'input[type="number"]')
+  end
 end

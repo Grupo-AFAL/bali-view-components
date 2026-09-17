@@ -567,7 +567,17 @@ export class ModalController extends Controller {
     if (window.Turbo) {
       window.Turbo.session.history.push(new URL(url))
 
-      // Makes the Back Button functional
+      // Makes the Back Button functional.
+      //
+      // MEASURED, in `cypress/e2e/modal-history.cy.js`: Back returns to the
+      // origin page and the JS realm survives it, so this is a Turbo restoration
+      // visit rather than a browser reload. It does spend one GET of a page that
+      // has not changed — the body was swapped in place, so Turbo never visited
+      // the origin away and never cached a snapshot for it, and `action:
+      // "restore"` falls back to the network. Closing that would mean calling
+      // `Turbo.session.view.cacheSnapshot()`, which is private and not exposed on
+      // `window.Turbo`. Accepted as a minor cost on an infrequent path; the spec
+      // pins the count so a change that makes it worse fails loudly.
       window.Turbo.session.pageBecameInteractive()
     } else {
       history.pushState({}, title, url)

@@ -189,6 +189,9 @@ es:
 
     # Form builder
     form_builder:
+      # Read to screen readers next to the caption of a required field; the asterisk
+      # beside it is aria-hidden (#1125).
+      required: "obligatorio"
       date_fields:
         # Coincide con el orden de tokens no localizado de flatpickr ("F j, Y":
         # nombre de mes, día, año) en vez del orden habitual en español, porque
@@ -357,6 +360,8 @@ es:
     image_field:
       clear_image: Borrar imagen
     loader:
+      loading: Cargando...
+    frame:
       loading: Cargando...
     turbo_native_app:
       sign_out:
@@ -647,7 +652,13 @@ es:
       tools_menu:
         trigger_label: "Herramientas"
         items:
+          # La misma cadena dos veces a propósito: `mission_control-jobs` y
+          # `solid_queue-flightdeck` son dos gemas para la misma pantalla de Solid Queue. NO
+          # las fundas — cuatro apps corren flightdeck y afal-apps sigue montando
+          # mission_control, y quitar cualquiera de las dos claves devuelve a esa app a
+          # cargar la etiqueta en su propio config/locales (#1138).
           mission_control: "Panel de trabajos"
+          flightdeck: "Panel de trabajos"
           analytics: "Tablero de adopción"
           letter_opener: "Bandeja de correo"
           rails_routes: "Rutas de Rails"
@@ -686,3 +697,57 @@ es:
       retry: "Reintentar"
 
       filter_active: "activo, quitar filtro"
+
+    # Chrome del widget (tarjeta Bali::Widget + widget grid). Los títulos de
+    # los widgets son contenido del HOST y viven en el scope propio del host
+    # `widgets.<key>.*` — ver Bali::Widget::Base#i18n_scope. Estas son claves
+    # absolutas, no relativas: tanto la tarjeta como el grid usan el mismo
+    # texto, y un `t(".remove")` relativo resolvería a dos scopes distintos
+    # (`bali_view.widget.remove` vs `bali_view.widget_grid.remove`) en lugar
+    # de compartir una sola cadena.
+    gauge:
+      default_label: "%{percentage}% completado"
+    widgets:
+      check:
+        pass: "Correcto"
+        fail: "Con fallas"
+      load_error: "No se pudo cargar"
+      view_all: "Ver todo (%{count})"
+      empty:
+        title: "Aún no hay widgets"
+        description: "Agrega widgets para armar tu tablero."
+      trend:
+        up: "subió %{delta}"
+        down: "bajó %{delta}"
+        flat: "sin cambios"
+      updated: "Actualizado"
+      picker:
+        title: "Tus widgets"
+        subtitle: "Elige qué aparece en tu tablero."
+        save: "Guardar"
+        unchecking_all: "Si desmarcas todo se restauran tus widgets predeterminados en lugar de vaciar el tablero."
+        restore_defaults: "Restaurar predeterminados"
+        restore_confirm: "¿Restaurar los widgets predeterminados? Se perderá tu orden actual."
+      notices:
+        saved: "Tus widgets se han guardado."
+        reset: "Se restauraron tus widgets predeterminados."
+      edit:
+        edit: "Editar"
+        done: "Listo"
+        add: "Agregar widget"
+        hint: "Arrastra para reacomodar, cambiar tamaño o quitar widgets."
+        reorder: "Reacomodar %{widget}"
+        remove: "Quitar %{widget}"
+        size_of: "Tamaño de %{widget}"
+        sizes:
+          small: "Chico"
+          medium: "Mediano"
+          large: "Grande"
+        moved: "«%{widget}» se movió a la posición %{position} de %{total}"
+        removed_one: "«%{widget}» se quitó, queda 1 widget"
+        removed_other: "«%{widget}» se quitó, quedan %{total} widgets"
+        removed_last: "«%{widget}» se quitó, restaurando tus widgets predeterminados"
+        resized: "«%{widget}» cambió a tamaño %{size}"
+        failed: "No se pudieron guardar los cambios"
+        editing_on: "Editando el tablero"
+        editing_off: "Edición terminada"

@@ -26,7 +26,14 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   # Routes owned by the dummy that the sweep deliberately does not request, each with the
   # reason. The guard below fails on anything owned by the dummy that is neither swept nor
   # listed here, so a new page cannot join the app without someone deciding about it.
-  UNSWEPT = {}.freeze
+  UNSWEPT = {
+    # Exists only to redirect — that is its whole job. `cypress/e2e/modal-history.cy.js`
+    # needs a trigger whose fetch is redirected, because that is the one condition sending
+    # `ModalController#open` down `_replaceBodyAndURL`, the body-swapping branch. A 302 is
+    # this route rendering correctly, so the sweep would be asserting the opposite of the
+    # contract. The page it lands on, `modal_redirect#landing`, IS swept.
+    "modal_redirect#go" => "redirects by design; it is the fixture for the modal Back-path spec"
+  }.freeze
 
   # Deprecations the dummy fires on purpose, keyed by the leading text of the entry the
   # walk builds — `<path> (<endpoint>): <message>` — so an exception covers the call site

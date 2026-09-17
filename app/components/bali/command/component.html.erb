@@ -17,8 +17,15 @@
       <span class="flex-1 text-left"><%= trigger_label %></span>
       <% if shortcut_label.present? %>
         <%# aria-hidden: the hint is decoration — without it the accessible
-            name changes with the viewport ("Search…" vs "Search… ⌘K"). %>
-        <kbd class="kbd kbd-xs hidden sm:inline-flex" aria-hidden="true"><%= shortcut_label %></kbd>
+            name changes with the viewport ("Search…" vs "Search… ⌘K").
+            The `shortcut` target is what tells the controller this label is
+            ours to rewrite for a keyboard that has no ⌘ key; a label the host
+            passed carries no target and is left alone. A hand-rolled trigger
+            can opt in by putting the target on its own kbd. %>
+        <%= tag.kbd shortcut_label,
+                    class: "kbd kbd-xs hidden sm:inline-flex",
+                    aria: { hidden: true },
+                    data: (auto_shortcut? ? { command_target: "shortcut" } : {}) %>
       <% end %>
     </button>
   <% end %>

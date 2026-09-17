@@ -31,8 +31,7 @@ module Bali
 
         tag.div(**wrapper_attrs) do
           safe_join([
-                      hidden_field(method, value: selected_value,
-                                           data: { "#{CONTROLLER_NAME}-target": "input" }),
+                      hidden_field(method, hidden_field_options(options, selected_value)),
                       time_periods_select(method, final_select_options,
                                           is_custom ? "" : selected_value),
                       time_periods_date_field(method, is_custom ? selected_value : nil)
@@ -41,6 +40,16 @@ module Bali
       end
 
       private
+
+      # `input_name:` names the hidden field, because that is the control the form
+      # submits — the select beside it is UI the controller reads. Not `input_id:`:
+      # the caption already points at the select (see `control_id` above), and a
+      # hidden input is not labelable anyway.
+      def hidden_field_options(options, selected_value)
+        attributes = { value: selected_value, data: { "#{CONTROLLER_NAME}-target": "input" } }
+        attributes[:name] = options[:input_name] if options[:input_name]
+        attributes
+      end
 
       def time_period_wrapper_attrs(options)
         prepend_controller(

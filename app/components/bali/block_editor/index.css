@@ -575,18 +575,40 @@
   background-color: color-mix(in oklch, var(--color-warning) 30%, transparent);
 }
 
-/* --- Sidebar is read-only: hide interactive comment actions ---
-   Shared between inline (.block-editor-component) and portaled (.document-editor-panel) sidebars. */
-:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-action-toolbar,
-:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-comment-actions-wrapper {
+/* --- `comments: { sidebar: :read_only }` --- - hide the sidebar's own controls.
+ *
+ * These three rules used to be unconditional, and they contradicted the rest of the
+ * file: ninety lines below, `.document-editor-panel .bn-thread-composer` gets a
+ * margin, a top border and a `min-height`, which is how you style a box you expect
+ * to see. The `!important` here won, so the composer sat in the DOM at 0x0 --
+ * measured in #1111 -- and the docs promised replies and reactions from the panel
+ * that could not happen there. Worse, a thread whose anchor had been deleted
+ * ("Contenido original eliminado") lost its last route in: the floating composer
+ * opens from the anchor, and there was no anchor left.
+ *
+ * So interactive is the default now, and read-only is a mode a host asks for. The
+ * flag is a `data-comments-sidebar` on an ANCESTOR of the sidebar, because the
+ * sidebar element itself is React's and Rails does not render it. Three things put
+ * it there: `.block-editor-component` for the inline sidebar, `.document-editor-panel`
+ * for DocumentEditor's, and the React wrapper on whatever container
+ * `comments_container_id:` names.
+ *
+ * Deliberately NOT scoped to those two class names. `comments_container_id:` is a
+ * public option and it portals the sidebar out of both of them, so a selector that
+ * named them was a mode that silently did nothing for every other portaling host —
+ * `sidebar: :read_only` rendering a fully interactive panel (#1113). Any ancestor
+ * carrying the attribute now counts, which is also the escape hatch for a host that
+ * puts the sidebar somewhere Bali never sees. */
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-action-toolbar,
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-comment-actions-wrapper {
   display: none !important;
 }
 
-:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-thread-composer {
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-thread-composer {
   display: none !important;
 }
 
-:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-comment-add-reaction {
+[data-comments-sidebar="read-only"] .bn-threads-sidebar .bn-comment-add-reaction {
   display: none !important;
 }
 

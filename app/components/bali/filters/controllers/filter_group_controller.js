@@ -14,9 +14,17 @@ export class FilterGroupController extends Controller {
     'combinatorToggle'
   ]
 
+  // The seed is written once, in Ruby — `Bali::Filters::FilterGroup::Component::
+  // DEFAULT_COMBINATOR` — and every group the server renders carries it as
+  // `data-filter-group-combinator-value`, so this default only matters for a group
+  // element rendered without the attribute. It is repeated here rather than read from
+  // the DOM so `reset()` has something to return to. AND, not OR: adding a condition
+  // narrows the listing (#1121).
+  static DEFAULT_COMBINATOR = 'and'
+
   static values = {
     index: Number,
-    combinator: { type: String, default: 'or' }
+    combinator: { type: String, default: FilterGroupController.DEFAULT_COMBINATOR }
   }
 
   conditionIndex = 0
@@ -165,7 +173,7 @@ export class FilterGroupController extends Controller {
    * Update toggle buttons within a container to reflect current combinator
    */
   updateToggleButtons (container) {
-    const combinator = this.combinatorValue || 'or'
+    const combinator = this.combinatorValue || FilterGroupController.DEFAULT_COMBINATOR
     const buttons = container.querySelectorAll('[data-combinator]')
 
     buttons.forEach((btn) => {
@@ -203,9 +211,9 @@ export class FilterGroupController extends Controller {
     }
 
     // Reset combinator
-    this.combinatorValue = 'or'
+    this.combinatorValue = FilterGroupController.DEFAULT_COMBINATOR
     if (this.hasCombinatorTarget) {
-      this.combinatorTarget.value = 'or'
+      this.combinatorTarget.value = FilterGroupController.DEFAULT_COMBINATOR
     }
     this.updateAllToggleButtons()
   }

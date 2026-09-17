@@ -16,7 +16,23 @@ module Bali
         end
       end
 
+      # `delimited:` has no coherent meaning here, so it raises rather than
+      # rendering something broken. Measured before this guard existed: the
+      # option reached `number_field`, which swapped the control for a `text`
+      # input and mounted `number-format` on the very element that already
+      # carries `data-step-number-input-target="input"`. Two controllers then
+      # wrote the same value, `parseFloat("1,500")` gave the step controller 1,
+      # and `min`/`max` were dropped on the way — so the buttons counted from 1
+      # with no bounds, on a field displaying fifteen hundred.
       def step_number_field(method, options = {})
+        if options[:delimited]
+          raise ArgumentError,
+                "step_number_field does not support delimited: — its +/- buttons read the " \
+                "value with parseFloat, which stops at the first thousands delimiter, and a " \
+                "text input drops the min/max they step between. Use currency_field or " \
+                "number_field with delimited: true, without the step buttons."
+        end
+
         button_opts = extract_button_options(options)
         input_options = build_step_number_input_options(options)
 

@@ -1,0 +1,121 @@
+/* Bali Widget card — the edit-mode chrome layered onto the read view.
+ *
+ * Entering edit mode is a single class (`editing`) toggled by `EditModeController`
+ * on the GRID wrapper (`Bali::WidgetGrid::Component`), never a server round trip —
+ * so it costs no round trip and re-runs none of the widget queries. Every rule
+ * below reads `.editing <selector>` for exactly that reason: "this element,
+ * somewhere inside an `.editing` ancestor" — the same relationship Tailwind's
+ * `[.editing_&]:` arbitrary-parent variant expressed inline, before doing that
+ * 27 times across four elements made the template's actual markup hard to see.
+ *
+ * Imported into @layer components: a host utility still wins the cascade
+ * against anything here, and none of this needs to outrank daisyUI.
+ */
+
+.bali-widget-card {
+  @apply relative flex h-full flex-col rounded-box border border-base-300 bg-base-100;
+}
+
+/* No jiggle. A wobbling card of overdue counts reads as a rendering fault
+ * rather than an affordance, makes the text unreadable, and collides with
+ * `prefers-reduced-motion`. Raised + dashed accent + a dimmed inert body
+ * (`.bali-widget-body` below) is the web's vocabulary for "manipulable
+ * object" instead.
+ */
+.editing .bali-widget-card {
+  @apply border-dashed border-primary shadow-lg;
+}
+
+.bali-widget-edit-toolbar {
+  @apply hidden;
+}
+
+/* The reorder handle and remove button. INSIDE the card, not hanging into the
+ * gutter: a floating pill above the card in the 16px grid gap would put one
+ * card's remove button under a neighbour's centre in a mixed bento, and paint
+ * order would decide which one you can click.
+ */
+.editing .bali-widget-edit-toolbar {
+  @apply absolute inset-x-0 top-2 z-10 flex items-center justify-between px-3;
+}
+
+.bali-widget-edit-shelf {
+  @apply hidden;
+}
+
+/* The size-picker shelf: a shelf, not a floating pill. In edit mode the body
+ * (`.bali-widget-body` below) is `inert` at 50% opacity, so this is chrome
+ * sitting on switched-off content — the move a video player's control bar
+ * makes.
+ *
+ * `bg-base-200` is the PAGE's material, not the card's: `bg-base-100/95` is
+ * the same white as the card it sits in, so it read as more card.
+ *
+ * Hidden below `lg` (`max-lg:hidden`), where all three sizes render
+ * identically and the control would visibly do nothing.
+ */
+.editing .bali-widget-edit-shelf {
+  @apply absolute inset-x-0 bottom-0 z-10 h-12 items-center justify-center rounded-b-box
+         border-t border-base-300 bg-base-200 px-1 max-lg:hidden lg:flex;
+}
+
+.bali-widget-body {
+  @apply flex min-h-0 flex-1 flex-col;
+}
+
+/* Dimmed while editing. `lg:pb-12` matches the shelf's own `h-12` so the
+ * shelf never sits over the last row of content at the sizes where it
+ * actually renders. `inert` itself cannot be expressed as a CSS class — see
+ * `data-edit-mode-target="inert"` in the template for that half of this
+ * state.
+ */
+.editing .bali-widget-body {
+  @apply opacity-50 lg:pb-12;
+}
+
+/* Resizing a card in the browser changes ONE attribute — `data-size` — and the
+ * card's interior is rendered by the server. So a card resized from `medium` to
+ * `small` keeps whatever body it was rendered with until the next page load: a
+ * chart and a header row squeezed into a ~215px cell.
+ *
+ * This predates the size ladder (the pre-ladder card branched on `summary?` in
+ * ERB just the same, and `applySize` has only ever written attributes), but the
+ * ladder makes it far more visible, because the interiors now differ by a whole
+ * chart rather than by a row count.
+ *
+ * GROWING is handled properly now: the grid sends `resized_key` and a host
+ * answers with a turbo-stream replacing that card, so a card that gains a canvas
+ * gets its real interior back. See `Bali::WidgetGrid`'s controller and the
+ * `update` example in `docs/guides/components.md`.
+ *
+ * These rules are what a host answering `head :no_content` still gets, and what
+ * covers the instant between the gesture and the stream landing. Hiding the two
+ * regions a `small` tile has no room for is free; rendering every region and
+ * choosing in CSS is not, because a Chart.js canvas inside `display:none`
+ * measures zero and does not reliably recover when shown.
+ * The headline survives — which is the ladder's whole promise — and the card
+ * stops claiming to show a chart in a box that cannot hold one. The exact
+ * layout still arrives on the next load.
+ *
+ * The hooks below are WRAPPERS rather than the chart and the list themselves,
+ * and that is load-bearing: `.chart-component` carries a `flex` utility and
+ * daisyUI's `.list` sets `display` from `@layer utilities` — both beat anything
+ * in `@layer components` on layer order, whatever the specificity. Neither
+ * wrapper carries a display utility, so this rule lands.
+ */
+.bali-widget-card[data-size="small"] .bali-widget-context,
+.bali-widget-card[data-size="small"] .bali-widget-detail {
+  @apply hidden;
+}
+
+/* HOW OLD THIS CARD IS, revealed only once it has stopped refreshing.
+ *
+ * `sr-only` is on the element from the server and removed by
+ * `bali-widget-refresh` after two consecutive failures, so a healthy card costs
+ * a sighted reader nothing and a screen-reader user can find the age either way.
+ *
+ * Muted rather than red: the number on the card is still true, just older. This
+ * is the card declining to imply it is current — not an error state. */
+.bali-widget-freshness {
+  @apply mt-2 flex items-center gap-1 text-xs text-base-content/50;
+}

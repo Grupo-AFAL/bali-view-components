@@ -1,0 +1,15 @@
+<%# The page a modal trigger is pressed FROM, and the one Back has to return to. %>
+<div class="p-8 space-y-4" id="modal-redirect-origin">
+  <h1 class="text-2xl font-bold">Modal redirect origin</h1>
+  <p>Opening the modal below hits an endpoint that redirects, so the modal
+     replaces the document instead of rendering a panel.</p>
+
+  <%= render Bali::Link::Component.new(
+        name: 'Open the redirecting modal',
+        href: modal_redirect_go_path,
+        variant: :primary,
+        modal: true,
+        id: 'redirecting-trigger') %>
+</div>
+
+<%= render Bali::Modal::Component.new(active: false, id: 'main-modal') %>

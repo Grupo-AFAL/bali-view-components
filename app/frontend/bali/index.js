@@ -68,6 +68,7 @@ export {
   GeocoderMapsController,
   InputOnChangeController,
   InteractController,
+  NumberFormatController,
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
@@ -123,12 +124,16 @@ export {
   SplitViewController,
   SplitViewListController,
   StatusController,
+  TableGroupsController,
   TabsController,
   TimeagoController,
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
-  TreeViewItemController
+  TreeViewItemController,
+  WidgetGridController,
+  WidgetGridEditModeController,
+  WidgetRefreshController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 

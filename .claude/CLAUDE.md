@@ -10,6 +10,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 |----------|---------|
 | `docs/reference/afal-design-system.md` | AFAL design system alignment guide (Nexus/Scalo templates) |
 | `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
+| `docs/reference/widget-design-notes.md` | Why `Bali::Widget` is shaped the way it is |
 | `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
 | `docs/guides/components.md` | Full component catalog and usage guide |
 | `docs/guides/accessibility.md` | WCAG 2.1 accessibility standards |
@@ -88,9 +89,11 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
 `bali/container-overrides.css`, `breadcrumb/index.css`, `data_table/index.css`,
-`side_menu/daisyui-overrides.css`, `calendar/daisyui-overrides.css`,
-`rich_text_editor/daisyui-overrides.css`. Each file's header names the rule it has to beat and
-the measurement that put it there — read it before adding to one.
+`toast/index.css`, `feedback_widget/index.css`, `side_menu/daisyui-overrides.css`,
+`calendar/daisyui-overrides.css`, `rich_text_editor/daisyui-overrides.css`,
+`gauge/daisyui-overrides.css`, `alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`.
+Each file's header names the rule it has to beat and the measurement that put it there —
+read it before adding to one.
 
 Rule of thumb for a new unlayered rule: the right-most compound is a daisyUI class, and you
 are only setting declarations daisyUI also sets. Anything else belongs in `@layer components`.

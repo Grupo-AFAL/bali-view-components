@@ -550,4 +550,28 @@ class BaliDocumentEditorFormatTest < ComponentTestCase
       title: "My Document", initial_content: [], document_url: "/documents/1", **options
     ))
   end
+
+  # The threads sidebar is portaled into this panel, so it sits outside
+  # `.block-editor-component` and needs the flag on the panel itself (#1111).
+  def test_the_comments_panel_is_interactive_by_default
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { comments: { url: "/c" } }
+    ))
+
+    assert_selector(".document-editor-panel[data-comments-sidebar='interactive']", visible: :all)
+  end
+
+  def test_the_comments_panel_can_be_asked_for_read_only
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { comments: { url: "/c", sidebar: :read_only } }
+    ))
+
+    assert_selector(".document-editor-panel[data-comments-sidebar='read-only']", visible: :all)
+  end
 end

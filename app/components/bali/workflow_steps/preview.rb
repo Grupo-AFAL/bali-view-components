@@ -32,6 +32,10 @@ module Bali
       # each step also renders an `sr-only` name for it
       # (`bali_view.workflow_steps.states.*`, overridable like any Bali string
       # when the host's domain has better words: "Signed", "Returned").
+      #
+      # A step's block is its comment, and a block that renders blank draws no
+      # comment container at all — a host's `if` *inside* the block leaves the
+      # step exactly as one declared with no block at all.
       def default
         render_with_template
       end

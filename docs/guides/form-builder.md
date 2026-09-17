@@ -19,8 +19,14 @@ Bali extends Rails' `ActionView::Helpers::FormBuilder` with DaisyUI-styled form 
 
 ```ruby
 # config/initializers/bali.rb
-ActionView::Base.default_form_builder = Bali::FormBuilder
+Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"
 ```
+
+Use the config key rather than assigning `ActionView::Base.default_form_builder` directly:
+referencing `ActionView::Base` from an initializer fires every `on_load(:action_view)` hook
+before the autoloader is set up, which breaks engines that include autoloaded helpers there
+(bali-analytics does). Rails applies the config key in its own hook, and the String is
+constantized on first use.
 
 Or use per-form:
 
@@ -151,7 +157,46 @@ Standard text input with DaisyUI styling.
 ```erb
 <%= f.number_group :quantity %>
 <%= f.number_group :quantity, min: 0, max: 100, step: 1 %>
+<%= f.number_group :budget, delimited: true %>
 ```
+
+**Options:**
+- `min`, `max`, `step` — the native constraints, enforced by the browser
+- `delimited` — group the thousands as the amount is typed (default: `false`)
+
+#### `delimited: true`
+
+Groups the integer digits on every keystroke, so `1500200` reads `1,500,200`
+while it is being typed. Reach for it on the figures long enough to be misread
+on sight — a budget, a mileage, a peso amount.
+
+It is opt-in here, and it is not free:
+
+| | `number_group` | `number_group, delimited: true` |
+|---|---|---|
+| input type | `number` | `text` |
+| `min` / `max` / `step` | enforced by the browser | **dropped** — inert on a text input |
+| format check | native | `pattern`, built from the active locale |
+| phone keyboard | numeric | numeric, via `inputmode="decimal"` |
+
+The type change is not a choice: a `type="number"` input refuses to store a
+value with a delimiter in it — the browser hands back the empty string. `min`,
+`max` and `step` go with it rather than being rendered onto the text input,
+where they would read at the call site like a bound the browser is checking and
+nothing would be checking it.
+
+`currency_group` and `percentage_group` take the same `delimited: true` and pay
+less for it — they already render that `text` input, so only the submitted value
+changes. **No family groups by default.** The live grouping is the
+[`number-format`](controllers.md#number-format) controller — register it (or
+`registerAll`) or the field is a plain text input.
+
+`step_number_group` **refuses** it with an `ArgumentError`: its +/− buttons read
+the value with `parseFloat`, which stops at the first delimiter, and a text input
+drops the `min`/`max` they step between.
+
+Either way the value arrives as a String, so the model side below is not
+optional.
 
 ### step_number_group / step_number_field
 
@@ -209,6 +254,25 @@ not, every locale falls back to Rails' English defaults and behaves as before.
 deliberately **not** set: it is inert on a `type="text"` input, and passing one
 only misleads the next person to read the markup.
 
+Both accept **`delimited: true`**, which puts the delimiter there for you instead
+of waiting for the typist: the thousands group as the amount is typed, and a
+stored amount arrives already grouped, in the locale of the request. Before, the
+field merely *accepted* a delimiter someone entered by hand — which is why so few
+amounts ever carried one.
+
+**It is opt-in, and that is not timidity.** The delimiter changes what the field
+submits, and a grouped amount only survives the trip if the model carries
+`currency_attribute`/`percentage_attribute` (below). Measured across the group's
+apps before this defaulted to off: twelve live call sites over `investment`,
+`expenses`, `unit_price`, `lunch_price`, `declared_value`, `cost` and three
+percentages — and **not one model including the concern**. Defaulting to on would
+have made every one of them start storing 1 on the next upgrade, with no
+exception and nothing in the log. So the switch lives at the call site, next to
+the model that can take the value back.
+
+The controller also has to be registered for any of it to happen; an app that
+registers only a subset of Bali's controllers gets a plain text input.
+
 The browser validates a string. Turning it back into a number is the model's
 job, and `Bali::Concerns::NumericAttributesWithCommas` does it against the same
 locale:
@@ -223,7 +287,8 @@ end
 ```
 
 Without the concern the parameter arrives as the string the user typed, and
-Rails' own cast reads `"1.234,56"` as `1.234`.
+Rails' own cast reads `"1.234,56"` as `1.234`. The same applies to
+`number_group` once it is `delimited: true`: `"1,500,200"` cast by Rails is 1.
 
 ### range_group / range_field
 
@@ -325,10 +390,32 @@ hash** only, so a `help:` written next to `label:` — where every single-hash
 field type reads it — reached the wrapper and never reached the paragraph. It
 disappeared with no error and no warning.
 
+`name:` and `id:` reach the `<select>` from either hash. `html:` is the more
+specific one and wins; a top-level one is promoted, which is what the other ten
+families have always done. **The caption follows the same order**, so the
+`<label for>` names the id the `<select>` really carries whichever hash it was
+written in:
+
+```erb
+<%= f.select_group :status, statuses, label: "Status", html: { id: "status-select" } %>
+<%# => <label for="status-select">Status</label> and <select id="status-select"> %>
+```
+
+Before v3.1 a top-level `name:` was silently dropped, and a top-level `id:` was
+dropped while the caption's `for` went on pointing at it — a `<label for>` naming
+an element that was not in the document, so the control had no accessible name at
+all (#1111). The `html:` half of the same hole outlived that fix by one release:
+the id reached the element and the caption kept pointing at Rails' derived one
+(#1113).
+
+`control_id:` still outranks both, for a caption that has to name something else —
+and `control_id: false` keeps the `<legend>`, for a group that holds no single
+control a `for` could reach.
+
 **Non-model forms** (`form_with url:` without a model): pass `input_name:` /
-`input_id:` to namespace the rendered `<select>` under a param key. Also
-supported by `slim_select_group`. An explicit `name:`/`id:` in `html:` still
-wins.
+`input_id:` to namespace the rendered control under a param key. See
+[Non-model forms](#non-model-forms) — it works on every field type, not just the
+selects. An explicit `name:`/`id:` in `html:` still wins.
 
 ```erb
 <%= f.select_group :approver_id, approvers, input_name: "thing[approver_id]" %>
@@ -344,7 +431,7 @@ Enhanced select with search, multi-select, and AJAX support.
 <%= f.slim_select_group :category, Category.all.map { |c| [c.name, c.id] } %>
 
 <%# Multi-select %>
-<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, html: { multiple: true } %>
+<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, multiple: true %>
 
 <%# With search %>
 <%= f.slim_select_group :user, [], show_search: true, ajax_url: search_users_path, ajax_param_name: 'q' %>
@@ -573,7 +660,18 @@ the button row and the radio lists it switches between.
 ```erb
 <%= f.file_group :avatar %>
 <%= f.file_group :documents, multiple: true %>
+<%= f.file_group :file, help: "CSV con columnas: nombre, correo, área" %>
 ```
+
+The text under the control is `help:`. See
+[Non-model forms](#non-model-forms) for `input_name:`, which is what names the input on a
+form with no model behind it.
+
+`required:` marks the caption with an asterisk and is dropped from the input: the native
+input is hidden behind the button, and a hidden control the browser cannot focus turns
+`reportValidity()` into a silent `false` — the submit button stops working with no message
+(#1125). Validate presence on the model as well; see
+[`required:`](#required-is-a-plain-html-passthrough--and-not-every-family-has-a-control-to-put-it-on).
 
 ### direct_upload_group
 
@@ -885,17 +983,100 @@ These options work across most field types:
 
 `required:` is not a Bali option: it reaches the control as the HTML attribute on the
 families whose control is a native input (`text_*`, `email_*`, `number_*`, `date_*`,
-`select_*`, `boolean_*`, `switch_*`, `file_*`, and the rest of the native-control
-families), and is **dropped silently** by the families whose visible control is a widget
-over a hidden field — `slim_select_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
+`select_*`, `boolean_*`, `switch_*`, and the rest of the native-control families), and
+is **dropped silently** by the families whose visible control is a widget over a hidden
+field — `slim_select_*`, `file_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
 `block_editor_*`, `rich_text_area_*`, `coordinates_polygon_*`,
 `recurrent_event_rule_*`, `direct_upload_*`, `time_period_*` and the submit pair. A
 `required` on a `type="hidden"` input would either do nothing or, worse, make the form
 unsubmittable, so those families need a model validation instead of the attribute.
 
+`file_*` is on the dropped side for the "worse" reason, and it is worth knowing why: its
+control is a real `<input type="file">`, but the family hides it (`display: none`) and
+draws a button in its place. The browser still validates a hidden control and can never
+focus it, so `form.reportValidity()` — which is what a `submit_group(..., drawer: true)`
+calls — returns false, shows no bubble, and logs "An invalid form control with name='…' is
+not focusable". The submit button went mute: no request, no message (#1125). The attribute
+is not emitted now; validate presence on the model and let `error_summary` say so after
+the 422.
+
+**Whichever camp the family is in, the caption says so.** `required: true` — at the top
+level, or in `html:` on the families that take one — appends a red asterisk to the
+`<label>`/`<legend>`, hidden from screen readers, plus a visually hidden "required"
+(`bali_view.form_builder.required`) for them. On the dropped families that mark is the
+only thing the option produces; on the rest it is the first, before the browser complains.
+The submit pair renders no caption and takes no mark.
+
 The authoritative list lives in `test/bali/form_builder/required_option_test.rb`, which
 declares every family in one of the two camps and fails when a new family lands in
 neither.
+
+### Non-model forms
+
+`form_with url: ..., scope: :import` builds a form with no object behind it, so there is
+nothing for Rails to derive a control's `name` and `id` from. `input_name:` /
+`input_id:` are the escape hatch, one field at a time:
+
+```erb
+<%= form_with url: imports_path, scope: :import do |f| %>
+  <%= f.error_summary %>
+  <%= f.file_group :file, input_name: "import[file]", accept: ".csv",
+        help: "CSV con columnas: nombre, correo, área" %>
+<% end %>
+<%# => <input type="file" name="import[file]" accept=".csv"> — params.require(:import) works %>
+```
+
+Both are honoured by every family whose control is a native named input, and by the
+three families whose control is a widget over a hidden field — the hidden field is what
+the form submits, so that is what gets renamed. An explicit `name:` / `id:` still wins
+over either.
+
+Four families take `input_name:` and not `input_id:`, because they have no single id to
+give: `radio_group` (Rails suffixes each button's id with its own value),
+`block_editor_group` / `rich_text_group` (the hidden input's id is the component's own),
+and `coordinates_polygon_group` / `time_period_group` (a hidden input is not labelable).
+`submit_*`, `radio_buttons_group`, `direct_upload_group`,
+`recurrent_event_rule_group` and `dynamic_fields_group` take neither, for want of one
+control to rename.
+
+The authoritative list lives in `test/bali/form_builder/input_name_option_test.rb`, which
+declares every family in one of the two camps and fails when a new family lands in
+neither.
+
+**`multiple:` keeps its `[]`.** Rails spells "this control submits a list" in the name,
+but it only appends the suffix to a name it derived itself — so a name given here used
+to arrive without one, three chosen files were submitted under one key, Rack kept the
+last, and `params[:import][:documents]` was a file instead of an array. Silently. The
+suffix is added now, and never doubled if you write it yourself:
+
+```erb
+<%= f.file_group :documents, multiple: true, input_name: "import[documents]" %>
+<%# => <input type="file" multiple name="import[documents][]"> %>
+```
+
+It follows the element, not the call site — and the element follows both hashes, `html:`
+first: on `slim_select_group` a top-level `multiple: true` used to be discarded in silence
+(the `<select>` came out single-valued, the name stayed bare), while the same spelling
+worked on `select_group`. Since #1123 it reaches the element either way, and an
+`html: { multiple: false }` is what keeps a select single-valued when both are written.
+
+> Before v3.1 the pair was read by the select families only. Everywhere else it fell
+> through to Rails, which forwards what it does not recognise — the input came out
+> carrying `input_name="import[file]"` as a literal HTML attribute while still submitting
+> under the name Rails had derived, so `params.require(:import)` raised a 400 that Turbo
+> swallowed and the screen sat there unchanged (#1111).
+
+`error_summary` works on these forms too: it renders nothing rather than raising when
+there is no object, so it can sit at the top of the form unconditionally and show
+whatever `error:` the fields were given.
+
+### `hint:` is not an option — the help text is `help:`
+
+There is no `hint:`. It is not a Bali option and not a valid HTML attribute either, so
+until v3.1 it was forwarded onto the element (`<input hint="Formato CSV…">`) and the
+text appeared nowhere on screen. It now warns through `Bali.deprecator` and is dropped.
+Same for `input_options:`, which is v2 muscle memory for "attributes for the element":
+those are the options themselves, or `html:` on the families that take two hashes.
 
 ### Density (`size:`)
 

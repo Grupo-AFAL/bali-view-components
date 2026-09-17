@@ -264,7 +264,8 @@
   <%# Template for new filter group (used by Stimulus) %>
   <template data-filters-target="groupTemplate">
     <%= render Bali::Filters::FilterGroup::Component.new(
-          group: { combinator: 'or', conditions: [{ attribute: '', operator: 'cont', value: '' }] },
+          group: { combinator: Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR,
+                   conditions: [{ attribute: '', operator: 'cont', value: '' }] },
           index: '__GROUP_INDEX__',
           available_attributes: available_attributes,
           removable: true

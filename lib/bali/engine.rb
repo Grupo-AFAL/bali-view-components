@@ -18,6 +18,7 @@ module Bali
       #{root}/app/controllers
       #{root}/app/helpers
       #{root}/app/lib
+      #{root}/app/widgets
       #{root}/app/models
     ]
 

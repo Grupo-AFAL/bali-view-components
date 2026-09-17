@@ -69,6 +69,7 @@ es:
   # Navigation
   navbar:
     dashboard: Panel
+    widgets: Widgets
     movies: Peliculas
     showcase: Catalogo
     landing: Inicio
@@ -119,6 +120,107 @@ es:
     hour: Hora
     activity: Actividad
     today: Hoy
+
+  # La pagina real del demo de widgets (ver DashboardWidgetsController) — copia
+  # del chrome alrededor de Bali::WidgetGrid::Component. Distinto de
+  # `widgets.*` abajo, que es la copia propia de cada WIDGET.
+  dashboard_widgets:
+    title: Widgets
+    subtitle: Tu propio orden — arrastra, redimensiona o elimina una tarjeta; se guarda automaticamente.
+
+  # El title/short_title/description/empty de un widget viene de ESTE scope, no
+  # de `bali_view.widgets.*` (ese es el chrome propio de Bali — las etiquetas
+  # Editar/Listo, los nombres de tamano). Ver docs/guides/engine-models.md,
+  # "Dashboard widgets".
+  widgets:
+    production_budget:
+      title: Presupuesto de producción
+      short_title: Presupuesto
+      description: Todas las películas con presupuesto, sumadas
+      empty: Aún no hay presupuesto
+    studio_foundings:
+      title: Estudios fundados
+      short_title: Estudios
+      description: Estudios socios por la década en que se fundaron
+      empty: No hay estudios registrados
+      period: vs la década anterior
+    task_load:
+      title: Carga próxima
+      short_title: Carga
+      description: Tareas sin terminar por la semana en que vencen
+      empty: No hay nada agendado
+      period: vs el mes siguiente
+    project_progress:
+      title: Avance del proyecto
+      short_title: Avance
+      description: Tareas completadas contra todo lo que hay en el tablero
+      empty: Aún no hay nada terminado
+      of_total: "de %{count}"
+    release_readiness:
+      title: Listo para publicar
+      short_title: Publicación
+      description: Si queda trabajo de prioridad alta bloqueando una publicación
+      empty: Todavía no hay nada que evaluar
+    schema_health:
+      title: Salud del catálogo
+      short_title: Catálogo
+      description: Si todas las películas tienen género
+      empty: Nada que revisar
+    ratings_audit:
+      title: Auditoría de calificaciones
+      short_title: Calificaciones
+      description: Si todas las películas están calificadas — pendiente hasta la primera
+      empty: Aún no hay calificaciones
+    modern_studios:
+      title: Estudios desde 2000
+      short_title: Desde 2000
+      description: Cuántos estudios se fundaron este siglo, frente a los noventa
+      empty: Ninguno registrado
+    catalog_coverage:
+      title: Películas terminadas
+      short_title: Terminadas
+      description: Cuántas películas han terminado, dibujado como anillo
+      empty: Aún no hay estudios
+    studio_sizes:
+      title: Tamaños de estudio
+      short_title: Tamaños
+      description: Cuántos estudios tienen tamaño registrado, y cómo se reparten
+      empty: Aún no hay películas
+    indie_studios:
+      title: Estudios independientes
+      short_title: Independientes
+      description: Estudios marcados como independientes — ninguno lo es, así que muestra el estado vacío
+      empty: No hay estudios independientes
+    unavailable_feed:
+      title: Taquilla
+      short_title: Taquilla
+      description: Un widget cuya fuente de datos está caída, para que la tarjeta degradada tenga dónde mostrarse
+      empty: No hay nada que mostrar
+    overdue_tasks:
+      title: Tareas atrasadas
+      short_title: Atrasadas
+      description: Tareas vencidas, de todos los proyectos
+      empty: No hay tareas atrasadas
+    recent_movies:
+      title: Peliculas recientes
+      short_title: Recientes
+      description: Las peliculas mas nuevas del catalogo
+      empty: Todavia no hay peliculas
+    active_studios:
+      title: Estudios activos
+      short_title: Estudios activos
+      description: Estudios asociados actualmente activos
+      empty: No hay estudios activos
+    upcoming_tasks:
+      title: Proximas tareas
+      short_title: Proximas
+      description: Tareas que vencen hoy o despues, las mas cercanas primero
+      empty: No hay nada agendado
+    top_budget_movies:
+      title: Peliculas con mayor presupuesto
+      short_title: Mayor presupuesto
+      description: Los presupuestos mas grandes del catalogo, de mayor a menor
+      empty: Todavia no hay peliculas con presupuesto
 
   # Movies
   movies:

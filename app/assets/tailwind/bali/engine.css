@@ -24,6 +24,16 @@
  * FormBuilder, the only place that writes the error and state classes —
  * input-error, select-error, fieldset-label, the whole range-* family.
  * Scanning only app/ compiles without a warning and drops all of them.
+ *
+ * The extension list is the whole point of the first glob. It used to say
+ * `{rb,erb,js}`, and the React components — gantt/*.jsx, block_editor/*.jsx —
+ * were never scanned: a host on the documented @import compiled clean and
+ * rendered both with 54 classes missing (cursor-col-resize, rotate-45,
+ * inset-y-0 …). Nobody noticed because the pre-v3 wiring, an explicit @source
+ * on node_modules/bali-view-components, got them through Tailwind's automatic
+ * detection (#1124). ts/tsx/mjs/cjs are listed ahead of any file using them, so
+ * the next extension does not reopen the hole; test/bali/tailwind_engine_css_test.rb
+ * sweeps every class-bearing file in the tree against these globs.
  */
-@source "../../../**/*.{rb,erb,js}";
+@source "../../../**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}";
 @source "../../../../lib/bali/**/*.rb";

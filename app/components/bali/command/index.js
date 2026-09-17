@@ -10,6 +10,7 @@ import { Controller } from '@hotwired/stimulus'
  *   - panel      Modal container (toggled hidden/visible)
  *   - backdrop   Click-to-close overlay
  *   - input      Search input
+ *   - shortcut   The kbd hint on the trigger, rewritten for the platform
  *   - group      One per <Group> component (used to show/hide group headers)
  *   - row        One per <Item> component (filtered + highlighted)
  *   - noResults  "No matches" message (shown when query has no regular hits)
@@ -28,9 +29,24 @@ import { Controller } from '@hotwired/stimulus'
 // different identifier.
 const EVENT_PREFIX = 'bali:command'
 
+// The trigger's hint is server-rendered, so every browser gets the same string;
+// ⌘ on a Windows keyboard is a key that does not exist. Which chord to press is
+// a property of the machine, knowable only here.
+const SHORTCUT_LABELS = { mac: '⌘K', other: 'Ctrl K' }
+
+// `userAgentData` is the modern answer and Chromium-only; `platform` is
+// deprecated but universal, and iPadOS reporting 'MacIntel' is the right answer
+// for a tablet with a Magic Keyboard attached.
+const isMacPlatform = () => {
+  const platform =
+    navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || ''
+  return /mac/i.test(platform)
+}
+
 export class CommandController extends Controller {
   static targets = [
-    'surface', 'panel', 'backdrop', 'input', 'group', 'row', 'noResults', 'count'
+    'surface', 'panel', 'backdrop', 'input', 'shortcut', 'group', 'row',
+    'noResults', 'count'
   ]
 
   static values = {
@@ -61,6 +77,7 @@ export class CommandController extends Controller {
     window.addEventListener('bali:command:toggle', this._handleGlobalToggle)
 
     this._activeIndex = 0
+    this._applyShortcutLabels()
     this.filter()
   }
 
@@ -280,6 +297,14 @@ export class CommandController extends Controller {
     })
   }
 
+  // Only labels the component rendered itself carry the target, so a hint the
+  // host wrote is never overwritten.
+  _applyShortcutLabels () {
+    if (!this.hasShortcutTarget) return
+    const label = isMacPlatform() ? SHORTCUT_LABELS.mac : SHORTCUT_LABELS.other
+    this.shortcutTargets.forEach(el => { el.textContent = label })
+  }
+
   _escape (s) {
     const div = document.createElement('div')
     div.textContent = s
@@ -287,7 +312,9 @@ export class CommandController extends Controller {
   }
 
   _handleKeydown (e) {
-    // ⌘K (Mac) / Ctrl+K (Windows/Linux) — toggles the palette globally
+    // ⌘K (Mac) / Ctrl+K (Windows/Linux) — toggles the palette globally. Both
+    // chords are accepted on both platforms on purpose; only the hint the
+    // trigger displays picks a side (see `_applyShortcutLabels`).
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault()
       if (this.openValue) {

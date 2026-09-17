@@ -1,0 +1,60 @@
+<div class="p-4 space-y-8">
+  <div>
+    <h2 class="text-lg font-semibold">Portfolio by status</h2>
+    <p class="text-sm text-base-content/60">
+      Every band folds its rows. "Pendiente de aprobación" and "Proyecto asignado" are born
+      folded; the header is a block — dot, label, count, summary — instead of the default text.
+    </p>
+  </div>
+
+  <%= render(Bali::Table::Component.new(id: 'portfolio', collapsible_groups: true,
+                                        collapsed_groups: %w[pending_approval in_project],
+                                        group_counts: counts,
+                                        group_label: ->(value) { statuses.fetch(value)[:label] })) do |c| %>
+    <%= c.with_headers(headers) %>
+    <%# `group.label` y `group.count` ya vienen resueltos: el bloque solo pinta. Nada
+        interactivo acá adentro: el contenido vive dentro del botón de plegado. %>
+    <% c.with_group_header do |group| %>
+      <span class="size-2 rounded-sm shrink-0 <%= statuses.fetch(group.value)[:dot] %>"></span>
+      <span><%= group.label %></span>
+      <%= render Bali::Tag::Component.new(text: group.count, size: :sm, style: :soft) %>
+      <span class="ml-auto truncate text-xs font-normal text-base-content/60">
+        <%= statuses.fetch(group.value)[:summary] %>
+      </span>
+    <% end %>
+    <% records.each do |record| %>
+      <%= c.with_row(group: record[:status]) do %>
+        <td class="font-medium"><%= record[:title] %></td>
+        <td class="text-base-content/70"><%= record[:area] %></td>
+        <td class="text-base-content/70"><%= record[:leader] %></td>
+        <td><%= record[:quadrant] %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <div>
+    <h2 class="text-lg font-semibold">Folding and selection together</h2>
+    <p class="text-sm text-base-content/60">
+      The group select-all keeps its own cell, outside the button, and marks the rows of a
+      folded band too.
+    </p>
+  </div>
+
+  <%= render Bali::BulkActions::Component.new do |bulk| %>
+    <% bulk.with_action(label: 'Archive', href: '/initiatives/bulk_archive', variant: :info) %>
+
+    <%= render(Bali::Table::Component.new(id: 'portfolio-selectable', selectable: true,
+                                          collapsible_groups: true, collapsed_groups: true,
+                                          group_label: ->(value) { statuses.fetch(value)[:label] })) do |c| %>
+      <%= c.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= c.with_row(group: record[:status], record_id: record[:id], select_label: record[:title]) do %>
+          <td class="font-medium"><%= record[:title] %></td>
+          <td class="text-base-content/70"><%= record[:area] %></td>
+          <td class="text-base-content/70"><%= record[:leader] %></td>
+          <td><%= record[:quadrant] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

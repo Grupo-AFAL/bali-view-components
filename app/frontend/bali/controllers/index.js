@@ -25,6 +25,7 @@ import { FocusOnConnectController } from '../../../assets/javascripts/bali/contr
 import { GeocoderMapsController } from '../../../assets/javascripts/bali/controllers/geocoder-maps-controller'
 import { InputOnChangeController } from '../../../assets/javascripts/bali/controllers/input-on-change-controller'
 import { InteractController } from '../../../assets/javascripts/bali/controllers/interact-controller'
+import { NumberFormatController } from '../../../assets/javascripts/bali/controllers/number-format-controller'
 import { PrintController } from '../../../assets/javascripts/bali/controllers/print-controller'
 import { RadioButtonsGroupController } from '../../../assets/javascripts/bali/controllers/radio-buttons-group-controller'
 import { RadioToggleController } from '../../../assets/javascripts/bali/controllers/radio-toggle-controller'
@@ -51,6 +52,7 @@ export {
   GeocoderMapsController,
   InputOnChangeController,
   InteractController,
+  NumberFormatController,
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
@@ -88,6 +90,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'geocoder-maps': GeocoderMapsController,
   'input-on-change': InputOnChangeController,
   interact: InteractController,
+  'number-format': NumberFormatController,
   print: PrintController,
   'radio-buttons-group': RadioButtonsGroupController,
   'radio-toggle': RadioToggleController,

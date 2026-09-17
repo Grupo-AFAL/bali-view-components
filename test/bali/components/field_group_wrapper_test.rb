@@ -94,6 +94,40 @@ class BaliFieldGroupWrapperComponentTest < FormBuilderTestCase
     assert_equal("fieldset-legend", Bali::FieldGroupWrapper::Component::LEGEND_CLASSES)
   end
 
+  # `required:` is a plain attribute the builder forwards to the control — and on the
+  # families whose control cannot carry it (a hidden file input, SlimSelect's clipped
+  # `<select>`) the call site's intent used to reach nothing the user could see. The
+  # caption is where the user looks, so it says so on every family: an asterisk for the
+  # eye, hidden from the reader, and a visually hidden word for the reader (#1125).
+  def test_caption_marks_a_required_field
+    render_inline(Bali::FieldGroupWrapper::Component.new(@builder, :name, required: true)) { "input" }
+
+    assert_selector("label.fieldset-legend", text: "Name")
+    assert_selector('label.fieldset-legend span[aria-hidden="true"]', text: "*")
+    assert_selector("label.fieldset-legend span.sr-only", text: "required", visible: :all)
+  end
+
+  def test_caption_marks_a_required_field_next_to_the_tooltip
+    render_inline(
+      Bali::FieldGroupWrapper::Component.new(@builder, :name, required: true, label: { text: "Name", tooltip: "Help" })
+    ) { "input" }
+
+    assert_selector('label.fieldset-legend span[aria-hidden="true"]', text: "*")
+  end
+
+  def test_caption_is_not_marked_without_required
+    render_inline(Bali::FieldGroupWrapper::Component.new(@builder, :name)) { "input" }
+
+    assert_no_selector('label.fieldset-legend span[aria-hidden="true"]')
+    assert_no_selector("label.fieldset-legend span.sr-only", visible: :all)
+  end
+
+  def test_caption_is_not_marked_when_required_is_false
+    render_inline(Bali::FieldGroupWrapper::Component.new(@builder, :name, required: false)) { "input" }
+
+    assert_no_selector('label.fieldset-legend span[aria-hidden="true"]')
+  end
+
   def test_constants_has_legend_text_classes_constant
     assert_equal("flex items-center gap-2", Bali::FieldGroupWrapper::Component::LEGEND_TEXT_CLASSES)
   end

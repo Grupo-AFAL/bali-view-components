@@ -13,6 +13,25 @@ module Bali
           )
         end
 
+        # @label Delimited (live thousands separator)
+        # `delimited: true` groups the thousands on every keystroke, so a long
+        # amount reads 1,500,200.75 while it is being typed. It costs the field
+        # its native type — a `number` input cannot hold a delimiter — so the
+        # input is `text` with an `inputmode` and a locale-aware `pattern`, and
+        # `min`/`max`/`step` are dropped because the browser enforces none of
+        # them there.
+        #
+        # The value below arrives from the server as the machine number
+        # `1500200.75` and is grouped on connect.
+        def delimited
+          form_record.number = 1_500_200.75
+
+          render_with_template(
+            template: 'bali/form/number/previews/delimited',
+            locals: { model: form_record }
+          )
+        end
+
         # @label With Errors
         # Shows the number field with validation error styling.
         def with_errors

@@ -1,0 +1,7 @@
+<% placeholder = loading? ? loading : default_loading %>
+<%= tag.div(**wrapper_attributes) do %>
+  <div class="frame-loading"><%= placeholder %></div>
+  <%= tag.turbo_frame(**frame_attributes) do %>
+    <%= content.presence || placeholder %>
+  <% end %>
+<% end %>

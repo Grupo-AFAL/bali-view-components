@@ -38,6 +38,22 @@ module Bali
       options
     end
 
+    # A copy of `options` the `prepend_*` family can safely be pointed at. They
+    # write to `options[:data][key]` in place, and `dup`, `merge` and `except`
+    # all copy the OUTER level only — so a component prepending onto the hash a
+    # host handed it writes back into the host's hash.
+    #
+    # Shallow on purpose: every write in the family lands at depth 2 as a freshly
+    # interpolated String.
+    #
+    # Call it where the options ENTER the component, not next to the first
+    # `prepend_*`, so a `prepend_*` added later is safe too.
+    def detach_data(options)
+      return options unless options.key?(:data)
+
+      options.merge(data: options[:data].dup)
+    end
+
     def prepend_data_attribute(options, attr_name, attr_value)
       options[:data] ||= {}
       options[:data][attr_name] = "#{attr_value} #{options[:data][attr_name]}".strip

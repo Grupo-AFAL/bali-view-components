@@ -35,6 +35,10 @@ export class BlockEditorController extends ReactIslandController {
     tableOfContentsContainerId: { type: String, default: '' },
     comments: { type: Boolean, default: false },
     commentsContainerId: { type: String, default: '' },
+    // "interactive" or "read-only". Only the portaled sidebar needs it in JS: the
+    // inline one sits under the root, which Rails already flags. See
+    // `Config#comments_sidebar`.
+    commentsSidebar: { type: String, default: 'interactive' },
     commentsUrl: { type: String, default: '' },
     commentsUser: { type: Object, default: {} },
     commentsUsers: { type: Array, default: [] },
@@ -106,6 +110,7 @@ export class BlockEditorController extends ReactIslandController {
       tableOfContentsContainerId: this.tableOfContentsContainerIdValue || undefined,
       comments: this.commentsValue,
       commentsContainerId: this.commentsContainerIdValue || undefined,
+      commentsSidebar: this.commentsSidebarValue,
       commentsUrl: this.commentsUrlValue || undefined,
       commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
       commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,

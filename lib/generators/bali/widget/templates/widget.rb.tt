@@ -1,0 +1,133 @@
+# frozen_string_literal: true
+
+# THIS WIDGET IS RED UNTIL YOU FILL IN THE BLOCK BELOW. Every declaration
+# scaffolds a `raise NotImplementedError`, so the generated test errors on
+# `test_it_loads` until you replace it with your query — deliberately, because
+# the alternative is a scaffold that passes while showing nothing. Unlike Rails'
+# own scaffolds, which generate green because they have a model to read.
+
+<% module_namespacing do -%>
+class <%= class_name %> < <%= parent_class %>
+  default_size :<%= options[:size] %>
+<% if supports_declaration -%>
+  <%= supports_declaration %>
+<% end -%>
+
+  # Who may see this. `context` is whatever your controller passes the offering —
+  # a Pundit context, a user, nothing at all. Bali never reads it. It runs
+  # WITHOUT touching the database, which is what lets a picker list the
+  # authorized set without loading a single widget.
+  #
+  # def authorized? = context.has_any_role?(:some_role)
+
+  # Where the tile links. Route helpers are not available here by default: add
+  # `include Rails.application.routes.url_helpers` to a concern your widgets
+  # share, the way `spec/dummy/app/widgets/widget_routes.rb` does.
+  #
+  # view_all_path { <%= widget_key %>_path }
+
+<% if pattern == 'value' -%>
+  # THE FIGURE. A sum, an average, a ratio — whatever the card shows big. The
+  # block runs against the widget, so it reaches `context` and private methods.
+  value { raise NotImplementedError, "<%= class_name %> must declare a `value`" }
+
+  # Only when the number is not the display. A ~215px tile fits four to six
+  # characters, so `Bali::Widget.abbreviate` is usually part of the answer.
+  #
+  # display_value { "$#{Bali::Widget.abbreviate(value)}" }
+<% elsif pattern == 'list' -%>
+  # THE COLLECTION: `count` is the whole of it, and the preview rows are the
+  # first `limit` of it. ORDER IT — Bali applies the limit after this block
+  # returns, so ordering here is always applied first, and paging a preview off
+  # an unordered relation is a different bug in every database.
+  #
+  # A BLOCK is the only form `list` takes. A class body runs once at boot, so a
+  # relation written there would freeze whatever it closed over — a
+  # `Date.current` in it is the day the process started, not today, and the
+  # reloader hides that in development. The block is re-read per render and runs
+  # against the widget, so it also reaches `context` and private helpers.
+  list do
+    raise NotImplementedError, "<%= class_name %> must declare a `list` scope"
+  end
+
+  # WHAT ONE ROW SAYS. Each field takes any of three forms:
+  #
+  #   a Symbol  is sent to the RECORD      r.title :name
+  #   a block   runs on the WIDGET         r.href { |record| record_path(record) }
+  #   a String  is the value itself        r.subtitle "In stock"
+  #
+  # The block takes the record as an ARGUMENT because it runs against the
+  # widget, not the record — which is what lets it reach route helpers,
+  # `context` and your own private methods. `join(a, b)` is there too — it
+  # joins two parts with the card's separator and drops the blank ones.
+  #
+  # `r.title` is required: without it every row renders blank, which reads as a
+  # data problem rather than an unfinished widget. The other two are optional.
+  row do |r|
+    r.title :name
+    # r.subtitle { |record| join(record.thing, record.other) }
+    # r.href { |record| record_path(record) }
+  end
+<% elsif pattern == 'trend' -%>
+  # THE FIGURE, what it is compared against, and how the movement reads. The base
+  # computes the delta between the two.
+  #
+  # `t.previous` returning NIL means the trend is ABSENT rather than zero — a
+  # widget's first week has nothing to compare against, and the card drops the
+  # indicator rather than drawing a flat 0%.
+  #
+  # `t.positive_when` is `:up` unless you say otherwise: a widget counting
+  # something BAD — overdue work, low stock — says `:down`, and a rising number
+  # then reads red. Getting this wrong makes the card lie confidently, which is
+  # why it is declared rather than guessed.
+  trend do |t|
+    t.current { raise NotImplementedError, "<%= class_name %> must declare `t.current`" }
+    t.previous { nil }
+    # t.positive_when :down
+    t.period_label "vs previous period"
+  end
+
+  # The history behind the fact: a sparkline at `medium`, an axed chart at
+  # `large`. Blocks run against the widget, so both can share one query through a
+  # memoised private method. Omit `series` entirely and the card draws no chart.
+  #
+  # `s.type` is `:line` here and `:bar` on a progress widget; those two are all a
+  # card draws, and anything else is a boot failure.
+  # series do |s|
+  #   s.labels { by_week.keys }
+  #   s.values { by_week.values }
+  # end
+<% elsif pattern == 'check' -%>
+  # DOES IT PASS? Ternary, not boolean: `nil` is "not checked yet" and draws the
+  # muted third state, which is a different statement from a failing check.
+  #
+  # PHRASE IT SO TRUE IS GOOD — "healthy", "valid", "draining". There is no
+  # `positive_when` here as there is on a trend, because a check's NAME carries
+  # its polarity where a bare number does not. Named the other way round, the
+  # card renders a green tick for bad news.
+  #
+  # `c.pass` and `c.fail` default to Bali's own wording, so a check needing no
+  # custom copy declares only its value.
+  check do |c|
+    c.value { raise NotImplementedError, "<%= class_name %> must declare `c.value`" }
+    # c.pass "Healthy"
+    # c.fail "Failing"
+  end
+<% elsif pattern == 'progress' -%>
+  # HOW FAR ALONG. The ring REPLACES the number as the headline, which is what
+  # makes this a pattern rather than a list with a decoration.
+  #
+  # `g.max` defaults to 100, so a widget whose figure is already a percentage
+  # declares `g.value` alone. `g.label` runs against the widget, so it can read
+  # the resolved `max`.
+  goal do |g|
+    g.value { raise NotImplementedError, "<%= class_name %> must declare `g.value`" }
+    # g.max { Thing.count }
+    g.label { "of #{max}" }
+  end
+
+  # How you got there. Omit `series` entirely and the ring stands alone.
+  # series { |s| s.values { by_status.values } }
+<% end -%>
+end
+<% end -%>

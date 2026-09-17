@@ -149,6 +149,9 @@ module Bali
         # -1 stands for "not configured": 0 is a real value that turns polling off,
         # so it cannot double as the unset marker.
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
+        # Read for its side effect: it raises on an unknown mode, and raising here
+        # rather than at render time puts the error on the call site.
+        @config.comments_sidebar
 
         Config.warn_stray_keywords(options, component: self.class.name)
 
@@ -156,6 +159,19 @@ module Bali
         @options = prepend_class_name(@options, size_class(size))
         @options = prepend_controller(@options, "block-editor")
         @options = prepend_values(@options, "block-editor", controller_values)
+
+        # Read by CSS, not by the controller: what the sidebar hides is a look, and
+        # the sidebar itself is React's. The root is the ancestor the INLINE sidebar
+        # sits under -- see `Config#comments_sidebar`.
+        #
+        # It is not the ancestor of a portaled one: `comments_container_id:` moves
+        # the sidebar into markup this component does not render the contents of, so
+        # the flag reaches that container through the Stimulus value below and the
+        # effect in BlockNoteEditorWrapper.jsx (#1113). DocumentEditor also writes it
+        # on its own panel, which is server-rendered and so beats React to it.
+        if @config.comments_sidebar_read_only?
+          @options = prepend_data_attribute(@options, "comments-sidebar", comments_sidebar_attribute)
+        end
       end
 
       # Two things can only be resolved here, both for the same reason: the view
@@ -222,6 +238,13 @@ module Bali
         return @format if %i[html markdown].include?(@format)
 
         Bali::BlockEditor.content_format(@initial_content)&.to_s
+      end
+
+      # The mode as the `data-comments-sidebar` attribute spells it: Ruby writes
+      # `:read_only`, CSS reads `read-only`. One place, so the root attribute, the
+      # Stimulus value and the portaled container cannot drift apart.
+      def comments_sidebar_attribute
+        @config.comments_sidebar.to_s.tr("_", "-")
       end
 
       private
@@ -315,6 +338,9 @@ module Bali
           table_of_contents_container_id: @table_of_contents_container_id || "",
           comments: @comments,
           comments_container_id: @comments_container_id || "",
+          # The mode as CSS spells it. Read by the React wrapper for the portaled
+          # sidebar only -- see the effect in BlockNoteEditorWrapper.jsx.
+          comments_sidebar: comments_sidebar_attribute,
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,

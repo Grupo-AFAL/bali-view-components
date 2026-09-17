@@ -132,7 +132,23 @@ export class DocumentEditorController extends Controller {
     this.scheduleSave()
   }
 
-  contentChanged () {
+  // `input` is listened for on the editor AREA, not on the document's ProseMirror:
+  // BlockNote builds that node itself, client-side, so at connect time there is
+  // nothing else to bind to. Everything the editor renders is inside that
+  // container, and every comment body is its own nested BlockNote instance — so
+  // typing a reply raised `input` on the container and the document went dirty.
+  //
+  // On a read-only viewer (`auto_save: false`) nothing ever cleared it again:
+  // "Unsaved changes" sat over a document the reader could not have changed and
+  // could not save. Measured step by step in #1111 on `editable: false,
+  // auto_save: false` — the badge appeared on the first keystroke in the reply box.
+  //
+  // `.bn-comment-editor` is the class BlockNote puts on that nested container, in
+  // the threads sidebar and in the floating composer alike, so one check covers
+  // both routes into a thread.
+  contentChanged (event) {
+    if (event?.target?.closest?.('.bn-comment-editor, .bn-threads-sidebar')) return
+
     this.scheduleSave()
   }
 

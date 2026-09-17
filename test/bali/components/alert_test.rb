@@ -123,8 +123,28 @@ class BaliAlertComponentTest < ComponentTestCase
 
   def test_without_title_or_header_renders_content_directly
     render_inline(Bali::Alert::Component.new) { "Simple alert" }
-    assert_selector("div.alert > span", text: "Simple alert")
+    assert_selector("div.alert > div", text: "Simple alert")
     assert_no_selector("div.flex.flex-col")
+  end
+
+  # The body used to be a `<span>`, and a list or a paragraph inside it is block-in-inline:
+  # invalid HTML that browsers paint anyway, so nothing said so until a validator did
+  # (#1120). The alert is a grid and its column a flex column, so the wrapper's own
+  # display never mattered to the layout — a `<div>` draws the same and takes any content.
+  def test_block_content_is_not_wrapped_in_an_inline_element
+    render_inline(Bali::Alert::Component.new(title: "Sin gerente")) do
+      "<ul><li>124 · CABO</li></ul>".html_safe
+    end
+
+    assert_selector("div.alert div.flex.flex-col > div > ul > li", text: "124 · CABO")
+    assert_no_selector("span ul")
+  end
+
+  def test_block_content_without_a_title_is_not_wrapped_in_an_inline_element_either
+    render_inline(Bali::Alert::Component.new) { "<p>Un párrafo</p>".html_safe }
+
+    assert_selector("div.alert > div > p", text: "Un párrafo")
+    assert_no_selector("span p")
   end
 
   def test_options_passthrough_accepts_custom_classes
