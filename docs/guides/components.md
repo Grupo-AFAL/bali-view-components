@@ -399,7 +399,7 @@ builds one entry. `route_helper` and `url` are exclusive and exactly one is requ
 `Rails.application.routes.url_helpers`) must respond to **directly** — it has to end in
 `_path` or `_url`, or `Tool.new` raises, because a name behind an engine proxy
 (`main_app.foo_path`) can't be expressed this way; `url` is a lambda re-read on every call.
-`key` picks the default label from six known translations (es/en); `name:` overrides it,
+`key` picks the default label from seven known translations (es/en); `name:` overrides it,
 and a host can override a known key too (`topbar.tools_menu.items.<key>`, same cascade for
 the trigger's own label via `topbar.tools_menu.trigger_label`). `meta` is free for the
 host — the gem carries it but never reads it.

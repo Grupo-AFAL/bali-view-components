@@ -91,28 +91,62 @@ export default class extends Controller {
   }
 
   setColumnVisibility (index, visible) {
+    const display = visible ? '' : 'none'
+
     // Toggle header
     const headers = this.table.querySelectorAll('thead th')
     if (headers[index]) {
-      headers[index].style.display = visible ? '' : 'none'
+      headers[index].style.display = display
     }
 
     // Toggle cells in each row
-    const rows = this.table.querySelectorAll('tbody tr')
-    rows.forEach(row => {
-      const cells = row.querySelectorAll('td')
-      if (cells[index]) {
-        cells[index].style.display = visible ? '' : 'none'
-      }
+    this.table.querySelectorAll('tbody tr').forEach(row => {
+      const cell = this.columnCell(row.querySelectorAll('td'), index)
+      if (cell) cell.style.display = display
     })
 
     // Toggle footer cells if present
-    const footerRows = this.table.querySelectorAll('tfoot tr')
-    footerRows.forEach(row => {
-      const cells = row.querySelectorAll('td, th')
-      if (cells[index]) {
-        cells[index].style.display = visible ? '' : 'none'
-      }
+    this.table.querySelectorAll('tfoot tr').forEach(row => {
+      const cell = this.columnCell(row.querySelectorAll('td, th'), index)
+      if (cell) cell.style.display = display
     })
+  }
+
+  /**
+   * La celda que ES la columna `index` en esa fila, o null cuando el índice no la nombra.
+   *
+   * El índice del selector es una POSICIÓN DE COLUMNA —la del `thead`—, y en una fila con
+   * `colspan` esa posición no es el número de celda: hay que ir sumando `colSpan` hasta
+   * llegar a ella. `Bali::Table` pinta tres filas donde la cuenta se separa: la banda de
+   * grupo (su `td` lleva `colspan`, precedido o no por la celda del seleccionar-todo), el
+   * estado vacío (un `td` que cubre la tabla entera) y una fila de totales en el `tfoot`,
+   * cuya etiqueta abarca varias columnas. Solo la primera lleva clase propia, así que un
+   * `tr:not(.bali-table-group-row)` arreglaría la banda y dejaría las otras dos rotas: por
+   * eso la guarda va sobre la CELDA y no sobre la fila.
+   *
+   * Por índice crudo se escondía la cosa equivocada: la banda entera —con el botón de
+   * plegado adentro, y con `collapsed_groups:` sus filas quedaban inalcanzables sin
+   * recargar—, el mensaje de «no hay resultados», o —en el `tfoot`— el total de la columna
+   * de al lado.
+   *
+   * LÍMITE CONOCIDO, medido y no supuesto: lo que distingue a esas filas es que su celda
+   * abarca MÁS de una columna. En una tabla de UNA sola columna visible no abarca más de
+   * una —la banda sale con `colspan="1"` y el estado vacío también—, así que esconder esa
+   * única columna se los lleva igual. El CHANGELOG de #1144 guarda la medición.
+   *
+   * Tampoco encoge la celda que abarca una columna oculta: conserva su `colspan`, así que una fila
+   * de totales cuya etiqueta cubre esa columna queda una columna más ancha que el encabezado.
+   */
+  columnCell (cells, index) {
+    let column = 0
+
+    for (const cell of cells) {
+      if (column === index) return cell.colSpan <= 1 ? cell : null
+      if (column > index) return null
+
+      column += cell.colSpan
+    }
+
+    return null
   }
 }
