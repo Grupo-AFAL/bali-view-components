@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.4.0] - 2026-09-17
+
 ### Added
 
 - **`Bali::Topbar::ToolsMenu` traduce `flightdeck`** (#1138). Cuatro apps del grupo
