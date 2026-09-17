@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ViewComponent memoiza la captura y el `<%= content %>` de abajo reusa esa misma cadena. Un
   bloque con contenido real no cambia, espacios alrededor incluidos. Encontrado en afal-apps
   (`communications/campaigns/_approval_panel`), donde cada aprobación sin comentario que no
-  fuera el paso activo sumaba ese margen de más.
+  fuera el paso activo sumaba ese margen de más. (parte de #1145)
 
 ## [v3.3.1] - 2026-09-14
 

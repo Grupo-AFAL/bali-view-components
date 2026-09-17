@@ -32,13 +32,18 @@
       <p class="workflow-step-date"><%= date %></p>
     <% end %>
     <%# `content?` only says that a block was passed, not that it rendered
-        anything: a host that decides inside the block — the usual
-        `<% if comment %>` around a step's note — gets a true from it on every
-        step and an empty `.workflow-step-comment` dragging its `mt-1`.
-        `content.present?` asks the rendered string instead, and `blank?`
-        already covers the whitespace-only case. Evaluating it here costs no
-        second render: ViewComponent memoises the capture, so the `content`
-        below is the same string. %>
+        anything. A host writes "the comment, if there is one" by putting the
+        conditional inside the block, so every step passes one and `content?`
+        is true on all of them — leaving an empty `.workflow-step-comment`
+        behind, dragging its `mt-1`. `content.present?` asks the rendered
+        string instead, and `blank?` already covers the whitespace-only block.
+        Reading it here costs no second render: ViewComponent memoises the
+        capture, so the `content` below is that same string.
+
+        Keep this comment free of ERB tags: a comment opened with an ERB tag
+        ends at the first closing delimiter, wherever it sits, so an example
+        quoted in the prose truncates it and spills the rest into the step
+        body as plain text. Describe the host's conditional in words. %>
     <% if content.present? %>
       <div class="workflow-step-comment"><%= content %></div>
     <% end %>
