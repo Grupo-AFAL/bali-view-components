@@ -1125,7 +1125,9 @@ title, or a free content block for arbitrary markup.
 - `sublabel` - Smaller muted second line under the title (date, actor, note)
 - Content block - Free markup under the title. A block that renders blank draws
   no wrapper, so deciding *inside* the block — "the detail, if there is one" —
-  leaves the step exactly as one declared with no block at all.
+  leaves the step exactly as one declared with no block at all. Blank is read off
+  the rendered string, so markup that shows no text (a Stimulus mount, a hidden
+  field) does keep the wrapper.
 - HTML attributes for the `li` pass through
 
 #### WorkflowSteps

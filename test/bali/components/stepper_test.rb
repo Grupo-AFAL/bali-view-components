@@ -148,6 +148,27 @@ class BaliStepperComponentTest < ComponentTestCase
     assert_selector("li.step", text: "Publicado")
   end
 
+  # Every case above hands `with_step` a Ruby block that returns a String. A
+  # host writes ERB with the `if` inside, which hands ViewComponent a captured
+  # buffer instead — the form the issue describes and the form the preview
+  # teaches. It gets rendered as ERB here rather than approximated, so nothing
+  # about the fix rests on the two spellings capturing the same way.
+  def test_an_erb_block_whose_condition_is_false_draws_no_wrapper
+    rendered = Capybara.string(vc_test_controller.view_context.render(inline: <<~ERB))
+      <%= render Bali::Stepper::Component.new(current: 1) do |c| %>
+        <% detail = nil %>
+        <% c.with_step(title: 'Publicado') do %>
+          <% if detail.present? %>
+            <span class="text-xs opacity-60"><%= detail %></span>
+          <% end %>
+        <% end %>
+      <% end %>
+    ERB
+
+    assert_no_selector(rendered, "li.step > div", visible: :all)
+    assert_equal "Publicado", rendered.find("li.step").text.squish
+  end
+
   # The whitespace an ERB block leaves around real content must not read as
   # blank — the fix has to drop the empty wrapper, not the working one.
   def test_a_block_padded_with_whitespace_still_wraps
@@ -158,6 +179,20 @@ class BaliStepperComponentTest < ComponentTestCase
     assert_selector("li.step > div", text: "publicación #12")
   end
 
+  # The exact edge of the new predicate: `content.present?` reads the rendered
+  # string, so a block that writes markup showing no text — a Stimulus mount, a
+  # hidden field — still wraps, same answer WorkflowSteps gives. A condition
+  # narrowed to the visible text would pass every other case in this file and
+  # drop that node on the floor.
+  def test_a_block_of_markup_without_text_still_wraps
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado") { '<input type="hidden" name="step_id" value="12">'.html_safe }
+    end
+
+    assert_selector("li.step > div", visible: :all)
+    assert_selector('li.step > div input[type="hidden"][name="step_id"]', visible: :all)
+  end
+
   # `sublabel:` keeps the wrapper on its own: the step still has two lines to
   # stack, so a blank block must not take the sublabel down with it.
   def test_a_sublabel_with_a_blank_block_keeps_its_wrapper
@@ -166,6 +201,20 @@ class BaliStepperComponentTest < ComponentTestCase
     end
 
     assert_selector("li.step > div .step-sublabel", text: "03/07 · Ana Gutiérrez")
+  end
+
+  # `sublabel:` and a block with real content is the only case where all three
+  # nodes land inside the wrapper at once, so it is the only place their order
+  # is pinned: title, sublabel, then the block's markup.
+  def test_a_sublabel_and_a_real_block_stack_title_sublabel_and_content_in_order
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado", sublabel: "03/07 · Ana Gutiérrez") do
+        '<span class="detail">publicación #12</span>'.html_safe
+      end
+    end
+
+    stacked = page.all("li.step > div > *", visible: :all).map { |node| node.text.squish }
+    assert_equal [ "Publicado", "03/07 · Ana Gutiérrez", "publicación #12" ], stacked
   end
 
   # Every assertion above names a selector, so all of them stay green while the

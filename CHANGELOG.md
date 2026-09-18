@@ -22,13 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **Esto cambia el marcado, no el pintado.** A diferencia del `.workflow-step-comment` de
   v3.4.0, el `div` de Stepper no lleva clase ni margen y el grid de `.steps .step` lo coloca en
-  la misma celda que el texto pelado: medido en Lookbook con el CSS compilado, las capturas de
-  antes y después salen byte a byte idénticas y las cajas de los cuatro pasos no se mueven un
-  pixel. El paso con bloque en blanco pasa de `<li class="step"><div><div>Título</div></div></li>`
-  a `<li class="step">Título</li>`. Un anfitrión sólo lo nota si tiene CSS, JS o pruebas
-  apuntando a `li.step > div` para un paso cuyo bloque no rinde nada. Cierra el mismo predicado
-  equivocado que #1153 barrió en `Bali::WorkflowSteps`; era el último de la gema. Nueva variante
-  de Lookbook `with_content_block` con el caso.
+  la misma celda que el texto pelado. Lo medido, para que se sepa hasta dónde llega la
+  afirmación: el preview `with_content_block` en Lookbook contra el CSS compilado, a 1280px, en
+  tres disposiciones —horizontal (el ancho por contenido de DaisyUI), `w-full` y
+  `steps-vertical`—. En las tres, los cuatro pasos dan el mismo `getBoundingClientRect()` antes
+  y después, y la captura de página completa sale byte a byte idéntica (`compare -metric AE`
+  = 0). Fuera de esas tres disposiciones no está medido. El paso con bloque en blanco pasa de
+  `<li class="step"><div><div>Título</div></div></li>` a `<li class="step">Título</li>`. Un
+  anfitrión sólo lo nota si tiene CSS, JS o pruebas apuntando a `li.step > div` para un paso
+  cuyo bloque no rinde nada. Cierra el mismo predicado equivocado que #1153 barrió en
+  `Bali::WorkflowSteps`; era el último de la gema. Nueva variante de Lookbook
+  `with_content_block` con el caso, y `test/requests/stepper_previews_test.rb` la sostiene.
 
 ## [v3.4.0] - 2026-09-17
 
