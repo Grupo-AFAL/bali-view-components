@@ -109,14 +109,20 @@ module Bali
       #   `false` never means "no accessible name": the control still gets one, from
       #   `aria_label:` or, failing that, from the `blank:` text. Naming it through
       #   the blank option is what this keyword promised since #882 and did not do
-      #   until #1155 — the blank option is the select's selected VALUE, not its name.
+      #   until #1155 — the blank option is the select's selected VALUE, not its name,
+      #   so that last step is a safety net and not the thing to aim for: it names the
+      #   control with the very text it reads out as its value ("All years, All years").
+      #   Where the name matters, write `aria_label:`.
       # @param aria_label [String, Proc] Accessible name for the SimpleFilters control
-      #   when no caption names it — the override at the head of that chain, and the
-      #   only way to name the widgets that have no `blank:` to fall back on (boolean,
-      #   toggle_group, radio_group, number_range, date, date_range). Same spelling as
-      #   `search_fields aria_label:` (#1026). Zero-arity procs are resolved
-      #   per-instance, like `label:`. It is not rendered as a caption: where there is
-      #   one, the caption keeps naming the control and this is ignored.
+      #   where no caption names it, and the only name available to the widgets that
+      #   have no `blank:` to fall back on (boolean, toggle_group, radio_group,
+      #   number_range, date, date_range). Same spelling as `search_fields aria_label:`
+      #   (#1026). Zero-arity procs are resolved per-instance, like `label:`. It is not
+      #   rendered as a caption, and it never competes with one: where there is a
+      #   caption, the caption keeps naming the control — in every branch, the "Custom…"
+      #   picker of a preset range included (#1155) — and this is ignored. A visible
+      #   label has to be part of the accessible name (WCAG 2.5.3), so a second and
+      #   different name would not be an improvement on the caption.
       # @param options [Array, Proc] For select types, array of [label, value]
       #   pairs or a zero-arity proc resolved per-instance with instance_exec —
       #   inside it you can use `scope` (the relation the controller passed in,

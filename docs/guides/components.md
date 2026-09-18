@@ -3699,18 +3699,25 @@ Bali resolves the name for you, in this order:
 
 | Step | Source | When it applies |
 |---|---|---|
-| 1 | `aria_label:` | Always wins. The only name available to the widgets with no blank option — `boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range` |
-| 2 | `label:` | The caption itself, where a caption exists but does not reach the control |
+| 1 | `label:` | The caption wins wherever there is one. A visible label has to be part of the accessible name (WCAG 2.5.3), so `aria_label:` never competes with a caption — it is ignored there, in every branch |
+| 2 | `aria_label:` | The name for an uncaptioned control, and the only one available to the widgets with no blank option — `boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range` |
 | 3 | `blank:` | The blank option's text ("All years"), when it is a String. `blank: true` is a Rails blank option with no text and never becomes a name |
+
+**Step 3 is a safety net, not the recommendation.** It exists so that no control ships
+nameless and no host has to edit a line to get out of WCAG 4.1.2 — but the blank option is
+the select's selected VALUE, so the control ends up named with the text it already reads
+out: "All years, All years". Where the name matters, write `aria_label:`. A host coming from
+a workaround that set the `aria-label` from outside should move those strings into
+`aria_label:` rather than drop them: "Registration year" is a better name than "All years".
 
 ```ruby
 filter_attribute :year, type: :select, simple: true, advanced: false,
   options: -> { Report.distinct.pluck(:year).map { |y| [y, y] } },
-  blank: 'All years', label: false                      # named "All years"
+  blank: 'All years', label: false      # the net: named "All years", its own value
 
 filter_attribute :area_id, type: :select, simple: true, advanced: false,
   options: -> { Area.pluck(:name, :id) },
-  blank: 'All areas', label: false, aria_label: 'Responsible area'
+  blank: 'All areas', label: false, aria_label: 'Responsible area'   # the name to aim for
 ```
 
 `aria_label:` takes a zero-arity proc, like `label:` and `blank:`, for an I18n lookup that
@@ -3729,6 +3736,12 @@ never reaches the control the user operates and Bali has to point at it explicit
 - **`date` / `date_range`** are drawn by flatpickr, which hides the real input and creates
   a second one. `datepicker#forwardAccessibleName` copies the caption across; with no
   caption there was nothing to copy.
+
+A `date_range` with `presets:` is two controls over one param, and they are named
+separately: the period select falls back to its blank option ("Any date"), while the
+"Custom…" picker never borrows that text — a field the user opened precisely to stop saying
+"any date" cannot be called that. With no caption and no `aria_label:` the picker is named
+`bali_view.simple_filters.presets.custom_range` ("Custom date range").
 
 A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a `[Bali]`
 warning in development and test and renders anyway — a missing accessible name is not a

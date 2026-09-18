@@ -26,19 +26,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   «Personalizado…» salía con `aria-label="false"`.
 
   Ahora hay una sola cadena de resolución, la misma para las seis ramas:
-  **`aria_label:` → el rótulo → el texto de `blank:`**. El `blank:` sólo cuenta si es una
-  cadena, porque `blank: true` es una opción en blanco de Rails sin texto y habría nombrado
-  el control «true».
+  **el rótulo → `aria_label:` → el texto de `blank:`**. El caption va primero y `aria_label:`
+  no le compite: un rótulo visible tiene que formar parte del nombre accesible (WCAG 2.5.3),
+  así que donde hay caption manda el caption en TODAS las ramas —incluido el picker de
+  «Personalizado…» de un rango con presets, que era la única que sacaba dos nombres para el
+  mismo grupo—. El `blank:` sólo cuenta si es una cadena, porque `blank: true` es una opción
+  en blanco de Rails sin texto y habría nombrado el control «true».
 
-  **Qué cambia para un anfitrión.** Los filtros con `label: false` y `blank:` —los tres de
-  afal-apps entre ellos— quedan nombrados **sin tocar el host**: el paliativo Stimulus que
-  escribía el `aria-label` desde fuera usando los ids de `filter_control_id` se puede
-  retirar. Un filtro sin caption y sin `blank:` del que caer (`boolean`, `toggle_group`,
-  `radio_group`, `number_range`, `date`, `date_range`) necesita la clave nueva
-  `aria_label:`; sin ella se registra un aviso `[Bali]` en development y test y la pantalla
-  rinde igual. **No hay `ArgumentError`**, que es lo que pedía el issue: reventar en render
-  tiraría la pantalla de un anfitrión en producción por un defecto de accesibilidad, y
-  rompería a la propia `UncaptionedSimpleFilterForm` del repo.
+  **El respaldo a `blank:` es una red, no la recomendación.** Nombra al control con el mismo
+  texto que ya lee como su valor: el lector dice «Todos los años, Todos los años». Está para
+  que ningún control salga mudo sin que nadie toque una línea; el nombre bueno se escribe con
+  `aria_label:`.
+
+  **Qué cambia para un anfitrión.** Los filtros con `label: false` y `blank:` quedan
+  nombrados sin tocar el host, así que ninguna pantalla se queda en WCAG 4.1.2 esperando un
+  cambio. Eso **no** quiere decir que un paliativo existente se borre y ya: el de afal-apps
+  (`td_flow/reports_filter_form.rb`, `ARIA_LABEL_KEYS`) nombra sus tres selects «Año de
+  registro», «Área» y «Estado», y la red los nombraría «Todos los años», «Todas las áreas» y
+  «Todos los estados» — peores nombres que los de hoy. La migración es **mover esas tres
+  cadenas a `aria_label:`** en el mismo bump y recién entonces retirar el controlador
+  Stimulus que las escribía desde fuera. Un filtro sin caption y sin `blank:` del que caer
+  (`boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range`) necesita
+  la clave nueva `aria_label:`; sin ella se registra un aviso `[Bali]` en development y test
+  y la pantalla rinde igual. **No hay `ArgumentError`**, que es lo que pedía el issue:
+  reventar en render tiraría la pantalla de un anfitrión en producción por un defecto de
+  accesibilidad, y rompería a la propia `UncaptionedSimpleFilterForm` del repo.
+
+  El aviso dice dos cosas distintas según la forma del filtro. En uno de un solo control, lo
+  anónimo es el control. En `toggle_group`, `radio_group` y `number_range` cada control ya se
+  nombra solo —cada pill con su opción, cada mitad del rango con su placeholder— y lo que
+  falta es el nombre del GRUPO, que sin él ni siquiera se emite.
 
   **El HTML de una fila captionada no cambia**: el `aria-label` se emite sólo donde no hay
   un `<label for>` visible que llegue al control. Con dos excepciones, que son defectos más
@@ -56,6 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     caption no había nada que copiar. Ahora se emite el `aria-label` que ese mismo JS
     reenvía.
 
+  Un `date_range` con `presets:` son dos controles sobre un mismo param, y se nombran por
+  separado: el select de períodos puede caer en su opción en blanco («Cualquier fecha»), y el
+  picker de «Personalizado…» nunca hereda ese texto —es un campo que el usuario abre
+  justamente para no decir «cualquier fecha»—. Sin caption ni `aria_label:` se nombra con la
+  cadena nueva `bali_view.simple_filters.presets.custom_range` («Rango de fechas
+  personalizado»).
+
   `aria_label:` viaja por las tres capas de configuración —`filter_attribute`,
   `defined_simple_filters` y los hashes `simple_filters:` de instancia— y acepta un proc de
   aridad cero, igual que `label:` y `blank:`. Es una clave nueva y `filter_attribute` tenía
@@ -65,7 +89,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Dos previews nuevos, que es lo que hace verificable el arreglo en el navegador:
   `data_table/simple_filters/uncaptioned` y `data_table/simple_filters/slim_select` (no
   había ninguno con `type: :slim_select`).
-
 
 ## [v3.4.0] - 2026-09-17
 

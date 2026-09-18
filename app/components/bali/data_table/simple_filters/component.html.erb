@@ -162,7 +162,7 @@
               <%= tag.select(
                     options_for_select(preset_options(filter), preset_select_value(filter)),
                     id: filter_control_id(filter),
-                    "aria-label": (preset_accessible_name(filter) unless captioned?(filter)),
+                    "aria-label": (preset_select_accessible_name(filter) unless captioned?(filter)),
                     class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}",
                     data: {
                       "time-period-field-target": "select",
@@ -184,8 +184,10 @@
                   placeholder: filter[:placeholder] || filter_caption(filter),
                   # El picker es un SEGUNDO control del mismo grupo y nunca tiene
                   # `<label for>` —el caption apunta al select—, así que su `aria-label` se
-                  # emite siempre. Salía con la cadena "false" bajo `label: false` (#1155).
-                  "aria-label": preset_accessible_name(filter),
+                  # emite siempre. Salía con la cadena "false" bajo `label: false` (#1155), y
+                  # después con el respaldo del select ("Cualquier fecha"), que es lo contrario
+                  # de lo que el usuario abre este campo para decir.
+                  "aria-label": preset_picker_accessible_name(filter),
                   alt_input_class: "input input-bordered input-sm w-full",
                   wrapper_options: {
                     class: class_names("flatpickr", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)

@@ -118,6 +118,9 @@ module Bali
             fields: [:name],
             value: search_text.presence,
             placeholder: 'Search by name...',
+            # `label:` is the search box's accessible name. Without it the input is named by
+            # its placeholder, which disappears the moment the user types (#1155 review).
+            label: 'Search records by name',
             icon: 'search'
           }
 
@@ -141,6 +144,7 @@ module Bali
             fields: [:name],
             value: search_text.presence,
             placeholder: 'Search records...',
+            label: 'Search records',
             width: width
           }
 
@@ -369,6 +373,7 @@ module Bali
             fields: [:name],
             value: nil,
             placeholder: 'Search...',
+            label: 'Search records',
             icon: 'search'
           }
 
@@ -409,13 +414,18 @@ module Bali
         # @label Uncaptioned (label: false)
         # `label: false` drops the caption over the control — for a row that is already
         # self-explanatory, or one too narrow for a two-line filter. The control still has
-        # to have an accessible name, so Bali resolves one: `aria_label:` when given, the
-        # caption when there is one, and failing that the blank option's own text
-        # ("All years"), which is what a screen reader reads out when nothing is chosen.
+        # to have an accessible name, so Bali resolves one: the caption where there is one,
+        # then `aria_label:`, and failing both the blank option's own text.
         #
-        # Open the accessibility pane on each control here: none of them is a bare
-        # "combo box". A filter with no caption, no `aria_label:` and no `blank:` to fall
-        # back on logs a `[Bali]` warning in development instead of rendering nameless.
+        # **Write `aria_label:`.** Falling back to `blank:` is the safety net that keeps a
+        # control from shipping nameless, not the thing to aim for: it names the control
+        # with the same text it reads out as its VALUE, so the year select below announces
+        # "All years, All years". It is left on the net here on purpose, to show what that
+        # sounds like next to the five that name themselves.
+        #
+        # Open the accessibility pane on each control: none of them is a bare "combo box".
+        # A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a
+        # `[Bali]` warning in development instead of rendering nameless.
         def uncaptioned
           filters = [
             {
@@ -436,6 +446,7 @@ module Bali
               collection: [%w[Ana ana], %w[Beto beto]],
               blank: 'All owners',
               label: false,
+              aria_label: 'Owner',
               type: :slim_select
             },
             {
@@ -449,6 +460,7 @@ module Bali
               label: false,
               type: :date_range,
               icon: 'calendar',
+              aria_label: 'Creation date',
               presets: %i[today this_week this_month]
             },
             {
