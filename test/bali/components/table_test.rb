@@ -579,10 +579,28 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".overflow-x-auto.table-component")
   end
 
-  def test_options_passthrough_accepts_custom_id
+  # `id:` identifica al COMPONENTE, y el root del componente es el `<div class="table-component">`
+  # (la convención de `**options` de docs/reference/component-patterns.md). Es la única llave de
+  # `**options` que NO baja a la `<table>`: de ella cuelgan `row_id_prefix` y `empty_table_row_id`,
+  # y es la que `getElementById`, `turbo_stream.replace` y un ancla ya resolvían por orden de
+  # documento. Emitirla también en la `<table>` era HTML inválido (#1157).
+  def test_custom_id_lands_only_on_the_container
     @options = { id: "my-table" }
     render_inline(component)
-    assert_selector("#my-table")
+    assert_selector("div#my-table.table-component", count: 1)
+    assert_no_selector("table#my-table")
+  end
+
+  def test_custom_id_is_not_emitted_twice
+    @options = { id: "my-table" }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row { "<td>A</td>".html_safe }
+    end
+
+    ids = page.native.css("[id]").map { |node| node["id"] }
+    assert_equal(ids.uniq.size, ids.size, "ningún id del componente debe repetirse: #{ids.inspect}")
+    assert_includes(ids, "my-table")
   end
 
   def test_options_passthrough_accepts_custom_classes

@@ -134,6 +134,7 @@ module Bali
         @collapsible_groups = collapsible_groups
         @collapsed_groups = collapsed_groups
         @row_sequence = 0
+        @container_id = options.delete(:id)
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = build_container_options(options.delete(:table_container) || {})
         @options = prepend_class_name(hyphenize_keys(options), TABLE_CLASSES)
@@ -153,8 +154,17 @@ module Bali
         !@group_header_block.nil?
       end
 
+      # El id identifica al COMPONENTE, y el root del componente es el `<div class="table-component">`
+      # que envuelve a la `<table>` — la convención de `**options` de
+      # docs/reference/component-patterns.md. Por eso `initialize` lo SACA de `options`: es la única
+      # llave que no baja a la `<table>`. Emitirlo en los dos elementos era HTML inválido y
+      # `getElementById` devolvía igual el `<div>`, que es el primero en orden de documento (#1157).
+      # De este id cuelgan además `row_id_prefix` y `empty_table_row_id`, y es lo que un
+      # `turbo_stream.replace` tiene que reemplazar: la `<table>` sola dejaría afuera el
+      # `overflow-x-auto` y el `data-controller` de los grupos plegables. Los atributos propios del
+      # contenedor van en `table_container:`; con `form:` esto ya funcionaba así.
       def container_id
-        @options[:id] || @form&.id
+        @container_id || @form&.id
       end
 
       # El controlador de plegado se emite solo cuando hay algo que plegar: una tabla que
