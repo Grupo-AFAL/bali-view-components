@@ -27,10 +27,28 @@ module Bali
     )
     config.to_prepare { Dir.glob(overrides).each { |override| load override } }
 
+    # Preview support is a development tool, and eager-loading it in a host is how
+    # Bali's own Lookbook dependencies become the host's problem:
+    # Bali::ApplicationViewComponentPreview opens with `include Pagy::Method`, and pagy
+    # is deliberately not a dependency of this gem, so a production boot with
+    # `eager_load = true` used to die on it in any application that had not written
+    # `gem "pagy"` of its own accord (#1139).
+    #
+    # `do_not_eager_load`, NOT `ignore`: ignore makes the file invisible to Zeitwerk and
+    # every Lookbook preview URL 500s. This skips them during eager_load! and still
+    # autoloads them on demand.
+    #
+    # test/bali/packaging/dependency_contract_test.rb reads this list to know what a
+    # host is really made to load.
+    NOT_EAGER_LOADED = %w[
+      app/components/**/preview.rb
+      app/components/bali/application_view_component_preview.rb
+    ].freeze
+
     initializer "bali.exclude_previews_from_eager_load" do
-      Rails.autoloaders.each do |autoloader|
-        autoloader.do_not_eager_load(Dir[root.join("app/components/**/preview.rb")])
-      end
+      excluded = NOT_EAGER_LOADED.flat_map { |pattern| Dir[root.join(pattern)] }
+
+      Rails.autoloaders.each { |autoloader| autoloader.do_not_eager_load(excluded) }
     end
 
     config.generators do |g|

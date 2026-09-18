@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
+import { optionalPeer } from '../utils/optional-peer.js'
 
 export class SlimSelectController extends Controller {
   static values = {
@@ -66,7 +67,9 @@ export class SlimSelectController extends Controller {
     document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
 
     try {
-      const { default: SlimSelect } = await import('slim-select')
+      const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
+      if (!slimSelect) return
+      const { default: SlimSelect } = slimSelect
 
       const options = {
         select: this.selectTarget,

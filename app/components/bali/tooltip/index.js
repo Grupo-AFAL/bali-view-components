@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 // Anything the browser puts in the tab order on its own. A trigger slot holding one of
 // these already has a keyboard route to the tooltip; a slot holding plain text does not.
@@ -31,7 +32,9 @@ export class TooltipController extends Controller {
 
     this.makeTriggerFocusable()
 
-    const { default: tippy } = await import('tippy.js')
+    const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
+    if (!tippyModule) return
+    const { default: tippy } = tippyModule
 
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,

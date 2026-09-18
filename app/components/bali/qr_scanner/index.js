@@ -134,14 +134,29 @@ export class QrScannerController extends Controller {
       return null
     }
 
-    let QrScanner
-    try {
-      QrScanner = (await import('qr-scanner')).default
-    } catch (error) {
-      console.error(MISSING_DEPENDENCY_MESSAGE, error)
-      this.fail('unavailable', error)
+    // `.catch()` here is what keeps a host that skipped qr-scanner BUILDING:
+    // esbuild resolves `import()` at bundle time and fails on a specifier it
+    // cannot find unless the call is guarded. The rejection is kept AS IS: a
+    // fabricated `new Error('qr-scanner is not installed')` in its place threw
+    // away the only line that says whether the package is missing or merely
+    // broken, and then logged it as if it were the real one.
+    //
+    // Not `optionalPeer()`, which is for controllers whose whole recovery is to
+    // return: this one also has a panel state to set and a message that names the
+    // component, so it keeps both and hands the original error to `fail`.
+    let importError = null
+    const qrScannerModule = await import('qr-scanner').catch(error => {
+      importError = error
+      return null
+    })
+
+    if (!qrScannerModule) {
+      console.error(MISSING_DEPENDENCY_MESSAGE, importError)
+      this.fail('unavailable', importError)
       return null
     }
+
+    const QrScanner = qrScannerModule.default
 
     if (!this.active) return null
 
