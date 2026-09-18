@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::WorkflowSteps` gana el riel: `orientation: :rail`** (#1145). Una sola fila de
+  círculos numerados unidos por conectores de color, con la etiqueta centrada debajo. Es la
+  forma para un flujo largo arriba de una pantalla —el embudo de nueve pasos de TDFlow— donde
+  lo primero que hay que leer es el orden y hasta dónde llegó, no el detalle de cada paso.
+  El `:horizontal` sigue haciendo lo contrario a propósito: sus tarjetas envuelven
+  (`auto-fit` desde 11rem), y nueve pasos en tres renglones ya no son un embudo.
+
+  **Lo que ya sabías del `:vertical` vale igual en el riel**: círculo numerado con la misma
+  numeración automática (un `:skipped` pinta la raya y no consume posición; un `number:`
+  explícito sigue ganando), conectores que toman el estado del paso **siguiente** —así la
+  línea llega pintada al paso que tiene el veredicto— y el mismo `sr-only` con el nombre del
+  estado al lado de cada círculo.
+
+  **La barra N/M viene apagada en el riel**, al revés que en el `:horizontal`. Los conectores
+  ya dibujan hasta dónde llegó el flujo, y los cuatro call sites horizontales del grupo pasan
+  hoy `progress: false`: nadie la pinta. `progress: true` la enciende si la querés.
+
+  **El riel no envuelve, y en pantalla angosta el scroll queda adentro del componente.** Las
+  columnas son iguales (`flex-1`) hasta un piso de legibilidad de `6rem`; por debajo de eso la
+  fila scrollea dentro de `.workflow-steps-list`. La página no gana barra horizontal propia:
+  medido a 400px con nueve pasos, `document.documentElement.scrollWidth == clientWidth`.
+
+  **El riel no esconde nada.** `assignee:`, `date:` y el bloque del paso siguen rindiendo,
+  centrados bajo la etiqueta. Como se apilan, definen el alto de la fila: un riel que tiene
+  que quedar de un renglón es uno cuyo llamador no los pasa. El componente no le pone
+  `display: none` a contenido que le pasaste —un lector de pantalla también lo perdería.
+
+  **Por qué `orientation: :rail` y no `style: :rail`** (que es lo que proponía el issue): todo
+  keyword que este componente no declara llega al elemento raíz como atributo HTML. Medido:
+  hoy `new(orientation: :horizontal, style: "max-width:40rem")` emite
+  `<div style="max-width:40rem">`. Declarar `style:` habría convertido en `ArgumentError`
+  markup de anfitrión que funciona, sin que ninguna prueba lo atrapara. `orientation: :rail`
+  levantaba `ArgumentError` hasta esta versión, así que nadie puede depender del significado
+  viejo. El costo es la palabra: un riel es una forma horizontal, no una orientación propia.
+  Queda además una prueba de regresión que fija que `style: "..."` sigue llegando a la raíz.
+
+  El riel dibuja clases propias, **no** `.steps`/`.step` de daisyUI. Esa rejilla pinta el mismo
+  dibujo, pero su estado sale de la posición, que es justo lo que este componente existe para
+  no hacer: `.step` no puede decir «el paso 2 fue rechazado y el 4 sigue pendiente».
+
+- **`state_label:` por paso** (#1145). Cambia el nombre accesible del estado de **ese** paso,
+  sin tocar las seis cadenas globales `bali_view.workflow_steps.states.*`:
+
+  ```erb
+  <% c.with_step(title: "Evaluación", state: :skipped, state_label: "No se recorrió") %>
+  ```
+
+  El problema que resuelve es de alcance: sobrescribir `states.error` a «Descartada» para el
+  embudo de una iniciativa se lo cambia también al panel de aprobaciones de Comunicaciones,
+  que usa «Rechazado» bien. Ahora esa pantalla renombra su propio paso y nada más.
+
+  No cambia nada visible: el círculo conserva su color y su raya. `nil` (el default) cae en la
+  traducción; cualquier otra cosa se toma literal, **`""` incluido** —un paso cuyo título ya
+  dice el veredicto puede pedir silencio. Es la misma regla que `label:` de
+  `Bali::BooleanIcon`, y ahora las dos escotillas tienen prueba que la fija.
+
+### Changed
+
+- **`state_label:` deja de llegar al `<li>` como atributo HTML** (#1145). El contrato del
+  componente es que todo keyword no declarado pasa al `<li>` del paso
+  (`test_step_html_attributes_reach_the_list_item`), y `state_label:` no estaba declarado: hoy
+  `c.with_step(..., state_label: "X")` emite `<li state_label="X" class="workflow-step">` —
+  atributo inválido que no cambia nada de lo que oye un lector de pantalla. Al declararlo, ese
+  atributo desaparece del DOM. Nadie debería depender de él, pero **si tenés un selector de
+  Cypress o de CSS sobre `[state_label]`, dejará de encontrar nada.**
+
+- **`docs/guides/components.md` decía `variant:` para `WorkflowSteps`** (#1145). Tres líneas de
+  la guía (incluido el snippet copiable de la forma horizontal) documentaban el keyword que se
+  renombró en v3.1 y que desde entonces levanta `ArgumentError`. Corregidas a `orientation:`.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

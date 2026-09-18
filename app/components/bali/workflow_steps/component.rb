@@ -9,7 +9,7 @@ module Bali
     # carries its own semantic state — an approval chain where step 2 was
     # rejected while step 4 is still pending cannot be told with an index.
     #
-    # Two shapes over the same steps:
+    # Three shapes over the same steps:
     #
     #   :vertical (default)  the record — numbered circle, coloured connector,
     #                        assignee, date and comment per step.
@@ -17,11 +17,16 @@ module Bali
     #                        and an N/M bar on top, for the summary card or the
     #                        table cell where the whole chain has to fit in a
     #                        glance.
+    #   :rail                the funnel — one row of numbered circles joined by
+    #                        coloured connectors, label centred underneath, for
+    #                        a long flow (nine steps) that has to read as an
+    #                        order at the top of a page.
     #
-    # In the vertical shape the connector under each circle takes the state of
-    # the *next* step, so the line "arrives" coloured at the step that owns that
-    # verdict. That is computed here, not by the caller. The horizontal shape
-    # draws no connectors: the bar already says how far the flow got.
+    # In the vertical and rail shapes the connector after each circle takes the
+    # state of the *next* step, so the line "arrives" coloured at the step that
+    # owns that verdict. That is computed here, not by the caller. The
+    # horizontal shape draws no connectors: the bar already says how far the
+    # flow got, and a line between wrapped cards has nowhere to run.
     #
     # Auto-numbering counts the real route only: a `:skipped` step renders
     # without a number and consumes no position. An explicit `number:` always
@@ -44,6 +49,13 @@ module Bali
     #     c.with_step(title: 'Director signature', state: :pending)
     #   end
     #
+    # @example The nine-step funnel as a rail
+    #   render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c|
+    #     c.with_step(title: 'Capture', state: :success)
+    #     c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken')
+    #     c.with_step(title: 'Project', state: :pending)
+    #   end
+    #
     class Component < ApplicationViewComponent
       BASE_CLASSES = "workflow-steps"
 
@@ -53,9 +65,20 @@ module Bali
       # `orientation:`, matching `Bali::Stepper` — it was `variant:` in the v3.1
       # betas, which collided with the `variant:` the button taxonomy reserves
       # for colour.
+      #
+      # `:rail` is a third value here rather than a second axis (`style:`,
+      # `shape:`, `layout:`) because every keyword this component does not
+      # declare reaches the root as a plain HTML attribute — measured:
+      # `new(orientation: :horizontal, style: "max-width:40rem")` emits
+      # `<div style="max-width:40rem">` today. Declaring any of those names
+      # would silently turn working host markup into an ArgumentError, and
+      # `orientation: :rail` raised before this change, so nothing can depend
+      # on the old meaning. The cost is the word: a rail is a horizontal shape,
+      # not an orientation of its own.
       ORIENTATION_CLASSES = {
         vertical: "workflow-steps-vertical",
-        horizontal: "workflow-steps-horizontal"
+        horizontal: "workflow-steps-horizontal",
+        rail: "workflow-steps-rail"
       }.freeze
 
       ORIENTATIONS = ORIENTATION_CLASSES.keys.freeze
@@ -84,9 +107,11 @@ module Bali
         step
       }
 
-      # @param orientation [Symbol] `:vertical` (default) or `:horizontal`
+      # @param orientation [Symbol] `:vertical` (default), `:horizontal` or `:rail`
       # @param progress [Boolean, nil] The N/M bar. On by default in the
-      #   horizontal orientation, which is the only shape with a header for it.
+      #   horizontal orientation; off by default in the rail, where the
+      #   connectors already say how far the flow got. The vertical shape has
+      #   no header to hang it on and refuses it.
       # @param options [Hash] HTML attributes for the root element
       def initialize(orientation: :vertical, progress: nil, **options)
         reject_renamed_variant!(options)
@@ -113,6 +138,16 @@ module Bali
         orientation == :horizontal
       end
 
+      def rail?
+        orientation == :rail
+      end
+
+      # The two shapes whose list sits inside a div: that div is the only place
+      # the N/M header can go. The vertical shape is the `<ol>` itself.
+      def wrapped?
+        horizontal? || rail?
+      end
+
       # A bar over no steps says nothing, and `<progress max="0">` is not valid
       # HTML anyway.
       def progress?
@@ -126,17 +161,24 @@ module Bali
         Bali::Color.name!(self.class.name, value, param: :orientation, allowed: ORIENTATIONS) || :vertical
       end
 
-      # The bar is part of the quick-flow header, and the vertical shape has no
-      # header to hang it on. Asking for one there is a request this component
-      # cannot honour, so it says so instead of dropping it silently. `false`
-      # asks for nothing, so it stays legal on both.
+      # The bar is part of the wrapped shapes' header, and the vertical shape
+      # has no header to hang it on. Asking for one there is a request this
+      # component cannot honour, so it says so instead of dropping it silently.
+      # `false` asks for nothing, so it stays legal everywhere.
+      #
+      # The default differs between the two shapes that can draw it. The
+      # horizontal one keeps it on: its dots say state and nothing about
+      # progress. The rail starts off — its connectors already draw how far the
+      # flow got, and the four horizontal call sites in the fleet all pass
+      # `progress: false`, so an extra bar over a nine-step funnel is the thing
+      # nobody asked for. `progress: true` still turns it on there.
       def validated_progress(value)
         return horizontal? if value.nil?
-        return value if horizontal? || !value
+        return value if wrapped? || !value
 
         raise ArgumentError,
-              "#{self.class.name}: progress: true needs orientation: :horizontal. " \
-              "The N/M bar belongs to the quick-flow header; the vertical orientation has none."
+              "#{self.class.name}: progress: true needs orientation: :horizontal or :rail. " \
+              "The N/M bar belongs to their header; the vertical orientation has none."
       end
 
       # Each connector is painted with the state of the step it leads to, so

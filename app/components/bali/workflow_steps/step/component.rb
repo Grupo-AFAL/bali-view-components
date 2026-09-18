@@ -6,15 +6,16 @@ module Bali
       # One step of a workflow: a marker, the title, and the optional assignee
       # / date / free comment block.
       #
-      # The marker is the only thing the two variants disagree on — a numbered
-      # circle with a connector to the next step, or the bare dot of the quick
-      # flow (`dot: true`). Everything below it is the same markup, which is
-      # why one template covers both; so is the `sr-only` state name beside it,
-      # since neither marker says the state in anything but colour.
+      # The marker is the only thing the three shapes disagree on — a numbered
+      # circle with a connector to the next step (vertical and rail), or the
+      # bare dot of the quick flow (`dot: true`). Everything below it is the
+      # same markup, which is why one template covers all three; so is the
+      # `sr-only` state name beside it, since no marker says the state in
+      # anything but colour.
       #
       # `connector_state` is written by the parent once every step is declared
       # — it is the state of the step that FOLLOWS this one, or nil on the last
-      # step and on every step of the horizontal variant.
+      # step and on every step of the horizontal shape.
       class Component < ApplicationViewComponent
         SKIPPED = :skipped
 
@@ -66,15 +67,19 @@ module Bali
         # @param number [Integer, String, nil] Circle content; nil renders a dash
         # @param assignee [String, nil] Who the step belongs to
         # @param date [String, nil] Preformatted date/time text
+        # @param state_label [String, nil] Accessible name for this step's
+        #   state. Defaults to the generic translation of `state`.
         # @param dot [Boolean] Draw the quick flow's dot instead of the
-        #   numbered circle. Set by the parent from its `variant:`.
+        #   numbered circle. Set by the parent from its `orientation:`.
         # @param options [Hash] HTML attributes for the `<li>`
-        def initialize(title:, state:, number: nil, assignee: nil, date: nil, dot: false, **options)
+        def initialize(title:, state:, number: nil, assignee: nil, date: nil,
+                       state_label: nil, dot: false, **options)
           @title = title
           @state = validated_state(state)
           @number = number
           @assignee = assignee
           @date = date
+          @state_label = state_label
           @dot = dot
           @options = options
           @connector_state = nil
@@ -118,13 +123,21 @@ module Bali
           class_names("workflow-step-dot", DOT_CLASSES.fetch(state))
         end
 
-        # Read into the `sr-only` span next to the marker, in both variants:
-        # colour is the only thing either marker uses to say what happened, and
-        # colour is nothing to a screen reader. The circle's number does not
-        # cover it — a position is not a verdict. Hosts override these six
-        # strings like any other Bali key when their domain has better words.
+        # Read into the `sr-only` span next to the marker, in all three
+        # shapes: colour is the only thing any marker uses to say what
+        # happened, and colour is nothing to a screen reader. The circle's
+        # number does not cover it — a position is not a verdict.
+        #
+        # The six translations are deliberately generic, and overriding
+        # `bali_view.workflow_steps.states.*` changes them for every flow in
+        # the app — no good when one screen's `:skipped` is "Not taken" and
+        # another's is "Waived". `state_label:` is the per-step hatch, shaped
+        # exactly like `Bali::BooleanIcon#label`: `nil` means "not given" and
+        # falls back to the translation, and anything else is taken literally,
+        # `""` included. `.presence ||` would hand the generic string back to a
+        # caller who asked for silence because the title already says it.
         def state_label
-          I18n.t("bali_view.workflow_steps.states.#{state}")
+          @state_label || I18n.t("bali_view.workflow_steps.states.#{state}")
         end
 
         def connector_classes

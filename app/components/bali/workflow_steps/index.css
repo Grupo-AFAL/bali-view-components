@@ -1,9 +1,11 @@
-/* WorkflowSteps component — a flow with a verdict per step, in two shapes.
+/* WorkflowSteps component — a flow with a verdict per step, in three shapes.
  *
- * `.workflow-steps` is the root in both, and carries whatever is shared: the
- * body typography every step renders the same way. The structure hangs off the
- * variant class next to it, because the two shapes agree on almost nothing
- * above the title.
+ * `.workflow-steps` is the root in all three, and carries whatever is shared:
+ * the body typography every step renders the same way, the numbered circle
+ * (vertical and rail draw one; horizontal draws a dot instead), and the N/M
+ * header (horizontal and rail wrap their list in a div that can hold one).
+ * The rest hangs off the orientation class next to it, because the three
+ * shapes agree on almost nothing above the title.
  *
  * Vertical: two-column grid per step, marker (connector + circle) and body. The
  * connector is absolutely positioned from the circle's centre down through the
@@ -15,14 +17,49 @@
  * a fixed column count, so a three-step chain fills the width and a nine-step
  * one wraps instead of shrinking each card past reading width.
  *
+ * Rail: the opposite call for the opposite job — a nine-step funnel that has to
+ * read as one order at the top of a page. The list is `flex`, not `grid`,
+ * precisely because it must NOT wrap: `auto-fit` would give back the second row
+ * the rail exists to avoid. Equal columns come from `flex-1` over a `min-width`
+ * floor, and the overflow the floor can cause is contained by `overflow-x-auto`
+ * on the list — the scroll stays inside the component and the page never gains
+ * a horizontal scrollbar (measured at 400px: documentElement.scrollWidth ==
+ * clientWidth). That `overflow` is also why the list keeps vertical padding:
+ * a scroll container clips both axes, and `:current` rings 4px outside its
+ * circle.
+ *
+ * The rail is NOT `.workflow-steps-horizontal` plus a modifier, and that is
+ * load-bearing: `.workflow-steps-horizontal .workflow-step-marker` boxes the
+ * marker into 1.5rem for the dot, which would crush the rail's 2rem circle.
+ * A separate root class means none of the horizontal block reaches it.
+ *
  * State colours (bg-success, bg-error, …) come from the literal tables in
  * step/component.rb; only structure lives here. Imported in
  * @layer components (see ../../../assets/stylesheets/bali/components.css), so
- * host utilities on the template win without `!`.
+ * host utilities on the template win without `!`. Nothing here has to outrank
+ * daisyUI — the rail draws its own classes rather than reusing `.steps`, whose
+ * status comes from position and cannot say "step 2 was rejected".
  */
 
 .workflow-steps {
   @apply relative w-full;
+
+  /* Shared by the two shapes that draw a numbered marker. `relative z-10`
+     keeps it over the connector that runs under it in both. The horizontal
+     shape renders a dot instead and never sees this rule. */
+  .workflow-step-circle {
+    @apply relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold;
+  }
+
+  /* The N/M header, shared by the two shapes that wrap their list in a div.
+     The vertical shape is the `<ol>` itself and has nowhere to put one. */
+  .workflow-steps-progress {
+    @apply mb-4 flex items-center gap-3;
+  }
+
+  .workflow-steps-count {
+    @apply shrink-0 text-sm font-semibold tabular-nums text-base-content/70;
+  }
 
   .workflow-step-body {
     @apply min-w-0;
@@ -66,24 +103,12 @@
     @apply absolute top-4 -bottom-6 left-1/2 w-1.5 -translate-x-1/2;
   }
 
-  .workflow-step-circle {
-    @apply relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold;
-  }
-
   .workflow-step-body {
     @apply pt-1;
   }
 }
 
 .workflow-steps-horizontal {
-  .workflow-steps-progress {
-    @apply mb-4 flex items-center gap-3;
-  }
-
-  .workflow-steps-count {
-    @apply shrink-0 text-sm font-semibold tabular-nums text-base-content/70;
-  }
-
   .workflow-steps-list {
     @apply grid list-none gap-3 grid-cols-[repeat(auto-fit,minmax(11rem,1fr))];
   }
@@ -100,5 +125,58 @@
 
   .workflow-step-dot {
     @apply h-2.5 w-2.5 shrink-0 rounded-full;
+  }
+}
+
+/* Written after the horizontal block on purpose: same specificity (0,2,0),
+   same layer, same sheet, so source order is what decides — and the rule of
+   the house is that a default and what overrides it share a layer. Nothing
+   here overrides the horizontal block today (the root class differs), but the
+   next person who adds a `.workflow-steps .workflow-step` default will find
+   the override already in the right place. */
+.workflow-steps-rail {
+  .workflow-steps-list {
+    /* `items-start` so a two-line label in one column does not drag the other
+       markers down with it; `py-1.5` gives the `:current` ring the 4px it
+       needs outside the circle, which the scroll container would otherwise
+       clip. */
+    @apply flex list-none items-start overflow-x-auto py-1.5;
+  }
+
+  .workflow-step {
+    /* Equal columns: `flex-1` has basis 0, so content never widens a column
+       and the connector's `w-full` really is centre-to-centre. `min-w`
+       is the readability floor that turns nine steps on a phone into a
+       scroll rather than nine slivers. */
+    @apply flex min-w-[6rem] flex-1 flex-col items-center text-center;
+  }
+
+  .workflow-step-marker {
+    /* The positioned ancestor the connector needs. Without it the nearest one
+       is the root `.workflow-steps` (which is `relative`) and every connector
+       in the flow stacks in its top-left corner. `isolate` keeps the circle's
+       z-index above the connector without touching the page's stacking order. */
+    @apply relative isolate flex w-full justify-center;
+  }
+
+  .workflow-step-connector {
+    /* Horizontal twin of the vertical shape's line: from this circle's centre
+       (`top-4` is half of the 2rem circle) one full column to the right, which
+       is the next circle's centre. The last step has no connector, so nothing
+       runs off the end of the list. */
+    @apply absolute top-4 left-1/2 h-1.5 w-full -translate-y-1/2;
+  }
+
+  .workflow-step-body {
+    /* The label goes under the marker, centred. `assignee`, `date` and the
+       comment block still render — a component does not silently drop content
+       a caller passed, and a screen reader would lose it too. They stack under
+       the label and set the row height, so a rail that has to stay one line
+       tall is a rail whose caller does not pass them. */
+    @apply mt-2 w-full px-1 text-sm;
+  }
+
+  .workflow-step-assignee {
+    @apply justify-center;
   }
 }

@@ -1,0 +1,66 @@
+<div class="space-y-8 p-4">
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The nine-step funnel
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :rail, progress: progress) do |c| %>
+      <% c.with_step(title: 'Capture', state: :success) %>
+      <% c.with_step(title: 'Triage', state: :success) %>
+      <% c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken') %>
+      <% c.with_step(title: 'Business case', state: :success) %>
+      <% c.with_step(title: 'Estimation', state: :warning) %>
+      <% c.with_step(title: 'Prioritisation', state: :success) %>
+      <% c.with_step(title: 'Committee', state: :current) %>
+      <% c.with_step(title: 'Funding', state: :pending) %>
+      <% c.with_step(title: 'Project', state: :pending) %>
+    <% end %>
+  </div>
+
+  <%# A short chain reads the same way: the connectors carry the verdict, so a
+      rejected step turns the line into it red and everything after it grey. %>
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      A chain that was rejected
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+      <% c.with_step(title: 'Request submitted', state: :success) %>
+      <% c.with_step(title: 'Area manager', state: :success) %>
+      <% c.with_step(title: 'Legal review', state: :error) %>
+      <% c.with_step(title: 'Director signature', state: :pending) %>
+    <% end %>
+  </div>
+
+  <%# The other slots are not hidden by the rail. They stack under the label and
+      set the row height — which is the reason to leave them out of a rail meant
+      to stay one line tall, not a reason for the component to drop them. %>
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      With assignee, date and a comment
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+      <% c.with_step(title: 'Documents received', state: :success,
+                     assignee: 'Luis Pérez', date: 'Jul 1') %>
+      <% c.with_step(title: 'Due diligence', state: :error,
+                     assignee: 'Ana Gutiérrez', date: 'Jul 3') do %>
+        Missing appendix B.
+      <% end %>
+      <% c.with_step(title: 'Contract signed', state: :pending) %>
+    <% end %>
+  </div>
+
+  <%# Narrow column: the row does not wrap — that is the whole point of the
+      rail — so it scrolls inside the component. The page keeps no horizontal
+      scrollbar of its own. %>
+  <div class="max-w-xs space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      In a narrow column
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+      <% c.with_step(title: 'Capture', state: :success) %>
+      <% c.with_step(title: 'Triage', state: :success) %>
+      <% c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken') %>
+      <% c.with_step(title: 'Business case', state: :current) %>
+      <% c.with_step(title: 'Project', state: :pending) %>
+    <% end %>
+  </div>
+</div>
