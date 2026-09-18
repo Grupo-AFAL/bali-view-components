@@ -2183,6 +2183,10 @@ the dense header block of a show page, a two-column details card. Use `LabelValu
 that stands on its own, or when each pair needs its own placement in a layout neither grid can
 express.
 
+None of the three is the right call for a **grid of figures** — a metric snapshot, a financial
+summary — where the number is the content and the label is its caption. That is
+`StatCard` with `surface: :cell`; see [Card or cell?](#card-or-cell) under StatCard.
+
 #### Gantt
 
 Timeline of scheduled work: groups (one nesting level), items (sub-items, milestones as
@@ -2563,15 +2567,77 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
+- `note` - A discreet muted line under the value (`'Crea valor · tasa 12.5%'`). Not the `footer` slot, which is the trend/status row at the bottom (default: nil)
 - `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
-- `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
+- `color` - Icon accent — and the cell tint when `emphasis:` is on: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
 - `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
+- `surface` - `:card` (default) or `:cell`. See "Card or cell?" below
+- `emphasis` - Cell surface only: paints the cell with the soft pair of `color:` to single out one figure (default: false)
+- `value_class` - Extra classes on the value (default: nil)
 - `href` - Renders the whole card as an `<a>` (KPI drill-down to its listing) with a hover shadow affordance. Don't wrap the card in `link_to` anymore; and the footer must not contain links then — an `<a>` inside an `<a>` is invalid HTML (default: nil)
 
 **Slots:** `with_footer` — optional footer for trends or status text.
 
 This is the one stat card. `DashboardPage#with_stat` renders it, and both `InfoLevel` and
-DashboardPage's own inline card — the other two designs — are gone or deprecated in v3.
+DashboardPage's own inline card — the other two designs — are gone or deprecated in v3. It
+has **two surfaces, not two components**: `surface:` changes the box, never the figure.
+
+##### Card or cell?
+
+```erb
+<%# A grid of figures INSIDE a section card: nothing here may be a card %>
+<%= render Bali::Card::Component.new do |card| %>
+  <% card.with_title('Caso de negocio') %>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell, emphasis: true,
+          title: 'VPN', value: '$6.14M', value_class: 'tabular-nums',
+          note: 'Crea valor · tasa 12.5%'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell, title: 'BCR', value: '2.41', value_class: 'tabular-nums',
+          note: 'Beneficio / costo'
+        ) %>
+  </div>
+<% end %>
+```
+
+| | `surface: :card` | `surface: :card, size: :sm, shadow: false` | `surface: :cell` |
+|---|---|---|---|
+| Root | `.card.bg-base-100.card-border.shadow-sm` | `.card.bg-base-100.card-border.card-sm` | `.rounded-box.border.border-base-300.p-4.bg-base-100` — **no `.card`** |
+| Inner padding | 24px | 16px | 16px |
+| Border | 1px `base-200` | 1px `base-200` | 1px `base-300` |
+| Icon badge | yes | yes | no |
+| Where | a KPI row that owns its stretch of page | a quiet card, on a page where nothing else is a card | a grid of figures inside a card |
+
+**`size: :sm, shadow: false` already gets you most of the way** — a quiet bordered box with
+1rem of padding, measured the same 16px the cell has. Reach for `surface: :cell` when the
+figures sit **inside** something that is already a card: the cell is the only one of the three
+that does not emit `.card`, so it cannot become a card in a card, and its `base-300` border
+stays visible against the `base-100` the section card paints behind it.
+
+A cell **takes no icon**: six badges in one grid is noise, and there is nowhere quiet to put
+them. `icon:` with `surface: :cell` raises `ArgumentError` rather than being dropped in
+silence. `shadow:`, `size:`, `style:` and the rest of the `Bali::Card` keywords only mean
+something on the card surface — on a cell they fall through to `**options` and land on the
+root as HTML attributes, so drop them when you switch.
+
+**`emphasis:` is an emphasis axis, not a colour axis.** The colour contract is the one every
+component shares — `color:` / `custom_color:` (see [Colors](#colors)); there is no `tone:`.
+`emphasis: true` says *paint this cell*, and `color:` says *which colour*: `bg-primary/10` +
+`border-primary/30` for a name, the same `color-mix` the icon badge uses for a
+`custom_color:` hex. It is a cell option — on the card surface it raises, because the card
+brings its own `bg-base-100` and tinting over it would come down to Tailwind's output order.
+
+**`value_class:` is additive.** `font-mono` or `tabular-nums` on a column of financial
+figures is what it is for. It will not resize the value: `text-2xl` and `text-3xl` are the
+same property in the same layer, so Tailwind's own output order decides, and `text-3xl`
+wins. The type scale stays the library's.
+
+**Screen readers.** Both surfaces render the label and the figure as two `<p>`s, which is a
+caption and a number, not a term/definition pair. When the pairing is the point — a details
+block someone reads field by field — reach for `PropertiesTable` or `DescriptionList`, which
+render real `<dl>`/`<dt>`/`<dd>`. See [accessibility.md](accessibility.md#label--value-pairs).
 
 #### Tags
 

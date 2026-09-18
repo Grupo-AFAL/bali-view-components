@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::StatCard` tiene una segunda superficie: `surface: :cell`** (#1146). La misma
+  métrica de siempre —etiqueta arriba, cifra grande— sobre una caja plana
+  (`rounded-box border border-base-300 p-4 bg-base-100`) que **no emite la clase `.card`**.
+  Es la rejilla de cifras que vive DENTRO de la tarjeta de una sección, donde la superficie
+  por omisión sería una tarjeta dentro de otra. Con ella llegan `note:` (la tercera línea
+  discreta bajo la cifra), `emphasis:` (pinta la celda para destacar una cifra) y
+  `value_class:`.
+
+  **Nada de lo que rindes hoy cambia, y está probado a nivel de bytes.** `surface:` nace con
+  `:card` por omisión, y `test/bali/components/stat_card/default_surface_unchanged_test.rb`
+  compara el HTML de diez formas de la tarjeta —con y sin ícono, cada rama de color, el
+  `custom_color:`, la raíz `<a>`, el slot `footer`, el passthrough de `class:`/`id:`/`data:`,
+  las claves de `Bali::Card` que viajan por `**options` y el `icon_name:` deprecado— contra
+  la captura tomada en v3.4.0, **byte a byte, espacios en blanco incluidos**. Medido también
+  en el navegador: los estilos computados y la geometría del preview `default` son idénticos
+  entre un servidor en v3.4.0 y uno en esta rama.
+
+  **Una celda no lleva ícono.** Seis insignias en una rejilla es ruido y no hay dónde ponerlas
+  sin apretar la cifra, así que `icon:` junto a `surface: :cell` levanta `ArgumentError` en vez
+  de desaparecer en silencio. Lo mismo con las claves de `Bali::Card` (`shadow:`, `size:`,
+  `style:`): en una celda no significan nada y caen por `**options` hasta la raíz como
+  atributos HTML sueltos — bórralas al cambiar de superficie.
+
+  **`emphasis:` es un eje de énfasis, no de color.** El contrato de color de la casa sigue
+  siendo `color:` / `custom_color:`; no existe `tone:`. `emphasis: true` dice *pinta esta
+  celda* y `color:` dice *de qué color*: el par suave del mapa `COLORS`
+  (`bg-primary/10` + `border-primary/30`), o el mismo `color-mix` que ya usa la insignia del
+  ícono cuando hay `custom_color:`. Sobre la superficie `:card` levanta `ArgumentError`,
+  porque la tarjeta ya trae su `bg-base-100` y encimarle un tinte lo decidiría el orden de
+  salida de Tailwind, no nosotros.
+
+  **`Bali::StatCard::Component::COLORS` gana una clave `:border` por color.** Es aditivo —
+  nada de lo que lee `:bg`/`:text` cambia— pero la tabla tiene un segundo consumidor,
+  `Bali::DashboardPage#stat_change_class`, así que queda dicho y no pasa en silencio.
+
+  **Antes de migrar, mira si ya lo tenías resuelto.** `StatCard.new(..., size: :sm,
+  shadow: false)` ya daba una tarjeta con borde, sin sombra y con 1rem de padding — el mismo
+  padding de 16px que mide la celda. La diferencia real son dos cosas: el tinte del borde
+  (`base-200` de `.card-border` contra `base-300` de la celda, medido: `oklch(0.98 0 0)` vs
+  `oklch(0.95 0 0)`) y que sigue siendo un `.card`. Si en tu pantalla nada más es una tarjeta,
+  `size: :sm` te alcanza; la celda es para cuando las cifras van dentro de una.
+
+  **El padding canónico es `p-4`.** El parcial que circula en afal-apps usa `p-3.5`, un escalón
+  que Bali no usa en ningún otro lado; `p-4` es 1rem, exactamente lo que daisyUI le da al
+  cuerpo de `.card-sm`, así que mover un call site entre las dos superficies no corre el texto.
+  Al extraer el parcial del host a la gema, ese es el valor que queda.
+
+  **La cifra sigue con la tipografía de la librería.** `value_class:` es aditivo —para
+  `font-mono` o `tabular-nums` en una columna de cifras financieras—, no un reemplazo: no
+  sirve para cambiar el tamaño, porque `text-2xl` y `text-3xl` son la misma propiedad en la
+  misma capa y gana el orden de salida de Tailwind. `font-mono` no es el default de nadie.
+
+  Previews nuevos en la galería: `cells_in_card` (el caso del issue), `surfaces_compared`
+  (las tres cajas lado a lado, dentro de una tarjeta) y `emphasised_cell`.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

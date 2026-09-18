@@ -1,10 +1,21 @@
-<%= render Bali::Card::Component.new(**card_options) do %>
+<%# The figure is the same on both surfaces; only the box around it changes, so the body is
+    captured once and handed to whichever root renders it.
+
+    The whitespace here is load-bearing: the blank line below and the absence of a trailing
+    newline at the end of this file are what make `surface: :card` come out byte for byte
+    what it rendered before the cell surface existed (96 call sites across six apps).
+    test/bali/components/stat_card/default_surface_unchanged_test.rb fails if either goes. %>
+<% body = capture do %>
+
   <div class="flex items-center justify-between">
     <div>
       <p class="text-base-content/60 text-xs font-medium tracking-wide uppercase">
         <%= title %>
       </p>
-      <p class="text-3xl font-bold mt-1"><%= value %></p>
+      <p class="<%= value_classes %>"><%= value %></p>
+      <% if note.present? %>
+        <p class="<%= note_classes %>"><%= note %></p>
+      <% end %>
     </div>
     <% if icon.present? %>
       <%= tag.div(class: icon_container_classes, style: icon_container_style) do %>
@@ -19,3 +30,4 @@
     </div>
   <% end %>
 <% end %>
+<% if cell? %><%= content_tag(cell_tag, body, cell_options) %><% else %><%= render Bali::Card::Component.new(**card_options) do %><%= body %><% end %><% end %>

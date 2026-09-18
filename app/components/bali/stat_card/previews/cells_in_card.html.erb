@@ -1,0 +1,53 @@
+<%# The case #1146 opened: a grid of figures INSIDE the section card. With
+    `surface: :card` every figure would be a card in a card; the cell surface
+    emits no `.card` at all, so the only box on screen is the section's. %>
+<%= render Bali::Card::Component.new do |card| %>
+  <% card.with_title('Caso de negocio') %>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          emphasis: true,
+          color: :primary,
+          title: 'VPN',
+          value: '$6.14M',
+          value_class: 'tabular-nums',
+          note: 'Crea valor · tasa 12.5%'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'BCR',
+          value: '2.41',
+          value_class: 'tabular-nums',
+          note: 'Beneficio / costo'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'TIR',
+          value: '38.7%',
+          value_class: 'tabular-nums',
+          note: 'Sobre la tasa de descuento'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'TIRM',
+          value: '24.3%',
+          value_class: 'tabular-nums',
+          note: 'Reinversión al 8%'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'Payback',
+          value: '2a 4m',
+          value_class: 'tabular-nums',
+          note: 'Descontado'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'ROI',
+          value: '141%',
+          value_class: 'tabular-nums',
+          note: 'Horizonte de 5 años'
+        ) %>
+  </div>
+<% end %>

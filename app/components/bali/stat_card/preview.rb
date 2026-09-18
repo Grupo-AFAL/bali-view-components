@@ -50,6 +50,40 @@ module Bali
       def with_status
         render_with_template(template: 'bali/stat_card/previews/with_status')
       end
+
+      # `surface: :cell` renders the same figure on a flat bordered box that never
+      # emits `.card` — the grid of metrics that lives INSIDE a section card, where
+      # the default surface would be a card in a card. No icon badge: six of them in
+      # one grid is noise, so `icon:` raises here instead of being dropped in silence.
+      def cells_in_card
+        render_with_template(template: 'bali/stat_card/previews/cells_in_card')
+      end
+
+      # When each box is the right one. `size: :sm, shadow: false` is already a quiet
+      # bordered card with 1rem of padding — same padding as the cell — and it is
+      # enough whenever nothing else on screen is a card.
+      def surfaces_compared
+        render_with_template(template: 'bali/stat_card/previews/surfaces_compared')
+      end
+
+      # `emphasis: true` paints the cell with the soft pair of `color:`, to single out
+      # one figure in a grid. It is an emphasis axis, not a colour axis: which colour
+      # is still `color:` (or `custom_color:`, painted inline). `href:` turns the cell
+      # into an `<a>` with the same hover-shadow affordance the card surface has.
+      # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
+      # @param href text
+      def emphasised_cell(color: :primary, href: '')
+        render Bali::StatCard::Component.new(
+          surface: :cell,
+          emphasis: true,
+          color: color.to_sym,
+          href: href.presence,
+          title: 'VPN',
+          value: '$6.14M',
+          value_class: 'tabular-nums',
+          note: 'Crea valor · tasa 12.5%'
+        )
+      end
     end
   end
 end
