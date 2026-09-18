@@ -132,6 +132,44 @@ class BaliRevealComponentTest < ComponentTestCase
     assert_selector(".trigger-icon.rotate-\\[270deg\\]")
   end
 
+  # #1148 — the trigger's default spacing lives in reveal/index.css, inside
+  # @layer components, and no longer as utilities in this attribute. Written
+  # here, `pb-6`/`mb-6` land in @layer utilities alongside whatever the host
+  # writes, where only source order breaks the tie — and Tailwind emits each
+  # spacing family in ascending order, so Bali's 6 always sorted after the
+  # host's 0. See app/components/bali/reveal/index.css for the measurement.
+  def test_trigger_spacing_is_not_an_inline_utility
+    render_inline(@component) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    refute_selector("button.reveal-trigger.pb-6")
+    refute_selector("button.reveal-trigger.mb-6")
+  end
+
+  def test_trigger_spacing_from_the_host_arrives_without_a_competing_default
+    render_inline(@component) do |c|
+      c.with_trigger(class: "pb-0 mb-0") { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector("button.reveal-trigger.pb-0.mb-0")
+    refute_selector("button.reveal-trigger.pb-6")
+    refute_selector("button.reveal-trigger.mb-6")
+  end
+
+  # Same defect, same fix: `mb-8` on the content was an inline utility too.
+  def test_content_spacing_is_not_an_inline_utility
+    render_inline(@component) { "Hidden content" }
+    assert_selector("div.reveal-content")
+    refute_selector("div.reveal-content.mb-8")
+  end
+
+  # Moving `mb-8` into the sheet only helps if something can reach that element:
+  # the content box takes no slot options, so it gets a `content_class:` hook.
+  def test_content_accepts_a_host_class_that_beats_the_default_gap
+    render_inline(Bali::Reveal::Component.new(content_class: "mb-0")) { "Hidden content" }
+    assert_selector("div.reveal-content.mb-0", text: "Hidden content")
+    assert_no_selector("[content_class]")
+  end
+
   def test_constants_has_frozen_base_classes
     assert(Bali::Reveal::Component::BASE_CLASSES.frozen?)
   end

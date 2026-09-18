@@ -6,7 +6,10 @@ module Bali
       class Component < ApplicationViewComponent
         # `w-full text-left` restores what the <div> got for free: a button is
         # inline-block and centre-aligned until told otherwise.
-        BASE_CLASSES = "reveal-trigger flex w-full text-left justify-between items-center pb-6 mb-6"
+        # The bottom spacing is NOT here: it lives in reveal/index.css, inside
+        # @layer components, so a host utility on the trigger can beat it. Written
+        # in this attribute it could not be beaten without `!` — see that sheet.
+        BASE_CLASSES = "reveal-trigger flex w-full text-left justify-between items-center"
         BORDER_CLASSES = "border-b border-base-content/20"
         ICON_BASE_CLASSES = "trigger-icon h-3.5 rotate-[270deg] group-[.is-revealed]:rotate-0"
 

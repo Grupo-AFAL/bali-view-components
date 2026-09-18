@@ -94,6 +94,31 @@ class BaliCardComponentTest < ComponentTestCase
     assert_selector("h2.card-title", text: "Settings")
   end
 
+  # #1148 — `icon_class:` is the only way to paint the header icon on its own:
+  # a class on the header tints the `<h2>` with it, because the Lucide SVG
+  # inherits `currentColor` from the wrapper.
+  def test_header_slot_icon_class_reaches_the_icon
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(title: "Requiere tu validación", icon: "triangle-alert", icon_class: "text-warning")
+    end
+    assert_selector("span.icon-component.size-6.shrink-0.text-warning")
+    assert_no_selector("h2.card-title.text-warning")
+    assert_no_selector("[icon_class]")
+  end
+
+  # Without it the icon's class attribute is byte-for-byte what it was before
+  # the option existed — the default cannot move.
+  def test_header_slot_without_icon_class_leaves_the_icon_classes_untouched
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(title: "Settings", icon: "settings")
+    end
+    assert_equal(
+      "icon-component inline-flex items-center justify-center " \
+      "*:inline-block *:h-4 *:w-4 *:overflow-visible size-6 shrink-0",
+      page.find("span.icon-component")[:class]
+    )
+  end
+
   def test_header_slot_renders_header_with_badge
     render_inline(Bali::Card::Component.new) do |c|
     c.with_header(title: "Notifications") do |header|

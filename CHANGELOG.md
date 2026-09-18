@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Card::Header` acepta `icon_class:`** (#1148). El icono del encabezado se pintaba
+  siempre con `size-6 shrink-0` y sin ningún gancho de color, así que una tarjeta «Requiere tu
+  validación» con icono ámbar y título neutro no se podía armar: el SVG de Lucide hereda
+  `currentColor`, de modo que `with_header(class: "text-warning")` tiñe el icono **y** el
+  `<h2 class="card-title">` juntos. `icon_class:` va sólo al icono:
+
+  ```erb
+  <% c.with_header(title: 'Requiere tu validación', icon: 'triangle-alert',
+                   icon_class: 'text-warning') %>
+  ```
+
+  Es opcional y aditivo: sin él el atributo `class` del icono sale byte a byte como antes
+  (`test/bali/components/card_test.rb` lo afirma). Medido en el navegador sobre el preview
+  nuevo `header_with_icon_class`: el icono pasa de `oklch(0.21 0.006 285.885)` —el mismo color
+  del título— a `oklch(0.82 0.189 84.429)`, con el título sin moverse. Ojo, antes de este
+  cambio pasar `icon_class:` no fallaba: se colaba como atributo HTML literal
+  (`<div class="flex items-center gap-3" icon_class="text-warning">`). Si tu app ya lo escribía
+  esperando que funcionara, ahora funciona y el atributo suelto desaparece del HTML.
+
+  **Para un título con icono, el slot es `with_header`, no `with_title`.** `with_title` recibe
+  texto y atributos HTML: `with_title("Requiere tu validación", icon: "triangle-alert")` pinta
+  `<h2 icon="triangle-alert">`, en silencio y sin icono. Está documentado en
+  `docs/guides/components.md`.
+
+- **`Bali::Reveal::Component` acepta `content_class:`** (#1148). La caja de contenido no
+  recibía nada del llamador, así que el hueco de abajo (`mb-8`) no se podía tocar desde la
+  vista. `content_class: "mb-2"` añade clases a esa caja, que es la otra mitad de un acordeón
+  compacto.
+
+### Changed
+
+- **El espaciado de `Bali::Reveal` ahora lo gana el anfitrión** (#1148). El trigger traía
+  `pb-6 mb-6` y el contenido `mb-8` escritos como utilidades en el atributo `class`, y desde
+  una app no había forma de bajarlos: las utilidades del anfitrión caen en la misma
+  `@layer utilities` con la misma especificidad, y dentro de una capa sólo desempata el orden
+  de emisión — Tailwind emite cada familia de espaciado por valor ascendente, con el 0 primero
+  (en la hoja compilada `.ml-0{margin-left:0}` va inmediatamente antes de `.ml-1`), así que el
+  6 de Bali siempre se declaraba después del 0 del anfitrión y siempre ganaba. La única salida
+  era `pb-0! mb-0!`.
+
+  Los dos valores por omisión se mudan a `app/components/bali/reveal/index.css`, dentro de
+  `@layer components`, que las utilidades del anfitrión vencen por capa, sin importar la
+  especificidad y sin `!`:
+
+  ```erb
+  <%= render Bali::Reveal::Component.new(content_class: 'mb-2') do |c| %>
+    <% c.with_trigger(class: 'pb-2 mb-2', show_border: false) do |trigger| %>
+  ```
+
+  **No cambia ni un píxel por omisión.** Medido con `getComputedStyle` sobre
+  `/lookbook/preview/bali/reveal/default`: el trigger sigue en 24px de `padding-bottom` y 24px
+  de `margin-bottom`, y el contenido en 32px. Lo que cambia es quién gana cuando hay una
+  utilidad encima: antes, con `pb-0 mb-0` en el trigger, el cómputo seguía siendo 24px/24px;
+  ahora es 0px/0px (y 8px/8px con `pb-2 mb-2`, en el preview nuevo `compact`).
+
+  **Qué revisar al subir.** Si tu app ya pasaba una utilidad de padding o margen al trigger
+  —`c.with_trigger(class: "pb-2")`— hasta ahora no hacía nada y veías 24px; ahora verás 8px.
+  Es justo el defecto que se arregla, pero es un cambio visible. Quien se defendió con
+  `pb-0! mb-0!` sigue igual. Y `pb-6`/`mb-6` ya no están en el atributo `class` del botón: una
+  aserción de prueba que busque `.reveal-trigger.pb-6` deja de encontrarlas (la clase
+  `.reveal-trigger` y el resto del atributo no cambian).
+
+  **Al bajar el espaciado a 0, `show_border: true` deja la línea pegada al título.** El borde
+  sigue siendo una utilidad en línea y no se movió; con `pb-0` no queda aire entre el texto y
+  la regla, así que un acordeón muy compacto normalmente quiere `show_border: false`.
+
+  No es un barrido de la biblioteca: el resto de los componentes sigue con su espaciado en
+  línea. Este es el caso donde se midió que estorbaba.
+
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

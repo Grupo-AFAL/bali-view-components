@@ -1,0 +1,39 @@
+/* Reveal Component
+ * Two rules, and both are defaults the host has to be able to beat: the space
+ * under the trigger and the gap under the revealed content. Everything else
+ * about this component is a utility on its templates, which is fine and stays
+ * there.
+ *
+ * ── Which rule these had to beat, and how it was measured ────────────────
+ * Until #1148 they were written as `pb-6 mb-6` on the button and `mb-8` on the
+ * content box, in the templates' own class attribute. A host asking for a
+ * tighter accordion — `c.with_trigger(class: "pb-0 mb-0")` — did not get one.
+ * Its utilities and Bali's land in the same @layer utilities at the same
+ * (0,1,0) specificity, and inside one layer nothing but source order breaks
+ * that tie. Tailwind emits each spacing family in ascending value order, 0
+ * first: read straight off the compiled sheet, where `.ml-0{margin-left:0}` is
+ * immediately followed by `.ml-1`. So `.pb-6` was always emitted after the
+ * host's `.pb-0` and always won. The only way out was Tailwind's important
+ * flag, `pb-0! mb-0!`.
+ *
+ * Declared here they sit in @layer components, and the build emits the layers
+ * in the order theme → base → components → utilities. A later layer wins
+ * outright, whatever the specificity, so any host utility on these elements
+ * now beats the default — no `!`, and at any value, not only 0.
+ *
+ * Measured in the browser on /lookbook/preview/bali/reveal/default, with
+ * getComputedStyle on the trigger. Before: 24px/24px with no host class, and
+ * still 24px/24px with `pb-0 mb-0` added — the host lost. After: 24px/24px
+ * untouched by default, 0px/0px with `pb-0 mb-0`, 8px/8px with `pb-2 mb-2`
+ * (the `compact` preview). The default itself does not move a pixel.
+ *
+ * Keep them layered. Unlayered — the bottom group of bali/components.css —
+ * they would outrank host utilities again and the fix would be undone.
+ * test/bali/reveal_spacing_css_test.rb guards both facts. */
+.reveal-trigger {
+  @apply pb-6 mb-6;
+}
+
+.reveal-content {
+  @apply mb-8;
+}

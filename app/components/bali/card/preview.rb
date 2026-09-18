@@ -79,6 +79,23 @@ module Bali
         end
       end
 
+      # Header with a Coloured Icon
+      # ---------------
+      # `icon_class` paints the icon alone. A class on the header would tint the
+      # title with it, because the SVG inherits `currentColor` from the wrapper.
+      def header_with_icon_class
+        render Card::Component.new(class: 'w-96') do |c|
+          c.with_header(
+            title: 'Requiere tu validación',
+            subtitle: 'Vence el viernes',
+            icon: 'triangle-alert',
+            icon_class: 'text-warning'
+          )
+
+          tag.p('The icon is amber; the title keeps the neutral base content colour.')
+        end
+      end
+
       # Header with Badge
       # ---------------
       # Use the badge slot for status indicators or labels.

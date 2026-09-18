@@ -1,0 +1,60 @@
+<%# The trigger's `pb-6 mb-6` and the content's `mb-8` are declared in
+    reveal/index.css, inside @layer components. A utility from the caller sits in
+    @layer utilities, which comes later, so it wins outright — at any value, not
+    only 0, and with no `!`. That is why there is no `compact:` preset. %>
+<div class="space-y-10">
+  <section>
+    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+      Default spacing
+    </h3>
+
+    <%= render Bali::Reveal::Component.new(id: 'reveal-default', opened: true) do |c| %>
+      <% c.with_trigger do |trigger| %>
+        <% trigger.with_title do %>
+          <span class="text-lg font-semibold">Preguntas frecuentes</span>
+        <% end %>
+      <% end %>
+
+      <p>24px under the trigger, 24px of margin below the rule, 32px under this content.</p>
+    <% end %>
+
+    <%= render Bali::Reveal::Component.new(id: 'reveal-default-second', opened: true) do |c| %>
+      <% c.with_trigger do |trigger| %>
+        <% trigger.with_title do %>
+          <span class="text-lg font-semibold">¿Cómo se reporta un hallazgo?</span>
+        <% end %>
+      <% end %>
+
+      <p>Two of them stacked, so the gap between accordions is visible.</p>
+    <% end %>
+  </section>
+
+  <section>
+    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+      Tightened by the caller
+    </h3>
+
+    <%= render Bali::Reveal::Component.new(
+          id: 'reveal-compact', opened: true, content_class: 'mb-2') do |c| %>
+      <% c.with_trigger(class: 'pb-2 mb-2') do |trigger| %>
+        <% trigger.with_title do %>
+          <span class="font-semibold">Preguntas frecuentes</span>
+        <% end %>
+      <% end %>
+
+      <p><code>with_trigger(class: 'pb-2 mb-2')</code> and <code>content_class: 'mb-2'</code>.</p>
+    <% end %>
+
+    <%= render Bali::Reveal::Component.new(
+          id: 'reveal-compact-second', opened: true, content_class: 'mb-0') do |c| %>
+      <% c.with_trigger(class: 'pb-0 mb-0') do |trigger| %>
+        <% trigger.with_title do %>
+          <span class="font-semibold">¿Cómo se reporta un hallazgo?</span>
+        <% end %>
+      <% end %>
+
+      <p>All the way to 0. The rule sits right under the title, so
+        <code>show_border: false</code> is usually what you want with it.</p>
+    <% end %>
+  </section>
+</div>

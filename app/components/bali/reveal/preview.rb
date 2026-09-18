@@ -17,6 +17,15 @@ module Bali
         render_with_template(template: 'bali/reveal/previews/external_controls')
       end
 
+      # The trigger's and the content's default spacing are CSS rules in
+      # reveal/index.css (@layer components), not utilities on the markup, so a
+      # utility from the caller beats them without `!`. A compact accordion is
+      # `with_trigger(class: "pb-2 mb-2")` plus `content_class: "mb-2"` — there is
+      # no `compact:` preset, and none is needed.
+      def compact
+        render_with_template(template: 'bali/reveal/previews/compact')
+      end
+
       # @param opened toggle
       # @param show_border toggle
       def with_icon_and_title(opened: false, show_border: true)
