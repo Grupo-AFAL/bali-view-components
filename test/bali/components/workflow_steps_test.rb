@@ -249,22 +249,34 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
 
   # The other half of the same contract, and the one with no net until now:
   # every keyword this component does not declare reaches the root as a plain
-  # HTML attribute, `style:` included. A validated `style:` keyword would have
-  # turned a live inline style into an ArgumentError with every test green.
-  def test_an_inline_style_still_reaches_the_root
-    render_inline(Bali::WorkflowSteps::Component.new(style: "max-width:40rem")) do |c|
-      c.with_step(title: "A", state: :success)
-    end
-    assert_selector('ol.workflow-steps[style="max-width:40rem"]')
-  end
-
-  def test_an_inline_style_still_reaches_the_horizontal_root
+  # HTML attribute. What is pinned here is that contract, not any one spelling
+  # — declaring a keyword that a host is already passing turns live markup into
+  # an ArgumentError with every other test still green, and this is the test
+  # that notices. `style:` is the example because it is the one name a host
+  # writes on purpose; the day this component wants a semantic `style:` enum
+  # like its siblings, this test is the checklist of what that costs, not a
+  # veto.
+  def test_undeclared_keywords_reach_the_root_as_html_attributes
     render_inline(
-      Bali::WorkflowSteps::Component.new(orientation: :horizontal, style: "max-width:40rem")
+      Bali::WorkflowSteps::Component.new(style: "max-width:40rem", title: "Approval chain")
     ) do |c|
       c.with_step(title: "A", state: :success)
     end
+
+    assert_selector('ol.workflow-steps[style="max-width:40rem"]')
+    assert_selector('ol.workflow-steps[title="Approval chain"]')
+  end
+
+  def test_undeclared_keywords_reach_the_horizontal_root_too
+    render_inline(
+      Bali::WorkflowSteps::Component.new(orientation: :horizontal, style: "max-width:40rem",
+                                         title: "Approval chain")
+    ) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
     assert_selector('div.workflow-steps.workflow-steps-horizontal[style="max-width:40rem"]')
+    assert_selector('div.workflow-steps.workflow-steps-horizontal[title="Approval chain"]')
   end
 
   # The six global strings are deliberately generic, and a host that overrides
@@ -298,13 +310,28 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
   # asked for, empty string included. `.presence ||` would quietly hand back
   # "Skipped" to a host that asked for silence. Same rule as
   # `Bali::BooleanIcon#label`, pinned there too.
+  #
+  # What is pinned is the ANNOUNCEMENT, not the markup: nothing is read out.
+  # Today that is an empty `sr-only` span, which contributes no node to the
+  # accessibility tree; a later cleanup that renders no span at all keeps this
+  # test green, which is the point — the rule is about what a screen reader
+  # says, and only a fallback to "Skipped" should turn it red.
   def test_an_empty_state_label_is_taken_literally
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "")
     end
 
-    assert_selector(".workflow-step-marker .sr-only", visible: :all)
-    assert_equal "", page.find(".workflow-step-marker .sr-only", visible: :all).text(:all)
+    assert_equal "", announced_states.join
+  end
+
+  # The one thing a host can put in that span is a string it built itself.
+  def test_a_state_label_is_escaped_like_any_other_host_string
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "<b>Not</b> taken")
+    end
+
+    assert_no_selector(".workflow-step-marker .sr-only b", visible: :all)
+    assert_equal "<b>Not</b> taken", announced_states.first
   end
 
   # The label is the step's, not the flow's: two steps in the same state read
@@ -315,11 +342,17 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
       c.with_step(title: "Pilot", state: :skipped)
     end
 
-    labels = page.all(".workflow-step-marker .sr-only", visible: :all).map(&:text)
-    assert_equal [ "Not taken", "Skipped" ], labels
+    assert_equal [ "Not taken", "Skipped" ], announced_states
   end
 
   private
+
+  # What a screen reader would read out for each step's state, in document
+  # order. Reading the text rather than asserting the span exists keeps these
+  # tests about the announcement — see `test_an_empty_state_label_...`.
+  def announced_states
+    page.all(".workflow-step-marker .sr-only", visible: :all).map { |node| node.text(:all) }
+  end
 
   # Circle contents in document order; a skipped circle's icon has no text.
   def circle_texts
@@ -393,6 +426,31 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
     end
 
     assert_selector('div.workflow-steps.workflow-steps-horizontal.my-flow[data-testid="flow"]')
+  end
+
+  # The shape where the `sr-only` name is the ONLY state information there is:
+  # the dot carries no number, so a reader who cannot see colour has nothing
+  # else to go on. The per-step hatch has to reach it.
+  def test_a_horizontal_step_can_name_its_own_state
+    render_horizontal do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+      c.with_step(title: "Pilot", state: :skipped)
+    end
+
+    labels = page.all(".workflow-step-marker .sr-only", visible: :all).map { |node| node.text(:all) }
+    assert_equal [ "Not taken", "Skipped" ], labels
+  end
+
+  # The scroll hatch is the rail's alone: the cards wrap instead of
+  # overflowing, so a tab stop here would be a stop on something that never
+  # scrolls.
+  def test_the_horizontal_list_is_not_a_focusable_scroll_region
+    render_horizontal do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_no_selector("ol.workflow-steps-list[tabindex]")
+    assert_no_selector("ol.workflow-steps-list[aria-label]")
   end
 
   def test_each_state_paints_its_dot_classes
@@ -730,6 +788,47 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_selector(".workflow-step-comment", text: "Missing appendix B.")
   end
 
+  # WCAG 2.1.1. The rail is the one shape that can overflow — measured at
+  # 400px with nine steps, `list.scrollWidth 864 > clientWidth 336` — and a
+  # scroll container with no focusable descendant is content a keyboard user
+  # cannot reach at all. `docs/guides/accessibility.md` prescribes
+  # `tabindex="0"` plus a name for exactly this.
+  #
+  # No `role=`: measured in the browser, `role="region"` (or `"group"`) on an
+  # `<ol>` REPLACES its `list` role, so the reader stops being told how many
+  # steps there are. `<ol tabindex="0" aria-label="...">` snapshots as
+  # `list "Workflow steps"` — focusable, named, still a list.
+  def test_the_rail_list_is_reachable_by_keyboard_and_named
+    render_rail do |c|
+      c.with_step(title: "Capture", state: :success)
+    end
+
+    assert_selector('ol.workflow-steps-list[tabindex="0"]')
+    assert_selector("ol.workflow-steps-list[aria-label]")
+    assert_no_selector("ol.workflow-steps-list[role]")
+  end
+
+  def test_the_rail_scroll_region_is_named_from_the_locale
+    I18n.with_locale(:es) do
+      render_rail do |c|
+        c.with_step(title: "Captura", state: :success)
+      end
+    end
+
+    assert_selector(%(ol.workflow-steps-list[aria-label="#{I18n.t('bali_view.workflow_steps.rail_label', locale: :es)}"]))
+  end
+
+  # `progress: false` is what the four horizontal call sites in the fleet
+  # write today; migrating one to the rail must not turn it into an error.
+  def test_the_rail_accepts_an_explicit_progress_false
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail, progress: false)) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector("div.workflow-steps.workflow-steps-rail")
+    assert_no_selector(".workflow-steps-progress")
+  end
+
   def test_the_orientation_error_names_all_three_shapes
     error = assert_raises(ArgumentError) do
       render_inline(Bali::WorkflowSteps::Component.new(orientation: :sideways))
@@ -748,5 +847,67 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
 
   def circle_texts
     page.all(".workflow-step-circle", visible: :all).map { |node| node.text.strip }
+  end
+end
+
+# The rail shares the vertical shape's numbered circle and the quick flow's
+# N/M header, so three rules moved out of their per-shape blocks and into the
+# root `.workflow-steps` block rather than being duplicated. That move is what
+# the whole "the default shape is untouched" claim rests on, and the repo has
+# no rendering tests for CSS: nothing else in the suite notices if someone
+# files one of them back under a shape, or adds a second declaration that
+# shadows it.
+#
+# This reads the source, so it proves placement, not paint. What it cannot see
+# — cascade, layer, a host stylesheet — was measured in the browser against
+# the v3.4.0 server instead, and that measurement is in the PR, not here.
+class BaliWorkflowStepsStylesheetTest < ActiveSupport::TestCase
+  STYLESHEET = Bali::Engine.root.join("app/components/bali/workflow_steps/index.css")
+
+  # Declared once, in the root block: the two shapes that draw a numbered
+  # circle (vertical, rail) and the two that carry the header (horizontal,
+  # rail) would otherwise each need a copy.
+  SHARED_RULES = %w[
+    .workflow-step-circle
+    .workflow-steps-progress
+    .workflow-steps-count
+  ].freeze
+
+  def test_the_shared_rules_live_in_the_root_block_exactly_once
+    SHARED_RULES.each do |selector|
+      assert_equal [ ".workflow-steps" ], blocks_declaring(selector),
+        "#{selector} debe estar declarado una sola vez y dentro del bloque raíz `.workflow-steps`"
+    end
+  end
+
+  # Each shape sizes the marker itself, in its own top-level block.
+  # `.workflow-steps-horizontal .workflow-step-marker` boxes it into 1.5rem for
+  # its dot, which would crush the rail's 2rem circle: the rail having its own
+  # root class rather than being "horizontal plus a modifier" is the only thing
+  # keeping that rule away from it. The order is the other half — the rail
+  # block is written after the horizontal one on purpose, since same
+  # specificity in the same layer is settled by source order.
+  def test_each_shape_declares_its_own_marker_rule_in_source_order
+    assert_equal %w[.workflow-steps-vertical .workflow-steps-horizontal .workflow-steps-rail],
+                 blocks_declaring(".workflow-step-marker")
+  end
+
+  private
+
+  # The top-level blocks that declare `selector` as a nested rule. The sheet is
+  # one nested rule per shape block, two spaces of indent, which is what this
+  # reads; a reformat that breaks the shape shows up as an empty result, not a
+  # false pass.
+  def blocks_declaring(selector)
+    current = nil
+
+    File.readlines(STYLESHEET).filter_map do |line|
+      if (top = line[/\A(\.[\w-]+)\s*\{/, 1])
+        current = top
+        nil
+      elsif line[/\A {2}(\.[\w-]+)\s*\{/, 1] == selector
+        current
+      end
+    end
   end
 end

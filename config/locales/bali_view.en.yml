@@ -703,6 +703,11 @@ en:
         pending: "Pending"
         skipped: "Skipped"
         current: "In progress"
+      # Accessible name of the rail's row, which is also its scroll container:
+      # it is the one shape that can overflow, so it carries `tabindex="0"` and
+      # needs a name to be worth landing on. Generic on purpose, like the
+      # states above, and overridable the same way.
+      rail_label: "Workflow steps"
     split_view:
       # The three states of the infinite-scroll sentinel. They ship translated
       # because a `default:` in the template is exactly what hid the missing

@@ -1148,8 +1148,12 @@ positional.
   `:rail` (its connectors already say how far the flow got); `false` drops it
   and `true` turns it on. Asking for one on `:vertical` raises — that shape has
   no header for it.
-- HTML attributes for the root element pass through, `style:` included — there
-  is no `style:` keyword and there will not be one.
+- HTML attributes for the root element pass through, `style:` included: today
+  this component has no `style:` keyword, so `style: "max-width:40rem"` is a
+  live inline style on the root and a test pins it there. That is a statement
+  about today, not a promise — most Bali components spell a semantic enum
+  `style:`, and if this one ever grows one, that test is the list of what the
+  change costs.
 
 **Step options:**
 - `title` - The step's name (required)
@@ -1163,7 +1167,11 @@ positional.
 - Content block - Free markup rendered under the meta lines (a rejection
   comment, a `Bali::Tag`, links). A block that renders blank draws no comment
   container, so deciding *inside* the block — "the comment, if there is one" —
-  leaves the step exactly as one declared with no block at all.
+  leaves the step exactly as one declared with no block at all. That is also
+  how you write a short note: `c.with_step(title: "Evaluation", state:
+  :skipped) { "Not taken" }` costs nothing when the note is absent. It renders
+  as `.workflow-step-comment`, so it reads like a comment — a note that must
+  not is a different request.
 
 The connector under each circle takes the state of the **next** step, so the
 line arrives coloured at the step that owns that verdict — the component
@@ -1190,6 +1198,29 @@ It changes nothing visible — the circle keeps its colour and its dash — and
 nothing global. `nil` (the default) falls back to the translation; anything
 else is taken literally, `""` included, so a step whose title already says the
 verdict can ask for silence. Same rule as `Bali::BooleanIcon`'s `label:`.
+
+##### Choosing a shape: `:horizontal` or `:rail`
+
+Both of these lay the flow out left to right, so the names do not tell them
+apart — **`:rail` is horizontal too**. What separates them is what each one
+does when the steps stop fitting:
+
+| | `:horizontal` | `:rail` |
+|---|---|---|
+| The picture | a grid of bordered cards, one state dot each | one row of numbered circles joined by a coloured rail, label centred underneath |
+| Out of room | **wraps** onto a second row (`auto-fit` from 11rem) | **never wraps**: equal columns down to a `6rem` floor, then the row scrolls inside the component |
+| Marker | a dot, no number | a numbered circle; `:skipped` draws a dash and takes no position |
+| Connectors | none — the bar says how far it got | one per gap, coloured by the *next* step's state |
+| N/M bar | on by default | off by default |
+| Room for `assignee` / `date` / a comment | yes, stacked under the title inside each card, which just grows | yes, but stacked under the label, and the tallest step sets the height of the whole row |
+
+Rule of thumb: three or four steps that have to fit a summary card or a table
+cell → `:horizontal`. Nine steps across the top of a page → `:rail`; the same
+nine as cards are three rows, and a funnel in three rows is no longer a funnel.
+
+`:vertical` is neither of those two: it is the record — the shape with room for
+the assignee, the date and the rejection comment of every step, one under the
+other.
 
 ##### The horizontal quick flow
 
@@ -1266,16 +1297,28 @@ What is specific to the rail:
   has to stay one line tall is one whose caller leaves them out. The component
   does not `display: none` content a caller passed — a screen reader would lose
   it too.
+- **The row is a keyboard scroll region.** Because it can overflow and holds
+  nothing focusable, the `<ol>` carries `tabindex="0"` and an `aria-label`, so
+  a keyboard user can land on it and arrow the hidden steps into view. The name
+  comes from `bali_view.workflow_steps.rail_label` ("Workflow steps" / "Pasos
+  del flujo"), overridable like any Bali string. It keeps its `list` role — an
+  explicit `role="region"` would replace it and stop telling the reader how
+  many steps there are.
 - **It does not use daisyUI's `.steps`.** That grid draws the same picture, but
   its status comes from position, which is the one thing this component exists
   not to do: `.step` cannot say "step 2 was rejected while step 4 is pending".
 
 `:rail` is a third value of `orientation:` rather than a second keyword
-(`style:`, `shape:`, `layout:`) because every keyword this component does not
-declare reaches the root element as a plain HTML attribute. `style:` in
-particular is a live inline style today, and declaring it would have turned
-working host markup into an `ArgumentError`. A rail is a horizontal shape, not
-an orientation of its own — the word is the price of not breaking callers.
+(`style:`, `shape:`, `layout:`) for a measured reason and a judgement call.
+Measured: every keyword this component does not declare reaches the root as a
+plain HTML attribute, and `style:` is a live inline style today, so declaring
+it would turn working host markup into an `ArgumentError`. Judgement:
+`orientation: :rail` raised an `ArgumentError` up to v3.4.0, so nothing can
+depend on its old meaning, and one axis needs no cross-validation between two keywords — `shape:`
+(the spelling `Bali::Avatar` uses) was the coherent alternative and was not
+taken for that reason, not because it was impossible. The cost is the word: a
+rail is a horizontal shape, not an orientation of its own, which is what the
+table above is for.
 
 ##### The decision form is the host's
 

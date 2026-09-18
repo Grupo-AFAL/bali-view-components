@@ -1,4 +1,4 @@
-<% if wrapped? %>
+<% if boxed? %>
   <div <%= tag.attributes(**container_options) %>>
     <% if progress? %>
       <div class="workflow-steps-progress">
@@ -8,7 +8,7 @@
         <span class="workflow-steps-count"><%= resolved_count %>/<%= total_count %></span>
       </div>
     <% end %>
-    <ol class="workflow-steps-list">
+    <ol <%= tag.attributes(class: "workflow-steps-list", **list_options) %>>
       <% rendered_steps.each do |step| %>
         <%= step %>
       <% end %>

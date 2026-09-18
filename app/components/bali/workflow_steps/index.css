@@ -28,6 +28,13 @@
  * a scroll container clips both axes, and `:current` rings 4px outside its
  * circle.
  *
+ * A scroll container with nothing focusable inside it is content a keyboard
+ * user cannot reach — nine steps at 400px scroll 864px inside a 336px box —
+ * so the rail's list carries `tabindex="0"` (set in the component, next to its
+ * `aria-label`). A tab stop has to be visible when it lands, hence the
+ * `:focus-visible` outline below; without it the focus ring is the browser
+ * default on a box that looks like plain content.
+ *
  * The rail is NOT `.workflow-steps-horizontal` plus a modifier, and that is
  * load-bearing: `.workflow-steps-horizontal .workflow-step-marker` boxes the
  * marker into 1.5rem for the dot, which would crush the rail's 2rem circle.
@@ -141,6 +148,11 @@
        needs outside the circle, which the scroll container would otherwise
        clip. */
     @apply flex list-none items-start overflow-x-auto py-1.5;
+
+    /* The list is a tab stop (see the header): it is the only way to scroll
+       the rail without a pointer. `:focus-visible`, not `:focus`, so a mouse
+       user who clicks the row does not get an outline they did not ask for. */
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
 
   .workflow-step {

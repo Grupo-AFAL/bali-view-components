@@ -380,6 +380,39 @@ opened with `showModal()` is not modal, whatever the attribute says.
 </div>
 ```
 
+### Scrollable regions
+
+The wrapper above is the general rule, not a table detail: **anything that
+scrolls needs a tab stop**. A container with `overflow-x-auto` and no focusable
+descendant is content a keyboard user cannot reach at all — the scrollbar is
+the only way in, and on Linux and macOS the overlay scrollbar is not even
+visible until something scrolls.
+
+```erb
+<%# The default: the scroll container is a plain <div>, so give it all three %>
+<div class="overflow-x-auto" tabindex="0" role="region" aria-label="User data">
+  …
+</div>
+```
+
+**When the scroll container is already a semantic element, leave its role
+alone.** An explicit `role=` replaces the implicit one instead of adding to it.
+Measured in the browser on an `<ol>` of nine items:
+
+| Markup | Accessibility snapshot |
+|---|---|
+| `<ol tabindex="0" aria-label="Workflow steps">` | `list "Workflow steps"` — focusable, named, still a list |
+| `<ol tabindex="0" role="region" aria-label="Workflow steps">` | `region "Workflow steps"` — the reader is no longer told it is a list of nine |
+
+So the rule is: `tabindex="0"` always, a name always, and `role="region"` only
+when the element had no useful role of its own. `Bali::WorkflowSteps`'
+`orientation: :rail` is the worked example — its `<ol>` is the scroll
+container, and it ships `tabindex="0"` plus an `aria-label` from
+`bali_view.workflow_steps.rail_label` and no `role`.
+
+A tab stop also has to be visible when focus lands on it, which a scrolling box
+of plain content is not by default — see [Focus Visibility](#focus-visibility).
+
 ### Tabs vs navigation
 
 Sharing a look is not sharing a role. `Bali::Tabs` renders two different widgets and picks

@@ -77,11 +77,16 @@ class BaliBooleanIconComponentTest < ComponentTestCase
   # back to the translation; anything else is what the host asked for, empty
   # string included. `.presence ||` would hand "Yes" back to a caller who
   # asked for silence because the surrounding cell already says it.
+  #
+  # Pinned as the ANNOUNCEMENT, not the markup: today the empty string renders
+  # an empty `sr-only` span, which contributes no node to the accessibility
+  # tree, and a later cleanup that renders no span at all should keep this
+  # green. Only a fallback to "Yes" is a regression.
   def test_a11y_an_empty_label_is_taken_literally
     render_inline(Bali::BooleanIcon::Component.new(value: true, label: ""))
 
-    assert_selector("span.sr-only", visible: :all)
-    assert_equal "", page.find("span.sr-only", visible: :all).text(:all)
+    announced = page.all("span.sr-only", visible: :all).map { |node| node.text(:all) }
+    assert_equal "", announced.join
   end
 
   def test_a11y_translates_the_default_name

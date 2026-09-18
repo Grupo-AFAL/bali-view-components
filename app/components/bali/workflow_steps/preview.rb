@@ -111,6 +111,12 @@ module Bali
       # that the row scrolls inside the component — the page never gains a
       # horizontal scrollbar. Wrapping is what the horizontal cards do.
       #
+      # That scroll is reachable with the keyboard: the row is a tab stop
+      # (`tabindex="0"` plus an `aria-label` from
+      # `bali_view.workflow_steps.rail_label`), because a scroll container with
+      # nothing focusable inside it hides its overflow from anyone without a
+      # pointer. Tab to the last group below and use the arrow keys.
+      #
       # `assignee:`, `date:` and the block still render, centred under the
       # label. Nothing is hidden; they set the row height, so a rail that has
       # to stay one line tall is one whose caller leaves them out.
