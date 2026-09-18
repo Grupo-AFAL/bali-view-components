@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`group_by_attribute :status, default: true` — un listado que ABRE agrupado** (#1156). Hasta
+  ahora la agrupación no tenía el equivalente de `filter_attribute default:`: el anfitrión fijaba
+  `@group_by` después de `super` y reimplementaba a mano la regla «nadie ha dicho nada», leyendo
+  `Rails.cache` para no pisar lo que el usuario había elegido. La declaración lo hace ahora, en
+  las DOS formas —el DSL de clase y el `group_by_attributes:` del constructor, que antes
+  descartaba la llave en silencio—.
+
+  **Precedencia, de arriba abajo:** un `?group_by=` explícito en la URL (incluido «sin
+  agrupación», o el usuario no podría desagrupar), después el `group_by` del payload de una
+  vista guardada aplicada, después la elección guardada en la caché de filtros, y recién
+  entonces el default. Una sola declaración puede traerlo —dos revientan al construir el form—
+  y es un booleano, no un callable: se resuelve al construir el form, sin instancia contra la
+  cual evaluar nada (la misma limitación que ya documenta `filter_attribute default:`).
+
+  **El default NO viaja por la URL,** al revés que el de los filtros, y es a propósito:
+  `redirect_to_default_filters` se apaga entero cuando la persistencia está encendida —o sea que
+  por esa vía no podía cumplir «respeta la persistencia»— y un redirect que escribiera
+  `?group_by=status` marcaría el param como pedido, pisando en la caché el «sin agrupación» que
+  el usuario eligió, en cada visita. Los motivos que empujaron los filtros a la URL tampoco
+  aplican: `group_by` no recorta la población, solo ordena y pinta bandas.
+
+  **Es DERIVADO:** no se escribe en la caché de filtros, no entra al payload de una vista
+  guardada (si entrara, toda vista sin agrupación pasaría a verse «modificada» contra un listado
+  que nadie tocó) y no viaja como hidden field. Cambiar la declaración cambia lo que ven también
+  los usuarios que ya visitaron el listado; solo se recuerda lo que eligieron.
+
+  **Para el anfitrión, dos cambios visibles.** (1) Donde hay un `default:` declarado, «sin
+  agrupación» viaja como `?group_by=none` en vez del `?group_by=` vacío de siempre: el
+  `sort_link` de Ransack descarta los params vacíos al componer su href, así que con el vacío el
+  default volvía en cuanto el usuario ordenaba una columna. Los listados sin default siguen con
+  el vacío, byte a byte. (2) La caché de filtros gana una llave, `group_by_chosen`, que separa
+  «el usuario apagó la agrupación» de «nadie dijo nada» — las cachés escritas por versiones
+  anteriores no la traen y se leen como «nadie dijo nada», que es lo que hace que el default
+  funcione desde el primer request para usuarios que ya venían usando el listado.
+
+  Preview nuevo: `bali/data_table/with_default_grouping`.
+
+### Fixed
+
+- **Agrupar sobre un scope con `.distinct` ya no muere con el error crudo del driver** (#1156).
+  Agrupar ORDENA por la expresión del grupo, y un `SELECT DISTINCT` solo acepta expresiones del
+  `ORDER BY` que estén en su lista del SELECT. De las cuatro formas de agrupar, la única que lo
+  está es una columna de la tabla base: un camino de asociación (`ORDER BY "tenants"."name"`), un
+  ransacker y un `sql:` explícito no, así que en PostgreSQL la consulta moría con «for SELECT
+  DISTINCT, ORDER BY expressions must appear in select list» sin que nada dijera de dónde venía
+  (el issue —y el primer análisis— creían que era un problema del `sql:`; son tres de cuatro).
+
+  Bali no puede arreglarlo por el anfitrión: meter la expresión en el SELECT cambia QUÉ
+  deduplica el `.distinct`, que suele estar ahí para desduplicar un join. Lo que hace es
+  reemplazar el error del adaptador por `Bali::FilterForm::GroupByOrderingError`, que nombra el
+  listado, la agrupación, el `ORDER BY` culpable y las tres salidas (sacar el `.distinct` y
+  desduplicar con una subconsulta; poner la expresión en el SELECT a mano; o agrupar por una
+  columna de la tabla base). El error del driver queda disponible como `#cause`, y cualquier otro
+  fallo del adaptador sale intacto: no se adivina nada. MySQL, que dice lo mismo con otras
+  palabras, también se traduce; SQLite acepta las cuatro formas y no ve ninguna diferencia.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

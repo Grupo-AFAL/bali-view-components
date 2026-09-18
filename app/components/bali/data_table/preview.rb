@@ -420,6 +420,48 @@ module Bali
         )
       end
 
+      # Un listado que ABRE agrupado porque la declaración lo dice, no la URL (#1156).
+      # Se nombra completo en el método, como todo vecino dentro de un `preview.rb`.
+      class DefaultGroupedMoviesFilterForm < Bali::FilterForm
+        group_by_attribute :genre
+        group_by_attribute :status, default: true
+        group_by_attribute :budget_band, label: "Budget"
+      end
+
+      # @label With Default Grouping (Live DB)
+      # `group_by_attribute :status, default: true` — el listado abre agrupado por estado sin
+      # que la URL diga nada, y sin que el anfitrión toque `@group_by` después de `super`.
+      #
+      # El default es el ÚLTIMO escalón: gana la URL (`?group_by=genre`), después el payload
+      # de una vista guardada, después la elección guardada en la caché de filtros, y recién
+      # entonces la declaración. "Sin agrupación" (`?group_by=`) le gana también — si no, un
+      # listado con default no se podría desagrupar.
+      #
+      # Un default es DERIVADO: no se escribe en la caché, no entra al payload de una vista
+      # guardada y no viaja como hidden field, así que cambiarlo en el código cambia lo que
+      # ven los usuarios que ya visitaron el listado.
+      #
+      # El param de abajo: `unset` = la URL no dice NADA y habla el default; `none` = "sin
+      # agrupación" explícito, que es exactamente lo que manda el item del control cuando hay
+      # un default (un `?group_by=` vacío no sobrevive al `sort_link` de Ransack). `unset`
+      # existe porque Lookbook no puede distinguir un param ausente de uno vacío.
+      # @param group_by select { choices: [unset, none, genre, status, budget_band] }
+      # @param page number
+      def with_default_grouping(group_by: "unset", page: 1)
+        preview_params = { q: ActionController::Parameters.new({}), page: page }
+        preview_params[:group_by] = group_by unless group_by.to_s == "unset"
+
+        filter_form = Bali::DataTable::Preview::DefaultGroupedMoviesFilterForm.new(
+          Movie.all, ActionController::Parameters.new(preview_params)
+        )
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
+
+        render_with_template(
+          template: "bali/data_table/previews/with_grouping",
+          locals: { filter_form: filter_form, pagy: pagy, movies: movies }
+        )
+      end
+
       # @label With Grid Mode (Live DB)
       # Toggle between table and card-based grid layouts.
       #

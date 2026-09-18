@@ -123,7 +123,12 @@ module Bali
           # que YA volvió de un jsonb, donde todo es String. `comparable_view_state` normaliza
           # las LLAVES pero no los valores, así que `:genre` nunca casaba con `"genre"` y una
           # vista que agrupa no se reconocía activa por estado — solo con `?saved_view=` puesto.
-          "group_by" => @group_by&.to_s
+          #
+          # Un `group_by` que viene SOLO del `default:` declarado no entra (#1156): no es una
+          # elección del usuario, y metiéndolo toda vista guardada sin agrupación pasaba a
+          # verse "modificada" contra un listado que nadie tocó (ver `comparable_view_state`
+          # y `saved_view_dirty?`).
+          "group_by" => (@group_by&.to_s unless group_by_from_default?)
         }.compact
       end
 
@@ -186,7 +191,13 @@ module Bali
         # Un `group_by` explícito en la URL gana sobre el del payload: con `?saved_view=` aún
         # pegado (los links de "Agrupar por" preservan la query), el payload pisaba el clic
         # recién dado y el control se veía muerto.
+        #
+        # Y lo que la vista TRAE cuenta como elección, así que el `default:` declarado —último
+        # escalón— no la pisa. Lo que la vista NO trae es silencio y no "sin agrupación": su
+        # payload solo sabe escribir la agrupación elegida, así que ahí el default sigue
+        # haciendo su trabajo (ver GroupByConfiguration).
         @group_by = @group_by.presence || resolve_group_by(payload["group_by"])
+        @group_by_chosen ||= !@group_by.nil?
         (payload["attributes"] || {}).select { |k, _v| self.class.attribute_names.include?(k.to_s) }
       end
     end

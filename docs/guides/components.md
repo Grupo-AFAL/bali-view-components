@@ -1536,12 +1536,50 @@ Declare groupable attributes on the form (DSL or constructor):
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
   group_by_attribute :genre, label: "Género"
-  group_by_attribute :status
+  group_by_attribute :status, default: true   # the listing opens grouped by status
 end
 
-# or, without subclassing:
-Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
+# or, without subclassing (same options, `default:` included):
+Bali::FilterForm.new(Movie.all, params,
+                     group_by_attributes: [:genre, { attribute: :status, default: true }])
 ```
+
+##### A listing that opens grouped (`default:`)
+
+`default: true` on **one** declaration is the band the listing opens on when nobody has said
+anything about grouping. Declaring it on two attributes raises when the form is built — a
+listing opens on one question. It takes `true`/`false`, **not a callable**: the default is
+resolved while the form is built, with no instance to evaluate against (the same limit
+`filter_attribute default:` has, for the same reason). A grouping that depends on the request
+is the host setting `@group_by` after `super`, not a declaration.
+
+Precedence, top down — the first one that speaks wins:
+
+| Source | Beats the default because |
+|---|---|
+| `?group_by=` in the URL | The user just clicked. **Including "no grouping"** — without that, a listing with a default could never be ungrouped |
+| The `group_by` of an applied saved view (`?saved_view=`) | A view records a grouping the user chose |
+| The choice stored in the filters cache | Persistence promises "remember what I chose", and that includes "I turned grouping off" |
+| — | Nothing said: the `default:` applies |
+
+**Unlike `filter_attribute default:`, this default does not travel through the URL.** No
+redirect, no `?group_by=` written on a bare entry. Two measured reasons: `redirect_to_default_filters`
+switches itself off entirely when filter persistence is on (so the URL route could never
+satisfy "respects persistence"), and a redirect writing `?group_by=status` marks the param as
+*requested*, which would overwrite the "no grouping" the user chose in the cache on every
+visit. Neither reason that pushed filter defaults into the URL applies here: grouping does not
+change the **population**, only the order and the bands.
+
+**A default is derived, never stored.** It is not written into the filters cache, does not
+enter a saved view's payload (otherwise every view saved without a grouping would read as
+"modified" against a listing nobody touched) and does not travel as a hidden field. So
+changing the declaration changes what users who already visited the listing see — only what
+they chose is remembered.
+
+One consequence worth knowing: **where a default is declared, "no grouping" travels as
+`?group_by=none`** instead of the empty `?group_by=`. Ransack's `sort_link` drops empty params
+when it composes its href, so the empty spelling could not survive a column sort and the
+default came back. Listings without a default keep the empty spelling.
 
 ##### What can be grouped by
 
@@ -1578,6 +1616,21 @@ group_by_attribute :budgeted,
 
 A String `sql:` goes through `Arel.sql` — it is the developer's SQL, never the user's;
 the raw `group_by` param can only ever match a declared name.
+
+**Grouping and `SELECT DISTINCT` do not mix on PostgreSQL.** Grouping orders by the group
+expression, and a `SELECT DISTINCT` only accepts `ORDER BY` expressions that are in its select
+list. Of the four shapes, only a column of the **base table** is: an association path
+(`ORDER BY "tenants"."name"`), a ransacker and a `sql:` expression are all absent from
+`SELECT DISTINCT movies.*`, so the query dies with *"for SELECT DISTINCT, ORDER BY expressions
+must appear in select list"*. MySQL says the same thing in other words; SQLite accepts all
+four.
+
+Bali cannot fix it for you — adding the expression to the select list changes **what** gets
+deduplicated, and the `.distinct` is usually there to deduplicate a join. What it does is
+replace the driver's error with `Bali::FilterForm::GroupByOrderingError`, which names the
+listing, the grouping, the offending `ORDER BY` and the three ways out (drop the `.distinct`
+and deduplicate with a subquery; put the expression in the select list yourself; or group by a
+base-table column). The adapter's own error stays available as `#cause`.
 
 **A declaration that cannot work raises when the form is built**, not when someone
 picks that grouping on screen. `group_by_attribute :whatever` used to be accepted in
@@ -1640,7 +1693,9 @@ user can type it, and a 500 is not the answer to a typo.
 
 "No grouping" leaves `?group_by=` (empty) in the URL rather than dropping the
 param: with filter persistence on, an absent param means "restore the cached
-state", so removing it resurrected the grouping the user just turned off.
+state", so removing it resurrected the grouping the user just turned off. Where the form
+declares a `default:`, the same item emits `?group_by=none` instead — an empty param does not
+survive Ransack's `sort_link`, and an absent one means "apply the default".
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
@@ -3687,6 +3742,13 @@ identity when it is not the one `filter_form` derives.
 A `default:` on an attribute offered in neither UI (`simple: false, advanced: false`) raises
 at class-definition time: it would have no control to sit in and no pill to remove, so it
 would filter invisibly.
+
+**Grouping answers this same question the other way.** `group_by_attribute :status,
+default: true` resolves inside the form and never redirects — see *A listing that opens
+grouped* above. The reasons for the URL do not carry over: grouping does not change the
+population (so a sort cannot silently move it), and the redirect this section describes turns
+itself off exactly where the grouping default is needed most, on a listing with filter
+persistence on.
 
 #### Quick search (`search:`)
 

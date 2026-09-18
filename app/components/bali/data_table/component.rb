@@ -801,7 +801,22 @@ module Bali
       # `group_by_active?` (ESTADO) y NO `group_by_applied?` (APLICACIÓN) a propósito: en
       # tarjetas la agrupación está suspendida pero el param TIENE que seguir viajando — si
       # no, buscar algo estando en tarjetas la borra y volver a la tabla ya no la encuentra.
+      #
+      # Qué viaja lo decide el form, porque desde #1156 hay tres respuestas y no dos: una
+      # agrupación elegida viaja con su nombre, una que solo sale del `default:` declarado no
+      # viaja (se re-deriva sola, y arrastrarla la volvería indistinguible de una elección), y
+      # "sin agrupación" viaja VACÍA cuando hay un default — o filtrar volvía a agrupar el
+      # listado que el usuario acababa de desagrupar. Ver FilterForm#group_by_preserved_value.
       def group_by_preserved_params
+        return legacy_group_by_preserved_params unless @filter_form.respond_to?(:group_by_preserved_value)
+
+        value = @filter_form.group_by_preserved_value
+        value.nil? ? {} : { "group_by" => value }
+      end
+
+      # Un form que no es un Bali::FilterForm (el DataTable acepta cualquier objeto que
+      # responda a la parte del contrato que usa) sigue por donde iba.
+      def legacy_group_by_preserved_params
         return {} unless @filter_form.respond_to?(:group_by_active?) && @filter_form.group_by_active?
 
         { "group_by" => @filter_form.group_by.to_s }

@@ -204,3 +204,124 @@ class BaliFilterFormGroupByExpressionsTest < ActiveSupport::TestCase
     end
   end
 end
+
+# #1156, mitad 2. Sobre un scope con `.distinct`, Postgres exige que toda expresión del ORDER
+# BY esté en la lista del SELECT — y agrupar ORDENA por la expresión del grupo. TRES de las
+# cuatro formas de agrupar la producen (camino de asociación, ransacker y `sql:`); solo una
+# columna de la tabla base está en `SELECT DISTINCT movies.*`. Medido en el dummy:
+#
+#   genre       -> ORDER BY "movies"."genre" ASC                (seguro)
+#   studio_name -> ORDER BY "tenants"."name" ASC                (ausente del SELECT)
+#   budget_band -> ORDER BY CASE WHEN "movies"."budget" ... END (ausente del SELECT)
+#   budgeted    -> ORDER BY CASE WHEN movies.budget IS NULL ... (ausente del SELECT)
+#
+# Bali no puede ARREGLARLO metiendo la expresión en el SELECT (cambiaría la deduplicación que
+# el `.distinct` del anfitrión existe para hacer) ni detectarlo antes sin falsos positivos: un
+# host que ya hizo `.select("movies.*, tenants.name")` corre perfecto. Lo que sí puede es
+# rescatar el fallo del adaptador donde la relación se materializa y decir qué hacer.
+#
+# sqlite acepta las cuatro formas, así que el fallo de Postgres NO se reproduce en este repo:
+# estos tests simulan la excepción del adaptador desde el propio scope.
+class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
+  PG_DISTINCT_MESSAGE = "PG::InvalidColumnReference: ERROR:  for SELECT DISTINCT, " \
+                        "ORDER BY expressions must appear in select list\n" \
+                        'LINE 1: SELECT DISTINCT "movies".* FROM "movies" ...'
+
+  MYSQL_DISTINCT_MESSAGE = "Mysql2::Error: Expression #1 of ORDER BY clause is not in SELECT " \
+                           "list, references column 'db.tenants.name' which is not in SELECT " \
+                           "list; this is incompatible with DISTINCT"
+
+  class DistinctGroupingsFilterForm < Bali::FilterForm
+    group_by_attribute :genre
+    group_by_attribute :budget_band, label: "Presupuesto"
+    group_by_attribute :studio_name, label: "Estudio", value: ->(movie) { movie.studio&.name }
+    group_by_attribute :budgeted,
+                       label: "Presupuestada",
+                       sql: -> { "CASE WHEN movies.budget IS NULL THEN 'sin' ELSE 'con' END" },
+                       value: ->(movie) { movie.budget.present? ? "con" : "sin" }
+  end
+
+  # El adaptador que revienta al MATERIALIZAR, que es donde el anfitrión se entera hoy. Va
+  # sobre el scope para quedar DEBAJO del módulo de diagnóstico que Bali agrega en `result`.
+  def failing_adapter(message)
+    Module.new do
+      define_method(:exec_queries) { |&_block| raise ActiveRecord::StatementInvalid, message }
+    end
+  end
+
+  def form(group_by, message: PG_DISTINCT_MESSAGE, scope: Movie.all.distinct)
+    DistinctGroupingsFilterForm.new(
+      scope.extending(failing_adapter(message)),
+      ActionController::Parameters.new(q: ActionController::Parameters.new({}), group_by: group_by)
+    )
+  end
+
+  # Las CUATRO formas pasan por el mismo rescate: el camino de asociación y el ransacker
+  # ordenan por el param `s` de Ransack y nunca entran a `apply_group_by_sql_order`, así que
+  # un guard puesto ahí dejaba vivo el bug justo donde se reportó.
+  %w[genre budget_band studio_name budgeted].each do |attribute|
+    define_method("test_the_distinct_conflict_is_translated_for_#{attribute}") do
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form(attribute).result.to_a }
+
+      assert_match(/#{attribute}/, error.message)
+      assert_match(/SELECT DISTINCT/, error.message)
+    end
+  end
+
+  def test_the_message_names_the_listing_and_the_three_ways_out
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
+
+    assert_match(/DistinctGroupingsFilterForm/, error.message)
+    assert_match(/\.distinct/, error.message)
+    assert_match(/select/i, error.message)
+    assert_match(/column/i, error.message)
+  end
+
+  def test_the_original_adapter_error_survives_as_the_cause
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
+
+    assert_kind_of(ActiveRecord::StatementInvalid, error.cause)
+    assert_match(/InvalidColumnReference/, error.cause.message)
+  end
+
+  def test_the_mysql_wording_is_translated_too
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) do
+      form("studio_name", message: MYSQL_DISTINCT_MESSAGE).result.to_a
+    end
+
+    assert_match(/studio_name/, error.message)
+  end
+
+  # Cero falsos positivos: cualquier otro fallo del adaptador sale como vino, con su propio
+  # mensaje y su propia clase.
+  def test_any_other_adapter_failure_passes_through_untouched
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      form("studio_name", message: "SQLite3::SQLException: no such table: movies").result.to_a
+    end
+
+    assert_match(/no such table/, error.message)
+  end
+
+  # Sin agrupación aplicada no hay a quién culpar: el ORDER BY es del anfitrión.
+  def test_without_an_applied_grouping_the_adapter_error_is_left_alone
+    assert_raises(ActiveRecord::StatementInvalid) { form(nil).result.to_a }
+  end
+
+  def test_a_suspended_grouping_leaves_the_adapter_error_alone
+    suspended = DistinctGroupingsFilterForm.new(
+      Movie.all.distinct.extending(failing_adapter(PG_DISTINCT_MESSAGE)),
+      ActionController::Parameters.new(group_by: "studio_name", view: "grid")
+    )
+
+    assert_raises(ActiveRecord::StatementInvalid) { suspended.result.to_a }
+  end
+
+  # El rescate no puede cambiar lo que la relación DEVUELVE.
+  def test_the_diagnostics_do_not_change_the_result
+    plain = DistinctGroupingsFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: "genre")
+    )
+
+    assert_equal(Movie.order(:genre).pluck(:id).sort, plain.result.pluck(:id).sort)
+  end
+end

@@ -280,7 +280,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `scope` | `ActiveRecord::Relation` | Required | Base scope to filter |
 | `params` | `Hash` | `{}` | Request params containing `q[...]` |
 | `storage_id` | `String` | `nil` | **The listing identity.** Filter-persistence cache key, DataTable container id, column-selector target (`#<id> table`) and localStorage key (`bali:columns:<id>`), and the saved-views scope. Without it a DataTable falls back to a random hex and column persistence turns itself off |
-| `group_by_attributes` | `Array<Symbol, Hash>` | `nil` | Groupable attributes; enables the "Group by" control. A column, a `ransacker` or an association path — the same three shapes sorting takes. A hash entry carries `label:`, `sql:` (an explicit expression, which then drives the ordering too) and `value:` (how to read ONE row's band; required for an association path, which has no matching method). An attribute that is none of the three raises when the form is built |
+| `group_by_attributes` | `Array<Symbol, Hash>` | `nil` | Groupable attributes; enables the "Group by" control. A column, a `ransacker` or an association path — the same three shapes sorting takes. A hash entry carries `label:`, `sql:` (an explicit expression, which then drives the ordering too), `value:` (how to read ONE row's band; required for an association path, which has no matching method) and `default:` (see below). An attribute that is none of the three raises when the form is built. **Grouping breaks on a `.distinct` scope in PostgreSQL** unless the attribute is a base-table column — Bali turns the driver error into `Bali::FilterForm::GroupByOrderingError` naming the ways out |
 | `group_by_modes` | `Array<Symbol>` | `[:table]` | Display modes that APPLY grouping. Outside them the control hides and the grouping is suspended — but the param survives, so switching back finds it as it was left. Paint rows with `group_by_applied`, never `group_by` |
 | `view_param` | `Symbol` | `:view` | URL param carrying the display mode. Must be the SAME one the DataTable gets, or the DataTable raises `ArgumentError` at build time |
 | `display_mode` | `Symbol` | `nil` | The mode the listing RENDERS, for when the URL cannot say it. Only needed when the first declared view is not a grouping mode: without `?view=` the form would assume grouping applies and sort the cards by group. Pass what the DataTable gets (`params[:view] \|\| :grid`) |
@@ -292,6 +292,41 @@ FilterForm is organized into focused concerns for maintainability:
 | `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters. **Needs a real `Rails.cache`** — see below |
 | `clear_filters` | `Boolean` | `false` | Clear all persisted filters (via params) |
 | `clear_search` | `Boolean` | `false` | Clear only persisted search (via params) |
+
+### A listing that opens grouped (`group_by_attribute default:`)
+
+```ruby
+class InitiativesFilterForm < Bali::FilterForm
+  group_by_attribute :stage, label: 'Etapa', default: true
+  group_by_attribute :area
+end
+```
+
+One declaration only (two raise at build time), a boolean and **not a callable** — the default
+is resolved while the form is built, with no instance to evaluate against. Precedence: an
+explicit `?group_by=` wins (including "no grouping"), then an applied saved view's payload,
+then the grouping stored in the filters cache, then the declaration.
+
+Unlike `filter_attribute default:` this one does **not** go through the URL: no redirect. The
+redirect turns itself off when filter persistence is on, and writing the param on every bare
+entry would overwrite the user's "no grouping" in the cache. Grouping does not narrow the
+population, so nothing is hidden by resolving it inside the form.
+
+A default is **derived**: never written into the cache, never part of a saved view's payload,
+never a hidden field — change the declaration and everyone sees the new band. Where a default
+exists, "no grouping" travels as `?group_by=none` (an empty param does not survive Ransack's
+`sort_link`).
+
+### Grouping over a `.distinct` scope breaks on PostgreSQL
+
+Grouping orders by the group expression; `SELECT DISTINCT` only accepts `ORDER BY` expressions
+present in its select list. Only a **base-table column** is — an association path, a ransacker
+and a `sql:` expression are not, so the query dies with *"for SELECT DISTINCT, ORDER BY
+expressions must appear in select list"* (SQLite accepts all four, so it will not show up in
+the dummy). Bali replaces that error with `Bali::FilterForm::GroupByOrderingError`, which names
+the listing, the grouping and the three ways out: drop the `.distinct` (deduplicate with a
+subquery), add the expression to the select list yourself (it changes what gets deduplicated),
+or group by a base-table column.
 
 ### Filter persistence needs a real cache store — and a `context:`
 
