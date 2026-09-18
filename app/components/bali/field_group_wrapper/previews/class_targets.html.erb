@@ -1,0 +1,39 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <p class="text-sm text-base-content/60 mb-4">
+    Four class options, four destinations. Inspect each field: the caption says
+    which option built it.
+  </p>
+
+  <div class="grid gap-4">
+    <%= form.text_group :text, class: 'font-mono',
+          label: 'class: "font-mono" — the fieldset AND the control',
+          help: 'Both host semantics depend on this; it is not going to change.' %>
+
+    <%= form.email_group :email, field_class: 'max-w-xs',
+          label: 'field_class: "max-w-xs" — the fieldset only',
+          help: 'Layout for the group: width, column span, margins.' %>
+
+    <%= form.number_group :number, control_class: 'font-mono',
+          label: 'control_class: "font-mono" — the box around the control',
+          help: 'The caption stays in the body font; the input inherits the mono one.' %>
+
+    <%= form.url_group :url, input_class: 'bg-warning/20 rounded-2xl border-2 border-error',
+          label: 'input_class: — the control itself, and nothing else',
+          help: 'The box sits behind the control, so what the control paints for itself
+                 (background, border, radius) only works from here.' %>
+
+    <%= form.password_group :password, control_class: 'max-w-32',
+          label: 'control_class: "max-w-32" — width belongs to the box',
+          help: 'Every Bali control is w-full, so it fills whatever the box gives it.
+                 A bare w-32 would lose to that w-full instead.' %>
+
+    <%= form.date_group :date, control_class: 'max-w-32',
+          label: 'control_class: "max-w-32" on a date field — same spelling, same 128px',
+          help: 'This box is w-full itself, which is what makes w-32 a no-op here
+                 and max-w-* the width utility that works on every family.' %>
+
+    <%= form.currency_group :currency, control_class: 'font-mono',
+          label: 'control_class on a family with an addon — the .join is the box',
+          help: 'Dropped without a trace until #1147.' %>
+  </div>
+<% end %>

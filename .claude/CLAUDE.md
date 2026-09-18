@@ -242,6 +242,24 @@ control on the families that render one, and is dropped by the ones whose contro
 widget over a hidden field. `test/bali/form_builder/required_option_test.rb` names which
 is which, and fails if a new family lands in neither list.
 
+Four class options, four destinations, and nothing to invent: `class:` lands on the
+`<fieldset>` **and** the control — both halves are load-bearing in host apps, so it is
+not to be narrowed — `field_class:` on the `<fieldset>`, `control_class:` on the box
+around the control, `input_class:` on the control itself (and `html: { class: }` is the
+older spelling of that last one in the four families with two hashes). The box is the
+`.control` div, or the `.join` when an addon replaces it.
+
+Which one a property wants is measured, not a matter of taste: inherited properties come
+down from the box, so `control_class:` is enough; width belongs to the box too, because
+every control is `w-full` — but as a `max-w-*`, since a bare `w-32` loses to that
+`w-full` on the same element; and anything the control paints for itself (background,
+border, radius) is hidden behind the control if you put it on the box, so it needs
+`input_class:` (#1147).
+
+`test/bali/form_builder/control_class_option_test.rb` and
+`input_class_option_test.rb` are the authoritative lists — each declares every family in
+one of its two camps and fails if a new family lands in neither.
+
 ## Icons
 
 Icons resolve through a pipeline that falls back across several sources, so a name that "should"
