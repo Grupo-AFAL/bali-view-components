@@ -99,11 +99,39 @@ class BaliCardComponentTest < ComponentTestCase
   # inherits `currentColor` from the wrapper.
   def test_header_slot_icon_class_reaches_the_icon
     render_inline(Bali::Card::Component.new) do |c|
-      c.with_header(title: "Requiere tu validación", icon: "triangle-alert", icon_class: "text-warning")
+      c.with_header(title: "Needs your approval", icon: "triangle-alert", icon_class: "text-warning")
     end
     assert_selector("span.icon-component.size-6.shrink-0.text-warning")
     assert_no_selector("h2.card-title.text-warning")
     assert_no_selector("[icon_class]")
+  end
+
+  # The two hooks together, which is the combination the CHANGELOG contrasts:
+  # the header's own class is what the `<h2>` inherits, and `icon_class:` lands
+  # on the icon, where a colour set on the element beats the inherited one.
+  def test_header_class_tints_the_title_while_icon_class_keeps_the_icon_apart
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(
+        title: "Needs your approval", icon: "triangle-alert",
+        class: "text-warning", icon_class: "text-error"
+      )
+    end
+    assert_selector("div.flex.items-center.gap-3.text-warning h2.card-title")
+    assert_selector("div.text-warning span.icon-component.text-error")
+    assert_no_selector("span.icon-component.text-warning")
+  end
+
+  # Characterisation, not a wish: this is the misuse docs/guides/components.md
+  # and the CHANGELOG now describe, so it has to be pinned somewhere. The title
+  # slot is a lambda over `tag.h2`, so every keyword that is not `class:` is
+  # emitted as a literal HTML attribute — no icon, no error. `with_header` is
+  # the slot that takes an icon.
+  def test_title_slot_emits_an_unknown_keyword_as_a_literal_attribute
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_title("Needs your approval", icon: "triangle-alert")
+    end
+    assert_selector("h2.card-title[icon='triangle-alert']", text: "Needs your approval")
+    assert_no_selector("h2.card-title span.icon-component")
   end
 
   # Without it the icon's class attribute is byte-for-byte what it was before

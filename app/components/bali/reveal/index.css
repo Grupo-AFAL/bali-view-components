@@ -1,8 +1,10 @@
 /* Reveal Component
- * Two rules, and both are defaults the host has to be able to beat: the space
- * under the trigger and the gap under the revealed content. Everything else
- * about this component is a utility on its templates, which is fine and stays
- * there.
+ * Three rules, and every one of them is a default the host has to be able to
+ * beat: the space under the trigger, the gap under the revealed content, and
+ * the height of the chevron. Everything else about this component is a utility
+ * on its templates, which is fine and stays there — including the chevron's
+ * `rotate-[270deg]`, whose state variant `group-[.is-revealed]:rotate-0` has to
+ * share a layer with it to keep beating it.
  *
  * ── Which rule these had to beat, and how it was measured ────────────────
  * Until #1148 they were written as `pb-6 mb-6` on the button and `mb-8` on the
@@ -29,11 +31,23 @@
  *
  * Keep them layered. Unlayered — the bottom group of bali/components.css —
  * they would outrank host utilities again and the fix would be undone.
- * test/bali/reveal_spacing_css_test.rb guards both facts. */
+ * test/bali/reveal_spacing_css_test.rb guards the three rules and the single
+ * layered import; cypress/e2e/reveal-spacing.cy.js measures the computed
+ * values in a browser. */
 .reveal-trigger {
   @apply pb-6 mb-6;
 }
 
 .reveal-content {
   @apply mb-8;
+}
+
+/* `Reveal::Trigger` already hands the caller an `icon_class:`, and concatenated
+ * with `h-3.5` in one attribute that hook was a coin toss: `.h-2` is emitted
+ * before `.h-3.5` and lost, `.h-6` came after and won. Measured on
+ * /lookbook/preview/bali/reveal/compact, on the icon's box: 14px by default,
+ * and with `icon_class: "h-2"` 8px after this move against 14px before it. The
+ * glyph itself is 16px whatever this says — Icon sizes its own children. */
+.trigger-icon {
+  @apply h-3.5;
 }

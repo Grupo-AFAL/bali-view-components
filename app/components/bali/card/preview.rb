@@ -86,8 +86,8 @@ module Bali
       def header_with_icon_class
         render Card::Component.new(class: 'w-96') do |c|
           c.with_header(
-            title: 'Requiere tu validación',
-            subtitle: 'Vence el viernes',
+            title: 'Needs your approval',
+            subtitle: 'Due on Friday',
             icon: 'triangle-alert',
             icon_class: 'text-warning'
           )
@@ -99,31 +99,20 @@ module Bali
       # Header with Badge
       # ---------------
       # Use the badge slot for status indicators or labels.
+      #
+      # A template, not a block: inside a preview method `render` is
+      # `ViewComponent::Preview#render`, not the view's, so rendering a
+      # component into a slot from here silently produces an empty slot.
       def header_with_badge
-        render Card::Component.new(class: 'w-96') do |c|
-          c.with_header(title: 'Notifications', subtitle: 'Stay up to date') do |header|
-            header.with_badge do
-              render Bali::Tag::Component.new(text: 'NEW', color: :primary, size: :sm)
-            end
-          end
-
-          tag.p('Badges can indicate new features, status, or counts.')
-        end
+        render_with_template(template: 'bali/card/previews/header_with_badge')
       end
 
       # Complete Header
       # ---------------
-      # Header with icon, subtitle, and badge combined.
+      # Header with icon, subtitle, and badge combined. A template, for the same
+      # reason as `header_with_badge`.
       def header_complete
-        render Card::Component.new(class: 'w-96') do |c|
-          c.with_header(title: 'Dashboard', subtitle: 'Overview of your data', icon: 'home') do |header|
-            header.with_badge do
-              render Bali::Tag::Component.new(text: 'Beta', color: :warning, size: :sm)
-            end
-          end
-
-          tag.p('Combine icon, subtitle, and badge for information-rich headers.')
-        end
+        render_with_template(template: 'bali/card/previews/header_complete')
       end
 
       # @!endgroup

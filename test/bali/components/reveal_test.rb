@@ -170,6 +170,38 @@ class BaliRevealComponentTest < ComponentTestCase
     assert_no_selector("[content_class]")
   end
 
+  # #1148 — the twin of the spacing defect, two lines below it in the same file.
+  # `ICON_BASE_CLASSES` used to concatenate `h-3.5` with the caller's
+  # `icon_class` in one attribute, so both landed in @layer utilities and only
+  # emission order decided: `.h-2` is emitted before `.h-3.5`, so a caller
+  # asking for a smaller chevron lost exactly like `pb-0` did (`h-6` won by
+  # luck, being emitted later). The default now lives in `.trigger-icon`,
+  # inside @layer components.
+  def test_trigger_icon_height_is_not_an_inline_utility
+    render_inline(@component) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector(".trigger-icon")
+    refute_selector(".trigger-icon.h-3\\.5")
+  end
+
+  def test_trigger_icon_class_below_the_default_height_arrives_uncontested
+    render_inline(@component) do |c|
+      c.with_trigger(icon_class: "h-2") { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector(".trigger-icon.h-2")
+    refute_selector(".trigger-icon.h-3\\.5")
+  end
+
+  # The rotation stays an inline utility on purpose: its own state variant
+  # (`group-[.is-revealed]:rotate-0`) has to sit in the same layer to beat it.
+  def test_trigger_icon_keeps_its_rotation_utilities_inline
+    render_inline(@component) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector(".trigger-icon.rotate-\\[270deg\\]")
+  end
+
   def test_constants_has_frozen_base_classes
     assert(Bali::Reveal::Component::BASE_CLASSES.frozen?)
   end

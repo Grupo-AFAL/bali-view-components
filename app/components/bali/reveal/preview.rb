@@ -17,11 +17,14 @@ module Bali
         render_with_template(template: 'bali/reveal/previews/external_controls')
       end
 
-      # The trigger's and the content's default spacing are CSS rules in
-      # reveal/index.css (@layer components), not utilities on the markup, so a
-      # utility from the caller beats them without `!`. A compact accordion is
-      # `with_trigger(class: "pb-2 mb-2")` plus `content_class: "mb-2"` — there is
-      # no `compact:` preset, and none is needed.
+      # Defaults the caller can beat
+      # ---------------
+      # The trigger's and the content's default spacing, and the chevron's
+      # height, are CSS rules in reveal/index.css (@layer components), not
+      # utilities on the markup, so a utility from the caller beats them without
+      # `!`. A compact accordion is `with_trigger(class: "pb-2 mb-2")` plus
+      # `content_class: "mb-2"` — there is no `compact:` preset, and none is
+      # needed.
       def compact
         render_with_template(template: 'bali/reveal/previews/compact')
       end

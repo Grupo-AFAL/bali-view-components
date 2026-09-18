@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   6 de Bali siempre se declaraba después del 0 del anfitrión y siempre ganaba. La única salida
   era `pb-0! mb-0!`.
 
-  Los dos valores por omisión se mudan a `app/components/bali/reveal/index.css`, dentro de
+  Los valores por omisión se mudan a `app/components/bali/reveal/index.css`, dentro de
   `@layer components`, que las utilidades del anfitrión vencen por capa, sin importar la
   especificidad y sin `!`:
 
@@ -58,26 +58,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     <% c.with_trigger(class: 'pb-2 mb-2', show_border: false) do |trigger| %>
   ```
 
-  **No cambia ni un píxel por omisión.** Medido con `getComputedStyle` sobre
-  `/lookbook/preview/bali/reveal/default`: el trigger sigue en 24px de `padding-bottom` y 24px
-  de `margin-bottom`, y el contenido en 32px. Lo que cambia es quién gana cuando hay una
+  **El mismo arreglo alcanza al chevron.** `Reveal::Trigger` ya ofrecía `icon_class:`, pero lo
+  concatenaba con `h-3.5` en el mismo atributo, así que era cara o cruz: `icon_class: "h-2"`
+  medía 14px —el valor de Bali— y `icon_class: "h-6"` sí ganaba, sólo porque `.h-6` se emite
+  después. Ahora `h-3.5` es la regla `.trigger-icon` de la misma hoja y `icon_class: "h-2"`
+  mide 8px. Es la caja del icono; el glifo lo dimensiona `Bali::Icon` con `*:h-4 *:w-4` y no
+  se mueve.
+
+  **No cambia ni un píxel por omisión —si reconstruís tu CSS.** Medido con `getComputedStyle`
+  sobre `/lookbook/preview/bali/reveal/default`: el trigger sigue en 24px de `padding-bottom` y
+  24px de `margin-bottom`, y el contenido en 32px. Lo que cambia es quién gana cuando hay una
   utilidad encima: antes, con `pb-0 mb-0` en el trigger, el cómputo seguía siendo 24px/24px;
   ahora es 0px/0px (y 8px/8px con `pb-2 mb-2`, en el preview nuevo `compact`).
+  `cypress/e2e/reveal-spacing.cy.js` mide los seis valores en un navegador.
+
+  **La condición no es una formalidad: los valores ya no están en el HTML.** Viven en
+  `reveal/index.css`, que entra a tu hoja recién cuando tu build procesa el `@import` nuevo de
+  `bali/components.css`. Una app que sirva un build cacheado o commiteado —o que arme las hojas
+  a mano, algo que `app/assets/stylesheets/bali.css` contempla— pasa de 24px a 0px sin ningún
+  error. Reconstruí el CSS al subir; y si importás las hojas de componente una por una, agregá
+  `components/bali/reveal/index.css` con `layer(components)`.
 
   **Qué revisar al subir.** Si tu app ya pasaba una utilidad de padding o margen al trigger
   —`c.with_trigger(class: "pb-2")`— hasta ahora no hacía nada y veías 24px; ahora verás 8px.
-  Es justo el defecto que se arregla, pero es un cambio visible. Quien se defendió con
-  `pb-0! mb-0!` sigue igual. Y `pb-6`/`mb-6` ya no están en el atributo `class` del botón: una
-  aserción de prueba que busque `.reveal-trigger.pb-6` deja de encontrarlas (la clase
-  `.reveal-trigger` y el resto del atributo no cambian).
+  Es justo el defecto que se arregla, pero es un cambio visible. Lo mismo con un `icon_class:`
+  de altura menor a `h-3.5`. Quien se defendió con `pb-0! mb-0!` sigue igual. Y `pb-6`/`mb-6`
+  ya no están en el atributo `class` del botón, ni `h-3.5` en el del icono: una aserción de
+  prueba que busque `.reveal-trigger.pb-6` o `.trigger-icon.h-3\.5` deja de encontrarlas (las
+  clases `.reveal-trigger` y `.trigger-icon` y el resto del atributo no cambian).
 
   **Al bajar el espaciado a 0, `show_border: true` deja la línea pegada al título.** El borde
   sigue siendo una utilidad en línea y no se movió; con `pb-0` no queda aire entre el texto y
   la regla, así que un acordeón muy compacto normalmente quiere `show_border: false`.
 
   No es un barrido de la biblioteca: el resto de los componentes sigue con su espaciado en
-  línea. Este es el caso donde se midió que estorbaba.
+  línea. Este es el caso donde se midió que estorbaba. La regla que lo decide quedó escrita en
+  `.claude/CLAUDE.md`, en la tabla de capas.
 
+### Fixed
+
+- **Las previews `header_with_badge` y `header_complete` de `Bali::Card` pintaban el encabezado
+  sin su badge** (#1148). El envoltorio recibía `justify-between` —el slot estaba declarado— y
+  salía vacío: dentro de un método de preview `render` es el de `ViewComponent::Preview`, no el
+  de la vista, así que el `Bali::Tag::Component` se perdía en silencio. Las dos pasan a
+  plantilla, como el resto de las previews de Card que funcionan, y
+  `test/requests/card_header_previews_test.rb` afirma que el badge sale.
 
 ## [v3.4.0] - 2026-09-17
 

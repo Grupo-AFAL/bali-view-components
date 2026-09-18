@@ -1,7 +1,8 @@
-<%# The trigger's `pb-6 mb-6` and the content's `mb-8` are declared in
-    reveal/index.css, inside @layer components. A utility from the caller sits in
-    @layer utilities, which comes later, so it wins outright — at any value, not
-    only 0, and with no `!`. That is why there is no `compact:` preset. %>
+<%# Every default this component sets on itself — `pb-6 mb-6` on the trigger,
+    `mb-8` on the content, `h-3.5` on the chevron — is declared in
+    reveal/index.css, inside @layer components. A utility from the caller sits
+    in @layer utilities, which comes later, so it wins outright: at any value,
+    not only 0, and with no `!`. That is why there is no `compact:` preset. %>
 <div class="space-y-10">
   <section>
     <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
@@ -11,7 +12,7 @@
     <%= render Bali::Reveal::Component.new(id: 'reveal-default', opened: true) do |c| %>
       <% c.with_trigger do |trigger| %>
         <% trigger.with_title do %>
-          <span class="text-lg font-semibold">Preguntas frecuentes</span>
+          <span class="text-lg font-semibold">Frequently asked questions</span>
         <% end %>
       <% end %>
 
@@ -21,7 +22,7 @@
     <%= render Bali::Reveal::Component.new(id: 'reveal-default-second', opened: true) do |c| %>
       <% c.with_trigger do |trigger| %>
         <% trigger.with_title do %>
-          <span class="text-lg font-semibold">¿Cómo se reporta un hallazgo?</span>
+          <span class="text-lg font-semibold">How do I report a finding?</span>
         <% end %>
       <% end %>
 
@@ -38,23 +39,57 @@
           id: 'reveal-compact', opened: true, content_class: 'mb-2') do |c| %>
       <% c.with_trigger(class: 'pb-2 mb-2') do |trigger| %>
         <% trigger.with_title do %>
-          <span class="font-semibold">Preguntas frecuentes</span>
+          <span class="font-semibold">Frequently asked questions</span>
         <% end %>
       <% end %>
 
       <p><code>with_trigger(class: 'pb-2 mb-2')</code> and <code>content_class: 'mb-2'</code>.</p>
     <% end %>
 
+    <%# `show_border: false` on purpose, and this is the form to copy: at `pb-0`
+        there is no air left between the title and the rule. %>
     <%= render Bali::Reveal::Component.new(
           id: 'reveal-compact-second', opened: true, content_class: 'mb-0') do |c| %>
-      <% c.with_trigger(class: 'pb-0 mb-0') do |trigger| %>
+      <% c.with_trigger(class: 'pb-0 mb-0', show_border: false) do |trigger| %>
         <% trigger.with_title do %>
-          <span class="font-semibold">¿Cómo se reporta un hallazgo?</span>
+          <span class="font-semibold">How do I report a finding?</span>
         <% end %>
       <% end %>
 
-      <p>All the way to 0. The rule sits right under the title, so
-        <code>show_border: false</code> is usually what you want with it.</p>
+      <p>All the way to 0, and without the rule: with <code>show_border: true</code>
+        the line would sit against the title, so a really tight accordion wants
+        <code>show_border: false</code>.</p>
+    <% end %>
+  </section>
+
+  <section>
+    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+      The chevron, same rule
+    </h3>
+
+    <%= render Bali::Reveal::Component.new(id: 'reveal-icon-default', opened: true) do |c| %>
+      <% c.with_trigger(class: 'pb-2 mb-2') do |trigger| %>
+        <% trigger.with_title do %>
+          <span class="font-semibold">Default chevron box: 14px</span>
+        <% end %>
+      <% end %>
+
+      <p>The chevron's <code>h-3.5</code> is a rule in the sheet too. It sizes the
+        icon's box; the glyph inside stays 16px, which <code>Icon</code> sets on its
+        own children.</p>
+    <% end %>
+
+    <%= render Bali::Reveal::Component.new(id: 'reveal-icon-tight', opened: true) do |c| %>
+      <% c.with_trigger(class: 'pb-2 mb-2', icon_class: 'h-2 text-primary') do |trigger| %>
+        <% trigger.with_title do %>
+          <span class="font-semibold">icon_class: 'h-2 text-primary'</span>
+        <% end %>
+      <% end %>
+
+      <p>An 8px box, measured. Before #1148 it measured 14px — <code>.h-2</code> is
+        emitted before <code>.h-3.5</code>, so the caller lost the tie, while
+        <code>h-6</code> would have won it. The colour reaches the stroke either way:
+        it is the one property nothing else on this element declares.</p>
     <% end %>
   </section>
 </div>
