@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **daisyUI 5.7.22 → 5.7.42** en `spec/dummy/package.json` (veinte parches). Bali debe
+  correr la última de Tailwind y daisyUI para mantener alineadas a las apps del grupo;
+  `tailwindcss-rails` 4.6.0 y `tailwindcss-ruby` 4.3.3 ya eran las últimas y no se tocan.
+  El `peerDependency` `daisyui: ">=5.7.0"` **no se mueve**: Bali no emite ninguna clase ni
+  token que exista sólo a partir de 5.7.23, y subir el piso rompería anfitriones sin ganar
+  nada.
+
+  **Para un anfitrión, la pantalla no cambia — medido, no afirmado.** Se comparó el CSS
+  compilado del dummy antes y después (433 039 → 439 493 bytes, 725 líneas de diferencia
+  con una declaración por línea) y se capturaron 24 previews en claro y en oscuro, la misma
+  DOM y el mismo servidor, sustituyendo sólo la hoja compilada: **48 de 48 pares idénticos
+  píxel a píxel**. Los overrides sin capa que este paquete mantiene contra daisyUI siguen
+  ganando su pelea, uno por uno, verificado con estilo computado en el navegador:
+  `.toast-component` conserva `animation-name: bali-toast-in`; `.bali-gauge::before` conserva
+  el `conic-gradient` con la pista `base-300`; `.calendar-component .table td` conserva
+  `border-bottom: 1px solid base-300`; `.ss-main.select` conserva 1248 px / `flex` /
+  `appearance: none` (daisyUI lo llevaría a 320 px / `inline-flex` / `base-select`);
+  `.rich-text-editor-component.input` conserva `block` y, en readonly, borde, sombra y
+  padding en cero; `.breadcrumbs` conserva `padding-block: 0`; `.alert-soft` / `.badge-soft`
+  conservan la mezcla al 40 %. Los fuentes de daisyUI para `alert`, `radialprogress` y
+  `table` son byte a byte los mismos entre 5.7.22 y 5.7.42.
+
+  **Lo que sí cambia, y sólo se ve al ejercitarlo:**
+
+  - **La palomita del checkbox marcado se recentra** (`translate: 3.5% -7%` nuevo sobre
+    `.checkbox:checked::before`, y el indeterminado pasa de `-35%` a `-40%`). Medido en
+    `table/selectable`: 440 px de 1 152 000 cambian. Se ve mejor centrada; no es regresión.
+  - **El globo de un tooltip deja de heredar el grosor del disparador** (`font-weight: 400`
+    nuevo sobre `.tooltip::before`). Medido en `data_table/complete` con el tooltip abierto:
+    el texto pasa de 600 a 400 y el globo queda un poco más angosto. Es corrección de
+    daisyUI: antes un tooltip colgado de un `.btn` salía en seminegrita.
+  - **`.badge` pasa a `flex-shrink: 0`.** Un `Bali::Tag` dentro de una fila flex apretada ya
+    no se encoge: ahora empuja o desborda en vez de comprimirse. Medido en `tag/long_text` a
+    420 px de ancho: los anchos no cambian (232 px antes y después), así que el efecto sólo
+    aparece en contenedores más ajustados que los que este paquete rinde.
+  - **`.breadcrumbs` gana `margin-inline-start: -.25rem` y su lista `padding-inline-start:
+    .25rem`.** Los 4 px se cancelan: `breadcrumb/default` e `index_page/default` salen
+    idénticos píxel a píxel. El anillo de foco del primer eslabón ya no queda recortado.
+  - **Los `.dropdown-*` de daisyUI pasan a palabras lógicas de `position-area`**
+    (`span-right` → `span-inline-end`, `bottom` → `block-end`, …). En LTR es el mismo lugar;
+    en RTL es lo que corrige. Bali posiciona sus paneles con `position: fixed` / `inset` desde
+    `side_menu/daisyui-overrides.css`, así que no depende de eso.
+
+### Fixed
+
+- **El ítem actual de un grupo inferior del `SideMenu` dejaba de leerse con daisyUI 5.7.42.**
+  Esa versión agregó `[aria-current]:not([aria-current=false],[aria-current=""])` a la lista
+  de selectores que reciben el aspecto `.menu-active`, y con ella `color: var(--menu-active-fg)`
+  desde `@layer utilities`. Bali pone `aria-current="page"` en el ítem actual, y un
+  `Bali::SideMenu::BottomGroup` rinde sus hijos dentro de un `ul.dropdown-content.menu`, así
+  que el selector nuevo los alcanza. El `background-color` de Bali seguía ganando —es una regla
+  sin capa— pero el color de texto no, porque vivía en `@layer components` bajo la premisa,
+  escrita en el encabezado del archivo, de que «daisyUI no declara color para ese estado».
+
+  Medido en `side_menu/with_bottom_groups`, contraste WCAG de la etiqueta contra el fondo que
+  la sostiene: **claro 6.98 → 1.06, oscuro 4.10 → 1.12** (AA pide 4.5). El texto desaparecía.
+  `side_menu/daisyui-overrides.css` ahora restituye el par completo (fondo `primary/10` y texto
+  `primary`) sin capa, acotado a `[aria-current]` y no a `.active`, y el contraste vuelve
+  exactamente a 6.98 y 4.10. Queda la sombra suave que daisyUI dibuja bajo el estado activo
+  (`0 2px 3px -2px`), que no cuesta legibilidad y no pisó ninguna declaración de Bali.
+
+  **Para un anfitrión que pintaba ese ítem con una utilidad propia:** dentro de un `.menu`, un
+  `text-*` o `bg-*` sobre un `.menu-item[aria-current]` ya no le gana a Bali —igual que pasa con
+  cualquier regla sin capa de este paquete— y hay que escribirlo con `!` (`!text-warning`).
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

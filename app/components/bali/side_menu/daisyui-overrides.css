@@ -51,7 +51,9 @@
 
    Keep the declarations in sync with `.menu-item` in ./index.css — colour is
    left out on purpose so a `text-primary` utility on the link still wins,
-   and daisyUI sets no colour on hover, so ./index.css keeps handling that. */
+   and daisyUI sets no colour on hover, so ./index.css keeps handling that.
+   `[aria-current]` is the one state where that last sentence stopped being
+   true — see the block after `.menu .menu-item.active`. */
 .menu .menu-item {
   @apply flex items-center gap-2 px-2.5 py-2 rounded-lg;
   @apply transition-all duration-200;
@@ -65,6 +67,46 @@
 
 .menu .menu-item.active {
   @apply bg-primary/10;
+}
+
+/* daisyUI 5.7.42 (was not so in 5.7.22) added `[aria-current]:not([aria-current=false],
+   [aria-current=""])` to the selector list that gets the `.menu-active` look:
+
+     .menu :where(li)>:not(ul,menu,.menu-title,details,.btn):active,
+     .menu :where(li)>:not(…).menu-active,
+     .menu :where(li)>:not(…)[aria-current]:not([aria-current=false],[aria-current=""])
+       { color: var(--menu-active-fg); background-color: var(--menu-active-bg) }
+
+   Bali puts `aria-current="page"` on the current item (../side_menu/item/component.rb
+   #aria_current), and a bottom group renders those items inside a
+   `ul.dropdown-content.menu` — so from 5.7.42 that selector reaches them. The
+   `background-color` above still wins for Bali, being unlayered; `color` did not,
+   because it was deliberately left in ./index.css (@layer components) on the premise
+   quoted above, which daisyUI has now broken. The result is the accent text colour
+   replaced by `--menu-active-fg` over a `primary/10` ground it was never meant for.
+
+   MEASURED on `side_menu/with_bottom_groups`, the bottom group's current item, WCAG
+   contrast of the label against the background it sits on:
+
+     light   6.98 -> 1.06      dark   4.10 -> 1.12      (AA: 4.5)
+
+   i.e. the label disappears. Restating the colour here — next to the background it
+   has to pair with, which is this file's own doctrine — puts it back. Scoped to
+   `[aria-current]` and not to `.active`, so the escape hatch above survives
+   everywhere daisyUI did not take the declaration.
+
+   The background is restated too, although `.menu .menu-item.active` above already
+   wins it for every element Bali renders (`aria-current` implies `active?` in all
+   four call sites of ./item/component.rb). It is here so the pair cannot come apart
+   on markup Bali does not control: a host writing `[aria-current]` without `.active`
+   would otherwise get Bali's accent text on daisyUI's near-black `--menu-active-bg`.
+
+   `box-shadow` is deliberately NOT restated. daisyUI also gives the state
+   `0 2px calc(var(--depth) * 3px) -2px var(--menu-active-bg)`; measured on the same
+   preview it reads as a soft elevation under the pill, it costs no legibility, and
+   nothing of Bali's lost a declaration to it. */
+.menu .menu-item[aria-current]:not([aria-current="false"], [aria-current=""]) {
+  @apply bg-primary/10 text-primary;
 }
 
 /* ── .tooltip ────────────────────────────────────────────────────────────
