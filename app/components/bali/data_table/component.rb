@@ -803,10 +803,11 @@ module Bali
       # no, buscar algo estando en tarjetas la borra y volver a la tabla ya no la encuentra.
       #
       # Qué viaja lo decide el form, porque desde #1156 hay tres respuestas y no dos: una
-      # agrupación elegida viaja con su nombre, una que solo sale del `default:` declarado no
+      # agrupación elegida viaja con su nombre, una que solo sale del `default:` declarado NO
       # viaja (se re-deriva sola, y arrastrarla la volvería indistinguible de una elección), y
-      # "sin agrupación" viaja VACÍA cuando hay un default — o filtrar volvía a agrupar el
-      # listado que el usuario acababa de desagrupar. Ver FilterForm#group_by_preserved_value.
+      # "sin agrupación" viaja CON NOMBRE (`group_by=none`) donde hay un default — un valor
+      # vacío lo descarta el propio `hidden_field`, así que filtrar volvía a agrupar el listado
+      # que el usuario acababa de desagrupar. Ver FilterForm#group_by_preserved_value.
       def group_by_preserved_params
         return legacy_group_by_preserved_params unless @filter_form.respond_to?(:group_by_preserved_value)
 

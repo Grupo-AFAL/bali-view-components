@@ -36,7 +36,10 @@ module Bali
     # Precedencia, de arriba abajo (ver {Bali::FilterForm#initialize}):
     #   1. `?group_by=` en la URL — incluso vacío, que es "sin agrupación" y tiene que poder
     #      ganarle al default o el usuario no puede desagrupar;
-    #   2. el `group_by` del payload de una vista guardada aplicada (`?saved_view=`);
+    #   2. lo que DICE el payload de una vista guardada aplicada (`?saved_view=`), incluido su
+    #      "sin agrupación": la llave `group_by` PRESENTE es la vista hablando (aunque su valor
+    #      sea {GroupByConfiguration::NO_GROUPING_VALUE}), la llave AUSENTE es silencio y deja
+    #      hablar al default;
     #   3. la elección guardada en la caché de persistencia (un valor, o un "sin agrupación"
     #      explícito, que se distingue del "nadie dijo nada" por la llave `group_by_chosen`);
     #   4. la declaración `default: true`;
@@ -78,6 +81,11 @@ module Bali
       # (medido: con `group_by=genre` el href lo conserva, con `group_by=` desaparece), y los
       # hidden fields de los dos forms de filtro hacen lo mismo. O sea que el usuario
       # desagrupaba, ordenaba una columna, y el default volvía.
+      #
+      # Mismo problema y misma cura en el payload de una vista guardada, que tampoco tiene
+      # cómo escribir un nil: sin el sentinel, una vista guardada mientras el usuario tenía la
+      # agrupación apagada volvía a abrirse AGRUPADA (ver
+      # {SavedViewsConfiguration#current_view_payload}).
       #
       # No es una regla nueva: cualquier valor no declarado YA significa "sin agrupación"
       # ({#resolve_group_by}). Esto solo le pone un nombre que sobrevive al transporte.
@@ -202,8 +210,11 @@ module Bali
         default_group_by ? NO_GROUPING_VALUE : ""
       end
 
-      # El valor que `group_by` tiene que llevar en un submit GET para que el estado sobreviva,
-      # o nil cuando no hay nada que preservar. Tres casos y no dos, por el default:
+      # Qué dijo el usuario sobre la agrupación, escrito de forma que sobreviva al transporte,
+      # o nil cuando no hay nada que preservar. Lo usan las DOS superficies que guardan la
+      # elección fuera del form —el hidden field de un submit GET y el payload de una vista
+      # guardada— y tiene que ser el mismo valor en las dos, o el link y el submit dirían cosas
+      # distintas. Tres casos y no dos, por el default:
       #
       #   * una agrupación ELEGIDA viaja con su nombre, como siempre;
       #   * una que solo sale del default NO viaja: se re-deriva sola, y arrastrarla la
@@ -478,11 +489,26 @@ module Bali
           "present in `SELECT DISTINCT movies.*`. The adapter's own error is this one's cause."
       end
 
-      # Para el mensaje, nunca para la consulta: un símbolo pelado no responde `to_sql` y una
-      # expresión de Ransack puede necesitar contexto que acá ya no está.
+      # El término del ORDER BY culpable, compilado, para que el mensaje lo NOMBRE. Va envuelto
+      # en el mismo `Arel::Nodes::Ascending` que la agrupación produce, así que sale idéntico
+      # byte a byte al fragmento que el adaptador rechazó (`"tenants"."name" ASC`) y se puede
+      # buscar tal cual en el log de la consulta.
+      #
+      # Envolver es lo que hace falta y no `to_sql` a secas: de las cuatro formas de agrupar,
+      # dos devuelven un `Arel::Attributes::Attribute`, que NO es un `Arel::Nodes::Node` y por
+      # lo tanto NO responde a `to_sql` — el `respond_to?(:to_sql) ? ... : to_s` de la primera
+      # versión caía al `to_s` de un Struct y escupía el inspect del modelo entero adentro del
+      # mensaje (1726 caracteres para `genre`), justo en el camino de asociación que reportó el
+      # issue. `Ascending` sí es un Node y acepta las cuatro.
+      #
+      # Para el mensaje, nunca para la consulta. Un símbolo pelado (una columna que el host
+      # dejó fuera de `ransackable_attributes`) no es Arel y se imprime tal cual; cualquier
+      # otra sorpresa cae al nombre de la agrupación antes que romper el rescate.
       def group_by_ordering_expression_sql
         expression = group_by_expression
-        expression.respond_to?(:to_sql) ? expression.to_sql : expression.to_s
+        return expression.to_s if expression.nil? || expression.is_a?(Symbol)
+
+        Arel::Nodes::Ascending.new(expression).to_sql(group_by_model || Arel::Table.engine)
       rescue StandardError
         group_by_applied.to_s
       end

@@ -1558,9 +1558,22 @@ Precedence, top down — the first one that speaks wins:
 | Source | Beats the default because |
 |---|---|
 | `?group_by=` in the URL | The user just clicked. **Including "no grouping"** — without that, a listing with a default could never be ungrouped |
-| The `group_by` of an applied saved view (`?saved_view=`) | A view records a grouping the user chose |
+| What an applied saved view (`?saved_view=`) **says** about grouping | A view records what the user chose, and "ungrouped" is a choice |
 | The choice stored in the filters cache | Persistence promises "remember what I chose", and that includes "I turned grouping off" |
 | — | Nothing said: the `default:` applies |
+
+**A saved view speaks by carrying the key, not by carrying a value.** The payload of a view
+saved while grouping was off carries `"group_by" => "none"`, and reopening it leaves the
+listing ungrouped. A payload with **no** `group_by` key at all is silence, not "no grouping",
+so the `default:` still applies there — which is what every view saved before the default
+existed looks like, and every view of a listing that declares no default. The two cases are
+different on purpose: without the distinction, either a user could not save an ungrouped view
+(the default would re-group it on reopen) or every pre-existing view would silently start
+opening ungrouped.
+
+> If a host listing already implements "**any** applied view suppresses the default", that is
+> a different rule from Bali's and adopting `default:` changes behaviour — see the note at the
+> end of this section.
 
 **Unlike `filter_attribute default:`, this default does not travel through the URL.** No
 redirect, no `?group_by=` written on a bare entry. Two measured reasons: `redirect_to_default_filters`
@@ -1578,8 +1591,30 @@ they chose is remembered.
 
 One consequence worth knowing: **where a default is declared, "no grouping" travels as
 `?group_by=none`** instead of the empty `?group_by=`. Ransack's `sort_link` drops empty params
-when it composes its href, so the empty spelling could not survive a column sort and the
-default came back. Listings without a default keep the empty spelling.
+when it composes its href (and so does the filter form's own hidden field, which rejects blank
+preserved params), so the empty spelling could not survive a column sort or a filter submit and
+the default came back. The same spelling goes into a saved view's payload, for the same reason:
+a payload has no way to write an empty value either. Listings without a default keep the empty
+spelling and an unchanged payload.
+
+**A listing that uses `Bali::Filters` without a DataTable** has no "Group by" control to hang
+the value on, so pass it yourself — `group_by_preserved_value` is public and gives the three
+answers in one call:
+
+```erb
+<%= render Bali::Filters::Component.new(url: movies_path,
+      available_attributes: ...,
+      preserved_params: { group_by: @filter_form.group_by_preserved_value }) %>
+```
+
+Measured: a default emits no hidden field, an explicit "no grouping" emits `none`, a chosen
+grouping emits its name — the same three the DataTable emits.
+
+**Adopting `default:` on a listing that already rolls its own.** A host that sets `@group_by`
+after `super` may be enforcing a *different* rule — commonly "any applied saved view suppresses
+the default, whether or not it mentions grouping". Bali's rule is narrower (only a view that
+says something about grouping suppresses it), so views already saved under the host rule will
+start opening grouped. Check for that before deleting the workaround.
 
 ##### What can be grouped by
 

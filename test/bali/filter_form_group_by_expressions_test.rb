@@ -261,11 +261,37 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
   # un guard puesto ahí dejaba vivo el bug justo donde se reportó.
   %w[genre budget_band studio_name budgeted].each do |attribute|
     define_method("test_the_distinct_conflict_is_translated_for_#{attribute}") do
-      error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form(attribute).result.to_a }
+      grouped = form(attribute)
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError) { grouped.result.to_a }
 
       assert_match(/#{attribute}/, error.message)
       assert_match(/SELECT DISTINCT/, error.message)
     end
+
+    # El mensaje existe para que alguien lo LEA, así que tiene que nombrar el ORDER BY
+    # culpable — el fragmento textual que el adaptador rechazó, no una aproximación. Se
+    # compara contra el que la relación realmente emite, no contra una constante: así el test
+    # sigue midiendo aunque Arel cambie cómo lo escribe.
+    #
+    # Dos de las cuatro formas resuelven a un `Arel::Attributes::Attribute`, que NO responde a
+    # `to_sql`; la primera versión caía al `to_s` de un Struct y metía el inspect del modelo
+    # entero en el mensaje (1726 caracteres para `genre`, 1126 para `studio_name`).
+    define_method("test_the_message_names_the_offending_order_by_for_#{attribute}") do
+      grouped = form(attribute)
+      emitted = grouped.result.to_sql[/ORDER BY (.+?)(?: LIMIT|\z)/m, 1]
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError) { grouped.result.to_a }
+
+      assert_includes(error.message, "ORDER BY #{emitted}")
+      refute_match(/#<struct/, error.message, "el volcado de un Struct no nombra nada")
+      assert_operator(error.message.length, :<, 900, error.message)
+    end
+  end
+
+  # El camino de asociación es la forma que REPORTÓ el issue, y la que peor salía.
+  def test_the_association_path_message_names_the_joined_column
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
+
+    assert_match(/ORDER BY "tenants"\."name" ASC/, error.message)
   end
 
   def test_the_message_names_the_listing_and_the_three_ways_out
@@ -316,12 +342,42 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     assert_raises(ActiveRecord::StatementInvalid) { suspended.result.to_a }
   end
 
-  # El rescate no puede cambiar lo que la relación DEVUELVE.
+  # El rescate no puede cambiar lo que la relación DEVUELVE. Con `to_a` y no con `pluck`: es
+  # `exec_queries` lo que el módulo envuelve, y `pluck` ni lo toca — el test no ejercía nada.
   def test_the_diagnostics_do_not_change_the_result
     plain = DistinctGroupingsFilterForm.new(
       Movie.all, ActionController::Parameters.new(group_by: "genre")
     )
 
-    assert_equal(Movie.order(:genre).pluck(:id).sort, plain.result.pluck(:id).sort)
+    assert_equal(Movie.order(:genre).map(&:id), plain.result.to_a.map(&:id))
+  end
+
+  # EL CLAIM CENTRAL DE ESTA MITAD: Bali no materializa la relación —el anfitrión hace
+  # `pagy(form.result)` y la recorre en la vista—, así que el rescate tiene que sobrevivir a
+  # los spawns que pagy encadena. Si alguien lo mueve de `relation.extending(módulo)` a
+  # envolver una llamada, todo lo de arriba sigue verde y el bug vuelve en producción.
+  def test_the_rescue_survives_the_spawns_pagy_chains
+    grouped = form("studio_name")
+
+    [
+      -> { grouped.result.limit(8).offset(0).to_a },
+      -> { grouped.result.includes(:studio).limit(8).offset(0).to_a },
+      -> { grouped.result.first },
+      -> { grouped.result.find_each { |_movie| nil } }
+    ].each_with_index do |materialize, index|
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError, "spawn ##{index}", &materialize)
+      assert_kind_of(ActiveRecord::StatementInvalid, error.cause)
+    end
+  end
+
+  # La otra cara: lo que NO lleva ORDER BY tampoco pasa por el rescate y no puede dar falsos
+  # positivos. Los conteos globales son el caso vivo (`group_counts` hace `unscope(:order)`).
+  def test_a_query_without_an_order_by_is_left_alone
+    plain = DistinctGroupingsFilterForm.new(
+      Movie.all.distinct, ActionController::Parameters.new(group_by: "studio_name")
+    )
+
+    assert_nothing_raised { plain.result.count(:all) }
+    assert_nothing_raised { plain.group_counts }
   end
 end

@@ -124,11 +124,20 @@ module Bali
           # las LLAVES pero no los valores, así que `:genre` nunca casaba con `"genre"` y una
           # vista que agrupa no se reconocía activa por estado — solo con `?saved_view=` puesto.
           #
-          # Un `group_by` que viene SOLO del `default:` declarado no entra (#1156): no es una
-          # elección del usuario, y metiéndolo toda vista guardada sin agrupación pasaba a
-          # verse "modificada" contra un listado que nadie tocó (ver `comparable_view_state`
-          # y `saved_view_dirty?`).
-          "group_by" => (@group_by&.to_s unless group_by_from_default?)
+          # Lo que se guarda es lo que el usuario ELIGIÓ sobre la agrupación (#1156), que son
+          # las mismas tres respuestas que viajan en el hidden field y por la misma razón, así
+          # que salen del mismo método:
+          #
+          #   * una agrupación elegida, con su nombre;
+          #   * {GroupByConfiguration::NO_GROUPING_VALUE} cuando eligió "sin agrupación" en un
+          #     listado que declara un `default:` — sin eso la vista no tiene CÓMO decirlo, y
+          #     al reabrirla el default la reagrupaba: la misma ambigüedad nil-vs-ausente que
+          #     el sentinel resuelve en la URL, que acá se cura igual;
+          #   * nada —la llave no entra— cuando la agrupación sale del `default:`, o cuando no
+          #     hay agrupación y tampoco default. Un default no es una elección: metiéndolo,
+          #     toda vista guardada sin agrupación se veía "modificada" contra un listado que
+          #     nadie tocó (ver `comparable_view_state` y `saved_view_dirty?`).
+          "group_by" => group_by_preserved_value
         }.compact
       end
 
@@ -192,12 +201,16 @@ module Bali
         # pegado (los links de "Agrupar por" preservan la query), el payload pisaba el clic
         # recién dado y el control se veía muerto.
         #
-        # Y lo que la vista TRAE cuenta como elección, así que el `default:` declarado —último
-        # escalón— no la pisa. Lo que la vista NO trae es silencio y no "sin agrupación": su
-        # payload solo sabe escribir la agrupación elegida, así que ahí el default sigue
-        # haciendo su trabajo (ver GroupByConfiguration).
+        # Y lo que la vista DICE cuenta como elección, así que el `default:` declarado —último
+        # escalón— no la pisa. Dice algo cuando trae la llave, no cuando trae un valor que
+        # resuelve: `"group_by" => "none"` es la vista diciendo "sin agrupar" y tiene que
+        # ganarle al default igual que se lo gana el `?group_by=none` de la URL (#1156).
+        #
+        # Que la llave FALTE sigue siendo silencio y no "sin agrupación", y ahí el default hace
+        # su trabajo: es lo que trae toda vista guardada antes de que el default existiera, y
+        # también toda vista de un listado sin default, donde no hay nada que suprimir.
         @group_by = @group_by.presence || resolve_group_by(payload["group_by"])
-        @group_by_chosen ||= !@group_by.nil?
+        @group_by_chosen ||= payload.key?("group_by")
         (payload["attributes"] || {}).select { |k, _v| self.class.attribute_names.include?(k.to_s) }
       end
     end

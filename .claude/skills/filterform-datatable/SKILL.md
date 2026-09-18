@@ -304,8 +304,9 @@ end
 
 One declaration only (two raise at build time), a boolean and **not a callable** — the default
 is resolved while the form is built, with no instance to evaluate against. Precedence: an
-explicit `?group_by=` wins (including "no grouping"), then an applied saved view's payload,
-then the grouping stored in the filters cache, then the declaration.
+explicit `?group_by=` wins (including "no grouping"), then whatever an applied saved view's
+payload **says** about grouping, then the grouping stored in the filters cache, then the
+declaration.
 
 Unlike `filter_attribute default:` this one does **not** go through the URL: no redirect. The
 redirect turns itself off when filter persistence is on, and writing the param on every bare
@@ -314,8 +315,14 @@ population, so nothing is hidden by resolving it inside the form.
 
 A default is **derived**: never written into the cache, never part of a saved view's payload,
 never a hidden field — change the declaration and everyone sees the new band. Where a default
-exists, "no grouping" travels as `?group_by=none` (an empty param does not survive Ransack's
-`sort_link`).
+exists, "no grouping" travels as `?group_by=none` (an empty param survives neither Ransack's
+`sort_link` nor the form's hidden fields, which drop blanks).
+
+What the user *chose* is stored, "no grouping" included: a view saved while ungrouped carries
+`"group_by" => "none"` and reopens ungrouped. A payload with **no** `group_by` key is silence,
+not "no grouping", so the default still applies there — which is every view saved before the
+default existed. If the host listing already implements "any applied view suppresses the
+default", that rule is wider than Bali's and its existing views will start opening grouped.
 
 ### Grouping over a `.distinct` scope breaks on PostgreSQL
 
@@ -324,7 +331,8 @@ present in its select list. Only a **base-table column** is — an association p
 and a `sql:` expression are not, so the query dies with *"for SELECT DISTINCT, ORDER BY
 expressions must appear in select list"* (SQLite accepts all four, so it will not show up in
 the dummy). Bali replaces that error with `Bali::FilterForm::GroupByOrderingError`, which names
-the listing, the grouping and the three ways out: drop the `.distinct` (deduplicate with a
+the listing, the grouping, the compiled `ORDER BY` term it choked on and the three ways out:
+drop the `.distinct` (deduplicate with a
 subquery), add the expression to the select list yourself (it changes what gets deduplicated),
 or group by a base-table column.
 

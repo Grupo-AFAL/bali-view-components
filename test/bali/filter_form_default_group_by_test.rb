@@ -91,6 +91,26 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert(suspended.group_by_suspended?)
   end
 
+  # El viaje real tabla↔tarjetas con la agrupación APAGADA: en tarjetas no se aplica ni se ve
+  # el control, pero el "sin agrupación" tiene que seguir viajando o volver a la tabla la
+  # reagrupa con el default.
+  def test_an_explicit_no_grouping_keeps_travelling_while_suspended
+    suspended = DefaultGroupedMovieFilterForm.new(
+      Movie.all, group_params(group_by: "none"), group_by_modes: [ :table ], display_mode: :grid
+    )
+
+    assert_nil(suspended.group_by)
+    assert_equal("none", suspended.group_by_preserved_value)
+  end
+
+  # Los tres valores que puede tomar lo que se preserva, en un solo lugar: es lo que alimenta
+  # al hidden field del DataTable y al payload de una vista guardada.
+  def test_what_travels_has_three_answers_and_not_two
+    assert_nil(form.group_by_preserved_value, "un default se re-deriva: arrastrarlo lo vuelve elección")
+    assert_equal("genre", form(group_by: "genre").group_by_preserved_value)
+    assert_equal("none", form(group_by: "none").group_by_preserved_value)
+  end
+
   # --- Declaración ---
 
   def test_the_constructor_form_accepts_the_default_too
@@ -162,6 +182,59 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
 
     refute(payload.key?("group_by"), payload.inspect)
     assert_equal("status", form(group_by: "status").current_view_payload["group_by"])
+  end
+
+  # EL ROUND-TRIP QUE FALTABA. Una vista guardada mientras el usuario tenía la agrupación
+  # APAGADA volvía a abrirse AGRUPADA: el payload salía `{"attributes"=>{}}` —el nil se
+  # compactaba— y al aplicarla el default no encontraba a nadie que hubiera hablado. Es la
+  # misma ambigüedad nil-vs-ausente que `NO_GROUPING_VALUE` resuelve en la URL, y se cura
+  # igual: la vista tiene que poder DECIR «sin agrupar».
+  def test_a_view_saved_while_ungrouped_reopens_ungrouped
+    payload = form(group_by: Bali::FilterForm::GroupByConfiguration::NO_GROUPING_VALUE)
+              .current_view_payload
+
+    assert_equal("none", payload["group_by"], payload.inspect)
+
+    reopened = DefaultGroupedMovieFilterForm.new(
+      Movie.all, group_params(saved_view: "1"), saved_views_store: store_with_view(payload)
+    )
+
+    assert_nil(reopened.group_by, "la vista dijo «sin agrupar»: el default no puede resucitar")
+    refute(reopened.group_by_from_default?)
+  end
+
+  # La otra mitad, y la razón por la que el silencio NO puede significar «sin agrupación»:
+  # una vista guardada antes de que el default existiera —o en un listado que no lo declara—
+  # llega SIN la llave, y ahí el default sigue siendo quien habla.
+  def test_a_view_that_says_nothing_about_grouping_still_takes_the_default
+    applied = DefaultGroupedMovieFilterForm.new(
+      Movie.all, group_params(saved_view: "1"),
+      saved_views_store: store_with_view({ "attributes" => { "genre_eq" => "Action" } })
+    )
+
+    assert_equal(:status, applied.group_by)
+    assert(applied.group_by_from_default?)
+  end
+
+  # Y reabierta no se ve «modificada»: el payload que el form vuelve a componer es el mismo
+  # que se guardó, sentinel incluido.
+  def test_an_ungrouped_view_is_recognised_as_active_when_reopened
+    payload = form(group_by: "none").current_view_payload
+    view = FakeSavedViewsStore::SavedView.new(id: 1, name: "Sin agrupar", payload: payload)
+    reopened = DefaultGroupedMovieFilterForm.new(
+      Movie.all, group_params(saved_view: "1"), saved_views_store: FakeSavedViewsStore.new([ view ])
+    )
+
+    assert(reopened.view_matches_current_state?(view))
+  end
+
+  # Sin default no hay nada que suprimir, así que el payload no cambia ni un byte: «sin
+  # agrupación» sigue siendo la ausencia de la llave, como antes de #1156.
+  def test_a_listing_without_a_default_keeps_the_payload_it_always_had
+    plain = Bali::FilterForm.new(Movie.all, group_params(group_by: ""),
+                                 group_by_attributes: %i[genre status])
+
+    refute(plain.current_view_payload.key?("group_by"), plain.current_view_payload.inspect)
   end
 
   def test_a_view_saved_under_the_default_is_still_recognised_as_active

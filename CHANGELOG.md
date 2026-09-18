@@ -17,11 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   descartaba la llave en silencio—.
 
   **Precedencia, de arriba abajo:** un `?group_by=` explícito en la URL (incluido «sin
-  agrupación», o el usuario no podría desagrupar), después el `group_by` del payload de una
-  vista guardada aplicada, después la elección guardada en la caché de filtros, y recién
-  entonces el default. Una sola declaración puede traerlo —dos revientan al construir el form—
-  y es un booleano, no un callable: se resuelve al construir el form, sin instancia contra la
-  cual evaluar nada (la misma limitación que ya documenta `filter_attribute default:`).
+  agrupación», o el usuario no podría desagrupar), después lo que DICE el payload de una vista
+  guardada aplicada (incluido su «sin agrupación»: habla la llave presente, no el valor), después
+  la elección guardada en la caché de filtros, y recién entonces el default. Una sola declaración
+  puede traerlo —dos revientan al construir el form— y es un booleano, no un callable: se
+  resuelve al construir el form, sin instancia contra la cual evaluar nada (la misma limitación
+  que ya documenta `filter_attribute default:`).
 
   **El default NO viaja por la URL,** al revés que el de los filtros, y es a propósito:
   `redirect_to_default_filters` se apaga entero cuando la persistencia está encendida —o sea que
@@ -35,6 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que nadie tocó) y no viaja como hidden field. Cambiar la declaración cambia lo que ven también
   los usuarios que ya visitaron el listado; solo se recuerda lo que eligieron.
 
+  Lo que el usuario ELIGIÓ sí se guarda, y eso incluye su «sin agrupación»: una vista guardada
+  con la agrupación apagada lleva `"group_by" => "none"` en el payload y vuelve a abrirse sin
+  agrupar. Un payload SIN la llave es silencio y no «sin agrupación» —es lo que trae toda vista
+  guardada antes de que el default existiera—, así que ahí el default sigue hablando.
+
   **Para el anfitrión, dos cambios visibles.** (1) Donde hay un `default:` declarado, «sin
   agrupación» viaja como `?group_by=none` en vez del `?group_by=` vacío de siempre: el
   `sort_link` de Ransack descarta los params vacíos al componer su href, así que con el vacío el
@@ -43,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   «el usuario apagó la agrupación» de «nadie dijo nada» — las cachés escritas por versiones
   anteriores no la traen y se leen como «nadie dijo nada», que es lo que hace que el default
   funcione desde el primer request para usuarios que ya venían usando el listado.
+
+  **Al adoptarlo sobre un listado que ya tenía su propio default hecho a mano, comparar las dos
+  reglas de vistas guardadas.** `afal-apps/app/forms/td_flow/initiatives_filter_form.rb` suprime
+  el default con CUALQUIER vista aplicada, traiga o no agrupación; Bali lo suprime solo con una
+  vista que diga algo de agrupación. O sea que las vistas ya guardadas en ese portafolio —cuyos
+  payloads no traen la llave— pasan a abrirse agrupadas por estado. Las que se guarden después de
+  adoptar llevan el sentinel y vuelven sin agrupar, como hoy.
 
   Preview nuevo: `bali/data_table/with_default_grouping`.
 
@@ -59,9 +72,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Bali no puede arreglarlo por el anfitrión: meter la expresión en el SELECT cambia QUÉ
   deduplica el `.distinct`, que suele estar ahí para desduplicar un join. Lo que hace es
   reemplazar el error del adaptador por `Bali::FilterForm::GroupByOrderingError`, que nombra el
-  listado, la agrupación, el `ORDER BY` culpable y las tres salidas (sacar el `.distinct` y
-  desduplicar con una subconsulta; poner la expresión en el SELECT a mano; o agrupar por una
-  columna de la tabla base). El error del driver queda disponible como `#cause`, y cualquier otro
+  listado, la agrupación, el `ORDER BY` culpable —compilado y textual, `ORDER BY "tenants"."name"
+  ASC`— y las tres salidas (sacar el `.distinct` y desduplicar con una subconsulta; poner la
+  expresión en el SELECT a mano; o agrupar por una columna de la tabla base). El error del driver queda disponible como `#cause`, y cualquier otro
   fallo del adaptador sale intacto: no se adivina nada. MySQL, que dice lo mismo con otras
   palabras, también se traduce; SQLite acepta las cuatro formas y no ve ninguna diferencia.
 
