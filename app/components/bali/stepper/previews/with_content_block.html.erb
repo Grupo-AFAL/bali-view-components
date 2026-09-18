@@ -1,0 +1,35 @@
+<% publication = nil %>
+
+<div class="space-y-8">
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Bloque que decide adentro (no rinde nada)</h3>
+    <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
+      <% c.with_step(title: 'Propuesto') do %>
+        <% if publication.present? %>
+          <span class="text-xs opacity-60"><%= publication %></span>
+        <% end %>
+      <% end %>
+      <% c.with_step(title: 'Aprobado') do %>
+        <% if publication.present? %>
+          <span class="text-xs opacity-60"><%= publication %></span>
+        <% end %>
+      <% end %>
+      <% c.with_step(title: 'Publicado') do %>
+        <span class="text-xs opacity-60">publicación #12</span>
+      <% end %>
+      <% c.with_step(title: 'Vigente') %>
+    <% end %>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Los mismos pasos, declarados sin bloque</h3>
+    <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
+      <% c.with_step(title: 'Propuesto') %>
+      <% c.with_step(title: 'Aprobado') %>
+      <% c.with_step(title: 'Publicado') do %>
+        <span class="text-xs opacity-60">publicación #12</span>
+      <% end %>
+      <% c.with_step(title: 'Vigente') %>
+    <% end %>
+  </div>
+</div>

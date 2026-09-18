@@ -120,6 +120,65 @@ class BaliStepperComponentTest < ComponentTestCase
     assert_selector("li.step", text: "Publicado")
     assert_selector("li.step", text: "publicación #12")
   end
+
+  # A host writes "the detail, if there is one" by deciding inside the block,
+  # and ViewComponent's `content?` is true for any block whatever it renders —
+  # so every step took the wrapping branch and the bare `else` was unreachable
+  # for anyone passing a block. Same wrong predicate as Bali::WorkflowSteps
+  # (#1153); the wrapper here carries no class, so nothing moves on screen.
+  def test_a_block_that_renders_nothing_draws_no_wrapper
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado") { "" }
+    end
+
+    assert_no_selector("li.step > div", visible: :all)
+    assert_selector("li.step", text: "Publicado")
+  end
+
+  # Whitespace is its own case: `content?` is true here as well, and it is
+  # `blank?` inside `present?` — not emptiness — that drops the wrapper. A
+  # condition narrowed to a bare emptiness check would pass the test above and
+  # fail this one.
+  def test_a_block_of_only_whitespace_draws_no_wrapper
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado") { "\n      \n" }
+    end
+
+    assert_no_selector("li.step > div", visible: :all)
+    assert_selector("li.step", text: "Publicado")
+  end
+
+  # The whitespace an ERB block leaves around real content must not read as
+  # blank — the fix has to drop the empty wrapper, not the working one.
+  def test_a_block_padded_with_whitespace_still_wraps
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado") { "\n  publicación #12\n" }
+    end
+
+    assert_selector("li.step > div", text: "publicación #12")
+  end
+
+  # `sublabel:` keeps the wrapper on its own: the step still has two lines to
+  # stack, so a blank block must not take the sublabel down with it.
+  def test_a_sublabel_with_a_blank_block_keeps_its_wrapper
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Aprobado", sublabel: "03/07 · Ana Gutiérrez") { "" }
+    end
+
+    assert_selector("li.step > div .step-sublabel", text: "03/07 · Ana Gutiérrez")
+  end
+
+  # Every assertion above names a selector, so all of them stay green while the
+  # template leaks prose as text — which is exactly what a malformed ERB comment
+  # in it does. This one reads the body instead: a step with no block says its
+  # title and nothing else.
+  def test_a_step_without_a_block_says_its_title_and_nothing_else
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado")
+    end
+
+    assert_equal "Publicado", page.find("li.step").text.squish
+  end
 end
 
 class BaliStepperStepComponentTest < ComponentTestCase

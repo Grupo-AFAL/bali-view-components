@@ -1120,6 +1120,14 @@ title, or a free content block for arbitrary markup.
 - `orientation` - `:horizontal` (default) or `:vertical`
 - `color` - DaisyUI step color for completed/active steps
 
+**Step options:**
+- `title` - The step's name (required)
+- `sublabel` - Smaller muted second line under the title (date, actor, note)
+- Content block - Free markup under the title. A block that renders blank draws
+  no wrapper, so deciding *inside* the block — "the detail, if there is one" —
+  leaves the step exactly as one declared with no block at all.
+- HTML attributes for the `li` pass through
+
 #### WorkflowSteps
 
 Steps of a flow with a verdict per step. Stepper is a wizard by index — one
