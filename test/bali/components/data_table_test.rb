@@ -698,6 +698,45 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("[data-controller='column-selector'].dropdown-end", visible: :all)
   end
 
+  SavedView = Struct.new(:id, :name, :payload, keyword_init: true)
+
+  # La OTRA memoria del listado, y la que #1144 deja EXACTAMENTE como estaba: una vista
+  # guardada nombra columnas VISIBLES porque es una elección explícita del usuario ("estas
+  # dos"), así que una columna agregada después de guardarla no aparece al aplicarla. La
+  # memoria por dispositivo es implícita, y por eso allá sí manda el default del servidor.
+  #
+  # Queda fijado para que nadie lo empareje por simetría: ese array de índices vive en
+  # `bali_saved_views.payload`, ya escrito en tres apps del grupo, y cambiarle la polaridad
+  # sin migrar esas filas invierte en silencio lo que cada vista guardada significa.
+  #
+  # OJO con lo que esta prueba NO es: #1144 se arregla en JS y acá no hay JS, así que pasa
+  # igual con y sin el arreglo. La cobertura del arreglo es
+  # `cypress/e2e/data-table-column-memory.cy.js`, y no puede no serlo mientras el repo no
+  # tenga banco de pruebas unitarias de JS.
+  def test_an_applied_saved_view_hides_a_column_it_never_recorded
+    view = SavedView.new(id: 1, name: "Dos columnas",
+                         payload: { "attributes" => {}, "columns" => [ 0, 1 ] })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      storage_id: "movies_index", saved_views_store: SavedViewsStore.new([ view ])
+    )
+
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_column_selector do |cs|
+        cs.with_column(index: 0, label: "Name")
+        cs.with_column(index: 1, label: "Genre")
+        cs.with_column(index: 2, label: "Agregada después de guardar la vista")
+      end
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("input[data-column-index='0'][checked]", visible: :all)
+    assert_selector("input[data-column-index='1'][checked]", visible: :all)
+    assert_no_selector("input[data-column-index='2'][checked]", visible: :all)
+    # Y con la vista aplicada el JS no restaura la memoria del dispositivo encima de ella.
+    assert_selector("[data-column-selector-server-state-value='true']", visible: :all)
+  end
+
   def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family
     render_full_toolbar
 

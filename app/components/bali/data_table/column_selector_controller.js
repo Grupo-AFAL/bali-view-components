@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
+import { readColumnState, writeColumnState } from './column_storage'
 
 /**
  * Column Selector Controller
@@ -12,6 +13,16 @@ import { syncPopoverAria } from './popover_aria'
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="0" checked>
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="1">  <!-- hidden by default -->
  *   </div>
+ *
+ * Entre visita y visita persiste lo que el usuario ESCONDIÓ, junto con las columnas que había
+ * en pantalla y con las que el servidor declaraba ocultas en ese momento (`column_storage.js`
+ * tiene el formato y el porqué). Consecuencia práctica, que es el arreglo de #1144: el
+ * controlador sólo opina sobre una columna cuando la memoria PRUEBA una decisión del usuario
+ * —lo guardado difiere de lo que el servidor declaraba—; si no, la columna nace con el
+ * `checked` que rindió el servidor, o sea con el `with_column(visible:)` del anfitrión.
+ *
+ * `checkbox.defaultChecked` es ese default: refleja el atributo `checked` que vino del
+ * servidor y no se mueve ni cuando el usuario marca la casilla ni cuando la marca este código.
  */
 export default class extends Controller {
   static values = {
@@ -42,39 +53,69 @@ export default class extends Controller {
   }
 
   restoreStoredState () {
-    if (!this.storageKeyValue) return
+    const state = readColumnState(this.storageKeyValue)
+    if (!state) return
 
-    let stored
-    try {
-      stored = JSON.parse(window.localStorage.getItem(this.storageKeyValue))
-    } catch { return }
-    if (!Array.isArray(stored)) return
+    // TRES respuestas y no dos. Con dos hay que elegir un lado para la columna sobre la que la
+    // memoria no prueba nada, y los dos mienten: `false` es el defecto de #1144 —la columna
+    // nueva nace oculta— y `true` pisa un `visible: false` que el anfitrión puso a propósito.
+    this.eachColumnCheckbox((checkbox, index) => {
+      // Primera: la memoria nunca vio esta columna, así que manda el servidor.
+      if (!state.known.includes(index)) return
 
-    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
-      const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) checkbox.checked = stored.includes(index)
+      // Lo que el anfitrión declaraba CUANDO se escribió la memoria. Un valor viejo no lo
+      // registró (`null`) y ahí el mejor dato disponible es lo que declara ahora: atribuirle al
+      // usuario una columna que el servidor ya traía oculta es justo el error a evitar.
+      const declaredHidden = state.serverHidden
+        ? state.serverHidden.includes(index)
+        : !checkbox.defaultChecked
+      const wasHidden = state.hidden.includes(index)
+
+      // Segunda: coinciden, o sea que nadie eligió nada, y sigue mandando el servidor —que pudo
+      // cambiar de opinión desde entonces—. Tercera: difieren, y esa diferencia ES la decisión
+      // del usuario, en el sentido que sea.
+      if (wasHidden !== declaredHidden) checkbox.checked = !wasHidden
     })
+
+    // Un valor sin línea base —el formato viejo, o un v2 escrito antes de que existiera— se
+    // reescribe UNA vez, tomando lo que quedó en pantalla: la inferencia corre una sola vez y
+    // no en cada carga. Reescribir acá y no sólo en el toggle es lo que hace que la migración
+    // llegue a quien nunca vuelve a abrir el menú. Es idempotente: la segunda lectura ya
+    // encuentra el formato completo y lo aplica tal cual.
+    if (state.stale) this.persistState()
   }
 
+  // Se registra el estado resuelto (`hidden`) Y la declaración del servidor (`serverHidden`),
+  // porque la decisión del usuario es la DIFERENCIA entre las dos. Guardar sólo `hidden`
+  // convierte en preferencia suya cada `with_column(visible: false)` del anfitrión, sin que
+  // haya tocado nada, y desde ese momento un `visible: true` posterior no le llega nunca.
   persistState () {
     if (!this.storageKeyValue) return
 
-    const visible = [...this.element.querySelectorAll('[data-column-index]')]
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
-    try {
-      window.localStorage.setItem(this.storageKeyValue, JSON.stringify(visible))
-    } catch { /* almacenamiento lleno o bloqueado: la sesión sigue sin persistir */ }
+    const hidden = []
+    const known = []
+    const serverHidden = []
+    this.eachColumnCheckbox((checkbox, index) => {
+      known.push(index)
+      if (!checkbox.checked) hidden.push(index)
+      if (!checkbox.defaultChecked) serverHidden.push(index)
+    })
+
+    writeColumnState(this.storageKeyValue, { hidden, known, serverHidden })
+  }
+
+  // `known` sale de las casillas presentes, no de las columnas de la tabla: lo que se recuerda
+  // es lo que se puede alternar. Con `selectable:` la columna 0 es la casilla de selección, un
+  // `<th>` real que el selector no declara, así que los índices arrancan en 1.
+  eachColumnCheckbox (callback) {
+    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
+      const index = parseInt(checkbox.dataset.columnIndex, 10)
+      if (!isNaN(index)) callback(checkbox, index)
+    })
   }
 
   applyInitialState () {
-    const checkboxes = this.element.querySelectorAll('[data-column-index]')
-    checkboxes.forEach(checkbox => {
-      const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) {
-        this.setColumnVisibility(index, checkbox.checked)
-      }
-    })
+    this.eachColumnCheckbox((checkbox, index) => this.setColumnVisibility(index, checkbox.checked))
   }
 
   toggle (event) {

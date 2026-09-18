@@ -1,0 +1,36 @@
+<%# El único preview del paquete que declara una columna oculta POR EL ANFITRIÓN
+    (`with_column(visible: false)`), que es una rama de la memoria de columnas imposible de
+    ejercitar sin él: sin un default en "no", nada distingue «lo escondió el usuario» de «lo
+    declaró el servidor». Tiene `id:` estable a propósito, así que la persistencia está
+    ENCENDIDA y la llave es `bali:columns:optional-demo`. %>
+<%= render Bali::DataTable::Component.new(url: request.path, id: 'optional-demo') do |c| %>
+  <% c.with_filters_panel(available_attributes: filter_attributes) %>
+
+  <% c.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: 'Name') %>
+    <% cs.with_column(index: 1, label: 'Status') %>
+    <% cs.with_column(index: 2, label: 'Amount') %>
+    <%# Opt-in: el anfitrión la declara y el usuario la enciende si la quiere. %>
+    <% cs.with_column(index: 3, label: 'Created At', visible: false) %>
+  <% end %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new do |ct| %>
+      <%= ct.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= ct.with_row do %>
+          <td><%= record[:name] %></td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+                  text: record[:status].capitalize,
+                  color: { 'active' => :success, 'pending' => :warning }[record[:status]],
+                  size: :sm
+                ) %>
+          </td>
+          <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
+          <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

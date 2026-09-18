@@ -211,6 +211,23 @@ module Bali
         )
       end
 
+      # @label With An Opt-In Column
+      #
+      # "Created At" va declarada `visible: false`: el anfitrión la trae apagada y el usuario la
+      # enciende si la quiere. Es el único preview del paquete con un default en "no", y por eso
+      # es el que ejercita la rama de la memoria de columnas donde lo guardado COINCIDE con la
+      # declaración del servidor — la que no puede registrarse como decisión de nadie (#1144).
+      def with_optional_column
+        render_with_template(
+          template: "bali/data_table/previews/with_optional_column",
+          locals: {
+            headers: HEADERS,
+            records: RECORDS,
+            filter_attributes: FILTER_ATTRIBUTES
+          }
+        )
+      end
+
       # @label With Summary
       def with_summary
         render_with_template(
