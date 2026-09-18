@@ -162,7 +162,9 @@ module Bali
       # De este id cuelgan además `row_id_prefix` y `empty_table_row_id`, y es lo que un
       # `turbo_stream.replace` tiene que reemplazar: la `<table>` sola dejaría afuera el
       # `overflow-x-auto` y el `data-controller` de los grupos plegables. Los atributos propios del
-      # contenedor van en `table_container:`; con `form:` esto ya funcionaba así.
+      # contenedor van en `table_container:` —clases y datos, no la identidad: un `id:` ahí gana
+      # el atributo del `<div>` pero no llega hasta acá, así que los ids derivados no cambian—;
+      # con `form:` esto ya funcionaba así.
       def container_id
         @container_id || @form&.id
       end

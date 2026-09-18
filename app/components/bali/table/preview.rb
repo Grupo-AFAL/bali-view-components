@@ -207,7 +207,12 @@ module Bali
       # `<tr>` del estado vacío.
       #
       # Es la única llave de `**options` que no baja a la `<table>`: `class:`, `data:` y las
-      # demás siguen ahí. Los atributos propios del contenedor van en `table_container:`.
+      # demás siguen ahí. Los atributos propios del contenedor van en `table_container:`, con
+      # un caveat: ahí van clases y datos, no la identidad. Un `id:` dentro de esa sub-hash
+      # gana el atributo del `<div>` —se pinta después— pero no alimenta a `container_id`, así
+      # que los ids de fila y el del `<tr>` vacío siguen saliendo del `id:` de nivel superior
+      # (o de un prefijo aleatorio si no hay ninguno), y pasar los dos juntos deja el id de
+      # nivel superior sin elemento.
       def with_container_id
         render_with_template(
           template: 'bali/table/previews/with_container_id',
