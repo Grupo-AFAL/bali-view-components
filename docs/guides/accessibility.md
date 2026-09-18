@@ -146,6 +146,42 @@ exist):
 </fieldset>
 ```
 
+### Filter controls without a visible caption
+
+A filter row is tight, and a control whose blank option already reads "All years" looks fine
+with no caption over it. Hiding the caption is a layout decision; removing the control's
+accessible NAME is a WCAG 4.1.2 failure, and the two are easy to confuse (#1155).
+
+```ruby
+# GOOD - no caption painted, and the control is still named
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], blank: 'All years', label: false      # named from blank:
+
+filter_attribute :featured, type: :boolean, simple: true, advanced: false,
+  label: false, aria_label: 'Featured only'             # no blank to fall back on
+
+# BAD - nothing names it: a screen reader reaches "combo box", full stop
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], label: false
+```
+
+**The blank option is not a name.** "All years" is the `<select>`'s selected VALUE, so a
+reader announces `combo box, All years` while the control itself is anonymous, and the value
+changes the moment the user filters. `Bali::DataTable::SimpleFilters` turns that text into a
+real `aria-label` for you; what it cannot invent is a name for the widgets with no blank
+option at all (`boolean`, `toggle_group`, `radio_group`, `number_range`, `date`,
+`date_range`) — those take `aria_label:`.
+
+**A placeholder is not a caption either.** `dd/mm/yyyy` names the format, not the field, and
+it is gone as soon as the user types — the same reasoning that gave the quick search box its
+own `aria_label:` in #982.
+
+**Where a widget draws its own control, verify in the tree.** SlimSelect clips the real
+`<select>` to 1x1 and builds a `div[role="combobox"]` that copies only the select's own
+`aria-*`; flatpickr hides the real input and creates a second one. In both, the `<label for>`
+names an element the user never touches, and the markup looks correct. Read the accessibility
+tree — see the section below.
+
 ### Images
 
 ```erb

@@ -380,6 +380,88 @@ module Bali
           )
         end
 
+        # @label Slim Select
+        # `type: :slim_select` swaps the native dropdown for a searchable one. SlimSelect
+        # clips the real `<select>` to 1x1 and draws its own `div[role="combobox"]`, so the
+        # caption's `<label for>` never reaches the control the user operates — that is why
+        # this row also emits `aria-labelledby` pointing at the caption.
+        #
+        # @param owner select { choices: ["", ana, beto, carla] }
+        def slim_select(owner: '')
+          filters = [
+            {
+              attribute: :owner_id,
+              collection: [%w[Ana ana], %w[Beto beto], %w[Carla carla]],
+              blank: 'All owners',
+              label: 'Owner',
+              type: :slim_select,
+              value: owner.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: owner.present?
+          )
+        end
+
+        # @label Uncaptioned (label: false)
+        # `label: false` drops the caption over the control — for a row that is already
+        # self-explanatory, or one too narrow for a two-line filter. The control still has
+        # to have an accessible name, so Bali resolves one: `aria_label:` when given, the
+        # caption when there is one, and failing that the blank option's own text
+        # ("All years"), which is what a screen reader reads out when nothing is chosen.
+        #
+        # Open the accessibility pane on each control here: none of them is a bare
+        # "combo box". A filter with no caption, no `aria_label:` and no `blank:` to fall
+        # back on logs a `[Bali]` warning in development instead of rendering nameless.
+        def uncaptioned
+          filters = [
+            {
+              attribute: :year,
+              collection: [%w[2026 2026], %w[2025 2025], %w[2024 2024]],
+              blank: 'All years',
+              label: false
+            },
+            {
+              attribute: :area_id,
+              collection: [%w[Finance finance], %w[People people]],
+              blank: 'All areas',
+              label: false,
+              aria_label: 'Responsible area'
+            },
+            {
+              attribute: :owner_id,
+              collection: [%w[Ana ana], %w[Beto beto]],
+              blank: 'All owners',
+              label: false,
+              type: :slim_select
+            },
+            {
+              attribute: :signed_on,
+              label: false,
+              type: :date,
+              aria_label: 'Signature date'
+            },
+            {
+              attribute: :created_at,
+              label: false,
+              type: :date_range,
+              icon: 'calendar',
+              presets: %i[today this_week this_month]
+            },
+            {
+              attribute: :featured,
+              label: false,
+              type: :boolean,
+              aria_label: 'Featured only'
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(url: '/lookbook', filters: filters)
+        end
+
         # @label With Persistence
         # A bookmark toggle appears next to the actions when `storage_id` is set,
         # letting users opt into persisting their filters across visits. The

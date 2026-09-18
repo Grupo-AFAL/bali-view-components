@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`SimpleFilters`: un control con `label: false` ya no queda sin nombre accesible**
+  (#1155). `label: false` existe desde #882 para una fila que se explica sola —un select de
+  año cuya opción en blanco ya dice «Todos los años»—, y su documentación prometía «un
+  control que ya se nombra solo con su opción en blanco». Esa promesa era falsa: el texto de
+  la opción en blanco es el VALOR seleccionado del `<select>`, no su nombre. Sin caption, el
+  `<label for>` desaparecía y con él lo único que nombraba al control: un lector de pantalla
+  llegaba a «cuadro combinado» pelado (WCAG 4.1.2). Reproducido en afal-apps
+  (`/td_flow/reports`), con tres selects mudos seguidos.
+
+  **No era sólo el `select`, que es lo que decía el issue.** Medido en el árbol de
+  accesibilidad de Chromium sobre el preview nuevo `data_table/simple_filters/uncaptioned`,
+  con `label: false` quedaban sin nombre el select nativo, el `slim_select`, el `date`, el
+  select de períodos de `date_range presets`, y el toggle booleano se anunciaba
+  literalmente «false» —y pintaba esa palabra en pantalla, al lado del switch—. El picker de
+  «Personalizado…» salía con `aria-label="false"`.
+
+  Ahora hay una sola cadena de resolución, la misma para las seis ramas:
+  **`aria_label:` → el rótulo → el texto de `blank:`**. El `blank:` sólo cuenta si es una
+  cadena, porque `blank: true` es una opción en blanco de Rails sin texto y habría nombrado
+  el control «true».
+
+  **Qué cambia para un anfitrión.** Los filtros con `label: false` y `blank:` —los tres de
+  afal-apps entre ellos— quedan nombrados **sin tocar el host**: el paliativo Stimulus que
+  escribía el `aria-label` desde fuera usando los ids de `filter_control_id` se puede
+  retirar. Un filtro sin caption y sin `blank:` del que caer (`boolean`, `toggle_group`,
+  `radio_group`, `number_range`, `date`, `date_range`) necesita la clave nueva
+  `aria_label:`; sin ella se registra un aviso `[Bali]` en development y test y la pantalla
+  rinde igual. **No hay `ArgumentError`**, que es lo que pedía el issue: reventar en render
+  tiraría la pantalla de un anfitrión en producción por un defecto de accesibilidad, y
+  rompería a la propia `UncaptionedSimpleFilterForm` del repo.
+
+  **El HTML de una fila captionada no cambia**: el `aria-label` se emite sólo donde no hay
+  un `<label for>` visible que llegue al control. Con dos excepciones, que son defectos más
+  anchos que el propio #1155 y se arreglan acá porque son la misma pregunta:
+
+  - **`slim_select` estaba mudo también CON caption**, o sea en el caso de todos los hosts
+    hoy. Bali recorta el `<select>` real a 1x1 (`bali/slim_select.css`) y el control que el
+    usuario opera es el `div[role="combobox"]` que construye SlimSelect, que copia el
+    `aria-label`/`aria-labelledby` del select y nada más — el `<label for>` no viaja. Medido
+    con CDP antes del cambio: `combobox name="Combobox"`, el default del widget, con el
+    rótulo «Owner» al lado sin conectar. Esa rama ahora emite `aria-labelledby` apuntando al
+    caption, y después: `combobox name="Owner"`.
+  - **`date`/`date_range` sin caption.** flatpickr esconde el input real y crea otro al
+    lado; `datepicker#forwardAccessibleName` ya copiaba el `label[for]` al visible, pero sin
+    caption no había nada que copiar. Ahora se emite el `aria-label` que ese mismo JS
+    reenvía.
+
+  `aria_label:` viaja por las tres capas de configuración —`filter_attribute`,
+  `defined_simple_filters` y los hashes `simple_filters:` de instancia— y acepta un proc de
+  aridad cero, igual que `label:` y `blank:`. Es una clave nueva y `filter_attribute` tenía
+  firma cerrada, así que ningún anfitrión la podía estar pasando: no hay colisión posible.
+  La grafía es la misma que la de `search_fields aria_label:` (#1026).
+
+  Dos previews nuevos, que es lo que hace verificable el arreglo en el navegador:
+  `data_table/simple_filters/uncaptioned` y `data_table/simple_filters/slim_select` (no
+  había ninguno con `type: :slim_select`).
+
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

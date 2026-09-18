@@ -3688,6 +3688,52 @@ A `default:` on an attribute offered in neither UI (`simple: false, advanced: fa
 at class-definition time: it would have no control to sit in and no pill to remove, so it
 would filter invisibly.
 
+#### A filter with no caption (`label: false` + `aria_label:`)
+
+A SimpleFilters row is tight, and some filters read fine without a caption over them — a
+year select whose blank option already says "All years". `label: false` drops the caption
+for exactly that. It does **not** drop the control's accessible name: a `<select>` with no
+name is announced as a bare "combo box", which is WCAG 4.1.2 (#1155).
+
+Bali resolves the name for you, in this order:
+
+| Step | Source | When it applies |
+|---|---|---|
+| 1 | `aria_label:` | Always wins. The only name available to the widgets with no blank option — `boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range` |
+| 2 | `label:` | The caption itself, where a caption exists but does not reach the control |
+| 3 | `blank:` | The blank option's text ("All years"), when it is a String. `blank: true` is a Rails blank option with no text and never becomes a name |
+
+```ruby
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: -> { Report.distinct.pluck(:year).map { |y| [y, y] } },
+  blank: 'All years', label: false                      # named "All years"
+
+filter_attribute :area_id, type: :select, simple: true, advanced: false,
+  options: -> { Area.pluck(:name, :id) },
+  blank: 'All areas', label: false, aria_label: 'Responsible area'
+```
+
+`aria_label:` takes a zero-arity proc, like `label:` and `blank:`, for an I18n lookup that
+must not be frozen at class-load time. Instance-level `simple_filters:` hashes take the same
+key.
+
+**The `aria-label` is only emitted where no visible `<label for>` names the control**, so a
+captioned row's markup is unchanged. Two widgets are the exception, because there the caption
+never reaches the control the user operates and Bali has to point at it explicitly:
+
+- **`slim_select`** clips the real `<select>` to 1x1 and draws its own
+  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and
+  nothing else — a `<label for>` does not travel. Captioned, Bali emits `aria-labelledby`
+  at the caption; uncaptioned, the resolved name. Before #1155 a captioned slim_select
+  announced itself as "Combobox", the widget's own default.
+- **`date` / `date_range`** are drawn by flatpickr, which hides the real input and creates
+  a second one. `datepicker#forwardAccessibleName` copies the caption across; with no
+  caption there was nothing to copy.
+
+A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a `[Bali]`
+warning in development and test and renders anyway — a missing accessible name is not a
+reason to take a host's page down in production.
+
 #### Quick search (`search:`)
 
 Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same

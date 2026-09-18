@@ -189,6 +189,35 @@ Ransack association path) skips the translation, so a select built on its labels
 OPPOSITE records, silently. Declare those options with the raw values
 (`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
 
+### A filter with no caption (`label: false`) still has to be named
+
+`label: false` drops the caption over a SimpleFilters control. It does not drop the control's
+accessible NAME — a `<select>` with none is announced as a bare "combo box" (WCAG 4.1.2,
+#1155). Bali resolves one: `aria_label:` → the caption → the `blank:` text ("All years"),
+and `blank:` only when it is a String (`blank: true` is a nameless Rails blank option).
+
+```ruby
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], blank: 'All years', label: false            # named "All years"
+
+filter_attribute :featured, type: :boolean, simple: true, advanced: false,
+  label: false, aria_label: 'Featured only'                   # no blank to fall back on
+```
+
+`aria_label:` is the same spelling as `search_fields aria_label:` (#1026) and takes a
+zero-arity proc like `label:`. Instance-level `simple_filters:` hashes take the same key.
+
+The `aria-label` is emitted only where no visible `<label for>` reaches the control, so a
+captioned row's markup is untouched. `slim_select` and `date`/`date_range` are the two
+exceptions — their real control is built by JS (`.ss-main`, flatpickr's altInput) and the
+`<label for>` never reaches it, so those carry `aria-labelledby`/`aria-label` even with a
+caption. **Verify them in the accessibility tree, not the markup**
+(`docs/guides/accessibility.md`, "Read the accessibility tree, not the markup"): the Lookbook
+previews are `data_table/simple_filters/uncaptioned` and `.../slim_select`.
+
+A filter with no caption, no `aria_label:` and no `blank:` logs a `[Bali]` warning in
+development and test and renders anyway.
+
 ### Pills that filter on click (`auto_submit:`)
 
 `auto_submit: true` makes a SimpleFilters filter submit the row as soon as it changes, with no
