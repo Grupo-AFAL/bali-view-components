@@ -7,7 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`?q=loquesea` era un 500 en cualquier listado con un `FilterForm`.** `q` llega crudo de la
+  URL y nada obliga a que sea un hash: escrito a mano como escalar (`?q=x`) o como lista
+  (`?q[]=x`) aterrizaba en un `permit` sin guardia —`String` y `Array` no lo tienen— y se
+  llevaba la petición entera. No hace falta sesión, ni conocer la app, ni un listado en
+  particular: sale de la barra de direcciones, y un enlace mal copiado o un crawler bastan.
+  De `q` salen además el orden (`s`), las agrupaciones (`g`) y el combinador (`m`), así que
+  cada lector de más abajo fallaba a su manera. Un `q` que no es un hash no pidió nada, y
+  ahora el listado sale sin filtrar en vez de reventar.
+
+  De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
+  ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
+  que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
+
+## [v3.4.0] - 2026-09-17
+
 ### Added
+
+- **`Bali::Topbar::ToolsMenu` traduce `flightdeck`** (#1138). Cuatro apps del grupo
+  —identity, centinela-web, costa-norte y gobierno-corporativo— cambiaron
+  `mission_control-jobs` por `solid_queue-flightdeck` como panel de Solid Queue, y con la gema
+  cambió la clave del ítem. La gema no la conocía, así que cada app cargó la etiqueta en su
+  propio `config/locales`: ocho entradas (es + en por app) de la misma cadena, que es justo la
+  duplicación que este componente existe para evitar. Ahora `flightdeck` viene en
+  `bali_view.topbar.tools_menu.items` con la etiqueta de siempre, «Panel de trabajos» /
+  «Jobs dashboard», byte a byte la que las apps ya muestran.
+
+  **Esto no cambia ninguna pantalla el día del corte, y es a propósito.** `label_for` consulta
+  primero la clave del host (`topbar.tools_menu.items.flightdeck`) y sólo después la de la gema,
+  así que en las cuatro apps el override propio sigue ganando y la etiqueta que se pinta es la
+  misma de antes. El beneficio llega en el siguiente bump de cada app: pueden borrar sus dos
+  entradas de locale y la etiqueta la pone la gema.
+
+  **Al borrar, borra LAS DOS entradas en el mismo commit.** La cascada no alterna clave por
+  clave dentro de un locale: el `t` de Action View parte el `default:` en una llamada a I18n
+  por alternativa, así que la clave del host se agota en TODA la cadena de fallbacks antes de
+  que se pruebe la de la gema — y un override que sobreviva en `en` le gana a la etiqueta `es`
+  de la gema. Medido rindiendo el componente con `locale = :es` y `fallbacks = [ :en ]` (la
+  forma de identity, centinela-web y gobierno-corporativo): borrando sólo la entrada `es`, la
+  pantalla en español pasa a decir «Jobs dashboard»; con las dos borradas dice «Panel de
+  trabajos», la de la gema.
+
+  **costa-norte no es un caso aparte, aunque corra `es-MX`** (`config/application.rb:35-40`).
+  Llega a la etiqueta `es` de la gema por la descomposición del tag, no por la lista
+  `config.i18n.fallbacks = [ :es, :en ]`: `I18n::Locale::Fallbacks#compute` antepone
+  `self_and_parents` (`es-MX` → `es`) a los defaults configurados. Medido: con
+  `fallbacks = true` —cadena `[:"es-MX", :es]`, sin lista ninguna— borrar las dos entradas
+  deja la misma «Panel de trabajos». Lo que sí rompe el salto es que `:es` salga de la cadena,
+  y ahí la consecuencia nunca es una etiqueta vacía, porque la cascada termina en `humanize`:
+  sin fallbacks del todo se pinta «Flightdeck», y con `:es` fuera de `available_locales` —el
+  salto se descarta como `InvalidLocale` y la cadena sigue a `:en`— se pinta la etiqueta
+  inglesa de la gema, «Jobs dashboard».
+
+  **`mission_control` se queda.** No es un alias ni un renombre: afal-apps sigue montando
+  `mission_control-jobs` (`app/models/internal_tools.rb`), así que las dos claves conviven y
+  resuelven a la misma etiqueta. Quien migre de una gema a la otra cambia la clave y nada más.
 
 - **`Bali::Table(collapsible_groups: true)` — las bandas de grupo se pliegan.** Cada fila de
   grupo pasa a ser un botón de disclosure (`aria-expanded` + `aria-controls`) que esconde y
@@ -41,19 +97,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`?q=loquesea` era un 500 en cualquier listado con un `FilterForm`.** `q` llega crudo de la
-  URL y nada obliga a que sea un hash: escrito a mano como escalar (`?q=x`) o como lista
-  (`?q[]=x`) aterrizaba en un `permit` sin guardia —`String` y `Array` no lo tienen— y se
-  llevaba la petición entera. No hace falta sesión, ni conocer la app, ni un listado en
-  particular: sale de la barra de direcciones, y un enlace mal copiado o un crawler bastan.
-  De `q` salen además el orden (`s`), las agrupaciones (`g`) y el combinador (`m`), así que
-  cada lector de más abajo fallaba a su manera. Un `q` que no es un hash no pidió nada, y
-  ahora el listado sale sin filtrar en vez de reventar.
-
-  De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
-  ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
-  que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
-
+- **`Bali::WorkflowSteps` pintaba un `.workflow-step-comment` vacío cuando el bloque del paso
+  no rendereaba nada.** El template preguntaba por `content?`, y `content?` de ViewComponent
+  contesta si se **pasó** un bloque, no si ese bloque escribió algo: el anfitrión que decide
+  adentro —el `if` dentro del `with_step`, que es como se escribe «el comentario, si lo hay»—
+  recibía `true` en todos los pasos y se llevaba un `div` vacío arrastrando su `mt-1`. La
+  condición pasa a `content.present?`, que mira la cadena ya rendereada y, por `blank?`, cubre
+  también el bloque de puros espacios; evaluarla ahí no cuesta un render extra porque
+  ViewComponent memoiza la captura y el `<%= content %>` de abajo reusa esa misma cadena. Un
+  bloque con contenido real no cambia, espacios alrededor incluidos. Encontrado en afal-apps
+  (`communications/campaigns/_approval_panel`), donde cada aprobación sin comentario que no
+  fuera el paso activo sumaba ese margen de más. (parte de #1145)
 - **El selector de columnas borraba la banda de grupo —y el estado vacío— al esconder una
   columna.** `column-selector` aplica la visibilidad POR ÍNDICE sobre toda fila del `tbody`, y
   dos filas de `Bali::Table` no llevan una celda por columna: la banda de grupo (un `td` con

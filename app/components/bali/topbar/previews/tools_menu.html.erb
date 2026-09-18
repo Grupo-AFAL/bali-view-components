@@ -2,6 +2,10 @@
   <% topbar.with_action do %>
     <%= render Bali::Topbar::ToolsMenu::Component.new(tools: [
       Bali::Topbar::ToolsMenu::Tool.new(
+        key: :flightdeck, icon: "server-cog",
+        route_helper: :rails_health_check_path
+      ),
+      Bali::Topbar::ToolsMenu::Tool.new(
         key: :analytics, icon: "chart-line",
         route_helper: :rails_health_check_path, in_app: true
       ),

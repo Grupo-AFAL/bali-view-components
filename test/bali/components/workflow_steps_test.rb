@@ -186,6 +186,48 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_no_selector(".workflow-step-comment")
   end
 
+  # A host writes "the comment, if there is one" by deciding inside the block,
+  # and ViewComponent's `content?` is true for any block whatever it renders.
+  # An empty container is not an invisible one — it carries `mt-1` — so every
+  # step without a comment grew by a margin over nothing.
+  def test_a_block_that_renders_nothing_draws_no_comment_container
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal", state: :success) { "" }
+    end
+    assert_no_selector(".workflow-step-comment")
+  end
+
+  # Whitespace is its own case: `content?` is true here as well, and it is
+  # `blank?` inside `present?` — not emptiness — that drops the container. A
+  # condition narrowed to a bare emptiness check on the capture would still
+  # pass the test above and fail this one.
+  def test_a_block_of_only_whitespace_draws_no_comment_container
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal", state: :success) { "\n      \n" }
+    end
+    assert_no_selector(".workflow-step-comment")
+  end
+
+  # The whitespace an ERB block leaves around real content must not read as
+  # blank — the fix has to drop the empty container, not the working one.
+  def test_a_block_padded_with_whitespace_still_renders_its_comment
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Legal", state: :error) { "\n  Rejected: missing appendix B.\n" }
+    end
+    assert_selector(".workflow-step-comment", text: "Rejected: missing appendix B.")
+  end
+
+  # Every assertion above names a selector, so all of them stay green while the
+  # template leaks prose as text — which is exactly what a malformed ERB comment
+  # in it does. This one reads the body instead: a step with no block says its
+  # title and nothing else.
+  def test_a_step_without_a_block_says_its_title_and_nothing_else
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+    assert_equal "Submitted", page.find(".workflow-step-body").text.squish
+  end
+
   def test_pending_and_skipped_titles_read_muted
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Done", state: :success)
