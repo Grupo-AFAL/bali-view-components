@@ -47,6 +47,33 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     options = @helper.prepend_class_name({ class: "list" }, "is-active")
     assert_equal("is-active list", options[:class])
   end
+
+  # Classes are separated by a space; DECLARATIONS are separated by a `;`. This
+  # used to interpolate the two sides with a space, which fuses them into one
+  # unparseable declaration and loses BOTH — the component's style and the
+  # host's. Measured in the browser through its only caller, StatCard's
+  # `emphasis:` tint (#1146): `border-color: color-mix(…) opacity:.5` left the
+  # border at `border-base-300` and the opacity at 1.
+  def test_prepend_style_separates_the_declarations_with_a_semicolon
+    options = @helper.prepend_style({ style: "opacity:.5" }, "border-color: red")
+
+    assert_equal("border-color: red; opacity:.5", options[:style])
+  end
+
+  def test_prepend_style_does_not_double_a_semicolon_the_caller_already_wrote
+    options = @helper.prepend_style({ style: "opacity:.5" }, "border-color: red;")
+
+    assert_equal("border-color: red; opacity:.5", options[:style])
+  end
+
+  def test_prepend_style_with_nothing_to_prepend_onto_leaves_the_declaration_alone
+    assert_equal("border-color: red", @helper.prepend_style({}, "border-color: red")[:style])
+  end
+
+  def test_prepend_style_keeps_the_hosts_declaration_when_there_is_nothing_to_prepend
+    assert_equal("opacity:.5", @helper.prepend_style({ style: "opacity:.5" }, nil)[:style])
+  end
+
   # Through a real write, not by asserting the copy's identity — that would pass
   # for a `dup` nothing ever uses.
   def test_prepending_onto_a_detached_copy_leaves_the_original_alone

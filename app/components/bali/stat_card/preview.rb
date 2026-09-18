@@ -70,9 +70,14 @@ module Bali
       # one figure in a grid. It is an emphasis axis, not a colour axis: which colour
       # is still `color:` (or `custom_color:`, painted inline). `href:` turns the cell
       # into an `<a>` with the same hover-shadow affordance the card surface has.
+      #
+      # `value_class` is a parameter here so the measurement the guide quotes stays
+      # reproducible from the gallery: it is appended verbatim, so `text-xl` really
+      # does bring the figure down to 20px. `text-2xl` is the one size that loses.
       # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
       # @param href text
-      def emphasised_cell(color: :primary, href: '')
+      # @param value_class text
+      def emphasised_cell(color: :primary, href: '', value_class: 'tabular-nums')
         render Bali::StatCard::Component.new(
           surface: :cell,
           emphasis: true,
@@ -80,7 +85,7 @@ module Bali
           href: href.presence,
           title: 'VPN',
           value: '$6.14M',
-          value_class: 'tabular-nums',
+          value_class: value_class.presence,
           note: 'Crea valor · tasa 12.5%'
         )
       end

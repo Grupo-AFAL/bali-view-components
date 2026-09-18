@@ -55,5 +55,16 @@ class BaliStatCardDefaultSurfaceUnchangedTest < ComponentTestCase
       c.with_footer { "+12% from last month" }
     end
     out << "===== footer =====\n#{rendered_content}\n"
+
+    # `href:` and the footer slot together. The docs single this combination out
+    # (a link inside that footer would be an `<a>` inside an `<a>`), which is
+    # precisely why its bytes are worth pinning instead of assumed.
+    render_inline(
+      Bali::StatCard::Component.new(title: "Open Orders", value: "87", icon: "shopping-cart",
+                                    color: :info, href: "/lookbook")
+    ) do |c|
+      c.with_footer { "+12% from last month" }
+    end
+    out << "===== href_with_footer =====\n#{rendered_content}\n"
   end
 end

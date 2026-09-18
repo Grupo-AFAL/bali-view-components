@@ -255,6 +255,67 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_includes(error.message, ":panel")
   end
 
+  # `color: nil` falls to the default one line above in the same `initialize`,
+  # and `Bali::Card` takes `style: nil` the same way. `surface: cond ? :cell : nil`
+  # is how a host writes a conditional surface; it must not explode.
+  def test_surface_nil_falls_back_to_the_card_default
+    render_inline(Bali::StatCard::Component.new(**default_attrs, surface: nil))
+    assert_selector("div.card")
+  end
+
+  # The cell renders no `Bali::Card`, so its keywords have nowhere to go: they
+  # used to fall through `**options` onto the root as invalid HTML attributes
+  # (`<div size="sm" shadow="false" body_class="x">`, measured). `icon:` already
+  # raises for exactly that reason; this keeps the rule even.
+  def test_cell_surface_rejects_the_card_keywords_one_by_one
+    { size: :sm, shadow: false, side: true, image_full: true, body_class: "x" }
+      .each do |keyword, value|
+      error = assert_raises(ArgumentError, "#{keyword}: fell through in silence") do
+        Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                      **{ keyword => value })
+      end
+      assert_includes(error.message, "#{keyword}:")
+      assert_includes(error.message, "surface: :card")
+    end
+  end
+
+  def test_cell_surface_names_every_card_keyword_it_was_handed_at_once
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    size: :sm, shadow: false)
+    end
+    assert_includes(error.message, "size:")
+    assert_includes(error.message, "shadow:")
+  end
+
+  # `style:` is the one keyword that is BOTH: `Bali::Card`'s (a Symbol) and a
+  # real HTML attribute (a String). The Symbol is rejected, because it would
+  # render `style="bordered"`; the String is honoured, because an inline style
+  # on the root is legitimate — see the emphasis test below, where both meet.
+  def test_cell_surface_rejects_the_card_style_keyword_but_keeps_an_inline_style
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    style: :bordered)
+    end
+    assert_includes(error.message, "style: :bordered")
+
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    style: "opacity:.5")
+    )
+    assert_selector("div.rounded-box[style='opacity:.5']")
+  end
+
+  # The other half of the rule: on the card surface those keywords ARE the API,
+  # and they must keep travelling through to `Bali::Card`.
+  def test_card_surface_still_forwards_the_card_keywords
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs, size: :sm, shadow: false, style: :bordered)
+    )
+    assert_selector("div.card.card-sm.card-border")
+    assert_no_selector("div.shadow-sm")
+  end
+
   # --- emphasis --------------------------------------------------------------
 
   def test_cell_surface_is_untinted_by_default
@@ -292,6 +353,23 @@ class BaliStatCardComponentTest < ComponentTestCase
     )
     assert_selector("div[style*='background-color: color-mix']")
     assert_selector("div[style*='border-color: color-mix']")
+  end
+
+  # The failure this option exists to avoid, with the host's own `style:` in the
+  # room. Without the `;` between the two, the browser drops the fused
+  # declaration AND the host's: measured, the border fell back to
+  # `border-base-300` and the opacity stayed at 1.
+  def test_emphasis_and_a_host_style_survive_each_other
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, emphasis: true,
+        custom_color: "#7c3aed", style: "opacity:.5"
+      )
+    )
+    assert_selector(
+      "div[style='background-color: color-mix(in oklch, #7c3aed 10%, transparent); " \
+      "border-color: color-mix(in oklch, #7c3aed 30%, transparent); opacity:.5']"
+    )
   end
 
   def test_emphasis_is_rejected_on_the_card_surface
@@ -332,5 +410,95 @@ class BaliStatCardComponentTest < ComponentTestCase
   def test_value_class_is_appended_to_the_value_paragraph
     render_inline(Bali::StatCard::Component.new(**default_attrs, value_class: "font-mono"))
     assert_selector("p.text-3xl.font-bold.font-mono", text: "1,234")
+  end
+
+  # The cell is the surface the option was invented for, and it had no test.
+  def test_value_class_is_appended_on_the_cell_surface_too
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, value_class: "font-mono tabular-nums"
+      )
+    )
+    assert_selector("div.rounded-box p.text-3xl.font-bold.font-mono.tabular-nums", text: "1,234")
+  end
+
+  # What the option actually does: it concatenates, it filters nothing. A
+  # utility that sets a property the library also sets is resolved by the ORDER
+  # OF THE COMPILED SHEET, not by this string — so `text-xl` here really does
+  # win (measured in the browser: 20px). The docs say so with the numbers; this
+  # pins the concatenation the measurement rests on.
+  def test_value_class_lands_verbatim_after_the_library_classes
+    render_inline(Bali::StatCard::Component.new(**default_attrs, value_class: "text-xl"))
+    assert_selector("p[class='text-3xl font-bold mt-1 text-xl']", text: "1,234")
+  end
+
+  # --- the footer slot on the cell surface -------------------------------------
+  #
+  # It works, because the body is captured once and handed to whichever root
+  # renders it. That is on purpose — `note:` and `footer` are content, and
+  # content does not change with the box — but an accidental-looking API nobody
+  # pins is one refactor away from disappearing.
+
+  def test_the_footer_slot_renders_on_the_cell_surface
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell)
+    ) { |cell| cell.with_footer { "+12% vs. trimestre anterior" } }
+
+    assert_selector("div.rounded-box div.flex.items-center.gap-1.text-sm",
+                    text: "+12% vs. trimestre anterior")
+    assert_no_selector(".card")
+  end
+
+  # The two things the PR insists are different, in the same render: the note is
+  # the muted line glued under the figure, the footer is the row after it.
+  def test_note_and_footer_keep_their_places_on_the_card_surface
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs, note: "Crea valor")
+    ) { |card| card.with_footer { "+12% from last month" } }
+
+    assert_selector("div.justify-between p.text-3xl + p.text-xs", text: "Crea valor")
+    assert_selector("div.justify-between + div.flex.items-center.gap-1.text-sm",
+                    text: "+12% from last month")
+  end
+
+  def test_note_and_footer_keep_their_places_on_the_cell_surface
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    note: "Crea valor")
+    ) { |cell| cell.with_footer { "+12% from last month" } }
+
+    assert_selector("div.rounded-box div.justify-between p.text-3xl + p.text-xs",
+                    text: "Crea valor")
+    assert_selector("div.rounded-box div.justify-between + div.flex.items-center.gap-1.text-sm",
+                    text: "+12% from last month")
+  end
+
+  # --- the cell's helpers are the template's business, not the API's ----------
+  #
+  # A ViewComponent template calls private methods without complaining, so none
+  # of these needed to be public. `COLORS` already has an outside consumer
+  # (`DashboardPage#stat_change_class`); twelve more public symbols in one
+  # commit is surface that later costs a deprecation cycle to take back.
+
+  %i[cell? cell_options cell_tag cell_classes cell_style value_classes note_classes]
+    .each do |method|
+      define_method("test_#{method.to_s.delete_suffix('?')}_is_private") do
+        component = Bali::StatCard::Component.new(**default_attrs)
+        assert_includes(component.private_methods, method)
+      end
+    end
+
+  def test_the_cells_internal_constants_are_private
+    public_constants = Bali::StatCard::Component.constants
+
+    %i[SURFACES CELL_CLASSES CELL_SURFACE_CLASSES VALUE_CLASSES NOTE_CLASSES CARD_KEYWORDS]
+      .each do |name|
+        assert_not_includes(public_constants, name, "#{name} is public API nobody asked for")
+      end
+  end
+
+  # And the one that IS the contract stays reachable: it has a second consumer.
+  def test_the_colors_table_stays_public
+    assert(Bali::StatCard::Component::COLORS.key?(:primary))
   end
 end

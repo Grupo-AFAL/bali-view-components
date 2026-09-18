@@ -33,8 +33,18 @@ module Bali
       options
     end
 
+    # Unlike classes, declarations do not separate with a space: `border-color:
+    # red opacity:.5` is ONE malformed declaration, and a browser drops the
+    # whole thing — so the component's style and the host's are lost together.
+    # Joining with `; `, and tolerating a `;` the caller already wrote, is the
+    # entire fix. Found through this method's only caller, StatCard's
+    # `emphasis:` tint on a cell whose host also passed `style:` (#1146).
     def prepend_style(options, styles)
-      options[:style] = "#{styles} #{options[:style]}".strip
+      declarations = [ styles, options[:style] ].filter_map do |declaration|
+        declaration.to_s.strip.delete_suffix(";").presence
+      end
+
+      options[:style] = declarations.join("; ")
       options
     end
 
