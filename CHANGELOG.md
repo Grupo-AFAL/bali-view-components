@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **simplecov 1.1.1 → 1.3.0** (#1141). El salto pide Ruby >= 3.3 y el repo ya corre 4.0, así
+  que no hay nada que migrar: medido con `COVERAGE=1 bundle exec rails test`, la suite sigue en
+  5329 runs con 0 fallas y la cobertura no se movió (línea 95.76 %, rama 85.14 %). Las dos
+  novedades que podían morder no aplican aquí: la que descarta plantillas de un glob `cover`
+  no toca a `track_files "{app,lib}/**/*.rb"`, que sólo mira `.rb`, y la que omite del reporte
+  los grupos vacíos no toca a `Components` ni `Lib`, que tienen archivos.
+
+### Fixed
+
+- **Todo PR de Dependabot salía en rojo aunque las pruebas pasaran.** El job `test` publica un
+  comentario de cobertura en el PR con `issues.createComment`, pero no declaraba `permissions:`,
+  así que heredaba el default del repo — y en un run disparado por Dependabot ese default es de
+  **solo lectura**. El paso moría con `Resource not accessible by integration` y se llevaba
+  consigo un job cuyas pruebas habían terminado en verde (96.25 % de cobertura en el run de
+  #1141). Ahora el job declara `contents: read` + `pull-requests: write`, y el paso del
+  comentario lleva `continue-on-error: true`: es una comodidad, no una puerta, y un token que no
+  alcance —Dependabot, un fork— ya no puede tumbar la suite.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added
