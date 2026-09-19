@@ -56,10 +56,10 @@ class BaliTableComponentTest < ComponentTestCase
 
   # --- Sort affordance (Bali::Table::Header) ---
 
-  # `sort_link` arma el href con `url_for`, así que necesita una request ENRUTABLE: en el
-  # contexto pelado de un component test no hay controller ni action y levanta
-  # UrlGenerationError antes de renderear nada. Mismo patrón que data_table_test.rb:420 y
-  # view_switch_test.rb:64 — cualquier test que renderee un header ordenable pasa por acá.
+  # `sort_link` builds the href with `url_for`, so it needs a ROUTABLE request: in the bare
+  # context of a component test there is no controller and no action, and it raises
+  # UrlGenerationError before rendering anything. Same pattern as data_table_test.rb:420 and
+  # view_switch_test.rb:64 — every test that renders a sortable header goes through here.
   def render_sortable_table(sort: nil, &block)
     params = sort ? { q: { s: sort } } : {}
     form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(params))
@@ -75,8 +75,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("th[aria-sort='none'] a.sort_link svg")
   end
 
-  # Ransack solo pintaba flecha en la columna ORDENADA (`default_arrow` es nil): una columna
-  # ordenable se veía idéntica a una que no lo es. Esta es la aserción que lo fija.
+  # Ransack only painted an arrow on the SORTED column (`default_arrow` is nil): a sortable column
+  # looked identical to one that is not. This is the assertion that pins it.
   def test_headers_do_not_render_ransacks_text_arrow
     render_sortable_table(sort: "name desc") do |c|
       c.with_header(name: "Name", sort: :name)
@@ -109,7 +109,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_no_selector("th svg")
   end
 
-  # El estado lo anuncia `aria-sort` una sola vez: el ícono es decoración.
+  # `aria-sort` announces the state exactly once: the icon is decoration.
   def test_headers_hide_the_sort_indicator_from_assistive_tech
     render_sortable_table do |c|
       c.with_header(name: "Name", sort: :name)
@@ -117,8 +117,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("th a.sort_link span[aria-hidden='true']")
   end
 
-  # `sort_link` mergea al HREF toda opción que no sea class/data (`title:` sale como
-  # `&title=...`): si alguien "mejora" el link con una opción nueva, esto lo caza.
+  # `sort_link` merges into the HREF every option that is not class/data (`title:` comes out as
+  # `&title=...`): if somebody "improves" the link with a new option, this catches it.
   def test_headers_sort_links_carry_only_the_sort_param
     render_sortable_table do |c|
       c.with_header(name: "Name", sort: :name)
@@ -161,9 +161,9 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".empty-table p", text: "No Records")
   end
 
-  # #1085 — con un FilterForm de verdad, no un Struct: el defecto era que el panel avanzado
-  # no llegaba a `active_filters?`, así que un listado recortado a cero DESDE EL PANEL
-  # ofrecía "Aún no hay registros — creá el primero" sobre un catálogo entero.
+  # #1085 — with a real FilterForm, not a Struct: the defect was that the advanced panel never
+  # reached `active_filters?`, so a listing narrowed to zero FROM THE PANEL offered its
+  # no-records-yet empty state, first-one call to action and all, over a whole catalogue.
   def test_empty_states_reads_the_advanced_panel_as_filtered
     grouped = ActionController::Parameters.new(q: { g: { "0" => { name_cont: "NO_EXISTE" } } })
     @options = { form: Bali::FilterForm.new(Movie.all, grouped) }
@@ -237,8 +237,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".empty-table div.empty-state-component.py-8", text: "So sorry, no records found!")
   end
 
-  # `bulk_actions:` caería en `**options` y saldría como atributo del `<table>`: la tabla se
-  # vería bien, sin columna de checkbox y sin barra. El guardia existe para que reviente.
+  # `bulk_actions:` would fall into `**options` and come out as an attribute of the `<table>`: the
+  # table would look fine, with no checkbox column and no bar. The guard exists so it blows up.
   def test_the_removed_bulk_actions_option_raises_instead_of_becoming_an_html_attribute
     error = assert_raises(ArgumentError) do
       Bali::Table::Component.new(bulk_actions: [ { name: "Delete", href: "/delete" } ])
@@ -271,8 +271,8 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   def test_selectable_marks_each_row_as_a_bulk_actions_item
-    # El `<tr>` ES el item: lleva el record id y la clase `selected`. El checkbox de la
-    # celda solo dispara la acción.
+    # The `<tr>` IS the item: it carries the record id and the `selected` class. The cell's
+    # checkbox only fires the action.
     @options = { selectable: true }
     render_inline(component) do |c|
       c.with_header(name: "Name")
@@ -283,8 +283,8 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   def test_the_empty_state_spans_the_selection_column_too
-    # `headers.count` ignoraba la columna de checkbox: el empty state quedaba una columna
-    # corto y descentrado en cada listado filtrado a cero.
+    # `headers.count` ignored the checkbox column: the empty state came out one column short and
+    # off-centre on every listing filtered to zero.
     @options = { selectable: true }
     render_inline(component) do |c|
       c.with_header(name: "A")
@@ -306,8 +306,8 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   def test_select_label_names_the_row_checkbox_after_its_record
-    # Sin él, N filas dan N controles con el MISMO nombre accesible y en el rotor de
-    # formularios del lector de pantalla son indistinguibles.
+    # Without it, N rows give N controls with the SAME accessible name, indistinguishable in a
+    # screen reader's forms rotor.
     @options = { selectable: true }
     render_inline(component) do |c|
       c.with_header(name: "Name")
@@ -338,8 +338,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector('tr[data-record-id="7"][data-turbo-frame="movie_7"][data-bulk-actions-target="item"]')
   end
 
-  # El controlador `table` se borró en v3: la selección la conduce `bulk-actions` desde un
-  # ancestro. Un target huérfano acá sería un checkbox que no dispara nada.
+  # The `table` controller was deleted in v3: `bulk-actions` drives the selection from an
+  # ancestor. An orphan target here would be a checkbox that fires nothing.
   def test_selectable_does_not_render_the_legacy_table_targets
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -356,11 +356,11 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   # ---------------------------------------------------------------------------
-  # Selección por subgrupo (#1047)
+  # Selection by subgroup (#1047)
   # ---------------------------------------------------------------------------
 
-  # Sin `select_group:` el markup sale como salía: un seleccionar-todo sin grupo alcanza a
-  # TODA la selección del controlador, que con una sola tabla es lo mismo de siempre.
+  # Without `select_group:` the markup comes out as it did: a select-all with no group reaches the
+  # controller's WHOLE selection, which with a single table is what it always was.
   def test_selection_groups_are_absent_unless_asked_for
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -401,8 +401,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr[data-record-id='2'][data-bulk-actions-group='#{sur}']")
   end
 
-  # Los dos ids a la vez, separados por espacio como las clases: la cabecera de la tabla
-  # marca las 3 filas, el encabezado de cada grupo solo las suyas.
+  # Both ids at once, space-separated like classes: the table's header ticks all 3 rows, each
+  # group's header only its own.
   def test_a_row_carries_both_the_table_group_and_its_own_group
     @options = { selectable: true, select_group: "depto-42" }
     render_inline(component) do |c|
@@ -415,8 +415,8 @@ class BaliTableComponentTest < ComponentTestCase
                     "[data-bulk-actions-group='depto-42 #{table.group_token('Norte')}']")
   end
 
-  # Un valor de grupo que reaparece más abajo es EL MISMO grupo: su seleccionar-todo marca
-  # las dos corridas, que es lo que dice su etiqueta.
+  # A group value that turns up again further down is THE SAME group: its select-all ticks both
+  # runs, which is what its label says.
   def test_the_same_group_value_shares_one_token_across_runs
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -443,8 +443,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row input[aria-label='Select all in Ungrouped']")
   end
 
-  # Una casilla que no marcaría nada es un control muerto: la celda se pinta igual, para
-  # sostener la alineación, pero vacía.
+  # A checkbox that would tick nothing is a dead control: the cell is painted anyway, to hold the
+  # alignment, but empty.
   def test_a_group_with_no_selectable_rows_gets_no_select_all
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -458,7 +458,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row td", count: 4)
   end
 
-  # El acento de la izquierda se muda a la celda de la casilla, que pasa a ser la primera.
+  # The left-hand accent moves to the checkbox cell, which becomes the first one.
   def test_the_group_header_keeps_its_accent_on_the_leftmost_cell
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -482,7 +482,7 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   # ---------------------------------------------------------------------------
-  # Filas fuera de la selección (#1047)
+  # Rows outside the selection (#1047)
   # ---------------------------------------------------------------------------
 
   def test_a_row_can_opt_out_of_the_selection
@@ -497,7 +497,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector('tbody tr input[type="checkbox"]', count: 1)
   end
 
-  # La celda se pinta vacía: sin ella las columnas de esa fila se corren una posición.
+  # The cell is painted empty: without it that row's columns shift one position.
   def test_a_non_selectable_row_keeps_the_column_alignment
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -521,8 +521,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tbody tr td", text: "Row")
   end
 
-  # `skip_tr` y la selección se siguen peleando —la fila no puede llevar el record id si no
-  # hay `<tr>` que la lleve—, pero una fila que se declaró fuera de la selección ya no.
+  # `skip_tr` and the selection still fight each other —the row cannot carry the record id if
+  # there is no `<tr>` to carry it— but a row that opted out of the selection no longer does.
   def test_skip_tr_is_allowed_on_a_row_that_left_the_selection
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -536,9 +536,9 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.mine td", text: "B")
   end
 
-  # Solo se puede salir de la selección, no entrar: la columna y el seleccionar-todo los
-  # pinta la TABLA, así que una fila seleccionable ahí adentro sería una casilla suelta con
-  # las columnas corridas una posición.
+  # You can only opt out of the selection, never in: the column and the select-all are painted by
+  # the TABLE, so a selectable row in there would be a loose checkbox with the columns shifted one
+  # position.
   def test_a_row_cannot_opt_into_selection_on_a_plain_table
     error = assert_raises(ArgumentError) do
       render_inline(component) do |c|
@@ -579,18 +579,18 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".overflow-x-auto.table-component")
   end
 
-  # `id:` identifica al COMPONENTE, y el root del componente es el `<div class="table-component">`
-  # (la convención de `**options` de docs/reference/component-patterns.md). Es la única llave de
-  # `**options` que NO baja a la `<table>`: de ella cuelgan `row_id_prefix` y `empty_table_row_id`,
-  # y es la que `getElementById`, `turbo_stream.replace` y un ancla ya resolvían por orden de
-  # documento. Emitirla también en la `<table>` era HTML inválido (#1157).
+  # `id:` identifies the COMPONENT, and the component's root is the `<div class="table-component">`
+  # (the `**options` convention from docs/reference/component-patterns.md). It is the only key of
+  # `**options` that does NOT reach the `<table>`: `row_id_prefix` and `empty_table_row_id` hang
+  # off it, and it is the one `getElementById`, `turbo_stream.replace` and an anchor already
+  # resolved by document order. Emitting it on the `<table>` too was invalid HTML (#1157).
   def test_custom_id_lands_only_on_the_container
     @options = { id: "my-table" }
     render_inline(component)
     assert_selector("div#my-table.table-component", count: 1)
     assert_no_selector("table#my-table")
-    # El id derivado sigue colgando del mismo valor: la extracción movió de dónde lo lee
-    # `container_id`, no qué vale.
+    # The derived id still hangs off the same value: the extraction moved where `container_id`
+    # reads it from, not what it is worth.
     assert_selector("tr#my-table-empty-table-row")
   end
 
@@ -606,12 +606,12 @@ class BaliTableComponentTest < ComponentTestCase
     assert_includes(ids, "my-table")
   end
 
-  # `table_container:` pinta el `<div>` DESPUÉS del `id: container_id` del template, así que un
-  # `id:` ahí gana el atributo del contenedor pero no alimenta a `container_id`: los ids
-  # derivados siguen saliendo del `id:` de nivel superior. Con los dos juntos, entonces, el id de
-  # nivel superior no aparece en ningún elemento — antes de #1157 aparecía en la `<table>`, que
-  # es justamente la emisión que este arreglo saca. Es el contrato de hoy, no una recomendación:
-  # la identidad del componente se pide con `id:`, y a `table_container:` van clases y datos.
+  # `table_container:` paints the `<div>` AFTER the template's `id: container_id`, so an `id:`
+  # there wins the container's attribute but does not feed `container_id`: the derived ids still
+  # come out of the top-level `id:`. With both together, then, the top-level id appears on no
+  # element at all — before #1157 it appeared on the `<table>`, which is precisely the emission
+  # this fix removes. That is today's contract, not a recommendation: the component's identity is
+  # asked for with `id:`, and `table_container:` takes classes and data.
   def test_a_container_id_option_wins_the_attribute_but_not_the_derived_ids
     @options = { id: "my-table", table_container: { id: "wrapper" } }
     render_inline(component)
@@ -621,10 +621,10 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr#my-table-empty-table-row")
   end
 
-  # Y sin `id:` de nivel superior, `container_id` queda en nil aunque `table_container:` traiga
-  # uno: el `<tr>` vacío sale pelado y el prefijo de fila es aleatorio. Pinneado porque desde
-  # este PR `table_container:` es API documentada, y porque es el contrato que el followup del
-  # issue propone cambiar (un `||` a `@table_container_options[:id]`).
+  # And with no top-level `id:`, `container_id` stays nil even when `table_container:` carries one:
+  # the empty `<tr>` comes out bare and the row prefix is random. Pinned because from this PR on
+  # `table_container:` is documented API, and because it is the contract the issue's followup
+  # proposes to change (a `||` to `@table_container_options[:id]`).
   def test_a_container_id_option_alone_does_not_feed_the_derived_ids
     @options = { table_container: { id: "wrapper" } }
     render_inline(component)
@@ -634,10 +634,9 @@ class BaliTableComponentTest < ComponentTestCase
     assert_no_selector("tr#wrapper-empty-table-row")
   end
 
-  # La consecuencia visible de lo anterior: los ids de fila de los grupos plegables salen del
-  # prefijo aleatorio, no del id del contenedor, así que el HTML no es idempotente entre
-  # renders. Es preexistente y está archivado como followup; queda pinneado para que el arreglo
-  # tenga un test que cambiar.
+  # The visible consequence of the above: the row ids of collapsible groups come out of the random
+  # prefix, not out of the container's id, so the HTML is not idempotent across renders. It is
+  # pre-existing and filed as a followup; pinned so the fix has a test to change.
   def test_a_container_id_option_does_not_make_the_collapsible_row_ids_deterministic
     render_collapsible(table_container: { id: "wrapper" }) do |c|
       c.with_row(group: "Norte") { "<td>A</td>".html_safe }
@@ -721,8 +720,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector('tr.bali-table-group-row td[colspan="2"]')
   end
 
-  # Con selección, la columna de casillas se la queda el seleccionar-todo del grupo: la
-  # etiqueta cubre el resto y entre las dos celdas la fila sigue midiendo lo mismo.
+  # With selection on, the checkbox column is taken by the group's select-all: the label covers the
+  # rest and across the two cells the row still measures the same.
   def test_grouping_header_splits_the_selection_column_off_the_label
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -822,10 +821,10 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row td", text: "Sur (1)")
   end
 
-  # #1086 — la banda rotulaba con el valor de la base (`table`, `view`), y traducirlo por el
-  # camino obvio —pasar la etiqueta como `group:`— costaba el conteo GLOBAL: las llaves de
-  # `group_counts` son las que devolvió el GROUP BY, así que la búsqueda fallaba y el
-  # encabezado caía al conteo de la página.
+  # #1086 — the band was labelled with the database value (`table`, `view`), and translating it the
+  # obvious way —passing the label as `group:`— cost the GLOBAL count: the keys of `group_counts`
+  # are the ones the GROUP BY returned, so the lookup missed and the header fell back to the page's
+  # count.
   def test_grouping_translates_the_band_label_through_an_i18n_scope
     I18n.backend.store_translations(:en, movies: { genres: { action: "Acción" } })
     @options = { group_counts: { "action" => 30 }, group_i18n_scope: "movies.genres" }
@@ -850,8 +849,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row td", text: "ACTION (30) — showing 1")
   end
 
-  # El rótulo es del ENCABEZADO: el valor que lleva la fila —y con él el token del
-  # seleccionar-todo del grupo— sigue siendo el crudo.
+  # The label belongs to the HEADER: the value the row carries —and with it the group select-all's
+  # token— is still the raw one.
   def test_grouping_label_does_not_reach_the_group_selection_token
     @options = { selectable: true, group_label: ->(_value) { "Traducido" } }
 
@@ -876,7 +875,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row td", text: "Del lambda (1)")
   end
 
-  # `nil` es la banda del NULL de SQL: ya tiene su clave traducible y no pasa por el hook.
+  # `nil` is SQL's NULL band: it already has its own translatable key and does not go through the hook.
   def test_grouping_the_null_band_keeps_its_own_key
     @options = { group_i18n_scope: "movies.genres" }
 
@@ -920,8 +919,8 @@ class BaliTableComponentTest < ComponentTestCase
     end
   end
 
-  # Sin la opción, una tabla agrupada sale como salía: ni botón, ni controlador, ni token ni
-  # id en las filas. Es lo que garantiza que un anfitrión en v3.3.1 no vea nada distinto.
+  # Without the option, a grouped table comes out as it did: no button, no controller, no token and
+  # no ids on the rows. It is what guarantees a host on v3.3.1 sees nothing different.
   def test_grouped_tables_carry_no_collapse_markup_unless_asked_for
     render_inline(component) do |c|
       c.with_header(name: "Name")
@@ -950,8 +949,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row button svg")
   end
 
-  # El botón controla exactamente las filas de su corrida: los ids que lista son los de esas
-  # filas, y cada fila lleva el token con el que el controlador la encuentra.
+  # The button controls exactly the rows of its run: the ids it lists are those rows', and each row
+  # carries the token the controller finds it by.
   def test_the_trigger_controls_the_rows_of_its_group
     render_collapsible(id: "leaders") do |c|
       c.with_row(group: "Norte") { "<td>A</td>".html_safe }
@@ -980,8 +979,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tbody tr#movie_7[data-table-groups-target='row']")
   end
 
-  # Sin `id:` en la tabla el prefijo es aleatorio: dos tablas plegables en la misma página no
-  # pueden compartir ids de fila, y `aria-controls` apuntaría a la equivocada.
+  # With no `id:` on the table the prefix is random: two collapsible tables on the same page cannot
+  # share row ids, and `aria-controls` would point at the wrong one.
   def test_row_ids_get_a_random_prefix_when_the_table_has_no_id
     render_collapsible do |c|
       c.with_row(group: "Norte") { "<td>A</td>".html_safe }
@@ -992,8 +991,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row button[aria-controls='#{id}']")
   end
 
-  # El estado inicial va en el botón y NUNCA en la fila: el controlador esconde las filas al
-  # conectar, así que sin JS todo queda visible.
+  # The initial state goes on the button and NEVER on the row: the controller hides the rows on
+  # connect, so without JS everything stays visible.
   def test_collapsed_groups_lists_the_values_that_are_born_folded
     render_collapsible(collapsed_groups: [ "Sur" ]) do |c|
       c.with_row(group: "Norte") { "<td>A</td>".html_safe }
@@ -1038,15 +1037,15 @@ class BaliTableComponentTest < ComponentTestCase
     assert_match("collapsible_groups: true", error.message)
   end
 
-  # `group_header:` caería en `**options` y saldría como atributo del `<table>` (#1081).
+  # `group_header:` would fall into `**options` and come out as an attribute of the `<table>` (#1081).
   def test_group_header_as_a_keyword_raises_instead_of_leaking_to_the_table
     error = assert_raises(ArgumentError) { Bali::Table::Component.new(group_header: "x") }
 
     assert_match("with_group_header", error.message)
   end
 
-  # El bloque recibe el grupo ya resuelto —rótulo traducido, conteo global— para no rehacer
-  # ninguno de los dos, y lo que devuelve reemplaza al texto por default.
+  # The block receives the group already resolved —translated label, global count— so neither has
+  # to be redone, and what it returns replaces the default text.
   def test_with_group_header_paints_the_band_from_the_block
     @options = { group_counts: { "action" => 30 }, group_label: ->(value) { value.to_s.upcase } }
     render_inline(component) do |c|
@@ -1089,7 +1088,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row td", text: "<b>Norte</b>")
   end
 
-  # Con plegado, el contenido del bloque es el NOMBRE del botón: va adentro, junto al chevron.
+  # With collapsing on, the block's content is the button's NAME: it goes inside, next to the
+  # chevron.
   def test_with_group_header_goes_inside_the_collapse_trigger
     render_collapsible do |c|
       c.with_group_header { |group| "<em>#{group.label}</em>".html_safe }
@@ -1099,10 +1099,10 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row button span.icon-component + em", text: "Norte")
   end
 
-  # La casilla del grupo sigue en SU celda, fuera del botón —un control dentro de otro es
-  # HTML inválido—, y la fila lleva los dos atributos: el de selección y el de plegado. Que
-  # el seleccionar-todo marque filas plegadas lo cubre Cypress: el controlador de selección
-  # no mira visibilidad.
+  # The group's checkbox stays in ITS cell, outside the button —a control inside another is invalid
+  # HTML— and the row carries both attributes: the selection one and the collapse one. That the
+  # select-all ticks folded rows is covered by Cypress: the selection controller does not look at
+  # visibility.
   def test_collapsible_and_selectable_keep_the_group_checkbox_outside_the_trigger
     render_collapsible(selectable: true, collapsed_groups: true) do |c|
       c.with_row(record_id: 1, group: "Norte") { "<td>A</td>".html_safe }
@@ -1114,7 +1114,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr[data-record-id='1'][data-bulk-actions-group='#{token}'][data-group-token='#{token}']")
   end
 
-  # Una fila `skip_tr: true` pinta su propio `<tr>`: ni id, ni token, ni la lista el botón.
+  # A `skip_tr: true` row paints its own `<tr>`: no id, no token, and the button does not list it.
   def test_skip_tr_rows_stay_out_of_the_collapse
     render_collapsible do |c|
       c.with_row(group: "Norte") { "<td>A</td>".html_safe }
@@ -1126,7 +1126,6 @@ class BaliTableComponentTest < ComponentTestCase
     assert_equal(1, page.find("tr.bali-table-group-row button")["aria-controls"].split(" ").size)
   end
 
-  # Pidió plegar y no agrupa: es una tabla plana, y sale como tal — sin controlador siquiera.
   def test_collapsible_groups_without_any_group_renders_a_plain_table
     render_collapsible do |c|
       c.with_row { "<td>A</td>".html_safe }

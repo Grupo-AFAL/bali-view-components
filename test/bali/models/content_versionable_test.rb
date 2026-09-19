@@ -2,9 +2,8 @@
 
 require "test_helper"
 
-# #707 — el historial que el engine le presta a un modelo del host. `Document` (del dummy)
-# incluye el concern, así que estas pruebas ejercitan exactamente la adopción que se le pide
-# a una app real.
+# #707 — the history the engine lends a host's model. `Document` (from the dummy) includes the
+# concern, so these tests exercise exactly the adoption a real app is asked for.
 class BaliContentVersionableTest < ActiveSupport::TestCase
   def setup
     @document = Document.create!(title: "Acta", author_name: "Ana",
@@ -37,7 +36,7 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     end
   end
 
-  # El caso que justifica el coalescing: una ráfaga de autosaves es UNA versión.
+  # The case that justifies the coalescing: a burst of autosaves is ONE version.
   def test_coalesce_updates_the_last_version_for_the_same_author_inside_the_window
     first = @document.create_or_coalesce_version!(author_name: "Ana")
 
@@ -70,8 +69,8 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_equal %w[Ana Beto], @document.content_versions.pluck(:author_name)
   end
 
-  # La decisión 707-1: con FK presente la comparación es por (author_type, author_id), no
-  # por el nombre denormalizado — dos usuarios homónimos no colapsan en una sola versión.
+  # Decision 707-1: with the FK present the comparison is by (author_type, author_id), not by the
+  # denormalised name — two users of the same name do not collapse into a single version.
   def test_coalesce_compares_by_author_record_when_there_is_one
     @document.create_or_coalesce_version!(author: @ana, author_name: "Ana")
     @document.create_or_coalesce_version!(author: @beto, author_name: "Ana")
@@ -87,7 +86,7 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_equal first.id, second.id
   end
 
-  # Un autosave no manda summary; asignar nil borraría el nombre que la versión ya tenía.
+  # An autosave sends no summary; assigning nil would wipe the name the version already had.
   def test_coalesce_keeps_the_previous_summary_when_none_is_given
     @document.create_or_coalesce_version!(author_name: "Ana", summary: "Borrador inicial")
     @document.create_or_coalesce_version!(author_name: "Ana")
@@ -95,12 +94,11 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_equal "Borrador inicial", @document.content_versions.sole.summary
   end
 
-  # Dos autosaves concurrentes leían la misma "última versión" y creaban dos filas con el
-  # mismo version_number: la lectura y la escritura tienen que ir bajo el mismo lock de
-  # fila. Se afirma que el lock se toma en vez de correr hilos porque el dummy usa sqlite,
-  # que ignora `FOR UPDATE` — una carrera aquí probaría el adapter, no el código, y sería
-  # flaky en ambas direcciones. El índice único de la migración es la red debajo, y el test
-  # de arriba lo cubre.
+  # Two concurrent autosaves read the same "last version" and created two rows with the same
+  # version_number: the read and the write have to go under the same row lock. The assertion is that
+  # the lock is taken rather than running threads, because the dummy is on sqlite, which ignores
+  # `FOR UPDATE` — a race here would test the adapter, not the code, and would be flaky in both
+  # directions. The migration's unique index is the net underneath, and the test above covers it.
   def test_coalescing_reads_and_writes_under_a_row_lock
     locked_during_call = false
     @document.define_singleton_method(:with_lock) do |&block|
@@ -140,9 +138,9 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_equal @beto, restored.author
   end
 
-  # Hallazgo del security review (MEDIUM-1): pasar un OBJETO se aceptaba tal cual, sin
-  # comprobar de quién era, así que se podía copiar el contenido de la versión de cualquier
-  # otro registro sobre este. Ahora se re-scopea también por esa vía.
+  # Security review finding (MEDIUM-1): passing an OBJECT was accepted as is, with no check of whose
+  # it was, so any other record's version content could be copied over this one. It is now re-scoped
+  # through that path too.
   def test_restore_refuses_a_version_object_belonging_to_another_record
     other = Document.create!(title: "Ajena", author_name: "Beto",
                              content: [ { "type" => "paragraph", "id" => "secreto" } ])
@@ -182,8 +180,8 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     end
   end
 
-  # La versión puede llevar un archivo adjunto (el content_kind "file" de gc), pero NO lo
-  # exige: ActiveStorage sigue siendo opcional en el engine.
+  # A version can carry an attached file (gc's "file" content_kind), but it does NOT require one:
+  # ActiveStorage stays optional in the engine.
   def test_a_version_can_carry_a_file_without_requiring_one
     version = @document.create_version!(author_name: "Ana")
 
@@ -195,8 +193,8 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_predicate version.reload.file, :attached?
   end
 
-  # Hallazgo del security review (LOW-6): `create_version!` tenía la misma carrera que el
-  # coalescing entre leer el número más alto y escribir el siguiente.
+  # Security review finding (LOW-6): `create_version!` had the same race as the coalescing, between
+  # reading the highest number and writing the next one.
   def test_create_version_reads_and_writes_under_a_row_lock
     locked = false
     @document.define_singleton_method(:with_lock) do |&block|
@@ -209,11 +207,11 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert locked, "create_version! debe correr dentro de with_lock"
   end
 
-  # Consecuencia del lock, y la mejor de las posibles: versionar con cambios sin guardar
-  # falla RUIDOSAMENTE. Rails se niega a lockear un registro sucio, así que en vez de
-  # decidir en silencio entre el valor en memoria y el guardado —una versión que afirma un
-  # contenido que la base nunca vio es falsa— el llamador se entera y guarda primero.
-  # `create_or_coalesce_version!` ya se comportaba así; ahora los dos coinciden.
+  # A consequence of the lock, and the best one available: versioning with unsaved changes fails
+  # LOUDLY. Rails refuses to lock a dirty record, so instead of silently deciding between the value
+  # in memory and the stored one —a version claiming content the database never saw is false— the
+  # caller finds out and saves first. `create_or_coalesce_version!` already behaved this way; now the
+  # two agree.
   def test_versioning_a_record_with_unsaved_changes_fails_loudly
     @document.content = [ { "type" => "paragraph", "id" => "sin-guardar" } ]
 
@@ -225,8 +223,8 @@ class BaliContentVersionableTest < ActiveSupport::TestCase
     assert_empty @document.content_versions
   end
 
-  # Cinturón y tirantes del review: el modelo rechaza el resumen largo con un error que el
-  # host puede mostrar, y la columna lo sostiene por debajo.
+  # Belt and braces from the review: the model rejects the over-long summary with an error the host
+  # can show, and the column holds it underneath.
   def test_a_summary_longer_than_the_limit_is_rejected_by_the_model
     error = assert_raises ActiveRecord::RecordInvalid do
       @document.create_version!(author_name: "Ana", summary: "x" * 256)

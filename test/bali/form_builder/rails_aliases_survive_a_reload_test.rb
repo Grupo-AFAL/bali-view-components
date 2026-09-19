@@ -2,16 +2,16 @@
 
 require "test_helper"
 
-# Tres helpers guardan el método de Rails bajo un nombre `rails_*` para poder publicar el
-# suyo bajo el nombre canónico. Se guardaban con `alias`, que captura lo que el nombre
-# resuelva EN ESE MOMENTO — y esos archivos se vuelven a ejecutar en cada reload de código,
-# cuando el módulo de Bali YA está incluido. El alias pasaba entonces a apuntar al override
-# de Bali y el helper se llamaba a sí mismo: `SystemStackError` en cada file field, cada text
-# area y cada time zone select, desde el primer reload y hasta reiniciar el servidor (#840).
+# Three helpers keep Rails' method under a `rails_*` name so they can publish their own under the
+# canonical one. They used to be kept with `alias`, which captures whatever the name resolves to AT
+# THAT MOMENT — and those files are re-executed on every code reload, when Bali's module is ALREADY
+# included. The alias then pointed at Bali's override and the helper called itself:
+# `SystemStackError` on every file field, every text area and every time zone select, from the first
+# reload until the server was restarted (#840).
 #
-# La suite arrancaba en frío y nunca lo veía. Este test recarga los archivos a propósito.
+# The suite started cold and never saw it. This test reloads the files on purpose.
 class BaliFormBuilderRailsAliasesSurviveAReloadTest < FormBuilderTestCase
-  # archivo => [nombre guardado, nombre de Rails]
+  # file => [saved name, Rails' name]
   MODULES = {
     "file_fields" => %i[rails_file_field file_field],
     "text_area_fields" => %i[rails_text_area text_area],
@@ -23,8 +23,8 @@ class BaliFormBuilderRailsAliasesSurviveAReloadTest < FormBuilderTestCase
     reload_field_modules
   end
 
-  # Misma `source_location` = misma implementación. Es la aserción exacta: `owner` no sirve
-  # porque el método se define sobre `Bali::FormBuilder` en cualquiera de los dos casos.
+  # Same `source_location` = same implementation. That is the exact assertion: `owner` is no use
+  # because the method is defined on `Bali::FormBuilder` either way.
   def test_the_aliases_resolve_to_rails_and_not_to_balis_own_override
     MODULES.each_value do |saved_name, rails_name|
       assert_equal(
@@ -35,8 +35,8 @@ class BaliFormBuilderRailsAliasesSurviveAReloadTest < FormBuilderTestCase
     end
   end
 
-  # Lo anterior fija la causa; esto fija el síntoma. Sin el arreglo cada una de estas tres
-  # llamadas recursa hasta SystemStackError en vez de devolver markup.
+  # The above pins the cause; this pins the symptom. Without the fix each of these three calls
+  # recurses into SystemStackError instead of returning markup.
   def test_the_fields_still_render_after_a_reload
     assert_html(builder.file_field(:cover_photo), 'input[type="file"]')
     assert_html(builder.text_area(:synopsis), "textarea")
@@ -45,12 +45,12 @@ class BaliFormBuilderRailsAliasesSurviveAReloadTest < FormBuilderTestCase
 
   private
 
-  # `load` re-ejecuta el archivo igual que lo hace Zeitwerk al recargar. Es idempotente con el
-  # arreglo puesto —redefine los mismos métodos con el mismo cuerpo—, así que no ensucia a los
-  # demás tests corran en el orden que corran.
+  # `load` re-executes the file the same way Zeitwerk does on a reload. It is idempotent with the fix
+  # in place —it redefines the same methods with the same bodies— so it does not dirty the other
+  # tests whatever order they run in.
   def reload_field_modules
-    # `silence_warnings` sólo por las constantes que se re-inicializan al re-ejecutar el
-    # archivo: es ruido del harness, no del código bajo prueba.
+    # `silence_warnings` only for the constants that get re-initialised when the file re-executes:
+    # that is noise from the harness, not from the code under test.
     Kernel.silence_warnings do
       MODULES.each_key do |file|
         load Bali::Engine.root.join("lib/bali/form_builder/#{file}.rb")

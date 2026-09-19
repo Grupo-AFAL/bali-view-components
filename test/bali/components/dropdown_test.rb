@@ -85,8 +85,8 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_includes(error.message, ":sm, :md, :lg, :xl")
   end
 
-  # El chrome de un control de toolbar tenía que escribirse a mano en el call site porque el
-  # enum no lo nombraba: `button`, `icon` y `ghost`, ninguno con borde.
+  # A toolbar control's chrome had to be written by hand at the call site because the enum did not
+  # name it: `button`, `icon` and `ghost`, none of them bordered.
   def test_trigger_outline_variant
     render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger(variant: :outline) { "Columns" }
@@ -212,8 +212,8 @@ class BaliDropdownComponentTest < ComponentTestCase
   end
 
   def test_title_item_renders_a_menu_title_and_not_a_menuitem
-    # Un encabezado AGRUPA items; contado como opción navegable, el lector de pantalla
-    # anuncia una opción más de las que hay.
+    # A heading GROUPS items; counted as a navigable option, the screen reader announces one option
+    # more than there are.
     render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger { "Trigger" }
       c.with_item(tag: :title, name: "Export filtered")
@@ -222,9 +222,9 @@ class BaliDropdownComponentTest < ComponentTestCase
 
     assert_selector("span.menu-title", text: "Export filtered")
     assert_selector('[role="menuitem"]', count: 1)
-    # Un span genérico NO es un hijo que `role="menu"` admita (solo menuitem/group/separator).
-    # Presentacional deja de contar como hijo inválido sin sacarle el texto a un
-    # `aria-describedby` que lo apunte.
+    # A generic span is NOT a child `role="menu"` admits (only menuitem/group/separator).
+    # Presentational stops it counting as an invalid child without taking the text away from an
+    # `aria-describedby` pointing at it.
     assert_selector('span.menu-title[role="presentation"]')
   end
 
@@ -252,7 +252,7 @@ class BaliDropdownComponentTest < ComponentTestCase
       c.with_item(name: "Delete", href: "/movies/1", method: :delete)
     end
 
-    # El Dropdown lo PIDE con `form_class:`; no lo deduce de `plain:` (#868).
+    # The Dropdown ASKS for it with `form_class:`; it does not infer it from `plain:` (#868).
     assert_selector("li > form.contents", visible: :all)
   end
 
@@ -324,8 +324,8 @@ class BaliDropdownComponentTest < ComponentTestCase
   end
 
   def test_a_menu_of_only_titles_does_not_render
-    # Un menú de puro encabezado no es un menú: destaparía un botón que no abre ninguna
-    # opción para elegir.
+    # A menu of nothing but headings is not a menu: it would expose a button that opens no option to
+    # choose.
     render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger { "Trigger" }
       c.with_item(tag: :title, name: "Export filtered")

@@ -82,7 +82,7 @@ class BaliIndexPageComponentTest < ComponentTestCase
   end
 
   def test_no_overflow_menu_without_secondary_actions
-    # Mismo criterio que el ⋯ de la toolbar: un botón que abre un menú vacío es un bug.
+    # Same criterion as the toolbar's ⋯: a button that opens an empty menu is a bug.
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
       page.with_action { "New Movie Button" }
       page.with_body { "Content" }
@@ -92,8 +92,8 @@ class BaliIndexPageComponentTest < ComponentTestCase
   end
 
   def test_export_renders_a_titled_section_with_one_item_per_format
-    # El título es el que NOMBRA la acción: con un item por formato y sin él el menú diría
-    # "CSV / Excel / PDF" y nadie sabría de qué.
+    # The title is what NAMES the action: with one item per format and no title the menu would read
+    # "CSV / Excel / PDF" and nobody would know what of.
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
       page.with_export(url: "/movies")
       page.with_body { "Content" }
@@ -117,8 +117,8 @@ class BaliIndexPageComponentTest < ComponentTestCase
   end
 
   def test_export_links_are_kept_in_sync_by_their_controller
-    # El ⋯ vive en el PageHeader, FUERA del nodo que el turbo_stream del listado reemplaza:
-    # sin el controlador el primer filtro deja los href congelados.
+    # The ⋯ lives in the PageHeader, OUTSIDE the node the listing's turbo_stream replaces: without
+    # the controller the first filter leaves the hrefs frozen.
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
       page.with_export(url: "/movies")
       page.with_body { "Content" }
@@ -130,9 +130,9 @@ class BaliIndexPageComponentTest < ComponentTestCase
   end
 
   def test_an_explicit_params_switches_the_client_side_re_sync_off
-    # `params:` es una DECISIÓN del host —`{}` es "exportar todo a propósito"— y el
-    # controlador la deshacía apenas booteaba Stimulus, reescribiendo el href desde la URL
-    # del navegador. Los tests de Ruby seguían verdes porque `render_inline` no corre JS.
+    # `params:` is a host DECISION —`{}` means "export everything, deliberately"— and the controller
+    # undid it the moment Stimulus booted, rewriting the href from the browser's URL. The Ruby tests
+    # stayed green because `render_inline` runs no JS.
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
       page.with_export(url: "/movies", params: {})
       page.with_body { "Content" }
@@ -142,9 +142,9 @@ class BaliIndexPageComponentTest < ComponentTestCase
   end
 
   def test_the_export_items_are_described_by_the_section_title
-    # Dentro de un `<ul role="menu">` el lector de pantalla navega SOLO los menuitem, así que
-    # el título quedaba fuera del recorrido y los items se anunciaban "CSV / Excel / PDF" sin
-    # decir nunca que exportan. Como descripción y no como nombre para no pisar el visible.
+    # Inside a `<ul role="menu">` a screen reader walks ONLY the menuitems, so the title fell outside
+    # the walk and the items announced themselves as "CSV / Excel / PDF" without ever saying they
+    # export. As a description and not as a name, so it does not override the visible one.
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
       page.with_export(url: "/movies")
       page.with_body { "Content" }
