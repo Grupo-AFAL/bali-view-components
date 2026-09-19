@@ -198,6 +198,31 @@ module Bali
         )
       end
 
+      # @label Container id
+      # `id:` identifica al COMPONENTE, no a la `<table>`: se emite UNA vez, en el
+      # `<div class="table-component">` que la envuelve. Es la convención de `**options` —el
+      # atributo va al root del componente— y es donde `getElementById`, un ancla y un
+      # `turbo_stream.replace` ya lo encontraban, porque el `<div>` es el primero en orden de
+      # documento. De ese id cuelgan además los ids de fila de los grupos plegables y el del
+      # `<tr>` del estado vacío.
+      #
+      # Es la única llave de `**options` que no baja a la `<table>`: `class:`, `data:` y las
+      # demás siguen ahí. Los atributos propios del contenedor van en `table_container:`, con
+      # un caveat: ahí van clases y datos, no la identidad. Un `id:` dentro de esa sub-hash
+      # gana el atributo del `<div>` —se pinta después— pero no alimenta a `container_id`, así
+      # que los ids de fila y el del `<tr>` vacío siguen saliendo del `id:` de nivel superior
+      # (o de un prefijo aleatorio si no hay ninguno), y pasar los dos juntos deja el id de
+      # nivel superior sin elemento.
+      def with_container_id
+        render_with_template(
+          template: 'bali/table/previews/with_container_id',
+          locals: {
+            headers: HEADERS,
+            records: RECORDS
+          }
+        )
+      end
+
       # @label With Grouping
       # Pass `group:` to `with_row` to render a group-header row whenever the
       # value changes between consecutive rows. The header shows the group value
