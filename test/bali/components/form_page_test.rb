@@ -58,8 +58,8 @@ class BaliFormPageComponentTest < ComponentTestCase
   end
 
   def test_renders_an_actions_bar
-    # FormPage es el ÚNICO de los cinco page components cuyo PageHeader no llevaba bloque:
-    # declaraba `with_action` y no pintaba nada. Ahora comparte el hueco con los otros.
+    # FormPage is the ONLY one of the five page components whose PageHeader carried no block: it
+    # declared `with_action` and painted nothing. It now shares the slot with the others.
     render_inline(Bali::FormPage::Component.new(title: "New Movie")) do |page|
       page.with_action { "Save Draft" }
       page.with_secondary_action(name: "Import", href: "/movies/import")

@@ -2,11 +2,13 @@
 
 This guide explains how to integrate Bali's JavaScript controllers into your Rails application.
 
-Bali supports two approaches:
-1. **Bundler** (Vite, esbuild, Webpack, etc.) - For apps with Node.js (recommended)
-2. **Import Maps** - For apps without Node.js
+**Bali needs a bundler.** What ships is ESM source — 91 modules behind the root entry, counted
+with an esbuild metafile — importing their peers by bare specifier. Import maps cannot resolve
+that; see [Import maps](#import-maps-not-supported) below for the measurement, and
+[Installation § Step 0](installation.md) for `bin/rails g bali:install`, which writes the
+bundler wiring and refuses to touch an importmap app's Stimulus index.
 
-## Option 1: Bundler Integration (Recommended)
+## Bundler Integration (Vite, esbuild, Webpack)
 
 Best for apps using any JavaScript bundler: **Vite**, **esbuild**, **Webpack**, **Rollup**, etc.
 
@@ -92,75 +94,30 @@ export default defineConfig({
 
 ---
 
-## Option 2: Import Maps Integration (No Node.js)
+## Import maps: not supported
 
-Best for apps using `importmap-rails` without a bundler.
+This section used to be "Option 2", with 31 `pin` lines. The recipe never worked, and the
+pins are the measurement: of the 28 Bali modules it told you to pin, the files themselves
+import **eight bare specifiers the same section does not pin** — `@rails/request.js`,
+`lodash.debounce`, `lodash.throttle`, `tippy.js`, `sortablejs`, `slim-select`,
+`@glidejs/glide` and `flatpickr/dist/l10n/es.js` — and **17 relative imports**, which leave
+the pin map entirely because a relative specifier resolves against the URL the asset was
+served from. Five of the modules they reach (`utils/optional-peer.js`, `utils/top-layer.js`,
+`utils/z-index.js`, `utils/time.js`, `confirm/confirm_dialog.js`) are not in the list at all.
 
-### Step 1: Pin Bali in config/importmap.rb
+A single unresolved specifier is not a missing feature, it is the whole module failing to
+instantiate: the browser reports `Failed to resolve module specifier "…"` once and every
+controller registered from that file — yours included — never connects.
 
-```ruby
-# config/importmap.rb
+Add a bundler:
 
-# Core dependencies (from CDN)
-pin "@hotwired/stimulus", to: "https://ga.jspm.io/npm:@hotwired/stimulus@3.2.2/dist/stimulus.js"
-pin "@hotwired/turbo-rails", to: "https://ga.jspm.io/npm:@hotwired/turbo-rails@8.0.4/app/javascript/turbo/index.js"
-pin "flatpickr", to: "https://ga.jspm.io/npm:flatpickr@4.6.13/dist/esm/index.js"
-
-# Bali utility controllers
-pin "bali/controllers/datepicker-controller", to: "bali/controllers/datepicker-controller.js"
-pin "bali/controllers/submit-button-controller", to: "bali/controllers/submit-button-controller.js"
-pin "bali/controllers/submit-on-change-controller", to: "bali/controllers/submit-on-change-controller.js"
-pin "bali/controllers/dynamic-fields-controller", to: "bali/controllers/dynamic-fields-controller.js"
-pin "bali/controllers/checkbox-toggle-controller", to: "bali/controllers/checkbox-toggle-controller.js"
-pin "bali/controllers/radio-toggle-controller", to: "bali/controllers/radio-toggle-controller.js"
-pin "bali/controllers/file-input-controller", to: "bali/controllers/file-input-controller.js"
-pin "bali/controllers/focus-on-connect-controller", to: "bali/controllers/focus-on-connect-controller.js"
-pin "bali/controllers/print-controller", to: "bali/controllers/print-controller.js"
-pin "bali/controllers/slim-select-controller", to: "bali/controllers/slim-select-controller.js"
-pin "bali/controllers/step-number-input-controller", to: "bali/controllers/step-number-input-controller.js"
-pin "bali/controllers/number-format-controller", to: "bali/controllers/number-format-controller.js"
-
-# Bali component controllers
-pin "bali/bulk_actions", to: "bali/bulk_actions/index.js"
-pin "bali/modal", to: "bali/modal/index.js"
-pin "bali/dropdown", to: "bali/dropdown/index.js"
-pin "bali/tabs", to: "bali/tabs/index.js"
-pin "bali/tooltip", to: "bali/tooltip/index.js"
-pin "bali/carousel", to: "bali/carousel/index.js"
-pin "bali/clipboard", to: "bali/clipboard/index.js"
-pin "bali/reveal", to: "bali/reveal/index.js"
-pin "bali/drawer", to: "bali/drawer/index.js"
-pin "bali/navbar", to: "bali/navbar/index.js"
-pin "bali/side_menu", to: "bali/side_menu/index.js"
-pin "bali/sortable_list", to: "bali/sortable_list/index.js"
-
-# Bali utilities (used by components internally)
-pin "bali/utils/domHelpers", to: "bali/utils/domHelpers.js"
-pin "bali/utils/formatters", to: "bali/utils/formatters.js"
-pin "bali/utils/form", to: "bali/utils/form.js"
-pin "bali/utils/use-click-outside", to: "bali/utils/use-click-outside.js"
+```bash
+bundle add jsbundling-rails
+bin/rails javascript:install:esbuild
+bin/rails g bali:install
 ```
 
-### Step 2: Register Controllers
-
-In your `application.js`:
-
-```javascript
-import { Application } from "@hotwired/stimulus"
-
-const application = Application.start()
-
-// Import individual controllers as needed
-import { DatepickerController } from "bali/controllers/datepicker-controller"
-import { BulkActionsController } from "bali/bulk_actions"
-import { ModalController } from "bali/modal"
-import { DropdownController } from "bali/dropdown"
-
-application.register("datepicker", DatepickerController)
-application.register("bulk-actions", BulkActionsController)
-application.register("modal", ModalController)
-application.register("dropdown", DropdownController)
-```
+Vite resolves the same imports with no extra step; see the `fs.allow` note above.
 
 ---
 
@@ -300,19 +257,21 @@ Install the npm dependency: `yarn add tippy.js`
 2. Verify the controller is registered with correct name
 3. Ensure `data-controller` attribute matches registration name
 
-### Import Maps: "Failed to resolve module"
+### "Failed to resolve module specifier"
 
-Pin the missing module in `config/importmap.rb`. Check the asset path exists.
+The app is loading Bali through import maps, which cannot work — see
+[Import maps](#import-maps-not-supported).
 
 ---
 
 ## Migration from Import Maps to a Bundler
 
-If you're migrating from importmaps to a bundler:
-
 1. **Choose a bundler**: Vite (`vite_rails`), esbuild (`jsbundling-rails`), or Webpack
 2. **Install bali-view-components**: `yarn add bali-view-components`
 3. **Update application.js**: Use ES module imports from `'bali-view-components'`
 4. **Update layout**: Replace `javascript_importmap_tags` with your bundler's tag
+5. **Run `bin/rails g bali:install`**, which writes steps 2 and 3 for you
 
-The Bali controllers work identically with any bundler or import maps.
+Keeping `config/importmap.rb` for a handful of your own pins is fine; the generator reads it
+as "no bundler here" and leaves the Stimulus index alone, so delete it once esbuild owns the
+index.

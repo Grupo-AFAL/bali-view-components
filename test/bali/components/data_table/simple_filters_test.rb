@@ -47,10 +47,10 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector("input[type=hidden][name=group_by]", visible: :all)
   end
 
-  # Misma semántica que Filters::Component (módulo compartido PreservedParams): el browser
-  # descarta el query de la action en un submit GET, así que un host que pasa `url:` con
-  # params propios (un scope como `status=historico`) los perdía en cada submit del form
-  # simple. El link Limpiar ya los conservaba (clear_href); el submit no.
+  # Same semantics as Filters::Component (shared PreservedParams module): the browser drops the
+  # action's query on a GET submit, so a host passing a `url:` with params of its own (a scope
+  # like `status=historico`) lost them on every submit of the simple row. The Clear link already
+  # kept them (clear_href); the submit did not.
   def test_reemits_non_filter_query_params_from_url_as_hidden_fields
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test?status=historico&page=2", filters: @filters
@@ -71,9 +71,9 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("form input[type=hidden][name=page][value='2']", visible: :all)
   end
 
-  # Regla de deduplicación heredada de Filters: en colisión de key, el hash explícito gana
-  # sobre el query de la URL — sin esto un host que ya pasaba el param a mano por
-  # `preserved_params:` lo emitiría dos veces.
+  # Deduplication rule inherited from Filters: on a key collision the explicit hash wins over the
+  # URL's query — without it, a host already passing the param by hand through `preserved_params:`
+  # would emit it twice.
   def test_explicit_preserved_params_win_over_url_query_params
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test?group_by=status", filters: @filters, preserved_params: { "group_by" => "genre" }
@@ -102,20 +102,20 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("select[name='q[status_eq]']")
   end
 
-  # `clear_filters` NO es cosmético: es el único param que en el server borra la caché de
-  # filtros (`Rails.cache.delete(cache_key)`). Sin él, el link navega a la URL pelada, que
-  # con la persistencia encendida es indistinguible de "no vino ningún filtro" — y el
-  # listado restaura lo que el usuario acaba de limpiar. Las otras dos rutas de limpieza
-  # (AppliedTags#clear_all_url y clearFiltersAndClose del JS) sí lo mandan; ésta se había
-  # quedado afuera, y estos tests fijaban la URL pelada como si fuera el contrato.
+  # `clear_filters` is NOT cosmetic: it is the only param that deletes the filter cache on the
+  # server (`Rails.cache.delete(cache_key)`). Without it the link navigates to the bare URL, which
+  # with persistence on is indistinguishable from "no filter arrived" — and the listing restores
+  # what the user has just cleared. The other two clearing routes (AppliedTags#clear_all_url and
+  # the JS clearFiltersAndClose) do send it; this one had been left out, and these tests pinned
+  # the bare URL as if it were the contract.
   def test_shows_clear_button_when_show_clear_is_true
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, show_clear: true))
     assert_link(href: "/test?clear_filters=true")
   end
 
-  # Limpiar quita los FILTROS, no el estado de la vista: el link arrastra los mismos pares
-  # que el submit emite como hidden fields. Sin esto, el param que el submit acababa de
-  # conservar se perdía por el control de al lado.
+  # Clearing drops the FILTERS, not the view state: the link carries the same pairs the submit
+  # emits as hidden fields. Without this, the param the submit had just preserved was lost through
+  # the control right next to it.
   def test_clear_link_carries_the_preserved_params
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test", filters: @filters, show_clear: true, preserved_params: { tab: "archived" }
@@ -271,8 +271,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
   def test_search_input_opts_out_of_password_manager_autofill
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
-    # Un buscador no es un campo de login; salimos del autofill para que 1Password
-    # y otros no ofrezcan credenciales al enfocarlo.
+    # A search box is not a login field; we opt out of autofill so 1Password and friends do not offer
+    # credentials when it is focused.
     assert_selector("input[type='text'][autocomplete='off'][data-1p-ignore]")
     assert_selector("input[type='text'][data-lpignore='true'][data-form-type='other']")
   end
@@ -318,8 +318,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_link(href: "/test?clear_filters=true")
   end
 
-  # Una `url:` con query string es el caso normal cuando el host pasa `request.fullpath` o un
-  # path helper con params: el param se AGREGA, sin pisar lo que ya viajaba ni duplicarse.
+  # A `url:` with a query string is the normal case when the host passes `request.fullpath` or a path
+  # helper with params: the param is ADDED, without overwriting what already travelled or duplicating.
   def test_the_clear_link_keeps_the_params_the_listing_url_already_carried
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
                     url: "/test?scope=mine", filters: @filters, show_clear: true))
@@ -641,7 +641,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('[data-filter-persistence-enabled-value="true"]')
   end
 
-  # El DataTable lo apaga porque pinta el marcador como control propio de la toolbar.
+  # The DataTable switches it off because it paints the checkbox as a toolbar control of its own.
   def test_does_not_render_persistence_toggle_when_persistence_toggle_is_false
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test", filters: @filters, storage_id: "records_filters", persistence_toggle: false
@@ -654,7 +654,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('[data-controller="filter-persistence"]')
   end
 
-  # --- El rótulo del botón nombra lo que el botón hace ---
+  # --- The button's caption names what the button does ---
 
   def test_the_button_says_search_when_there_is_nothing_to_filter
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search))
@@ -668,11 +668,11 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
   end
 
-  # --- auto_submit: pills que filtran al click (#725) ---
+  # --- auto_submit: pills that filter on click (#725) ---
   #
-  # El cableado es todo `data-`: el form monta `submit-on-change` y cada control del
-  # filtro que opta le manda la acción. Los asserts son sobre esos atributos porque son
-  # el contrato — el comportamiento en sí lo cubre cypress/e2e/simple-filters-auto-submit.
+  # The wiring is all `data-`: the form mounts `submit-on-change` and every opted-in filter control
+  # sends it the action. The asserts are on those attributes because they are the contract — the
+  # behaviour itself is covered by cypress/e2e/simple-filters-auto-submit.
 
   def auto_submit_pill_filters(auto_submit:)
     [
@@ -704,7 +704,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('input[type="checkbox"][data-action="change->submit-on-change#submit"]', count: 2)
   end
 
-  # El default es off, y eso es lo que deja intacta cualquier fila que ya existía.
+  # The default is off, and that is what leaves any row that already existed untouched.
   def test_without_auto_submit_the_row_carries_no_wiring_at_all
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test", filters: auto_submit_pill_filters(auto_submit: false)
@@ -726,8 +726,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector('input[type="checkbox"][data-action]')
   end
 
-  # #996: un select nativo también es una elección terminada — su change dispara al
-  # cerrar el menú con una selección — así que auto-envía igual que las pills.
+  # #996: a native select is a finished choice too — its change fires when the menu closes on a
+  # selection — so it auto-submits just like the pills.
   def test_auto_submit_wires_a_native_select
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [
       { attribute: :genre, label: "Genre", type: :select, auto_submit: true,
@@ -738,8 +738,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('select[data-action="change->submit-on-change#submit"]', count: 1)
   end
 
-  # Un rango se manda entre una mitad del valor y la otra, así que el componente lo
-  # ignora aunque el hash de instancia (que no pasa por la validación del DSL) lo pida.
+  # A range is submitted between one half of the value and the other, so the component ignores it
+  # even when the instance hash (which skips the DSL's validation) asks for it.
   def test_auto_submit_is_ignored_outside_the_single_choice_widgets
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [
       { attribute: :founded_year, label: "Founded", type: :number_range, auto_submit: true }
@@ -749,7 +749,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector("[data-action*='submit-on-change']")
   end
 
-  # --- Presets de periodo en un date_range (#725) ---
+  # --- Period presets on a date_range (#725) ---
 
   def preset_filter(**overrides)
     [ { attribute: :created_at, type: :date_range, label: "Created",
@@ -771,21 +771,21 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
                     text: I18n.t("bali_view.simple_filters.presets.this_month"), visible: :all)
   end
 
-  # 725-D6: el widget REUSA el controller de `f.time_period_group`, no uno propio.
+  # 725-D6: the widget REUSES `f.time_period_group`'s controller, not one of its own.
   def test_the_widget_wires_the_shared_time_period_field_controller
     render_presets
 
     assert_selector('[data-controller="time-period-field"]', visible: :all)
     assert_selector('[data-time-period-field-custom-value="custom"]', visible: :all)
-    # El sufijo `-value` va deletreado a propósito: sin él Stimulus no lee nada, el
-    # controller se queda sin contenedor que mostrar y "Personalizado…" no revela el
-    # picker — un silencio que sólo se ve en el browser.
+    # The `-value` suffix is spelled out deliberately: without it Stimulus reads nothing, the
+    # controller is left with no container to show and "Personalizado…" never reveals the picker —
+    # a silence only visible in the browser.
     assert_selector('[data-time-period-field-date-input-container-class-value="flatpickr"]',
                     visible: :all)
   end
 
-  # Un solo control con `name`: dos mandarían el param dos veces y ganaría el último, que no
-  # es necesariamente el que el usuario ve.
+  # A single control with a `name`: two would send the param twice and the last would win, which is
+  # not necessarily the one the user sees.
   def test_only_the_hidden_field_carries_the_param_name
     render_presets
 
@@ -812,8 +812,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector(".flatpickr.hidden", visible: :all)
   end
 
-  # Un valor que no es token es un rango que el usuario eligió: el select cae en
-  # "Personalizado…" y el picker vuelve mostrándolo.
+  # A value that is not a token is a range the user picked: the select lands on "Personalizado…"
+  # and the picker comes back showing it.
   def test_an_explicit_range_lands_on_custom_with_the_picker_showing
     render_presets(value: "2026-08-01 to 2026-08-06")
 
@@ -831,8 +831,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("option[value='']", text: "Whenever", visible: :all)
   end
 
-  # El caption apunta al SELECT, que es el control que el usuario opera — el picker es el
-  # cuarto estado de ese mismo control, no un segundo filtro.
+  # The caption points at the SELECT, which is the control the user operates — the picker is that
+  # same control's fourth state, not a second filter.
   def test_the_caption_names_the_period_select
     render_presets
 
@@ -841,19 +841,18 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   end
 end
 
-# #1155. Un control de filtro sin nombre accesible es un fallo de WCAG 4.1.2: el lector
-# llega a "cuadro combinado" pelado y el usuario no sabe qué está filtrando. El caption
-# era lo único que nombraba a la mayoría de las ramas, así que `label: false` —que existe
-# desde #882 para una fila que ya se explica sola— los dejaba mudos a todos.
+# #1155. A filter control with no accessible name is a WCAG 4.1.2 failure: the reader reaches a
+# bare "combo box" and the user does not know what they are filtering. The caption was the only
+# thing naming most of the branches, so `label: false` —which exists since #882 for a row that
+# already explains itself— left every one of them mute.
 #
-# Estos tests miran el MARKUP. Dos ramas no se pueden verificar así, porque el control que
-# el usuario opera lo construye JS y no está en el HTML que rinde el ERB (el
-# `div[role=combobox]` de SlimSelect y el altInput de flatpickr): de esas dos, acá se fija
-# el atributo que el JS copia, y el árbol de accesibilidad se mide en el navegador.
-# La forma en que los hosts declaran esto de verdad (identity, afal-apps, bali-auth): el DSL
-# de clase y un `blank:` que es un proc, para una traducción que no se puede congelar al
-# cargar la clase. El cruce proc-`blank:` + `label: false` + `filter_attribute` no estaba
-# cubierto de punta a punta (revisión de #1155).
+# These tests look at the MARKUP. Two branches cannot be verified this way, because the control the
+# user operates is built by JS and is not in the HTML the ERB renders (SlimSelect's
+# `div[role=combobox]` and flatpickr's altInput): for those two, what is pinned here is the
+# attribute the JS copies, and the accessibility tree is measured in the browser.
+# The way hosts actually declare this (identity, afal-apps, bali-auth): the class DSL and a `blank:`
+# that is a proc, for a translation that cannot be frozen at class-load time. The crossing of a
+# proc `blank:` + `label: false` + `filter_attribute` was not covered end to end.
 class ProcBlankUncaptionedFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, simple: true, advanced: false,
                    options: [ %w[Action action] ],
@@ -862,10 +861,9 @@ class ProcBlankUncaptionedFilterForm < Bali::FilterForm
 end
 
 class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
-  # Con guarda a propósito. El Set de deduplicación vive en el componente, así que quien
-  # revierta el arreglo para ver estos tests en rojo se queda sin el accessor — y sin la
-  # guarda los 21 tests morían con el mismo `NoMethodError` en el `setup`, que enmascara
-  # exactamente lo que se está afirmando (revisión de #1155).
+  # Guarded on purpose. The deduplication Set lives on the component, so anyone reverting the fix
+  # to watch these tests go red is left without the accessor — and unguarded, all 21 tests died
+  # with the same `NoMethodError` in `setup`, which masks exactly what is being asserted.
   def setup
     component = Bali::DataTable::SimpleFilters::Component
     return unless component.respond_to?(:unnamed_filter_warnings_issued=)
@@ -873,7 +871,6 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     component.unnamed_filter_warnings_issued = Set.new
   end
 
-  # El caso reproducido en afal-apps: tres selects con `label: false` y opción en blanco.
   def test_a_select_without_caption_is_named_by_its_blank_option
     render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años",
                   label: false)
@@ -889,14 +886,13 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("select[aria-label='Año fiscal']")
   end
 
-  # Un filtro construido a mano puede no traer la clave `:label`: tampoco hay caption ahí.
+  # A hand-built filter may not carry the `:label` key at all: there is no caption there either.
   def test_a_select_with_no_label_key_at_all_is_named_too
     render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años")
 
     assert_selector("select[aria-label='Todos los años']")
   end
 
-  # La contracara de la decisión: donde YA hay un `<label for>` el nombre no se duplica.
   def test_a_captioned_select_keeps_its_markup_untouched
     render_filter(attribute: :status, collection: [ %w[Active active] ], blank: "All",
                   label: "Status")
@@ -905,17 +901,17 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_no_selector("select[aria-label]")
   end
 
-  # `include_blank: true` es válido en Rails y pinta una opción vacía: nombrar el control
-  # "true" sería el mismo bug que la palabra "false" de más abajo.
+  # `include_blank: true` is valid in Rails and paints an empty option: naming the control "true"
+  # would be the same bug as the word "false" further down.
   def test_a_non_string_blank_never_becomes_the_name
     render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: true, label: false)
 
     assert_no_selector("select[aria-label]")
   end
 
-  # SlimSelect recorta el `<select>` real a 1x1 y dibuja su propio `div[role=combobox]`,
-  # que toma el nombre SOLO de los aria del select: el `<label for>` no viaja. O sea que
-  # esta rama está muda también en el caso captionado, que es el de todos los hosts hoy.
+  # SlimSelect shrinks the real `<select>` to 1x1 and draws its own `div[role=combobox]`, which
+  # takes its name ONLY from the select's aria attributes: the `<label for>` does not travel. So
+  # this branch is mute in the captioned case too, which is every host's case today.
   def test_a_captioned_slim_select_points_at_its_caption
     render_filter(attribute: :owner_id, collection: [ %w[Ana ana] ], blank: "All owners",
                   label: "Owner", type: :slim_select)
@@ -931,17 +927,17 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("select[aria-label='All owners']", visible: :all)
   end
 
-  # El datepicker copia al altInput el `label[for]`, y a falta de eso el `aria-label`
-  # (datepicker-controller.js#forwardAccessibleName). Sin caption no había ninguno.
+  # The datepicker copies the `label[for]` onto the altInput, and failing that the `aria-label`
+  # (datepicker-controller.js#forwardAccessibleName). With no caption there was neither.
   def test_an_uncaptioned_date_filter_carries_an_aria_label
     render_filter(attribute: :signed_on, type: :date, label: false, aria_label: "Fecha de firma")
 
     assert_selector("input[aria-label='Fecha de firma']", visible: :all)
   end
 
-  # Por el id y no por `input[type=date]`: el datepicker rinde `type="text"` —flatpickr
-  # necesita el input de texto para su altInput—, así que ese selector no empataba con nada
-  # y la aserción no probaba nada (revisión de #1155).
+  # By id and not by `input[type=date]`: the datepicker renders `type="text"` —flatpickr needs the
+  # text input for its altInput— so that selector matched nothing and the assertion proved
+  # nothing.
   def test_a_captioned_date_filter_keeps_its_markup_untouched
     render_filter(attribute: :signed_on, type: :date, label: "Firmado")
 
@@ -950,14 +946,14 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_no_selector("input#simple-filter-q-signed_on_eq[aria-label]", visible: :all)
   end
 
-  # El placeholder salía con la cadena "false" por el `|| filter[:label]`.
+  # The placeholder came out as the string "false", through the `|| filter[:label]`.
   def test_an_uncaptioned_date_filter_never_gets_a_false_placeholder
     render_filter(attribute: :signed_on, type: :date, label: false, aria_label: "Fecha")
 
     assert_no_selector("input[placeholder=false]", visible: :all)
   end
 
-  # El select de períodos siempre tiene de dónde caer: `blank:`, y si no, "Cualquier fecha".
+  # The presets select always has something to fall back on: `blank:`, and failing that "Any date".
   def test_the_presets_select_is_named_even_with_no_caption_and_no_blank
     render_presets_filter(label: false)
 
@@ -967,8 +963,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     )
   end
 
-  # El picker de "Personalizado…" es un segundo control del mismo grupo y NUNCA tiene
-  # `<label for>`: su `aria-label` se emitía siempre, y con `label: false` decía "false".
+  # The "Personalizado…" picker is a second control of the same group and NEVER has a
+  # `<label for>`: its `aria-label` was always emitted, and with `label: false` it said "false".
   def test_the_presets_picker_is_never_named_false
     render_presets_filter(label: false)
 
@@ -976,10 +972,10 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("input#simple-filter-q-created_at-custom[aria-label]", visible: :all)
   end
 
-  # El picker se nombra por el caption del filtro, no por el `aria_label:`: el YARD promete
-  # que donde hay caption manda el caption, y WCAG 2.5.3 pide que el nombre accesible
-  # contenga el rótulo visible. Las otras cinco ramas lo cumplían solas —con caption no
-  # emiten `aria-label`—; ésta sacaba dos nombres para el mismo grupo (revisión de #1155).
+  # The picker is named by the filter's caption, not by `aria_label:`: the YARD promises that where
+  # there is a caption the caption wins, and WCAG 2.5.3 asks that the accessible name contain the
+  # visible label. The other five branches satisfied that on their own —with a caption they emit no
+  # `aria-label`—; this one produced two names for the same group.
   def test_the_presets_picker_is_named_by_the_caption_not_by_aria_label
     render_presets_filter(label: "Creado", aria_label: "OTRO NOMBRE")
 
@@ -988,9 +984,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_no_selector("[aria-label='OTRO NOMBRE']", visible: :all)
   end
 
-  # El respaldo del SELECT de períodos es su opción en blanco ("Cualquier fecha"). El picker
-  # no puede heredarlo: el usuario lo abre justo para decir lo contrario, así que ese nombre
-  # está al revés de la función del control (revisión de #1155). Se nombra por lo que es.
+  # The presets SELECT falls back to its blank option ("Cualquier fecha"). The picker cannot
+  # inherit that: the user opens it precisely to say the opposite, so that name is the reverse of
+  # what the control does. It is named after what it is.
   def test_the_presets_picker_is_never_named_after_the_blank_option
     render_presets_filter(label: false, blank: "Cualquier fecha")
 
@@ -1011,9 +1007,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
                     visible: :all)
   end
 
-  # La contracara, rama por rama: con caption, el `aria_label:` no nombra nada en ninguna
-  # de las nueve. Nadie afirmaba esta combinación antes y es donde el código y su YARD se
-  # contradecían.
+  # The other side, branch by branch: with a caption, `aria_label:` names nothing in any of the
+  # nine. Nobody asserted this combination before, and it is where the code and its YARD
+  # contradicted each other.
   def test_a_caption_wins_over_aria_label_in_every_branch
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test", filters: every_widget_captioned
@@ -1024,8 +1020,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
                  "con caption, `aria_label:` se ignora en todas las ramas")
   end
 
-  # El booleano pinta su propio rótulo al lado del switch: con `label: false` imprimía
-  # la palabra "false" en pantalla y el switch se llamaba así.
+  # The boolean paints its own caption next to the switch: with `label: false` it printed the word
+  # "false" on screen and the switch was called that.
   def test_a_boolean_filter_never_prints_the_word_false
     render_filter(attribute: :featured, type: :boolean, label: false, aria_label: "Sólo destacados")
 
@@ -1040,8 +1036,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_no_selector("input[type=checkbox][aria-label]", visible: :all)
   end
 
-  # Los grupos de pills y el rango numérico ya nombran cada control; lo que les faltaba
-  # sin caption era el nombre del GRUPO.
+  # The pill groups and the number range already name each control; what they lacked without a
+  # caption was the name of the GROUP.
   def test_an_uncaptioned_pill_group_is_still_a_named_group
     render_filter(attribute: :kind, collection: [ %w[Public public] ], type: :toggle_group,
                   label: false, aria_label: "Tipo")
@@ -1055,13 +1051,12 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("[role=group][aria-label='Importe']", visible: :all)
   end
 
-  # El barrido que impide el #1155-bis: ninguna rama renderiza un control operable sin
-  # nombre. `hidden` y `submit` quedan fuera porque no se alcanzan.
+  # The sweep that prevents a #1155-bis: no branch renders an operable control without a name.
+  # `hidden` and `submit` are out because they cannot be reached.
   #
-  # El buscador rápido viaja en el barrido con su `label:` puesto: es el otro control de la
-  # fila y su placeholder NO lo nombra —un placeholder desaparece al escribir—, así que si
-  # el `aria-label` del buscador dejara de emitirse este test lo marcaría igual que a un
-  # filtro mudo (revisión de #1155).
+  # The quick search travels in the sweep with its `label:` set: it is the row's other control and
+  # its placeholder does NOT name it —a placeholder disappears as you type— so if the search's
+  # `aria-label` stopped being emitted this test would flag it just like a mute filter.
   def test_no_simple_filter_control_ships_without_an_accessible_name
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test", filters: every_widget,
@@ -1070,8 +1065,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
 
     nameless = page.all("select, input", visible: :all).reject do |control|
       next true if %w[hidden submit].include?(control[:type])
-      # Las dos mitades de un rango numérico se llaman "Min" y "Max" por su placeholder
-      # —último recurso de accname— y el grupo que las envuelve lleva el nombre del filtro.
+      # The two halves of a number range are called "Min" and "Max" through their placeholder —the
+      # last resort of accname— and the group wrapping them carries the filter's name.
       next true if control[:type] == "number" && control[:placeholder].present?
 
       control[:"aria-label"].present? || control[:"aria-labelledby"].present? ||
@@ -1082,9 +1077,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
                  "todo control de la fila tiene que salir con nombre accesible")
   end
 
-  # La cadena entera, por donde llega de un anfitrión: FilterForm → `simple_filters_config`
-  # → el componente. Es lo que hace que los tres selects de afal-apps queden nombrados sin
-  # que el host toque una línea.
+  # The whole chain, the way it arrives from a host: FilterForm → `simple_filters_config` → the
+  # component. It is what leaves afal-apps' three selects named without the host touching a line.
   def test_a_filter_form_declaring_label_false_reaches_the_component_named
     form = Bali::FilterForm.new(
       Movie.all, ActionController::Parameters.new({}),
@@ -1099,8 +1093,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("select[aria-label='Todos los géneros']")
   end
 
-  # Y por el DSL de clase con un `blank:` proc, que es como lo declaran los hosts de verdad:
-  # `simple_filters_config` resuelve el proc antes de que el filtro llegue al componente.
+  # And through the class DSL with a `blank:` proc, which is how real hosts declare it:
+  # `simple_filters_config` resolves the proc before the filter reaches the component.
   def test_a_proc_blank_declared_by_the_class_dsl_reaches_the_component_as_the_name
     form = ProcBlankUncaptionedFilterForm.new(Movie.all, ActionController::Parameters.new({}))
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
@@ -1111,9 +1105,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("select[aria-label='Todos los géneros']")
   end
 
-  # Sin `aria_label:`, sin caption y sin `blank:` del que caer no queda nombre posible.
-  # Reventar en render rompería producción por un defecto de accesibilidad, así que avisa
-  # donde se puede arreglar y sigue.
+  # With no `aria_label:`, no caption and no `blank:` to fall back on there is no name left.
+  # Blowing up at render would break production over an accessibility defect, so it warns where it
+  # can be fixed and carries on.
   def test_warns_when_a_filter_has_no_name_left_to_fall_back_on
     log = capture_bali_log do
       in_development { render_filter(attribute: :featured, type: :boolean, label: false) }
@@ -1123,10 +1117,10 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_match(/aria_label/, log)
   end
 
-  # El texto del aviso decía "el control sale sin nombre" también para las tres ramas de
-  # varios controles, donde es falso: cada pill se nombra con su opción y las dos mitades de
-  # un rango salen "Mín" y "Máx" por su placeholder. Lo anónimo ahí es el GRUPO, que sin
-  # nombre ni siquiera se emite (revisión de #1155).
+  # The warning's text said "the control ships without a name" for the three multi-control branches
+  # too, where it is false: each pill is named by its option and the two halves of a range come out
+  # "Min" and "Max" through their placeholder. What is anonymous there is the GROUP, which without
+  # a name is not even emitted.
   def test_the_warning_for_a_multi_control_filter_names_the_group_not_the_control
     log = capture_bali_log do
       in_development { render_filter(attribute: :amount, type: :number_range, label: false) }
@@ -1146,9 +1140,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     refute_match(/GROUP/, log)
   end
 
-  # Una vez por control y por proceso: sin la deduplicación la suite de un anfitrión repite
-  # la misma línea en cada página que pinta la fila. El `setup` resetea el Set, así que esto
-  # sólo se puede afirmar dentro de un mismo test.
+  # Once per control per process: without the deduplication a host's suite repeats the same line on
+  # every page that paints the row. `setup` resets the Set, so this can only be asserted inside a
+  # single test.
   def test_the_warning_sounds_once_per_control_and_process
     log = capture_bali_log do
       in_development do
@@ -1159,8 +1153,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_equal(1, log.scan(/SimpleFilters "featured"/).size, log)
   end
 
-  # `presets:` siempre resuelve un nombre —`preset_blank_label` cae en una cadena
-  # traducida—, así que la exención de `filter_has_a_name?` tiene que dejarlo callado.
+  # `presets:` always resolves a name —`preset_blank_label` falls back to a translated string— so
+  # `filter_has_a_name?`'s exemption has to keep it quiet.
   def test_a_presets_filter_never_warns_even_with_no_caption_and_no_aria_label
     log = capture_bali_log { in_development { render_presets_filter(label: false) } }
 
@@ -1178,8 +1172,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_empty(log)
   end
 
-  # En producción no suena: un anfitrión no se entera de un defecto de accesibilidad por
-  # el log de sus usuarios, y ahí la línea es ruido puro.
+  # It does not sound in production: a host does not learn about an accessibility defect from their
+  # users' log, and there the line is pure noise.
   def test_stays_silent_in_production
     log = capture_bali_log do
       in_env("production") { render_filter(attribute: :featured, type: :boolean, label: false) }
@@ -1199,7 +1193,7 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
       .merge(overrides))
   end
 
-  # Las mismas nueve ramas, todas con caption Y con un `aria_label:` que no debe ganarle.
+  # The same nine branches, all with a caption AND with an `aria_label:` that must not beat it.
   def every_widget_captioned
     every_widget.each_with_index.map do |filter, index|
       filter.merge(label: "Caption #{index}", aria_label: "OTRO NOMBRE")

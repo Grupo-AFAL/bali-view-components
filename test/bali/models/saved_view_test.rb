@@ -21,8 +21,8 @@ class BaliSavedViewTest < ActiveSupport::TestCase
     assert_not build_view.valid?, "mismo owner+storage+name debe rechazarse"
     assert_predicate build_view(storage_id: "otro_listado"), :valid?
     assert_predicate build_view(owner: User.create!(name: "Otra")), :valid?
-    # El scope de unicidad incluye owner_type: otro TIPO de dueño (fase 2: equipos/roles)
-    # puede repetir nombre aunque comparta id numérico con un usuario.
+    # The uniqueness scope includes owner_type: another KIND of owner (phase 2: teams/roles) may
+    # repeat a name even when it shares a numeric id with a user.
     assert_predicate build_view(owner: Tenant.create!(name: "Equipo")), :valid?
   end
 
@@ -38,25 +38,25 @@ class BaliSavedViewTest < ActiveSupport::TestCase
     assert_equal({}, build_view(payload: [ 1, 2 ]).payload)
   end
 
-  # --- Store: la implementación default del contrato saved_views_store ---
+  # --- Store: the default implementation of the saved_views_store contract ---
 
   def test_store_lists_only_the_owner_and_storage_scope_ordered_by_name_and_upserts_by_name
     store = Bali::SavedView.store_for(owner, "movies_index")
     store.save(name: "Zeta", payload: { "attributes" => {} })
     store.save(name: "Alfa", payload: { "attributes" => {} })
-    # Ruido fuera del scope: otro storage, otro dueño y otro TIPO de dueño.
+    # Noise outside the scope: another storage, another owner and another KIND of owner.
     build_view(storage_id: "otro_listado", name: "Ajena storage").save!
     build_view(owner: User.create!(name: "Otra"), name: "Ajena usuario").save!
     build_view(owner: Tenant.create!(name: "Equipo"), name: "Ajena tipo").save!
 
     assert_equal %w[Alfa Zeta], store.list.map(&:name)
 
-    # Upsert por nombre: no duplica, actualiza el payload.
+    # Upsert by name: it does not duplicate, it updates the payload.
     updated = store.save(name: "Alfa", payload: { "attributes" => { "status_eq" => "done" } })
     assert_equal 2, store.list.size
     assert_equal({ "attributes" => { "status_eq" => "done" } }, updated.payload)
 
-    # find/delete quedan dentro del scope: una vista ajena no se encuentra ni se borra.
+    # find/delete stay inside the scope: somebody else's view is neither found nor deleted.
     foreign = Bali::SavedView.find_by!(name: "Ajena usuario")
     assert_nil store.find(foreign.id)
     store.delete(foreign.id)

@@ -17,8 +17,8 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     assert_selector('[data-filter-persistence-enabled-value="false"]')
   end
 
-  # Los tooltips van en el elemento del CONTROLLER, no en el botón: el Stimulus los lee de
-  # this.element y en el hijo eran invisibles — el texto caía al fallback en inglés.
+  # The tooltips go on the CONTROLLER's element, not on the button: Stimulus reads them from
+  # this.element and on the child they were invisible — the text fell back to the English default.
   def test_tooltips_travel_as_values_on_the_controller_element
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 
@@ -44,17 +44,17 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     assert_selector('[data-filter-persistence-enabled-value="true"]')
   end
 
-  # Los dos íconos son svg `aria-hidden` y `data-tip` es invisible para un lector de pantalla:
-  # sin aria-label el botón no tiene nombre accesible.
+  # Both icons are `aria-hidden` svgs and `data-tip` is invisible to a screen reader: without an
+  # aria-label the button has no accessible name.
   def test_the_button_has_an_accessible_name
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 
     assert_selector('button[data-action="filter-persistence#toggle"][aria-label="Remember filters"]')
   end
 
-  # El nombre no cambia con el estado, los íconos son `aria-hidden` y `data-tip` es contenido
-  # generado por CSS: `aria-pressed` es lo único que le dice a un lector de pantalla si los
-  # filtros se están recordando o no. Sin él el botón se anuncia igual en los dos estados.
+  # The name does not change with the state, the icons are `aria-hidden` and `data-tip` is
+  # CSS-generated content: `aria-pressed` is the only thing telling a screen reader whether the
+  # filters are being remembered. Without it the button announces the same in both states.
   def test_the_button_announces_its_state
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 
@@ -67,8 +67,8 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     assert_selector('button[data-action="filter-persistence#toggle"][aria-pressed="true"]')
   end
 
-  # CONTRATO de data_table/index.css: sin esta clase el control queda como un ícono anónimo
-  # dentro del menú ⋯.
+  # CONTRACT with data_table/index.css: without this class the control is an anonymous icon inside
+  # the ⋯ menu.
   def test_the_label_carries_the_toolbar_control_label_class
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 

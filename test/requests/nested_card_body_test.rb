@@ -2,16 +2,16 @@
 
 require "test_helper"
 
-# `Bali::Card::Component` ya emite su propio `.card-body` (`component.html.erb:4`) y acepta
-# `body_class:` para las clases extra que quiera el call site. Una preview que además escribe su
-# propio `<div class="card-body">` deja el contenido dentro de dos, y el padding se duplica:
-# daisyUI declara `.card-body { padding: var(--card-p, 1.5rem) }` y nadie fija `--card-p` en el
-# tamaño `md`, así que la tarjeta salía con 48px por lado en vez de 24px (#833).
+# `Bali::Card::Component` already emits its own `.card-body` (`component.html.erb:4`) and accepts
+# `body_class:` for whatever extra classes the call site wants. A preview that also writes its own
+# `<div class="card-body">` leaves the content inside two of them, and the padding doubles: daisyUI
+# declares `.card-body { padding: var(--card-p, 1.5rem) }` and nobody sets `--card-p` at the `md`
+# size, so the card came out at 48px a side instead of 24px (#833).
 #
-# Va por HTTP y no por `assert_selector` de componente a propósito: el defecto vive en la
-# composición de la preview, no en el componente. Un test de componente renderiza
-# `Bali::Card::Component` sola y siempre ve un solo `.card-body`, así que nunca lo vería. Y una
-# preview es lo que un host copia, que es lo que hace que valga la pena fijarlo.
+# It goes over HTTP and not through a component `assert_selector`, on purpose: the defect lives in
+# the preview's composition, not in the component. A component test renders `Bali::Card::Component`
+# on its own and always sees a single `.card-body`, so it would never see this. And a preview is
+# what a host copies, which is what makes it worth pinning.
 class NestedCardBodyTest < ActionDispatch::IntegrationTest
   PREVIEWS = %w[
     /lookbook/preview/bali/dashboard_page/default
@@ -30,10 +30,10 @@ class NestedCardBodyTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # El request test de arriba fija tres previews. Esto fija la REGLA: `Bali::Card::Component` es
-  # la única que puede escribir `card-body`, y ninguna de las ~464 previews del paquete tiene por
-  # qué escribirlo a mano. Es instantáneo, así que una preview nueva queda cubierta sin que nadie
-  # se acuerde de sumarla a `PREVIEWS`.
+  # The request test above pins three previews. This pins the RULE: `Bali::Card::Component` is the
+  # only thing allowed to write `card-body`, and none of the package's ~464 previews has any business
+  # writing one by hand. It is instantaneous, so a new preview is covered without anybody remembering
+  # to add it to `PREVIEWS`.
   def test_no_preview_template_writes_a_card_body_by_hand
     root = Bali::Engine.root.join("app/components/bali")
     offenders = Dir[root.join("**/previews/*.erb")].select do |file|

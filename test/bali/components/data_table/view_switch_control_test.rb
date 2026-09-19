@@ -9,9 +9,9 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
     )
   end
 
-  # Las vistas se declaran ANTES de renderizar, igual que hace el slot del DataTable
-  # (`block&.call(component)`): el bloque de contenido de ViewComponent llegaría tarde,
-  # después de que `render?` ya decidió.
+  # The views are declared BEFORE rendering, the same way the DataTable's slot does
+  # (`block&.call(component)`): ViewComponent's content block would arrive too late, after `render?`
+  # has already decided.
   def render_switch(**kwargs)
     switch = component(**kwargs)
     switch.with_view(name: "Tabla", icon: "list", value: :table)
@@ -32,8 +32,8 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   end
 
   def test_hrefs_preserve_q_and_saved_view_and_drop_page
-    # Cambiar de modo de visualización es NAVEGACIÓN: los filtros y la vista guardada
-    # aplicada sobreviven; la paginación vuelve a la primera página.
+    # Changing display mode is NAVIGATION: the filters and the applied saved view survive; the
+    # pagination goes back to the first page.
     render_switch(current_params: { "q" => { "name_cont" => "matrix" }, "saved_view" => "7", "page" => "3" })
 
     assert_selector("a[href*='view=grid'][href*='saved_view=7'][href*='name_cont']")
@@ -49,8 +49,8 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   end
 
   def test_a_url_that_already_carries_a_query_string_is_merged_not_concatenated
-    # `"#{url}?#{query}"` daba `/movies?scope=archived?view=grid`, que Rack parsea como un
-    # solo `scope` corrupto y sin `view`: el click no cambiaba de vista.
+    # `"#{url}?#{query}"` gave `/movies?scope=archived?view=grid`, which Rack parses as a single
+    # corrupt `scope` and no `view`: the click changed no view.
     switch = Bali::DataTable::ViewSwitchControl::Component.new(
       url: "/movies?scope=archived", current_params: { "q" => { "name_cont" => "matrix" } }
     )
@@ -73,8 +73,8 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   end
 
   def test_unknown_view_falls_back_to_the_first_declared
-    # El `?view=` crudo nunca llega al contenido sin validarse: un valor desconocido cae a
-    # la primera vista en vez de dejar el listado vacío.
+    # The raw `?view=` never reaches the content unvalidated: an unknown value falls back to the
+    # first view instead of leaving the listing empty.
     render_switch(current: :roadmap)
     assert_selector("a.btn-active[href*='view=table']")
   end
@@ -91,8 +91,8 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   end
 
   def test_explicit_href_is_left_to_the_path_autodetection
-    # Una vista que vive en OTRA ruta no la marca el control: la autodetección por path de
-    # Bali::ViewSwitch es la que sabe si estamos parados encima.
+    # A view that lives on ANOTHER path is not marked by the control: Bali::ViewSwitch's path
+    # autodetection is what knows whether we are standing on it.
     switch = component
     switch.with_view(name: "Tabla", icon: "list", value: :table)
     switch.with_view(name: "Estudios", icon: "calendar", href: "/admin/studios")

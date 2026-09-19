@@ -12,60 +12,60 @@ class MalformedQSimpleFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 
-# `?q=loquesea` — un escalar donde el listado espera un hash. No hace falta sesión ni saber
-# nada de la app para escribirlo en la barra de direcciones, así que un listado que se cae
-# con eso es un 500 que cualquier visitante dispara.
+# `?q=loquesea` — a scalar where the listing expects a hash. Typing it into the address bar needs
+# no session and no knowledge of the app, so a listing that falls over on it is a 500 any visitor
+# can fire.
 class FilterFormMalformedQTest < ActiveSupport::TestCase
-  test "un q escalar no tumba el form" do
+  test "a scalar q does not take the form down" do
     form = MalformedQFilterForm.new(Movie.all, ActionController::Parameters.new(q: "loquesea"))
 
     assert_nil form.name_i_cont
   end
 
-  test "un q en array no tumba el form" do
+  test "an array q does not take the form down either" do
     form = MalformedQFilterForm.new(Movie.all, ActionController::Parameters.new(q: [ "loquesea" ]))
 
     assert_nil form.name_i_cont
   end
 
-  test "un q basura sale sin filtrar, no vacio" do
+  test "a junk q comes out unfiltered, not empty" do
     form = MalformedQFilterForm.new(Movie.all, ActionController::Parameters.new(q: "loquesea"))
 
     assert_equal Movie.count, form.result.count
   end
 
-  # Con filtros simplificados encendidos hay un SEGUNDO `permit` sobre el mismo valor, que
-  # corre al construir: si este form se arma y no filtra, los dos pasaron.
-  test "un q escalar tampoco tumba el segundo permit de los filtros simplificados" do
+  # With simple filters on there is a SECOND `permit` over the same value, running at build time: if
+  # this form builds and does not filter, both of them held.
+  test "a scalar q does not take down the simple filters second permit either" do
     form = MalformedQSimpleFilterForm.new(Movie.all, ActionController::Parameters.new(q: "loquesea"))
 
     assert_equal Movie.count, form.result.count
   end
 
-  # `q[g]` y `q[m]` los lee el panel avanzado, y `q[s]` el orden: los tres salen del mismo
-  # valor, así que un escalar los alcanza a todos.
-  test "un q escalar no tumba agrupaciones, combinador ni orden" do
+  # `q[g]` and `q[m]` are read by the advanced panel, and `q[s]` by the sorting: all three come out
+  # of the same value, so a scalar reaches all of them.
+  test "a scalar q takes down neither groupings, combinator nor sorting" do
     form = MalformedQFilterForm.new(Movie.all, ActionController::Parameters.new(q: "loquesea"))
 
     assert_nothing_raised { form.result.to_sql }
   end
 
-  # El caso sano, para que el arreglo no se coma el camino normal.
-  test "un q hash sigue filtrando" do
+  # The healthy case, so the fix does not eat the normal path.
+  test "a hash q keeps filtering" do
     form = MalformedQFilterForm.new(Movie.all, ActionController::Parameters.new(q: { name_i_cont: "Iron" }))
 
     assert_equal "Iron", form.name_i_cont
   end
 
-  # Un host puede construir el form fuera de una petición —un job, un export— y ahí `params`
-  # es un Hash pelado, no ActionController::Parameters.
-  test "un hash pelado sigue filtrando" do
+  # A host can build the form outside a request —a job, an export— and there `params` is a bare Hash,
+  # not ActionController::Parameters.
+  test "a bare hash keeps filtering" do
     form = MalformedQFilterForm.new(Movie.all, { q: { name_i_cont: "Iron" } })
 
     assert_equal "Iron", form.name_i_cont
   end
 
-  test "sin params no truena" do
+  test "no params at all does not blow up" do
     form = MalformedQFilterForm.new(Movie.all)
 
     assert_nil form.name_i_cont

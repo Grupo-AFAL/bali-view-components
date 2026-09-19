@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
+import { optionalPeer } from '../utils/optional-peer.js'
 
 export class SlimSelectController extends Controller {
   static values = {
@@ -62,11 +63,10 @@ export class SlimSelectController extends Controller {
     // and the <select> that FormData serializes stays empty.
     const generation = (this.generation = (this.generation || 0) + 1)
 
-    this.beforeCacheHandler = () => this.teardown()
-    document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
-
     try {
-      const { default: SlimSelect } = await import('slim-select')
+      const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
+      if (!slimSelect) return
+      const { default: SlimSelect } = slimSelect
 
       const options = {
         select: this.selectTarget,
@@ -120,6 +120,13 @@ export class SlimSelectController extends Controller {
       }
 
       this.select = instance
+
+      // After the import, not before it: `teardown()` only ever looks at
+      // `this.select`, so a listener registered while it is still null buys
+      // nothing, and in an app without slim-select the early `return` above left
+      // one attached to `document` for every connected select.
+      this.beforeCacheHandler = () => this.teardown()
+      document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
 
       // Disable the select if disabled value is set
       // Note: settings.disabled in constructor doesn't work reliably,

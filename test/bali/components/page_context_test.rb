@@ -183,10 +183,10 @@ class BaliPageContextTest < ComponentTestCase
     assert_match(/h1, h2, h3, h4, h5, h6/, error.message)
   end
 
-  # También los valores que ni siquiera responden a `to_sym`: `2` es plausible porque los
-  # niveles de encabezado son idiomáticamente enteros (aria-level), y `false` por analogía
-  # con `card: false`, su gemelo de escape en la misma firma. El mismo ArgumentError que
-  # nombra los valores válidos, no un NoMethodError que no explica nada.
+  # Values that do not even respond to `to_sym` too: `2` is plausible because heading levels are
+  # idiomatically integers (aria-level), and `false` by analogy with `card: false`, its escape-hatch
+  # twin in the same signature. The same ArgumentError naming the valid values, not a NoMethodError
+  # that explains nothing.
   def test_a_non_symbolizable_heading_raises_the_same_argument_error
     [ 2, false ].each do |value|
       error = assert_raises(ArgumentError) do

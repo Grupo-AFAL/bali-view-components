@@ -3,21 +3,21 @@
 require "test_helper"
 require "ripper"
 
-# Los previews de Icon 500eaban con `uninitialized constant Bali::Icon::Preview::LucideMapping`
-# (#843) y ningún test lo veía, porque el defecto no está en el componente sino en cómo el
-# archivo de preview *nombra* a sus vecinos.
+# The Icon previews 500'd with `uninitialized constant Bali::Icon::Preview::LucideMapping` (#843)
+# and no test saw it, because the defect is not in the component but in how the preview file *names*
+# its neighbours.
 #
-# `Module.nesting` se captura al parsear y guarda una referencia al objeto módulo, no al nombre.
-# Lookbook carga `preview.rb` al arrancar para armar su navegación, capturando el `Bali::Icon`
-# de ese momento; un `reload!` posterior descarta ese módulo y crea otro, y la constante hermana
-# se autoloadea dentro del nuevo mientras el nesting del preview sigue apuntando al viejo. La
-# constante existe, `bin/rails runner` la resuelve, y aun así el request muere.
+# `Module.nesting` is captured at parse time and holds a reference to the module object, not to the
+# name. Lookbook loads `preview.rb` at boot to build its navigation, capturing the `Bali::Icon` of
+# that moment; a later `reload!` discards that module and creates another, and the sibling constant
+# is autoloaded inside the new one while the preview's nesting still points at the old. The constant
+# exists, `bin/rails runner` resolves it, and the request dies anyway.
 #
-# De ahí las dos mitades de este archivo: pedir los previews por HTTP —el único camino donde el
-# defecto se manifiesta— y prohibir estáticamente el patrón en todos los `preview.rb`, para no
-# depender de que alguien se acuerde de agregar el request cuando sume un preview.
+# Hence the two halves of this file: asking for the previews over HTTP —the only path where the
+# defect shows — and statically forbidding the pattern in every `preview.rb`, so it does not depend
+# on somebody remembering to add the request when they add a preview.
 class IconPreviewsTest < ActionDispatch::IntegrationTest
-  # Los cinco que leen una constante hermana, más `default` como control.
+  # The five that read a sibling constant, plus `default` as a control.
   PREVIEWS = %w[
     lucide_mapped_icons
     brand_icons
@@ -47,9 +47,9 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # El guard estático. Una constante hermana escrita sin calificar dentro de un `preview.rb`
-  # resuelve contra el objeto módulo capturado en el nesting, así que es la misma bomba de
-  # #843 esperando a que un reload la active — sin importar de qué componente se trate.
+  # The static guard. A sibling constant written unqualified inside a `preview.rb` resolves against
+  # the module object captured in the nesting, so it is the same #843 bomb waiting for a reload to
+  # arm it — whatever component it belongs to.
   def test_no_preview_file_references_a_sibling_constant_unqualified
     offenders = preview_files.flat_map { |path| unqualified_sibling_references(path) }
 
@@ -62,11 +62,11 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     MSG
   end
 
-  # El guard sirve de poco si no ve a la mitad de las hermanas. `Bali::Widget` es el primer
-  # namespace de la gema que abarca dos raíces de autoload, y ahí se notó: `sibling_constants`
-  # solo miraba el directorio del propio preview, así que descubría `Component` y no `Base`
-  # ni las clases de patrón. Este test fija que las descubra todas, porque la única señal de que
-  # falta una es un 500 en la request — nunca en `bin/rails runner`.
+  # The guard is worth little if it cannot see half the siblings. `Bali::Widget` is the gem's first
+  # namespace spanning two autoload roots, and that is where it showed: `sibling_constants` only
+  # looked at the preview's own directory, so it discovered `Component` and neither `Base` nor the
+  # pattern classes. This test pins that it discovers them all, because the only signal one is
+  # missing is a 500 on the request — never in `bin/rails runner`.
   def test_sibling_discovery_spans_both_autoload_roots
     preview = Bali::Engine.root.join("app/components/bali/widget/preview.rb").to_s
     siblings = send(:sibling_constants, preview)
@@ -86,20 +86,19 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     Dir[Bali::Engine.root.join("app/components/bali/**/preview.rb")].sort
   end
 
-  # Los nombres de constante que Zeitwerk define *dentro* del namespace del componente: un
-  # archivo o un directorio hermano de `preview.rb`.
+  # The constant names Zeitwerk defines *inside* the component's namespace: a file or a directory
+  # sibling to `preview.rb`.
   def sibling_constants(preview_path)
     dir = File.dirname(preview_path)
-    # El namespace de un componente puede abarcar VARIAS raíces de autoload:
-    # `Bali::Widget::Component` vive en `app/components` y `Bali::Widget::Base` en
-    # `app/widgets`. Zeitwerk las define todas dentro del MISMO módulo, así que son
-    # hermanas por igual y el bug de #843 les aplica por igual. Mirar solo el
-    # directorio del preview dejaba ciegas a las demás: una constante pelada ahí
-    # pasaba el guard y reventaba en la request.
+    # A component's namespace can span SEVERAL autoload roots: `Bali::Widget::Component` lives in
+    # `app/components` and `Bali::Widget::Base` in `app/widgets`. Zeitwerk defines them all inside
+    # the SAME module, so they are siblings alike and #843's bug applies to them alike. Looking only
+    # at the preview's directory left it blind to the rest: a bare constant there passed the guard
+    # and blew up on the request.
     #
-    # DERIVADO de `eager_load_paths`, no una copia suya: cuando `app/lib/bali/widget`
-    # se mudó a `app/widgets/bali/widget`, una lista escrita a mano aquí habría
-    # seguido pasando mientras el guard miraba un directorio que ya no existe.
+    # DERIVED from `eager_load_paths`, not a copy of it: when `app/lib/bali/widget` moved to
+    # `app/widgets/bali/widget`, a list written by hand here would have gone on passing while the
+    # guard looked at a directory that no longer exists.
     # THE PATH RELATIVE TO ITS OWN ROOT, never `File.basename`. That shortcut is
     # only correct for a first-level `Bali::<Name>`: for `widget/list/preview.rb`
     # the basename is `list`, so it would scan `bali/list` and offer
@@ -111,7 +110,7 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
 
     dirs = roots.map { |candidate| File.join(candidate, relative) }.uniq
 
-    # Un directorio sin `.rb` adentro (`previews/`, `svg/`) no es un namespace para Zeitwerk.
+    # A directory with no `.rb` inside it (`previews/`, `svg/`) is not a namespace for Zeitwerk.
     basenames = dirs.flat_map do |d|
       Dir["#{d}/*.rb"].map { |f| File.basename(f, ".rb") } +
         Dir["#{d}/*/"].select { |sub| Dir["#{sub}**/*.rb"].any? }.map { |sub| File.basename(sub) }
@@ -122,8 +121,8 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
              .uniq
   end
 
-  # Ripper en vez de una expresión regular: hay que distinguir la constante `Item` de la
-  # cadena `'Item 1'` y del método `with_item`, y una regex sobre el texto crudo no puede.
+  # Ripper instead of a regular expression: the constant `Item` has to be told from the string
+  # `'Item 1'` and from the method `with_item`, and a regex over raw text cannot.
   def unqualified_sibling_references(preview_path)
     siblings = sibling_constants(preview_path)
     return [] if siblings.empty?
