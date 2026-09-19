@@ -15,14 +15,19 @@ module Bali
         )
       }
 
-      def initialize(opened: false, **options)
+      # @param content_class [String, nil] Extra classes for the revealed content box.
+      #   Its bottom gap is `.reveal-content` in reveal/index.css (@layer components),
+      #   so a utility passed here beats it: `content_class: "mb-0"` for a tight
+      #   accordion. The box takes no options otherwise (#1148).
+      def initialize(opened: false, content_class: nil, **options)
         @opened = opened
+        @content_class = content_class
         @options = options
       end
 
       private
 
-      attr_reader :opened, :options
+      attr_reader :opened, :content_class, :options
 
       def content_id
         @content_id ||=
@@ -48,8 +53,10 @@ module Bali
           .tap { |opts| prepend_controller(opts, "reveal") }
       end
 
+      # The gap under the content is `.reveal-content` in reveal/index.css, not a
+      # utility here, for the same cascade reason as the trigger's spacing.
       def content_classes
-        "reveal-content mb-8 hidden group-[.is-revealed]:block"
+        class_names("reveal-content hidden group-[.is-revealed]:block", content_class)
       end
     end
   end

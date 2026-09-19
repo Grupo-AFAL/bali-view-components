@@ -8,6 +8,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # El job publica un comentario de cobertura en el PR, así que necesita
+    # escritura sobre pull-requests. Sin este bloque hereda el default del repo,
+    # y en un run disparado por Dependabot ese default es de SOLO LECTURA (#1141).
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -55,7 +61,11 @@ jobs:
             echo "> **Line coverage is below 80% minimum.** Add tests to increase coverage." >> $GITHUB_STEP_SUMMARY
           fi
       - name: Comment coverage on PR
+        # Comodidad, no una puerta: si el token no alcanza (Dependabot, un fork)
+        # o el reporte no existe porque las pruebas reventaron antes, el paso se
+        # salta sin pintar de rojo un job cuyas pruebas sí pasaron.
         if: github.event_name == 'pull_request' && always()
+        continue-on-error: true
         uses: actions/github-script@v9
         with:
           script: |

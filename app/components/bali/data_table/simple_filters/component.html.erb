@@ -48,26 +48,22 @@
             The caption used to be a `<label>` with no `for`, which names nothing: it is a
             `<label for>` where there is a single control to point at, and a `<span>` naming a
             `role="group"` where the filter is really several controls. %>
-        <% if filter[:label].present? && !boolean?(filter) %>
+        <% if captioned?(filter) && !boolean?(filter) %>
           <%= tag.send(
                 multi_control?(filter) ? :span : :label,
-                filter[:label],
+                filter_caption(filter),
                 id: filter_label_id(filter),
                 for: (filter_control_id(filter) unless multi_control?(filter)),
-                title: filter[:label],
+                title: filter_caption(filter),
                 class: "block text-xs font-medium text-base-content/60 mb-0.5 truncate"
               ) %>
         <% end %>
-        <% group_attributes = if filter[:label].present? && multi_control?(filter)
-                                { role: "group", "aria-labelledby": filter_label_id(filter) }
-                              else
-                                {}
-                              end %>
+        <% group_attrs = group_attributes(filter) %>
         <% if toggle_group?(filter) %>
           <%# Hidden input to ensure the parameter is sent even when nothing is checked %>
           <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
 
-          <div class="join" <%= tag.attributes(group_attributes) %>>
+          <div class="join" <%= tag.attributes(group_attrs) %>>
             <% filter[:collection].each do |label, value| %>
               <%
                 current_values = Array.wrap(filter[:value] || filter[:default]).map(&:to_s)
@@ -83,7 +79,7 @@
             <% end %>
           </div>
         <% elsif radio_group?(filter) %>
-          <div class="join" <%= tag.attributes(group_attributes) %>>
+          <div class="join" <%= tag.attributes(group_attrs) %>>
             <% filter[:collection].each do |label, value| %>
               <% current_value = (filter[:value] || filter[:default]).to_s %>
               <input type="radio"
@@ -101,12 +97,18 @@
               apoyaba en la línea del label ajeno en vez de en la de los controles. %>
           <label class="flex h-8 items-center gap-2 cursor-pointer px-1">
             <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
+            <%# El `<label>` que envuelve al switch lo nombra con el texto del `<span>`.
+                Sin caption no hay texto: ahí el nombre va como `aria-label` sobre el input,
+                y el `<span>` no se pinta — imprimía la palabra "false" (#1155). %>
             <input type="checkbox"
                    name="<%= filter_field_name(filter) %>"
                    value="true"
                    class="toggle toggle-sm toggle-primary"
+                   <%= tag.attributes({ "aria-label": aria_label_for(filter) }.compact) %>
                    <%= "checked" if (filter[:value] || filter[:default]).to_s == "true" %> />
-            <span class="text-sm whitespace-nowrap"><%= filter[:label] %></span>
+            <% if captioned?(filter) %>
+              <span class="text-sm whitespace-nowrap"><%= filter_caption(filter) %></span>
+            <% end %>
           </label>
         <% elsif number_range?(filter) %>
           <% names = number_range_field_names(filter) %>
@@ -118,7 +120,7 @@
                 para recortar los bordes del elemento que une, y puesto en un contenedor de
                 layout le quitaba el borde a los dos inputs — se veían sin marco hasta enfocarlos.
                 El que se une al icono es el input Min, igual que en el buscador de arriba. %>
-            <div class="flex items-center gap-1" <%= tag.attributes(group_attributes) %>>
+            <div class="flex items-center gap-1" <%= tag.attributes(group_attrs) %>>
               <input type="number"
                      name="<%= names[:min] %>"
                      value="<%= values[:min] %>"
@@ -160,6 +162,7 @@
               <%= tag.select(
                     options_for_select(preset_options(filter), preset_select_value(filter)),
                     id: filter_control_id(filter),
+                    "aria-label": (preset_select_accessible_name(filter) unless captioned?(filter)),
                     class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}",
                     data: {
                       "time-period-field-target": "select",
@@ -178,8 +181,13 @@
                   id: "#{filter_control_id(filter)}-custom",
                   value: preset_custom_value(filter),
                   mode: "range",
-                  placeholder: filter[:placeholder] || filter[:label],
-                  "aria-label": filter[:label],
+                  placeholder: filter[:placeholder] || filter_caption(filter),
+                  # El picker es un SEGUNDO control del mismo grupo y nunca tiene
+                  # `<label for>` —el caption apunta al select—, así que su `aria-label` se
+                  # emite siempre. Salía con la cadena "false" bajo `label: false` (#1155), y
+                  # después con el respaldo del select ("Cualquier fecha"), que es lo contrario
+                  # de lo que el usuario abre este campo para decir.
+                  "aria-label": preset_picker_accessible_name(filter),
                   alt_input_class: "input input-bordered input-sm w-full",
                   wrapper_options: {
                     class: class_names("flatpickr", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
@@ -200,7 +208,11 @@
                   filter_field_name(filter),
                   id: filter_control_id(filter),
                   value: filter[:value] || filter[:default],
-                  placeholder: filter[:placeholder] || filter[:label],
+                  placeholder: filter[:placeholder] || filter_caption(filter),
+                  # Con caption ya lo resuelve el JS: `datepicker#forwardAccessibleName`
+                  # copia el `label[for]` al altInput que flatpickr crea a su lado. Sin
+                  # caption no había nada que copiar y el altInput salía sin nombre (#1155).
+                  "aria-label": aria_label_for(filter),
                   alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" },
                   **({ mode: "range" } if date_range?(filter))
@@ -219,7 +231,8 @@
                 # icono quedaba flotando a media altura mientras los otros cinco filtros, que sí
                 # usan el helper, alineaban con su control.
                 addon_left: icon_addon(filter[:icon]),
-                html: { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
+                html: { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}",
+                        select_class: ('max-sm:w-16' if filter[:icon]), **slim_select_aria(filter) }
               ) %>
         <% else %>
           <div class="<%= 'join' if filter[:icon] %>">
@@ -233,6 +246,7 @@
               ),
               { include_blank: filter[:blank] },
               id: filter_control_id(filter),
+              "aria-label": aria_label_for(filter),
               class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}",
               **auto_submit_attributes(filter)
             ) %>

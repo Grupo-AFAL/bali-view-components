@@ -100,10 +100,13 @@ en:
       clear: "Clear"
       # Named periods for a date_range filter (see Bali::DateRangePresets). `custom`
       # reveals the date picker; `any` is the blank option when the filter declares no
-      # `blank:` of its own.
+      # `blank:` of its own. `custom_range` names the picker itself when the filter has
+      # neither caption nor `aria_label:` — it cannot borrow `any`, which says the
+      # opposite of what the picker is for.
       presets:
         any: "Any date"
         custom: "Custom…"
+        custom_range: "Custom date range"
         today: "Today"
         this_week: "This week"
         this_month: "This month"
