@@ -78,13 +78,14 @@ module Bali
       end
 
       def build_toggle_options(method, options)
-        toggle_class = [
+        toggle_class = @template.token_list(
           TOGGLE_CLASS,
           size_variant(options, SIZES),
           COLORS[options[:color]],
           (errors?(method, options) ? "toggle-error" : nil),
-          options[:class]
-        ].compact.join(" ")
+          options[:class],
+          options[:input_class]
+        )
 
         attributes = html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
         apply_input_name_options(options, attributes)

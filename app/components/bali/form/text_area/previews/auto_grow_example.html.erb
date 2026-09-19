@@ -4,4 +4,16 @@
       auto_grow: true,
       placeholder: 'Start typing... the textarea will expand automatically.',
       help: 'The textarea grows to fit your content. No scrolling needed!' %>
+
+  <%# An addon replaces the `.control` div with a `.join`, and the `textarea`
+      controller has to sit on whichever of the two is the box. Until #1147 the
+      join never got it, so this exact combination rendered a textarea that did
+      not grow and said nothing about it. %>
+  <%= form.text_area_group :text,
+      rows: 2,
+      auto_grow: true,
+      addon_left: '$',
+      input_id: 'auto_grow_with_addon',
+      placeholder: 'Same thing, with an addon beside it.',
+      help: 'Same field with an addon: the join is the box, so it carries the controller.' %>
 <% end %>

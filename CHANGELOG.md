@@ -7,6 +7,132 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`input_class:`, la cuarta opción de clase: el control y nada más** (#1147). Bali ya
+  sabía nombrar el `<fieldset>` (`field_class:`), la caja que envuelve al control
+  (`control_class:`) y las dos cosas a la vez (`class:`); lo que no había forma de decir
+  era «el `<input>` solo». Medido en Chromium sobre el preview nuevo
+  `bali/field_group_wrapper/class_targets`, contra la hoja compilada del dummy:
+
+  - `control_class: "bg-warning/20"` tiñe el `div.control`, pero el input le queda encima
+    con su propio `oklch(1 0 0)` opaco: no se ve nada. Con `rounded-2xl border-2
+    border-error` la caja dibuja un segundo marco más grande alrededor de un input que se
+    queda en 4px de radio y 1px de borde.
+  - `class: "bg-warning/20"` sí llega al input, pero también al `<fieldset>`: una banda
+    amarilla detrás del grupo entero, caption incluido.
+  - `input_class: "bg-warning/20 rounded-2xl border-2 border-error"` pone las tres en el
+    input y en ningún otro elemento. El `<fieldset>` computa
+    `background-color: rgba(0, 0, 0, 0)` y el caption no se mueve.
+
+  O sea: para todo lo que el control pinta por su cuenta —fondo, borde, radio, sombra, un
+  modificador `input-*` de daisyUI— `control_class:` no sirve, porque la caja está *detrás*.
+  Esa es la carencia que el issue nombraba y la que faltaba cerrar.
+
+  **Qué NO resuelve, medido:** el ancho. Todo control de Bali lleva `w-full`, así que
+  `input_class: "w-32"` pierde contra él en el mismo elemento (1248px, no 128px) —
+  `.w-full` se emite después de `.w-32` en el build, y el orden del atributo no decide
+  nada. El ancho va en la caja, y como `max-w-*`: `control_class: "max-w-32"` da 128px en
+  todas las familias, las de fecha incluidas.
+
+  Llega a las 23 familias que rinden un control nativo, las cuatro con hash `html:` entre
+  ellas (ahí `html: { class: }` es la grafía vieja del mismo destino) y el `<trix-editor>`
+  de `rich_text_area_group`; con `alt_input: true` viaja también al input que dibuja
+  flatpickr, que es el que se ve. Las nueve que no tienen un control alcanzable quedan
+  declaradas por nombre, con su alternativa, en
+  `test/bali/form_builder/input_class_option_test.rb`, que falla si una familia nueva no
+  queda en ninguno de los dos bandos. Es una clave reservada, así que no se pinta en el DOM
+  como atributo — el modo de falla de #1111, que `block_editor_group` reprodujo mientras se
+  escribía esto (`<div input_class="…">`) y que la prueba ahora cubre.
+
+### Fixed
+
+- **`control_class:` deja de descartarse en silencio en las familias con addon** (#1147).
+  La opción existe desde siempre y clasea la caja que envuelve al control, pero sólo la leía
+  el `div.control`. Las tres familias que nunca rinden ese div porque su addon lo reemplaza
+  por un `<div class="join w-full">` —`currency_group`, `percentage_group`, `search_group`,
+  y cualquier campo al que se le pase `addon_left:`/`addon_right:`— se tragaban la clase sin
+  dejar rastro. Medido en Chromium sobre el preview nuevo
+  `bali/field_group_wrapper/class_targets`: `currency_group :currency, control_class:
+  "font-mono"` daba `<div class="join w-full">` y un `<input>` con
+  `font-family: -apple-system,…`; ahora da `<div class="join w-full font-mono">` y el input
+  computa `ui-monospace, SFMono-Regular,…`. Justo la llamada del reporte: un monto en
+  monoespaciada sin tocar el `<fieldset>`.
+
+  **Qué cambia para un anfitrión:** si ya escribías `control_class:` en un campo con addon,
+  la clase ahora aparece en el DOM y puede pintar algo que antes no pintaba —revisa esos
+  call sites antes de subir. La clase cae en el join completo, así que también alcanza a los
+  addons; para dejar los addons fuera, `input_class:`. (`addon_class:` **no** es la forma de
+  clasear addons en general: sólo `search_group` la lee, para su botón. El `$` y el `%` de
+  `currency_group` y `percentage_group` no toman nada del call site.) Lo demás no cambia: el
+  `.control` de las otras ~21 familias, `class:`, `field_class:` y `html: { class: }` rinden
+  exactamente lo mismo que en v3.4.0.
+
+  **Las ocho familias que no rinden caja quedan declaradas, no silenciadas.**
+  `range_group`, `boolean_group`, `switch_group`, `coordinates_polygon_group`,
+  `recurrent_event_rule_group`, `direct_upload_group`, `time_period_group` y `submit_group`
+  no tienen ningún elemento entre el `<fieldset>` y el control, así que la opción no tiene
+  dónde caer. `test/bali/form_builder/control_class_option_test.rb` las nombra una por una
+  —con la alternativa de cada una— y falla si una familia nueva no queda declarada en
+  ninguno de los dos bandos. Queda una fuera de los dos, y también por nombre:
+  `dynamic_fields_group`, que necesita una asociación real para rendir.
+
+- **`control_class:` acepta array y hash en TODAS las familias, las de fecha incluidas**
+  (#1147). Se arma con `token_list` en vez de interpolarse, así que
+  `control_class: { "font-mono" => true }` ya no pinta
+  `class="control {&quot;font-mono&quot;…}"`. `date_group`, `datetime_group` y `time_group`
+  anteponen su propio `w-full` a la opción y lo hacían con `Array#join`, o sea el mismo
+  defecto en una segunda línea: el hash llegaba al DOM como basura en las tres. Medido antes
+  y después en las tres familias; hay prueba por familia.
+
+- **Un textarea con `auto_grow:` y un addon vuelve a crecer** (#1147). El controlador
+  `textarea` tiene que ir sobre el elemento que contiene el control y el contador, que es la
+  caja; cuando un addon reemplazaba el `div.control` por el join, nadie lo llevaba y
+  `auto_grow: true` era un no-op silencioso. Ahora el join lo lleva. Medido en el navegador
+  sobre `bali/form/text_area/auto_grow_example`, que estrena un segundo campo con addon:
+  escribiendo seis líneas el textarea pasa de 80px a 142px, igual que el de al lado sin
+  addon; antes se quedaba en 80px. **Es JS vivo donde no lo había**: ninguna app del grupo
+  escribe hoy esa combinación (cero `auto_grow` junto a un addon en los nueve repos), pero
+  si la tuyas la tiene, ese campo empieza a crecer al escribir.
+
+- **`class:` como Array o Hash ya no destroza la clase del control** (#1147, colateral
+  medido). La clase del `<fieldset>` se armaba con `class_names` y la del control por
+  interpolación, así que las dos mitades de una misma opción no entendían lo mismo:
+  `number_group(:budget, class: %w[font-mono])` rendía
+  `<input class="input w-full [&quot;font-mono&quot;]">` con el fieldset correcto. Ahora las
+  dos usan la misma función. De paso desaparece el espacio sobrante que dejaba un `class:`
+  ausente (`class="input w-full "`).
+
+### Documentation
+
+- **La tabla «Common Options» de `docs/guides/form-builder.md` ya lista las opciones de
+  clase que existían sin documentar** (#1147): `field_class`, `control_class`, `control_data`,
+  `addon_class`, `field_data` y `control_id`, cada una con el elemento al que llega, más la
+  nueva `input_class`. La sección «Which class lands where» pone los cuatro destinos en una
+  tabla y explica cuál quiere cada propiedad, con la medición de cada caso: heredadas por la
+  caja (`control_class:`), ancho en la caja y como `max-w-*` (porque el control es `w-full`),
+  y lo que el control pinta por su cuenta en el control (`input_class:`). Nombra también las
+  dos familias cuya caja no es la de la descripción general: las de fecha, que anteponen su
+  `w-full`, y `step_number_group`, cuyo `.control` va dentro del join de los botones de paso.
+  `class:` no cambia: cae en el `<fieldset>` **y** en el control, y las dos mitades están
+  vivas en apps del grupo.
+
+- **`addon_class:` queda documentada por lo que hace** (#1147), que es menos de lo que el
+  nombre promete: sólo `search_group` la lee, para reemplazar el `btn btn-neutral` de su
+  botón. Hay prueba que lo fija, para que la guía no vuelva a prometer de más.
+
+- **«Non-model forms» documenta el caso que faltaba** (#1147): un formulario **con** modelo
+  puede rendir un valor que no es atributo pasando `input_name:` junto con `value:`
+  (`selected:` en los select, `checked:` en el booleano y el switch). No hace falta ninguna
+  familia `*_group_tag`: sale el mismo `<fieldset>`, el mismo caption y los mismos ids que
+  cualquier otro campo. Sin el valor, Rails levanta `NoMethodError` — a propósito, para que
+  un typo no rinda un campo vacío.
+
+  Lo que ese hueco **no** cubre, y queda como issue aparte: un grupo con VARIOS controles
+  —una rejilla de radios, un arreglo de casillas— bajo un solo `<legend>`. Medido en los
+  repos del grupo: 15 sitios en 11 archivos de 7 repos rinden el fieldset a mano, y sólo 7 de
+  ellos son «el valor no es atributo del modelo». Los otros 8 son grupos multi-control, que
+  `input_name:` no resuelve porque no es un problema de nombre sino de forma.
 ### Fixed
 
 - **`SimpleFilters`: un control con `label: false` ya no queda sin nombre accesible**
