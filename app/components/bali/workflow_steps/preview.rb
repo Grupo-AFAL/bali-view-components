@@ -32,6 +32,9 @@ module Bali
       # each step also renders an `sr-only` name for it
       # (`bali_view.workflow_steps.states.*`, overridable like any Bali string
       # when the host's domain has better words: "Signed", "Returned").
+      # `state_label:` on a single step overrides that one name without
+      # touching the global strings — for the screen where `:skipped` means
+      # "Not taken" and everywhere else it still means "Skipped".
       #
       # A step's block is its comment, and a block that renders blank draws no
       # comment container at all — a host's `if` *inside* the block leaves the
@@ -70,7 +73,54 @@ module Bali
       #
       # `progress: false` drops the bar. Asking for one on the vertical variant
       # raises: that shape has no header to hang it on.
+      #
+      # **Cards or rail?** Cards when the chain is short and each step carries
+      # meta worth reading side by side. Rail when the chain is long and what
+      # matters is the order and how far it got — cards wrap by design, and a
+      # nine-step funnel in three rows is no longer a funnel.
       def horizontal(progress: true)
+        render_with_template(locals: { progress: progress })
+      end
+
+      # @param progress toggle
+      # Rail — the funnel in one row
+      # ----------------------------
+      # `orientation: :rail` puts every step on one line: numbered circle,
+      # coloured connector to the next one, label centred underneath. The shape
+      # for a long flow at the top of a page, where the reader needs the order
+      # and the reach of the flow before any detail.
+      #
+      # ```erb
+      # <%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+      #   <% c.with_step(title: 'Capture', state: :success) %>
+      #   <% c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken') %>
+      #   <% c.with_step(title: 'Project', state: :pending) %>
+      # <% end %>
+      # ```
+      #
+      # It is the vertical shape's marker laid sideways: **numbered circles**
+      # (auto-numbering and `:skipped` skipping positions work exactly as
+      # there) and **connectors that take the state of the next step**, so the
+      # line arrives coloured at the step that owns the verdict.
+      #
+      # **The N/M bar is off by default here**, unlike the horizontal shape:
+      # the connectors already draw how far the flow got. `progress: true`
+      # turns it on.
+      #
+      # **It does not wrap.** Equal columns down to a `6rem` floor, and below
+      # that the row scrolls inside the component — the page never gains a
+      # horizontal scrollbar. Wrapping is what the horizontal cards do.
+      #
+      # That scroll is reachable with the keyboard: the row is a tab stop
+      # (`tabindex="0"` plus an `aria-label` from
+      # `bali_view.workflow_steps.rail_label`), because a scroll container with
+      # nothing focusable inside it hides its overflow from anyone without a
+      # pointer. Tab to the last group below and use the arrow keys.
+      #
+      # `assignee:`, `date:` and the block still render, centred under the
+      # label. Nothing is hidden; they set the row height, so a rail that has
+      # to stay one line tall is one whose caller leaves them out.
+      def rail(progress: false)
         render_with_template(locals: { progress: progress })
       end
 

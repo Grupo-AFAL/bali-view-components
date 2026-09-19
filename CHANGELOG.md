@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::WorkflowSteps` gana una tercera forma: `orientation: :rail`** (#1145). Una sola
+  fila de círculos numerados unidos por conectores de color, con la etiqueta centrada debajo,
+  para un flujo largo arriba de una pantalla. A diferencia de `:horizontal`, **no envuelve**:
+  las columnas son iguales hasta un piso de `6rem`, y por debajo de eso la fila scrollea
+  adentro del componente, no en la página. La barra N/M viene **apagada** acá —los conectores
+  ya dicen hasta dónde llegó el flujo—; `progress: true` la enciende. La fila es parada de
+  tabulación (`tabindex="0"` más un `aria-label` que sale de la clave nueva
+  `bali_view.workflow_steps.rail_label`), porque si no los pasos que se desbordan no se
+  alcanzan sin ratón. `:vertical` y `:horizontal` no cambian.
+
+- **`state_label:` por paso** (#1145). Cambia el nombre accesible del estado de **ese** paso,
+  sin tocar las seis cadenas globales `bali_view.workflow_steps.states.*`:
+
+  ```erb
+  <% c.with_step(title: "Evaluación", state: :skipped, state_label: "No se recorrió") %>
+  ```
+
+  Es para la pantalla que necesita «No se recorrió» mientras el panel de aprobaciones sigue
+  necesitando «Omitido». No cambia nada visible. `nil` cae en la traducción; cualquier otra
+  cosa se toma literal, **`""` incluido** —un paso cuyo título ya dice el veredicto puede
+  pedir silencio—. Es la misma regla que `label:` de `Bali::BooleanIcon`.
+
 - **`input_class:`, la cuarta opción de clase: el control y nada más** (#1147). Bali ya
   sabía nombrar el `<fieldset>` (`field_class:`), la caja que envuelve al control
   (`control_class:`) y las dos cosas a la vez (`class:`); lo que no había forma de decir
@@ -493,6 +515,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
   que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
 
+### Changed
+
+- **`state_label:` deja de llegar al `<li>` como atributo HTML** (#1145). Hasta ahora
+  `c.with_step(..., state_label: "X")` emitía `<li state_label="X">`, un atributo inválido que
+  no cambiaba nada de lo que oye un lector de pantalla; al declararse el keyword, desaparece
+  del DOM. **Si tenés un selector de Cypress o de CSS sobre `[state_label]`, dejará de
+  encontrar nada.**
+
+- **Para ver el riel hay que reconstruir el CSS de la app** (#1145): `.workflow-steps-rail` y
+  sus reglas son clases nuevas, así que un anfitrión que sube la gema y no corre
+  `rails tailwindcss:build` ve el riel como una columna de rectángulos de color. Las formas
+  viejas no lo necesitan: su markup no cambió.
+
+- **Tres reglas de CSS se mudaron al bloque raíz `.workflow-steps`** (#1145):
+  `.workflow-step-circle`, `.workflow-steps-progress` y `.workflow-steps-count`, que el riel
+  comparte con las otras formas. Misma especificidad y misma capa, así que un anfitrión con
+  CSS propio sobre `.workflow-step*` le sigue ganando igual.
 ### Added
 
 - **`group_by_attribute :status, default: true` — un listado que abre agrupado** (#1156). La
