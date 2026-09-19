@@ -204,3 +204,161 @@ class BaliFilterFormGroupByExpressionsTest < ActiveSupport::TestCase
     end
   end
 end
+
+# #1156, half 2. Grouping ORDERS BY the group expression, and over a scope with `.distinct`
+# Postgres requires every ORDER BY expression to appear in the select list. Three of the four
+# grouping shapes are absent from `SELECT DISTINCT movies.*` — an association path, a ransacker
+# and an explicit `sql:`.
+#
+# sqlite accepts all four, so the Postgres failure does NOT reproduce in this repo: these tests
+# raise the adapter exception from the scope itself.
+class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
+  PG_DISTINCT_MESSAGE = "PG::InvalidColumnReference: ERROR:  for SELECT DISTINCT, " \
+                        "ORDER BY expressions must appear in select list\n" \
+                        'LINE 1: SELECT DISTINCT "movies".* FROM "movies" ...'
+
+  MYSQL_DISTINCT_MESSAGE = "Mysql2::Error: Expression #1 of ORDER BY clause is not in SELECT " \
+                           "list, references column 'db.tenants.name' which is not in SELECT " \
+                           "list; this is incompatible with DISTINCT"
+
+  class DistinctGroupingsFilterForm < Bali::FilterForm
+    group_by_attribute :genre
+    group_by_attribute :budget_band, label: "Budget"
+    group_by_attribute :studio_name, label: "Studio", value: ->(movie) { movie.studio&.name }
+    group_by_attribute :budgeted,
+                       label: "Budgeted",
+                       sql: -> { "CASE WHEN movies.budget IS NULL THEN 'no' ELSE 'yes' END" },
+                       value: ->(movie) { movie.budget.present? ? "yes" : "no" }
+  end
+
+  # Goes on the scope so it sits BELOW the diagnostics module Bali adds in `result`.
+  def failing_adapter(message)
+    Module.new do
+      define_method(:exec_queries) { |&_block| raise ActiveRecord::StatementInvalid, message }
+    end
+  end
+
+  def form(group_by, message: PG_DISTINCT_MESSAGE, scope: Movie.all.distinct)
+    DistinctGroupingsFilterForm.new(
+      scope.extending(failing_adapter(message)),
+      ActionController::Parameters.new(q: ActionController::Parameters.new({}), group_by: group_by)
+    )
+  end
+
+  # All FOUR shapes go through the same rescue: the association path and the ransacker order
+  # through Ransack's `s` param and never enter `apply_group_by_sql_order`, so a guard placed
+  # there left the bug alive exactly where it was reported.
+  %w[genre budget_band studio_name budgeted].each do |attribute|
+    define_method("test_the_distinct_conflict_is_translated_for_#{attribute}") do
+      grouped = form(attribute)
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError) { grouped.result.to_a }
+
+      assert_match(/#{attribute}/, error.message)
+      assert_match(/SELECT DISTINCT/, error.message)
+    end
+
+    # Compared against what the relation actually emits rather than a constant, so the test
+    # keeps measuring if Arel changes how it writes it. Two of the four shapes resolve to an
+    # `Arel::Attributes::Attribute`, which does NOT respond to `to_sql`: falling back to `to_s`
+    # put a Struct's inspect of the whole model in the message (1726 characters for `genre`).
+    define_method("test_the_message_names_the_offending_order_by_for_#{attribute}") do
+      grouped = form(attribute)
+      emitted = grouped.result.to_sql[/ORDER BY (.+?)(?: LIMIT|\z)/m, 1]
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError) { grouped.result.to_a }
+
+      assert_includes(error.message, "ORDER BY #{emitted}")
+      refute_match(/#<struct/, error.message, "a Struct dump names nothing")
+      assert_operator(error.message.length, :<, 900, error.message)
+    end
+  end
+
+  # The association path is the shape that reported the issue.
+  def test_the_association_path_message_names_the_joined_column
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
+
+    assert_match(/ORDER BY "tenants"\."name" ASC/, error.message)
+  end
+
+  def test_the_message_names_the_listing_and_the_three_ways_out
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
+
+    assert_match(/DistinctGroupingsFilterForm/, error.message)
+    assert_match(/\.distinct/, error.message)
+    assert_match(/select/i, error.message)
+    assert_match(/column/i, error.message)
+  end
+
+  def test_the_original_adapter_error_survives_as_the_cause
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
+
+    assert_kind_of(ActiveRecord::StatementInvalid, error.cause)
+    assert_match(/InvalidColumnReference/, error.cause.message)
+  end
+
+  def test_the_mysql_wording_is_translated_too
+    error = assert_raises(Bali::FilterForm::GroupByOrderingError) do
+      form("studio_name", message: MYSQL_DISTINCT_MESSAGE).result.to_a
+    end
+
+    assert_match(/studio_name/, error.message)
+  end
+
+  def test_any_other_adapter_failure_passes_through_untouched
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      form("studio_name", message: "SQLite3::SQLException: no such table: movies").result.to_a
+    end
+
+    assert_match(/no such table/, error.message)
+  end
+
+  # With no grouping applied there is nobody to blame: the ORDER BY is the host's.
+  def test_without_an_applied_grouping_the_adapter_error_is_left_alone
+    assert_raises(ActiveRecord::StatementInvalid) { form(nil).result.to_a }
+  end
+
+  def test_a_suspended_grouping_leaves_the_adapter_error_alone
+    suspended = DistinctGroupingsFilterForm.new(
+      Movie.all.distinct.extending(failing_adapter(PG_DISTINCT_MESSAGE)),
+      ActionController::Parameters.new(group_by: "studio_name", view: "grid")
+    )
+
+    assert_raises(ActiveRecord::StatementInvalid) { suspended.result.to_a }
+  end
+
+  # `to_a` and not `pluck`: the module wraps `exec_queries`, which `pluck` never reaches.
+  def test_the_diagnostics_do_not_change_the_result
+    plain = DistinctGroupingsFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: "genre")
+    )
+
+    assert_equal(Movie.order(:genre).map(&:id), plain.result.to_a.map(&:id))
+  end
+
+  # Bali does not materialize the relation — the host writes `pagy(form.result)` and walks it
+  # in the view — so the rescue has to survive the spawns pagy chains. Move it from
+  # `relation.extending(module)` to wrapping a call and everything above stays green while the
+  # bug returns in production.
+  def test_the_rescue_survives_the_spawns_pagy_chains
+    grouped = form("studio_name")
+
+    [
+      -> { grouped.result.limit(8).offset(0).to_a },
+      -> { grouped.result.includes(:studio).limit(8).offset(0).to_a },
+      -> { grouped.result.first },
+      -> { grouped.result.find_each { |_movie| nil } }
+    ].each_with_index do |materialize, index|
+      error = assert_raises(Bali::FilterForm::GroupByOrderingError, "spawn ##{index}", &materialize)
+      assert_kind_of(ActiveRecord::StatementInvalid, error.cause)
+    end
+  end
+
+  # The global counts are the live case that carries no ORDER BY (`group_counts` unscopes it).
+  def test_a_query_without_an_order_by_is_left_alone
+    plain = DistinctGroupingsFilterForm.new(
+      Movie.all.distinct, ActionController::Parameters.new(group_by: "studio_name")
+    )
+
+    assert_nothing_raised { plain.result.count(:all) }
+    assert_nothing_raised { plain.group_counts }
+  end
+end
