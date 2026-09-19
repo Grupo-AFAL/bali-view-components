@@ -9,9 +9,8 @@ class GroupableDataTableFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 
-# Form que abre agrupado por declaración, para el round-trip de #1156.
 class DefaultGroupingDataTableFilterForm < Bali::FilterForm
-  group_by_attribute :genre, label: "Género"
+  group_by_attribute :genre, label: "Genre"
   group_by_attribute :status, default: true
 
   attribute :genre_eq
@@ -84,8 +83,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     )
   end
 
-  # Listado que abre agrupado por declaración (#1156). `group_by: :unset` = la URL no dice
-  # nada, que es cuando el default habla; cualquier otro valor entra como param.
+  # `group_by: :unset` means the URL says nothing, which is when the default speaks.
   def default_grouping_filter_form(group_by: :unset)
     params = { q: ActionController::Parameters.new({}) }
     params[:group_by] = group_by unless group_by == :unset
@@ -306,11 +304,11 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("input[name='view_mode'][value='cards']", visible: :all)
   end
 
-  # --- #1156: qué viaja cuando el listado declara `group_by_attribute default:` ---
+  # --- #1156: what travels when the listing declares `group_by_attribute default:` ---
 
+  # A default is DERIVED and re-resolved every request: carried along, the next submit would
+  # make it indistinguishable from a choice and write it to the cache.
   def test_a_default_only_grouping_does_not_travel_as_a_hidden_field
-    # Un default es DERIVADO: se vuelve a resolver en cada request. Arrastrándolo, el próximo
-    # submit lo haría indistinguible de una elección y quedaría escrito en la caché.
     render_inline(Bali::DataTable::Component.new(
       url: "/movies", filter_form: default_grouping_filter_form
     )) do |c|
@@ -321,10 +319,9 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("input[name='group_by']", visible: :all)
   end
 
+  # Without this, filtering regrouped the listing the user had just ungrouped — and it has to
+  # travel NAMED: an empty `group_by=` is dropped by the hidden fields and by `sort_link`.
   def test_an_explicit_no_grouping_travels_by_name_when_a_default_is_declared
-    # Sin esto, filtrar volvía a agrupar el listado que el usuario acababa de desagrupar. Y
-    # tiene que viajar CON NOMBRE: un `group_by=` vacío lo descartan tanto los hidden fields
-    # como el `sort_link` de Ransack.
     render_inline(Bali::DataTable::Component.new(
       url: "/movies", filter_form: default_grouping_filter_form(group_by: "none")
     )) do |c|
@@ -335,8 +332,8 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("input[name='group_by'][value='none']", visible: :all)
   end
 
-  # El item "sin agrupación" del control emite el mismo valor que el hidden field, o el link y
-  # el submit dirían cosas distintas.
+  # The control's "no grouping" item emits the same value as the hidden field, or the link and
+  # the submit would say different things.
   def test_the_no_grouping_item_links_to_the_named_value_when_a_default_is_declared
     render_inline(Bali::DataTable::Component.new(
       url: "/movies", filter_form: default_grouping_filter_form
@@ -347,8 +344,8 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("a[href='/movies?group_by=none']")
   end
 
-  # Sin default sigue siendo el `?group_by=` vacío de siempre: cambiarlo movería la URL de
-  # todos los listados que ya agrupan.
+  # With no default it stays the empty `?group_by=`: changing it would move the URL of every
+  # listing that already groups.
   def test_the_no_grouping_item_stays_empty_without_a_default
     render_inline(Bali::DataTable::Component.new(
       url: "/movies", filter_form: grouping_filter_form

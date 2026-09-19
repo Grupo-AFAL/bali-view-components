@@ -24,13 +24,11 @@ module Bali
     # {Bali::Filterable#redirect_to_default_filters} is the controller half — this side only
     # says what the defaults ARE.
     #
-    # La AGRUPACIÓN contesta esta misma pregunta al revés, a propósito (#1156):
-    # `group_by_attribute :status, default: true` se resuelve DENTRO del form, sin redirect.
-    # Los dos motivos de arriba no le aplican —`group_by` no recorta la POBLACIÓN, solo ordena
-    # y pinta bandas, así que ordenar una columna no puede cambiarla en silencio— y el redirect
-    # se apaga entero cuando la persistencia está encendida
-    # ({Bali::Filterable#redirect_to_default_filters}), que es justo el tipo de listado donde
-    # el default de agrupación hacía falta. Ver {GroupByConfiguration}.
+    # GROUPING deliberately answers this same question the other way (#1156):
+    # `group_by_attribute :status, default: true` resolves INSIDE the form, with no redirect.
+    # Neither reason above carries over — `group_by` does not narrow the POPULATION — and the
+    # redirect turns itself off entirely where filter persistence is on, which is exactly the
+    # listing a grouping default is for. See {GroupByConfiguration}.
     module DefaultFilters
       extend ActiveSupport::Concern
 

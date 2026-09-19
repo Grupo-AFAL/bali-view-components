@@ -102,15 +102,13 @@ module Bali
         # de la caché lo que la URL no dice — o sea que apagar la agrupación la resucitaba en
         # el mismo render (ver FilterForm#fetch_stored_filter_state).
         #
-        # Con un `group_by_attribute default:` declarado, vacío tampoco alcanza: el `sort_link`
-        # de Ransack descarta los params vacíos al componer el href (medido), así que ordenar
-        # una columna resucitaba el default. Ahí el form pide el valor CON NOMBRE — ver
+        # Where a `group_by_attribute default:` is declared, empty is not enough either: see
         # Bali::FilterForm::GroupByConfiguration::NO_GROUPING_VALUE.
         def no_grouping_href
           build_href(no_grouping_value)
         end
 
-        # @return [String] cómo se dice "sin agrupación" en la URL de este listado
+        # @return [String] how this listing spells "no grouping" in the URL
         def no_grouping_value
           @filter_form.try(:no_grouping_value) || ""
         end

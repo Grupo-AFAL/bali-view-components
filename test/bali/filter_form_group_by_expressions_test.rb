@@ -205,23 +205,13 @@ class BaliFilterFormGroupByExpressionsTest < ActiveSupport::TestCase
   end
 end
 
-# #1156, mitad 2. Sobre un scope con `.distinct`, Postgres exige que toda expresión del ORDER
-# BY esté en la lista del SELECT — y agrupar ORDENA por la expresión del grupo. TRES de las
-# cuatro formas de agrupar la producen (camino de asociación, ransacker y `sql:`); solo una
-# columna de la tabla base está en `SELECT DISTINCT movies.*`. Medido en el dummy:
+# #1156, half 2. Grouping ORDERS BY the group expression, and over a scope with `.distinct`
+# Postgres requires every ORDER BY expression to appear in the select list. Three of the four
+# grouping shapes are absent from `SELECT DISTINCT movies.*` — an association path, a ransacker
+# and an explicit `sql:`.
 #
-#   genre       -> ORDER BY "movies"."genre" ASC                (seguro)
-#   studio_name -> ORDER BY "tenants"."name" ASC                (ausente del SELECT)
-#   budget_band -> ORDER BY CASE WHEN "movies"."budget" ... END (ausente del SELECT)
-#   budgeted    -> ORDER BY CASE WHEN movies.budget IS NULL ... (ausente del SELECT)
-#
-# Bali no puede ARREGLARLO metiendo la expresión en el SELECT (cambiaría la deduplicación que
-# el `.distinct` del anfitrión existe para hacer) ni detectarlo antes sin falsos positivos: un
-# host que ya hizo `.select("movies.*, tenants.name")` corre perfecto. Lo que sí puede es
-# rescatar el fallo del adaptador donde la relación se materializa y decir qué hacer.
-#
-# sqlite acepta las cuatro formas, así que el fallo de Postgres NO se reproduce en este repo:
-# estos tests simulan la excepción del adaptador desde el propio scope.
+# sqlite accepts all four, so the Postgres failure does NOT reproduce in this repo: these tests
+# raise the adapter exception from the scope itself.
 class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
   PG_DISTINCT_MESSAGE = "PG::InvalidColumnReference: ERROR:  for SELECT DISTINCT, " \
                         "ORDER BY expressions must appear in select list\n" \
@@ -233,16 +223,15 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
 
   class DistinctGroupingsFilterForm < Bali::FilterForm
     group_by_attribute :genre
-    group_by_attribute :budget_band, label: "Presupuesto"
-    group_by_attribute :studio_name, label: "Estudio", value: ->(movie) { movie.studio&.name }
+    group_by_attribute :budget_band, label: "Budget"
+    group_by_attribute :studio_name, label: "Studio", value: ->(movie) { movie.studio&.name }
     group_by_attribute :budgeted,
-                       label: "Presupuestada",
-                       sql: -> { "CASE WHEN movies.budget IS NULL THEN 'sin' ELSE 'con' END" },
-                       value: ->(movie) { movie.budget.present? ? "con" : "sin" }
+                       label: "Budgeted",
+                       sql: -> { "CASE WHEN movies.budget IS NULL THEN 'no' ELSE 'yes' END" },
+                       value: ->(movie) { movie.budget.present? ? "yes" : "no" }
   end
 
-  # El adaptador que revienta al MATERIALIZAR, que es donde el anfitrión se entera hoy. Va
-  # sobre el scope para quedar DEBAJO del módulo de diagnóstico que Bali agrega en `result`.
+  # Goes on the scope so it sits BELOW the diagnostics module Bali adds in `result`.
   def failing_adapter(message)
     Module.new do
       define_method(:exec_queries) { |&_block| raise ActiveRecord::StatementInvalid, message }
@@ -256,9 +245,9 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     )
   end
 
-  # Las CUATRO formas pasan por el mismo rescate: el camino de asociación y el ransacker
-  # ordenan por el param `s` de Ransack y nunca entran a `apply_group_by_sql_order`, así que
-  # un guard puesto ahí dejaba vivo el bug justo donde se reportó.
+  # All FOUR shapes go through the same rescue: the association path and the ransacker order
+  # through Ransack's `s` param and never enter `apply_group_by_sql_order`, so a guard placed
+  # there left the bug alive exactly where it was reported.
   %w[genre budget_band studio_name budgeted].each do |attribute|
     define_method("test_the_distinct_conflict_is_translated_for_#{attribute}") do
       grouped = form(attribute)
@@ -268,26 +257,22 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
       assert_match(/SELECT DISTINCT/, error.message)
     end
 
-    # El mensaje existe para que alguien lo LEA, así que tiene que nombrar el ORDER BY
-    # culpable — el fragmento textual que el adaptador rechazó, no una aproximación. Se
-    # compara contra el que la relación realmente emite, no contra una constante: así el test
-    # sigue midiendo aunque Arel cambie cómo lo escribe.
-    #
-    # Dos de las cuatro formas resuelven a un `Arel::Attributes::Attribute`, que NO responde a
-    # `to_sql`; la primera versión caía al `to_s` de un Struct y metía el inspect del modelo
-    # entero en el mensaje (1726 caracteres para `genre`, 1126 para `studio_name`).
+    # Compared against what the relation actually emits rather than a constant, so the test
+    # keeps measuring if Arel changes how it writes it. Two of the four shapes resolve to an
+    # `Arel::Attributes::Attribute`, which does NOT respond to `to_sql`: falling back to `to_s`
+    # put a Struct's inspect of the whole model in the message (1726 characters for `genre`).
     define_method("test_the_message_names_the_offending_order_by_for_#{attribute}") do
       grouped = form(attribute)
       emitted = grouped.result.to_sql[/ORDER BY (.+?)(?: LIMIT|\z)/m, 1]
       error = assert_raises(Bali::FilterForm::GroupByOrderingError) { grouped.result.to_a }
 
       assert_includes(error.message, "ORDER BY #{emitted}")
-      refute_match(/#<struct/, error.message, "el volcado de un Struct no nombra nada")
+      refute_match(/#<struct/, error.message, "a Struct dump names nothing")
       assert_operator(error.message.length, :<, 900, error.message)
     end
   end
 
-  # El camino de asociación es la forma que REPORTÓ el issue, y la que peor salía.
+  # The association path is the shape that reported the issue.
   def test_the_association_path_message_names_the_joined_column
     error = assert_raises(Bali::FilterForm::GroupByOrderingError) { form("studio_name").result.to_a }
 
@@ -318,8 +303,6 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     assert_match(/studio_name/, error.message)
   end
 
-  # Cero falsos positivos: cualquier otro fallo del adaptador sale como vino, con su propio
-  # mensaje y su propia clase.
   def test_any_other_adapter_failure_passes_through_untouched
     error = assert_raises(ActiveRecord::StatementInvalid) do
       form("studio_name", message: "SQLite3::SQLException: no such table: movies").result.to_a
@@ -328,7 +311,7 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     assert_match(/no such table/, error.message)
   end
 
-  # Sin agrupación aplicada no hay a quién culpar: el ORDER BY es del anfitrión.
+  # With no grouping applied there is nobody to blame: the ORDER BY is the host's.
   def test_without_an_applied_grouping_the_adapter_error_is_left_alone
     assert_raises(ActiveRecord::StatementInvalid) { form(nil).result.to_a }
   end
@@ -342,8 +325,7 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     assert_raises(ActiveRecord::StatementInvalid) { suspended.result.to_a }
   end
 
-  # El rescate no puede cambiar lo que la relación DEVUELVE. Con `to_a` y no con `pluck`: es
-  # `exec_queries` lo que el módulo envuelve, y `pluck` ni lo toca — el test no ejercía nada.
+  # `to_a` and not `pluck`: the module wraps `exec_queries`, which `pluck` never reaches.
   def test_the_diagnostics_do_not_change_the_result
     plain = DistinctGroupingsFilterForm.new(
       Movie.all, ActionController::Parameters.new(group_by: "genre")
@@ -352,10 +334,10 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     assert_equal(Movie.order(:genre).map(&:id), plain.result.to_a.map(&:id))
   end
 
-  # EL CLAIM CENTRAL DE ESTA MITAD: Bali no materializa la relación —el anfitrión hace
-  # `pagy(form.result)` y la recorre en la vista—, así que el rescate tiene que sobrevivir a
-  # los spawns que pagy encadena. Si alguien lo mueve de `relation.extending(módulo)` a
-  # envolver una llamada, todo lo de arriba sigue verde y el bug vuelve en producción.
+  # Bali does not materialize the relation — the host writes `pagy(form.result)` and walks it
+  # in the view — so the rescue has to survive the spawns pagy chains. Move it from
+  # `relation.extending(module)` to wrapping a call and everything above stays green while the
+  # bug returns in production.
   def test_the_rescue_survives_the_spawns_pagy_chains
     grouped = form("studio_name")
 
@@ -370,8 +352,7 @@ class BaliFilterFormGroupByDistinctTest < ActiveSupport::TestCase
     end
   end
 
-  # La otra cara: lo que NO lleva ORDER BY tampoco pasa por el rescate y no puede dar falsos
-  # positivos. Los conteos globales son el caso vivo (`group_counts` hace `unscope(:order)`).
+  # The global counts are the live case that carries no ORDER BY (`group_counts` unscopes it).
   def test_a_query_without_an_order_by_is_left_alone
     plain = DistinctGroupingsFilterForm.new(
       Movie.all.distinct, ActionController::Parameters.new(group_by: "studio_name")

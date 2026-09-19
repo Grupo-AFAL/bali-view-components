@@ -2,20 +2,15 @@
 
 require "test_helper"
 
-# #1156, mitad 1. `filter_attribute default:` abre un listado sobre una pregunta; la
-# agrupación no tenía equivalente, así que el anfitrión fijaba `@group_by` después de `super`
-# y reimplementaba a mano la regla «nadie ha dicho nada», leyendo la caché de persistencia.
+# #1156, half 1. A grouping default lives INSIDE the form and never travels by URL, unlike
+# `filter_attribute default:`: `redirect_to_default_filters` turns itself off entirely where
+# filter persistence is on (filterable.rb:104), and a redirect writing `?group_by=` would mark
+# the param as REQUESTED, overwriting in the cache the "no grouping" the user chose.
 #
-# El default de agrupación NO viaja por la URL (el camino que `DefaultFilters` eligió para los
-# filtros): `redirect_to_default_filters` se apaga entero con la persistencia encendida
-# (filterable.rb:104) y un redirect que escriba `?group_by=` marcaría el param como PEDIDO,
-# pisando en la caché el «sin agrupación» que el usuario eligió. Vive dentro del form, como el
-# último escalón de la resolución:
-#
-#   URL > payload de una vista guardada > elección guardada en la caché > `default:` > nada
+#   URL > saved view payload > choice stored in the cache > `default:` > no grouping
 class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
   class DefaultGroupedMovieFilterForm < Bali::FilterForm
-    group_by_attribute :genre, label: "Género"
+    group_by_attribute :genre, label: "Genre"
     group_by_attribute :status, default: true
 
     attribute :genre_eq
@@ -29,7 +24,7 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     DefaultGroupedMovieFilterForm.new(Movie.all, group_params(**extra))
   end
 
-  # --- El default aplica cuando nadie dijo nada ---
+  # --- The default applies when nobody said anything ---
 
   def test_the_declared_default_groups_the_listing_when_no_param_arrives
     opened = form
@@ -43,19 +38,18 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert_equal(:status, DefaultGroupedMovieFilterForm.new(Movie.all, group_params).default_group_by)
     assert(form.group_by_from_default?)
     refute(form(group_by: "status").group_by_from_default?,
-           "elegir explícitamente lo mismo que el default es una ELECCIÓN, no un default")
+           "picking the same value the default has is a CHOICE, not a default")
   end
 
-  # --- La URL gana siempre ---
+  # --- The URL always wins ---
 
   def test_an_explicit_group_by_in_the_url_beats_the_default
     assert_equal(:genre, form(group_by: "genre").group_by)
     refute(form(group_by: "genre").group_by_from_default?)
   end
 
+  # Without this the user cannot ungroup a listing that declares a default.
   def test_an_empty_group_by_in_the_url_turns_the_grouping_off
-    # `?group_by=` es «sin agrupación» (el item del control, group_by_control/component.rb:104).
-    # Sin esta distinción el usuario no puede desagrupar un listado con default.
     ungrouped = form(group_by: "")
 
     assert_nil(ungrouped.group_by)
@@ -66,9 +60,8 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert_nil(form(group_by: "none").group_by)
   end
 
-  # Cómo se DICE "sin agrupación" en la URL cambia con el default, porque un param vacío no
-  # sobrevive al `sort_link` de Ransack ni a los hidden fields: medido con el server levantado,
-  # `?group_by=` desaparece del href de ordenar y `?group_by=genre` no.
+  # An empty param does not survive Ransack's `sort_link` nor the hidden fields: measured with
+  # the server up, `?group_by=` disappears from the sort href and `?group_by=genre` does not.
   def test_no_grouping_travels_by_name_only_where_a_default_needs_it
     assert_equal("none", form.no_grouping_value)
     assert_equal("", Bali::FilterForm.new(Movie.all, group_params,
@@ -79,7 +72,7 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert_nil(form(group_by: Bali::FilterForm::GroupByConfiguration::NO_GROUPING_VALUE).group_by)
   end
 
-  # --- Suspensión: el default es estado como cualquier otro ---
+  # --- Suspension: a default is state like any other ---
 
   def test_the_default_is_suspended_outside_a_grouping_mode
     suspended = DefaultGroupedMovieFilterForm.new(
@@ -91,9 +84,8 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert(suspended.group_by_suspended?)
   end
 
-  # El viaje real tabla↔tarjetas con la agrupación APAGADA: en tarjetas no se aplica ni se ve
-  # el control, pero el "sin agrupación" tiene que seguir viajando o volver a la tabla la
-  # reagrupa con el default.
+  # In grid mode the grouping is neither applied nor visible, but "no grouping" has to keep
+  # travelling or coming back to the table regroups the listing with the default.
   def test_an_explicit_no_grouping_keeps_travelling_while_suspended
     suspended = DefaultGroupedMovieFilterForm.new(
       Movie.all, group_params(group_by: "none"), group_by_modes: [ :table ], display_mode: :grid
@@ -103,15 +95,13 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert_equal("none", suspended.group_by_preserved_value)
   end
 
-  # Los tres valores que puede tomar lo que se preserva, en un solo lugar: es lo que alimenta
-  # al hidden field del DataTable y al payload de una vista guardada.
   def test_what_travels_has_three_answers_and_not_two
-    assert_nil(form.group_by_preserved_value, "un default se re-deriva: arrastrarlo lo vuelve elección")
+    assert_nil(form.group_by_preserved_value, "a default re-derives itself: carrying it makes it a choice")
     assert_equal("genre", form(group_by: "genre").group_by_preserved_value)
     assert_equal("none", form(group_by: "none").group_by_preserved_value)
   end
 
-  # --- Declaración ---
+  # --- Declaration ---
 
   def test_the_constructor_form_accepts_the_default_too
     instance = Bali::FilterForm.new(
@@ -148,7 +138,7 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert_equal(:status, subclass.new(Movie.all, group_params).group_by)
   end
 
-  # --- Vistas guardadas ---
+  # --- Saved views ---
 
   class FakeSavedViewsStore
     SavedView = Struct.new(:id, :name, :payload, keyword_init: true)
@@ -161,7 +151,7 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
   end
 
   def store_with_view(payload)
-    FakeSavedViewsStore.new([ FakeSavedViewsStore::SavedView.new(id: 1, name: "Mi vista", payload: payload) ])
+    FakeSavedViewsStore.new([ FakeSavedViewsStore::SavedView.new(id: 1, name: "My view", payload: payload) ])
   end
 
   def test_a_saved_view_that_records_a_grouping_beats_the_default
@@ -174,21 +164,18 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     refute(applied.group_by_from_default?)
   end
 
+  # If it entered, EVERY saved view without `group_by` would read as "modified" against a
+  # listing nobody touched (see `comparable_view_state`).
   def test_a_default_only_grouping_stays_out_of_the_saved_view_payload
-    # Si entrara, TODA vista guardada sin `group_by` se vería «modificada» contra un listado
-    # que nadie tocó (saved_views_configuration.rb:126 + comparable_view_state): un default no
-    # es una elección del usuario.
     payload = form.current_view_payload
 
     refute(payload.key?("group_by"), payload.inspect)
     assert_equal("status", form(group_by: "status").current_view_payload["group_by"])
   end
 
-  # EL ROUND-TRIP QUE FALTABA. Una vista guardada mientras el usuario tenía la agrupación
-  # APAGADA volvía a abrirse AGRUPADA: el payload salía `{"attributes"=>{}}` —el nil se
-  # compactaba— y al aplicarla el default no encontraba a nadie que hubiera hablado. Es la
-  # misma ambigüedad nil-vs-ausente que `NO_GROUPING_VALUE` resuelve en la URL, y se cura
-  # igual: la vista tiene que poder DECIR «sin agrupar».
+  # The round trip that was missing: a view saved while the user had the grouping OFF reopened
+  # GROUPED, because the nil was compacted out of the payload and the default found nobody who
+  # had spoken. The view has to be able to SAY "ungrouped".
   def test_a_view_saved_while_ungrouped_reopens_ungrouped
     payload = form(group_by: Bali::FilterForm::GroupByConfiguration::NO_GROUPING_VALUE)
               .current_view_payload
@@ -199,13 +186,12 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
       Movie.all, group_params(saved_view: "1"), saved_views_store: store_with_view(payload)
     )
 
-    assert_nil(reopened.group_by, "la vista dijo «sin agrupar»: el default no puede resucitar")
+    assert_nil(reopened.group_by, "the view said ungrouped: the default cannot resurrect it")
     refute(reopened.group_by_from_default?)
   end
 
-  # La otra mitad, y la razón por la que el silencio NO puede significar «sin agrupación»:
-  # una vista guardada antes de que el default existiera —o en un listado que no lo declara—
-  # llega SIN la llave, y ahí el default sigue siendo quien habla.
+  # Why silence cannot mean "no grouping": a view saved before the default existed arrives
+  # WITHOUT the key, and there the default is still the one speaking.
   def test_a_view_that_says_nothing_about_grouping_still_takes_the_default
     applied = DefaultGroupedMovieFilterForm.new(
       Movie.all, group_params(saved_view: "1"),
@@ -216,11 +202,9 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert(applied.group_by_from_default?)
   end
 
-  # Y reabierta no se ve «modificada»: el payload que el form vuelve a componer es el mismo
-  # que se guardó, sentinel incluido.
   def test_an_ungrouped_view_is_recognised_as_active_when_reopened
     payload = form(group_by: "none").current_view_payload
-    view = FakeSavedViewsStore::SavedView.new(id: 1, name: "Sin agrupar", payload: payload)
+    view = FakeSavedViewsStore::SavedView.new(id: 1, name: "Ungrouped", payload: payload)
     reopened = DefaultGroupedMovieFilterForm.new(
       Movie.all, group_params(saved_view: "1"), saved_views_store: FakeSavedViewsStore.new([ view ])
     )
@@ -228,8 +212,7 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
     assert(reopened.view_matches_current_state?(view))
   end
 
-  # Sin default no hay nada que suprimir, así que el payload no cambia ni un byte: «sin
-  # agrupación» sigue siendo la ausencia de la llave, como antes de #1156.
+  # With no default there is nothing to suppress, so the payload does not change one byte.
   def test_a_listing_without_a_default_keeps_the_payload_it_always_had
     plain = Bali::FilterForm.new(Movie.all, group_params(group_by: ""),
                                  group_by_attributes: %i[genre status])
@@ -238,7 +221,7 @@ class BaliFilterFormDefaultGroupByTest < ActiveSupport::TestCase
   end
 
   def test_a_view_saved_under_the_default_is_still_recognised_as_active
-    view = FakeSavedViewsStore::SavedView.new(id: 1, name: "Mi vista",
+    view = FakeSavedViewsStore::SavedView.new(id: 1, name: "My view",
                                               payload: { "attributes" => { "genre_eq" => "Action" } })
     applied = DefaultGroupedMovieFilterForm.new(
       Movie.all, group_params(q: ActionController::Parameters.new(genre_eq: "Action")),
@@ -290,21 +273,21 @@ class BaliFilterFormDefaultGroupByPersistenceTest < ActiveSupport::TestCase
       storage_id: "movies", persist_enabled: true
     )
 
-    assert_nil(persisted_form.group_by, "el usuario desagrupó: el default no puede resucitar")
+    assert_nil(persisted_form.group_by, "the user ungrouped: the default cannot resurrect it")
   end
 
+  # v3.4.0 writes `group_by: nil` on EVERY filter submit (filter_form.rb:688), so any listing
+  # with persistence already has that key stored. If the mere presence of the key turned the
+  # default off, the feature would be born dead in production.
   def test_a_cache_written_before_the_default_existed_does_not_kill_it
-    # v3.4.0 escribe `group_by: nil` en CADA submit de filtros (filter_form.rb:688), así que
-    # cualquier listado con persistencia ya tiene esa llave grabada. Si la sola presencia de
-    # la llave apagara el default, el feature nacería muerto en producción.
     Rails.cache.write(cache_key, { attributes: { "genre_eq" => "Action" }, group_by: nil })
 
     assert_equal(:status, persisted_form.group_by)
   end
 
+  # Derived, not persisted: changing the default in code has to change what users who already
+  # visited the listing see.
   def test_the_default_is_never_written_into_the_cache
-    # Derivado, no persistido: cambiar el default en el código tiene que cambiar lo que ven
-    # los usuarios que ya visitaron el listado.
     PersistedDefaultGroupedFilterForm.new(
       Movie.all, ActionController::Parameters.new(q: { genre_eq: "Action" }),
       storage_id: "movies"

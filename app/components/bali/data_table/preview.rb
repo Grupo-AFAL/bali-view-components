@@ -423,8 +423,6 @@ module Bali
         )
       end
 
-      # Un listado que ABRE agrupado porque la declaración lo dice, no la URL (#1156).
-      # Se nombra completo en el método, como todo vecino dentro de un `preview.rb`.
       class DefaultGroupedMoviesFilterForm < Bali::FilterForm
         group_by_attribute :genre
         group_by_attribute :status, default: true
@@ -432,22 +430,18 @@ module Bali
       end
 
       # @label With Default Grouping (Live DB)
-      # `group_by_attribute :status, default: true` — el listado abre agrupado por estado sin
-      # que la URL diga nada, y sin que el anfitrión toque `@group_by` después de `super`.
+      # `group_by_attribute :status, default: true` — the listing opens grouped by status
+      # without the URL saying anything, and without the host touching `@group_by` after
+      # `super`. The default is the LAST rung: the URL wins, then an applied saved view, then
+      # the choice stored in the filter cache, and only then the declaration. "No grouping"
+      # wins over it too, or a listing with a default could never be ungrouped.
       #
-      # El default es el ÚLTIMO escalón: gana la URL (`?group_by=genre`), después el payload
-      # de una vista guardada, después la elección guardada en la caché de filtros, y recién
-      # entonces la declaración. "Sin agrupación" (`?group_by=`) le gana también — si no, un
-      # listado con default no se podría desagrupar.
+      # A default is DERIVED: it is never written to the cache, a saved view payload or a
+      # hidden field, so changing it in code changes what users who already visited see.
       #
-      # Un default es DERIVADO: no se escribe en la caché, no entra al payload de una vista
-      # guardada y no viaja como hidden field, así que cambiarlo en el código cambia lo que
-      # ven los usuarios que ya visitaron el listado.
-      #
-      # El param de abajo: `unset` = la URL no dice NADA y habla el default; `none` = "sin
-      # agrupación" explícito, que es exactamente lo que manda el item del control cuando hay
-      # un default (un `?group_by=` vacío no sobrevive al `sort_link` de Ransack). `unset`
-      # existe porque Lookbook no puede distinguir un param ausente de uno vacío.
+      # The param below: `unset` means the URL says NOTHING and the default speaks; `none` is
+      # an explicit "no grouping", which is what the control's own item sends where a default
+      # exists. `unset` is here because Lookbook cannot tell a missing param from an empty one.
       # @param group_by select { choices: [unset, none, genre, status, budget_band] }
       # @param page number
       def with_default_grouping(group_by: "unset", page: 1)

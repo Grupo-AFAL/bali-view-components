@@ -349,10 +349,8 @@ module Bali
       # (ver #fetch_stored_filter_state). Sin esta distinción, apagar la agrupación con la
       # persistencia encendida la resucitaba en el próximo render.
       @group_by_requested = params.key?(:group_by)
-      # ¿ALGUIEN dijo algo sobre la agrupación? Empieza en la URL y lo pueden encender también
-      # el payload de una vista guardada y la caché de filtros. Es la pregunta que gatea el
-      # `default:` declarado (#1156), y no se puede reemplazar por `@group_by.nil?`: "sin
-      # agrupación" es una elección cuyo estado ES nil, y el default la resucitaría.
+      # Has ANYONE said anything about grouping? A saved view payload and the filter cache
+      # turn it on too. It gates the declared `default:` (#1156).
       @group_by_chosen = @group_by_requested
       # La agrupación se SUSPENDE fuera de los modos que la aplican (default: tabla), pero el
       # param sigue vivo: volver a la tabla la encuentra como se dejó. El modo que pasa el
@@ -406,9 +404,7 @@ module Bali
         )
       end
 
-      # El `group_by_attribute default:` declarado, al FINAL: solo habla cuando ni la URL, ni
-      # la vista aplicada, ni la caché dijeron nada de la agrupación (#1156). Puesto antes, se
-      # habría escrito en la caché como si fuera una elección.
+      # Last, after persistence — see {GroupByConfiguration#apply_default_group_by} (#1156).
       apply_default_group_by
 
       super(attributes)
@@ -592,10 +588,10 @@ module Bali
           relation = relation.where(date_range_attr => value)
         end
 
-        # Va último y sobre la relación ya evaluada: el ORDER BY de una agrupación con `sql:`
-        # explícito no cabe en el param `s` de Ransack, que solo habla de nombres. El
-        # diagnóstico se monta ENCIMA de ese reorder para cubrir las CUATRO formas de agrupar
-        # y no solo la de `sql:` (ver #apply_group_by_diagnostics).
+        # Last, over the already-built relation: the ORDER BY of a grouping with an explicit
+        # `sql:` does not fit Ransack's `s` param, which only speaks names. The diagnostics
+        # wrap goes OVER that reorder so it covers all four grouping shapes, not only `sql:`
+        # (see #apply_group_by_diagnostics).
         apply_group_by_diagnostics(apply_group_by_sql_order(relation))
       end
     end
@@ -737,13 +733,8 @@ module Bali
                             combinator: combinator,
                             search_value: search_value,
                             group_by: @group_by,
-                            # Lo que se guarda es lo que el usuario ELIGIÓ, incluido su "sin
-                            # agrupación" (#1156). Sin esta llave, `group_by: nil` no distingue
-                            # "lo apagué" de "nadie dijo nada", y un `default:` declarado
-                            # resucitaba la agrupación que el usuario acababa de quitar —o, al
-                            # revés, cualquier caché escrita antes de que el default existiera
-                            # lo mataba para siempre, porque la llave `group_by` viene
-                            # grabándose en cada submit desde #1102.
+                            # `group_by: nil` alone cannot tell "I turned it off" from
+                            # "nobody said anything" (#1156).
                             group_by_chosen: @group_by_chosen,
                             # Misma llave y misma forma que `PAYLOAD_KEYS` de las vistas
                             # guardadas: el round-trip es el que ya existe (`active_simple_filters`
@@ -790,11 +781,9 @@ module Bali
           # el param resucitaba la agrupación vieja — el mismo síntoma, corrido un request.
           Rails.cache.write(cache_key, stored.merge(group_by: @group_by, group_by_chosen: true))
         elsif stored[:group_by_chosen] || stored[:group_by].present?
-          # La ELECCIÓN guardada, no la mera presencia de la llave: `group_by: nil` sin marca
-          # es lo que escribe cualquier submit de filtros de un listado que no agrupa, así que
-          # tomarla por una elección apagaba el `default:` declarado en todo listado que ya
-          # hubiera sido usado alguna vez (#1156). Un valor guardado gana igual aunque la
-          # caché sea anterior a la marca.
+          # The stored CHOICE, not the mere presence of the key: an unmarked `group_by: nil`
+          # is what any filter submit writes on a listing that does not group, so reading it
+          # as a choice killed the declared `default:` on every listing ever used (#1156).
           @group_by = resolve_group_by(stored[:group_by])
           @group_by_chosen = true
         end

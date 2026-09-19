@@ -340,7 +340,7 @@ FilterForm is organized into focused concerns for maintainability:
 
 ```ruby
 class InitiativesFilterForm < Bali::FilterForm
-  group_by_attribute :stage, label: 'Etapa', default: true
+  group_by_attribute :stage, label: 'Stage', default: true
   group_by_attribute :area
 end
 ```
@@ -375,9 +375,8 @@ and a `sql:` expression are not, so the query dies with *"for SELECT DISTINCT, O
 expressions must appear in select list"* (SQLite accepts all four, so it will not show up in
 the dummy). Bali replaces that error with `Bali::FilterForm::GroupByOrderingError`, which names
 the listing, the grouping, the compiled `ORDER BY` term it choked on and the three ways out:
-drop the `.distinct` (deduplicate with a
-subquery), add the expression to the select list yourself (it changes what gets deduplicated),
-or group by a base-table column.
+drop the `.distinct` (deduplicate with a subquery), add the expression to the select list
+yourself (it changes what gets deduplicated), or group by a base-table column.
 
 ### Filter persistence needs a real cache store — and a `context:`
 

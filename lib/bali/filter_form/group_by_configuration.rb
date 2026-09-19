@@ -2,10 +2,9 @@
 
 module Bali
   class FilterForm
-    # El fallo del adaptador que la agrupación provoca sobre un scope con `SELECT DISTINCT`,
-    # traducido a algo accionable (#1156). NO hereda de `ActiveRecord::StatementInvalid` a
-    # propósito: un `rescue_from` genérico de errores de base de datos se tragaría justo el
-    # mensaje que existe para que alguien lo lea. El error crudo del driver queda como `#cause`.
+    # Does NOT inherit from `ActiveRecord::StatementInvalid` on purpose: a generic
+    # `rescue_from` over database errors would swallow the message this class exists to
+    # deliver. The adapter's own error stays reachable as `#cause`.
     class GroupByOrderingError < StandardError; end
 
     # GroupByConfiguration provides DSL and methods for query-aware row grouping.
@@ -25,25 +24,21 @@ module Bali
     #   * APLICACIÓN  — {#group_by_applied} / {#group_by_applied?}: ¿se está aplicando ahora?
     #     Manda ordenamiento, conteos y bandas de grupo.
     #
-    # Y desde #1156 una cuarta, que no es un cuarto estado sino el ORIGEN del que ya hay:
-    #   * ORIGEN      — {#group_by_from_default?}: ¿esta agrupación la eligió alguien, o sale
-    #     de un `group_by_attribute default: true`? Manda qué se PRESERVA: un default es
-    #     DERIVADO —no viaja en la URL, no se escribe en la caché de filtros y no entra al
-    #     payload de una vista guardada—, así que cambiarlo en el código cambia lo que ven
-    #     los usuarios que ya visitaron el listado, y una vista sin agrupación no se ve
-    #     "modificada" por él. Solo se guarda lo que el usuario eligió.
+    # And an ORIGIN, which is not a fourth state but where the current one came from:
+    #   * ORIGIN      — {#group_by_from_default?}: a default is DERIVED. It is never written
+    #     to the URL, the filter cache or a saved view payload, so only what the user chose
+    #     is preserved.
     #
-    # Precedencia, de arriba abajo (ver {Bali::FilterForm#initialize}):
-    #   1. `?group_by=` en la URL — incluso vacío, que es "sin agrupación" y tiene que poder
-    #      ganarle al default o el usuario no puede desagrupar;
-    #   2. lo que DICE el payload de una vista guardada aplicada (`?saved_view=`), incluido su
-    #      "sin agrupación": la llave `group_by` PRESENTE es la vista hablando (aunque su valor
-    #      sea {GroupByConfiguration::NO_GROUPING_VALUE}), la llave AUSENTE es silencio y deja
-    #      hablar al default;
-    #   3. la elección guardada en la caché de persistencia (un valor, o un "sin agrupación"
-    #      explícito, que se distingue del "nadie dijo nada" por la llave `group_by_chosen`);
-    #   4. la declaración `default: true`;
-    #   5. sin agrupación.
+    # Precedence, top to bottom (resolved in {Bali::FilterForm#initialize}):
+    #   1. `?group_by=` in the URL, empty included — it has to beat the default or the user
+    #      cannot ungroup;
+    #   2. an applied saved view payload (`?saved_view=`): the `group_by` key PRESENT is the
+    #      view speaking, even valued {GroupByConfiguration::NO_GROUPING_VALUE}; the key
+    #      ABSENT is silence and lets the default speak;
+    #   3. the choice stored in the persistence cache (`group_by_chosen` tells an explicit
+    #      "no grouping" apart from "nobody said anything");
+    #   4. the `default: true` declaration;
+    #   5. no grouping.
     #
     # Security boundary: the raw param NEVER reaches `.group()`/`.order()`.
     # {#resolve_group_by} returns the declared symbol only when the raw value
@@ -73,22 +68,12 @@ module Bali
       # contenido sin que nada en pantalla lo explique.
       DEFAULT_GROUP_BY_MODES = %i[table].freeze
 
-      # Con qué viaja "sin agrupación" cuando el listado declara un `default:` (#1156).
-      #
-      # `?group_by=` vacío alcanza mientras no hay default —es lo que emite el control desde
-      # #634— pero deja de alcanzar en cuanto la ausencia del param significa "agrupá por lo
-      # declarado": el `sort_link` de Ransack DESCARTA los params vacíos al componer el href
-      # (medido: con `group_by=genre` el href lo conserva, con `group_by=` desaparece), y los
-      # hidden fields de los dos forms de filtro hacen lo mismo. O sea que el usuario
-      # desagrupaba, ordenaba una columna, y el default volvía.
-      #
-      # Mismo problema y misma cura en el payload de una vista guardada, que tampoco tiene
-      # cómo escribir un nil: sin el sentinel, una vista guardada mientras el usuario tenía la
-      # agrupación apagada volvía a abrirse AGRUPADA (ver
-      # {SavedViewsConfiguration#current_view_payload}).
-      #
-      # No es una regla nueva: cualquier valor no declarado YA significa "sin agrupación"
-      # ({#resolve_group_by}). Esto solo le pone un nombre que sobrevive al transporte.
+      # How "no grouping" travels once the listing declares a `default:` (#1156). An empty
+      # `?group_by=` cannot carry it: Ransack's `sort_link` DROPS empty params while composing
+      # the href (measured: `group_by=genre` survives it, `group_by=` disappears), and so do
+      # the hidden fields of both filter forms. A saved view payload has no way to store a nil
+      # either. Any undeclared value already means "no grouping" ({#resolve_group_by}); this
+      # only gives it a spelling that survives transport.
       NO_GROUPING_VALUE = "none"
 
       class_methods do
@@ -116,12 +101,12 @@ module Bali
         #   (`worker_legal_entity_id`) es un NoMethodError — de ahí este hook. Tiene que
         #   devolver el MISMO valor que devolvió el GROUP BY: la búsqueda del conteo global
         #   es por valor (ver {#group_counts} y Bali::Table#global_group_count).
-        # @param default [Boolean] Abrir el listado agrupado por acá cuando NADIE dijo nada
-        #   (#1156). Una sola declaración puede traerlo. Es un booleano y no un callable: el
-        #   default se resuelve al construir el form, sin instancia contra la cual evaluar
-        #   nada — la misma limitación que documenta {DefaultFilters}. Un default es
-        #   DERIVADO: no se escribe en la caché de filtros ni entra al payload de una vista
-        #   guardada, así que cambiarlo acá cambia lo que ve todo el mundo.
+        # @param default [Boolean] Open the listing grouped by this attribute when nobody
+        #   said anything (#1156). Only one declaration may carry it. A boolean and not a
+        #   callable: the default is resolved while the form is built, with no instance to
+        #   evaluate against — the same limitation {DefaultFilters} documents. It is DERIVED,
+        #   never written to the filter cache or a saved view payload, so changing it here
+        #   changes what users who already visited the listing see.
         def group_by_attribute(attribute, label: nil, sql: nil, value: nil, default: false)
           defined_group_by_attributes << {
             attribute: attribute.to_sym, label: label, sql: sql, value: value, default: default
@@ -179,11 +164,7 @@ module Bali
         !@group_by.nil?
       end
 
-      # La agrupación declarada con `default: true`, o nil (#1156). El ÚLTIMO escalón de la
-      # resolución: solo se aplica cuando ni la URL, ni una vista guardada, ni la caché de
-      # filtros dijeron nada sobre la agrupación.
-      #
-      # @return [Symbol, nil]
+      # @return [Symbol, nil] the attribute declared `default: true` (#1156)
       def default_group_by
         return @default_group_by if defined?(@default_group_by)
 
@@ -191,36 +172,26 @@ module Bali
                                                 &.fetch(:attribute)
       end
 
-      # ORIGEN: ¿la agrupación vigente sale de la declaración y no de una elección? Lo que
-      # gatea es la PRESERVACIÓN — un default se re-deriva en cada request, así que escribirlo
-      # en la URL, en la caché o en el payload de una vista lo convertiría en la elección que
-      # no es (y pisaría el "sin agrupación" que el usuario sí eligió).
+      # Gates PRESERVATION: writing a re-derived default to the URL, the cache or a view
+      # payload would turn it into the choice it is not.
       #
       # @return [Boolean]
       def group_by_from_default?
         @group_by_from_default == true
       end
 
-      # Cómo se dice "sin agrupación" en la URL de ESTE listado: vacío mientras no hay default
-      # (lo que emite el control desde #634 y lo que documenta la guía), y {NO_GROUPING_VALUE}
-      # cuando lo hay, porque ahí el param tiene que sobrevivir al transporte.
+      # How THIS listing spells "no grouping": empty while there is no default (what the
+      # control has emitted since #634), {NO_GROUPING_VALUE} once there is one.
       #
       # @return [String]
       def no_grouping_value
         default_group_by ? NO_GROUPING_VALUE : ""
       end
 
-      # Qué dijo el usuario sobre la agrupación, escrito de forma que sobreviva al transporte,
-      # o nil cuando no hay nada que preservar. Lo usan las DOS superficies que guardan la
-      # elección fuera del form —el hidden field de un submit GET y el payload de una vista
-      # guardada— y tiene que ser el mismo valor en las dos, o el link y el submit dirían cosas
-      # distintas. Tres casos y no dos, por el default:
-      #
-      #   * una agrupación ELEGIDA viaja con su nombre, como siempre;
-      #   * una que solo sale del default NO viaja: se re-deriva sola, y arrastrarla la
-      #     volvería indistinguible de una elección en la caché de filtros;
-      #   * "sin agrupación" SÍ viaja cuando el listado declara un default, o el próximo submit
-      #     lo vuelve a agrupar y el usuario no puede desagrupar nada.
+      # What the user chose, spelled so it survives transport, or nil when there is nothing
+      # to preserve. Both surfaces that carry the choice outside the form — a GET submit's
+      # hidden field and a saved view payload — must use this same value, or the link and the
+      # submit would say different things.
       #
       # @return [String, nil]
       def group_by_preserved_value
@@ -371,14 +342,10 @@ module Bali
         group_by_attributes.find { |attribute| attribute.to_s == raw_value.to_s }
       end
 
-      # El último escalón de la resolución (#1156): la declaración habla solo cuando NADIE
-      # dijo nada. `@group_by_chosen` es esa pregunta —la URL, el payload de una vista o la
-      # caché— y no `@group_by.nil?`, porque "sin agrupación" es una elección que deja el
-      # estado en nil y tiene que sobrevivir al default.
-      #
-      # Corre DESPUÉS de la persistencia a propósito: antes, el default entraría a
-      # `fetch_stored_filter_state` como si el usuario lo hubiera elegido y se guardaría en la
-      # caché en el primer submit de filtros.
+      # The question is `@group_by_chosen` and not `@group_by.nil?`: "no grouping" is a
+      # choice that leaves the state nil and has to survive the default. Runs AFTER
+      # persistence, or the default would enter `fetch_stored_filter_state` as if the user
+      # had picked it and be written to the cache on the first filter submit (#1156).
       def apply_default_group_by
         return if @group_by_chosen
         return unless @group_by.nil?
@@ -417,26 +384,20 @@ module Bali
         relation.reorder(Arel::Nodes::Ascending.new(group_by_expression), *relation.order_values)
       end
 
-      # Agrupar ORDENA por la expresión del grupo, y sobre un scope con `SELECT DISTINCT`
-      # Postgres exige que toda expresión del ORDER BY esté en la lista del SELECT (#1156).
-      # Tres de las cuatro formas de agrupar no lo están —medido en el dummy—:
+      # Grouping ORDERS BY the group expression, and over a scope with `SELECT DISTINCT`
+      # Postgres requires every ORDER BY expression to appear in the select list (#1156).
+      # Three of the four ways to group do not — measured in the dummy:
       #
-      #   genre       -> ORDER BY "movies"."genre" ASC                  (está en movies.*)
-      #   studio_name -> ORDER BY "tenants"."name" ASC                  (ausente)
-      #   budget_band -> ORDER BY CASE WHEN "movies"."budget" ... END   (ausente)
-      #   budgeted    -> ORDER BY CASE WHEN movies.budget IS NULL ...   (ausente)
+      #   genre       -> ORDER BY "movies"."genre" ASC                  (in movies.*)
+      #   studio_name -> ORDER BY "tenants"."name" ASC                  (absent)
+      #   budget_band -> ORDER BY CASE WHEN "movies"."budget" ... END   (absent)
+      #   budgeted    -> ORDER BY CASE WHEN movies.budget IS NULL ...   (absent)
       #
-      # No se puede ARREGLAR metiendo la expresión en el SELECT: agregar una columna a un
-      # SELECT DISTINCT cambia QUÉ deduplica, y el `.distinct` del anfitrión suele existir
-      # justamente para desduplicar un join. Y no se puede DETECTAR antes sin falsos
-      # positivos: un host que ya hizo `.select("movies.*", "tenants.name")` corre perfecto,
-      # y sqlite y MySQL sin ONLY_FULL_GROUP_BY aceptan las cuatro formas tal cual. Lo único
-      # con cero falsos positivos es esperar al fallo real y traducirlo.
-      #
-      # El módulo va sobre la relación y no alrededor de una llamada porque Bali NO es quien
-      # la materializa: el anfitrión hace `pagy(form.result)` y la recorre en la vista.
-      # `extending` sobrevive a los spawns (`includes`, `limit`, `offset`), así que el rescate
-      # sigue puesto donde el error aparece.
+      # It cannot be detected up front without false positives: a host that already wrote
+      # `.select("movies.*", "tenants.name")` runs fine, and sqlite and MySQL without
+      # ONLY_FULL_GROUP_BY accept all four. The module goes on the relation and not around a
+      # call because Bali does not materialize it — the host writes `pagy(form.result)` — and
+      # `extending` survives the spawns pagy chains.
       def apply_group_by_diagnostics(relation)
         return relation unless group_by_applied?
         return relation unless relation.respond_to?(:extending)
@@ -459,8 +420,7 @@ module Bali
         end
       end
 
-      # PostgreSQL y MySQL dicen lo mismo con otras palabras. Cualquier otro fallo del
-      # adaptador sale como vino: acá no se adivina.
+      # PostgreSQL and MySQL say the same thing in different words.
       DISTINCT_ORDER_CONFLICT = /
         for\ SELECT\ DISTINCT,\ ORDER\ BY\ expressions\ must\ appear\ in\ select\ list
         | incompatible\ with\ DISTINCT
@@ -489,21 +449,11 @@ module Bali
           "present in `SELECT DISTINCT movies.*`. The adapter's own error is this one's cause."
       end
 
-      # El término del ORDER BY culpable, compilado, para que el mensaje lo NOMBRE. Va envuelto
-      # en el mismo `Arel::Nodes::Ascending` que la agrupación produce, así que sale idéntico
-      # byte a byte al fragmento que el adaptador rechazó (`"tenants"."name" ASC`) y se puede
-      # buscar tal cual en el log de la consulta.
-      #
-      # Envolver es lo que hace falta y no `to_sql` a secas: de las cuatro formas de agrupar,
-      # dos devuelven un `Arel::Attributes::Attribute`, que NO es un `Arel::Nodes::Node` y por
-      # lo tanto NO responde a `to_sql` — el `respond_to?(:to_sql) ? ... : to_s` de la primera
-      # versión caía al `to_s` de un Struct y escupía el inspect del modelo entero adentro del
-      # mensaje (1726 caracteres para `genre`), justo en el camino de asociación que reportó el
-      # issue. `Ascending` sí es un Node y acepta las cuatro.
-      #
-      # Para el mensaje, nunca para la consulta. Un símbolo pelado (una columna que el host
-      # dejó fuera de `ransackable_attributes`) no es Arel y se imprime tal cual; cualquier
-      # otra sorpresa cae al nombre de la agrupación antes que romper el rescate.
+      # Wrapping in `Arel::Nodes::Ascending` is both what makes this byte-identical to the
+      # fragment the adapter rejected and the only thing that compiles: two of the four
+      # grouping shapes return an `Arel::Attributes::Attribute`, which does NOT respond to
+      # `to_sql`, and falling back to `to_s` printed a Struct's inspect of the whole model
+      # into the message (1726 characters for `genre`). For the message, never for the query.
       def group_by_ordering_expression_sql
         expression = group_by_expression
         return expression.to_s if expression.nil? || expression.is_a?(Symbol)
@@ -538,9 +488,6 @@ module Bali
         group_by_definitions.find { |definition| definition[:attribute] == attribute } || {}
       end
 
-      # `default:` viaja en las DOS formas de declarar o nace asimétrico: la guía documenta el
-      # DSL de clase y el `group_by_attributes:` del constructor como equivalentes, y recortar
-      # la llave acá lo descartaba en silencio mientras el DSL reventaba con ArgumentError.
       def normalize_group_by_attributes(attributes)
         attributes.map do |attribute|
           definition =
@@ -557,10 +504,7 @@ module Bali
         end
       end
 
-      # Un callable acá sería TRUTHY y quedaría como default sin que nadie lo evaluara nunca:
-      # el default se resuelve al construir el form y no hay instancia contra la cual correrlo
-      # (la misma limitación que DefaultFilters#resolve_default documenta para los filtros).
-      # Mejor reventar al declarar que agrupar por lo que no se pidió.
+      # A callable here would be TRUTHY and become the default without anyone evaluating it.
       def validate_group_by_default!(definition)
         default = definition[:default]
         return if default.nil? || default == true || default == false
@@ -572,9 +516,8 @@ module Bali
               "listing opens on in the declaration, or set `@group_by` yourself after `super`."
       end
 
-      # Dos agrupaciones por default es una contradicción y no hay forma de elegir bien entre
-      # ellas. La MISMA declarada dos veces (una subclase que repite la del padre) no lo es:
-      # sigue habiendo un solo default.
+      # The `uniq`: the SAME attribute declared twice — a subclass repeating its parent's —
+      # is still one default, and not the contradiction this raises on.
       def validate_single_group_by_default!(definitions)
         defaults = definitions.select { |definition| definition[:default] }
                               .map { |definition| definition[:attribute] }.uniq
