@@ -706,8 +706,10 @@ en:
         pending: "Pending"
         skipped: "Skipped"
         current: "In progress"
-      # Accessible name of the rail's row, which is also its scroll container:
-      # it carries `tabindex="0"`, and a tab stop needs a name.
+      # Accessible name of the row that the `:rail` and `:progress` shapes
+      # draw, which is also its scroll container: it carries `tabindex="0"`,
+      # and a tab stop needs a name. One key for both, because the string says
+      # what the row is, not which shape drew it.
       rail_label: "Workflow steps"
     split_view:
       # The three states of the infinite-scroll sentinel. They ship translated

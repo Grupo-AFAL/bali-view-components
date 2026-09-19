@@ -1,0 +1,59 @@
+<div class="space-y-8 p-4">
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The nine-step funnel
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :progress, progress: progress) do |c| %>
+      <% c.with_step(title: 'Capture', state: :success) %>
+      <% c.with_step(title: 'Triage', state: :success) %>
+      <% c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken') %>
+      <% c.with_step(title: 'Business case', state: :success) %>
+      <% c.with_step(title: 'Estimation', state: :success) %>
+      <% c.with_step(title: 'Prioritisation', state: :current) %>
+      <% c.with_step(title: 'Committee', state: :pending) %>
+      <% c.with_step(title: 'Funding', state: :pending) %>
+      <% c.with_step(title: 'Project', state: :pending) %>
+    <% end %>
+  </div>
+
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The six states
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+      <% c.with_step(title: 'Completed', state: :success) %>
+      <% c.with_step(title: 'Rejected', state: :error) %>
+      <% c.with_step(title: 'Needs attention', state: :warning) %>
+      <% c.with_step(title: 'Skipped', state: :skipped) %>
+      <% c.with_step(title: 'In progress', state: :current) %>
+      <% c.with_step(title: 'Pending', state: :pending) %>
+    <% end %>
+  </div>
+
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The same six as a rail, for comparison
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+      <% c.with_step(title: 'Completed', state: :success) %>
+      <% c.with_step(title: 'Rejected', state: :error) %>
+      <% c.with_step(title: 'Needs attention', state: :warning) %>
+      <% c.with_step(title: 'Skipped', state: :skipped) %>
+      <% c.with_step(title: 'In progress', state: :current) %>
+      <% c.with_step(title: 'Pending', state: :pending) %>
+    <% end %>
+  </div>
+
+  <div class="max-w-xs space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      In a narrow column
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+      <% c.with_step(title: 'Capture', state: :success) %>
+      <% c.with_step(title: 'Triage', state: :success) %>
+      <% c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken') %>
+      <% c.with_step(title: 'Business case', state: :current) %>
+      <% c.with_step(title: 'Project', state: :pending) %>
+    <% end %>
+  </div>
+</div>

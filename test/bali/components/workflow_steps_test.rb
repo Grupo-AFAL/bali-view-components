@@ -342,18 +342,18 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
 end
 
 class BaliWorkflowStepsStepComponentTest < ComponentTestCase
+  TABLES = %i[
+    CIRCLE_CLASSES CONNECTOR_CLASSES DOT_CLASSES
+    PROGRESS_CIRCLE_CLASSES PROGRESS_CONNECTOR_CLASSES PROGRESS_TITLE_CLASSES
+  ].freeze
+
   def test_constants_the_class_tables_are_frozen_and_agree_on_the_states
-    assert(Bali::WorkflowSteps::Step::Component::CIRCLE_CLASSES.frozen?)
-    assert(Bali::WorkflowSteps::Step::Component::CONNECTOR_CLASSES.frozen?)
-    assert(Bali::WorkflowSteps::Step::Component::DOT_CLASSES.frozen?)
-    assert_equal(
-      Bali::WorkflowSteps::Step::Component::STATES,
-      Bali::WorkflowSteps::Step::Component::CONNECTOR_CLASSES.keys
-    )
-    assert_equal(
-      Bali::WorkflowSteps::Step::Component::STATES,
-      Bali::WorkflowSteps::Step::Component::DOT_CLASSES.keys
-    )
+    TABLES.each do |name|
+      table = Bali::WorkflowSteps::Step::Component.const_get(name)
+      assert(table.frozen?, "#{name} is not frozen")
+      assert_equal(Bali::WorkflowSteps::Step::Component::STATES, table.keys,
+                   "#{name} does not cover the six states in order")
+    end
   end
 
   def test_constants_covers_the_six_states
@@ -373,7 +373,7 @@ class BaliWorkflowStepsStepComponentTest < ComponentTestCase
 
   def test_a_dot_step_draws_the_dot_instead_of_the_circle
     render_inline(
-      Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :success, number: 1, dot: true)
+      Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :success, number: 1, marker: :dot)
     )
     assert_selector(".workflow-step-dot.bg-success")
     assert_no_selector(".workflow-step-circle")
@@ -815,6 +815,306 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
   end
 end
 
+# The progress shape is the rail's quiet sibling: same row, a 2px monochrome
+# line, the verdict in the marker.
+class BaliWorkflowStepsProgressTest < ComponentTestCase
+  def test_the_progress_shape_is_a_fourth_orientation_with_its_own_root_class
+    render_progress do |c|
+      c.with_step(title: "Capture", state: :success)
+    end
+
+    assert_selector("div.workflow-steps.workflow-steps-progress-rail")
+    assert_no_selector(".workflow-steps-rail")
+    assert_no_selector(".workflow-steps-horizontal")
+    assert_no_selector(".workflow-steps-vertical")
+  end
+
+  # `.workflow-steps-progress` is the N/M header's class inside this very root,
+  # so the root taking the same name would make every rule written for one of
+  # them a rule about the other.
+  def test_the_root_does_not_take_the_n_m_header_class
+    render_progress do |c|
+      c.with_step(title: "Capture", state: :success)
+    end
+
+    assert_no_selector(".workflow-steps.workflow-steps-progress")
+  end
+
+  def test_it_wraps_its_list_the_way_the_other_row_shape_does
+    render_progress do |c|
+      c.with_step(title: "Capture", state: :success)
+      c.with_step(title: "Triage", state: :current)
+    end
+
+    assert_selector("div.workflow-steps > ol.workflow-steps-list > li.workflow-step", count: 2)
+  end
+
+  def test_the_three_settled_states_fill_their_circle_and_swap_the_number_for_a_glyph
+    { success: [ "check", "bg-primary" ],
+      error: [ "x", "bg-error" ],
+      warning: [ "triangle-alert", "bg-warning" ] }.each do |state, (icon, fill)|
+      expected = icon_paths(icon)
+
+      render_progress do |c|
+        c.with_step(title: "Step", state: state)
+      end
+
+      assert_selector(".workflow-step-circle.#{fill}")
+      assert_equal([ "" ], circle_texts, "#{state} kept its number")
+      assert_equal(expected, circle_icon_paths, "#{state} did not draw the #{icon} glyph")
+    end
+  end
+
+  def test_the_two_states_still_to_come_keep_their_number_and_stay_outlined
+    render_progress do |c|
+      c.with_step(title: "A", state: :current)
+      c.with_step(title: "B", state: :pending)
+    end
+
+    assert_selector(".workflow-step-circle.border-2.border-primary", text: "1")
+    assert_selector(".workflow-step-circle.border-base-300", text: "2")
+    assert_no_selector(".workflow-step-circle svg")
+  end
+
+  def test_a_skipped_step_is_dashed_and_keeps_the_dash_instead_of_a_number
+    dash = icon_paths("minus")
+
+    render_progress do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :skipped)
+      c.with_step(title: "C", state: :pending)
+    end
+
+    assert_selector("li:nth-child(2) .workflow-step-circle.border-dashed")
+    assert_equal(dash, page.all("li:nth-child(2) .workflow-step-circle svg *", visible: :all)
+                           .map { |node| node.native.to_html })
+    assert_equal([ "", "", "2" ], circle_texts)
+  end
+
+  # The line is the flow's reach, not a second reading of each state, so every
+  # connector is one of two colours.
+  def test_the_connector_is_primary_into_every_state_the_flow_reached
+    %i[success error warning skipped current].each do |state|
+      render_progress do |c|
+        c.with_step(title: "A", state: :success)
+        c.with_step(title: "B", state: state)
+      end
+
+      assert_selector("li:nth-child(1) .workflow-step-connector.bg-primary",
+                      count: 1, visible: :all)
+    end
+  end
+
+  def test_the_connector_goes_grey_into_a_pending_step
+    render_progress do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+
+    assert_selector("li:nth-child(1) .workflow-step-connector.bg-base-300")
+    assert_no_selector(".workflow-step-connector.bg-primary")
+  end
+
+  # The nine-step funnel of the preview. The coloured run has to stop at the
+  # current step's circle: the eight connectors are five primary then three
+  # grey, and `:skipped` in third place does not break the run.
+  def test_the_coloured_run_ends_at_the_current_step
+    render_progress do |c|
+      %i[success success skipped success success current pending pending pending]
+        .each_with_index { |state, i| c.with_step(title: "Step #{i + 1}", state: state) }
+    end
+
+    assert_equal((%w[primary] * 5) + (%w[base-300] * 3), connector_colors)
+  end
+
+  def test_no_state_colours_the_line_the_way_the_rail_does
+    render_progress do |c|
+      c.with_step(title: "A", state: :error)
+      c.with_step(title: "B", state: :warning)
+      c.with_step(title: "C", state: :success)
+    end
+
+    assert_no_selector(".workflow-step-connector.bg-error")
+    assert_no_selector(".workflow-step-connector.bg-warning")
+    assert_no_selector(".workflow-step-connector.bg-success")
+  end
+
+  def test_the_last_step_draws_no_connector
+    render_progress do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+
+    assert_selector(".workflow-step-connector", count: 1)
+    assert_no_selector("li:last-child .workflow-step-connector")
+  end
+
+  # Bold is the only emphasis this shape spends, and it spends it once.
+  def test_only_the_current_label_is_emphasised
+    render_progress do |c|
+      c.with_step(title: "Done", state: :success)
+      c.with_step(title: "Now", state: :current)
+      c.with_step(title: "Later", state: :pending)
+      c.with_step(title: "Around", state: :skipped)
+    end
+
+    assert_selector(".workflow-step-title.font-semibold", count: 1, text: "Now")
+    assert_selector(".workflow-step-title.text-primary", text: "Now")
+    assert_selector(".workflow-step-title.text-base-content\\/80", text: "Done")
+    assert_selector(".workflow-step-title.text-base-content\\/50", text: "Later")
+    assert_selector(".workflow-step-title.text-base-content\\/50", text: "Around")
+  end
+
+  # A fill on the label is the mistake this shape invites: the state colours
+  # live in a class table the marker reads, and a copy of that table applied to
+  # the title paints a box behind the words.
+  def test_no_state_paints_the_label
+    Bali::WorkflowSteps::Step::Component::STATES.each do |state|
+      render_progress do |c|
+        c.with_step(title: "Step", state: state)
+      end
+
+      assert_no_selector('.workflow-step-title[class*="bg-"]')
+      assert_no_selector('.workflow-step-title[class*="border"]')
+    end
+  end
+
+  def test_the_numbering_is_the_one_every_other_shape_uses
+    render_progress do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :skipped)
+      c.with_step(title: "C", state: :pending)
+      c.with_step(title: "D", state: :pending)
+    end
+
+    assert_equal([ "", "", "2", "3" ], circle_texts)
+  end
+
+  def test_the_state_is_announced_like_in_every_other_shape
+    render_progress do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+      c.with_step(title: "Legal review", state: :error)
+    end
+
+    assert_selector("li:nth-child(1) .workflow-step-marker .sr-only", text: "Not taken", visible: :all)
+    assert_selector("li:nth-child(2) .workflow-step-marker .sr-only", text: "Rejected", visible: :all)
+  end
+
+  # Inherited from the rail: the `<ol>` is its own scroll container and holds
+  # nothing focusable, so WCAG 2.1.1 wants a tab stop with a name.
+  def test_the_row_is_reachable_by_keyboard_and_named
+    render_progress do |c|
+      c.with_step(title: "Capture", state: :success)
+    end
+
+    assert_selector('ol.workflow-steps-list[tabindex="0"]')
+    assert_selector(%(ol.workflow-steps-list[aria-label="#{I18n.t('bali_view.workflow_steps.rail_label')}"]))
+    assert_no_selector("ol.workflow-steps-list[role]")
+  end
+
+  def test_the_bar_is_off_by_default_and_can_be_turned_on
+    render_progress do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+    assert_no_selector(".workflow-steps-progress")
+
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :progress, progress: true)) do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+    assert_selector('.workflow-steps-progress progress.progress[value="1"][max="2"]')
+  end
+
+  def test_html_attributes_land_on_the_root
+    render_inline(
+      Bali::WorkflowSteps::Component.new(orientation: :progress, class: "funnel",
+                                         data: { testid: "progress" })
+    ) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector('div.workflow-steps.workflow-steps-progress-rail.funnel[data-testid="progress"]')
+  end
+
+  def test_the_orientation_error_names_the_fourth_shape
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(orientation: :sideways))
+    end
+
+    assert_includes(error.message, ":progress")
+  end
+
+  private
+
+  def render_progress(&block)
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :progress), &block)
+  end
+
+  def circle_texts
+    page.all(".workflow-step-circle", visible: :all).map { |node| node.text.strip }
+  end
+
+  # The colour token of each connector, in document order.
+  def connector_colors
+    page.all(".workflow-step-connector", visible: :all).map do |node|
+      node[:class][/bg-(\S+)/, 1]
+    end
+  end
+
+  # Which glyph a circle drew. Every Bali icon renders as `svg.lucide-icon`
+  # with no name anywhere in the markup, so the only handle on identity is the
+  # geometry — read here from the same component rather than pasted in.
+  def icon_paths(name)
+    render_inline(Bali::Icon::Component.new(name, size: 16))
+    page.all("svg *", visible: :all).map { |node| node.native.to_html }
+  end
+
+  def circle_icon_paths
+    page.all(".workflow-step-circle svg *", visible: :all).map { |node| node.native.to_html }
+  end
+end
+
+# Adding the progress shape rewrote the marker template and three class
+# lookups. The rail is the shape that shares them, so it is the one that would
+# quietly change.
+class BaliWorkflowStepsRailIsUnchangedTest < ComponentTestCase
+  def test_the_rail_still_colours_its_line_by_the_next_step_state
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail)) do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :error)
+      c.with_step(title: "C", state: :warning)
+      c.with_step(title: "D", state: :pending)
+    end
+
+    assert_selector("li:nth-child(1) .workflow-step-connector.bg-error")
+    assert_selector("li:nth-child(2) .workflow-step-connector.bg-warning")
+    assert_selector("li:nth-child(3) .workflow-step-connector.bg-base-300")
+  end
+
+  def test_the_rail_still_fills_its_circles_with_the_state_colour_and_numbers_them
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail)) do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :error)
+      c.with_step(title: "C", state: :current)
+    end
+
+    assert_selector(".workflow-step-circle.bg-success", text: "1")
+    assert_selector(".workflow-step-circle.bg-error", text: "2")
+    assert_selector(".workflow-step-circle.bg-primary.ring-2", text: "3")
+    assert_no_selector(".workflow-step-circle svg")
+  end
+
+  def test_the_rail_keeps_the_dash_on_a_skipped_step
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail)) do |c|
+      c.with_step(title: "A", state: :skipped)
+    end
+
+    assert_selector(".workflow-step-circle.bg-base-200 svg")
+    assert_no_selector(".workflow-step-circle.border-dashed")
+  end
+end
+
 # Three rules the rail shares with the other shapes live in the root
 # `.workflow-steps` block rather than being duplicated. The repo has no
 # rendering tests for CSS, so nothing else in the suite notices if someone
@@ -843,7 +1143,8 @@ class BaliWorkflowStepsStylesheetTest < ActiveSupport::TestCase
   # asserted, not incidental: same specificity in the same layer is settled by
   # source order, so the rail block has to come after the horizontal one.
   def test_each_shape_declares_its_own_marker_rule_in_source_order
-    assert_equal %w[.workflow-steps-vertical .workflow-steps-horizontal .workflow-steps-rail],
+    assert_equal %w[.workflow-steps-vertical .workflow-steps-horizontal .workflow-steps-rail
+                    .workflow-steps-progress-rail],
                  blocks_declaring(".workflow-step-marker")
   end
 

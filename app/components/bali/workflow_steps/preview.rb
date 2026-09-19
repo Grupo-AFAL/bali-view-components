@@ -124,6 +124,49 @@ module Bali
         render_with_template(locals: { progress: progress })
       end
 
+      # @param progress toggle
+      # Progress — how far the flow got
+      # -------------------------------
+      # `orientation: :progress` draws the same row as the rail, quieter: a
+      # 2px line instead of 6px, **monochrome**, and 12px labels. The shape for
+      # the page whose question is "where is this?" rather than "what happened
+      # at each step?".
+      #
+      # ```erb
+      # <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+      #   <% c.with_step(title: 'Capture', state: :success) %>
+      #   <% c.with_step(title: 'Evaluation', state: :skipped) %>
+      #   <% c.with_step(title: 'Project', state: :pending) %>
+      # <% end %>
+      # ```
+      #
+      # **The line is primary as far as the flow reached and `base-300` after
+      # that.** Reached is every state but `:pending` — a `:skipped` step was
+      # passed, only not entered, and a rejection is somewhere the flow
+      # arrived. So the coloured run ends at the current step's circle, which
+      # is where a reader stops counting.
+      #
+      # That rule assumes the states climb: a `:pending` step *before* a
+      # reached one leaves its outgoing connector coloured under a grey
+      # circle. A chain where that is normal — parallel approvals, a
+      # conditional branch — wants `:rail`, where every connector states its
+      # own step.
+      #
+      # **The marker carries the verdict, the line never does.** `:success`,
+      # `:error` and `:warning` fill and swap the number for a glyph;
+      # `:current` outlines in primary and keeps its number; `:skipped` goes
+      # dashed with a dash; `:pending` is a thin grey outline. The `sr-only`
+      # state name and `state_label:` work exactly as in the other shapes.
+      #
+      # Everything the rail resolved carries over: the row is a tab stop with
+      # an `aria-label`, it never wraps (equal columns to a `6rem` floor, then
+      # it scrolls inside the component), and **the N/M bar is off by
+      # default** — `progress: true` turns it on, and has nothing to do with
+      # the orientation sharing its name.
+      def progress(progress: false)
+        render_with_template(locals: { progress: progress })
+      end
+
       # Decision pattern (approve / reject)
       # -----------------------------------
       # The form that goes next to the flow is **the host's**, not a Bali

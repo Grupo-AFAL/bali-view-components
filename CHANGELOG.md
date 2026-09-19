@@ -19,6 +19,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bali_view.workflow_steps.rail_label`), porque si no los pasos que se desbordan no se
   alcanzan sin ratón. `:vertical` y `:horizontal` no cambian.
 
+- **`Bali::WorkflowSteps` gana una cuarta forma: `orientation: :progress`** (#1145). La
+  misma fila del `:rail`, más callada: línea de **2px monocroma**, etiquetas de 12px y el
+  veredicto entero en el marcador. Es para la pantalla cuya pregunta es «¿hasta dónde llegó
+  esto?» y no «¿qué pasó en cada paso?».
+
+  **La línea tiene dos colores y una sola pregunta**: el conector que sale del paso *i* es
+  `primary` si el paso *i+1* **fue alcanzado** y `base-300` si no. Alcanzado es todo menos
+  `:pending` —un `:skipped` se recorrió, solo que sin entrar—, así que el tramo de color
+  termina en el círculo del paso actual. El marcador es el que dice el veredicto: relleno
+  con palomita, ✗ o ⚠ en los tres estados que ya se resolvieron; contorno con su número en
+  el actual y en el pendiente; borde punteado con guion en el omitido.
+
+  **La regla lee la cadena como una subida.** Un `:pending` *antes* de un paso alcanzado
+  —aprobaciones en paralelo, una rama que se adelanta— deja un conector de color saliendo de
+  un círculo gris. Esa cadena quiere `:rail`, donde cada conector declara su propio paso.
+
+  Hereda del `:rail` todo lo que no es aspecto: la fila es parada de tabulación con
+  `aria-label` (`bali_view.workflow_steps.rail_label`, la misma clave para las dos filas),
+  no envuelve, scrollea adentro del componente, y la barra N/M viene **apagada** —que no
+  tiene nada que ver con la orientación que se llama igual: `new(orientation: :progress,
+  progress: true)` es una línea de progreso con barra N/M encima—. La numeración tampoco
+  cambia: un `:skipped` sigue sin consumir número.
+
+  Su clase raíz es `.workflow-steps-progress-rail`, no la `.workflow-steps-progress` que
+  predeciría el patrón de las otras tres: ese nombre ya es el del encabezado N/M, que esta
+  forma rinde adentro de esa misma raíz. **Hay que reconstruir el CSS** (`rails
+  tailwindcss:build`) para verla; `:vertical`, `:horizontal` y `:rail` no cambian ni un byte.
+
 - **`state_label:` por paso** (#1145). Cambia el nombre accesible del estado de **ese** paso,
   sin tocar las seis cadenas globales `bali_view.workflow_steps.states.*`:
 
