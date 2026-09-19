@@ -254,7 +254,8 @@ module Bali
     end
 
     # @param scope [ActiveRecord::Relation] The base scope to filter
-    # @param params [Hash, ActionController::Parameters] Request params containing q[...]
+    # @param params [Hash, ActionController::Parameters] Request params containing q[...].
+    #   Un `q` que no es un hash (`?q=x`, `?q[]=x`) se ignora y el listado sale sin filtrar.
     # @param storage_id [String] Optional cache key for persisting filters
     # @param context [String] Optional context for cache key namespacing
     # @param search_fields [Array<Symbol>] Fields for quick text search (alternative to DSL)
@@ -339,7 +340,7 @@ module Bali
       # seguro (agrupar de más es lo que no se ve venir).
       @display_mode = (display_mode || params[@view_param]).to_s.presence&.to_sym
 
-      q_params = params.fetch(:q, {})
+      q_params = normalized_q_params(params)
       @q_params = q_params # Store for simple_filters value extraction
       perm_attrs = permitted_attributes
       permitted = q_params.permit(perm_attrs)
@@ -643,6 +644,26 @@ module Bali
     # que habla el resto de Bali (filter_groups, el payload de una vista guardada, EnumCasting),
     # así que la forma de array también PASA por la traducción de enums en vez de esquivarla en
     # silencio y devolver los registros contrarios.
+    # `q` tal como se pueda permitir, venga como venga.
+    #
+    # `?q=loquesea` y `?q[]=loquesea` llegan como String y como Array, y ninguno de los dos
+    # responde a `permit`: se escriben en la barra de direcciones sin sesión y sin saber nada
+    # de la app, así que el `permit` pelado que había aquí era un 500 que cualquier visitante
+    # disparaba en cualquier listado. Y `q` no son solo los filtros —de ahí salen también el
+    # orden (`s`), las agrupaciones (`g`) y el combinador (`m`)—, así que cada lector fallaba
+    # a su manera más abajo. Un `q` que no es un hash no pidió nada, y el listado sale sin
+    # filtrar; rechazar la petición sería inventarle una intención a lo que es basura.
+    #
+    # El Hash pelado se envuelve porque la firma lo acepta y `Hash#permit` tampoco existe: el
+    # propio default `params = {}` moría aquí, así que `FilterForm.new(scope)` —y cualquier
+    # host que arme el form fuera de una petición, un job o un export— nunca funcionó.
+    def normalized_q_params(params)
+      q = params.fetch(:q, {})
+      return q if q.is_a?(ActionController::Parameters)
+
+      ActionController::Parameters.new(q.is_a?(Hash) ? q.to_h : {})
+    end
+
     def extract_groupings(q_params)
       groupings = q_params[:g]
       return nil if groupings.blank?
