@@ -25,8 +25,9 @@ app/frontend/bali/                         # entry points and registration:
 
 The catalogue of every standalone utility controller — identifier, purpose, minimal
 markup — is `docs/guides/controllers.md`, and `yarn check:manifest` fails if a
-registered identifier is missing from it. Host-facing registration recipes (bundler
-and importmaps) live in `docs/guides/javascript-integration.md`.
+registered identifier is missing from it. Host-facing registration recipes live in
+`docs/guides/javascript-integration.md`, which also carries the measurement behind
+"import maps cannot load Bali".
 
 ## Named exports, never default
 
