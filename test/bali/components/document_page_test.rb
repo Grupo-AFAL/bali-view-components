@@ -25,8 +25,8 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_selector(".breadcrumbs")
   end
 
-  # DocumentPage reparte sus opciones con `slice(*PAGE_OPTIONS)`: si `:heading` no está en
-  # esa lista, no llega al concern y termina como atributo HTML del contenedor.
+  # DocumentPage hands its options out with `slice(*PAGE_OPTIONS)`: if `:heading` is not on that list
+  # it never reaches the concern and ends up as an HTML attribute on the container.
   def test_heading_reaches_the_page_header_through_the_options_slice
     render_inline(Bali::DocumentPage::Component.new(title: "My Document", heading: :h3)) do |page|
       page.with_body { "Content" }
@@ -45,16 +45,16 @@ class BaliDocumentPageComponentTest < ComponentTestCase
   end
 
   def test_secondary_actions_alone_still_paint_the_actions_bar
-    # El gate era `if actions?`, así que una página con SOLO acciones secundarias no pintaba
-    # ni el ⋯ ni el divisor que lo separa de los toggles de paneles.
+    # The gate was `if actions?`, so a page with ONLY secondary actions painted neither the ⋯ nor the
+    # divider that separates it from the panel toggles.
     render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
       page.with_secondary_action(name: "Export", href: "/documents/1.pdf")
       page.with_body { "Content" }
     end
 
     assert_selector('[aria-label="More actions"]', visible: :all)
-    # Regla propia y no `.divider.divider-horizontal` de daisyUI: esa clase traía un
-    # `width: 1rem` propio que se sumaba al gap de la fila (#846).
+    # A rule of our own and not daisyUI's `.divider.divider-horizontal`: that class brought a
+    # `width: 1rem` of its own that added to the row's gap (#846).
     assert_selector(".w-0\\.5.h-6.bg-base-content\\/10", visible: :all)
   end
 
@@ -209,9 +209,9 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_no_selector("[data-action='document-page#toggleToc']")
   end
 
-  # Las tres cadenas de los paneles salen de `bali_view.document_page.*` y no del template.
-  # Se movieron al componente al unificar el encabezado, así que el `t('.x')` relativo ahora
-  # se resuelve desde la clase: si el scope se rompiera, esto vería "translation missing".
+  # The panels' three strings come from `bali_view.document_page.*` and not from the template. They
+  # moved into the component when the header was unified, so the relative `t('.x')` now resolves from
+  # the class: were the scope to break, this would see "translation missing".
   def test_the_panel_labels_come_from_i18n
     render_inline(Bali::DocumentPage::Component.new(
       title: "My Document",
@@ -230,8 +230,8 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_text("Fallback content")
   end
 
-  # El slot se llamaba `preview` y ahora se llama `body`, como en los otros cuatro. El shim
-  # avisa y sigue pintando: un host que no lo renombre no se queda con la página en blanco.
+  # The slot used to be called `preview` and is now called `body`, as in the other four. The shim
+  # warns and keeps painting: a host that does not rename it is not left with a blank page.
   def test_the_preview_slot_still_renders_and_warns
     message = nil
     Bali.deprecator.behavior = ->(warning, *) { message = warning }
@@ -287,9 +287,9 @@ class BaliDocumentPageComponentTest < ComponentTestCase
   end
 end
 
-# #1098 — DocumentPage monta el mismo editor interno que DocumentEditor, pero en modo
-# lectura: sin `input_name` no hay hidden input, así que no hay nada que serializar y
-# `format:` no tendría dónde actuar. Se dice en voz alta en vez de pintarse como atributo.
+# #1098 — DocumentPage mounts the same internal editor DocumentEditor does, but in read mode:
+# without an `input_name` there is no hidden input, so there is nothing to serialise and `format:`
+# would have nowhere to act. It is said out loud instead of being painted as an attribute.
 class BaliDocumentPageFormatTest < ComponentTestCase
   def test_format_is_rejected_instead_of_painted_as_an_html_attribute
     error = assert_raises(ArgumentError) do
@@ -302,7 +302,6 @@ class BaliDocumentPageFormatTest < ComponentTestCase
     assert_match "Bali::DocumentEditor", error.message
   end
 
-  # La razón por la que se rechaza, fijada: esta página no persiste nada.
   def test_the_page_mounts_a_read_only_editor_with_no_input_to_persist
     render_inline(Bali::DocumentPage::Component.new(
       title: "My Document", initial_content: [ { type: "paragraph" } ]

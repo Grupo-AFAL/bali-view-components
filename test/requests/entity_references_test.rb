@@ -2,9 +2,9 @@
 
 require "test_helper"
 
-# #708 — los endpoints del `#` del BlockEditor. El registry se inyecta por config, igual que
-# hace el host en su initializer; el contrato del payload se verifica clave por clave porque
-# es lo que el JS ya consume (useEntityReferences.jsx) y no se puede cambiar.
+# #708 — the BlockEditor's `#` endpoints. The registry is injected through config, the same way the
+# host does it in its initializer; the payload's contract is verified key by key because it is what
+# the JS already consumes (useEntityReferences.jsx) and cannot be changed.
 class BaliEntityReferencesRequestTest < ActionDispatch::IntegrationTest
   def setup
     @original_types = Bali.entity_reference_types
@@ -49,11 +49,11 @@ class BaliEntityReferencesRequestTest < ActionDispatch::IntegrationTest
     )
   end
 
-  # Autorización
+  # Authorization
 
   test "a falsy authorize forbids both endpoints" do
-    # El engine SHIPPEA este lambda como default (lib/bali.rb): montarlo no publica un
-    # buscador de los registros del host hasta que la app lo abre a mano.
+    # The engine SHIPS this lambda as the default (lib/bali.rb): mounting it does not publish a
+    # search over the host's records until the app opens it by hand.
     Bali.entity_references_authorize = ->(_controller) { false }
 
     get bali.entity_references_path(q: "Bali")
@@ -63,7 +63,7 @@ class BaliEntityReferencesRequestTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  # Búsqueda
+  # Search
 
   test "search returns every registered type matching the query" do
     get bali.entity_references_path(q: "Bali")
@@ -116,15 +116,15 @@ class BaliEntityReferencesRequestTest < ActionDispatch::IntegrationTest
   end
 
   test "search ignores a query too short to narrow anything" do
-    # Una sola letra recorre TODOS los tipos con un LIKE que no usa índice, y el menú pide
-    # por tecleo: el primer caracter no vale ese barrido.
+    # A single letter walks EVERY type with a LIKE that uses no index, and the menu asks as you
+    # type: the first character is not worth that sweep.
     get bali.entity_references_path(q: "B")
 
     assert_response :success
     assert_empty json
   end
 
-  # Resolución
+  # Resolution
 
   test "resolve returns the frozen payload key by key" do
     post bali.resolve_entity_references_path,
@@ -152,12 +152,12 @@ class BaliEntityReferencesRequestTest < ActionDispatch::IntegrationTest
     resolved = json.index_by { |ref| [ ref["entityType"], ref["entityId"] ] }
 
     assert_not resolved[[ "Document", @document.id.to_s ]]["broken"]
-    # Archivado: se resuelve CON nombre y marcado como roto — el chip se pinta tachado en
-    # vez de desaparecer del texto.
+    # Archived: it resolves WITH a name and marked broken — the chip is painted struck through
+    # instead of disappearing from the text.
     archived = resolved[[ "Document", @archived.id.to_s ]]
     assert archived["broken"]
     assert_equal @archived.title, archived["entityName"]
-    # Borrado y tipo fuera del registry: mismo payload roto, sin nombre ni URL.
+    # Deleted, and a type outside the registry: the same broken payload, with no name and no URL.
     [ [ "Document", "999999" ], [ "Secret", "1" ] ].each do |key|
       assert resolved[key]["broken"], "#{key.inspect} debe venir roto"
       assert_nil resolved[key]["entityName"]

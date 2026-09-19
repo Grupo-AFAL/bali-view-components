@@ -616,10 +616,10 @@ class BaliSideMenuComponentTest < ComponentTestCase
   end
 end
 
-# #1099 — el ítem activo queda fuera de vista tras navegar, porque cada navegación
-# re-renderiza el sidebar y su scroll vuelve arriba. El scroll en sí es del controller
-# (lo cubre cypress/e2e/side-menu-reveal-current.cy.js); acá se fija el interruptor y las
-# dos cosas del markup de las que depende, que son las que un host no puede emitir.
+# #1099 — the active item ends up out of sight after navigating, because every navigation
+# re-renders the sidebar and its scroll goes back to the top. The scrolling itself belongs to the
+# controller (cypress/e2e/side-menu-reveal-current.cy.js covers it); what is pinned here is the
+# switch and the two facts of the markup it depends on, which are the ones a host cannot emit.
 class BaliSideMenuRevealCurrentTest < ComponentTestCase
   def test_revealing_is_on_by_default_and_says_nothing_about_it
     render_menu
@@ -633,10 +633,9 @@ class BaliSideMenuRevealCurrentTest < ComponentTestCase
     assert_selector("[data-side-menu-reveal-current-value='false']")
   end
 
-  # El menú scrollea cuando es más alto que su caja, lo que no tiene nada que ver con estar
-  # anclado ni con poder colapsarse. Un sidebar inline y no colapsable habría sido el único
-  # caso que el reveal se saltaba en silencio — el mismo error que #830 ya había cometido
-  # con el switcher.
+  # The menu scrolls when it is taller than its box, which has nothing to do with being pinned or
+  # with being collapsible. An inline, non-collapsible sidebar would have been the one case the
+  # reveal skipped in silence — the same mistake #830 had already made with the switcher.
   def test_an_inline_sidebar_gets_the_controller_because_the_reveal_needs_one
     render_menu(fixed: false, collapsible: false)
 
@@ -649,8 +648,8 @@ class BaliSideMenuRevealCurrentTest < ComponentTestCase
     assert_no_selector("[data-controller~='side-menu']")
   end
 
-  # Lo que el controller busca. Renombrar cualquiera de los dos rompe el reveal en
-  # silencio, que es exactamente por qué esto vive en la gema y no en el host.
+  # What the controller looks for. Rename either of the two and the reveal breaks in silence, which
+  # is exactly why this lives in the gem and not in the host.
   def test_the_menu_scroller_the_controller_scrolls_is_still_named_sidebar_menu
     render_menu
 
@@ -664,10 +663,10 @@ class BaliSideMenuRevealCurrentTest < ComponentTestCase
     assert_no_selector(".sidebar-menu a[href='/dashboard'][aria-current='page']", visible: :all)
   end
 
-  # Un ítem simple se renderiza DOS veces —expandido y la versión icon-only del rail— y las
-  # dos llevan `aria-current`, porque las dos SON el enlace de esta página: cuál se ve lo
-  # decide el CSS. Por eso el controller no puede usar `querySelector` a secas — la mitad de
-  # las veces mediría un nodo en `display: none`, cuyos rects son todos cero.
+  # A plain item is rendered TWICE —expanded and the rail's icon-only version— and both carry
+  # `aria-current`, because both ARE this page's link: which one is visible is decided by CSS. That
+  # is why the controller cannot use a bare `querySelector` — half the time it would measure a node
+  # in `display: none`, whose rects are all zero.
   def test_the_current_link_is_rendered_once_per_rail_state
     render_menu
 

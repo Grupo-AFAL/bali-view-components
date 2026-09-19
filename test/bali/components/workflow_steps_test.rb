@@ -247,7 +247,93 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_selector('li.workflow-step.my-step[data-testid="step-a"]')
   end
 
+  # Every keyword this component does not declare reaches the root as a plain
+  # HTML attribute, so declaring one a host already passes turns working markup
+  # into an ArgumentError with every other test still green.
+  def test_undeclared_keywords_reach_the_root_as_html_attributes
+    render_inline(
+      Bali::WorkflowSteps::Component.new(style: "max-width:40rem", title: "Approval chain")
+    ) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector('ol.workflow-steps[style="max-width:40rem"]')
+    assert_selector('ol.workflow-steps[title="Approval chain"]')
+  end
+
+  def test_undeclared_keywords_reach_the_horizontal_root_too
+    render_inline(
+      Bali::WorkflowSteps::Component.new(orientation: :horizontal, style: "max-width:40rem",
+                                         title: "Approval chain")
+    ) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector('div.workflow-steps.workflow-steps-horizontal[style="max-width:40rem"]')
+    assert_selector('div.workflow-steps.workflow-steps-horizontal[title="Approval chain"]')
+  end
+
+  # Overriding `states.error` globally changes it for every other flow in the
+  # app; this is the per-step hatch, shaped like `Bali::BooleanIcon`'s `label:`.
+  def test_a_step_can_name_its_own_state_for_a_screen_reader
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+    end
+    assert_selector(".workflow-step-marker .sr-only", text: "Not taken", visible: :all)
+  end
+
+  # ActionView emits every key that is not `data`/`aria` verbatim, so an
+  # undeclared `state_label:` printed itself on the `<li>` as an invalid
+  # attribute.
+  def test_the_state_label_does_not_leak_as_an_html_attribute
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+    end
+    assert_no_selector("li.workflow-step[state_label]", visible: :all)
+  end
+
+  def test_a_step_without_a_state_label_keeps_the_translated_name
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped)
+    end
+    assert_selector(".workflow-step-marker .sr-only", text: "Skipped", visible: :all)
+  end
+
+  # `nil` means "not given"; anything else is the accessible name the host
+  # asked for, `""` included. `.presence ||` would quietly hand "Skipped" back
+  # to a host that asked for silence. Same rule as `Bali::BooleanIcon#label`.
+  def test_an_empty_state_label_is_taken_literally
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "")
+    end
+
+    assert_equal "", announced_states.join
+  end
+
+  def test_a_state_label_is_escaped_like_any_other_host_string
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "<b>Not</b> taken")
+    end
+
+    assert_no_selector(".workflow-step-marker .sr-only b", visible: :all)
+    assert_equal "<b>Not</b> taken", announced_states.first
+  end
+
+  def test_the_state_label_only_touches_its_own_step
+    render_inline(Bali::WorkflowSteps::Component.new) do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+      c.with_step(title: "Pilot", state: :skipped)
+    end
+
+    assert_equal [ "Not taken", "Skipped" ], announced_states
+  end
+
   private
+
+  # What a screen reader would read out for each step's state, in document order.
+  def announced_states
+    page.all(".workflow-step-marker .sr-only", visible: :all).map { |node| node.text(:all) }
+  end
 
   # Circle contents in document order; a skipped circle's icon has no text.
   def circle_texts
@@ -321,6 +407,29 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
     end
 
     assert_selector('div.workflow-steps.workflow-steps-horizontal.my-flow[data-testid="flow"]')
+  end
+
+  # The quick flow's dot carries no number, so its `sr-only` name is the only
+  # state information a reader who cannot see colour gets.
+  def test_a_horizontal_step_can_name_its_own_state
+    render_horizontal do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+      c.with_step(title: "Pilot", state: :skipped)
+    end
+
+    labels = page.all(".workflow-step-marker .sr-only", visible: :all).map { |node| node.text(:all) }
+    assert_equal [ "Not taken", "Skipped" ], labels
+  end
+
+  # The cards wrap instead of overflowing, so a tab stop here would be a stop
+  # on something that never scrolls.
+  def test_the_horizontal_list_is_not_a_focusable_scroll_region
+    render_horizontal do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_no_selector("ol.workflow-steps-list[tabindex]")
+    assert_no_selector("ol.workflow-steps-list[aria-label]")
   end
 
   def test_each_state_paints_its_dot_classes
@@ -533,5 +642,226 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
 
   def render_horizontal(&block)
     render_inline(Bali::WorkflowSteps::Component.new(orientation: :horizontal), &block)
+  end
+end
+
+# The rail is the third shape: one row of numbered circles joined by
+# connectors, the label under each.
+class BaliWorkflowStepsRailTest < ComponentTestCase
+  def test_the_rail_is_a_third_orientation_with_its_own_root_class
+    render_rail do |c|
+      c.with_step(title: "Capture", state: :success)
+    end
+
+    assert_selector("div.workflow-steps.workflow-steps-rail")
+    assert_no_selector(".workflow-steps-horizontal")
+    assert_no_selector(".workflow-steps-vertical")
+  end
+
+  def test_the_rail_wraps_its_list_the_way_the_quick_flow_does
+    render_rail do |c|
+      c.with_step(title: "Capture", state: :success)
+      c.with_step(title: "Triage", state: :current)
+    end
+
+    assert_selector("div.workflow-steps > ol.workflow-steps-list > li.workflow-step", count: 2)
+  end
+
+  def test_the_rail_numbers_its_markers_instead_of_drawing_dots
+    render_rail do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :current)
+      c.with_step(title: "C", state: :pending)
+    end
+
+    assert_no_selector(".workflow-step-dot")
+    assert_equal(%w[1 2 3], circle_texts)
+  end
+
+  def test_the_rail_keeps_the_skipped_step_out_of_the_numbering
+    render_rail do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :skipped)
+      c.with_step(title: "C", state: :pending)
+    end
+    assert_equal([ "1", "", "2" ], circle_texts)
+  end
+
+  # A connector takes the colour of the step AFTER it, so the line arrives
+  # already painted at the step that owns the verdict.
+  def test_the_rail_draws_a_connector_between_each_pair_of_steps
+    render_rail do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :error)
+      c.with_step(title: "C", state: :pending)
+    end
+
+    assert_selector(".workflow-step-connector", count: 2)
+    assert_selector("li:nth-child(1) .workflow-step-connector.bg-error")
+    assert_selector("li:nth-child(2) .workflow-step-connector.bg-base-300")
+    assert_no_selector("li:last-child .workflow-step-connector")
+  end
+
+  # Measured across the fleet: all four horizontal call sites pass
+  # `progress: false`, and the rail's connectors already say how far it got.
+  def test_the_rail_draws_no_bar_by_default
+    render_rail do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+    assert_no_selector(".workflow-steps-progress")
+  end
+
+  def test_the_rail_can_opt_into_the_bar
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail, progress: true)) do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :pending)
+    end
+
+    assert_selector('.workflow-steps-progress progress.progress[value="1"][max="2"]')
+    assert_selector(".workflow-steps-count", text: "1/2")
+  end
+
+  def test_the_rail_announces_the_state_like_every_other_shape
+    render_rail do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+      c.with_step(title: "Legal review", state: :error)
+    end
+
+    assert_selector("li:nth-child(1) .workflow-step-marker .sr-only", text: "Not taken", visible: :all)
+    assert_selector("li:nth-child(2) .workflow-step-marker .sr-only", text: "Rejected", visible: :all)
+  end
+
+  def test_html_attributes_land_on_the_rail_root
+    render_inline(
+      Bali::WorkflowSteps::Component.new(orientation: :rail, class: "funnel",
+                                         style: "max-width:60rem", data: { testid: "rail" })
+    ) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector('div.workflow-steps.workflow-steps-rail.funnel[data-testid="rail"][style="max-width:60rem"]')
+  end
+
+  # The rail hides nothing the caller passed: a narrow column is a reason not
+  # to pass a comment, not a reason for the component to drop one.
+  def test_the_rail_renders_the_same_step_body_as_the_other_shapes
+    render_rail do |c|
+      c.with_step(title: "Legal review", state: :error,
+                  assignee: "Ana Gutiérrez", date: "Jul 4, 2026") { "Missing appendix B." }
+    end
+
+    assert_selector(".workflow-step-title", text: "Legal review")
+    assert_selector(".workflow-step-assignee", text: "Ana Gutiérrez")
+    assert_selector(".workflow-step-date", text: "Jul 4, 2026")
+    assert_selector(".workflow-step-comment", text: "Missing appendix B.")
+  end
+
+  # WCAG 2.1.1. Measured at 400px with nine steps, `list.scrollWidth 864 >
+  # clientWidth 336`, and the `<ol>` holds nothing focusable: without
+  # `tabindex="0"` and a name the overflowed steps are unreachable by keyboard.
+  #
+  # No `role=`: measured in the browser, `role="region"` on an `<ol>` REPLACES
+  # its `list` role, so the reader stops being told how many steps there are.
+  def test_the_rail_list_is_reachable_by_keyboard_and_named
+    render_rail do |c|
+      c.with_step(title: "Capture", state: :success)
+    end
+
+    assert_selector('ol.workflow-steps-list[tabindex="0"]')
+    assert_selector("ol.workflow-steps-list[aria-label]")
+    assert_no_selector("ol.workflow-steps-list[role]")
+  end
+
+  def test_the_rail_scroll_region_is_named_from_the_locale
+    I18n.with_locale(:es) do
+      render_rail do |c|
+        c.with_step(title: "Captura", state: :success)
+      end
+    end
+
+    assert_selector(%(ol.workflow-steps-list[aria-label="#{I18n.t('bali_view.workflow_steps.rail_label', locale: :es)}"]))
+  end
+
+  # The four horizontal call sites write `progress: false` today; migrating one
+  # to the rail must not turn that into an error.
+  def test_the_rail_accepts_an_explicit_progress_false
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail, progress: false)) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector("div.workflow-steps.workflow-steps-rail")
+    assert_no_selector(".workflow-steps-progress")
+  end
+
+  def test_the_orientation_error_names_all_three_shapes
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(orientation: :sideways))
+    end
+
+    assert_includes(error.message, ":vertical")
+    assert_includes(error.message, ":horizontal")
+    assert_includes(error.message, ":rail")
+  end
+
+  private
+
+  def render_rail(&block)
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail), &block)
+  end
+
+  def circle_texts
+    page.all(".workflow-step-circle", visible: :all).map { |node| node.text.strip }
+  end
+end
+
+# Three rules the rail shares with the other shapes live in the root
+# `.workflow-steps` block rather than being duplicated. The repo has no
+# rendering tests for CSS, so nothing else in the suite notices if someone
+# files one back under a shape. This reads the source: it proves placement,
+# not paint.
+class BaliWorkflowStepsStylesheetTest < ActiveSupport::TestCase
+  STYLESHEET = Bali::Engine.root.join("app/components/bali/workflow_steps/index.css")
+
+  # Shared: the numbered circle by vertical and rail, the N/M header by
+  # horizontal and rail.
+  SHARED_RULES = %w[
+    .workflow-step-circle
+    .workflow-steps-progress
+    .workflow-steps-count
+  ].freeze
+
+  def test_the_shared_rules_live_in_the_root_block_exactly_once
+    SHARED_RULES.each do |selector|
+      assert_equal [ ".workflow-steps" ], blocks_declaring(selector),
+        "#{selector} must be declared exactly once, in the root `.workflow-steps` block"
+    end
+  end
+
+  # `.workflow-steps-horizontal .workflow-step-marker` boxes the marker into
+  # 1.5rem for its dot, which would crush the rail's 2rem circle. Order is
+  # asserted, not incidental: same specificity in the same layer is settled by
+  # source order, so the rail block has to come after the horizontal one.
+  def test_each_shape_declares_its_own_marker_rule_in_source_order
+    assert_equal %w[.workflow-steps-vertical .workflow-steps-horizontal .workflow-steps-rail],
+                 blocks_declaring(".workflow-step-marker")
+  end
+
+  private
+
+  # Top-level blocks declaring `selector` as a nested rule. This reads the two
+  # spaces of indent literally; a reformat that breaks that shape shows up as
+  # an empty result, not a false pass.
+  def blocks_declaring(selector)
+    current = nil
+
+    File.readlines(STYLESHEET).filter_map do |line|
+      if (top = line[/\A(\.[\w-]+)\s*\{/, 1])
+        current = top
+        nil
+      elsif line[/\A {2}(\.[\w-]+)\s*\{/, 1] == selector
+        current
+      end
+    end
   end
 end

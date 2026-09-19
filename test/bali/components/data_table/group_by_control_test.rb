@@ -42,8 +42,8 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     assert_selector("a[href*='group_by=status']")
   end
 
-  # El trigger comparte chrome con Filtros/Columnas/Vistas: `ghost` no tiene borde y entre
-  # dos vecinos con borde se leía como de otra familia.
+  # The trigger shares its chrome with Filters/Columns/Views: `ghost` has no border and between two
+  # bordered neighbours it read as belonging to another family.
   def test_the_trigger_wears_the_same_outline_chrome_as_the_other_toolbar_controls
     render_inline(component)
 
@@ -51,17 +51,17 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     assert_no_selector("[data-dropdown-target='trigger'].btn-ghost")
   end
 
-  # El label mutante ES el marcador de estado (mismo criterio que Vistas guardadas), así que
-  # el chrome no puede cambiar entre agrupado y sin agrupar.
+  # The mutating label IS the state marker (same criterion as Saved views), so the chrome cannot
+  # change between grouped and ungrouped.
   def test_the_active_trigger_keeps_the_same_chrome_and_only_the_label_changes
     render_inline(component(active: true, group_by: :genre))
 
     assert_selector("[data-dropdown-target='trigger'].btn.btn-outline", text: /Género/)
   end
 
-  # El param se queda VACÍO en vez de desaparecer: "sin agrupación" tiene que ser distinguible
-  # de "no vino nada", o un listado con persistencia de filtros restaura de la caché la
-  # agrupación que el usuario acaba de apagar.
+  # The param is left EMPTY instead of disappearing: "no grouping" has to be distinguishable from
+  # "nothing arrived", or a listing with filter persistence restores from the cache the grouping the
+  # user has just switched off.
   def test_renders_no_grouping_option_that_empties_the_param
     render_inline(component(active: true, group_by: :genre))
     no_group = page.find("a", text: "No grouping")
@@ -99,7 +99,7 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     end
   end
 
-  # --- R5: opciones explícitas (superficies sin FilterForm, p.ej. un roadmap propio) ---
+  # --- Explicit options (surfaces with no FilterForm, e.g. a roadmap of the host's own) ---
 
   def test_explicit_options_render_without_a_filter_form
     render_inline(Bali::DataTable::GroupByControl::Component.new(
@@ -108,11 +108,11 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
       current: "program", param: "roadmap_group_by", include_none: false
     ))
 
-    # El param propio viaja en los hrefs, conservando los params ajenos.
+    # The custom param travels in the hrefs, preserving the params that are not ours.
     assert_selector "a[href='/projects?roadmap_group_by=area&view=roadmap']", text: "Área"
-    # La opción activa nombra el trigger.
+    # The active option names the trigger.
     assert_text "Group by: Programa"
-    # include_none: false — no hay item "sin agrupar".
+    # include_none: false — there is no "ungrouped" item.
     assert_no_selector "a[href='/projects?view=roadmap']"
   end
 
@@ -128,8 +128,8 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
   end
 
   def test_one_shot_commands_never_ride_along_in_the_hrefs
-    # clear_filters/clear_search son ACCIONES (borran el estado guardado), no estado de
-    # navegación: arrastrarlos re-ejecutaba el borrado en cada clic de agrupación.
+    # clear_filters/clear_search are ACTIONS (they wipe the stored state), not navigation state:
+    # carrying them along re-ran the wipe on every grouping click.
     render_inline(component(current_params: { "clear_filters" => "true", "view" => "table" }))
 
     assert_no_selector("a[href*='clear_filters']")

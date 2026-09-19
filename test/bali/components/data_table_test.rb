@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-# Form con agrupación declarada, para el round-trip de preserved_params.
+# Form with a declared grouping, for the preserved_params round trip.
 class GroupableDataTableFilterForm < Bali::FilterForm
   group_by_attribute :genre, label: "Género"
 
@@ -161,12 +161,12 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("input[type=hidden][name=group_by]", visible: :all)
   end
 
-  # --- Suspensión en tarjetas: se esconde el control, NO el param ---
+  # --- Suspension in cards: the control is hidden, NOT the param ---
 
   def test_grid_mode_keeps_the_group_by_hidden_field
-    # ANTI-REGRESIÓN: el hidden field gatea por ESTADO (`group_by_active?`), no por
-    # APLICACIÓN. Si alguien lo "arregla" a `group_by_applied?`, buscar algo estando en
-    # tarjetas borra la agrupación y volver a la tabla ya no la encuentra.
+    # ANTI-REGRESSION: the hidden field gates on STATE (`group_by_active?`), not on
+    # APPLICATION. "Fix" it to `group_by_applied?` and searching while in cards wipes the
+    # grouping, so coming back to the table no longer finds it.
     form = grouping_filter_form(view: "grid")
     assert(form.group_by_suspended?, "el form tiene que estar suspendido para que el test valga")
 
@@ -203,8 +203,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_raises_when_the_view_param_disagrees_with_the_filter_form
-    # Desincronizados no hay NADA visible que lo delate: la tabla se ve igual y la suspensión
-    # decide al revés (mirando un param que el view switch nunca escribe).
+    # Out of sync there is NOTHING visible to give it away: the table looks the same and
+    # suspension decides the other way (looking at a param the view switch never writes).
     error = assert_raises(ArgumentError) do
       Bali::DataTable::Component.new(
         url: "/movies", filter_form: grouping_filter_form, view_param: :modo
@@ -221,18 +221,18 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_does_not_raise_on_a_custom_view_param_when_the_listing_has_no_grouping
-    # Sin agrupación declarada el modo de visualización no cambia ninguna decisión del form.
+    # With no declared grouping the display mode changes no decision the form makes.
     form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: {}))
     assert(Bali::DataTable::Component.new(url: "/movies", filter_form: form, view_param: :modo))
   end
 
   def test_raises_when_the_listing_renders_a_mode_the_form_never_heard_about
-    # El modo se deriva DOS veces: el DataTable lo resuelve contra las vistas declaradas y el
-    # form lo lee de la URL. Sin `?view=`, un listado que declara las tarjetas PRIMERO pinta
-    # tarjetas mientras el form —viendo nil— aplica la agrupación igual: las tarjetas vuelven
-    # reordenadas sin ninguna banda que lo explique.
-    # Las dos clases: el bloque del host se evalúa dentro del render, así que según quién esté
-    # en la pila ActionView puede envolver el ArgumentError en un Template::Error.
+    # The mode is derived TWICE: the DataTable resolves it against the declared views and the
+    # form reads it from the URL. With no `?view=`, a listing that declares the cards FIRST
+    # paints cards while the form —seeing nil— applies the grouping anyway: the cards come back
+    # reordered with no band to explain it.
+    # Both classes: the host's block is evaluated inside the render, so depending on who is on
+    # the stack ActionView may wrap the ArgumentError in a Template::Error.
     error = assert_raises(ArgumentError, ActionView::Template::Error) do
       render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form)) do |c|
         c.with_view_switch do |switch|
@@ -261,8 +261,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_does_not_raise_on_an_unknown_view_param
-    # Un `?view=` desconocido lo puede tipear un usuario: el listado cae a la primera vista y
-    # el form suspende. Es un límite conocido y sin daño — un 500 no es la respuesta a un typo.
+    # An unknown `?view=` is something a user can type: the listing falls back to the first view
+    # and the form suspends. A known and harmless limit — a 500 is not the answer to a typo.
     component = Bali::DataTable::Component.new(
       url: "/movies", filter_form: grouping_filter_form(view: "bogus")
     )
@@ -277,8 +277,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_a_suspended_grouping_leaves_the_control_in_place_but_inert
-    # Esconderlo movía la fila entera al cambiar de modo, y el cartel que lo explicaba ocupaba
-    # una franja permanente para decir lo que un botón apagado ya dice.
+    # Hiding it moved the whole row on a mode change, and the notice that explained it took a
+    # permanent strip to say what a disabled button already says.
     render_inline(
       Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form(view: "grid"))
     ) do |c|
@@ -290,8 +290,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_explicit_preserved_params_do_not_drop_the_active_group_by
-    # Antes eran excluyentes: un host que preservaba sus propios params tiraba la
-    # agrupación en cada submit de filtros o búsqueda.
+    # They used to be mutually exclusive: a host preserving its own params dropped the grouping
+    # on every filter or search submit.
     form = GroupableDataTableFilterForm.new(
       Movie.all, ActionController::Parameters.new(group_by: "genre")
     )
@@ -367,9 +367,9 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("input[name='group_by'][value='genre']", visible: :all)
   end
 
-  # #1056: los dos slots de filtro tratan `preserved_params` igual. El slot inline pasaba
-  # `preserved_state_params` fijo, así que un param propio del host (p. ej. la profundidad
-  # de un árbol) se perdía EN SILENCIO en cada submit de la fila.
+  # #1056: both filter slots treat `preserved_params` the same. The inline slot passed a fixed
+  # `preserved_state_params`, so a param of the host's own (a tree's depth, say) was lost
+  # SILENTLY on every submit of the row.
   def test_simple_filters_explicit_preserved_params_do_not_drop_the_active_group_by
     render_inline(Bali::DataTable::Component.new(url: "/movies",
                                                  filter_form: grouping_filter_form)) do |c|
@@ -381,9 +381,9 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("input[name='profundidad'][value='todo']", visible: :all)
   end
 
-  # La dirección de la precedencia es parte del contrato: en colisión de clave, el hash
-  # explícito del host pisa el estado del listado — en los DOS slots. Sin estos tests,
-  # invertir el receptor del merge pasaría la suite entera.
+  # The direction of precedence is part of the contract: on a key collision the host's explicit
+  # hash wins over the listing's state — in BOTH slots. Without these tests, flipping the
+  # receiver of the merge would pass the whole suite.
   def test_filters_panel_explicit_preserved_param_beats_the_same_key_from_the_listing_state
     form = GroupableDataTableFilterForm.new(
       Movie.all, ActionController::Parameters.new(group_by: "genre")
@@ -408,9 +408,9 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("input[name='group_by'][value='genre']", visible: :all)
   end
 
-  # El link Limpiar es la otra salida de la fila, y arrastra lo mismo que el submit: sin
-  # esto, limpiar los filtros tiraba la agrupación y los params del host que el propio
-  # submit acababa de conservar (paridad con clearFiltersAndClose del panel).
+  # The Clear link is the row's other exit, and it carries the same thing the submit does:
+  # without this, clearing the filters dropped the grouping and the host params the submit had
+  # just preserved (parity with the panel's clearFiltersAndClose).
   def test_simple_filters_clear_link_keeps_the_listing_state_and_the_hosts_params
     form = Bali::FilterForm.new(
       Movie.all,
@@ -428,7 +428,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("a[href='/movies?clear_filters=true&group_by=genre&profundidad=todo']")
   end
 
-  # --- Superficie: la trae el slot de contenido, no el host ni la toolbar ---
+  # --- Surface: the content slot brings it, not the host and not the toolbar ---
 
   def test_with_table_brings_its_own_surface_and_scroll_wrapper
     render_inline(component) do |c|
@@ -445,7 +445,7 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_grid { '<div class="cards"></div>'.html_safe }
     end
 
-    # Las tarjetas YA son la superficie: una card alrededor las anidaría.
+    # The cards ALREADY are the surface: a card around them would nest one inside another.
     assert_selector("div.cards")
     assert_no_selector("div.card")
     assert_no_selector("div.overflow-x-auto")
@@ -457,8 +457,8 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
     assert_selector("div.card > div.card-body > div.custom-view")
 
-    # Un contenido que trae su propio chrome (un calendario) apaga la superficie y NO pierde
-    # el bloque en el camino.
+    # Content that brings its own chrome (a calendar) switches the surface off and does NOT lose the
+    # block along the way.
     render_inline(component) do |c|
       c.with_content(surface: false) { '<div class="custom-view"></div>'.html_safe }
     end
@@ -472,12 +472,12 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    # La toolbar es la MISMA fila en todos los modos: bare, hija directa del componente.
-    # La única card de la página es la del contenido, y los filtros quedan FUERA.
+    # The toolbar is the SAME row in every mode: bare, a direct child of the component. The only
+    # card on the page is the content's, and the filters stay OUTSIDE.
     #
-    # La fila se nombra por su controlador y no por sus clases de layout: escrita como
-    # `div.flex.items-center`, esta prueba —que es sobre la SUPERFICIE— fallaba al cambiar
-    # la alineación de la fila, que no es lo que mira.
+    # The row is named by its controller and not by its layout classes: written as
+    # `div.flex.items-center`, this test —which is about the SURFACE— failed whenever the row's
+    # alignment changed, which is not what it looks at.
     toolbar = "div.data-table-component > div[data-controller~='toolbar-overflow']"
     assert_selector("#{toolbar} div.filters")
     assert_no_selector("div.card div.filters")
@@ -485,8 +485,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_declaring_two_content_slots_raises
-    # Dos declaraciones se pisaban en silencio y el host veía siempre la última: un modo
-    # que no eligió. Ahora falla ruidoso y enseña el if sobre display_mode.
+    # Two declarations overwrote each other silently and the host always saw the last one: a mode
+    # it did not pick. Now it fails loudly and teaches the if over display_mode.
     error = assert_raises(Bali::DataTable::Component::DuplicateContent) do
       render_inline(component) do |c|
         c.with_table { '<div class="table-component"></div>'.html_safe }
@@ -528,15 +528,15 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    # Sin nada más declarado la toolbar aparece igual: el switch la cuenta.
+    # With nothing else declared the toolbar still appears: the switch counts towards it.
     assert_selector("div.data-table-component .view-switch-component a", count: 2)
     assert_selector("a[href*='view=table']")
     assert_selector("a[href*='view=grid']")
   end
 
   def test_unknown_view_param_falls_back_to_the_first_declared_view
-    # Un `?view=` que nadie declaró no puede dejar el listado vacío: cae a la primera
-    # vista, y el host lee ese valor ya validado para elegir su contenido.
+    # A `?view=` nobody declared cannot leave the listing empty: it falls back to the first view,
+    # and the host reads that already-validated value to pick its content.
     @options = { display_mode: :bogus }
 
     render_inline(component) do |c|
@@ -587,9 +587,9 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_display_mode_falls_back_to_the_url_when_the_host_forgets_it
-    # Un host que declara el switch y se olvida de `display_mode:` obtenía links que
-    # cambiaban la URL y nunca la vista, en silencio: el componente ya tiene el query
-    # string en la mano (arma esos mismos hrefs con él).
+    # A host that declares the switch and forgets `display_mode:` used to get links that changed
+    # the URL and never the view, silently: the component already has the query string in hand
+    # (it builds those very hrefs with it).
     with_request_url "/admin/movies?view=grid" do
       render_inline(Bali::DataTable::Component.new(url: "/movies")) do |c|
         declare_views(c)
@@ -626,8 +626,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_saved_views_control_declares_its_priority_and_keeps_its_label
-    # Vistas guardadas es el control cuya DUPLICACIÓN causó #669, y el único cuyo label es
-    # dinámico (el nombre de la vista activa): dentro del ⋯ sin label queda un ícono anónimo.
+    # Saved views is the control whose DUPLICATION caused #669, and the only one whose label is
+    # dynamic (the active view's name): inside the ⋯ without a label it is an anonymous icon.
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: saved_views_form)) do |c|
       c.with_saved_views
       c.with_table { '<div class="table-component"></div>'.html_safe }
@@ -640,9 +640,9 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_a_declared_control_that_renders_nothing_does_not_open_the_overflow_menu
-    # `with_saved_views` sobre un form sin store deja `render?` en false. Mirando el
-    # predicado del slot quedaba un envoltorio VACÍO que el JS movía al ⋯, destapando un
-    # botón que abre un menú en blanco.
+    # `with_saved_views` over a form with no store leaves `render?` false. Looking at the slot's
+    # predicate left an EMPTY wrapper that the JS moved into the ⋯, exposing a button that opens
+    # a blank menu.
     formless = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new)
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: formless)) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
@@ -663,8 +663,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_overflow_menu_is_a_container_not_a_menu_of_menuitems
-    # Adentro caen widgets enteros (dropdowns anidados, checkboxes, el form de renombrar):
-    # `role="menu"` expone hijos que ese rol no permite.
+    # Whole widgets land inside it (nested dropdowns, checkboxes, the rename form): `role="menu"`
+    # exposes children that role does not allow.
     render_collapsible_toolbar
 
     assert_no_selector('[data-toolbar-overflow-target="overflow"] [role="menu"]', visible: :all)
@@ -680,8 +680,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_only_one_bulk_actions_controller_in_the_tree
-    # Dos controladores anidados se reparten los targets y la barra deja de ver las filas,
-    # en silencio: por eso el slot pide standalone: false.
+    # Two nested controllers split the targets between them and the bar stops seeing the rows,
+    # silently: that is why the slot asks for standalone: false.
     render_inline(component) do |c|
       c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
       c.with_table { '<div class="table-component"></div>'.html_safe }
@@ -690,8 +690,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_bulk_actions_declares_each_action_exactly_once
-    # El bloque del slot lo evalúa ViewComponent al leer `actions`. Correrlo también en el
-    # lambda duplicaba cada acción sin fallar en ningún lado.
+    # ViewComponent evaluates the slot's block when it reads `actions`. Running it in the lambda
+    # too duplicated every action without failing anywhere.
     render_inline(component) do |c|
       c.with_bulk_actions do |bulk|
         bulk.with_action(label: "Delete", href: "/delete")
@@ -729,8 +729,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_bulk_actions_alone_does_not_bring_up_the_toolbar_row
-    # La barra contextual NO vive en la fila de la toolbar: sin otro control declarado no
-    # hay toolbar que esconder.
+    # The contextual bar does NOT live in the toolbar's row: with no other control declared there is
+    # no toolbar to hide.
     render_inline(component) do |c|
       c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
       c.with_table { '<div class="table-component"></div>'.html_safe }
@@ -739,10 +739,10 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("div.bulk-actions-component")
   end
 
-  # --- Toolbar overflow: el ⋯ de viewports angostos ---
+  # --- Toolbar overflow: the ⋯ of narrow viewports ---
 
-  # Filtros (70, sobreviven) + columnas (35, colapsa): el caso mínimo con algo de cada lado
-  # del umbral.
+  # Filters (70, survive) + columns (35, collapses): the minimum case with something on each
+  # side of the threshold.
   def render_collapsible_toolbar
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
@@ -751,10 +751,10 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
   end
 
-  # Los tres grupos poblados: contenido de la vista (izquierda), cómo se recuerda (memory) y
-  # cómo se ve (derecha). El form trae storage_id, así que el marcador de persistencia
-  # también pinta. El view switch es lo ÚNICO que puebla la derecha desde que el export se
-  # mudó al ⋯ del PageHeader.
+  # All three groups populated: the view's content (left), how it is remembered (memory) and how
+  # it looks (right). The form carries a storage_id, so the persistence checkbox paints too. The
+  # view switch is the ONLY thing populating the right since the export moved into the
+  # PageHeader's ⋯.
   def render_full_toolbar
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: saved_views_form)) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
@@ -765,10 +765,10 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
   end
 
-  # El ColumnSelector no tiene test propio: su cobertura vive acá.
-  # La aserción negativa VA scopeada al `data-controller`: el propio ⋯ de la toolbar se pinta
-  # con `align: :bottom_end`, así que un `assert_no_selector('.dropdown-end')` pelado falla
-  # contra un `dropdown-end` que es correcto y tiene que quedarse.
+  # The ColumnSelector has no test of its own: its coverage lives here.
+  # The negative assertion MUST be scoped to the `data-controller`: the toolbar's own ⋯ is
+  # painted with `align: :bottom_end`, so a bare `assert_no_selector('.dropdown-end')` fails
+  # against a `dropdown-end` that is correct and has to stay.
   def test_the_column_selector_popover_opens_to_the_left
     render_collapsible_toolbar
 
@@ -818,15 +818,15 @@ class BaliDataTableComponentTest < ComponentTestCase
                     count: 1, visible: :all)
     assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="right"]',
                     count: 1, visible: :all)
-    # Sin botones del host no hay grupo del host: un grupo vacío es un flex item que se lleva
-    # el `gap` de la fila a los dos lados.
+    # With no host buttons there is no host group: an empty group is a flex item that takes the
+    # row's `gap` on both of its sides.
     assert_no_selector('[data-toolbar-overflow-group="host"]', visible: :all)
   end
 
   def test_the_left_group_reads_filters_then_group_by_then_columns
-    # El JS reordena cada grupo por prioridad DESCENDENTE al expandir, así que el orden de la
-    # fila lo fijan estos números y no el template: leídos de mayor a menor tienen que dar el
-    # orden pedido.
+    # On expand the JS reorders each group by DESCENDING priority, so these numbers and not the
+    # template are what fix the row's order: read from highest to lowest they have to give the
+    # order asked for.
     form = GroupableDataTableFilterForm.new(Movie.all, ActionController::Parameters.new({}))
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
       c.with_filters_panel
@@ -850,7 +850,6 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_column_selector_collapses_from_the_left_group
-    # Cambió de lado: era el subgrupo derecho ("cómo se ve") y ahora es contenido de la vista.
     render_full_toolbar
 
     assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
@@ -860,8 +859,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_separator_is_not_a_control
-    # Marcada como `item` viajaría al ⋯ como si fuera un control, y con prioridad el JS la
-    # reordenaría entre los controles del grupo. No es ninguna de las dos cosas.
+    # Marked as an `item` it would travel into the ⋯ as if it were a control, and with a priority
+    # the JS would reorder it among the group's controls. It is neither of those things.
     render_full_toolbar
 
     assert_selector('[data-toolbar-overflow-target="separator"]', count: 1, visible: :all)
@@ -870,13 +869,13 @@ class BaliDataTableComponentTest < ComponentTestCase
                        visible: :all)
     assert_no_selector('[data-toolbar-overflow-separates][data-toolbar-overflow-target~="item"]',
                        visible: :all)
-    # Hermana de los dos grupos, no hija de ninguno: adentro de uno el JS la empuja al final.
+    # A sibling of the two groups, a child of neither: inside one, the JS pushes it to the end.
     assert_no_selector('[data-toolbar-overflow-target="group"] [data-toolbar-overflow-target="separator"]',
                        visible: :all)
   end
 
   def test_the_separator_is_served_hidden_below_the_breakpoint
-    # El caso sin JS: bajo `sm` no queda nadie a su derecha que la sostenga.
+    # The no-JS case: below `sm` nobody is left to its right to hold it up.
     render_full_toolbar
 
     assert_selector('[data-toolbar-overflow-target="separator"][class~="max-sm:hidden"]', visible: :all)
@@ -914,9 +913,9 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_host_buttons_get_their_own_group_and_leave_the_view_switch_pinned_right
-    # Adentro del grupo derecho el JS los ordenaba por prioridad DESCENDENTE (10 contra 50) y
-    # el botón del host terminaba a la derecha del view switch — que es lo único que puede ir
-    # pegado al borde, porque es lo único que dice cómo se VE el listado.
+    # Inside the right group the JS ordered them by DESCENDING priority (10 against 50) and the
+    # host's button ended up to the right of the view switch — which is the only thing allowed
+    # against the edge, because it is the only thing that says how the listing LOOKS.
     render_inline(component) do |c|
       declare_views(c)
       c.with_toolbar_button { '<button class="btn">Refresh</button>'.html_safe }
@@ -943,27 +942,27 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_toolbar_controls_exist_exactly_once_in_the_dom
-    # EL contrato del overflow: el JS MUEVE nodos. Sin este test, el patrón viejo
-    # (`hidden md:block` + copia móvil) puede volver sin que nada falle — y dos copias del
-    # selector de columnas son dos controladores manejando la misma tabla.
+    # THE overflow contract: the JS MOVES nodes. Without this test the old pattern
+    # (`hidden md:block` + a mobile copy) can come back without anything failing — and two copies
+    # of the column selector are two controllers driving the same table.
     render_collapsible_toolbar
 
     assert_selector('[data-toolbar-overflow-target="item"]', count: 2, visible: :all)
     assert_selector("div.filters", count: 1, visible: :all)
     assert_selector('[data-toolbar-overflow-target="menu"]', count: 1, visible: :all)
-    # La zona de aterrizaje se sirve VACÍA: la llena el JS al colapsar.
+    # The landing zone is served EMPTY: the JS fills it on collapse.
     assert_no_selector('[data-toolbar-overflow-target="menu"] *', visible: :all)
   end
 
   def test_overflow_menu_is_served_hidden_and_revealed_by_the_javascript
-    # Se sirve con `hidden` y lo destapa el JS al mover el primer control adentro: así no
-    # parpadea un ⋯ que abre un menú vacío mientras el bundle carga.
+    # Served with `hidden` and revealed by the JS when it moves the first control inside: that way
+    # a ⋯ that opens an empty menu does not flash while the bundle loads.
     #
-    # Sin `sm:hidden` a propósito: el colapso dejó de decidirlo el breakpoint y pasa a MEDIRSE
-    # (`max-content` contra el ancho real de la fila), así que el ⋯ tiene que poder aparecer en
-    # cualquier ancho — con un sidebar, una ventana de 1024px deja la toolbar sin lugar mucho
-    # antes de llegar a `sm`. Una clase que lo escondiera arriba de 640px lo volvería
-    # inalcanzable justo donde más falta hace.
+    # No `sm:hidden`, deliberately: the breakpoint no longer decides the collapse, it is MEASURED
+    # (`max-content` against the row's real width), so the ⋯ has to be able to appear at any
+    # width — with a sidebar, a 1024px window leaves the toolbar without room long before
+    # reaching `sm`. A class hiding it above 640px would make it unreachable exactly where it is
+    # needed most.
     render_collapsible_toolbar
 
     assert_selector('[data-toolbar-overflow-target="overflow"][class~="hidden"]', visible: :all)
@@ -971,9 +970,9 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_collapsible_controls_mark_their_label_for_the_overflow_menu
-    # Contrato con data_table/index.css: los controles esconden su label bajo `sm` para no
-    # comerse la fila, y adentro del ⋯ —donde sobra ancho— vuelve. Sin las dos clases el
-    # menú queda con iconos anónimos, y eso ningún test de CSS lo ve.
+    # Contract with data_table/index.css: the controls hide their label below `sm` so they do not
+    # eat the row, and inside the ⋯ —where width is plentiful— it comes back. Without both
+    # classes the menu is left with anonymous icons, and no CSS test sees that.
     form = GroupableDataTableFilterForm.new(Movie.all, ActionController::Parameters.new({}))
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
       c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
@@ -998,8 +997,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_view_switch_does_not_open_the_overflow_menu_by_itself
-    # Prioridad 50 = umbral: el switch se ENCOGE (icon_only responsive), no se colapsa. Si
-    # abriera el ⋯ siendo lo único extra declarado, el menú saldría vacío.
+    # Priority 50 = the threshold: the switch SHRINKS (icon_only responsive), it does not collapse.
+    # If it opened the ⋯ while being the only extra declared, the menu would come out empty.
     render_inline(component) do |c|
       declare_views(c)
       c.with_filters_panel(available_attributes: filter_attributes)
@@ -1017,8 +1016,8 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    # El label se colapsa por CSS, pero el nombre accesible viaja siempre: en móvil el
-    # botón queda con solo un icono.
+    # The label collapses through CSS, but the accessible name always travels: on mobile the
+    # button is left with an icon only.
     assert_selector("a[title='Tabla'][aria-label='Tabla']")
     assert_selector("a[href*='view=table'] span[class~='max-sm:hidden']", text: "Tabla")
   end
@@ -1049,9 +1048,9 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_toolbar_row_keeps_the_overflow_controller_and_the_bulk_actions_target
-    # Los dos viven en la MISMA fila: la barra contextual la esconde entera, el overflow
-    # reacomoda lo que hay adentro. Escribir el hash `data` en vez de mergearlo borraba el
-    # controlador sin fallar en ningún lado.
+    # Both live in the SAME row: the contextual bar hides it whole, the overflow rearranges what
+    # is inside. Writing the `data` hash instead of merging into it wiped the controller without
+    # failing anywhere.
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
       c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
@@ -1064,8 +1063,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_filters_panel_preserves_the_declared_display_mode_as_hidden_field
-    # El submit de filtros reconstruye la URL desde `url:`, que el host pasa SIN query
-    # string: sin este hidden, filtrar estando en tarjetas devolvía al usuario a la tabla.
+    # The filters submit rebuilds the URL from `url:`, which the host passes WITHOUT a query
+    # string: without this hidden field, filtering while in cards sent the user back to the table.
     @options = { display_mode: :grid }
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
@@ -1087,7 +1086,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_no_view_hidden_field_when_the_host_declares_no_display_mode
-    # Un listado sin view switch no tiene por qué escribir `view=table` en la URL.
+    # A listing with no view switch has no business writing `view=table` into the URL.
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
       c.with_table { '<div class="table-component"></div>'.html_safe }
@@ -1130,8 +1129,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_a_nested_view_param_does_not_blow_up_the_component
-    # `display_mode:` suele llegar directo de params[:view]; `?view[]=x` no responde a
-    # to_sym y reventaba el render entero antes de llegar al gateo.
+    # `display_mode:` usually arrives straight from params[:view]; `?view[]=x` does not respond to
+    # to_sym and blew up the whole render before it ever reached the gate.
     @options = { display_mode: [ "grid" ] }
     render_inline(component) do |c|
       c.with_view_switch { |vs| vs.with_view(name: "Table", icon: "list", value: :table) }
@@ -1143,26 +1142,26 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_actions_panel_is_gone
-    # El panel entero murió: su toggle grid/tabla lo reemplaza with_view_switch, su export
-    # el ⋯ del PageHeader (page.with_export) y su hueco de acciones with_bulk_actions.
-    # Romper ruidoso > seguir pintando el camino de #653.
+    # The whole panel died: with_view_switch replaces its grid/table toggle, the PageHeader's ⋯
+    # its export (page.with_export) and with_bulk_actions its actions slot. Breaking loudly beats
+    # going on painting the path of #653.
     refute_respond_to(component, :with_actions_panel)
     refute(Bali::DataTable.const_defined?(:ActionsPanel))
   end
 
   def test_export_is_not_a_toolbar_slot
-    # El export se mudó al ⋯ del PageHeader (`page.with_export`): exportar es una acción
-    # SOBRE la página, no un control de cómo se ve el listado. `dt.with_export` tiene que
-    # levantar NoMethodError y no seguir pintando un botón que ignora los filtros.
+    # The export moved into the PageHeader's ⋯ (`page.with_export`): exporting is an action ON the
+    # page, not a control of how the listing looks. `dt.with_export` has to raise NoMethodError
+    # and not go on painting a button that ignores the filters.
     refute_respond_to(component, :with_export)
     refute(Bali::DataTable::Component::OVERFLOW_PRIORITIES.key?(:export))
   end
 
   # --- footer ---------------------------------------------------------------------------
   #
-  # El footer ya no se dibuja acá: es el MISMO PaginationFooter que cualquier host puede
-  # renderizar suelto. Lo que estos tests fijan es que el listado siga produciendo el
-  # summary y los controles, y que los siga produciendo UNA sola vez.
+  # The footer is no longer drawn here: it is the SAME PaginationFooter any host can render on its
+  # own. What these tests pin is that the listing keeps producing the summary and the controls,
+  # and keeps producing them exactly ONCE.
 
   def render_with_pagy(pagy, **options)
     @options = options.merge(pagy: pagy)
@@ -1185,11 +1184,11 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_equal 1, page.text.scan("Showing 1-10 of 47 movies").size
   end
 
-  # Test de caracterización: la lista LITERAL de clases que el footer del listado tenía en 3.0,
-  # cuando se dibujaba inline acá. Mover el footer a PaginationFooter no puede cambiar un pixel
-  # del pie de la tabla, y la primera versión de ese cambio sí lo movió: el `py-4` del footer
-  # suelto se sumaba al `pt-4` del listado y metía 16px de padding inferior donde no había
-  # ninguno. Si esta cadena cambia, cámbiala a propósito y documéntalo.
+  # Characterisation test: the LITERAL class list the listing's footer had in 3.0, when it was
+  # drawn inline here. Moving the footer into PaginationFooter cannot change a pixel of the
+  # table's foot, and the first version of that change did move it: the standalone footer's `py-4`
+  # added to the listing's `pt-4` and put 16px of bottom padding where there had been none. If
+  # this string changes, change it on purpose and write down why.
   FOOTER_CLASSES_ON_3_0 =
     "flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-base-200"
 
@@ -1213,7 +1212,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_text("Showing 1-1 of 1 movie")
   end
 
-  # Con cero resultados el listado decía "Showing 0-0 of 0 movies" debajo de una tabla vacía.
+  # With zero results the listing said "Showing 0-0 of 0 movies" underneath an empty table.
   def test_footer_says_nothing_without_results
     render_with_pagy(Pagy::Offset.new(count: 0, page: 1, limit: 10), item_name: "movies")
 
@@ -1254,12 +1253,12 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_text("Showing")
   end
 
-  # --- links de página --------------------------------------------------------------------
+  # --- page links ---------------------------------------------------------------------------
   #
-  # Quién arma la URL de "página 2" depende de si el Pagy trae un request, y el listado no le
-  # quita el trabajo a Pagy cuando Pagy puede hacerlo: la `url:` de un DataTable es la base de
-  # filtrado y orden, que el host pasa SIN query string, así que hacerla ganar borra el recorte
-  # aplicado al cambiar de página (#756).
+  # Who builds the URL for "page 2" depends on whether the Pagy carries a request, and the listing
+  # does not take the work off Pagy when Pagy can do it: a DataTable's `url:` is the filtering and
+  # sorting base, which the host passes WITHOUT a query string, so making it win wipes the applied
+  # narrowing when the page changes (#756).
 
   def render_listing(pagy:, url: "/movies")
     render_inline(Bali::DataTable::Component.new(url: url, pagy: pagy)) do |c|
@@ -1284,9 +1283,9 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_equal "/movies?page=2", page_link_href(2)
   end
 
-  # Sin base, un Pagy sin request caía en un `?page=2` pelado, y ese href REEMPLAZA el query
-  # string entero del navegador: el filtro que el usuario estaba mirando desaparecía al pasar
-  # de página. La base la arma el listado igual que el view switch y "Agrupar por".
+  # With no base, a request-less Pagy fell back to a bare `?page=2`, and that href REPLACES the
+  # browser's whole query string: the filter the user was looking at disappeared on turning the
+  # page. The listing builds the base the same way the view switch and "Group by" do.
   def test_page_links_keep_the_applied_filter_when_the_pagy_has_no_request
     with_request_url "/admin/movies?q%5Bname_cont%5D=a&page=1" do
       render_listing(pagy: Pagy::Offset.new(count: 47, page: 1, limit: 10))
@@ -1295,9 +1294,9 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_equal "/movies?q%5Bname_cont%5D=a&page=2", page_link_href(2)
   end
 
-  # LA regresión que introduce el arreglo ingenuo. Con el helper `pagy()` —o sea, en cualquier
-  # host— el Pagy arma sus URLs desde el request real, con el recorte adentro; reenviarle la
-  # `url:` del listado lo pisaría (PagyAdapter#page_url, #654) y devolvería `/?page=2`.
+  # THE regression the naive fix introduces. With the `pagy()` helper —that is, in any host— the
+  # Pagy builds its URLs from the real request, narrowing included; handing it the listing's
+  # `url:` would overwrite that (PagyAdapter#page_url, #654) and return `/?page=2`.
   def test_a_linkable_pagy_keeps_building_its_own_page_links
     render_listing(pagy: linkable_pagy(params: { "q" => { "name_cont" => "a" } }), url: "/")
 

@@ -2,14 +2,13 @@
 
 require "test_helper"
 
-# `Tool` responde dos preguntas: "¿existe esta herramienta en este ambiente?" y "¿a dónde
-# apunta?". La primera la contesta preguntándole a un CONTEXTO QUE RECIBE — nunca a
-# `Rails.application.routes.url_helpers`. Por eso estas pruebas usan un doble y no montan
-# rutas: es la ventaja concreta de recibir el contexto en vez de buscarlo.
+# `Tool` answers two questions: "does this tool exist in this environment?" and "where does it
+# point?". It answers the first by asking a CONTEXT IT IS GIVEN — never
+# `Rails.application.routes.url_helpers`. That is why these tests use a double and mount no routes:
+# it is the concrete payoff of receiving the context instead of reaching for it.
 class BaliTopbarToolsMenuToolTest < ComponentTestCase
-  # Un contexto de vista de mentiras: responde sólo a los helpers que se le declaran.
-  # `main_app:` le cuelga un proxy —el del host— igual que hace Rails en el contexto de un
-  # engine.
+  # A pretend view context: it responds only to the helpers it is given. `main_app:` hangs a proxy
+  # off it —the host's— the way Rails does inside an engine's context.
   class FakeContext
     def initialize(rutas = {}, main_app: nil)
       @rutas = rutas
@@ -46,11 +45,11 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
     assert_not tool.available?(FakeContext.new)
   end
 
-  # El contexto de vista de una pantalla de ENGINE no conoce los helpers del host, y las
-  # cuatro apps del grupo sirven `/admin/auth/...` con el layout de la app — o sea que ese
-  # es el contexto contra el que se pinta este menú ahí. Sin la caída a `main_app`, migrar
-  # a este componente apagaría en silencio las herramientas montadas justo en esas
-  # pantallas. Medido en gobierno-corporativo sobre `BaliAuth::Admin::RolesController`.
+  # An ENGINE screen's view context does not know the host's helpers, and the group's four apps serve
+  # `/admin/auth/...` with the app's layout — so that is the context this menu is painted against
+  # there. Without the fall back to `main_app`, migrating to this component would silently switch off
+  # the mounted tools on exactly those screens. Measured in gobierno-corporativo over
+  # `BaliAuth::Admin::RolesController`.
   def test_a_mounted_tool_resolves_through_main_app_in_an_engine_context
     engine = FakeContext.new(main_app: FakeContext.new({ letter_opener_web_path: "/letter_opener" }))
 
@@ -58,9 +57,9 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
     assert_equal "/letter_opener", tool.href(engine)
   end
 
-  # La regla del router se conserva entera del otro lado de la caída: un helper que tampoco
-  # existe en el host sigue sin ofrecerse. Si no, el menú pintaría un enlace muerto en cada
-  # pantalla de engine.
+  # The router's rule survives whole on the other side of the fall back: a helper the host does not
+  # know either is still not offered. Otherwise the menu would paint a dead link on every engine
+  # screen.
   def test_a_helper_the_host_does_not_know_either_is_still_unavailable
     engine = FakeContext.new(main_app: FakeContext.new({ otra_ruta_path: "/otra" }))
 
@@ -68,8 +67,8 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
     assert_nil tool.href(engine)
   end
 
-  # El contexto directo gana sobre el proxy: en una pantalla del host `main_app` ni se
-  # consulta, así que la caída no puede cambiar lo que ya resolvía.
+  # The direct context beats the proxy: on a host screen `main_app` is not even consulted, so the
+  # fall back cannot change what already resolved.
   def test_the_direct_context_wins_over_main_app
     context = FakeContext.new({ letter_opener_web_path: "/directo" },
                               main_app: FakeContext.new({ letter_opener_web_path: "/por-el-proxy" }))
@@ -126,10 +125,10 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
     assert_includes error.message, "route_helper"
   end
 
-  # El foot-gun real: `:main_app` a secas pasa como símbolo, `available?` da `true` (el
-  # contexto SÍ responde a él, porque es un proxy de engine), y `href` devolvería el
-  # `RoutesProxy` mismo en vez de una URL — un enlace roto renderizado sin error. Exigir el
-  # sufijo lo convierte en un `ArgumentError` al construir.
+  # The real foot-gun: a bare `:main_app` passes as a symbol, `available?` says `true` (the context
+  # DOES respond to it, because it is an engine proxy), and `href` would return the `RoutesProxy`
+  # itself instead of a URL — a broken link rendered without an error. Requiring the suffix turns it
+  # into an `ArgumentError` at construction.
   def test_a_route_helper_that_is_not_a_path_or_url_helper_raises
     error = assert_raises(ArgumentError) do
       Bali::Topbar::ToolsMenu::Tool.new(key: :x, icon: "wrench", route_helper: :main_app)
@@ -138,7 +137,7 @@ class BaliTopbarToolsMenuToolTest < ComponentTestCase
     assert_includes error.message, "_path"
   end
 
-  # `meta` es del host: la gema lo transporta y nunca lo interpreta.
+  # `meta` belongs to the host: the gem carries it and never interprets it.
   def test_meta_round_trips_untouched
     con_meta = tool(meta: { gate: "system.admin" })
 

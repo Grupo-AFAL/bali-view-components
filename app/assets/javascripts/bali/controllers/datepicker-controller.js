@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
+import { optionalPeer } from '../utils/optional-peer.js'
 
 /**
  * Datepicker Controller
@@ -42,7 +43,9 @@ export class DatepickerController extends Controller {
   }
 
   async connect () {
-    const { default: flatpickr } = await import('flatpickr')
+    const flatpickrModule = await import('flatpickr').catch(optionalPeer('flatpickr'))
+    if (!flatpickrModule) return
+    const { default: flatpickr } = flatpickrModule
 
     const input =
       this.element.nodeName === 'INPUT'
@@ -149,7 +152,10 @@ export class DatepickerController extends Controller {
   // table into every host's bundle to serve locales this gem has no strings for.
   // A host that needs another one calls flatpickr.localize() itself.
   static LOCALES = {
-    es: () => import('flatpickr/dist/l10n/es.js').then(m => m.Spanish)
+    es: () =>
+      import('flatpickr/dist/l10n/es.js')
+        .catch(optionalPeer('flatpickr'))
+        .then(m => m?.Spanish)
   }
 
   async setLocale (countryCode) {

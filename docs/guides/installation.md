@@ -12,12 +12,90 @@ This guide covers complete setup of Bali ViewComponents in your Rails applicatio
 
 ---
 
+## Step 0: `bin/rails g bali:install`
+
+Steps 1 and 2 are yours. Everything from Step 3 down, the generator writes:
+
+```bash
+bin/rails g bali:install          # add --block-editor to turn the Block Editor on
+yarn install
+bin/rails tailwindcss:build
+```
+
+| Step below | What the generator writes |
+|---|---|
+| 3 — Tailwind + daisyUI | `@plugin "daisyui"`, the engine bridge and `bali.css`, in the order Tailwind needs, into whichever Tailwind entry point this app has |
+| 4 — JavaScript | the `registerAll` / `registerCharts` imports and calls |
+| 5 — FormBuilder | `config/initializers/bali.rb` with the one line and the reason for it |
+| 6 — peer dependencies | every REQUIRED peer, into `package.json` — `daisyui` into `devDependencies`, where all seven keep it, the rest into `dependencies` |
+
+**What it does not write, and why.** Across the seven applications using Bali,
+`application.css` shares exactly three substantive lines, the initializer shares exactly one,
+and `controllers/index.js` shares two calls. The rest genuinely differs — the AFAL theme alone
+is done four ways — so the generator prints those as text to paste rather than inventing an
+eighth way. The list it prints: the daisyUI `themes:` block, `@custom-variant dark`, the AFAL
+theme import, `@plugin "@tailwindcss/typography"` (yours, not Bali's — Bali only ships the
+patch that keeps `prose-invert` working under daisyUI), `installConfirmDialog` with localised
+labels, and `bin/rails bali:install:migrations:<feature>`.
+
+**Running it twice writes nothing twice, and so does running it on an app that was wired by
+hand** — which is what makes it the right thing to run after an upgrade: a line added to this
+list in a later version lands, and everything already there is left alone. "Already there" is
+matched on shape, not on this generator's spelling of it, because the fleet does not use that
+spelling: a daisyUI plugin in block form with your themes inside, an
+`import { registerAll, installConfirmDialog } from "bali-view-components"` with two symbols on
+the line, `registerAll` imported under an alias from a private path, `daisyui` sitting in
+`devDependencies`. All four are left exactly as they are, and each has a test.
+
+**The one thing it never rewrites is your `bali-view-components` pin.** A pin is a decision —
+a tag, a branch, a `link:` to a local checkout — so after a bump the generator tells you the
+pin and the gem version and lets you move it:
+
+```
+    warn  package.json pins bali-view-components at github:Grupo-AFAL/bali-view-components#<the
+          tag you are on>, and this gem is v<the one you just bundled>. Move the pin yourself so
+          the JavaScript and the Ruby are the same release
+```
+
+**Scope: esbuild and jsbundling**, which is what all seven use. A Vite application gets the
+same four files. An importmap application gets Steps 3 and 5 and **keeps its Stimulus index
+exactly as it is** — the generator asks whether anything here resolves a bare specifier
+(`package.json`? `config/importmap.rb`? what shape is the index?), not whether
+`app/javascript/controllers/index.js` exists, because a bare `rails new` has that file and
+writing into it would cost the app every controller it registers, not just Bali's. It says
+which of the three answers stopped it and prints the lines to add once a bundler is in. See
+Step 4.
+
+**The CSS half asks the same kind of question**: not "is there a Tailwind entry point here"
+but "will anything compile one". With neither tailwindcss-rails nor a `build:css` script in
+`package.json`, no entry point is written — the file would be the input to a build that does
+not exist, and Bali would render unstyled with nothing to say why. And an app with no
+`package.json` at all gets only the engine bridge, the one line of the three that resolves
+without node_modules; the other two are printed.
+
+**`bin/rails g bali:install` and `bin/rails bali:install:migrations` share a prefix and are
+different things.** The second is the rake namespace the Rails engine API generates: one task
+that copies every engine migration into your app, plus six that copy one each
+(`:saved_views`, `:content_versions`, `:entity_references`, `:acknowledgments`,
+`:block_editor_comments`, `:dashboard_widgets`). The generator copies no migrations on
+purpose: the engine's tables belong to the features that use them, only three of the seven
+applications mount the engine at all, and installing tables for the other four would be
+writing schema nobody asked for. Forgetting the `g` is not silent either — `bin/rails
+bali:install` answers `Unrecognized command "bali:install"` and then
+`Did you mean?  bali:install:migrations`.
+
+---
+
 ## Step 1: Install the Gem
 
-Add to your `Gemfile`:
+Bali is not published to RubyGems. Add to your `Gemfile`, pinning a tag:
 
 ```ruby
-gem "bali_view_components"
+# Bundler resolves git sources before rubygems ones, so these two must be declared FIRST
+gem "lucide-rails"
+gem "view_component-contrib"
+
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.4.0"
 ```
 
 Run bundler:
@@ -25,6 +103,17 @@ Run bundler:
 ```bash
 bundle install
 ```
+
+Nothing else. The gemspec declares everything Bali loads at boot — `csv` and `simple_command`
+among them — so the lines apps used to copy into their own Gemfile under "Required by Bali"
+can go. `rrule` can go too: the override that patches `RRule::Rule` with `humanize` is guarded,
+so an app without the gem boots (it used to raise `NameError: uninitialized constant RRule` on
+the first request). Keep `gem "rrule"` only if your own code builds recurrence rules — which is
+the only way you could have an `RRule::Rule` for Bali to humanize in the first place.
+
+`pagy` is the same shape and stays out of the gemspec for the same reason: Bali never builds a
+Pagy, it only renders one you pass to `DataTable` or `Pagination`. Add `gem "pagy"` when you
+paginate.
 
 ---
 
@@ -47,10 +136,33 @@ them for you — and two of them fail quietly if you skip them:
 | `@hotwired/turbo-rails` | Reached through the `window.Turbo` global rather than an import, so **no bundler will warn you it is missing** — the components simply stop reacting. |
 | `daisyui` | The Ruby components emit daisyUI class names, so without it they render *unstyled*, not merely unthemed. |
 
-Everything Bali touches beyond those three is an **optional** peer declared per feature:
-install only what you actually render. *Step 6: External Dependencies* below lists them,
-and the grouped comment in the package's own `package.json` maps every optional peer to
-the entry point that reaches for it.
+**Six more are required**, for a duller reason: shipped files import them with a plain
+top-level `import`, so `registerAll` puts them in your bundle whether you render the component
+or not, and esbuild has to resolve them to build at all.
+
+```bash
+yarn add @rails/activestorage @rails/request.js date-fns lodash.debounce lodash.throttle rrule
+```
+
+| Peer | Imported by |
+|------|-------------|
+| `@rails/activestorage` | DirectUpload |
+| `@rails/request.js` | Tabs, SlimSelect, SortableList, WidgetGrid, InputOnChange |
+| `date-fns` | Timeago |
+| `lodash.debounce` | SubmitOnChange |
+| `lodash.throttle` | Navbar, ElementsOverlap |
+| `rrule` | RecurrentEventRuleForm |
+
+They were listed as optional, which was never true: on an app that installed only the three
+above and wired the documented `registerAll` + `registerCharts`, `yarn build` stopped with 22
+`Could not resolve` errors across 12 packages — 13 of them from these six. Every application
+in the fleet had installed all six anyway, because a build that stops is not an option a host
+can decline. `bin/rails g bali:install` writes all nine.
+
+Everything Bali touches beyond those nine is an **optional** peer declared per feature:
+install only what you actually render, and if you skip one the build still succeeds. *Step 6:
+External Dependencies* below lists them, and the grouped comment in the package's own
+`package.json` maps every optional peer to the entry point that reaches for it.
 
 ---
 
@@ -60,7 +172,19 @@ Bali uses **Tailwind CSS v4** with **DaisyUI 5** for styling.
 
 ### Create/Update Your CSS Entry Point
 
-Create `app/assets/tailwind/application.css` (or similar):
+`bin/rails g bali:install` writes the `@plugin` and the two `@import`s below into your
+Tailwind entry point (and leaves an existing daisyUI block alone). **Which file that is
+depends on which gem builds your Tailwind**, and the generator picks whichever of the two is
+there:
+
+| Gem | Entry point | Bridge line | Build command |
+|---|---|---|---|
+| `tailwindcss-rails` — what all seven apps use | `app/assets/tailwind/application.css` | `@import "../builds/tailwind/bali";` | `bin/rails tailwindcss:build` |
+| `cssbundling-rails` — what `rails new --css=tailwind` gives you once a JS bundler is in the app | `app/assets/stylesheets/application.tailwind.css` | `@import "bali-view-components/tailwind/engine.css";` | `yarn build:css` |
+
+Same file behind both bridges; the first resolves it through the gem, the second through npm.
+What follows is the tailwindcss-rails shape by hand, plus the dark-mode setup the generator
+prints rather than writes:
 
 ```css
 @import "tailwindcss";
@@ -148,33 +272,35 @@ See [DaisyUI Themes](https://daisyui.com/docs/themes/) for all available themes.
 
 ## Step 4: JavaScript Setup
 
-### Option A: Import Maps (Rails Default)
+Bali needs a JavaScript bundler: esbuild (through jsbundling-rails) or Vite. That is what all
+seven applications in the fleet use, what `bin/rails g bali:install` writes, and the only thing
+that resolves what Bali imports.
 
-If using importmap-rails, pin the Stimulus controllers:
+### Import maps: not supported, and there is nothing to pin
 
-```ruby
-# config/importmap.rb
-pin "bali-view-components", to: "bali-view-components.js"
+This page used to say `pin "bali-view-components", to: "bali-view-components.js"`. **No such
+file exists**, in the gem or in the npm package: what ships is ESM source — 91 modules behind
+the root entry (counted with an esbuild metafile), importing their peers by bare specifier
+(`@hotwired/stimulus`, `date-fns`, `@rails/request.js`…). Pinning that means pinning every one
+of the 91 plus every peer, by hand, and re-pinning them on each upgrade. The
+[JavaScript integration guide](javascript-integration.md#import-maps-not-supported) carries
+the measurement on the 31-pin recipe that used to live there.
+
+An unresolved bare specifier does not degrade, it fails the whole module: `eagerLoadControllersFrom`
+never runs and the app loses **every** controller it registers, with one console line as the
+only symptom. So `bin/rails g bali:install` leaves an importmap app's Stimulus index alone and
+prints these three lines instead:
+
+```bash
+bundle add jsbundling-rails
+bin/rails javascript:install:esbuild
+bin/rails g bali:install
 ```
 
-Then register controllers in your Stimulus application:
+Vite resolves the same imports with no extra step. It may need the gem's path allowed —
+`server: { fs: { allow: ['.', baliGemPath] } }`.
 
-```javascript
-// app/javascript/controllers/application.js
-import { Application } from "@hotwired/stimulus"
-
-const application = Application.start()
-
-// Register Bali controllers
-import { registerAll } from "bali-view-components"
-registerAll(application)
-
-export { application }
-```
-
-### Option B: Vite / esbuild
-
-If using Vite or esbuild:
+### What the generator writes into your Stimulus index
 
 ```javascript
 // app/javascript/controllers/index.js
@@ -240,20 +366,35 @@ a dynamic `import()`. That means a component you do not use costs you nothing, a
 component you *do* use fails at runtime rather than at build time if its library is
 missing.
 
+> That last sentence is true as of this version, and it was not free. esbuild resolves `import()`
+> at BUNDLE time like any other import and fails the build on a specifier it cannot find —
+> dynamic or not — **unless the call carries a `.catch()`**; its own error message says so.
+> Every one of these calls now does, through `optionalPeer()`, which logs the package name
+> and the `yarn add` line and lets the controller return. Before that, skipping any of them
+> broke `yarn build` with `Could not resolve` and this paragraph was simply wrong.
+>
+> The six peers that this could NOT be done for — the ones a top-level `import` pulls in
+> unconditionally — were moved to *required* in Step 2 instead. The rule, both directions:
+> **statically imported means required; lazily imported means optional.**
+
 | Component | Dependency | Installation |
 |-----------|------------|--------------|
 | Datepicker, Calendar | Flatpickr | `npm install flatpickr` |
 | SlimSelect | Slim Select | `npm install slim-select` |
-| SortableList | SortableJS | `npm install sortablejs` |
+| SortableList, Kanban | SortableJS | `npm install sortablejs` |
 | Carousel | Glide | `npm install @glidejs/glide` |
-| Timeago | date-fns | `npm install date-fns` |
-| RecurrentEventRuleForm | rrule | `npm install rrule` |
-| DirectUpload, ImageField | Active Storage JS | `npm install @rails/activestorage` |
+| Tooltip, Dropdown, HoverCard | Tippy | `npm install tippy.js` |
+| QrScanner | qr-scanner | `npm install qr-scanner` |
+| Chart (`/charts` entry) | Chart.js | `npm install chart.js` |
 | LocationsMap | Google Maps marker clusterer | `npm install @googlemaps/markerclusterer` + the Maps script below |
 | AutocompleteAddress | Google Maps API | Add the script to your layout (below) |
-| Tabs, SlimSelect, SortableList, DataTable | `@rails/request.js` | `npm install @rails/request.js` |
-| Navbar, ElementsOverlap, SubmitOnChange | lodash throttle/debounce | `npm install lodash.throttle lodash.debounce` |
 | TrixAttachments | Trix | Included with Rails (Action Text) |
+
+Timeago (`date-fns`), RecurrentEventRuleForm (`rrule`), DirectUpload (`@rails/activestorage`),
+Tabs/SlimSelect/SortableList/DataTable (`@rails/request.js`) and
+Navbar/ElementsOverlap/SubmitOnChange (`lodash.throttle`, `lodash.debounce`) used to be on
+this table. They are in **Step 2** now: they are required, because they are in your bundle
+either way.
 
 Components behind their own entry point carry their own dependency sets, which are larger:
 
@@ -299,7 +440,7 @@ See [External Services](external-services.md) for the full setup.
 ```bash
 bundle exec rails console
 > Bali::VERSION
-=> "3.1.0.beta.13"  # or current version
+=> "3.4.0"  # the tag you pinned in Step 1, without the leading v
 ```
 
 ### 2. Check Component Rendering
@@ -371,7 +512,9 @@ The Tailwind build isn't scanning Bali component files.
 
 Controllers aren't registered.
 
-**Fix:** Ensure `registerAll(application)` is called in your JavaScript.
+**Fix:** Ensure `registerAll(application)` is called in your JavaScript — `bin/rails g
+bali:install` writes that line, and running it again on an app that already has it writes
+nothing.
 
 ### "Can't find bali-view-components CSS"
 
