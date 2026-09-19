@@ -15,13 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cambio o contar la investigación va en el cuerpo del PR. El CHANGELOG se mide con la misma vara.
   Y todo el repo se escribe en inglés: código, identificadores, pruebas, comentarios y la copia de
   los previews; el español se queda en el CHANGELOG, el mensaje de commit y el cuerpo del PR, y
-  los datos de muestra de un preview siguen siendo contenido. **Nada lo hace cumplir**: 121
-  archivos todavía traen comentarios en español y se traducen al tocarlos por otra razón, no en
-  una barrida.
+  los datos de muestra de un preview siguen siendo contenido. Quien la hace cumplir es el cop de
+  la entrada siguiente; los archivos que todavía traen español se traducen al tocarlos por otra
+  razón, no en una barrida.
 
   **Para un anfitrión no cambia nada** — es guía para quien escribe en este repo, no API. Se
   calibró contra #1165, que llevó ~40 líneas de comentario y 66 de CHANGELOG para tres líneas de
   CSS y cuatro versiones.
+
+- **La regla de inglés ya la comprueba `rubocop`** (#1174). El repo adopta `bali-rubocop` v0.1.0
+  —el cop `Bali/EnglishOnly` de la flota— en el bundle de desarrollo y pruebas, así que
+  `bundle exec rubocop` marca comentarios y nombres de prueba en español, con acento y sin él. La
+  deuda de hoy queda congelada en `.rubocop_todo.yml`: **142 archivos, 938 hallazgos** sobre los
+  689 archivos que rubocop inspecciona. Al traducir un archivo se borra su renglón de esa
+  lista, que **sólo encoge**; cualquier archivo nuevo o movido nace en inglés.
+
+  **Para un anfitrión no cambia nada**: la gema no entra al gemspec. Y rubocop sólo lee Ruby, así
+  que los comentarios `<%# %>` de las 610 plantillas `.erb` y los `describe`/`it` de los 96 specs
+  de Cypress siguen dependiendo de la revisión.
 
 ### Added
 

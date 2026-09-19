@@ -1,5 +1,13 @@
+inherit_from: .rubocop_todo.yml
+
 inherit_gem:
   rubocop-rails-omakase: rubocop.yml
+
+# `require:` and not another `inherit_gem:` entry: inheriting the gem's
+# config/default.yml pulls its settings without loading the cop class, and rubocop
+# aborts with `unrecognized cop or department Bali`. This line carries both.
+require:
+  - bali-rubocop
 
 AllCops:
   TargetRubyVersion: 4.0
@@ -48,3 +56,9 @@ Metrics/PerceivedComplexity:
 Lint/MissingSuper:
   Exclude:
     - 'app/components/**/*'
+
+# Fleet cop from bali-rubocop v0.1.0.
+Bali/EnglishOnly:
+  # Adds 0 offenses today: the identifiers here are already English, so the half of the
+  # rule the gem leaves off costs nothing to switch on and freezes nothing.
+  CheckIdentifiers: true
