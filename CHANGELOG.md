@@ -47,121 +47,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **La memoria del selector de columnas ya no esconde las columnas nuevas** (#1144). Es la
-  mitad que v3.4.0 dejó abierta por escrito, porque cerrarla pedía decidir un formato.
+- **La memoria del selector de columnas ya no esconde las columnas nuevas** (#1144).
+  `localStorage` guardaba la lista de índices VISIBLES, así que toda columna agregada a un
+  listado que ya estaba en producción nacía oculta para quien lo hubiera visitado antes. Se
+  guarda ahora lo oculto, más las columnas que había en pantalla, más las que el servidor
+  declaraba ocultas: `{"v":2,"hidden":[3],"known":[0,1,2,3],"serverHidden":[3]}`. La decisión
+  del usuario es la DIFERENCIA entre `hidden` y `serverHidden`; sin diferencia manda el
+  `with_column(visible:)` que el anfitrión declara hoy.
 
-  `localStorage` guardaba la lista de índices VISIBLES, así que al leerla el controlador no
-  podía distinguir «esta columna la escondí» de «esta columna no existía cuando guardé mis
-  preferencias»: `stored.includes(index)` contesta `false` a las dos. Toda columna agregada a
-  un listado que ya estaba en producción nacía invisible, sin aviso, para cualquiera que lo
-  hubiera visitado antes. Visto en el portafolio de TDFlow (afal-apps): «Estado» y «Ben / Esf»
-  sólo aparecieron borrando la llave a mano, usuario por usuario.
+  **Nada que hacer en las apps.** La llave no cambia (`bali:columns:<listing_id>`): lo
+  versionado es el valor, y un valor viejo se traduce y se reescribe solo, una vez, en la
+  primera carga en modo tabla. Sin cambios en el Ruby ni en el HTML que rinde el componente.
 
-  Se guarda ahora lo OCULTO, más las columnas que había en pantalla, más las que el servidor
-  declaraba ocultas en ese momento:
-
-  ```json
-  { "v": 2, "hidden": [3], "known": [0, 1, 2, 3], "serverHidden": [] }
-  ```
-
-  La lectura pasa a tener TRES respuestas y no dos —oculta, visible, sin opinión— porque una
-  decisión del usuario es una DIFERENCIA: `hidden` contra `serverHidden`. Si las dos coinciden,
-  o si la columna no figura en `known`, nadie eligió nada y manda el `with_column(visible:)`
-  que el anfitrión declara HOY. Ninguna de las tres listas es decorado:
-
-  - sin `known` no existe la rama «la memoria nunca vio esta columna», que es el defecto del
-    issue: una columna agregada después nace oculta;
-  - sin `serverHidden` no existe la rama «estaba oculta porque el servidor lo decía», y la
-    primera escritura convierte cada `with_column(visible: false)` del anfitrión en preferencia
-    del usuario **sin que éste toque nada** — desde ese momento, cambiar esa columna a
-    `visible: true` no le llega nunca. Es el mismo defecto de #1144 una talla más chico, y la
-    escritura de la migración bastaba para caer en él.
-
-  **La llave NO cambia.** Sigue siendo `bali:columns:<listing_id>`; lo versionado es el valor.
-  Renombrarla habría dejado huérfana la preferencia de todo el mundo, y además hay 18
-  aserciones de host que comparan esa cadena exacta —3 en afal-apps
-  (`finance/terminals/terminals_controller_test.rb`, `td_flow/projects/historias_tab_test.rb`)
-  y 15 en gobierno-corporativo, repartidas en 14 archivos de `test/controllers`—; todas miran
-  el NOMBRE, ninguna el valor, así que siguen pasando sin tocarlas. Ninguna app del grupo lee
-  ni escribe la llave por su cuenta: cero `localStorage` bajo `app/javascript` y `app/assets`
-  en los nueve repos, medido con `git grep` sobre `origin/main`. El formato no tiene más
-  lectores que la propia gema.
-
-  **Qué pasa con lo que ya está guardado.** Un valor viejo se interpreta como lo que es —una
-  lista de visibles—, se traduce y se reescribe en v2 en la primera carga **en modo tabla**, no
-  en el próximo toggle: reescribiendo sólo al tocar el menú, quien nunca lo vuelve a abrir se
-  quedaría con el formato viejo para siempre. Es idempotente: la segunda lectura ya encuentra
-  v2 y lo aplica tal cual. Un listado que el usuario dejó en modo tarjetas o calendario no
-  tiene selector en pantalla y por lo tanto no migra nada hasta que alguien vuelva a la tabla;
-  mientras tanto sigue leyéndose el formato viejo, que se entiende igual.
-
-  Como el formato viejo tampoco registraba qué declaraba el servidor, la línea base de la
-  traducción es la declaración VIGENTE: una columna que el anfitrión trae apagada hoy no se
-  anota como decisión de nadie. Medido sobre el preview `with_optional_column`, que declara la
-  columna 3 `visible: false`: sembrando el valor viejo `[0,1,2]` la llave queda
-  `{"v":2,"hidden":[3],"known":[0,1,2,3],"serverHidden":[3]}` — la 3 en las dos listas, que es
-  la forma de decir «acá no decidió nadie».
-
-  La traducción tiene un límite, y es el que decide qué se conserva. Un array pelado sólo
-  DEMUESTRA conocer hasta su índice más alto; por encima de él no hay evidencia de que la
-  columna existiera. Todo lo que queda debajo de ese techo se conserva entero —lo que el
-  usuario escondió sigue escondido— y todo lo que queda por encima se trata como columna nueva
-  y se ve. El precio, medido y acotado: si lo que el usuario tenía escondido era justamente la
-  ÚLTIMA columna de la tabla, esa vuelve a aparecer una vez y hay que volver a esconderla; esa
-  preferencia es indistinguible de una columna que no existía. El empate se resolvió a favor
-  del criterio del issue, porque el otro lado cuesta una columna invisible para siempre en vez
-  de un clic. Caso límite aparte: un valor `[]` (todas las columnas escondidas) no demuestra
-  conocer ninguna, así que ese listado vuelve a sus defaults.
-
-  Con una vista guardada aplicada la memoria del dispositivo no se restaura —la vista manda,
-  igual que antes—, así que en esa carga tampoco se migra; se migra en la primera carga sin
-  vista.
-
-  **Dónde se nota esto en las apps del grupo.** `mdm/masters` de gobierno-corporativo es hoy la
-  única pantalla de los nueve repos que declara `with_column(..., visible: false)`, y declara
-  una cantidad variable de esas columnas (`native_columns.each_with_index`, opt-in por
-  catálogo). Es exactamente el caso de arriba: con la primera versión de este arreglo, la
-  primera carga después del bump le habría fijado a cada usuario esas columnas nativas como
-  ocultas PROPIAS —invisible en el momento, porque ya estaban ocultas, y definitivo después—.
-  Con `serverHidden` no pasa: siguen dependiendo del catálogo, que es de quien son.
-
-  **Una vista guardada sigue significando «estas columnas visibles», y es una decisión, no una
-  omisión.** La memoria del dispositivo es IMPLÍCITA —nadie la pidió; el usuario apagó una
-  columna— y por eso en la duda gana el default del servidor. Una vista es una elección
-  EXPLÍCITA y con nombre, así que aplicarla muestra exactamente las columnas que registró y una
-  columna agregada después no está entre ellas: para incorporarla hay que volver a guardar la
-  vista. Igualarlas, además, invertiría el significado de filas ya escritas en la columna
-  `payload` de `bali_saved_views`, instalada en tres apps del grupo, sin migrarlas. El contrato
-  con `apply_visible_columns` queda intacto, y `test/bali/components/data_table_test.rb` lo fija
-  con una prueba para que nadie lo empareje por simetría. La guía de componentes explica la
-  diferencia en una tabla, porque es lo primero que un anfitrión va a preguntar.
-
-  Sin cambios en el Ruby de producción ni en el HTML que rinde el componente: lo único que
-  cambia de forma es el contenido de una llave de `localStorage`. El único Ruby nuevo es un
-  preview, «With An Opt-In Column», que declara una columna `visible: false` — no había
-  ninguno, y sin él la rama del párrafo anterior no tenía dónde probarse. Superficie en las
-  apps del grupo: 32 vistas con `with_column_selector`, todas en afal-apps (12) y
-  gobierno-corporativo (20); los otros siete repos usan DataTable sin selector. Un listado sin
-  `id:` ni `storage_id:` no persiste nada y no se entera de nada.
-
-  **Cobertura.** El arreglo es JS puro y el repo no tiene banco de pruebas unitarias de JS, así
-  que toda su cobertura vive en Cypress: `cypress/e2e/data-table-column-memory.cy.js`, 22 casos
-  —los dos formatos, la traducción y su idempotencia, ocultar/mostrar, la columna que el
-  anfitrión declara oculta (leerla, migrarla, no arrastrarla en un toggle y recordar que el
-  usuario la encendió), las cuatro ramas defensivas del lector, la tabla `selectable:` donde el
-  índice 0 no es una columna, la vista guardada aplicada y el camino sin selector en modo
-  tarjetas—. Verificados en rojo, quitando el código del árbol y reconstruyendo el bundle cada
-  vez: contra v3.4.0 pelado, 7 pasan y 15 fallan; contra una versión de este arreglo sin
-  `serverHidden`, 13 pasan y 9 fallan. La prueba de Minitest que acompaña a este cambio no
-  prueba el arreglo —no hay Ruby que probar, y pasa igual con y sin él—: fija la decisión sobre
-  las vistas guardadas del párrafo de arriba, y su comentario lo dice.
-
-  **Lo que este arreglo NO arregla**: la identidad de una columna sigue siendo su POSICIÓN en
-  el `thead`. Agregar una columna al final es seguro; insertarla en medio o reordenar las que
-  ya están corre todas las preferencias una posición, y una tabla `selectable:` mete un `<th>`
-  real en el índice 0. afal-apps ya tuvo que desdoblar por rol la identidad de un listado por
-  esto (`finance/terminals/terminals/index.html.erb`). Arreglarlo es persistir por clave de
-  columna, que es un cambio de formato mayor y arrastra migrar las vistas guardadas.
+  Dos límites conocidos. Si lo que el usuario tenía escondido era la ÚLTIMA columna de la
+  tabla, esa reaparece una vez y hay que volver a esconderla: esa preferencia es
+  indistinguible de una columna que no existía. Y una vista guardada sigue significando
+  «estas columnas visibles», así que una columna agregada después no entra en ella hasta
+  volver a guardar la vista.
 
 - **`control_class:` deja de descartarse en silencio en las familias con addon** (#1147).
   La opción existe desde siempre y clasea la caja que envuelve al control, pero sólo la leía

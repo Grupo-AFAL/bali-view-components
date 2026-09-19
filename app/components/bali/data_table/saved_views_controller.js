@@ -12,13 +12,11 @@ import { readColumnState, visibleColumns } from './column_storage'
  * The payload itself is server-rendered (FilterForm#current_view_payload) — this
  * controller only contributes what lives exclusively in the DOM: column visibility.
  *
- * Una vista guardada sigue viajando como lista de columnas VISIBLES, y no se pasó a la
- * polaridad nueva del selector. No es por compatibilidad nada más: son dos cosas distintas.
- * La memoria del dispositivo es IMPLÍCITA —el usuario apagó una columna, no pidió recordarla—
- * y por eso en la duda gana el default del servidor. Una vista es una elección EXPLÍCITA con
- * nombre («estas cinco columnas»), y cambiarla por debajo al agregar una columna sería
- * desobedecerla. Además vive en `bali_saved_views.payload`, ya escrita en tres apps del grupo:
- * el contrato con `apply_visible_columns` no se mueve.
+ * A view still travels as a list of VISIBLE columns, and did not follow the selector to the
+ * new polarity. It is an EXPLICIT, named choice, so it shows exactly what it recorded; the
+ * device memory is implicit, and there the server's default wins ties. The payload also lives
+ * in `bali_saved_views.payload`, already written in three apps of the group — the contract
+ * with `apply_visible_columns` does not move.
  */
 export default class extends Controller {
   static targets = ['saveForm', 'renameForm', 'payload']
@@ -79,20 +77,13 @@ export default class extends Controller {
     return this.serverColumnsValue.length > 0 ? this.serverColumnsValue : this.storedColumns()
   }
 
-  // Misma llave que usa el column-selector para su persistencia por dispositivo, y —desde el
-  // formato v2— el mismo LECTOR: `column_storage.js`. La llave la manda el servidor porque el
-  // target (`#<listing_id> table`) ya no la contiene, y porque una llave derivada por separado
-  // se separa: ahí las columnas se perdían en silencio. Con el formato, igual.
+  // Same key the column-selector persists to, and — since v2 — the same READER. The server
+  // sends the key because the target (`#<listing_id> table`) no longer contains it, and because
+  // a key derived separately drifts apart: that is how the columns went missing in silence.
   //
-  // La memoria guarda lo oculto; acá hace falta lo visible, así que se traduce —de `known` y
-  // `hidden`, o sea del estado RESUELTO, no de las decisiones: lo que el usuario veía es lo que
-  // entra en la vista, venga de su elección o del default del anfitrión—. Lo que la memoria no
-  // conocía queda FUERA: sin selector en pantalla no hay forma de enumerar las columnas de la
-  // tabla, y la traducción devuelve lo último que el usuario sí vio. Es lo mismo que hacía
-  // antes, y es coherente con que una vista sea una elección explícita.
-  //
-  // Corolario: acá tampoco se reescribe nunca la llave. Un listado que el usuario dejó en
-  // tarjetas conserva su formato viejo hasta que alguien vuelva al modo tabla.
+  // Read-only on purpose: with no selector on screen there is no way to enumerate the table's
+  // columns, so a listing left in cards mode keeps its old format until someone returns to the
+  // table.
   storedColumns () {
     return visibleColumns(readColumnState(this.storageKeyValue))
   }

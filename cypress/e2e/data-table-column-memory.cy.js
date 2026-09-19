@@ -1,19 +1,8 @@
-// La memoria por dispositivo del selector de columnas registra las DECISIONES del usuario, y
-// una decisión es una diferencia: el estado que dejó en pantalla contra los defaults que el
-// servidor declaraba en ese momento. Con la polaridad vieja —una lista de índices visibles— el
-// controlador no podía distinguir «esta columna la escondí» de «esta columna no existía cuando
-// guardé», y contestaba lo mismo a las dos: oculta. Toda columna agregada después de la primera
-// visita nacía invisible para quien ya tenía preferencias, en silencio (#1144).
-//
-// La memoria es IMPLÍCITA (nadie la pidió), así que donde no hay decisión gana el default del
-// servidor — y eso vale también para la columna que el anfitrión declaró `visible: false` y el
-// usuario nunca tocó: registrarla como preferencia suya es el mismo defecto, una talla menos.
-// Una vista guardada es lo contrario —una elección explícita de columnas— y sigue viajando como
-// lista de VISIBLES: eso es lo que fija el anteúltimo bloque.
-//
-// Este spec es TODA la cobertura del arreglo: el cambio es JS puro y el repo no tiene banco de
-// pruebas unitarias de JS, así que Minitest no puede probarlo.
-describe('DataTable: memoria del selector de columnas', () => {
+// The column selector's per-device memory records the user's DECISIONS, and a decision is a
+// difference: the state left on screen against the defaults the server declared at the time.
+// This spec is the whole coverage of #1144 — the fix is pure JS and the repo has no JS unit
+// test harness, so Minitest cannot reach it.
+describe('DataTable: column selector memory', () => {
   const visitWith = (url, key, value) =>
     cy.visit(url, {
       onBeforeLoad (win) {
@@ -24,10 +13,10 @@ describe('DataTable: memoria del selector de columnas', () => {
   const storedAt = (key) => cy.window().then((win) => win.localStorage.getItem(key))
   const parsedAt = (key) => storedAt(key).then((raw) => JSON.parse(raw))
 
-  // Cuatro columnas (0 Name · 1 Status · 2 Amount · 3 Created At), las cuatro visibles por
-  // default. Una memoria que sólo nombra 0..2 es exactamente el caso del issue: «Created At» es
-  // la columna que se agregó después.
-  describe('con las cuatro columnas visibles por default', () => {
+  // Four columns (0 Name · 1 Status · 2 Amount · 3 Created At), all four visible by default. A
+  // memory naming only 0..2 is exactly the case in the issue: "Created At" is the column that
+  // was added later.
+  describe('with all four columns visible by default', () => {
     const key = 'bali:columns:toolbar-demo'
     const listing = '#toolbar-demo'
     const url = '/bali/data_table/with_toolbar_buttons'
@@ -38,15 +27,15 @@ describe('DataTable: memoria del selector de columnas', () => {
       cy.get(`${listing} [data-controller~="column-selector"] input[data-column-index="${index}"]`)
     const stored = () => parsedAt(key)
 
-    describe('formato viejo (array pelado de índices visibles)', () => {
-      it('deja nacer visible la columna que la memoria no conocía', () => {
+    describe('legacy format (bare array of visible indices)', () => {
+      it('lets a column the memory never knew be born visible', () => {
         visit('[0,1,2]')
 
         header(3).should('be.visible').and('contain', 'Created At')
         box(3).should('be.checked')
       })
 
-      it('conserva la columna que el usuario había escondido', () => {
+      it('keeps the column the user had hidden', () => {
         visit('[0,2,3]')
 
         header(1).should('not.be.visible')
@@ -56,11 +45,7 @@ describe('DataTable: memoria del selector de columnas', () => {
         header(3).should('be.visible')
       })
 
-      // Lo único que un array pelado DEMUESTRA conocer es hasta su índice más alto: de ahí para
-      // arriba no se puede afirmar que la columna existiera. Tampoco registraba qué declaraba el
-      // servidor, así que la línea base sale de la declaración vigente. La migración escribe las
-      // dos listas y corre una sola vez.
-      it('lo reescribe completo y la segunda lectura no lo vuelve a tocar', () => {
+      it('rewrites it in full, and a second read leaves it alone', () => {
         visit('[0,2,3]')
 
         stored().should('deep.equal', {
@@ -76,10 +61,9 @@ describe('DataTable: memoria del selector de columnas', () => {
         })
       })
 
-      // El costo medido de la inferencia, fijado para que nadie lo «mejore» sin darse cuenta:
-      // esconder la ÚLTIMA columna es indistinguible de no haberla conocido, así que vuelve UNA
-      // vez — y a partir de ahí la preferencia se recuerda como cualquier otra.
-      it('devuelve una sola vez la última columna escondida', () => {
+      // The measured cost of the inference, pinned so nobody "improves" it by accident: hiding
+      // the LAST column is indistinguishable from never having known it, so it comes back once.
+      it('gives the last hidden column back exactly once', () => {
         visit('[0,1,2]')
 
         header(3).should('be.visible')
@@ -92,8 +76,7 @@ describe('DataTable: memoria del selector de columnas', () => {
         box(3).should('not.be.checked')
       })
 
-      // Un valor vacío no demuestra conocer ninguna columna: no hay nada que migrar.
-      it('vuelve a los defaults cuando el valor viejo no nombra ninguna columna', () => {
+      it('falls back to the defaults when the legacy value names no column', () => {
         visit('[]')
 
         header(0).should('be.visible')
@@ -103,10 +86,10 @@ describe('DataTable: memoria del selector de columnas', () => {
         })
       })
 
-      // 256 es el primer índice que la guarda tiene que rechazar, y por eso la semilla es ése
-      // y no uno cualquiera: con `<=` en lugar de `<` el techo aceptaba 257 índices, este
-      // valor pasaba el filtro y la inferencia escondía la tabla entera.
-      it('ignora un índice fuera del techo y no esconde la tabla', () => {
+      // 256 is the first index the guard has to reject, which is why the seed is that one and
+      // not any other: with `<=` instead of `<` the ceiling accepted 257 indices, this value got
+      // through the filter and the inference hid the whole table.
+      it('ignores an index over the ceiling and does not hide the table', () => {
         visit('[256]')
 
         header(0).should('be.visible')
@@ -116,9 +99,7 @@ describe('DataTable: memoria del selector de columnas', () => {
         })
       })
 
-      // Y uno absurdo escrito por cualquier otra cosa no puede armar un array de mil millones
-      // de entradas: se ignora y la página sigue respondiendo.
-      it('ignora un índice absurdo sin colgar la página', () => {
+      it('ignores an absurd index without hanging the page', () => {
         visit('[999999999]')
 
         header(0).should('be.visible')
@@ -126,8 +107,8 @@ describe('DataTable: memoria del selector de columnas', () => {
       })
     })
 
-    describe('formato v2', () => {
-      it('recuerda la columna que el usuario escondió', () => {
+    describe('v2 format', () => {
+      it('remembers the column the user hid', () => {
         visit(JSON.stringify({ v: 2, hidden: [3], known: [0, 1, 2, 3], serverHidden: [] }))
 
         header(3).should('not.be.visible')
@@ -135,7 +116,7 @@ describe('DataTable: memoria del selector de columnas', () => {
         header(0).should('be.visible')
       })
 
-      it('deja nacer visible una columna que la memoria no conoce', () => {
+      it('lets a column the memory does not know be born visible', () => {
         visit(JSON.stringify({ v: 2, hidden: [1], known: [0, 1, 2], serverHidden: [] }))
 
         header(1).should('not.be.visible')
@@ -143,19 +124,18 @@ describe('DataTable: memoria del selector de columnas', () => {
         box(3).should('be.checked')
       })
 
-      // LA OTRA MITAD DEL ARREGLO. La memoria dice que la columna 3 estaba oculta, pero también
-      // que el servidor la declaraba oculta: las dos coinciden, así que nadie decidió nada. El
-      // anfitrión cambió de opinión —acá la declara visible— y ese cambio SÍ llega.
-      it('no esconde una columna que estaba oculta porque el servidor lo decía', () => {
+      // The other half of the fix: stored and declared agree, so nobody decided anything, and
+      // the host changing its mind — here it declares column 3 visible — does reach the user.
+      it('does not hide a column that was hidden because the server said so', () => {
         visit(JSON.stringify({ v: 2, hidden: [3], known: [0, 1, 2, 3], serverHidden: [3] }))
 
         header(3).should('be.visible')
         box(3).should('be.checked')
       })
 
-      // `force`: el panel lo abre el `:focus-within` de daisyUI, así que la casilla no es
-      // accionable con el menú cerrado. Lo que importa es el `change` que dispara.
-      it('escribe lo oculto al esconder y lo borra al volver a mostrar', () => {
+      // `force`: the panel is opened by daisyUI's `:focus-within`, so the box is not actionable
+      // with the menu closed. What matters is the `change` it fires.
+      it('writes what is hidden on hide, and clears it on show', () => {
         visit()
 
         box(1).uncheck({ force: true })
@@ -171,7 +151,7 @@ describe('DataTable: memoria del selector de columnas', () => {
         })
       })
 
-      it('sanea un valor con entradas que no son índices', () => {
+      it('sanitises a value holding entries that are not indices', () => {
         visit(JSON.stringify({
           v: 2, hidden: ['1', 'x', -3, 1], known: [0, 1, 2, 3], serverHidden: []
         }))
@@ -181,9 +161,9 @@ describe('DataTable: memoria del selector de columnas', () => {
         header(3).should('be.visible')
       })
 
-      // Fallo seguro ante un formato futuro: se vuelve a los defaults del servidor y NO se pisa
-      // el valor, que la versión que lo escribió sí sabe leer.
-      it('ignora una versión que no conoce y no la sobrescribe', () => {
+      // Fail safe against a future format: back to the server's defaults, and the value is NOT
+      // overwritten — the version that wrote it can still read it.
+      it('ignores a version it does not know and does not overwrite it', () => {
         const future = JSON.stringify({ v: 3, hidden: [1], known: [0, 1, 2, 3] })
         visit(future)
 
@@ -194,11 +174,10 @@ describe('DataTable: memoria del selector de columnas', () => {
     })
   })
 
-  // El preview con una columna que el ANFITRIÓN declara apagada (`with_column(visible: false)`).
-  // Es la rama donde la memoria puede reclamar de más: la columna nace oculta sin que el usuario
-  // toque nada, y si eso se registra como preferencia suya, un `visible: true` posterior del
-  // anfitrión no le llega nunca — el mismo defecto de #1144 con otro disfraz.
-  describe('con una columna que el anfitrión declara oculta', () => {
+  // The preview with a column the HOST declares off (`with_column(visible: false)`). This is the
+  // branch where the memory can over-claim: the column is born hidden without the user touching
+  // anything, and recording that as their preference is #1144 wearing a different hat.
+  describe('with a column the host declares hidden', () => {
     const key = 'bali:columns:optional-demo'
     const listing = '#optional-demo'
     const url = '/bali/data_table/with_optional_column'
@@ -209,7 +188,7 @@ describe('DataTable: memoria del selector de columnas', () => {
       cy.get(`${listing} [data-controller~="column-selector"] input[data-column-index="${index}"]`)
     const stored = () => parsedAt(key)
 
-    it('la rinde oculta y sin memoria no escribe nada', () => {
+    it('renders it hidden, and writes nothing when there is no memory', () => {
       visit()
 
       header(3).should('not.be.visible')
@@ -217,9 +196,9 @@ describe('DataTable: memoria del selector de columnas', () => {
       storedAt(key).should('equal', null)
     })
 
-    // La escritura de la migración es la que mordía: corre sola, sin que el usuario toque nada.
-    // Que la 3 esté en las DOS listas es lo que dice «acá no decidió nadie».
-    it('al migrar no la registra como decisión del usuario', () => {
+    // The migration write is the one that bit: it runs on its own, with no user action. Column 3
+    // landing in BOTH lists is how the value says "nobody decided this".
+    it('does not record it as the user\'s decision when migrating', () => {
       visit('[0,1,2]')
 
       header(3).should('not.be.visible')
@@ -228,8 +207,7 @@ describe('DataTable: memoria del selector de columnas', () => {
       })
     })
 
-    // Y el toggle tampoco la arrastra: esconder la 1 no convierte a la 3 en preferencia.
-    it('al esconder otra columna tampoco la arrastra', () => {
+    it('does not drag it along when another column is hidden', () => {
       visit()
 
       box(1).uncheck({ force: true })
@@ -239,9 +217,7 @@ describe('DataTable: memoria del selector de columnas', () => {
       })
     })
 
-    // La decisión contraria SÍ se recuerda: encenderla es una elección tan explícita como
-    // apagar cualquier otra, y sobrevive a la recarga.
-    it('recuerda que el usuario la encendió', () => {
+    it('remembers that the user turned it on', () => {
       visit()
 
       box(3).check({ force: true })
@@ -257,41 +233,36 @@ describe('DataTable: memoria del selector de columnas', () => {
     })
   })
 
-  // Una tabla `selectable:` mete un `<th>` REAL en el índice 0 —la casilla de seleccionar— que
-  // el selector no declara: el preview canónico declara 1..5. Es el punto donde afal-apps ya se
-  // quemó, y el formato viejo lo cruza de lleno, porque de un array pelado se infiere el rango
-  // 0..techo y ahí el 0 entra sin haber sido nunca una columna alternable.
-  describe('con una tabla selectable, donde el índice 0 no es una columna', () => {
+  // A `selectable:` table puts a REAL `<th>` at index 0 — the select-all box — that the selector
+  // does not declare: the canonical preview declares 1..5. The legacy format runs straight into
+  // it, because a bare array infers the range 0..ceiling and the 0 gets in there without ever
+  // having been a toggleable column.
+  describe('with a selectable table, where index 0 is not a column', () => {
     const key = 'bali:columns:lookbook_movies'
     const listing = '#lookbook_movies'
     const url = '/bali/data_table/complete'
 
-    it('no toca la casilla de selección al migrar, ni la anota como columna', () => {
+    it('leaves the selection box alone when migrating, and does not record it', () => {
       visitWith(url, key, '[1,2,4,5]')
 
-      // La columna de selección sobrevive: sólo se aplica visibilidad sobre las casillas que el
-      // selector declara, nunca sobre el rango inferido.
       cy.get(`${listing} thead th`).eq(0).should('be.visible')
       cy.get(`${listing} thead th`).eq(3).should('not.be.visible')
       cy.get(`${listing} thead th`).eq(1).should('be.visible')
       cy.get(`${listing} thead th`).eq(5).should('be.visible')
 
-      // Y el valor reescrito toma `known` de las casillas, no del rango: el 0 no queda anotado
-      // como columna que la memoria conoce.
       parsedAt(key).should('deep.equal', {
         v: 2, hidden: [3], known: [1, 2, 3, 4, 5], serverHidden: []
       })
     })
   })
 
-  // Con una vista guardada aplicada manda la vista: la memoria del dispositivo ni se restaura ni
-  // se migra en esa carga. La vista 2 del preview registra las columnas [0, 2].
-  describe('con una vista guardada aplicada', () => {
+  // View 2 of the preview records columns [0, 2].
+  describe('with a saved view applied', () => {
     const key = 'bali:columns:saved-views-preview'
     const listing = '#saved-views-preview'
     const url = '/bali/data_table/with_saved_views?saved_view=2'
 
-    it('no restaura la memoria del dispositivo ni la migra', () => {
+    it('neither restores the device memory nor migrates it', () => {
       visitWith(url, key, '[0,1,2,3]')
 
       cy.get(`${listing} thead th`).eq(2).should('be.visible')
@@ -301,16 +272,16 @@ describe('DataTable: memoria del selector de columnas', () => {
     })
   })
 
-  // El OTRO lector de la misma llave. Sin selector en pantalla (tarjetas, calendario) el
-  // controlador de vistas guardadas cae a la memoria del dispositivo para no guardar una vista
-  // sin columnas — y el payload que viaja a `bali_saved_views.payload` sigue siendo una lista
-  // de índices VISIBLES, que es lo que `apply_visible_columns` lee del otro lado.
-  describe('vistas guardadas en modo tarjetas', () => {
+  // The other reader of the same key. With no selector on screen (cards, calendar) the saved
+  // views controller falls back to the device memory, and the payload that travels to
+  // `bali_saved_views.payload` is still a list of VISIBLE indices, which is what
+  // `apply_visible_columns` reads on the other side.
+  describe('saved views in cards mode', () => {
     const gridUrl = '/bali/data_table/complete?view=grid'
     const gridKey = 'bali:columns:lookbook_movies'
 
-    // El submit se intercepta en fase de captura: preventDefault frena a Turbo y al navegador
-    // sin impedir que corra la acción de Stimulus, que escucha sobre el propio form.
+    // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
+    // without stopping the Stimulus action, which listens on the form itself.
     const visitGrid = (value) =>
       cy.visit(gridUrl, {
         onBeforeLoad (win) {
@@ -319,8 +290,8 @@ describe('DataTable: memoria del selector de columnas', () => {
         }
       })
 
-    // `?? null`: un `.then` que devuelve `undefined` deja pasar el subject anterior, y la
-    // aserción compararía contra el JSON crudo en vez de fallar por columnas ausentes.
+    // `?? null`: a `.then` returning `undefined` passes the previous subject through, and the
+    // assertion would compare against the raw JSON instead of failing on the missing columns.
     const payloadAfterSubmit = (value) => {
       visitGrid(value)
 
@@ -332,19 +303,17 @@ describe('DataTable: memoria del selector de columnas', () => {
         .then((raw) => JSON.parse(raw).columns ?? null)
     }
 
-    it('traduce el formato v2 a la lista de visibles', () => {
+    it('translates the v2 format into the list of visible columns', () => {
       payloadAfterSubmit(JSON.stringify({
         v: 2, hidden: [3], known: [1, 2, 3, 4, 5], serverHidden: []
       })).should('deep.equal', [1, 2, 4, 5])
     })
 
-    it('sigue leyendo el formato viejo tal cual', () => {
+    it('still reads the legacy format as it stands', () => {
       payloadAfterSubmit('[1,2,4,5]').should('deep.equal', [1, 2, 4, 5])
     })
 
-    // Sin selector en pantalla no hay quien reescriba: la llave vieja sigue intacta hasta que
-    // alguien vuelve al modo tabla. La guía y el CHANGELOG lo dicen con esa condición.
-    it('no migra la llave, porque no hay selector que la reescriba', () => {
+    it('does not migrate the key, because no selector is there to rewrite it', () => {
       visitGrid('[1,2,4,5]')
 
       cy.get('[data-saved-views-target="payload"]').should('exist')

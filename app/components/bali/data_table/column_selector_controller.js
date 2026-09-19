@@ -14,15 +14,9 @@ import { readColumnState, writeColumnState } from './column_storage'
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="1">  <!-- hidden by default -->
  *   </div>
  *
- * Entre visita y visita persiste lo que el usuario ESCONDIÓ, junto con las columnas que había
- * en pantalla y con las que el servidor declaraba ocultas en ese momento (`column_storage.js`
- * tiene el formato y el porqué). Consecuencia práctica, que es el arreglo de #1144: el
- * controlador sólo opina sobre una columna cuando la memoria PRUEBA una decisión del usuario
- * —lo guardado difiere de lo que el servidor declaraba—; si no, la columna nace con el
- * `checked` que rindió el servidor, o sea con el `with_column(visible:)` del anfitrión.
- *
- * `checkbox.defaultChecked` es ese default: refleja el atributo `checked` que vino del
- * servidor y no se mueve ni cuando el usuario marca la casilla ni cuando la marca este código.
+ * Column memory is read against `checkbox.defaultChecked`: it reflects the `checked` attribute
+ * the server rendered — the host's `with_column(visible:)` — and does not move when the user
+ * ticks the box, or when this code does. `column_storage.js` has the format and the why.
  */
 export default class extends Controller {
   static values = {
@@ -56,39 +50,27 @@ export default class extends Controller {
     const state = readColumnState(this.storageKeyValue)
     if (!state) return
 
-    // TRES respuestas y no dos. Con dos hay que elegir un lado para la columna sobre la que la
-    // memoria no prueba nada, y los dos mienten: `false` es el defecto de #1144 —la columna
-    // nueva nace oculta— y `true` pisa un `visible: false` que el anfitrión puso a propósito.
     this.eachColumnCheckbox((checkbox, index) => {
-      // Primera: la memoria nunca vio esta columna, así que manda el servidor.
       if (!state.known.includes(index)) return
 
-      // Lo que el anfitrión declaraba CUANDO se escribió la memoria. Un valor viejo no lo
-      // registró (`null`) y ahí el mejor dato disponible es lo que declara ahora: atribuirle al
-      // usuario una columna que el servidor ya traía oculta es justo el error a evitar.
+      // What the host declared WHEN the memory was written. A v1 value recorded none (`null`),
+      // and there the best data available is what it declares now: crediting the user with a
+      // column the server already shipped hidden is the very mistake to avoid.
       const declaredHidden = state.serverHidden
         ? state.serverHidden.includes(index)
         : !checkbox.defaultChecked
       const wasHidden = state.hidden.includes(index)
 
-      // Segunda: coinciden, o sea que nadie eligió nada, y sigue mandando el servidor —que pudo
-      // cambiar de opinión desde entonces—. Tercera: difieren, y esa diferencia ES la decisión
-      // del usuario, en el sentido que sea.
+      // Only a difference is a decision. Equal means nobody chose, so the server keeps the say —
+      // and it may have changed its mind since.
       if (wasHidden !== declaredHidden) checkbox.checked = !wasHidden
     })
 
-    // Un valor sin línea base —el formato viejo, o un v2 escrito antes de que existiera— se
-    // reescribe UNA vez, tomando lo que quedó en pantalla: la inferencia corre una sola vez y
-    // no en cada carga. Reescribir acá y no sólo en el toggle es lo que hace que la migración
-    // llegue a quien nunca vuelve a abrir el menú. Es idempotente: la segunda lectura ya
-    // encuentra el formato completo y lo aplica tal cual.
+    // Rewriting here, and not only in `toggle`, is what gets the migration to someone who never
+    // opens the menu again. Idempotent: the next read already finds the full format.
     if (state.stale) this.persistState()
   }
 
-  // Se registra el estado resuelto (`hidden`) Y la declaración del servidor (`serverHidden`),
-  // porque la decisión del usuario es la DIFERENCIA entre las dos. Guardar sólo `hidden`
-  // convierte en preferencia suya cada `with_column(visible: false)` del anfitrión, sin que
-  // haya tocado nada, y desde ese momento un `visible: true` posterior no le llega nunca.
   persistState () {
     if (!this.storageKeyValue) return
 
@@ -104,9 +86,9 @@ export default class extends Controller {
     writeColumnState(this.storageKeyValue, { hidden, known, serverHidden })
   }
 
-  // `known` sale de las casillas presentes, no de las columnas de la tabla: lo que se recuerda
-  // es lo que se puede alternar. Con `selectable:` la columna 0 es la casilla de selección, un
-  // `<th>` real que el selector no declara, así que los índices arrancan en 1.
+  // `known` comes from the checkboxes present, not from the table's columns: what is remembered
+  // is what can be toggled. With `selectable:`, column 0 is the selection box — a real `<th>`
+  // the selector does not declare — so the indices start at 1.
   eachColumnCheckbox (callback) {
     this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
       const index = parseInt(checkbox.dataset.columnIndex, 10)
@@ -126,8 +108,7 @@ export default class extends Controller {
     if (isNaN(columnIndex) || !this.table) return
 
     this.setColumnVisibility(columnIndex, visible)
-    // Con una vista aplicada (serverState) el toggle es un ajuste SOBRE la vista: no debe
-    // volverse el default del dispositivo en localStorage.
+    // With a view applied, a toggle is an adjustment ON TOP of the view, not a new device default.
     if (!this.serverStateValue) this.persistState()
   }
 
