@@ -16,8 +16,6 @@
     <% end %>
   </div>
 
-  <%# A short chain reads the same way: the connectors carry the verdict, so a
-      rejected step turns the line into it red and everything after it grey. %>
   <div class="space-y-2">
     <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
       A chain that was rejected
@@ -30,9 +28,6 @@
     <% end %>
   </div>
 
-  <%# The other slots are not hidden by the rail. They stack under the label and
-      set the row height — which is the reason to leave them out of a rail meant
-      to stay one line tall, not a reason for the component to drop them. %>
   <div class="space-y-2">
     <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
       With assignee, date and a comment
@@ -48,9 +43,6 @@
     <% end %>
   </div>
 
-  <%# Narrow column: the row does not wrap — that is the whole point of the
-      rail — so it scrolls inside the component. The page keeps no horizontal
-      scrollbar of its own. %>
   <div class="max-w-xs space-y-2">
     <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
       In a narrow column

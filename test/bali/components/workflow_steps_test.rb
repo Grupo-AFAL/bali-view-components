@@ -247,15 +247,9 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_selector('li.workflow-step.my-step[data-testid="step-a"]')
   end
 
-  # The other half of the same contract, and the one with no net until now:
-  # every keyword this component does not declare reaches the root as a plain
-  # HTML attribute. What is pinned here is that contract, not any one spelling
-  # — declaring a keyword that a host is already passing turns live markup into
-  # an ArgumentError with every other test still green, and this is the test
-  # that notices. `style:` is the example because it is the one name a host
-  # writes on purpose; the day this component wants a semantic `style:` enum
-  # like its siblings, this test is the checklist of what that costs, not a
-  # veto.
+  # Every keyword this component does not declare reaches the root as a plain
+  # HTML attribute, so declaring one a host already passes turns working markup
+  # into an ArgumentError with every other test still green.
   def test_undeclared_keywords_reach_the_root_as_html_attributes
     render_inline(
       Bali::WorkflowSteps::Component.new(style: "max-width:40rem", title: "Approval chain")
@@ -279,9 +273,8 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_selector('div.workflow-steps.workflow-steps-horizontal[title="Approval chain"]')
   end
 
-  # The six global strings are deliberately generic, and a host that overrides
-  # `states.error` to "Discarded" changes it for every other flow in the app.
-  # This is the per-step hatch, shaped like `Bali::BooleanIcon`'s `label:`.
+  # Overriding `states.error` globally changes it for every other flow in the
+  # app; this is the per-step hatch, shaped like `Bali::BooleanIcon`'s `label:`.
   def test_a_step_can_name_its_own_state_for_a_screen_reader
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
@@ -291,7 +284,7 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
 
   # ActionView emits every key that is not `data`/`aria` verbatim, so an
   # undeclared `state_label:` printed itself on the `<li>` as an invalid
-  # attribute and changed nothing a screen reader hears.
+  # attribute.
   def test_the_state_label_does_not_leak_as_an_html_attribute
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
@@ -307,15 +300,8 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
   end
 
   # `nil` means "not given"; anything else is the accessible name the host
-  # asked for, empty string included. `.presence ||` would quietly hand back
-  # "Skipped" to a host that asked for silence. Same rule as
-  # `Bali::BooleanIcon#label`, pinned there too.
-  #
-  # What is pinned is the ANNOUNCEMENT, not the markup: nothing is read out.
-  # Today that is an empty `sr-only` span, which contributes no node to the
-  # accessibility tree; a later cleanup that renders no span at all keeps this
-  # test green, which is the point — the rule is about what a screen reader
-  # says, and only a fallback to "Skipped" should turn it red.
+  # asked for, `""` included. `.presence ||` would quietly hand "Skipped" back
+  # to a host that asked for silence. Same rule as `Bali::BooleanIcon#label`.
   def test_an_empty_state_label_is_taken_literally
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "")
@@ -324,7 +310,6 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_equal "", announced_states.join
   end
 
-  # The one thing a host can put in that span is a string it built itself.
   def test_a_state_label_is_escaped_like_any_other_host_string
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "<b>Not</b> taken")
@@ -334,8 +319,6 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
     assert_equal "<b>Not</b> taken", announced_states.first
   end
 
-  # The label is the step's, not the flow's: two steps in the same state read
-  # differently when the host says so.
   def test_the_state_label_only_touches_its_own_step
     render_inline(Bali::WorkflowSteps::Component.new) do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
@@ -347,9 +330,7 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
 
   private
 
-  # What a screen reader would read out for each step's state, in document
-  # order. Reading the text rather than asserting the span exists keeps these
-  # tests about the announcement — see `test_an_empty_state_label_...`.
+  # What a screen reader would read out for each step's state, in document order.
   def announced_states
     page.all(".workflow-step-marker .sr-only", visible: :all).map { |node| node.text(:all) }
   end
@@ -428,9 +409,8 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
     assert_selector('div.workflow-steps.workflow-steps-horizontal.my-flow[data-testid="flow"]')
   end
 
-  # The shape where the `sr-only` name is the ONLY state information there is:
-  # the dot carries no number, so a reader who cannot see colour has nothing
-  # else to go on. The per-step hatch has to reach it.
+  # The quick flow's dot carries no number, so its `sr-only` name is the only
+  # state information a reader who cannot see colour gets.
   def test_a_horizontal_step_can_name_its_own_state
     render_horizontal do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
@@ -441,9 +421,8 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
     assert_equal [ "Not taken", "Skipped" ], labels
   end
 
-  # The scroll hatch is the rail's alone: the cards wrap instead of
-  # overflowing, so a tab stop here would be a stop on something that never
-  # scrolls.
+  # The cards wrap instead of overflowing, so a tab stop here would be a stop
+  # on something that never scrolls.
   def test_the_horizontal_list_is_not_a_focusable_scroll_region
     render_horizontal do |c|
       c.with_step(title: "Submitted", state: :success)
@@ -667,10 +646,7 @@ class BaliWorkflowStepsHorizontalTest < ComponentTestCase
 end
 
 # The rail is the third shape: one row of numbered circles joined by
-# connectors, the label under each. `orientation:` is the axis because it is
-# the only keyword this component validates — every other spelling (`style:`,
-# `shape:`, `layout:`) is a live HTML passthrough to the root today, so taking
-# one would have turned working markup into an ArgumentError.
+# connectors, the label under each.
 class BaliWorkflowStepsRailTest < ComponentTestCase
   def test_the_rail_is_a_third_orientation_with_its_own_root_class
     render_rail do |c|
@@ -682,8 +658,6 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_no_selector(".workflow-steps-vertical")
   end
 
-  # Same wrapper as the quick flow: a div around `ol.workflow-steps-list`, so
-  # the optional N/M header has a line to sit on above the row.
   def test_the_rail_wraps_its_list_the_way_the_quick_flow_does
     render_rail do |c|
       c.with_step(title: "Capture", state: :success)
@@ -693,9 +667,6 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_selector("div.workflow-steps > ol.workflow-steps-list > li.workflow-step", count: 2)
   end
 
-  # The rail's marker is the vertical shape's numbered circle, not the quick
-  # flow's dot: the number is what makes nine steps in a row readable as an
-  # order rather than a row of lights.
   def test_the_rail_numbers_its_markers_instead_of_drawing_dots
     render_rail do |c|
       c.with_step(title: "A", state: :success)
@@ -716,9 +687,8 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_equal([ "1", "", "2" ], circle_texts)
   end
 
-  # The connectors are the rail. They are also what replaces the N/M bar: each
-  # one arrives coloured at the step that owns the verdict, exactly as in the
-  # vertical shape.
+  # A connector takes the colour of the step AFTER it, so the line arrives
+  # already painted at the step that owns the verdict.
   def test_the_rail_draws_a_connector_between_each_pair_of_steps
     render_rail do |c|
       c.with_step(title: "A", state: :success)
@@ -732,9 +702,8 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_no_selector("li:last-child .workflow-step-connector")
   end
 
-  # Measured before building it: all four horizontal call sites in the fleet
-  # pass `progress: false`. In the rail the connectors already say how far the
-  # flow got, so the bar starts off and a host that wants it says so.
+  # Measured across the fleet: all four horizontal call sites pass
+  # `progress: false`, and the rail's connectors already say how far it got.
   def test_the_rail_draws_no_bar_by_default
     render_rail do |c|
       c.with_step(title: "A", state: :success)
@@ -788,16 +757,12 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_selector(".workflow-step-comment", text: "Missing appendix B.")
   end
 
-  # WCAG 2.1.1. The rail is the one shape that can overflow — measured at
-  # 400px with nine steps, `list.scrollWidth 864 > clientWidth 336` — and a
-  # scroll container with no focusable descendant is content a keyboard user
-  # cannot reach at all. `docs/guides/accessibility.md` prescribes
-  # `tabindex="0"` plus a name for exactly this.
+  # WCAG 2.1.1. Measured at 400px with nine steps, `list.scrollWidth 864 >
+  # clientWidth 336`, and the `<ol>` holds nothing focusable: without
+  # `tabindex="0"` and a name the overflowed steps are unreachable by keyboard.
   #
-  # No `role=`: measured in the browser, `role="region"` (or `"group"`) on an
-  # `<ol>` REPLACES its `list` role, so the reader stops being told how many
-  # steps there are. `<ol tabindex="0" aria-label="...">` snapshots as
-  # `list "Workflow steps"` — focusable, named, still a list.
+  # No `role=`: measured in the browser, `role="region"` on an `<ol>` REPLACES
+  # its `list` role, so the reader stops being told how many steps there are.
   def test_the_rail_list_is_reachable_by_keyboard_and_named
     render_rail do |c|
       c.with_step(title: "Capture", state: :success)
@@ -818,8 +783,8 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
     assert_selector(%(ol.workflow-steps-list[aria-label="#{I18n.t('bali_view.workflow_steps.rail_label', locale: :es)}"]))
   end
 
-  # `progress: false` is what the four horizontal call sites in the fleet
-  # write today; migrating one to the rail must not turn it into an error.
+  # The four horizontal call sites write `progress: false` today; migrating one
+  # to the rail must not turn that into an error.
   def test_the_rail_accepts_an_explicit_progress_false
     render_inline(Bali::WorkflowSteps::Component.new(orientation: :rail, progress: false)) do |c|
       c.with_step(title: "A", state: :success)
@@ -850,23 +815,16 @@ class BaliWorkflowStepsRailTest < ComponentTestCase
   end
 end
 
-# The rail shares the vertical shape's numbered circle and the quick flow's
-# N/M header, so three rules moved out of their per-shape blocks and into the
-# root `.workflow-steps` block rather than being duplicated. That move is what
-# the whole "the default shape is untouched" claim rests on, and the repo has
-# no rendering tests for CSS: nothing else in the suite notices if someone
-# files one of them back under a shape, or adds a second declaration that
-# shadows it.
-#
-# This reads the source, so it proves placement, not paint. What it cannot see
-# — cascade, layer, a host stylesheet — was measured in the browser against
-# the v3.4.0 server instead, and that measurement is in the PR, not here.
+# Three rules the rail shares with the other shapes live in the root
+# `.workflow-steps` block rather than being duplicated. The repo has no
+# rendering tests for CSS, so nothing else in the suite notices if someone
+# files one back under a shape. This reads the source: it proves placement,
+# not paint.
 class BaliWorkflowStepsStylesheetTest < ActiveSupport::TestCase
   STYLESHEET = Bali::Engine.root.join("app/components/bali/workflow_steps/index.css")
 
-  # Declared once, in the root block: the two shapes that draw a numbered
-  # circle (vertical, rail) and the two that carry the header (horizontal,
-  # rail) would otherwise each need a copy.
+  # Shared: the numbered circle by vertical and rail, the N/M header by
+  # horizontal and rail.
   SHARED_RULES = %w[
     .workflow-step-circle
     .workflow-steps-progress
@@ -876,17 +834,14 @@ class BaliWorkflowStepsStylesheetTest < ActiveSupport::TestCase
   def test_the_shared_rules_live_in_the_root_block_exactly_once
     SHARED_RULES.each do |selector|
       assert_equal [ ".workflow-steps" ], blocks_declaring(selector),
-        "#{selector} debe estar declarado una sola vez y dentro del bloque raíz `.workflow-steps`"
+        "#{selector} must be declared exactly once, in the root `.workflow-steps` block"
     end
   end
 
-  # Each shape sizes the marker itself, in its own top-level block.
-  # `.workflow-steps-horizontal .workflow-step-marker` boxes it into 1.5rem for
-  # its dot, which would crush the rail's 2rem circle: the rail having its own
-  # root class rather than being "horizontal plus a modifier" is the only thing
-  # keeping that rule away from it. The order is the other half — the rail
-  # block is written after the horizontal one on purpose, since same
-  # specificity in the same layer is settled by source order.
+  # `.workflow-steps-horizontal .workflow-step-marker` boxes the marker into
+  # 1.5rem for its dot, which would crush the rail's 2rem circle. Order is
+  # asserted, not incidental: same specificity in the same layer is settled by
+  # source order, so the rail block has to come after the horizontal one.
   def test_each_shape_declares_its_own_marker_rule_in_source_order
     assert_equal %w[.workflow-steps-vertical .workflow-steps-horizontal .workflow-steps-rail],
                  blocks_declaring(".workflow-step-marker")
@@ -894,10 +849,9 @@ class BaliWorkflowStepsStylesheetTest < ActiveSupport::TestCase
 
   private
 
-  # The top-level blocks that declare `selector` as a nested rule. The sheet is
-  # one nested rule per shape block, two spaces of indent, which is what this
-  # reads; a reformat that breaks the shape shows up as an empty result, not a
-  # false pass.
+  # Top-level blocks declaring `selector` as a nested rule. This reads the two
+  # spaces of indent literally; a reformat that breaks that shape shows up as
+  # an empty result, not a false pass.
   def blocks_declaring(selector)
     current = nil
 

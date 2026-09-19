@@ -9,75 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`Bali::WorkflowSteps` gana el riel: `orientation: :rail`** (#1145). Una sola fila de
-  círculos numerados unidos por conectores de color, con la etiqueta centrada debajo. Es la
-  forma para un flujo largo arriba de una pantalla —el embudo de nueve pasos de TDFlow— donde
-  lo primero que hay que leer es el orden y hasta dónde llegó, no el detalle de cada paso.
-  El `:horizontal` sigue haciendo lo contrario a propósito: sus tarjetas envuelven
-  (`auto-fit` desde 11rem), y nueve pasos en tres renglones ya no son un embudo.
-
-  **Lo que ya sabías del `:vertical` vale igual en el riel**: círculo numerado con la misma
-  numeración automática (un `:skipped` pinta la raya y no consume posición; un `number:`
-  explícito sigue ganando), conectores que toman el estado del paso **siguiente** —así la
-  línea llega pintada al paso que tiene el veredicto— y el mismo `sr-only` con el nombre del
-  estado al lado de cada círculo.
-
-  **La barra N/M viene apagada en el riel**, al revés que en el `:horizontal`. Los conectores
-  ya dibujan hasta dónde llegó el flujo, y los cuatro call sites horizontales del grupo pasan
-  hoy `progress: false`: nadie la pinta. `progress: true` la enciende si la querés.
-
-  **El riel no envuelve, y en pantalla angosta el scroll queda adentro del componente.** Las
-  columnas son iguales (`flex-1`) hasta un piso de legibilidad de `6rem`; por debajo de eso la
-  fila scrollea dentro de `.workflow-steps-list`. La página no gana barra horizontal propia:
-  medido a 400px con nueve pasos, `document.documentElement.scrollWidth == clientWidth`.
-
-  **Y ese scroll se alcanza con el teclado.** El `<ol>` del riel es su contenedor de scroll y
-  no tiene adentro nada enfocable, así que lleva `tabindex="0"` y un `aria-label`: sin eso, a
-  400px con nueve pasos (`scrollWidth 864` contra `clientWidth 336`) los pasos 4 a 9 eran
-  inalcanzables sin ratón —WCAG 2.1.1—. El nombre sale de la clave nueva
-  `bali_view.workflow_steps.rail_label` («Pasos del flujo» / «Workflow steps»), que se
-  sobrescribe como cualquier cadena de Bali. **No lleva `role=`**: medido en el navegador,
-  `role="region"` sobre un `<ol>` *reemplaza* su rol `list` y el lector deja de enterarse de
-  cuántos pasos hay; con `tabindex` + `aria-label` el snapshot sigue diciendo
-  `list "Pasos del flujo"`. Y como una parada de tabulación tiene que verse cuando el foco cae
-  ahí, la fila dibuja un contorno en `:focus-visible` que, de paso, delimita la caja y deja ver
-  dónde se corta la fila. Con el foco en otro lado el riel angosto sigue sin señal visible de
-  que hay más a la derecha —el scrollbar overlay de Linux y macOS no se ve hasta que algo
-  scrollea—; eso queda abierto.
-
-  Medido a 400px con los nueve pasos: sin tocar nada se ven enteros «Capture», «Triage» y
-  «Evaluation»; un `Tab` deja el foco en la fila (`document.activeElement.className ==
-  "workflow-steps-list"`) y veinte `ArrowRight` la llevan al tope (`scrollLeft 528` de 528),
-  con «Committee», «Funding» y «Project» enteros en pantalla. Antes de este cambio no había
-  forma de llegar a ellos sin ratón.
-
-  **El riel no esconde nada.** `assignee:`, `date:` y el bloque del paso siguen rindiendo,
-  centrados bajo la etiqueta. Como se apilan, definen el alto de la fila: un riel que tiene
-  que quedar de un renglón es uno cuyo llamador no los pasa. El componente no le pone
-  `display: none` a contenido que le pasaste —un lector de pantalla también lo perdería.
-
-  **Por qué `orientation: :rail` y no `style: :rail`** (que es lo que proponía el issue), con
-  lo medido y lo decidido separados. Medido: todo keyword que este componente no declara llega
-  al elemento raíz como atributo HTML —hoy `new(orientation: :horizontal,
-  style: "max-width:40rem")` emite `<div style="max-width:40rem">`—, así que declarar `style:`
-  convertiría en `ArgumentError` markup de anfitrión que funciona, sin que ninguna prueba lo
-  atrapara. También medido, contra `origin/main` de los nueve repos: **ningún call site pasa
-  hoy `style:`, `shape:`, `layout:` ni `density:`** a este componente. Decidido:
-  `orientation: :rail` levantaba `ArgumentError` hasta v3.4.0, así que nadie puede depender
-  del significado viejo, y un solo eje no necesita validación cruzada entre dos keywords;
-  `shape:` —como en `Bali::Avatar`— era la alternativa coherente y no se tomó por eso, no
-  porque fuera imposible. El costo es la palabra: **un riel también es horizontal**. La guía
-  tiene ahora una tabla que dice en qué se diferencian `:horizontal` y `:rail` y cuándo usar
-  cada uno, porque los nombres solos no lo dicen.
-
-  Queda una prueba que fija el contrato general del passthrough —lo no declarado llega a la
-  raíz, `style:` incluido—. Es una foto de hoy, no una promesa: la mayoría de los componentes
-  de Bali usan `style:` como enum semántico, y si algún día este también lo hace, esa prueba
-  es la lista de lo que ese cambio cuesta.
-
-  El riel dibuja clases propias, **no** `.steps`/`.step` de daisyUI. Esa rejilla pinta el mismo
-  dibujo, pero su estado sale de la posición, que es justo lo que este componente existe para
-  no hacer: `.step` no puede decir «el paso 2 fue rechazado y el 4 sigue pendiente».
+- **`Bali::WorkflowSteps` gana una tercera forma: `orientation: :rail`** (#1145). Una sola
+  fila de círculos numerados unidos por conectores de color, con la etiqueta centrada debajo,
+  para un flujo largo arriba de una pantalla. A diferencia de `:horizontal`, **no envuelve**:
+  las columnas son iguales hasta un piso de `6rem`, y por debajo de eso la fila scrollea
+  adentro del componente, no en la página. La barra N/M viene **apagada** acá —los conectores
+  ya dicen hasta dónde llegó el flujo—; `progress: true` la enciende. La fila es parada de
+  tabulación (`tabindex="0"` más un `aria-label` que sale de la clave nueva
+  `bali_view.workflow_steps.rail_label`), porque si no los pasos que se desbordan no se
+  alcanzan sin ratón. `:vertical` y `:horizontal` no cambian.
 
 - **`state_label:` por paso** (#1145). Cambia el nombre accesible del estado de **ese** paso,
   sin tocar las seis cadenas globales `bali_view.workflow_steps.states.*`:
@@ -86,14 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <% c.with_step(title: "Evaluación", state: :skipped, state_label: "No se recorrió") %>
   ```
 
-  El problema que resuelve es de alcance: sobrescribir `states.error` a «Descartada» para el
-  embudo de una iniciativa se lo cambia también al panel de aprobaciones de Comunicaciones,
-  que usa «Rechazado» bien. Ahora esa pantalla renombra su propio paso y nada más.
-
-  No cambia nada visible: el círculo conserva su color y su raya. `nil` (el default) cae en la
-  traducción; cualquier otra cosa se toma literal, **`""` incluido** —un paso cuyo título ya
-  dice el veredicto puede pedir silencio. Es la misma regla que `label:` de
-  `Bali::BooleanIcon`, y ahora las dos escotillas tienen prueba que la fija.
+  Es para la pantalla que necesita «No se recorrió» mientras el panel de aprobaciones sigue
+  necesitando «Omitido». No cambia nada visible. `nil` cae en la traducción; cualquier otra
+  cosa se toma literal, **`""` incluido** —un paso cuyo título ya dice el veredicto puede
+  pedir silencio—. Es la misma regla que `label:` de `Bali::BooleanIcon`.
 
 - **`input_class:`, la cuarta opción de clase: el control y nada más** (#1147). Bali ya
   sabía nombrar el `<fieldset>` (`field_class:`), la caja que envuelve al control
@@ -578,34 +514,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
   ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
   que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
+
 ### Changed
 
-- **`state_label:` deja de llegar al `<li>` como atributo HTML** (#1145). El contrato del
-  componente es que todo keyword no declarado pasa al `<li>` del paso
-  (`test_step_html_attributes_reach_the_list_item`), y `state_label:` no estaba declarado: hoy
-  `c.with_step(..., state_label: "X")` emite `<li state_label="X" class="workflow-step">` —
-  atributo inválido que no cambia nada de lo que oye un lector de pantalla. Al declararlo, ese
-  atributo desaparece del DOM. Nadie debería depender de él, pero **si tenés un selector de
-  Cypress o de CSS sobre `[state_label]`, dejará de encontrar nada.**
-
-- **`docs/guides/components.md` decía `variant:` para `WorkflowSteps`** (#1145). Tres líneas de
-  la guía (incluido el snippet copiable de la forma horizontal) documentaban el keyword que se
-  renombró en v3.1 y que desde entonces levanta `ArgumentError`. Corregidas a `orientation:`.
+- **`state_label:` deja de llegar al `<li>` como atributo HTML** (#1145). Hasta ahora
+  `c.with_step(..., state_label: "X")` emitía `<li state_label="X">`, un atributo inválido que
+  no cambiaba nada de lo que oye un lector de pantalla; al declararse el keyword, desaparece
+  del DOM. **Si tenés un selector de Cypress o de CSS sobre `[state_label]`, dejará de
+  encontrar nada.**
 
 - **Para ver el riel hay que reconstruir el CSS de la app** (#1145): `.workflow-steps-rail` y
-  sus seis reglas son clases nuevas, así que un anfitrión que sube la gema y no corre
-  `rails tailwindcss:build` ve el riel como una columna de rectángulos de color. Las **formas
-  viejas no necesitan el rebuild**: su markup no cambió, y está comprobado sirviendo las
-  previews `default` y `horizontal` contra el servidor de v3.4.0 —HTML, estilo computado,
-  geometría y capturas idénticos—, así que el bundle anterior las sigue pintando bien.
+  sus reglas son clases nuevas, así que un anfitrión que sube la gema y no corre
+  `rails tailwindcss:build` ve el riel como una columna de rectángulos de color. Las formas
+  viejas no lo necesitan: su markup no cambió.
 
 - **Tres reglas de CSS se mudaron al bloque raíz `.workflow-steps`** (#1145):
-  `.workflow-step-circle` (la comparten vertical y riel) y `.workflow-steps-progress` /
-  `.workflow-steps-count` (las comparten horizontal y riel). Misma especificidad `(0,2,0)`,
-  misma capa `components`, mismas declaraciones: el diff de reglas `workflow` entre los dos
-  bundles servidos es exactamente esas tres con otro prefijo más las seis nuevas del riel. Un
-  anfitrión con CSS propio sobre `.workflow-step*` le sigue ganando igual —ninguno tiene hoy,
-  medido con `git grep` en los nueve repos.
+  `.workflow-step-circle`, `.workflow-steps-progress` y `.workflow-steps-count`, que el riel
+  comparte con las otras formas. Misma especificidad y misma capa, así que un anfitrión con
+  CSS propio sobre `.workflow-step*` le sigue ganando igual.
 
 ## [v3.4.0] - 2026-09-17
 

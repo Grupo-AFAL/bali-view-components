@@ -66,29 +66,10 @@ module Bali
       # betas, which collided with the `variant:` the button taxonomy reserves
       # for colour.
       #
-      # `:rail` is a third value of this keyword rather than a second axis
-      # (`style:`, `shape:`, `layout:`), for one measured reason and one
-      # judgement call, in that order.
-      #
-      # Measured: every keyword this component does not declare reaches the
-      # root as a plain HTML attribute, so declaring one can turn working host
-      # markup into an ArgumentError with the whole suite green. That is a
-      # concrete risk only for `style:`, the one of those names a host writes
-      # on purpose — `new(orientation: :horizontal, style: "max-width:40rem")`
-      # emits `<div style="max-width:40rem">` today. Also measured, against
-      # origin/main of the nine repos: no call site passes `style:`, `shape:`,
-      # `layout:` or `density:` to this component, so taking any of those names
-      # would not have broken anyone this week either.
-      #
-      # Judgement: `orientation: :rail` raised ArgumentError until this change,
-      # so nothing can depend on its old meaning, and one axis needs no
-      # cross-validation between two keywords. `shape: :rail` — the spelling
-      # `Bali::Avatar` already uses — was the coherent alternative; it was not
-      # taken for that reason, not because it was impossible.
-      #
-      # The cost is the word: a rail IS horizontal. `:horizontal` is the row of
-      # cards that wraps, `:rail` the single row that does not. The names do
-      # not say that, so the guide does, in those terms.
+      # `:rail` is a third value of this keyword, not a second axis: every
+      # keyword this component does not declare reaches the root as a plain
+      # HTML attribute, so declaring `style:` or `shape:` would turn working
+      # host markup into an ArgumentError with the whole suite still green.
       ORIENTATION_CLASSES = {
         vertical: "workflow-steps-vertical",
         horizontal: "workflow-steps-horizontal",
@@ -156,31 +137,21 @@ module Bali
         orientation == :rail
       end
 
-      # The two shapes whose list sits inside a div: that div is the only place
-      # the N/M header can go. The vertical shape is the `<ol>` itself.
-      #
-      # Not `wrapped?`. In this component "wrap" already means the horizontal
-      # shape's cards flowing onto a second row — the one thing the rail exists
-      # not to do — and the rail is one of the two shapes this is true of.
+      # The two shapes whose list sits inside a div — that div is the only
+      # place the N/M header can go; the vertical shape is the `<ol>` itself.
+      # Not `wrapped?`: wrapping here means the horizontal cards flowing onto a
+      # second row, which is the one thing the rail exists not to do.
       def boxed?
         horizontal? || rail?
       end
 
-      # The rail's `<ol>` is also its scroll container: it is the only shape
-      # that can overflow, so it needs `tabindex="0"` to be reachable at all
-      # (WCAG 2.1.1 — there is nothing else focusable inside it) and a name to
-      # be worth landing on. That is what `docs/guides/accessibility.md`
-      # prescribes for a scrollable region.
+      # The rail's `<ol>` is its own scroll container and holds nothing
+      # focusable, so WCAG 2.1.1 wants `tabindex="0"` and a name on it.
       #
-      # No `role=`, which is where this departs from the snippet in that guide:
-      # there the scroll container is a `<div>` wrapping a table, and `region`
-      # adds semantics to an element with none. Here it is the `<ol>`, and an
-      # explicit role REPLACES the implicit one — measured in the browser,
-      # `<ol role="region">` snapshots as `region "Workflow steps"` and the
-      # reader stops being told it is a list of nine. `<ol tabindex="0"
-      # aria-label="…">` snapshots as `list "Workflow steps"`: focusable,
-      # named, still a list. Empty for the other two shapes, whose markup is
-      # unchanged to the byte.
+      # No `role=`: an explicit role REPLACES the implicit one. Measured in the
+      # browser, `<ol role="region">` snapshots as `region "Workflow steps"`
+      # and the reader stops being told it is a list of nine; with `tabindex`
+      # and `aria-label` alone it stays `list "Workflow steps"`.
       def list_options
         return {} unless rail?
 
@@ -200,17 +171,15 @@ module Bali
         Bali::Color.name!(self.class.name, value, param: :orientation, allowed: ORIENTATIONS) || :vertical
       end
 
-      # The bar is part of the wrapped shapes' header, and the vertical shape
+      # The bar is part of the boxed shapes' header, and the vertical shape
       # has no header to hang it on. Asking for one there is a request this
       # component cannot honour, so it says so instead of dropping it silently.
       # `false` asks for nothing, so it stays legal everywhere.
       #
-      # The default differs between the two shapes that can draw it. The
-      # horizontal one keeps it on: its dots say state and nothing about
-      # progress. The rail starts off — its connectors already draw how far the
-      # flow got, and the four horizontal call sites in the fleet all pass
-      # `progress: false`, so an extra bar over a nine-step funnel is the thing
-      # nobody asked for. `progress: true` still turns it on there.
+      # The default differs between the two shapes that can draw it: the
+      # horizontal one keeps it on, the rail starts off — its connectors
+      # already draw how far the flow got, and all four horizontal call sites
+      # in the fleet pass `progress: false` anyway.
       def validated_progress(value)
         return horizontal? if value.nil?
         return value if boxed? || !value

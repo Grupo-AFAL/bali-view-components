@@ -1338,17 +1338,11 @@ What is specific to the rail:
   its status comes from position, which is the one thing this component exists
   not to do: `.step` cannot say "step 2 was rejected while step 4 is pending".
 
-`:rail` is a third value of `orientation:` rather than a second keyword
-(`style:`, `shape:`, `layout:`) for a measured reason and a judgement call.
-Measured: every keyword this component does not declare reaches the root as a
-plain HTML attribute, and `style:` is a live inline style today, so declaring
-it would turn working host markup into an `ArgumentError`. Judgement:
-`orientation: :rail` raised an `ArgumentError` up to v3.4.0, so nothing can
-depend on its old meaning, and one axis needs no cross-validation between two keywords — `shape:`
-(the spelling `Bali::Avatar` uses) was the coherent alternative and was not
-taken for that reason, not because it was impossible. The cost is the word: a
-rail is a horizontal shape, not an orientation of its own, which is what the
-table above is for.
+`:rail` is a third value of `orientation:` rather than a second keyword: every
+keyword this component does not declare reaches the root as a plain HTML
+attribute, so declaring `style:` or `shape:` would turn working host markup
+into an `ArgumentError`. The cost is the word — a rail is a horizontal shape,
+not an orientation of its own, which is what the table above is for.
 
 ##### The decision form is the host's
 

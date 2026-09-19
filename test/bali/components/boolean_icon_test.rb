@@ -73,15 +73,9 @@ class BaliBooleanIconComponentTest < ComponentTestCase
   end
 
   # The house rule for an accessible-name hatch, shared with
-  # `Bali::WorkflowSteps` `state_label:`: `nil` means "not given" and falls
-  # back to the translation; anything else is what the host asked for, empty
-  # string included. `.presence ||` would hand "Yes" back to a caller who
-  # asked for silence because the surrounding cell already says it.
-  #
-  # Pinned as the ANNOUNCEMENT, not the markup: today the empty string renders
-  # an empty `sr-only` span, which contributes no node to the accessibility
-  # tree, and a later cleanup that renders no span at all should keep this
-  # green. Only a fallback to "Yes" is a regression.
+  # `Bali::WorkflowSteps` `state_label:`: `nil` falls back to the translation,
+  # anything else is literal, `""` included. `.presence ||` would hand "Yes"
+  # back to a caller who asked for silence.
   def test_a11y_an_empty_label_is_taken_literally
     render_inline(Bali::BooleanIcon::Component.new(value: true, label: ""))
 

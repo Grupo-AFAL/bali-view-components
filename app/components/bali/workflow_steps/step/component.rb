@@ -128,14 +128,11 @@ module Bali
         # happened, and colour is nothing to a screen reader. The circle's
         # number does not cover it — a position is not a verdict.
         #
-        # The six translations are deliberately generic, and overriding
-        # `bali_view.workflow_steps.states.*` changes them for every flow in
-        # the app — no good when one screen's `:skipped` is "Not taken" and
-        # another's is "Waived". `state_label:` is the per-step hatch, shaped
-        # exactly like `Bali::BooleanIcon#label`: `nil` means "not given" and
-        # falls back to the translation, and anything else is taken literally,
-        # `""` included. `.presence ||` would hand the generic string back to a
-        # caller who asked for silence because the title already says it.
+        # Overriding `bali_view.workflow_steps.states.*` changes them for every
+        # flow in the app, so `state_label:` is the per-step hatch, shaped like
+        # `Bali::BooleanIcon#label`: `nil` falls back to the translation,
+        # anything else is literal, `""` included. `.presence ||` would hand the
+        # generic string back to a caller who asked for silence.
         def state_label
           @state_label || I18n.t("bali_view.workflow_steps.states.#{state}")
         end

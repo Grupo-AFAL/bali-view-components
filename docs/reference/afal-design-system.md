@@ -66,7 +66,7 @@ the daisyUI widget of the same name:
 | `Progress` | `progress progress-*` | |
 | `Avatar` | `avatar` (photo, or derived initials) | |
 | `Stepper` | `steps step-*` | Axis is `orientation:` |
-| `WorkflowSteps` | **own classes**, not `steps step-*` | Axis is `orientation:` too, with a third value `:rail`. daisyUI's `.step` status comes from position and cannot say "step 2 was rejected"; this component's whole reason to exist is one semantic state per step |
+| `WorkflowSteps` | **own classes**, not `steps step-*` | Axis is `orientation:` too, with a third value `:rail`. daisyUI's `.step` takes its status from position and cannot say "step 2 was rejected" |
 | `Timeline` | `timeline timeline-*` | |
 
 The daisyUI-native rows exist so hosts inherit theme/token changes for free; the

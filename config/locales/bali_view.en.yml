@@ -707,9 +707,7 @@ en:
         skipped: "Skipped"
         current: "In progress"
       # Accessible name of the rail's row, which is also its scroll container:
-      # it is the one shape that can overflow, so it carries `tabindex="0"` and
-      # needs a name to be worth landing on. Generic on purpose, like the
-      # states above, and overridable the same way.
+      # it carries `tabindex="0"`, and a tab stop needs a name.
       rail_label: "Workflow steps"
     split_view:
       # The three states of the infinite-scroll sentinel. They ship translated
