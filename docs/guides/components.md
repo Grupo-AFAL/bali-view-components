@@ -2644,7 +2644,7 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
-- `note` - A discreet muted line under the value (`'Crea valor · tasa 12.5%'`). Not the `footer` slot, which is the trend/status row at the bottom (default: nil)
+- `note` - A discreet muted line under the value (`'Creates value · 12.5% rate'`). Not the `footer` slot, which is the trend/status row at the bottom (default: nil)
 - `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
 - `color` - Icon accent — and the cell tint when `emphasis:` is on: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
 - `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
@@ -2667,16 +2667,16 @@ has **two surfaces, not two components**: `surface:` changes the box, never the 
 ```erb
 <%# A grid of figures INSIDE a section card: nothing here may be a card %>
 <%= render Bali::Card::Component.new do |card| %>
-  <% card.with_title('Caso de negocio') %>
+  <% card.with_title('Business case') %>
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <%= render Bali::StatCard::Component.new(
           surface: :cell, emphasis: true,
-          title: 'VPN', value: '$6.14M', value_class: 'tabular-nums',
-          note: 'Crea valor · tasa 12.5%'
+          title: 'NPV', value: '$6.14M', value_class: 'tabular-nums',
+          note: 'Creates value · 12.5% rate'
         ) %>
     <%= render Bali::StatCard::Component.new(
           surface: :cell, title: 'BCR', value: '2.41', value_class: 'tabular-nums',
-          note: 'Beneficio / costo'
+          note: 'Benefit / cost'
         ) %>
   </div>
 <% end %>
@@ -2742,9 +2742,9 @@ by the order in the attribute. Measured on the sheet this package builds (`text-
 | `text-2xl` | 30px — the one size that loses, because Tailwind emits it before `text-3xl` |
 | `font-semibold` | weight **600** |
 
-So it does resize the figure, in seven of the eight steps. Earlier drafts of this page claimed
-it could not; that was wrong, and the numbers above are from the browser, on the
-`emphasised_cell` preview, whose `value_class` parameter is there so you can repeat them.
+So it does resize the figure, in seven of the eight steps. The numbers above are from the
+browser, on the `emphasised_cell` preview, whose `value_class` parameter is there so you can
+repeat them.
 
 Which is a reason to use it for what it is for. The winning is an artifact of Tailwind's
 output order — `text-2xl` already behaves the other way, and an upgrade that reorders the

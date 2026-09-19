@@ -2,24 +2,17 @@
 
 require "test_helper"
 
-# `surface:` is new API on a component with 96 call sites across six apps. The
-# deal is that `surface: :card` — the default, and therefore every one of those
-# call sites — renders EXACTLY what it rendered before the cell surface existed.
+# The fixture next to this file is the output of v3.4.0, captured before a line of
+# the cell surface was written. It pins bytes, not "the same DOM": the template
+# captures its body into a local, and the two ways of writing that differ only in
+# whitespace.
 #
-# The fixture next to this file is the output of v3.4.0, captured before a line
-# of the feature was written. Not "the same DOM", not "the same classes": the
-# same bytes, whitespace included, because the template now captures its body
-# into a local and the two ways of writing that differ only in whitespace.
-#
-# If this fails, read the diff before touching the fixture. Regenerate it only
-# when the card surface is MEANT to change, and say so in the CHANGELOG.
+# If this fails, read the diff before touching the fixture. Regenerate it only when
+# the card surface is MEANT to change, and say so in the CHANGELOG.
 class BaliStatCardDefaultSurfaceUnchangedTest < ComponentTestCase
   GOLDEN = File.expand_path("default_surface.golden.html", __dir__)
 
-  # Every shape the card surface can take: with and without an icon, each colour
-  # branch, the hex escape hatch, the link root, the footer slot, the option
-  # passthrough, the Card keywords that travel through `**options`, and the
-  # deprecated `icon_name:`.
+  # Every shape the card surface can take.
   CASES = {
     "minimal" => { title: "Total Users", value: "1,234" },
     "with_icon" => { title: "Total Users", value: "1,234", icon: "users" },
@@ -56,9 +49,8 @@ class BaliStatCardDefaultSurfaceUnchangedTest < ComponentTestCase
     end
     out << "===== footer =====\n#{rendered_content}\n"
 
-    # `href:` and the footer slot together. The docs single this combination out
-    # (a link inside that footer would be an `<a>` inside an `<a>`), which is
-    # precisely why its bytes are worth pinning instead of assumed.
+    # `href:` and the footer slot together: a link inside that footer would be an
+    # `<a>` inside an `<a>`, so the docs single the combination out.
     render_inline(
       Bali::StatCard::Component.new(title: "Open Orders", value: "87", icon: "shopping-cart",
                                     color: :info, href: "/lookbook")

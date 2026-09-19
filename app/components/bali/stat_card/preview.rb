@@ -52,28 +52,26 @@ module Bali
       end
 
       # `surface: :cell` renders the same figure on a flat bordered box that never
-      # emits `.card` — the grid of metrics that lives INSIDE a section card, where
-      # the default surface would be a card in a card. No icon badge: six of them in
-      # one grid is noise, so `icon:` raises here instead of being dropped in silence.
+      # emits `.card`: the grid of metrics that lives inside a section card. A cell
+      # takes no icon badge — `icon:` raises rather than being dropped in silence.
       def cells_in_card
         render_with_template(template: 'bali/stat_card/previews/cells_in_card')
       end
 
       # When each box is the right one. `size: :sm, shadow: false` is already a quiet
-      # bordered card with 1rem of padding — same padding as the cell — and it is
-      # enough whenever nothing else on screen is a card.
+      # bordered card with the cell's 1rem of padding; what it cannot do is stop
+      # being a `.card`.
       def surfaces_compared
         render_with_template(template: 'bali/stat_card/previews/surfaces_compared')
       end
 
       # `emphasis: true` paints the cell with the soft pair of `color:`, to single out
       # one figure in a grid. It is an emphasis axis, not a colour axis: which colour
-      # is still `color:` (or `custom_color:`, painted inline). `href:` turns the cell
-      # into an `<a>` with the same hover-shadow affordance the card surface has.
+      # is still `color:` (or `custom_color:`). `href:` turns the cell into an `<a>`.
       #
-      # `value_class` is a parameter here so the measurement the guide quotes stays
-      # reproducible from the gallery: it is appended verbatim, so `text-xl` really
-      # does bring the figure down to 20px. `text-2xl` is the one size that loses.
+      # `value_class` is a parameter so the guide's measurement stays reproducible
+      # from the gallery: it is appended verbatim, and `text-xl` really does bring
+      # the figure down to 20px. `text-2xl` is the one size that loses.
       # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
       # @param href text
       # @param value_class text
@@ -83,10 +81,10 @@ module Bali
           emphasis: true,
           color: color.to_sym,
           href: href.presence,
-          title: 'VPN',
+          title: 'NPV',
           value: '$6.14M',
           value_class: value_class.presence,
-          note: 'Crea valor · tasa 12.5%'
+          note: 'Creates value · 12.5% rate'
         )
       end
     end

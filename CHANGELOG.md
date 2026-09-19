@@ -10,94 +10,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`Bali::StatCard` tiene una segunda superficie: `surface: :cell`** (#1146). La misma
-  métrica de siempre —etiqueta arriba, cifra grande— sobre una caja plana
-  (`rounded-box border border-base-300 p-4 bg-base-100`) que **no emite la clase `.card`**.
-  Es la rejilla de cifras que vive DENTRO de la tarjeta de una sección, donde la superficie
-  por omisión sería una tarjeta dentro de otra. Con ella llegan `note:` (la tercera línea
-  discreta bajo la cifra), `emphasis:` (pinta la celda para destacar una cifra) y
+  métrica de siempre —etiqueta arriba, cifra grande— sobre una caja plana que **no emite la
+  clase `.card`**: la rejilla de cifras que vive DENTRO de la tarjeta de una sección, donde la
+  superficie por omisión sería una tarjeta dentro de otra. Con ella llegan `note:` (la tercera
+  línea discreta bajo la cifra), `emphasis:` (pinta la celda para destacar una cifra) y
   `value_class:`.
 
-  **Nada de lo que rindes hoy cambia, y está probado a nivel de bytes.** `surface:` nace con
-  `:card` por omisión, y `test/bali/components/stat_card/default_surface_unchanged_test.rb`
-  compara el HTML de diez formas de la tarjeta —con y sin ícono, cada rama de color, el
-  `custom_color:`, la raíz `<a>`, el slot `footer`, el passthrough de `class:`/`id:`/`data:`,
-  las claves de `Bali::Card` que viajan por `**options` y el `icon_name:` deprecado— contra
-  la captura tomada en v3.4.0, **byte a byte, espacios en blanco incluidos**. Medido también
-  en el navegador: los estilos computados, la geometría y hasta el md5 de la captura del preview
-  `default` son idénticos entre un servidor en v3.4.0 y uno en esta rama. `surface: nil` cae al
-  default igual que `color: nil`, así que un `surface: condicion ? :cell : nil` no explota.
+  **Nada de lo que rindes hoy cambia.** `surface:` nace con `:card` por omisión, y
+  `test/bali/components/stat_card/default_surface_unchanged_test.rb` compara doce formas de la
+  tarjeta contra la captura tomada en v3.4.0, byte a byte. `surface: nil` cae al default igual
+  que `color: nil`.
 
-  **Una celda no lleva ícono, y no se tira nada en silencio.** Seis insignias en una rejilla es
-  ruido y no hay dónde ponerlas sin apretar la cifra, así que `icon:` junto a `surface: :cell`
-  levanta `ArgumentError` en vez de desaparecer. Las claves de `Bali::Card` —`size:`, `shadow:`,
-  `side:`, `image_full:`, `body_class:` y el `style: :bordered` simbólico— reciben el mismo
-  trato por la misma razón: sin tarjeta no significan nada y caían por `**options` hasta la raíz
-  como atributos HTML inválidos (`<div size="sm" shadow="false">`, medido). El error las nombra
-  todas de una vez: bórralas al cambiar de superficie. Lo que sí sigue pasando a la raíz en las
-  dos superficies es `class:`, `id:`, `data:` y un `style:` **string** (un estilo inline en la
-  raíz es legítimo; lo que se rechaza es la grafía simbólica, que es la de Card).
+  **Al cambiar de superficie, borra las claves de tarjeta.** `icon:`, `size:`, `shadow:`,
+  `side:`, `image_full:`, `body_class:` y el `style: :bordered` simbólico levantan
+  `ArgumentError` junto a `surface: :cell`, en vez de caer en silencio hasta la raíz como
+  atributos HTML inválidos. Lo que sí pasa a la raíz en las dos superficies es `class:`, `id:`,
+  `data:` y un `style:` **string**.
 
-  **`emphasis:` es un eje de énfasis, no de color.** El contrato de color de la casa sigue
-  siendo `color:` / `custom_color:`; no existe `tone:`. `emphasis: true` dice *pinta esta
-  celda* y `color:` dice *de qué color*: el par suave del mapa `COLORS`
-  (`bg-primary/10` + `border-primary/30`), o el mismo `color-mix` que ya usa la insignia del
-  ícono cuando hay `custom_color:`. Sobre la superficie `:card` levanta `ArgumentError`,
-  porque la tarjeta ya trae su `bg-base-100` y encimarle un tinte lo decidiría el orden de
-  salida de Tailwind, no nosotros.
+  **`emphasis:` es un eje de énfasis, no de color.** `emphasis: true` dice *pinta esta celda* y
+  `color:` / `custom_color:` dicen de qué color; no existe `tone:`. Sobre `surface: :card`
+  levanta `ArgumentError`.
 
-  **`Bali::StatCard::Component::COLORS` gana una clave `:border` por color.** Es aditivo —
-  nada de lo que lee `:bg`/`:text` cambia— pero la tabla tiene un segundo consumidor,
-  `Bali::DashboardPage#stat_change_class`, así que queda dicho y no pasa en silencio.
+  **`Bali::StatCard::Component::COLORS` gana una clave `:border` por color.** Es aditivo, pero
+  la tabla tiene un segundo consumidor: `Bali::DashboardPage#stat_change_class`.
 
-  **Antes de migrar, mira si ya lo tenías resuelto.** `StatCard.new(..., size: :sm,
-  shadow: false)` ya daba una tarjeta con borde, sin sombra y con 1rem de padding — el mismo
-  padding de 16px que mide la celda. La diferencia real son dos cosas: el tinte del borde
-  (`base-200` de `.card-border` contra `base-300` de la celda, medido: `oklch(0.98 0 0)` vs
-  `oklch(0.95 0 0)`) y que sigue siendo un `.card`. Si en tu pantalla nada más es una tarjeta,
-  `size: :sm` te alcanza; la celda es para cuando las cifras van dentro de una.
+  **Si vienes de una celda pintada a mano, esto NO es un reemplazo pixel a pixel**: la cifra
+  pasa de 20px/600 monoespaciada a 30px/700 proporcional, la etiqueta pierde peso y gana
+  transparencia, y una celda destacada deja de recolorear su texto. Un `tone: X → color: X`
+  mecánico está mal: los defaults no se corresponden y sin `emphasis:` el color no se ve. La
+  tabla completa está en `docs/guides/components.md`, «Replacing a hand-painted metric cell».
+  Borra el parcial en el mismo commit que adopta la celda.
 
-  **Si vienes de una celda pintada a mano, esto NO es un reemplazo pixel a pixel.** El caso de
-  referencia es el parcial `td_flow/shared/_metric_cell` de afal-apps (el que abrió el issue),
-  medido contra su `origin/main`. La celda de Bali es el diseño de la librería, y la diferencia
-  se ve:
-
-  - la cifra pasa de **20px/600 monoespaciada** (`text-xl font-semibold` + `font-mono
-    tabular-nums`, que ahí es el **default** del helper) a **30px/700 proporcional** — 50% más
-    grande; `value_class: 'font-mono tabular-nums'` recupera el mono, explícito;
-  - la etiqueta pasa de `font-semibold` al 45% de opacidad a `font-medium` al 60%, y **no es
-    configurable** (no hay `title_class:` ni `note_class:`, y no los va a haber);
-  - `tone: :primary` del parcial recolorea **etiqueta, cifra y nota** a `text-primary` y usa
-    `border-primary/20`; `emphasis: true` pinta **sólo fondo y borde** (`/30`) y deja los textos
-    como están;
-  - los defaults no se corresponden: `tone:` es `:neutral` allá y `color:` es `:primary` acá, y
-    sin `emphasis:` el color no se ve — una traducción mecánica `tone: X → color: X` está mal;
-  - el padding va de `p-3.5` (14px) a `p-4` (16px) y el espacio entre líneas de `gap-1.5` (6px)
-    a `mt-1` (4px). `p-4` es 1rem, exactamente lo que daisyUI le da al cuerpo de `.card-sm`;
-  - se pierden el `truncate` y el atributo `title` de la cifra: `value_class: 'truncate'`
-    recupera el recorte, el tooltip no tiene por dónde (`title:` es la etiqueta). El
-    `data-metric-cell` sí viaja, por el passthrough (`data: { metric_cell: key }`).
-
-  Borra el parcial cuando la app acepte esa tipografía, en el mismo commit que adopta la celda
-  —tener los dos es cómo sobrevive la divergencia—, y míralo en pantalla antes: la tabla
-  completa está en `docs/guides/components.md`, «Replacing a hand-painted metric cell».
-
-  **`value_class:` se concatena, y no filtra nada.** Es para propiedades que la librería no
-  fija (`font-mono`, `tabular-nums`, un color): `font-mono` no es el default de nadie. Pero
-  **sí cambia el tamaño**, al contrario de lo que decían los borradores de esta entrada: quién
-  gana lo decide el orden del sheet compilado, y ahí `text-2xl` es el único escalón que sale
-  antes que `text-3xl`. Medido en el navegador: `text-xl` → 20px, `text-4xl` → 36px,
-  `font-semibold` → 600, y `text-2xl` → 30px (el único que pierde). Si una pantalla necesita
-  otra escala tipográfica, eso se cambia en `VALUE_CLASSES` y se mide en los call sites, no se
-  enhebra call site por call site.
-
-  **El slot `footer` funciona en las dos superficies** —es contenido, y el contenido no cambia
-  con la caja—: en una celda cae bajo la cifra (o bajo `note:`, si la hay), en la misma fila
-  `flex items-center gap-1 text-sm` de siempre. `DashboardPage#with_stat`, en cambio, **no**
-  reenvía `surface:`: su lista de parámetros es fija y rinde tarjetas, a propósito.
-
-  Previews nuevos en la galería: `cells_in_card` (el caso del issue), `surfaces_compared`
-  (las tres cajas lado a lado, dentro de una tarjeta) y `emphasised_cell` (con un parámetro
-  `value_class` para repetir la medición de arriba desde la galería).
+  `DashboardPage#with_stat` **no** reenvía `surface:`: su lista de parámetros es fija y rinde
+  tarjetas, a propósito. Previews nuevos en la galería: `cells_in_card`, `surfaces_compared` y
+  `emphasised_cell`.
 
 - **`input_class:`, la cuarta opción de clase: el control y nada más** (#1147). Bali ya
   sabía nombrar el `<fieldset>` (`field_class:`), la caja que envuelve al control
@@ -137,14 +83,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`Bali::HtmlElementHelper#prepend_style` separa las declaraciones con `;`** (#1146). Concatenaba
-  con un espacio (`"#{styles} #{options[:style]}"`), lo que funde la última declaración del
-  componente con la primera del anfitrión en una sola declaración inválida que el parser tira
-  entera: medido en el navegador, una celda con `emphasis: true, custom_color: '#7c3aed'` y un
-  `style: 'opacity:.5'` del anfitrión perdía **las dos cosas a la vez** —el borde volvía a
-  `oklch(0.95 0 0)` y la opacidad se quedaba en 1—. En v3.4.0 este helper no tenía ningún
-  llamador, así que nada de lo que rinde la gema hoy cambia; el arreglo llega junto con su primer
-  uso real, la celda de StatCard.
+- **`Bali::HtmlElementHelper#prepend_style` separa las declaraciones con `;`** (#1146).
+  Concatenaba con un espacio, lo que funde la última declaración del componente con la primera
+  del anfitrión en una sola declaración inválida que el navegador tira entera —se perdían las
+  dos—. En v3.4.0 este helper no tenía ningún llamador, así que nada de lo que rinde la gema
+  hoy cambia; el arreglo llega junto con su primer uso real, la celda de StatCard.
 
 - **`control_class:` deja de descartarse en silencio en las familias con addon** (#1147).
   La opción existe desde siempre y clasea la caja que envuelve al control, pero sólo la leía

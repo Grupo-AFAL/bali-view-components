@@ -1,9 +1,6 @@
-<%# The figure is the same on both surfaces; only the box around it changes, so the body is
-    captured once and handed to whichever root renders it.
-
-    The whitespace here is load-bearing: the blank line below and the absence of a trailing
-    newline at the end of this file are what make `surface: :card` come out byte for byte
-    what it rendered before the cell surface existed (96 call sites across six apps).
+<%# The whitespace here is load-bearing: the blank line below and the absence of a trailing
+    newline at the end of this file are what keep `surface: :card` rendering byte for byte
+    what it rendered before the cell surface existed.
     test/bali/components/stat_card/default_surface_unchanged_test.rb fails if either goes. %>
 <% body = capture do %>
 

@@ -1,19 +1,13 @@
-<%# The same figure on the three boxes a host can reach for, in the situation
-    that tells them apart: inside a section card.
-
-    `size: :sm, shadow: false` already gets you a quiet bordered box with 1rem of
-    padding — it is the right answer plenty of the time. What it cannot do is
-    stop being a `.card`, which is what a grid inside a card needs. %>
 <%= render Bali::Card::Component.new do |card| %>
-  <% card.with_title('Tres cajas, una métrica') %>
+  <% card.with_title('Three boxes, one metric') %>
 
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
     <div>
       <p class="text-base-content/60 mb-2 text-xs font-medium tracking-wide uppercase">
-        surface: :card (por omisión)
+        surface: :card (default)
       </p>
       <%= render Bali::StatCard::Component.new(
-            title: 'VPN', value: '$6.14M', icon: 'trending-up'
+            title: 'NPV', value: '$6.14M', icon: 'trending-up'
           ) %>
     </div>
 
@@ -22,7 +16,7 @@
         surface: :card, size: :sm, shadow: false
       </p>
       <%= render Bali::StatCard::Component.new(
-            title: 'VPN', value: '$6.14M', icon: 'trending-up', size: :sm, shadow: false
+            title: 'NPV', value: '$6.14M', icon: 'trending-up', size: :sm, shadow: false
           ) %>
     </div>
 
@@ -31,7 +25,7 @@
         surface: :cell
       </p>
       <%= render Bali::StatCard::Component.new(
-            surface: :cell, title: 'VPN', value: '$6.14M', note: 'Crea valor · tasa 12.5%'
+            surface: :cell, title: 'NPV', value: '$6.14M', note: 'Creates value · 12.5% rate'
           ) %>
     </div>
   </div>

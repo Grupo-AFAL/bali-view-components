@@ -48,12 +48,9 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     assert_equal("is-active list", options[:class])
   end
 
-  # Classes are separated by a space; DECLARATIONS are separated by a `;`. This
-  # used to interpolate the two sides with a space, which fuses them into one
-  # unparseable declaration and loses BOTH — the component's style and the
-  # host's. Measured in the browser through its only caller, StatCard's
-  # `emphasis:` tint (#1146): `border-color: color-mix(…) opacity:.5` left the
-  # border at `border-base-300` and the opacity at 1.
+  # Classes separate with a space; DECLARATIONS separate with a `;`. Measured in the
+  # browser when they did not: `border-color: color-mix(…) opacity:.5` left the
+  # border at `border-base-300` and the opacity at 1 — both declarations lost.
   def test_prepend_style_separates_the_declarations_with_a_semicolon
     options = @helper.prepend_style({ style: "opacity:.5" }, "border-color: red")
 
