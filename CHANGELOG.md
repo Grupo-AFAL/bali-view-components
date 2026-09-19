@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`SimpleFilters`: un control con `label: false` ya no queda sin nombre accesible**
+  (#1155). `label: false` existe desde #882 para una fila que se explica sola —un select de
+  año cuya opción en blanco ya dice «Todos los años»—, y su documentación prometía «un
+  control que ya se nombra solo con su opción en blanco». Esa promesa era falsa: el texto de
+  la opción en blanco es el VALOR seleccionado del `<select>`, no su nombre. Sin caption, el
+  `<label for>` desaparecía y con él lo único que nombraba al control: un lector de pantalla
+  llegaba a «cuadro combinado» pelado (WCAG 4.1.2). Reproducido en afal-apps
+  (`/td_flow/reports`), con tres selects mudos seguidos.
+
+  **No era sólo el `select`, que es lo que decía el issue.** Medido en el árbol de
+  accesibilidad de Chromium sobre el preview nuevo `data_table/simple_filters/uncaptioned`,
+  con `label: false` quedaban sin nombre el select nativo, el `slim_select`, el `date`, el
+  select de períodos de `date_range presets`, y el toggle booleano se anunciaba
+  literalmente «false» —y pintaba esa palabra en pantalla, al lado del switch—. El picker de
+  «Personalizado…» salía con `aria-label="false"`.
+
+  Ahora hay una sola cadena de resolución, la misma para las seis ramas:
+  **el rótulo → `aria_label:` → el texto de `blank:`**. El caption va primero y `aria_label:`
+  no le compite: un rótulo visible tiene que formar parte del nombre accesible (WCAG 2.5.3),
+  así que donde hay caption manda el caption en TODAS las ramas —incluido el picker de
+  «Personalizado…» de un rango con presets, que era la única que sacaba dos nombres para el
+  mismo grupo—. El `blank:` sólo cuenta si es una cadena, porque `blank: true` es una opción
+  en blanco de Rails sin texto y habría nombrado el control «true».
+
+  **El respaldo a `blank:` es una red, no la recomendación.** Nombra al control con el mismo
+  texto que ya lee como su valor: el lector dice «Todos los años, Todos los años». Está para
+  que ningún control salga mudo sin que nadie toque una línea; el nombre bueno se escribe con
+  `aria_label:`.
+
+  **Qué cambia para un anfitrión.** Los filtros con `label: false` y `blank:` quedan
+  nombrados sin tocar el host, así que ninguna pantalla se queda en WCAG 4.1.2 esperando un
+  cambio. Eso **no** quiere decir que un paliativo existente se borre y ya: el de afal-apps
+  (`td_flow/reports_filter_form.rb`, `ARIA_LABEL_KEYS`) nombra sus tres selects «Año de
+  registro», «Área» y «Estado», y la red los nombraría «Todos los años», «Todas las áreas» y
+  «Todos los estados» — peores nombres que los de hoy. La migración es **mover esas tres
+  cadenas a `aria_label:`** en el mismo bump y recién entonces retirar el controlador
+  Stimulus que las escribía desde fuera. Un filtro sin caption y sin `blank:` del que caer
+  (`boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range`) necesita
+  la clave nueva `aria_label:`; sin ella se registra un aviso `[Bali]` en development y test
+  y la pantalla rinde igual. **No hay `ArgumentError`**, que es lo que pedía el issue:
+  reventar en render tiraría la pantalla de un anfitrión en producción por un defecto de
+  accesibilidad, y rompería a la propia `UncaptionedSimpleFilterForm` del repo.
+
+  El aviso dice dos cosas distintas según la forma del filtro. En uno de un solo control, lo
+  anónimo es el control. En `toggle_group`, `radio_group` y `number_range` cada control ya se
+  nombra solo —cada pill con su opción, cada mitad del rango con su placeholder— y lo que
+  falta es el nombre del GRUPO, que sin él ni siquiera se emite.
+
+  **El HTML de una fila captionada no cambia**: el `aria-label` se emite sólo donde no hay
+  un `<label for>` visible que llegue al control. Con dos excepciones, que son defectos más
+  anchos que el propio #1155 y se arreglan acá porque son la misma pregunta:
+
+  - **`slim_select` estaba mudo también CON caption**, o sea en el caso de todos los hosts
+    hoy. Bali recorta el `<select>` real a 1x1 (`bali/slim_select.css`) y el control que el
+    usuario opera es el `div[role="combobox"]` que construye SlimSelect, que copia el
+    `aria-label`/`aria-labelledby` del select y nada más — el `<label for>` no viaja. Medido
+    con CDP antes del cambio: `combobox name="Combobox"`, el default del widget, con el
+    rótulo «Owner» al lado sin conectar. Esa rama ahora emite `aria-labelledby` apuntando al
+    caption, y después: `combobox name="Owner"`.
+  - **`date`/`date_range` sin caption.** flatpickr esconde el input real y crea otro al
+    lado; `datepicker#forwardAccessibleName` ya copiaba el `label[for]` al visible, pero sin
+    caption no había nada que copiar. Ahora se emite el `aria-label` que ese mismo JS
+    reenvía.
+
+  Un `date_range` con `presets:` son dos controles sobre un mismo param, y se nombran por
+  separado: el select de períodos puede caer en su opción en blanco («Cualquier fecha»), y el
+  picker de «Personalizado…» nunca hereda ese texto —es un campo que el usuario abre
+  justamente para no decir «cualquier fecha»—. Sin caption ni `aria_label:` se nombra con la
+  cadena nueva `bali_view.simple_filters.presets.custom_range` («Rango de fechas
+  personalizado»).
+
+  `aria_label:` viaja por las tres capas de configuración —`filter_attribute`,
+  `defined_simple_filters` y los hashes `simple_filters:` de instancia— y acepta un proc de
+  aridad cero, igual que `label:` y `blank:`. Es una clave nueva y `filter_attribute` tenía
+  firma cerrada, así que ningún anfitrión la podía estar pasando: no hay colisión posible.
+  La grafía es la misma que la de `search_fields aria_label:` (#1026).
+
+  Dos previews nuevos, que es lo que hace verificable el arreglo en el navegador:
+  `data_table/simple_filters/uncaptioned` y `data_table/simple_filters/slim_select` (no
+  había ninguno con `type: :slim_select`).
 ### Changed
 
 - **daisyUI 5.7.22 → 5.7.42** en `spec/dummy/package.json` (veinte parches). Bali debe

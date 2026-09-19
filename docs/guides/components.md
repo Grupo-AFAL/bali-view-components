@@ -3799,6 +3799,65 @@ A `default:` on an attribute offered in neither UI (`simple: false, advanced: fa
 at class-definition time: it would have no control to sit in and no pill to remove, so it
 would filter invisibly.
 
+#### A filter with no caption (`label: false` + `aria_label:`)
+
+A SimpleFilters row is tight, and some filters read fine without a caption over them — a
+year select whose blank option already says "All years". `label: false` drops the caption
+for exactly that. It does **not** drop the control's accessible name: a `<select>` with no
+name is announced as a bare "combo box", which is WCAG 4.1.2 (#1155).
+
+Bali resolves the name for you, in this order:
+
+| Step | Source | When it applies |
+|---|---|---|
+| 1 | `label:` | The caption wins wherever there is one. A visible label has to be part of the accessible name (WCAG 2.5.3), so `aria_label:` never competes with a caption — it is ignored there, in every branch |
+| 2 | `aria_label:` | The name for an uncaptioned control, and the only one available to the widgets with no blank option — `boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range` |
+| 3 | `blank:` | The blank option's text ("All years"), when it is a String. `blank: true` is a Rails blank option with no text and never becomes a name |
+
+**Step 3 is a safety net, not the recommendation.** It exists so that no control ships
+nameless and no host has to edit a line to get out of WCAG 4.1.2 — but the blank option is
+the select's selected VALUE, so the control ends up named with the text it already reads
+out: "All years, All years". Where the name matters, write `aria_label:`. A host coming from
+a workaround that set the `aria-label` from outside should move those strings into
+`aria_label:` rather than drop them: "Registration year" is a better name than "All years".
+
+```ruby
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: -> { Report.distinct.pluck(:year).map { |y| [y, y] } },
+  blank: 'All years', label: false      # the net: named "All years", its own value
+
+filter_attribute :area_id, type: :select, simple: true, advanced: false,
+  options: -> { Area.pluck(:name, :id) },
+  blank: 'All areas', label: false, aria_label: 'Responsible area'   # the name to aim for
+```
+
+`aria_label:` takes a zero-arity proc, like `label:` and `blank:`, for an I18n lookup that
+must not be frozen at class-load time. Instance-level `simple_filters:` hashes take the same
+key.
+
+**The `aria-label` is only emitted where no visible `<label for>` names the control**, so a
+captioned row's markup is unchanged. Two widgets are the exception, because there the caption
+never reaches the control the user operates and Bali has to point at it explicitly:
+
+- **`slim_select`** clips the real `<select>` to 1x1 and draws its own
+  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and
+  nothing else — a `<label for>` does not travel. Captioned, Bali emits `aria-labelledby`
+  at the caption; uncaptioned, the resolved name. Before #1155 a captioned slim_select
+  announced itself as "Combobox", the widget's own default.
+- **`date` / `date_range`** are drawn by flatpickr, which hides the real input and creates
+  a second one. `datepicker#forwardAccessibleName` copies the caption across; with no
+  caption there was nothing to copy.
+
+A `date_range` with `presets:` is two controls over one param, and they are named
+separately: the period select falls back to its blank option ("Any date"), while the
+"Custom…" picker never borrows that text — a field the user opened precisely to stop saying
+"any date" cannot be called that. With no caption and no `aria_label:` the picker is named
+`bali_view.simple_filters.presets.custom_range` ("Custom date range").
+
+A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a `[Bali]`
+warning in development and test and renders anyway — a missing accessible name is not a
+reason to take a host's page down in production.
+
 #### Quick search (`search:`)
 
 Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same
