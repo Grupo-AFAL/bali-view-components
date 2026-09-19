@@ -840,3 +840,408 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("select#simple-filter-q-created_at", visible: :all)
   end
 end
+
+# #1155. Un control de filtro sin nombre accesible es un fallo de WCAG 4.1.2: el lector
+# llega a "cuadro combinado" pelado y el usuario no sabe qué está filtrando. El caption
+# era lo único que nombraba a la mayoría de las ramas, así que `label: false` —que existe
+# desde #882 para una fila que ya se explica sola— los dejaba mudos a todos.
+#
+# Estos tests miran el MARKUP. Dos ramas no se pueden verificar así, porque el control que
+# el usuario opera lo construye JS y no está en el HTML que rinde el ERB (el
+# `div[role=combobox]` de SlimSelect y el altInput de flatpickr): de esas dos, acá se fija
+# el atributo que el JS copia, y el árbol de accesibilidad se mide en el navegador.
+# La forma en que los hosts declaran esto de verdad (identity, afal-apps, bali-auth): el DSL
+# de clase y un `blank:` que es un proc, para una traducción que no se puede congelar al
+# cargar la clase. El cruce proc-`blank:` + `label: false` + `filter_attribute` no estaba
+# cubierto de punta a punta (revisión de #1155).
+class ProcBlankUncaptionedFilterForm < Bali::FilterForm
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action action] ],
+                   blank: -> { "Todos los géneros" },
+                   label: false
+end
+
+class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
+  # Con guarda a propósito. El Set de deduplicación vive en el componente, así que quien
+  # revierta el arreglo para ver estos tests en rojo se queda sin el accessor — y sin la
+  # guarda los 21 tests morían con el mismo `NoMethodError` en el `setup`, que enmascara
+  # exactamente lo que se está afirmando (revisión de #1155).
+  def setup
+    component = Bali::DataTable::SimpleFilters::Component
+    return unless component.respond_to?(:unnamed_filter_warnings_issued=)
+
+    component.unnamed_filter_warnings_issued = Set.new
+  end
+
+  # El caso reproducido en afal-apps: tres selects con `label: false` y opción en blanco.
+  def test_a_select_without_caption_is_named_by_its_blank_option
+    render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años",
+                  label: false)
+
+    assert_no_selector("label")
+    assert_selector("select[aria-label='Todos los años']")
+  end
+
+  def test_an_explicit_aria_label_wins_over_the_blank_option
+    render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años",
+                  label: false, aria_label: "Año fiscal")
+
+    assert_selector("select[aria-label='Año fiscal']")
+  end
+
+  # Un filtro construido a mano puede no traer la clave `:label`: tampoco hay caption ahí.
+  def test_a_select_with_no_label_key_at_all_is_named_too
+    render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años")
+
+    assert_selector("select[aria-label='Todos los años']")
+  end
+
+  # La contracara de la decisión: donde YA hay un `<label for>` el nombre no se duplica.
+  def test_a_captioned_select_keeps_its_markup_untouched
+    render_filter(attribute: :status, collection: [ %w[Active active] ], blank: "All",
+                  label: "Status")
+
+    assert_selector("label[for='simple-filter-q-status_eq']", text: "Status")
+    assert_no_selector("select[aria-label]")
+  end
+
+  # `include_blank: true` es válido en Rails y pinta una opción vacía: nombrar el control
+  # "true" sería el mismo bug que la palabra "false" de más abajo.
+  def test_a_non_string_blank_never_becomes_the_name
+    render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: true, label: false)
+
+    assert_no_selector("select[aria-label]")
+  end
+
+  # SlimSelect recorta el `<select>` real a 1x1 y dibuja su propio `div[role=combobox]`,
+  # que toma el nombre SOLO de los aria del select: el `<label for>` no viaja. O sea que
+  # esta rama está muda también en el caso captionado, que es el de todos los hosts hoy.
+  def test_a_captioned_slim_select_points_at_its_caption
+    render_filter(attribute: :owner_id, collection: [ %w[Ana ana] ], blank: "All owners",
+                  label: "Owner", type: :slim_select)
+
+    assert_selector("select[aria-labelledby='simple-filter-q-owner_id_eq-label']", visible: :all)
+    assert_selector("label#simple-filter-q-owner_id_eq-label", text: "Owner")
+  end
+
+  def test_an_uncaptioned_slim_select_carries_the_name_itself
+    render_filter(attribute: :owner_id, collection: [ %w[Ana ana] ], blank: "All owners",
+                  label: false, type: :slim_select)
+
+    assert_selector("select[aria-label='All owners']", visible: :all)
+  end
+
+  # El datepicker copia al altInput el `label[for]`, y a falta de eso el `aria-label`
+  # (datepicker-controller.js#forwardAccessibleName). Sin caption no había ninguno.
+  def test_an_uncaptioned_date_filter_carries_an_aria_label
+    render_filter(attribute: :signed_on, type: :date, label: false, aria_label: "Fecha de firma")
+
+    assert_selector("input[aria-label='Fecha de firma']", visible: :all)
+  end
+
+  # Por el id y no por `input[type=date]`: el datepicker rinde `type="text"` —flatpickr
+  # necesita el input de texto para su altInput—, así que ese selector no empataba con nada
+  # y la aserción no probaba nada (revisión de #1155).
+  def test_a_captioned_date_filter_keeps_its_markup_untouched
+    render_filter(attribute: :signed_on, type: :date, label: "Firmado")
+
+    assert_selector("label[for='simple-filter-q-signed_on_eq']", text: "Firmado")
+    assert_selector("input#simple-filter-q-signed_on_eq", visible: :all)
+    assert_no_selector("input#simple-filter-q-signed_on_eq[aria-label]", visible: :all)
+  end
+
+  # El placeholder salía con la cadena "false" por el `|| filter[:label]`.
+  def test_an_uncaptioned_date_filter_never_gets_a_false_placeholder
+    render_filter(attribute: :signed_on, type: :date, label: false, aria_label: "Fecha")
+
+    assert_no_selector("input[placeholder=false]", visible: :all)
+  end
+
+  # El select de períodos siempre tiene de dónde caer: `blank:`, y si no, "Cualquier fecha".
+  def test_the_presets_select_is_named_even_with_no_caption_and_no_blank
+    render_presets_filter(label: false)
+
+    assert_selector(
+      "select#simple-filter-q-created_at[aria-label='#{I18n.t('bali_view.simple_filters.presets.any')}']",
+      visible: :all
+    )
+  end
+
+  # El picker de "Personalizado…" es un segundo control del mismo grupo y NUNCA tiene
+  # `<label for>`: su `aria-label` se emitía siempre, y con `label: false` decía "false".
+  def test_the_presets_picker_is_never_named_false
+    render_presets_filter(label: false)
+
+    assert_no_selector("[aria-label=false]", visible: :all)
+    assert_selector("input#simple-filter-q-created_at-custom[aria-label]", visible: :all)
+  end
+
+  # El picker se nombra por el caption del filtro, no por el `aria_label:`: el YARD promete
+  # que donde hay caption manda el caption, y WCAG 2.5.3 pide que el nombre accesible
+  # contenga el rótulo visible. Las otras cinco ramas lo cumplían solas —con caption no
+  # emiten `aria-label`—; ésta sacaba dos nombres para el mismo grupo (revisión de #1155).
+  def test_the_presets_picker_is_named_by_the_caption_not_by_aria_label
+    render_presets_filter(label: "Creado", aria_label: "OTRO NOMBRE")
+
+    assert_selector("label[for='simple-filter-q-created_at']", text: "Creado")
+    assert_selector("input#simple-filter-q-created_at-custom[aria-label='Creado']", visible: :all)
+    assert_no_selector("[aria-label='OTRO NOMBRE']", visible: :all)
+  end
+
+  # El respaldo del SELECT de períodos es su opción en blanco ("Cualquier fecha"). El picker
+  # no puede heredarlo: el usuario lo abre justo para decir lo contrario, así que ese nombre
+  # está al revés de la función del control (revisión de #1155). Se nombra por lo que es.
+  def test_the_presets_picker_is_never_named_after_the_blank_option
+    render_presets_filter(label: false, blank: "Cualquier fecha")
+
+    assert_selector("select#simple-filter-q-created_at[aria-label='Cualquier fecha']",
+                    visible: :all)
+    assert_selector(
+      "input#simple-filter-q-created_at-custom" \
+      "[aria-label='#{I18n.t('bali_view.simple_filters.presets.custom_range')}']",
+      visible: :all
+    )
+  end
+
+  def test_an_uncaptioned_presets_filter_names_both_controls_from_aria_label
+    render_presets_filter(label: false, aria_label: "Creado entre")
+
+    assert_selector("select#simple-filter-q-created_at[aria-label='Creado entre']", visible: :all)
+    assert_selector("input#simple-filter-q-created_at-custom[aria-label='Creado entre']",
+                    visible: :all)
+  end
+
+  # La contracara, rama por rama: con caption, el `aria_label:` no nombra nada en ninguna
+  # de las nueve. Nadie afirmaba esta combinación antes y es donde el código y su YARD se
+  # contradecían.
+  def test_a_caption_wins_over_aria_label_in_every_branch
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: every_widget_captioned
+    ))
+
+    every_widget_captioned.each { |filter| assert_text(filter[:label]) }
+    refute_match(/OTRO NOMBRE/, rendered_content,
+                 "con caption, `aria_label:` se ignora en todas las ramas")
+  end
+
+  # El booleano pinta su propio rótulo al lado del switch: con `label: false` imprimía
+  # la palabra "false" en pantalla y el switch se llamaba así.
+  def test_a_boolean_filter_never_prints_the_word_false
+    render_filter(attribute: :featured, type: :boolean, label: false, aria_label: "Sólo destacados")
+
+    refute_match(/>false</, rendered_content)
+    assert_selector("input[type=checkbox][aria-label='Sólo destacados']", visible: :all)
+  end
+
+  def test_a_captioned_boolean_still_prints_its_caption
+    render_filter(attribute: :featured, type: :boolean, label: "Destacados")
+
+    assert_text("Destacados")
+    assert_no_selector("input[type=checkbox][aria-label]", visible: :all)
+  end
+
+  # Los grupos de pills y el rango numérico ya nombran cada control; lo que les faltaba
+  # sin caption era el nombre del GRUPO.
+  def test_an_uncaptioned_pill_group_is_still_a_named_group
+    render_filter(attribute: :kind, collection: [ %w[Public public] ], type: :toggle_group,
+                  label: false, aria_label: "Tipo")
+
+    assert_selector("[role=group][aria-label='Tipo']", visible: :all)
+  end
+
+  def test_an_uncaptioned_number_range_is_still_a_named_group
+    render_filter(attribute: :amount, type: :number_range, label: false, aria_label: "Importe")
+
+    assert_selector("[role=group][aria-label='Importe']", visible: :all)
+  end
+
+  # El barrido que impide el #1155-bis: ninguna rama renderiza un control operable sin
+  # nombre. `hidden` y `submit` quedan fuera porque no se alcanzan.
+  #
+  # El buscador rápido viaja en el barrido con su `label:` puesto: es el otro control de la
+  # fila y su placeholder NO lo nombra —un placeholder desaparece al escribir—, así que si
+  # el `aria-label` del buscador dejara de emitirse este test lo marcaría igual que a un
+  # filtro mudo (revisión de #1155).
+  def test_no_simple_filter_control_ships_without_an_accessible_name
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: every_widget,
+      search: { fields: [ :name ], placeholder: "Search by name...", label: "Search movies" }
+    ))
+
+    nameless = page.all("select, input", visible: :all).reject do |control|
+      next true if %w[hidden submit].include?(control[:type])
+      # Las dos mitades de un rango numérico se llaman "Min" y "Max" por su placeholder
+      # —último recurso de accname— y el grupo que las envuelve lleva el nombre del filtro.
+      next true if control[:type] == "number" && control[:placeholder].present?
+
+      control[:"aria-label"].present? || control[:"aria-labelledby"].present? ||
+        (control[:id].present? && page.has_selector?("label[for='#{control[:id]}']", visible: :all))
+    end
+
+    assert_empty(nameless.map { |c| c[:name] || c[:id] },
+                 "todo control de la fila tiene que salir con nombre accesible")
+  end
+
+  # La cadena entera, por donde llega de un anfitrión: FilterForm → `simple_filters_config`
+  # → el componente. Es lo que hace que los tres selects de afal-apps queden nombrados sin
+  # que el host toque una línea.
+  def test_a_filter_form_declaring_label_false_reaches_the_component_named
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[Action action] ],
+                          blank: "Todos los géneros", label: false } ]
+    )
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/movies", filters: form.simple_filters_config
+    ))
+
+    assert_no_selector("label")
+    assert_selector("select[aria-label='Todos los géneros']")
+  end
+
+  # Y por el DSL de clase con un `blank:` proc, que es como lo declaran los hosts de verdad:
+  # `simple_filters_config` resuelve el proc antes de que el filtro llegue al componente.
+  def test_a_proc_blank_declared_by_the_class_dsl_reaches_the_component_as_the_name
+    form = ProcBlankUncaptionedFilterForm.new(Movie.all, ActionController::Parameters.new({}))
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/movies", filters: form.simple_filters_config
+    ))
+
+    assert_no_selector("label")
+    assert_selector("select[aria-label='Todos los géneros']")
+  end
+
+  # Sin `aria_label:`, sin caption y sin `blank:` del que caer no queda nombre posible.
+  # Reventar en render rompería producción por un defecto de accesibilidad, así que avisa
+  # donde se puede arreglar y sigue.
+  def test_warns_when_a_filter_has_no_name_left_to_fall_back_on
+    log = capture_bali_log do
+      in_development { render_filter(attribute: :featured, type: :boolean, label: false) }
+    end
+
+    assert_match(/featured/, log)
+    assert_match(/aria_label/, log)
+  end
+
+  # El texto del aviso decía "el control sale sin nombre" también para las tres ramas de
+  # varios controles, donde es falso: cada pill se nombra con su opción y las dos mitades de
+  # un rango salen "Mín" y "Máx" por su placeholder. Lo anónimo ahí es el GRUPO, que sin
+  # nombre ni siquiera se emite (revisión de #1155).
+  def test_the_warning_for_a_multi_control_filter_names_the_group_not_the_control
+    log = capture_bali_log do
+      in_development { render_filter(attribute: :amount, type: :number_range, label: false) }
+    end
+
+    assert_match(/GROUP/, log)
+    refute_match(/the control renders with no accessible name/, log)
+    assert_no_selector("[role=group]", visible: :all)
+  end
+
+  def test_the_warning_for_a_single_control_filter_still_names_the_control
+    log = capture_bali_log do
+      in_development { render_filter(attribute: :featured, type: :boolean, label: false) }
+    end
+
+    assert_match(/the control renders with no accessible name/, log)
+    refute_match(/GROUP/, log)
+  end
+
+  # Una vez por control y por proceso: sin la deduplicación la suite de un anfitrión repite
+  # la misma línea en cada página que pinta la fila. El `setup` resetea el Set, así que esto
+  # sólo se puede afirmar dentro de un mismo test.
+  def test_the_warning_sounds_once_per_control_and_process
+    log = capture_bali_log do
+      in_development do
+        3.times { render_filter(attribute: :featured, type: :boolean, label: false) }
+      end
+    end
+
+    assert_equal(1, log.scan(/SimpleFilters "featured"/).size, log)
+  end
+
+  # `presets:` siempre resuelve un nombre —`preset_blank_label` cae en una cadena
+  # traducida—, así que la exención de `filter_has_a_name?` tiene que dejarlo callado.
+  def test_a_presets_filter_never_warns_even_with_no_caption_and_no_aria_label
+    log = capture_bali_log { in_development { render_presets_filter(label: false) } }
+
+    assert_empty(log)
+  end
+
+  def test_stays_silent_when_the_filter_resolves_a_name
+    log = capture_bali_log do
+      in_development do
+        render_filter(attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años",
+                      label: false)
+      end
+    end
+
+    assert_empty(log)
+  end
+
+  # En producción no suena: un anfitrión no se entera de un defecto de accesibilidad por
+  # el log de sus usuarios, y ahí la línea es ruido puro.
+  def test_stays_silent_in_production
+    log = capture_bali_log do
+      in_env("production") { render_filter(attribute: :featured, type: :boolean, label: false) }
+    end
+
+    assert_empty(log)
+  end
+
+  private
+
+  def render_filter(**filter)
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [ filter ]))
+  end
+
+  def render_presets_filter(**overrides)
+    render_filter(**{ attribute: :created_at, type: :date_range, presets: %i[today] }
+      .merge(overrides))
+  end
+
+  # Las mismas nueve ramas, todas con caption Y con un `aria_label:` que no debe ganarle.
+  def every_widget_captioned
+    every_widget.each_with_index.map do |filter, index|
+      filter.merge(label: "Caption #{index}", aria_label: "OTRO NOMBRE")
+    end
+  end
+
+  def every_widget
+    [
+      { attribute: :year, collection: [ %w[2026 2026] ], blank: "Todos los años", label: false },
+      { attribute: :owner_id, collection: [ %w[Ana ana] ], blank: "All owners", label: false,
+        type: :slim_select },
+      { attribute: :signed_on, type: :date, label: false, aria_label: "Fecha de firma" },
+      { attribute: :created_at, type: :date_range, label: false, aria_label: "Creado entre" },
+      { attribute: :period, type: :date_range, presets: %i[today], label: false },
+      { attribute: :featured, type: :boolean, label: false, aria_label: "Destacados" },
+      { attribute: :kind, collection: [ %w[Public public] ], type: :toggle_group, label: false,
+        aria_label: "Tipo" },
+      { attribute: :status, collection: [ %w[Draft draft] ], type: :radio_group, label: false,
+        aria_label: "Estado" },
+      { attribute: :amount, type: :number_range, label: false, aria_label: "Importe" }
+    ]
+  end
+
+  def in_development(&)
+    in_env("development", &)
+  end
+
+  def in_env(name)
+    previous = Rails.env
+    Rails.env = name
+    yield
+  ensure
+    Rails.env = previous
+  end
+
+  def capture_bali_log
+    io = StringIO.new
+    previous = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+    yield
+    io.string.scan(/\[Bali\].*/).join("\n")
+  ensure
+    Rails.logger = previous
+  end
+end

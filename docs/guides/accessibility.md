@@ -146,6 +146,54 @@ exist):
 </fieldset>
 ```
 
+### Filter controls without a visible caption
+
+A filter row is tight, and a control whose blank option already reads "All years" looks fine
+with no caption over it. Hiding the caption is a layout decision; removing the control's
+accessible NAME is a WCAG 4.1.2 failure, and the two are easy to confuse (#1155).
+
+```ruby
+# BEST - no caption painted, and the control says what it filters
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], blank: 'All years', label: false, aria_label: 'Registration year'
+
+filter_attribute :featured, type: :boolean, simple: true, advanced: false,
+  label: false, aria_label: 'Featured only'             # no blank to fall back on
+
+# OK - the safety net: Bali names it from blank:, so it is announced
+#      "All years, All years" — its own value, twice
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], blank: 'All years', label: false
+
+# BAD - nothing names it: a screen reader reaches "combo box", full stop
+filter_attribute :featured, type: :boolean, simple: true, advanced: false,
+  label: false
+```
+
+**The blank option is not a name.** "All years" is the `<select>`'s selected VALUE, so a
+reader announces `combo box, All years` while the control itself is anonymous, and the value
+changes the moment the user filters. `Bali::DataTable::SimpleFilters` does turn that text
+into a real `aria-label` so nothing ships nameless — but a name that repeats the value is the
+floor, not the goal, and `aria_label:` is what lifts it. What Bali cannot invent at all is a
+name for the widgets with no blank option (`boolean`, `toggle_group`, `radio_group`,
+`number_range`, `date`, `date_range`): those only have `aria_label:`.
+
+**A borrowed name can say the opposite of the control.** The "Custom…" picker of a
+`date_range` sits in the same group as the period select, whose blank option reads "Any
+date" — naming the picker after it would label a field the user opened to narrow the range
+with the phrase for not filtering at all. Where one filter renders two controls, check that
+each name still describes the control it is on.
+
+**A placeholder is not a caption either.** `dd/mm/yyyy` names the format, not the field, and
+it is gone as soon as the user types — the same reasoning that gave the quick search box its
+own `aria_label:` in #982.
+
+**Where a widget draws its own control, verify in the tree.** SlimSelect clips the real
+`<select>` to 1x1 and builds a `div[role="combobox"]` that copies only the select's own
+`aria-*`; flatpickr hides the real input and creates a second one. In both, the `<label for>`
+names an element the user never touches, and the markup looks correct. Read the accessibility
+tree — see the section below.
+
 ### Images
 
 ```erb

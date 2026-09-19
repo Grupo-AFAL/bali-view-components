@@ -379,6 +379,9 @@ module Bali
           Studio.all, filter_params,
           simple_filters: Studio.filter_options,
           search_fields: %i[name],
+          # El buscador se nombra con `search_aria_label:`; sin él lo nombra el placeholder,
+          # que desaparece en cuanto el usuario escribe (#1155, revisión).
+          search_aria_label: "Search studios by name",
           search_icon: "search"
         )
         pagy, studios = pagy(filter_form.result.order(:name), limit: 10, page: page)

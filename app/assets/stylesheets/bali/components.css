@@ -32,6 +32,9 @@
 @import "../../../components/bali/kanban/index.css" layer(components);
 @import "../../../components/bali/qr_scanner/index.css" layer(components);
 
+/* Disclosure Components */
+@import "../../../components/bali/reveal/index.css" layer(components);
+
 /* Form Components */
 @import "../../../components/bali/delete_link/index.css" layer(components);
 @import "../../../components/bali/filters/index.css" layer(components);
