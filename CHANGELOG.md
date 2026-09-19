@@ -20,6 +20,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   componente rinde vertical en silencio. Quien ya usaba `orientation:` no tiene nada que
   cambiar. De paso, el párrafo de accesibilidad del flujo horizontal decía «see below» hacia
   una explicación que está arriba.
+- **`Bali::Stepper` envolvía el título del paso cuando el bloque no rendereaba nada** (#1158).
+  El template preguntaba por `content?`, y `content?` de ViewComponent contesta si se **pasó**
+  un bloque, no si ese bloque escribió algo: el anfitrión que decide adentro —el `if` dentro
+  del `with_step`, que es como se escribe «el detalle, si lo hay»— recibía `true` en todos los
+  pasos, así que todos entraban por la rama envolvente y la rama del título pelado quedaba
+  inalcanzable para cualquiera que pasara bloque. La condición pasa a `content.present?`, que
+  mira la cadena ya rendereada y, por `blank?`, cubre también el bloque de puros espacios;
+  evaluarla ahí no cuesta un render extra porque ViewComponent memoiza la captura. Un bloque
+  con contenido real no cambia, espacios alrededor incluidos, y `sublabel:` sigue envolviendo
+  por su cuenta.
+
+  **Esto cambia el marcado, no el pintado.** A diferencia del `.workflow-step-comment` de
+  v3.4.0, el `div` de Stepper no lleva clase ni margen y el grid de `.steps .step` lo coloca en
+  la misma celda que el texto pelado. Lo medido, para que se sepa hasta dónde llega la
+  afirmación: el preview `with_content_block` en Lookbook contra el CSS compilado, a 1280px, en
+  tres disposiciones —horizontal (el ancho por contenido de DaisyUI), `w-full` y
+  `steps-vertical`—. En las tres, los cuatro pasos dan el mismo `getBoundingClientRect()` antes
+  y después, y la captura de página completa sale byte a byte idéntica (`compare -metric AE`
+  = 0). Fuera de esas tres disposiciones no está medido. El paso con bloque en blanco pasa de
+  `<li class="step"><div><div>Título</div></div></li>` a `<li class="step">Título</li>`. Un
+  anfitrión sólo lo nota si tiene CSS, JS o pruebas apuntando a `li.step > div` para un paso
+  cuyo bloque no rinde nada. Cierra el mismo predicado equivocado que #1153 barrió en
+  `Bali::WorkflowSteps`; era el último de la gema. Nueva variante de Lookbook
+  `with_content_block` con el caso, y `test/requests/stepper_previews_test.rb` la sostiene.
+### Changed
+
+- **simplecov 1.1.1 → 1.3.0** (#1141). El salto pide Ruby >= 3.3 y el repo ya corre 4.0, así
+  que no hay nada que migrar: medido con `COVERAGE=1 bundle exec rails test`, la suite sigue en
+  5329 runs con 0 fallas y la cobertura no se movió (línea 95.76 %, rama 85.14 %). Las dos
+  novedades que podían morder no aplican aquí: la que descarta plantillas de un glob `cover`
+  no toca a `track_files "{app,lib}/**/*.rb"`, que sólo mira `.rb`, y la que omite del reporte
+  los grupos vacíos no toca a `Components` ni `Lib`, que tienen archivos.
+
+### Fixed
+
+- **Todo PR de Dependabot salía en rojo aunque las pruebas pasaran.** El job `test` publica un
+  comentario de cobertura en el PR con `issues.createComment`, pero no declaraba `permissions:`,
+  así que heredaba el default del repo — y en un run disparado por Dependabot ese default es de
+  **solo lectura**. El paso moría con `Resource not accessible by integration` y se llevaba
+  consigo un job cuyas pruebas habían terminado en verde (96.25 % de cobertura en el run de
+  #1141). Ahora el job declara `contents: read` + `pull-requests: write`, y el paso del
+  comentario lleva `continue-on-error: true`: es una comodidad, no una puerta, y un token que no
+  alcance —Dependabot, un fork— ya no puede tumbar la suite.
+### Fixed
+
+- **`?q=loquesea` era un 500 en cualquier listado con un `FilterForm`.** `q` llega crudo de la
+  URL y nada obliga a que sea un hash: escrito a mano como escalar (`?q=x`) o como lista
+  (`?q[]=x`) aterrizaba en un `permit` sin guardia —`String` y `Array` no lo tienen— y se
+  llevaba la petición entera. No hace falta sesión, ni conocer la app, ni un listado en
+  particular: sale de la barra de direcciones, y un enlace mal copiado o un crawler bastan.
+  De `q` salen además el orden (`s`), las agrupaciones (`g`) y el combinador (`m`), así que
+  cada lector de más abajo fallaba a su manera. Un `q` que no es un hash no pidió nada, y
+  ahora el listado sale sin filtrar en vez de reventar.
+
+  De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
+  ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
+  que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
 
 ## [v3.4.0] - 2026-09-17
 
