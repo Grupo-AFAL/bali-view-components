@@ -63,9 +63,6 @@ export class SlimSelectController extends Controller {
     // and the <select> that FormData serializes stays empty.
     const generation = (this.generation = (this.generation || 0) + 1)
 
-    this.beforeCacheHandler = () => this.teardown()
-    document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
-
     try {
       const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
       if (!slimSelect) return
@@ -123,6 +120,13 @@ export class SlimSelectController extends Controller {
       }
 
       this.select = instance
+
+      // After the import, not before it: `teardown()` only ever looks at
+      // `this.select`, so a listener registered while it is still null buys
+      // nothing, and in an app without slim-select the early `return` above left
+      // one attached to `document` for every connected select.
+      this.beforeCacheHandler = () => this.teardown()
+      document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
 
       // Disable the select if disabled value is set
       // Note: settings.disabled in constructor doesn't work reliably,

@@ -24,10 +24,10 @@ bin/rails tailwindcss:build
 
 | Step below | What the generator writes |
 |---|---|
-| 3 — Tailwind + daisyUI | `@plugin "daisyui"`, the engine bridge and `bali.css`, in the order Tailwind needs |
+| 3 — Tailwind + daisyUI | `@plugin "daisyui"`, the engine bridge and `bali.css`, in the order Tailwind needs, into whichever Tailwind entry point this app has |
 | 4 — JavaScript | the `registerAll` / `registerCharts` imports and calls |
 | 5 — FormBuilder | `config/initializers/bali.rb` with the one line and the reason for it |
-| 6 — peer dependencies | every REQUIRED peer, into `package.json` |
+| 6 — peer dependencies | every REQUIRED peer, into `package.json` — `daisyui` into `devDependencies`, where all seven keep it, the rest into `dependencies` |
 
 **What it does not write, and why.** Across the seven applications using Bali,
 `application.css` shares exactly three substantive lines, the initializer shares exactly one,
@@ -58,8 +58,13 @@ pin and the gem version and lets you move it:
 ```
 
 **Scope: esbuild and jsbundling**, which is what all seven use. A Vite application gets the
-same four files. An importmap application gets Steps 3 and 5 written for it and is told what
-Step 4 needs, which is a bundler — see Step 4 below.
+same four files. An importmap application gets Steps 3 and 5 and **keeps its Stimulus index
+exactly as it is** — the generator asks whether anything here resolves a bare specifier
+(`package.json`? `config/importmap.rb`? what shape is the index?), not whether
+`app/javascript/controllers/index.js` exists, because a bare `rails new` has that file and
+writing into it would cost the app every controller it registers, not just Bali's. It says
+which of the three answers stopped it and prints the lines to add once a bundler is in. See
+Step 4.
 
 **`bin/rails g bali:install` and `bin/rails bali:install:migrations` share a prefix and are
 different things.** The second is the rake namespace the Rails engine API generates: one task
@@ -160,10 +165,19 @@ Bali uses **Tailwind CSS v4** with **DaisyUI 5** for styling.
 
 ### Create/Update Your CSS Entry Point
 
-`bin/rails g bali:install` writes the `@plugin` and the two `@import`s below into
-`app/assets/tailwind/application.css` (and leaves an existing daisyUI block alone). What
-follows is the same thing by hand, plus the dark-mode setup the generator prints rather than
-writes:
+`bin/rails g bali:install` writes the `@plugin` and the two `@import`s below into your
+Tailwind entry point (and leaves an existing daisyUI block alone). **Which file that is
+depends on which gem builds your Tailwind**, and the generator picks whichever of the two is
+there:
+
+| Gem | Entry point | Bridge line | Build command |
+|---|---|---|---|
+| `tailwindcss-rails` — what all seven apps use | `app/assets/tailwind/application.css` | `@import "../builds/tailwind/bali";` | `bin/rails tailwindcss:build` |
+| `cssbundling-rails` — what `rails new --css=tailwind` gives you once a JS bundler is in the app | `app/assets/stylesheets/application.tailwind.css` | `@import "bali-view-components/tailwind/engine.css";` | `yarn build:css` |
+
+Same file behind both bridges; the first resolves it through the gem, the second through npm.
+What follows is the tailwindcss-rails shape by hand, plus the dark-mode setup the generator
+prints rather than writes:
 
 ```css
 @import "tailwindcss";
@@ -262,10 +276,15 @@ This page used to say `pin "bali-view-components", to: "bali-view-components.js"
 file exists**, in the gem or in the npm package: what ships is ESM source — 91 modules behind
 the root entry (counted with an esbuild metafile), importing their peers by bare specifier
 (`@hotwired/stimulus`, `date-fns`, `@rails/request.js`…). Pinning that means pinning every one
-of the 91 plus every peer, by hand, and re-pinning them on each upgrade.
+of the 91 plus every peer, by hand, and re-pinning them on each upgrade. The
+[JavaScript integration guide](javascript-integration.md#import-maps-not-supported) carries
+the measurement on the 31-pin recipe that used to live there.
 
-Add a bundler instead; `bin/rails g bali:install` prints the same three lines when it finds no
-`package.json`:
+This is also why `bin/rails g bali:install` will not write the imports on an importmap app:
+an unresolved bare specifier does not degrade, it fails the whole module, so
+`eagerLoadControllersFrom` never runs and the app loses **every** controller it registers,
+with one console line as the only symptom. The generator leaves the index alone and prints
+these three lines instead:
 
 ```bash
 bundle add jsbundling-rails

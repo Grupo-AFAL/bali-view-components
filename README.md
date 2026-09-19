@@ -53,17 +53,22 @@ It writes the wiring the whole fleet shares and then prints what it deliberately
 
 | It writes | Where |
 |---|---|
-| `@plugin "daisyui"` and Bali's two `@import`s, in the order Tailwind needs | `app/assets/tailwind/application.css` |
+| `@plugin "daisyui"` and Bali's two `@import`s, in the order Tailwind needs | your Tailwind entry point — `app/assets/tailwind/application.css` under tailwindcss-rails, `app/assets/stylesheets/application.tailwind.css` under cssbundling-rails |
 | `default_form_builder = "Bali::FormBuilder"`, with the reason it goes through `config.action_view` | `config/initializers/bali.rb` |
 | `registerAll(application)` + `registerCharts(application)` and their imports | `app/javascript/controllers/index.js` |
 | every required peer dependency | `package.json` |
 
-Then `yarn install` and `bin/rails tailwindcss:build`. Running it again writes nothing twice —
+Then `yarn install` and the Tailwind build it names. Running it again writes nothing twice —
 on an app it wired, and on one wired by hand — so it is also what to run after an upgrade; the
 one thing it never touches is your `bali-view-components` pin, which it reports instead when it
 has fallen behind the gem. `--block-editor` turns the Block Editor on (it ships off) and adds
-the `@blocknote/*` packages. Full detail, and why an importmap application needs a bundler
-first: [Installation § Step 0](docs/guides/installation.md).
+the `@blocknote/*` packages.
+
+**It writes only what this app can resolve, and says the rest.** An importmap app keeps its
+Stimulus index untouched — a bare specifier there does not degrade, it fails the module and
+takes the app's own controllers with it — and an app with no `package.json` gets only the one
+CSS line that needs no npm. Full detail:
+[Installation § Step 0](docs/guides/installation.md).
 
 ### 3. What the installer writes into your CSS
 

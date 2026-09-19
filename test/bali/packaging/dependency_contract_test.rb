@@ -156,16 +156,32 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
   # version the reader gets. Nothing kept the two in sync: the README sat on
   # `v3.1.0.beta.13` for four releases, which hands a reader a different library
   # from the one they are reading about.
-  def test_the_install_instructions_pin_this_version
-    stale = INSTALL_DOCS.flat_map do |relative|
-      ROOT.join(relative).read
-          .scan(/bali-view-components["#,\s]+tag:\s*"([^"]+)"/).flatten
-          .reject { |tag| tag == "v#{Bali::VERSION}" }
-          .map { |tag| "#{relative}: #{tag}" }
-    end
+  #
+  # TWO SPELLINGS, AND EACH ONE HAS TO BE FOUND. A scan that matches nothing
+  # rejects nothing and this test goes green while the docs rot: measured — with
+  # the README's `tag:` rewritten as `ref:`, the previous version of this test
+  # passed on `v3.1.0.beta.13`. The second spelling is the console transcript
+  # under § Verification, which went stale the same way and out of reach of the
+  # first regex.
+  VERSION_SPELLINGS = [
+    { what: "the tag to install", docs: INSTALL_DOCS, prefix: "v",
+      pattern: /bali-view-components["#,\s]+tag:\s*"([^"]+)"/ },
+    { what: "the version the console prints back", docs: %w[docs/guides/installation.md],
+      prefix: "", pattern: /^=> "(\d[^"]*)"/ }
+  ].freeze
 
-    assert_empty stale, "the tag in the install instructions has to be v#{Bali::VERSION}, the " \
-                        "version of the tree that ships them"
+  def test_the_install_instructions_pin_this_version
+    VERSION_SPELLINGS.each do |spelling|
+      spelling[:docs].each do |relative|
+        found = ROOT.join(relative).read.scan(spelling[:pattern]).flatten
+        expected = "#{spelling[:prefix]}#{Bali::VERSION}"
+
+        assert_not_empty found, "#{relative} no longer spells #{spelling[:what]}, so this test " \
+                                "has stopped checking it there"
+        assert_equal [ expected ], found.uniq,
+                     "#{spelling[:what]} has to be #{expected} in #{relative}"
+      end
+    end
   end
 
   private

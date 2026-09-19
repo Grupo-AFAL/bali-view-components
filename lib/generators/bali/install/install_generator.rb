@@ -18,23 +18,28 @@ module Bali
   # divergent part would only add an eighth way of doing it.
   #
   # EVERY CHUNK IS PAIRED WITH WHAT "ALREADY THERE" LOOKS LIKE IN THE WILD, never
-  # with the generator's own spelling of it. That is the whole difference between
-  # a generator and a snippet in a guide, and it is also where the first version
-  # of this file broke six of the seven apps: the CSS half matched daisyUI's block
-  # form with a regex, while the JavaScript and package.json halves searched for
-  # the literal text they would have written. Five apps import `registerAll`
-  # alongside a second symbol, identity imports it under an alias from an internal
-  # path, and all seven keep `daisyui` in `devDependencies` — none of which the
-  # literal search found, so it wrote a second `registerAll` (`The symbol
-  # "registerAll" has already been declared`, `yarn build` dead) and a second
-  # `daisyui` with a different range. Detection is structural now: bindings for
-  # JavaScript, every dependency section for npm, a pattern for CSS.
+  # with the generator's own spelling of it, because the wild does not use that
+  # spelling: six of the seven write the daisyUI plugin in block form, five import
+  # `registerAll` alongside a second symbol, identity imports it under an alias
+  # from an internal path, and all seven keep `daisyui` in `devDependencies`. A
+  # search for the literal text finds none of those and writes a second copy —
+  # a duplicate `registerAll` is `The symbol "registerAll" has already been
+  # declared` and a dead `yarn build`. So: bindings for JavaScript, every
+  # dependency section for npm, a pattern for CSS.
   #
-  # It targets the esbuild/bundler layout, which is what all seven use. A Vite
-  # application gets the same files; an importmap one gets the Ruby and CSS halves
-  # and is told what the JavaScript half needs, because Bali ships ESM source — 91
-  # modules reachable from the root entry, importing their peers by bare specifier
-  # (counted with an esbuild metafile) — rather than one pinnable file.
+  # IT ASKS WHETHER ANYTHING WILL RESOLVE A BARE SPECIFIER, not whether a Stimulus
+  # index exists. Bali ships ESM source — 91 modules reachable from the root entry,
+  # importing their peers by bare specifier (counted with an esbuild metafile) —
+  # so `import { registerAll } from "bali-view-components"` needs a bundler. A bare
+  # `rails new` has importmap AND `app/javascript/controllers/index.js`, the one
+  # holding stimulus-rails' eager loader, so "the file is there" answers the wrong
+  # question: measured in Chromium, the unresolved specifier fails the whole
+  # module, `eagerLoadControllersFrom` never runs, and the host loses every
+  # controller of its own — Bali's absence would have been the small half of it.
+  # So the JavaScript half is written only for the esbuild/jsbundling/Vite layout
+  # (`#no_bundler_here`), and said otherwise. The CSS half asks the same question of
+  # npm: two of its three lines resolve through node_modules, so an app with no
+  # package.json gets the engine bridge, which does not, and is told the rest.
   #
   # No `templates/` directory, unlike bali_auth:install: every chunk below has to
   # serve two callers — creating the file and injecting into one the host already
@@ -60,12 +65,22 @@ module Bali
   class InstallGenerator < Rails::Generators::Base
     desc "Wire Bali into this app: Tailwind imports, initializer, Stimulus registration, npm deps"
 
-    CSS_PATH = "app/assets/tailwind/application.css"
+    # TWO TAILWIND ENTRY POINTS, one per gem, and `rails new --css=tailwind` picks
+    # between them by whether a JavaScript bundler is already in the app:
+    # tailwindcss-rails owns the first and builds it with the standalone CLI,
+    # cssbundling-rails owns the second and builds it with npm. All seven
+    # applications are on tailwindcss-rails WITH esbuild, a combination `rails new`
+    # will not produce, so a single hardcoded path writes a file nothing compiles
+    # in one of the two shapes — silently, which is the failure mode #1139 exists
+    # to stop.
+    TAILWIND_RAILS_CSS = "app/assets/tailwind/application.css"
+    CSSBUNDLING_CSS = "app/assets/stylesheets/application.tailwind.css"
     INITIALIZER_PATH = "config/initializers/bali.rb"
     JAVASCRIPT_PATHS = [ "app/javascript/controllers/index.js", "app/javascript/application.js" ].freeze
 
     TAILWIND_IMPORT = '@import "tailwindcss";'
     ENGINE_BRIDGE = '@import "../builds/tailwind/bali";'
+    NPM_BRIDGE = '@import "bali-view-components/tailwind/engine.css";'
     BALI_CSS_IMPORT = '@import "bali-view-components/css/bali.css";'
     FORM_BUILDER_LINE =
       'Rails.application.config.action_view.default_form_builder = "Bali::FormBuilder"'
@@ -79,7 +94,7 @@ module Bali
     class_option :block_editor, type: :boolean, default: false,
                                 desc: "Enable Bali::BlockEditor and add the @blocknote/* packages"
     class_option :skip_css, type: :boolean, default: false,
-                            desc: "Leave #{CSS_PATH} alone"
+                            desc: "Leave the Tailwind entry point alone"
     class_option :skip_initializer, type: :boolean, default: false,
                                     desc: "Leave #{INITIALIZER_PATH} alone"
     class_option :skip_javascript, type: :boolean, default: false,
@@ -89,18 +104,22 @@ module Bali
 
     def add_css_imports
       return if options[:skip_css]
-      return create_file(CSS_PATH, "#{TAILWIND_IMPORT}\n#{chunks_of(css_chunks)}") unless exist?(CSS_PATH)
 
-      css = read(CSS_PATH)
+      @css_by_hand = !exist?("package.json")
+      unless exist?(css_path)
+        return create_file(css_path, "#{TAILWIND_IMPORT}\n#{chunks_of(css_chunks)}")
+      end
+
+      css = read(css_path)
       missing = chunks_of(css_chunks.reject { |present, _| css.match?(present) })
-      return say_status(:identical, CSS_PATH, :blue) if missing.empty?
+      return say_status(:identical, css_path, :blue) if missing.empty?
 
       if (anchor = css_anchor(css))
-        inject_into_file CSS_PATH, missing, after: "#{anchor}\n"
+        inject_into_file css_path, missing, after: "#{anchor}\n"
       else
         # No `@import "tailwindcss"` to sit behind. Prepending it is the only order
         # that works — see the comment the chunk itself carries.
-        prepend_to_file CSS_PATH, "#{TAILWIND_IMPORT}\n#{missing}"
+        prepend_to_file css_path, "#{TAILWIND_IMPORT}\n#{missing}"
       end
     end
 
@@ -122,19 +141,18 @@ module Bali
       return if options[:skip_javascript]
 
       path = JAVASCRIPT_PATHS.find { |candidate| exist?(candidate) }
-      return @javascript_by_hand = true unless path
+      return @javascript_by_hand = "no #{JAVASCRIPT_PATHS.join(" and no ")}" unless path
 
       javascript = code_of(read(path))
-      imports = []
-      calls = []
-
-      javascript_wiring.each do |symbol, specifier|
-        locals = bali_bindings(javascript)[symbol]
-        imports << %(import { #{symbol} } from "#{specifier}") if locals.empty?
-        locals = [ symbol ] if locals.empty?
-        calls << "#{locals.first}(application)" if locals.none? { |local| called?(javascript, local) }
-      end
+      imports, calls = missing_wiring(javascript)
+      # Before the bundler question, so an app that is already wired answers
+      # "identical" instead of being told to install one it plainly has.
       return say_status(:identical, path, :blue) if imports.empty? && calls.empty?
+
+      if (reason = no_bundler_here)
+        say_status :skip, "#{path} — #{reason}", :yellow
+        return @javascript_by_hand = reason
+      end
 
       warn_about_missing_application(path, javascript)
       insert_imports(path, javascript, imports)
@@ -145,25 +163,33 @@ module Bali
     # host's behalf leaves the lockfile saying something the host never chose.
     def add_npm_dependencies
       return if options[:skip_package_json]
-      return @javascript_by_hand = true unless exist?("package.json")
+      return unless exist?("package.json")
 
       package = JSON.parse(read("package.json"))
       warn_about_a_stale_pin(package)
       added = npm_dependencies.except(*declared_packages(package))
       return say_status(:identical, "package.json", :blue) if added.empty?
 
-      package["dependencies"] = (package["dependencies"] || {}).merge(added).sort.to_h
+      added.group_by { |name, _| section_for(name) }.each do |section, entries|
+        package[section] = (package[section] || {}).merge(entries.to_h).sort.to_h
+      end
       create_file "package.json", "#{JSON.pretty_generate(package)}\n", force: true
+      @wrote_dependencies = true
       say_status :update, "package.json — added #{added.keys.join(', ')}", :green
     end
 
     def print_next_steps
+      steps = []
+      steps << "#{package_manager} install            # the dependencies just written" if @wrote_dependencies
+      steps << css_build_command unless options[:skip_css]
+      half_done = @css_by_hand || @javascript_by_hand
+
       say ""
-      say "Bali is wired in. Two commands and a few decisions left:", :green
+      say(half_done ? "Bali is partly wired in — the rest is printed, not written:" : "Bali is wired in.", :green)
       say ""
-      say "  1. #{package_manager} install            # the dependencies just written"
-      say "  2. bin/rails tailwindcss:build"
-      say ""
+      steps.each_with_index { |step, index| say "  #{index + 1}. #{step}" }
+      say "" if steps.any?
+      say_the_css_lines if @css_by_hand
       say_the_javascript_lines if @javascript_by_hand
       say_what_it_deliberately_left_out
     end
@@ -184,13 +210,40 @@ module Bali
     # the chunk's own text for it. Six of the seven applications write the plugin as
     # `@plugin "daisyui" { themes: ... }`, which a search for the bare `@plugin
     # "daisyui";` would miss — and the generator would then add a second one.
+    def css_path = @css_path ||= [ TAILWIND_RAILS_CSS, CSSBUNDLING_CSS ].find { |p| exist?(p) } ||
+                                 TAILWIND_RAILS_CSS
+
+    # Either spelling of the bridge counts as already there, so an app wired for
+    # the other builder is left alone rather than given a second one.
+    BRIDGE_PRESENT =
+      %r{^@import\s+["'](?:\.\./builds/tailwind/bali|bali-view-components/tailwind/engine\.css)["']}
+
     def css_chunks
-      [
-        [ /^@plugin\s+["']daisyui["']/, daisyui_chunk ],
-        [ %r{^@import\s+["']\.\./builds/tailwind/bali["']}, engine_bridge_chunk ],
-        [ %r{^@import\s+["']bali-view-components/css/bali\.css["']}, bali_css_chunk ]
+      chunks = [
+        [ /^@plugin\s+["']daisyui["']/, daisyui_chunk, :npm ],
+        [ BRIDGE_PRESENT, engine_bridge_chunk, bridge_resolved_by ],
+        [ %r{^@import\s+["']bali-view-components/css/bali\.css["']}, bali_css_chunk, :npm ]
       ]
+      chunks.reject { |_, _, resolved_by| @css_by_hand && resolved_by == :npm }
+        .map { |pattern, chunk, _| [ pattern, chunk ] }
     end
+
+    def bridge_resolved_by = css_path == TAILWIND_RAILS_CSS ? :gem : :npm
+
+    # cssbundling-rails has no tailwindcss:build task — its Tailwind runs from the
+    # `build:css` script it wrote into package.json.
+    def css_build_command
+      css_path == TAILWIND_RAILS_CSS ? "bin/rails tailwindcss:build" : "#{package_manager} build:css"
+    end
+
+    # Two of the three lines resolve through node_modules, and an app with no
+    # package.json has none. Measured on a `rails new` tree: with all three,
+    # `bin/rails tailwindcss:build` stops at `Can't resolve
+    # 'bali-view-components/css/bali.css'`; with only the daisyUI plugin added
+    # back, `Can't resolve 'daisyui'`; with the engine bridge alone, it builds.
+    # The bridge is the one that needs nothing installed — tailwindcss-rails
+    # writes it from the gem's own path, which is why it exists.
+    NPM_RESOLVED_CSS = [ '@plugin "daisyui";', BALI_CSS_IMPORT ].freeze
 
     def chunks_of(pairs) = pairs.map(&:last).join
 
@@ -206,21 +259,22 @@ module Bali
         /* Bali's Tailwind sources. This is a bridge, NOT a `@source` glob, and the
            difference is the failure mode: the gem installs outside your project, at a
            path that differs per machine, and a `@source` that matches nothing does not
-           fail — it silently drops every Bali class from the build. So the gem ships
-           app/assets/tailwind/bali/engine.css with its globs relative to itself, and
+           fail — it silently drops every Bali class from the build. The gem ships
+           app/assets/tailwind/bali/engine.css with its globs relative to itself, so
+           never write the glob yourself; the two ways in are the same file.
+
            tailwindcss-rails (>= 4.3) writes app/assets/builds/tailwind/bali.css pointing
            at wherever Bundler put the gem, before every tailwindcss:build,
-           tailwindcss:watch and assets:precompile. One import, nothing to keep in sync,
-           and never write the glob yourself.
-
-           Without tailwindcss-rails, import the same file from the npm package instead:
-           @import "bali-view-components/tailwind/engine.css";
+           tailwindcss:watch and assets:precompile. Under cssbundling-rails there is no
+           such task, and the npm package resolves the same file instead.
 
            After `@import "tailwindcss"` because that line emits the `@layer theme, base,
            components, utilities` statement this and everything below rely on. */
-        #{ENGINE_BRIDGE}
+        #{bridge_import}
       CSS
     end
+
+    def bridge_import = css_path == TAILWIND_RAILS_CSS ? ENGINE_BRIDGE : NPM_BRIDGE
 
     def bali_css_chunk
       <<~CSS
@@ -314,6 +368,18 @@ module Bali
       wiring
     end
 
+    # [imports to add, calls to add] for one Stimulus index.
+    def missing_wiring(javascript)
+      bindings = bali_bindings(javascript)
+
+      javascript_wiring.each_with_object([ [], [] ]) do |(symbol, specifier), (imports, calls)|
+        locals = bindings[symbol]
+        imports << %(import { #{symbol} } from "#{specifier}") if locals.empty?
+        locals = [ symbol ] if locals.empty?
+        calls << "#{locals.first}(application)" if locals.none? { |local| called?(javascript, local) }
+      end
+    end
+
     # { imported symbol => [every name it is bound to here] }, over every named
     # import from a Bali specifier. `import { registerAll, installConfirmDialog }
     # from "bali-view-components"` (five apps) and `import { registerAll as
@@ -322,7 +388,7 @@ module Bali
     # not. A LIST and not one name, because identity imports `registerAll` twice
     # under two aliases — components and controllers — and either call means wired.
     def bali_bindings(javascript)
-      @bali_bindings ||= javascript.scan(/\bimport\s*\{([^}]*)\}\s*from\s*["']([^"']+)["']/m)
+      javascript.scan(/\bimport\s*\{([^}]*)\}\s*from\s*["']([^"']+)["']/m)
         .each_with_object(Hash.new { |bindings, key| bindings[key] = [] }) do |(clause, specifier), bindings|
           next unless BALI_SPECIFIER.match?(specifier)
 
@@ -357,6 +423,37 @@ module Bali
                         "at your Stimulus application yourself", :yellow
     end
 
+    # ---- Is there a bundler here -----------------------------------------
+
+    IMPORTMAP_CONFIG = "config/importmap.rb"
+
+    # importmap-rails serves `@hotwired/stimulus-loading` out of stimulus-rails'
+    # own assets; it is not on npm and no bundler resolves it. An index that
+    # imports it is importmap-rails' own eager loader, whatever else the app has.
+    STIMULUS_LOADING = %r{["']@hotwired/stimulus-loading["']}
+
+    # The reason there is no bundler, or nil when there is one. Three structural
+    # questions, none of them a substring of what the generator would write:
+    # somewhere to declare an npm dependency, the importmap config that says the
+    # browser resolves the specifiers instead, and the shape of the index.
+    #
+    # A `package.json` alone does not answer it — cssbundling-rails gives one to an
+    # app whose JavaScript is still importmap — and neither does the index existing,
+    # which is the whole point.
+    def no_bundler_here
+      index = JAVASCRIPT_PATHS.find { |candidate| exist?(candidate) }
+
+      if exist?(IMPORTMAP_CONFIG)
+        "this app has #{IMPORTMAP_CONFIG}, so the browser resolves the specifiers and a bare " \
+          "one has nothing to resolve to"
+      elsif index && read(index).match?(STIMULUS_LOADING)
+        "#{index} is importmap-rails' eager loader — it imports @hotwired/stimulus-loading, " \
+          "which only the asset pipeline serves"
+      elsif !exist?("package.json")
+        "there is no package.json to declare an npm dependency in"
+      end
+    end
+
     # ---- npm -------------------------------------------------------------
 
     # Only what a bundler must resolve to build the app at all, which is exactly
@@ -386,6 +483,14 @@ module Bali
     DEPENDENCY_SECTIONS = %w[
       dependencies devDependencies peerDependencies optionalDependencies
     ].freeze
+
+    # ...and writing follows the same reading. daisyui is consumed by the Tailwind
+    # build and never imported by the app bundle, so it goes where the seven keep
+    # it; putting it in `dependencies` would make the app this generator creates the
+    # only one in the fleet that disagrees with the comment above.
+    BUILD_TIME_ONLY = %w[daisyui].freeze
+
+    def section_for(name) = BUILD_TIME_ONLY.include?(name) ? "devDependencies" : "dependencies"
 
     def declared_packages(package)
       DEPENDENCY_SECTIONS.flat_map { |section| (package[section] || {}).keys }
@@ -427,12 +532,25 @@ module Bali
 
     # ---- What it says instead of writing ---------------------------------
 
+    def say_the_css_lines
+      say "  Two CSS lines are NOT written: there is no package.json here, and both resolve", :yellow
+      say "  through node_modules — with them in place `bin/rails tailwindcss:build` stops at", :yellow
+      say "  `Can't resolve 'daisyui'` / `Can't resolve 'bali-view-components/css/bali.css'`.", :yellow
+      say "  The engine bridge above needs nothing installed. Add these once npm can resolve", :yellow
+      say "  them, after `#{package_manager} add bali-view-components daisyui`:", :yellow
+      say ""
+      NPM_RESOLVED_CSS.each { |line| say "    #{line}" }
+      say ""
+    end
+
     def say_the_javascript_lines
-      say "  No package.json or Stimulus index here: an importmap app, or a layout this", :yellow
-      say "  generator does not recognise. The CSS and Ruby halves above are written; the", :yellow
-      say "  JavaScript half needs a BUNDLER. Bali ships ESM source — 91 modules behind the", :yellow
-      say "  root entry, importing their peers by bare specifier — not one pinnable file,", :yellow
-      say "  so there is nothing for importmap to pin. Add jsbundling and re-run:", :yellow
+      say "  The JavaScript half is NOT written, and your Stimulus index was not touched:", :yellow
+      say "  #{@javascript_by_hand}.", :yellow
+      say "  Bali ships ESM source — 91 modules behind the root entry, importing their peers", :yellow
+      say "  by bare specifier — not one pinnable file, so there is nothing for importmap to", :yellow
+      say "  pin and a BUNDLER has to resolve them. Writing them anyway is not a partial", :yellow
+      say "  install: an unresolvable specifier fails the whole module, so your own", :yellow
+      say "  controllers would stop registering too. Add jsbundling and re-run:", :yellow
       say ""
       say "    bundle add jsbundling-rails"
       say "    bin/rails javascript:install:esbuild"

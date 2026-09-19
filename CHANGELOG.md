@@ -10,57 +10,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`bin/rails g bali:install`: el cableado de una app nueva deja de copiarse a mano** (#1139).
-  Levantar Bali en una app nueva era abrir el árbol de una app existente y copiar cuatro
-  archivos —comentarios incluidos, porque los comentarios son lo que explica por qué el puente
-  por engine y no un glob—. El generator escribe lo que la flota ya comparte:
+  Levantar Bali era abrir el árbol de una app existente y copiar cuatro archivos, comentarios
+  incluidos. Ahora:
 
   | Escribe | Dónde |
   |---|---|
-  | `@plugin "daisyui"` y los dos `@import` de Bali, en el orden que Tailwind necesita | `app/assets/tailwind/application.css` |
+  | `@plugin "daisyui"`, el puente al engine y `bali.css`, en el orden que Tailwind necesita | tu entrada de Tailwind — `app/assets/tailwind/application.css` con tailwindcss-rails, `app/assets/stylesheets/application.tailwind.css` con cssbundling-rails |
   | `default_form_builder = "Bali::FormBuilder"`, con el porqué de `config.action_view` | `config/initializers/bali.rb` |
-  | `registerAll(application)` y `registerCharts(application)` con sus imports | `app/javascript/controllers/index.js` |
-  | todas las peer deps requeridas | `package.json` |
+  | los imports y las llamadas de `registerAll` / `registerCharts` | `app/javascript/controllers/index.js` |
+  | las nueve peers requeridas — `daisyui` a `devDependencies`, donde la tienen las siete | `package.json` |
 
-  **Escribe sólo lo idéntico, y eso se midió.** Entre las siete apps que usan Bali, el
-  `application.css` comparte exactamente tres líneas sustantivas, el initializer exactamente
-  una y el `controllers/index.js` dos llamadas. Lo demás diverge de verdad —el tema AFAL está
-  hecho de cuatro maneras distintas—, así que el generator lo IMPRIME para pegar en vez de
-  inventar una octava manera: el bloque `themes:` de daisyUI, `@custom-variant dark`, el tema
-  AFAL, `@plugin "@tailwindcss/typography"` (que es tuyo, no de Bali) e
-  `installConfirmDialog` con etiquetas localizadas.
+  **Escribe sólo lo que esta app puede resolver, y dice el resto.** Una app con importmap
+  conserva su índice de Stimulus intacto: un especificador pelado ahí no degrada, revienta el
+  módulo entero y se lleva por delante los controllers del propio anfitrión. Una app sin
+  `package.json` recibe únicamente la línea de CSS que no necesita npm; las otras dos tumban el
+  build de Tailwind. En los dos casos imprime qué no escribió, por qué, y qué pegar cuando haya
+  bundler.
 
-  **Correrlo dos veces no escribe nada dos veces, y correrlo sobre una app cableada A MANO
-  tampoco** — que es lo que lo vuelve lo que hay que correr después de un bump. «Ya está» se
-  detecta por la forma, no por la grafía que el generator usaría, porque la flota no usa esa
-  grafía: un `@plugin "daisyui" { ... }` en bloque con tus temas adentro, un
-  `import { registerAll, installConfirmDialog } from "bali-view-components"` con dos símbolos
-  en la línea, un `registerAll` importado con alias desde una ruta privada (identity), y
-  `daisyui` viviendo en `devDependencies` (las siete). Los cuatro se dejan intactos y los
-  cuatro tienen prueba; el `index.js` resultante además se pasa por el parser de node, porque
-  el fallo de la primera versión era justo ése: un `import` duplicado y `yarn build` muerto con
-  `The symbol "registerAll" has already been declared`.
+  **Correrlo dos veces no escribe nada dos veces, y sobre una app cableada A MANO tampoco** —
+  que es lo que lo vuelve lo que hay que correr después de un bump. «Ya está» se detecta por la
+  forma y no por la grafía que el generator usaría, porque la flota no usa esa grafía: un
+  `@plugin "daisyui" { ... }` en bloque con tus temas adentro, dos símbolos en la misma línea de
+  `import`, un `registerAll` con alias desde una ruta privada, `daisyui` en `devDependencies`.
 
   **Lo único que NUNCA reescribe es tu pin de `bali-view-components`**: un pin es una decisión
-  (un tag, una rama, un `link:` a un checkout local). Si se quedó atrás respecto de la gema, lo
-  DICE, con las dos versiones en el mensaje, y te deja moverlo.
+  (un tag, una rama, un `link:` a un checkout local). Si se quedó atrás respecto de la gema lo
+  DICE, con las dos versiones, y te deja moverlo.
 
-  `--block-editor` ENCIENDE el Block Editor (viene apagado) y agrega los paquetes `@blocknote/*`.
-  No hay bandera `--rich-text-editor`: TipTap está deprecado en v3 y se va en v4, y una bandera
-  es superficie pública con fecha de caducidad — el generator imprime la línea que lo enciende.
-  Tampoco escribe `chart.js`, que es peer opcional: el build funciona sin él y son 485 KB de
-  bundle (medido: 1.1 MB contra 616 KB en la misma app de juguete) para una app que quizá nunca
-  grafique.
+  `--block-editor` ENCIENDE el Block Editor (viene apagado) y agrega los `@blocknote/*`. No hay
+  `--rich-text-editor`: TipTap está deprecado en v3 y se va en v4, y una bandera es superficie
+  pública con fecha de caducidad — el generator imprime la línea que lo enciende. Tampoco
+  escribe `chart.js`, que es peer opcional.
 
-  El alcance es esbuild/jsbundling, que es lo que usan las siete; Vite recibe los mismos cuatro
-  archivos y una app con importmap recibe el CSS y el initializer y se le dice que el JS
-  necesita un bundler (no hay nada que pinear: son 91 módulos que importan sus peers por
-  especificador pelado). **`bin/rails g bali:install` y `bin/rails bali:install:migrations`
-  comparten prefijo y son cosas distintas**: el segundo es el namespace de rake que genera la
-  API de engines —una tarea que copia todas las migraciones del engine y seis que copian una
-  cada una— y olvidarse la `g` tampoco es silencioso: `Unrecognized command "bali:install"` y
-  `Did you mean?  bali:install:migrations`. El generator no copia ninguna migración a
-  propósito — las tablas del engine son de las features que las usan y sólo tres de las siete
-  apps lo montan.
+  **`bin/rails g bali:install` y `bin/rails bali:install:migrations` comparten prefijo y son
+  cosas distintas.** El segundo es el namespace de rake que genera la API de engines. El
+  generator no copia ninguna migración a propósito: las tablas del engine son de las features
+  que las usan y sólo tres de las siete apps lo montan.
+
+  **Qué tiene que saber un anfitrión:** nada. Correrlo sobre cualquiera de las siete no escribe
+  un byte — es para la octava.
 
 ### Fixed
 
@@ -68,8 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   se requieren sin guarda en el arranque (`Bali::Commands::CsvExport` y `XlsxExport`), y `csv`
   dejó de ser gema default en Ruby 3.4 — así que una app que nunca escribió la línea dejaba de
   arrancar con `cannot load such file -- csv`, en un deploy que no había tocado nada de esto.
-  Las siete apps del grupo la tenían a mano, una bajo el comentario «Required by Bali».
-  `caxlsx`, que usa el mismo par de comandos, estaba declarada desde siempre.
+  Las siete la tenían a mano, una bajo el comentario «Required by Bali».
 
   **Qué tiene que saber un anfitrión:** nada que hacer, y en el próximo bump puedes borrar
   `gem "csv"` y `gem "simple_command"` de tu `Gemfile`.
@@ -77,72 +64,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **El override de `rrule` ya no tumba el arranque de una app que no usa rrule** (#1139).
   `lib/bali/overrides/rrule_override.rb` abría con `RRule::Rule.class_eval` y el engine lo
   `load`ea en cada `to_prepare`: sin la gema, `NameError: uninitialized constant RRule` en la
-  primera request. Ahora el archivo intenta el `require` y no hace nada si no está.
+  primera request. Ahora intenta el `require` y no hace nada si no está.
 
-  **`rrule` NO se agregó a la gemspec, a propósito**, y es el mismo criterio escrito para
-  `rqrcode` en `Bali::QrCode::Component`: una gema opcional falla donde se usa, no donde
-  falta. Aquí ni siquiera hay dónde fallar — Bali nunca construye un `RRule::Rule`; el parche
-  decora objetos que hace el ANFITRIÓN, así que quien tiene uno necesariamente tiene la gema, y
-  quien no la tiene no tiene objeto al que le falte el método.
+  **`rrule` NO se agregó a la gemspec, a propósito**, con el criterio ya escrito para `rqrcode`:
+  una gema opcional falla donde se usa, no donde falta. Aquí ni siquiera hay dónde fallar —
+  Bali nunca construye un `RRule::Rule`, el parche decora objetos que hace el ANFITRIÓN.
 
-  **Qué tiene que saber un anfitrión:** puedes borrar `gem "rrule"` de tu `Gemfile` salvo que
-  tu propio código construya reglas de recurrencia.
+  **Qué tiene que saber un anfitrión:** puedes borrar `gem "rrule"` de tu `Gemfile` salvo que tu
+  propio código construya reglas de recurrencia.
 
 - **`pagy` ya no se requiere en el arranque de un anfitrión que no pagina** (#1139).
   `app/components/bali/pagination/pagy_adapter.rb` abría con
   `require "pagy/toolbox/helpers/support/series"` sin guarda, y `lib/bali/engine.rb` mete
-  `app/components` en `config.eager_load_paths`: en producción, con `eager_load = true`, eso es
-  `cannot load such file -- pagy/toolbox/...` en el arranque de una app sin pagy. Medido cargando
-  el archivo con los `require "pagy*"` bloqueados: antes `LoadError`, ahora carga. El `require`
-  se mudó adentro de `#series`, que es el único método que lo necesita y al que sólo se llega
-  con un Pagy en la mano — o sea con la gema instalada. Mismo criterio que `rqrcode`.
+  `app/components` en `config.eager_load_paths`: en producción eso es
+  `cannot load such file -- pagy/toolbox/...` en el arranque de una app sin pagy. El `require`
+  se mudó adentro de `#series`, el único método que lo necesita y al que sólo se llega con un
+  Pagy en la mano. Con él sale del eager load `Bali::ApplicationViewComponentPreview`, que abre
+  con `include Pagy::Method`; `Bali::Engine::NOT_EAGER_LOADED` es ahora la lista.
 
-  Con él, `Bali::ApplicationViewComponentPreview` (que abre con `include Pagy::Method`) sale del
-  eager load: es soporte de previews, Lookbook lo carga a demanda, y no tiene por qué ser un
-  `NameError` en el arranque de un anfitrión. `Bali::Engine::NOT_EAGER_LOADED` es ahora la lista.
-
-  **Qué tiene que saber un anfitrión:** nada — las siete apps declaran `pagy` a mano y pueden
-  seguir haciéndolo (lo necesitan: son ellas las que construyen el Pagy). Una app nueva que
-  siga el README ya no se cae en producción por no tenerlo.
+  **Qué tiene que saber un anfitrión:** nada — las siete declaran `pagy` a mano y lo necesitan,
+  porque son ellas las que construyen el Pagy. Una app nueva que siga el README ya no se cae en
+  producción por no tenerlo.
 
 ### Changed
 
 - **`yarn build` de una app nueva ya no revienta: seis peers pasan a requeridas y las demás se
-  vuelven opcionales de verdad** (#1139). Medido sobre una app que instaló exactamente las tres
-  peers obvias y cableó el `registerAll` + `registerCharts` que documenta la guía: **22 errores
-  `Could not resolve` en 12 paquetes, y sin bundle** — 13 de imports estáticos y 9 de `import()`
-  sin guarda. (La misma medición con `registerAll` solo da 21 en 11; la diferencia es chart.js.)
-  La línea entre requerida y opcional no era la que decía `package.json`, y ahora es una sola:
-  **import estático = requerida; import perezoso = opcional.**
+  vuelven opcionales de verdad** (#1139). Una app que instaló las tres peers obvias y cableó lo
+  que documenta la guía se llevaba **22 errores `Could not resolve` en 12 paquetes, y ningún
+  bundle**. La línea entre requerida y opcional no era la que decía `package.json`, y ahora es
+  una sola: **import estático = requerida; import perezoso = opcional.**
 
-  **Requeridas ahora** (ya estaban en el bundle de todos: un `import` de arriba del archivo las
-  mete llame o no la app al componente) — `@rails/activestorage`, `@rails/request.js`,
-  `date-fns`, `lodash.debounce`, `lodash.throttle`, `rrule`. **Las siete apps del grupo ya las
-  declaran**, así que el contrato cambia y el bundle de nadie: lo único nuevo es que
-  `yarn install` avise si faltan, en vez de que falle el build sin decir por qué. El caso
-  incómodo es `rrule`: la regla lo vuelve requerido porque `recurrent_event_rule_form/index.js`
-  lo importa estáticamente, y ninguno de los nueve repos renderiza ese componente — o sea que
-  la flota entera carga rrule en el bundle para nada. La regla compra corrección a costa de
-  peso; volver perezoso ese import es lo que lo arregla, y queda como followup.
+  **Requeridas ahora** — `@rails/activestorage`, `@rails/request.js`, `date-fns`,
+  `lodash.debounce`, `lodash.throttle`, `rrule`. Ya estaban en el bundle de todos, así que
+  cambia el contrato y el bundle de nadie: lo nuevo es que `yarn install` avise si faltan en vez
+  de que el build falle sin decir por qué. El caso incómodo es `rrule`, que
+  `recurrent_event_rule_form/index.js` importa estáticamente sin que ningún repo del grupo
+  renderice ese componente: volver perezoso ese import queda como followup.
 
-  **Opcionales de verdad ahora** — `@glidejs/glide`, `@googlemaps/markerclusterer`,
-  `chart.js`, `flatpickr`, `qr-scanner`, `slim-select`, `sortablejs`, `tippy.js`. esbuild
-  resuelve un `import()` dinámico en tiempo de BUILD igual que cualquier otro y rompe con un
-  especificador que no encuentra, salvo que la llamada lleve `.catch()` — lo dice su propio
-  mensaje de error. Ahora todas lo llevan, vía `optionalPeer()`, que nombra el paquete y la
-  línea de `yarn add` y deja al controller volver. Eso hace literalmente cierta la promesa que
-  `docs/guides/installation.md` Step 6 ya hacía. De paso, `qr-scanner` estaba declarada como
-  requerida por omisión (nunca estuvo en `peerDependenciesMeta`) aunque su controller ya
-  levantaba un «no instalado»; ahora dice lo que es.
+  **Opcionales de verdad ahora** — `@glidejs/glide`, `@googlemaps/markerclusterer`, `chart.js`,
+  `flatpickr`, `qr-scanner`, `slim-select`, `sortablejs`, `tippy.js`. esbuild resuelve un
+  `import()` dinámico en tiempo de BUILD y rompe con un especificador que no encuentra, salvo
+  que la llamada lleve `.catch()`. Ahora todas lo llevan, vía `optionalPeer()`, que nombra el
+  paquete y la línea de `yarn add` y deja al controller volver — y que distingue «no está
+  instalado» de «está instalado y explotó al cargarse», que es la diferencia entre `yarn add` y
+  arreglar un error. De paso, `qr-scanner` estaba declarada como requerida por omisión aunque su
+  controller ya levantaba un «no instalado»; ahora dice lo que es.
 
-  `optionalPeer()` distingue «no está instalado» de «está instalado y explotó al cargarse», que
-  es la diferencia entre `yarn add` y arreglar un error: medido en Chromium sobre un bundle de
-  esbuild, un paquete ausente rechaza con `TypeError: Failed to resolve module specifier`, y uno
-  presente que revienta rechaza con su propio error, tal cual. El mensaje es distinto en cada
-  caso y sólo el primero manda a instalar nada.
-
-  **Qué tiene que saber un anfitrión:** nada, si ya las tenías —las siete las tienen—. Si
-  partes de cero, `bin/rails g bali:install` escribe las nueve requeridas.
+  **Qué tiene que saber un anfitrión:** nada, si ya las tenías —las siete las tienen—. Si partes
+  de cero, `bin/rails g bali:install` escribe las nueve requeridas.
 
 ### Added
 

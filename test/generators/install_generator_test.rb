@@ -15,14 +15,13 @@ require "generators/bali/install/install_generator"
 # the shared part and SAYS the rest. A generator that guessed at the divergent
 # part would be a seventh way of doing it.
 #
-# THE SECOND MEASUREMENT, the one the first version of these tests did not use:
-# what "already wired" looks like in those same seven files. A single fixture of a
-# virgin `rails new` app only ever tests the generator against its own spelling,
-# which is how a version that broke six of the seven passed thirteen tests. The
-# fleet's real shapes are fixtures now — two symbols on one import line, identity's
-# aliased imports from an internal path, `daisyui` in `devDependencies` — and what
-# comes out is parsed by node, because "the file it wrote is valid JavaScript" is
-# exactly the assertion that was missing.
+# THE SECOND MEASUREMENT, and the reason the fixtures below are not one virgin
+# `rails new` tree: what "already wired" looks like in those same seven files. A
+# fixture the generator itself could have written only ever tests it against its
+# own spelling. The fleet's real shapes are fixtures instead — two symbols on one
+# import line, identity's aliased imports from an internal path, `daisyui` in
+# `devDependencies`, importmap-rails' eager loader — and what comes out is parsed
+# by node, because a duplicate import binding is a parse error before any bundling.
 class BaliInstallGeneratorTest < Rails::Generators::TestCase
   tests Bali::InstallGenerator
   destination Rails.root.join("tmp/generator_test")
@@ -187,9 +186,10 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "package.json" do |json|
-      dependencies = JSON.parse(json).fetch("dependencies")
+      package = JSON.parse(json)
+      dependencies = package.fetch("dependencies")
 
-      %w[@hotwired/stimulus @hotwired/turbo-rails daisyui lodash.throttle lodash.debounce
+      %w[@hotwired/stimulus @hotwired/turbo-rails lodash.throttle lodash.debounce
          rrule date-fns @rails/activestorage @rails/request.js].each do |pkg|
         assert_includes dependencies.keys, pkg
       end
@@ -201,6 +201,22 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
         assert_not_includes dependencies.keys, optional
       end
       assert_equal "1.2.3", dependencies.fetch("leftpad"), "an existing dependency was rewritten"
+    end
+  end
+
+  # daisyui is a Tailwind plugin: the CSS build consumes it and the app bundle
+  # never imports it. All seven applications keep it in `devDependencies`, so an
+  # app generated with it in `dependencies` is the only one in the fleet that does
+  # not.
+  def test_the_build_time_plugin_goes_where_the_fleet_keeps_it
+    host_app
+    run_generator
+
+    assert_file "package.json" do |json|
+      package = JSON.parse(json)
+
+      assert_equal ">=5.7.0", package.dig("devDependencies", "daisyui")
+      assert_nil package.dig("dependencies", "daisyui")
     end
   end
 
@@ -332,18 +348,114 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  # An importmap app has no package.json and no bundler to feed. The generator
-  # does the Ruby and CSS halves and hands over the JS lines rather than growing a
-  # second code path it cannot test against a real importmap.
-  def test_an_app_without_a_package_json_still_gets_the_ruby_and_css_halves
+  # Only ONE of the three CSS lines is safe without an npm install, and it is not
+  # the obvious pair. Measured on a `rails new` tree with the three written:
+  # `bin/rails tailwindcss:build` stops at `Can't resolve
+  # 'bali-view-components/css/bali.css'`; with only the daisyUI plugin left,
+  # `Can't resolve 'daisyui'`; with the engine bridge alone it builds, because
+  # tailwindcss-rails writes that one out of the gem's own path.
+  def test_an_app_without_a_package_json_gets_only_the_css_line_that_needs_no_npm
     host_app(package_json: false, javascript: false)
 
-    run_generator
+    output = run_generator
 
     assert_no_file "package.json"
     assert_file "config/initializers/bali.rb"
     assert_file "app/assets/tailwind/application.css" do |css|
       assert_match(%r{@import "\.\./builds/tailwind/bali";}, css)
+      assert_no_match(/@plugin "daisyui"/, css)
+      assert_no_match(%r{bali-view-components/css/bali\.css}, css)
+    end
+    assert_match(/@plugin "daisyui";/, output, "the held-back lines have to be printed")
+    assert_match(%r{@import "bali-view-components/css/bali\.css";}, output)
+  end
+
+  # THE SHAPE A BARE `rails new` PRODUCES, which is not the shape above:
+  # `javascript: false` is an importmap app with no Stimulus index, and Rails
+  # leaves `app/javascript/controllers/index.js` right there, holding
+  # `eagerLoadControllersFrom`. A generator that asks only whether that file exists
+  # writes two bare specifiers into it, and measured in Chromium the module then
+  # fails to instantiate — `Failed to resolve module specifier
+  # "bali-view-components"` — so `eagerLoadControllersFrom` never runs and the host
+  # loses EVERY controller of its own, with one console line as the whole evidence.
+  def test_an_importmap_app_keeps_its_own_stimulus_index
+    host_app(package_json: false, javascript: :importmap, importmap: true)
+    before = read_written("app/javascript/controllers/index.js")
+
+    output = run_generator
+
+    assert_equal before, read_written("app/javascript/controllers/index.js"),
+                 "the Stimulus layer of a `rails new` app was rewritten"
+    assert_file "config/initializers/bali.rb"
+    assert_file "app/assets/tailwind/application.css"
+    assert_match(/config\/importmap\.rb/, output, "it has to say why it skipped the JavaScript")
+    assert_no_match(/the dependencies just written/, output, "it wrote none")
+  end
+
+  # cssbundling-rails gives an importmap app a package.json, so "there is a
+  # package.json" is not the question either.
+  def test_a_package_json_does_not_make_an_importmap_app_a_bundler_app
+    host_app(javascript: :importmap, importmap: true)
+    before = read_written("app/javascript/controllers/index.js")
+
+    run_generator
+
+    assert_equal before, read_written("app/javascript/controllers/index.js")
+  end
+
+  # And with the importmap config gone but the eager loader still in place — an
+  # app halfway through a migration — the index itself is the evidence.
+  def test_the_eager_loader_alone_is_enough_to_hold_the_javascript_back
+    host_app(javascript: :importmap)
+    before = read_written("app/javascript/controllers/index.js")
+
+    run_generator
+
+    assert_equal before, read_written("app/javascript/controllers/index.js")
+  end
+
+  # `rails new --css=tailwind --javascript=esbuild` does NOT give you the fleet's
+  # layout: with a bundler present Rails picks cssbundling-rails, whose entry point
+  # is app/assets/stylesheets/application.tailwind.css and whose build is npm, not
+  # the tailwindcss:build task. Writing to the tailwindcss-rails path there creates
+  # a file nothing compiles — Bali renders unstyled and nothing says why, which is
+  # the silent failure #1139 was opened about. Measured on that app with the npm
+  # bridge instead: `yarn build:css` emits 402 201 bytes carrying `btn-primary` and
+  # daisyUI 5.7.42, against 4196 bytes without it.
+  def test_it_writes_into_the_cssbundling_entry_point_when_that_is_the_one_here
+    host_app(css: :cssbundling)
+
+    run_generator
+
+    assert_no_file "app/assets/tailwind/application.css"
+    assert_file "app/assets/stylesheets/application.tailwind.css" do |css|
+      assert_match(%r{@import "bali-view-components/tailwind/engine\.css";}, css)
+      assert_no_match(%r{@import "\.\./builds/tailwind/bali"}, css)
+      assert_match(/@plugin "daisyui";/, css)
+      assert_match(%r{@import "bali-view-components/css/bali\.css";}, css)
+    end
+  end
+
+  # And the bridge counts as present in either spelling, so an app on one builder
+  # does not collect the other one's import.
+  def test_either_spelling_of_the_bridge_counts_as_already_there
+    host_app(css: :cssbundling)
+    run_generator
+    before = read_written("app/assets/stylesheets/application.tailwind.css")
+
+    run_generator
+
+    assert_equal before, read_written("app/assets/stylesheets/application.tailwind.css")
+  end
+
+  # The other half of the guard: the layout it IS for still gets written.
+  def test_a_bundler_app_gets_the_javascript_half
+    host_app
+
+    run_generator
+
+    assert_file "app/javascript/controllers/index.js" do |js|
+      assert_match(/registerAll\(application\)/, js)
     end
   end
 
@@ -374,12 +486,18 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
   # `rails new --css=tailwind --javascript=esbuild`, which is the app this
   # generator is aimed at — or, with `:fleet` / `:identity`, one of the two shapes
   # the seven applications actually have.
-  def host_app(package_json: true, javascript: true, css: :rails_new, initializer: false)
-    write "app/assets/tailwind/application.css",
-          css == :fleet ? fleet_css : %(@import "tailwindcss";\n)
+  def host_app(package_json: true, javascript: true, css: :rails_new, initializer: false,
+               importmap: false)
+    if css == :cssbundling
+      write "app/assets/stylesheets/application.tailwind.css", %(@import "tailwindcss";\n)
+    else
+      write "app/assets/tailwind/application.css",
+            css == :fleet ? fleet_css : %(@import "tailwindcss";\n)
+    end
 
     write "config/initializers/bali.rb", fleet_initializer if initializer == :fleet
     write "app/javascript/controllers/index.js", index_js_fixture(javascript) if javascript
+    write "config/importmap.rb", importmap_rb if importmap
     return unless package_json
 
     write "package.json", package_json == :fleet ? fleet_package_json : rails_new_package_json
@@ -403,8 +521,30 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     case shape
     when :fleet then fleet_index_js
     when :identity then identity_index_js
+    when :importmap then importmap_index_js
     else rails_new_index_js
     end
+  end
+
+  # `rails new` with no --javascript flag, byte for byte what stimulus-rails
+  # writes for importmap-rails.
+  def importmap_index_js
+    <<~JS
+      import { application } from "controllers/application"
+
+      import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
+      eagerLoadControllersFrom("controllers", application)
+    JS
+  end
+
+  def importmap_rb
+    <<~RUBY
+      pin "application"
+      pin "@hotwired/turbo-rails", to: "turbo.min.js"
+      pin "@hotwired/stimulus", to: "stimulus.min.js"
+      pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
+      pin_all_from "app/javascript/controllers", under: "controllers"
+    RUBY
   end
 
   def rails_new_index_js
