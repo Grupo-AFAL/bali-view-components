@@ -84,7 +84,7 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 | Position | What goes there | Why |
 |---|---|---|
 | `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so a real theme *in that layer* wins. They are fallbacks, not overrides. |
-| `@layer components` | Bali's own look — nearly every `index.css` and global sheet | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. |
+| `@layer components` | Bali's own look — nearly every `index.css` and global sheet, and any default the caller is meant to be able to override | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. Written on the template instead, that same default stays in `@layer utilities` and the caller needs `!` — see below. |
 | unlayered | Only rules whose job is to outrank daisyUI (or Tailwind itself) | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
@@ -110,6 +110,25 @@ the header of `bali/theme-fallbacks.css`.
 template beats anything in `@layer components`, so the moment Bali's own CSS declares a
 `:hover`, an `.is-active` or a density variant for that property, the default has to move into
 the sheet next to it or the variant is dead. `command/index.css` carries the worked example.
+
+**A default the host must be able to beat goes in the sheet, not in the template's `class`.**
+Two utilities for the same property both land in `@layer utilities` at the same specificity,
+and inside one layer only emission order breaks the tie — not authorship, and not who wrote
+theirs last. Tailwind emits each family ascending by value, 0 first (`.ml-0` sits immediately
+before `.ml-1` in the compiled sheet), so a `pb-6` written on a Bali template always sorted
+after a host's `pb-0` and always won; the host's only escape was `pb-0!`, and whether their
+value won at all depended on which number it was. Declared in the component's `index.css` the
+same default sits in `@layer components`, which every host utility beats outright — at any
+value and with no `!`. `reveal/index.css` is the worked example: the trigger's `pb-6 mb-6`,
+the content's `mb-8` and the chevron's `h-3.5`, all three defaults a caller has a hook for
+(#1148). The give-away is a constant that concatenates Bali's value with the caller's own
+option for the same property.
+
+This is the opposite reading of the same measurement as `pagination_footer/component.rb:31-45`,
+which writes its spacing as named variant constants precisely because the pair resolves by
+stylesheet order — the note there is right about the mechanism and settles it inline. Reveal is
+the only component migrated so far; the pattern is dominant in the library (~19 `*_CLASSES`
+constants) and a sweep is debt with its own issue, not something to do in passing.
 
 Careful with `!important` in an unlayered file: it is the *weakest* important in the author
 origin, so a host escapes it with `lg:!hidden`. Move that same rule into a layer and it

@@ -1,0 +1,36 @@
+<div class="p-4 space-y-8">
+  <div>
+    <h2 class="text-lg font-semibold">Un solo id, en el contenedor</h2>
+    <p class="text-sm text-base-content/60">
+      La primera tabla recibe <code>id: 'inventory'</code>: el atributo sale UNA vez, en el
+      <code>&lt;div class="table-component"&gt;</code> que envuelve a la <code>&lt;table&gt;</code>.
+      La segunda no lleva <code>id:</code> y le pone clases propias al contenedor con
+      <code>table_container:</code>, mientras <code>class:</code> sigue bajando a la
+      <code>&lt;table&gt;</code>. En esa sub-hash van clases y datos, no la identidad: un
+      <code>id:</code> ahí gana el atributo del <code>&lt;div&gt;</code> pero no alimenta a
+      <code>container_id</code>, así que los ids de fila y el del <code>&lt;tr&gt;</code> vacío
+      no cambian con él.
+    </p>
+  </div>
+
+  <%= render(Bali::Table::Component.new(id: 'inventory')) do |c| %>
+    <%= c.with_headers(headers) %>
+    <% records.each do |record| %>
+      <%= c.with_row do %>
+        <td><%= record[:name] %></td>
+        <td><%= record[:amount] %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%= render(Bali::Table::Component.new(class: 'table-sm',
+                                        table_container: { class: 'rounded-box border border-base-300' })) do |c| %>
+    <%= c.with_headers(headers) %>
+    <% records.each do |record| %>
+      <%= c.with_row do %>
+        <td><%= record[:name] %></td>
+        <td><%= record[:amount] %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
