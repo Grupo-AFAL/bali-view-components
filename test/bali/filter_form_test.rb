@@ -98,6 +98,15 @@ class UncaptionedSimpleFilterForm < Bali::FilterForm
                    label: false
 end
 
+# #1155: sin caption, pero nombrado. `aria_label:` es el override explícito de la cadena
+# que resuelve el nombre accesible del control.
+class AriaLabelledSimpleFilterForm < Bali::FilterForm
+  filter_attribute :year, type: :select, simple: true, advanced: false,
+                   options: [ %w[2026 2026] ],
+                   label: false,
+                   aria_label: "Año fiscal"
+end
+
 # Test simple filter inheritance
 class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
   filter_attribute :indie, type: :select, simple: true, advanced: false,
@@ -1257,6 +1266,41 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
 
     assert_nil(form.simple_filters_config.first[:label])
     assert_equal("Todos los géneros", form.simple_filters_config.first[:blank])
+  end
+
+  # #1155. `label: false` prometía "el control ya se nombra solo con su opción en blanco",
+  # y eso era falso: el texto de la opción en blanco es el VALOR seleccionado, no el nombre.
+  # `aria_label:` es la forma de nombrarlo sin pintar caption, con la misma grafía que
+  # `search_fields aria_label:` (#1026).
+  def test_filter_attribute_accepts_an_aria_label_for_the_simple_row
+    form = AriaLabelledSimpleFilterForm.new(Movie.all, params({}))
+    config = form.simple_filters_config.first
+
+    assert_nil(config[:label])
+    assert_equal("Año fiscal", config[:aria_label])
+  end
+
+  # Los hashes de instancia no pasan por el DSL, así que la clave se copia también acá.
+  def test_an_instance_level_simple_filter_hash_carries_aria_label
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[A a] ], blank: "All",
+                          label: false, aria_label: "Género" } ]
+    )
+
+    assert_equal("Género", form.simple_filters_config.first[:aria_label])
+  end
+
+  # Igual que `label:` y `blank:`: un proc de aridad cero para una traducción que no se
+  # puede congelar al cargar la clase.
+  def test_an_aria_label_proc_is_resolved_per_instance
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[A a] ], label: false,
+                          aria_label: -> { "Género #{1 + 1}" } } ]
+    )
+
+    assert_equal("Género 2", form.simple_filters_config.first[:aria_label])
   end
 
   # El centinela NO puede ser la ausencia de la clave: `simple_filter` delega en

@@ -45,6 +45,7 @@ module Bali
               collection: attr[:options],
               blank: attr[:blank],
               label: attr[:explicit_label],
+              aria_label: attr[:aria_label],
               default: attr[:default],
               type: attr[:input],
               # date_range filters have no single predicate (range handled via where clause)
@@ -123,6 +124,11 @@ module Bali
             collection: resolve_collection(filter[:collection]),
             blank: resolve_definition_value(filter[:blank]),
             label: simple_filter_label(filter),
+            # El nombre accesible del control cuando no hay caption (#1155). Se resuelve
+            # como `label:` y `blank:` —acepta un proc de aridad cero— y se copia también
+            # acá para que un hash `simple_filters:` de instancia, que no pasa por el DSL,
+            # pueda pasarlo igual.
+            aria_label: resolve_definition_value(filter[:aria_label]),
             default: filter[:default],
             type: type,
             predicate: predicate,
