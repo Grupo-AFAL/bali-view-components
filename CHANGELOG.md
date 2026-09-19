@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`?q=loquesea` era un 500 en cualquier listado con un `FilterForm`.** `q` llega crudo de la
+  URL y nada obliga a que sea un hash: escrito a mano como escalar (`?q=x`) o como lista
+  (`?q[]=x`) aterrizaba en un `permit` sin guardia —`String` y `Array` no lo tienen— y se
+  llevaba la petición entera. No hace falta sesión, ni conocer la app, ni un listado en
+  particular: sale de la barra de direcciones, y un enlace mal copiado o un crawler bastan.
+  De `q` salen además el orden (`s`), las agrupaciones (`g`) y el combinador (`m`), así que
+  cada lector de más abajo fallaba a su manera. Un `q` que no es un hash no pidió nada, y
+  ahora el listado sale sin filtrar en vez de reventar.
+
+  De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
+  ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
+  que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added
