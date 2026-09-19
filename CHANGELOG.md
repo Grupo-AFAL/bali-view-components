@@ -83,6 +83,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **La memoria del selector de columnas ya no esconde las columnas nuevas** (#1144).
+  `localStorage` guardaba la lista de índices VISIBLES, así que toda columna agregada a un
+  listado que ya estaba en producción nacía oculta para quien lo hubiera visitado antes. Se
+  guarda ahora lo oculto, más las columnas que había en pantalla, más las que el servidor
+  declaraba ocultas: `{"v":2,"hidden":[3],"known":[0,1,2,3],"serverHidden":[3]}`. La decisión
+  del usuario es la DIFERENCIA entre `hidden` y `serverHidden`; sin diferencia manda el
+  `with_column(visible:)` que el anfitrión declara hoy.
+
+  **Nada que hacer en las apps.** La llave no cambia (`bali:columns:<listing_id>`): lo
+  versionado es el valor, y un valor viejo se traduce y se reescribe solo, una vez, en la
+  primera carga en modo tabla. Sin cambios en el Ruby ni en el HTML que rinde el componente.
+
+  Dos límites conocidos. Si lo que el usuario tenía escondido era la ÚLTIMA columna de la
+  tabla, esa reaparece una vez y hay que volver a esconderla: esa preferencia es
+  indistinguible de una columna que no existía. Y una vista guardada sigue significando
+  «estas columnas visibles», así que una columna agregada después no entra en ella hasta
+  volver a guardar la vista.
 - **`Bali::HtmlElementHelper#prepend_style` separa las declaraciones con `;`** (#1146).
   Concatenaba con un espacio, lo que funde la última declaración del componente con la primera
   del anfitrión en una sola declaración inválida que el navegador tira entera —se perdían las

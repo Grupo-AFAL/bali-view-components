@@ -2133,6 +2133,8 @@ option list below.
   identifier (case preserved). With the random hex the id cannot survive the next render,
   so **column persistence turns itself off** rather than writing a key nothing can read
   back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
+  What that key *holds* is described under [Column memory and saved views](#column-memory-and-saved-views).
+  The key's **name** never changes; the value inside it is versioned.
 
 If the host replaces the listing over Turbo Streams, target the **resolved** id — not the raw
 `storage_id`, which is not the same string whenever sanitizing changes it (`'admin/movies'` →
@@ -2309,6 +2311,57 @@ array injected by the controller); a parameter of your own goes in the action's
 `with_control` slot, or in its query string. When the DataTable has a `pagy`, the bar also
 offers to act on the whole filtered result and re-emits the `filter_form`'s `q[...]` so the
 server can rebuild the same scope — see [BulkActions](#bulkactions).
+
+##### Column memory and saved views
+
+A listing remembers its columns in two different places, and they answer the question "should
+this column be visible?" differently **on purpose**. Adding a column to a listing that is
+already in production is the case where the difference shows, so it is worth knowing which is
+which before a user asks.
+
+| | Column selector memory | Saved view |
+|---|---|---|
+| Where | `localStorage`, key `bali:columns:<id>` | `bali_saved_views.payload["columns"]`, in your database |
+| Scope | this browser, this device | the view, for whoever applies it |
+| What it records | the columns the user **switched**, against the `visible:` defaults in force at the time | the columns the view **shows** |
+| A column it never saw | inherits the `visible:` default the host declares **today** | stays hidden |
+| A column the user never switched | inherits the `visible:` default the host declares **today** | stays as the view recorded it |
+
+The selector's memory is **implicit**: nobody asked for it, the user just switched a column
+off. So it only claims what it can prove, and proof is a **difference**: it records the state
+it left on screen *and* the `visible:` defaults the server had declared, and a column only
+counts as the user's doing when the two disagree. "The user hid column 3, which the host was
+showing" is a claim; "column 5 was off, and the host had it off too" is not — that one goes
+back to the host on every load. A column that was not on screen at all is not recorded either.
+
+Both halves of that matter. The first is #1144: a column added later is born with whatever
+`with_column(visible:)` says, which is what the host wanted for a first-time visitor. The
+second is the same bug one size smaller: if the memory wrote down every `visible: false` the
+host declared as though the user had chosen it, then flipping that column to `visible: true`
+later would never reach anyone who had loaded the page before.
+
+A saved view is the opposite: an **explicit**, named choice ("these five columns"). It keeps
+recording visible columns, so applying it shows exactly the five it recorded, and a column
+added afterwards is not one of them. Re-save the view (or create a new one) to take the new
+column in. This is also why the payload format did not change: those rows are already written
+in your database, and flipping their meaning would silently rewrite every saved view.
+
+Two consequences worth spelling out:
+
+- Column identity is still the **position** of the `<th>`, in both places. Adding a column at
+  the end is safe; inserting one in the middle, or reordering them, shifts every preference
+  by one. A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
+  listing whose selection column depends on the user's role has two different column layouts
+  under one name — give each layout its own `id:`.
+- The device memory is per browser. Clearing it for one user is `localStorage.removeItem`;
+  clearing it for everyone means changing the listing's `id:`, which also changes the
+  container id the host's Turbo Stream targets. There is no "reset columns" button.
+
+Upgrading from 3.4.0 or earlier: values written by those releases are a bare array of visible
+indices. They are read, translated and rewritten in place on the next load **in table mode** —
+a listing sitting in cards or calendar mode has no selector on screen, so nothing rewrites its
+key until someone switches back to the table. See the CHANGELOG entry for #1144 for exactly
+what survives the translation.
 
 Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
 

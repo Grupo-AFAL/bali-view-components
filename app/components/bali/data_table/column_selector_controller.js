@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
+import { readColumnState, writeColumnState } from './column_storage'
 
 /**
  * Column Selector Controller
@@ -12,6 +13,10 @@ import { syncPopoverAria } from './popover_aria'
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="0" checked>
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="1">  <!-- hidden by default -->
  *   </div>
+ *
+ * Column memory is read against `checkbox.defaultChecked`: it reflects the `checked` attribute
+ * the server rendered — the host's `with_column(visible:)` — and does not move when the user
+ * ticks the box, or when this code does. `column_storage.js` has the format and the why.
  */
 export default class extends Controller {
   static values = {
@@ -42,39 +47,57 @@ export default class extends Controller {
   }
 
   restoreStoredState () {
-    if (!this.storageKeyValue) return
+    const state = readColumnState(this.storageKeyValue)
+    if (!state) return
 
-    let stored
-    try {
-      stored = JSON.parse(window.localStorage.getItem(this.storageKeyValue))
-    } catch { return }
-    if (!Array.isArray(stored)) return
+    this.eachColumnCheckbox((checkbox, index) => {
+      if (!state.known.includes(index)) return
 
-    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
-      const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) checkbox.checked = stored.includes(index)
+      // What the host declared WHEN the memory was written. A v1 value recorded none (`null`),
+      // and there the best data available is what it declares now: crediting the user with a
+      // column the server already shipped hidden is the very mistake to avoid.
+      const declaredHidden = state.serverHidden
+        ? state.serverHidden.includes(index)
+        : !checkbox.defaultChecked
+      const wasHidden = state.hidden.includes(index)
+
+      // Only a difference is a decision. Equal means nobody chose, so the server keeps the say —
+      // and it may have changed its mind since.
+      if (wasHidden !== declaredHidden) checkbox.checked = !wasHidden
     })
+
+    // Rewriting here, and not only in `toggle`, is what gets the migration to someone who never
+    // opens the menu again. Idempotent: the next read already finds the full format.
+    if (state.stale) this.persistState()
   }
 
   persistState () {
     if (!this.storageKeyValue) return
 
-    const visible = [...this.element.querySelectorAll('[data-column-index]')]
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
-    try {
-      window.localStorage.setItem(this.storageKeyValue, JSON.stringify(visible))
-    } catch { /* almacenamiento lleno o bloqueado: la sesión sigue sin persistir */ }
+    const hidden = []
+    const known = []
+    const serverHidden = []
+    this.eachColumnCheckbox((checkbox, index) => {
+      known.push(index)
+      if (!checkbox.checked) hidden.push(index)
+      if (!checkbox.defaultChecked) serverHidden.push(index)
+    })
+
+    writeColumnState(this.storageKeyValue, { hidden, known, serverHidden })
+  }
+
+  // `known` comes from the checkboxes present, not from the table's columns: what is remembered
+  // is what can be toggled. With `selectable:`, column 0 is the selection box — a real `<th>`
+  // the selector does not declare — so the indices start at 1.
+  eachColumnCheckbox (callback) {
+    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
+      const index = parseInt(checkbox.dataset.columnIndex, 10)
+      if (!isNaN(index)) callback(checkbox, index)
+    })
   }
 
   applyInitialState () {
-    const checkboxes = this.element.querySelectorAll('[data-column-index]')
-    checkboxes.forEach(checkbox => {
-      const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) {
-        this.setColumnVisibility(index, checkbox.checked)
-      }
-    })
+    this.eachColumnCheckbox((checkbox, index) => this.setColumnVisibility(index, checkbox.checked))
   }
 
   toggle (event) {
@@ -85,8 +108,7 @@ export default class extends Controller {
     if (isNaN(columnIndex) || !this.table) return
 
     this.setColumnVisibility(columnIndex, visible)
-    // Con una vista aplicada (serverState) el toggle es un ajuste SOBRE la vista: no debe
-    // volverse el default del dispositivo en localStorage.
+    // With a view applied, a toggle is an adjustment ON TOP of the view, not a new device default.
     if (!this.serverStateValue) this.persistState()
   }
 
