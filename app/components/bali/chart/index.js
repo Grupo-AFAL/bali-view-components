@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 export class ChartController extends Controller {
   static targets = ['canvas']
@@ -49,7 +50,9 @@ export class ChartController extends Controller {
       this.applyThemeColorsToDatasets(data)
     }
 
-    const { Chart, registerables } = await import('chart.js')
+    const chartjs = await import('chart.js').catch(optionalPeer('chart.js'))
+    if (!chartjs) return
+    const { Chart, registerables } = chartjs
 
     Chart.register(...registerables)
 

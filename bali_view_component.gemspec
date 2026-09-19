@@ -25,6 +25,20 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "caxlsx"
+  # `lib/bali.rb` requires Bali::Commands::CsvExport and XlsxExport at boot, and those two
+  # files open with `require "csv"` / `require "simple_command"`. Nothing inside the gem
+  # calls either command — they are public API for hosts — but the requires are
+  # unconditional, so every host loads both gems whether it ever exports anything or not.
+  # `caxlsx`, which only XlsxExport uses, has been declared all along; leaving its two
+  # neighbours out was an inconsistency the fleet paid for by writing the lines in seven
+  # Gemfiles by hand, one of them under the comment "Required by Bali".
+  #
+  # `csv` in particular stopped being a default gem in Ruby 3.4, so a host that had never
+  # needed the line suddenly did not boot. Uncapped on purpose: both are small, stable and
+  # bring nothing transitive. `rrule` is deliberately NOT here — see
+  # lib/bali/overrides/rrule_override.rb, and test/bali/packaging/dependency_contract_test.rb
+  # for the rule that keeps this list honest.
+  spec.add_dependency "csv"
   # Word-level LCS diff for Bali::BlockNote::Diff (MIT, no transitive deps).
   # The range spans the 1.x/2.x boundary on purpose: only `Diff::LCS.sdiff` is
   # used and it behaves the same in both majors, so which one gets resolved is
@@ -37,6 +51,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "lucide-rails", ">= 0.3.0", "< 0.8"
   spec.add_dependency "rails", ">= 8.1", "< 9.0"
   spec.add_dependency "ransack"
+  spec.add_dependency "simple_command"
 
   spec.add_dependency "view_component", [ ">= 4.0.0", "< 5.0" ]
   spec.add_dependency "view_component-contrib"

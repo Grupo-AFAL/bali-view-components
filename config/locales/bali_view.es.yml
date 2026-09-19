@@ -690,6 +690,7 @@ es:
         pending: "Pendiente"
         skipped: "Omitido"
         current: "En curso"
+      rail_label: "Pasos del flujo"
     split_view:
       end_of_list: "No hay más resultados"
       load_error: "No se pudieron cargar más resultados."

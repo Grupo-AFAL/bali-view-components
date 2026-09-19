@@ -776,6 +776,38 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("[data-controller='column-selector'].dropdown-end", visible: :all)
   end
 
+  SavedView = Struct.new(:id, :name, :payload, keyword_init: true)
+
+  # Pinned so nobody makes a saved view match the device memory by symmetry: its array of
+  # indices lives in `bali_saved_views.payload`, already written in three apps of the group, and
+  # flipping its polarity without migrating those rows silently inverts what each view means.
+  #
+  # This test does NOT cover #1144: that fix is JS, and this passes with and without it. Its
+  # coverage is `cypress/e2e/data-table-column-memory.cy.js`.
+  def test_an_applied_saved_view_hides_a_column_it_never_recorded
+    view = SavedView.new(id: 1, name: "Two columns",
+                         payload: { "attributes" => {}, "columns" => [ 0, 1 ] })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      storage_id: "movies_index", saved_views_store: SavedViewsStore.new([ view ])
+    )
+
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_column_selector do |cs|
+        cs.with_column(index: 0, label: "Name")
+        cs.with_column(index: 1, label: "Genre")
+        cs.with_column(index: 2, label: "Added after the view was saved")
+      end
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("input[data-column-index='0'][checked]", visible: :all)
+    assert_selector("input[data-column-index='1'][checked]", visible: :all)
+    assert_no_selector("input[data-column-index='2'][checked]", visible: :all)
+    # With a view applied, the JS does not restore the device memory over it.
+    assert_selector("[data-column-selector-server-state-value='true']", visible: :all)
+  end
+
   def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family
     render_full_toolbar
 

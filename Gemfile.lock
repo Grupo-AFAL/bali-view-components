@@ -10,10 +10,12 @@ PATH
   specs:
     bali_view_components (3.4.0)
       caxlsx
+      csv
       diff-lcs (>= 1.5, < 3.0)
       lucide-rails (>= 0.3.0, < 0.8)
       rails (>= 8.1, < 9.0)
       ransack
+      simple_command
       view_component (>= 4.0.0, < 5.0)
       view_component-contrib
 

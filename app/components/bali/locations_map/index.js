@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
@@ -18,8 +19,10 @@ export class LocationsMapController extends Controller {
 
   async connect () {
     const { default: GoogleMapsLoader } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
-    const { MarkerClusterer } = await import('@googlemaps/markerclusterer')
-    this.MarkerClusterer = MarkerClusterer
+    const clusterer = await import('@googlemaps/markerclusterer')
+      .catch(optionalPeer('@googlemaps/markerclusterer'))
+    if (!clusterer) return
+    this.MarkerClusterer = clusterer.MarkerClusterer
 
     try {
       this.googleMaps = await GoogleMapsLoader({

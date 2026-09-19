@@ -72,6 +72,17 @@ class BaliBooleanIconComponentTest < ComponentTestCase
     assert_selector("span.sr-only", text: "Indie film: yes")
   end
 
+  # The house rule for an accessible-name hatch, shared with
+  # `Bali::WorkflowSteps` `state_label:`: `nil` falls back to the translation,
+  # anything else is literal, `""` included. `.presence ||` would hand "Yes"
+  # back to a caller who asked for silence.
+  def test_a11y_an_empty_label_is_taken_literally
+    render_inline(Bali::BooleanIcon::Component.new(value: true, label: ""))
+
+    announced = page.all("span.sr-only", visible: :all).map { |node| node.text(:all) }
+    assert_equal "", announced.join
+  end
+
   def test_a11y_translates_the_default_name
     I18n.with_locale(:es) do
       render_inline(Bali::BooleanIcon::Component.new(value: nil))

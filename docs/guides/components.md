@@ -1174,12 +1174,16 @@ positional.
 ```
 
 **Options:**
-- `orientation` - `:vertical` (default) or `:horizontal`. It was `variant:` in
-  the v3.1 betas, and this guide kept saying so until v3.4 — the old keyword
-  raises with a message naming the replacement
-- `progress` - The N/M bar. On by default in `:horizontal`; `false` drops it.
-  Asking for one on `:vertical` raises — that shape has no header for it.
-- HTML attributes for the root element pass through.
+- `orientation` - `:vertical` (default), `:horizontal` or `:rail`. It was
+  `variant:` in the v3.1 betas; the old keyword raises with a message naming
+  the replacement.
+- `progress` - The N/M bar. On by default in `:horizontal`, off by default in
+  `:rail` (its connectors already say how far the flow got); `false` drops it
+  and `true` turns it on. Asking for one on `:vertical` raises — that shape has
+  no header for it.
+- HTML attributes for the root element pass through, `style:` included: this
+  component has no `style:` keyword, so `style: "max-width:40rem"` lands on the
+  root as a live inline style.
 
 **Step options:**
 - `title` - The step's name (required)
@@ -1188,10 +1192,16 @@ positional.
 - `assignee` - Who the step belongs to, rendered with a user icon
 - `date` - Preformatted date/time text; the component does not format
 - `number` - Circle content, overriding the automatic numbering
+- `state_label` - Accessible name for **this** step's state, overriding the
+  translation without touching the six global strings
 - Content block - Free markup rendered under the meta lines (a rejection
   comment, a `Bali::Tag`, links). A block that renders blank draws no comment
   container, so deciding *inside* the block — "the comment, if there is one" —
-  leaves the step exactly as one declared with no block at all.
+  leaves the step exactly as one declared with no block at all. That is also
+  how you write a short note: `c.with_step(title: "Evaluation", state:
+  :skipped) { "Not taken" }` costs nothing when the note is absent. It renders
+  as `.workflow-step-comment`, so it reads like a comment — a note that must
+  not is a different request.
 
 The connector under each circle takes the state of the **next** step, so the
 line arrives coloured at the step that owns that verdict — the component
@@ -1199,12 +1209,48 @@ computes this; callers only declare states. Auto-numbering counts the real
 route only: a `:skipped` step renders muted with a dash instead of a number and
 consumes no position (an explicit `number:` always wins).
 
-Both markers say the state in colour and nothing else — a number is a position,
-not a verdict — so every step also renders an `sr-only` span with the state's
-name next to its marker. The six strings live under
+No marker says the state in anything but colour — a number is a position, not a
+verdict — so every step also renders an `sr-only` span with the state's name
+next to its marker. The six strings live under
 `bali_view.workflow_steps.states.*` (en/es) and a host overrides them like any
 other Bali key when its domain has better words: "Signed", "Returned",
 "Waiting on legal".
+
+Those six are **app-wide**, which is the wrong reach when one screen's
+`:skipped` is "Not taken" and the approval panel's is still "Skipped".
+`state_label:` renames the state on one step only:
+
+```erb
+<% c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken") %>
+```
+
+It changes nothing visible — the circle keeps its colour and its dash — and
+nothing global. `nil` (the default) falls back to the translation; anything
+else is taken literally, `""` included, so a step whose title already says the
+verdict can ask for silence. Same rule as `Bali::BooleanIcon`'s `label:`.
+
+##### Choosing a shape: `:horizontal` or `:rail`
+
+Both of these lay the flow out left to right, so the names do not tell them
+apart — **`:rail` is horizontal too**. What separates them is what each one
+does when the steps stop fitting:
+
+| | `:horizontal` | `:rail` |
+|---|---|---|
+| The picture | a grid of bordered cards, one state dot each | one row of numbered circles joined by a coloured rail, label centred underneath |
+| Out of room | **wraps** onto a second row (`auto-fit` from 11rem) | **never wraps**: equal columns down to a `6rem` floor, then the row scrolls inside the component |
+| Marker | a dot, no number | a numbered circle; `:skipped` draws a dash and takes no position |
+| Connectors | none — the bar says how far it got | one per gap, coloured by the *next* step's state |
+| N/M bar | on by default | off by default |
+| Room for `assignee` / `date` / a comment | yes, stacked under the title inside each card, which just grows | yes, but stacked under the label, and the tallest step sets the height of the whole row |
+
+Rule of thumb: three or four steps that have to fit a summary card or a table
+cell → `:horizontal`. Nine steps across the top of a page → `:rail`; the same
+nine as cards are three rows, and a funnel in three rows is no longer a funnel.
+
+`:vertical` is neither of those two: it is the record — the shape with room for
+the assignee, the date and the rejection comment of every step, one under the
+other.
 
 ##### The horizontal quick flow
 
@@ -1234,10 +1280,69 @@ Same `with_step` API. What changes:
   rejected, `progress-warning` if any came back with observations, neutral
   otherwise.
 - The dot is decorative; the state name is announced by the same `sr-only`
-  span the vertical variant uses (see above).
+  span the vertical shape uses (see above).
 
 The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
-rows instead of shrinking each card past reading width.
+rows instead of shrinking each card past reading width. When that is the wrong
+answer — a nine-step funnel in three rows is no longer a funnel — the rail is
+the shape that does not wrap.
+
+##### The rail
+
+`orientation: :rail` puts every step on one line: numbered circle, coloured
+connector to the next one, label centred underneath. The shape for a long flow
+at the top of a page, where the reader needs the order and how far it got
+before any detail.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+  <% c.with_step(title: "Capture", state: :success) %>
+  <% c.with_step(title: "Triage", state: :success) %>
+  <% c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken") %>
+  <% c.with_step(title: "Business case", state: :current) %>
+  <% c.with_step(title: "Project", state: :pending) %>
+<% end %>
+```
+
+It is the vertical shape's marker laid sideways, so everything that shape does
+still holds:
+
+- **Numbered circles**, with the same auto-numbering — a `:skipped` step draws
+  a dash and consumes no position, and `number:` still wins.
+- **Connectors that take the state of the next step**, so the line arrives
+  coloured at the step that owns the verdict. They are what replaces the bar:
+  **`progress` is off by default here**, unlike the horizontal shape. Pass
+  `progress: true` if you want both.
+- **The same `sr-only` state name** next to each circle, `state_label:`
+  included.
+
+What is specific to the rail:
+
+- **It does not wrap.** Columns are equal (`flex-1`) down to a `6rem`
+  readability floor; below that the row scrolls **inside the component**. The
+  page never gains a horizontal scrollbar of its own — measured at 400px with
+  nine steps, `document.documentElement.scrollWidth == clientWidth`.
+- **Nothing is hidden.** `assignee:`, `date:` and the block still render,
+  centred under the label. They stack, so they set the row height: a rail that
+  has to stay one line tall is one whose caller leaves them out. The component
+  does not `display: none` content a caller passed — a screen reader would lose
+  it too.
+- **The row is a keyboard scroll region.** Because it can overflow and holds
+  nothing focusable, the `<ol>` carries `tabindex="0"` and an `aria-label`, so
+  a keyboard user can land on it and arrow the hidden steps into view. The name
+  comes from `bali_view.workflow_steps.rail_label` ("Workflow steps" / "Pasos
+  del flujo"), overridable like any Bali string. It keeps its `list` role — an
+  explicit `role="region"` would replace it and stop telling the reader how
+  many steps there are.
+- **It does not use daisyUI's `.steps`.** That grid draws the same picture, but
+  its status comes from position, which is the one thing this component exists
+  not to do: `.step` cannot say "step 2 was rejected while step 4 is pending".
+
+`:rail` is a third value of `orientation:` rather than a second keyword: every
+keyword this component does not declare reaches the root as a plain HTML
+attribute, so declaring `style:` or `shape:` would turn working host markup
+into an `ArgumentError`. The cost is the word — a rail is a horizontal shape,
+not an orientation of its own, which is what the table above is for.
 
 ##### The decision form is the host's
 
@@ -2133,6 +2238,8 @@ option list below.
   identifier (case preserved). With the random hex the id cannot survive the next render,
   so **column persistence turns itself off** rather than writing a key nothing can read
   back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
+  What that key *holds* is described under [Column memory and saved views](#column-memory-and-saved-views).
+  The key's **name** never changes; the value inside it is versioned.
 
 If the host replaces the listing over Turbo Streams, target the **resolved** id — not the raw
 `storage_id`, which is not the same string whenever sanitizing changes it (`'admin/movies'` →
@@ -2309,6 +2416,57 @@ array injected by the controller); a parameter of your own goes in the action's
 `with_control` slot, or in its query string. When the DataTable has a `pagy`, the bar also
 offers to act on the whole filtered result and re-emits the `filter_form`'s `q[...]` so the
 server can rebuild the same scope — see [BulkActions](#bulkactions).
+
+##### Column memory and saved views
+
+A listing remembers its columns in two different places, and they answer the question "should
+this column be visible?" differently **on purpose**. Adding a column to a listing that is
+already in production is the case where the difference shows, so it is worth knowing which is
+which before a user asks.
+
+| | Column selector memory | Saved view |
+|---|---|---|
+| Where | `localStorage`, key `bali:columns:<id>` | `bali_saved_views.payload["columns"]`, in your database |
+| Scope | this browser, this device | the view, for whoever applies it |
+| What it records | the columns the user **switched**, against the `visible:` defaults in force at the time | the columns the view **shows** |
+| A column it never saw | inherits the `visible:` default the host declares **today** | stays hidden |
+| A column the user never switched | inherits the `visible:` default the host declares **today** | stays as the view recorded it |
+
+The selector's memory is **implicit**: nobody asked for it, the user just switched a column
+off. So it only claims what it can prove, and proof is a **difference**: it records the state
+it left on screen *and* the `visible:` defaults the server had declared, and a column only
+counts as the user's doing when the two disagree. "The user hid column 3, which the host was
+showing" is a claim; "column 5 was off, and the host had it off too" is not — that one goes
+back to the host on every load. A column that was not on screen at all is not recorded either.
+
+Both halves of that matter. The first is #1144: a column added later is born with whatever
+`with_column(visible:)` says, which is what the host wanted for a first-time visitor. The
+second is the same bug one size smaller: if the memory wrote down every `visible: false` the
+host declared as though the user had chosen it, then flipping that column to `visible: true`
+later would never reach anyone who had loaded the page before.
+
+A saved view is the opposite: an **explicit**, named choice ("these five columns"). It keeps
+recording visible columns, so applying it shows exactly the five it recorded, and a column
+added afterwards is not one of them. Re-save the view (or create a new one) to take the new
+column in. This is also why the payload format did not change: those rows are already written
+in your database, and flipping their meaning would silently rewrite every saved view.
+
+Two consequences worth spelling out:
+
+- Column identity is still the **position** of the `<th>`, in both places. Adding a column at
+  the end is safe; inserting one in the middle, or reordering them, shifts every preference
+  by one. A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
+  listing whose selection column depends on the user's role has two different column layouts
+  under one name — give each layout its own `id:`.
+- The device memory is per browser. Clearing it for one user is `localStorage.removeItem`;
+  clearing it for everyone means changing the listing's `id:`, which also changes the
+  container id the host's Turbo Stream targets. There is no "reset columns" button.
+
+Upgrading from 3.4.0 or earlier: values written by those releases are a bare array of visible
+indices. They are read, translated and rewritten in place on the next load **in table mode** —
+a listing sitting in cards or calendar mode has no selector on screen, so nothing rewrites its
+key until someone switches back to the table. See the CHANGELOG entry for #1144 for exactly
+what survives the translation.
 
 Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
 

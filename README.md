@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.1.0.beta.13"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.4.0"
 ```
 
 Then run:
@@ -32,22 +32,47 @@ Then run:
 bundle install
 ```
 
+Nothing else goes in the `Gemfile`: `csv`, `simple_command` and the rest are the gemspec's
+problem, so lines you wrote by hand under "Required by Bali" can go (`rrule` too, unless your
+own code builds recurrence rules, and `pagy` unless you paginate — Bali renders a Pagy you
+pass in, it never builds one).
+
 **Pin a tag, don't track a branch.** With `branch: "main"` a `bundle update` silently pulls
 whatever landed since — including, eventually, the next major and all of its breaking changes.
 See [Release channels](docs/guides/release-channels.md) for the v2 / v3 lines and how to adopt
 a v3 pre-release.
 
-### 2. Install JavaScript Dependencies
-
-Add to your `package.json`:
+### 2. Run the installer
 
 ```bash
-npm install bali-view-components
-# or
-yarn add bali-view-components
+bin/rails g bali:install
 ```
 
-### 3. Configure Tailwind CSS v4 + DaisyUI
+It writes the wiring the whole fleet shares and then prints what it deliberately left to you
+(daisyUI themes, dark mode, the AFAL theme, localised confirm buttons):
+
+| It writes | Where |
+|---|---|
+| `@plugin "daisyui"` and Bali's two `@import`s, in the order Tailwind needs | your Tailwind entry point — `app/assets/tailwind/application.css` under tailwindcss-rails, `app/assets/stylesheets/application.tailwind.css` under cssbundling-rails |
+| `default_form_builder = "Bali::FormBuilder"`, with the reason it goes through `config.action_view` | `config/initializers/bali.rb` |
+| `registerAll(application)` + `registerCharts(application)` and their imports | `app/javascript/controllers/index.js` |
+| every required peer dependency | `package.json` |
+
+Then `yarn install` and the Tailwind build it names. Running it again writes nothing twice —
+on an app it wired, and on one wired by hand — so it is also what to run after an upgrade; the
+one thing it never touches is your `bali-view-components` pin, which it reports instead when it
+has fallen behind the gem. `--block-editor` turns the Block Editor on (it ships off) and adds
+the `@blocknote/*` packages.
+
+**It writes only what this app can resolve, and says the rest.** An importmap app keeps its
+Stimulus index untouched — a bare specifier there does not degrade, it fails the module and
+takes the app's own controllers with it — and an app with no `package.json` gets only the one
+CSS line that needs no npm. An app where nothing compiles Tailwind (no tailwindcss-rails, no
+`build:css` script) gets no entry point written at all: the file would be the input to a build
+that does not exist. Full detail:
+[Installation § Step 0](docs/guides/installation.md).
+
+### 3. What the installer writes into your CSS
 
 In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
