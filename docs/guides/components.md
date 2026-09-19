@@ -1120,6 +1120,16 @@ title, or a free content block for arbitrary markup.
 - `orientation` - `:horizontal` (default) or `:vertical`
 - `color` - DaisyUI step color for completed/active steps
 
+**Step options:**
+- `title` - The step's name (required)
+- `sublabel` - Smaller muted second line under the title (date, actor, note)
+- Content block - Free markup under the title. A block that renders blank draws
+  no wrapper, so deciding *inside* the block — "the detail, if there is one" —
+  leaves the step exactly as one declared with no block at all. Blank is read off
+  the rendered string, so markup that shows no text (a Stimulus mount, a hidden
+  field) does keep the wrapper.
+- HTML attributes for the `li` pass through
+
 #### WorkflowSteps
 
 Steps of a flow with a verdict per step. Stepper is a wizard by index — one
@@ -1142,7 +1152,9 @@ positional.
 ```
 
 **Options:**
-- `variant` - `:vertical` (default) or `:horizontal`
+- `orientation` - `:vertical` (default) or `:horizontal`. It was `variant:` in
+  the v3.1 betas, and this guide kept saying so until v3.4 — the old keyword
+  raises with a message naming the replacement
 - `progress` - The N/M bar. On by default in `:horizontal`; `false` drops it.
   Asking for one on `:vertical` raises — that shape has no header for it.
 - HTML attributes for the root element pass through.
@@ -1174,12 +1186,12 @@ other Bali key when its domain has better words: "Signed", "Returned",
 
 ##### The horizontal quick flow
 
-`variant: :horizontal` renders the same steps as a row of cards with an N/M bar
-on top — the shape for a summary card or a table cell, where the whole chain
-has to fit in a glance.
+`orientation: :horizontal` renders the same steps as a row of cards with an N/M
+bar on top — the shape for a summary card or a table cell, where the whole
+chain has to fit in a glance.
 
 ```erb
-<%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+<%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
   <% c.with_step(title: "Submitted", state: :success, date: "Jul 1") %>
   <% c.with_step(title: "Legal review", state: :current, assignee: "Carmen Ríos") %>
   <% c.with_step(title: "Director signature", state: :pending) %>
@@ -1200,7 +1212,7 @@ Same `with_step` API. What changes:
   rejected, `progress-warning` if any came back with observations, neutral
   otherwise.
 - The dot is decorative; the state name is announced by the same `sr-only`
-  span the vertical variant uses (see below).
+  span the vertical variant uses (see above).
 
 The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
 rows instead of shrinking each card past reading width.
