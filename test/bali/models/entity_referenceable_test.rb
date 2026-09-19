@@ -2,15 +2,14 @@
 
 require "test_helper"
 
-# #708 — el concern que materializa las referencias embebidas en contenido BlockNote.
-# Los fixtures son JSON de BlockNote REAL (el que produce el editor), no una versión
-# simplificada: los dos shapes de tabla y los children anidados son justamente donde un
-# walker propio se equivoca.
+# #708 — the concern that materialises the references embedded in BlockNote content.
+# The fixtures are REAL BlockNote JSON (what the editor produces), not a simplified version: the
+# two table shapes and the nested children are exactly where a hand-rolled walker goes wrong.
 class BaliEntityReferenceableTest < ActiveSupport::TestCase
-  # Un modelo con la columna JSON en otro nombre, para el macro `references_entities_in`.
-  # FormRecord sirve porque su `polygon_data` es json y no exige asociaciones. (Antes era
-  # el BlockEditorThread del dummy, que #706 sustituyó por el modelo del engine — y ese
-  # exige un commentable.)
+  # A model whose JSON column has another name, for the `references_entities_in` macro. FormRecord
+  # serves because its `polygon_data` is json and demands no associations. (It used to be the dummy's
+  # BlockEditorThread, which #706 replaced with the engine's model — and that one demands a
+  # commentable.)
   class ReferencingRecord < FormRecord
     include Bali::EntityReferenceable
     references_entities_in :polygon_data
@@ -47,7 +46,7 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
     doc.entity_references.pluck(:referenceable_type, :referenceable_id).sort
   end
 
-  # Extracción
+  # Extraction
 
   test "materializes references embedded in a paragraph" do
     doc = document(content: [
@@ -98,7 +97,7 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
                 reference_node("Task", 3, "Numérico"))
     ])
 
-    # `referenceable_id` es bigint: un `to_i` sobre el UUID guardaría 550 en silencio.
+    # `referenceable_id` is a bigint: a `to_i` over the UUID would silently store 550.
     assert_equal [ [ "Task", 3 ] ], keys_of(doc)
   end
 
@@ -108,8 +107,8 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
                 reference_node("Task", 3, "Cabe"))
     ])
 
-    # Sin la cota, la coerción levanta ActiveModel::RangeError DENTRO del after_save y tira
-    # el `update!` del usuario: el documento se vuelve imposible de guardar.
+    # Without the bound, the coercion raises ActiveModel::RangeError INSIDE the after_save and takes
+    # the user's `update!` down with it: the document becomes impossible to save.
     assert_equal [ [ "Task", 3 ] ], keys_of(doc)
     assert_predicate doc.reload, :persisted?
   end
@@ -148,7 +147,7 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
     assert_equal [ [ "Project", 4 ] ], record.entity_references.pluck(:referenceable_type, :referenceable_id)
   end
 
-  # Diff mínimo — el editor autosalva, así que esto corre en cada guardado
+  # Minimal diff — the editor autosaves, so this runs on every save
 
   test "editing the text around a reference leaves its row untouched" do
     doc = document(content: [
@@ -162,8 +161,8 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
                 reference_node("Task", 3, "Kanban"))
     ])
 
-    # El id sobrevive al guardado: el diff no borra y recrea lo que no cambió, que es lo
-    # que permite colgar cosas de una referencia.
+    # The id survives the save: the diff does not delete and recreate what did not change, which is
+    # what lets other things hang off a reference.
     assert_equal row.id, doc.entity_references.reload.sole.id
     assert_equal row.created_at, doc.entity_references.sole.created_at
   end
@@ -171,8 +170,8 @@ class BaliEntityReferenceableTest < ActiveSupport::TestCase
   test "saving another attribute does not touch the references table at all" do
     doc = document(content: [ paragraph(reference_node("Task", 3, "Kanban")) ])
 
-    # El early-return por `saved_change_to_<attribute>?`: el editor autosalva, y sin él cada
-    # guardado paga la extracción y el diff completo aunque el contenido no se haya tocado.
+    # The early return on `saved_change_to_<attribute>?`: the editor autosaves, and without it every
+    # save pays for the extraction and the full diff even when the content was never touched.
     assert_no_queries_matching(/bali_entity_references/) do
       doc.update!(title: "Otro título")
     end

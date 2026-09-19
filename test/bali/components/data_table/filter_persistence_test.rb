@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-# El marcador de persistencia vive UNA sola vez por listado: dos controladores
-# `filter-persistence` sobre el mismo storage_id se pisan el localStorage y la cookie.
+# The persistence checkbox lives exactly ONCE per listing: two `filter-persistence` controllers over
+# the same storage_id overwrite each other's localStorage and cookie.
 class BaliDataTableFilterPersistenceTest < ComponentTestCase
   def form(storage_id: nil, persist_enabled: false)
     Bali::FilterForm.new(Movie.all, ActionController::Parameters.new,
@@ -39,9 +39,9 @@ class BaliDataTableFilterPersistenceTest < ComponentTestCase
     assert_no_selector('[data-controller="filter-persistence"]')
   end
 
-  # Sin control de filtros el marcador no significa nada: no hay estado de filtros que
-  # recordar. `SimpleFilters#render?` es false sin filtros ni búsqueda, así que declarar el
-  # slot no alcanza para pintar el marcador.
+  # With no filter control the checkbox means nothing: there is no filter state to remember.
+  # `SimpleFilters#render?` is false with neither filters nor search, so declaring the slot is not
+  # enough to paint the checkbox.
   def test_no_toggle_when_the_filters_slot_renders_nothing
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form(storage_id: "movies"))) do |dt|
       dt.with_simple_filters(filters: [])
@@ -51,8 +51,8 @@ class BaliDataTableFilterPersistenceTest < ComponentTestCase
     assert_no_selector('[data-controller="filter-persistence"]')
   end
 
-  # El marcador es un item propio de la toolbar (y no parte del nodo de filtros), así que el
-  # menú ⋯ puede tratarlo aparte.
+  # The checkbox is a toolbar item of its own (and not part of the filters node), so the ⋯ menu can
+  # treat it separately.
   def test_the_toggle_travels_in_its_own_overflow_item
     render_data_table(filter_form: form(storage_id: "movies"))
 
@@ -63,16 +63,16 @@ class BaliDataTableFilterPersistenceTest < ComponentTestCase
     )
   end
 
-  # El valor lo RESUELVE el slot (del filter_form o de un override del host): el DataTable lo
-  # captura ahí en vez de re-derivarlo, o el marcador de la toolbar quedaría siempre apagado.
+  # The slot RESOLVES the value (from the filter_form or from a host override): the DataTable
+  # captures it there instead of re-deriving it, or the toolbar's checkbox would always read off.
   def test_the_resolved_persist_enabled_reaches_the_toolbar_control
     render_data_table(filter_form: form(storage_id: "movies", persist_enabled: true))
 
     assert_selector('[data-filter-persistence-enabled-value="true"]', count: 1)
   end
 
-  # Un host que pasa `storage_id:` directo al slot (sin filter_form que lo traiga) tiene que
-  # seguir viendo el marcador.
+  # A host passing `storage_id:` straight to the slot (with no filter_form bringing it) has to keep
+  # seeing the checkbox.
   def test_an_explicit_storage_id_on_the_slot_still_paints_the_toggle
     render_inline(Bali::DataTable::Component.new(url: "/movies")) do |dt|
       dt.with_simple_filters(filters: sample_filters, storage_id: "explicit_movies")
@@ -88,11 +88,11 @@ class ClearLinkMovieFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 
-# El link "Limpiar" de los filtros simples se SIGUE, no se mira: asertar sólo su href deja
-# pasar un link que no limpia nada, que es exactamente como este bug llegó a producción (dos
-# tests fijaban la URL pelada como si fuera el contrato). Acá el href renderizado se parsea y
-# se le entrega al FilterForm igual que haría el server con el request del click: lo que se
-# aserta es el ESTADO RESULTANTE del listado, no la forma de la URL.
+# The simple filters' "Clear" link is FOLLOWED, not looked at: asserting only its href lets through
+# a link that clears nothing, which is exactly how this bug reached production (two tests pinned the
+# bare URL as if it were the contract). Here the rendered href is parsed and handed to the
+# FilterForm the way the server would with the click's request: what is asserted is the listing's
+# RESULTING STATE, not the shape of the URL.
 class BaliDataTableSimpleFiltersClearTest < ComponentTestCase
   CACHE_KEY = "clear_link_movie_filter_forms;;movies"
 
@@ -110,7 +110,7 @@ class BaliDataTableSimpleFiltersClearTest < ComponentTestCase
     [ { attribute: :genre, collection: [ %w[Drama drama] ], blank: "All", label: "Genre" } ]
   end
 
-  # Los params que el server recibiría al seguir el href del link "Limpiar".
+  # The params the server would receive on following the "Clear" link's href.
   def params_from_clear_link
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
                     url: "/movies", filters: sample_filters, show_clear: true))
@@ -137,8 +137,8 @@ class BaliDataTableSimpleFiltersClearTest < ComponentTestCase
     ClearLinkMovieFilterForm.new(Movie.all, params_from_clear_link,
                                  storage_id: "movies", persist_enabled: true)
 
-    # Sin borrar la caché el filtro reaparece en la visita SIGUIENTE, no en ésta: el síntoma
-    # se corre un request y el test de arriba solo lo dejaría pasar.
+    # Without deleting the cache the filter comes back on the NEXT visit, not on this one: the
+    # symptom shifts by one request and the test above would let it through.
     assert_nil(Rails.cache.read(CACHE_KEY))
   end
 end

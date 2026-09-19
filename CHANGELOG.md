@@ -217,6 +217,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   había ninguno con `type: :slim_select`).
 ### Changed
 
+- **Los comentarios y nombres de prueba de `test/` pasan a inglés** (lote 1 de sacar el
+  español del código del repo). 64 archivos de `test/`: las 825 líneas de comentario con
+  acento que había en 62 de ellos quedan en cero, más los comentarios en español sin acento
+  que esa medición no veía. De paso, 12 comentarios podados por no decir más que la prueba
+  de abajo. También pasan a inglés 13 nombres de prueba, y `pr_closes_keyword_test.rb` se
+  reescribió entero —helpers, variables locales y mensajes de aserción estaban en español—;
+  es el único cambio de código del lote y no mueve el conteo de la suite (9 runs antes y
+  después). Mediciones, números de issue, referencias `archivo:línea` y los datos de muestra
+  quedan intactos. Para un anfitrión no cambia nada: la gema no publica nada de `test/`.
+
 - **daisyUI 5.7.22 → 5.7.42** en `spec/dummy/package.json` (veinte parches). Bali debe
   correr la última de Tailwind y daisyUI para mantener alineadas a las apps del grupo;
   `tailwindcss-rails` 4.6.0 y `tailwindcss-ruby` 4.3.3 ya eran las últimas y no se tocan.

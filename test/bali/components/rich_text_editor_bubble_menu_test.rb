@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-# La barra flotante del RichTextEditor no tenía test propio (#1028). Tras el
-# fix de #1032 (los <a> sin href pasaron a <button>), esto congela el contrato
-# a11y: cada control icon-only es un botón real con nombre accesible — también
-# los tres triggers de dropdown (enlace, imagen, tabla), que #1032 no cubrió.
+# The RichTextEditor's floating bar had no test of its own (#1028). After #1032's fix (the href-less
+# <a>s became <button>s), this freezes the a11y contract: every icon-only control is a real button
+# with an accessible name — including the three dropdown triggers (link, image, table), which #1032
+# did not cover.
 class BaliRichTextEditorBubbleMenuTest < ComponentTestCase
   def test_every_formatting_control_is_a_real_button_with_an_accessible_name
     render_inline(Bali::RichTextEditor::BubbleMenu::Component.new)
@@ -18,9 +18,9 @@ class BaliRichTextEditorBubbleMenuTest < ComponentTestCase
     end
     assert_selector("input[type='color'][aria-label='#{action_label('text_color')}']")
 
-    # El antipatrón que #1032 vino a matar no puede volver: todo control del
-    # editor que dispara una acción es un <button>, nunca un <a> sin href.
-    # (Los items de dropdown pasan por `tag: :button` en este mismo cambio.)
+    # The antipattern #1032 came to kill cannot come back: every editor control that fires an action
+    # is a <button>, never an href-less <a>. (The dropdown items go through `tag: :button` in this
+    # same change.)
     assert_no_selector("a:not([href])[data-action*='rich-text-editor#']")
   end
 

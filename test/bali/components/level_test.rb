@@ -3,9 +3,9 @@
 require "test_helper"
 
 class BaliLevelComponentTest < ComponentTestCase
-  # Level queda deprecado en v3 (#684) y se elimina en 4.0; hasta entonces estos tests siguen
-  # cubriendo su render. El aviso se silencia acá para no ahogar la salida del suite — que
-  # avisa se prueba en `deprecator_test.rb`, una vez.
+  # Level is deprecated in v3 (#684) and removed in 4.0; until then these tests keep covering its
+  # render. The warning is silenced here so it does not drown the suite's output — that it warns is
+  # tested in `deprecator_test.rb`, once.
   def before_setup
     super
     Bali.deprecator.silenced = true

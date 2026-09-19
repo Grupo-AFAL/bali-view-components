@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-# `Bali::RichTextEditor::Component#render?` devuelve `Bali.rich_text_editor_enabled`, que el
-# paquete trae en `false`. Con el flag apagado el componente no emite NADA —ni el `<div>` que
-# abre su template— así que el preview contestaba 200 con el body vacío y se leía igual que un
-# componente roto (#844). El defecto no era el flag: era que el preview no lo decía.
+# `Bali::RichTextEditor::Component#render?` returns `Bali.rich_text_editor_enabled`, which the
+# package ships as `false`. With the flag off the component emits NOTHING —not even the `<div>` its
+# template opens— so the preview answered 200 with an empty body and read exactly like a broken
+# component (#844). The defect was not the flag: it was that the preview did not say so.
 class RichTextEditorPreviewTest < ActionDispatch::IntegrationTest
   PREVIEWS = %w[default readonly].freeze
 
@@ -31,8 +31,8 @@ class RichTextEditorPreviewTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # La otra mitad: la explicación tiene que desaparecer en cuanto el host enciende el flag, o
-  # el preview pasa a mentir en la dirección contraria.
+  # The other half: the explanation has to disappear the moment the host turns the flag on, or the
+  # preview starts lying in the opposite direction.
   def test_with_the_flag_on_the_preview_renders_the_component
     Bali.rich_text_editor_enabled = true
 
@@ -47,8 +47,8 @@ class RichTextEditorPreviewTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # El preview apagado apunta a BlockEditor, que es la migración documentada. Si esa ruta deja
-  # de existir el aviso manda al lector a un 404 justo cuando le está pidiendo que migre.
+  # The disabled preview points at BlockEditor, which is the documented migration. If that path
+  # stops existing the notice sends the reader to a 404 just as it is asking them to migrate.
   def test_the_disabled_notice_links_to_a_block_editor_preview_that_exists
     Bali.rich_text_editor_enabled = false
 

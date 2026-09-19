@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-# El id duplicado de #1157 se vio en el navegador, sobre un preview de Lookbook, y ni un solo
-# test lo miraba por ahí: los tests de componente renderizan la clase, no la página servida.
-# Esto cierra ese hueco por el camino donde apareció — dos previews de `Table` que pasan `id:`,
-# pedidos por HTTP y revisados entero el documento, no sólo la `<table>`.
+# #1157's duplicate id was seen in the browser, over a Lookbook preview, and not a single test
+# looked at it from there: component tests render the class, not the served page. This closes that
+# gap along the path it appeared on — two `Table` previews that pass `id:`, requested over HTTP and
+# checked over the whole document, not just the `<table>`.
 class TablePreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = %w[
     /lookbook/preview/bali/table/with_container_id
@@ -23,9 +23,9 @@ class TablePreviewsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # El reparto concreto: el id va al `<div class="table-component">`, y ninguna `<table>` de la
-  # página lleva uno. Sin esto, la aserción de arriba seguiría verde si alguien moviera el id a
-  # la `<table>` y se lo quitara al contenedor.
+  # The concrete split: the id goes on the `<div class="table-component">`, and no `<table>` on the
+  # page carries one. Without this, the assertion above would stay green if somebody moved the id to
+  # the `<table>` and took it off the container.
   def test_the_container_id_preview_puts_the_id_on_the_wrapper_and_not_on_the_table
     get "/lookbook/preview/bali/table/with_container_id"
     assert_response :ok

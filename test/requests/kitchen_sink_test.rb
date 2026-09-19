@@ -17,9 +17,9 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 
-  # El index canónico tiene TRES ramas de contenido (tabla seleccionable, grid de tarjetas y
-  # calendario) que comparten un partial. Sin pedirlas, una fecha nula, una clave i18n
-  # faltante o un `with_content` roto se publican en verde.
+  # The canonical index has THREE content branches (selectable table, card grid and calendar) sharing
+  # one partial. Without asking for them, a null date, a missing i18n key or a broken `with_content`
+  # ships green.
   def test_admin_movies_renders_every_display_mode_of_the_canonical_listing
     get admin_movies_path
     assert_response :ok
@@ -34,17 +34,17 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_select ".calendar-component"
   end
 
-  # La página de referencia tiene que ejercitar TODA la familia de controles: sin dueño el
-  # store no se resuelve y el dropdown desaparece sin romper nada.
+  # The reference page has to exercise the WHOLE family of controls: with no owner the store does not
+  # resolve and the dropdown disappears without breaking anything.
   def test_admin_movies_renders_the_saved_views_dropdown
     get admin_movies_path
     assert_response :ok
     assert_select "[data-controller~='saved-views']"
   end
 
-  # Ransack descarta un predicado combinado ENTERO cuando uno de sus campos no es
-  # ransackable, sin levantar nada: la búsqueda respondía 200 y devolvía todo. Por eso la
-  # aserción es sobre el SET, no sobre el status.
+  # Ransack drops a combined predicate ENTIRELY when one of its fields is not ransackable, without
+  # raising anything: the search answered 200 and returned everything. Hence the assertion is on the
+  # SET, not on the status.
   def test_admin_movies_quick_search_narrows_the_result_set
     other = Tenant.create!(name: "Otro Estudio")
     other.movies.create!(name: "Otra Película", status: 0)
@@ -55,10 +55,10 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_select "tbody tr", text: /Otra Película/, count: 0
   end
 
-  # Ransack castea con el tipo CRUDO de la columna, así que sobre un enum entero la etiqueta
-  # "done" se volvía 0 — el código de `draft`— y el filtro devolvía los registros CONTRARIOS.
-  # Este es el único test que recorre el shape exacto de URL que emite el builder de
-  # Bali::Filters. La aserción es sobre el SET: un `assert_response :ok` pasaba con el bug.
+  # Ransack casts with the column's RAW type, so over an integer enum the label "done" became 0 —the
+  # code for `draft`— and the filter returned the OPPOSITE records. This is the only test that walks
+  # the exact URL shape Bali::Filters' builder emits. The assertion is on the SET: an
+  # `assert_response :ok` passed with the bug in place.
   def test_admin_movies_filters_by_an_enum_label_from_the_filters_builder
     done_movie = @tenant.movies.create!(name: "Película Terminada", status: 1)
 
@@ -83,9 +83,9 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
   end
 
   def test_admin_movies_suspends_grouping_in_grid_mode_without_dropping_the_param
-    # La agrupación solo aplica en la tabla: en tarjetas no hay banda de grupo que explique
-    # el reordenamiento. El param igual tiene que viajar en el form de filtros, o buscar algo
-    # desde tarjetas la borra.
+    # The grouping only applies in the table: in cards there is no group band to explain the
+    # reordering. The param still has to travel in the filters form, or searching from cards wipes
+    # it.
     get admin_movies_path, params: { group_by: "status", view: "grid" }
     assert_response :ok
     assert_select "tr.bali-table-group-row", count: 0
@@ -118,13 +118,13 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
   end
 end
 
-# La persistencia de filtros solo existe completa a través de un REQUEST: cookie →
-# `persist_enabled:` → restaurar → listado renderizado. Nada la recorría, y el tramo que la
-# apagaba entera (el cache store del dummy) no lo cubría ningún test.
+# Filter persistence only exists in full through a REQUEST: cookie → `persist_enabled:` → restore →
+# rendered listing. Nothing walked it, and no test covered the stretch that switched it off entirely
+# (the dummy's cache store).
 class KitchenSinkFilterPersistenceTest < ActionDispatch::IntegrationTest
-  # El env de test corre con `:null_store`, donde toda escritura se pierde y toda lectura es
-  # nil: un test de persistencia ahí pasa sin afirmar nada. Se cambia el store SOLO acá —
-  # acoplar la suite entera a una caché global es justo lo que esto existe para no hacer.
+  # The test env runs with `:null_store`, where every write is lost and every read is nil: a
+  # persistence test there passes without asserting anything. The store is swapped ONLY here —
+  # coupling the whole suite to a global cache is exactly what this exists not to do.
   def setup
     @original_cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
@@ -152,9 +152,9 @@ class KitchenSinkFilterPersistenceTest < ActionDispatch::IntegrationTest
     assert_select "tbody tr", text: /#{@done.name}/
   end
 
-  # La caché se llama `class;context;storage_id`: sin `context:` un único key sirve a TODAS las
-  # visitas del proceso y los filtros de uno se le restauran al siguiente. Con `:null_store`
-  # esto no se veía porque no se guardaba nada.
+  # The cache is keyed `class;context;storage_id`: without `context:` a single key serves EVERY visit
+  # in the process and one visitor's filters are restored to the next. With `:null_store` this was
+  # invisible, because nothing was stored.
   def test_a_visitor_does_not_restore_another_visitors_filters
     filtering = open_session
     filtering.cookies["bali_persist_admin_movies"] = "1"
