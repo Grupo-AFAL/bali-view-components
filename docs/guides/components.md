@@ -1613,12 +1613,85 @@ Declare groupable attributes on the form (DSL or constructor):
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
   group_by_attribute :genre, label: "Género"
-  group_by_attribute :status
+  group_by_attribute :status, default: true   # the listing opens grouped by status
 end
 
-# or, without subclassing:
-Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
+# or, without subclassing (same options, `default:` included):
+Bali::FilterForm.new(Movie.all, params,
+                     group_by_attributes: [:genre, { attribute: :status, default: true }])
 ```
+
+##### A listing that opens grouped (`default:`)
+
+`default: true` on **one** declaration is the band the listing opens on when nobody has said
+anything about grouping. Declaring it on two attributes raises when the form is built — a
+listing opens on one question. It takes `true`/`false`, **not a callable**: the default is
+resolved while the form is built, with no instance to evaluate against (the same limit
+`filter_attribute default:` has, for the same reason). A grouping that depends on the request
+is the host setting `@group_by` after `super`, not a declaration.
+
+Precedence, top down — the first one that speaks wins:
+
+| Source | Beats the default because |
+|---|---|
+| `?group_by=` in the URL | The user just clicked. **Including "no grouping"** — without that, a listing with a default could never be ungrouped |
+| What an applied saved view (`?saved_view=`) **says** about grouping | A view records what the user chose, and "ungrouped" is a choice |
+| The choice stored in the filters cache | Persistence promises "remember what I chose", and that includes "I turned grouping off" |
+| — | Nothing said: the `default:` applies |
+
+**A saved view speaks by carrying the key, not by carrying a value.** The payload of a view
+saved while grouping was off carries `"group_by" => "none"`, and reopening it leaves the
+listing ungrouped. A payload with **no** `group_by` key at all is silence, not "no grouping",
+so the `default:` still applies there — which is what every view saved before the default
+existed looks like, and every view of a listing that declares no default. The two cases are
+different on purpose: without the distinction, either a user could not save an ungrouped view
+(the default would re-group it on reopen) or every pre-existing view would silently start
+opening ungrouped.
+
+> If a host listing already implements "**any** applied view suppresses the default", that is
+> a different rule from Bali's and adopting `default:` changes behaviour — see the note at the
+> end of this section.
+
+**Unlike `filter_attribute default:`, this default does not travel through the URL.** No
+redirect, no `?group_by=` written on a bare entry. Two measured reasons: `redirect_to_default_filters`
+switches itself off entirely when filter persistence is on (so the URL route could never
+satisfy "respects persistence"), and a redirect writing `?group_by=status` marks the param as
+*requested*, which would overwrite the "no grouping" the user chose in the cache on every
+visit. Neither reason that pushed filter defaults into the URL applies here: grouping does not
+change the **population**, only the order and the bands.
+
+**A default is derived, never stored.** It is not written into the filters cache, does not
+enter a saved view's payload (otherwise every view saved without a grouping would read as
+"modified" against a listing nobody touched) and does not travel as a hidden field. So
+changing the declaration changes what users who already visited the listing see — only what
+they chose is remembered.
+
+One consequence worth knowing: **where a default is declared, "no grouping" travels as
+`?group_by=none`** instead of the empty `?group_by=`. Ransack's `sort_link` drops empty params
+when it composes its href (and so does the filter form's own hidden field, which rejects blank
+preserved params), so the empty spelling could not survive a column sort or a filter submit and
+the default came back. The same spelling goes into a saved view's payload, for the same reason:
+a payload has no way to write an empty value either. Listings without a default keep the empty
+spelling and an unchanged payload.
+
+**A listing that uses `Bali::Filters` without a DataTable** has no "Group by" control to hang
+the value on, so pass it yourself — `group_by_preserved_value` is public and gives the three
+answers in one call:
+
+```erb
+<%= render Bali::Filters::Component.new(url: movies_path,
+      available_attributes: ...,
+      preserved_params: { group_by: @filter_form.group_by_preserved_value }) %>
+```
+
+Measured: a default emits no hidden field, an explicit "no grouping" emits `none`, a chosen
+grouping emits its name — the same three the DataTable emits.
+
+**Adopting `default:` on a listing that already rolls its own.** A host that sets `@group_by`
+after `super` may be enforcing a *different* rule — commonly "any applied saved view suppresses
+the default, whether or not it mentions grouping". Bali's rule is narrower (only a view that
+says something about grouping suppresses it), so views already saved under the host rule will
+start opening grouped. Check for that before deleting the workaround.
 
 ##### What can be grouped by
 
@@ -1655,6 +1728,21 @@ group_by_attribute :budgeted,
 
 A String `sql:` goes through `Arel.sql` — it is the developer's SQL, never the user's;
 the raw `group_by` param can only ever match a declared name.
+
+**Grouping and `SELECT DISTINCT` do not mix on PostgreSQL.** Grouping orders by the group
+expression, and a `SELECT DISTINCT` only accepts `ORDER BY` expressions that are in its select
+list. Of the four shapes, only a column of the **base table** is: an association path
+(`ORDER BY "tenants"."name"`), a ransacker and a `sql:` expression are all absent from
+`SELECT DISTINCT movies.*`, so the query dies with *"for SELECT DISTINCT, ORDER BY expressions
+must appear in select list"*. MySQL says the same thing in other words; SQLite accepts all
+four.
+
+Bali cannot fix it for you — adding the expression to the select list changes **what** gets
+deduplicated, and the `.distinct` is usually there to deduplicate a join. What it does is
+replace the driver's error with `Bali::FilterForm::GroupByOrderingError`, which names the
+listing, the grouping, the offending `ORDER BY` and the three ways out (drop the `.distinct`
+and deduplicate with a subquery; put the expression in the select list yourself; or group by a
+base-table column). The adapter's own error stays available as `#cause`.
 
 **A declaration that cannot work raises when the form is built**, not when someone
 picks that grouping on screen. `group_by_attribute :whatever` used to be accepted in
@@ -1717,7 +1805,9 @@ user can type it, and a 500 is not the answer to a typo.
 
 "No grouping" leaves `?group_by=` (empty) in the URL rather than dropping the
 param: with filter persistence on, an absent param means "restore the cached
-state", so removing it resurrected the grouping the user just turned off.
+state", so removing it resurrected the grouping the user just turned off. Where the form
+declares a `default:`, the same item emits `?group_by=none` instead — an empty param does not
+survive Ransack's `sort_link`, and an absent one means "apply the default".
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
@@ -2313,6 +2403,10 @@ the dense header block of a show page, a two-column details card. Use `LabelValu
 that stands on its own, or when each pair needs its own placement in a layout neither grid can
 express.
 
+None of the three is the right call for a **grid of figures** — a metric snapshot, a financial
+summary — where the number is the content and the label is its caption. That is
+`StatCard` with `surface: :cell`; see [Card or cell?](#card-or-cell) under StatCard.
+
 #### Gantt
 
 Timeline of scheduled work: groups (one nesting level), items (sub-items, milestones as
@@ -2693,15 +2787,153 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
+- `note` - A discreet muted line under the value (`'Creates value · 12.5% rate'`). Not the `footer` slot, which is the trend/status row at the bottom (default: nil)
 - `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
-- `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
+- `color` - Icon accent — and the cell tint when `emphasis:` is on: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
 - `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
+- `surface` - `:card` (default, and what `nil` falls back to) or `:cell`. Anything else raises `ArgumentError`. See "Card or cell?" below
+- `emphasis` - Cell surface only: paints the cell with the soft pair of `color:` to single out one figure. On `surface: :card` it raises (default: false)
+- `value_class` - Classes appended to the value, after the library's own. Additive, and it filters nothing — see "What `value_class:` actually does" below (default: nil)
 - `href` - Renders the whole card as an `<a>` (KPI drill-down to its listing) with a hover shadow affordance. Don't wrap the card in `link_to` anymore; and the footer must not contain links then — an `<a>` inside an `<a>` is invalid HTML (default: nil)
 
-**Slots:** `with_footer` — optional footer for trends or status text.
+**Slots:** `with_footer` — optional footer for trends or status text. It renders on **both**
+surfaces: it is content, and content does not change with the box. On a cell it lands right
+under the figure (or under `note:`, when there is one), in the same
+`flex items-center gap-1 text-sm` row the card surface uses.
 
 This is the one stat card. `DashboardPage#with_stat` renders it, and both `InfoLevel` and
-DashboardPage's own inline card — the other two designs — are gone or deprecated in v3.
+DashboardPage's own inline card — the other two designs — are gone or deprecated in v3. It
+has **two surfaces, not two components**: `surface:` changes the box, never the figure.
+
+##### Card or cell?
+
+```erb
+<%# A grid of figures INSIDE a section card: nothing here may be a card %>
+<%= render Bali::Card::Component.new do |card| %>
+  <% card.with_title('Business case') %>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell, emphasis: true,
+          title: 'NPV', value: '$6.14M', value_class: 'tabular-nums',
+          note: 'Creates value · 12.5% rate'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell, title: 'BCR', value: '2.41', value_class: 'tabular-nums',
+          note: 'Benefit / cost'
+        ) %>
+  </div>
+<% end %>
+```
+
+| | `surface: :card` | `surface: :card, size: :sm, shadow: false` | `surface: :cell` |
+|---|---|---|---|
+| Root | `.card.bg-base-100.card-border.shadow-sm` | `.card.bg-base-100.card-border.card-sm` | `.rounded-box.border.border-base-300.p-4.bg-base-100` — **no `.card`** |
+| Inner padding | 24px | 16px | 16px |
+| Border | 1px `base-200` | 1px `base-200` | 1px `base-300` |
+| Icon badge | yes | yes | no |
+| Where | a KPI row that owns its stretch of page | a quiet card, on a page where nothing else is a card | a grid of figures inside a card |
+
+**`size: :sm, shadow: false` already gets you most of the way** — a quiet bordered box with
+1rem of padding, measured the same 16px the cell has. Reach for `surface: :cell` when the
+figures sit **inside** something that is already a card: the cell is the only one of the three
+that does not emit `.card`, so it cannot become a card in a card, and its `base-300` border
+stays visible against the `base-100` the section card paints behind it.
+
+The cell's own `bg-base-100` is a no-op in exactly that case — measured, the section card
+paints the same `oklch(1 0 0)` behind it — and it is there for the other one: dropped
+straight onto a page, the cell sits on `Bali::AppLayout`'s `bg-base-200`
+(`oklch(0.98 0 0)`, measured), where a transparent box would read as a grey panel with a
+line around it.
+
+A cell **takes no icon**: six badges in one grid is noise, and there is nowhere quiet to put
+them. `icon:` with `surface: :cell` raises `ArgumentError` rather than being dropped in
+silence. The same goes for `Bali::Card`'s own keywords — `size:`, `shadow:`, `side:`,
+`image_full:`, `body_class:` and `style: :bordered` — which mean nothing without a card and
+used to land on the root as invalid HTML attributes (`<div size="sm" shadow="false">`,
+measured). They raise too, naming every one you passed: drop them when you switch surfaces.
+
+Everything that is not a keyword of this component still passes through to the root on both
+surfaces — `class:`, `id:`, `data:` and a **string** `style:` (an inline style is legitimate
+on a root element; only the Symbol spelling, which is `Bali::Card`'s, is rejected).
+
+`DashboardPage#with_stat` renders the card surface and does not forward `surface:` — its
+parameter list is fixed (`label:, value:, icon:, change:, color:, href:`). A dashboard row
+wants tiles, so that is on purpose; to put cells inside a dashboard card, render
+`Bali::StatCard::Component` yourself.
+
+**`emphasis:` is an emphasis axis, not a colour axis.** The colour contract is the one every
+component shares — `color:` / `custom_color:` (see [Colors](#colors)); there is no `tone:`.
+`emphasis: true` says *paint this cell*, and `color:` says *which colour*: `bg-primary/10` +
+`border-primary/30` for a name, the same `color-mix` the icon badge uses for a
+`custom_color:` hex. It is a cell option — on the card surface it raises, because the card
+brings its own `bg-base-100` and tinting over it would come down to Tailwind's output order.
+
+##### What `value_class:` actually does
+
+It **appends**, and it filters nothing. The value renders
+`class="text-3xl font-bold mt-1 <your classes>"`, and what the browser does with a class that
+sets a property the library already set is decided by the **order of the compiled sheet**, not
+by the order in the attribute. Measured on the sheet this package builds (`text-xl` at byte
+337394, after `text-3xl` at 336827):
+
+| `value_class:` | rendered value |
+|---|---|
+| *(nothing)* | 30px / 700 |
+| `tabular-nums`, `font-mono` | 30px / 700, monospaced — the reason the option exists |
+| `text-xl` | **20px** |
+| `text-4xl` | **36px** |
+| `text-2xl` | 30px — the one size that loses, because Tailwind emits it before `text-3xl` |
+| `font-semibold` | weight **600** |
+
+So it does resize the figure, in seven of the eight steps. The numbers above are from the
+browser, on the `emphasised_cell` preview, whose `value_class` parameter is there so you can
+repeat them.
+
+Which is a reason to use it for what it is for. The winning is an artifact of Tailwind's
+output order — `text-2xl` already behaves the other way, and an upgrade that reorders the
+sheet flips the rest without touching this repo. **Use it for properties the library does not
+set** (`font-mono`, `tabular-nums`, a colour). If a screen needs a different type scale for
+its figures, that is a change to `VALUE_CLASSES` in the component, measured across the call
+sites — not a class threaded through one call site at a time.
+
+There is deliberately **no `title_class:` and no `note_class:`**. The label and the note are
+the library's typography; a component that takes a class per element is a skin, not a
+component, and the way it ends is fifteen `*_class:` keywords. If you need different
+typography for the label, you need a different design — say so in an issue.
+
+##### Replacing a hand-painted metric cell: what changes
+
+Apps that painted this box by hand before the cell existed can drop their partial — but the
+cell is **the library's design, not a copy of theirs**, and the difference is visible. The
+reference case is afal-apps' `td_flow/shared/_metric_cell` (+ `TDFlow::MetricCellsHelper`),
+the partial #1146 was opened to replace. Measured against it on `origin/main`:
+
+| | the partial | `surface: :cell` |
+|---|---|---|
+| Box | `rounded-box border p-3.5 flex flex-col gap-1.5` — 14px padding, 6px between lines | `rounded-box border p-4` — 16px padding, 4px (`mt-1`) between lines |
+| Figure | `text-xl font-semibold` + `font-mono tabular-nums` **by default** — **20px / 600**, monospaced | `text-3xl font-bold` — **30px / 700**, proportional. `value_class: 'font-mono tabular-nums'` brings the mono back |
+| Label | `text-xs font-semibold` at `text-base-content/45` — 12px / **600** | `text-xs font-medium` at `text-base-content/60` — 12px / **500**. Not configurable |
+| Note | `text-xs text-pretty` at `/60` | `text-xs` at `/60`, plus `mt-1` |
+| Highlight | `tone: :primary` → `bg-primary/10` + `border-primary/20`, **and label, figure and note all turn `text-primary`** | `emphasis: true, color: :primary` → `bg-primary/10` + `border-primary/30`. The tint is the box; **the text keeps its colour** |
+| Defaults | `tone: :neutral`, `mono: true` | `color: :primary` (only visible under `emphasis:`), no mono |
+| Long values | `truncate` + a `title` attribute on the figure | neither. `value_class: 'truncate'` gets the clipping; the tooltip has no keyword (`title:` is the label) |
+| Test hook | `data-metric-cell="<key>"` | same, through the passthrough: `data: { metric_cell: key }` |
+
+Read the first three rows together: **the figure grows 50% and gains weight, the label loses
+weight and gains transparency, and a highlighted cell stops recolouring its text.** A
+mechanical `tone: X → color: X` is wrong twice over — the defaults differ (`:neutral` vs
+`:primary`), and `emphasis:` has to be passed explicitly for `color:` to show at all.
+
+That is the trade the cell asks for, and it is the point: #1146 asked for a metric box that
+does not emit `.card`, is highlightable, and ships in the gallery. Pixel parity with one
+app's partial was never a requirement, and chasing it is how a component ends up with a class
+keyword per element. **Migrate the partial when the app is ready to adopt this typography**,
+in one commit that deletes it — keeping both is how the divergence survives.
+
+**Screen readers.** Both surfaces render the label and the figure as two `<p>`s, which is a
+caption and a number, not a term/definition pair. When the pairing is the point — a details
+block someone reads field by field — reach for `PropertiesTable` or `DescriptionList`, which
+render real `<dl>`/`<dt>`/`<dd>`. See [accessibility.md](accessibility.md#label--value-pairs).
 
 #### Tags
 
@@ -3851,6 +4083,13 @@ identity when it is not the one `filter_form` derives.
 A `default:` on an attribute offered in neither UI (`simple: false, advanced: false`) raises
 at class-definition time: it would have no control to sit in and no pill to remove, so it
 would filter invisibly.
+
+**Grouping answers this same question the other way.** `group_by_attribute :status,
+default: true` resolves inside the form and never redirects — see *A listing that opens
+grouped* above. The reasons for the URL do not carry over: grouping does not change the
+population (so a sort cannot silently move it), and the redirect this section describes turns
+itself off exactly where the grouping default is needed most, on a listing with filter
+persistence on.
 
 #### A filter with no caption (`label: false` + `aria_label:`)
 
