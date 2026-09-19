@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **La guía de componentes enseñaba `variant:` en `Bali::WorkflowSteps`, un keyword que el
+  componente rechaza desde v3.1** (#1159). El eje se llama `orientation:` —el mismo nombre que
+  usa `Bali::Stepper`, su hermano— y pasar el viejo levanta `ArgumentError`, pero la sección
+  WorkflowSteps de `docs/guides/components.md` siguió repartiéndolo tres minors (v3.1 → v3.4)
+  en la viñeta de opciones, la prosa del flujo horizontal y el ejemplo copiable. Los tres pasan
+  a `orientation:`, y la viñeta nombra el rename, porque hay anfitriones que aprendieron el
+  keyword viejo de esta página y no de una beta. **El guardia del componente se queda**: sin él
+  un `variant:` cae en `**options`, sale como atributo `variant="horizontal"` en el root y el
+  componente rinde vertical en silencio. Quien ya usaba `orientation:` no tiene nada que
+  cambiar. De paso, el párrafo de accesibilidad del flujo horizontal decía «see below» hacia
+  una explicación que está arriba.
 - **`Bali::Stepper` envolvía el título del paso cuando el bloque no rendereaba nada** (#1158).
   El template preguntaba por `content?`, y `content?` de ViewComponent contesta si se **pasó**
   un bloque, no si ese bloque escribió algo: el anfitrión que decide adentro —el `if` dentro
