@@ -6,10 +6,15 @@ module Bali
       class Component < ApplicationViewComponent
         renders_one :badge
 
-        def initialize(title:, subtitle: nil, icon: nil, **options)
+        # @param icon_class [String, nil] Extra classes for the icon alone. A class on
+        #   the header itself paints the `<h2>` with it too, because the Lucide SVG
+        #   inherits `currentColor` from this wrapper — so an amber icon over a neutral
+        #   title needs this hook (#1148).
+        def initialize(title:, subtitle: nil, icon: nil, icon_class: nil, **options)
           @title = title
           @subtitle = subtitle
           @icon = icon
+          @icon_class = icon_class
           @options = options
         end
 
@@ -36,7 +41,7 @@ module Bali
         def render_icon
           return unless @icon
 
-          render Bali::Icon::Component.new(@icon, class: "size-6 shrink-0")
+          render Bali::Icon::Component.new(@icon, class: class_names("size-6 shrink-0", @icon_class))
         end
 
         def render_titles

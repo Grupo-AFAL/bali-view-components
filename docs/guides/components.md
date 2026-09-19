@@ -427,6 +427,28 @@ Content container with optional header, image, and actions.
 - `shadow` - Enable shadow (default: true)
 - `href` - Renders the card's root element as an `<a class="card">` with a hover shadow affordance, making the whole card one link (drill-downs). The card's content must not contain links or buttons then — interactive content inside an `<a>` is invalid HTML (default: nil)
 
+**Slots:**
+- `with_header(title:, subtitle:, icon:, icon_class:, **html_options)` - The full header row:
+  an optional Lucide icon, the `<h2 class="card-title">`, an optional subtitle and a
+  `with_badge` slot. `icon_class` paints the icon **alone** — a class on the header would tint
+  the title with it too, because the SVG inherits `currentColor` from the wrapper.
+- `with_title(text, **html_options)` - A bare `<h2 class="card-title">`, for a text-only title.
+- `with_image(src:, href:, alt:, figure_class:)`, `with_action(href:, class:)`.
+
+**A title with an icon is `with_header`, not `with_title`.** The title slot takes text and
+HTML attributes, nothing else: `with_title("Needs your approval", icon: "triangle-alert")`
+renders `<h2 icon="triangle-alert">` — a literal attribute, silently, because every keyword
+that is not `class:` is passed through to the tag.
+
+```erb
+<%# ❌ paints an `icon` attribute on the <h2> and no icon %>
+<% c.with_title('Needs your approval', icon: 'triangle-alert') %>
+
+<%# ✅ %>
+<% c.with_header(title: 'Needs your approval', icon: 'triangle-alert',
+                 icon_class: 'text-warning') %>
+```
+
 #### Modal
 
 Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
@@ -3538,6 +3560,40 @@ Collapsible content section toggled by a trigger with a rotating chevron indicat
 
 **Options:**
 - `opened` - Render with the content revealed initially (default: `false`)
+- `content_class` - Extra classes for the revealed content box (default: `nil`)
+
+**Trigger slot** — `with_trigger(show_border:, icon_class:, **html_options)`:
+- `show_border` - Rule under the trigger (default: `true`)
+- `icon_class` - Extra classes for the chevron, e.g. `'text-primary'` (default: `nil`)
+- Anything else becomes an attribute of the `<button>`; `class:` is appended to Bali's own
+
+**The spacing is yours to change, without `!`.** The trigger's `pb-6 mb-6`, the content's
+`mb-8` and the chevron's `h-3.5` are declared in `reveal/index.css`, inside `@layer
+components`, instead of as utilities on the markup — so a utility you pass beats them, at any
+value:
+
+```erb
+<%= render Bali::Reveal::Component.new(content_class: 'mb-2') do |c| %>
+  <% c.with_trigger(class: 'pb-2 mb-2', show_border: false) do |trigger| %>
+    <% trigger.with_title do %>
+      <span class="font-semibold">Frequently asked questions</span>
+    <% end %>
+  <% end %>
+
+  <p>Compact accordion.</p>
+<% end %>
+```
+
+There is no `compact:` preset and none is needed — see the `compact` preview. In v3.4.0 and
+earlier those defaults were inline utilities and Bali won the tie (inside `@layer utilities`
+only source order decides, and Tailwind emits `.pb-0` before `.pb-6`), so a host had to write
+`pb-0! mb-0!`. That still works; it is no longer necessary. Note that `show_border: true`
+leaves the rule flush against the title once you take the padding to 0.
+
+**Rebuild your CSS when you take this version.** The defaults are no longer in the HTML, so
+until your build has processed the new `@import` in `bali/components.css` the accordion renders
+with no spacing at all. If you assemble the package's sheets by hand instead of importing
+`bali.css`, add `components/bali/reveal/index.css` to your list, layered in `components`.
 
 #### SortableList
 

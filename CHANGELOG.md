@@ -7,6 +7,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Card::Header` acepta `icon_class:`** (#1148). El icono del encabezado se pintaba
+  siempre con `size-6 shrink-0` y sin ningún gancho de color, así que una tarjeta «Requiere tu
+  validación» con icono ámbar y título neutro no se podía armar: el SVG de Lucide hereda
+  `currentColor`, de modo que `with_header(class: "text-warning")` tiñe el icono **y** el
+  `<h2 class="card-title">` juntos. `icon_class:` va sólo al icono:
+
+  ```erb
+  <% c.with_header(title: 'Requiere tu validación', icon: 'triangle-alert',
+                   icon_class: 'text-warning') %>
+  ```
+
+  Es opcional y aditivo: sin él el atributo `class` del icono sale byte a byte como antes
+  (`test/bali/components/card_test.rb` lo afirma). Medido en el navegador sobre el preview
+  nuevo `header_with_icon_class`: el icono pasa de `oklch(0.21 0.006 285.885)` —el mismo color
+  del título— a `oklch(0.82 0.189 84.429)`, con el título sin moverse. Ojo, antes de este
+  cambio pasar `icon_class:` no fallaba: se colaba como atributo HTML literal
+  (`<div class="flex items-center gap-3" icon_class="text-warning">`). Si tu app ya lo escribía
+  esperando que funcionara, ahora funciona y el atributo suelto desaparece del HTML.
+
+  **Para un título con icono, el slot es `with_header`, no `with_title`.** `with_title` recibe
+  texto y atributos HTML: `with_title("Requiere tu validación", icon: "triangle-alert")` pinta
+  `<h2 icon="triangle-alert">`, en silencio y sin icono. Está documentado en
+  `docs/guides/components.md`.
+
+- **`Bali::Reveal::Component` acepta `content_class:`** (#1148). La caja de contenido no
+  recibía nada del llamador, así que el hueco de abajo (`mb-8`) no se podía tocar desde la
+  vista. `content_class: "mb-2"` añade clases a esa caja, que es la otra mitad de un acordeón
+  compacto.
+
+### Changed
+
+- **El espaciado de `Bali::Reveal` ahora lo gana el anfitrión** (#1148). El trigger traía
+  `pb-6 mb-6` y el contenido `mb-8` escritos como utilidades en el atributo `class`, y desde
+  una app no había forma de bajarlos: las utilidades del anfitrión caen en la misma
+  `@layer utilities` con la misma especificidad, y dentro de una capa sólo desempata el orden
+  de emisión — Tailwind emite cada familia de espaciado por valor ascendente, con el 0 primero
+  (en la hoja compilada `.ml-0{margin-left:0}` va inmediatamente antes de `.ml-1`), así que el
+  6 de Bali siempre se declaraba después del 0 del anfitrión y siempre ganaba. La única salida
+  era `pb-0! mb-0!`.
+
+  Los valores por omisión se mudan a `app/components/bali/reveal/index.css`, dentro de
+  `@layer components`, que las utilidades del anfitrión vencen por capa, sin importar la
+  especificidad y sin `!`:
+
+  ```erb
+  <%= render Bali::Reveal::Component.new(content_class: 'mb-2') do |c| %>
+    <% c.with_trigger(class: 'pb-2 mb-2', show_border: false) do |trigger| %>
+  ```
+
+  **El mismo arreglo alcanza al chevron.** `Reveal::Trigger` ya ofrecía `icon_class:`, pero lo
+  concatenaba con `h-3.5` en el mismo atributo, así que era cara o cruz: `icon_class: "h-2"`
+  medía 14px —el valor de Bali— y `icon_class: "h-6"` sí ganaba, sólo porque `.h-6` se emite
+  después. Ahora `h-3.5` es la regla `.trigger-icon` de la misma hoja y `icon_class: "h-2"`
+  mide 8px. Es la caja del icono; el glifo lo dimensiona `Bali::Icon` con `*:h-4 *:w-4` y no
+  se mueve.
+
+  **No cambia ni un píxel por omisión —si reconstruís tu CSS.** Medido con `getComputedStyle`
+  sobre `/lookbook/preview/bali/reveal/default`: el trigger sigue en 24px de `padding-bottom` y
+  24px de `margin-bottom`, y el contenido en 32px. Lo que cambia es quién gana cuando hay una
+  utilidad encima: antes, con `pb-0 mb-0` en el trigger, el cómputo seguía siendo 24px/24px;
+  ahora es 0px/0px (y 8px/8px con `pb-2 mb-2`, en el preview nuevo `compact`).
+  `cypress/e2e/reveal-spacing.cy.js` mide los seis valores en un navegador.
+
+  **La condición no es una formalidad: los valores ya no están en el HTML.** Viven en
+  `reveal/index.css`, que entra a tu hoja recién cuando tu build procesa el `@import` nuevo de
+  `bali/components.css`. Una app que sirva un build cacheado o commiteado —o que arme las hojas
+  a mano, algo que `app/assets/stylesheets/bali.css` contempla— pasa de 24px a 0px sin ningún
+  error. Reconstruí el CSS al subir; y si importás las hojas de componente una por una, agregá
+  `components/bali/reveal/index.css` con `layer(components)`.
+
+  **Qué revisar al subir.** Si tu app ya pasaba una utilidad de padding o margen al trigger
+  —`c.with_trigger(class: "pb-2")`— hasta ahora no hacía nada y veías 24px; ahora verás 8px.
+  Es justo el defecto que se arregla, pero es un cambio visible. Lo mismo con un `icon_class:`
+  de altura menor a `h-3.5`. Quien se defendió con `pb-0! mb-0!` sigue igual. Y `pb-6`/`mb-6`
+  ya no están en el atributo `class` del botón, ni `h-3.5` en el del icono: una aserción de
+  prueba que busque `.reveal-trigger.pb-6` o `.trigger-icon.h-3\.5` deja de encontrarlas (las
+  clases `.reveal-trigger` y `.trigger-icon` y el resto del atributo no cambian).
+
+  **Al bajar el espaciado a 0, `show_border: true` deja la línea pegada al título.** El borde
+  sigue siendo una utilidad en línea y no se movió; con `pb-0` no queda aire entre el texto y
+  la regla, así que un acordeón muy compacto normalmente quiere `show_border: false`.
+
+  No es un barrido de la biblioteca: el resto de los componentes sigue con su espaciado en
+  línea. Este es el caso donde se midió que estorbaba. La regla que lo decide quedó escrita en
+  `.claude/CLAUDE.md`, en la tabla de capas.
+
+### Fixed
+
+- **Las previews `header_with_badge` y `header_complete` de `Bali::Card` pintaban el encabezado
+  sin su badge** (#1148). El envoltorio recibía `justify-between` —el slot estaba declarado— y
+  salía vacío: dentro de un método de preview `render` es el de `ViewComponent::Preview`, no el
+  de la vista, así que el `Bali::Tag::Component` se perdía en silencio. Las dos pasan a
+  plantilla, como el resto de las previews de Card que funcionan, y
+  `test/requests/card_header_previews_test.rb` afirma que el badge sale.
 ### Fixed
 
 - **`Bali::Table` emitía el `id:` dos veces: en el `<div>` contenedor y en la `<table>`.** Dos
