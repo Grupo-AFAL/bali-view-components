@@ -211,6 +211,23 @@ module Bali
         )
       end
 
+      # @label With An Opt-In Column
+      #
+      # "Created At" is declared `visible: false`: the host ships it off and the user turns it
+      # on. The only preview in the package with an off-by-default column, so it is the one that
+      # exercises the column-memory branch where the stored state matches what the server
+      # declared, and therefore belongs to nobody (#1144).
+      def with_optional_column
+        render_with_template(
+          template: "bali/data_table/previews/with_optional_column",
+          locals: {
+            headers: HEADERS,
+            records: RECORDS,
+            filter_attributes: FILTER_ATTRIBUTES
+          }
+        )
+      end
+
       # @label With Summary
       def with_summary
         render_with_template(
@@ -414,6 +431,42 @@ module Bali
             { attribute: :budget_band, label: "Budget" },
             { attribute: :studio_name, label: "Studio", value: ->(movie) { movie.studio&.name } }
           ]
+        )
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
+
+        render_with_template(
+          template: "bali/data_table/previews/with_grouping",
+          locals: { filter_form: filter_form, pagy: pagy, movies: movies }
+        )
+      end
+
+      class DefaultGroupedMoviesFilterForm < Bali::FilterForm
+        group_by_attribute :genre
+        group_by_attribute :status, default: true
+        group_by_attribute :budget_band, label: "Budget"
+      end
+
+      # @label With Default Grouping (Live DB)
+      # `group_by_attribute :status, default: true` — the listing opens grouped by status
+      # without the URL saying anything, and without the host touching `@group_by` after
+      # `super`. The default is the LAST rung: the URL wins, then an applied saved view, then
+      # the choice stored in the filter cache, and only then the declaration. "No grouping"
+      # wins over it too, or a listing with a default could never be ungrouped.
+      #
+      # A default is DERIVED: it is never written to the cache, a saved view payload or a
+      # hidden field, so changing it in code changes what users who already visited see.
+      #
+      # The param below: `unset` means the URL says NOTHING and the default speaks; `none` is
+      # an explicit "no grouping", which is what the control's own item sends where a default
+      # exists. `unset` is here because Lookbook cannot tell a missing param from an empty one.
+      # @param group_by select { choices: [unset, none, genre, status, budget_band] }
+      # @param page number
+      def with_default_grouping(group_by: "unset", page: 1)
+        preview_params = { q: ActionController::Parameters.new({}), page: page }
+        preview_params[:group_by] = group_by unless group_by.to_s == "unset"
+
+        filter_form = Bali::DataTable::Preview::DefaultGroupedMoviesFilterForm.new(
+          Movie.all, ActionController::Parameters.new(preview_params)
         )
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
 

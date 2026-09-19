@@ -55,7 +55,7 @@ the daisyUI widget of the same name:
 | Bali component | Renders | Notes |
 |----------------|---------|-------|
 | `Button` / `Link` / `DeleteLink` | `btn btn-*` | One shared table, three axes: `variant:` (colour), `style:` (`outline`/`soft`), `size:` — `Bali::ButtonTaxonomy` |
-| `Card` / `StatCard` | `card bg-base-100 card-border` | StatCard is the Nexus stats pattern, packaged |
+| `Card` / `StatCard` | `card bg-base-100 card-border` | StatCard is the Nexus stats pattern, packaged. Two surfaces: `surface: :cell` drops the card for a flat `rounded-box border` cell, for grids of figures that live inside a card (#1146) |
 | `Table` | `table table-zebra` in an `overflow-x-auto` container | |
 | `Tabs` | `tabs` (`tabs-box`/`tabs-border` styles) | ARIA tabs pattern when panelled |
 | `Dropdown` | `dropdown dropdown-content menu` | |
