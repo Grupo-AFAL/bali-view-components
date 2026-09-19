@@ -2,6 +2,11 @@
 
 module Bali
   class FilterForm
+    # Does NOT inherit from `ActiveRecord::StatementInvalid` on purpose: a generic
+    # `rescue_from` over database errors would swallow the message this class exists to
+    # deliver. The adapter's own error stays reachable as `#cause`.
+    class GroupByOrderingError < StandardError; end
+
     # GroupByConfiguration provides DSL and methods for query-aware row grouping.
     #
     # Grouping is driven by a whitelisted top-level `group_by` param (NOT a
@@ -11,13 +16,29 @@ module Bali
     #   2. exposes GLOBAL per-group counts over the full filtered (unpaginated)
     #      result via {#group_counts}.
     #
-    # Tres preguntas distintas, tres predicados — confundirlos es EL bug de este módulo:
-    #   * ESTADO      — {#group_by} / {#group_by_active?}: ¿hay una agrupación elegida?
-    #     Manda la PRESERVACIÓN (hidden fields, caché, payload de vistas guardadas).
-    #   * MODO        — {#group_by_applies?}: ¿este modo de visualización aplica agrupación?
-    #     Manda la VISIBILIDAD del control.
-    #   * APLICACIÓN  — {#group_by_applied} / {#group_by_applied?}: ¿se está aplicando ahora?
-    #     Manda ordenamiento, conteos y bandas de grupo.
+    # Three different questions, three predicates — confusing them is THE bug of this module:
+    #   * STATE       — {#group_by} / {#group_by_active?}: is there a chosen grouping?
+    #     Drives PRESERVATION (hidden fields, cache, saved view payloads).
+    #   * MODE        — {#group_by_applies?}: does this display mode apply grouping?
+    #     Drives the VISIBILITY of the control.
+    #   * APPLICATION — {#group_by_applied} / {#group_by_applied?}: is it applying right now?
+    #     Drives ordering, counts and group bands.
+    #
+    # And an ORIGIN, which is not a fourth state but where the current one came from:
+    #   * ORIGIN      — {#group_by_from_default?}: a default is DERIVED. It is never written
+    #     to the URL, the filter cache or a saved view payload, so only what the user chose
+    #     is preserved.
+    #
+    # Precedence, top to bottom (resolved in {Bali::FilterForm#initialize}):
+    #   1. `?group_by=` in the URL, empty included — it has to beat the default or the user
+    #      cannot ungroup;
+    #   2. an applied saved view payload (`?saved_view=`): the `group_by` key PRESENT is the
+    #      view speaking, even valued {GroupByConfiguration::NO_GROUPING_VALUE}; the key
+    #      ABSENT is silence and lets the default speak;
+    #   3. the choice stored in the persistence cache (`group_by_chosen` tells an explicit
+    #      "no grouping" apart from "nobody said anything");
+    #   4. the `default: true` declaration;
+    #   5. no grouping.
     #
     # Security boundary: the raw param NEVER reaches `.group()`/`.order()`.
     # {#resolve_group_by} returns the declared symbol only when the raw value
@@ -47,6 +68,14 @@ module Bali
       # contenido sin que nada en pantalla lo explique.
       DEFAULT_GROUP_BY_MODES = %i[table].freeze
 
+      # How "no grouping" travels once the listing declares a `default:` (#1156). An empty
+      # `?group_by=` cannot carry it: Ransack's `sort_link` DROPS empty params while composing
+      # the href (measured: `group_by=genre` survives it, `group_by=` disappears), and so do
+      # the hidden fields of both filter forms. A saved view payload has no way to store a nil
+      # either. Any undeclared value already means "no grouping" ({#resolve_group_by}); this
+      # only gives it a spelling that survives transport.
+      NO_GROUPING_VALUE = "none"
+
       class_methods do
         # Storage for group_by attribute definitions
         def defined_group_by_attributes
@@ -72,9 +101,15 @@ module Bali
         #   (`worker_legal_entity_id`) es un NoMethodError — de ahí este hook. Tiene que
         #   devolver el MISMO valor que devolvió el GROUP BY: la búsqueda del conteo global
         #   es por valor (ver {#group_counts} y Bali::Table#global_group_count).
-        def group_by_attribute(attribute, label: nil, sql: nil, value: nil)
+        # @param default [Boolean] Open the listing grouped by this attribute when nobody
+        #   said anything (#1156). Only one declaration may carry it. A boolean and not a
+        #   callable: the default is resolved while the form is built, with no instance to
+        #   evaluate against — the same limitation {DefaultFilters} documents. It is DERIVED,
+        #   never written to the filter cache or a saved view payload, so changing it here
+        #   changes what users who already visited the listing see.
+        def group_by_attribute(attribute, label: nil, sql: nil, value: nil, default: false)
           defined_group_by_attributes << {
-            attribute: attribute.to_sym, label: label, sql: sql, value: value
+            attribute: attribute.to_sym, label: label, sql: sql, value: value, default: default
           }
         end
 
@@ -85,16 +120,20 @@ module Bali
         end
       end
 
-      # Normalized group_by definitions ({attribute:, label:, sql:, value:}).
+      # Normalized group_by definitions ({attribute:, label:, sql:, value:, default:}).
       # Prefers instance-level configuration over the class DSL. Validating here y no en el
       # `group_by_attribute` es lo único posible: el modelo entra con el scope, o sea recién
       # al construir el form.
       #
       # @return [Array<Hash>]
       def group_by_definitions
-        @group_by_definitions ||= normalize_group_by_attributes(
-          @instance_group_by_attributes.presence || self.class.defined_group_by_attributes
-        )
+        @group_by_definitions ||= begin
+          definitions = normalize_group_by_attributes(
+            @instance_group_by_attributes.presence || self.class.defined_group_by_attributes
+          )
+          validate_single_group_by_default!(definitions)
+          definitions
+        end
       end
 
       # Declared group_by attribute names (the whitelist).
@@ -123,6 +162,43 @@ module Bali
       # @return [Boolean]
       def group_by_active?
         !@group_by.nil?
+      end
+
+      # @return [Symbol, nil] the attribute declared `default: true` (#1156)
+      def default_group_by
+        return @default_group_by if defined?(@default_group_by)
+
+        @default_group_by = group_by_definitions.find { |definition| definition[:default] }
+                                                &.fetch(:attribute)
+      end
+
+      # Gates PRESERVATION: writing a re-derived default to the URL, the cache or a view
+      # payload would turn it into the choice it is not.
+      #
+      # @return [Boolean]
+      def group_by_from_default?
+        @group_by_from_default == true
+      end
+
+      # How THIS listing spells "no grouping": empty while there is no default (what the
+      # control has emitted since #634), {NO_GROUPING_VALUE} once there is one.
+      #
+      # @return [String]
+      def no_grouping_value
+        default_group_by ? NO_GROUPING_VALUE : ""
+      end
+
+      # What the user chose, spelled so it survives transport, or nil when there is nothing
+      # to preserve. Both surfaces that carry the choice outside the form — a GET submit's
+      # hidden field and a saved view payload — must use this same value, or the link and the
+      # submit would say different things.
+      #
+      # @return [String, nil]
+      def group_by_preserved_value
+        return @group_by.to_s if group_by_active? && !group_by_from_default?
+        return no_grouping_value if !group_by_active? && default_group_by
+
+        nil
       end
 
       # ¿La agrupación APLICA en el modo de visualización actual? Pregunta sobre el MODO, no
@@ -266,6 +342,21 @@ module Bali
         group_by_attributes.find { |attribute| attribute.to_s == raw_value.to_s }
       end
 
+      # The question is `@group_by_chosen` and not `@group_by.nil?`: "no grouping" is a
+      # choice that leaves the state nil and has to survive the default. Runs AFTER
+      # persistence, or the default would enter `fetch_stored_filter_state` as if the user
+      # had picked it and be written to the cache on the first filter submit (#1156).
+      def apply_default_group_by
+        return if @group_by_chosen
+        return unless @group_by.nil?
+
+        default = default_group_by
+        return if default.nil?
+
+        @group_by = default
+        @group_by_from_default = true
+      end
+
       # Prepend the group field as the primary sort so rows cohere into groups,
       # keeping any user column sort as the secondary sort (sort-within-groups).
       # Ransack whitelists sort columns, so building the `s` array is safe.
@@ -291,6 +382,85 @@ module Bali
         return relation unless group_by_definition_for(group_by_applied)[:sql]
 
         relation.reorder(Arel::Nodes::Ascending.new(group_by_expression), *relation.order_values)
+      end
+
+      # Grouping ORDERS BY the group expression, and over a scope with `SELECT DISTINCT`
+      # Postgres requires every ORDER BY expression to appear in the select list (#1156).
+      # Three of the four ways to group do not — measured in the dummy:
+      #
+      #   genre       -> ORDER BY "movies"."genre" ASC                  (in movies.*)
+      #   studio_name -> ORDER BY "tenants"."name" ASC                  (absent)
+      #   budget_band -> ORDER BY CASE WHEN "movies"."budget" ... END   (absent)
+      #   budgeted    -> ORDER BY CASE WHEN movies.budget IS NULL ...   (absent)
+      #
+      # It cannot be detected up front without false positives: a host that already wrote
+      # `.select("movies.*", "tenants.name")` runs fine, and sqlite and MySQL without
+      # ONLY_FULL_GROUP_BY accept all four. The module goes on the relation and not around a
+      # call because Bali does not materialize it — the host writes `pagy(form.result)` — and
+      # `extending` survives the spawns pagy chains.
+      def apply_group_by_diagnostics(relation)
+        return relation unless group_by_applied?
+        return relation unless relation.respond_to?(:extending)
+
+        relation.extending(group_by_diagnostics_module)
+      end
+
+      def group_by_diagnostics_module
+        form = self
+
+        @group_by_diagnostics_module ||= Module.new do
+          define_method(:exec_queries) do |&block|
+            super(&block)
+          rescue ActiveRecord::StatementInvalid => e
+            translated = form.send(:translate_group_by_ordering_error, e)
+            raise translated if translated
+
+            raise
+          end
+        end
+      end
+
+      # PostgreSQL and MySQL say the same thing in different words.
+      DISTINCT_ORDER_CONFLICT = /
+        for\ SELECT\ DISTINCT,\ ORDER\ BY\ expressions\ must\ appear\ in\ select\ list
+        | incompatible\ with\ DISTINCT
+      /xi
+
+      def translate_group_by_ordering_error(error)
+        return nil unless group_by_applied?
+        return nil unless error.message.match?(DISTINCT_ORDER_CONFLICT)
+
+        GroupByOrderingError.new(group_by_ordering_error_message)
+      end
+
+      def group_by_ordering_error_message
+        listing = [ self.class.name, storage_id.presence && %(listing "#{storage_id}") ]
+                  .compact.join(", ")
+
+        "#{listing}: the database rejected the ORDER BY that grouping by " \
+          ":#{group_by_applied} adds over a scope with SELECT DISTINCT " \
+          "(ORDER BY #{group_by_ordering_expression_sql}). A SELECT DISTINCT only accepts " \
+          "ORDER BY expressions that appear in its select list, and an association path, a " \
+          "ransacker or a `sql:` expression never does. Three ways out: drop the `.distinct` " \
+          "from the scope this form filters (deduplicate the join with a subquery — " \
+          "`where(id: inner.select(:id))` — instead); add the expression to the select list " \
+          "yourself (`scope.select(\"movies.*\", \"tenants.name\")`), knowing it changes WHAT " \
+          "gets deduplicated; or group by a column of the base table, the only shape always " \
+          "present in `SELECT DISTINCT movies.*`. The adapter's own error is this one's cause."
+      end
+
+      # Wrapping in `Arel::Nodes::Ascending` is both what makes this byte-identical to the
+      # fragment the adapter rejected and the only thing that compiles: two of the four
+      # grouping shapes return an `Arel::Attributes::Attribute`, which does NOT respond to
+      # `to_sql`, and falling back to `to_s` printed a Struct's inspect of the whole model
+      # into the message (1726 characters for `genre`). For the message, never for the query.
+      def group_by_ordering_expression_sql
+        expression = group_by_expression
+        return expression.to_s if expression.nil? || expression.is_a?(Symbol)
+
+        Arel::Nodes::Ascending.new(expression).to_sql(group_by_model || Arel::Table.engine)
+      rescue StandardError
+        group_by_applied.to_s
       end
 
       # El `sql:` declarado, resuelto. Un String se envuelve en `Arel.sql` — viene de la
@@ -323,14 +493,40 @@ module Bali
           definition =
             if attribute.is_a?(Hash)
               { attribute: attribute[:attribute].to_sym, label: attribute[:label],
-                sql: attribute[:sql], value: attribute[:value] }
+                sql: attribute[:sql], value: attribute[:value], default: attribute[:default] }
             else
-              { attribute: attribute.to_sym, label: nil, sql: nil, value: nil }
+              { attribute: attribute.to_sym, label: nil, sql: nil, value: nil, default: false }
             end
 
+          validate_group_by_default!(definition)
           validate_group_by_definition!(definition)
           definition
         end
+      end
+
+      # A callable here would be TRUTHY and become the default without anyone evaluating it.
+      def validate_group_by_default!(definition)
+        default = definition[:default]
+        return if default.nil? || default == true || default == false
+
+        raise ArgumentError,
+              "group_by_attribute :#{definition[:attribute]}: `default:` takes true or false, " \
+              "not #{default.class}. The grouping default is resolved while the form is built, " \
+              "so there is no instance to evaluate a callable against — pick the band the " \
+              "listing opens on in the declaration, or set `@group_by` yourself after `super`."
+      end
+
+      # The `uniq`: the SAME attribute declared twice — a subclass repeating its parent's —
+      # is still one default, and not the contradiction this raises on.
+      def validate_single_group_by_default!(definitions)
+        defaults = definitions.select { |definition| definition[:default] }
+                              .map { |definition| definition[:attribute] }.uniq
+        return if defaults.size <= 1
+
+        raise ArgumentError,
+              "group_by_attribute: #{defaults.map { |a| ":#{a}" }.join(' and ')} are both " \
+              "declared `default: true`, so the listing would have two bands to open on. " \
+              "A listing opens on ONE question: keep the default on a single declaration."
       end
 
       # Revienta al CONSTRUIR el form, no cuando alguien elige la agrupación en la pantalla.
