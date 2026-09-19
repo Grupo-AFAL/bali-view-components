@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **Los comentarios se ganan su lugar, y el código va en inglés** (#1172). Dos reglas nuevas en
+  `.claude/CLAUDE.md`. Un comentario tiene que cargar lo que el código no puede decir —una
+  medición, una restricción que no se ve desde esa línea, o por qué lo obvio está mal—; narrar el
+  cambio o contar la investigación va en el cuerpo del PR. El CHANGELOG se mide con la misma vara.
+  Y todo el repo se escribe en inglés: código, identificadores, pruebas, comentarios y la copia de
+  los previews; el español se queda en el CHANGELOG, el mensaje de commit y el cuerpo del PR, y
+  los datos de muestra de un preview siguen siendo contenido. **Nada lo hace cumplir**: 121
+  archivos todavía traen comentarios en español y se traducen al tocarlos por otra razón, no en
+  una barrida.
+
+  **Para un anfitrión no cambia nada** — es guía para quien escribe en este repo, no API. Se
+  calibró contra #1165, que llevó ~40 líneas de comentario y 66 de CHANGELOG para tres líneas de
+  CSS y cuatro versiones.
+
 ### Added
 
 - **`Bali::StatCard` tiene una segunda superficie: `surface: :cell`** (#1146). La misma
