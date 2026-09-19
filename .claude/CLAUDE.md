@@ -89,10 +89,26 @@ showing a Mexican app what it will look like, and that name is the input to an i
 what a reader of the source reads: identifiers, comments and test names — Cypress
 `describe`/`it` included, where 32 of the 37 Spanish ones live.
 
-**Never add Spanish. Translate what is there as you touch it.** 121 files still carry Spanish
-comments, and nothing enforces this: a file you are editing for another reason leaves your hands
-in English, and that is the whole mechanism. Adding Spanish is a review blocker; translating the
-old is opportunistic, never a sweep of its own.
+**Never add Spanish. Translate what is there as you touch it.** `bundle exec rubocop` is what
+enforces it now: `Bali/EnglishOnly`, from the fleet's `bali-rubocop` gem, reads comments and test
+names — accented Spanish and accent-free Spanish alike — and today's debt is frozen in
+`.rubocop_todo.yml`, 142 files and 938 findings. Anything outside that list is already red, so a
+new or moved file is born in English. Adding Spanish is a review blocker; translating the old is
+opportunistic, never a sweep of its own.
+
+**When you translate a file, delete its line from `.rubocop_todo.yml`.** Never regenerate the
+file to make a run go green, and never add a line to it: the list only shrinks. An entry for a
+file that no longer exists, or one already translated, costs nothing and fails nothing — that is
+deliberate, so two translation PRs never break each other on merge.
+
+Three pockets the cop cannot reach, all on review: the `<%# %>` comments of the 610 `.erb`
+templates and the `describe`/`it` of the Cypress specs (rubocop only parses Ruby), and the ten
+`preview.rb` that `AllCops` excludes wholesale.
+
+Its one false positive is an English test name quoting Spanish UI — `test "renders the
+Configuración entry"`, 1 in 938 here. Put the term in `AllowedWords` under
+`inherit_mode: { merge: [AllowedWords] }`, or disable that line; do not translate the UI string
+to satisfy the cop.
 
 **A comment has to carry what the code cannot.** One of these:
 
