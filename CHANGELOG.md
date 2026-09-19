@@ -45,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   como atributo — el modo de falla de #1111, que `block_editor_group` reprodujo mientras se
   escribía esto (`<div input_class="…">`) y que la prueba ahora cubre.
 
+- **Trinquete de idioma: el español no vuelve a entrar al código.**
+  `test/bali/spanish_in_code_test.rb` pone la build en rojo cuando un archivo que no figura
+  en `test/bali/spanish_in_code_baseline.txt` estrena un acento o un signo de apertura en
+  una línea de comentario o en un nombre de prueba, y cuando uno que sí figura acumula más
+  líneas de las registradas. La lista base arranca en 253 archivos y 2 708 líneas y sólo
+  encoge: una entrada obsoleta no rompe nada, para que los lotes de traducción se puedan
+  mergear en cualquier orden. Los datos de muestra en líneas de código —`Ana García López`,
+  `Priorización`— quedan fuera por construcción, y la línea que de verdad es contenido se
+  libera con `spanish-ok: <razón>`. Interno: no cambia nada para las apps host.
+
 ### Fixed
 
 - **`control_class:` deja de descartarse en silencio en las familias con addon** (#1147).
