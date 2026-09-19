@@ -16,13 +16,13 @@ module Bali
     #   2. exposes GLOBAL per-group counts over the full filtered (unpaginated)
     #      result via {#group_counts}.
     #
-    # Tres preguntas distintas, tres predicados — confundirlos es EL bug de este módulo:
-    #   * ESTADO      — {#group_by} / {#group_by_active?}: ¿hay una agrupación elegida?
-    #     Manda la PRESERVACIÓN (hidden fields, caché, payload de vistas guardadas).
-    #   * MODO        — {#group_by_applies?}: ¿este modo de visualización aplica agrupación?
-    #     Manda la VISIBILIDAD del control.
-    #   * APLICACIÓN  — {#group_by_applied} / {#group_by_applied?}: ¿se está aplicando ahora?
-    #     Manda ordenamiento, conteos y bandas de grupo.
+    # Three different questions, three predicates — confusing them is THE bug of this module:
+    #   * STATE       — {#group_by} / {#group_by_active?}: is there a chosen grouping?
+    #     Drives PRESERVATION (hidden fields, cache, saved view payloads).
+    #   * MODE        — {#group_by_applies?}: does this display mode apply grouping?
+    #     Drives the VISIBILITY of the control.
+    #   * APPLICATION — {#group_by_applied} / {#group_by_applied?}: is it applying right now?
+    #     Drives ordering, counts and group bands.
     #
     # And an ORIGIN, which is not a fourth state but where the current one came from:
     #   * ORIGIN      — {#group_by_from_default?}: a default is DERIVED. It is never written
