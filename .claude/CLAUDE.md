@@ -82,6 +82,18 @@ stays in Spanish. Enforced by `.claude/hooks/pr-closes-keyword.sh` (PreToolUse).
 copy inside Lookbook previews. Spanish stays in the prose written for the team: the CHANGELOG,
 the commit message and the PR body.
 
+Sample data is content, not code: a preview seeding `Ana García López` or `Priorización` is
+showing a Mexican app what it will look like, and that name is the input to an initials test.
+`config/locales/bali_view.es.yml` is content too, and so is
+`app/services/rrule/spanish_humanizer.rb`, whose output *is* Spanish. What has to be English is
+what a reader of the source reads: identifiers, comments and test names — Cypress
+`describe`/`it` included, where 32 of the 37 Spanish ones live.
+
+**Never add Spanish. Translate what is there as you touch it.** 121 files still carry Spanish
+comments, and nothing enforces this: a file you are editing for another reason leaves your hands
+in English, and that is the whole mechanism. Adding Spanish is a review blocker; translating the
+old is opportunistic, never a sweep of its own.
+
 **A comment has to carry what the code cannot.** One of these:
 
 - a **measurement** — a contrast ratio, a byte count, a benchmark. The number is not recoverable
@@ -95,6 +107,10 @@ Everything else is noise: narrating the change (the diff already says it), recou
 investigation or what you decided *not* to do (that belongs in the PR body), restating in prose
 the declaration written underneath. The headers of the unlayered CSS files are the shape to
 copy — the rule they have to beat and the measurement that put them there, and nothing else.
+
+Three kinds are not prose and are not optional: `@param` and `@label` in a `preview.rb` (Lookbook
+builds the preview's controls from them), YARD on a public API, and the pragmas
+(`frozen_string_literal`, `rubocop:disable`).
 
 The CHANGELOG is held to the same bar: what changed, who it affects, what they have to do about
 it. The evidence behind it lives in the PR.

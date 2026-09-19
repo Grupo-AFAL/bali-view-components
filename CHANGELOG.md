@@ -14,7 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   medición, una restricción que no se ve desde esa línea, o por qué lo obvio está mal—; narrar el
   cambio o contar la investigación va en el cuerpo del PR. El CHANGELOG se mide con la misma vara.
   Y todo el repo se escribe en inglés: código, identificadores, pruebas, comentarios y la copia de
-  los previews; el español se queda en el CHANGELOG, el mensaje de commit y el cuerpo del PR.
+  los previews; el español se queda en el CHANGELOG, el mensaje de commit y el cuerpo del PR, y
+  los datos de muestra de un preview siguen siendo contenido. **Nada lo hace cumplir**: 121
+  archivos todavía traen comentarios en español y se traducen al tocarlos por otra razón, no en
+  una barrida.
 
   **Para un anfitrión no cambia nada** — es guía para quien escribe en este repo, no API. Se
   calibró contra #1165, que llevó ~40 líneas de comentario y 66 de CHANGELOG para tres líneas de
