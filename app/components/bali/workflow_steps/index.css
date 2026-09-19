@@ -1,11 +1,11 @@
-/* WorkflowSteps component — a flow with a verdict per step, in three shapes.
+/* WorkflowSteps component — a flow with a verdict per step, in four shapes.
  *
- * `.workflow-steps` is the root in all three, and carries whatever is shared:
+ * `.workflow-steps` is the root in all four, and carries whatever is shared:
  * the body typography every step renders the same way, the numbered circle
- * (vertical and rail draw one; horizontal draws a dot instead), and the N/M
- * header (horizontal and rail wrap their list in a div that can hold one).
- * The rest hangs off the orientation class next to it, because the three
- * shapes agree on almost nothing above the title.
+ * (every shape but the horizontal one draws one; that one draws a dot), and
+ * the N/M header (every shape but the vertical one wraps its list in a div
+ * that can hold one). The rest hangs off the orientation class next to it,
+ * because the shapes agree on almost nothing above the title.
  *
  * Vertical: two-column grid per step, marker (connector + circle) and body. The
  * connector is absolutely positioned from the circle's centre down through the
@@ -182,27 +182,18 @@
    `.workflow-steps-<orientation>` the other three use: `.workflow-steps-progress`
    is already the N/M header, which this shape can render inside this same root. */
 .workflow-steps-progress-rail {
+  /* The row rules through `.workflow-step-connector` are the rail's, repeated
+     rather than shared; the reasons behind each one are in that block above. */
   .workflow-steps-list {
     @apply flex list-none items-start overflow-x-auto;
-
-    /* The list is a tab stop — the only way to scroll the row without a
-       pointer. `:focus-visible`, not `:focus`, so clicking the row does not
-       draw an outline nobody asked for. */
     @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
 
   .workflow-step {
-    /* `flex-1` has basis 0, so content never widens a column and the
-       connector's `w-full` really is centre-to-centre. `min-w` is the
-       readability floor that turns nine steps on a phone into a scroll
-       rather than nine slivers. */
     @apply flex min-w-[6rem] flex-1 flex-col items-center text-center;
   }
 
   .workflow-step-marker {
-    /* The positioned ancestor the connector needs: without it the nearest one
-       is the root `.workflow-steps`, and every connector stacks in its
-       top-left corner. `isolate` keeps the circle's z-index local. */
     @apply relative isolate flex w-full justify-center;
 
     /* The opaque ground the state fills sit on. The connector runs
@@ -213,14 +204,17 @@
        above the connector (`z-auto`) and below the circle (`z-10`); the size
        tracks `.workflow-step-circle`'s `h-8 w-8` in the root block. */
     &::before {
-      @apply absolute top-0 left-1/2 z-[1] h-8 w-8 -translate-x-1/2 rounded-full bg-base-100 content-[''];
+      @apply absolute top-0 left-1/2 z-[1] h-8 w-8 -translate-x-1/2 rounded-full content-[''];
+
+      /* The disc cannot read which surface it was dropped on, and `inherit`
+         yields transparent — the marker's own background. Measured inside a
+         `bg-base-200` card, a `base-100` disc is a halo of 1.06:1 in light and
+         1.21:1 in `afal-dark`; a host on another surface names its own here. */
+      background-color: var(--bali-workflow-steps-surface, var(--color-base-100));
     }
   }
 
   .workflow-step-connector {
-    /* From this circle's centre (`top-4` is half of the 2rem circle) one full
-       column right, which is the next circle's centre. 2px against the rail's
-       6px: this line is the flow's reach, not a second reading of the state. */
     @apply absolute top-4 left-1/2 h-0.5 w-full -translate-y-1/2;
   }
 

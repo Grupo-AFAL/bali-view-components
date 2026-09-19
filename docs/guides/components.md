@@ -1257,14 +1257,24 @@ connector takes the state of the step it leads to and paints it — `bg-error`
 into a rejection, `bg-base-300` into a pending step — so the line reads every
 verdict a second time. In `:progress` the line answers one question in two
 colours: the connector leaving step *i* is `primary` when step *i+1* was
-**reached** and `base-300` when it was not. Reached is every state but
-`:pending`, `:skipped` included — a step the route went around was still passed
-— so the coloured run ends at the current step's circle and stops there.
+**reached** and grey when it was not. Reached is every state but `:pending`,
+`:skipped` included — a step the route went around was still passed — so **the
+coloured run ends at the first `:pending` step**, and nowhere else.
 
-That rule reads a chain as a climb. A `:pending` step sitting *before* a reached
-one — parallel approvals, a branch that jumps ahead — leaves a coloured
-connector running out of a grey circle, which is nonsense in a progress line and
-exactly right in a rail. When a chain can do that, ask for `:rail`.
+That is the whole rule, and three chains show that "ends at the first
+`:pending` step" is not the same sentence as "ends at the current step":
+
+| Chain | The line | Why |
+|---|---|---|
+| `[:success, :pending, :success, :current, :pending]` | grey, **primary**, primary, grey | a `:pending` step *before* a reached one leaves a coloured connector running out of a grey circle |
+| `[:skipped, :skipped, :skipped]` | primary, primary | a route that went around every step reached them all, so the line runs full length under three hollow circles |
+| `[:success, :current, :error, :pending]` | primary, **primary**, grey | a reached step after the current one carries the colour past it |
+
+All three are the rule working, not failing: the shape reads a chain as a climb
+and the data model has no second axis to read instead. The first is the one that
+turns up in real screens — parallel approvals, a branch that jumps ahead — and
+when a chain can do that, ask for `:rail`, where every connector states its own
+step.
 
 Rule of thumb: three or four steps that have to fit a summary card or a table
 cell → `:horizontal`. Nine steps across the top of a page → one of the two
@@ -1379,12 +1389,13 @@ anything else.
 <% end %>
 ```
 
-**The line.** `primary` as far as the flow reached, `base-300` after it. The
+**The line.** `primary` as far as the flow reached, grey after it. The
 connector leaving step *i* asks one thing about step *i+1*: was it reached?
 Everything but `:pending` counts, `:skipped` included, so a route that went
-around a step keeps its line whole and the coloured run still ends at the
-current step. Nothing else touches the line — a rejection does not paint it
-red. See "Choosing a shape" above for the case that rule gets wrong.
+around a step keeps its line whole and the coloured run ends at the first
+`:pending` step. Nothing else touches the line — a rejection does not paint it
+red. See "Choosing a shape" above for the three chains where that lands
+somewhere a reader would not guess.
 
 **The marker.** It carries the whole verdict, since the line no longer helps:
 
@@ -1394,12 +1405,16 @@ red. See "Choosing a shape" above for the case that rule gets wrong.
 | `:error` | filled `error`, an ✗ instead of the number |
 | `:warning` | filled `warning`, a ⚠ instead of the number |
 | `:current` | `primary/10` fill, 2px `primary` border, its number, `primary` bold label |
-| `:skipped` | dashed `base-300` border, a dash, no fill |
-| `:pending` | thin `base-300` border, its number, no fill |
+| `:skipped` | dashed `base-content/50` border, a dash, no fill |
+| `:pending` | thin `base-content/50` border, its number, no fill |
 
 A settled verdict gives up its number because the position stops being the news
-once the flow is past it. **The numbering itself does not change**: `:success`
-still consumes a position, `:skipped` still does not, and `number:` still wins.
+once the flow is past it. **The numbering underneath does not change** —
+`:success` still consumes a position, `:skipped` still does not, and `number:`
+still beats the automatic one — but in this shape the glyph beats the number,
+automatic or explicit: a `:success`, `:error` or `:warning` step draws its glyph
+and nothing else, and a `number:` passed to one of them is not rendered. Use
+`:rail` when every step has to show its position.
 
 Everything the rail resolved carries over unchanged: the row is a tab stop with
 an `aria-label` (`bali_view.workflow_steps.rail_label`, shared by both rows), it
@@ -1412,16 +1427,43 @@ reader still hears "Rejected", not "x".
 orientation that shares its name: `new(orientation: :progress, progress: true)`
 is a progress line with an N/M bar over it.
 
+**The half of the flow nobody has reached yet is held to a measured floor.**
+`base-300`, which the rail uses for the same job, is 1.16:1 against `base-100`
+— a 2px line and a 1px outline nobody can see, in the shape whose whole answer
+is that line. So the greys here are `base-content`: `/60` for the glyph and the
+12px label (4.66:1 in light, 5.82:1 in `afal-dark`, AA's 4.5:1 for text) and
+`/50` for the outline and the line (3.40:1 and 4.47:1, the 3:1 a shape carrying
+meaning needs). Composited over the disc each marker paints, not over the token.
+
+**The shape assumes it sits on `base-100`.** The connector runs centre-to-centre
+*under* each marker, so an opaque disc is what keeps it out of the circle, and
+that disc has to be painted a colour. Dropped in a `bg-base-200` card the disc
+is a halo of 1.06:1 in light and 1.21:1 in `afal-dark` — invisible in one, a
+darker ring around every marker in the other. Hand the shape the surface it is
+actually on and the halo measures 1.00:1 in both:
+
+```erb
+<div class="card bg-base-200 [--bali-workflow-steps-surface:var(--color-base-200)]">
+  <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+    …
+  <% end %>
+</div>
+```
+
+`--bali-workflow-steps-surface` inherits, so one declaration on the card covers
+every flow inside it. The other three shapes need nothing: their circles are
+opaque fills and draw no disc.
+
 **Its root class is `.workflow-steps-progress-rail`**, not the
 `.workflow-steps-progress` the other three shapes' naming would predict:
 `.workflow-steps-progress` is already the N/M header, which this shape renders
 inside that same root.
 
-`:rail` is a third value of `orientation:` rather than a second keyword: every
-keyword this component does not declare reaches the root as a plain HTML
-attribute, so declaring `style:` or `shape:` would turn working host markup
-into an `ArgumentError`. The cost is the word — a rail is a horizontal shape,
-not an orientation of its own, which is what the table above is for.
+`:rail` and `:progress` are further values of `orientation:` rather than a
+second keyword: every keyword this component does not declare reaches the root
+as a plain HTML attribute, so declaring `style:` or `shape:` would turn working
+host markup into an `ArgumentError`. The cost is the word — neither row is an
+orientation of its own, which is what the table above is for.
 
 ##### The decision form is the host's
 

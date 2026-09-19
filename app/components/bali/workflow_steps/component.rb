@@ -33,8 +33,10 @@ module Bali
     # line between wrapped cards has nowhere to run.
     #
     # Auto-numbering counts the real route only: a `:skipped` step renders
-    # without a number and consumes no position. An explicit `number:` always
-    # wins. Neither reaches the horizontal shape, whose marker is a dot.
+    # without a number and consumes no position, and an explicit `number:`
+    # beats the automatic one. In the progress shape the glyph of a settled
+    # verdict then beats both. None of it reaches the horizontal shape, whose
+    # marker is a dot.
     #
     # @example An approval chain
     #   render Bali::WorkflowSteps::Component.new do |c|
@@ -113,9 +115,9 @@ module Bali
           title: title,
           state: state,
           number: number || next_auto_number(state),
-          marker: marker,
           **options
         )
+        step.marker = marker
         tracked_steps << step
         step
       }
@@ -162,7 +164,6 @@ module Bali
         orientation == :progress
       end
 
-      # The two shapes that put every step on one line and let it scroll.
       def row?
         rail? || progress_shape?
       end
@@ -175,8 +176,9 @@ module Bali
         horizontal? || row?
       end
 
-      # Which marker the steps draw. The one thing the shapes disagree on
-      # below the root class, so it is passed down rather than re-derived.
+      # Which marker the steps draw — written onto each step rather than
+      # passed to `new`: `dot:` is the keyword `Step::Component` published in
+      # v3.4.0, and a boolean has room for two of the three.
       def marker
         return :dot if horizontal?
         return :progress if progress_shape?

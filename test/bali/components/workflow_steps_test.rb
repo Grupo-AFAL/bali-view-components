@@ -371,12 +371,30 @@ class BaliWorkflowStepsStepComponentTest < ComponentTestCase
     assert_selector(".workflow-step-circle", text: "1")
   end
 
+  # `dot:` is what v3.4.0 published, so it is the keyword a host has in its
+  # tree; the third marker arrives through the writer instead of renaming it.
   def test_a_dot_step_draws_the_dot_instead_of_the_circle
     render_inline(
-      Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :success, number: 1, marker: :dot)
+      Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :success, number: 1, dot: true)
     )
     assert_selector(".workflow-step-dot.bg-success")
     assert_no_selector(".workflow-step-circle")
+  end
+
+  def test_dot_is_not_a_keyword_the_li_passes_through
+    render_inline(
+      Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :success, number: 1, dot: true)
+    )
+
+    assert_no_selector("li[dot]", visible: :all)
+  end
+
+  def test_the_parent_writes_the_marker_without_a_keyword
+    step = Bali::WorkflowSteps::Step::Component.new(title: "Solo", state: :pending, number: 1)
+    step.marker = :progress
+    render_inline(step)
+
+    assert_selector(".workflow-step-circle.border-base-content\\/50", text: "1")
   end
 end
 
@@ -872,7 +890,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
     end
 
     assert_selector(".workflow-step-circle.border-2.border-primary", text: "1")
-    assert_selector(".workflow-step-circle.border-base-300", text: "2")
+    assert_selector(".workflow-step-circle.border-base-content\\/50", text: "2")
     assert_no_selector(".workflow-step-circle svg")
   end
 
@@ -911,20 +929,50 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
       c.with_step(title: "B", state: :pending)
     end
 
-    assert_selector("li:nth-child(1) .workflow-step-connector.bg-base-300")
+    assert_selector("li:nth-child(1) .workflow-step-connector.bg-base-content\\/50")
     assert_no_selector(".workflow-step-connector.bg-primary")
   end
 
-  # The nine-step funnel of the preview. The coloured run has to stop at the
-  # current step's circle: the eight connectors are five primary then three
-  # grey, and `:skipped` in third place does not break the run.
-  def test_the_coloured_run_ends_at_the_current_step
+  # The nine-step funnel of the preview: the eight connectors are five primary
+  # then three grey, and `:skipped` in third place does not break the run.
+  def test_the_coloured_run_ends_at_the_first_pending_step
     render_progress do |c|
       %i[success success skipped success success current pending pending pending]
         .each_with_index { |state, i| c.with_step(title: "Step #{i + 1}", state: state) }
     end
 
-    assert_equal((%w[primary] * 5) + (%w[base-300] * 3), connector_colors)
+    assert_equal((%w[primary] * 5) + ([ "base-content/50" ] * 3), connector_colors)
+  end
+
+  # The three chains where "ends at the first `:pending` step" and "ends at the
+  # current step" part company. All three are documented, because the rule is
+  # what it is and the reader has to be able to predict it.
+  def test_the_coloured_run_does_not_stop_at_the_current_step
+    render_progress do |c|
+      %i[success current error pending].each_with_index do |state, i|
+        c.with_step(title: "Step #{i + 1}", state: state)
+      end
+    end
+
+    assert_equal([ "primary", "primary", "base-content/50" ], connector_colors)
+  end
+
+  def test_a_chain_that_was_skipped_end_to_end_draws_a_full_primary_line
+    render_progress do |c|
+      3.times { |i| c.with_step(title: "Step #{i + 1}", state: :skipped) }
+    end
+
+    assert_equal([ "primary" ] * 2, connector_colors)
+  end
+
+  def test_a_pending_step_before_a_reached_one_colours_its_own_connector
+    render_progress do |c|
+      c.with_step(title: "A", state: :pending)
+      c.with_step(title: "B", state: :current)
+      c.with_step(title: "C", state: :pending)
+    end
+
+    assert_equal([ "primary", "base-content/50" ], connector_colors)
   end
 
   def test_no_state_colours_the_line_the_way_the_rail_does
@@ -961,8 +1009,25 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
     assert_selector(".workflow-step-title.font-semibold", count: 1, text: "Now")
     assert_selector(".workflow-step-title.text-primary", text: "Now")
     assert_selector(".workflow-step-title.text-base-content\\/80", text: "Done")
-    assert_selector(".workflow-step-title.text-base-content\\/50", text: "Later")
-    assert_selector(".workflow-step-title.text-base-content\\/50", text: "Around")
+    assert_selector(".workflow-step-title.text-base-content\\/60", text: "Later")
+    assert_selector(".workflow-step-title.text-base-content\\/60", text: "Around")
+  end
+
+  # The half of the flow nobody has reached yet is the half that disappears:
+  # every grey in it is held to a measured floor (4.66:1 for the glyph and the
+  # 12px label, 3.40:1 for the outline and the line), and the alphas below are
+  # what those floors cost over a `base-100` disc.
+  def test_the_states_still_to_come_hold_their_measured_greys
+    render_progress do |c|
+      c.with_step(title: "A", state: :success)
+      c.with_step(title: "B", state: :skipped)
+      c.with_step(title: "C", state: :pending)
+    end
+
+    assert_selector(".workflow-step-circle.text-base-content\\/60", count: 2)
+    assert_selector(".workflow-step-title.text-base-content\\/60", count: 2)
+    assert_selector(".workflow-step-circle.border-base-content\\/50", count: 2)
+    assert_no_selector('[class*="base-300"]')
   end
 
   # A fill on the label is the mistake this shape invites: the state colours

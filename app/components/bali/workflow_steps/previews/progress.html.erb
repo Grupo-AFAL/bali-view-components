@@ -44,6 +44,26 @@
     <% end %>
   </div>
 
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      On a base-200 card, with and without the surface handed over
+    </p>
+    <div class="card bg-base-200 p-4">
+      <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+        <% c.with_step(title: 'Capture', state: :success) %>
+        <% c.with_step(title: 'Triage', state: :current) %>
+        <% c.with_step(title: 'Project', state: :pending) %>
+      <% end %>
+    </div>
+    <div class="card bg-base-200 p-4 [--bali-workflow-steps-surface:var(--color-base-200)]">
+      <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+        <% c.with_step(title: 'Capture', state: :success) %>
+        <% c.with_step(title: 'Triage', state: :current) %>
+        <% c.with_step(title: 'Project', state: :pending) %>
+      <% end %>
+    </div>
+  </div>
+
   <div class="max-w-xs space-y-2">
     <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
       In a narrow column

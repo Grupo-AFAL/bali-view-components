@@ -55,14 +55,14 @@ class WorkflowStepsPreviewsTest < ActionDispatch::IntegrationTest
   # The nine circles of the funnel: five connectors primary, then three grey.
   # The preview is where the derived rule is on show, so it is where a change
   # to it has to be seen.
-  def test_the_progress_preview_stops_its_coloured_run_at_the_current_step
+  def test_the_progress_preview_stops_its_coloured_run_at_the_first_pending_step
     get "/lookbook/preview/bali/workflow_steps/progress"
     assert_response :ok
 
     assert_select ".workflow-steps-progress-rail" do |shapes|
       connectors = shapes.first.css(".workflow-step-connector")
       colors = connectors.map { |node| node["class"][/bg-\S+/] }
-      assert_equal (%w[bg-primary] * 5) + (%w[bg-base-300] * 3), colors
+      assert_equal (%w[bg-primary] * 5) + ([ "bg-base-content/50" ] * 3), colors
     end
   end
 
