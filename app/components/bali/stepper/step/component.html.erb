@@ -1,5 +1,11 @@
 <%= tag.li(**step_options) do %>
-  <% if sublabel.present? || content? %>
+  <%# `content?` only says that a block was passed, not that it rendered
+      anything, so a host deciding inside the block took this branch on every
+      step and the bare title below was unreachable. Same predicate, same
+      reasoning as app/components/bali/workflow_steps/step/component.html.erb,
+      whose comment carries the long version — including why prose in an ERB
+      comment must never quote a closing delimiter. %>
+  <% if sublabel.present? || content.present? %>
     <div>
       <div><%= title %></div>
       <% if sublabel.present? %>

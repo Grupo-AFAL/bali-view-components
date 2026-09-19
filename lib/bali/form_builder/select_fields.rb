@@ -44,7 +44,12 @@ module Bali
       def select_classes(method, options, additional_classes = nil, variant = nil)
         base = field_class_name(method, [ BASE_CLASSES, variant ].compact.join(" "),
                                         error_class: "select-error", options: options)
-        [ base, additional_classes ].compact.join(" ")
+        # `input_class:` is read off the group hash, which is where a top-level
+        # option lands on the four families that take a second `html:` hash.
+        # `html: { class: }` is the older spelling and still the one this family
+        # documents; both reach the `<select>` and both are asserted in
+        # `input_class_option_test.rb`.
+        @template.token_list(base, additional_classes, options[:input_class])
       end
     end
   end

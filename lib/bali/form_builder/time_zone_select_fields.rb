@@ -48,7 +48,7 @@ module Bali
                                         error_class: "select-error", options: group)
 
         attributes = html_attributes(html_options).except(:class).merge(
-          class: [ base, html_options[:class] ].compact.join(" ")
+          class: @template.token_list(base, html_options[:class], group[:input_class])
         )
         attributes.delete(:size) if variant
         apply_input_name_options(group, attributes)

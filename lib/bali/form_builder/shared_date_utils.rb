@@ -21,7 +21,20 @@ module Bali
       def date_field(method, options = {})
         opts = dup_options(options)
         clear_btn = build_clear_button if opts[:clear]
-        opts[:control_class] = [ "w-full", opts[:control_class] ].compact.join(" ")
+        # `token_list`, not `Array#join`: the join stringified whatever it was
+        # given, so `control_class: { "font-mono" => true }` painted
+        # `class="control w-full {&quot;font-mono&quot; =&gt; true}"` on every date,
+        # datetime and time field — the same defect #1147 closed on the `.control`
+        # div itself. Measured before and after on all three families.
+        #
+        # The `w-full` is not decoration: with `manual: true` the wrapper is a
+        # daisyUI `join`, and without it the control shrinks to its content
+        # (measured in Chromium: 228px against the 1156px of the row it sits in).
+        # It is also why a bare `control_class: "w-32"` cannot narrow a date
+        # field — two width utilities on one element, and `.w-full` is emitted
+        # last. `max-w-*` is the spelling that works on every family; see
+        # "Which class lands where" in docs/guides/form-builder.md.
+        opts[:control_class] = @template.token_list("w-full", opts[:control_class])
         # Typing is enabled by default (allow_input defaults to true in the
         # controller), so derive a placeholder hint for every field unless the
         # caller explicitly opts out with `allow_input: false` (readonly field,
@@ -153,7 +166,11 @@ module Bali
       def alt_input_class(method, options)
         base_class = options[:alt_input_class] ||
                      [ HtmlUtils::INPUT_BASE_CLASS, size_variant(options) ].compact.join(" ")
-        field_class_name(method, base_class, options: options)
+        # `input_class:` for the same reason the density is here: with
+        # `alt_input: true` the input the user sees is the one flatpickr draws
+        # from this list, so a class meant for the control has to reach it too.
+        field_class_name(method, @template.token_list(base_class, options[:input_class]),
+                         options: options)
       end
 
       def previous_date_button
