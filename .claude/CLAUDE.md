@@ -76,6 +76,34 @@ not — run `yarn run cy:run` yourself when you touch JS, and confirm the Lookbo
 `Closes` / `Fixes` / `Resolves`. «Cierra #NNN» reads fine and closes nothing. The rest of the body
 stays in Spanish. Enforced by `.claude/hooks/pr-closes-keyword.sh` (PreToolUse).
 
+## Comments, and the language everything is written in
+
+**Everything in the repo is written in English** — code, identifiers, tests, comments, and the
+copy inside Lookbook previews. Spanish stays in the prose written for the team: the CHANGELOG,
+the commit message and the PR body.
+
+**A comment has to carry what the code cannot.** One of these:
+
+- a **measurement** — a contrast ratio, a byte count, a benchmark. The number is not recoverable
+  by reading the line.
+- a **constraint invisible from here** — a selector daisyUI emits, a Zeitwerk behaviour, an
+  ordering that some other file depends on.
+- **why the obvious thing is wrong**, where the next person would otherwise undo the line in
+  good faith.
+
+Everything else is noise: narrating the change (the diff already says it), recounting the
+investigation or what you decided *not* to do (that belongs in the PR body), restating in prose
+the declaration written underneath. The headers of the unlayered CSS files are the shape to
+copy — the rule they have to beat and the measurement that put them there, and nothing else.
+
+The CHANGELOG is held to the same bar: what changed, who it affects, what they have to do about
+it. The evidence behind it lives in the PR.
+
+**Calibration.** #1165 changed three lines of CSS and four dependency versions, and carried ~40
+lines of comment plus a 66-line CHANGELOG entry. Two sentences earned their place: the daisyUI
+5.7.42 selector that broke the premise written at the top of that file, and the measured contrast
+it cost (6.98 → 1.06, AA wants 4.5). Aim for those two.
+
 ## Which CSS layer a rule belongs in
 
 Since v3 the package's CSS sits in three deliberate positions. Put a new rule in the wrong
