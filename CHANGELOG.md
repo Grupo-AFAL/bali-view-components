@@ -535,6 +535,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
   que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
 
+### Added
+
+- **`group_by_attribute :status, default: true` — un listado que abre agrupado** (#1156). La
+  agrupación ya tiene el equivalente de `filter_attribute default:`, en las dos formas de
+  declarar: el DSL de clase y el `group_by_attributes:` del constructor, que antes descartaba
+  la llave en silencio. Una sola declaración puede traerlo, y es un booleano, no un callable.
+
+  **Precedencia:** un `?group_by=` explícito en la URL (incluido «sin agrupación», o el usuario
+  no podría desagrupar), después lo que diga el payload de una vista guardada aplicada, después
+  la elección guardada en la caché de filtros, y recién entonces el default.
+
+  **Dos cambios visibles para el anfitrión.** (1) Donde hay un `default:` declarado, «sin
+  agrupación» viaja como `?group_by=none` en vez del `?group_by=` vacío de siempre —el
+  `sort_link` de Ransack descarta los params vacíos—; los listados sin default siguen con el
+  vacío, byte a byte. (2) La caché de filtros gana la llave `group_by_chosen`; las cachés
+  escritas por versiones anteriores no la traen y se leen como «nadie dijo nada», que es lo que
+  hace que el default funcione desde el primer request.
+
+  El default es DERIVADO: no se escribe en la caché ni entra al payload de una vista guardada,
+  así que cambiar la declaración cambia lo que ven también los usuarios que ya visitaron el
+  listado. Lo que el usuario eligió sí se guarda: una vista guardada sin agrupar lleva
+  `"group_by" => "none"` y vuelve a abrirse sin agrupar, mientras que una vista SIN la llave es
+  silencio y ahí el default sigue hablando.
+
+  **Al adoptarlo sobre un listado que ya tenía su propio default hecho a mano, comparar las dos
+  reglas de vistas guardadas.** Bali suprime el default solo con una vista que diga algo de
+  agrupación, así que las vistas ya guardadas —cuyos payloads no traen la llave— pasan a
+  abrirse agrupadas.
+
+  Preview nuevo: `bali/data_table/with_default_grouping`.
+
+### Fixed
+
+- **Agrupar sobre un scope con `.distinct` ya no muere con el error crudo del driver** (#1156).
+  Agrupar ordena por la expresión del grupo, y un `SELECT DISTINCT` solo acepta expresiones del
+  `ORDER BY` que estén en su lista del SELECT: de las cuatro formas de agrupar, la única que lo
+  está es una columna de la tabla base. Bali no puede arreglarlo por el anfitrión —meter la
+  expresión en el SELECT cambia qué deduplica el `.distinct`—, así que reemplaza el error del
+  adaptador por `Bali::FilterForm::GroupByOrderingError`, que nombra el listado, la agrupación,
+  el `ORDER BY` culpable y las tres salidas. El error del driver queda como `#cause` y
+  cualquier otro fallo del adaptador sale intacto. MySQL también se traduce; SQLite acepta las
+  cuatro formas y no ve ninguna diferencia.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added
