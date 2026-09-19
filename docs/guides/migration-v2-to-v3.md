@@ -1229,8 +1229,15 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 ```
 
 **A `z-*` utility still wins**, in both versions, because the tokens are read from
-`@layer utilities` classes and a host utility on the same element ties and sorts after.
+`@layer utilities` classes and a host utility on the same element ties on specificity.
 Nothing about escaping the scale got harder.
+
+Careful with the general form of that sentence, though: a tie inside one layer is broken by
+emission order, not by who wrote the class, and Tailwind emits each family in ascending value
+order. A host utility whose value sorts *before* Bali's therefore loses — which is why Bali's
+own overridable defaults (`Bali::Reveal`'s spacing, #1148) live in `@layer components` rather
+than as utilities on the markup. Where one of Bali's inline utilities still outranks yours,
+`!` (`pb-0!`) escapes it.
 
 **`Bali::HoverCard::Component::DEFAULT_Z_INDEX` is gone, and `z_index:` now defaults to
 `nil`.** The constant was `9999`. Referencing it raises `NameError`, and there is deliberately

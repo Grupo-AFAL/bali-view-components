@@ -93,14 +93,15 @@ module Bali
       end
 
       def build_range_options(method, options)
-        range_class = [
+        range_class = @template.token_list(
           RANGE_CLASS,
           "w-full",
           size_variant(options, SIZES),
           COLORS[options[:color]],
           (errors?(method, options) ? "range-error" : nil),
-          options[:class]
-        ].compact.join(" ")
+          options[:class],
+          options[:input_class]
+        )
 
         attributes = html_attributes(options).except(:class, *RANGE_OPTIONS)
 

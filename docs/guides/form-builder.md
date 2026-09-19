@@ -968,16 +968,135 @@ Recurring event schedule builder.
 
 These options work across most field types:
 
-| Option | Description |
-|--------|-------------|
-| `label` | Custom label text (default: humanized attribute name) |
-| `help` | Help text displayed below input |
-| `error` | Explicit error message(s) for the field — see [External Errors](#external-errors-error) |
-| `placeholder` | Input placeholder |
-| `disabled` | Disable the input |
-| `readonly` | Make input read-only |
-| `class` | Additional CSS classes |
-| `data` | Data attributes hash |
+| Option | Where it lands | Description |
+|--------|----------------|-------------|
+| `label` | the caption | Custom label text (default: humanized attribute name) |
+| `help` | under the control | Help text displayed below the input |
+| `error` | under the control | Explicit error message(s) for the field — see [External Errors](#external-errors-error) |
+| `placeholder` | the control | Input placeholder |
+| `disabled` | the control | Disable the input |
+| `readonly` | the control | Make input read-only |
+| `class` | the `<fieldset>` **and** the control | Classes for both halves of the group — see [Which class lands where](#which-class-lands-where) |
+| `data` | the control | Data attributes hash |
+| `field_class` | the `<fieldset>` | Classes for the group: column span, max width, margins |
+| `field_data` | the `<fieldset>` | Data attributes on the group, e.g. a Stimulus target |
+| `control_class` | the box around the control | Classes for the input without touching the caption |
+| `control_data` | the box around the control | Data attributes on that same box |
+| `control_id` | — | The id the caption's `for` points at; `false` keeps a `<legend>` |
+| `input_class` | the control itself | Classes for the `<input>` / `<select>` / `<textarea>` alone |
+| `addon_class` | `search_group`'s button | Only that one family builds an addon out of it — see [Addons](#addons-prefixsuffix) |
+
+### Which class lands where
+
+Four destinations, and the reason this section exists: `class:` reaches two of
+them at once, which is what sends a call site looking for the option that reaches
+only one.
+
+```erb
+<%= f.number_group :amount, class: "font-mono" %>
+<%# <fieldset class="fieldset w-full font-mono"> … <input class="input w-full font-mono"> %>
+
+<%= f.number_group :amount, field_class: "sm:col-span-2" %>
+<%# <fieldset class="fieldset w-full sm:col-span-2"> … <input class="input w-full"> %>
+
+<%= f.number_group :amount, control_class: "font-mono" %>
+<%# <fieldset class="fieldset w-full"> … <div class="control font-mono"><input class="input w-full"> %>
+
+<%= f.number_group :amount, input_class: "bg-warning/20" %>
+<%# <fieldset class="fieldset w-full"> … <div class="control"><input class="input w-full bg-warning/20"> %>
+```
+
+| Option | `<fieldset>` | box around the control | control |
+|--------|--------------|------------------------|---------|
+| `class:` | ✓ | — | ✓ |
+| `field_class:` | ✓ | — | — |
+| `control_class:` | — | ✓ | — |
+| `input_class:` | — | — | ✓ |
+| `html: { class: }` (the four families that take a second hash) | — | — | ✓ |
+
+On those four families — `select_*`, `slim_select_*`, `time_zone_select_*`,
+`radio_*` — the top-level `class:` reaches the `<fieldset>` **only**; the element's
+own classes go in `html:`. Measured: `select_group(:status, [...], class: "font-mono")`
+gives `<fieldset class="fieldset w-full font-mono">` with a clean `<select>`, and the
+same option in `html:` gives the clean fieldset and
+`<select class="select select-bordered w-full font-mono">`. `input_class:` is the
+other spelling for that same destination and works on all four, so one name reaches
+the control on every family that renders one.
+
+#### Inherited, or from the box, or on the control itself
+
+The three class options are not interchangeable, and which one you want follows
+from the property, not from taste. Measured in Chromium on the `class_targets`
+preview, against the dummy's compiled sheet:
+
+- **Inherited** (`font-mono`, `text-right`, `text-xs`, a text colour): the box
+  passes it down, so `control_class:` is enough and the caption — which lives
+  outside the box — is left alone. `control_class: "font-mono"` → the `<input>`
+  computes `ui-monospace, SFMono-Regular…`, the caption stays `-apple-system,…`.
+- **Width**: every Bali control carries `w-full`, so it fills whatever the box
+  gives it, and width belongs on the box. `control_class: "max-w-32"` → 128px, on
+  every family. A bare `w-32` is the spelling that does **not** work: two width
+  utilities land on the same element and Tailwind emits `.w-full` after `.w-32`,
+  so the control stays 1248px. `max-w-*` has no such fight.
+- **What the control paints for itself** (background, border, radius, shadow, a
+  daisyUI `input-*` modifier): the box sits *behind* the control, so a copy there
+  is invisible. `control_class: "bg-warning/20"` tints the `.control` div while the
+  input keeps its own opaque `oklch(1 0 0)` on top of it, and
+  `rounded-2xl border-2 border-error` on the box draws a second, larger frame
+  around an input still at 4px and 1px. **`input_class:` is the one that works**:
+  the same three land on the input and on nothing else.
+
+`class:` would also reach the control for that third group, but it reaches the
+`<fieldset>` at the same time — measured, `class: "bg-warning/20"` paints a tinted
+band across the whole group, caption included.
+
+**`class:` is not going to change.** Both of its destinations are load-bearing in
+apps already on Bali: one host classes the control with it (`class: "font-mono"`,
+19 call sites) and another classes the group (`class: "sm:col-span-2"`). Narrowing
+it either way breaks one of them. What `input_class:` adds is the fourth name, not
+a new meaning for an old one.
+
+**The box is the `.control` div, or the `.join` when an addon replaces it.** A
+family with an addon — `currency_group`, `percentage_group`, `search_group`, or
+any field given `addon_left:`/`addon_right:` — renders no `.control` div at all,
+and until #1147 it dropped `control_class:` and `control_data:` without a trace.
+They land on the join now, which means they also reach the addons inside it: there
+is no option that classes only the addons of those families, so a class that must
+not touch the `$` or the `%` goes on the control with `input_class:`.
+
+Two families need naming because their box is not quite the shape this section
+describes. The **date families** (`date_group`, `datetime_group`, `time_group`)
+prepend their own `w-full` to whatever you pass, which is what makes `w-32` a
+no-op there specifically — `max-w-*` works, and so does every non-width class.
+**`step_number_group`** puts its `.control` *inside* the `<div class="join">` that
+holds the two step buttons, so `control_class:` reaches the input's box and not the
+buttons; `button_class:` is what classes those.
+
+**Eight families render no box, and there `control_class:` does nothing.**
+`range_group` (its `<input class="range">` hangs off the `<fieldset>`),
+`boolean_group` / `switch_group` (the control sits in the
+`<label class="label cursor-pointer">` that carries its inline caption, which
+`label_options: { class: ... }` already classes), `coordinates_polygon_group`,
+`recurrent_event_rule_group`, `direct_upload_group` and `time_period_group` (each
+renders a whole widget rather than a control in a box), plus `submit_group`, which
+has no control at all. On the first three, `class:` and `input_class:` both reach
+the control itself.
+
+**Nine families have no control `input_class:` can reach**, which is a different
+list: `file_group` (its `<input type="file">` is hidden and forced to Bali's own
+class — `file_class:` styles the button you see), `block_editor_group` /
+`rich_text_group` (what you type into is a `contenteditable` built client-side),
+`radio_buttons_group` (its radios take a fixed option hash, so no class option
+reaches them — `control_class:` classes the group container and
+`radios: { class: ... }` each category's), the four widgets over a hidden input,
+and `submit_group` (`button_class:`).
+
+The authoritative lists live in
+`test/bali/form_builder/control_class_option_test.rb` and
+`test/bali/form_builder/input_class_option_test.rb`: each declares every family in
+one of its two camps and fails when a new family lands in neither. One family is
+in neither camp in both files and says so — `dynamic_fields_group`, which needs a
+real association to render at all and is left unswept by name.
 
 ### `required:` is a plain HTML passthrough — and not every family has a control to put it on
 
@@ -1030,6 +1149,30 @@ Both are honoured by every family whose control is a native named input, and by 
 three families whose control is a widget over a hidden field — the hidden field is what
 the form submits, so that is what gets renamed. An explicit `name:` / `id:` still wins
 over either.
+
+**A form that does have a model can still render a value that is not one of its
+attributes** — a jsonb leaf, a threshold in a nested config, anything travelling
+in `params`. The same hatch does it, and there is no separate `*_group_tag`
+family to learn: `input_name:` names the parameter and the value comes from the
+option that family already reads — `value:` on the input families, `selected:` on
+the selects, `checked:` on the boolean and switch pair.
+
+```erb
+<%= form_with model: config, url: scoring_config_path, builder: Bali::FormBuilder do |f| %>
+  <%= f.number_group :thresholds_investment_0, label: "Límite 1",
+        value: 720_000, input_name: "thresholds[investment][0]" %>
+<% end %>
+<%# => <fieldset id="scoring_config_thresholds_investment_0_field" class="fieldset w-full">
+         <label class="fieldset-legend" for="scoring_config_thresholds_investment_0">Límite 1</label>
+         <div class="control"><input value="720000" name="thresholds[investment][0]" …></div>
+       </fieldset> %>
+```
+
+The method name is still what derives every id, so pick one and keep it stable.
+And pass the value: without it Rails asks the model for the attribute and raises
+`NoMethodError: undefined method 'thresholds_investment_0'`, which is the right
+outcome — otherwise `f.text_group :titel` would render an empty field instead of
+telling you about the typo.
 
 Four families take `input_name:` and not `input_id:`, because they have no single id to
 give: `radio_group` (Rails suffixes each button's id with its own value),
@@ -1191,6 +1334,24 @@ Add content before or after inputs:
 
 <%# Icon addon %>
 <%= f.text_group :search, addon_left: render(Bali::Icon::Component.new("search")) %>
+```
+
+An addon replaces the `.control` div with a `<div class="join w-full">` holding
+the addons and the input together, so on a field with addons that join is the box
+`control_class:` and `control_data:` name — see
+[Which class lands where](#which-class-lands-where). A class put there reaches the
+addons too, because they are inside the join; `input_class:` is what reaches the
+control alone.
+
+`addon_class:` is **not** a general "class the addons" option, whatever the name
+suggests. Only `search_group` reads it, to replace the default `btn btn-neutral`
+on the button it builds. The `$` and `%` that `currency_group` and
+`percentage_group` render carry Bali's own addon classes and take nothing from the
+call site, and an addon you write yourself is markup you already control:
+
+```erb
+<%= f.search_group :name, addon_class: "btn btn-primary" %>
+<%= f.text_group :amount, addon_left: tag.span("$", class: "join-item px-3 self-center") %>
 ```
 
 ---

@@ -46,6 +46,21 @@ module Bali
         end
       end
 
+      # With a content block
+      # --------------------
+      # A step's block is free markup under the title. A block that renders
+      # nothing leaves the step exactly as one declared with no block at all,
+      # so a host can write "the detail, if there is one" by deciding inside
+      # the block.
+      #
+      # Both steppers below describe the same four steps, only one of which has
+      # a detail: the first passes a block to all four and decides inside it,
+      # the second writes that outcome by hand. They render the same markup,
+      # and `test/requests/stepper_previews_test.rb` asserts it.
+      def with_content_block
+        render_with_template
+      end
+
       # Color variants
       # --------------
       # Different color schemes for different contexts

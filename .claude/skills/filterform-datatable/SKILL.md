@@ -189,6 +189,49 @@ Ransack association path) skips the translation, so a select built on its labels
 OPPOSITE records, silently. Declare those options with the raw values
 (`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
 
+### A filter with no caption (`label: false`) still has to be named
+
+`label: false` drops the caption over a SimpleFilters control. It does not drop the control's
+accessible NAME — a `<select>` with none is announced as a bare "combo box" (WCAG 4.1.2,
+#1155). Bali resolves one: the caption → `aria_label:` → the `blank:` text ("All years"),
+and `blank:` only when it is a String (`blank: true` is a nameless Rails blank option). The
+caption wins wherever there is one, in every branch: `aria_label:` does not override a
+visible label (WCAG 2.5.3).
+
+The `blank:` step is the safety net that keeps a control from shipping nameless — it names
+it with the text it reads out as its value ("All years, All years"). **Write `aria_label:`**
+whenever the filter deserves a real name, and when migrating a host off an external
+`aria-label` workaround, move those strings into `aria_label:` instead of deleting them.
+
+```ruby
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], blank: 'All years', label: false,
+  aria_label: 'Registration year'                             # the name to aim for
+
+filter_attribute :featured, type: :boolean, simple: true, advanced: false,
+  label: false, aria_label: 'Featured only'                   # no blank to fall back on
+```
+
+`aria_label:` is the same spelling as `search_fields aria_label:` (#1026) and takes a
+zero-arity proc like `label:`. Instance-level `simple_filters:` hashes take the same key.
+
+The `aria-label` is emitted only where no visible `<label for>` reaches the control, so a
+captioned row's markup is untouched. `slim_select` and `date`/`date_range` are the two
+exceptions — their real control is built by JS (`.ss-main`, flatpickr's altInput) and the
+`<label for>` never reaches it, so those carry `aria-labelledby`/`aria-label` even with a
+caption. **Verify them in the accessibility tree, not the markup**
+(`docs/guides/accessibility.md`, "Read the accessibility tree, not the markup"): the Lookbook
+previews are `data_table/simple_filters/uncaptioned` and `.../slim_select`.
+
+A `date_range` with `presets:` names its two controls apart: the period select can fall back
+to its blank option ("Any date"), the "Custom…" picker never borrows that text and falls back
+to `presets.custom_range` instead.
+
+A filter with no caption, no `aria_label:` and no `blank:` logs a `[Bali]` warning in
+development and test and renders anyway — and for `toggle_group`/`radio_group`/`number_range`
+the warning says what is actually missing, which is the name of the GROUP: those controls
+name themselves (each pill its option, each half of a range its placeholder).
+
 ### Pills that filter on click (`auto_submit:`)
 
 `auto_submit: true` makes a SimpleFilters filter submit the row as soon as it changes, with no
