@@ -31,7 +31,7 @@ module Bali
     # Bali's own Lookbook dependencies become the host's problem:
     # Bali::ApplicationViewComponentPreview opens with `include Pagy::Method`, and pagy
     # is deliberately not a dependency of this gem, so a production boot with
-    # `eager_load = true` used to die on it in any application that had not written
+    # `eager_load = true` dies on it in any application that has not written
     # `gem "pagy"` of its own accord (#1139).
     #
     # `do_not_eager_load`, NOT `ignore`: ignore makes the file invisible to Zeitwerk and

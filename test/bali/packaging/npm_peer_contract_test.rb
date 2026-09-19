@@ -14,11 +14,9 @@ require "json"
 # at BUNDLE time too, unless the call is guarded with `.catch()` — a hint esbuild
 # prints in the error itself.
 #
-# One number, measured once: the same 22 appears in utils/optional-peer.js, in the
-# `//peerDependencies` note in package.json and in docs/guides/installation.md, and
-# an earlier pass had it written as both 23 and 21 across those files. The count is
-# for the TWO entry points below; `registerAll` on its own is 21 across 11, the one
-# fewer being chart.js.
+# One number, measured once and checked below wherever it is published. The count
+# is for the TWO entry points below; `registerAll` on its own is 21 across 11, the
+# one fewer being chart.js.
 #
 # So the contract has two halves, and this test is both:
 #
@@ -83,16 +81,19 @@ class BaliNpmPeerContractTest < ActiveSupport::TestCase
                              "peerDependencies, so `yarn install` can never produce them"
   end
 
-  # ONE NUMBER, IN FIVE FILES THAT ARE PUBLISHED. The measurement above is quoted
-  # in the helper that ships to hosts, in package.json's own note, in the guide and
-  # in the CHANGELOG, and an earlier pass had it written as 23 in three of them and
-  # 21 in the other two. Whoever re-measures has to change all five, and this is
-  # what tells them so.
+  # ONE NUMBER, IN THE THREE FILES A HOST READS IT IN — the helper that ships to
+  # them, package.json's own note and the guide — plus this file, where it is
+  # defined. Whoever re-measures has to change all four, and this is what tells
+  # them so.
+  #
+  # NOT the CHANGELOG, though it quotes the number too: that file is append-only,
+  # so a later entry quoting any other `Could not resolve` count turns this red
+  # over prose that has nothing to do with the contract (reproduced), and a
+  # released entry has to keep saying what was true when it shipped.
   MEASUREMENT_FILES = %w[
     app/assets/javascripts/bali/utils/optional-peer.js
     package.json
     docs/guides/installation.md
-    CHANGELOG.md
     test/bali/packaging/npm_peer_contract_test.rb
   ].freeze
 

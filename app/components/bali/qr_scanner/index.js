@@ -136,10 +136,9 @@ export class QrScannerController extends Controller {
 
     // `.catch()` here is what keeps a host that skipped qr-scanner BUILDING:
     // esbuild resolves `import()` at bundle time and fails on a specifier it
-    // cannot find unless the call is guarded. The rejection is kept AS IS: a
-    // fabricated `new Error('qr-scanner is not installed')` in its place threw
-    // away the only line that says whether the package is missing or merely
-    // broken, and then logged it as if it were the real one.
+    // cannot find unless the call is guarded. The rejection is passed on AS IS:
+    // it is the only line that says whether the package is missing or merely
+    // broken, which is the difference between `yarn add` and a real bug.
     //
     // Not `optionalPeer()`, which is for controllers whose whole recovery is to
     // return: this one also has a panel state to set and a message that names the

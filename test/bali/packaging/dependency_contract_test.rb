@@ -14,13 +14,11 @@ require "test_helper"
 #
 # "MADE TO LOAD" IS BIGGER THAN `lib/`. `lib/bali/engine.rb` assigns
 # `config.eager_load_paths`, so in production every file under those six `app/`
-# directories loads at boot too. The first version of this test walked `lib/`
-# only, and passed while `app/components/bali/pagination/pagy_adapter.rb` opened
-# with an unguarded `require "pagy/..."` and
-# `app/components/bali/application_view_component_preview.rb` with
-# `include Pagy::Method` — the exact bug #1139 exists to close, still live, on a
-# gem the gemspec does not ask for. Both halves are covered below: what a file
-# `require`s, and what it needs in order to be DEFINED.
+# directories loads at boot too: a walk of `lib/` alone sees neither the unguarded
+# `require "pagy/..."` in `app/components/bali/pagination/pagy_adapter.rb` nor the
+# `include Pagy::Method` in
+# `app/components/bali/application_view_component_preview.rb`. Both halves are
+# covered below: what a file `require`s, and what it needs in order to be DEFINED.
 #
 # The gemspec is `bali_view_component.gemspec`, SINGULAR, while the gem it
 # defines is `bali_view_components`, plural, and the Gemfile's comment calls it
@@ -157,12 +155,10 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
   # `v3.1.0.beta.13` for four releases, which hands a reader a different library
   # from the one they are reading about.
   #
-  # TWO SPELLINGS, AND EACH ONE HAS TO BE FOUND. A scan that matches nothing
-  # rejects nothing and this test goes green while the docs rot: measured — with
-  # the README's `tag:` rewritten as `ref:`, the previous version of this test
-  # passed on `v3.1.0.beta.13`. The second spelling is the console transcript
-  # under § Verification, which went stale the same way and out of reach of the
-  # first regex.
+  # TWO SPELLINGS, AND EACH ONE HAS TO BE FOUND — a pattern that matches nothing
+  # rejects nothing, which is why the assertion below fails on an empty scan as
+  # well as on a wrong version. The second spelling is the console transcript
+  # under § Verification, out of reach of the first pattern.
   VERSION_SPELLINGS = [
     { what: "the tag to install", docs: INSTALL_DOCS, prefix: "v",
       pattern: /bali-view-components["#,\s]+tag:\s*"([^"]+)"/ },
@@ -205,13 +201,10 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
     @declared_names ||= gemspec.runtime_dependencies.map(&:name)
   end
 
-  # MEASURED, not listed. What stood here was a hand-written DEFAULT_GEMS array
-  # under the comment "part of the interpreter, impossible to uninstall" — the
-  # exact belief that shipped the `csv` bug, and already rotten: `benchmark` left
-  # the default gems in Ruby 4.0.0 and the array still exempted it.
-  #
-  # So ask this interpreter instead, in one child process with RubyGems switched
-  # off. What survives `--disable-gems` is stdlib, builtin or a default gem — that
+  # ASKED, NOT LISTED. A hand-written list of "gems the interpreter provides" is
+  # the belief that shipped the `csv` bug, and it rots on a schedule nobody reads:
+  # `csv` left the default gems in Ruby 3.4 and `benchmark` in 4.0.0. So ask this
+  # interpreter, in one child process with RubyGems switched off. What survives `--disable-gems` is stdlib, builtin or a default gem — that
   # is, something no Gemfile can take away. A gem Ruby merely BUNDLES (`csv`,
   # `benchmark`) fails there, which is the whole point.
   def interpreter_provides

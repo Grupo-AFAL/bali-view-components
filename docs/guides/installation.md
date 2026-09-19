@@ -66,6 +66,13 @@ writing into it would cost the app every controller it registers, not just Bali'
 which of the three answers stopped it and prints the lines to add once a bundler is in. See
 Step 4.
 
+**The CSS half asks the same kind of question**: not "is there a Tailwind entry point here"
+but "will anything compile one". With neither tailwindcss-rails nor a `build:css` script in
+`package.json`, no entry point is written — the file would be the input to a build that does
+not exist, and Bali would render unstyled with nothing to say why. And an app with no
+`package.json` at all gets only the engine bridge, the one line of the three that resolves
+without node_modules; the other two are printed.
+
 **`bin/rails g bali:install` and `bin/rails bali:install:migrations` share a prefix and are
 different things.** The second is the rake namespace the Rails engine API generates: one task
 that copies every engine migration into your app, plus six that copy one each
@@ -265,10 +272,9 @@ See [DaisyUI Themes](https://daisyui.com/docs/themes/) for all available themes.
 
 ## Step 4: JavaScript Setup
 
-### Option A: a bundler — esbuild, jsbundling-rails, Vite
-
-This is what all seven applications in the fleet use, and what `bin/rails g bali:install`
-writes.
+Bali needs a JavaScript bundler: esbuild (through jsbundling-rails) or Vite. That is what all
+seven applications in the fleet use, what `bin/rails g bali:install` writes, and the only thing
+that resolves what Bali imports.
 
 ### Import maps: not supported, and there is nothing to pin
 
@@ -280,11 +286,10 @@ of the 91 plus every peer, by hand, and re-pinning them on each upgrade. The
 [JavaScript integration guide](javascript-integration.md#import-maps-not-supported) carries
 the measurement on the 31-pin recipe that used to live there.
 
-This is also why `bin/rails g bali:install` will not write the imports on an importmap app:
-an unresolved bare specifier does not degrade, it fails the whole module, so
-`eagerLoadControllersFrom` never runs and the app loses **every** controller it registers,
-with one console line as the only symptom. The generator leaves the index alone and prints
-these three lines instead:
+An unresolved bare specifier does not degrade, it fails the whole module: `eagerLoadControllersFrom`
+never runs and the app loses **every** controller it registers, with one console line as the
+only symptom. So `bin/rails g bali:install` leaves an importmap app's Stimulus index alone and
+prints these three lines instead:
 
 ```bash
 bundle add jsbundling-rails
@@ -295,9 +300,7 @@ bin/rails g bali:install
 Vite resolves the same imports with no extra step. It may need the gem's path allowed —
 `server: { fs: { allow: ['.', baliGemPath] } }`.
 
-### Option B: what the generator writes
-
-For Vite or esbuild:
+### What the generator writes into your Stimulus index
 
 ```javascript
 // app/javascript/controllers/index.js

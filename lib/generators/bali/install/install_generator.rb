@@ -105,6 +105,11 @@ module Bali
     def add_css_imports
       return if options[:skip_css]
 
+      if (reason = no_tailwind_build_here)
+        say_status :skip, "#{css_path} — #{reason}", :yellow
+        return @css_not_built = reason
+      end
+
       @css_by_hand = !exist?("package.json")
       unless exist?(css_path)
         return create_file(css_path, "#{TAILWIND_IMPORT}\n#{chunks_of(css_chunks)}")
@@ -165,24 +170,26 @@ module Bali
       return if options[:skip_package_json]
       return unless exist?("package.json")
 
-      package = JSON.parse(read("package.json"))
+      source = read("package.json")
+      package = JSON.parse(source)
       warn_about_a_stale_pin(package)
       added = npm_dependencies.except(*declared_packages(package))
       return say_status(:identical, "package.json", :blue) if added.empty?
 
-      added.group_by { |name, _| section_for(name) }.each do |section, entries|
-        package[section] = (package[section] || {}).merge(entries.to_h).sort.to_h
-      end
-      create_file "package.json", "#{JSON.pretty_generate(package)}\n", force: true
+      create_file "package.json", package_json_with(source, package, added), force: true
       @wrote_dependencies = true
       say_status :update, "package.json — added #{added.keys.join(', ')}", :green
+      return unless @reformatted
+
+      say_status :warn, "package.json was rewritten from its parsed form: the lines could not " \
+                        "be spliced into the file as it was written", :yellow
     end
 
     def print_next_steps
       steps = []
       steps << "#{package_manager} install            # the dependencies just written" if @wrote_dependencies
-      steps << css_build_command unless options[:skip_css]
-      half_done = @css_by_hand || @javascript_by_hand
+      steps << css_build_command unless options[:skip_css] || @css_not_built
+      half_done = @css_by_hand || @css_not_built || @javascript_by_hand
 
       say ""
       say(half_done ? "Bali is partly wired in — the rest is printed, not written:" : "Bali is wired in.", :green)
@@ -190,6 +197,7 @@ module Bali
       steps.each_with_index { |step, index| say "  #{index + 1}. #{step}" }
       say "" if steps.any?
       say_the_css_lines if @css_by_hand
+      say_the_tailwind_build_lines if @css_not_built
       say_the_javascript_lines if @javascript_by_hand
       say_what_it_deliberately_left_out
     end
@@ -210,8 +218,43 @@ module Bali
     # the chunk's own text for it. Six of the seven applications write the plugin as
     # `@plugin "daisyui" { themes: ... }`, which a search for the bare `@plugin
     # "daisyui";` would miss — and the generator would then add a second one.
-    def css_path = @css_path ||= [ TAILWIND_RAILS_CSS, CSSBUNDLING_CSS ].find { |p| exist?(p) } ||
-                                 TAILWIND_RAILS_CSS
+    def css_path = @css_path ||= css_builder == :cssbundling ? CSSBUNDLING_CSS : TAILWIND_RAILS_CSS
+
+    # THE SAME QUESTION THE JAVASCRIPT HALF ASKS, for CSS: not "is there an entry
+    # point here" but "will anything compile one". Measured on an app with a
+    # package.json and neither builder: an entry point written there is a file
+    # nothing reads, under a printed `bin/rails tailwindcss:build` that app does not
+    # have — Bali renders unstyled and nothing says why.
+    #
+    # An entry point that already exists answers it outright, so the gems and the
+    # npm scripts are only read when neither file is there.
+    def css_builder
+      return :tailwindcss_rails if exist?(TAILWIND_RAILS_CSS)
+      return :cssbundling if exist?(CSSBUNDLING_CSS)
+      return :tailwindcss_rails if gem_here?("tailwindcss-rails")
+      return :cssbundling if npm_script_here?("build:css")
+
+      nil
+    end
+
+    def no_tailwind_build_here
+      return if css_builder
+
+      "nothing here builds Tailwind — no tailwindcss-rails and no `build:css` script, " \
+        "so this file would be the input to a build that does not exist"
+    end
+
+    # `    tailwindcss-rails (4.6.0)` under the lock's `specs:`, `gem "tailwindcss-rails"`
+    # in the Gemfile.
+    def gem_here?(name)
+      [ "Gemfile.lock", "Gemfile" ].any? do |path|
+        exist?(path) && read(path).match?(/^\s*(?:gem\s+["'])?#{Regexp.escape(name)}\b/)
+      end
+    end
+
+    def npm_script_here?(script)
+      exist?("package.json") && JSON.parse(read("package.json")).dig("scripts", script).present?
+    end
 
     # Either spelling of the bridge counts as already there, so an app wired for
     # the other builder is left alone rather than given a second one.
@@ -231,9 +274,13 @@ module Bali
     def bridge_resolved_by = css_path == TAILWIND_RAILS_CSS ? :gem : :npm
 
     # cssbundling-rails has no tailwindcss:build task — its Tailwind runs from the
-    # `build:css` script it wrote into package.json.
+    # `build:css` script it wrote into package.json. `npm build:css` is
+    # `Unknown command: "build:css"`: npm reaches a script only through `npm run`,
+    # while yarn takes the bare name.
     def css_build_command
-      css_path == TAILWIND_RAILS_CSS ? "bin/rails tailwindcss:build" : "#{package_manager} build:css"
+      return "bin/rails tailwindcss:build" if css_path == TAILWIND_RAILS_CSS
+
+      package_manager == "yarn" ? "yarn build:css" : "#{package_manager} run build:css"
     end
 
     # Two of the three lines resolve through node_modules, and an app with no
@@ -530,6 +577,89 @@ module Bali
 
     def package_manager = exist?("yarn.lock") ? "yarn" : "npm"
 
+    # ADDING A LINE HAS TO LEAVE THE OTHER LINES ALONE. `JSON.pretty_generate` of the
+    # parsed file rewrites the whole document: measured on a host file indented with
+    # four spaces, 13 lines came back as 24, reindented and with the keys it already
+    # had reordered, for what the output describes as "added date-fns". So the entries
+    # are spliced into the text, and the parse is the check — anything that does not
+    # read back as the merge that was intended is written from the parsed form
+    # instead, and says so.
+    def package_json_with(source, package, added)
+      sections = added.group_by { |name, _| section_for(name) }.transform_values(&:to_h)
+      expected = sections.each_with_object(package.dup) do |(section, entries), merged|
+        merged[section] = (merged[section] || {}).merge(entries)
+      end
+      spliced = sections.reduce(source) do |text, (section, entries)|
+        entries.reduce(text) { |current, (name, range)| splice(current, section, name, range) || current }
+      end
+      return spliced if parsed(spliced) == expected
+
+      @reformatted = true
+      "#{JSON.pretty_generate(expected)}\n"
+    end
+
+    # Alphabetical only where the section already is, which is every file in the
+    # fleet: an insertion that sorts a section a host deliberately grouped is the
+    # same unasked-for rewrite as reindenting it.
+    def splice(text, section, name, range)
+      opening = text.match(/^([ \t]*)"#{Regexp.escape(section)}"\s*:\s*\{/)
+      return add_section(text, section, name, range) unless opening
+
+      open_index = opening.end(0) - 1
+      close_index = closing_brace(text, open_index)
+      return nil unless close_index
+
+      body = text[(open_index + 1)...close_index]
+      keys = parsed("{#{body}}")&.keys
+      return nil unless keys
+
+      entry = "#{body[/\n([ \t]+)"/, 1] || opening[1] + indent_unit(text)}\"#{name}\": #{JSON.generate(range)}"
+      successor = keys.find { |key| key > name } if keys.sort == keys
+      at = successor && text.index(/^[ \t]*"#{Regexp.escape(successor)}"\s*:/, open_index)
+
+      return text.dup.insert(at, "#{entry},\n") if at
+      return text.dup.insert(open_index + 1, "\n#{entry}\n#{opening[1]}") if keys.empty?
+
+      text.dup.insert(text.rindex(/\S/, close_index - 1) + 1, ",\n#{entry}")
+    end
+
+    def add_section(text, section, name, range)
+      close_index = text.rindex("}")
+      return nil unless close_index
+
+      unit = indent_unit(text)
+      block = ",\n#{unit}\"#{section}\": {\n#{unit * 2}\"#{name}\": #{JSON.generate(range)}\n#{unit}}"
+      text.dup.insert(text.rindex(/\S/, close_index - 1) + 1, block)
+    end
+
+    # Depth counting, and a `{` inside a string value does not count.
+    def closing_brace(text, open_index)
+      depth = 0
+      in_string = false
+      index = open_index
+
+      while (char = text[index])
+        if in_string
+          index += 1 if char == "\\"
+          in_string = false if char == '"'
+        elsif char == '"' then in_string = true
+        elsif char == "{" then depth += 1
+        elsif char == "}"
+          depth -= 1
+          return index if depth.zero?
+        end
+        index += 1
+      end
+    end
+
+    def indent_unit(text) = text[/\n([ \t]+)"/, 1] || "  "
+
+    def parsed(text)
+      JSON.parse(text)
+    rescue JSON::ParserError
+      nil
+    end
+
     # ---- What it says instead of writing ---------------------------------
 
     def say_the_css_lines
@@ -540,6 +670,20 @@ module Bali
       say "  them, after `#{package_manager} add bali-view-components daisyui`:", :yellow
       say ""
       NPM_RESOLVED_CSS.each { |line| say "    #{line}" }
+      say ""
+    end
+
+    def say_the_tailwind_build_lines
+      say "  The CSS is NOT written, and #{css_path} was not created: #{@css_not_built}.", :yellow
+      say "  A file nothing compiles is the failure this generator exists to avoid — Bali", :yellow
+      say "  renders unstyled and nothing says why. Install a Tailwind build and re-run:", :yellow
+      say ""
+      say "    bundle add tailwindcss-rails"
+      say "    bin/rails tailwindcss:install"
+      say "    bin/rails g bali:install"
+      say ""
+      say "  (cssbundling-rails instead? `bin/rails css:install:tailwind` — the generator"
+      say "  then writes into #{CSSBUNDLING_CSS}.)"
       say ""
     end
 

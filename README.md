@@ -67,7 +67,9 @@ the `@blocknote/*` packages.
 **It writes only what this app can resolve, and says the rest.** An importmap app keeps its
 Stimulus index untouched — a bare specifier there does not degrade, it fails the module and
 takes the app's own controllers with it — and an app with no `package.json` gets only the one
-CSS line that needs no npm. Full detail:
+CSS line that needs no npm. An app where nothing compiles Tailwind (no tailwindcss-rails, no
+`build:css` script) gets no entry point written at all: the file would be the input to a build
+that does not exist. Full detail:
 [Installation § Step 0](docs/guides/installation.md).
 
 ### 3. What the installer writes into your CSS
