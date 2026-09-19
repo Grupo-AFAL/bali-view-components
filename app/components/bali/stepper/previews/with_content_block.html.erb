@@ -1,0 +1,44 @@
+<%# En este escenario sólo 'Publicado' trae detalle. El primer stepper lo decide
+    dentro del bloque en los cuatro pasos —la forma que escribe un anfitrión—; el
+    segundo escribe ese mismo resultado a mano. Los dos rinden el mismo marcado. %>
+<% notes = { proposed: nil, approved: nil, published: 'publicación #12', current: nil } %>
+
+<div class="space-y-8">
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Los cuatro pasos pasan bloque y deciden adentro</h3>
+    <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
+      <% c.with_step(title: 'Propuesto') do %>
+        <% if notes[:proposed].present? %>
+          <span class="text-xs opacity-60"><%= notes[:proposed] %></span>
+        <% end %>
+      <% end %>
+      <% c.with_step(title: 'Aprobado') do %>
+        <% if notes[:approved].present? %>
+          <span class="text-xs opacity-60"><%= notes[:approved] %></span>
+        <% end %>
+      <% end %>
+      <% c.with_step(title: 'Publicado') do %>
+        <% if notes[:published].present? %>
+          <span class="text-xs opacity-60"><%= notes[:published] %></span>
+        <% end %>
+      <% end %>
+      <% c.with_step(title: 'Vigente') do %>
+        <% if notes[:current].present? %>
+          <span class="text-xs opacity-60"><%= notes[:current] %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-semibold mb-2">El mismo resultado escrito a mano: bloque sólo en el paso que tiene detalle</h3>
+    <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
+      <% c.with_step(title: 'Propuesto') %>
+      <% c.with_step(title: 'Aprobado') %>
+      <% c.with_step(title: 'Publicado') do %>
+        <span class="text-xs opacity-60">publicación #12</span>
+      <% end %>
+      <% c.with_step(title: 'Vigente') %>
+    <% end %>
+  </div>
+</div>

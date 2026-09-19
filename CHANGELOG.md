@@ -103,6 +103,121 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de la vista, así que el `Bali::Tag::Component` se perdía en silencio. Las dos pasan a
   plantilla, como el resto de las previews de Card que funcionan, y
   `test/requests/card_header_previews_test.rb` afirma que el badge sale.
+### Fixed
+
+- **`Bali::Table` emitía el `id:` dos veces: en el `<div>` contenedor y en la `<table>`.** Dos
+  elementos con el mismo id es HTML inválido, y `document.getElementById` devolvía sólo el
+  primero. No era una copia deliberada sino una fuga: `initialize` sacaba de `**options` las
+  sub-hashes `:tbody` y `:table_container` pero dejaba adentro `:id`, así que el mismo valor
+  salía por `container_id` en el `<div>` y otra vez por el doble splat en la `<table>`. Con
+  `form:` en vez de `id:` esto ya no pasaba —el `<div>` lo recibía y la `<table>` no—, o sea que
+  el caso `id:` era la anomalía. Reproducido en el navegador sobre el preview
+  `Table › Collapsible groups`, donde `portfolio` y `portfolio-selectable` aparecían dos veces
+  cada uno.
+
+  **El id se queda en el contenedor**, que es el root del componente y lo que la convención de
+  `**options` manda (`docs/reference/component-patterns.md`). Es también donde todo lo que lo
+  busca ya lo encontraba, porque el `<div>` es el primero en orden de documento:
+  `getElementById`, `querySelector('#id')`, un ancla y `turbo_stream.replace "id"` siguen
+  resolviendo al mismo nodo que antes **siempre que el `id:` sea el único** —que es el caso de
+  todos los call sites medidos—; la excepción está abajo. Y es lo correcto para Turbo:
+  reemplazar sólo la `<table>` se llevaría por delante el `overflow-x-auto` y el
+  `data-controller` de los grupos plegables. Los ids de fila (`row_id_prefix`) y el del `<tr>`
+  del estado vacío siguen colgando del mismo valor, sin cambio.
+
+  **Qué puede romperse en un anfitrión** —medido contra las nueve apps del grupo, cero
+  coincidencias en las tres—: un selector que nombre el elemento (`table#id`, `#id.table`,
+  `#id.table-zebra`) o use hijo directo (`#id > tbody`, `#id > thead`); cualquier aserción que
+  CUENTE el id pelado (`assert_select "#id", count: 2` pasa a encontrar un nodo, no dos); y
+  **`id:` junto con `table_container: { id: ... }`**, la única combinación en la que el id de
+  nivel superior deja de existir en el DOM. En esa combinación el `<div>` se queda con el id de
+  la sub-hash —la pinta después— y la `<table>` ya no se queda con nada, así que un
+  `getElementById` del id de nivel superior pasa de devolver la `<table>` a devolver `null`.
+  Medido: con `id: "x"` y `table_container: { id: "wrap" }` la salida era
+  `[div#wrap, table#x, tr#x-empty-table-row]` y ahora es `[div#wrap, tr#x-empty-table-row]`.
+  Ningún anfitrión del grupo la usa (el único `table_container: { id: }` va sin `id:` de nivel
+  superior), y queda pinneada en `test/bali/components/table_test.rb`. Los selectores de
+  descendencia —`#id tbody tr`, `#id td`, `#id thead th`, que es la forma de las ~60 aserciones
+  medidas— siguen igual, porque el `<div>` sigue siendo ancestro de todo.
+
+  No hay forma soportada de ponerle un id propio al elemento `<table>`, y nada la necesita: hay
+  **un solo id por componente** y vive en el contenedor. Los atributos propios del contenedor van
+  en `table_container:` (una sub-hash como `tbody:`), ahora documentada en
+  `docs/guides/components.md` y con preview propio en Lookbook (`Table › Container id`) — con el
+  caveat de que ahí van clases y datos, no la identidad: un `id:` dentro de `table_container:`
+  gana el atributo del `<div>` pero no alimenta a `container_id`, así que los ids de fila y el
+  del `<tr>` vacío siguen saliendo del `id:` de nivel superior, o de un prefijo aleatorio si no
+  hay ninguno. El resto de `**options` —`class:`, `data:`— sigue bajando a la `<table>`. Ojo con
+  el contraejemplo: `Bali::PropertiesTable` sí pone su id en la `<table>`, y está bien, porque
+  ahí la `<table>` ES el root del componente. (#1157)
+- **La guía de componentes enseñaba `variant:` en `Bali::WorkflowSteps`, un keyword que el
+  componente rechaza desde v3.1** (#1159). El eje se llama `orientation:` —el mismo nombre que
+  usa `Bali::Stepper`, su hermano— y pasar el viejo levanta `ArgumentError`, pero la sección
+  WorkflowSteps de `docs/guides/components.md` siguió repartiéndolo tres minors (v3.1 → v3.4)
+  en la viñeta de opciones, la prosa del flujo horizontal y el ejemplo copiable. Los tres pasan
+  a `orientation:`, y la viñeta nombra el rename, porque hay anfitriones que aprendieron el
+  keyword viejo de esta página y no de una beta. **El guardia del componente se queda**: sin él
+  un `variant:` cae en `**options`, sale como atributo `variant="horizontal"` en el root y el
+  componente rinde vertical en silencio. Quien ya usaba `orientation:` no tiene nada que
+  cambiar. De paso, el párrafo de accesibilidad del flujo horizontal decía «see below» hacia
+  una explicación que está arriba.
+- **`Bali::Stepper` envolvía el título del paso cuando el bloque no rendereaba nada** (#1158).
+  El template preguntaba por `content?`, y `content?` de ViewComponent contesta si se **pasó**
+  un bloque, no si ese bloque escribió algo: el anfitrión que decide adentro —el `if` dentro
+  del `with_step`, que es como se escribe «el detalle, si lo hay»— recibía `true` en todos los
+  pasos, así que todos entraban por la rama envolvente y la rama del título pelado quedaba
+  inalcanzable para cualquiera que pasara bloque. La condición pasa a `content.present?`, que
+  mira la cadena ya rendereada y, por `blank?`, cubre también el bloque de puros espacios;
+  evaluarla ahí no cuesta un render extra porque ViewComponent memoiza la captura. Un bloque
+  con contenido real no cambia, espacios alrededor incluidos, y `sublabel:` sigue envolviendo
+  por su cuenta.
+
+  **Esto cambia el marcado, no el pintado.** A diferencia del `.workflow-step-comment` de
+  v3.4.0, el `div` de Stepper no lleva clase ni margen y el grid de `.steps .step` lo coloca en
+  la misma celda que el texto pelado. Lo medido, para que se sepa hasta dónde llega la
+  afirmación: el preview `with_content_block` en Lookbook contra el CSS compilado, a 1280px, en
+  tres disposiciones —horizontal (el ancho por contenido de DaisyUI), `w-full` y
+  `steps-vertical`—. En las tres, los cuatro pasos dan el mismo `getBoundingClientRect()` antes
+  y después, y la captura de página completa sale byte a byte idéntica (`compare -metric AE`
+  = 0). Fuera de esas tres disposiciones no está medido. El paso con bloque en blanco pasa de
+  `<li class="step"><div><div>Título</div></div></li>` a `<li class="step">Título</li>`. Un
+  anfitrión sólo lo nota si tiene CSS, JS o pruebas apuntando a `li.step > div` para un paso
+  cuyo bloque no rinde nada. Cierra el mismo predicado equivocado que #1153 barrió en
+  `Bali::WorkflowSteps`; era el último de la gema. Nueva variante de Lookbook
+  `with_content_block` con el caso, y `test/requests/stepper_previews_test.rb` la sostiene.
+### Changed
+
+- **simplecov 1.1.1 → 1.3.0** (#1141). El salto pide Ruby >= 3.3 y el repo ya corre 4.0, así
+  que no hay nada que migrar: medido con `COVERAGE=1 bundle exec rails test`, la suite sigue en
+  5329 runs con 0 fallas y la cobertura no se movió (línea 95.76 %, rama 85.14 %). Las dos
+  novedades que podían morder no aplican aquí: la que descarta plantillas de un glob `cover`
+  no toca a `track_files "{app,lib}/**/*.rb"`, que sólo mira `.rb`, y la que omite del reporte
+  los grupos vacíos no toca a `Components` ni `Lib`, que tienen archivos.
+
+### Fixed
+
+- **Todo PR de Dependabot salía en rojo aunque las pruebas pasaran.** El job `test` publica un
+  comentario de cobertura en el PR con `issues.createComment`, pero no declaraba `permissions:`,
+  así que heredaba el default del repo — y en un run disparado por Dependabot ese default es de
+  **solo lectura**. El paso moría con `Resource not accessible by integration` y se llevaba
+  consigo un job cuyas pruebas habían terminado en verde (96.25 % de cobertura en el run de
+  #1141). Ahora el job declara `contents: read` + `pull-requests: write`, y el paso del
+  comentario lleva `continue-on-error: true`: es una comodidad, no una puerta, y un token que no
+  alcance —Dependabot, un fork— ya no puede tumbar la suite.
+### Fixed
+
+- **`?q=loquesea` era un 500 en cualquier listado con un `FilterForm`.** `q` llega crudo de la
+  URL y nada obliga a que sea un hash: escrito a mano como escalar (`?q=x`) o como lista
+  (`?q[]=x`) aterrizaba en un `permit` sin guardia —`String` y `Array` no lo tienen— y se
+  llevaba la petición entera. No hace falta sesión, ni conocer la app, ni un listado en
+  particular: sale de la barra de direcciones, y un enlace mal copiado o un crawler bastan.
+  De `q` salen además el orden (`s`), las agrupaciones (`g`) y el combinador (`m`), así que
+  cada lector de más abajo fallaba a su manera. Un `q` que no es un hash no pidió nada, y
+  ahora el listado sale sin filtrar en vez de reventar.
+
+  De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
+  ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
+  que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
 
 ## [v3.4.0] - 2026-09-17
 
