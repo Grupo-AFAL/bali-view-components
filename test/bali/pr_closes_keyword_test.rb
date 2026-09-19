@@ -4,105 +4,105 @@ require "test_helper"
 require "open3"
 require "tempfile"
 
-# La guarda que impide abrir una PR que intenta cerrar un issue EN ESPAÑOL.
+# The guard that stops a PR from trying to close an issue IN SPANISH.
 #
-# GitHub solo cierra el issue al mergear con sus palabras clave, y todas son en
-# inglés. «Cierra #123» se lee igual de bien, no cierra nada, y el issue se
-# queda abierto sin que nadie se entere. Pasó decenas de veces, así que dejó de
-# ser una regla escrita y pasó a ser una compuerta.
+# GitHub only closes the issue on merge with its own keywords, and every one of them is
+# English. «Cierra #123» reads just as well, closes nothing, and the issue stays open with
+# nobody the wiser. It happened dozens of times, so it stopped being a written rule and
+# became a gate.
 #
-# Y la compuerta también se prueba: un hook que deja de disparar no falla — deja
-# pasar, que es exactamente cómo se ve cuando funciona.
+# And the gate is tested too: a hook that stops firing does not fail — it lets things
+# through, which is exactly what it looks like when it works.
 #
-# `Rails.root` aquí es `spec/dummy`, no el repo: la ruta del hook cuelga de
-# `Bali::Engine.root`, que es la raíz del gem — el mismo idioma que usan
-# `i18n_usage_test` y `stimulus_target_guards_test`.
+# `Rails.root` here is `spec/dummy`, not the repo: the hook's path hangs off
+# `Bali::Engine.root`, the gem's root — the same idiom `i18n_usage_test` and
+# `stimulus_target_guards_test` use.
 class PrClosesKeywordTest < ActiveSupport::TestCase
   HOOK = Bali::Engine.root.join(".claude/hooks/pr-closes-keyword.sh").freeze
 
-  test "el hook existe y es ejecutable" do
-    assert File.exist?(HOOK), "el hook desapareció"
-    assert File.executable?(HOOK), "el hook tiene que poder correr sin `bash` delante"
+  test "the hook exists and is executable" do
+    assert File.exist?(HOOK), "the hook is gone"
+    assert File.executable?(HOOK), "the hook has to run without `bash` in front of it"
   end
 
-  test "está cableado como PreToolUse de Bash en .claude/settings.json" do
-    ajustes = JSON.parse(Bali::Engine.root.join(".claude/settings.json").read)
-    pre = ajustes.dig("hooks", "PreToolUse")
+  test "it is wired as a Bash PreToolUse in .claude/settings.json" do
+    settings = JSON.parse(Bali::Engine.root.join(".claude/settings.json").read)
+    pre = settings.dig("hooks", "PreToolUse")
 
-    refute_nil pre, "sin la entrada PreToolUse el hook nunca corre"
-    comandos = pre.select { |e| e["matcher"] == "Bash" }.flat_map { |e| e["hooks"] }.map { |h| h["command"] }
-    assert comandos.any? { |c| c.include?("pr-closes-keyword.sh") },
-           "el hook tiene que estar bajo el matcher Bash: #{comandos.inspect}"
+    refute_nil pre, "without the PreToolUse entry the hook never runs"
+    commands = pre.select { |e| e["matcher"] == "Bash" }.flat_map { |e| e["hooks"] }.map { |h| h["command"] }
+    assert commands.any? { |c| c.include?("pr-closes-keyword.sh") },
+           "the hook has to sit under the Bash matcher: #{commands.inspect}"
   end
 
-  # --- lo que bloquea ---------------------------------------------------------
+  # --- what it blocks ---------------------------------------------------------
 
-  test "bloquea un cuerpo en archivo que dice Cierra" do
-    con_cuerpo("Cierra #963.\n\nTexto del PR.\n") do |ruta|
-      estado, error = correr("gh pr create --repo x/y --body-file #{ruta}")
+  test "it blocks a body file that says Cierra" do
+    with_body("Cierra #963.\n\nTexto del PR.\n") do |path|
+      status, error = run_hook("gh pr create --repo x/y --body-file #{path}")
 
-      assert_equal 2, estado, "2 es lo único que Claude lee como «no lo hagas»"
-      assert_match(/Closes/, error, "el mensaje tiene que decir con qué reemplazarlo")
+      assert_equal 2, status, "2 is the only thing Claude reads as «do not do it»"
+      assert_match(/Closes/, error, "the message has to say what to replace it with")
     end
   end
 
-  test "bloquea también en pr edit, que es por donde se corrige un cuerpo" do
-    con_cuerpo("Cierra #12\n") do |ruta|
-      estado, = correr("gh pr edit 974 --repo x/y --body-file #{ruta}")
-      assert_equal 2, estado
+  test "it blocks on pr edit too, which is where a body gets corrected" do
+    with_body("Cierra #12\n") do |path|
+      status, = run_hook("gh pr edit 974 --repo x/y --body-file #{path}")
+      assert_equal 2, status
     end
   end
 
-  test "bloquea el cuerpo pasado en línea con --body" do
-    estado, = correr('gh pr create --body "Cierra #12 y algo más"')
-    assert_equal 2, estado
+  test "it blocks a body passed inline with --body" do
+    status, = run_hook('gh pr create --body "Cierra #12 y algo más"')
+    assert_equal 2, status
   end
 
-  test "bloquea los otros verbos que se escriben solos redactando en español" do
-    %w[Resuelve Corrige Arregla].each do |verbo|
-      con_cuerpo("#{verbo} #34\n") do |ruta|
-        estado, = correr("gh pr create --body-file #{ruta}")
-        assert_equal 2, estado, "«#{verbo} #34» tampoco cierra nada en GitHub"
+  test "it blocks the other verbs that write themselves when drafting in Spanish" do
+    %w[Resuelve Corrige Arregla].each do |verb|
+      with_body("#{verb} #34\n") do |path|
+        status, = run_hook("gh pr create --body-file #{path}")
+        assert_equal 2, status, "«#{verb} #34» does not close anything on GitHub either"
       end
     end
   end
 
-  # --- lo que NO puede bloquear -----------------------------------------------
+  # --- what it must NOT block -------------------------------------------------
 
-  test "deja pasar el cuerpo correcto, con el resto en español" do
-    con_cuerpo("Closes #963\n\nEl cuerpo sigue en español, que es lo normal aquí.\n") do |ruta|
-      estado, = correr("gh pr create --repo x/y --body-file #{ruta}")
-      assert_equal 0, estado
+  test "it lets the correct body through, with the rest in Spanish" do
+    with_body("Closes #963\n\nEl cuerpo sigue en español, que es lo normal aquí.\n") do |path|
+      status, = run_hook("gh pr create --repo x/y --body-file #{path}")
+      assert_equal 0, status
     end
   end
 
-  test "no se mete con otros comandos" do
+  test "it does not meddle with other commands" do
     [ "gh pr list --repo x/y", "echo Cierra #12", "git commit -m 'Cierra #12'" ].each do |cmd|
-      estado, = correr(cmd)
-      assert_equal 0, estado, "#{cmd} no publica ningún cuerpo de PR"
+      status, = run_hook(cmd)
+      assert_equal 0, status, "#{cmd} publishes no PR body"
     end
   end
 
-  test "una entrada que no entiende se deja pasar, no se traba" do
-    # Una compuerta rota no puede volverse un tapón para todo lo demás.
-    estado, = correr(nil, entrada: "esto no es json")
-    assert_equal 0, estado
+  test "input it cannot parse is let through, not jammed" do
+    # A broken gate cannot turn into a plug for everything else.
+    status, = run_hook(nil, input: "esto no es json")
+    assert_equal 0, status
   end
 
   private
 
-  def con_cuerpo(texto)
-    archivo = Tempfile.new([ "cuerpo", ".md" ])
-    archivo.write(texto)
-    archivo.flush
-    yield archivo.path
+  def with_body(text)
+    file = Tempfile.new([ "body", ".md" ])
+    file.write(text)
+    file.flush
+    yield file.path
   ensure
-    archivo&.close!
+    file&.close!
   end
 
-  def correr(comando, entrada: nil)
-    entrada ||= { tool_input: { command: comando } }.to_json
-    salida, error, estado = Open3.capture3("bash", HOOK.to_s, stdin_data: entrada)
-    [ estado.exitstatus, error, salida ]
+  def run_hook(command, input: nil)
+    input ||= { tool_input: { command: command } }.to_json
+    output, error, status = Open3.capture3("bash", HOOK.to_s, stdin_data: input)
+    [ status.exitstatus, error, output ]
   end
 end

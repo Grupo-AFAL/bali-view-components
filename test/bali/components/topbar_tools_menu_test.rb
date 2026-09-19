@@ -2,17 +2,18 @@
 
 require "test_helper"
 
-# El menú de herramientas internas del topbar.
+# The topbar's internal tools menu.
 #
-# Recibe herramientas YA FILTRADAS POR PERMISO y se encarga de dos cosas: descartar las que
-# no existen en este ambiente (preguntándole a su propio contexto de vista) y pintarlas.
+# It receives tools ALREADY FILTERED BY PERMISSION and takes care of two things: discarding the ones
+# that do not exist in this environment (by asking its own view context) and painting them.
 #
-# El reparto es deliberado: el host responde "¿quién puede verla?" —lo único que sabe— y el
-# componente "¿existe aquí?". Así el host nunca toca rutas y la gema nunca toca permisos.
+# The split is deliberate: the host answers "who may see it?" —the only thing it knows— and the
+# component "does it exist here?". That way the host never touches routes and the gem never touches
+# permissions.
 class BaliTopbarToolsMenuComponentTest < ComponentTestCase
   def montada(**overrides)
-    # `rails_health_check_path` existe en el dummy (`/up`), así que sirve como herramienta
-    # montada de verdad, resuelta contra el contexto de vista real del render.
+    # `rails_health_check_path` exists in the dummy (`/up`), so it serves as a genuinely mounted
+    # tool, resolved against the render's real view context.
     Bali::Topbar::ToolsMenu::Tool.new(
       **{ key: :rails_routes, icon: "route", route_helper: :rails_health_check_path }.merge(overrides)
     )
@@ -36,9 +37,8 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_no_selector(".bali-topbar-tools-menu")
   end
 
-  # LA prueba del mecanismo: una herramienta cuya ruta no está montada no se ofrece, y si no
-  # queda ninguna el menú entero desaparece — un trigger que abre un panel vacío es peor que
-  # no tenerlo.
+  # THE test of the mechanism: a tool whose route is not mounted is not offered, and if none is left
+  # the whole menu disappears — a trigger that opens an empty panel is worse than no trigger.
   def test_it_does_not_render_when_no_tool_is_available
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ sin_montar ]))
 
@@ -59,9 +59,9 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector('.bali-topbar-tools-menu a[href="https://example.test/repo"]')
   end
 
-  # El corte de la pestaña nueva NO es "montada aquí vs externa": es si conserva el cromo de
-  # la app. Una herramienta montada que trae layout propio abre aparte; una que hereda el
-  # layout del host, no.
+  # The cut for a new tab is NOT "mounted here vs external": it is whether it keeps the app's chrome.
+  # A mounted tool that brings its own layout opens apart; one that inherits the host's layout does
+  # not.
   def test_tools_that_keep_the_host_chrome_open_in_the_same_tab
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada(in_app: true) ]))
 
@@ -81,9 +81,9 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector(".bali-topbar-tools-menu", text: "Mi etiqueta")
   end
 
-  # `:sentry` es ambigua a propósito de la vieja versión de esta prueba: la etiqueta de la
-  # gema y `humanize` coinciden ("Sentry"), así que pasaba igual con `label_for` vacío.
-  # `:mission_control` distingue de verdad: la gema dice "Jobs dashboard", humanize diría
+  # `:sentry` is ambiguous, which is what was wrong with the old version of this test: the gem's
+  # label and `humanize` coincide ("Sentry"), so it passed just as well with `label_for` empty.
+  # `:mission_control` really tells them apart: the gem says "Jobs dashboard", humanize would say
   # "Mission control".
   def test_a_known_key_uses_the_gems_label
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mission_control) ]))
@@ -91,10 +91,10 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector(".bali-topbar-tools-menu", text: "Jobs dashboard")
   end
 
-  # `:flightdeck` es el panel de trabajos de las apps que cambiaron mission_control-jobs por
-  # solid_queue-flightdeck (#1138). Distingue igual que `:mission_control`: la gema dice
-  # "Jobs dashboard" y humanize diría "Flightdeck". `:mission_control` se queda —afal-apps
-  # sigue en esa gema—, así que las dos claves conviven con la misma etiqueta.
+  # `:flightdeck` is the jobs dashboard of the apps that swapped mission_control-jobs for
+  # solid_queue-flightdeck (#1138). It tells them apart the same way `:mission_control` does: the gem
+  # says "Jobs dashboard" and humanize would say "Flightdeck". `:mission_control` stays —afal-apps is
+  # still on that gem— so both keys coexist under the same label.
   def test_the_flightdeck_key_uses_the_gems_label
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :flightdeck) ]))
 
@@ -107,8 +107,8 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector(".bali-topbar-tools-menu", text: "Mi herramienta")
   end
 
-  # El override del host vive fuera del namespace de la gema: `topbar.tools_menu.items.<key>`,
-  # no `bali_view.topbar.tools_menu.items.<key>`. `label_for` lo mira primero.
+  # The host's override lives outside the gem's namespace: `topbar.tools_menu.items.<key>`, not
+  # `bali_view.topbar.tools_menu.items.<key>`. `label_for` looks there first.
   def test_a_host_override_wins_over_the_gems_label
     I18n.backend.store_translations(:en, topbar: { tools_menu: { items: { mission_control: "Panel propio" } } })
 
@@ -119,9 +119,9 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     I18n.backend.reload!
   end
 
-  # Es un control de sólo ícono: sin nombre accesible no tiene nombre en absoluto.
-  # El dummy corre en `en` (spec/dummy/config/application.rb): las etiquetas que se afirman
-  # aquí son las inglesas, aunque las dos locales se agreguen juntas.
+  # It is an icon-only control: with no accessible name it has no name at all.
+  # The dummy runs in `en` (spec/dummy/config/application.rb): the labels asserted here are the
+  # English ones, even though both locales are added together.
   def test_the_trigger_has_an_accessible_name
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ]))
 
@@ -134,7 +134,7 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
     assert_selector('.bali-topbar-tools-menu [aria-label="Utilities"]')
   end
 
-  # Misma cascada que `label_for` para los ítems: clave del host antes que la de la gema.
+  # Same cascade as `label_for` for the items: the host's key before the gem's.
   def test_the_trigger_label_can_be_overridden_via_i18n
     I18n.backend.store_translations(:en, topbar: { tools_menu: { trigger_label: "Utils" } })
 

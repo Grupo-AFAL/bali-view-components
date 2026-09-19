@@ -71,9 +71,9 @@ class BaliKanbanComponentTest < ComponentTestCase
     assert_no_selector("[data-sortable-update-url]")
   end
 
-  # #1027: `data:` del host se descartaba en silencio — y components.md manda
-  # exactamente `data: { sortable_item_pull: "false" }` para fijar una tarjeta
-  # a su columna. El merge preserva las claves propias del componente.
+  # #1027: the host's `data:` was dropped silently — and components.md prescribes exactly
+  # `data: { sortable_item_pull: "false" }` to pin a card to its column. The merge keeps the
+  # component's own keys.
   def test_card_merges_host_data_and_options
     render_inline(Bali::Kanban::Component.new) do |k|
       k.with_column(title: "Todo", status: "todo") do |col|

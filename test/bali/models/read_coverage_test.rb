@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-# #709 — el PORO que responde "¿cuánta de la audiencia ya firmó?". La audiencia se inyecta,
-# así que estas pruebas la arman a mano igual que lo haría un host.
+# #709 — the PORO that answers "how much of the audience has signed?". The audience is injected, so
+# these tests build it by hand the same way a host would.
 class BaliReadCoverageTest < ActiveSupport::TestCase
   def setup
     @document = Document.create!(title: "Política de viáticos", author_name: "Ana")
@@ -86,9 +86,9 @@ class BaliReadCoverageTest < ActiveSupport::TestCase
     refute_predicate coverage(audience: audience), :below_threshold?
   end
 
-  # Decisión 709-4. 0/0 no es cero: un registro que nadie tiene que leer no tiene una
-  # cobertura del 0%, tiene una cobertura indefinida. Devolver 0.0 pintaría de rojo un
-  # tablero por documentos que no le tocan a nadie.
+  # Decision 709-4. 0/0 is not zero: a record nobody has to read does not have 0% coverage, it has
+  # undefined coverage. Returning 0.0 would paint a dashboard red over documents that are nobody's
+  # business.
   def test_an_empty_audience_has_no_coverage_rather_than_zero_coverage
     result = coverage(audience: [])
 
@@ -100,8 +100,8 @@ class BaliReadCoverageTest < ActiveSupport::TestCase
     assert_nil result.coverage_percentage
   end
 
-  # Sin nadie a quien exigirle la lectura no hay incumplimiento. Es la separación
-  # deliberada de gobierno-corporativo, que responde `true` aquí.
+  # With nobody to require the reading of, there is no non-compliance. It is the deliberate split
+  # from gobierno-corporativo, which answers `true` here.
   def test_an_empty_audience_is_not_below_the_threshold
     refute_predicate coverage(audience: []), :below_threshold?
     refute_predicate coverage(audience: [], threshold: 100), :below_threshold?
@@ -116,7 +116,6 @@ class BaliReadCoverageTest < ActiveSupport::TestCase
     assert_equal [ @ana ], result.confirmed_users
   end
 
-  # Una sola consulta para el padrón de firmas, sin importar el tamaño de la audiencia.
   def test_it_reads_the_signatures_once
     [ @ana, @beto ].each { |user| @document.acknowledge(user: user) }
     result = coverage(audience: [ @ana, @beto, @caro, @dani ])

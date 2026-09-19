@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-# El export nunca tuvo tests propios, que es por qué sobrevivió tanto tiempo exportando
-# TODO desde un listado filtrado.
+# The export never had tests of its own, which is why it survived so long exporting EVERYTHING from
+# a filtered listing.
 class BaliDataTableExportComponentTest < ComponentTestCase
   def test_the_href_carries_the_active_slice
     render_inline(export(params: { "q" => { "name_cont" => "dune" }, "group_by" => "status" }))
@@ -15,7 +15,7 @@ class BaliDataTableExportComponentTest < ComponentTestCase
   end
 
   def test_the_href_does_not_carry_the_page
-    # Exportar SOLO la página 3 es peor que exportar de más: el usuario pidió "el listado".
+    # Exporting ONLY page 3 is worse than exporting too much: the user asked for "the listing".
     render_inline(export(params: { "page" => "3", "group_by" => "status" }))
 
     href = page.find("a", text: "CSV", visible: :all)["href"]
@@ -24,9 +24,9 @@ class BaliDataTableExportComponentTest < ComponentTestCase
   end
 
   def test_the_href_does_not_carry_the_one_shot_orders
-    # EL test que justifica usar ToolbarHref en vez de `request.fullpath`: en el server
-    # `clear_filters` corre `Rails.cache.delete(cache_key)`, así que un usuario parado en
-    # `?clear_filters=true` se borraba los filtros guardados al clickear exportar.
+    # THE test that justifies using ToolbarHref instead of `request.fullpath`: on the server
+    # `clear_filters` runs `Rails.cache.delete(cache_key)`, so a user standing on
+    # `?clear_filters=true` wiped their stored filters by clicking export.
     render_inline(export(params: { "clear_filters" => "true", "clear_search" => "true" }))
 
     href = page.find("a", text: "CSV", visible: :all)["href"]
@@ -35,8 +35,8 @@ class BaliDataTableExportComponentTest < ComponentTestCase
   end
 
   def test_a_url_that_already_carries_a_query_string_is_not_corrupted
-    # `?` a secas daba `/movies?scope=archived?format=csv`, que Rack lee como UN scope
-    # corrupto y sin format.
+    # A bare `?` gave `/movies?scope=archived?format=csv`, which Rack reads as ONE corrupt scope and
+    # no format.
     render_inline(export(url: "/movies?scope=archived"))
 
     href = page.find("a", text: "CSV", visible: :all)["href"]
@@ -52,15 +52,15 @@ class BaliDataTableExportComponentTest < ComponentTestCase
   end
 
   def test_no_request_context_does_not_blow_up
-    # `params: nil` cae a `request_query_params`, que fuera de un request devuelve {}.
+    # `params: nil` falls to `request_query_params`, which outside a request returns {}.
     render_inline(export(params: nil))
 
     assert_equal "/movies?format=csv", page.find("a", text: "CSV", visible: :all)["href"]
   end
 
   def test_every_link_opts_out_of_turbo_drive
-    # Un CSV/XLSX no es una respuesta que Turbo Drive pueda renderizar: la visita se queda a
-    # mitad de camino en vez de disparar la descarga.
+    # A CSV/XLSX is not a response Turbo Drive can render: the visit stalls halfway instead of
+    # firing the download.
     render_inline(export)
 
     assert_selector('a[data-turbo="false"]', count: 3, visible: :all)
@@ -80,8 +80,8 @@ class BaliDataTableExportComponentTest < ComponentTestCase
   end
 
   def test_explicit_params_switch_the_client_side_re_sync_off
-    # `params: {}` es el opt-out ("exportar todo a propósito") y el controlador lo deshacía
-    # apenas booteaba, reescribiendo el href desde `window.location`.
+    # `params: {}` is the opt-out ("export everything, deliberately") and the controller undid it the
+    # moment it booted, rewriting the href from `window.location`.
     render_inline(export(params: {}))
     assert_selector('[data-export-links-sync-value="false"]', visible: :all)
 
@@ -89,9 +89,9 @@ class BaliDataTableExportComponentTest < ComponentTestCase
     assert_selector('[data-export-links-sync-value="true"]', visible: :all)
   end
 
-  # Las dos mitades del MISMO link: el server pinta el href y el controlador lo re-sincroniza
-  # desde la URL. Con las listas separadas, mover un param de un lado dejaba al otro
-  # arrastrando lo que el primero acababa de tirar, y no fallaba nada.
+  # Both halves of the SAME link: the server paints the href and the controller re-syncs it from the
+  # URL. With the lists apart, moving a param on one side left the other dragging along what the
+  # first had just dropped, and nothing failed.
   def test_the_transient_params_list_is_the_same_in_ruby_and_in_javascript
     source = Bali::Engine.root.join("app/components/bali/data_table/export_links_controller.js").read
     literal = source[/const TRANSIENT_PARAMS = \[(.*?)\]/m, 1]

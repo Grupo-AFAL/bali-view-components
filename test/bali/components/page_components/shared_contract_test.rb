@@ -2,11 +2,11 @@
 
 require "test_helper"
 
-# El contrato de Bali::PageComponents::Shared, recorrido sobre los CINCO page components.
+# The Bali::PageComponents::Shared contract, walked over all FIVE page components.
 #
-# Un test por regla y no cinco copias por componente: la cobertura copiada es lo que dejó a
-# ShowPage y DashboardPage sin ninguna prueba del menú ⋯ de v3 mientras IndexPage tenía seis.
-# Agregar un sexto page component debería ser agregarlo a esta lista y nada más.
+# One test per rule and not five copies per component: copied coverage is what left ShowPage and
+# DashboardPage with no test at all of v3's ⋯ menu while IndexPage had six. Adding a sixth page
+# component should mean adding it to this list and nothing else.
 class BaliPageComponentsSharedContractTest < ComponentTestCase
   PAGE_COMPONENTS = [
     Bali::DashboardPage::Component,
@@ -16,7 +16,7 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     Bali::ShowPage::Component
   ].freeze
 
-  # Los cinco heredan `:full`; FormPage es la única excepción, y por ancho de lectura.
+  # All five inherit `:full`; FormPage is the only exception, and for reading width.
   DEFAULT_MAX_WIDTHS = {
     Bali::DashboardPage::Component => :full,
     Bali::DocumentPage::Component => :full,
@@ -52,12 +52,12 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # El orden es parte del contrato: el nav es navegación de segundo nivel y va ENTRE el
-  # encabezado y el cuerpo, no debajo de todo.
+  # The order is part of the contract: the nav is second-level navigation and goes BETWEEN the
+  # header and the body, not underneath everything.
   #
-  # #685: sin subtítulo los cinco emitían `<h6 class="subtitle"></h6>`. Un heading vacío es
-  # una sección sin nombre en el outline del documento y una violación de axe, y ninguna de
-  # las cinco páginas tenía un h1: la jerarquía arrancaba en h3.
+  # #685: with no subtitle all five emitted `<h6 class="subtitle"></h6>`. An empty heading is an
+  # unnamed section in the document outline and an axe violation, and none of the five pages had an
+  # h1: the hierarchy started at h3.
   def test_the_five_emit_no_empty_headings
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) { |page| page.with_body { "Body" } }
@@ -94,8 +94,8 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # Dentro del h1 los tags pasaban a formar parte de su nombre accesible y el encabezado se
-  # anunciaba "The Matrix Sci-Fi".
+  # Inside the h1 the tags became part of its accessible name and the heading announced itself as
+  # "The Matrix Sci-Fi".
   def test_the_five_keep_title_tags_out_of_the_heading
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|
@@ -111,7 +111,7 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # El botón de volver es un link icon-only: sin nombre accesible es un nodo anónimo.
+  # The back button is an icon-only link: with no accessible name it is an anonymous node.
   def test_the_five_name_the_back_button
     each_page do |component|
       render_inline(component.new(title: "The Matrix", back: { href: "/movies" })) do |page|
@@ -147,9 +147,9 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # La razón de que `max_width:` viva en el concern: el mismo símbolo tiene que dar la misma
-  # clase en los cinco. Antes `:lg` era `max-w-5xl` en los dos que lo aceptaban y ArgumentError
-  # en los otros tres, y `:md` no existía en DashboardPage.
+  # The reason `max_width:` lives in the concern: the same symbol has to give the same class in all
+  # five. `:lg` used to be `max-w-5xl` in the two that accepted it and an ArgumentError in the other
+  # three, and `:md` did not exist in DashboardPage.
   def test_the_five_resolve_max_width_through_the_same_table
     Bali::PageComponents::Shared::MAX_WIDTHS.each do |key, css_class|
       each_page do |component|
@@ -171,8 +171,8 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # Los defaults sí divergen —y deben: los tres que nunca tuvieron contenedor heredan `full`,
-  # que es un no-op, para que la unificación no les mueva el layout.
+  # The defaults do diverge —and should: the three that never had a container inherit `full`, which
+  # is a no-op, so the unification does not move their layout.
   def test_each_page_component_keeps_its_documented_default_width
     each_page do |component|
       assert_equal DEFAULT_MAX_WIDTHS.fetch(component), component.default_max_width,
@@ -180,8 +180,8 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # El ⋯ de v3. ShowPage, DashboardPage y FormPage lo heredaban del concern sin que ningún
-  # test lo mirara.
+  # v3's ⋯. ShowPage, DashboardPage and FormPage inherited it from the concern with no test looking
+  # at it.
   def test_the_five_move_secondary_actions_into_the_overflow_menu
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|
@@ -223,8 +223,8 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
-  # El grid que ShowPage y FormPage tenían copiado literal, ahora en el concern y disponible
-  # para los cinco.
+  # The grid ShowPage and FormPage had copied verbatim, now in the concern and available to all
+  # five.
   def test_the_five_share_one_body_and_sidebar_grid
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|
