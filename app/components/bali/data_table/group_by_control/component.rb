@@ -101,8 +101,16 @@ module Bali
         # indistinguible de "no vino nada", y un listado con persistencia de filtros restaura
         # de la caché lo que la URL no dice — o sea que apagar la agrupación la resucitaba en
         # el mismo render (ver FilterForm#fetch_stored_filter_state).
+        #
+        # Where a `group_by_attribute default:` is declared, empty is not enough either: see
+        # Bali::FilterForm::GroupByConfiguration::NO_GROUPING_VALUE.
         def no_grouping_href
-          build_href("")
+          build_href(no_grouping_value)
+        end
+
+        # @return [String] how this listing spells "no grouping" in the URL
+        def no_grouping_value
+          @filter_form.try(:no_grouping_value) || ""
         end
 
         def option_active?(attribute)

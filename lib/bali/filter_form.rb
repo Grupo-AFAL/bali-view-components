@@ -349,6 +349,9 @@ module Bali
       # (ver #fetch_stored_filter_state). Sin esta distinción, apagar la agrupación con la
       # persistencia encendida la resucitaba en el próximo render.
       @group_by_requested = params.key?(:group_by)
+      # Has ANYONE said anything about grouping? A saved view payload and the filter cache
+      # turn it on too. It gates the declared `default:` (#1156).
+      @group_by_chosen = @group_by_requested
       # La agrupación se SUSPENDE fuera de los modos que la aplican (default: tabla), pero el
       # param sigue vivo: volver a la tabla la encuentra como se dejó. El modo que pasa el
       # host gana sobre la URL: es el único que sabe qué vista renderiza un listado que
@@ -400,6 +403,9 @@ module Bali
           attributes, @groupings, @combinator, @search_value, force_write: saved_view_applied
         )
       end
+
+      # Last, after persistence — see {GroupByConfiguration#apply_default_group_by} (#1156).
+      apply_default_group_by
 
       super(attributes)
     end
@@ -582,9 +588,11 @@ module Bali
           relation = relation.where(date_range_attr => value)
         end
 
-        # Va último y sobre la relación ya evaluada: el ORDER BY de una agrupación con `sql:`
-        # explícito no cabe en el param `s` de Ransack, que solo habla de nombres.
-        apply_group_by_sql_order(relation)
+        # Last, over the already-built relation: the ORDER BY of a grouping with an explicit
+        # `sql:` does not fit Ransack's `s` param, which only speaks names. The diagnostics
+        # wrap goes OVER that reorder so it covers all four grouping shapes, not only `sql:`
+        # (see #apply_group_by_diagnostics).
+        apply_group_by_diagnostics(apply_group_by_sql_order(relation))
       end
     end
 
@@ -725,6 +733,9 @@ module Bali
                             combinator: combinator,
                             search_value: search_value,
                             group_by: @group_by,
+                            # `group_by: nil` alone cannot tell "I turned it off" from
+                            # "nobody said anything" (#1156).
+                            group_by_chosen: @group_by_chosen,
                             # Misma llave y misma forma que `PAYLOAD_KEYS` de las vistas
                             # guardadas: el round-trip es el que ya existe (`active_simple_filters`
                             # escribe, `apply_simple_filter_state` restaura,
@@ -768,9 +779,13 @@ module Bali
           # viaje tarjetas↔tabla perdía la agrupación en el camino. Se GUARDA además de
           # renderizarse: sin escribirla, el mismo render salía bien y el próximo request sin
           # el param resucitaba la agrupación vieja — el mismo síntoma, corrido un request.
-          Rails.cache.write(cache_key, stored.merge(group_by: @group_by))
-        elsif stored.key?(:group_by)
+          Rails.cache.write(cache_key, stored.merge(group_by: @group_by, group_by_chosen: true))
+        elsif stored[:group_by_chosen] || stored[:group_by].present?
+          # The stored CHOICE, not the mere presence of the key: an unmarked `group_by: nil`
+          # is what any filter submit writes on a listing that does not group, so reading it
+          # as a choice killed the declared `default:` on every listing ever used (#1156).
           @group_by = resolve_group_by(stored[:group_by])
+          @group_by_chosen = true
         end
         restore_simple_filter_state(stored)
         [
