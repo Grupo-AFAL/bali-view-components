@@ -579,10 +579,73 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".overflow-x-auto.table-component")
   end
 
-  def test_options_passthrough_accepts_custom_id
+  # `id:` identifica al COMPONENTE, y el root del componente es el `<div class="table-component">`
+  # (la convención de `**options` de docs/reference/component-patterns.md). Es la única llave de
+  # `**options` que NO baja a la `<table>`: de ella cuelgan `row_id_prefix` y `empty_table_row_id`,
+  # y es la que `getElementById`, `turbo_stream.replace` y un ancla ya resolvían por orden de
+  # documento. Emitirla también en la `<table>` era HTML inválido (#1157).
+  def test_custom_id_lands_only_on_the_container
     @options = { id: "my-table" }
     render_inline(component)
-    assert_selector("#my-table")
+    assert_selector("div#my-table.table-component", count: 1)
+    assert_no_selector("table#my-table")
+    # El id derivado sigue colgando del mismo valor: la extracción movió de dónde lo lee
+    # `container_id`, no qué vale.
+    assert_selector("tr#my-table-empty-table-row")
+  end
+
+  def test_custom_id_is_not_emitted_twice
+    @options = { id: "my-table" }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row { "<td>A</td>".html_safe }
+    end
+
+    ids = page.native.css("[id]").map { |node| node["id"] }
+    assert_equal(ids.uniq.size, ids.size, "ningún id del componente debe repetirse: #{ids.inspect}")
+    assert_includes(ids, "my-table")
+  end
+
+  # `table_container:` pinta el `<div>` DESPUÉS del `id: container_id` del template, así que un
+  # `id:` ahí gana el atributo del contenedor pero no alimenta a `container_id`: los ids
+  # derivados siguen saliendo del `id:` de nivel superior. Con los dos juntos, entonces, el id de
+  # nivel superior no aparece en ningún elemento — antes de #1157 aparecía en la `<table>`, que
+  # es justamente la emisión que este arreglo saca. Es el contrato de hoy, no una recomendación:
+  # la identidad del componente se pide con `id:`, y a `table_container:` van clases y datos.
+  def test_a_container_id_option_wins_the_attribute_but_not_the_derived_ids
+    @options = { id: "my-table", table_container: { id: "wrapper" } }
+    render_inline(component)
+
+    assert_selector("div#wrapper.table-component", count: 1)
+    assert_no_selector("#my-table")
+    assert_selector("tr#my-table-empty-table-row")
+  end
+
+  # Y sin `id:` de nivel superior, `container_id` queda en nil aunque `table_container:` traiga
+  # uno: el `<tr>` vacío sale pelado y el prefijo de fila es aleatorio. Pinneado porque desde
+  # este PR `table_container:` es API documentada, y porque es el contrato que el followup del
+  # issue propone cambiar (un `||` a `@table_container_options[:id]`).
+  def test_a_container_id_option_alone_does_not_feed_the_derived_ids
+    @options = { table_container: { id: "wrapper" } }
+    render_inline(component)
+
+    assert_selector("div#wrapper.table-component", count: 1)
+    assert_selector("tr#empty-table-row")
+    assert_no_selector("tr#wrapper-empty-table-row")
+  end
+
+  # La consecuencia visible de lo anterior: los ids de fila de los grupos plegables salen del
+  # prefijo aleatorio, no del id del contenedor, así que el HTML no es idempotente entre
+  # renders. Es preexistente y está archivado como followup; queda pinneado para que el arreglo
+  # tenga un test que cambiar.
+  def test_a_container_id_option_does_not_make_the_collapsible_row_ids_deterministic
+    render_collapsible(table_container: { id: "wrapper" }) do |c|
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+
+    row_id = page.find("tbody tr[data-table-groups-target='row']")["id"]
+    assert_match(/\Atable-[0-9a-f]{6}-/, row_id, "el prefijo de fila debería ser el aleatorio")
+    refute_match(/\Awrapper-/, row_id)
   end
 
   def test_options_passthrough_accepts_custom_classes

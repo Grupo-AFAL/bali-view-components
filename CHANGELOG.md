@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Bali::Table` emitía el `id:` dos veces: en el `<div>` contenedor y en la `<table>`.** Dos
+  elementos con el mismo id es HTML inválido, y `document.getElementById` devolvía sólo el
+  primero. No era una copia deliberada sino una fuga: `initialize` sacaba de `**options` las
+  sub-hashes `:tbody` y `:table_container` pero dejaba adentro `:id`, así que el mismo valor
+  salía por `container_id` en el `<div>` y otra vez por el doble splat en la `<table>`. Con
+  `form:` en vez de `id:` esto ya no pasaba —el `<div>` lo recibía y la `<table>` no—, o sea que
+  el caso `id:` era la anomalía. Reproducido en el navegador sobre el preview
+  `Table › Collapsible groups`, donde `portfolio` y `portfolio-selectable` aparecían dos veces
+  cada uno.
+
+  **El id se queda en el contenedor**, que es el root del componente y lo que la convención de
+  `**options` manda (`docs/reference/component-patterns.md`). Es también donde todo lo que lo
+  busca ya lo encontraba, porque el `<div>` es el primero en orden de documento:
+  `getElementById`, `querySelector('#id')`, un ancla y `turbo_stream.replace "id"` siguen
+  resolviendo al mismo nodo que antes **siempre que el `id:` sea el único** —que es el caso de
+  todos los call sites medidos—; la excepción está abajo. Y es lo correcto para Turbo:
+  reemplazar sólo la `<table>` se llevaría por delante el `overflow-x-auto` y el
+  `data-controller` de los grupos plegables. Los ids de fila (`row_id_prefix`) y el del `<tr>`
+  del estado vacío siguen colgando del mismo valor, sin cambio.
+
+  **Qué puede romperse en un anfitrión** —medido contra las nueve apps del grupo, cero
+  coincidencias en las tres—: un selector que nombre el elemento (`table#id`, `#id.table`,
+  `#id.table-zebra`) o use hijo directo (`#id > tbody`, `#id > thead`); cualquier aserción que
+  CUENTE el id pelado (`assert_select "#id", count: 2` pasa a encontrar un nodo, no dos); y
+  **`id:` junto con `table_container: { id: ... }`**, la única combinación en la que el id de
+  nivel superior deja de existir en el DOM. En esa combinación el `<div>` se queda con el id de
+  la sub-hash —la pinta después— y la `<table>` ya no se queda con nada, así que un
+  `getElementById` del id de nivel superior pasa de devolver la `<table>` a devolver `null`.
+  Medido: con `id: "x"` y `table_container: { id: "wrap" }` la salida era
+  `[div#wrap, table#x, tr#x-empty-table-row]` y ahora es `[div#wrap, tr#x-empty-table-row]`.
+  Ningún anfitrión del grupo la usa (el único `table_container: { id: }` va sin `id:` de nivel
+  superior), y queda pinneada en `test/bali/components/table_test.rb`. Los selectores de
+  descendencia —`#id tbody tr`, `#id td`, `#id thead th`, que es la forma de las ~60 aserciones
+  medidas— siguen igual, porque el `<div>` sigue siendo ancestro de todo.
+
+  No hay forma soportada de ponerle un id propio al elemento `<table>`, y nada la necesita: hay
+  **un solo id por componente** y vive en el contenedor. Los atributos propios del contenedor van
+  en `table_container:` (una sub-hash como `tbody:`), ahora documentada en
+  `docs/guides/components.md` y con preview propio en Lookbook (`Table › Container id`) — con el
+  caveat de que ahí van clases y datos, no la identidad: un `id:` dentro de `table_container:`
+  gana el atributo del `<div>` pero no alimenta a `container_id`, así que los ids de fila y el
+  del `<tr>` vacío siguen saliendo del `id:` de nivel superior, o de un prefijo aleatorio si no
+  hay ninguno. El resto de `**options` —`class:`, `data:`— sigue bajando a la `<table>`. Ojo con
+  el contraejemplo: `Bali::PropertiesTable` sí pone su id en la `<table>`, y está bien, porque
+  ahí la `<table>` ES el root del componente. (#1157)
 - **La guía de componentes enseñaba `variant:` en `Bali::WorkflowSteps`, un keyword que el
   componente rechaza desde v3.1** (#1159). El eje se llama `orientation:` —el mismo nombre que
   usa `Bali::Stepper`, su hermano— y pasar el viejo levanta `ArgumentError`, pero la sección

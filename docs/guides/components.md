@@ -1321,6 +1321,46 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**Identity (`id:`)** — a `Bali::Table` emits **one** id, on the
+`<div class="table-component">` that wraps the `<table>`: the id names the whole component,
+and the wrapper is the component's root (the
+[options passthrough](../reference/component-patterns.md#options-passthrough) convention).
+It is the only `**options` key that does not reach the `<table>` — `class:`, `data:` and the
+rest still do. That wrapper is also what a `turbo_stream.replace "my-table"` should replace:
+swapping the `<table>` alone would drop the `overflow-x-auto` and the `data-controller` of
+the collapsible groups.
+
+Selectors keep working as they did, because everything inside the table is a descendant of
+the wrapper (`#my-table tbody tr`, `#my-table td`) and `getElementById`,
+`querySelector('#my-table')`, an `#my-table` anchor and `turbo_stream.replace` already
+resolved to it — the `<div>` comes first in document order. What changes is a selector that
+names the element (`table#my-table`, `#my-table.table`) or uses a direct child
+(`#my-table > tbody`), and any assertion that *counts* the bare id
+(`assert_select "#my-table", count: 2` now finds one node, not two).
+
+The container's own attributes go in `table_container:`, a sub-hash like `tbody:`:
+
+```erb
+<%= render Bali::Table::Component.new(id: "movies", class: "table-sm",
+                                      table_container: { class: "rounded-box border" }) %>
+<%# → <div id="movies" class="overflow-x-auto table-component rounded-box border">
+      <table class="table table-zebra min-w-full table-sm"> %>
+```
+
+**`table_container:` is for classes and data attributes, not for the id.** The sub-hash is
+splatted onto the `<div>` *after* the component's own id, so an `id:` inside it wins that one
+attribute — but it does not become the component's identity: the collapsible row ids and the
+empty-state `<tr>` id still derive from the top-level `id:`, and with no top-level `id:` they
+fall back to a per-render random prefix (`table-a1b2c3-…`), which is unique but not stable
+across requests. Pass both and the top-level id ends up on no element at all: the `<div>`
+carries the sub-hash's, and the `<table>` carries none. Give the component its identity with
+`id:`.
+
+There is no supported way to put an id on the `<table>` element itself, and nothing needs
+one: `Bali::DataTable` already targets the container rather than the table for this reason.
+Note that `Bali::PropertiesTable` *does* put its id on the `<table>` — same rule, different
+root: there the `<table>` is the component's root element.
+
 **Sorting** — `sort:` needs a `form:` (a `Bali::FilterForm`); without one the header raises
 `Bali::Table::Component::MissingFilterForm`. The value is a **Ransack** attribute, so
 sorting through an association takes its path, not the column: `sort: :studio_name` for a
@@ -1532,11 +1572,14 @@ there is a control inside a control. The group select-all, on a selectable table
 its own cell outside the button and still marks the folded rows.
 
 Each row gets an `id` for the button's `aria-controls` — the one you pass to `with_row`, or
-`<container id>-<group token>-row-<n>` otherwise. Give the table an `id:` (or a `form:`)
-when you want those ids deterministic; without one the prefix is random, so two collapsible
-tables on the same page never share an id. A `skip_tr: true` row owns its `<tr>` and stays
-out of the folding. The same group value reappearing further down is the same group, as it
-is for selection: folding one of its bands folds both runs.
+`<container id>-<group token>-row-<n>` otherwise, where `<container id>` is the id on the
+wrapper `<div>`. Give the table an `id:` when you want those ids stable; without one the
+prefix is random, so two collapsible tables on the same page never share an id. A `form:`
+also supplies the prefix, but `FilterForm#id` is the scope's cache key, so it changes
+whenever the filters do — it keeps the ids unique, not stable across requests. A
+`skip_tr: true` row owns its `<tr>` and stays out of the folding. The same group value
+reappearing further down is the same group, as it is for selection: folding one of its bands
+folds both runs.
 
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
 `Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
