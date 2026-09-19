@@ -189,4 +189,292 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_selector("div.card")
     assert_no_selector("a.card")
   end
+
+  # --- The card surface, asserted on the DOM ---------------------------------
+  #
+  # The `test_card_options_passes_through_*` tests above assert on the options
+  # hash: a surface that skipped `card_options` would leave them green while
+  # dropping the passthrough.
+
+  def test_card_surface_passes_class_id_and_data_through_to_the_rendered_root
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs, class: "custom-class", id: "stat-1", data: { testid: "stat" }
+      )
+    )
+    assert_selector("div.card.custom-class#stat-1[data-testid='stat']")
+  end
+
+  # --- surface: :cell --------------------------------------------------------
+
+  def test_cell_surface_does_not_render_a_card
+    render_inline(Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell))
+    assert_no_selector(".card")
+    assert_no_selector("[surface]") # and does not leak as an HTML attribute either
+    assert_text("Total Users")
+    assert_text("1,234")
+  end
+
+  def test_cell_surface_renders_a_bordered_box
+    render_inline(Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell))
+    assert_selector("div.rounded-box.border.border-base-300.p-4.bg-base-100")
+  end
+
+  def test_cell_surface_passes_class_id_and_data_through_to_the_rendered_root
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell,
+        class: "custom-class", id: "cell-1", data: { testid: "cell" }
+      )
+    )
+    assert_selector("div.rounded-box.custom-class#cell-1[data-testid='cell']")
+  end
+
+  def test_cell_surface_with_href_renders_an_anchor_with_the_hover_affordance
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell, href: "/x")
+    )
+    assert_selector("a.rounded-box[href='/x']", text: "Total Users")
+    assert_selector("a.transition-shadow.hover\\:shadow-md")
+    assert_no_selector(".card")
+  end
+
+  def test_cell_surface_rejects_an_icon
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs, surface: :cell)
+    end
+    assert_includes(error.message, "surface: :cell")
+    assert_includes(error.message, "icon")
+  end
+
+  def test_an_unknown_surface_is_rejected
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs, surface: :panel)
+    end
+    assert_includes(error.message, ":panel")
+  end
+
+  def test_surface_nil_falls_back_to_the_card_default
+    render_inline(Bali::StatCard::Component.new(**default_attrs, surface: nil))
+    assert_selector("div.card")
+  end
+
+  # Measured before the guard: these fell through `**options` onto the root as
+  # invalid HTML attributes (`<div size="sm" shadow="false" body_class="x">`).
+  def test_cell_surface_rejects_the_card_keywords_one_by_one
+    { size: :sm, shadow: false, side: true, image_full: true, body_class: "x" }
+      .each do |keyword, value|
+      error = assert_raises(ArgumentError, "#{keyword}: fell through in silence") do
+        Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                      **{ keyword => value })
+      end
+      assert_includes(error.message, "#{keyword}:")
+      assert_includes(error.message, "surface: :card")
+    end
+  end
+
+  def test_cell_surface_names_every_card_keyword_it_was_handed_at_once
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    size: :sm, shadow: false)
+    end
+    assert_includes(error.message, "size:")
+    assert_includes(error.message, "shadow:")
+  end
+
+  # The Symbol is rejected because it would render `style="bordered"`; the String
+  # is honoured because an inline style on the root is legitimate.
+  def test_cell_surface_rejects_the_card_style_keyword_but_keeps_an_inline_style
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    style: :bordered)
+    end
+    assert_includes(error.message, "style: :bordered")
+
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    style: "opacity:.5")
+    )
+    assert_selector("div.rounded-box[style='opacity:.5']")
+  end
+
+  def test_card_surface_still_forwards_the_card_keywords
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs, size: :sm, shadow: false, style: :bordered)
+    )
+    assert_selector("div.card.card-sm.card-border")
+    assert_no_selector("div.shadow-sm")
+  end
+
+  # --- emphasis --------------------------------------------------------------
+
+  def test_cell_surface_is_untinted_by_default
+    render_inline(Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell))
+    assert_no_selector(".bg-primary\\/10")
+    assert_selector(".border-base-300")
+  end
+
+  def test_emphasis_paints_the_cell_with_the_colour_pair
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, emphasis: true, color: :primary
+      )
+    )
+    assert_selector(".bg-primary\\/10.border-primary\\/30")
+    assert_no_selector(".border-base-300")
+  end
+
+  def test_emphasis_paints_every_colour_in_the_table
+    Bali::StatCard::Component::COLORS.each do |color, classes|
+      render_inline(
+        Bali::StatCard::Component.new(
+          **default_attrs.except(:icon), surface: :cell, emphasis: true, color: color
+        )
+      )
+      assert_selector(".#{classes[:bg].gsub('/', '\\\\/')}.#{classes[:border].gsub('/', '\\\\/')}")
+    end
+  end
+
+  def test_emphasis_with_a_custom_colour_paints_inline_instead_of_silently_doing_nothing
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, emphasis: true, custom_color: "#7c3aed"
+      )
+    )
+    assert_selector("div[style*='background-color: color-mix']")
+    assert_selector("div[style*='border-color: color-mix']")
+  end
+
+  # Without the `;` between the two the browser drops the fused declaration AND
+  # the host's: measured, the border fell back to `border-base-300` and the
+  # opacity stayed at 1.
+  def test_emphasis_and_a_host_style_survive_each_other
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, emphasis: true,
+        custom_color: "#7c3aed", style: "opacity:.5"
+      )
+    )
+    assert_selector(
+      "div[style='background-color: color-mix(in oklch, #7c3aed 10%, transparent); " \
+      "border-color: color-mix(in oklch, #7c3aed 30%, transparent); opacity:.5']"
+    )
+  end
+
+  def test_emphasis_is_rejected_on_the_card_surface
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs, emphasis: true)
+    end
+    assert_includes(error.message, "emphasis:")
+    assert_includes(error.message, "surface: :cell")
+  end
+
+  def test_colors_constant_has_a_border_class_for_each_color
+    Bali::StatCard::Component::COLORS.each_value do |classes|
+      assert(classes.key?(:border))
+    end
+  end
+
+  # --- note: and value_class: ------------------------------------------------
+
+  def test_note_renders_a_muted_third_line_on_the_cell_surface
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, note: "Creates value \u00b7 12.5% rate"
+      )
+    )
+    assert_selector("p.text-xs.text-base-content\\/60", text: "Creates value \u00b7 12.5% rate")
+  end
+
+  def test_note_also_works_on_the_card_surface
+    render_inline(Bali::StatCard::Component.new(**default_attrs, note: "Last 30 days"))
+    assert_selector(".card p.text-xs", text: "Last 30 days")
+  end
+
+  def test_without_a_note_no_extra_paragraph_is_emitted
+    render_inline(Bali::StatCard::Component.new(**default_attrs))
+    assert_selector("p", count: 2) # title + value, exactly as before
+  end
+
+  def test_value_class_is_appended_to_the_value_paragraph
+    render_inline(Bali::StatCard::Component.new(**default_attrs, value_class: "font-mono"))
+    assert_selector("p.text-3xl.font-bold.font-mono", text: "1,234")
+  end
+
+  def test_value_class_is_appended_on_the_cell_surface_too
+    render_inline(
+      Bali::StatCard::Component.new(
+        **default_attrs.except(:icon), surface: :cell, value_class: "font-mono tabular-nums"
+      )
+    )
+    assert_selector("div.rounded-box p.text-3xl.font-bold.font-mono.tabular-nums", text: "1,234")
+  end
+
+  # A utility that sets a property the library also sets is resolved by the order
+  # of the compiled sheet, not by this string — so `text-xl` here really does win
+  # (measured in the browser: 20px). This pins the concatenation it rests on.
+  def test_value_class_lands_verbatim_after_the_library_classes
+    render_inline(Bali::StatCard::Component.new(**default_attrs, value_class: "text-xl"))
+    assert_selector("p[class='text-3xl font-bold mt-1 text-xl']", text: "1,234")
+  end
+
+  # --- the footer slot on the cell surface -------------------------------------
+
+  def test_the_footer_slot_renders_on_the_cell_surface
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell)
+    ) { |cell| cell.with_footer { "+12% vs. last quarter" } }
+
+    assert_selector("div.rounded-box div.flex.items-center.gap-1.text-sm",
+                    text: "+12% vs. last quarter")
+    assert_no_selector(".card")
+  end
+
+  def test_note_and_footer_keep_their_places_on_the_card_surface
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs, note: "Creates value")
+    ) { |card| card.with_footer { "+12% from last month" } }
+
+    assert_selector("div.justify-between p.text-3xl + p.text-xs", text: "Creates value")
+    assert_selector("div.justify-between + div.flex.items-center.gap-1.text-sm",
+                    text: "+12% from last month")
+  end
+
+  def test_note_and_footer_keep_their_places_on_the_cell_surface
+    render_inline(
+      Bali::StatCard::Component.new(**default_attrs.except(:icon), surface: :cell,
+                                    note: "Creates value")
+    ) { |cell| cell.with_footer { "+12% from last month" } }
+
+    assert_selector("div.rounded-box div.justify-between p.text-3xl + p.text-xs",
+                    text: "Creates value")
+    assert_selector("div.rounded-box div.justify-between + div.flex.items-center.gap-1.text-sm",
+                    text: "+12% from last month")
+  end
+
+  # --- the cell's helpers are the template's business, not the API's ----------
+  #
+  # A ViewComponent template calls private methods, so none of these is public.
+
+  %i[cell? cell_options cell_tag cell_classes cell_style value_classes note_classes]
+    .each do |method|
+      define_method("test_#{method.to_s.delete_suffix('?')}_is_private") do
+        component = Bali::StatCard::Component.new(**default_attrs)
+        assert_includes(component.private_methods, method)
+      end
+    end
+
+  def test_the_cells_internal_constants_are_private
+    public_constants = Bali::StatCard::Component.constants
+
+    %i[SURFACES CELL_CLASSES CELL_SURFACE_CLASSES VALUE_CLASSES NOTE_CLASSES CARD_KEYWORDS]
+      .each do |name|
+        assert_not_includes(public_constants, name, "#{name} is public API nobody asked for")
+      end
+  end
+
+  # `DashboardPage#stat_change_class` reads this table.
+  def test_the_colors_table_stays_public
+    assert(Bali::StatCard::Component::COLORS.key?(:primary))
+  end
 end

@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::StatCard` tiene una segunda superficie: `surface: :cell`** (#1146). La misma
+  métrica de siempre —etiqueta arriba, cifra grande— sobre una caja plana que **no emite la
+  clase `.card`**: la rejilla de cifras que vive DENTRO de la tarjeta de una sección, donde la
+  superficie por omisión sería una tarjeta dentro de otra. Con ella llegan `note:` (la tercera
+  línea discreta bajo la cifra), `emphasis:` (pinta la celda para destacar una cifra) y
+  `value_class:`.
+
+  **Nada de lo que rindes hoy cambia.** `surface:` nace con `:card` por omisión, y
+  `test/bali/components/stat_card/default_surface_unchanged_test.rb` compara doce formas de la
+  tarjeta contra la captura tomada en v3.4.0, byte a byte. `surface: nil` cae al default igual
+  que `color: nil`.
+
+  **Al cambiar de superficie, borra las claves de tarjeta.** `icon:`, `size:`, `shadow:`,
+  `side:`, `image_full:`, `body_class:` y el `style: :bordered` simbólico levantan
+  `ArgumentError` junto a `surface: :cell`, en vez de caer en silencio hasta la raíz como
+  atributos HTML inválidos. Lo que sí pasa a la raíz en las dos superficies es `class:`, `id:`,
+  `data:` y un `style:` **string**.
+
+  **`emphasis:` es un eje de énfasis, no de color.** `emphasis: true` dice *pinta esta celda* y
+  `color:` / `custom_color:` dicen de qué color; no existe `tone:`. Sobre `surface: :card`
+  levanta `ArgumentError`.
+
+  **`Bali::StatCard::Component::COLORS` gana una clave `:border` por color.** Es aditivo, pero
+  la tabla tiene un segundo consumidor: `Bali::DashboardPage#stat_change_class`.
+
+  **Si vienes de una celda pintada a mano, esto NO es un reemplazo pixel a pixel**: la cifra
+  pasa de 20px/600 monoespaciada a 30px/700 proporcional, la etiqueta pierde peso y gana
+  transparencia, y una celda destacada deja de recolorear su texto. Un `tone: X → color: X`
+  mecánico está mal: los defaults no se corresponden y sin `emphasis:` el color no se ve. La
+  tabla completa está en `docs/guides/components.md`, «Replacing a hand-painted metric cell».
+  Borra el parcial en el mismo commit que adopta la celda.
+
+  `DashboardPage#with_stat` **no** reenvía `surface:`: su lista de parámetros es fija y rinde
+  tarjetas, a propósito. Previews nuevos en la galería: `cells_in_card`, `surfaces_compared` y
+  `emphasised_cell`.
+
 - **`input_class:`, la cuarta opción de clase: el control y nada más** (#1147). Bali ya
   sabía nombrar el `<fieldset>` (`field_class:`), la caja que envuelve al control
   (`control_class:`) y las dos cosas a la vez (`class:`); lo que no había forma de decir
@@ -58,6 +94,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   libera con `spanish-ok: <razón>`. Interno: no cambia nada para las apps host.
 
 ### Fixed
+
+- **`Bali::HtmlElementHelper#prepend_style` separa las declaraciones con `;`** (#1146).
+  Concatenaba con un espacio, lo que funde la última declaración del componente con la primera
+  del anfitrión en una sola declaración inválida que el navegador tira entera —se perdían las
+  dos—. En v3.4.0 este helper no tenía ningún llamador, así que nada de lo que rinde la gema
+  hoy cambia; el arreglo llega junto con su primer uso real, la celda de StatCard.
 
 - **`control_class:` deja de descartarse en silencio en las familias con addon** (#1147).
   La opción existe desde siempre y clasea la caja que envuelve al control, pero sólo la leía
@@ -504,6 +546,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
   ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
   que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
+
+### Added
+
+- **`group_by_attribute :status, default: true` — un listado que abre agrupado** (#1156). La
+  agrupación ya tiene el equivalente de `filter_attribute default:`, en las dos formas de
+  declarar: el DSL de clase y el `group_by_attributes:` del constructor, que antes descartaba
+  la llave en silencio. Una sola declaración puede traerlo, y es un booleano, no un callable.
+
+  **Precedencia:** un `?group_by=` explícito en la URL (incluido «sin agrupación», o el usuario
+  no podría desagrupar), después lo que diga el payload de una vista guardada aplicada, después
+  la elección guardada en la caché de filtros, y recién entonces el default.
+
+  **Dos cambios visibles para el anfitrión.** (1) Donde hay un `default:` declarado, «sin
+  agrupación» viaja como `?group_by=none` en vez del `?group_by=` vacío de siempre —el
+  `sort_link` de Ransack descarta los params vacíos—; los listados sin default siguen con el
+  vacío, byte a byte. (2) La caché de filtros gana la llave `group_by_chosen`; las cachés
+  escritas por versiones anteriores no la traen y se leen como «nadie dijo nada», que es lo que
+  hace que el default funcione desde el primer request.
+
+  El default es DERIVADO: no se escribe en la caché ni entra al payload de una vista guardada,
+  así que cambiar la declaración cambia lo que ven también los usuarios que ya visitaron el
+  listado. Lo que el usuario eligió sí se guarda: una vista guardada sin agrupar lleva
+  `"group_by" => "none"` y vuelve a abrirse sin agrupar, mientras que una vista SIN la llave es
+  silencio y ahí el default sigue hablando.
+
+  **Al adoptarlo sobre un listado que ya tenía su propio default hecho a mano, comparar las dos
+  reglas de vistas guardadas.** Bali suprime el default solo con una vista que diga algo de
+  agrupación, así que las vistas ya guardadas —cuyos payloads no traen la llave— pasan a
+  abrirse agrupadas.
+
+  Preview nuevo: `bali/data_table/with_default_grouping`.
+
+### Fixed
+
+- **Agrupar sobre un scope con `.distinct` ya no muere con el error crudo del driver** (#1156).
+  Agrupar ordena por la expresión del grupo, y un `SELECT DISTINCT` solo acepta expresiones del
+  `ORDER BY` que estén en su lista del SELECT: de las cuatro formas de agrupar, la única que lo
+  está es una columna de la tabla base. Bali no puede arreglarlo por el anfitrión —meter la
+  expresión en el SELECT cambia qué deduplica el `.distinct`—, así que reemplaza el error del
+  adaptador por `Bali::FilterForm::GroupByOrderingError`, que nombra el listado, la agrupación,
+  el `ORDER BY` culpable y las tres salidas. El error del driver queda como `#cause` y
+  cualquier otro fallo del adaptador sale intacto. MySQL también se traduce; SQLite acepta las
+  cuatro formas y no ve ninguna diferencia.
 
 ## [v3.4.0] - 2026-09-17
 

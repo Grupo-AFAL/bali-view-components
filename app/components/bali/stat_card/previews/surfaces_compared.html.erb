@@ -1,0 +1,32 @@
+<%= render Bali::Card::Component.new do |card| %>
+  <% card.with_title('Three boxes, one metric') %>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div>
+      <p class="text-base-content/60 mb-2 text-xs font-medium tracking-wide uppercase">
+        surface: :card (default)
+      </p>
+      <%= render Bali::StatCard::Component.new(
+            title: 'NPV', value: '$6.14M', icon: 'trending-up'
+          ) %>
+    </div>
+
+    <div>
+      <p class="text-base-content/60 mb-2 text-xs font-medium tracking-wide uppercase">
+        surface: :card, size: :sm, shadow: false
+      </p>
+      <%= render Bali::StatCard::Component.new(
+            title: 'NPV', value: '$6.14M', icon: 'trending-up', size: :sm, shadow: false
+          ) %>
+    </div>
+
+    <div>
+      <p class="text-base-content/60 mb-2 text-xs font-medium tracking-wide uppercase">
+        surface: :cell
+      </p>
+      <%= render Bali::StatCard::Component.new(
+            surface: :cell, title: 'NPV', value: '$6.14M', note: 'Creates value · 12.5% rate'
+          ) %>
+    </div>
+  </div>
+<% end %>
