@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 export class DropdownController extends Controller {
   static targets = ['trigger', 'menu']
@@ -50,7 +51,9 @@ export class DropdownController extends Controller {
   async setupPopover () {
     if (!this.menu || !this.hasTriggerTarget) return
 
-    const { default: tippy } = await import('tippy.js')
+    const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
+    if (!tippyModule) return
+    const { default: tippy } = tippyModule
 
     // The menu leaves `this.element` from here on, so the handlers bound on the wrapper
     // never see its events. Bound on the menu as well, they do.

@@ -72,18 +72,31 @@
     ]
   },
   "//peerDependencies": [
-    "REQUIRED: @hotwired/stimulus (70 shipped files import it), @hotwired/turbo-rails (used as the",
-    "  window.Turbo global, never imported -- so a bundler will not tell you it is missing),",
-    "  and daisyui, because the components emit daisyUI class names from Ruby: without it they",
-    "  render unstyled, not merely unthemed.",
+    "THE LINE BETWEEN REQUIRED AND OPTIONAL IS THE IMPORT, not how much an app uses the",
+    "  component. A package a shipped file imports with a top-level `import` is already in",
+    "  every bundle that calls registerAll: esbuild has to resolve it to build the host at",
+    "  all, so calling it optional buys nothing and breaks `yarn build`. Measured on an app",
+    "  that installed only the three obvious peers and wired registerAll + registerCharts: 22",
+    "  `Could not resolve` errors across 12 packages, 13 of them from static imports. A package",
+    "  loaded with `await import(...).catch(optionalPeer(...))` is genuinely optional -- the",
+    "  guard is what makes it so, and utils/optional-peer.js explains why.",
+    "REQUIRED, always: @hotwired/stimulus (70 shipped files import it), @hotwired/turbo-rails",
+    "  (used as the window.Turbo global, never imported -- so a bundler will not tell you it",
+    "  is missing), and daisyui, because the components emit daisyUI class names from Ruby:",
+    "  without it they render unstyled, not merely unthemed.",
+    "REQUIRED, because the root entry imports them statically: @rails/activestorage (direct",
+    "  upload), @rails/request.js (tabs, slim select, sortable list, widget grid, input on",
+    "  change), date-fns (timeago), lodash.debounce (submit on change), lodash.throttle",
+    "  (navbar, elements overlap), rrule (recurrent event rule form). They were listed as",
+    "  optional until this version, and every app in the fleet had installed them anyway,",
+    "  because a build that stops is not an option a host can decline. Making one optional",
+    "  again means making its import lazy first.",
     "EVERYTHING ELSE IS OPTIONAL. Bali is a component library and no app uses all of it; each",
     "  optional peer is listed next to the entry that reaches for it.",
-    "  Root entry, per controller: @glidejs/glide (carousel), @googlemaps/markerclusterer +",
-    "  @rails/activestorage (locations map, direct upload), @rails/request.js, date-fns",
-    "  (timeago), flatpickr (datepicker), lodash.debounce, lodash.throttle, qr-scanner",
-    "  (qr scanner), rrule (recurrent event rule), slim-select, sortablejs (kanban, sortable",
-    "  list), tippy.js.",
-    "  ./charts: chart.js.",
+    "  Root entry, per controller: @glidejs/glide (carousel), @googlemaps/markerclusterer",
+    "  (locations map), flatpickr (datepicker), qr-scanner (qr scanner), slim-select,",
+    "  sortablejs (kanban, sortable list), tippy.js (tooltip, dropdown, hover card).",
+    "  ./charts: chart.js -- optional, and the entry point still registers without it.",
     "  ./block-editor: @blocknote/core + /react + /mantine, @mantine/core, @mantine/hooks,",
     "    react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for syntax-highlighted",
     "    code blocks; pass syntax_highlighting: false and you can skip it.",
@@ -196,12 +209,6 @@
       "optional": true
     },
     "@mantine/hooks": {
-      "optional": true
-    },
-    "@rails/activestorage": {
-      "optional": true
-    },
-    "@rails/request.js": {
       "optional": true
     },
     "@tiptap/core": {
@@ -327,31 +334,22 @@
     "chart.js": {
       "optional": true
     },
-    "date-fns": {
-      "optional": true
-    },
     "flatpickr": {
       "optional": true
     },
     "highlight.js": {
       "optional": true
     },
-    "lodash.debounce": {
-      "optional": true
-    },
-    "lodash.throttle": {
-      "optional": true
-    },
     "lowlight": {
+      "optional": true
+    },
+    "qr-scanner": {
       "optional": true
     },
     "react": {
       "optional": true
     },
     "react-dom": {
-      "optional": true
-    },
-    "rrule": {
       "optional": true
     },
     "shiki": {

@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
+import { readColumnState, visibleColumns } from './column_storage'
 
 /**
  * Saved Views Controller
@@ -10,6 +11,12 @@ import { syncPopoverAria } from './popover_aria'
  *
  * The payload itself is server-rendered (FilterForm#current_view_payload) — this
  * controller only contributes what lives exclusively in the DOM: column visibility.
+ *
+ * A view still travels as a list of VISIBLE columns, and did not follow the selector to the
+ * new polarity. It is an EXPLICIT, named choice, so it shows exactly what it recorded; the
+ * device memory is implicit, and there the server's default wins ties. The payload also lives
+ * in `bali_saved_views.payload`, already written in three apps of the group — the contract
+ * with `apply_visible_columns` does not move.
  */
 export default class extends Controller {
   static targets = ['saveForm', 'renameForm', 'payload']
@@ -70,17 +77,14 @@ export default class extends Controller {
     return this.serverColumnsValue.length > 0 ? this.serverColumnsValue : this.storedColumns()
   }
 
-  // Misma llave que usa el column-selector para su persistencia por dispositivo. La manda
-  // el servidor porque el target (`#<listing_id> table`) ya no la contiene, y porque una
-  // llave derivada por separado se separa: ahí las columnas se perdían en silencio.
+  // Same key the column-selector persists to, and — since v2 — the same READER. The server
+  // sends the key because the target (`#<listing_id> table`) no longer contains it, and because
+  // a key derived separately drifts apart: that is how the columns went missing in silence.
+  //
+  // Read-only on purpose: with no selector on screen there is no way to enumerate the table's
+  // columns, so a listing left in cards mode keeps its old format until someone returns to the
+  // table.
   storedColumns () {
-    if (!this.storageKeyValue) return null
-
-    try {
-      const parsed = JSON.parse(localStorage.getItem(this.storageKeyValue))
-      return Array.isArray(parsed) ? parsed : null
-    } catch {
-      return null
-    }
+    return visibleColumns(readColumnState(this.storageKeyValue))
   }
 }

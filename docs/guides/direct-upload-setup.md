@@ -111,7 +111,8 @@ gsutil cors set cors.json gs://your-bucket-name
 
 ### 4. JavaScript Setup
 
-Ensure Active Storage JavaScript is loaded in your application:
+`@rails/activestorage` is a **required** peer of Bali — `bin/rails g bali:install` writes it
+into `package.json` — and your own entry point starts it:
 
 ```javascript
 // app/javascript/application.js (or your entry point)
@@ -119,14 +120,15 @@ import * as ActiveStorage from "@rails/activestorage"
 ActiveStorage.start()
 ```
 
-If using importmaps:
+**Import maps cannot load this component**, and pinning `@rails/activestorage` does not change
+that: the DirectUpload controller arrives with the rest of Bali, which is ESM source importing
+its peers by bare specifier, so a bundler has to resolve them. The measurement is in the
+[JavaScript integration guide](javascript-integration.md#import-maps-not-supported); the short
+version is that one unresolved specifier fails the whole module and takes every controller in
+it down, yours included.
 
-```ruby
-# config/importmap.rb
-pin "@rails/activestorage", to: "activestorage.esm.js"
-```
-
-The Bali DirectUpload controller is automatically registered when you import Bali components.
+The Bali DirectUpload controller is registered by `registerAll`, so there is nothing to import
+per component.
 
 ---
 

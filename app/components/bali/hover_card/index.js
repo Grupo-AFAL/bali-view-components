@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event names stay put when a host registers this controller under a
@@ -46,7 +47,9 @@ export class HovercardController extends Controller {
     // Use template content, or loading spinner if fetching from URL
     const content = this.getInitialContent()
 
-    const { default: tippy } = await import('tippy.js')
+    const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
+    if (!tippyModule) return
+    const { default: tippy } = tippyModule
 
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,

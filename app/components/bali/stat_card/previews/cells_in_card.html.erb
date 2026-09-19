@@ -1,0 +1,50 @@
+<%= render Bali::Card::Component.new do |card| %>
+  <% card.with_title('Business case') %>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          emphasis: true,
+          color: :primary,
+          title: 'NPV',
+          value: '$6.14M',
+          value_class: 'tabular-nums',
+          note: 'Creates value · 12.5% rate'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'BCR',
+          value: '2.41',
+          value_class: 'tabular-nums',
+          note: 'Benefit / cost'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'IRR',
+          value: '38.7%',
+          value_class: 'tabular-nums',
+          note: 'Above the discount rate'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'MIRR',
+          value: '24.3%',
+          value_class: 'tabular-nums',
+          note: 'Reinvested at 8%'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'Payback',
+          value: '2y 4m',
+          value_class: 'tabular-nums',
+          note: 'Discounted'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell,
+          title: 'ROI',
+          value: '141%',
+          value_class: 'tabular-nums',
+          note: '5-year horizon'
+        ) %>
+  </div>
+<% end %>
