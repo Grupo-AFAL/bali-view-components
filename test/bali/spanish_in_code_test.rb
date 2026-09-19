@@ -7,8 +7,9 @@ require "tempfile"
 # copy inside Lookbook previews. Spanish stays in the prose written for the team: the
 # CHANGELOG, the commit message and the PR body.
 #
-# The rule is new and the debt is old: 253 files carry 2708 Spanish comment and test-name
-# lines. Translating them is six batches of work; keeping the number from growing while that
+# The rule is new and the debt is old: 253 files carry 2708 ACCENTED Spanish comment and
+# test-name lines — accented, which is not the same as all of them; see the last paragraph.
+# Translating them is six batches of work; keeping the number from growing while that
 # happens is this file. So the guard is a RATCHET, not a ban — every offending file is listed
 # with its line count in `spanish_in_code_baseline.txt`, and the suite goes red only when a
 # file that is not listed acquires Spanish, or a listed one acquires MORE of it.
@@ -22,9 +23,9 @@ require "tempfile"
 # batch that translates a file deletes its line, and nothing makes it.
 #
 # WHAT COUNTS AS SPANISH. An accent or an inverted mark, capitals included, on a line that
-# OPENS with a comment marker (`#`, `//`, `/*`, `*`, `<%#`) or that declares a test name
-# (`test "..."`, `def test_`, Cypress `describe(`/`it(`). Nothing else. The alphabet lives in
-# the `SPANISH` constant below; spelled out, it is
+# OPENS with a comment marker (`#`, `//`, `/*`, `*`, `<%#`, `<!--`) or that declares a test
+# name (`test "..."`, `test("...")`, `def test_`, Cypress `describe(`/`context(`/`it(`).
+# Nothing else. The alphabet lives in the `SPANISH` constant below; spelled out, it is
 # á é í ó ú ü ñ ¿ ¡ — spanish-ok: the characters this guard is built to find.
 # A line of code carrying sample data is not a violation: the sample people are content, not
 # language — the gallery shows a Mexican app what it is going to look like, and one of those
@@ -38,16 +39,30 @@ require "tempfile"
 # has to stay. So trailing comments are out of scope: on today's tree, looking for them would
 # find one false positive and nothing else.
 #
-# Spanish written without accents is invisible here. That is the contract, not an oversight —
-# an accent is a signal with no false positives, and "word lists" for two languages that share
-# most of their Latin roots are not.
+# ACCENTS ONLY, SO GREEN DOES NOT MEAN "NO SPANISH LEFT". Spanish written without accents is
+# invisible here, and that is the contract rather than an oversight: an accent is a signal
+# with no false positives, and a "word list" for two languages that share most of their Latin
+# roots is not — a guard that cries wolf gets turned off. What it costs is measured, not
+# guessed: translating the 825 accented lines under `test/` left 134 further comment lines
+# that were Spanish without a single accent in them. So the baseline counts are a FLOOR on
+# the debt, not the debt, and a file sitting at zero here can still be written in Spanish.
+# Reading it is the only thing that settles that.
 class BaliSpanishInCodeTest < ActiveSupport::TestCase
   ROOT = Bali::Engine.root
   BASELINE_PATH = ROOT.join("test/bali/spanish_in_code_baseline.txt")
 
   SPANISH = /[áéíóúüñÁÉÍÓÚÜÑ¿¡]/
-  COMMENT_LINE = %r{\A[ \t]*(?:\#|//|/\*|\*|<%\#)}
-  TEST_NAME_LINE = /\A[ \t]*(?:test\s+["']|def\s+test_|(?:describe|it)\s*\(\s*["'`])/
+
+  # `<!--` is in the set because 610 `.erb`/`.html` files are swept, and there it is the comment
+  # syntax sitting right next to `<%# %>`.
+  COMMENT_LINE = %r{\A[ \t]*(?:\#|//|/\*|\*|<%\#|<!--)}
+
+  # Cypress groups with all three of `describe`, `context` and `it`, and `context` is 87 of the
+  # 917 calls under `cypress/` — leaving it out left a hole in the one family this guard claims
+  # to watch. `(?:\.\w+)?` is the `.only`/`.skip` suffix; `\(?` is `test("...")`, which is
+  # Minitest too even though the repo writes `test "..."`.
+  TEST_NAME_LINE =
+    /\A[ \t]*(?:test\s*\(?\s*["']|def\s+test_|(?:describe|context|it)(?:\.\w+)?\s*\(\s*["'`])/
 
   # The single-line escape hatch, for the line that really is content: a test name that has to
   # quote a sample person, a comment that has to quote a Spanish string it is about. A reason
@@ -87,7 +102,10 @@ class BaliSpanishInCodeTest < ActiveSupport::TestCase
       "Spanish as the values underneath them.",
     "app/services/rrule/spanish_humanizer.rb" =>
       "its whole output is Spanish. A comment here names a day, a month or a phrase the " \
-      "class emits."
+      "class emits. Unlike the locale, this one is policy rather than a measurement: today " \
+      "the file trips the scan zero times, because its accents all sit on code lines " \
+      "(`%w[... miércoles ... sábado]`) and its comments are already English. It is here " \
+      "for the first comment that has to spell one of those days out."
   }.freeze
 
   class << self
@@ -191,6 +209,27 @@ class BaliSpanishInCodeTest < ActiveSupport::TestCase
       end
     end
 
+    # The three ways the baseline file itself goes wrong, each reported by naming the ONE bad
+    # path. A merge between two translation batches is the likeliest of them, and the assertion
+    # this replaces — `assert_equal paths.sort, paths` — answered a single transposed line with
+    # ~25 KB: both 253-entry arrays, inspected, and the culprit named nowhere in them.
+    def baseline_problems(entries)
+      paths = entries.map(&:first)
+
+      duplicate = paths.tally.find { |_, times| times > 1 }
+      unsorted = paths.each_cons(2).find { |before, after| before > after }
+      empty = entries.find { |_, count| !count.positive? }
+
+      [
+        duplicate && "#{duplicate.first} is listed #{duplicate.last} times. A duplicate keeps " \
+                     "the LAST count, which may be the larger one.",
+        unsorted && "#{unsorted.last} comes after #{unsorted.first}. The list is sorted by " \
+                    "path in byte order (`LC_ALL=C sort`), so that batches touching different " \
+                    "directories delete from different regions and merge without a conflict.",
+        empty && "#{empty.first} is listed with #{empty.last} lines, which is just noise."
+      ].compact
+    end
+
     def failure_report(failures)
       body = failures.map do |path, allowed, hits|
         heading = if allowed.nil?
@@ -220,6 +259,11 @@ class BaliSpanishInCodeTest < ActiveSupport::TestCase
 
         Do not add a file to test/bali/spanish_in_code_baseline.txt, and do not raise a count
         in it. That list is the debt left from before the rule, and it only shrinks.
+
+        It also undercounts, and knowing by how much is the point: this guard only sees
+        ACCENTED Spanish. Translating the 825 accented lines under `test/` left 134 comment
+        lines that were Spanish with no accent anywhere in them. Green means nothing new got
+        in, never that what is already listed is all there is.
       MESSAGE
     end
   end
@@ -252,9 +296,11 @@ class BaliSpanishInCodeTest < ActiveSupport::TestCase
     assert failures.empty?, self.class.failure_report(failures)
   end
 
-  # Both permanent exclusions are spelled the way `git ls-files` spells them, and one of them
-  # is load-bearing. Subtracting a path the scan never produces is a no-op that looks like a
-  # policy.
+  # Both permanent exclusions are spelled the way `git ls-files` spells them. Only the locale
+  # is asserted to be load-bearing, because only it is: subtracting a path the scan never
+  # produces is a no-op that looks like a policy, and the humanizer is exactly that today, on
+  # purpose — its reason above says so. Asserting it too would be asserting that it stays
+  # clean, and the day it stops being clean is the day its exclusion starts earning its keep.
   def test_the_permanent_exclusions_are_real_paths_that_would_otherwise_fail
     PERMANENTLY_ALLOWED.each_key do |path|
       assert_includes self.class.repository_files, path
@@ -268,17 +314,24 @@ class BaliSpanishInCodeTest < ActiveSupport::TestCase
       "the Spanish locale no longer trips the scan, so its exclusion proves nothing"
   end
 
-  # A botched merge between two translation batches is the likeliest way this file goes wrong,
-  # and a duplicated path silently keeps the LAST count — which may be the larger one.
   def test_the_baseline_file_is_well_formed
     entries = self.class.baseline_entries
-    paths = entries.map(&:first)
+    problems = self.class.baseline_problems(entries)
 
     assert_operator entries.size, :>, 0
-    assert_equal paths.uniq, paths, "duplicate paths in the baseline"
-    assert_equal paths.sort, paths, "the baseline is sorted by path, so batches touching " \
-                                    "different directories delete from different regions"
-    assert entries.all? { |_, count| count.positive? }, "a baseline entry of 0 lines is just noise"
+    # `assert`, not `assert_empty`, for the same reason as above: the report is the message.
+    assert problems.empty?, problems.join("\n")
+  end
+
+  def test_a_malformed_baseline_names_the_one_bad_path_and_not_the_other_252
+    entries = [ [ "a.rb", 1 ], [ "c.rb", 2 ], [ "b.rb", 3 ], [ "c.rb", 0 ] ]
+
+    problems = self.class.baseline_problems(entries).join("\n")
+
+    assert_includes problems, "c.rb is listed 2 times"
+    assert_includes problems, "b.rb comes after c.rb"
+    assert_includes problems, "c.rb is listed with 0 lines"
+    assert_operator problems.bytesize, :<, 1_000
   end
 
   # --- the ratchet's own behaviour, on inputs that do not depend on the tree ----------------
@@ -345,15 +398,19 @@ class BaliSpanishInCodeTest < ActiveSupport::TestCase
       "js" => "  // por qué esto va acá",
       "css block" => "/* por qué esto va acá",
       "css continuation" => " * por qué esto va acá",
-      "erb" => "<%# por qué esto va acá %>"
+      "erb" => "<%# por qué esto va acá %>",
+      "html" => "  <!-- por qué esto va acá -->"
     }.each { |kind, line| assert_offending line, kind }
   end
 
   def test_it_recognises_a_test_name
     assert_offending 'test "renderiza el botón" do', "minitest"
+    assert_offending 'test("renderiza el botón") do', "minitest with parentheses"
     assert_offending "  def test_renderiza_el_botón", "def test_"
     assert_offending "  it('renderiza el botón', () => {", "cypress it"
     assert_offending '  describe("el botón", () => {', "cypress describe"
+    assert_offending "  context('el botón estando cerrado', () => {", "cypress context"
+    assert_offending "  it.only('renderiza el botón', () => {", "cypress it.only"
   end
 
   # The whole point of the opening-marker rule: these are the sample data the previews, the

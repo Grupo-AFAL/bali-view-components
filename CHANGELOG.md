@@ -51,7 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   una línea de comentario o en un nombre de prueba, y cuando uno que sí figura acumula más
   líneas de las registradas. La lista base arranca en 253 archivos y 2 708 líneas y sólo
   encoge: una entrada obsoleta no rompe nada, para que los lotes de traducción se puedan
-  mergear en cualquier orden. Los datos de muestra en líneas de código —`Ana García López`,
+  mergear en cualquier orden. Esas 2 708 son el español ACENTUADO: un piso de la deuda, no
+  la deuda —traducir las 825 líneas acentuadas de `test/` dejó otras 134 en español sin un
+  solo acento—. Los datos de muestra en líneas de código —`Ana García López`,
   `Priorización`— quedan fuera por construcción, y la línea que de verdad es contenido se
   libera con `spanish-ok: <razón>`. Interno: no cambia nada para las apps host.
 

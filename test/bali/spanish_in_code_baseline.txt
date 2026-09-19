@@ -1,6 +1,11 @@
 # Files that still carry Spanish in a comment or a test name, and how many such lines each
 # one has. `test/bali/spanish_in_code_test.rb` reads this list; read its header first.
 #
+# THE COUNTS ARE A FLOOR. Only ACCENTED Spanish is counted, because that is all the guard can
+# see without false positives. Translating the 825 accented lines under `test/` turned up 134
+# more comment lines that were Spanish with no accent in them. A file at zero here, or absent
+# from the list, has not been shown to be in English.
+#
 # THIS LIST ONLY SHRINKS. Translating a file means deleting its line here (or lowering the
 # number, if the pass was partial). Nothing is ever added: a file that is not listed is not
 # allowed to have Spanish, and that is the whole point.
@@ -10,7 +15,9 @@
 # translation batches merge in an order nobody controls, and a stale entry that failed the
 # build would make every batch break the ones after it.
 #
-# Sorted by path, one `<path> <lines>` per line, so that two batches working in different
+# Sorted by path in BYTE order — `LC_ALL=C sort`, which is what Ruby's `String#sort` gives.
+# A plain `sort` under a UTF-8 locale disagrees and moves 28 of these lines, and the suite
+# will say so. One `<path> <lines>` per line, so that two batches working in different
 # directories delete from different regions of the file and merge without a conflict.
 #
 # Permanently allowed files (the Spanish locale, the Spanish humanizer) are NOT here — they
