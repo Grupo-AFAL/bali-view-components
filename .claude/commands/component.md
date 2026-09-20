@@ -267,7 +267,7 @@ import { Controller } from '@hotwired/stimulus'
 // A NAMED export, and named `<Name>Controller`: registration imports it by name
 // (`import { DropdownController } from '../../../components/bali/dropdown/index'`
 // in `app/frontend/bali/components/index.js`, which also lists it in the
-// `registerControllers` map). A default export never reaches the page.
+// `CONTROLLERS` map it exports). A default export never reaches the page.
 export class DropdownController extends Controller {
   static targets = ["menu"]
   static values = { open: { type: Boolean, default: false } }
