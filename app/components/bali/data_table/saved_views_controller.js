@@ -68,11 +68,11 @@ export default class extends Controller {
       .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
   }
 
-  // El selector se pinta solo en modo tabla. Sin él mandan las columnas que impuso la vista
-  // APLICADA (las serializa el servidor): la memoria por dispositivo es anterior a esa vista,
-  // así que guardar desde tarjetas o calendario persistía columnas que el usuario no veía.
-  // Sin vista aplicada sí vale la memoria del dispositivo — si no, la vista nueva se
-  // guardaba sin columnas, "olvidando" la mitad de su estado según desde qué modo se guardó.
+  // The selector is only painted in table mode. Without it, the columns imposed by the
+  // APPLIED view win (the server serializes them): the per-device memory predates that view,
+  // so saving from cards or calendar persisted columns the user could not see. With no view
+  // applied the device memory does count — otherwise the new view was saved with no columns,
+  // "forgetting" half of its state depending on which mode it was saved from.
   columnsWithoutSelector () {
     return this.serverColumnsValue.length > 0 ? this.serverColumnsValue : this.storedColumns()
   }

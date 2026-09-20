@@ -7,21 +7,22 @@ module Bali
 
       SUMMARY_POSITIONS = %i[top bottom].freeze
 
-      # La prioridad manda DOS cosas a la vez, y por eso la escala no se puede renumerar
-      # mirando una sola: qué SOBREVIVE en un viewport angosto (colapsa lo que quede por
-      # debajo de OVERFLOW_THRESHOLD) y, DENTRO de cada grupo, el ORDEN en que se pintan los
-      # controles — el JS reordena cada grupo por prioridad al expandir, así que mover un
-      # bloque del template no mueve nada en el navegador.
+      # Priority drives TWO things at once, and that is why the scale cannot be renumbered
+      # looking at only one of them: what SURVIVES in a narrow viewport (everything below
+      # OVERFLOW_THRESHOLD collapses) and, WITHIN each group, the ORDER the controls are
+      # painted in — the JS reorders each group by priority when expanding, so moving a
+      # block in the template moves nothing in the browser.
       #
-      # El orden ENTRE grupos lo fija la plantilla (ver #show_toolbar_left? y sus hermanos),
-      # que es lo único que deja al view switch sobrevivir a todo y aun así verse último.
+      # The order BETWEEN groups is fixed by the template (see #show_toolbar_left? and its
+      # siblings), which is the only thing that lets the view switch survive everything and
+      # still read last.
       #
-      # Los números bajan en el mismo orden en que se leen los controles de la fila: eso es
-      # lo que mantiene el orden de lectura del ⋯ igual al de la toolbar (ver
-      # `collapsibleItems` en el controlador). `search` y `filters` son EL MISMO nodo
-      # (Bali::Filters pinta el input de búsqueda y el botón de filtros juntos), por eso hay
-      # una sola entrada. Se guarda como escala y no como lista ordenada para que sumar un
-      # segundo umbral sea un cambio de una línea.
+      # The numbers descend in the same order the controls of the row are read in: that is
+      # what keeps the reading order of the ⋯ identical to the toolbar's (see
+      # `collapsibleItems` in the controller). `search` and `filters` are THE SAME node
+      # (Bali::Filters paints the search input and the filters button together), hence a
+      # single entry. Kept as a scale and not as an ordered list so that adding a second
+      # threshold is a one-line change.
       OVERFLOW_PRIORITIES = {
         filters: 70,
         view_switch: 50,
@@ -32,37 +33,37 @@ module Bali
         toolbar_buttons: 10
       }.freeze
 
-      # Colapsa lo que esté POR DEBAJO del umbral. Con un solo breakpoint la escala se
-      # reduce a este corte.
+      # Collapses whatever sits BELOW the threshold. With a single breakpoint the scale
+      # reduces to this one cut.
       OVERFLOW_THRESHOLD = 50
 
       attr_reader :pagy
 
       renders_one :custom_pagy_nav
 
-      # Barra contextual de selección: REEMPLAZA la fila de la toolbar mientras haya
-      # selección y la restaura al limpiar. El controlador Stimulus vive en el CONTENEDOR
-      # del DataTable (ver #container_attributes) y no en este slot: dos controladores
-      # `bulk-actions` anidados se reparten los targets y la barra no vería las filas.
+      # Contextual selection bar: it REPLACES the toolbar row while there is a selection
+      # and restores it on clear. The Stimulus controller lives on the DataTable CONTAINER
+      # (see #container_attributes) and not on this slot: two nested `bulk-actions`
+      # controllers split the targets between them and the bar would not see the rows.
       #
-      # El bloque NO se corre acá, a diferencia de column_selector/view_switch: `with_action`
-      # es un slot de ViewComponent de verdad, y leer un slot ya fuerza la evaluación del
-      # bloque una vez (Slotable#__vc_get_slot llama a `content`). Correrlo además acá lo
-      # ejecuta DOS veces y duplica cada acción, en silencio. Los otros dos slots no tienen
-      # el problema porque su `with_*` es un método plano sobre un array.
+      # The block is NOT run here, unlike column_selector/view_switch: `with_action` is a
+      # real ViewComponent slot, and reading a slot already forces the block to be evaluated
+      # once (Slotable#__vc_get_slot calls `content`). Running it here as well executes it
+      # TWICE and silently duplicates every action. The other two slots do not have the
+      # problem because their `with_*` is a plain method over an array.
       #
-      # @param options [Hash] Opciones de Bali::BulkActions (class:, data:)
-      # @yield [bulk_actions] Bloque para declarar las acciones con `with_action`
+      # @param options [Hash] Bali::BulkActions options (class:, data:)
+      # @yield [bulk_actions] Block to declare the actions with `with_action`
       #
-      # `**options` va PRIMERO: lo que el componente posee no se puede pisar desde el host.
-      # Splateado al final, un `standalone: true` del host anidaba un segundo controlador y
-      # rompía en silencio la invariante que este comentario acaba de documentar.
+      # `**options` goes FIRST: what the component owns cannot be overridden by the host.
+      # Splatted last, a `standalone: true` from the host nested a second controller and
+      # silently broke the invariant this comment has just documented.
       #
-      # `total_count:` y `filter_params:` van ANTES del splat: son un default derivado del
-      # listado (el `pagy` y el `filter_form` que este DataTable ya tiene), no una invariante
-      # del componente, así que el host puede pisarlos — para acotar la oferta a otra cuenta,
-      # o para apagarla con `total_count: nil` en un listado donde una acción sobre todo el
-      # resultado no tiene sentido.
+      # `total_count:` and `filter_params:` go BEFORE the splat: they are a default derived
+      # from the listing (the `pagy` and the `filter_form` this DataTable already has), not
+      # a component invariant, so the host may override them — to narrow the offer to
+      # another count, or to turn it off with `total_count: nil` on a listing where an
+      # action over the whole result set makes no sense.
       renders_one :bulk_actions, ->(**options) do
         Bali::BulkActions::Component.new(
           total_count: bulk_actions_total_count,
@@ -130,13 +131,13 @@ module Bali
         # filter/search submit.
         options[:preserved_params] = preserved_state_params.merge(options[:preserved_params] || {})
 
-        # El marcador se pinta UNA sola vez, y como control propio de la toolbar (ver
-        # #filter_persistence_control): dos controladores `filter-persistence` sobre el mismo
-        # storage_id se pisan el localStorage y la cookie. El panel igual recibe
-        # `persist_enabled` — de ahí sale su leyenda "Auto-guardado".
+        # The marker is painted ONCE, and as a toolbar control of its own (see
+        # #filter_persistence_control): two `filter-persistence` controllers over the same
+        # storage_id clobber each other's localStorage and cookie. The panel still receives
+        # `persist_enabled` — that is where its "Auto-guardado" legend comes from.
         #
-        # Asignación y no `||=`: el splat `**options` va al FINAL del constructor, así que un
-        # `persistence_toggle: true` del host ganaría y anidaría el segundo controlador.
+        # Assignment and not `||=`: the `**options` splat goes LAST in the constructor, so a
+        # `persistence_toggle: true` from the host would win and nest the second controller.
         capture_persistence(options[:storage_id], options[:persist_enabled])
         options[:persistence_toggle] = false
 
@@ -156,9 +157,9 @@ module Bali
       #
       # @param filters [Array<Hash>] Filter definitions (auto-populated from filter_form)
       #   Each filter hash should have: :attribute, :collection, :blank, :label, :value, :default
-      # @param preserved_params [Hash] Params propios del host que el submit GET de la fila
-      #   arrastra como hidden fields, mergeados sobre el estado del listado (`group_by`,
-      #   `view`) — mismo contrato que en `filters_panel` (#1056).
+      # @param preserved_params [Hash] Host params that the row's GET submit carries along
+      #   as hidden fields, merged over the listing state (`group_by`, `view`) — same
+      #   contract as in `filters_panel` (#1056).
       #
       # @example Minimal (auto-configured from FilterForm)
       #   data_table.with_simple_filters
@@ -182,7 +183,8 @@ module Bali
           persist_enabled = @filter_form.persist_enabled?
         end
 
-        # Mismo motivo que en `filters_panel`: el marcador sale del form y lo pinta la toolbar.
+        # Same reason as in `filters_panel`: the marker comes from the form and the toolbar
+        # paints it.
         capture_persistence(storage_id, persist_enabled)
 
         SimpleFilters::Component.new(
@@ -193,9 +195,9 @@ module Bali
           storage_id: storage_id,
           persist_enabled: persist_enabled || false,
           persistence_toggle: false,
-          # Misma semántica y precedencia que en `filters_panel`: los explícitos MERGEAN con
-          # el estado del listado en vez de reemplazarlo (#1056). Fijo, el slot perdía en
-          # silencio cualquier param propio del host en cada submit GET de la fila.
+          # Same semantics and precedence as in `filters_panel`: explicit params MERGE with
+          # the listing state instead of replacing it (#1056). Replacing silently loses any
+          # host param of its own on every GET submit of the row.
           preserved_params: preserved_state_params.merge(preserved_params || {})
         )
       end
@@ -204,29 +206,29 @@ module Bali
 
       class DuplicateContent < StandardError; end
 
-      DUPLICATE_CONTENT_MESSAGE = "DataTable renderiza UN solo slot de contenido " \
-        "(with_table / with_grid / with_content). Para alternar entre modos, elige " \
-        "cuál declaras con un if sobre display_mode."
+      DUPLICATE_CONTENT_MESSAGE = "DataTable renders ONE content slot " \
+        "(with_table / with_grid / with_content). To alternate between modes, pick " \
+        "which one you declare with an if on display_mode."
 
-      VIEW_PARAM_MISMATCH_MESSAGE = "El DataTable lee el modo de visualización de `%s` y el " \
-        "FilterForm de `%s`. Desincronizados, la agrupación se suspende mirando un param que " \
-        "el view switch nunca escribe (o se sigue aplicando en tarjetas). Pasá el mismo " \
-        "`view_param:` a los dos."
+      VIEW_PARAM_MISMATCH_MESSAGE = "The DataTable reads the display mode from `%s` and the " \
+        "FilterForm from `%s`. Out of sync, grouping is suspended looking at a param the " \
+        "view switch never writes (or keeps being applied in cards). Pass the same " \
+        "`view_param:` to both."
 
-      DISPLAY_MODE_MISMATCH_MESSAGE = "Este listado renderiza `%s`, que no está entre los " \
-        "modos que aplican agrupación (%s), pero su FilterForm nunca vio un modo: sin " \
-        "`?view=` en la URL da por hecho que aplica y ordena las filas por el grupo sin que " \
-        "nada en pantalla lo explique. Pasale el modo al form: " \
+      DISPLAY_MODE_MISMATCH_MESSAGE = "This listing renders `%s`, which is not among the " \
+        "modes that apply grouping (%s), but its FilterForm never saw a mode: without " \
+        "`?view=` in the URL it assumes grouping applies and orders the rows by the group " \
+        "with nothing on screen explaining it. Pass the mode to the form: " \
         "`Bali::FilterForm.new(..., display_mode: params[:view] || :%s)`."
 
-      # Banda de contenido. La SUPERFICIE la decide el slot, no el host: `with_table` la
-      # trae (una tabla necesita fondo propio), `with_grid` no (las tarjetas YA son la
-      # superficie). El slot no puede llamarse `content` —ViewComponent lo reserva—, de
-      # ahí el nombre interno y el alias público `with_content`.
+      # Content band. The SURFACE is decided by the slot, not by the host: `with_table`
+      # brings one (a table needs a background of its own), `with_grid` does not (the cards
+      # ALREADY are the surface). The slot cannot be named `content` —ViewComponent reserves
+      # it— hence the internal name and the public `with_content` alias.
       #
-      # @param surface [Boolean] Envolver el contenido en Bali::Card (default: true)
-      # @param scroll [Boolean] Envolver en el wrapper de scroll horizontal (default: false)
-      # @param card_options [Hash] Opciones de Bali::Card (style:, class:, shadow:, body_class:)
+      # @param surface [Boolean] Wrap the content in Bali::Card (default: true)
+      # @param scroll [Boolean] Wrap it in the horizontal scroll wrapper (default: false)
+      # @param card_options [Hash] Bali::Card options (style:, class:, shadow:, body_class:)
       renders_one :content_band, ->(surface: true, scroll: false, **card_options, &block) do
         body = if block.nil?
                  "".html_safe
@@ -236,8 +238,8 @@ module Bali
                  block.call
         end
 
-        # Devolver SIEMPRE un String: con nil ViewComponent tira el contenido en silencio,
-        # y devolviendo la Card ella recibiría el bloque original, sin el wrapper de scroll.
+        # ALWAYS return a String: on nil ViewComponent silently drops the content, and
+        # returning the Card would hand it the original block, without the scroll wrapper.
         surface ? render(Bali::Card::Component.new(**card_options)) { body } : body
       end
 
@@ -245,54 +247,57 @@ module Bali
       renders_many :toolbar_buttons
 
       # Built-in column selector with declarative API
-      # @param persist [Boolean] Guardar la visibilidad por dispositivo (localStorage).
-      #   Se ignora cuando el listado no tiene un id estable (ver #id).
+      # @param persist [Boolean] Save visibility per device (localStorage).
+      #   Ignored when the listing has no stable id (see #id).
       # @param button_label [String] Label for the dropdown button (i18n default)
       # @param button_icon [String] Icon name
       # @yield [column_selector] Block to define columns
       renders_one :column_selector, ->(persist: true, **opts, &block) do
-        # `**opts` primero: la identidad del listado la resuelve el DataTable y pisarla desde
-        # el host apuntaba el selector a un contenedor distinto del de las vistas guardadas.
+        # `**opts` first: the listing identity is resolved by the DataTable, and overriding
+        # it from the host pointed the selector at a container other than the saved views'.
         component = ColumnSelector::Component.new(**opts, listing_id: id, persist: persist && stable_id?)
         block&.call(component)
-        # Una vista guardada aplicada MANDA: sus columnas visibles pisan los defaults
-        # declarados por columna, y el selector marca server_state para que el JS no
-        # restaure localStorage encima del estado de la vista.
+        # An applied saved view WINS: its visible columns override the defaults declared
+        # per column, and the selector marks server_state so the JS does not restore
+        # localStorage on top of the view's state.
         if @filter_form.respond_to?(:saved_view_columns) && (view_columns = @filter_form.saved_view_columns)
           component.apply_visible_columns(view_columns)
         end
         component
       end
 
-      # Dropdown "Vistas" (B2): combinaciones de filtros guardadas CON NOMBRE. Solo pinta
-      # cuando el filter_form trae `saved_views_store`. `url:` es la base RESTful para
-      # crear/renombrar/borrar (POST url, PATCH/DELETE url/:id); si se omite, apunta a las
-      # rutas del PROPIO engine (requiere montarlo y que el form tenga `storage_id` — sin
-      # storage_id no hay URL default y el dropdown no pinta). La identidad del listado
-      # (ver #id) conecta con el column selector para guardar las columnas visibles dentro
-      # de la vista; `default_views:` son atajos estáticos {name:, url:} ("Sugeridas").
+      # "Vistas" dropdown (B2): NAMED saved filter combinations. It only paints when the
+      # filter_form brings a `saved_views_store`. `url:` is the RESTful base for
+      # create/rename/delete (POST url, PATCH/DELETE url/:id); when omitted it points at
+      # the ENGINE's own routes (which requires mounting it and the form having a
+      # `storage_id` — without storage_id there is no default URL and the dropdown does not
+      # paint). The listing identity (see #id) connects with the column selector to save the
+      # visible columns inside the view; `default_views:` are static {name:, url:} shortcuts
+      # ("Sugeridas").
       renders_one :saved_views, ->(url: nil, default_views: nil) do
         SavedViews::Component.new(filter_form: @filter_form, url: url || default_saved_views_url,
                                   base_url: saved_views_base_url, listing_id: id,
                                   default_views: default_views)
       end
 
-      # Segmented control de vistas (tabla / tarjetas / lo que el host defina). A diferencia
-      # de Bali::ViewSwitch acá NO se pasa `href:`: cada vista declara su `value:` y el
-      # DataTable arma el link preservando el query string. `href:` sigue aceptado por vista
-      # para un modo que vive en otra ruta.
+      # Segmented view control (table / cards / whatever the host defines). Unlike
+      # Bali::ViewSwitch, `href:` is NOT passed here: each view declares its `value:` and the
+      # DataTable builds the link preserving the query string. `href:` is still accepted per
+      # view for a mode that lives on another route.
       #
-      # @param aria_label [String] Label accesible del grupo (default i18n)
-      # @param options [Hash] Opciones de Bali::ViewSwitch (size:, icon_only:, class:)
-      # @yield [view_switch] Bloque para declarar las vistas con `with_view`
+      # @param aria_label [String] Accessible label for the group (i18n default)
+      # @param options [Hash] Bali::ViewSwitch options (size:, icon_only:, class:)
+      # @yield [view_switch] Block to declare the views with `with_view`
       renders_one :view_switch, ->(aria_label: nil, **options, &block) do
-        # El switch NO se colapsa al ⋯ (prioridad 50 = umbral): se ENCOGE. `:responsive`
-        # esconde el texto bajo sm dejando title/aria-label, así que el botón nunca queda
-        # sin nombre accesible — que es lo que pasaría escondiendo el label a mano.
+        # The switch does NOT collapse into the ⋯ (priority 50 = threshold): it SHRINKS.
+        # `:responsive` hides the text below sm keeping title/aria-label, so the button is
+        # never left without an accessible name — which is what hiding the label by hand
+        # would do.
         options[:icon_only] = :responsive unless options.key?(:icon_only)
 
-        # `**options` primero: la URL, el param y el modo actual los resuelve el DataTable —
-        # pisarlos desde el host daba links apuntando a un param y hidden fields a otro.
+        # `**options` first: the URL, the param and the current mode are resolved by the
+        # DataTable — overriding them from the host gave links pointing at one param and
+        # hidden fields at another.
         component = ViewSwitchControl::Component.new(
           **options,
           url: @url,
@@ -302,14 +307,14 @@ module Bali
           aria_label: aria_label
         )
         block&.call(component)
-        # El gateo de display_mode necesita las vistas YA declaradas, y eso solo pasa
-        # después de correr el bloque del host (ver #display_mode).
+        # Gating display_mode needs the views ALREADY declared, and that only happens
+        # after running the host's block (see #display_mode).
         @view_switch_control = component
         component
       end
 
-      # @param url [String] Base URL for filtering/sorting links. También es la base de los
-      #   links de página cuando el Pagy no puede armar los suyos (ver #pagination_url)
+      # @param url [String] Base URL for filtering/sorting links. It is also the base for
+      #   the page links when the Pagy cannot build its own (see #pagination_url)
       # @param filter_form [Bali::FilterForm] Optional filter form for Ransack integration
       # @param pagy [Pagy] Optional Pagy object for pagination
       # @param show_summary [Boolean] Show summary (default: true when pagy present)
@@ -318,13 +323,13 @@ module Bali
       #   i18n key resolved with `count:` (full CLDR plurals); a Hash picks `one:`/`other:`
       #   by count; a String is used verbatim, invariant with the count (i18n default)
       # @param table_class [String] CSS class for the content scroll wrapper
-      # @param display_mode [Symbol] Modo de visualización pedido por el host (típicamente
-      #   `params[:view]`). NO elige slot (hay uno solo): el host decide qué contenido
-      #   declara, leyendo el valor YA validado en #display_mode.
-      # @param view_param [Symbol] Param de la URL que lleva la vista (default :view)
-      # @param id [String] Identidad del listado. Es a la vez el id del contenedor, el
-      #   target de querySelector del selector de columnas (`#<id> table`) y la llave de
-      #   localStorage de sus columnas: UN solo nombre para todo lo que el listado persiste.
+      # @param display_mode [Symbol] Display mode requested by the host (typically
+      #   `params[:view]`). It does NOT pick a slot (there is only one): the host decides
+      #   what content it declares, reading the ALREADY validated value in #display_mode.
+      # @param view_param [Symbol] URL param carrying the view (default :view)
+      # @param id [String] Listing identity. It is at once the container id, the
+      #   querySelector target of the column selector (`#<id> table`) and the localStorage
+      #   key of its columns: ONE name for everything the listing persists.
       def initialize(url:, filter_form: nil, pagy: nil, **options)
         @filter_form = filter_form
         @url = url
@@ -333,32 +338,33 @@ module Bali
         @summary_position = validate_summary_position(options[:summary_position])
         @item_name = options[:item_name]
         @table_wrapper_class = options[:table_class]
-        # `.to_s` primero: esto suele llegar directo de `params[:view]`, y un param anidado
-        # (`?view[]=x`) no responde a `to_sym`. El valor se valida después contra las vistas
-        # declaradas (ver #display_mode); acá solo se normaliza sin reventar.
+        # `.to_s` first: this usually arrives straight from `params[:view]`, and a nested
+        # param (`?view[]=x`) does not respond to `to_sym`. The value is validated later
+        # against the declared views (see #display_mode); here it is only normalized
+        # without blowing up.
         @display_mode = (options[:display_mode].to_s.presence || "table").to_sym
         @view_param = (options[:view_param] || Bali::FilterForm::DEFAULT_VIEW_PARAM).to_sym
-        # Solo un host que DECLARÓ el modo tiene un `view` que preservar; el default no se
-        # escribe en la URL de un listado que ni siquiera tiene view switch.
+        # Only a host that DECLARED the mode has a `view` to preserve; the default is not
+        # written into the URL of a listing that does not even have a view switch.
         @display_mode_declared = options[:display_mode].present?
         @content_declared = false
         @listing_id, @stable_id = resolve_listing_id(options[:id])
         validate_view_param!
       end
 
-      # Modo de visualización YA validado contra las vistas declaradas: un `?view=`
-      # desconocido cae a la primera vista en vez de dejar el contenido vacío (misma
-      # frontera que FilterForm#resolve_group_by). El host lo lee dentro del bloque para
-      # elegir qué contenido declara — por eso se resuelve tarde y no en `initialize`: las
-      # vistas se declaran DESPUÉS de construir el componente.
+      # Display mode ALREADY validated against the declared views: an unknown `?view=`
+      # falls back to the first view instead of leaving the content empty (same boundary as
+      # FilterForm#resolve_group_by). The host reads it inside the block to choose what
+      # content it declares — which is why it is resolved late and not in `initialize`: the
+      # views are declared AFTER the component is built.
       def display_mode
         mode = @view_switch_control ? @view_switch_control.current_value : requested_display_mode
         validate_display_mode!(mode)
         mode
       end
 
-      # Una sola banda de contenido: `with_table`/`with_grid` son azúcar sobre ella.
-      # `display_mode` YA NO elige entre slots — el host decide qué renderiza.
+      # A single content band: `with_table`/`with_grid` are sugar over it. `display_mode`
+      # NO LONGER picks between slots — the host decides what it renders.
       def with_content(surface: true, scroll: false, **options, &block)
         raise DuplicateContent, DUPLICATE_CONTENT_MESSAGE if @content_declared
 
@@ -366,37 +372,35 @@ module Bali
         with_content_band(surface: surface, scroll: scroll, **options, &block)
       end
 
-      # Una tabla trae superficie y scroll horizontal.
       def with_table(**options, &block)
         with_content(surface: true, scroll: true, **options, &block)
       end
 
-      # Un grid de tarjetas NO lleva superficie: las tarjetas ya son la superficie.
       def with_grid(**options, &block)
         with_content(surface: false, **options, &block)
       end
 
-      # Clases del wrapper de scroll horizontal (solo cuando el slot lo pide).
       def content_scroll_classes
         @table_wrapper_class || "overflow-x-auto"
       end
 
-      # `min-h-8` es el alto de un control `sm` de daisyUI, que es el que esta fila ya tenía
-      # por su contenido. Se declara EXPLÍCITO porque la fila contextual de selección lo
-      # reemplaza en este mismo hueco (`BulkActions::Component::TOOLBAR_MIN_HEIGHT`): con el
-      # alto como accidente del contenido, cualquier cambio ahí reintroduce el salto de layout.
+      # `min-h-8` is the height of a daisyUI `sm` control, which is the height this row
+      # already had from its content. It is declared EXPLICITLY because the contextual
+      # selection row replaces it in this same space
+      # (`BulkActions::Component::TOOLBAR_MIN_HEIGHT`): with the height as an accident of
+      # the content, any change there reintroduces the layout jump.
       #
-      # `items-end` y no `items-center`: `SimpleFilters` lleva la etiqueta ARRIBA de cada
-      # control, así que su bloque mide el doble que sus vecinos de una línea y envuelve a
-      # dos renglones cuando la fila aprieta. Centrado, todo lo que comparte fila con él se
-      # alinea contra el centro del bloque en vez de contra la línea de controles, que es
-      # la que el ojo usa: medido en /admin/studios a 1900px, el ⋯ quedaba a y=226 y el
-      # botón Filter — que vive en la última línea de ese bloque — a y=264, 38px abajo.
-      # Cuando ningún item es más alto que los otros las dos alineaciones coinciden.
+      # `items-end` and not `items-center`: `SimpleFilters` puts the label ABOVE each
+      # control, so its block measures twice its single-line neighbours and wraps onto two
+      # lines when the row gets tight. Centred, everything sharing the row with it aligns
+      # against the centre of that block instead of against the line of controls, which is
+      # the one the eye uses: measured on /admin/studios at 1900px, the ⋯ sat at y=226 and
+      # the Filter button — which lives on the last line of that block — at y=264, 38px
+      # below. When no item is taller than the others the two alignments coincide.
       TOOLBAR_CLASSES = "flex items-end gap-2 sm:gap-4 min-h-8 mb-4"
 
-      # La toolbar va SIN superficie: es la MISMA fila en todos los modos de visualización
-      # y la superficie la trae el contenido.
+      # The toolbar goes WITHOUT a surface: it is the SAME row in every display mode, and
+      # the surface is brought by the content.
       def toolbar_classes
         TOOLBAR_CLASSES
       end
@@ -405,16 +409,16 @@ module Bali
         @listing_id
       end
 
-      # ¿El id sobrevive al próximo render? Con el hex aleatorio no, y una llave que cambia
-      # en cada visita jamás va a restaurar nada: la persistencia por dispositivo se apaga
-      # sola en vez de escribir basura que nadie puede leer de vuelta.
+      # Does the id survive the next render? With the random hex it does not, and a key
+      # that changes on every visit will never restore anything: per-device persistence
+      # turns itself off instead of writing garbage nobody can read back.
       def stable_id?
         @stable_id
       end
 
-      # La MISMA frase que pinta el footer, del mismo sitio: el summary de arriba y el de
-      # abajo son la misma cuenta, y tenerlos derivados por separado fue lo que dejó dos
-      # claves i18n para una sola oración.
+      # The SAME sentence the footer paints, from the same place: the top summary and the
+      # bottom one are the same count, and deriving them separately was what left two i18n
+      # keys for a single sentence.
       def default_summary_text
         return "" unless @pagy
 
@@ -429,13 +433,13 @@ module Bali
         summary_position?(:bottom) && summarizable?
       end
 
-      # El footer lo arma `PaginationFooter`, que decide solo si tiene algo que dibujar;
-      # acá solo se le pasa lo que este listado quiere de él.
+      # The footer is built by `PaginationFooter`, which decides on its own whether it has
+      # anything to draw; here it is only handed what this listing wants from it.
       #
-      # `divider:` y no el espaciado por `class:`: mandarlo por ahí dejaba el `py-4` del
-      # footer Y el `pt-4` del listado sobre el mismo elemento, y eso le sumaba al pie de la
-      # tabla 16px de padding inferior que nunca tuvo. Tailwind resuelve ese par por orden
-      # de hoja de estilos, no por el orden en que escribes las clases.
+      # `divider:` and not the spacing through `class:`: sending it that way left the
+      # footer's `py-4` AND the listing's `pt-4` on the same element, which added 16px of
+      # bottom padding the foot of the table never had. Tailwind resolves that pair by
+      # stylesheet order, not by the order you write the classes in.
       def pagination_footer
         Bali::PaginationFooter::Component.new(
           pagy: @pagy,
@@ -446,14 +450,14 @@ module Bali
         )
       end
 
-      # Contenido YA renderizado de un control declarativo, o nil si el control decidió no
-      # pintar. Declarar el slot NO es lo mismo que pintar: `with_saved_views` sobre un form
-      # sin store deja `render?` en false, y mirar solo el predicado del slot dejaba un
-      # envoltorio vacío que en un teléfono terminaba destapando un ⋯ que abría un menú
-      # vacío — justo lo que el gate de #overflow_menu? existe para evitar.
+      # ALREADY rendered content of a declarative control, or nil if the control decided
+      # not to paint. Declaring the slot is NOT the same as painting: `with_saved_views` on
+      # a form without a store leaves `render?` false, and looking only at the slot
+      # predicate left an empty wrapper that on a phone ended up exposing a ⋯ opening an
+      # empty menu — exactly what the #overflow_menu? gate exists to prevent.
       #
-      # Se memoiza porque el template lo vuelve a leer (ViewComponent::Slot#to_s ya memoiza,
-      # pero acá además se cachea el `nil`).
+      # Memoized because the template reads it again (ViewComponent::Slot#to_s already
+      # memoizes, but here the `nil` is cached as well).
       def control_content(key)
         @control_contents ||= {}
         return @control_contents[key] if @control_contents.key?(key)
@@ -465,23 +469,24 @@ module Bali
         declared_toolbar_controls.any?
       end
 
-      # El contenedor es quien lleva el controlador de selección: tiene que envolver a la
-      # vez a la barra contextual y a las filas de la tabla.
+      # The container is what carries the selection controller: it has to wrap both the
+      # contextual bar and the rows of the table.
       def container_attributes
         attrs = { id: id, class: "data-table-component" }
         bulk_actions? ? prepend_controller(attrs, "bulk-actions") : attrs
       end
 
-      # La fila de la toolbar lleva el controlador de overflow, y se marca además para que
-      # el de selección pueda esconderla mientras la barra contextual ocupa su lugar.
+      # The toolbar row carries the overflow controller, and is also marked so the
+      # selection one can hide it while the contextual bar takes its place.
       def toolbar_attributes
         attrs = prepend_controller({ class: toolbar_classes }, "toolbar-overflow")
-        # El servidor lo pone y el controlador lo saca al terminar su primer `apply()`. Ver
-        # RESERVED_CLASSES. Sin JS lo destapa el `<noscript>` de la plantilla.
+        # The server sets it and the controller removes it when its first `apply()` ends.
+        # See RESERVED_CLASSES. Without JS the template's `<noscript>` uncovers it.
         attrs[SETTLING_ATTRIBUTE] = "" if overflow_menu?
-        # El umbral se EMITE: el gate del ⋯ y el corte que aplica el JS son el mismo número,
-        # y con dos defaults independientes moverlo de un lado dejaba al otro pintando un
-        # menú que nunca se llena. El default del controlador cubre solo markup a mano.
+        # The threshold is EMITTED: the ⋯ gate and the cut the JS applies are the same
+        # number, and with two independent defaults moving it on one side left the other
+        # painting a menu that never fills. The controller's default only covers hand-written
+        # markup.
         prepend_values(attrs, "toolbar-overflow", threshold: OVERFLOW_THRESHOLD)
         return attrs unless bulk_actions?
 
@@ -489,9 +494,10 @@ module Bali
         attrs
       end
 
-      # Contenedor hogar de un grupo funcional: al expandir, cada control vuelve al grupo
-      # que declara acá. INVARIANTE: un grupo solo puede tener hijos `item` — el JS reordena
-      # appendeando por prioridad y un hijo sin prioridad terminaría empujado al final.
+      # Home container of a functional group: when expanding, each control returns to the
+      # group it declares here. INVARIANT: a group may only have `item` children — the JS
+      # reorders by appending by priority, and a child without a priority would end up
+      # pushed to the end.
       def overflow_group_attributes(group, css_class:)
         {
           class: css_class,
@@ -499,22 +505,22 @@ module Bali
         }
       end
 
-      # Envoltorio de un control: a qué grupo vuelve y con qué prioridad (ver
-      # OVERFLOW_PRIORITIES). Es el nodo que el JS MUEVE, nunca copia.
-      # Un control que puede colapsar arranca con el lugar RESERVADO y sin dibujarse, y lo
-      # revela el controlador al terminar su primer `apply()`. `visibility: hidden` y no
-      # `display: none` a propósito: conserva la caja, así que la medición que decide el
-      # colapso mide exactamente lo mismo que sin esto.
+      # Wrapper of a control: which group it returns to and with what priority (see
+      # OVERFLOW_PRIORITIES). It is the node the JS MOVES, never copies.
+      # A control that can collapse starts with its place RESERVED and undrawn, and the
+      # controller reveals it when its first `apply()` ends. `visibility: hidden` and not
+      # `display: none` on purpose: it keeps the box, so the measurement that decides the
+      # collapse measures exactly the same as without this.
       #
-      # Lo que evita, medido en /admin/studios: la página pinta a los 260ms con la fila
-      # entera —que es el HTML del servidor, o sea la fila SIN colapsar— y el controlador no
-      # corre hasta los 1189ms, cuando termina de ejecutarse un bundle de 4.8 MB. En ese
-      # segundo se veían cuatro controles que después desaparecían de golpe dentro del ⋯.
-      # Reservado, lo que se ve es un hueco que se llena una vez.
+      # What it avoids, measured on /admin/studios: the page paints at 260ms with the whole
+      # row —which is the server's HTML, that is, the row NOT collapsed— and the controller
+      # does not run until 1189ms, when a 4.8 MB bundle finishes executing. During that
+      # second four controls were visible and then vanished all at once into the ⋯.
+      # Reserved, what is seen is a gap that fills once.
       #
-      # La variante arbitraria y no una regla en index.css: así vive en @layer utilities, que
-      # es donde un host la puede pisar, y no en una hoja sin capa cuyo encabezado explica
-      # que está sin capa por otra razón.
+      # The arbitrary variant and not a rule in index.css: this way it lives in
+      # @layer utilities, which is where a host can override it, and not in an unlayered
+      # sheet whose header explains that it is unlayered for another reason.
       SETTLING_ATTRIBUTE = "data-toolbar-overflow-settling"
       RESERVED_CLASSES = "[[data-toolbar-overflow-settling]_&]:invisible"
 
@@ -531,11 +537,11 @@ module Bali
         }
       end
 
-      # La barrita NO es un control: sin prioridad y sin ser `item`, `collapsibleItems` no la
-      # puede ver y nunca viaja al ⋯. Declara a quién separa POR NOMBRE en vez de mirar a sus
-      # hermanos del DOM: con adyacencia, insertar cualquier nodo en el medio rompía la
-      # decisión en silencio. `max-sm:hidden` cubre el caso sin JS — bajo el breakpoint no
-      # queda nadie a su derecha que la sostenga.
+      # The little bar is NOT a control: with no priority and not being an `item`,
+      # `collapsibleItems` cannot see it and it never travels into the ⋯. It declares what
+      # it separates BY NAME instead of looking at its DOM siblings: with adjacency,
+      # inserting any node in between silently broke the decision. `max-sm:hidden` covers
+      # the no-JS case — below the breakpoint nobody is left to its right to hold it up.
       def overflow_separator_attributes(*groups)
         {
           class: "shrink-0 max-sm:hidden",
@@ -546,8 +552,8 @@ module Bali
         }
       end
 
-      # El ⋯ no se pinta si no hay nada que colapsar: sin esto, un listado que solo tiene
-      # búsqueda mostraría un botón que abre un menú vacío.
+      # The ⋯ is not painted when there is nothing to collapse: without this, a listing
+      # that only has search would show a button opening an empty menu.
       def overflow_menu?
         declared_toolbar_controls.any? { |key| overflow_priority(key) < OVERFLOW_THRESHOLD }
       end
@@ -561,17 +567,15 @@ module Bali
       end
 
       # Whether the "Agrupar por" control should render — true when the filter form declares
-      # any group_by attribute AND la agrupación aplica en este modo de visualización.
-      # Auto-rendered (no explicit slot).
+      # any group_by attribute. Auto-rendered (no explicit slot).
       #
-      # Fuera de la tabla el control se ESCONDE: ofrecer una agrupación que no va a pasar
-      # nada es peor que no ofrecerla. La condición la resuelve el FORM
-      # (FilterForm#group_by_applies?) y no el componente — re-derivarla acá era la segunda
-      # copia de la misma regla, y las dos copias se desalinean. `respond_to?` con fallback a
-      # "aplica": un filter_form ajeno no puede perder su control por no conocer la API nueva.
-      # El control se pinta SIEMPRE que el form declare agrupaciones. En un modo que no la
-      # aplica va inerte (ver #group_by_disabled?) en vez de desaparecer: esconderlo movía la
-      # toolbar entera al cambiar de modo y no explicaba nada.
+      # The control renders WHENEVER the form declares groupings. In a mode that does not
+      # apply grouping it goes inert (see #group_by_disabled?) instead of disappearing:
+      # hiding it moved the whole toolbar on a mode change and explained nothing. Whether
+      # grouping applies is resolved by the FORM (FilterForm#group_by_applies?) and not by
+      # the component — re-deriving it here was a second copy of the same rule, and the two
+      # copies drift apart. `respond_to?` with a fallback to "applies": a foreign filter_form
+      # cannot lose its control for not knowing the new API.
       def group_by_control?
         @filter_form.respond_to?(:group_by_options) && @filter_form.group_by_options.present?
       end
@@ -590,10 +594,10 @@ module Bali
         )
       end
 
-      # El marcador recuerda el estado de los FILTROS: suelto, en un listado sin control de
-      # filtros, no significa nada. Se pregunta por el CONTENIDO y no por el predicado del
-      # slot porque `SimpleFilters#render?` es false sin filtros ni búsqueda — declarar el
-      # slot no es lo mismo que pintar (ver #control_content).
+      # The marker remembers the state of the FILTERS: on its own, on a listing with no
+      # filter control, it means nothing. It asks for the CONTENT and not for the slot
+      # predicate because `SimpleFilters#render?` is false without filters or search —
+      # declaring the slot is not the same as painting (see #control_content).
       def filter_persistence_control?
         @persistence_storage_id.present? &&
           (control_content(:filters_panel) || control_content(:simple_filters)).present?
@@ -605,24 +609,24 @@ module Bali
         )
       end
 
-      # IZQUIERDA el estado del listado y cómo se recuerda; DERECHA cómo se ve. El modo de
-      # visualización NO viaja dentro de una vista guardada (no está en PAYLOAD_KEYS), y por
-      # eso el view switch es lo único que queda del otro lado.
+      # LEFT the listing state and how it is remembered; RIGHT how it looks. The display
+      # mode does NOT travel inside a saved view (it is not in PAYLOAD_KEYS), and that is
+      # why the view switch is the only thing left on the other side.
       #
-      # Primer subgrupo de la izquierda: el CONTENIDO de la vista — qué filas y qué columnas.
+      # First subgroup on the left: the CONTENT of the view — which rows and which columns.
       def show_toolbar_left?
         (declared_toolbar_controls & %i[filters group_by column_selector]).any?
       end
 
-      # Segundo subgrupo de la izquierda: cómo se RECUERDA ese contenido.
+      # Second subgroup on the left: how that content is REMEMBERED.
       def show_toolbar_memory?
         (declared_toolbar_controls & %i[saved_views filter_persistence]).any?
       end
 
-      # Los botones del host no caen en ninguno de los tres cubos: grupo propio, entre lo que
-      # se recuerda y el borde derecho. Metidos en el grupo de la derecha el JS los ordenaba
-      # por prioridad (10 contra 50) y quedaban DESPUÉS del view switch, que es lo único que
-      # va pegado al borde.
+      # The host's buttons fall into none of the three buckets: a group of their own,
+      # between what is remembered and the right edge. Put inside the right-hand group the
+      # JS ordered them by priority (10 against 50) and they ended up AFTER the view switch,
+      # which is the only thing that goes flush with the edge.
       def show_toolbar_host?
         declared_toolbar_controls.include?(:toolbar_buttons)
       end
@@ -631,18 +635,20 @@ module Bali
         declared_toolbar_controls.include?(:view_switch)
       end
 
-      # La barrita afirma algo sobre sus dos vecinos ("acá termina qué contiene la vista y
-      # empieza cómo se recuerda"): con un solo lado marcaría una frontera contra nada. Bajo
-      # el breakpoint la esconde el JS (ver #overflow_separator_attributes).
+      # The little bar asserts something about both of its neighbours ("here ends what the
+      # view contains and begins how it is remembered"): with only one side it would mark a
+      # boundary against nothing. Below the breakpoint the JS hides it (see
+      # #overflow_separator_attributes).
       def toolbar_separator?
         show_toolbar_left? && show_toolbar_memory?
       end
 
       private
 
-      # Los valores los RESUELVE el slot (pueden venir del filter_form o explícitos del host),
-      # así que se capturan ahí y no se re-derivan acá: re-derivarlos del filter_form dejaba
-      # sin marcador a un host que pasa `storage_id:` directo al slot.
+      # The values are RESOLVED by the slot (they may come from the filter_form or be
+      # explicit from the host), so they are captured there and not re-derived here:
+      # re-deriving them from the filter_form left a host that passes `storage_id:` straight
+      # to the slot without a marker.
       def capture_persistence(storage_id, enabled)
         @persistence_storage_id = storage_id.presence
         @persistence_enabled = !!enabled
@@ -696,10 +702,10 @@ module Bali
         declared.merge(override.to_h.symbolize_keys)
       end
 
-      # Qué familias de control PINTAN algo. Es la ÚNICA lista: `overflow_menu?`,
-      # `show_toolbar?` y los `show_toolbar_*` de cada grupo se derivan de acá, así que el
-      # gate del ⋯ no puede desalinearse de lo que el JS colapsa. Mira el render, no el
-      # predicado del slot (ver #control_content).
+      # Which control families PAINT something. This is the ONLY list: `overflow_menu?`,
+      # `show_toolbar?` and each group's `show_toolbar_*` derive from here, so the ⋯ gate
+      # cannot drift from what the JS collapses. It looks at the render, not at the slot
+      # predicate (see #control_content).
       def declared_toolbar_controls
         @declared_toolbar_controls ||= begin
           controls = []
@@ -714,10 +720,10 @@ module Bali
         end
       end
 
-      # [id, estable?]. `FilterForm#id` (scope.cache_key) NO sirve como identidad: trae una
-      # diagonal —'movies/query-abc'— que rompe el querySelector, y además dos listados
-      # sobre el mismo scope base caen en el mismo valor (era el caso de /movies y
-      # /admin/movies, que terminaban compartiendo la memoria de columnas).
+      # [id, stable?]. `FilterForm#id` (scope.cache_key) does NOT work as an identity: it
+      # brings a slash —'movies/query-abc'— that breaks the querySelector, and besides, two
+      # listings over the same base scope land on the same value (that was the case for
+      # /movies and /admin/movies, which ended up sharing the column memory).
       def resolve_listing_id(explicit)
         given = sanitize_listing_id(explicit) || sanitize_listing_id(form_storage_id)
         return [ given, true ] if given
@@ -725,8 +731,8 @@ module Bali
         [ "data-table-#{SecureRandom.hex(4)}", false ]
       end
 
-      # La MISMA regla que un `.turbo_stream.erb` del host tiene que poder aplicar para
-      # apuntar su `turbo_stream.replace`: vive en ListingIdentity, público (ver
+      # The SAME rule a host's `.turbo_stream.erb` has to be able to apply in order to aim
+      # its `turbo_stream.replace`: it lives in ListingIdentity, public (see
       # ListingIdentity.for).
       def sanitize_listing_id(value)
         ListingIdentity.sanitize(value)
@@ -736,24 +742,24 @@ module Bali
         @filter_form.storage_id if @filter_form.respond_to?(:storage_id)
       end
 
-      # El modo pedido, CRUDO: el que declaró el host o, si no declaró ninguno, el que trae
-      # la URL. Sin el fallback, un host que arma el view switch y se olvida de
-      # `display_mode:` obtiene links que cambian la URL y nunca cambian la vista: el
-      # componente ya tiene el query string en la mano (lo usa para armar esos mismos hrefs)
-      # y quedarse mirando solo el kwarg era fallar en silencio.
+      # The requested mode, RAW: the one the host declared or, if it declared none, the one
+      # the URL brings. Without the fallback, a host that builds the view switch and forgets
+      # `display_mode:` gets links that change the URL and never change the view: the
+      # component already has the query string in hand (it uses it to build those very
+      # hrefs) and looking only at the kwarg was failing silently.
       #
-      # Tarde y no en `initialize`: `helpers` todavía no existe antes del render.
+      # Late and not in `initialize`: `helpers` does not exist yet before the render.
       def requested_display_mode
         return @display_mode if @display_mode_declared
 
         request_query_params[@view_param.to_s].to_s.presence&.to_sym
       end
 
-      # Aplicar una vista guardada no debería sacar al usuario del modo en el que está
-      # mirando el listado: el view switch preserva `saved_view` a propósito y la dirección
-      # inversa tiene que ser simétrica. Viaja SOLO el modo — arrastrar el query string
-      # entero haría que un `group_by` de la URL le gane al que trae el payload de la vista
-      # (ver FilterForm#apply_saved_view_state).
+      # Applying a saved view should not pull the user out of the mode they are looking at
+      # the listing in: the view switch preserves `saved_view` on purpose and the reverse
+      # direction has to be symmetric. ONLY the mode travels — carrying the whole query
+      # string would make a `group_by` from the URL beat the one the view's payload brings
+      # (see FilterForm#apply_saved_view_state).
       def saved_views_base_url
         view = view_preserved_params
         return @url if view.empty?
@@ -761,35 +767,34 @@ module Bali
         "#{@url}#{@url.to_s.include?('?') ? '&' : '?'}#{view.to_query}"
       end
 
-      # URL default de las mutaciones de vistas guardadas: las rutas del PROPIO engine
-      # (montado en el host). El storage_id viaja en el query string porque el create del
-      # engine no tiene otro lugar de dónde sacarlo.
+      # Default URL for saved view mutations: the ENGINE's own routes (mounted in the
+      # host). The storage_id travels in the query string because the engine's create has
+      # nowhere else to get it from.
       def default_saved_views_url
         return unless @filter_form.respond_to?(:storage_id) && @filter_form.storage_id.present?
 
         helpers.bali.saved_views_path(storage_id: @filter_form.storage_id)
       end
 
-      # Estado del listado que tiene que sobrevivir a un submit GET de filtros. Los links del
-      # view switch mergean el query string entero, pero un submit de filtros lo reconstruye
-      # desde `url:` —que el host pasa SIN query string—, así que la agrupación y el modo de
-      # visualización tienen que viajar como hidden fields o filtrar estando en tarjetas
-      # devuelve al usuario a la tabla.
+      # Listing state that has to survive a GET filter submit. The view switch links merge
+      # the whole query string, but a filter submit rebuilds it from `url:` —which the host
+      # passes WITHOUT a query string— so the grouping and the display mode have to travel
+      # as hidden fields or filtering while in cards sends the user back to the table.
       def preserved_state_params
         group_by_preserved_params.merge(view_preserved_params).merge(saved_view_origin_params)
       end
 
-      # El ORIGEN viaja; `saved_view` no (sigue en EXCLUDED_PARAMS de Filters, porque APLICA).
-      # Sin esto, cambiar un filtro sobre una vista aplicada la volvía anónima y el dropdown
-      # solo podía ofrecer "guardar otra".
+      # The ORIGIN travels; `saved_view` does not (it stays in Filters' EXCLUDED_PARAMS,
+      # because it APPLIES). Without this, changing a filter over an applied view turned it
+      # anonymous and the dropdown could only offer to save another one.
       def saved_view_origin_params
         origin = @filter_form.try(:saved_view_origin_id)
         origin.present? ? { "view_origin" => origin.to_s } : {}
       end
 
-      # El modo CRUDO, no el gateado: las vistas se declaran después de construir el slot del
-      # panel de filtros, así que acá el gateo todavía no se puede resolver. Un valor
-      # desconocido es inofensivo — el próximo request lo vuelve a gatear.
+      # The RAW mode, not the gated one: the views are declared after the filters panel
+      # slot is built, so the gating cannot be resolved here yet. An unknown value is
+      # harmless — the next request gates it again.
       def view_preserved_params
         mode = requested_display_mode
         mode.present? ? { @view_param.to_s => mode.to_s } : {}
@@ -798,9 +803,9 @@ module Bali
       # group_by param to preserve as a hidden field on GET filter forms, so
       # applying filters/search does not drop an active grouping.
       #
-      # `group_by_active?` (ESTADO) y NO `group_by_applied?` (APLICACIÓN) a propósito: en
-      # tarjetas la agrupación está suspendida pero el param TIENE que seguir viajando — si
-      # no, buscar algo estando en tarjetas la borra y volver a la tabla ya no la encuentra.
+      # `group_by_active?` (STATE) and NOT `group_by_applied?` (APPLICATION) on purpose: in
+      # cards the grouping is suspended but the param MUST keep travelling — otherwise
+      # searching while in cards erases it and going back to the table no longer finds it.
       #
       # WHAT travels is the form's call — three answers since #1156, not two. An empty value
       # is dropped by `hidden_field` itself, so where a default is declared "no grouping"
@@ -820,9 +825,10 @@ module Bali
         { "group_by" => @filter_form.group_by.to_s }
       end
 
-      # Falla temprano: con los dos params desincronizados no hay NADA visible que lo delate
-      # — la tabla se ve igual y la suspensión decide al revés. Solo importa si el listado
-      # declara agrupación; sin ella el modo de visualización no cambia ninguna decisión.
+      # Fails early: with the two params out of sync there is NOTHING visible to give it
+      # away — the table looks the same and the suspension decides the other way round. It
+      # only matters if the listing declares grouping; without it the display mode changes
+      # no decision.
       def validate_view_param!
         return unless @filter_form.respond_to?(:view_param) &&
                       @filter_form.respond_to?(:group_by_enabled?) &&
@@ -833,17 +839,17 @@ module Bali
               format(VIEW_PARAM_MISMATCH_MESSAGE, @view_param, @filter_form.view_param)
       end
 
-      # El modo se deriva DOS veces —el DataTable lo resuelve contra las vistas declaradas, el
-      # form lo lee de la URL— y sin `?view=` las dos derivaciones dicen cosas distintas: el
-      # listado pinta la primera vista declarada y el form, viendo nil, da por hecho que
-      # aplica. Con las tarjetas declaradas primero eso es la agrupación corriendo sobre
-      # tarjetas, que es justo lo que la suspensión existe para evitar.
+      # The mode is derived TWICE —the DataTable resolves it against the declared views,
+      # the form reads it from the URL— and without `?view=` the two derivations say
+      # different things: the listing paints the first declared view and the form, seeing
+      # nil, assumes grouping applies. With cards declared first that is grouping running
+      # over cards, which is exactly what the suspension exists to prevent.
       #
-      # Se valida en el momento en que el modo se CONSUME (el host llama a #display_mode para
-      # elegir qué contenido declara) porque las vistas se declaran después de construir el
-      # componente. Solo cuando el form no tiene modo propio: con un `?view=` desconocido
-      # —que un usuario puede tipear— el form suspende y el listado cae a la primera vista, y
-      # eso es un límite conocido, no una config rota que merezca reventar.
+      # It is validated at the moment the mode is CONSUMED (the host calls #display_mode to
+      # choose what content it declares) because the views are declared after the component
+      # is built. Only when the form has no mode of its own: with an unknown `?view=` —which
+      # a user can type— the form suspends and the listing falls back to the first view, and
+      # that is a known limit, not a broken config worth blowing up over.
       def validate_display_mode!(mode)
         return if @display_mode_validated
 
@@ -857,25 +863,26 @@ module Bali
               format(DISPLAY_MODE_MISMATCH_MESSAGE, mode, @filter_form.group_by_modes.join(", "), mode)
       end
 
-      # Base para los links de página, o `nil` para dejar que el Pagy arme los suyos.
+      # Base for the page links, or `nil` to let the Pagy build its own.
       #
-      # `nil` cuando el Pagy es linkable —el caso del helper `pagy()`, o sea todo host
-      # normal— y eso es deliberado: pasarle una base al `PaginationFooter` la hace GANAR
-      # (ver PagyAdapter#page_url, #654), y la `url:` de este listado es la base de filtrado
-      # y orden, que el host pasa sin query string (`admin_movies_path`). Reenviarla a
-      # ciegas convertía `/movies?q[name_cont]=a&page=1` en `/movies?page=2`: el filtro
-      # aplicado se perdía al pasar de página. Con el Pagy en su sitio, Pagy compone la URL
-      # desde el request real y el recorte sobrevive, además de respetar sus propias
-      # opciones (`root_key:`, `querify:`, `limit_key:`, `absolute:`) que esta base no sabe
-      # reproducir.
+      # `nil` when the Pagy is linkable —the `pagy()` helper case, that is, every normal
+      # host— and that is deliberate: handing a base to the `PaginationFooter` makes it WIN
+      # (see PagyAdapter#page_url, #654), and this listing's `url:` is the filtering and
+      # sorting base, which the host passes without a query string (`admin_movies_path`).
+      # Forwarding it blindly turned `/movies?q[name_cont]=a&page=1` into `/movies?page=2`:
+      # the applied filter was lost when paging. With the Pagy in place, Pagy composes the
+      # URL from the real request and the narrowing survives, besides honouring its own
+      # options (`root_key:`, `querify:`, `limit_key:`, `absolute:`) that this base cannot
+      # reproduce.
       #
-      # Un Pagy SIN request —`Pagy::Offset.new` a mano, `render_inline`— no puede armar nada
-      # y caía en un `?page=2` pelado que borra el query string entero del navegador. Ahí sí
-      # hace falta una base, y el listado ya sabe construirla: la MISMA que arman el view
-      # switch y "Agrupar por" (`url:` + el query string actual, menos los params de un solo
-      # uso, `page` entre ellos). Así los links de página preservan filtros, orden y vista
-      # guardada en vez de solo apuntar al path correcto. Hasta ahora el DataTable no
-      # reenviaba NADA y ese host no tenía parámetro alguno con el que arreglarlo (#756).
+      # A Pagy WITHOUT a request —`Pagy::Offset.new` by hand, `render_inline`— cannot build
+      # anything and fell back to a bare `?page=2` that wipes the browser's whole query
+      # string. There a base is needed, and the listing already knows how to build it: the
+      # SAME one the view switch and "Agrupar por" build (`url:` + the current query string,
+      # minus the single-use params, `page` among them). That way the page links preserve
+      # filters, sorting and saved view instead of only pointing at the right path. Until
+      # now the DataTable forwarded NOTHING and that host had no parameter at all to fix it
+      # with (#756).
       def pagination_url
         return if @pagy.nil? || pagy_adapter.linkable?
 
@@ -886,9 +893,9 @@ module Bali
         @pagy_adapter ||= Bali::Pagination::PagyAdapter.new(@pagy)
       end
 
-      # N para la oferta "seleccionar los N resultados": el total del resultado FILTRADO, que
-      # es exactamente lo que el pagy del listado cuenta. Sin pagy, o con paginación countless
-      # (donde `count` es nil por diseño), no hay N que ofrecer y la barra no ofrece nada.
+      # N for the "select the N results" offer: the total of the FILTERED result, which is
+      # exactly what the listing's pagy counts. Without a pagy, or with countless pagination
+      # (where `count` is nil by design), there is no N to offer and the bar offers nothing.
       def bulk_actions_total_count
         return unless @pagy && pagy_adapter.summarizable?
 
@@ -899,8 +906,8 @@ module Bali
         @show_summary && @summary_position == position && !summary?
       end
 
-      # Cero resultados no tienen rango que describir: "Showing 0-0 of 0 movies" es lo que
-      # salía en una búsqueda sin resultados.
+      # Zero results have no range to describe: "Showing 0-0 of 0 movies" is what came out
+      # of a search with no results.
       def summarizable?
         @pagy.present? && pagy_adapter.summarizable?
       end

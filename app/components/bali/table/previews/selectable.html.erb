@@ -4,8 +4,8 @@
     <p class="text-sm text-base-content/60">Select products with the checkbox column</p>
   </div>
 
-  <%# El controlador vive en un ancestro: dentro de un DataTable lo pone `with_bulk_actions`,
-      acá lo trae el propio BulkActions con su barra flotante. %>
+  <%# The controller lives on an ancestor: inside a DataTable `with_bulk_actions` puts it
+      there, here BulkActions itself brings it along with its floating bar. %>
   <%= render Bali::BulkActions::Component.new do |bulk| %>
     <% bulk.with_action(label: 'Archive', href: '/products/bulk_archive', variant: :info) %>
     <% bulk.with_action(label: 'Delete', href: '/products/bulk_delete', variant: :error) %>

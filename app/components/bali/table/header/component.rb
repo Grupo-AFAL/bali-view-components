@@ -20,10 +20,10 @@ module Bali
 
         def call
           if @sort_attribute.present? && @form.blank?
-            # CALIFICADO a propósito: `MissingFilterForm` vive en `Bali::Table::Component`, que NO
-            # es padre léxico de esta clase (`Header::Component` → `Header` → `Table` → `Bali`).
-            # Sin calificar, este raise levantaba un NameError en vez del error documentado —
-            # nunca se notó porque ningún test ejercitaba el guard hasta ahora.
+            # QUALIFIED on purpose: `MissingFilterForm` lives in `Bali::Table::Component`, which
+            # is NOT a lexical parent of this class (`Header::Component` → `Header` → `Table` →
+            # `Bali`). Unqualified, this raise blew up with a NameError instead of the
+            # documented error — never noticed, because no test exercised the guard until now.
             raise Bali::Table::Component::MissingFilterForm, "FilterForm is required for sorting"
           end
 
@@ -42,11 +42,11 @@ module Bali
           @sort_attribute.present? && @form.present?
         end
 
-        # Ransack solo pinta flecha en la columna ORDENADA (`default_arrow` es nil), así que
-        # una columna ordenable se veía idéntica a una que no lo es: no había forma de saber
-        # que se podía clickear salvo clickeándola. Se apaga su indicador y el label lo arma
-        # el componente. OJO: `sort_link` mergea al HREF toda opción que no sea class/data —
-        # un `title:` acá termina como `&title=...` en la URL.
+        # Ransack only paints an arrow on the SORTED column (`default_arrow` is nil), so a
+        # sortable column looked identical to one that is not: there was no way to know it
+        # could be clicked other than by clicking it. Its indicator is turned off and the
+        # label is built by the component. WATCH OUT: `sort_link` merges into the HREF every
+        # option that is not class/data — a `title:` here ends up as `&title=...` in the URL.
         def sort_link
           helpers.sort_link(
             @form.ransack_search, @sort_attribute, sort_link_label,
@@ -59,8 +59,8 @@ module Bali
           safe_join([ @name, sort_indicator ].compact)
         end
 
-        # `aria-hidden` porque el estado ya lo anuncia `aria-sort` en el th; la flecha de
-        # texto de Ransack (&#9660;) se leía además como "triángulo negro apuntando abajo".
+        # `aria-hidden` because `aria-sort` on the th already announces the state; Ransack's
+        # text arrow (&#9660;) was read out on top of that as "black down-pointing triangle".
         def sort_indicator
           render Bali::Icon::Component.new(
             SORT_ICONS.fetch(sort_direction, UNSORTED_ICON),
@@ -68,14 +68,14 @@ module Bali
           )
         end
 
-        # Atenuado hasta que el puntero (o el foco de teclado) entra: la afordancia tiene que
-        # distinguir la columna ordenable sin competir con el dato de la tabla.
+        # Dimmed until the pointer (or keyboard focus) arrives: the affordance has to tell a
+        # sortable column apart without competing with the table's data.
         #
-        # Color explícito y NO `opacity`: daisyUI ya pinta el thead con `base-content` al 60%,
-        # así que una opacidad se MULTIPLICA contra eso — `opacity-30` medía 1.5:1 contra
-        # base-100, debajo del 3:1 que pide WCAG 1.4.11 para un elemento de interfaz. Y como
-        # el único realce es hover/focus, en un teléfono no hay forma de subirlo: la afordancia
-        # se quedaba ahí para siempre, justo para quien menos la ve.
+        # Explicit colour and NOT `opacity`: daisyUI already paints the thead with
+        # `base-content` at 60%, so an opacity MULTIPLIES against that — `opacity-30` measured
+        # 1.5:1 against base-100, below the 3:1 WCAG 1.4.11 asks of a user interface element.
+        # And since the only highlight is hover/focus, on a phone there is no way to raise it:
+        # the affordance stayed down there forever, for exactly the people who see it least.
         def indicator_classes
           return "shrink-0 opacity-100" if sort_direction
 
@@ -90,8 +90,8 @@ module Bali
                                  .find { |sort| sort && sort.name == @sort_attribute.to_s }&.dir
         end
 
-        # `aria-sort` es lo único que le dice a un lector de pantalla que la columna es
-        # ordenable y en qué sentido está: la afordancia nueva es puramente visual.
+        # `aria-sort` is the only thing that tells a screen reader that the column is
+        # sortable and which way it is sorted: the new affordance is purely visual.
         def th_options
           return @options unless sortable?
 

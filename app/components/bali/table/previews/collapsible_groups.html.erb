@@ -12,8 +12,8 @@
                                         group_counts: counts,
                                         group_label: ->(value) { statuses.fetch(value)[:label] })) do |c| %>
     <%= c.with_headers(headers) %>
-    <%# `group.label` y `group.count` ya vienen resueltos: el bloque solo pinta. Nada
-        interactivo acá adentro: el contenido vive dentro del botón de plegado. %>
+    <%# `group.label` and `group.count` come already resolved: the block only renders.
+        Nothing interactive in here: the content lives inside the folding button. %>
     <% c.with_group_header do |group| %>
       <span class="size-2 rounded-sm shrink-0 <%= statuses.fetch(group.value)[:dot] %>"></span>
       <span><%= group.label %></span>
