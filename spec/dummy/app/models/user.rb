@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-# Owner mínimo para las vistas guardadas (Bali::SavedView#owner es polimórfico; el default
-# del engine resuelve current_user en el host).
+# Minimal owner for the saved views (Bali::SavedView#owner is polymorphic; the engine's
+# default resolves current_user in the host).
 class User < ApplicationRecord
   DEMO_NAME = 'Ana García'
 
-  # El dummy no autentica: `SessionsController#create` solo redirige con "Demo app — no real
-  # authentication configured". Las vistas guardadas SÍ necesitan un dueño, así que hay uno
-  # solo y es el mismo que nombra el topbar. `find_or_create_by!` y no `first` porque el
-  # controller del engine lo resuelve en requests que pueden llegar antes de los seeds.
+  # The dummy does not authenticate: `SessionsController#create` only redirects with "Demo app
+  # — no real authentication configured". Saved views DO need an owner, so there is exactly one
+  # and it is the same one the topbar names. `find_or_create_by!` and not `first` because the
+  # engine's controller resolves it in requests that can arrive before the seeds.
   def self.demo
     find_or_create_by!(name: DEMO_NAME)
   end

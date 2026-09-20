@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
 class Document < ApplicationRecord
-  # El libro de firmas lo pone el engine (#709): `acknowledgments`, `acknowledge(user:)` y
-  # `acknowledged_by?` vienen de aquí. No hay macro que configurar.
+  # The signature book comes from the engine (#709): `acknowledgments`, `acknowledge(user:)`
+  # and `acknowledged_by?` come from here. There is no macro to configure.
   include Bali::Acknowledgeable
 
-  # Virtual a propósito, sin columna: `Bali::Acknowledgeable` solo pregunta por
-  # `version_label` con `try`, así que basta con que el modelo responda. Es la etiqueta que
-  # se le enseña a la gente ("1.0"), y cambiarla convierte la siguiente confirmación en una
-  # firma nueva. Mismo default que el `version_number` de gobierno-corporativo.
+  # Virtual on purpose, with no column: `Bali::Acknowledgeable` only asks for
+  # `version_label` through `try`, so it is enough that the model responds. It is the label
+  # people are shown ("1.0"), and changing it turns the next acknowledgment into a new
+  # signature. Same default as gobierno-corporativo's `version_number`.
   attribute :version_label, :string, default: '1.0'
 
-  # #708 — materializa las referencias embebidas en `content` al guardar. El dummy declara
-  # los tipos referenciables en config/initializers/bali.rb.
+  # #708 — materializes the references embedded in `content` on save. The dummy declares the
+  # referenceable types in config/initializers/bali.rb.
   include Bali::EntityReferenceable
 
-  # El historial lo pone el engine (#707): `content_versions`, `create_version!`,
-  # `create_or_coalesce_version!` y `restore_content_version!` vienen de aquí. Esta app
-  # tenía su propio `DocumentVersion` con la misma pareja de métodos —sin `with_lock`, que
-  # era el bug— y adoptar el concern es lo que prueba que el engine sirve para un host.
+  # The history comes from the engine (#707): `content_versions`, `create_version!`,
+  # `create_or_coalesce_version!` and `restore_content_version!` come from here. This app
+  # had its own `DocumentVersion` with the same pair of methods —without `with_lock`, which
+  # was the bug— and adopting the concern is what proves the engine works for a host.
   include Bali::ContentVersionable
   content_versionable attribute: :content, coalesce_window: 5.minutes
 

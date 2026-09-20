@@ -32,8 +32,8 @@ class DocumentsController < ApplicationController
     end
   end
 
-  # Crear la versión sigue siendo del HOST: el PATCH del autosave llega aquí, no al engine.
-  # El engine solo lee el historial y lo restaura.
+  # Creating the version is still the HOST's job: the autosave PATCH arrives here, not at the
+  # engine. The engine only reads the history and restores it.
   def update
     if @document.update(document_params)
       @document.create_or_coalesce_version!(author: author, author_name: author.name)
@@ -61,9 +61,9 @@ class DocumentsController < ApplicationController
     @document = Document.find(params[:id])
   end
 
-  # El autor de una versión es un REGISTRO, no un string: así se ejercita el FK polimórfico
-  # opcional del engine. El `author_name` denormalizado sale del mismo usuario para que el
-  # panel de historial y el topbar nombren a la misma persona.
+  # A version's author is a RECORD, not a string: that is how the engine's optional
+  # polymorphic FK gets exercised. The denormalized `author_name` comes from the same user so
+  # that the history panel and the topbar name the same person.
   def author = User.demo
 
   def document_params
