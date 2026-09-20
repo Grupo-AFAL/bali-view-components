@@ -1,98 +1,98 @@
-// BlockNote declara el tamaño del cuerpo del editor UNA vez, en
-// `.bn-editor.bn-default-styles`, y todo lo que dibuja adentro sale en `em` de ahí:
-// los headings en 3em/2em/1.3em, y `font-size: inherit` para párrafos, items de lista
-// y celdas. Por eso `size:` es una sola declaración y aun así mueve el documento
-// entero en proporción.
+// BlockNote declares the size of the editor body ONCE, in
+// `.bn-editor.bn-default-styles`, and everything it draws inside comes out in `em` from there:
+// headings at 3em/2em/1.3em, and `font-size: inherit` for paragraphs, list items
+// and cells. That is why `size:` is a single declaration and still moves the whole
+// document proportionally.
 //
-// Lo que se mide acá es esa proporción, que es justo lo que se rompe en silencio:
-// basta que alguien vuelva a fijar en `rem` uno de los valores que Bali pasó a `em`
-// —el code block, la sangría anidada, la casilla del checklist— para que ese pedazo
-// se quede quieto mientras el resto encoge, y nada falla hasta que alguien lo mira.
+// What is measured here is that proportion, which is exactly what breaks silently:
+// it is enough for someone to pin back in `rem` one of the values Bali moved to `em`
+// —the code block, the nested indent, the checklist box— for that piece
+// to stay put while the rest shrinks, and nothing fails until someone looks at it.
 //
-// `md` vale doble: además de escalar, tiene que dar EXACTAMENTE los px que BlockNote
-// traía antes de que existiera `size:`. Si esta mitad se cae, el default cambió.
+// `md` counts twice: besides scaling, it has to give EXACTLY the px BlockNote
+// came with before `size:` existed. If this half falls, the default changed.
 const preview = size =>
   `bali/block_editor/with_initial_content${size ? `?size=${size}` : ''}`
 
-const px = valor => parseFloat(valor)
+const px = value => parseFloat(value)
 
-const medir = () => {
+const measure = () => {
   const css = (selector, prop) =>
     cy.get(selector).first().then($el => px(getComputedStyle($el[0])[prop]))
 
   return {
-    cuerpo: () => css('.bn-editor.bn-default-styles', 'fontSize'),
-    parrafo: () => css('[data-content-type="paragraph"]', 'fontSize'),
-    vineta: () => css('[data-content-type="bulletListItem"]', 'fontSize'),
-    codigo: () => css('[data-content-type="codeBlock"] pre code', 'fontSize'),
-    sangria: () => css('.bn-block-group .bn-block-group', 'marginLeft'),
-    casilla: () => css('[data-content-type="checkListItem"] > div > input', 'height')
+    body: () => css('.bn-editor.bn-default-styles', 'fontSize'),
+    paragraph: () => css('[data-content-type="paragraph"]', 'fontSize'),
+    bullet: () => css('[data-content-type="bulletListItem"]', 'fontSize'),
+    code: () => css('[data-content-type="codeBlock"] pre code', 'fontSize'),
+    indent: () => css('.bn-block-group .bn-block-group', 'marginLeft'),
+    checkbox: () => css('[data-content-type="checkListItem"] > div > input', 'height')
   }
 }
 
-// El editor es React montado por Stimulus: hay que esperar a que exista el contenido,
-// no solo el contenedor, o se mide el div vacío que el servidor mandó.
-const abrir = size => {
+// The editor is React mounted by Stimulus: you have to wait for the content to exist,
+// not just the container, or you measure the empty div the server sent.
+const openPreview = size => {
   cy.visit(preview(size))
   cy.get('.bn-editor.bn-default-styles').should('exist')
   cy.get('[data-content-type="paragraph"]').should('exist')
 }
 
-describe('BlockEditor: `size:` escala el documento entero', () => {
-  it('en `md` deja intactas las medidas que traía BlockNote', () => {
-    abrir('md')
+describe('BlockEditor: `size:` scales the whole document', () => {
+  it('in `md` it leaves the measurements BlockNote came with untouched', () => {
+    openPreview('md')
 
     cy.get('.block-editor-component').should('have.class', 'block-editor-size-md')
 
-    const m = medir()
-    m.cuerpo().should('eq', 16)
-    m.codigo().should('eq', 14)
-    m.sangria().should('eq', 24)
-    m.casilla().should('eq', 24)
+    const m = measure()
+    m.body().should('eq', 16)
+    m.code().should('eq', 14)
+    m.indent().should('eq', 24)
+    m.checkbox().should('eq', 24)
   })
 
-  it('es el default cuando nadie pasa `size:`', () => {
-    abrir(null)
+  it('is the default when nobody passes `size:`', () => {
+    openPreview(null)
 
     cy.get('.block-editor-component').should('have.class', 'block-editor-size-md')
-    medir().cuerpo().should('eq', 16)
+    measure().body().should('eq', 16)
   })
 
-  const escalas = [
+  const scales = [
     { size: 'xs', factor: 0.75 },
     { size: 'sm', factor: 0.875 },
     { size: 'lg', factor: 1.125 }
   ]
 
-  escalas.forEach(({ size, factor }) => {
-    it(`en \`${size}\` mueve texto y geometría por el mismo factor`, () => {
-      abrir(size)
+  scales.forEach(({ size, factor }) => {
+    it(`in \`${size}\` it moves text and geometry by the same factor`, () => {
+      openPreview(size)
 
       cy.get('.block-editor-component').should('have.class', `block-editor-size-${size}`)
 
-      const m = medir()
-      m.cuerpo().should('eq', 16 * factor)
-      m.parrafo().should('eq', 16 * factor)
-      m.vineta().should('eq', 16 * factor)
-      m.codigo().should('eq', 14 * factor)
-      m.sangria().should('eq', 24 * factor)
-      m.casilla().should('eq', 24 * factor)
+      const m = measure()
+      m.body().should('eq', 16 * factor)
+      m.paragraph().should('eq', 16 * factor)
+      m.bullet().should('eq', 16 * factor)
+      m.code().should('eq', 14 * factor)
+      m.indent().should('eq', 24 * factor)
+      m.checkbox().should('eq', 24 * factor)
     })
   })
 
-  // Los menús y la barra son UI, no contenido: encogerlos por debajo de su área de
-  // toque no es lo que pidió un campo compacto. Se mide el `h2`, que sí es contenido,
-  // contra la relación 2em que BlockNote le da -- si alguien mete el tamaño en la
-  // rampa de headings en vez de en el cuerpo, esta proporción se rompe.
-  it('mantiene la rampa de headings proporcional al cuerpo', () => {
-    abrir('xs')
+  // The menus and the toolbar are UI, not content: shrinking them below their touch
+  // target is not what a compact field asked for. The `h2` is what gets measured, which is
+  // content, against the 2em ratio BlockNote gives it -- if someone puts the size on the
+  // heading ramp instead of on the body, this proportion breaks.
+  it('keeps the heading ramp proportional to the body', () => {
+    openPreview('xs')
 
-    const m = medir()
-    m.cuerpo().then(cuerpo => {
+    const m = measure()
+    m.body().then(body => {
       cy.get('[data-content-type="heading"][data-level="2"]')
         .first()
         .then($h2 => {
-          expect(px(getComputedStyle($h2[0]).fontSize)).to.eq(cuerpo * 2)
+          expect(px(getComputedStyle($h2[0]).fontSize)).to.eq(body * 2)
         })
     })
   })
