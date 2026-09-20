@@ -113,10 +113,19 @@
   min-height: var(--bali-split-group-header-h);
 }
 
-/* `/70` and not `/50`: on the band's own base-200 the lighter token measures
-   3.33:1 in the light theme and 4.11:1 in the dark, and AA wants 4.5 for 12px
-   text. `/70` measures 6.38:1, which is also what `.split-view-filter-count` —
-   the same kind of number next to the same kind of label — already uses. */
+/* `/70` and not `/50`. The token is translucent, so what reaches the reader is
+   it composited over the band, and at `/50` that is 2.96:1 on `afal`, 3.16 on
+   `costa-norte`, 3.33 on `light` and 4.11 on `afal-dark`, against AA's 4.5 for
+   12px text. Stock `dark` was already over the line at 4.91 — it is the themes
+   the fleet runs that were not. At `/70` the range is 5.27 (`afal`) to 8.26
+   (`dark`), so even the tightest still carries headroom.
+
+   `.split-view-filter-count` looks like the precedent for this rule and is the
+   opposite of one: it is `opacity-70` on a parent already at
+   `text-base-content/70`, the two multiply to an effective 0.49, and it paints
+   at 2.68–3.82 across those themes — under AA in all of them (#1202). Reading
+   its declared colour without the element opacity gives 6.38 and hides that
+   entirely, which is how it got cited here in the first place. */
 .split-view-group-count {
   @apply ml-auto font-normal tabular-nums text-base-content/70;
 }

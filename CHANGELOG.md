@@ -61,10 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     venía a evitar.
   - **El contador va en `text-base-content/70`, no en `/50`.** Ese token es traslúcido, así que
     lo que llega al lector es el token **compuesto** sobre la banda: medir el color declarado a
-    secas reporta un contraste que nadie ve. Compuesto, `/50` da 3.33:1 en el tema claro y
-    **2.96:1 en `afal`**, bajo el 4.5 que AA pide para texto de 12px, mientras
-    `.split-view-filter-count` —el mismo tipo de número junto al mismo tipo de etiqueta— ya
-    estaba en 6.38. `/70` deja los cuatro temas entre 6.38 y 6.59.
+    secas reporta un contraste que nadie ve. Compuesto, `/50` da **2.96:1 en `afal`**, 3.16 en
+    `costa-norte`, 3.33 en `light` y 4.11 en `afal-dark`, contra el 4.5 que AA pide para texto
+    de 12px; el `dark` de fábrica ya pasaba con 4.91, o sea que los que no pasaban eran los
+    temas que la flota usa. Con `/70` el rango va de **5.27 (`afal`) a 8.26 (`dark`)`**.
   - **Las filas llevan `scroll-margin-top` de la altura de la banda.** Una banda sticky pinta
     encima de lo que pasa por debajo, y el navegador alinea la fila que trae a la vista —por un
     tabulador, por un enlace profundo— justo con el borde superior del área de scroll, que es

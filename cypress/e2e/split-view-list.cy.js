@@ -445,11 +445,12 @@ describe('SplitView structured list', () => {
     // the declared colour alone reports a contrast nobody sees; on a 1px canvas
     // the ground has to be painted first and the colour over it.
     //
-    // That is how the count shipped at `/50`, which composites to 3.33:1 in the
-    // light theme and 4.11 in the dark, both under AA's 4.5 for 12px text —
-    // while `.split-view-filter-count`, the same kind of number beside the same
-    // kind of label, was already at 6.38. Not a library convention, a slip.
-    ;['light', 'dark', 'afal', 'afal-dark'].forEach((theme) => {
+    // That is how the count shipped at `/50`: composited, 2.96:1 on `afal`,
+    // 3.16 on `costa-norte`, 3.33 on `light`, 4.11 on `afal-dark`, against AA's
+    // 4.5 for 12px text. `costa-norte` is in the list for that reason — it is a
+    // shipped theme, and leaving it out would have left one of the four failing
+    // cases unguarded.
+    ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
       it(`reads the heading and its count at AA on the ${theme} theme`, () => {
         cy.document().then((doc) => {
           doc.documentElement.setAttribute('data-theme', theme)
