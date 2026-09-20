@@ -86,16 +86,16 @@ describe('ReactIsland', () => {
   it('a load failure does NOT destroy the server-rendered content of the mount', () => {
     cy.visit('/bali/react_island/load_error')
 
-    cy.get('#isla-con-fallback [data-testid="fallback-server"]')
+    cy.get('#island-with-fallback [data-testid="fallback-server"]')
       .should('be.visible')
-      .and('contain.text', 'esto es el fallback de la isla')
+      .and('contain.text', 'this is the fallback for the island')
     // Still usable, not a screenshot: the link is reachable.
-    cy.get('#isla-con-fallback [data-testid="fallback-server"] a')
+    cy.get('#island-with-fallback [data-testid="fallback-server"] a')
       .should('have.attr', 'href')
       .and('include', '/lookbook')
 
     // And the notice goes ON TOP, so it is read before the content.
-    cy.get('#isla-con-fallback').children().first().should('have.class', 'text-error')
+    cy.get('#island-with-fallback').children().first().should('have.class', 'text-error')
 
     // The empty mount behaves as before: the notice is all there is.
     cy.get('[data-controller="react-island-demo"]').first().children()
