@@ -20,7 +20,11 @@ class EnglishOutsideRubyTest < ActiveSupport::TestCase
     .claude/hooks/*.sh
   ].freeze
 
-  SKIP = %r{/node_modules/|/assets/builds/|/vendor/}
+  # `cypress/screenshots` and `cypress/videos` are gitignored run artifacts, and Cypress names
+  # a screenshot's FOLDER after the spec that produced it — so `cypress/**/*.js` matches
+  # `cypress/screenshots/split-view.cy.js`, a directory, and reading it raises Errno::EISDIR.
+  # Only a local run that failed leaves them, which is why CI never saw it.
+  SKIP = %r{/node_modules/|/assets/builds/|/vendor/|\Acypress/(screenshots|videos|downloads)/}
 
   # Spanish that is content, not code, and stays (#1172): what the gallery shows a Mexican app,
   # and the text a Cypress assertion matches against a page rendered in Spanish.
@@ -71,6 +75,7 @@ class EnglishOutsideRubyTest < ActiveSupport::TestCase
     GLOBS.flat_map { |g| Dir.glob(ROOT.join(g)) }.uniq.sort.each do |path|
       rel = Pathname.new(path).relative_path_from(ROOT).to_s
       next if rel.match?(SKIP) || ALLOWED_PATHS.include?(rel)
+      next unless File.file?(path)
 
       source = File.read(path)
       ext = File.extname(path)
