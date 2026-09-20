@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Una petición abortada dejaba de reprobar la suite de Cypress** (#1180). El síntoma era
+  `AbortError: The user aborted a request` como rechazo sin manejar, achacado a la prueba que
+  estuviera corriendo. No venía de Bali: en la página que fallaba —`custom_master`— no se monta
+  ni un controlador que haga `fetch`. Viene de Turbo, que llama a su delegado asíncrono **sin
+  esperarlo** (`@hotwired/turbo` 8.0.23, `dist/turbo.es2017-esm.js:826`) y ahí dentro espera
+  `FetchResponse#responseHTML`, o sea `response.clone().text()`. Cancelá la petición entre las
+  cabeceras y el cuerpo —lo que hace un Turbo Frame cada vez que navega de nuevo, con lo cual
+  bastan dos clics seguidos en dos filas— y ese `text()` rechaza en una cadena que nadie
+  sostiene: el `catch` de `perform()`, que sí ignora `AbortError`, quedó desenganchado dos
+  líneas antes. Medido con Cypress 16.1.0: la prueba «moves aria-current to the clicked row»
+  abortaba uno de sus cuatro `fetch` y fallaba **5 de 5 corridas**. La suite deja de reprobar
+  por un rechazo `AbortError`, y sólo por ése; cualquier otro error sin capturar sigue
+  reprobando.
+
+- **`SplitView::List` deja de pedir páginas para una lista que ya no existe** (#1180 de rebote).
+  Una página en vuelo cuando el listado se desconecta llegaba igual, se agregaba a un listado
+  que el controlador ya no gobierna, y la recursión del final de `loadNext` mantenía al
+  controlador muerto paginando: medidas **tres peticiones** contra el servidor por un listado que
+  nadie está viendo, donde abortar pide una. `disconnect()` aborta el `fetch`, y el `AbortError`
+  que eso produce se lee como el desmontaje que es —no se pinta el estado de error con su botón
+  de reintentar sobre un panel que se está yendo.
+
 ### Documentation
 
 - **Las instrucciones de `.claude/` dejan de enseñar cosas que no existen** (#1194). Salió de la
