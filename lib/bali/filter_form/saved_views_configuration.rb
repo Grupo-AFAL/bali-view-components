@@ -2,37 +2,38 @@
 
 module Bali
   class FilterForm
-    # SavedViewsConfiguration — combinaciones de filtros CON NOMBRE (vistas guardadas).
+    # SavedViewsConfiguration — NAMED filter combinations (saved views).
     #
-    # El FilterForm define el QUÉ del storage, no el DÓNDE (mismo espíritu que la
-    # persistencia vía Rails.cache). `saved_views_store:` acepta cualquier objeto con este
-    # contrato:
+    # The FilterForm defines the WHAT of the storage, not the WHERE (same spirit as the
+    # persistence through Rails.cache). `saved_views_store:` accepts any object with this
+    # contract:
     #
-    #   store.list                   -> [view, ...]     # vistas visibles para el usuario actual
+    #   store.list                   -> [view, ...]     # views visible to the current user
     #   store.find(id)               -> view | nil
-    #   store.save(name:, payload:)  -> view            # upsert por nombre
+    #   store.save(name:, payload:)  -> view            # upsert by name
     #   store.delete(id)             -> void
     #
-    # donde cada `view` responde a `id`, `name` y `payload` (Hash con las llaves de
-    # PAYLOAD_KEYS). El FilterForm solo LEE (list/find): guardar/renombrar/borrar los hace
-    # el controller dueño de la URL que recibe la UI (Bali::DataTable::SavedViews).
+    # where each `view` answers `id`, `name` and `payload` (a Hash with the PAYLOAD_KEYS
+    # keys). The FilterForm only READS (list/find): saving/renaming/deleting are done by the
+    # controller that owns the URL the UI receives (Bali::DataTable::SavedViews).
     #
-    # El engine TRAE la implementación default de ese contrato: `saved_views_store: :default`
-    # resuelve a `Bali::SavedView::Store` (tabla `bali_saved_views`, instalada con
-    # `bin/rails bali:install:migrations`), scoped al `saved_views_owner:` que pasa la app
-    # (p.ej. current_user) y al `storage_id:` del form; las mutaciones las atiende
-    # `Bali::SavedViewsController` (rutas del engine montado). Una app puede seguir pasando
-    # su propio store — p.ej. "vistas compartidas por equipo" es OTRA implementación del
-    # mismo contrato (scoped al equipo en vez del usuario), sin tocar Bali.
+    # The engine SHIPS the default implementation of that contract:
+    # `saved_views_store: :default` resolves to `Bali::SavedView::Store` (table
+    # `bali_saved_views`, installed with `bin/rails bali:install:migrations`), scoped to the
+    # `saved_views_owner:` the app passes (e.g. current_user) and to the form's `storage_id:`;
+    # the mutations are served by `Bali::SavedViewsController` (routes of the mounted engine).
+    # An app can still pass its own store — e.g. "views shared by team" is ANOTHER
+    # implementation of the same contract (scoped to the team instead of the user), without
+    # touching Bali.
     #
-    # Aplicación: `?saved_view=<id>` en la URL. El payload REEMPLAZA el estado de filtros
-    # (una vista es un estado completo, no un merge) y después pasa por la persistencia
-    # normal de `fetch_stored_filter_state`, así que la vista aplicada se convierte en el
-    # "último estado" del listado al navegar de regreso.
+    # Application: `?saved_view=<id>` in the URL. The payload REPLACES the filter state (a
+    # view is a complete state, not a merge) and then goes through the normal persistence of
+    # `fetch_stored_filter_state`, so the applied view becomes the listing's "last state" when
+    # navigating back.
     module SavedViewsConfiguration
-      # Llaves permitidas del payload de una vista. `columns` (índices visibles del column
-      # selector) lo agrega el Stimulus del dropdown al GUARDAR y lo consume el column
-      # selector al APLICAR — el FilterForm solo lo transporta.
+      # Allowed keys of a view's payload. `columns` (the column selector's visible indexes) is
+      # added by the dropdown's Stimulus when SAVING and consumed by the column selector when
+      # APPLYING — the FilterForm only transports it.
       PAYLOAD_KEYS = %w[attributes simple_filters groupings combinator search_value group_by
                         columns].freeze
 
@@ -40,14 +41,14 @@ module Bali
         @saved_views_store.present?
       end
 
-      # Memoizado: el dropdown lo consulta más de una vez por render (.any? y luego .each)
-      # y cada llamada sin memo era un SELECT.
+      # Memoized: the dropdown asks for it more than once per render (.any? and then .each)
+      # and every call without the memo was a SELECT.
       def saved_views
         @saved_views ||= saved_views_enabled? ? Array(@saved_views_store.list) : []
       end
 
-      # La vista aplicada por URL (?saved_view=<id>), o nil. Memoiza incluso el nil (un id
-      # borrado/ajeno no debe re-consultar el store en cada llamada).
+      # The view applied by URL (?saved_view=<id>), or nil. Memoizes even the nil (a deleted
+      # or someone else's id must not re-query the store on every call).
       def current_saved_view
         return @current_saved_view if defined?(@current_saved_view)
 
@@ -55,9 +56,10 @@ module Bali
           (@saved_views_store.find(@saved_view_param) if saved_views_enabled? && @saved_view_param.present?)
       end
 
-      # La vista de la que VIENE el estado actual, aunque ya se le hayan cambiado filtros.
-      # A diferencia de {#current_saved_view}, esto no aplica nada: solo recuerda el origen
-      # para poder ofrecer "Actualizar 'X'". Una vista borrada resuelve a nil sin romper.
+      # The view the current state COMES FROM, even when its filters have already been
+      # changed. Unlike {#current_saved_view}, this applies nothing: it only remembers the
+      # origin so that "Update 'X'" can be offered. A deleted view resolves to nil without
+      # breaking.
       def saved_view_origin
         return @saved_view_origin if defined?(@saved_view_origin)
 
@@ -67,37 +69,38 @@ module Bali
           end
       end
 
-      # El id crudo, para que los forms y los links lo hagan viajar sin tocar el store.
+      # The raw id, so that forms and links can carry it along without touching the store.
       def saved_view_origin_id = @saved_view_origin_param
 
-      # ¿El estado actual se DESVIÓ de la vista de la que viene? Es la única condición que
-      # justifica ofrecer "Actualizar": sin cambios no hay nada que guardar.
+      # Has the current state DRIFTED from the view it comes from? It is the only condition
+      # that justifies offering "Update": with no changes there is nothing to save.
       def saved_view_dirty?
         origin = saved_view_origin
         origin.present? && !view_matches_current_state?(origin)
       end
 
-      # Índices de columnas visibles que la vista aplicada trae guardados (o nil): el
-      # DataTable se los pasa al column selector para que el estado inicial sea el de la vista.
+      # Visible column indexes the applied view carries saved (or nil): the DataTable passes
+      # them to the column selector so that the initial state is the view's.
       def saved_view_columns
         current_saved_view && normalized_view_payload(current_saved_view)["columns"]
       end
 
-      # ¿El estado ACTUAL del form (ya post-persistencia) equivale al payload de esta vista?
-      # Compara normalizado: llaves String, sin `columns` (vive en el DOM) y sin valores
-      # vacíos — así una vista aplicada sigue reconociéndose como activa aunque la URL ya no
-      # traiga ?saved_view= (p.ej. tras navegar de regreso con el estado restaurado del cache).
+      # Does the CURRENT form state (already post-persistence) equal this view's payload?
+      # It compares normalized: String keys, without `columns` (it lives in the DOM) and
+      # without empty values — so an applied view keeps being recognized as active even when
+      # the URL no longer carries ?saved_view= (e.g. after navigating back with the state
+      # restored from the cache).
       #
-      # Un payload que normaliza a VACÍO nunca casa por estado: una vista "solo columnas" (o
-      # "ver todo") describe el estado limpio, así que casaría en cada visita y se marcaría
-      # activa sin que sus columnas estén aplicadas —columns solo se aplica con ?saved_view=—.
-      # Esas vistas solo se reconocen activas cuando se aplican por URL.
+      # A payload that normalizes to EMPTY never matches by state: a "columns only" view (or
+      # "see everything") describes the clean state, so it would match on every visit and be
+      # marked active without its columns being applied —columns is only applied with
+      # ?saved_view=—. Those views are only recognized as active when applied by URL.
       def view_matches_current_state?(view)
         state_matches_current_state?(normalized_view_payload(view))
       end
 
-      # Mismo contrato para un estado que viene de una URL (los atajos estáticos del
-      # dropdown): se le da la forma del payload y se compara igual.
+      # Same contract for a state that comes from a URL (the dropdown's static shortcuts): it
+      # is given the payload's shape and compared the same way.
       def state_matches_current_state?(payload)
         comparable = comparable_view_state(payload)
         return false if comparable.empty?
@@ -105,24 +108,25 @@ module Bali
         comparable == comparable_view_state(current_view_payload)
       end
 
-      # Estado ACTUAL completo, listo para guardarse como vista. Sin `columns`: eso vive en
-      # el DOM (column selector) y lo agrega el Stimulus del dropdown al momento de enviar.
+      # The full CURRENT state, ready to be saved as a view. Without `columns`: that lives in
+      # the DOM (column selector) and the dropdown's Stimulus adds it at submit time.
       def current_view_payload
         {
           "attributes" => attributes.reject { |_k, v| v.nil? || v == "" || v == [] },
-          # Los filtros simplificados van aparte y NO dentro de `attributes`: su valor nunca
-          # es un atributo de ActiveModel —vive en `@q_params` y va directo a Ransack—, así
-          # que `attributes` no los ve. Sin esto, una vista guardada desde un índice
-          # simplificado nacía sin su recorte: se medía `country_eq=USA` cortando de 25 a 5
-          # filas y el payload salía `{"attributes"=>{}, "search_value"=>"pic"}`.
+          # The simple filters go apart and NOT inside `attributes`: their value is never an
+          # ActiveModel attribute —it lives in `@q_params` and goes straight to Ransack—, so
+          # `attributes` does not see them. Without this, a view saved from a simplified index
+          # was born without its narrowing: `country_eq=USA` was measured cutting 25 rows down
+          # to 5 and the payload came out as `{"attributes"=>{}, "search_value"=>"pic"}`.
           "simple_filters" => active_simple_filters.presence,
           "groupings" => @groupings,
           "combinator" => @combinator,
           "search_value" => @search_value,
-          # A String, no el Symbol de `resolve_group_by`: este payload se compara contra uno
-          # que YA volvió de un jsonb, donde todo es String. `comparable_view_state` normaliza
-          # las LLAVES pero no los valores, así que `:genre` nunca casaba con `"genre"` y una
-          # vista que agrupa no se reconocía activa por estado — solo con `?saved_view=` puesto.
+          # To String, not the Symbol from `resolve_group_by`: this payload is compared against
+          # one that ALREADY came back from a jsonb, where everything is a String.
+          # `comparable_view_state` normalizes the KEYS but not the values, so `:genre` never
+          # matched `"genre"` and a view that groups was not recognized as active by state —
+          # only with `?saved_view=` in place.
           #
           # A default is not a choice, and writing it here made every saved view without
           # grouping read as "modified" against a listing nobody touched (#1156).
@@ -132,9 +136,9 @@ module Bali
 
       private
 
-      # `:default` = el storage del engine, scoped al owner y al storage_id del form. Sin
-      # owner o sin storage_id no hay store (el dropdown no pinta): mejor apagado que un
-      # scope mal armado. Un store explícito pasa intacto.
+      # `:default` = the engine's storage, scoped to the owner and to the form's storage_id.
+      # With no owner or no storage_id there is no store (the dropdown does not paint): better
+      # switched off than a badly built scope. An explicit store passes through intact.
       def resolve_saved_views_store(store, owner)
         return store unless store == :default
         return nil unless owner.present? && storage_id.present?
@@ -142,15 +146,16 @@ module Bali
         Bali::SavedView.store_for(owner, storage_id)
       end
 
-      # Forma canónica para comparar estados: llaves String a fondo, sin `columns` y sin
-      # valores vacíos (un payload guardado sin combinator y un estado actual con combinator
-      # nil son el mismo estado).
+      # Canonical shape for comparing states: String keys all the way down, without `columns`
+      # and without empty values (a payload saved with no combinator and a current state with
+      # a nil combinator are the same state).
       #
-      # Los combinadores NO-OP también se descartan: el builder siempre re-emite `m` por grupo
-      # (y `q[m]` arriba) aunque el estado original no lo trajera, así que sin esto un atajo o
-      # una vista dejaban de reconocerse activos tras el primer round-trip por el popover o el
-      # buscador. Solo se descarta donde el combinador no puede cambiar el resultado —un grupo
-      # de una condición, o un solo grupo—, nunca cuando distingue de verdad AND de OR.
+      # NO-OP combinators are discarded too: the builder always re-emits `m` per group (and
+      # `q[m]` at the top) even when the original state did not carry it, so without this a
+      # shortcut or a view stopped being recognized as active after the first round-trip
+      # through the popover or the search box. It is only discarded where the combinator
+      # cannot change the result —a one-condition group, or a single group—, never when it
+      # really tells AND from OR.
       def comparable_view_state(payload)
         state = payload.to_h.deep_stringify_keys.except("columns").reject { |_k, v| v.blank? }
         groupings = state["groupings"]
@@ -163,18 +168,18 @@ module Bali
         state.reject { |_k, v| v.blank? }
       end
 
-      # El payload viene de un jsonb round-trip (llaves String) o de un Hash recién armado
-      # (llaves Symbol): se normaliza a String y se recorta al contrato.
+      # The payload comes either from a jsonb round-trip (String keys) or from a freshly built
+      # Hash (Symbol keys): it is normalized to String and trimmed to the contract.
       def normalized_view_payload(view)
         payload = view.payload || {}
         payload = payload.to_h if payload.respond_to?(:to_h)
         payload.transform_keys(&:to_s).slice(*PAYLOAD_KEYS)
       end
 
-      # Reemplaza el estado derivado de `q` con el de la vista aplicada. Devuelve el hash de
-      # atributos filtrado por los declarados (mismo gate que el camino normal de params);
-      # `group_by` re-pasa por el whitelist de resolve_group_by — un payload viejo con un
-      # atributo retirado simplemente lo pierde, sin reventar.
+      # Replaces the state derived from `q` with the applied view's. Returns the attributes
+      # hash filtered by the declared ones (the same gate as the normal params path);
+      # `group_by` goes through resolve_group_by's whitelist again — an old payload with a
+      # withdrawn attribute simply loses it, without blowing up.
       def apply_saved_view_state
         payload = normalized_view_payload(current_saved_view)
         @groupings = payload["groupings"]
@@ -182,13 +187,13 @@ module Bali
         # `m`; collapse it here too, so an old payload cannot re-emit it.
         @combinator = sanitized_combinator(payload["combinator"])
         @search_value = payload["search_value"]
-        # Mismo contrato que `attributes`: REEMPLAZA, no mergea. Un payload viejo, guardado
-        # antes de que la llave existiera, llega sin ella y limpia los simplificados — que es
-        # lo correcto: esa vista describe un estado que no los tenía.
+        # Same contract as `attributes`: it REPLACES, it does not merge. An old payload, saved
+        # before the key existed, arrives without it and clears the simple filters — which is
+        # correct: that view describes a state that did not have them.
         apply_simple_filter_state(payload["simple_filters"])
-        # Un `group_by` explícito en la URL gana sobre el del payload: con `?saved_view=` aún
-        # pegado (los links de "Agrupar por" preservan la query), el payload pisaba el clic
-        # recién dado y el control se veía muerto.
+        # An explicit `group_by` in the URL beats the payload's: with `?saved_view=` still
+        # stuck on (the "Group by" links preserve the query), the payload overwrote the click
+        # just made and the control looked dead.
         #
         # A view SPEAKS by carrying the key, not by carrying a value that resolves. A MISSING
         # key stays silence and not "no grouping": that is what every view saved before the

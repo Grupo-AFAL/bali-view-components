@@ -54,18 +54,17 @@ module Bali
     # @example Instance-level configuration
     #   FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
     #
-    # Se puede agrupar por lo MISMO que se puede ordenar —una columna, un `ransacker` o un
-    # camino de asociación—, porque el `GROUP BY` sale del mismo Arel que el `ORDER BY`
-    # (ver {#group_by_expression}). Leer la banda de una fila es la otra mitad, y es una
-    # pregunta de Ruby, no de SQL: {#group_value_for}.
+    # Grouping accepts the SAME thing sorting does —a column, a `ransacker` or an association
+    # path—, because the `GROUP BY` comes out of the same Arel as the `ORDER BY` (see
+    # {#group_by_expression}). Reading a row's band is the other half, and it is a Ruby
+    # question, not a SQL one: {#group_value_for}.
     #
     module GroupByConfiguration
       extend ActiveSupport::Concern
 
-      # Modos de visualización en los que la agrupación se APLICA. Una tabla es la única
-      # superficie de filas contiguas donde una banda de grupo significa algo: en tarjetas o
-      # en una línea de tiempo el mismo ordenamiento actúa INVISIBLE, reacomodando el
-      # contenido sin que nada en pantalla lo explique.
+      # Display modes where grouping is APPLIED. A table is the only surface of contiguous
+      # rows where a group band means something: over cards or a timeline the same ordering
+      # acts INVISIBLY, rearranging the content with nothing on screen to explain it.
       DEFAULT_GROUP_BY_MODES = %i[table].freeze
 
       # How "no grouping" travels once the listing declares a `default:` (#1156). An empty
@@ -84,23 +83,23 @@ module Bali
 
         # Declare an attribute users can group rows by.
         #
-        # Acepta lo MISMO que el ordenamiento: una columna real, un `ransacker` o un camino
-        # de asociación (`worker_legal_entity_name`). El `GROUP BY` sale del mismo Arel que
-        # Ransack le da al `ORDER BY`, así que las dos mitades de una agrupación —el orden
-        # que junta las filas y el conteo que las cuenta— no se pueden desincronizar (#1102).
+        # Accepts the SAME thing sorting does: a real column, a `ransacker` or an association
+        # path (`worker_legal_entity_name`). The `GROUP BY` comes out of the same Arel Ransack
+        # gives the `ORDER BY`, so the two halves of a grouping —the order that brings the rows
+        # together and the count that counts them— cannot fall out of sync (#1102).
         #
-        # @param attribute [Symbol] Columna, ransacker o camino de asociación
+        # @param attribute [Symbol] Column, ransacker or association path
         # @param label [String, nil] Human-readable label (defaults to inferred)
-        # @param sql [String, Arel::Nodes::Node, Proc, nil] Expresión explícita para el
-        #   GROUP BY, para lo que ni una columna ni un ransacker pueden decir. Un String pasa
-        #   por `Arel.sql`: es SQL del desarrollador, nunca del usuario. Cuando se declara
-        #   manda TAMBIÉN sobre el ORDER BY (ver {#apply_group_by_sql_order}), porque una
-        #   agrupación ordenada por una expresión distinta de la que agrupa no junta nada.
-        # @param value [Proc, nil] Cómo leer la banda de UNA fila (ver {#group_value_for}).
-        #   Por default `record.public_send(attribute)`, que para un camino de asociación
-        #   (`worker_legal_entity_id`) es un NoMethodError — de ahí este hook. Tiene que
-        #   devolver el MISMO valor que devolvió el GROUP BY: la búsqueda del conteo global
-        #   es por valor (ver {#group_counts} y Bali::Table#global_group_count).
+        # @param sql [String, Arel::Nodes::Node, Proc, nil] Explicit expression for the
+        #   GROUP BY, for what neither a column nor a ransacker can say. A String goes through
+        #   `Arel.sql`: it is the developer's SQL, never the user's. When declared it ALSO
+        #   rules the ORDER BY (see {#apply_group_by_sql_order}), because a grouping ordered by
+        #   an expression other than the one it groups by brings nothing together.
+        # @param value [Proc, nil] How to read ONE row's band (see {#group_value_for}).
+        #   Defaults to `record.public_send(attribute)`, which for an association path
+        #   (`worker_legal_entity_id`) is a NoMethodError — hence this hook. It has to return
+        #   the SAME value the GROUP BY returned: the global count lookup is by value (see
+        #   {#group_counts} and Bali::Table#global_group_count).
         # @param default [Boolean] Open the listing grouped by this attribute when nobody
         #   said anything (#1156). Only one declaration may carry it. A boolean and not a
         #   callable: the default is resolved while the form is built, with no instance to
@@ -121,9 +120,9 @@ module Bali
       end
 
       # Normalized group_by definitions ({attribute:, label:, sql:, value:, default:}).
-      # Prefers instance-level configuration over the class DSL. Validating here y no en el
-      # `group_by_attribute` es lo único posible: el modelo entra con el scope, o sea recién
-      # al construir el form.
+      # Prefers instance-level configuration over the class DSL. Validating here and not in
+      # `group_by_attribute` is the only thing possible: the model comes in with the scope,
+      # that is, only when the form is built.
       #
       # @return [Array<Hash>]
       def group_by_definitions
@@ -157,7 +156,7 @@ module Bali
         @group_by
       end
 
-      # Whether a valid group_by is currently active (ESTADO).
+      # Whether a valid group_by is currently active (STATE).
       #
       # @return [Boolean]
       def group_by_active?
@@ -201,14 +200,14 @@ module Bali
         nil
       end
 
-      # ¿La agrupación APLICA en el modo de visualización actual? Pregunta sobre el MODO, no
-      # sobre el estado: es true en la tabla aunque nadie haya elegido agrupar. Sin modo (un
-      # listado sin view switch, o uno que todavía no sabe cuál renderiza) aplica, que es el
-      # caso de la enorme mayoría; un listado cuya vista por default NO es la tabla tiene que
-      # pasarle ese modo al form (ver el `display_mode:` de FilterForm#initialize).
+      # Does grouping APPLY in the current display mode? It asks about the MODE, not about the
+      # state: it is true on the table even when nobody chose to group. With no mode (a listing
+      # with no view switch, or one that does not yet know which one it renders) it applies,
+      # which is the case for the vast majority; a listing whose default view is NOT the table
+      # has to pass that mode to the form (see FilterForm#initialize's `display_mode:`).
       #
-      # `[]` corta antes: es la forma de decir "ningún modo la aplica", y el escape de "sin
-      # modo aplica" la habría vuelto a encender en cada URL sin `?view=`.
+      # `[]` short-circuits first: it is the way to say "no mode applies it", and the "with no
+      # mode it applies" escape would have turned it back on for every URL without `?view=`.
       #
       # @return [Boolean]
       def group_by_applies?
@@ -217,10 +216,10 @@ module Bali
         @display_mode.nil? || group_by_modes.include?(@display_mode)
       end
 
-      # La agrupación que se está APLICANDO (o nil): manda ordenamiento, conteos y bandas.
-      # Fuera de un modo que la aplique es nil AUNQUE {#group_by} siga elegido — eso es la
-      # suspensión. Derivado y no `@group_by = nil` a propósito: el estado tiene que
-      # sobrevivir en la URL, en la caché de filtros y en el payload de una vista guardada.
+      # The grouping that is being APPLIED (or nil): it rules ordering, counts and bands.
+      # Outside a mode that applies it, it is nil EVEN THOUGH {#group_by} is still chosen —
+      # that is the suspension. Derived and not `@group_by = nil` on purpose: the state has to
+      # survive in the URL, in the filter cache and in a saved view's payload.
       #
       # @return [Symbol, nil]
       def group_by_applied
@@ -232,19 +231,19 @@ module Bali
         !group_by_applied.nil?
       end
 
-      # Hay agrupación elegida pero este modo no la aplica. Azúcar para que el host pueda
-      # explicarlo ("Agrupado por Género — se aplica en la vista de tabla").
+      # There is a chosen grouping but this mode does not apply it. Sugar so that the host can
+      # explain it ("Grouped by Genre — applies in the table view").
       #
       # @return [Boolean]
       def group_by_suspended?
         group_by_active? && !group_by_applies?
       end
 
-      # Modos de visualización que aplican la agrupación, normalizados a símbolos.
+      # Display modes that apply the grouping, normalized to symbols.
       #
-      # `nil` y `[]` NO son lo mismo, así que no se puede usar `.presence`: `[]` es un host
-      # diciendo "ningún modo la aplica" (quiere el param en las vistas guardadas pero nunca
-      # aplicado) y colapsarlo al default le daba exactamente lo contrario, en silencio.
+      # `nil` and `[]` are NOT the same, so `.presence` cannot be used: `[]` is a host saying
+      # "no mode applies it" (it wants the param in saved views but never applied) and
+      # collapsing it to the default gave it exactly the opposite, in silence.
       #
       # @return [Array<Symbol>]
       def group_by_modes
@@ -254,7 +253,7 @@ module Bali
         end
       end
 
-      # Options for the "Agrupar por" UI control, labels resolved.
+      # Options for the "Group by" UI control, labels resolved.
       #
       # @return [Array<Hash>] each {attribute:, label:}
       def group_by_options
@@ -272,7 +271,7 @@ module Bali
       # with GROUP BY under strict SQL modes.
       #
       # Keys are whatever SQL returns (strings, enum labels, nil). Returns {}
-      # when grouping is inactive OR suspended (ver {#group_by_applied}).
+      # when grouping is inactive OR suspended (see {#group_by_applied}).
       #
       # @return [Hash] value => Integer count
       def group_counts
@@ -284,16 +283,16 @@ module Bali
         end
       end
 
-      # La expresión sobre la que corre el `GROUP BY`, o nil cuando no hay agrupación
-      # aplicada. Tres orígenes, en orden:
+      # The expression the `GROUP BY` runs over, or nil when no grouping is applied. Three
+      # origins, in order:
       #
-      #   1. el `sql:` declarado, si lo hay;
-      #   2. el Arel que Ransack le da al ORDER BY — que es lo que hace que un `ransacker` o
-      #      un camino de asociación agrupen, no solo ordenen (#1102). El join ya está en la
-      #      relación: la agrupación se prepende como sort ANTES de que se evalúe `result`,
-      #      así que para cuando esto corre Ransack ya lo armó y el bind está memoizado;
-      #   3. el símbolo pelado, que es lo que hacía v3.1: una columna real que el host no
-      #      puso en `ransackable_attributes` sigue agrupando como siempre.
+      #   1. the declared `sql:`, when there is one;
+      #   2. the Arel Ransack gives the ORDER BY — which is what makes a `ransacker` or an
+      #      association path group, and not just sort (#1102). The join is already in the
+      #      relation: the grouping is prepended as a sort BEFORE `result` is evaluated, so by
+      #      the time this runs Ransack has already built it and the bind is memoized;
+      #   3. the bare symbol, which is what v3.1 did: a real column the host did not put in
+      #      `ransackable_attributes` keeps grouping as always.
       #
       # @return [Arel::Nodes::Node, Arel::Attributes::Attribute, Symbol, nil]
       def group_by_expression
@@ -305,16 +304,16 @@ module Bali
           group_by_applied
       end
 
-      # La banda a la que pertenece UNA fila bajo la agrupación aplicada, o nil cuando no hay
-      # ninguna (apagada o suspendida) — o sea, exactamente lo que va en `with_row(group:)`.
+      # The band ONE row belongs to under the applied grouping, or nil when there is none (off
+      # or suspended) — that is, exactly what goes in `with_row(group:)`.
       #
-      # El default es `record.public_send(attribute)`, que alcanza para una columna y para un
-      # ransacker con gemelo en Ruby. Para un camino de asociación NO existe tal método y por
-      # eso la declaración puede traer un `value:`; la validación no deja pasar el caso en el
-      # que no hay ni uno ni otro, para que el NoMethodError no aparezca recién al pintar.
+      # The default is `record.public_send(attribute)`, which is enough for a column and for a
+      # ransacker with a twin in Ruby. For an association path NO such method exists and that
+      # is why the declaration can carry a `value:`; the validation does not let through the
+      # case where there is neither, so the NoMethodError does not show up only while painting.
       #
-      # @param record [Object] el registro de la fila
-      # @return [Object, nil] el valor CRUDO del grupo (el mismo que la llave de group_counts)
+      # @param record [Object] the row's record
+      # @return [Object, nil] the group's RAW value (the same as the group_counts key)
       def group_value_for(record)
         applied = group_by_applied
         return nil if applied.nil?
@@ -331,10 +330,11 @@ module Bali
       # This is the security boundary: the returned symbol always comes from the
       # whitelist, never from the raw param.
       #
-      # Toca `group_by_definitions` ANTES del `blank?` y a propósito: ahí es donde se validan
-      # las declaraciones, y esto corre en el initialize venga o no el param. Al revés, una
-      # declaración rota se descubría recién cuando alguien elegía esa agrupación en la
-      # pantalla — el contrato de arranque que ya tienen `input:` y `auto_submit:` (#1102).
+      # Touches `group_by_definitions` BEFORE the `blank?`, and on purpose: that is where the
+      # declarations are validated, and this runs on initialize whether the param comes or not.
+      # The other way around, a broken declaration was only discovered when somebody picked
+      # that grouping on screen — the boot-time contract `input:` and `auto_submit:` already
+      # have (#1102).
       def resolve_group_by(raw_value)
         return nil if group_by_definitions.empty?
         return nil if raw_value.blank?
@@ -361,8 +361,8 @@ module Bali
       # keeping any user column sort as the secondary sort (sort-within-groups).
       # Ransack whitelists sort columns, so building the `s` array is safe.
       #
-      # Gatea por APLICACIÓN y no por estado: en tarjetas este ordenamiento reacomodaría el
-      # contenido sin ninguna banda de grupo que lo explique.
+      # Gated by APPLICATION and not by state: over cards this ordering would rearrange the
+      # content with no group band to explain it.
       def apply_group_by_ordering(params)
         applied = group_by_applied
         return params if applied.nil?
@@ -373,10 +373,10 @@ module Bali
         params
       end
 
-      # El ORDER BY de una agrupación con `sql:` explícito, que Ransack no puede armar: su
-      # param `s` solo habla de nombres, y una expresión no tiene nombre. Se aplica sobre la
-      # relación ya evaluada, prependiendo la MISMA expresión que agrupa y conservando el
-      # orden del usuario detrás (sort-within-groups, igual que la otra mitad).
+      # The ORDER BY of a grouping with an explicit `sql:`, which Ransack cannot build: its `s`
+      # param only speaks of names, and an expression has no name. It is applied over the
+      # already-evaluated relation, prepending the SAME expression that groups and keeping the
+      # user's order behind it (sort-within-groups, just like the other half).
       def apply_group_by_sql_order(relation)
         return relation unless group_by_applied?
         return relation unless group_by_definition_for(group_by_applied)[:sql]
@@ -463,9 +463,9 @@ module Bali
         group_by_applied.to_s
       end
 
-      # El `sql:` declarado, resuelto. Un String se envuelve en `Arel.sql` — viene de la
-      # declaración del desarrollador, nunca de la URL (el param crudo no llega hasta acá:
-      # ver {#resolve_group_by}).
+      # The declared `sql:`, resolved. A String is wrapped in `Arel.sql` — it comes from the
+      # developer's declaration, never from the URL (the raw param does not reach here: see
+      # {#resolve_group_by}).
       def explicit_group_by_sql(attribute)
         sql = group_by_definition_for(attribute)[:sql]
         return nil if sql.nil?
@@ -474,11 +474,11 @@ module Bali
         expression.is_a?(String) ? Arel.sql(expression) : expression
       end
 
-      # El Arel que Ransack usa para ORDENAR por este nombre. Es literalmente el nodo de sort
-      # que la agrupación ya prepende, construido de nuevo contra el MISMO contexto: los binds
-      # están memoizados, así que no agrega un join extra ni un alias distinto. nil cuando el
-      # nombre no es ordenable por Ransack (una columna fuera de `ransackable_attributes`),
-      # que es cuando cae al símbolo pelado de siempre.
+      # The Arel Ransack uses to SORT by this name. It is literally the sort node the grouping
+      # already prepends, rebuilt against the SAME context: the binds are memoized, so it adds
+      # neither an extra join nor a different alias. nil when the name is not sortable by
+      # Ransack (a column outside `ransackable_attributes`), which is when it falls back to the
+      # bare symbol of always.
       def ransack_group_by_expression(attribute)
         sort = Ransack::Nodes::Sort.extract(ransack_search.context, attribute.to_s)
         sort&.valid? ? sort.attr : nil
@@ -529,13 +529,13 @@ module Bali
               "A listing opens on ONE question: keep the default on a single declaration."
       end
 
-      # Revienta al CONSTRUIR el form, no cuando alguien elige la agrupación en la pantalla.
-      # Hasta v3.1 `group_by_attribute :lo_que_sea` se aceptaba sin chistar y el símbolo
-      # llegaba crudo al SQL: `PG::UndefinedColumn` en producción, sobre una pantalla que
-      # había cargado bien mil veces (#1102).
+      # Blows up when the form is BUILT, not when somebody picks the grouping on screen. Up to
+      # v3.1 `group_by_attribute :lo_que_sea` was accepted without complaint and the symbol
+      # reached the SQL raw: `PG::UndefinedColumn` in production, over a screen that had loaded
+      # fine a thousand times (#1102).
       #
-      # Las dos mitades se verifican por separado porque fallan por separado: una agrupación
-      # puede tener un GROUP BY perfecto y no tener cómo leer la banda de una fila.
+      # The two halves are checked separately because they fail separately: a grouping can have
+      # a perfect GROUP BY and have no way to read a row's band.
       def validate_group_by_definition!(definition)
         model = group_by_model
         return if model.nil?
@@ -568,28 +568,27 @@ module Bali
               "`value: ->(record) { record.worker&.legal_entity_id }`)."
       end
 
-      # Una columna real primero: es lo que v3.1 aceptaba y sigue valiendo aunque el host la
-      # deje fuera de `ransackable_attributes` (agrupa; lo que no hace es ordenar). Después,
-      # lo que Ransack puede resolver — ransackers y caminos de asociación —, con la MISMA
-      # autorización que aplica al ordenar.
+      # A real column first: it is what v3.1 accepted and still holds even when the host leaves
+      # it out of `ransackable_attributes` (it groups; what it does not do is sort). Then,
+      # whatever Ransack can resolve — ransackers and association paths —, with the SAME
+      # authorization that applies when sorting.
       def group_by_resolvable?(model, attribute)
         return true if model.column_names.include?(attribute.to_s)
 
         group_by_probe_context.attribute_method?(attribute.to_s)
       end
 
-      # Contexto de solo lectura para validar nombres. Deliberadamente NO es el de
-      # `ransack_search`: ese todavía no existe cuando se construye el form (depende de los
-      # atributos que el initialize asigna al final) y bindear contra él agregaría joins por
-      # una simple verificación. `attribute_method?` recorre asociaciones sin construir
-      # ninguna.
+      # Read-only context for validating names. Deliberately NOT `ransack_search`'s: that one
+      # does not exist yet when the form is built (it depends on the attributes initialize
+      # assigns at the end) and binding against it would add joins for a mere check.
+      # `attribute_method?` walks associations without building any.
       def group_by_probe_context
         @group_by_probe_context ||= Ransack::Context.for(scope)
       end
 
-      # El modelo contra el que se validan las declaraciones, o nil cuando el scope no es una
-      # relación de ActiveRecord: sin modelo no hay nada que verificar y la validación se
-      # salta entera.
+      # The model the declarations are validated against, or nil when the scope is not an
+      # ActiveRecord relation: with no model there is nothing to check and the validation is
+      # skipped entirely.
       def group_by_model
         return scope.model if scope.respond_to?(:model)
         return scope if scope.is_a?(Class) && scope.respond_to?(:ransack)
