@@ -1,32 +1,32 @@
 <%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: form_data_attributes do |f| %>
-  <%# Preserve top-level params across the GET submit: el browser descarta el query de la
-      action en un submit GET, así que tanto los params propios de la `url:` del host (un
-      scope como `status=historico`) como los explícitos (`preserved_params`, p. ej. un
-      `group_by` activo) se re-emiten como hidden fields — misma semántica que Filters. %>
+  <%# Preserve top-level params across the GET submit: the browser drops the action's query
+      string on a GET submit, so both the host's own params from `url:` (a scope like
+      `status=historico`) and the explicit ones (`preserved_params`, e.g. an active
+      `group_by`) are re-emitted as hidden fields — same semantics as Filters. %>
   <%= preserved_params_hidden_fields %>
-  <%# El scroll horizontal es del teléfono: arriba de `sm` la fila envuelve
-      (`sm:flex-wrap`) y no scrollea nunca. Pero `overflow-x-auto` seguía puesto en todos
-      los anchos, y eso hace de la fila un contenedor de scroll, que RECORTA en su caja de
-      relleno — de ahí venía el `pb-1`: los 4px eran el lugar del anillo de foco del botón
-      Filter, que se dibuja a `outline-offset: 2px` con `outline-width: 2px`.
-      Esos mismos 4px desalineaban la fila. La toolbar del DataTable alinea por abajo, así
-      que sus vecinos de una línea se apoyan en el borde inferior de ESTE bloque: el botón
-      Filter quedaba 4px arriba del ⋯, medido en /admin/studios a 1900px.
-      Devolviendo el overflow a `visible` arriba del breakpoint el anillo ya no se puede
-      recortar, y sin nada que reservar el relleno de abajo se va: 0px de diferencia. Debajo
-      de `sm` no cambia nada — sigue el scroll y sigue el `pb-2`. El `pt-1` tampoco se toca,
-      que es el aire de las etiquetas. %>
+  <%# The horizontal scroll belongs to the phone: above `sm` the row wraps (`sm:flex-wrap`)
+      and never scrolls. But `overflow-x-auto` was still set at every width, and that makes
+      the row a scroll container, which CLIPS at its padding box — that is where the `pb-1`
+      came from: the 4px were the room for the Filter button's focus ring, drawn at
+      `outline-offset: 2px` with `outline-width: 2px`.
+      Those same 4px misaligned the row. The DataTable toolbar aligns to the bottom, so its
+      one-line neighbours rest on the bottom edge of THIS block: the Filter button sat 4px
+      above the ⋯, measured on /admin/studios at 1900px.
+      Returning the overflow to `visible` above the breakpoint means the ring can no longer
+      be clipped, and with nothing to reserve, the bottom padding goes: 0px of difference.
+      Below `sm` nothing changes — the scroll stays and so does the `pb-2`. The `pt-1` is not
+      touched either; it is the breathing room for the captions. %>
   <div class="flex flex-nowrap overflow-x-auto sm:overflow-visible sm:flex-wrap gap-2 items-end pt-1 pb-2 sm:pb-0 scrollbar-hide">
     <% if search_enabled? %>
       <div class="<%= search_width %> shrink-0">
         <div class="w-full <%= 'join' if search_icon %>">
           <%= icon_addon(search_icon) %>
 
-          <%# Un buscador de texto no es un campo de credenciales: optamos por
-              salir del autofill para que los gestores de contraseñas (1Password,
-              LastPass, Dashlane) no ofrezcan login al enfocarlo. Aplica a todos
-              los buscadores del DataTable; el name puede contener tokens como
-              "name"/"email" (p. ej. q[name_or_email_cont]) que disparan su heurística. %>
+          <%# A text search box is not a credentials field: we opt out of
+              autofill so password managers (1Password, LastPass, Dashlane) do
+              not offer a login when it is focused. Applies to every DataTable
+              search box; the name can contain tokens like "name"/"email"
+              (e.g. q[name_or_email_cont]) that trigger their heuristics. %>
           <%= tag.input(
                 type: "text",
                 id: search_input_id,
@@ -92,14 +92,15 @@
             <% end %>
           </div>
         <% elsif boolean?(filter) %>
-          <%# `h-8` — la altura de un control `-sm` — porque es el único filtro sin caption
-              arriba, y la fila alinea por abajo (`items-end`): sin altura propia el switch se
-              apoyaba en la línea del label ajeno en vez de en la de los controles. %>
+          <%# `h-8` — the height of a `-sm` control — because it is the only filter with no
+              caption above it, and the row aligns to the bottom (`items-end`): with no height
+              of its own the switch rested on another filter's caption line instead of on the
+              controls' line. %>
           <label class="flex h-8 items-center gap-2 cursor-pointer px-1">
             <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
-            <%# El `<label>` que envuelve al switch lo nombra con el texto del `<span>`.
-                Sin caption no hay texto: ahí el nombre va como `aria-label` sobre el input,
-                y el `<span>` no se pinta — imprimía la palabra "false" (#1155). %>
+            <%# The `<label>` wrapping the switch names it with the `<span>`'s text.
+                With no caption there is no text: there the name goes as an `aria-label` on
+                the input, and the `<span>` is not painted — it printed the word "false" (#1155). %>
             <input type="checkbox"
                    name="<%= filter_field_name(filter) %>"
                    value="true"
@@ -116,10 +117,10 @@
           <div class="<%= 'join' if filter[:icon] %>">
             <%= icon_addon(filter[:icon]) %>
 
-            <%# `join-item` va sobre el CONTROL, no sobre el div que lo envuelve: daisyUI lo usa
-                para recortar los bordes del elemento que une, y puesto en un contenedor de
-                layout le quitaba el borde a los dos inputs — se veían sin marco hasta enfocarlos.
-                El que se une al icono es el input Min, igual que en el buscador de arriba. %>
+            <%# `join-item` goes on the CONTROL, not on the div wrapping it: daisyUI uses it to
+                clip the borders of the element it joins, and placed on a layout container it
+                took the border off both inputs — they looked frameless until focused.
+                The one joined to the icon is the Min input, same as in the search box above. %>
             <div class="flex items-center gap-1" <%= tag.attributes(group_attrs) %>>
               <input type="number"
                      name="<%= names[:min] %>"
@@ -137,14 +138,15 @@
             </div>
           </div>
         <% elsif presets?(filter) %>
-          <%# Un solo param, dos controles: el hidden es el ÚNICO con `name`, y el
-              `time-period-field` le escribe el token del select o el rango del picker según
-              cuál tocó el usuario. Dos inputs con el mismo name mandarían el param dos veces
-              y el server se quedaría con el último, que no es necesariamente el que se ve.
+          <%# One param, two controls: the hidden field is the ONLY one with a `name`, and
+              `time-period-field` writes into it either the select's token or the picker's
+              range, depending on which one the user touched. Two inputs with the same name
+              would send the param twice and the server would keep the last one, which is not
+              necessarily the one on screen.
 
-              El controller es el mismo de `f.time_period_group`, con el centinela de
-              "Personalizado…" pasado como value: ahí el vacío significa custom porque el
-              widget no filtra nada; acá el vacío tiene que significar "sin filtro". %>
+              The controller is the same one `f.time_period_group` uses, with the
+              "Personalizado…" sentinel passed as a value: there an empty value means custom
+              because the widget filters nothing; here an empty value has to mean "no filter". %>
           <div class="flex items-end gap-1"
                data-controller="time-period-field"
                data-time-period-field-custom-value="<%= Bali::DateRangePresets::CUSTOM %>"
@@ -157,8 +159,8 @@
             <div class="<%= 'join' if filter[:icon] %>">
               <%= icon_addon(filter[:icon]) %>
 
-              <%# `tag.select` y no `select_tag`/`f.select`: los dos emiten un `name` y este
-                  control no manda nada — el hidden de arriba es el que viaja. %>
+              <%# `tag.select` and not `select_tag`/`f.select`: both emit a `name` and this
+                  control submits nothing — the hidden field above is the one that travels. %>
               <%= tag.select(
                     options_for_select(preset_options(filter), preset_select_value(filter)),
                     id: filter_control_id(filter),
@@ -171,10 +173,10 @@
                   ) %>
             </div>
 
-            <%# `name: nil` deja al input sin atributo `name`, o sea fuera del submit.
-                El `hidden` inicial va en el WRAPPER (`.flatpickr`), que es el que esconde el
-                controller: con `alt_input` el input real ya está oculto y lo que se ve es el
-                alt input que flatpickr crea a su lado, dentro de ese mismo wrapper. %>
+            <%# `name: nil` leaves the input with no `name` attribute, i.e. out of the submit.
+                The initial `hidden` goes on the WRAPPER (`.flatpickr`), which is what the
+                controller hides: with `alt_input` the real input is already hidden and what is
+                seen is the alt input flatpickr creates beside it, inside that same wrapper. %>
             <%= f.date_field(
                   filter_field_name(filter),
                   name: nil,
@@ -182,11 +184,11 @@
                   value: preset_custom_value(filter),
                   mode: "range",
                   placeholder: filter[:placeholder] || filter_caption(filter),
-                  # El picker es un SEGUNDO control del mismo grupo y nunca tiene
-                  # `<label for>` —el caption apunta al select—, así que su `aria-label` se
-                  # emite siempre. Salía con la cadena "false" bajo `label: false` (#1155), y
-                  # después con el respaldo del select ("Cualquier fecha"), que es lo contrario
-                  # de lo que el usuario abre este campo para decir.
+                  # The picker is a SECOND control of the same group and never has a
+                  # `<label for>` — the caption points at the select — so its `aria-label` is
+                  # always emitted. It came out with the string "false" under `label: false`
+                  # (#1155), and later with the select's fallback ("Cualquier fecha"), which
+                  # is the opposite of what the user opens this field to say.
                   "aria-label": preset_picker_accessible_name(filter),
                   alt_input_class: "input input-bordered input-sm w-full",
                   wrapper_options: {
@@ -209,9 +211,9 @@
                   id: filter_control_id(filter),
                   value: filter[:value] || filter[:default],
                   placeholder: filter[:placeholder] || filter_caption(filter),
-                  # Con caption ya lo resuelve el JS: `datepicker#forwardAccessibleName`
-                  # copia el `label[for]` al altInput que flatpickr crea a su lado. Sin
-                  # caption no había nada que copiar y el altInput salía sin nombre (#1155).
+                  # With a caption the JS already solves it: `datepicker#forwardAccessibleName`
+                  # copies the `label[for]` onto the altInput flatpickr creates beside it. With
+                  # no caption there was nothing to copy and the altInput came out unnamed (#1155).
                   "aria-label": aria_label_for(filter),
                   alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" },
@@ -226,10 +228,10 @@
                 selected: (filter[:value] || filter[:default]),
                 size: :sm,
                 content_width: SLIM_SELECT_CONTENT_WIDTH,
-                # `icon_addon` y no el icono pelado: el addon entra tal cual dentro de un `join`,
-                # y un <span> de 16px no se estira bajo `align-items: stretch`, así que este
-                # icono quedaba flotando a media altura mientras los otros cinco filtros, que sí
-                # usan el helper, alineaban con su control.
+                # `icon_addon` and not the bare icon: the addon drops straight into a `join`,
+                # and a 16px <span> does not stretch under `align-items: stretch`, so this
+                # icon floated at mid-height while the other five filters, which do use the
+                # helper, lined up with their control.
                 addon_left: icon_addon(filter[:icon]),
                 html: { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}",
                         select_class: ('max-sm:w-16' if filter[:icon]), **slim_select_aria(filter) }
@@ -276,8 +278,8 @@
         ) %>
       <% end %>
 
-      <%# Persistence toggle (bookmark icon). Dentro de un DataTable llega apagado: el
-          marcador lo pinta la toolbar como control propio, fuera de este form. %>
+      <%# Persistence toggle (bookmark icon). Inside a DataTable it arrives off: the toolbar
+          paints the bookmark as a control of its own, outside this form. %>
       <% if persistence_toggle? %>
         <%= render Bali::Filters::PersistenceToggle::Component.new(
               storage_id: storage_id, enabled: persist_enabled?) %>

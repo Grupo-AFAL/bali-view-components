@@ -1,5 +1,5 @@
-<%# El estado sale del query que el propio form mandó, no de un `@param` de Lookbook: es lo
-    que hace que las pills vuelvan pintadas y que la fila se pueda usar sin el botón. %>
+<%# The state comes from the query the form itself sent, not from a Lookbook `@param`: that
+    is what makes the pills come back painted and the row usable without the button. %>
 <%
   q = params.fetch(:q, {})
   status = q[:status_eq].presence
@@ -36,7 +36,7 @@
   ]
 %>
 
-<%# `request.path` y no un literal, para que cada click aterrice de vuelta en este preview. %>
+<%# `request.path` and not a literal, so every click lands back in this preview. %>
 <%= render Bali::DataTable::SimpleFilters::Component.new(
       url: request.path,
       filters: filters,

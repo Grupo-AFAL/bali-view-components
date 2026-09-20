@@ -44,8 +44,8 @@ module Bali
         { id: 12, area: 'Sur', leader: 'Lucas Ibarra', role: 'Volunteer', members: 1 }
       ].freeze
 
-      # Agrupado por un enum: el valor que llega es el de la base, y es lo que tienen que
-      # seguir llevando `with_row(group:)` y las llaves de `group_counts`.
+      # Grouped by an enum: the value that arrives is the database one, and it is what
+      # `with_row(group:)` and the keys of `group_counts` have to keep carrying.
       GROUPING_ENUM_HEADERS = [
         { name: 'Asset' },
         { name: 'Owner' },
@@ -60,8 +60,8 @@ module Bali
         { id: 5, kind: 'restricted', asset: 'employee_payroll', owner: 'Elena Vidal', rows: '412' }
       ].freeze
 
-      # Totales del GROUP BY: llaves CRUDAS, que es la razón por la que el rótulo se traduce
-      # al pintar y no metiéndole la traducción a `with_row(group:)`.
+      # GROUP BY totals: RAW keys, which is why the label is translated at paint time and not
+      # by feeding the translation into `with_row(group:)`.
       GROUPING_ENUM_COUNTS = { 'table' => 96, 'view' => 41, 'restricted' => 7 }.freeze
 
       BULK_ACTION_RECORDS = [
@@ -80,8 +80,8 @@ module Bali
         { name: 'Headcount' }
       ].freeze
 
-      # Dos formas del mismo caso en una pantalla: la primera tabla es un grupo de selección
-      # entero, la segunda además agrupa por dentro — sus filas caben en los dos.
+      # Two shapes of the same case on one screen: the first table is one whole selection
+      # group, the second also groups inside itself — its rows fit in both.
       SELECT_GROUP_REGIONS = [
         {
           id: 1, name: 'Región Norte', grouped: false,
@@ -115,9 +115,9 @@ module Bali
         { name: 'Quadrant' }
       ].freeze
 
-      # Del portafolio de TDFlow: cada banda es un estado del embudo y lleva punto de color,
-      # rótulo, conteo y un resumen — lo que el texto por default de la banda no puede
-      # pintar. Las clases van LITERALES en el hash: Tailwind v4 purga las interpoladas.
+      # From the TDFlow portfolio: every band is a funnel stage and carries a colour dot, a
+      # label, a count and a summary — what the band's default text cannot paint. The classes
+      # go LITERAL in the hash: Tailwind v4 purges interpolated ones.
       COLLAPSIBLE_STATUSES = {
         'prioritization' => { label: 'Priorización', dot: 'bg-primary',
                               summary: 'Revisión y sello del equipo de TD' },
@@ -131,7 +131,7 @@ module Bali
                          summary: 'Midiendo el beneficio prometido' }
       }.freeze
 
-      # Pre-ordenadas por estado, como exige la agrupación.
+      # Pre-sorted by status, as grouping requires.
       COLLAPSIBLE_RECORDS = [
         { id: 62, status: 'prioritization', title: 'Firma electrónica de contratos con proveedores',
           area: 'Legal', leader: 'Mariana Escobedo', quadrant: '1 · Quick win' },
@@ -151,15 +151,15 @@ module Bali
           area: 'Compras', leader: 'Mariana Escobedo', quadrant: '1 · Quick win' }
       ].freeze
 
-      # Totales del GROUP BY, con llaves crudas: la página muestra dos de las nueve en
-      # priorización, así que esa banda dice "(9) — mostrando 2".
+      # GROUP BY totals, with raw keys: the page shows two of the nine in prioritization, so
+      # that band reads "(9) — showing 2".
       COLLAPSIBLE_COUNTS = {
         'prioritization' => 9, 'business_case' => 2, 'pending_approval' => 1,
         'in_project' => 1, 'measuring' => 2
       }.freeze
 
-      # Solo los propuestos se aprueban en masa; aprobados y retirados están en la misma
-      # página porque el listado es uno solo, y no participan de la selección.
+      # Only proposed records are approved in bulk; approved and retired ones sit on the same
+      # page because there is a single listing, and they take no part in the selection.
       CATALOG_RECORDS = [
         { id: 1, code: 'MAT-0091', description: 'Acero inoxidable 304', state: 'proposed' },
         { id: 2, code: 'MAT-0104', description: 'Aluminio 6061', state: 'proposed' },
@@ -199,20 +199,20 @@ module Bali
       end
 
       # @label Container id
-      # `id:` identifica al COMPONENTE, no a la `<table>`: se emite UNA vez, en el
-      # `<div class="table-component">` que la envuelve. Es la convención de `**options` —el
-      # atributo va al root del componente— y es donde `getElementById`, un ancla y un
-      # `turbo_stream.replace` ya lo encontraban, porque el `<div>` es el primero en orden de
-      # documento. De ese id cuelgan además los ids de fila de los grupos plegables y el del
-      # `<tr>` del estado vacío.
+      # `id:` identifies the COMPONENT, not the `<table>`: it is emitted ONCE, on the
+      # `<div class="table-component">` that wraps it. That is the `**options` convention —the
+      # attribute goes on the component's root— and it is where `getElementById`, an anchor and
+      # a `turbo_stream.replace` already found it, because the `<div>` comes first in document
+      # order. The row ids of the collapsible groups and the id of the empty-state `<tr>` hang
+      # off that id too.
       #
-      # Es la única llave de `**options` que no baja a la `<table>`: `class:`, `data:` y las
-      # demás siguen ahí. Los atributos propios del contenedor van en `table_container:`, con
-      # un caveat: ahí van clases y datos, no la identidad. Un `id:` dentro de esa sub-hash
-      # gana el atributo del `<div>` —se pinta después— pero no alimenta a `container_id`, así
-      # que los ids de fila y el del `<tr>` vacío siguen saliendo del `id:` de nivel superior
-      # (o de un prefijo aleatorio si no hay ninguno), y pasar los dos juntos deja el id de
-      # nivel superior sin elemento.
+      # It is the only `**options` key that does not go down to the `<table>`: `class:`, `data:`
+      # and the rest still do. The container's own attributes go in `table_container:`, with one
+      # caveat: classes and data go there, not the identity. An `id:` inside that sub-hash wins
+      # the `<div>`'s attribute —it is painted later— but does not feed `container_id`, so the
+      # row ids and the empty `<tr>`'s id still come out of the top-level `id:` (or out of a
+      # random prefix if there is none), and passing both leaves the top-level id with no
+      # element.
       def with_container_id
         render_with_template(
           template: 'bali/table/previews/with_container_id',
@@ -243,13 +243,13 @@ module Bali
       end
 
       # @label Translated group bands
-      # La banda rotula con el valor crudo de la columna, que en un enum es el de la base
-      # (`table`, `view`). `group_i18n_scope:` lo resuelve como `"scope.valor"` y
-      # `group_label:` es la escapatoria para lo que no sale de una clave por valor.
+      # The band labels itself with the column's raw value, which for an enum is the database
+      # one (`table`, `view`). `group_i18n_scope:` resolves it as `"scope.value"` and
+      # `group_label:` is the escape hatch for whatever does not come out of a key per value.
       #
-      # Los dos resuelven el rótulo AL PINTAR, así que `with_row(group:)` sigue llevando el
-      # valor crudo y `group_counts:` conserva sus llaves: los conteos de abajo son los
-      # globales (96, 41, 7), no los de la página.
+      # Both resolve the label AT PAINT TIME, so `with_row(group:)` still carries the raw
+      # value and `group_counts:` keeps its keys: the counts below are the global ones
+      # (96, 41, 7), not the page's.
       def with_translated_groups
         render_with_template(
           template: 'bali/table/previews/with_translated_groups',

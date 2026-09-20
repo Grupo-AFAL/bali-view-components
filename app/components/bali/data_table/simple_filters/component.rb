@@ -195,14 +195,15 @@ module Bali
           values
         end
 
-        # El caption visible sobre el control. `label: false` lo quita a propósito (#882),
-        # y un hash de filtro escrito a mano puede no traer la clave: los dos casos son
-        # "sin rótulo".
+        # The visible caption above the control. `label: false` removes it on purpose
+        # (#882), and a hand-written filter hash may not carry the key at all: both cases
+        # are "no caption".
         #
-        # Va aparte del nombre accesible porque las dos preguntas se contestan al revés: el
-        # caption se IMPRIME cuando existe, el `aria-label` se emite cuando NO existe. Un
-        # solo helper no puede servir a las dos — el toggle booleano pinta su rótulo al lado
-        # del switch y a la vez necesita nombrarse cuando no lo tiene.
+        # It is kept apart from the accessible name because the two questions are answered
+        # the other way round: the caption is PRINTED when it exists, the `aria-label` is
+        # emitted when it does NOT. A single helper cannot serve both — the boolean toggle
+        # paints its caption next to the switch and at the same time needs a name when it
+        # has none.
         def filter_caption(filter)
           filter[:label].presence
         end
@@ -211,28 +212,28 @@ module Bali
           filter_caption(filter).present?
         end
 
-        # El nombre accesible del control, que no es el caption: sin rótulo el control tiene
-        # que nombrarse igual o el lector anuncia un "cuadro combinado" pelado (#1155, WCAG
-        # 4.1.2).
+        # The control's accessible name, which is not the caption: with no caption the
+        # control still has to name itself or the screen reader announces a bare "combo box"
+        # (#1155, WCAG 4.1.2).
         #
-        # El caption va PRIMERO: donde hay rótulo visible el nombre accesible tiene que
-        # contenerlo (WCAG 2.5.3, "Label in Name"), o el usuario de dictado dice en voz alta
-        # el rótulo que está leyendo y no pasa nada. Es también lo que el YARD de
-        # `aria_label:` promete desde que se escribió — "where there is one, the caption
-        # keeps naming the control and this is ignored" — y lo que las seis ramas ya hacían
-        # salvo el picker de presets, que con caption Y `aria_label:` sacaba dos nombres
-        # distintos para el mismo grupo.
+        # The caption comes FIRST: where there is a visible caption the accessible name has
+        # to contain it (WCAG 2.5.3, "Label in Name"), or the speech-input user says out
+        # loud the caption they are reading and nothing happens. It is also what the YARD
+        # for `aria_label:` has promised since it was written — "where there is one, the
+        # caption keeps naming the control and this is ignored" — and what the six branches
+        # already did except the presets picker, which with a caption AND `aria_label:`
+        # produced two different names for the same group.
         #
-        # Sin caption manda `aria_label:`, y a falta de los dos el texto de la opción en
-        # blanco, que es la promesa que `label: false` ya tenía escrita y nunca cumplió: "un
-        # control que ya se nombra solo con su opción en blanco" ("Todos los años"). Ese
-        # último paso es una RED, no la recomendación: nombra al control con su propio valor
-        # seleccionado, así que el lector dice "Todos los años, Todos los años". Mejor que
-        # mudo, peor que un `aria_label:`.
+        # With no caption `aria_label:` rules, and failing both, the blank option's text,
+        # which is the promise `label: false` already had written down and never kept: "a
+        # control that already names itself through its blank option". That last step is a
+        # SAFETY NET, not the recommendation: it names the control with its own selected
+        # value, so a reader of a Spanish app hears the blank option said twice in a row.
+        # Better than mute, worse than an `aria_label:`.
         #
-        # El `blank:` sólo cuenta si es una cadena: `include_blank: true` es válido en Rails
-        # y pinta una opción vacía, así que un `blank: true` nombraría el control "true" —
-        # el mismo bug que la palabra "false" que este cambio quita de la rama booleana.
+        # `blank:` only counts if it is a string: `include_blank: true` is valid in Rails
+        # and paints an empty option, so a `blank: true` would name the control "true" —
+        # the same bug as the word "false" this change removes from the boolean branch.
         def accessible_filter_name(filter)
           filter_caption(filter) || filter[:aria_label].presence || blank_option_text(filter)
         end
@@ -241,21 +242,22 @@ module Bali
           filter[:blank] if filter[:blank].is_a?(String) && filter[:blank].present?
         end
 
-        # Un `aria-label` sobre un control al que YA apunta un `<label for>` visible sería un
-        # segundo nombre diciendo lo mismo: se emite sólo donde el caption no llega. La
-        # excepción es `slim_select`, que tiene su propio helper porque ahí el caption nunca
-        # llega.
+        # An `aria-label` on a control a visible `<label for>` ALREADY points at would be a
+        # second name saying the same thing: it is emitted only where the caption does not
+        # reach. The exception is `slim_select`, which has its own helper because there the
+        # caption never reaches.
         def aria_label_for(filter)
           accessible_filter_name(filter) unless captioned?(filter)
         end
 
-        # SlimSelect recorta el `<select>` real a 1x1 (`bali/slim_select.css`) y dibuja su
-        # propio `div[role="combobox"]`, al que copia el `aria-label`/`aria-labelledby` del
-        # select y nada más — el `<label for>` no viaja, su `setupLabelHandlers` sólo cablea
-        # clicks. Medido en el árbol de accesibilidad: un slim_select CON caption se
-        # anunciaba "Combobox", el default del widget. O sea que ésta es la única rama donde
-        # el aria se emite también en el caso captionado, y la única que apunta al caption
-        # con `aria-labelledby` en vez de repetir el texto.
+        # SlimSelect shrinks the real `<select>` to 1x1 (`bali/slim_select.css`) and draws
+        # its own `div[role="combobox"]`, onto which it copies the select's
+        # `aria-label`/`aria-labelledby` and nothing else — the `<label for>` does not
+        # travel, its `setupLabelHandlers` only wires clicks. Measured in the accessibility
+        # tree: a slim_select WITH a caption announced itself as "Combobox", the widget's
+        # default. So this is the only branch where the aria is emitted in the captioned
+        # case too, and the only one that points at the caption with `aria-labelledby`
+        # instead of repeating the text.
         def slim_select_aria(filter)
           return { "aria-labelledby": filter_label_id(filter) } if captioned?(filter)
 
@@ -263,26 +265,27 @@ module Bali
           name.present? ? { "aria-label": name } : {}
         end
 
-        # El select de períodos siempre tiene de dónde caer: `blank:`, y si el filtro no lo
-        # declara, la misma cadena que ya nombra su opción en blanco ("Cualquier fecha").
+        # The period select always has something to fall back on: `blank:`, and if the
+        # filter does not declare it, the same string that already names its blank option
+        # ("Cualquier fecha").
         def preset_select_accessible_name(filter)
           accessible_filter_name(filter).presence || preset_blank_label(filter)
         end
 
-        # El picker de "Personalizado…" es un SEGUNDO control del mismo grupo y nunca tiene
-        # `<label for>` propio —el caption apunta al select—, así que su `aria-label` se
-        # emite siempre. Lo que NO puede hacer es heredar el respaldo del select: ese texto
-        # dice "Cualquier fecha" y el usuario abre este campo justo para decir lo contrario,
-        # de modo que el nombre quedaba al revés de la función (revisión de #1155). Sin
-        # caption ni `aria_label:` se nombra por lo que es.
+        # The "Personalizado…" picker is a SECOND control of the same group and never has a
+        # `<label for>` of its own — the caption points at the select — so its `aria-label`
+        # is always emitted. What it must NOT do is inherit the select's fallback: that text
+        # says "Cualquier fecha" and the user opens this field precisely to say the
+        # opposite, so the name came out backwards from the function (review of #1155). With
+        # neither caption nor `aria_label:` it is named for what it is.
         def preset_picker_accessible_name(filter)
           filter_caption(filter) || filter[:aria_label].presence ||
             t("bali_view.simple_filters.presets.custom_range")
         end
 
-        # El caption sobre varios controles nombra al GRUPO, no a uno de ellos. Sin caption
-        # el grupo se queda con el nombre accesible resuelto; sin ninguno de los dos no hay
-        # nombre que poner y el `role` solo no agrega nada.
+        # A caption over several controls names the GROUP, not one of them. With no caption
+        # the group keeps the resolved accessible name; with neither of the two there is no
+        # name to put and the `role` on its own adds nothing.
         def group_attributes(filter)
           return {} unless multi_control?(filter)
           return { role: "group", "aria-labelledby": filter_label_id(filter) } if captioned?(filter)
@@ -364,10 +367,11 @@ module Bali
           end
         end
 
-        # Sin filtros declarados el botón no filtra nada: lo único que manda es el término
-        # de búsqueda, y "Filtrar" nombra algo que en esa pantalla no existe. La cadena
-        # para ese caso ya estaba en el paquete —`filters.submit_search`, hoy usada como
-        # `aria-label` del buscador del panel completo— así que no suma traducciones.
+        # With no declared filters the button filters nothing: the only thing it submits is
+        # the search term, and "Filtrar" names something that screen does not have. The
+        # string for that case was already in the package — `filters.submit_search`, used
+        # today as the `aria-label` of the full panel's search box — so it adds no
+        # translations.
         def apply_button_text
           return I18n.t("bali_view.filters.submit_search") if @filters.blank?
 
@@ -378,22 +382,23 @@ module Bali
           I18n.t("bali_view.simple_filters.clear")
         end
 
-        # Navegar a la URL pelada NO limpia: para el server es indistinguible de "no vino
-        # ningún filtro", y con la persistencia encendida ese es justo el caso que RESTAURA
-        # lo guardado — el usuario limpiaba y el listado le devolvía el filtro. `clear_filters`
-        # es lo único que dispara el borrado de la caché (`FilterForm`: `Rails.cache.delete`).
-        # Las otras dos rutas de limpieza ya lo mandaban (`AppliedTags#clear_all_url` y
-        # `clearFiltersAndClose` del JS); ésta se había quedado afuera.
+        # Navigating to the bare URL does NOT clear: to the server it is indistinguishable
+        # from "no filter came in", and with persistence on that is exactly the case that
+        # RESTORES what was saved — the user cleared and the listing handed the filter back.
+        # `clear_filters` is the only thing that triggers the cache deletion (`FilterForm`:
+        # `Rails.cache.delete`). The other two clearing routes already sent it
+        # (`AppliedTags#clear_all_url` and the JS's `clearFiltersAndClose`); this one had
+        # been left out.
         #
-        # Se AGREGA al query string en vez de reemplazarlo: la `url:` del listado puede traer
-        # params propios del host (`request.fullpath`, un scope), y perderlos al limpiar
-        # mandaría al usuario a otra vista.
+        # It is ADDED to the query string instead of replacing it: the listing's `url:` can
+        # carry the host's own params (`request.fullpath`, a scope), and losing them on
+        # clear would send the user to another view.
         #
-        # Y arrastra los MISMOS pares que el submit emite como hidden fields
-        # (`preserved_query_params`): limpiar quita los filtros, no el estado de la vista.
-        # Sin esto el link tiraba la agrupación, el modo de visualización y los
-        # `preserved_params:` del host que el submit de al lado acababa de conservar —
-        # el panel ya lo hacía así (`clearFiltersAndClose` re-lee los hidden fields).
+        # And it drags along the SAME pairs the submit emits as hidden fields
+        # (`preserved_query_params`): clearing removes the filters, not the view's state.
+        # Without this the link threw away the grouping, the display mode and the host's
+        # `preserved_params:` that the submit next to it had just preserved — the panel
+        # already did it this way (`clearFiltersAndClose` re-reads the hidden fields).
         def clear_href
           preserved_query_params.reduce(add_query_param(@url, :clear_filters, true)) do |url, (name, value)|
             add_query_param(url, name, value)
@@ -406,19 +411,20 @@ module Bali
 
         private
 
-        # Un filtro sin caption, sin `aria_label:` y sin `blank:` del que caer no tiene
-        # nombre posible: `boolean`, `toggle_group`, `radio_group`, `number_range` y las dos
-        # de fecha no tienen opción en blanco de dónde sacarlo.
+        # A filter with no caption, no `aria_label:` and no `blank:` to fall back on has no
+        # possible name: `boolean`, `toggle_group`, `radio_group`, `number_range` and the
+        # two date ones have no blank option to take it from.
         #
-        # No revienta. El issue pedía un `ArgumentError`, y eso rompería en producción a un
-        # anfitrión —y a la propia `UncaptionedSimpleFilterForm` del repo— por un defecto de
-        # accesibilidad que no impide usar la pantalla. Avisa donde se puede arreglar y
-        # sigue, como `AppLayout#check_sidebar_sync!`.
+        # It does not blow up. The issue asked for an `ArgumentError`, and that would break
+        # a host in production — and the repo's own `UncaptionedSimpleFilterForm` — over an
+        # accessibility defect that does not stop the screen from being used. It warns where
+        # it can be fixed and carries on, like `AppLayout#check_sidebar_sync!`.
         #
-        # Y a diferencia del aviso de persistencia (#1029, sólo development) éste también
-        # suena en test: aquel describía una configuración que sólo está mal en el entorno
-        # del anfitrión, éste describe markup que sale igual de mudo en los tres. Una vez por
-        # control y por proceso, para no llenar la suite de un anfitrión con la misma línea.
+        # And unlike the persistence warning (#1029, development only) this one sounds in
+        # test too: that one described a configuration that is only wrong in the host's
+        # environment, this one describes markup that comes out just as mute in all three.
+        # Once per control and per process, so a host's suite is not filled with the same
+        # line.
         def warn_unnamed_filters
           return unless Rails.env.development? || Rails.env.test?
 
@@ -433,13 +439,13 @@ module Bali
           end
         end
 
-        # Dos textos, porque lo que falta no es lo mismo en las dos formas. En un filtro de
-        # un solo control lo anónimo ES el control. En los de varios —las pills y el rango
-        # numérico— cada control se nombra solo (su opción, o "Mín"/"Máx" por el placeholder)
-        # y lo que falta es el nombre del GRUPO: sin él ni siquiera se emite el
-        # `role="group"`, así que nada dice a qué filtro pertenecen esos controles. Decirle
-        # a un anfitrión que su rango numérico "sale sin nombre" lo manda a arreglar markup
-        # que ya está bien (revisión de #1155).
+        # Two texts, because what is missing is not the same in the two shapes. In a
+        # single-control filter the anonymous thing IS the control. In the multi-control
+        # ones — the pills and the number range — each control names itself (its option, or
+        # "Mín"/"Máx" from the placeholder) and what is missing is the GROUP's name: without
+        # it not even the `role="group"` is emitted, so nothing says which filter those
+        # controls belong to. Telling a host that its number range "comes out unnamed" sends
+        # them off to fix markup that is already right (review of #1155).
         def unnamed_filter_message(filter)
           detail =
             if multi_control?(filter)
@@ -457,7 +463,8 @@ module Bali
             "on the filter, or give it a caption."
         end
 
-        # `presets` se nombra siempre: `preset_blank_label` cae en una cadena traducida.
+        # `presets` always has a name: `preset_blank_label` falls back to a translated
+        # string.
         def filter_has_a_name?(filter)
           presets?(filter) || accessible_filter_name(filter).present?
         end

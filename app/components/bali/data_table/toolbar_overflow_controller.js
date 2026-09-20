@@ -1,27 +1,27 @@
 import { Controller } from '@hotwired/stimulus'
 
-// A dónde puede ir a parar el foco cuando el control que lo tenía cambia de lugar. El
-// `[tabindex]` no negativo cubre al trigger del dropdown, que es un div con `role="button"`.
+// Where focus can land when the control that held it changes place. The non-negative
+// `[tabindex]` covers the dropdown trigger, which is a div with `role="button"`.
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
 /**
  * Toolbar Overflow Controller
  *
- * Mueve los controles secundarios de la toolbar del DataTable a un menú "⋯" cuando la fila
- * deja de entrar, y los devuelve cuando vuelve a haber lugar. MUEVE, no duplica: dos copias del
- * selector de columnas serían dos controladores manejando la misma tabla, y dos copias de
- * las vistas guardadas duplicarían los ids de sus forms de renombrar — el bug de #669.
+ * Moves the DataTable toolbar's secondary controls into a "⋯" menu when the row stops
+ * fitting, and brings them back when there is room again. It MOVES, it does not duplicate: two
+ * copies of the column selector would be two controllers driving the same table, and two copies
+ * of the saved views would duplicate the ids of their rename forms — the bug in #669.
  *
- * Todo el estado vive en el DOM (targets + data attributes). El controlador se desconecta y
- * reconecta con cada navegación Turbo, cada restauración de caché y cada turbo-stream que
- * reemplaza el contenedor; un mapa en memoria con "dónde vivía cada control" se perdería en
- * el reconnect y los dejaría atrapados dentro del ⋯.
+ * All the state lives in the DOM (targets + data attributes). The controller disconnects and
+ * reconnects on every Turbo navigation, every cache restore and every turbo-stream that
+ * replaces the container; an in-memory map of "where each control used to live" would be lost
+ * on the reconnect and would leave them trapped inside the ⋯.
  *
- * Qué puede colapsar lo declara la prioridad (`threshold`, ver OVERFLOW_PRIORITIES en el
- * componente); CUÁNTO colapsa lo decide la MEDICIÓN de la fila. El breakpoint solo sigue
- * siendo el piso de móvil: el ancho que la toolbar tiene no lo fija el viewport sino el
- * layout del host —un sidebar le come 300px— y con el corte fijo en `sm` la fila se apretaba
- * sin colapsar nada, dejando la búsqueda pintada encima de agrupar y columnas.
+ * WHAT can collapse is declared by the priority (`threshold`, see OVERFLOW_PRIORITIES in the
+ * component); HOW MUCH collapses is decided by MEASURING the row. The breakpoint is only still
+ * the mobile floor: the width the toolbar has is not set by the viewport but by the host's
+ * layout —a sidebar eats 300px of it— and with the cut fixed at `sm` the row got squeezed
+ * without collapsing anything, leaving the search painted on top of grouping and columns.
  *
  *   <div data-controller="toolbar-overflow">
  *     <div data-toolbar-overflow-target="group" data-toolbar-overflow-group="left">
@@ -50,37 +50,37 @@ export default class extends Controller {
     this.mediaQuery.addEventListener('change', this.handleBreakpointChange)
     document.addEventListener('turbo:before-cache', this.handleBeforeCache)
 
-    // Se observan los ITEMS además de la fila. El box de la fila lo fija su padre y no cambia
-    // cuando su contenido crece: medido, meterle un hijo de 300px produce CERO callbacks. Lo
-    // que crece es el control — SlimSelect reemplaza su `<select>` por un widget más ancho,
-    // flatpickr monta el suyo, una fuente termina de cargar— y eso sí cambia el box del item
-    // que lo contiene. Sin esto la válvula del ⋯ sólo se evaluaba al montar, cuando ninguno de
-    // esos widgets existe todavía.
+    // The ITEMS are observed as well as the row. The row's box is set by its parent and does
+    // not change when its content grows: measured, putting a 300px child inside it produces
+    // ZERO callbacks. What grows is the control — SlimSelect replaces its `<select>` with a
+    // wider widget, flatpickr mounts its own, a font finishes loading— and that does change the
+    // box of the item containing it. Without this the ⋯ valve was only evaluated on mount, when
+    // none of those widgets exists yet.
     this.observer = new window.ResizeObserver(this.handleResize)
     this.observer.observe(this.element)
     this.itemTargets.forEach(item => this.observer.observe(item))
 
-    // El layout inicial puede llegar ya angosto: no alcanza con escuchar el cruce.
+    // The initial layout can already arrive narrow: listening for the crossing is not enough.
     this.apply(this.mediaQuery.matches)
     this.recordMeasurements()
     this.reveal()
   }
 
   /**
-   * Los controles colapsables llegan con el lugar reservado y sin dibujarse, y esto los
-   * destapa una vez que la fila ya está en su forma final. Ver RESERVED_CLASSES en el
-   * componente.
+   * The collapsible controls arrive with their space reserved and unpainted, and this
+   * uncovers them once the row is already in its final shape. See RESERVED_CLASSES in the
+   * component.
    *
-   * Va acá y no detrás de un heurístico de "ya se asentó" porque la causa del parpadeo no
-   * es que la fila crezca: es que el servidor manda la fila SIN colapsar y nadie la puede
-   * colapsar hasta que este controlador existe. Medido en /admin/studios, la página pinta a
-   * los 260ms y `connect()` no corre hasta los 1189ms, cuando termina de ejecutarse el
-   * bundle. Al terminar el `apply()` de arriba la fila ya es la definitiva, así que no hay
-   * nada que esperar.
+   * It goes here and not behind a "it has settled" heuristic because the cause of the flicker
+   * is not that the row grows: it is that the server sends the row UNcollapsed and nobody can
+   * collapse it until this controller exists. Measured on /admin/studios, the page paints at
+   * 260ms and `connect()` does not run until 1189ms, when the bundle finishes executing. By
+   * the end of the `apply()` above the row is already the final one, so there is nothing to
+   * wait for.
    *
-   * Un `apply()` posterior —el que dispara un widget que se ensancha al montar— pasa con los
-   * controles ya visibles, que es lo correcto: a esa altura mover uno al ⋯ es una respuesta
-   * a algo que cambió, no un estado inicial equivocado.
+   * A later `apply()` —the one a widget that widens on mount fires— happens with the controls
+   * already visible, which is the correct thing: by then moving one into the ⋯ is a response
+   * to something that changed, not a wrong initial state.
    */
   reveal () {
     this.element.removeAttribute('data-toolbar-overflow-settling')
@@ -96,18 +96,19 @@ export default class extends Controller {
   handleBreakpointChange = (event) => this.apply(event.matches)
 
   /**
-   * Dos medidas deciden si hay que recomputar, no una: lo que la fila TIENE y lo que la fila
-   * NECESITA. Con sólo el ancho disponible, un control que se ensancha DESPUÉS del primer
-   * layout —SlimSelect reemplazando su `<select>`, flatpickr montando su input, una fuente
-   * que termina de cargar— no dispara nada, y la fila se desborda sin que el ⋯ se entere.
-   * Medido sobre `/studios` a 2008px: `max-content` pedía 2078 y el menú tenía 0 items, con
-   * la fila de filtros plegada en tres líneas.
+   * Two measurements decide whether to recompute, not one: what the row HAS and what the row
+   * NEEDS. With only the available width, a control that widens AFTER the first layout
+   * —SlimSelect replacing its `<select>`, flatpickr mounting its input, a font that finishes
+   * loading— fires nothing, and the row overflows without the ⋯ finding out. Measured on
+   * `/studios` at 2008px: `max-content` asked for 2078 and the menu had 0 items, with the
+   * filter row wrapped onto three lines.
    *
-   * Las dos se leen dentro del rAF, no en el callback del observer: `requiredWidth()` escribe
-   * `style.width` para medir, y hacerlo dentro del callback es pedirle al observer que vuelva
-   * a entrar por el cambio que acabamos de provocar — el bucle que Chrome denuncia como
-   * "ResizeObserver loop". Por lo mismo la comparación se guarda DESPUÉS de aplicar: colapsar
-   * baja el `max-content`, así que anotar el valor previo garantizaba una segunda pasada.
+   * Both are read inside the rAF, not in the observer callback: `requiredWidth()` writes
+   * `style.width` to measure, and doing that inside the callback is asking the observer to
+   * re-enter because of the change we just caused — the loop Chrome reports as
+   * "ResizeObserver loop". For the same reason the comparison is stored AFTER applying:
+   * collapsing lowers the `max-content`, so recording the previous value guaranteed a second
+   * pass.
    */
   handleResize = () => {
     if (this.frame) return
@@ -131,9 +132,9 @@ export default class extends Controller {
     this.lastRequired = Math.round(this.requiredWidth())
   }
 
-  // El snapshot que Turbo cachea tiene que ser SIEMPRE el layout expandido. Cacheado
-  // colapsado, volver atrás en un viewport ancho restaura la toolbar plegada hasta que
-  // connect() la repara: un parpadeo con la toolbar vacía.
+  // The snapshot Turbo caches has to ALWAYS be the expanded layout. Cached collapsed, going
+  // back in a wide viewport restores the folded toolbar until connect() repairs it: a flicker
+  // with an empty toolbar.
   handleBeforeCache = () => {
     this.closeOpenDropdowns()
     this.expand()
@@ -144,8 +145,8 @@ export default class extends Controller {
     const focused = this.focusedControl()
 
     this.closeOpenDropdowns()
-    // Siempre se parte de la fila entera: el colapso es incremental y sin volver a expandir
-    // primero, ensanchar nunca devolvería nada.
+    // Always start from the whole row: collapsing is incremental and without expanding first,
+    // widening would never give anything back.
     this.expand()
     this.sync()
 
@@ -165,8 +166,8 @@ export default class extends Controller {
     this.syncOverflowVisibility()
   }
 
-  // Bajo el breakpoint no se mide: en un teléfono no entra nada y el resultado tiene que ser
-  // el mismo siempre, no depender de cuánto ocupe una etiqueta traducida.
+  // Below the breakpoint nothing is measured: nothing fits on a phone and the result has to be
+  // the same every time, not depend on how much a translated label takes up.
   collapseAll () {
     if (!this.hasMenuTarget) return
 
@@ -176,10 +177,10 @@ export default class extends Controller {
   }
 
   /**
-   * Se sacrifica de menor a mayor prioridad y solo hasta que la fila entra: el ⋯ deja de ser
-   * un modo de móvil y pasa a ser la válvula de cualquier ancho. Cada movimiento re-sincroniza
-   * antes de volver a medir porque el propio ⋯ ocupa lugar y un grupo que queda vacío se
-   * esconde, devolviendo su `gap`.
+   * Items are sacrificed from lowest to highest priority and only until the row fits: the ⋯
+   * stops being a mobile mode and becomes the valve for any width. Each move re-syncs before
+   * measuring again because the ⋯ itself takes up room and a group left empty hides, giving
+   * back its `gap`.
    */
   collapseUntilItFits () {
     if (!this.hasMenuTarget) return
@@ -193,11 +194,11 @@ export default class extends Controller {
   }
 
   /**
-   * Lo que la fila NECESITA contra lo que TIENE. `scrollWidth` no sirve como señal: lo que
-   * no entra vive dentro del único item elástico, que se encoge a 0 y deja su contenido
-   * pintado por encima de los vecinos SIN generar scroll — medido `scrollWidth === clientWidth`
-   * con tres controles superpuestos. Con `max-content` cada item aporta su ancho natural, que
-   * es la pregunta real.
+   * What the row NEEDS against what it HAS. `scrollWidth` is no use as a signal: what does
+   * not fit lives inside the single elastic item, which shrinks to 0 and leaves its content
+   * painted over its neighbours WITHOUT producing scroll — measured `scrollWidth === clientWidth`
+   * with three overlapping controls. With `max-content` each item contributes its natural
+   * width, which is the real question.
    */
   overflowing () {
     const available = this.availableWidth()
@@ -226,14 +227,14 @@ export default class extends Controller {
         .forEach(item => this.homeGroupFor(item)?.appendChild(item))
     }
 
-    // Reordenar por prioridad es lo que hace innecesario recordar la posición original.
+    // Reordering by priority is what makes remembering the original position unnecessary.
     this.groupTargets.forEach(group => this.sortByPriority(group))
   }
 
-  // Ordenados de mayor a menor para que adentro del ⋯ el orden de lectura sea el mismo que
-  // el de la toolbar. Se sostiene porque las prioridades bajan siguiendo la fila (ver
-  // OVERFLOW_PRIORITIES); renumerarlas sin mirar el layout rompe esta correspondencia sin
-  // que falle nada.
+  // Sorted from highest to lowest so that inside the ⋯ the reading order is the same as the
+  // toolbar's. It holds because the priorities descend following the row (see
+  // OVERFLOW_PRIORITIES); renumbering them without looking at the layout breaks this
+  // correspondence without anything failing.
   collapsibleItems () {
     return this.itemTargets
       .filter(item => this.priorityOf(item) < this.thresholdValue)
@@ -257,10 +258,10 @@ export default class extends Controller {
   }
 
   /**
-   * Cerrar antes de mover. Los dropdowns de columnas, export y vistas guardadas abren por
-   * :focus-within de daisyUI: mover el nodo lo saca del documento y el foco salta al body
-   * en medio del movimiento. Los que usan el DropdownController guardan su estado en la
-   * clase `dropdown-open`, que SOBREVIVE al movimiento — quedarían abiertos dentro del ⋯.
+   * Close before moving. The columns, export and saved views dropdowns open through daisyUI's
+   * :focus-within: moving the node takes it out of the document and focus jumps to the body in
+   * the middle of the move. The ones using the DropdownController keep their state in the
+   * `dropdown-open` class, which SURVIVES the move — they would stay open inside the ⋯.
    */
   closeOpenDropdowns () {
     const active = document.activeElement
@@ -277,14 +278,14 @@ export default class extends Controller {
   }
 
   /**
-   * Cruzar el breakpoint (un zoom al 400%, rotar el teléfono) no puede costarle al usuario
-   * de teclado su posición: `closeOpenDropdowns` hace blur y `collapse`/`expand` mueven el
-   * nodo enfocado, así que sin esto el foco cae al <body> sin anillo ni anuncio.
+   * Crossing the breakpoint (a 400% zoom, rotating the phone) cannot cost the keyboard user
+   * their position: `closeOpenDropdowns` blurs and `collapse`/`expand` move the focused node,
+   * so without this focus falls to the <body> with no ring and no announcement.
    *
-   * El ⋯ cuenta como control y NO es un `item`: angosto es la única forma de llegar a lo
-   * colapsado, y al ensanchar se esconde. Sin contarlo acá, el cruce hacia arriba —volver
-   * del zoom al 400%— tiraba el foco al <body>, que es exactamente la pérdida que este
-   * método existe para evitar, solo que en el otro sentido.
+   * The ⋯ counts as a control and is NOT an `item`: narrow, it is the only way to reach what
+   * is collapsed, and on widening it hides. Without counting it here, crossing upwards
+   * —coming back from the 400% zoom— dropped focus onto the <body>, which is exactly the loss
+   * this method exists to prevent, only in the other direction.
    */
   focusedControl () {
     const active = document.activeElement
@@ -298,17 +299,18 @@ export default class extends Controller {
   restoreFocus (element) {
     if (!element || !element.isConnected) return
 
-    // El foco estaba en el ⋯. Si sigue en pantalla vuelve a su trigger; si se escondió
-    // porque ya no hay nada que colapsar, el destino equivalente es el control de mayor
-    // prioridad que acaba de volver a la fila — lo primero que el menú ofrecía.
+    // Focus was on the ⋯. If it is still on screen it goes back to its trigger; if it hid
+    // because there is nothing left to collapse, the equivalent destination is the
+    // highest-priority control that has just come back to the row — the first thing the menu
+    // offered.
     if (element === this.overflowTarget) {
       const home = this.isRendered(element) ? this.overflowTrigger() : this.collapsibleItems()[0]
       this.focusableWithin(home)?.focus({ preventScroll: true })
       return
     }
 
-    // Quedó dentro del ⋯ cerrado (no renderizado): el destino equivalente es su trigger,
-    // que es por donde el usuario llega ahora a ese control.
+    // It stayed inside the closed (not rendered) ⋯: the equivalent destination is its trigger,
+    // which is how the user reaches that control now.
     if (!this.isRendered(element)) {
       this.overflowTrigger()?.focus({ preventScroll: true })
       return
@@ -321,8 +323,8 @@ export default class extends Controller {
     return element.offsetParent !== null
   }
 
-  // Los `item` son ENVOLTORIOS, no controles: enfocarlos no hace nada. El foco va al primer
-  // elemento enfocable que tengan adentro.
+  // The `item`s are WRAPPERS, not controls: focusing them does nothing. Focus goes to the
+  // first focusable element they have inside.
   focusableWithin (element) {
     if (!element) return null
 
@@ -336,8 +338,8 @@ export default class extends Controller {
   }
 
   /**
-   * Un grupo vacío sigue siendo un flex item: se lleva el `gap` de la fila a los dos lados y
-   * le come ancho a la búsqueda justo en el viewport donde menos sobra.
+   * An empty group is still a flex item: it takes the row's `gap` on both sides and eats
+   * width from the search exactly in the viewport where there is least to spare.
    */
   syncGroupVisibility () {
     this.groupTargets.forEach(group => {
@@ -346,11 +348,11 @@ export default class extends Controller {
   }
 
   /**
-   * La barrita es una AFIRMACIÓN sobre sus vecinos ("acá termina qué contiene la vista y
-   * empieza cómo se recuerda"). Cuando el overflow se lleva uno de los dos lados la
-   * afirmación deja de ser cierta y queda marcando una frontera contra nada. NO es un
-   * control: no es `item`, así que `collapsibleItems` no la puede mover al ⋯ — solo se
-   * esconde y vuelve.
+   * The little bar is an ASSERTION about its neighbours ("here ends what the view contains
+   * and begins how it is remembered"). When the overflow takes one of the two sides away the
+   * assertion stops being true and it is left marking a border against nothing. It is NOT a
+   * control: it is not an `item`, so `collapsibleItems` cannot move it into the ⋯ — it only
+   * hides and comes back.
    */
   syncSeparators () {
     this.separatorTargets.forEach(separator => {
@@ -358,8 +360,8 @@ export default class extends Controller {
     })
   }
 
-  // Los grupos se buscan POR NOMBRE y no por adyacencia en el DOM: insertar cualquier nodo
-  // entre la barrita y un grupo rompía la decisión en silencio.
+  // The groups are looked up BY NAME and not by adjacency in the DOM: inserting any node
+  // between the little bar and a group used to break the decision silently.
   separatorFlanked (separator) {
     return (separator.dataset.toolbarOverflowSeparates || '')
       .split(' ')
@@ -371,8 +373,9 @@ export default class extends Controller {
     return this.groupTargets.find(group => group.dataset.toolbarOverflowGroup === name)
   }
 
-  // Sin nada adentro, el ⋯ abriría un menú vacío. Es la ÚNICA regla de visibilidad del menú
-  // desde que el colapso se mide: el markup ya no lo tapa por breakpoint.
+  // With nothing inside, the ⋯ would open an empty menu. It is the ONLY visibility rule for
+  // the menu since collapsing became a measurement: the markup no longer hides it by
+  // breakpoint.
   syncOverflowVisibility () {
     if (!this.hasOverflowTarget || !this.hasMenuTarget) return
 
