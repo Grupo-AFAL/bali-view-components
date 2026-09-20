@@ -57,9 +57,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hallazgos. La lista **sólo encoge**; cualquier archivo nuevo o movido nace en inglés.
   La entrada siguiente la deja en cero.
 
-  **Para un anfitrión no cambia nada**: la gema no entra al gemspec. Y rubocop sólo lee Ruby, así
-  que los comentarios `<%# %>` de las 610 plantillas `.erb` y los `describe`/`it` de los 96 specs
-  de Cypress siguen dependiendo de la revisión.
+  **Para un anfitrión no cambia nada**: la gema no entra al gemspec. Rubocop sólo lee Ruby, así
+  que los comentarios `<%# %>` de las plantillas `.erb` y los `describe`/`it` de los specs de
+  Cypress le quedan fuera — los cubre la guardia de la entrada siguiente.
+
+### Dependencies
+
+- **Cypress 16.0.0 → 16.1.0** (solo desarrollo; PR de dependabot #1179). Sin cambios que rompan.
+  Lo que sí nos toca: arregla una **fuga de memoria** por la que los service workers conservaban
+  estado durante toda la sesión del navegador, que es justo el problema contra el que
+  `cypress.config.cjs` tiene `numTestsKeptInMemory: 0`; y devuelve el contexto de búsqueda del
+  elemento a los mensajes de aserción de `cy.contains()`, que aquí se llama 71 veces, así que un
+  spec que falle vuelve a decir dónde buscó. `trustedCertificates`, `blockHosts` y
+  `keystrokeDelay` —lo demás del release— no se usan en este repo.
 
 ### Added
 
