@@ -170,8 +170,8 @@ When all checks pass:
    - [ ] No console errors related to the component
    
    If any checkbox fails:
-   - Clear cache: `rm -rf spec/dummy/public/assets && rm -rf spec/dummy/tmp/cache/assets`
-   - Restart server: `cd spec/dummy && bin/dev`
+   - Clear cache: `rm -rf test/dummy/public/assets && rm -rf test/dummy/tmp/cache/assets`
+   - Restart server: `cd test/dummy && bin/dev`
    - Re-verify in browser
    
    **DO NOT proceed to completion if browser verification fails.**
@@ -433,7 +433,7 @@ If UX score stays below 7:
    - Is it a JS issue? → Check browser console for errors
    - Is it a Tippy/popup issue? → Verify wrapper classes are applied
 3. Check for root causes before applying more fixes:
-   - Clear `spec/dummy/public/assets/` and cache
+   - Clear `test/dummy/public/assets/` and cache
    - Restart dev server to pick up JS/CSS changes
    - Verify in browser devtools that classes are actually applied
 4. If truly stuck after exhausting options → **BLOCK and escalate**

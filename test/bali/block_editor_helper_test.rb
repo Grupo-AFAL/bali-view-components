@@ -5,7 +5,7 @@ require "test_helper"
 class BlockEditorHelperTest < ActionView::TestCase
   include Bali::BlockEditorHelper
 
-  # The dummy app has no editor bundle (spec/dummy/app/assets/builds is a
+  # The dummy app has no editor bundle (test/dummy/app/assets/builds is a
   # build artifact), so resolve assets predictably instead of via Propshaft.
   def asset_path(name)
     "/assets/#{name.sub(".", "-digest.")}"

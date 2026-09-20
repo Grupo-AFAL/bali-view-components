@@ -16,7 +16,7 @@ class EnglishOutsideRubyTest < ActiveSupport::TestCase
   GLOBS = %w[
     app/**/*.erb app/**/*.js app/**/*.css
     cypress/**/*.js cypress/**/*.mjs
-    spec/dummy/app/**/*.erb spec/dummy/app/**/*.js
+    test/dummy/app/**/*.erb test/dummy/app/**/*.js
     .claude/hooks/*.sh
   ].freeze
 

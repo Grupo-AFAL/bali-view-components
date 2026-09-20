@@ -365,7 +365,7 @@ This adds the correct Stimulus actions for modal integration.
 
 1. **Start the preview server:**
    ```bash
-   cd spec/dummy && bin/dev
+   cd test/dummy && bin/dev
    ```
 
 2. **Check preview files exist:** Each component should have `preview.rb` in its folder.

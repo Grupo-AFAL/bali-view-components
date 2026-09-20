@@ -21,13 +21,13 @@ AllCops:
     - 'tmp/**/*'
     - 'script/**/*'
     - 'node_modules/**/*'
-    - 'spec/dummy/node_modules/**/*'
+    - 'test/dummy/node_modules/**/*'
     - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
     - 'vendor/**/*'
-    - 'spec/dummy/bin/*'
-    - 'spec/dummy/db/**/*'
-    - 'spec/dummy/public/**/*'
+    - 'test/dummy/bin/*'
+    - 'test/dummy/db/**/*'
+    - 'test/dummy/public/**/*'
 
 # Gem-specific: component library needs html_safe for rendering
 Rails/OutputSafety:
@@ -41,7 +41,7 @@ Rails/HasAndBelongsToMany:
 
 Rails/I18nLocaleTexts:
   Exclude:
-    - 'spec/dummy/**/*'
+    - 'test/dummy/**/*'
 
 # Complex filter/form modules have legitimate complexity
 Metrics/PerceivedComplexity:

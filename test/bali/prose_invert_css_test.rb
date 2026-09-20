@@ -12,11 +12,11 @@ require "test_helper"
 class BaliProseInvertCssTest < ActiveSupport::TestCase
   ENGINE_SHEET = Bali::Engine.root.join("app/assets/stylesheets/bali/prose-invert.css")
   DAISYUI_TYPOGRAPHY = Bali::Engine.root.join(
-    "spec/dummy/node_modules/daisyui/utilities/typography.css"
+    "test/dummy/node_modules/daisyui/utilities/typography.css"
   )
 
   def test_every_variable_daisyui_maps_has_an_invert_mapping
-    skip("daisyUI not installed (yarn install in spec/dummy)") unless DAISYUI_TYPOGRAPHY.exist?
+    skip("daisyUI not installed (yarn install in test/dummy)") unless DAISYUI_TYPOGRAPHY.exist?
 
     daisyui_vars = daisyui_prose_variables
     assert_includes(daisyui_vars, "--tw-prose-body") # sanity: the parse found the mapping

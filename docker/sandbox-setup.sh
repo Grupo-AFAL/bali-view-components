@@ -50,7 +50,7 @@ yarn install
 # 5. Prepare dummy app database
 echo ""
 echo "=== Preparing database ==="
-cd spec/dummy && bin/rails db:prepare && cd ../..
+cd test/dummy && bin/rails db:prepare && cd ../..
 
 echo ""
 echo "=== Setup complete! ==="

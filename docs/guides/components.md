@@ -5208,7 +5208,7 @@ Build complex UIs by composing multiple components:
 Browse all components and their variations in Lookbook:
 
 ```bash
-cd spec/dummy && bin/dev
+cd test/dummy && bin/dev
 ```
 
 Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook)

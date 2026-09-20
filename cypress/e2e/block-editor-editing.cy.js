@@ -7,7 +7,7 @@
 //    mounts, paints and lets you type; the only thing it does not do is break the line.
 //    No Ruby suite can see that, and the duplicate is introduced by the lockfile, not by
 //    the code: it only gets in when someone bumps `@blocknote/*` and yarn adds a new entry
-//    instead of re-resolving the old one. See `resolutions` in spec/dummy/package.json.
+//    instead of re-resolving the old one. See `resolutions` in test/dummy/package.json.
 //
 // 2. The heading that opens the document carries no space above it. BlockNote gives 18px
 //    to ALL headings; in the first block there is nothing to separate from and the field

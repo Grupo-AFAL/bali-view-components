@@ -125,7 +125,7 @@ start_lookbook_server() {
     local port=$2
     local pid_file="$worktree_path/.lookbook.pid"
 
-    cd "$worktree_path/spec/dummy"
+    cd "$worktree_path/test/dummy"
     PORT=$port bin/rails server -p $port -d 2>/dev/null
     echo $! > "$pid_file"
 

@@ -29,7 +29,7 @@ require "test_helper"
 class BaliI18nUsageTest < ActiveSupport::TestCase
   ROOT = Bali::Engine.root
 
-  # Where Bali asks for strings. `spec/dummy` is a host app, not the library.
+  # Where Bali asks for strings. `test/dummy` is a host app, not the library.
   SOURCES = [ "app/components/**/*.rb", "app/components/**/*.erb", "lib/bali/**/*.rb" ].freeze
 
   # Keys under this prefix are Bali's own and must exist. See the header.

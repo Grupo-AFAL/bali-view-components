@@ -19,7 +19,7 @@ Where `$ARGUMENTS` is:
 Lookbook must be running at `http://localhost:3001/lookbook`. If not running:
 
 ```bash
-cd spec/dummy && bin/dev
+cd test/dummy && bin/dev
 ```
 
 ## Workflow
@@ -502,7 +502,7 @@ Component passes all verification checks. Minor UX suggestions noted for future 
 
 ### Lookbook not running
 ```bash
-cd spec/dummy && bin/dev
+cd test/dummy && bin/dev
 ```
 
 ### Component preview not found

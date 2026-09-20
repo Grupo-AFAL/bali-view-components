@@ -48,7 +48,7 @@ no controller answers: no exception, no console error, a toolbar that simply sto
 collapsing. So `bundle update bali_view_components` without the matching `yarn upgrade` is
 not a smaller upgrade, it is half of one — and the half that fails silently.
 
-`spec/dummy` is the exception that proves the rule. It consumes the package as
+`test/dummy` is the exception that proves the rule. It consumes the package as
 `"bali-view-components": "link:../.."`, so its two halves *are* the working tree and can
 never disagree, which is also why a version skew can never be caught by this repo's own
 tests. Only a host can hit it.

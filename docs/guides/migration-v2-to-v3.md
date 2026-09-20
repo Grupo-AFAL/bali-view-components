@@ -34,7 +34,7 @@ gives you that on the other two.
 package, so you got it transitively; in v3 it is a peer and that copy is gone. Below 5.7
 nothing fails — the components emit daisyUI class names from Ruby, so you get correct markup
 with the wrong styling, which is the kind of break you find in a screenshot rather than in a
-log. `spec/dummy` pins the exact daisyUI the suite runs against — `5.7.15` today; this
+log. `test/dummy` pins the exact daisyUI the suite runs against — `5.7.15` today; this
 guide's measurements were taken on `5.7.9`.
 
 **Tailwind is declared by nobody, and that is deliberate.** The gemspec has no
@@ -533,7 +533,7 @@ new one takes one document:
 | `bali_view.gantt_chart.*` locale keys | `bali_view.gantt.*` |
 
 The work is in the serializer, not the view: write the object that turns your models into
-the contract (`spec/dummy/app/models/project_gantt.rb` is a complete example), then the
+the contract (`test/dummy/app/models/project_gantt.rb` is a complete example), then the
 call site is a single render.
 
 **#667 is closed by this removal, not solved by it.** A portfolio Gantt whose bar colour

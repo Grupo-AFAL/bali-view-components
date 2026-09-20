@@ -176,7 +176,7 @@ module Bali
       # @label With Comments (Persistent)
       # Enables inline commenting with database persistence, through the engine's own
       # endpoints. Comments survive page reloads. Requires the dummy app server
-      # running (`cd spec/dummy && bin/dev`).
+      # running (`cd test/dummy && bin/dev`).
       #
       # **This is not the API you write.** A host passes the record the threads belong
       # to and lets Bali resolve the URL:

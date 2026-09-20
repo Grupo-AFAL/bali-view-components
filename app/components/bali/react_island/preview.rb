@@ -11,7 +11,7 @@ module Bali
       # React component on it.
       #
       # The counter here is a toy island defined in the dummy app
-      # (`spec/dummy/app/javascript/islands/CounterIsland.jsx`). Its bundle is
+      # (`test/dummy/app/javascript/islands/CounterIsland.jsx`). Its bundle is
       # NOT part of the main JS: `startIslandLoader('react-island-demo')`
       # injects it on demand from the paths published by
       # `react_island_meta_tags` — the exact wiring a host app uses.

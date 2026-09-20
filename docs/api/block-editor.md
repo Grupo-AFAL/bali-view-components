@@ -208,14 +208,14 @@ Four further facts, each checkable:
    `files` array of the published npm package (`app/**/*`, `lib/bali/**/*.rb`, `MIT-LICENSE`,
    `README.md`) contains no XL code. Installing `bali-view-components` installs no XL package.
    `bali-view-components` itself is `MIT`.
-3. **They are installed in `spec/dummy`.** The demo/test application lists all four in its
-   `package.json` so the features can be exercised. `spec/dummy` is not published to npm and is
+3. **They are installed in `test/dummy`.** The demo/test application lists all four in its
+   `package.json` so the features can be exercised. `test/dummy` is not published to npm and is
    not part of the gem.
 4. **Reaching for them is a deliberate act by the host application.** A host must both install
    the package and turn the feature on. Neither happens by default, and an app that does neither
    builds and runs with no XL package present.
 
-**What is NOT settled here:** whether AFAL's own use of any XL package -- in `spec/dummy`, in a
+**What is NOT settled here:** whether AFAL's own use of any XL package -- in `test/dummy`, in a
 host application, or in CI -- is covered by GPL-3.0 or requires a commercial licence, and what
 the terms of such a licence are. That determination belongs to legal and must be made before GA.
 
@@ -1346,7 +1346,7 @@ The `submit` event is what triggers the flush, so a form sent through the legacy
 
 ### Version compatibility
 
-The peer range is `@blocknote/* >= 0.53.0`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `spec/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
+The peer range is `@blocknote/* >= 0.53.0`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `test/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
 
 The lower bound is not cosmetic:
 

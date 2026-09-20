@@ -14,7 +14,7 @@ require "tempfile"
 # And the gate is tested too: a hook that stops firing does not fail — it lets things
 # through, which is exactly what it looks like when it works.
 #
-# `Rails.root` here is `spec/dummy`, not the repo: the hook's path hangs off
+# `Rails.root` here is `test/dummy`, not the repo: the hook's path hangs off
 # `Bali::Engine.root`, the gem's root — the same idiom `i18n_usage_test` and
 # `stimulus_target_guards_test` use.
 class PrClosesKeywordTest < ActiveSupport::TestCase

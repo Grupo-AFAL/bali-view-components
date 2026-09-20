@@ -198,7 +198,7 @@ disconnect () {
 
 Stimulus behaviour is tested with **Cypress against the Lookbook preview URLs** —
 Minitest renders the markup but never runs the JS. The dummy server must be running
-(`cd spec/dummy && bin/dev`, port 3001); the runner's `baseUrl` is
+(`cd test/dummy && bin/dev`, port 3001); the runner's `baseUrl` is
 `http://localhost:3001/lookbook/preview`.
 
 ```javascript

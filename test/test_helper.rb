@@ -2,10 +2,10 @@
 
 ENV["RAILS_ENV"] ||= "test"
 
-# SimpleCov is started in spec/dummy/config/boot.rb (before gems load)
+# SimpleCov is started in test/dummy/config/boot.rb (before gems load)
 # so that Coverage.start tracks lib/ files loaded during Rails boot.
 
-require File.expand_path("../spec/dummy/config/environment", __dir__)
+require File.expand_path("../test/dummy/config/environment", __dir__)
 require "bali/extras" # Load opt-in concerns needed by dummy app models and concern tests
 
 abort("The Rails environment is running in production mode!") if Rails.env.production?
