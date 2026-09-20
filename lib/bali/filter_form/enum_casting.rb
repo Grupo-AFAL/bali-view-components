@@ -2,40 +2,42 @@
 
 module Bali
   class FilterForm
-    # EnumCasting traduce ETIQUETAS de enum a sus VALORES antes de que los params lleguen a
-    # Ransack.
+    # EnumCasting translates enum LABELS to their VALUES before the params reach Ransack.
     #
-    # Síntoma: filtrar Status = "Done" devolvía exactamente los registros contrarios.
-    # Causa: Ransack castea con el tipo CRUDO de la columna (Ransack::Nodes::Value#cast vía
-    # Context#type_for, que lee `column.type` y nunca el EnumType de ActiveRecord), así que
-    # sobre un enum entero `"done".to_i` es 0 — el valor de `draft`. `AR.where(status: "done")`
-    # acierta porque ahí sí corre EnumType; el mismo valor por Ransack no. Y falla INVERTIDO y
-    # en silencio: "draft" también castea a 0, así que la mitad de los filtros parecen andar.
+    # Symptom: filtering Status = "Done" returned exactly the opposite records.
+    # Cause: Ransack casts with the column's RAW type (Ransack::Nodes::Value#cast through
+    # Context#type_for, which reads `column.type` and never ActiveRecord's EnumType), so over
+    # an integer enum `"done".to_i` is 0 — the value of `draft`. `AR.where(status: "done")`
+    # gets it right because EnumType does run there; the same value through Ransack does not.
+    # And it fails INVERTED and in silence: "draft" also casts to 0, so half the filters look
+    # like they work.
     #
-    # Sobre enums de STRING esto ya funcionaba (cast_to_string no rompe la etiqueta y el
-    # EnumType la resuelve después), así que traducir ahí es idempotente: `"action"` y
-    # `"Action"` producen el mismo SQL. La traducción no lo cambia, solo lo hace explícito.
+    # Over STRING enums this already worked (cast_to_string does not break the label and
+    # EnumType resolves it afterwards), so translating there is idempotent: `"action"` and
+    # `"Action"` produce the same SQL. The translation does not change that, it only makes it
+    # explicit.
     module EnumCasting
       extend ActiveSupport::Concern
 
-      # Los predicados donde el valor ES un miembro del enum. NO es una lista arbitraria: es
-      # exactamente la que la UI avanzada ofrece para un atributo `type: :select`
-      # (Bali::Filters::Operators.select_operators) — un test las clava juntas para que no
-      # puedan separarse. Fuera de acá el valor no es una pertenencia y traducirlo cambiaría
-      # la pregunta: `_cont` pide un SUBSTRING (sobre `enum kind: { a: "alpha" }`, buscar "a"
-      # se convertiría en buscar "alpha"), y `_gteq` pide un ORDEN sobre los códigos crudos,
-      # un significado que Rails no promete y que Bali no puede inventar.
+      # The predicates where the value IS a member of the enum. NOT an arbitrary list: it is
+      # exactly the one the advanced UI offers for a `type: :select` attribute
+      # (Bali::Filters::Operators.select_operators) — a test pins them together so they cannot
+      # be separated. Outside of it the value is not a membership and translating it would
+      # change the question: `_cont` asks for a SUBSTRING (over `enum kind: { a: "alpha" }`,
+      # searching "a" would become searching "alpha"), and `_gteq` asks for an ORDER over the
+      # raw codes, a meaning Rails does not promise and Bali cannot invent.
       EQUALITY_PREDICATES = %w[eq not_eq in not_in].freeze
 
-      # Llaves de Ransack que NO son condiciones: el combinador, los sorts y la forma `c`
-      # (condiciones como array), que Bali no emite y que tiene otra estructura entera.
+      # Ransack keys that are NOT conditions: the combinator, the sorts and the `c` form
+      # (conditions as an array), which Bali does not emit and which has an entirely different
+      # structure.
       RESERVED_KEYS = %w[m s c].freeze
 
-      # Los groupings anidan: un grupo puede traer otro `g` adentro.
+      # Groupings nest: a group can carry another `g` inside it.
       GROUPING_KEYS = %w[g groupings].freeze
 
-      # Sufijo de los predicados compuestos (`status_eq_any`), que preguntan lo mismo que su
-      # predicado base sobre varios valores.
+      # Suffix of the compound predicates (`status_eq_any`), which ask the same thing as their
+      # base predicate over several values.
       COMPOUND_SUFFIX = /_(any|all)\z/
 
       private
@@ -54,9 +56,9 @@ module Bali
         end
       end
 
-      # Un `g` ANIDADO puede llegar como array (Ransack acepta las dos formas y la
-      # normalización de FilterForm#extract_groupings solo alcanza al nivel de arriba): sin
-      # esta rama el grupo interno esquivaba la traducción y devolvía los registros contrarios.
+      # A NESTED `g` can arrive as an array (Ransack accepts both forms and the normalization
+      # in FilterForm#extract_groupings only reaches the top level): without this branch the
+      # inner group dodged the translation and returned the opposite records.
       def cast_enum_groupings(groupings)
         return groupings.map { |group| cast_enum_group(group) } if groupings.is_a?(Array)
         return groupings unless groupings.is_a?(Hash)
@@ -81,18 +83,18 @@ module Bali
         cast_enum_member(mapping, value)
       end
 
-      # Tres casos, no dos. Una ETIQUETA conocida se traduce. Un valor CRUDO conocido pasa
-      # intacto, así que una app que ya mandaba `0`/`1` sigue andando igual. Y cualquier OTRA
-      # cosa sobre un enum de enteros se convierte en un centinela que no puede casar con
-      # nadie: dejarla pasar es reintroducir el bug entero, porque Ransack la castea con el
-      # tipo crudo de la columna y `"completed".to_i` —un miembro renombrado, un `"Done"` con
-      # mayúscula, un typo— es 0, o sea el PRIMER miembro del enum. Con el centinela, `eq`/`in`
-      # no devuelven nada y `not_eq`/`not_in` devuelven todo: la respuesta honesta a una
-      # pregunta sobre un miembro que no existe, en vez de la respuesta de otro miembro.
+      # Three cases, not two. A known LABEL is translated. A known RAW value passes through
+      # intact, so an app that was already sending `0`/`1` keeps working the same. And ANY
+      # OTHER thing over an integer enum becomes a sentinel that cannot match anybody: letting
+      # it through is reintroducing the whole bug, because Ransack casts it with the column's
+      # raw type and `"completed".to_i` —a renamed member, a capitalized `"Done"`, a typo— is
+      # 0, that is, the FIRST member of the enum. With the sentinel, `eq`/`in` return nothing
+      # and `not_eq`/`not_in` return everything: the honest answer to a question about a member
+      # that does not exist, instead of another member's answer.
       #
-      # Un enum de STRING no necesita centinela (una etiqueta desconocida ya no casa con
-      # nada), y un valor VACÍO tampoco puede tenerlo: Ransack ignora las condiciones en
-      # blanco, así que mapearlo convertiría un select sin elegir en "no muestres nada".
+      # A STRING enum needs no sentinel (an unknown label no longer matches anything), and an
+      # EMPTY value cannot have one either: Ransack ignores blank conditions, so mapping it
+      # would turn an unchosen select into "show nothing".
       def cast_enum_member(mapping, value)
         return value unless value.is_a?(String) || value.is_a?(Symbol)
         return value if value.blank?
@@ -105,20 +107,20 @@ module Bali
         mapping.values.max + 1
       end
 
-      # `defined_enums` y no `scope.model`: una relation lo delega en su clase, pero un scope
-      # que YA es la clase (`FilterForm.new(Movie, params)` — la forma que la propia API de
-      # Ransack enseña) no responde a `model`, y preguntando por ahí el módulo entero se
-      # volvía un no-op silencioso con el bug original intacto. Un scope sin enums (los dobles
-      # de los tests) tampoco responde y el módulo es un no-op, que es lo correcto: no hay
-      # nada que traducir.
+      # `defined_enums` and not `scope.model`: a relation delegates it to its class, but a
+      # scope that ALREADY is the class (`FilterForm.new(Movie, params)` — the form Ransack's
+      # own API teaches) does not answer `model`, and asking there turned the whole module into
+      # a silent no-op with the original bug intact. A scope with no enums (the test doubles)
+      # does not answer either and the module is a no-op, which is correct: there is nothing to
+      # translate.
       #
-      # Solo los enums del PROPIO modelo. Un `studio_status_eq` apunta al enum del modelo
-      # asociado, y resolverlo obliga a replicar la resolución de asociaciones de Ransack
-      # (multinivel, `ransackable_associations`, sufijos polimórficos): equivocarse ahí
-      # reintroduce exactamente el bug de datos-incorrectos-con-cara-de-correctos que esto
-      # arregla. Queda fuera a propósito y el gancho para extenderlo es este método — hasta
-      # entonces, un select sobre el enum de una ASOCIACIÓN devuelve los registros contrarios
-      # y hay que declarar sus `options:` con los valores crudos.
+      # Only the OWN model's enums. A `studio_status_eq` points at the associated model's enum,
+      # and resolving it forces replicating Ransack's association resolution (multi-level,
+      # `ransackable_associations`, polymorphic suffixes): getting that wrong reintroduces
+      # exactly the wrong-data-wearing-a-correct-face bug this fixes. It is left out on purpose
+      # and the hook to extend it is this method — until then, a select over an ASSOCIATION's
+      # enum returns the opposite records and its `options:` have to be declared with the raw
+      # values.
       def enum_mappings
         @enum_mappings ||= scope.respond_to?(:defined_enums) ? scope.defined_enums : {}
       end

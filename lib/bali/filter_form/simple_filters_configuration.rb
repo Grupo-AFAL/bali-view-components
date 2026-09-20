@@ -124,10 +124,10 @@ module Bali
             collection: resolve_collection(filter[:collection]),
             blank: resolve_definition_value(filter[:blank]),
             label: simple_filter_label(filter),
-            # El nombre accesible del control cuando no hay caption (#1155). Se resuelve
-            # como `label:` y `blank:` —acepta un proc de aridad cero— y se copia también
-            # acá para que un hash `simple_filters:` de instancia, que no pasa por el DSL,
-            # pueda pasarlo igual.
+            # The control's accessible name when there is no caption (#1155). It resolves
+            # like `label:` and `blank:` —a zero-arity proc is accepted— and is copied here
+            # too so that an instance-level `simple_filters:` hash, which does not go through
+            # the DSL, can pass it just the same.
             aria_label: resolve_definition_value(filter[:aria_label]),
             default: filter[:default],
             type: type,
@@ -331,29 +331,30 @@ module Bali
       end
 
       # Infer label from attribute name using I18n or humanization
-      # `label: false` es "no quiero rótulo"; `nil` o ausente sigue siendo "derivalo". Con
-      # el `||` que había acá los dos eran falsy y los dos caían a la derivación, así que
-      # no había forma de pedir un filtro sin caption. La plantilla sí sabe no pintarlo
-      # —`if filter[:label].present?`— lo que no dejaba llegar un rótulo vacío era esto.
+      # `label: false` means "I want no caption"; `nil` or absent still means "derive it".
+      # With the `||` that used to be here both were falsy and both fell through to the
+      # derivation, so there was no way to ask for a filter without a caption. The template
+      # does know not to paint it —`if filter[:label].present?`— what kept an empty caption
+      # from ever reaching it was this.
       #
-      # Importa porque lo derivado suele ser peor que nada: `infer_simple_filter_label`
-      # humaniza el nombre del atributo RANSACK, no el del campo, así que un
-      # `simple_filter :roles_name` sin `label:` pinta "Roles name" —el predicado,
-      # humanizado y en inglés— en una UI en español; el fallback de I18n tampoco alcanza
-      # ahí, porque `roles_name` no es un atributo del modelo sino un camino por una
-      # asociación.
+      # It matters because the derived one is usually worse than nothing:
+      # `infer_simple_filter_label` humanizes the RANSACK attribute name, not the field's, so
+      # a `simple_filter :roles_name` with no `label:` paints "Roles name" —the predicate,
+      # humanized and in English— in a Spanish UI; the I18n fallback does not reach there
+      # either, because `roles_name` is not a model attribute but a path through an
+      # association.
       #
-      # El centinela es `false` y NO la ausencia de la clave, aunque distinguir "no me la
-      # pasaron" sería más elegante: no se puede. `simple_filter` delega en
-      # `filter_attribute`, que guarda `explicit_label: label` siempre, y
-      # `defined_simple_filters` reconstruye el hash con `label:` fijo. O sea que
-      # `filter.key?(:label)` es SIEMPRE true y, usado como condición, dejaría a todos los
-      # filtros sin rótulo. `explicit_label` sí conserva el `false`, que es lo que hace
-      # que este camino funcione.
+      # The sentinel is `false` and NOT the absence of the key, even though telling "it was
+      # not passed to me" apart would be more elegant: it cannot be done. `simple_filter`
+      # delegates to `filter_attribute`, which always stores `explicit_label: label`, and
+      # `defined_simple_filters` rebuilds the hash with a fixed `label:`. Which means
+      # `filter.key?(:label)` is ALWAYS true and, used as the condition, would leave every
+      # filter without a caption. `explicit_label` does keep the `false`, and that is what
+      # makes this path work.
       #
-      # El rótulo del panel avanzado no se toca: `filter_attributes` guarda
-      # `label: label || key.to_s.humanize` aparte, así que una fila del popover sigue
-      # teniendo nombre, que es lo que ahí hace falta.
+      # The advanced panel's label is left alone: `filter_attributes` stores
+      # `label: label || key.to_s.humanize` separately, so a popover row still has a name,
+      # which is what is needed there.
       def simple_filter_label(filter)
         return nil if filter[:label] == false
 
