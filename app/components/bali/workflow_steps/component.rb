@@ -38,6 +38,9 @@ module Bali
     # verdict then beats both. None of it reaches the horizontal shape, whose
     # marker is a dot.
     #
+    # The assignee names below are sample data, like every other name in this repo's previews
+    # and docs: the gallery shows a Mexican app what it will look like.
+    # rubocop:disable Bali/EnglishOnly
     # @example An approval chain
     #   render Bali::WorkflowSteps::Component.new do |c|
     #     c.with_step(title: 'Submitted', state: :success, assignee: 'Luis Pérez', date: 'Jul 1')
@@ -47,6 +50,7 @@ module Bali
     #     c.with_step(title: 'Finance sign-off', state: :skipped)
     #     c.with_step(title: 'Director signature', state: :pending)
     #   end
+    # rubocop:enable Bali/EnglishOnly
     #
     # @example The same chain as a quick flow
     #   render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c|

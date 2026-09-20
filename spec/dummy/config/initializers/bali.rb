@@ -80,7 +80,7 @@ Bali.config do |config|
 
   # The default resolves `controller.current_user`, which does not exist in the engine:
   # without this the version the restore creates would be signed "Unknown".
-  config.content_versions_author = ->(_controller) { [User.demo, User.demo.name] }
+  config.content_versions_author = ->(_controller) { [ User.demo, User.demo.name ] }
 
   # #706 — which dummy records can carry comment threads. The default is
   # `{}`, that is 404 for everything: mounting the engine enables comments on nothing.
