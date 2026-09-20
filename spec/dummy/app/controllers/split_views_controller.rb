@@ -34,14 +34,15 @@ class SplitViewsController < ApplicationController
 
   # AppLayout renders its own <body>, so the shell around it must not have one.
   #
-  # NO como `layout "app_layout_preview", only: :full`: `only:`/`except:` genera un
-  # `_conditional_layout?` DE INSTANCIA, y el `_layout` que Bali::LayoutConcern define en
-  # ApplicationController llama a ese mismo método por dispatch dinámico. O sea que la
-  # condición no solo elige el layout de `full` — apaga el concern entero para TODAS las
-  # demás acciones, que caen a `layouts/application` sin pasar por `conditionally_skip_layout`.
-  # Medido: con `only:`, `/split-view?layout=false` seguía trayendo el shell completo y una
-  # request de Turbo Frame también. Un layout POR ACCIÓN se escribe acá, con `super`, porque
-  # `self.conditional_layout` es un class_attribute y no puede variar por acción.
+  # NOT as `layout "app_layout_preview", only: :full`: `only:`/`except:` generates an
+  # INSTANCE-level `_conditional_layout?`, and the `_layout` that Bali::LayoutConcern defines
+  # in ApplicationController calls that same method through dynamic dispatch. Which means the
+  # condition does not only pick `full`'s layout — it turns the whole concern off for ALL the
+  # other actions, which fall back to `layouts/application` without going through
+  # `conditionally_skip_layout`. Measured: with `only:`, `/split-view?layout=false` still
+  # brought the full shell, and so did a Turbo Frame request. A PER-ACTION layout is written
+  # here, with `super`, because `self.conditional_layout` is a class_attribute and cannot
+  # vary per action.
   def conditionally_skip_layout
     action_name == "full" ? "app_layout_preview" : super
   end

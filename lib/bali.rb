@@ -163,53 +163,55 @@ module Bali
   # Example: '/api/block_editor/uploads'
   mattr_accessor :block_editor_upload_url, default: nil
 
-  # Comentarios del Block Editor (#706) — storage default de threads/comentarios/
-  # reacciones (tablas `bali_block_editor_*`, instaladas con
-  # `bin/rails bali:install:migrations`). Los tres callables de abajo son TODA la
-  # configuración: sin ellos el engine responde 404 a cualquier petición.
+  # Block Editor comments (#706) — default storage for threads/comments/reactions
+  # (`bali_block_editor_*` tables, installed with
+  # `bin/rails bali:install:migrations`). The three callables below are the WHOLE
+  # configuration: without them the engine answers 404 to any request.
   #
-  # A qué modelos del host se les puede colgar un thread. Hash
-  # `"Document" => Document` (usa `.find_by(id:)`) o `"Document" => ->(id) { ... }`
-  # para scopear a mano. La clave es lo que guarda `commentable_type`, o sea
+  # Which host models a thread can hang off. A hash of
+  # `"Document" => Document` (uses `.find_by(id:)`) or `"Document" => ->(id) { ... }`
+  # to scope it by hand. The key is what `commentable_type` stores, that is
   # `record.class.polymorphic_name`.
   #
-  # El default VACÍO es la postura de seguridad: montar el engine no habilita
-  # comentarios en nada, y el tipo jamás se resuelve por `constantize`.
-  # Un lambda de aridad 2 recibe el CONTROLLER primero (misma forma que
-  # `content_versionables`), que es lo que permite scopear por usuario y responder
-  # 404 a lo ajeno en vez del 403 del authorize (el par 403/404 es un oráculo).
+  # The EMPTY default is the security posture: mounting the engine enables
+  # comments on nothing, and the type is never resolved through `constantize`.
+  # An arity-2 lambda receives the CONTROLLER first (same shape as
+  # `content_versionables`), which is what makes it possible to scope by user and
+  # answer 404 for someone else's record instead of the authorize 403 (the 403/404
+  # pair is an oracle).
   # Example: Bali.block_editor_commentables =
   #   { "Document" => ->(c, id) { c.current_user.documents.find_by(id: id) } }
   mattr_accessor :block_editor_commentables, default: {}
 
-  # Identidad del autor: callable evaluado con el controller, devuelve el **string**
-  # del userId (el contrato del JS es string; el nombre a mostrar lo resuelve el
-  # cliente con `comments[:users]`/`users_url`). Mismo aviso que saved_views: el
-  # controller del engine no hereda el del host — ver docs/guides/engines.md.
+  # Author identity: callable evaluated with the controller, returns the userId
+  # **string** (the JS contract is a string; the display name is resolved by the
+  # client from `comments[:users]`/`users_url`). Same warning as saved_views: the
+  # engine's controller does not inherit the host's — see docs/guides/engines.md.
   #
-  # OJO: `RESTThreadStore` manda un header `X-User-Id`, y el engine lo IGNORA a
-  # propósito. Es informativo; confiar en él dejaría comentar como cualquiera.
+  # WATCH OUT: `RESTThreadStore` sends an `X-User-Id` header, and the engine
+  # IGNORES it on purpose. It is informational; trusting it would let anyone
+  # comment as anyone else.
   # Example: ->(controller) { controller.current_member&.id&.to_s }
   mattr_accessor :block_editor_comments_user,
                  default: ->(controller) { controller.try(:current_user)&.id&.to_s }
 
-  # Gate de acceso general: callable (controller, user_id, commentable) — truthy
-  # permite, falsy responde 403. Es el permiso de ENTRADA; las reglas por acción
-  # (solo el autor edita su comentario, solo el autor del primer comentario borra el
-  # thread) están cableadas en los controllers replicando a `DefaultThreadStoreAuth`,
-  # que es lo que la UI ya promete.
+  # General access gate: callable (controller, user_id, commentable) — truthy
+  # allows, falsy answers 403. This is the ENTRY permission; the per-action rules
+  # (only the author edits their own comment, only the author of the first comment
+  # deletes the thread) are wired into the controllers mirroring
+  # `DefaultThreadStoreAuth`, which is what the UI already promises.
   # Example: ->(controller, user_id, commentable) { commentable.readable_by?(user_id) }
   mattr_accessor :block_editor_comments_authorize,
                  default: ->(_controller, user_id, _commentable) { user_id.present? }
 
-  # Saved views (B2) — storage default que trae el engine (tabla `bali_saved_views`,
-  # instalada con `bin/rails bali:install:migrations`).
+  # Saved views (B2) — the default storage the engine ships (`bali_saved_views`
+  # table, installed with `bin/rails bali:install:migrations`).
   #
-  # Dueño de las vistas: callable evaluado con el controller de la request. OJO: el
-  # controller del ENGINE no hereda el ApplicationController del host, así que un
-  # `current_user` que viva en un concern del host no existe ahí solo — o el host se lo
-  # enseña (p.ej. `Bali::SavedViewsController.include MiAuthConcern` en un to_prepare,
-  # skipeando los before_action del concern) o configura este callable.
+  # Owner of the views: callable evaluated with the request's controller. WATCH OUT:
+  # the ENGINE's controller does not inherit the host's ApplicationController, so a
+  # `current_user` living in a host concern does not exist there on its own — either
+  # the host teaches it (e.g. `Bali::SavedViewsController.include MyAuthConcern` in a
+  # to_prepare, skipping the concern's before_action) or it configures this callable.
   # Example: ->(controller) { controller.current_member }
   mattr_accessor :saved_views_owner, default: ->(controller) { controller.try(:current_user) }
 
@@ -224,57 +226,58 @@ module Bali
   # Example: Bali.filter_context = ->(controller) { controller.current_account&.id }
   mattr_accessor :filter_context, default: ->(controller) { controller.try(:current_user)&.id }
 
-  # Autorización de Bali::SavedViewsController: callable (controller, owner) — truthy
-  # permite, falsy responde 403. El default exige owner presente; una app puede endurecerlo
-  # (p.ej. Pundit) porque los hooks del ApplicationController del HOST no aplican en el
-  # controller del engine.
+  # Bali::SavedViewsController authorization: callable (controller, owner) — truthy
+  # allows, falsy answers 403. The default requires the owner to be present; an app can
+  # harden it (e.g. Pundit) because the HOST's ApplicationController hooks do not apply
+  # in the engine's controller.
   # Example: ->(controller, owner) { owner&.can?("tdflow.access") }
   mattr_accessor :saved_views_authorize, default: ->(_controller, owner) { owner.present? }
 
-  # Referencias de entidades (#708) — UNA declaración por tipo referenciable, que alimenta
-  # las tres cosas que antes se declaraban por separado: el buscador del `#`, la resolución
-  # de los chips y el `references_config` que el BlockEditor le pasa al JS.
+  # Entity references (#708) — ONE declaration per referenceable type, feeding the three
+  # things that used to be declared separately: the `#` search, chip resolution and the
+  # `references_config` the BlockEditor hands the JS.
   #
-  # La clave es a la vez el `entityType` que viaja al navegador y el `referenceable_type`
-  # que se guarda en `bali_entity_references`, así que es el nombre de la clase.
+  # The key is at once the `entityType` that travels to the browser and the
+  # `referenceable_type` stored in `bali_entity_references`, so it is the class name.
   #
   #   Bali.entity_reference_types = {
   #     "Document" => {
-  #       search_scope:  -> { Document.published },      # lo que ofrece el autocompletado
-  #       lookup_scope:  -> { Document.all },            # INCLUYE archivados: un chip roto
-  #       search_fields: %i[title document_number],      #   se pinta, no desaparece
+  #       search_scope:  -> { Document.published },      # what autocomplete offers
+  #       lookup_scope:  -> { Document.all },            # INCLUDES archived: a broken chip
+  #       search_fields: %i[title document_number],      #   is painted, not dropped
   #       display_field: :title,
   #       url:           ->(doc) { Rails.application.routes.url_helpers.document_path(doc) },
   #       unreachable?:  ->(doc) { doc.nil? || doc.archived? },
   #       extra_payload: ->(doc) { { entityCode: doc.number } },
   #       permission_scope: ->(controller, scope) { Pundit.policy_scope!(controller.current_user, scope) },
-  #       display:       { icon: "▧", label: "Documento", color: "success" }
+  #       display:       { icon: "▧", label: "Document", color: "success" }
   #     }
   #   }
   #
-  # `url:` es del host A PROPÓSITO: el engine no conoce las rutas de la app y el resolver
-  # corre fuera de una vista, donde `main_app` no existe. Solo `search_scope`,
-  # `lookup_scope`, `search_fields` y `display_field` son obligatorios. Guía completa de
-  # adopción: docs/guides/engines.md.
+  # `url:` belongs to the host ON PURPOSE: the engine does not know the app's routes and
+  # the resolver runs outside a view, where `main_app` does not exist. Only `search_scope`,
+  # `lookup_scope`, `search_fields` and `display_field` are required. Full adoption guide:
+  # docs/guides/engines.md.
   mattr_accessor :entity_reference_types, default: {}
 
-  # Las claves se normalizan a String al asignar. Son a la vez el `entityType` del JSON y el
-  # `referenceable_type` de la tabla, y el registry se lee desde los dos lados: declararlo con
-  # símbolos dejaba al controller resolviendo TODO como roto (compara contra un String de
-  # params) mientras el modelo lo veía TODO alcanzable, sin un error que lo delatara.
+  # Keys are normalized to String on assignment. They are at once the JSON's `entityType`
+  # and the table's `referenceable_type`, and the registry is read from both sides:
+  # declaring them with symbols left the controller resolving EVERYTHING as broken (it
+  # compares against a String from params) while the model saw EVERYTHING as reachable,
+  # with no error to give it away.
   def self.entity_reference_types=(types)
     @@entity_reference_types = types.to_h { |type, config| [ type.to_s, config ] } # rubocop:disable Style/ClassVars
   end
 
-  # Autorización de Bali::EntityReferencesController: callable (controller) — truthy permite,
-  # falsy responde 403. El default DENIEGA: los endpoints exponen nombres de registros del
-  # host, así que hay que abrirlos a mano (y con `permission_scope:` por tipo para el resto).
+  # Bali::EntityReferencesController authorization: callable (controller) — truthy allows,
+  # falsy answers 403. The default DENIES: the endpoints expose names of host records, so
+  # they have to be opened by hand (and with a per-type `permission_scope:` for the rest).
   # Example: ->(controller) { controller.current_user.present? }
   mattr_accessor :entity_references_authorize, default: ->(_controller) { false }
 
-  # El sub-hash `display:` del registry, listo para el `references_config` del BlockEditor.
-  # El componente lo usa como default cuando el host no pasa `references_config:`, que es lo
-  # que hace que declarar un tipo baste para que su chip salga con su icono y su color.
+  # The registry's `display:` sub-hash, ready for the BlockEditor's `references_config`.
+  # The component uses it as the default when the host passes no `references_config:`, which
+  # is what makes declaring a type enough for its chip to come out with its icon and color.
   def self.entity_references_config
     entity_reference_types.each_with_object({}) do |(type, config), out|
       display = config[:display]
@@ -284,43 +287,43 @@ module Bali
     end
   end
 
-  # Alcanzabilidad de un referido según su tipo en el registry. Un tipo sin registrar cae al
-  # default (presente = alcanzable), que es lo que quiere un panel que lista referencias
-  # viejas de un tipo dado de baja.
+  # Reachability of a referent according to its type in the registry. An unregistered type
+  # falls back to the default (present = reachable), which is what a panel listing old
+  # references of a retired type wants.
   def self.entity_reference_unreachable?(type, record)
     gate = entity_reference_types.dig(type.to_s, :unreachable?)
     (gate || Bali::EntityReference::Resolver::DEFAULT_UNREACHABLE).call(record)
   end
 
-  # Content versions (#707) — historial polimórfico del engine documental (tabla
-  # `bali_content_versions`, instalada con `bin/rails bali:install:migrations`).
+  # Content versions (#707) — the document engine's polymorphic history
+  # (`bali_content_versions` table, installed with `bin/rails bali:install:migrations`).
   #
-  # Whitelist de modelos versionables que `Bali::ContentVersionsController` acepta por
-  # HTTP: `{ "Document" => ->(controller, id) { ... } }`. La llave es el `record_type` que
-  # viaja en el query string (el `polymorphic_name` del modelo) y el valor un callable que
-  # devuelve el registro o nil. El default `{}` es DEFAULT-DENY: sin whitelist, cualquier
-  # `record_type` responde 404 — la única forma de exponer un modelo es nombrarlo aquí.
+  # Whitelist of versionable models `Bali::ContentVersionsController` accepts over
+  # HTTP: `{ "Document" => ->(controller, id) { ... } }`. The key is the `record_type` that
+  # travels in the query string (the model's `polymorphic_name`) and the value a callable
+  # returning the record or nil. The `{}` default is DEFAULT-DENY: with no whitelist, any
+  # `record_type` answers 404 — the only way to expose a model is to name it here.
   #
-  # El resolver es el lugar del scoping: devolver solo lo que ese usuario puede ver
-  # (`controller.current_user.documents.find_by(id: id)`) hace que lo ajeno sea un 404 en
-  # vez de un 403 que confirme que existe.
+  # The resolver is where the scoping belongs: returning only what that user can see
+  # (`controller.current_user.documents.find_by(id: id)`) makes someone else's record a 404
+  # instead of a 403 that confirms it exists.
   # Example: Bali.content_versionables = {
   #   "Document" => ->(controller, id) { controller.current_user.documents.find_by(id: id) }
   # }
   mattr_accessor :content_versionables, default: {}
 
-  # Autorización de Bali::ContentVersionsController: callable (controller, record, action)
-  # — truthy permite, falsy responde 403. El default NIEGA todo: leer el historial de un
-  # modelo del host es una decisión del host, y los hooks de su ApplicationController no
-  # aplican en el controller del engine. `action` es "index", "show" o "restore", así que
-  # se puede dejar leer a todos y restaurar solo a algunos.
+  # Bali::ContentVersionsController authorization: callable (controller, record, action)
+  # — truthy allows, falsy answers 403. The default DENIES everything: reading the history
+  # of a host model is the host's decision, and its ApplicationController hooks do not
+  # apply in the engine's controller. `action` is "index", "show" or "restore", so reading
+  # can be left open to everyone and restoring to only a few.
   # Example: ->(controller, record, action) { action == "restore" ? record.editable_by?(controller.current_user) : true }
   mattr_accessor :content_versions_authorize, default: ->(_controller, _record, _action) { false }
 
-  # Autor de las versiones que CREA el engine (hoy solo la del restore): callable
-  # (controller) que devuelve `[author, author_name]`. `author` es opcional —un host sin
-  # modelo de usuario devuelve nil y solo nombra—; `author_name` se guarda siempre porque
-  # es lo único que el JSON del panel de versiones sirve.
+  # Author of the versions the engine CREATES (today only the restore's): callable
+  # (controller) returning `[author, author_name]`. `author` is optional —a host with no
+  # user model returns nil and only names—; `author_name` is always stored because it is
+  # the only thing the versions panel's JSON serves.
   # Example: ->(controller) { u = controller.current_user; [u, u.full_name] }
   mattr_accessor :content_versions_author, default: lambda { |controller|
     user = controller.try(:current_user)

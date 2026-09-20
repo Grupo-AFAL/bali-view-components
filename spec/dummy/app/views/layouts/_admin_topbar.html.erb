@@ -40,9 +40,9 @@
   <% end %>
 
   <% topbar.with_user_menu do %>
-    <%# La identidad sale de `current_user`, no de dos strings sueltos: quien nombra el
-        topbar ES el dueño de las vistas guardadas de /admin/movies. Sin ruta mágica de
-        sign_out: el `href:` va explícito y el verbo es :delete por default (#713). %>
+    <%# The identity comes from `current_user`, not from two loose strings: whoever the
+        topbar names IS the owner of the saved views on /admin/movies. No magic sign_out
+        route: the `href:` is explicit and the verb is :delete by default (#713). %>
     <%= render Bali::Topbar::UserMenu::Component.new(
       name: current_user.name,
       email: "#{current_user.name.parameterize}@example.com",

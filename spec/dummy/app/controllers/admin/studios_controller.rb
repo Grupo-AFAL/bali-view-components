@@ -9,7 +9,8 @@ module Admin
 
       respond_to do |format|
         format.html
-        # Sin esto el link de export del ⋯ es un 406 y no hay forma de ver que el recorte viajó.
+        # Without this the export link in the ⋯ is a 406 and there is no way to see that the
+        # active filtering travelled with it.
         format.csv do
           render plain: @filter_form.result.pluck(:name).join("\n"), content_type: 'text/csv'
         end
@@ -24,15 +25,16 @@ module Admin
 
     def edit; end
 
-    # El éxito responde por los dos caminos a propósito. Desde la página, un redirect. Desde el
-    # drawer, un `text/vnd.turbo-stream.html`: el ModalController aplica los streams Y cierra el
-    # panel, que es lo que un redirect no puede hacer — se lleva la página entera con él. El
-    # error NO se ramifica: `render :new` devuelve HTML, el drawer lo mete en su propio cuerpo y
-    # el formulario se re-pinta adentro con sus mensajes.
+    # Success answers down both paths on purpose. From the page, a redirect. From the drawer, a
+    # `text/vnd.turbo-stream.html`: the ModalController applies the streams AND closes the panel,
+    # which is what a redirect cannot do — it takes the whole page with it. The error path does
+    # NOT branch: `render :new` returns HTML, the drawer puts it in its own body and the form
+    # re-paints inside it with its messages.
     #
-    # La rama del stream NO arma el listado: el POST del drawer no lleva los params de la página
-    # (ver create.turbo_stream.erb), así que armarlo acá lo devuelve sin agrupar y sin recortar.
-    # La plantilla pide un refresh y el listado lo vuelve a armar `index`, desde la URL real.
+    # The stream branch does NOT build the listing: the drawer's POST does not carry the page's
+    # params (see create.turbo_stream.erb), so building it here returns it ungrouped and
+    # unfiltered. The template asks for a refresh and `index` rebuilds the listing, from the
+    # real URL.
     def create
       @studio = Studio.new(studio_params)
 
@@ -50,8 +52,8 @@ module Admin
       if @studio.update(studio_params)
         respond_to do |format|
           format.html { redirect_to admin_studios_path, notice: 'Studio was successfully updated.' }
-          # La misma plantilla que create: los dos hacen lo mismo, y dos copias de un refresh
-          # divergen en silencio.
+          # The same template as create: both do the same thing, and two copies of a refresh
+          # diverge silently.
           format.turbo_stream { render :create }
         end
       else
@@ -74,33 +76,33 @@ module Admin
       params.expect(studio: %i[name country status size founded_year indie])
     end
 
-    # El listado, en un solo lugar: lo arma `index` y lo pinta el partial que comparten la
-    # página y el refresh del drawer.
+    # The listing, in a single place: `index` builds it and it is painted by the partial the
+    # page and the drawer's refresh share.
     def load_listing
-      # `Bali::Filterable#filter_form` (#999): context y persist_enabled derivados — ver el
-      # comentario gemelo en Admin::MoviesController#index.
+      # `Bali::Filterable#filter_form` (#999): context and persist_enabled derived — see the
+      # twin comment in Admin::MoviesController#index.
       @filter_form = filter_form(
         Bali::FilterForm,
         Studio.all,
         simple_filters: Studio.filter_options,
         search_fields: %i[name],
         search_icon: 'search',
-        # Un listado sin `storage_id` no tiene identidad: la persistencia de filtros y el
-        # marcador de la toolbar se apagan solos, en silencio. Es el mínimo que necesita
-        # cualquier índice, adopte o no las vistas guardadas y el selector de columnas.
+        # A listing with no `storage_id` has no identity: filter persistence and the
+        # toolbar's marker turn themselves off, silently. It is the minimum any index needs,
+        # whether or not it adopts saved views and the column selector.
         storage_id: 'admin_studios',
-        # El control "Agrupar por" se auto-configura desde acá. Es la lista blanca: el param
-        # crudo nunca llega a un `group()` sin pasar por ella.
+        # The "Group by" control auto-configures from here. It is the allowlist: the raw
+        # param never reaches a `group()` without going through it.
         group_by_attributes: %i[status country size],
-        # Storage default del engine (tabla bali_saved_views). El dueño va explícito porque el
-        # FilterForm vive en el host; las mutaciones las resuelve el controller del engine por
-        # `Bali.saved_views_owner` (ver config/initializers/bali.rb).
+        # The engine's default store (bali_saved_views table). The owner goes explicit because
+        # the FilterForm lives in the host; the mutations are resolved by the engine's
+        # controller through `Bali.saved_views_owner` (see config/initializers/bali.rb).
         saved_views_store: :default,
         saved_views_owner: current_user
       )
 
-      # `.order(:name)` se apendea DESPUÉS del orden de Ransack, así que un clic en un
-      # encabezado sigue mandando; esto solo fija el desempate.
+      # `.order(:name)` is appended AFTER Ransack's ordering, so a click on a header still
+      # wins; this only settles the tie-break.
       @pagy, @studios = pagy(@filter_form.result.order(:name), limit: 10)
     end
   end

@@ -3,15 +3,16 @@
 class ApplicationController < ActionController::Base
   include Pagy::Method
 
-  # Un solo lugar decide que un `?layout=false` es el Modal/Drawer trayéndose la vista: el
-  # concern apaga el layout y expone `drawer_request?` a las vistas, que es de donde los page
-  # components autodetectan su `context:`. Antes cada acción lo escribía a mano
-  # (`render layout: !drawer_request?`) sobre su propia copia del predicado. Un controller con
-  # layout propio lo declara con `self.conditional_layout = "..."`, no con `layout "..."`:
-  # `layout` en la subclase pisa al del concern y se lleva puesto el apagado.
+  # A single place decides that a `?layout=false` is the Modal/Drawer fetching the view: the
+  # concern turns the layout off and exposes `drawer_request?` to the views, which is where the
+  # page components autodetect their `context:`. Each action used to write it by hand
+  # (`render layout: !drawer_request?`) over its own copy of the predicate. A controller with a
+  # layout of its own declares it with `self.conditional_layout = "..."`, not with
+  # `layout "..."`: `layout` in the subclass overrides the concern's and takes the shutoff
+  # down with it.
   include Bali::LayoutConcern
-  # `filter_form(Klass, scope)` con el circuito de la persistencia cerrado (#999):
-  # storage_id derivado, cookie leída, context desde `Bali.filter_context`.
+  # `filter_form(Klass, scope)` with the persistence loop closed (#999):
+  # storage_id derived, cookie read, context from `Bali.filter_context`.
   include Bali::Filterable
 
   around_action :switch_locale
@@ -20,21 +21,20 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # Identidad única del demo, la misma que resuelve `Bali.saved_views_owner` para el
-  # controller del engine: el dueño de las vistas guardadas y el nombre del topbar son el
-  # mismo hecho, escrito una vez.
+  # The demo's single identity, the same one `Bali.saved_views_owner` resolves for the
+  # engine's controller: the owner of the saved views and the name in the topbar are the
+  # same fact, written once.
   def current_user
     @current_user ||= User.demo
   end
 
-  # La caché de persistencia de filtros se llama `class;context;storage_id`: SIN `context:` un
-  # único key sirve a TODAS las visitas del proceso, así que los filtros —y el texto de la
-  # búsqueda rápida— de un visitante se le restauran al siguiente. Con el `:null_store` esto no
-  # se veía porque no se guardaba nada; con una caché real el dummy tiene que demostrar el
-  # patrón AISLADO, que es el que una app host va a copiar. El demo tiene un solo usuario, así
-  # que la identidad que separa acá es el navegador.
-  # Lo lee `Bali.filter_context` (ver config/initializers/bali.rb): el demo tiene un solo
-  # usuario, así que la identidad que separa la persistencia es el navegador.
+  # The filter persistence cache key is `class;context;storage_id`: WITHOUT `context:` a
+  # single key serves ALL the visits in the process, so one visitor's filters —and their quick
+  # search text— get restored to the next one. With the `:null_store` this was invisible
+  # because nothing was stored; with a real cache the dummy has to demonstrate the ISOLATED
+  # pattern, which is the one a host app is going to copy. Read by `Bali.filter_context` (see
+  # config/initializers/bali.rb). The demo has a single user, so the identity that separates
+  # here is the browser.
   def filter_context
     session[:visitor_token] ||= SecureRandom.hex(8)
   end

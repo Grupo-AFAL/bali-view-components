@@ -1,28 +1,28 @@
-<%# El listado, compartido por index.html.erb y por los streams de create/update: el drawer
-    reemplaza EXACTAMENTE este nodo, así que las dos ramas tienen que producir el mismo DOM.
+<%# The listing, shared by index.html.erb and by the create/update streams: the drawer
+    replaces EXACTLY this node, so both branches have to produce the same DOM.
 
-    El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
+    The DataTable goes in bare: the surface travels with its content slot. %>
 <%= render Bali::DataTable::Component.new(
   filter_form: @filter_form,
   url: admin_studios_path,
   pagy: @pagy,
   item_name: t('studios.title').downcase
 ) do |data_table| %>
-  <%# El `search:` viaja por el mismo camino en los dos modos de filtro. %>
+  <%# `search:` travels the same path in both filter modes. %>
   <% data_table.with_simple_filters(search: { placeholder: t('studios.search_placeholder') }) %>
 
-  <%# Vistas guardadas: combinaciones de filtros CON NOMBRE. Sin `url:` apunta a las rutas
-      del engine montado (/bali); el store y el dueño los trae el FilterForm.
+  <%# Saved views: NAMED filter combinations. Without `url:` it points at the mounted
+      engine's routes (/bali); the store and the owner come from the FilterForm.
 
-      OJO (#823): acá la vista guarda la agrupación, las columnas y la búsqueda rápida, pero
-      NO el recorte de los filtros simplificados — `current_view_payload` no los representa.
-      Se deja puesto a propósito: es la superficie que el índice simplificado tiene que
-      ejercitar, y esconderla volvería a tapar el defecto en vez de arreglarlo. %>
+      CAREFUL (#823): here the view saves the grouping, the columns and the quick search, but
+      NOT the narrowing done by the simple filters — `current_view_payload` does not represent
+      them. Left in on purpose: it is the surface the simplified index has to exercise, and
+      hiding it would go back to covering up the defect instead of fixing it. %>
   <% data_table.with_saved_views %>
 
-  <%# Los índices arrancan en 0 porque esta tabla NO es `selectable:` — en /admin/movies la
-      0 es la columna de selección que pinta el componente y por eso allá arranca en 1. La
-      de acciones queda fuera a propósito: esconderla deja las filas sin su ⋯. %>
+  <%# The indexes start at 0 because this table is NOT `selectable:` — in /admin/movies index
+      0 is the selection column the component paints, which is why it starts at 1 there. The
+      actions one is left out on purpose: hiding it leaves the rows without their ⋯. %>
   <% data_table.with_column_selector do |cs| %>
     <% cs.with_column(index: 0, label: t('studios.columns.name')) %>
     <% cs.with_column(index: 1, label: t('studios.columns.country')) %>
@@ -32,11 +32,11 @@
   <% end %>
 
   <% data_table.with_table do %>
-    <%# `table` y no `t`: la variable del bloque sombrea al helper de i18n, y las seis
-        llamadas a `t(...)` de acá adentro sobreviven solo porque llevan paréntesis.
+    <%# `table` and not `t`: the block variable shadows the i18n helper, and the six
+        `t(...)` calls in here survive only because they carry parentheses.
 
-        `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
-        sobre el set filtrado, y no solo lo que entró en esta página. %>
+        `group_counts` is what makes the group header show the GLOBAL total over the
+        filtered set, and not just what landed on this page. %>
     <%= render Bali::Table::Component.new(form: @filter_form,
                                           group_counts: @filter_form.group_counts) do |table| %>
       <% table.with_header(name: t('studios.columns.name'), sort: :name) %>
@@ -44,14 +44,13 @@
       <% table.with_header(name: t('studios.columns.status'), sort: :status) %>
       <% table.with_header(name: t('studios.columns.size'), sort: :size) %>
       <% table.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
-      <%# `class: 'text-right'` y no `align:`, que el componente no declara y sale como el
-          atributo HTML obsoleto `<th align="right">`. %>
+      <%# `class: 'text-right'` and not `align:`, which the component does not declare and
+          comes out as the obsolete HTML attribute `<th align="right">`. %>
       <% table.with_header(name: t('studios.columns.actions'), class: 'text-right') %>
 
       <% @studios.each do |studio| %>
-        <%# `group_value_for` devuelve la llave CRUDA de la banda —la que hay que hacer
-            coincidir con `group_counts`— y `nil` cuando la agrupación está apagada O
-            suspendida. %>
+        <%# `group_value_for` returns the band's RAW key —the one that has to match
+            `group_counts`— and `nil` when the grouping is off OR suspended. %>
         <% table.with_row(group: @filter_form.group_value_for(studio)) do %>
           <td class="font-medium">
             <%= render Bali::Link::Component.new(
@@ -60,9 +59,9 @@
               data: { action: 'modal#open', modal_size: 'lg' }
             ) %>
           </td>
-          <%# `Studio` sólo valida `name`, y el drawer de esta misma página deja crear uno sin
-              país ni status: un `.humanize` pelado dejaba el índice en 500 (#834). Un valor
-              ausente se pinta como raya — eso ES el dato, y no un tag vacío. %>
+          <%# `Studio` only validates `name`, and the drawer on this same page allows creating
+              one with no country and no status: a bare `.humanize` left the index at 500
+              (#834). A missing value is painted as a dash — that IS the data, not an empty tag. %>
           <td>
             <% if studio.country.present? %>
               <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
@@ -102,9 +101,9 @@
         <% end %>
       <% end %>
 
-      <%# El EmptyState del componente ya distingue "sin registros" de "sin resultados"
-          según haya filtros activos; lo único que le falta es a dónde ir cuando la tabla
-          está vacía de verdad. %>
+      <%# The component's EmptyState already tells "No Records" from "No Results" depending
+          on whether there are active filters; the only thing it is missing is where to go
+          when the table is genuinely empty. %>
       <% table.with_new_record_link(
         name: t('studios.new_studio'),
         href: new_admin_studio_path,

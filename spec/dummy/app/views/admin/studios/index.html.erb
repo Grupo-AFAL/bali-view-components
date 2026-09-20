@@ -1,8 +1,8 @@
-<%# La referencia del índice SIMPLIFICADO: misma línea de diseño que /admin/movies, y la
-    única diferencia deliberada es el tipo de filtro — `with_simple_filters` acá,
-    `with_filters_panel` allá. Todo lo demás (subtítulo, tamaño del botón primario, export
-    en el ⋯, empty state, columnas ordenables) tiene que coincidir, o las dos páginas
-    enseñan dos convenciones distintas para lo mismo. %>
+<%# The reference for the SIMPLIFIED index: same design line as /admin/movies, and the only
+    deliberate difference is the filter type — `with_simple_filters` here,
+    `with_filters_panel` there. Everything else (subtitle, primary button size, export in
+    the ⋯, empty state, sortable columns) has to match, or the two pages teach two
+    different conventions for the same thing. %>
 <%= render Bali::IndexPage::Component.new(
   title: t('studios.title'),
   subtitle: t('studios.subtitle'),
@@ -11,8 +11,8 @@
     { name: t('studios.title') }
   ]
 ) do |page| %>
-  <%# Sin `size:`: el ⋯ del PageHeader dejó de ser `btn-sm` para igualar altura con la
-      acción primaria, así que achicar la primaria devuelve el desfase que eso resolvió. %>
+  <%# No `size:`: the PageHeader's ⋯ stopped being `btn-sm` to match the primary action's
+      height, so shrinking the primary one brings back the offset that change fixed. %>
   <% page.with_action do %>
     <%= render Bali::Link::Component.new(
       name: t('studios.new_studio'),
@@ -23,8 +23,9 @@
     ) %>
   <% end %>
 
-  <%# `formats: [:csv]` y no los tres del default: el controller solo responde CSV, y un
-      item que devuelve 406 en una página de referencia enseña la trampa en vez del arreglo. %>
+  <%# `formats: [:csv]` and not the three from the default: the controller only responds to
+      CSV, and an item that returns 406 on a reference page teaches the trap instead of the
+      fix. %>
   <% page.with_export(url: admin_studios_path, formats: [:csv]) %>
 
   <% page.with_body do %>

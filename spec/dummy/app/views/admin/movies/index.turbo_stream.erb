@@ -1,8 +1,8 @@
-<%# El target es la identidad RESUELTA del listado, no el `storage_id` crudo: el DataTable
-    lo sanea a un identificador CSS válido, así que un storage_id con "/", con espacios o
-    que empieza con dígito rinde un id distinto. Turbo resuelve el target por
-    getElementById: sin nodo no reemplaza nada, no revienta y no loguea. El cuerpo es el
-    MISMO partial que el html.erb, así que los dos caminos no pueden divergir. %>
+<%# The target is the listing's RESOLVED identity, not the raw `storage_id`: the DataTable
+    sanitizes it into a valid CSS identifier, so a storage_id with "/", with spaces or
+    starting with a digit yields a different id. Turbo resolves the target through
+    getElementById: with no node it replaces nothing, does not blow up and does not log.
+    The body is the SAME partial as the html.erb, so the two paths cannot diverge. %>
 <%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
   <%= render 'listing' %>
 <% end %>
