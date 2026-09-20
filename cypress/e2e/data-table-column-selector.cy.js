@@ -1,10 +1,10 @@
-// El selector de columnas esconde celdas POR ÍNDICE, y tres filas de `Bali::Table` no llevan
-// una celda por columna: la banda de grupo (un `td` con `colspan`, precedido por el
-// seleccionar-todo cuando la tabla es `selectable:`), el estado vacío (otro que cubre la tabla
-// entera) y la fila de totales del `tfoot`. Antes el índice las alcanzaba y borraba la celda
-// equivocada — la banda con el botón de plegado adentro, el mensaje de «sin resultados», o el
-// total de la columna de al lado (#1144).
-describe('DataTable column selector sobre una tabla agrupada', () => {
+// The column selector hides cells BY INDEX, and three `Bali::Table` rows carry no cell per
+// column: the group band (one `td` with `colspan`, preceded by the select-all cell when the
+// table is `selectable:`), the empty state (another one covering the whole table) and the
+// `tfoot` totals row. The index used to reach them and wipe the wrong cell — the band with the
+// fold button inside it, the "no results" message, or the total of the column next to it
+// (#1144).
+describe('DataTable column selector on a grouped table', () => {
   const grouped = '#grouped-columns'
   const selectable = '#selectable-columns'
   const empty = '#empty-columns'
@@ -12,8 +12,8 @@ describe('DataTable column selector sobre una tabla agrupada', () => {
   const trigger = `${band} button[data-table-groups-target="trigger"]`
   const rows = 'tbody tr[data-table-groups-target="row"]'
 
-  // `force`: el panel del dropdown lo abre el `:focus-within` de daisyUI, así que la casilla
-  // no es accionable con el menú cerrado. Lo que importa acá es el `change` que dispara.
+  // `force`: daisyUI's `:focus-within` is what opens the dropdown panel, so the checkbox is not
+  // actionable with the menu closed. What matters here is the `change` it fires.
   const hideColumn = (listing, index) =>
     cy.get(`${listing} [data-controller~="column-selector"] input[data-column-index="${index}"]`)
       .uncheck({ force: true })
@@ -22,25 +22,24 @@ describe('DataTable column selector sobre una tabla agrupada', () => {
     cy.visit('/bali/data_table/with_column_selector')
   })
 
-  it('esconde la columna sin llevarse las bandas de grupo', () => {
+  it('hides the column without taking the group bands with it', () => {
     cy.get(`${grouped} ${band}`).should('have.length', 3)
 
     hideColumn(grouped, 0)
 
-    // La columna se fue de verdad: encabezado y celda de una fila de datos.
     cy.get(`${grouped} thead th`).eq(0).should('not.be.visible')
     cy.get(`${grouped} ${rows}`).first().find('td').eq(0).should('not.be.visible')
 
-    // La banda no: su celda abarca las cuatro columnas, así que el índice 0 no la nombra.
+    // The band is untouched: its cell spans all four columns, so index 0 does not name it.
     cy.get(`${grouped} ${band}`).should('have.length', 3).each(($row) => {
       cy.wrap($row).find('td').should('be.visible')
     })
     cy.get(`${grouped} ${trigger}`).should('have.length', 3).and('be.visible')
   })
 
-  // El caso grave: con la banda plegada, su botón es lo ÚNICO que puede volver a mostrar esas
-  // filas. Esconderlo las dejaba inalcanzables hasta recargar la página.
-  it('deja desplegable la banda que nace plegada', () => {
+  // The serious case: with the band folded, its button is the ONLY thing that can bring those
+  // rows back. Hiding it left them unreachable without a page reload.
+  it('keeps the band that is born folded expandable', () => {
     hideColumn(grouped, 0)
 
     cy.get(`${grouped} ${trigger}[aria-expanded="false"]`).should('have.length', 1).then(($trigger) => {
@@ -54,24 +53,24 @@ describe('DataTable column selector sobre una tabla agrupada', () => {
     })
   })
 
-  // `selectable: true` + grupos es la composición de los anfitriones (gobierno-corporativo).
-  // La banda tiene entonces DOS celdas —el seleccionar-todo del grupo y la banda— y el índice
-  // que cae sobre la banda es 1, no 0: las columnas de datos arrancan después de la de
-  // selección, que también es un `thead th`.
-  it('esconde la columna correcta con la tabla selectable', () => {
+  // `selectable: true` + groups is the hosts' composition (gobierno-corporativo). The band then
+  // carries TWO cells — the group's select-all and the band itself — and the index that lands on
+  // the band is 1, not 0: the data columns start after the selection column, which is also a
+  // `thead th`.
+  it('hides the right column when the table is selectable', () => {
     cy.get(`${selectable} ${band}`).should('have.length', 3)
     cy.get(`${selectable} ${band}`).first().find('td').should('have.length', 2)
 
     hideColumn(selectable, 1)
 
-    // Índice 1 = "Initiative", no la columna de selección.
+    // Index 1 = "Initiative", not the selection column.
     cy.get(`${selectable} thead th`).eq(0).should('be.visible')
     cy.get(`${selectable} thead th`).eq(1).should('not.be.visible')
     cy.get(`${selectable} ${rows}`).first().find('td').eq(0).should('be.visible')
     cy.get(`${selectable} ${rows}`).first().find('td').eq(1).should('not.be.visible')
 
-    // Las dos celdas de la banda siguen ahí: la del seleccionar-todo (columna 0, que nadie
-    // escondió) y la banda misma, que abarca las cuatro columnas de datos.
+    // The band's two cells are still there: the select-all one (column 0, which nobody hid) and
+    // the band itself, which spans the four data columns.
     cy.get(`${selectable} ${band}`).each(($row) => {
       cy.wrap($row).find('td').should('have.length', 2).and('be.visible')
     })
@@ -79,10 +78,10 @@ describe('DataTable column selector sobre una tabla agrupada', () => {
     cy.get(`${selectable} ${band} input[type="checkbox"]`).should('have.length', 3).and('be.visible')
   })
 
-  // La fila de totales del `tfoot` es la otra fila con `colspan`, y el selector la recorre por
-  // su cuenta. Su primera celda abarca dos columnas, así que el resumen de "Leader" (índice 2)
-  // es la SEGUNDA celda: por índice crudo se escondía la de al lado.
-  it('esconde la celda del tfoot que corresponde a la columna', () => {
+  // The `tfoot` totals row is the other row with `colspan`, and the selector walks it on its own.
+  // Its first cell spans two columns, so the "Leader" summary (index 2) is the SECOND cell: by
+  // raw index it used to hide the one next to it.
+  it('hides the tfoot cell that belongs to the column', () => {
     cy.get(`${grouped} tfoot td`).should('have.length', 3)
 
     hideColumn(grouped, 2)
@@ -93,8 +92,8 @@ describe('DataTable column selector sobre una tabla agrupada', () => {
     cy.get(`${grouped} tfoot td`).eq(2).should('be.visible').and('contain', 'cuadrantes')
   })
 
-  // Y la celda con `colspan` del mismo `tfoot` no se va con ninguna de las columnas que abarca.
-  it('no borra la celda con colspan del tfoot', () => {
+  // And the `colspan` cell of that same `tfoot` does not go with any of the columns it spans.
+  it('does not remove the tfoot cell with colspan', () => {
     hideColumn(grouped, 0)
 
     cy.get(`${grouped} tfoot td`).eq(0).should('be.visible').and('contain', 'iniciativas')
@@ -102,9 +101,9 @@ describe('DataTable column selector sobre una tabla agrupada', () => {
     cy.get(`${grouped} tfoot td`).eq(2).should('be.visible')
   })
 
-  // El último listado de la preview no tiene filas. Su `<tr>` no lleva clase propia, así que
-  // una guarda por fila (`tr:not(.bali-table-group-row)`) lo habría dejado roto igual.
-  it('no borra el estado vacío de un listado sin resultados', () => {
+  // The preview's last listing has no rows. Its `<tr>` carries no class of its own, so a per-row
+  // guard (`tr:not(.bali-table-group-row)`) would have left it broken all the same.
+  it('does not remove the empty state of a listing with no results', () => {
     hideColumn(empty, 0)
 
     cy.get(`${empty} thead th`).eq(0).should('not.be.visible')

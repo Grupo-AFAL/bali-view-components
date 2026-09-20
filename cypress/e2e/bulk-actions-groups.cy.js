@@ -1,19 +1,19 @@
-// Un solo `bulk-actions` para N listados: cada seleccionar-todo marca lo suyo y el contador
-// sigue siendo uno, el total. Lo que el componente descarta —una instancia por grupo— daría
-// N contadores y ningún total, y anidarlas dejaría a la barra de afuera sin ver las filas.
-describe('BulkActionsController — selección por subgrupo', () => {
+// A single `bulk-actions` for N listings: each select-all checks its own and the counter is
+// still one, the total. What the component rules out —one instance per group— would give N
+// counters and no total, and nesting them would leave the outer bar blind to the rows.
+describe('BulkActionsController — selection by subgroup', () => {
   const counter = '[data-bulk-actions-target="selectedCount"]'
   const tables = '.table-component'
   const rows = 'tbody tr[data-bulk-actions-target="item"]'
   const groupHeader = 'tr.bali-table-group-row'
   const selectAll = 'thead input[type="checkbox"]'
 
-  describe('varias tablas bajo una sola barra', () => {
+  describe('several tables under a single bar', () => {
     beforeEach(() => {
       cy.visit('/bali/table/selectable_by_group')
     })
 
-    it('acota el seleccionar-todo de cada tabla a sus propias filas', () => {
+    it('scopes each table select-all to its own rows', () => {
       cy.get(tables).eq(0).find(selectAll).check()
 
       cy.get(tables).eq(0).find(`${rows}.selected`).should('have.length', 3)
@@ -21,7 +21,7 @@ describe('BulkActionsController — selección por subgrupo', () => {
       cy.get(counter).should('have.text', '3')
     })
 
-    it('suma las dos tablas en el MISMO contador', () => {
+    it('adds both tables up in the SAME counter', () => {
       cy.get(tables).eq(0).find(selectAll).check()
       cy.get(tables).eq(1).find(selectAll).check()
 
@@ -29,7 +29,7 @@ describe('BulkActionsController — selección por subgrupo', () => {
       cy.get(`${rows}.selected`).should('have.length', 7)
     })
 
-    it('acota el seleccionar-todo de un grupo a su corrida', () => {
+    it('scopes a group select-all to its own run', () => {
       cy.get(tables).eq(1).find(groupHeader).first().find('input').check()
 
       cy.get(tables).eq(1).find(`${rows}.selected`).should('have.length', 2)
@@ -37,9 +37,9 @@ describe('BulkActionsController — selección por subgrupo', () => {
       cy.get(counter).should('have.text', '2')
     })
 
-    // La fila lleva los dos ids —el de su tabla y el de su grupo—, así que el de arriba
-    // sigue alcanzándola: sin eso, la cabecera de una tabla agrupada no marcaría nada.
-    it('deja que la cabecera de la tabla alcance a sus grupos', () => {
+    // The row carries both ids —its table's and its group's—, so the one above still reaches
+    // it: without that, the header of a grouped table would check nothing.
+    it('lets the table header reach its groups', () => {
       cy.get(tables).eq(1).find(selectAll).check()
 
       cy.get(tables).eq(1).find(`${rows}.selected`).should('have.length', 4)
@@ -48,11 +48,11 @@ describe('BulkActionsController — selección por subgrupo', () => {
       })
     })
 
-    it('deja indeterminada la cabecera cuando solo un grupo está completo', () => {
+    it('leaves the header indeterminate when only one group is complete', () => {
       cy.get(tables).eq(1).find(groupHeader).first().find('input').check()
 
       cy.get(tables).eq(1).find(selectAll).should(($input) => {
-        // La propiedad, no el atributo: `indeterminate` no existe como atributo HTML.
+        // The property, not the attribute: `indeterminate` does not exist as an HTML attribute.
         expect($input[0].indeterminate).to.eq(true)
         expect($input[0].checked).to.eq(false)
       })
@@ -62,7 +62,7 @@ describe('BulkActionsController — selección por subgrupo', () => {
       })
     })
 
-    it('devuelve el estado del grupo al desmarcar una sola fila', () => {
+    it('takes the group state back when a single row is unchecked', () => {
       cy.get(tables).eq(1).find(groupHeader).first().find('input').check()
       cy.get(tables).eq(1).find(rows).first().find('input[type="checkbox"]').uncheck()
 
@@ -74,12 +74,12 @@ describe('BulkActionsController — selección por subgrupo', () => {
     })
   })
 
-  describe('filas fuera de la selección', () => {
+  describe('rows outside the selection', () => {
     beforeEach(() => {
       cy.visit('/bali/table/partially_selectable')
     })
 
-    it('no deja que el seleccionar-todo alcance a las filas que se declararon fuera', () => {
+    it('does not let the select-all reach the rows declared out', () => {
       cy.get('tbody tr').should('have.length', 5)
       cy.get(rows).should('have.length', 3)
 
@@ -93,9 +93,9 @@ describe('BulkActionsController — selección por subgrupo', () => {
       })
     })
 
-    // La celda vacía es la que sostiene la alineación: sin ella, las columnas de esa fila
-    // se corren una posición.
-    it('conserva la celda de selección vacía en las filas que no participan', () => {
+    // The empty cell is what holds the alignment: without it, the columns of that row shift
+    // by one position.
+    it('keeps the empty selection cell on the rows that do not take part', () => {
       cy.get('tbody tr').each(($row) => {
         expect($row.find('td')).to.have.length(4)
       })
