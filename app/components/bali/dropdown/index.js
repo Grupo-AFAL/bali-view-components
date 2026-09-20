@@ -134,13 +134,13 @@ export class DropdownController extends Controller {
   }
 
   /**
-   * `aria-expanded` seguía al TECLADO, no a la pantalla. Quien abre el panel con el mouse
-   * nunca pasa por `open()`: daisyUI lo despliega por `:focus-within` al enfocarse el trigger,
-   * así que el lector de pantalla anunciaba "contraído" con el menú a la vista (WCAG 4.1.2).
-   * El foco es la señal REAL de apertura de daisyUI, así que el atributo se sincroniza con él.
+   * `aria-expanded` followed the KEYBOARD, not the screen. Whoever opens the panel with the
+   * mouse never goes through `open()`: daisyUI unfolds it from `:focus-within` when the
+   * trigger takes focus, so the screen reader announced "collapsed" with the menu in plain
+   * sight (WCAG 4.1.2). Focus is daisyUI's REAL open signal, so the attribute is synced to it.
    *
-   * En modo popover el foco no es la señal —el panel lo abre y lo cierra tippy—, así que ahí
-   * manda `onPopoverShow`/`onPopoverHide` y esto se aparta.
+   * In popover mode focus is not the signal —tippy is what opens and closes the panel— so
+   * there `onPopoverShow`/`onPopoverHide` are in charge and this steps aside.
    */
   handleFocusIn = (event) => {
     if (this.popoverValue) return
@@ -157,7 +157,7 @@ export class DropdownController extends Controller {
 
   handleFocusOut = (event) => {
     if (this.popoverValue) return
-    // El foco puede saltar ENTRE hijos (del trigger a un item): eso no es cerrar.
+    // Focus can jump BETWEEN children (from the trigger to an item): that is not closing.
     if (event.relatedTarget && this.owns(event.relatedTarget)) return
 
     // Focus has genuinely left. Drop the explicit-close mark so that coming back with Tab
@@ -211,10 +211,9 @@ export class DropdownController extends Controller {
   }
 
   handleKeydown = (event) => {
-    // El keydown BURBUJEA y un dropdown puede contener otros (el ⋯ de la toolbar del
-    // DataTable): sin este guard la misma tecla la procesaban los dos controladores, así que
-    // una sola flecha saltaba dos items y un Escape dentro del dropdown de adentro cerraba
-    // el contenedor entero.
+    // keydown BUBBLES and a dropdown can contain others (the ⋯ of the DataTable toolbar):
+    // without this guard the same key was processed by both controllers, so a single arrow
+    // skipped two items and an Escape inside the inner dropdown closed the whole container.
     if (this.fromNestedDropdown(event.target)) return
 
     const isOpen = this.isOpen
@@ -232,7 +231,7 @@ export class DropdownController extends Controller {
         }
         break
       case 'ArrowDown':
-        // Dentro de un campo, las flechas son del campo: mueven el cursor o la selección.
+        // Inside a field the arrows belong to the field: they move the caret or selection.
         if (this.fromFormControl(event.target)) break
         event.preventDefault()
         // Unconditionally, even when the menu is already on screen: daisyUI may have opened
@@ -259,8 +258,9 @@ export class DropdownController extends Controller {
     }
   }
 
-  // ¿El evento nació en un dropdown ANIDADO dentro de éste? Entonces es del de adentro.
-  // Markup a mano sin `.dropdown` alrededor sigue funcionando: `closest` devuelve null.
+  // Was the event born in a dropdown NESTED inside this one? Then it belongs to the inner
+  // one. Hand-written markup with no `.dropdown` around it still works: `closest` returns
+  // null.
   fromNestedDropdown (target) {
     const nearest = target?.closest?.('.dropdown')
 

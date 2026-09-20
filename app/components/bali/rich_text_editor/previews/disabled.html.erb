@@ -1,6 +1,6 @@
-<%# Lo que se ve cuando `Bali.rich_text_editor_enabled` está en false, que es el default del
-    paquete. Sin esto el preview contesta 200 con el body vacío y se lee como un componente
-    roto (#844). %>
+<%# What shows when `Bali.rich_text_editor_enabled` is false, which is the package default.
+    Without this the preview answers 200 with an empty body and reads as a broken component
+    (#844). %>
 <div class="space-y-4">
   <%= render Bali::Alert::Component.new(
     title: 'This preview renders nothing on purpose',

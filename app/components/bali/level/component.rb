@@ -15,10 +15,10 @@ module Bali
       renders_one :right, ->(**args) { Side::Component.new(position: :right, **args) }
       renders_many :items, Item::Component
 
-      # @deprecated Se elimina en 4.0. Level es una fila flex con `justify-between` y nada
-      #   más, así que `<div class="flex justify-between items-center gap-4">` hace lo mismo
-      #   sin componente de por medio. Para el encabezado de una página usa
-      #   {Bali::PageHeader::Component}, que es lo que Level venía sosteniendo.
+      # @deprecated Removed in 4.0. Level is a flex row with `justify-between` and nothing
+      #   else, so `<div class="flex justify-between items-center gap-4">` does the same
+      #   thing with no component in between. For a page header use
+      #   {Bali::PageHeader::Component}, which is what Level had been holding up.
       def initialize(align: :center, **options)
         Bali.deprecator.warn(
           "Bali::Level::Component is deprecated. Use flex utilities " \

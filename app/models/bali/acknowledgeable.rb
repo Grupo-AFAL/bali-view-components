@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  # #709 — "leí y confirmo" para un modelo del host:
+  # #709 — "I have read and acknowledge" for a host model:
   #
   #   class Document < ApplicationRecord
   #     include Bali::Acknowledgeable
@@ -10,14 +10,14 @@ module Bali
   #   @document.acknowledge(user: current_user)
   #   @document.acknowledged_by?(current_user) # => true
   #
-  # No hay macro que configurar: lo único que el concern le pregunta al modelo es
-  # `version_label`, y se lo pregunta con `try`, así que un modelo sin versiones funciona
-  # igual (la firma queda con `version_label` nil).
+  # There is no macro to configure: the only thing the concern asks the model is
+  # `version_label`, and it asks with `try`, so a model with no versions works just the same
+  # (the acknowledgment ends up with a nil `version_label`).
   #
-  # El engine NO trae controller en la v1 a propósito: el valor del endpoint de
-  # gobierno-corporativo está en un `turbo_stream` que renderiza una vista DEL HOST, y un
-  # controller del engine no puede responder eso sin conocer el partial del host. La receta
-  # de 20 líneas está en docs/guides/engine-models.md.
+  # The engine ships NO controller in v1 on purpose: the value of gobierno-corporativo's
+  # endpoint is in a `turbo_stream` that renders a view OF THE HOST, and an engine
+  # controller cannot answer that without knowing the host's partial. The 20-line recipe is
+  # in docs/guides/engine-models.md.
   module Acknowledgeable
     extend ActiveSupport::Concern
 
@@ -30,18 +30,18 @@ module Bali
       acknowledgments.exists?(user: user)
     end
 
-    # Idempotente: confirmar dos veces la MISMA versión devuelve la firma que ya existía,
-    # sin tocarla — el `acknowledged_at` original sobrevive, que es justamente lo que hace
-    # que esto sirva como evidencia.
+    # Idempotent: acknowledging the SAME version twice returns the acknowledgment that
+    # already existed, untouched — the original `acknowledged_at` survives, which is exactly
+    # what makes this usable as evidence.
     #
-    # Cuando `version_label` cambió, en cambio, esto es un acto NUEVO: la persona está
-    # firmando otro texto. Se actualiza la etiqueta **y la fecha**.
+    # When `version_label` changed, on the other hand, this is a NEW act: the person is
+    # signing a different text. The label **and the date** are updated.
     #
-    # OJO, aquí se separa de gobierno-corporativo (`acknowledged_at ||= Time.current`, que
-    # conserva la fecha vieja al re-firmar): esa fila termina diciendo que alguien firmó la
-    # v2.0 en una fecha en la que la v2.0 todavía no existía. Con solo dos columnas la
-    # única lectura coherente es "acknowledged_at es cuándo firmó version_label", así que
-    # se actualizan juntas. La guía de migración lo nombra.
+    # CAREFUL, here it parts from gobierno-corporativo (`acknowledged_at ||= Time.current`,
+    # which keeps the old date on re-signing): that row ends up saying that someone signed
+    # v2.0 on a date when v2.0 did not exist yet. With only two columns the only coherent
+    # reading is "acknowledged_at is when they signed version_label", so they are updated
+    # together. The migration guide names it.
     def acknowledge(user:, content_version_id: nil)
       ack = acknowledgments.find_or_initialize_by(user: user)
       return ack if ack.persisted? && ack.version_label == acknowledgeable_version_label
@@ -52,8 +52,8 @@ module Bali
       ack.save!
       ack
     rescue ActiveRecord::RecordNotUnique
-      # Dos clics a la vez: el índice único rechaza el segundo INSERT. La fila que ganó
-      # dice lo mismo que íbamos a escribir, así que devolverla ES el resultado correcto.
+      # Two clicks at once: the unique index rejects the second INSERT. The row that won
+      # says the same thing we were about to write, so returning it IS the correct result.
       acknowledgments.find_by!(user: user)
     end
 
@@ -63,9 +63,9 @@ module Bali
       try(:version_label)
     end
 
-    # Se llena solo cuando el registro además lleva historial de contenido (#707). Con `try`
-    # porque instalar el libro de firmas no obliga a instalar el historial: sin él esto es
-    # nil y la columna se queda vacía, que es exactamente por lo que no tiene foreign key.
+    # Filled in only when the record also carries content history (#707). With `try` because
+    # installing the acknowledgment book does not force installing the history: without it
+    # this is nil and the column stays empty, which is exactly why it has no foreign key.
     def derived_content_version_id
       try(:content_versions)&.last&.id
     end

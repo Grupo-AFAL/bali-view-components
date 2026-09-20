@@ -50,13 +50,14 @@ module Bali
 
       renders_one :trigger, Trigger::Component
 
-      # @param tag [Symbol] `:link` (default), `:button` (acción JS, evita el `href="#"`) o
-      #   `:title` (encabezado de sección: agrupa los items que le siguen).
+      # @param tag [Symbol] `:link` (default), `:button` (JS action, avoids the `href="#"`)
+      #   or `:title` (section heading: it groups the items that follow it).
       # @param icon [String, Symbol] icon name — one spelling whichever component the item
       #   turns out to be.
-      # @param modal [Boolean, Hash] con `href:`, el modo remoto de Bali::Link (`true` o
-      #   `{ id: }`); `{ id:, local: true }` abre un modal YA renderizado en la página, sin
-      #   fetch — y sin `href:` el item se vuelve un `<button>` de verdad. Ídem `drawer:`.
+      # @param modal [Boolean, Hash] with `href:`, Bali::Link's remote mode (`true` or
+      #   `{ id: }`); `{ id:, local: true }` opens a modal ALREADY rendered on the page, with
+      #   no fetch — and with no `href:` the item becomes a real `<button>`. Same for
+      #   `drawer:`.
       renders_many :items, ->(method: :get, href: nil, tag: :link, icon: nil,
                               icon_name: nil, **options) do
         icon = item_icon(icon, icon_name)
@@ -68,8 +69,8 @@ module Bali
           ActionItem::Component.new(icon: icon, **options)
         else
           if href.nil? && local_overlay_trigger?(options)
-            # Un item que solo abre un overlay local no navega a ningún lado: sin href el
-            # `<a>` ni siquiera es enfocable, así que el item es el botón de acción.
+            # An item that only opens a local overlay navigates nowhere: with no href the
+            # `<a>` is not even focusable, so the item is the action button.
             ActionItem::Component.new(icon: icon, **options)
           else
             build_link_item(method: method, href: href, icon: icon, **options)
@@ -84,10 +85,10 @@ module Bali
       # @param popover [Boolean] portal the menu out of any ancestor whose `overflow` would
       #   clip it — what a dropdown in a scrollable table always needs. The keyboard is the
       #   same in both modes; see `app/components/bali/dropdown/index.js`.
-      # @param menu [Boolean] Semántica de menú (`<ul role="menu">` de menuitems). En `false`
-      #   el panel es un CONTENEDOR genérico: para contenido que no son menuitems (forms,
-      #   checkboxes, otros dropdowns), donde `role="menu"` expone hijos no permitidos y hace
-      #   que el lector de pantalla entre en modo menú sobre un formulario.
+      # @param menu [Boolean] menu semantics (`<ul role="menu">` of menuitems). At `false`
+      #   the panel is a generic CONTAINER: for content that is not menuitems (forms,
+      #   checkboxes, other dropdowns), where `role="menu"` exposes disallowed children and
+      #   puts the screen reader into menu mode over a form.
       # rubocop:disable Metrics/ParameterLists
       def initialize(align: :start, direction: nil, width: :md, popover: false,
                      hoverable: false, close_on_click: true, menu: true, **options)
@@ -126,9 +127,9 @@ module Bali
       # it, and a host that has already overridden this key keeps overriding both.
       MENU_LABEL_KEY = "bali_view.dropdown.menu_label"
 
-      # Sin semántica de menú tampoco va la clase `.menu` de daisyUI: es la que impone
-      # display:grid + padding + hover a los hijos directos, y sin ella el contenido en flujo
-      # no necesita variantes `!important` para recuperar su propio layout.
+      # Without menu semantics daisyUI's `.menu` class goes too: it is the one that imposes
+      # display:grid + padding + hover on the direct children, and without it content in flow
+      # needs no `!important` variants to get its own layout back.
       def menu_attributes
         {
           tabindex: -1,
@@ -159,8 +160,8 @@ module Bali
         )
       end
 
-      # Los encabezados no cuentan: un menú de puros títulos destapa un botón que abre algo
-      # sin ninguna opción para elegir.
+      # Headings do not count: a menu of nothing but titles uncovers a button that opens
+      # something with no option to choose.
       def render?
         items? ? items.any? { |item| item.authorized? && !section_title?(item) } : content.present?
       end
@@ -189,18 +190,19 @@ module Bali
 
         case method&.to_sym
         when :delete
-          # `form_class: "contents"` explícito, porque acá SÍ es item de menú: daisyUI pinta
-          # el item sobre `li > *` salvo que sea un `.btn`, y el `<form>` de `button_to` no lo
-          # es. Fuera del árbol de cajas, el botón es el item (#829). Antes esto lo deducía
-          # DeleteLink de `plain:`, que no significa eso (#868). Va ANTES de `**options` para
-          # que un call site lo pueda pisar.
+          # `form_class: "contents"` spelled out, because here it IS a menu item: daisyUI
+          # paints the item on `li > *` unless it is a `.btn`, and `button_to`'s `<form>` is
+          # not. With that form out of the CSS box tree, the button is the item (#829).
+          # DeleteLink used to infer this from `plain:`, which does not mean that (#868).
+          # It goes BEFORE `**options` so a call site can override it.
           DeleteLink::Component.new(
             href: href, plain: true, icon: icon, form_class: "contents", **options
           )
         when :post, :patch, :put
-          # `button_to` real, como el item :delete y por lo que ya pagó #829: un `<a
-          # data-turbo-method>` degrada a GET sin JS y es un link que muta estado. Cambio
-          # anunciado en v3.1 (#641) — el markup del item pasa de `<a>` a `<form><button>`.
+          # A real `button_to`, like the :delete item and for the reason #829 already paid
+          # for: an `<a data-turbo-method>` degrades to GET without JS, and that is a link
+          # that mutates state. Announced in v3.1 (#641) — the item's markup goes from `<a>`
+          # to `<form><button>`.
           ButtonToItem::Component.new(
             href: href, method: method.to_sym, icon: icon, form_class: "contents", **options
           )

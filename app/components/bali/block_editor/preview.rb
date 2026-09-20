@@ -237,14 +237,14 @@ module Bali
       end
 
       # @label Pinned content format
-      # `format:` decide en qué forma se escribe el JSON, y hasta v3.1.3 con `:json` no lo
-      # decidía el host: el primer comentario del documento cambiaba la forma sola, porque
-      # BlockNote borra las marcas de comentario de `editor.document` (#1091).
+      # `format:` decides which form the JSON is written in, and until v3.1.3 with `:json`
+      # the host was not the one deciding: the document's first comment changed the form on
+      # its own, because BlockNote strips the comment marks from `editor.document` (#1091).
       #
-      # Los tres editores de acá abajo cargan EL MISMO documento, que ya trae marcas de
-      # comentario, y escriben en un input distinto cada uno. Escribí en cualquiera y mirá
-      # el `value` y el `data-content-format` de su input: el primero conserva las marcas y
-      # cambia de forma, los otros dos se quedan en la que el host pidió.
+      # The three editors below load THE SAME document, which already carries comment
+      # marks, and each writes into a different input. Type in any of them and look at the
+      # `value` and the `data-content-format` of its input: the first one keeps the marks
+      # and changes form, the other two stay in the one the host asked for.
       def with_pinned_format
         render_with_template(
           template: 'bali/block_editor/previews/with_pinned_format',

@@ -3,24 +3,24 @@
 module Bali
   module Topbar
     module ToolsMenu
-      # Una herramienta del menú del topbar.
+      # A tool in the topbar menu.
       #
-      # Responde dos preguntas y ninguna más: "¿existe en este ambiente?" y "¿a dónde
-      # apunta?". Quién la puede ver NO es asunto suyo — eso lo decide el host, que pasa la
-      # lista ya filtrada (ver el spec: es lo que permite que apps con modelos de
-      # autorización distintos usen el mismo componente).
+      # It answers two questions and no more: "does it exist in this environment?" and
+      # "where does it point?". Who may see it is NOT its business — the host decides that
+      # and passes the list already filtered (see the spec: it is what lets apps with
+      # different authorization models use the same component).
       #
-      # El `context` se RECIBE, no se busca. Es el contexto de vista donde el componente ya
-      # se está renderizando, no `Rails.application.routes.url_helpers`. Evita el estado
-      # global y se prueba con un doble, sin montar rutas.
+      # The `context` is RECEIVED, not looked up. It is the view context the component is
+      # already rendering in, not `Rails.application.routes.url_helpers`. That avoids global
+      # state and is tested with a double, without mounting routes.
       #
-      # `route_helper` se resuelve contra el contexto, y si el contexto no lo conoce, contra
-      # su `main_app` — la caída que mantiene vivo el menú en una pantalla de engine pintada
-      # con el layout del host (ver `resolver`). Lo que NO se puede expresar es un helper de
-      # OTRO engine (`bali_auth_admin.bar_path`): sólo el host tiene proxy propio. Por eso
-      # `initialize` exige que `route_helper` termine en `_path` o `_url` — cierra el caso
-      # donde alguien pasa el proxy pelado (`:main_app`) y `href` filtraría el `RoutesProxy`
-      # mismo en el atributo.
+      # `route_helper` is resolved against the context, and if the context does not know it,
+      # against its `main_app` — the fallback that keeps the menu alive on an engine screen
+      # rendered with the host's layout (see `resolver`). What CANNOT be expressed is a
+      # helper of ANOTHER engine (`bali_auth_admin.bar_path`): only the host has a proxy of
+      # its own. That is why `initialize` demands that `route_helper` end in `_path` or
+      # `_url` — it closes the case where someone passes the bare proxy (`:main_app`) and
+      # `href` would leak the `RoutesProxy` itself into the attribute.
       Tool = Data.define(:key, :icon, :route_helper, :url, :in_app, :name, :meta) do
         def initialize(key:, icon:, route_helper: nil, url: nil, in_app: false, name: nil, meta: {})
           if route_helper && url
@@ -47,12 +47,13 @@ module Bali
           super
         end
 
-        # `route_helper` presente: existe si el contexto SABE RESOLVER ese helper — así es
-        # como una herramienta se enciende sola en cuanto su ruta se monta, sin copiar aquí
-        # la condición de ambiente del host.
+        # `route_helper` present: it exists if the context KNOWS HOW TO RESOLVE that helper
+        # — that is how a tool turns itself on as soon as its route is mounted, without
+        # copying the host's environment condition here.
         #
-        # OJO con lo que esto NO cubre: un `constraints` en la ruta no impide que el helper
-        # exista. La pregunta es "¿está montada?", no "¿este usuario pasa?".
+        # WATCH OUT for what this does NOT cover: a `constraints` on the route does not stop
+        # the helper from existing. The question is "is it mounted?", not "does this user
+        # pass?".
         def available?(context)
           route_helper ? !resolver(context).nil? : href(context).present?
         end
@@ -63,25 +64,27 @@ module Bali
           resolver(context)&.public_send(route_helper)
         end
 
-        # Quién sabe resolver este helper: el contexto mismo, o el `main_app` del contexto.
+        # Who knows how to resolve this helper: the context itself, or the context's
+        # `main_app`.
         #
-        # El segundo caso NO es un adorno. Un engine que pinta sus pantallas con el layout
-        # del host —`BaliAuth.configuration.admin_layout = "application"`, que es como las
-        # cuatro apps del grupo sirven `/admin/auth/...`— renderiza ese layout, y este menú
-        # con él, contra el contexto de vista del ENGINE. Ahí los helpers del host no
-        # existen: medido en gobierno-corporativo sobre `BaliAuth::Admin::RolesController`,
-        # `respond_to?(:mission_control_jobs_path)` es `false` y
-        # `main_app.mission_control_jobs_path` devuelve `/admin/jobs`.
+        # The second case is NOT decoration. An engine that renders its screens with the
+        # host's layout —`BaliAuth.configuration.admin_layout = "application"`, which is how
+        # the group's four apps serve `/admin/auth/...`— renders that layout, and this menu
+        # with it, against the ENGINE's view context. There the host's helpers do not exist:
+        # measured in gobierno-corporativo on `BaliAuth::Admin::RolesController`,
+        # `respond_to?(:mission_control_jobs_path)` is `false` and
+        # `main_app.mission_control_jobs_path` returns `/admin/jobs`.
         #
-        # Sin esta caída, migrar a este componente APAGA en silencio las herramientas
-        # montadas justo en esas pantallas —las externas siguen, porque su `url:` no
-        # consulta rutas—, y el menú queda a medias sin ningún error que lo delate. El host
-        # ya escribe `main_app.` en el resto de ese mismo topbar por esta razón.
+        # Without this fallback, migrating to this component silently TURNS OFF the tools
+        # mounted on exactly those screens —the external ones survive, because their `url:`
+        # does not consult routes—, and the menu is left half empty with no error to give it
+        # away. The host already writes `main_app.` in the rest of that same topbar for this
+        # reason.
         #
-        # El contexto directo gana: en una pantalla del host `main_app` ni se consulta, así
-        # que esto no puede cambiar lo que ya resolvía. Y la regla del router se conserva
-        # entera — `RoutesProxy#respond_to?` responde `false` para un helper que no existe,
-        # igual que el contexto.
+        # The direct context wins: on a host screen `main_app` is never consulted, so this
+        # cannot change what already resolved. And the router's rule is kept whole —
+        # `RoutesProxy#respond_to?` answers `false` for a helper that does not exist, just
+        # like the context.
         private def resolver(context)
           return context if context.respond_to?(route_helper)
 

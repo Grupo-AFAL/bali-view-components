@@ -24,10 +24,10 @@ module Bali
         @stat_items = []
       end
 
-      # Se guardan los ARGUMENTOS y no el contenido renderizado porque cada stat es un
-      # Bali::StatCard de verdad y su `change` entra por el slot `footer`. Mismo patrón que
-      # `with_secondary_action`. `href:` viaja al StatCard: la tarjeta entera se vuelve
-      # un `<a>` (drill-down KPI → listado).
+      # The ARGUMENTS are stored and not the rendered content because every stat is a real
+      # Bali::StatCard and its `change` comes in through the `footer` slot. Same pattern as
+      # `with_secondary_action`. `href:` travels to the StatCard: the whole card becomes an
+      # `<a>` (KPI drill-down → index).
       # rubocop:disable Metrics/ParameterLists
       def with_stat(label:, value:, icon: nil, change: nil, color: :primary, href: nil)
         @stat_items << Stat.new(label: label, value: value, icon: icon, change: change,
@@ -44,8 +44,8 @@ module Bali
         "grid grid-cols-1 #{columns} gap-4"
       end
 
-      # La tabla de colores es la de StatCard: tener una propia acá es lo que produjo dos
-      # tarjetas de estadística con dos paletas.
+      # The color table is StatCard's: having one of its own here is what produced two stat
+      # cards with two palettes.
       def stat_change_class(color)
         palette = Bali::StatCard::Component::COLORS
         palette.fetch(color.to_sym, palette[:primary])[:text]

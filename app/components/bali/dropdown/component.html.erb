@@ -1,10 +1,10 @@
 <%= tag.div(**dropdown_attributes) do %>
   <%= trigger? ? trigger : default_trigger %>
-  <%# `<ul role="menu">` solo cuando el contenido SON menuitems (ver `menu:`).
-      En modo popover el panel se renderiza AQUÍ igual: el controlador lo toma de este
-      lugar y recién entonces tippy lo mueve al popper, así que el HTML servido es el
-      mismo en los dos modos y el menú sigue siendo descendiente del elemento del
-      controlador para todo lo que no sea pintarse. %>
+  <%# `<ul role="menu">` only when the content ARE menuitems (see `menu:`).
+      In popover mode the panel is rendered HERE all the same: the controller picks it up
+      from this place and only then does tippy move it to the popper, so the served HTML
+      is the same in both modes and the menu stays a descendant of the controller's
+      element for everything other than painting itself. %>
   <%= content_tag(menu_tag_name, menu_attributes) do %>
     <% if authorized_items.any? %>
       <% authorized_items.each do |item| %>

@@ -2,31 +2,31 @@
 
 module Bali
   module Frame
-    # Un `<turbo-frame>` con carga diferida y swap a un placeholder mientras carga.
+    # A `<turbo-frame>` with deferred loading that swaps to a placeholder while it loads.
     #
-    # Turbo marca el `<turbo-frame>` con `[busy]` durante CUALQUIER carga: la
-    # diferida inicial (`loading: :lazy` con `src`) y cada recarga dirigida al
-    # frame —incluido un link con `data-turbo-frame` apuntando aquí, o un botón
-    # de "Refrescar"—. Mientras está `[busy]`, el CSS co-localizado muestra la
-    # card hermana `.frame-loading` y oculta el frame: el contenido se reemplaza
-    # por el indicador de carga y vuelve al terminar. Puro CSS, sin JS.
+    # Turbo marks the `<turbo-frame>` with `[busy]` during ANY load: the initial
+    # deferred one (`loading: :lazy` with `src`) and every reload targeted at the
+    # frame —including a link with `data-turbo-frame` pointing here, or a
+    # "Refresh" button—. While it is `[busy]`, the co-located CSS shows the
+    # sibling `.frame-loading` card and hides the frame: the content is replaced
+    # by the loading indicator and comes back when it finishes. Pure CSS, no JS.
     #
-    # Con `src`, el contenido llega en un request aparte y el placeholder se ve
-    # mientras llega. `loading: :lazy` difiere ese request hasta que el frame es
-    # visible; sin `loading`, Turbo lo dispara al instante (eager). Los dos son
-    # "diferidos" en el sentido de un request aparte:
+    # With `src`, the content arrives in a separate request and the placeholder
+    # shows while it arrives. `loading: :lazy` defers that request until the frame
+    # is visible; without `loading`, Turbo fires it immediately (eager). Both are
+    # "deferred" in the sense of a separate request:
     #
     #   <%= render Bali::Frame::Component.new(
-    #         id: "report", src: report_path, loading: :lazy, text: "Consultando…") %>
+    #         id: "report", src: report_path, loading: :lazy, text: "Loading…") %>
     #
-    # Con contenido propio (el bloque es el contenido del frame; el placeholder
-    # aparece al recargar el frame):
+    # With its own content (the block is the frame's content; the placeholder
+    # appears when the frame reloads):
     #
     #   <%= render Bali::Frame::Component.new(id: "report") do %>
     #     <table>…</table>
     #   <% end %>
     #
-    # Placeholder a medida (una card, un skeleton) vía el slot `loading`:
+    # A custom placeholder (a card, a skeleton) through the `loading` slot:
     #
     #   <%= render Bali::Frame::Component.new(id: "report", src: report_path, loading: :lazy) do |frame| %>
     #     <% frame.with_loading do %><%= render Bali::Skeleton::Component.new %><% end %>
@@ -34,10 +34,10 @@ module Bali
     class Component < ApplicationViewComponent
       renders_one :loading
 
-      # @param id [String] id del turbo-frame (obligatorio)
-      # @param src [String, nil] URL para carga diferida
-      # @param loading [Symbol, String, nil] estrategia de carga del frame (:lazy, :eager)
-      # @param text [String, nil] texto junto al spinner del placeholder por default
+      # @param id [String] turbo-frame id (required)
+      # @param src [String, nil] URL for deferred loading
+      # @param loading [Symbol, String, nil] frame loading strategy (:lazy, :eager)
+      # @param text [String, nil] text next to the spinner of the default placeholder
       def initialize(id:, src: nil, loading: nil, text: nil, **options)
         @id = id
         @src = src
@@ -58,11 +58,11 @@ module Bali
         { id: @id, src: @src, loading: @loading }.compact
       end
 
-      # Placeholder por default: spinner chico + texto, centrado y atenuado. Se
-      # usa en la card hermana y como contenido inicial de un frame diferido,
-      # salvo que el host pase su propio slot `loading`. El spinner lleva
-      # role="status" + aria-label (como Bali::Loader): al hacerse visible con
-      # [busy], la tecnología asistiva anuncia que está cargando.
+      # Default placeholder: small spinner + text, centered and dimmed. It is used
+      # in the sibling card and as the initial content of a deferred frame, unless
+      # the host passes its own `loading` slot. The spinner carries role="status" +
+      # aria-label (like Bali::Loader): when it becomes visible with [busy],
+      # assistive technology announces that it is loading.
       def default_loading
         tag.div(class: "flex items-center justify-center gap-2 py-6 text-sm text-base-content/60") do
           safe_join([

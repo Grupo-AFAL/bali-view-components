@@ -20,11 +20,11 @@
   frame_id: "split-view-detail",
   advance: local_assigns.fetch(:advance, true)
 ) do |split| %>
-  <%# max_height 16rem y no 22rem: la página uno (5 filas de ~55-70px según la fuente)
-      tiene que DESBORDAR el contenedor con cualquier métrica, o el sentinel del infinite
-      scroll queda visible al cargar y se trae todas las páginas solo — exactamente lo que
-      flakeaba en CI ("Found 20, expected 10"): las fuentes del runner hacen las filas más
-      bajas que en local y 5 ya no llenaban 352px. %>
+  <%# max_height 16rem and not 22rem: page one (5 rows of ~55-70px depending on the font)
+      has to OVERFLOW the container under any metric, or the infinite scroll sentinel is
+      visible on load and pulls in every page by itself — exactly what was flaking in CI
+      ("Found 20, expected 10"): the runner's fonts make the rows shorter than they are
+      locally and 5 no longer filled 352px. %>
   <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
                      pagy: pagy, item_name: "películas", max_height: "16rem",
                      filter_mode: filter_mode,

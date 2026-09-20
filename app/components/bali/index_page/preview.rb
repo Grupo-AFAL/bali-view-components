@@ -3,8 +3,8 @@
 module Bali
   module IndexPage
     class Preview < ApplicationViewComponentPreview
-      # Mismas fixtures que `bali/data_table/complete`: este preview es esa composición MÁS
-      # la capa de página. Compartirlas es lo que garantiza que no derive.
+      # Same fixtures as `bali/data_table/complete`: this preview is that composition PLUS
+      # the page layer. Sharing them is what guarantees it does not drift.
       include Bali::DataTable::Preview::CanonicalIndex
 
       # @label Complete (Live DB)
