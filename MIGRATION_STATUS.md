@@ -10,14 +10,14 @@
 
 ## Infrastructure Status ✅
 
-| Component      | Status      | Notes                                           |
-| -------------- | ----------- | ----------------------------------------------- |
-| Tailwind CSS 4 | ✅ Complete | Via `tailwindcss-rails`                         |
-| DaisyUI 5      | ✅ Complete | Configured in `tailwind.config.js`              |
-| Vite           | ✅ Complete | JavaScript bundling                             |
-| Propshaft      | ✅ Complete | Asset pipeline                                  |
-| Lookbook       | ✅ Complete | Component previews at `localhost:3001`          |
-| CI/CD          | ✅ Complete | RSpec, Rubocop, StandardJS, Cypress all passing |
+| Component      | Status      | Notes                                              |
+| -------------- | ----------- | -------------------------------------------------- |
+| Tailwind CSS 4 | ✅ Complete | Via `tailwindcss-rails`                            |
+| DaisyUI 5      | ✅ Complete | Configured in `tailwind.config.js`                 |
+| Vite           | ✅ Complete | JavaScript bundling                                |
+| Propshaft      | ✅ Complete | Asset pipeline                                     |
+| Lookbook       | ✅ Complete | Component previews at `localhost:3001`             |
+| CI/CD          | ✅ Complete | Minitest, Rubocop, StandardJS, Cypress all passing |
 
 ---
 
@@ -25,7 +25,7 @@
 
 | Stage            | Description                                          | Who      |
 | ---------------- | ---------------------------------------------------- | -------- |
-| **1. Tests**     | RSpec, RuboCop, StandardJS pass                      | CI       |
+| **1. Tests**     | Minitest, RuboCop, StandardJS pass                   | CI       |
 | **2. AI Visual** | AI verified component renders correctly in Lookbook  | AI Agent |
 | **3. DaisyUI**   | AI verified against DaisyUI patterns                 | AI Agent |
 | **4. Manual**    | Human verified in Lookbook                           | Human    |
@@ -263,7 +263,7 @@ Chart, GanttChart, LocationsMap, RichTextEditor
 
 ```bash
 # Run all tests
-bundle exec rspec spec/bali/components/
+bin/rails test test/bali/components/
 
 # Fix RuboCop issues
 bundle exec rubocop app/components/bali/ --autocorrect-all

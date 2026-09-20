@@ -26,7 +26,7 @@ Where `$ARGUMENTS` is:
    - `app/components/bali/[name]/component.rb`
    - `app/components/bali/[name]/component.html.erb`
    - `app/components/bali/[name]/preview.rb`
-   - `spec/components/bali/[name]/component_spec.rb` (if exists)
+   - `test/bali/components/[name]_test.rb` (if exists)
 
 2. Identify issues from previous verification or re-run quick check
 
@@ -68,43 +68,47 @@ end
 If tests are missing or incomplete, generate them:
 
 ```ruby
-# spec/components/bali/[name]/component_spec.rb
-RSpec.describe Bali::[Name]::Component, type: :component do
-  describe 'rendering' do
-    it 'renders successfully' do
-      render_inline(described_class.new)
-      expect(page).to have_css('[expected-selector]')
+# test/bali/components/[name]_test.rb
+# frozen_string_literal: true
+
+require "test_helper"
+
+class Bali[Name]ComponentTest < ComponentTestCase
+  # === Rendering ===
+
+  def test_renders_successfully
+    render_inline(Bali::[Name]::Component.new)
+    assert_selector("[expected-selector]")
+  end
+
+  # === Sizes ===
+
+  Bali::[Name]::Component::SIZES.each do |size, css_class|
+    define_method("test_renders_#{size}_size") do
+      render_inline(Bali::[Name]::Component.new(size: size))
+      assert_selector(".#{css_class.split.first}")
     end
   end
 
-  describe 'sizes' do
-    described_class::SIZES.each_key do |size|
-      it "renders #{size} size" do
-        render_inline(described_class.new(size: size))
-        expect(page).to have_css(".#{described_class::SIZES[size].split.first}")
-      end
+  # === Slots ===
+
+  def test_renders_slot_content
+    render_inline(Bali::[Name]::Component.new) do |c|
+      c.with_[slot_name] { "Slot content" }
     end
+    assert_text("Slot content")
   end
 
-  describe 'slots' do
-    it 'renders slot content' do
-      render_inline(described_class.new) do |c|
-        c.with_[slot_name] { 'Slot content' }
-      end
-      expect(page).to have_text('Slot content')
-    end
+  # === Options passthrough ===
+
+  def test_accepts_custom_classes
+    render_inline(Bali::[Name]::Component.new(class: "custom-class"))
+    assert_selector(".custom-class")
   end
 
-  describe 'options passthrough' do
-    it 'accepts custom classes' do
-      render_inline(described_class.new(class: 'custom-class'))
-      expect(page).to have_css('.custom-class')
-    end
-
-    it 'accepts data attributes' do
-      render_inline(described_class.new(data: { testid: 'my-component' }))
-      expect(page).to have_css('[data-testid="my-component"]')
-    end
+  def test_accepts_data_attributes
+    render_inline(Bali::[Name]::Component.new(data: { testid: "my-component" }))
+    assert_selector('[data-testid="my-component"]')
   end
 end
 ```
@@ -136,7 +140,7 @@ c.with_column(class: 'w-1/2') { ... }
 After applying fixes:
 
 1. Run `lsp_diagnostics` on changed files
-2. Run component tests: `bundle exec rspec spec/components/bali/[name]/`
+2. Run component tests: `bin/rails test test/bali/components/[name]_test.rb`
 3. Visual check in Lookbook
 
 ### Step 5: Delegate Visual Polish (if needed)
@@ -175,7 +179,7 @@ Polish the visual design of [ComponentName] after functional fixes.
 |------|---------|
 | component.rb | Added SIZES constant, size param, DaisyUI classes |
 | preview.rb | Updated examples to use new API |
-| component_spec.rb | Created with X test cases |
+| [name]_test.rb | Created with X test cases |
 
 ### Tests
 - Added: X new test cases
@@ -251,14 +255,14 @@ end
 
 ### 3. Generating Tests
 
-[Shows new component_spec.rb]
+[Shows new [name]_test.rb]
 
 ### 4. Running Verification
 
 ```bash
-bundle exec rspec spec/components/bali/columns/
+bin/rails test test/bali/components/columns_test.rb
 ```
-✓ 8 examples, 0 failures
+✓ 77 runs, 117 assertions, 0 failures, 0 errors, 0 skips
 
 ## Fix Report
 

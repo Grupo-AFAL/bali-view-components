@@ -26,7 +26,7 @@ Includes visual verification with Playwright:
 
 ### Code-Only Mode (`--code-only`)
 Skips visual verification for faster parallel processing:
-- Runs Rubocop and RSpec only
+- Runs Rubocop and Minitest only
 - DHH code review
 - No browser/Playwright needed
 - Safe for parallel execution
@@ -47,7 +47,7 @@ This command orchestrates a complete code quality improvement cycle:
          │
          ▼
 ┌─────────────────┐
-│  1. REVIEW      │ ─── Run /review (Rubocop, RSpec, DHH reviewer)
+│  1. REVIEW      │ ─── Run /review (Rubocop, Minitest, DHH reviewer)
 └────────┬────────┘     Returns score 1-10
          │
          ▼
@@ -115,7 +115,7 @@ Run comprehensive code review:
 1. **Automated Checks**:
    ```bash
    bundle exec rubocop app/components/bali/[name]/
-   bundle exec rspec spec/bali/components/[name]_spec.rb
+   bin/rails test test/bali/components/[name]_test.rb
    ```
 
 2. **DHH Review** - Invoke `dhh-code-reviewer` agent to analyze:
@@ -194,7 +194,7 @@ For each iteration (max N):
 3. **Verify Fixes**:
    ```bash
    bundle exec rubocop app/components/bali/[name]/
-   bundle exec rspec spec/bali/components/[name]_spec.rb
+   bin/rails test test/bali/components/[name]_test.rb
    ```
 
 4. **Check Exit Conditions**:
@@ -248,7 +248,7 @@ After documentation review:
 
 1. **Stage all changed files**:
    ```bash
-   git add app/components/bali/[name]/ spec/bali/components/[name]/
+   git add app/components/bali/[name]/ test/bali/components/[name]_test.rb
    # Also add any updated docs
    git add CHANGELOG.md docs/ # if modified
    ```
@@ -380,26 +380,27 @@ end
 Generate tests for uncovered functionality:
 
 ```ruby
-RSpec.describe Bali::[Name]::Component, type: :component do
-  describe "variants" do
-    described_class::VARIANTS.each_key do |variant|
-      it "renders #{variant} variant" do
-        render_inline(described_class.new(variant: variant))
-        expect(page).to have_css(".#{described_class::VARIANTS[variant]}")
-      end
+# test/bali/components/[name]_test.rb
+class Bali[Name]ComponentTest < ComponentTestCase
+  # === Variants ===
+
+  Bali::[Name]::Component::VARIANTS.each do |variant, css_class|
+    define_method("test_renders_#{variant}_variant") do
+      render_inline(Bali::[Name]::Component.new(variant: variant))
+      assert_selector(".#{css_class}")
     end
   end
 
-  describe "options passthrough" do
-    it "accepts custom classes" do
-      render_inline(described_class.new(class: "custom"))
-      expect(page).to have_css(".custom")
-    end
+  # === Options passthrough ===
 
-    it "accepts data attributes" do
-      render_inline(described_class.new(data: { testid: "test" }))
-      expect(page).to have_css('[data-testid="test"]')
-    end
+  def test_accepts_custom_classes
+    render_inline(Bali::[Name]::Component.new(class: "custom"))
+    assert_selector(".custom")
+  end
+
+  def test_accepts_data_attributes
+    render_inline(Bali::[Name]::Component.new(data: { testid: "test" }))
+    assert_selector('[data-testid="test"]')
   end
 end
 ```
@@ -459,16 +460,16 @@ es:
 **Step 3: Verify translations work**
 
 ```ruby
-# In RSpec test
-it "uses translations" do
+# In the component's Minitest file
+def test_uses_translations
   I18n.with_locale(:en) do
-    render_inline(described_class.new)
-    expect(page).to have_text("Delete")
+    render_inline(Bali::[Name]::Component.new)
+    assert_text("Delete")
   end
 
   I18n.with_locale(:es) do
-    render_inline(described_class.new)
-    expect(page).to have_text("Eliminar")
+    render_inline(Bali::[Name]::Component.new)
+    assert_text("Eliminar")
   end
 end
 ```
@@ -553,7 +554,7 @@ All checks passing. Proceeding to documentation review.
 
 ### Automated Checks
 - Rubocop: ✓ 0 offenses
-- RSpec: ✓ 12 examples, 0 failures
+- Minitest: ✓ 46 runs, 69 assertions, 0 failures, 0 errors, 0 skips
 
 ### Code Quality Score: 9/10
 - Constants: ✓ VARIANTS, SIZES frozen
@@ -565,7 +566,7 @@ All checks passing. Proceeding to documentation review.
 | File | Changes |
 |------|---------|
 | component.rb | Added constants, refactored methods |
-| component_spec.rb | Added 4 test cases |
+| button_test.rb | Added 4 test cases |
 
 ### Git
 - Commit: `abc1234` Refactor Button component for code quality
@@ -600,8 +601,8 @@ Updating MIGRATION_STATUS.md...
 app/components/bali/button/component.rb:15:5: C: Style/StringConcatenation
 app/components/bali/button/component.rb:23:3: C: Layout/EmptyLines
 
-**RSpec**:
-12 examples, 0 failures
+**Minitest**:
+46 runs, 69 assertions, 0 failures, 0 errors, 0 skips
 
 ### DHH Review
 
@@ -674,7 +675,7 @@ Documentation: ✓ No updates required
 
 ## Staging Files
 ```bash
-git add app/components/bali/button/ spec/bali/components/button/
+git add app/components/bali/button/ test/bali/components/button_test.rb
 ```
 
 ## Creating Commit
@@ -714,7 +715,7 @@ git push origin HEAD
 
 ## Files Changed
 - app/components/bali/button/component.rb (refactored)
-- spec/bali/components/button_spec.rb (2 tests added)
+- test/bali/components/button_test.rb (2 tests added)
 
 ## Git
 - Commit: `abc1234` Refactor Button component for code quality
