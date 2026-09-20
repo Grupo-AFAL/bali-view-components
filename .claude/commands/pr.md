@@ -19,7 +19,7 @@ Where `$ARGUMENTS` is:
 
 ```bash
 # Ensure all tests pass
-bundle exec rspec spec/components/bali/[component]/
+bin/rails test test/bali/components/[component]_test.rb
 
 # Ensure Rubocop passes
 bundle exec rubocop app/components/bali/[component]/
@@ -90,14 +90,14 @@ Brief description of changes to **[ComponentName]**.
 - [ ] Updated variant options
 - [ ] Added new examples for new features
 
-### Tests (`component_spec.rb`)
+### Tests (`test/bali/components/[name]_test.rb`)
 - [ ] Updated class expectations
 - [ ] Added tests for new features
 - [ ] All tests passing
 
 ## Verification
 
-- [x] `bundle exec rspec spec/components/bali/[name]/` passes
+- [x] `bin/rails test test/bali/components/[name]_test.rb` passes
 - [x] `bundle exec rubocop app/components/bali/[name]/` passes
 - [x] Lookbook preview renders correctly
 
@@ -116,9 +116,9 @@ AI: Creating PR for Button changes...
 ## Pre-flight Checks
 
 ```bash
-bundle exec rspec spec/components/bali/button/
+bin/rails test test/bali/components/button_test.rb
 ```
-✓ 12 examples, 0 failures
+✓ 46 runs, 69 assertions, 0 failures, 0 errors, 0 skips
 
 ```bash
 bundle exec rubocop app/components/bali/button/
@@ -133,7 +133,7 @@ git diff main...HEAD --stat
  app/components/bali/button/component.rb       | 45 ++++++++--------
  app/components/bali/button/component.html.erb |  8 ++-
  app/components/bali/button/preview.rb         | 32 ++++++-----
- spec/components/bali/button/component_spec.rb | 28 +++++-----
+ test/bali/components/button_test.rb           | 28 +++++-----
  4 files changed, 65 insertions(+), 48 deletions(-)
 ```
 

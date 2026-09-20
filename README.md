@@ -199,9 +199,36 @@ yarn run cy:open  # Interactive
 
 ### Creating New Components
 
-```bash
-rails g view_component bali/my_component name
+There is no generator — components are written by hand. Each one lives in its own directory
+under `app/components/bali/`:
+
 ```
+app/components/bali/my_component/
+├── component.rb         # the class, inherits ApplicationViewComponent (required)
+├── component.html.erb   # template, or a `call` method on the class
+├── preview.rb           # Lookbook preview, inherits ApplicationViewComponentPreview (required)
+├── previews/            # ERB templates for preview scenarios that need markup
+├── index.css            # optional
+└── index.js             # optional, a co-located Stimulus controller
+
+test/bali/components/my_component_test.rb   # Minitest (required)
+cypress/e2e/my-component.cy.js              # only when the component has JS behaviour
+```
+
+`index.css` ships only once it is imported from `app/assets/stylesheets/bali/components.css`,
+and `index.js` only once its controller is added to the `CONTROLLERS` map in
+`app/frontend/bali/components/index.js` — `yarn check:manifest` fails on a controller that is
+reachable from neither.
+
+Run the new test on its own with:
+
+```bash
+bin/rails test test/bali/components/my_component_test.rb
+```
+
+[Component Patterns](docs/reference/component-patterns.md) has the class, template, preview and
+CSS conventions; the [components guide](docs/guides/components.md) has the catalog and the
+composition rules.
 
 ## Contributing
 

@@ -55,5 +55,5 @@ cd test/dummy && bin/rails db:prepare && cd ../..
 echo ""
 echo "=== Setup complete! ==="
 echo "Run 'claude' to start Claude Code"
-echo "Run 'bundle exec rspec' to run Ruby specs"
+echo "Run 'bin/rails test' to run Ruby tests"
 echo "Run 'yarn cy:run:electron' to run Cypress tests"

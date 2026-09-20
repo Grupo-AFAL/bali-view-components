@@ -31,8 +31,8 @@ Based on argument:
 # Run Rubocop on component files
 bundle exec rubocop app/components/bali/[name]/
 
-# Run component specs
-bundle exec rspec spec/components/bali/[name]/
+# Run component tests
+bin/rails test test/bali/components/[name]_test.rb
 ```
 
 ### Step 3: Invoke DHH Reviewer
@@ -60,7 +60,7 @@ Use the `dhh-code-reviewer` agent to analyze:
 ### Rubocop
 [List any offenses]
 
-### RSpec
+### Minitest
 [Test results]
 
 ## DHH Review
@@ -128,8 +128,8 @@ AI: Reviewing Bali::Button::Component...
 ### Rubocop
 ✓ No offenses detected
 
-### RSpec
-✓ 12 examples, 0 failures
+### Minitest
+✓ 46 runs, 69 assertions, 0 failures, 0 errors, 0 skips
 
 ## DHH Review
 

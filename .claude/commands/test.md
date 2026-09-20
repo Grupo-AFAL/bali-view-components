@@ -1,6 +1,6 @@
 # Run Component Tests
 
-Run RSpec tests for Bali ViewComponents.
+Run the Minitest suite for Bali ViewComponents.
 
 ## Usage
 
@@ -10,9 +10,9 @@ Run RSpec tests for Bali ViewComponents.
 
 Where `$ARGUMENTS` is:
 - Component name (e.g., `Button`, `Card`)
-- File path (e.g., `spec/components/bali/button/component_spec.rb`)
+- File path (e.g., `test/bali/components/button_test.rb`)
 - `--all` - Run all component tests
-- `--coverage` - Show coverage report
+- `--coverage` - Run the whole suite with a coverage report
 - `--generate` - Generate missing tests
 
 ## Workflow
@@ -21,22 +21,44 @@ Where `$ARGUMENTS` is:
 
 Based on argument:
 
-1. **Component name**: Run `spec/components/bali/[name]/`
+1. **Component name**: `test/bali/components/[name]_test.rb`. A few components keep
+   their tests in a subdirectory (`data_table/`, `filters/`, `form/`, `icon/`,
+   `pagination/`, …), so locate the file instead of assuming the path:
+   ```bash
+   find test/bali/components -name "[name]_test.rb"
+   ```
 2. **File path**: Run that specific file
-3. **--all**: Run `spec/components/`
+3. **--all**: Run `test/bali/components/`
 
 ### Step 2: Run Tests
 
 ```bash
 # Single component
-bundle exec rspec spec/components/bali/button/ --format documentation
+bin/rails test test/bali/components/button_test.rb
 
-# All components
-bundle exec rspec spec/components/ --format progress
+# A directory, recursively
+bin/rails test test/bali/components/
+
+# The whole suite
+bin/rails test
 
 # With coverage
-COVERAGE=true bundle exec rspec spec/components/
+COVERAGE=1 bin/rails test
 ```
+
+Minitest has no `--format` flag. Narrow a run with a file, a `file:line`, or `-n`
+and a test-name pattern:
+
+```bash
+bin/rails test test/bali/components/button_test.rb -n /variant/
+bin/rails test test/bali/components/button_test.rb:6
+```
+
+`COVERAGE=1` starts SimpleCov from `spec/dummy/config/boot.rb` (before Bundler, so
+coverage tracks the files loaded during boot) and the config enforces
+`minimum_coverage line: 80`. Only the whole suite clears that bar: a single component
+file measures around 14% and the run exits non-zero on the coverage gate alone, with
+every test passing. `COVERAGE` also disables parallelization, so the run is slower.
 
 ### Step 3: Analyze Results
 
@@ -50,56 +72,71 @@ For failures:
 For components without tests, generate:
 
 ```ruby
-# spec/components/bali/[name]/component_spec.rb
-RSpec.describe Bali::[Name]::Component, type: :component do
-  it "renders successfully" do
-    render_inline(described_class.new)
-    expect(page).to have_css("[expected-selector]")
+# test/bali/components/[name]_test.rb
+# frozen_string_literal: true
+
+require "test_helper"
+
+class Bali[Name]ComponentTest < ComponentTestCase
+  def test_renders_successfully
+    render_inline(Bali::[Name]::Component.new)
+    assert_selector("[expected-selector]")
   end
 
-  describe "variants" do
-    Bali::[Name]::Component::VARIANTS.each_key do |variant|
-      it "renders #{variant} variant" do
-        render_inline(described_class.new(variant: variant))
-        expect(page).to have_css(".#{expected_class}")
-      end
+  Bali::[Name]::Component::VARIANTS.each do |variant, css_class|
+    define_method("test_variants_renders_#{variant}_variant") do
+      render_inline(Bali::[Name]::Component.new(variant: variant))
+      assert_selector(".#{css_class}")
     end
   end
 
-  describe "sizes" do
-    Bali::[Name]::Component::SIZES.each_key do |size|
-      it "renders #{size} size" do
-        render_inline(described_class.new(size: size))
-        expect(page).to have_css(".#{expected_class}")
-      end
+  Bali::[Name]::Component::SIZES.each do |size, css_class|
+    define_method("test_sizes_renders_#{size}_size") do
+      render_inline(Bali::[Name]::Component.new(size: size))
+      assert_selector(".#{css_class}")
     end
   end
 end
 ```
+
+`ComponentTestCase` (defined in `test/test_helper.rb`) is a `ViewComponent::TestCase`
+with `Capybara::Minitest::Assertions` mixed in — that is where `render_inline`,
+`assert_selector` and `assert_button` come from. Tests name the component class in
+full; there is no RSpec-style `described_class`.
 
 ## Test Patterns for DaisyUI Components
 
 ### Basic Rendering
 
 ```ruby
-it "renders with base DaisyUI class" do
-  render_inline(described_class.new) { "Content" }
-  expect(page).to have_css(".btn")  # or .card, .modal, etc.
+def test_basic_rendering_renders_with_base_daisyui_class
+  render_inline(Bali::Button::Component.new) { "Content" }
+  assert_selector("button.btn") # or .card, .modal, etc.
 end
 ```
 
 ### Variant Testing
 
 ```ruby
-describe "variants" do
-  it "applies primary variant" do
-    render_inline(described_class.new(variant: :primary)) { "Primary" }
-    expect(page).to have_css(".btn.btn-primary")
-  end
+def test_variants_applies_primary_variant
+  render_inline(Bali::Button::Component.new(variant: :primary)) { "Primary" }
+  assert_selector("button.btn.btn-primary")
+end
 
-  it "applies error variant" do
-    render_inline(described_class.new(variant: :error)) { "Error" }
-    expect(page).to have_css(".btn.btn-error")
+def test_variants_applies_error_variant
+  render_inline(Bali::Button::Component.new(variant: :error)) { "Error" }
+  assert_selector("button.btn.btn-error")
+end
+```
+
+A whole family is usually covered by a loop that defines one case per value, so a new
+value in the component's constant is a new test case for free:
+
+```ruby
+%i[primary secondary accent info success warning error ghost link neutral].each do |variant|
+  define_method("test_variants_renders_#{variant}_variant") do
+    render_inline(Bali::Button::Component.new(variant: variant)) { "Button" }
+    assert_selector("button.btn.btn-#{variant}")
   end
 end
 ```
@@ -107,12 +144,10 @@ end
 ### Size Testing
 
 ```ruby
-describe "sizes" do
-  %i[xs sm md lg].each do |size|
-    it "applies #{size} size" do
-      render_inline(described_class.new(size: size)) { "Button" }
-      expect(page).to have_css(".btn.btn-#{size}")
-    end
+def test_sizes_supports_all_daisyui_sizes
+  %i[xs sm md lg xl].each do |size|
+    render_inline(Bali::Tag::Component.new(text: "Tag", size: size))
+    assert_selector("div.badge.badge-#{size}")
   end
 end
 ```
@@ -120,53 +155,58 @@ end
 ### State Testing
 
 ```ruby
-describe "states" do
-  it "shows loading state" do
-    render_inline(described_class.new(loading: true)) { "Loading" }
-    expect(page).to have_css(".loading")
-  end
+def test_states_shows_loading_state
+  render_inline(Bali::Button::Component.new(loading: true)) { "Loading" }
+  assert_selector(".loading")
+end
 
-  it "shows disabled state" do
-    render_inline(described_class.new(disabled: true)) { "Disabled" }
-    expect(page).to have_css(".btn-disabled")
-    expect(page).to have_css("[disabled]")
-  end
+def test_states_shows_disabled_state
+  render_inline(Bali::Button::Component.new(disabled: true)) { "Disabled" }
+  assert_selector("button.btn-disabled")
+  assert_selector("[disabled]")
 end
 ```
 
 ### Slot Testing
 
 ```ruby
-describe "slots" do
-  it "renders header slot" do
-    render_inline(described_class.new) do |c|
-      c.with_header { "Header Content" }
-    end
-    expect(page).to have_css(".card-title", text: "Header Content")
+def test_slots_renders_header_slot
+  render_inline(Bali::Card::Component.new) do |c|
+    c.with_header { "Header Content" }
   end
+  assert_selector(".card-title", text: "Header Content")
+end
 
-  it "renders actions slot" do
-    render_inline(described_class.new) do |c|
-      c.with_actions { "<button>Action</button>".html_safe }
-    end
-    expect(page).to have_css(".card-actions button", text: "Action")
+def test_slots_renders_actions_slot
+  render_inline(Bali::Card::Component.new) do |c|
+    c.with_actions { "<button>Action</button>".html_safe }
   end
+  assert_selector(".card-actions button", text: "Action")
 end
 ```
 
 ### Options Passthrough
 
 ```ruby
-describe "options passthrough" do
-  it "adds custom classes" do
-    render_inline(described_class.new(class: "custom-class")) { "Content" }
-    expect(page).to have_css(".btn.custom-class")
-  end
+def test_options_passthrough_accepts_custom_classes
+  render_inline(Bali::Alert::Component.new(class: "custom-class")) { "Content" }
+  assert_selector("div.alert.custom-class")
+end
 
-  it "adds data attributes" do
-    render_inline(described_class.new(data: { controller: "test" })) { "Content" }
-    expect(page).to have_css("[data-controller='test']")
-  end
+def test_options_passthrough_accepts_data_attributes
+  render_inline(Bali::Alert::Component.new(data: { testid: "my-alert" })) { "Content" }
+  assert_selector('div.alert[data-testid="my-alert"]')
+end
+```
+
+### Asserting an Absence
+
+`assert_no_selector` is the Capybara-on-Minitest spelling — there is no `not_to`:
+
+```ruby
+def test_no_icon_by_default
+  render_inline(Bali::Alert::Component.new) { "Content" }
+  assert_no_selector("div.alert > span.icon-component")
 end
 ```
 
@@ -178,31 +218,17 @@ User: /test Button
 AI: Running tests for Bali::Button::Component...
 
 ```bash
-bundle exec rspec spec/components/bali/button/ --format documentation
+bin/rails test test/bali/components/button_test.rb
 ```
 
-Bali::Button::Component
-  renders with base DaisyUI class
-  variants
-    applies primary variant
-    applies secondary variant
-    applies success variant
-    applies error variant
-    applies ghost variant
-  sizes
-    applies xs size
-    applies sm size
-    applies md size
-    applies lg size
-  states
-    shows loading state
-    shows disabled state
-  options passthrough
-    adds custom classes
-    adds data attributes
+Run options: --seed 38921
 
-Finished in 0.45 seconds
-12 examples, 0 failures
+# Running:
+
+..............................................
+
+Finished in 0.147148s, 312.6112 runs/s, 468.9167 assertions/s.
+46 runs, 69 assertions, 0 failures, 0 errors, 0 skips
 
 ✓ All tests passing
 ```
@@ -218,12 +244,23 @@ Component has:
 - Slots: header, body, footer, image
 - Options: shadow (boolean)
 
-Generating spec/components/bali/card/component_spec.rb...
+Generating test/bali/components/card_test.rb...
 
 [Shows generated test file]
 
 Running generated tests...
-12 examples, 0 failures
+12 runs, 24 assertions, 0 failures, 0 errors, 0 skips
 
 ✓ Tests generated and passing
+```
+
+## Browser Tests
+
+Minitest does not exercise the Stimulus controllers. Those are Cypress, rendered
+through the Lookbook previews, and need the dummy server up on port 3001:
+
+```bash
+cd spec/dummy && bin/dev   # in another terminal
+yarn run cy:run            # headless
+yarn run cy:open           # interactive
 ```

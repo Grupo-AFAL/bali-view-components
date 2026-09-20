@@ -91,7 +91,7 @@ git status --porcelain
 git branch --show-current
 
 # Run full test suite (unless --skip-tests)
-bundle exec rspec
+bin/rails test
 
 # Read and verify version files are in sync
 # - lib/bali/version.rb
@@ -533,12 +533,14 @@ Then run /release again.
 ERROR: Test suite failed. Cannot release with failing tests.
 
 Failures:
-  1) Bali::Button::Component renders primary variant
-     Expected: have_css(".btn-primary")
-     Got: have_css(".is-primary")
+  BaliButtonComponentTest#test_basic_rendering_renders_a_button_element_with_btn_class
+  [test/bali/components/button_test.rb:8]:
+  expected to find css "button.btn" but there were no matches
 
 Fix the failing tests before releasing.
-Run: bundle exec rspec --only-failures
+There is no `--only-failures` equivalent. Re-run each failure one at a time
+with the line-numbered command Rails prints under it, e.g.
+  bin/rails test test/bali/components/button_test.rb:6
 ```
 
 ### PR Not Merged
@@ -652,6 +654,8 @@ For automated notifications when releases are tagged:
 
 ```yaml
 # .github/workflows/release.yml
+# Same shape as .github/workflows/test.yml: the suite boots the dummy app, so
+# it needs Node, the schema and the built assets before a single test runs.
 name: Release
 
 on:
@@ -663,11 +667,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
+        env:
+          # `bali-rubocop` is a private repo and the workflow's GITHUB_TOKEN only
+          # reaches this one, so without this `bundle install` dies cloning it.
+          BUNDLE_GITHUB__COM: x-access-token:${{ secrets.BUNDLE_GITHUB_TOKEN }}
         with:
           bundler-cache: true
-      - run: bundle exec rspec
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: spec/dummy/yarn.lock
+      - run: cd spec/dummy && yarn install
+      - run: bin/rails db:schema:load
+        env:
+          RAILS_ENV: test
+      - run: cd spec/dummy && bin/rails tailwindcss:build && yarn build
+      - run: bundle exec rails test
 
   notify:
     needs: test

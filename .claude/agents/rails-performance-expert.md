@@ -16,6 +16,10 @@ You are a pragmatic Rails performance expert. Your job is to find performance bo
 
 ## Analysis Domains
 
+Browser-side profiling — Lighthouse, Core Web Vitals, bundle size — is the `performance-profiling`
+skill (`.claude/skills/performance-profiling/`), which ships a Lighthouse script. It says nothing
+about the Ruby suite; section 3 below covers that.
+
 ### 1. Runtime Performance
 
 #### Query Analysis
@@ -157,79 +161,52 @@ bundle exec rails runner "puts Listen::Adapter.select"
 
 ### 3. Test Speed
 
+The suite here is **Minitest** under `test/`, run with `bin/rails test`. No profiling gem is
+installed — no `test-prof`, no `stackprof`, and no RSpec, so there is no `--profile` flag.
+Everything below uses what the repo already has.
+
 #### Test Suite Analysis
 
 **Profile Slow Tests**
 ```bash
-# RSpec with timing
-bundle exec rspec --profile 10
+# The verbose reporter prints seconds next to every test name
+bin/rails test -v
 
-# Using test-prof for deep analysis
-TEST_PROF=1 bundle exec rspec
+# Slowest tests of a run, worst first
+bin/rails test -v | grep ' = [0-9]' | sort -t= -k2 -rn | head -20
 
-# Identify factory cascades
-FPROF=1 bundle exec rspec
+# Narrow to one file or one directory before profiling
+bin/rails test test/bali/components/button_test.rb
+bin/rails test test/bali/components/
 ```
+
+**Parallel workers**
+
+`test/test_helper.rb` already calls `parallelize`, but defaults to one worker, so a plain run
+is single-threaded until you say otherwise:
+
+```bash
+PARALLEL_WORKERS=8 bin/rails test
+```
+
+`COVERAGE` set disables parallelization on purpose — forked workers lose SimpleCov coverage for
+files loaded during boot. A slow coverage run is the design, not a bottleneck to fix.
 
 **Common Issues**
 
 | Issue | Detection | Fix |
 |-------|-----------|-----|
-| Factory cascades | FactoryProf shows deep chains | Use `build_stubbed`, add traits |
-| Slow before(:each) | Profile shows setup time | Move to before(:all) or let_it_be |
-| Database bloat | Test runs slow after many specs | Use database_cleaner with transaction strategy |
-| No parallelization | Single-threaded runs | Add parallel_tests gem |
+| Single worker | Wall time tracks the sum of per-test times | `PARALLEL_WORKERS=<n> bin/rails test` |
+| Expensive `setup` | `-v` shows the same cost on every test of one class | Hoist the shared work to a memoized helper or a frozen constant |
+| Boot dominates | Boot alone is ~1 s here, and one file and one directory both land at ~2 s | Nothing to fix; compare whole-suite times, not file times |
+| Slow single test | One `= N.NN s` line stands out of the sorted run | Read that test — usually a real render or a database round trip |
 
-#### Database Strategy
+#### Fixtures and the Database
 
-```ruby
-# Slow: Truncation
-config.before(:suite) { DatabaseCleaner.strategy = :truncation }
-
-# Fast: Transaction (preferred)
-config.before(:suite) { DatabaseCleaner.strategy = :transaction }
-
-# Fastest: let_it_be + transaction
-let_it_be(:user) { create(:user) }  # Created once, rolled back per example
-```
-
-#### Factory Optimization
-
-```ruby
-# BAD: Factory creates unnecessary associations
-factory :order do
-  association :customer  # Creates customer every time
-  association :product   # Creates product every time
-end
-
-# GOOD: Build what you need
-factory :order do
-  customer { nil }  # Explicit, allows build_stubbed
-  product { nil }
-end
-
-# Usage
-build_stubbed(:order)  # No DB hit
-create(:order, customer: existing_customer)  # Reuse
-```
-
-#### Parallelization
-
-```bash
-# Setup parallel_tests
-bundle add parallel_tests
-
-# Create parallel databases
-bundle exec rake parallel:create
-bundle exec rake parallel:prepare
-
-# Run parallel
-bundle exec rake parallel:spec
-
-# CI: Use native parallelization
-# GitHub Actions: matrix strategy
-# CircleCI: parallelism key
-```
+There are no factories and no `database_cleaner`: `factory_bot` is not in the `Gemfile`, Rails'
+transactional tests roll each test back, and `test/fixtures/` holds a single fixture set. Component
+tests render in process through `render_inline`, so one that needs the database is the exception
+and worth questioning before it is optimized.
 
 ## Output Format
 
@@ -317,19 +294,19 @@ def with_real_data
 end
 ```
 
-### RSpec Component Tests
+### Component Tests
 
 ```ruby
 # Check: render_inline overhead
 # Each render_inline creates a new component instance
 
-# Optimization: Test multiple aspects in one example when sensible
-it "renders correctly" do
-  render_inline(described_class.new(variant: :primary)) { "Click" }
+# Optimization: Assert several aspects of one render when sensible
+def test_renders_a_primary_button
+  render_inline(Bali::Button::Component.new(variant: :primary)) { "Click" }
 
-  expect(page).to have_css("button.btn")
-  expect(page).to have_css("button.btn-primary")
-  expect(page).to have_text("Click")
+  assert_selector("button.btn")
+  assert_selector("button.btn-primary")
+  assert_text("Click")
 end
 ```
 
@@ -340,11 +317,13 @@ end
 | bullet | N+1 detection | `gem 'bullet'` |
 | rack-mini-profiler | Request profiling | `gem 'rack-mini-profiler'` |
 | derailed_benchmarks | Memory/boot profiling | `gem 'derailed_benchmarks'` |
-| test-prof | Test suite profiling | `gem 'test-prof'` |
-| parallel_tests | Parallel test execution | `gem 'parallel_tests'` |
 | benchmark-ips | Micro-benchmarks | `gem 'benchmark-ips'` |
 | stackprof | CPU profiling | `gem 'stackprof'` |
 | memory_profiler | Memory analysis | `gem 'memory_profiler'` |
+
+None of these are in this repo's `Gemfile` — each is a `bundle add` away, and their absence is why
+section 3 profiles with `-v` instead. `test-prof` is RSpec-only and does not apply here at all;
+`parallel_tests` is redundant, since `test_helper.rb` already uses Rails' own `parallelize`.
 
 ---
 
