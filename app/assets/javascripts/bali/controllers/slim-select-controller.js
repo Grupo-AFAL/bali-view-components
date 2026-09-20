@@ -22,10 +22,10 @@ export class SlimSelectController extends Controller {
     ajaxValueName: String,
     ajaxTextName: String,
     ajaxUrl: String,
-    // Lo que la busqueda remota manda ADEMAS del termino (#1084). `ajaxExtraParams` es
-    // el scope fijo, conocido al renderizar; `ajaxParamSelectors` es un mapa
-    // `parametro -> selector CSS` que se LEE EN CADA BUSQUEDA, que es lo que hace posible
-    // un select dependiente de otro campo del formulario.
+    // What the remote search sends BESIDES the term (#1084). `ajaxExtraParams` is
+    // the fixed scope, known at render time; `ajaxParamSelectors` is a
+    // `parameter -> CSS selector` map that is READ ON EVERY SEARCH, which is what makes
+    // a select that depends on another field of the form possible.
     ajaxExtraParams: Object,
     ajaxParamSelectors: Object,
     placeholder: { type: String, default: 'Select value' },
@@ -260,9 +260,9 @@ export class SlimSelectController extends Controller {
         query: {
           ...this.ajaxExtraParamsValue,
           ...this.dependentParams(),
-          // El termino va ULTIMO a proposito: un parametro extra que se llame igual que
-          // `ajaxParamName` es un error del call site, y quedarse sin busqueda es la peor
-          // forma de enterarse.
+          // The term goes LAST on purpose: an extra parameter named the same as
+          // `ajaxParamName` is a call site mistake, and being left with no search is the
+          // worst way to find out.
           [this.ajaxParamNameValue]: search
         },
         responseKind: 'json'
@@ -283,17 +283,17 @@ export class SlimSelectController extends Controller {
   }
 
   /**
-   * Los parametros que salen de otros campos, resueltos en el momento de la busqueda y no
-   * al conectar: el campo del que dependen cambia despues, y ese es todo el caso de uso.
+   * The parameters that come from other fields, resolved at search time and not at
+   * connect: the field they depend on changes afterwards, and that is the whole use case.
    *
-   * Un campo vacio no manda el parametro en vez de mandarlo vacio: `?type=` y `sin type`
-   * son dos preguntas distintas del lado del servidor, y "sin recorte" es la que
-   * corresponde cuando no hay nada elegido.
+   * An empty field sends no parameter rather than sending an empty one: `?type=` and `no
+   * type` are two different questions on the server side, and "no narrowing" is the right
+   * one when nothing is picked.
    *
-   * Un selector que no encuentra nada AVISA. Es exactamente el modo de falla que este
-   * value existe para eliminar: sin el aviso, el filtro deja de acotar en silencio y el
-   * widget sigue andando, devolviendo el universo completo. Una vez por selector, que la
-   * busqueda corre por tecla.
+   * A selector that matches nothing WARNS. It is exactly the failure mode this value
+   * exists to remove: without the warning the filter silently stops narrowing and the
+   * widget keeps working, returning the whole universe. Once per selector, since the
+   * search runs on every keystroke.
    */
   dependentParams () {
     this.missingSelectors ||= new Set()

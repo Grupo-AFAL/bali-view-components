@@ -27,16 +27,16 @@ module Bali
         @config = Bali::BlockEditor::Config.wrap(config)
         @options = options.except(*PAGE_OPTIONS)
 
-        # Los tres `references_*` de esta página también se mudaron a `config:` en v3, y
-        # sueltos se pintaban como atributos del div: los chips de referencia de la ficha
-        # publicada salían con el ícono y la etiqueta por omisión, sin re-resolver el
-        # nombre, y nada lo decía (#1092).
+        # This page's three `references_*` keywords also moved into `config:` in v3, and
+        # left loose they were painted as attributes of the div: the reference chips of the
+        # published record came out with the default icon and label, without re-resolving
+        # the name, and nothing said so (#1092).
         Bali::BlockEditor::Config.warn_stray_keywords(@options, component: self.class.name)
         reject_format_keyword
       end
 
-      # @deprecated El slot se llama `body` desde v3, igual que en los otros cuatro page
-      #   components. Se elimina en 4.0. Renombra `with_preview` a `with_body`.
+      # @deprecated The slot is called `body` since v3, the same as in the other four page
+      #   components. It is removed in 4.0. Rename `with_preview` to `with_body`.
       def with_preview(...)
         Bali.deprecator.warn(
           "The `preview` slot of Bali::DocumentPage is deprecated. Rename `with_preview` to " \
@@ -59,14 +59,15 @@ module Bali
 
       private
 
-      # `format:` fija la forma en que el editor ESCRIBE el contenido, y esta página no
-      # escribe: monta su BlockEditor con `editable: false` y sin `input_name`, así que no
-      # renderiza hidden input y no hay nada que serializar. Aceptarlo y reenviarlo sería
-      # API muerta —un keyword que se puede pasar y no hace nada—, y dejarlo caer en
-      # `**options` lo pinta como `format="blocks"` en el div, en silencio, que es la trampa
-      # de #1092. Así que se dice en voz alta y se nombra el componente que sí lo toma.
+      # `format:` pins the way the editor WRITES content, and this page never writes: it
+      # mounts its BlockEditor with `editable: false` and no `input_name`, so it renders no
+      # hidden input and there is nothing to serialize. Accepting it and forwarding it
+      # would be dead API — a keyword you can pass that does nothing — and letting it fall
+      # into `**options` paints it as `format="blocks"` on the div, silently, which is the
+      # trap of #1092. So it says so out loud and names the component that does take it.
       #
-      # Es un raise y no un warn porque no hay nada que deprecar: nunca significó nada acá.
+      # It raises rather than warns because there is nothing to deprecate: it never meant
+      # anything here.
       def reject_format_keyword
         return unless @options.key?(:format)
 
@@ -93,8 +94,8 @@ module Bali
         }
       end
 
-      # DocumentPage es el único que pone algo a la izquierda de la barra de acciones: los
-      # toggles de sus paneles. El resto de los cinco se queda con `render_actions_bar`.
+      # DocumentPage is the only one that puts anything to the left of the actions bar: its
+      # panel toggles. The other four of the five stay with `render_actions_bar`.
       def page_header_actions
         helpers.tag.div(class: "flex items-center gap-2 flex-wrap") do
           helpers.safe_join([ render_toc_toggle, render_metadata_toggle, render_actions_group ].compact)
@@ -120,23 +121,21 @@ module Bali
         )) { render Bali::Icon::Component.new(icon, size: :small) }
       end
 
-      # `secondary_actions?` además de `actions?`: una página que solo declara acciones
-      # secundarias (el ⋯) no pintaba nada.
+      # `secondary_actions?` as well as `actions?`: a page that only declares secondary
+      # actions (the ⋯) painted nothing.
       def render_actions_group
         return unless actions? || secondary_actions?
 
-        # Misma regla propia que la toolbar del DataTable, y por la misma razón: la clase
-        # `divider-horizontal` de daisyUI trae un `width: 1rem` que ninguna utilidad puede
-        # bajar, y ese ancho se sumaba al gap de la fila. El comentario largo con la
-        # medición está en `data_table/component.html.erb` (#846).
+        # The same hand-rolled rule as the DataTable toolbar, and for the same reason:
+        # daisyUI's `divider-horizontal` class carries a `width: 1rem` that no utility can
+        # bring down, and that width added itself to the row's gap. The long comment with
+        # the measurement is in `data_table/component.html.erb` (#846).
         helpers.safe_join([
           helpers.tag.div(class: "w-0.5 h-6 bg-base-content/10"),
           render_actions_bar
         ])
       end
 
-      # El cuerpo tiene tres orígenes: el editor de bloques cuando hay `initial_content`,
-      # el slot `body`, o el contenido suelto del bloque.
       def page_body
         return render_block_editor if block_editor?
 

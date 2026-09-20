@@ -1,14 +1,14 @@
-<%# Un menú deliberadamente más alto que su contenedor, con el ítem activo cerca del final:
-    es la única forma de ver el comportamiento, porque en un menú que entra en pantalla no
-    hay nada que revelar. `h-[380px]` recorta; las 18 entradas desbordan. %>
-<%# `fixed: true` convierte el sidebar en drawer por debajo de `lg`, que es el caso donde
-    el reveal tiene que ESPERAR: un drawer cerrado está `inert` y fuera de pantalla. %>
+<%# A menu deliberately taller than its container, with the active item near the end: it
+    is the only way to see the behaviour, because in a menu that fits on screen there is
+    nothing to reveal. `h-[380px]` clips; the 18 entries overflow. %>
+<%# `fixed: true` turns the sidebar into a drawer below `lg`, which is the case where the
+    reveal has to WAIT: a closed drawer is `inert` and off screen. %>
 <div class="h-[380px] bg-base-200 p-4">
   <% if fixed %>
     <div class="mb-2"><%= render Bali::SideMenu::Trigger::Component.new %></div>
   <% end %>
-  <%# `h-full` en el nav: sin una altura definida el flex crece con su contenido y
-      `.sidebar-menu` (que es `grow overflow-auto`) nunca llega a scrollear. %>
+  <%# `h-full` on the nav: without a defined height the flex grows with its content and
+      `.sidebar-menu` (which is `grow overflow-auto`) never gets to scroll. %>
   <div class="w-xs h-full">
     <%= render Bali::SideMenu::Component.new(current_path: '/reports/audit-log',
                                              fixed: fixed,

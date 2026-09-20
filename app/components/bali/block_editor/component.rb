@@ -18,21 +18,22 @@ module Bali
         lg: "block-editor-size-lg"
       }.freeze
 
-      # Cómo se escribe el contenido en el hidden input.
+      # How the content is written into the hidden input.
       #
-      # Los tres primeros son los de siempre. Los dos últimos existen porque `:json` es
-      # ADAPTATIVO y esa era la trampa (#1091): BlockNote borra las marcas de comentario de
-      # `editor.document`, así que con comentarios encendidos el editor cambia solo a la
-      # forma ProseMirror para no perderlas — y eso no lo dispara el host, lo dispara el
-      # primer usuario que deje un comentario. Con auto-guardado, ese comentario reescribe
-      # la columna en un esquema distinto sin que nadie lo pida, y todo lo que la lee del
-      # lado de Rails (referencias, indexado, diffs, export) se encuentra otra cosa.
+      # The first three are the usual ones. The last two exist because `:json` is ADAPTIVE
+      # and that was the trap (#1091): BlockNote strips the comment marks from
+      # `editor.document`, so with comments on the editor switches by itself to the
+      # ProseMirror shape so as not to lose them — and that is not triggered by the host, it
+      # is triggered by the first user who leaves a comment. With autosave, that comment
+      # rewrites the column in a different schema with nobody asking for it, and everything
+      # that reads it on the Rails side (references, indexing, diffs, export) finds something
+      # else.
       #
-      # `:blocks` fija `editor.document` y `:prosemirror` fija la forma ProseMirror. Fijar
-      # `:blocks` con comentarios encendidos PIERDE el anclaje de cada hilo —los hilos
-      # sobreviven en su store, las marcas no—, así que el editor lo avisa por consola la
-      # primera vez que descarta una. Es un intercambio que el host puede querer; lo que no
-      # puede es que se lo hagan sin avisar.
+      # `:blocks` pins `editor.document` and `:prosemirror` pins the ProseMirror shape.
+      # Pinning `:blocks` with comments on LOSES every thread's anchor —the threads survive
+      # in their store, the marks do not— so the editor warns on the console the first time
+      # it discards one. It is a trade-off the host may want; what it cannot have is that
+      # trade being made for it without warning.
       FORMATS = %i[json blocks prosemirror html markdown].freeze
 
       # Distinguishes "the caller did not pass this" from "the caller passed the
@@ -96,8 +97,8 @@ module Bali
         @input_name = input_name
         @format = validated_format(format)
         @preset = preset
-        # Sigue a la app por default: un editor en inglés dentro de una UI en
-        # español es el error más visible de una instalación sin configurar.
+        # Follows the app by default: an editor in English inside a Spanish UI
+        # is the most visible symptom of an unconfigured installation.
         @locale = locale || I18n.locale.to_s.split("-").first
         @syntax_highlighting = @config.syntax_highlighting
         @syntax_highlighting = Bali.block_editor_syntax_highlighting if @syntax_highlighting.nil?
@@ -106,12 +107,12 @@ module Bali
         @upload_url_auto = (@config.upload_url == :auto)
         @upload_url = @upload_url_auto ? nil : @config.upload_url
 
-        # Un visor no sube archivos, y no pasar `upload_url:` no APAGA las subidas: las
-        # ENCIENDE, porque su default es `:auto` y eso resuelve al endpoint del engine.
-        # `:auto` ya lo contemplaba —`resolve_auto_upload_url` mira `editable?`—, pero una
-        # url explícita no, así que una pantalla de solo lectura seguía aceptando subidas:
-        # blobs `unattached` que la purga de huérfanos del host se lleva a los siete días
-        # (#1092). La regla queda entera: sin edición no hay subida, venga de donde venga.
+        # A viewer does not upload files, and not passing `upload_url:` does not TURN uploads
+        # OFF: it turns them ON, because its default is `:auto` and that resolves to the
+        # engine's endpoint. `:auto` already covered this —`resolve_auto_upload_url` checks
+        # `editable?`— but an explicit url did not, so a read-only screen went on accepting
+        # uploads: `unattached` blobs that the host's orphan purge carries off after seven
+        # days (#1092). The rule holds whole: no editing, no uploading, wherever it comes from.
         unless @editable
           @upload_url_auto = false
           @upload_url = nil
@@ -230,10 +231,10 @@ module Bali
         end
       end
 
-      # En qué forma está el valor que el input lleva AHORA, para el que lo lea antes de
-      # que el editor monte y lo reescriba. El editor mantiene el atributo al día en cada
-      # escritura (`useContentSync`), y del lado de Rails la misma pregunta la responde
-      # `Bali::BlockEditor.content_format` sobre la columna.
+      # Which shape the value the input carries is in RIGHT NOW, for whoever reads it before
+      # the editor mounts and rewrites it. The editor keeps the attribute up to date on every
+      # write (`useContentSync`), and on the Rails side the same question is answered by
+      # `Bali::BlockEditor.content_format` over the column.
       def content_format
         return @format if %i[html markdown].include?(@format)
 
@@ -249,12 +250,12 @@ module Bali
 
       private
 
-      # @deprecated `readonly:` es el nombre de Rails y la primera conjetura de cualquiera,
-      #   y hasta v3.1 era una trampa muda: no es parámetro del componente, así que caía en
-      #   `**options` y salía como `readonly="readonly"` en un `<div>`, donde no significa
-      #   nada. Dos pantallas "de solo lectura" de una app anfitriona eran editables, y
-      #   además aceptaban subidas, porque `upload_url:` por omisión es `:auto` (#1092).
-      #   Se elimina en 4.0.
+      # @deprecated `readonly:` is Rails' name and anyone's first guess, and up to v3.1 it
+      #   was a silent trap: it is not a parameter of the component, so it fell into
+      #   `**options` and came out as `readonly="readonly"` on a `<div>`, where it means
+      #   nothing. Two "read-only" screens of a host app were editable, and accepted uploads
+      #   besides, because `upload_url:` defaults to `:auto` (#1092).
+      #   Removed in 4.0.
       def resolve_editable(editable, readonly)
         return editable if readonly.nil?
 
@@ -277,8 +278,8 @@ module Bali
       # attribute on the input families, and now reachable through
       # `block_editor_group` (#1076) — into a NoMethodError; letting it miss
       # the fetch instead keeps the rejection one clear message.
-      # Un `format:` desconocido caía en el `else` y salía como JSON: un host que pidió
-      # markdown se llevaba JSON sin enterarse. Mismo contrato que `size_class`.
+      # An unknown `format:` fell into the `else` and came out as JSON: a host that asked
+      # for markdown got JSON without noticing. Same contract as `size_class`.
       def validated_format(format)
         key = format.respond_to?(:to_sym) ? format.to_sym : format
         return key if FORMATS.include?(key)
@@ -448,10 +449,11 @@ module Bali
         end
       end
 
-      # Sin `references_config:` explícito manda el registry (#708): declarar un tipo en
-      # `Bali.entity_reference_types` con su `display:` basta para que su chip salga con su
-      # icono, su etiqueta y su color, sin repetir la declaración en cada editor. Un hash
-      # explícito sigue ganando — un editor puede pintar un tipo distinto al del registry.
+      # Without an explicit `references_config:` the registry is in charge (#708): declaring
+      # a type in `Bali.entity_reference_types` with its `display:` is enough for its chip to
+      # come out with its icon, its label and its color, without repeating the declaration in
+      # every editor. An explicit hash still wins — an editor can paint a type differently
+      # from the registry.
       def serialized_references_config
         config = @references_config.presence || Bali.entity_references_config
         return "{}" if config.blank?

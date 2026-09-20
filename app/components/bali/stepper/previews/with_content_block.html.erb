@@ -1,11 +1,8 @@
-<%# En este escenario sólo 'Publicado' trae detalle. El primer stepper lo decide
-    dentro del bloque en los cuatro pasos —la forma que escribe un anfitrión—; el
-    segundo escribe ese mismo resultado a mano. Los dos rinden el mismo marcado. %>
 <% notes = { proposed: nil, approved: nil, published: 'publicación #12', current: nil } %>
 
 <div class="space-y-8">
   <div>
-    <h3 class="text-sm font-semibold mb-2">Los cuatro pasos pasan bloque y deciden adentro</h3>
+    <h3 class="text-sm font-semibold mb-2">All four steps pass a block and decide inside it</h3>
     <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
       <% c.with_step(title: 'Propuesto') do %>
         <% if notes[:proposed].present? %>
@@ -31,7 +28,7 @@
   </div>
 
   <div>
-    <h3 class="text-sm font-semibold mb-2">El mismo resultado escrito a mano: bloque sólo en el paso que tiene detalle</h3>
+    <h3 class="text-sm font-semibold mb-2">The same outcome written by hand: a block only on the step that has a detail</h3>
     <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
       <% c.with_step(title: 'Propuesto') %>
       <% c.with_step(title: 'Aprobado') %>
