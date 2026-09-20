@@ -439,6 +439,58 @@ describe('SplitView structured list', () => {
       })
     })
 
+    // The heading's two pieces of text sit on the band's own opaque background,
+    // and both are written with a translucent `text-base-content/*` token — so
+    // what reaches the reader is the token COMPOSITED over that band. Measuring
+    // the declared colour alone reports a contrast nobody sees; on a 1px canvas
+    // the ground has to be painted first and the colour over it.
+    //
+    // That is how the count shipped at `/50`, which composites to 3.33:1 in the
+    // light theme and 4.11 in the dark, both under AA's 4.5 for 12px text —
+    // while `.split-view-filter-count`, the same kind of number beside the same
+    // kind of label, was already at 6.38. Not a library convention, a slip.
+    ;['light', 'dark', 'afal', 'afal-dark'].forEach((theme) => {
+      it(`reads the heading and its count at AA on the ${theme} theme`, () => {
+        cy.document().then((doc) => {
+          doc.documentElement.setAttribute('data-theme', theme)
+
+          const paint = (over, colour) => {
+            const canvas = doc.createElement('canvas')
+            canvas.width = canvas.height = 1
+            const ctx = canvas.getContext('2d')
+            ctx.fillStyle = over
+            ctx.fillRect(0, 0, 1, 1)
+            if (colour) {
+              ctx.fillStyle = colour
+              ctx.fillRect(0, 0, 1, 1)
+            }
+            return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
+          }
+          const luminance = ([r, g, b]) => {
+            const channel = (v) => {
+              v /= 255
+              return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+            }
+            return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+          }
+          const ratio = (a, b) => {
+            const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+            return (high + 0.05) / (low + 0.05)
+          }
+
+          const header = doc.querySelector('.split-view-group-header')
+          const band = getComputedStyle(header).backgroundColor
+
+          ;[['count', '.split-view-group-count'], ['label', 'span']].forEach(([what, selector]) => {
+            const text = header.querySelector(selector)
+            const colour = getComputedStyle(text).color
+            expect(ratio(paint(band, colour), paint(band)), `${theme}: the group ${what}`)
+              .to.be.at.least(4.5)
+          })
+        })
+      })
+    })
+
     // A row inside a group is wired exactly like a row outside one; which slot it
     // came from is the only difference.
     it('selects a row inside a group like any other', () => {

@@ -199,7 +199,7 @@ files loaded during boot. A slow coverage run is the design, not a bottleneck to
 | Single worker | Wall time tracks the sum of per-test times | `PARALLEL_WORKERS=<n> bin/rails test` |
 | Expensive `setup` | `-v` shows the same cost on every test of one class | Hoist the shared work to a memoized helper or a frozen constant |
 | Boot dominates one FILE | Boot alone is ~1.5 s here; `button_test.rb` takes 1.7 s of wall clock and reports `Finished in 0.20 s` | Read the `Finished in` line, never the wall clock — 88% of that file's wall time is boot and it can rank nothing |
-| A directory is not the same case | `test/bali/components/` (102 files, 3 565 tests) takes 6.6 s of wall clock and reports `Finished in 4.78 s` — **3.9× the single file**, not the same ~2 s | Compare directories against each other: boot is 23% of that, so the wall clock does discriminate |
+| A directory is not the same case | `test/bali/components/` (128 files — the runner descends, 102 of them are at the top level — and 3 581 tests) takes 6.6 s of wall clock and reports `Finished in 4.78 s` — **3.9× the single file**, not the same ~2 s | Compare directories against each other: boot is 23% of that, so the wall clock does discriminate |
 | Slow single test | One `= N.NN s` line stands out of the sorted run | Read that test — usually a real render or a database round trip |
 
 #### Fixtures and the Database
