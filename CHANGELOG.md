@@ -23,6 +23,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lo usaba —ninguna lo hace, medido—, los componentes se escriben a mano siguiendo
   `docs/reference/component-patterns.md`.
 
+- **La app dummy se muda de `spec/dummy` a `test/dummy`** (#1174 de rebote). `spec/` era el
+  último rastro de RSpec: no contenía ni una prueba —las 5 635 siempre estuvieron en `test/`—,
+  solo la app anfitriona del engine, que en un engine de Rails va en `test/dummy`. 262 archivos
+  cambian de sitio y 50 referencias vivas se reescriben; las 37 menciones del CHANGELOG y de los
+  planes fechados **se dejan como están**, porque registran la ruta que había cuando se
+  escribieron.
+
+  Dos cosas que el movimiento destapó y que van en el mismo cambio:
+
+  - **Las pruebas de generadores escribían dentro del recorrido del runner.** Usaban
+    `Rails.root.join("tmp/generator_test")` —la raíz de la dummy—, y el generador de widgets emite
+    `test/widgets/<n>_test.rb`. Con la dummy bajo `test/`, la segunda corrida de la suite habría
+    recogido la salida de la primera como si fuera una prueba: medido, el runner desciende por
+    cualquier subcarpeta de `test/`. Pasan a `Bali::Engine.root`, la raíz del repo, cuyo `/tmp/`
+    está ignorado y fuera del recorrido.
+  - **223 comillas simples en 34 archivos de la dummy.** `rubocop-rails-omakase` acota
+    `Style/StringLiterals` a `app/`, `config/`, `lib/`, `test/` y el `Gemfile`; `spec/` no estaba
+    en esa lista, así que la dummy nunca había pasado por ese cop. Se autocorrigen: ya era 70 %
+    comillas dobles, la misma proporción que `app/` y `lib/`, o sea deriva y no un estilo.
+
+  **Para un anfitrión no cambia nada** — la dummy no viaja en la gema (`spec.files` solo empaqueta
+  `app`, `config`, `db` y `lib`). Para quien trabaja en el repo, el servidor de Lookbook se
+  arranca ahora con `cd test/dummy && bin/dev`.
+
 - **El repo quedó en inglés, y hay con qué mantenerlo así** (#1174). Cierra el barrido: siete PRs
   tradujeron **1 417 comentarios y nombres de prueba** en 207 archivos, borraron 23 que no cargaban
   ni una medición, ni una restricción invisible desde su línea, ni por qué lo obvio está mal, y

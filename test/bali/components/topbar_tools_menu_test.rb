@@ -120,7 +120,7 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
   end
 
   # It is an icon-only control: with no accessible name it has no name at all.
-  # The dummy runs in `en` (spec/dummy/config/application.rb): the labels asserted here are the
+  # The dummy runs in `en` (test/dummy/config/application.rb): the labels asserted here are the
   # English ones, even though both locales are added together.
   def test_the_trigger_has_an_accessible_name
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ montada ]))

@@ -118,7 +118,7 @@ tracked in #730.
 
 ## Verifying alignment
 
-1. **Lookbook** (`cd spec/dummy && bin/dev`, port 3001) next to the handbook
+1. **Lookbook** (`cd test/dummy && bin/dev`, port 3001) next to the handbook
    template, and under each theme — the Theme Sampler previews render components
    under `afal`/`afal-dark`/`costa-norte`.
 2. **Minitest** (the suite is not RSpec) asserts semantic classes:

@@ -7,7 +7,7 @@ class BaliTestingWidgetCatalogTest < ActiveSupport::TestCase
   include Bali::Testing::WidgetCatalog
 
   # THE ASSERTION DOING ITS REAL JOB, against the dummy app's own widgets. Add a
-  # file to `spec/dummy/app/widgets/` without listing it in the controller and
+  # file to `test/dummy/app/widgets/` without listing it in the controller and
   # this fails — which is the whole point of shipping it.
   def test_every_dummy_widget_is_on_a_dashboard
     assert_every_widget_catalogued DashboardWidgetsController, path: "app/widgets"

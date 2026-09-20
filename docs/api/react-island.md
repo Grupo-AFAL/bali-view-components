@@ -176,5 +176,5 @@ Deferred candidate on record: **BPMN/process-flow editing** (gobierno-corporativ
 The dummy app wires a toy counter through the full production loop — loader, meta tags, entry, subclass:
 
 - Previews: `/lookbook/preview/bali/react_island/default` (plus `two_islands` and `load_error`), templates at `app/components/bali/react_island/previews/`.
-- Island + controller + entry: `spec/dummy/app/javascript/{islands/CounterIsland.jsx,controllers/react_island_demo_controller.js,island-demo.js}`.
+- Island + controller + entry: `test/dummy/app/javascript/{islands/CounterIsland.jsx,controllers/react_island_demo_controller.js,island-demo.js}`.
 - Contract tests: `cypress/e2e/react-island.cy.js` (mount, props, single registration across Turbo visits, unmount, both error paths) and `test/bali/react_island_helper_test.rb` / `test/requests/react_island_previews_test.rb`.

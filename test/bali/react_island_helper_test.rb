@@ -5,7 +5,7 @@ require "test_helper"
 class ReactIslandHelperTest < ActionView::TestCase
   include Bali::ReactIslandHelper
 
-  # The dummy app has no island bundles (spec/dummy/app/assets/builds is a
+  # The dummy app has no island bundles (test/dummy/app/assets/builds is a
   # build artifact), so resolve assets predictably instead of via Propshaft.
   def asset_path(name)
     "/assets/#{name.sub(".", "-digest.")}"

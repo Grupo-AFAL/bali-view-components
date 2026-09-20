@@ -181,7 +181,7 @@ Bali extends Rails' `FormBuilder` with DaisyUI-styled inputs:
 ### Running the Preview Server
 
 ```bash
-cd spec/dummy && bin/dev
+cd test/dummy && bin/dev
 ```
 
 Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook) to browse component previews.

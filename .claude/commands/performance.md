@@ -178,7 +178,7 @@ grep -rn "def setup\|setup do" test/bali/components/ --include="*.rb"
 ```bash
 # Check for unbounded queries in previews
 grep -rn "\.all" app/components/*/preview.rb
-grep -rn "\.all" spec/dummy/app/components/*/preview.rb
+grep -rn "\.all" test/dummy/app/components/*/preview.rb
 ```
 
 ### Asset Build
@@ -187,7 +187,7 @@ grep -rn "\.all" spec/dummy/app/components/*/preview.rb
 time bin/rails tailwindcss:build 2>&1
 
 # Check content paths
-grep -A 10 "content:" spec/dummy/tailwind.config.js
+grep -A 10 "content:" test/dummy/tailwind.config.js
 ```
 
 ## Quick Reference

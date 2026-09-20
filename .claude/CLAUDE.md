@@ -21,7 +21,7 @@ Three project skills load on demand: `lookbook-previews` (writing/editing previe
 
 ## Development Commands
 
-The Lookbook preview server is not a plain `rails s` — start it with `cd spec/dummy && bin/dev`
+The Lookbook preview server is not a plain `rails s` — start it with `cd test/dummy && bin/dev`
 and open http://localhost:3001/lookbook. Cypress needs that server already running.
 
 Bulk component review: `./scripts/batch-review.sh` (read the script for its flags).
@@ -198,7 +198,7 @@ becomes nearly unbeatable — the opposite of what you usually want.
 After editing component CSS files, rebuild with: `bundle exec rails app:tailwindcss:build`
 (`rails tailwindcss:build` is the app's own task and does not exist here — the engine
 namespaces it under `app:`.)
-Compiled output: `spec/dummy/app/assets/builds/tailwind.css`
+Compiled output: `test/dummy/app/assets/builds/tailwind.css`
 
 ## DaisyUI Tooltip Mobile Gotcha
 

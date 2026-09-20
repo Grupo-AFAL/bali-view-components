@@ -11,9 +11,9 @@
 # instead of the shorter `thread_id`/`comment_id` the association names suggest.
 # See the migration guide in docs/guides/engines.md.
 #
-# The dummy registers these tables by hand in spec/dummy/db/schema.rb, the way it did
+# The dummy registers these tables by hand in test/dummy/db/schema.rb, the way it did
 # for bali_saved_views — it never runs `bali:install:migrations`. Its schema `version:`
-# has to reach this timestamp too, or every `bin/rails` call in spec/dummy reports a
+# has to reach this timestamp too, or every `bin/rails` call in test/dummy reports a
 # pending migration it has no path to run.
 class CreateBaliBlockEditorComments < ActiveRecord::Migration[7.0]
   def change

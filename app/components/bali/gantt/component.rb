@@ -54,7 +54,7 @@ module Bali
 
       # URLs the island posts to, all optional: an island with none of them is
       # a viewer. Reference implementation of every endpoint:
-      # spec/dummy/app/controllers/admin/projects/.
+      # test/dummy/app/controllers/admin/projects/.
       URL_KEYS = %i[patch dependencies schedule item_template new_group new_item].freeze
 
       # Rows of the skeleton. Fixed, not derived from the data: the point of the

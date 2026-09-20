@@ -30,7 +30,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "yarn --cwd spec/dummy build",
+    "build": "yarn --cwd test/dummy build",
     "check:manifest": "node scripts/check-controller-manifest.mjs",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
@@ -100,7 +100,7 @@
     "  ./block-editor: @blocknote/core + /react + /mantine, @mantine/core, @mantine/hooks,",
     "    react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for syntax-highlighted",
     "    code blocks; pass syntax_highlighting: false and you can skip it.",
-    "    The @blocknote/* lower bound is 0.53.0: the version spec/dummy pins and the one the",
+    "    The @blocknote/* lower bound is 0.53.0: the version test/dummy pins and the one the",
     "    editor was exercised against by hand -- and the first release carrying upstream #2912,",
     "    the fix for the render loop (#908) that <=0.52.1 enters when a browser extension",
     "    rewrites the editor's DOM. Do not widen it downwards without running the editor on the",

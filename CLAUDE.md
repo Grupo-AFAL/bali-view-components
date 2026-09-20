@@ -20,7 +20,7 @@ This repo is indexed by SocratiCode (hybrid semantic + BM25 search, file watcher
 **ALWAYS verify UI/UX changes through the browser before claiming they work.** Curl-testing APIs and passing Ruby tests is NOT sufficient for frontend features.
 
 After making changes to JavaScript, Stimulus controllers, React components, or any user-facing behavior:
-1. Start the dummy app (`cd spec/dummy && bin/dev`)
+1. Start the dummy app (`cd test/dummy && bin/dev`)
 2. Open the relevant page in the browser
 3. Manually test the full user flow end-to-end
 4. Take screenshots to confirm visual correctness

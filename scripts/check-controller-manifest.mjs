@@ -226,7 +226,7 @@ if (unreachableOptional.length) {
 
 const CATALOG_PAGES = [
   'docs/guides/controllers.md',
-  'spec/dummy/app/views/lookbook/pages/02_guides/03_controllers.md.erb'
+  'test/dummy/app/views/lookbook/pages/02_guides/03_controllers.md.erb'
 ]
 
 const utilityBundlePath = BUNDLES[0].path

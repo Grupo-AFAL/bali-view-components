@@ -34,15 +34,15 @@ jobs:
           # "Found incompatible module" before a single test runs.
           node-version: '22'
           cache: 'yarn'
-          cache-dependency-path: spec/dummy/yarn.lock
+          cache-dependency-path: test/dummy/yarn.lock
       - name: Install Node dependencies
-        run: cd spec/dummy && yarn install
+        run: cd test/dummy && yarn install
       - name: Set up database schema
         run: bin/rails db:schema:load
         env:
           RAILS_ENV: test
       - name: Build assets
-        run: cd spec/dummy && bin/rails tailwindcss:build && yarn build
+        run: cd test/dummy && bin/rails tailwindcss:build && yarn build
       - name: Run tests with coverage
         run: bundle exec rails test
         env:
