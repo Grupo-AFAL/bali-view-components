@@ -2,10 +2,10 @@
 
 module Bali
   class SavedView
-    # Implementación default del contrato `saved_views_store` (list/find/save/delete),
-    # scoped a UN dueño y UN listado (storage_id). El FilterForm solo lee (list/find);
-    # save/delete los usa Bali::SavedViewsController. "Vistas compartidas por equipo"
-    # (fase 2) es OTRA clase con este mismo contrato — el FilterForm no se entera.
+    # Default implementation of the `saved_views_store` contract (list/find/save/delete),
+    # scoped to ONE owner and ONE index (storage_id). The FilterForm only reads
+    # (list/find); save/delete are used by Bali::SavedViewsController. "Team-shared views"
+    # (phase 2) is ANOTHER class with this same contract — the FilterForm never notices.
     class Store
       def initialize(owner:, storage_id:)
         @owner = owner
@@ -16,9 +16,9 @@ module Bali
 
       def find(id) = scope.find_by(id: id)
 
-      # Upsert por nombre: guardar "Míos" dos veces actualiza la vista, no duplica. El
-      # rescue cubre la carrera del doble click: el segundo insert pierde contra el índice
-      # único y el reintento encuentra la fila recién creada — el upsert prometido, sin 500.
+      # Upsert by name: saving "Míos" twice updates the view, it does not duplicate. The
+      # rescue covers the double-click race: the second insert loses against the unique
+      # index and the retry finds the row just created — the promised upsert, with no 500.
       def save(name:, payload:)
         view = scope.find_or_initialize_by(name: name)
         view.update!(payload: payload)

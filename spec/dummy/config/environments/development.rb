@@ -16,8 +16,8 @@ Rails.application.configure do
 
   config.autoload_paths << gem_components_path
   config.autoload_paths << gem_lib_path
-  config.watchable_dirs[gem_components_path.to_s] = [:rb, :erb]
-  config.watchable_dirs[gem_lib_path.to_s] = [:rb]
+  config.watchable_dirs[gem_components_path.to_s] = [ :rb, :erb ]
+  config.watchable_dirs[gem_lib_path.to_s] = [ :rb ]
   # lib/bali reloading is handled by config/initializers/bali_lib_reloader.rb
 
   # Show full error reports.
@@ -26,13 +26,13 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
-  # El dummy es una app de DEMOSTRACIÓN, no una app normal: existe para que las features de
-  # Bali se vean funcionando recién clonado el repo. La persistencia de filtros vive en
-  # Rails.cache (ver Bali::FilterForm#fetch_stored_filter_state), así que con el :null_store
-  # que Rails trae por defecto en development las escrituras se iban al vacío y la feature
-  # parecía rota: aplicabas filtros, navegabas, volvías y no había nada. El toggle estándar
-  # (tmp/caching-dev.txt vía `rails dev:cache`) no sirve acá porque ese archivo está
-  # gitignoreado — nadie que clone el repo lo tiene, y nada lo documenta.
+  # The dummy is a DEMO app, not an ordinary one: it exists so that Bali's features are seen
+  # working on a freshly cloned repo. Filter persistence lives in Rails.cache (see
+  # Bali::FilterForm#fetch_stored_filter_state), so with the :null_store Rails ships by
+  # default in development the writes went nowhere and the feature looked broken: you applied
+  # filters, navigated away, came back and there was nothing. The standard toggle
+  # (tmp/caching-dev.txt via `rails dev:cache`) is no use here because that file is
+  # gitignored — nobody who clones the repo has it, and nothing documents it.
   config.cache_store = :memory_store
 
   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.

@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 module Bali
-  # #709 — una firma: esta persona confirmó haber leído esto. No se crea a mano; la produce
-  # `Bali::Acknowledgeable#acknowledge`, que es quien sabe resolver la idempotencia y la
-  # etiqueta de versión.
+  # #709 — a signature: this person confirmed having read this. It is not created by hand;
+  # `Bali::Acknowledgeable#acknowledge` produces it, and that is what knows how to resolve
+  # idempotency and the version label.
   #
-  # No hay whitelist de `acknowledgeable_type` en el modelo (gobierno-corporativo sí la
-  # tiene). Aquí sobra: el engine no expone controller en la v1, así que el tipo nunca llega
-  # de una request — lo pone el propio modelo del host al llamar `acknowledge`. Si algún día
-  # entra un endpoint, la whitelist va en la config del controller, como en #707, y no en el
-  # modelo: un `inclusion:` sobre una constante no se puede configurar por app.
+  # There is no `acknowledgeable_type` whitelist on the model (gobierno-corporativo does have
+  # one). Here it is redundant: the engine exposes no controller in v1, so the type never
+  # arrives from a request — the host's own model sets it when calling `acknowledge`. If an
+  # endpoint ever lands, the whitelist goes in the controller config, as in #707, and not in
+  # the model: an `inclusion:` over a constant cannot be configured per app.
   class Acknowledgment < ApplicationRecord
     belongs_to :acknowledgeable, polymorphic: true
     belongs_to :user, polymorphic: true

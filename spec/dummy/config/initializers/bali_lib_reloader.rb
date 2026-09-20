@@ -7,7 +7,7 @@ if Rails.env.development?
   gem_lib_path = Rails.root.parent.parent.join('lib/bali')
 
   Rails.application.config.after_initialize do
-    reloader = ActiveSupport::FileUpdateChecker.new([], { gem_lib_path.to_s => [:rb] }) do
+    reloader = ActiveSupport::FileUpdateChecker.new([], { gem_lib_path.to_s => [ :rb ] }) do
       Rails.logger.info "[Bali] Reloading lib/bali files..."
       Dir[gem_lib_path.join('**/*.rb')].sort.each { |file| load file }
     end

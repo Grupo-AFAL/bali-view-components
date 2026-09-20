@@ -6,16 +6,16 @@ module Bali
       # One step of a workflow: a marker, the title, and the optional assignee
       # / date / free comment block.
       #
-      # The marker is the only thing the three shapes disagree on — a numbered
-      # circle with a connector to the next step (vertical and rail), or the
-      # bare dot of the quick flow (`dot: true`). Everything below it is the
-      # same markup, which is why one template covers all three; so is the
-      # `sr-only` state name beside it, since no marker says the state in
-      # anything but colour.
+      # The marker is the only thing the four shapes disagree on. Everything
+      # below it is the same markup, which is why one template covers all four;
+      # so is the `sr-only` state name beside it, since no marker says the
+      # state in anything but colour.
       #
-      # `connector_state` is written by the parent once every step is declared
-      # — it is the state of the step that FOLLOWS this one, or nil on the last
-      # step and on every step of the horizontal shape.
+      # `marker` and `connector_state` are written by the parent, not passed to
+      # `new`: `dot:` is the boolean v3.4.0 published, which leaves a third
+      # marker no keyword to arrive through, and `connector_state` is the
+      # FOLLOWING step's state, unknowable until every step is declared — nil
+      # on the last step and on every step of the horizontal shape.
       class Component < ApplicationViewComponent
         SKIPPED = :skipped
 
@@ -54,6 +54,61 @@ module Bali
           current: "bg-primary ring-2 ring-primary/40"
         }.freeze
 
+        # `:pending` and `:skipped` declare no background on purpose: the
+        # connector runs centre-to-centre UNDER every marker, and the opaque
+        # ground it needs is drawn once by `.workflow-step-marker::before`
+        # (index.css) instead of six times here.
+        #
+        # Their greys are measured over that disc, not picked: `base-content`
+        # clears AA's 4.5:1 for the glyph at `/60` (4.66:1 light, 5.82:1 dark;
+        # `/55` is 3.94:1) and 3:1 for the outline at `/50` (3.40:1, 4.47:1).
+        # `base-300`, which the rail uses for both, tops out at 1.16:1.
+        PROGRESS_CIRCLE_CLASSES = {
+          success: "bg-primary text-primary-content",
+          error: "bg-error text-error-content",
+          warning: "bg-warning text-warning-content",
+          pending: "border border-base-content/50 text-base-content/60",
+          skipped: "border border-dashed border-base-content/50 text-base-content/60",
+          current: "border-2 border-primary bg-primary/10 text-primary"
+        }.freeze
+
+        # Reached is every state but `:pending` — `:skipped` included, because
+        # a step the route went around was still passed, and `:error` too,
+        # because a rejection is somewhere the flow arrived. So the primary run
+        # ends at the first `:pending` step, and nowhere else: a chain that is
+        # all `:skipped` draws a full primary line, and a reached step after
+        # `:current` carries the colour past it.
+        #
+        # The grey half takes the outline's `/50` for the same 3:1: the whole
+        # answer of this shape is the line, and `bg-base-300` measured 1.16:1.
+        PROGRESS_CONNECTOR_CLASSES = {
+          success: "bg-primary",
+          error: "bg-primary",
+          warning: "bg-primary",
+          pending: "bg-base-content/50",
+          skipped: "bg-primary",
+          current: "bg-primary"
+        }.freeze
+
+        # `/60` is the floor, not a shade: these labels are 12px, so AA wants
+        # 4.5:1 and `/50` measured 3.40:1.
+        PROGRESS_TITLE_CLASSES = {
+          success: "text-base-content/80",
+          error: "text-base-content/80",
+          warning: "text-base-content/80",
+          pending: "text-base-content/60",
+          skipped: "text-base-content/60",
+          current: "font-semibold text-primary"
+        }.freeze
+
+        # `:skipped` needs no entry — it carries no number, so the dash every
+        # numberless circle already falls back to is its glyph.
+        PROGRESS_ICONS = {
+          success: "check",
+          error: "x",
+          warning: "triangle-alert"
+        }.freeze
+
         STATES = CIRCLE_CLASSES.keys.freeze
 
         # Steps that have not happened read muted, like the rest of their row.
@@ -61,6 +116,10 @@ module Bali
 
         attr_reader :title, :state, :number, :assignee, :date
         attr_accessor :connector_state
+
+        # Writer public, reader private, deliberately not an `attr_accessor`:
+        # the parent is the only thing that may set this.
+        attr_writer :marker
 
         # @param title [String] The step's name
         # @param state [Symbol] One of STATES
@@ -82,6 +141,7 @@ module Bali
           @state_label = state_label
           @dot = dot
           @options = options
+          @marker = nil
           @connector_state = nil
         end
 
@@ -90,12 +150,25 @@ module Bali
         end
 
         def dot?
-          @dot
+          marker == :dot
+        end
+
+        def progress?
+          marker == :progress
         end
 
         private
 
         attr_reader :options
+
+        # An explicit `dot: true` outranks the parent, which is what v3.4.0
+        # already did when the keyword and the parent's own `dot: horizontal?`
+        # met in the same call.
+        def marker
+          return :dot if @dot
+
+          @marker || :circle
+        end
 
         # `Color.name!` treats nil as "no colour", which is right for optional
         # colours and wrong for a required state — reject it before it can
@@ -116,7 +189,20 @@ module Bali
         end
 
         def circle_classes
-          class_names("workflow-step-circle", CIRCLE_CLASSES.fetch(state))
+          table = progress? ? PROGRESS_CIRCLE_CLASSES : CIRCLE_CLASSES
+          class_names("workflow-step-circle", table.fetch(state))
+        end
+
+        def circle_number?
+          progress_icon.nil? && number.present?
+        end
+
+        def circle_icon
+          progress_icon || "minus"
+        end
+
+        def progress_icon
+          PROGRESS_ICONS[state] if progress?
         end
 
         def dot_classes
@@ -138,10 +224,13 @@ module Bali
         end
 
         def connector_classes
-          class_names("workflow-step-connector", CONNECTOR_CLASSES.fetch(connector_state))
+          table = progress? ? PROGRESS_CONNECTOR_CLASSES : CONNECTOR_CLASSES
+          class_names("workflow-step-connector", table.fetch(connector_state))
         end
 
         def title_classes
+          return class_names("workflow-step-title", PROGRESS_TITLE_CLASSES.fetch(state)) if progress?
+
           class_names(
             "workflow-step-title",
             "text-base-content/40" => MUTED_TITLE_STATES.include?(state)

@@ -124,6 +124,63 @@ module Bali
         render_with_template(locals: { progress: progress })
       end
 
+      # @param progress toggle
+      # Progress — how far the flow got
+      # -------------------------------
+      # `orientation: :progress` draws the same row as the rail, quieter: a
+      # 2px line instead of 6px, **monochrome**, and 12px labels. The shape for
+      # the page whose question is "where is this?" rather than "what happened
+      # at each step?".
+      #
+      # ```erb
+      # <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+      #   <% c.with_step(title: 'Capture', state: :success) %>
+      #   <% c.with_step(title: 'Evaluation', state: :skipped) %>
+      #   <% c.with_step(title: 'Project', state: :pending) %>
+      # <% end %>
+      # ```
+      #
+      # **The line is primary as far as the flow reached and grey after that.**
+      # Reached is every state but `:pending` — a `:skipped` step was passed,
+      # only not entered, and a rejection is somewhere the flow arrived. So the
+      # coloured run ends at the first `:pending` step, and nowhere else.
+      #
+      # "First `:pending` step" is not "current step", and three chains show
+      # it: a `:pending` step *before* a reached one leaves its outgoing
+      # connector coloured under a grey circle; a chain that is all `:skipped`
+      # draws a full primary line under three hollow circles; and a reached
+      # step after `:current` carries the colour past it. The shape reads a
+      # chain as a climb. A chain where that is normal — parallel approvals, a
+      # conditional branch — wants `:rail`, where every connector states its
+      # own step.
+      #
+      # **The greys of the half nobody has reached are measured**, not picked:
+      # `/60` on the glyph and the 12px label for AA's 4.5:1 (4.66:1 light,
+      # 5.82:1 in `afal-dark`) and `/50` on the outline and the line for 3:1
+      # (3.40:1 and 4.47:1). The rail's `base-300` is 1.16:1 here and was the
+      # first thing to go.
+      #
+      # **The marker carries the verdict, the line never does.** `:success`,
+      # `:error` and `:warning` fill and swap the number for a glyph;
+      # `:current` outlines in primary and keeps its number; `:skipped` goes
+      # dashed with a dash; `:pending` is a thin grey outline. The `sr-only`
+      # state name and `state_label:` work exactly as in the other shapes.
+      #
+      # Everything the rail resolved carries over: the row is a tab stop with
+      # an `aria-label`, it never wraps (equal columns to a `6rem` floor, then
+      # it scrolls inside the component), and **the N/M bar is off by
+      # default** — `progress: true` turns it on, and has nothing to do with
+      # the orientation sharing its name.
+      #
+      # **This shape assumes it sits on `base-100`.** The connector runs
+      # centre-to-centre under each marker, and an opaque disc is what keeps it
+      # out of the circle. On another surface, hand it over:
+      # `--bali-workflow-steps-surface`. The last group below is the same flow
+      # inside a `bg-base-200` card, with and without it.
+      def progress(progress: false)
+        render_with_template(locals: { progress: progress })
+      end
+
       # Decision pattern (approve / reject)
       # -----------------------------------
       # The form that goes next to the flow is **the host's**, not a Bali

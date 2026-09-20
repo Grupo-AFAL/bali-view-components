@@ -19,11 +19,11 @@ module Bali
       # `preset`, `placeholder`, `theme`, `table_of_contents*`, `show_export_buttons`
       # and `comments_container_id` -- each wrapper decides those for itself, and a
       # shared value would be a wrapper silently overriding its own layout.
-      # OJO con `comments`: encenderlo cambia la FORMA en que el editor persiste el
-      # contenido, porque las marcas de comentario solo sobreviven en el JSON de
-      # ProseMirror. Con el `format: :json` por omisión eso pasa solo, en cuanto alguien
-      # comenta. Si algo fuera del editor lee esa columna, fijá la forma con
-      # `format: :blocks` o `:prosemirror` — ver el comentario de FORMATS en
+      # WATCH OUT with `comments`: turning it on changes the FORM in which the editor
+      # persists the content, because comment marks only survive in ProseMirror's JSON.
+      # With the default `format: :json` that happens on its own, as soon as somebody
+      # comments. If anything outside the editor reads that column, pin the form with
+      # `format: :blocks` or `:prosemirror` -- see the FORMATS comment in
       # BlockEditor::Component (#1091).
       ATTRIBUTES = %i[
         ai_url
@@ -87,21 +87,21 @@ module Bali
         @syntax_highlighting = syntax_highlighting
       end
 
-      # Una llave de config pasada SUELTA, dicha en voz alta.
+      # A config key passed LOOSE, said out loud.
       #
-      # Desde v3 estas llaves viajan adentro de `config:`. Sueltas no son parámetro de
-      # ninguno de los tres componentes, así que caen en su `**options` y se pintan como
-      # atributos del div raíz: HTML válido, sin error, sin advertencia, y la característica
-      # se queda en su valor por omisión. En una app anfitriona, IA, export, referencias y
-      # comentarios llevaban apagados desde la migración a v3 en las tres vistas que montan
-      # el DocumentEditor, y nada lo delataba salvo mirar el DOM (#1092).
+      # Since v3 these keys travel inside `config:`. Loose they are not a parameter of any
+      # of the three components, so they fall into their `**options` and are painted as
+      # attributes of the root div: valid HTML, no error, no warning, and the feature stays
+      # at its default value. In one host app, AI, export, references and comments had been
+      # off since the v3 migration in the three views that mount the DocumentEditor, and
+      # nothing gave it away short of looking at the DOM (#1092).
       #
-      # Es un `deprecator.warn` y no un raise porque son las llaves de v2: la migración
-      # pasa de "funciona hasta que alguien mire el DOM" a "lo dice el log en el primer
-      # render", sin tirar la pantalla de nadie.
+      # It is a `deprecator.warn` and not a raise because these are the v2 keys: the
+      # migration goes from "it works until somebody looks at the DOM" to "the log says so
+      # on the first render", without taking down anyone's screen.
       #
-      # @param options [Hash] lo que sobró en el `**options` del componente
-      # @param component [String] el nombre a nombrar en el aviso
+      # @param options [Hash] what was left over in the component's `**options`
+      # @param component [String] the name to name in the warning
       def self.warn_stray_keywords(options, component:)
         stray = options.keys.map(&:to_sym) & ATTRIBUTES
         return if stray.empty?

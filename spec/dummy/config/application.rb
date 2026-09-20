@@ -58,6 +58,6 @@ module Dummy
     end
 
     # Documentation pages
-    config.lookbook.page_paths = [Rails.root.join("app/views/lookbook/pages")]
+    config.lookbook.page_paths = [ Rails.root.join("app/views/lookbook/pages") ]
   end
 end

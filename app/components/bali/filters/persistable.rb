@@ -22,10 +22,10 @@ module Bali
         @persist_enabled
       end
 
-      # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
-      # controladores `filter-persistence` sobre el mismo storage_id se pisan el localStorage
-      # y la cookie. Apaga SOLO el toggle — el form sigue necesitando storage_id y
-      # persist_enabled (la leyenda "Auto-guardado" del panel sale de ahí).
+      # DataTable paints the bookmark as a toolbar control of its own and turns this one off:
+      # two `filter-persistence` controllers over the same storage_id trample localStorage and
+      # the cookie. It turns off the toggle ONLY — the form still needs storage_id and
+      # persist_enabled (the panel's "Auto-saved" caption comes from there).
       def persistence_toggle?
         @persistence_toggle
       end

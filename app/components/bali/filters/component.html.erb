@@ -16,14 +16,14 @@
         <%# Quick search input with clear button %>
         <%= form_with url: url, method: :get, class: 'flex-1 min-w-0 sm:flex-initial', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
-          <%# Los filtros ACTIVOS viajan como hidden fields: sin esto, buscar re-enviaba solo
-              q[...search...] y el server tomaba "attributes vacíos" como estado nuevo — borraba
-              los filtros aplicados (y, con persistencia, también los guardados). %>
+          <%# The ACTIVE filters travel as hidden fields: without this, searching re-sent only
+              q[...search...] and the server took "empty attributes" as a new state — it wiped
+              the applied filters (and, with persistence on, the saved ones too). %>
           <%= active_filter_hidden_fields %>
-          <%# `min-w-0` en los tres niveles: `sm:w-64` es el ancho que la búsqueda QUIERE, no
-              un piso. Sin esto no podía encogerse, y en una toolbar apretada (un DataTable
-              con sidebar) el campo se pintaba fuera de su caja, encima de los controles de
-              al lado, en vez de cederles ancho. %>
+          <%# `min-w-0` at all three levels: `sm:w-64` is the width the search WANTS, not a
+              floor. Without this it could not shrink, and in a cramped toolbar (a DataTable
+              with a sidebar) the field painted outside its box, on top of the controls next
+              to it, instead of giving them width. %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
             <label class="input input-bordered input-sm join-item <%= search_width %> min-w-0 flex items-center gap-2">
               <%# tag.input rather than literal markup: `label` is optional, and an empty
@@ -163,9 +163,9 @@
           </div>
         </div>
 
-        <%# Persistence toggle (bookmark icon). Dentro de un DataTable el marcador lo pinta la
-            toolbar como control propio y acá llega apagado: dos controladores
-            `filter-persistence` sobre el mismo storage_id se pisan el localStorage. %>
+        <%# Persistence toggle (bookmark icon). Inside a DataTable the toolbar paints the
+            bookmark as a control of its own and it arrives here turned off: two
+            `filter-persistence` controllers over the same storage_id trample localStorage. %>
         <% if persistence_toggle? %>
           <%= render Bali::Filters::PersistenceToggle::Component.new(
                 storage_id: storage_id, enabled: persist_enabled?) %>

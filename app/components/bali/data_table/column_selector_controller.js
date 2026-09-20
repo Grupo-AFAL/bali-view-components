@@ -135,29 +135,28 @@ export default class extends Controller {
   }
 
   /**
-   * La celda que ES la columna `index` en esa fila, o null cuando el índice no la nombra.
+   * The cell that IS column `index` in that row, or null when the index does not name it.
    *
-   * El índice del selector es una POSICIÓN DE COLUMNA —la del `thead`—, y en una fila con
-   * `colspan` esa posición no es el número de celda: hay que ir sumando `colSpan` hasta
-   * llegar a ella. `Bali::Table` pinta tres filas donde la cuenta se separa: la banda de
-   * grupo (su `td` lleva `colspan`, precedido o no por la celda del seleccionar-todo), el
-   * estado vacío (un `td` que cubre la tabla entera) y una fila de totales en el `tfoot`,
-   * cuya etiqueta abarca varias columnas. Solo la primera lleva clase propia, así que un
-   * `tr:not(.bali-table-group-row)` arreglaría la banda y dejaría las otras dos rotas: por
-   * eso la guarda va sobre la CELDA y no sobre la fila.
+   * The selector's index is a COLUMN POSITION —the one in the `thead`—, and in a row with
+   * `colspan` that position is not the cell number: `colSpan` has to be added up until it is
+   * reached. `Bali::Table` renders three rows where the count comes apart: the group band
+   * (its `td` carries `colspan`, preceded or not by the select-all cell), the empty state (a
+   * `td` covering the whole table) and a totals row in the `tfoot`, whose label spans several
+   * columns. Only the first one carries a class of its own, so a
+   * `tr:not(.bali-table-group-row)` would fix the band and leave the other two broken: that
+   * is why the guard goes on the CELL and not on the row.
    *
-   * Por índice crudo se escondía la cosa equivocada: la banda entera —con el botón de
-   * plegado adentro, y con `collapsed_groups:` sus filas quedaban inalcanzables sin
-   * recargar—, el mensaje de «no hay resultados», o —en el `tfoot`— el total de la columna
-   * de al lado.
+   * By raw index the wrong thing was hidden: the whole band —with the folding button inside
+   * it, and with `collapsed_groups:` its rows left unreachable without a reload—, the "no
+   * results" message, or —in the `tfoot`— the total of the column next to it.
    *
-   * LÍMITE CONOCIDO, medido y no supuesto: lo que distingue a esas filas es que su celda
-   * abarca MÁS de una columna. En una tabla de UNA sola columna visible no abarca más de
-   * una —la banda sale con `colspan="1"` y el estado vacío también—, así que esconder esa
-   * única columna se los lleva igual. El CHANGELOG de #1144 guarda la medición.
+   * KNOWN LIMIT, measured and not assumed: what tells those rows apart is that their cell
+   * spans MORE than one column. In a table with a SINGLE visible column it does not span more
+   * than one —the band comes out with `colspan="1"` and so does the empty state—, so hiding
+   * that single column takes them along anyway. The CHANGELOG for #1144 keeps the measurement.
    *
-   * Tampoco encoge la celda que abarca una columna oculta: conserva su `colspan`, así que una fila
-   * de totales cuya etiqueta cubre esa columna queda una columna más ancha que el encabezado.
+   * Nor does it shrink the cell spanning a hidden column: it keeps its `colspan`, so a totals
+   * row whose label covers that column ends up one column wider than the header.
    */
   columnCell (cells, index) {
     let column = 0

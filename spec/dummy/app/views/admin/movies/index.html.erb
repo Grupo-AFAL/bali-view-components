@@ -17,20 +17,20 @@
     ) %>
   <% end %>
 
-  <%# El export vive en el ⋯ del PageHeader y no en la toolbar: exportar es una acción SOBRE
-      la página, no un control de cómo se ve el listado. El link arrastra el recorte activo,
-      por eso el item dice "lo filtrado". %>
-  <%# `formats: [:csv]` y no los tres por default: este controller solo responde CSV, y un
-      item que devuelve 406 en la página de referencia enseña la trampa en vez del arreglo. %>
+  <%# The export lives in the PageHeader's ⋯ and not in the toolbar: exporting is an action
+      ON the page, not a control over how the listing looks. The link carries the active
+      filtering, which is why the item reads "Export filtered". %>
+  <%# `formats: [:csv]` and not the three by default: this controller only responds to CSV, and
+      an item that returns 406 on the reference page teaches the trap instead of the fix. %>
   <% page.with_export(url: admin_movies_path, formats: [:csv]) %>
 
-  <%# El ⋯ existe para que el export tenga vecinos: sin una segunda acción, la página no
-      enseña que ahí cae todo lo que actúa SOBRE el listado y no sobre cómo se ve. %>
+  <%# The ⋯ exists so the export has neighbours: without a second action, the page does not
+      teach that everything acting ON the listing —rather than on how it looks— lands there. %>
   <% page.with_secondary_action(name: t('movies.secondary_actions.import'),
                                 icon: 'upload',
                                 href: new_admin_movie_path) %>
 
-  <%# El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
+  <%# The DataTable goes in bare: the surface travels with its content slot. %>
   <% page.with_body do %>
     <%= render 'listing' %>
   <% end %>

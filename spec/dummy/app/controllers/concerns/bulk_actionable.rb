@@ -33,8 +33,8 @@ module BulkActionable
 
   private
 
-  # BulkActionsController inyecta los ids seleccionados como JSON en un único hidden
-  # `selected_ids`, uno por cada form de acción.
+  # BulkActionsController injects the selected ids as JSON into a single `selected_ids`
+  # hidden field, one per action form.
   def selected_movie_ids
     JSON.parse(params[:selected_ids].to_s)
   rescue JSON::ParserError

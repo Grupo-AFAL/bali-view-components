@@ -9,10 +9,10 @@
       <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
                          pagy: @pagy, item_name: 'películas', max_height: '26rem',
                          filter_mode: @filter_mode) do |list| %>
-        <%# Las pills son links y el componente arma sus URLs: acá solo se declara
-            por qué param filtra cada una. Un click es una navegación normal, así
-            que el servidor vuelve a pintar la página 1 y el sentinel arranca de
-            una URL que ya trae el filtro. No hay form, ni Filter, ni Clear. %>
+        <%# The pills are links and the component builds their URLs: all that is
+            declared here is which param each one filters by. A click is an ordinary
+            navigation, so the server repaints page 1 and the sentinel starts from a
+            URL that already carries the filter. There is no form, no Filter, no Clear. %>
         <% if @filter_mode == :multi %>
           <% Movie::GENRES.first(6).each do |genre| %>
             <% list.with_filter(label: genre, param: 'q[genre_in]', value: genre,

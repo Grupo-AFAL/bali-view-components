@@ -16,18 +16,18 @@ module Bali
       # which outranks it.
       NO_SHADOW_CLASSES = "shadow-none"
 
-      # Clases de Bali y no utilidades de Tailwind, por la misma razón que la sombra: el
-      # preset tiene que vivir en la capa donde `.navbar.is-transparent` lo pueda pisar.
-      # Como utilidades sobre el elemento le ganaban a la regla de estado desde otra capa, y
-      # un navbar `transparency: true` no era transparente — medido sobre
-      # /lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true, con
-      # `is-transparent` puesto el fondo seguía en `oklch(1 0 0)`.
+      # Bali classes and not Tailwind utilities, for the same reason as the shadow: the
+      # preset has to live in the layer where `.navbar.is-transparent` can override it. As
+      # utilities on the element they beat the state rule from another layer, and a navbar
+      # with `transparency: true` was not transparent — measured on
+      # /lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true, with
+      # `is-transparent` set the background stayed at `oklch(1 0 0)`.
       #
-      # Las declaraciones están en navbar/index.css, en @layer components y ARRIBA de la
-      # regla de `.is-transparent`: las dos son (0,2,0), así que decide el orden.
+      # The declarations are in navbar/index.css, in @layer components and ABOVE the
+      # `.is-transparent` rule: both are (0,2,0), so order decides.
       #
-      # De paso, un host que quiera pisar el color del preset con una utilidad ahora le gana
-      # limpio, en vez de empatar contra `bg-base-100` y depender del orden de la hoja.
+      # Incidentally, a host that wants to override the preset's color with a utility now
+      # wins outright, instead of tying against `bg-base-100` and depending on sheet order.
       COLORS = {
         base: "navbar-base",
         primary: "navbar-primary",

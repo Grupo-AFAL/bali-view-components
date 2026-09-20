@@ -9,19 +9,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **El repo quedó en inglés, y hay con qué mantenerlo así** (#1174). Cierra el barrido: siete PRs
+  tradujeron **1 417 comentarios y nombres de prueba** en 207 archivos, borraron 23 que no cargaban
+  ni una medición, ni una restricción invisible desde su línea, ni por qué lo obvio está mal, y
+  dejaron 84 en español a propósito —datos de muestra, y texto que una prueba compara contra una
+  página que rinde en español—. Ninguna línea de comportamiento cambió.
+
+  **La deuda real era casi el doble de lo medido**, porque rubocop parsea Ruby y ahí se acaba su
+  alcance: 462 hallazgos en Ruby contra **1 299 fuera de él**, de los cuales 960 eran nombres de
+  `describe`/`it` de Cypress. Este PR cierra las tres rendijas por las que el español podía
+  volver sin que nada se quejara:
+
+  - **Los 132 previews entran a rubocop** para `Bali/EnglishOnly`. Estaban en `AllCops: Exclude`,
+    y un `Include` por cop no rescata lo que AllCops excluye —medido—, así que la vía es
+    admitirlos y silenciar ahí mismo los cinco cops de formato que sí hacen ruido (1 986 ofensas,
+    todas de esos cinco). Coste en ruido: cero.
+  - **`spec/dummy/config/**` también entra**, por la misma razón y con 14 correcciones de espacios.
+  - **`test/english_outside_ruby_test.rb`** cubre lo que ningún cop puede ver: los comentarios de
+    ERB, JavaScript, CSS y shell, y los nombres de prueba de Cypress. **Sin lista base** — el
+    barrido lo dejó en cero, así que la aserción es cero y cualquier ofensa es una línea recién
+    escrita.
+
+  `.rubocop_todo.yml` se queda sin su bloque de `Bali/EnglishOnly`: el trinquete llegó a cero y el
+  cop corre sin excepciones.
+
+  **Para un anfitrión no cambia nada.**
+
 - **Los comentarios se ganan su lugar, y el código va en inglés** (#1172). Dos reglas nuevas en
   `.claude/CLAUDE.md`. Un comentario tiene que cargar lo que el código no puede decir —una
   medición, una restricción que no se ve desde esa línea, o por qué lo obvio está mal—; narrar el
   cambio o contar la investigación va en el cuerpo del PR. El CHANGELOG se mide con la misma vara.
   Y todo el repo se escribe en inglés: código, identificadores, pruebas, comentarios y la copia de
   los previews; el español se queda en el CHANGELOG, el mensaje de commit y el cuerpo del PR, y
-  los datos de muestra de un preview siguen siendo contenido. **Nada lo hace cumplir**: 121
-  archivos todavía traen comentarios en español y se traducen al tocarlos por otra razón, no en
-  una barrida.
+  los datos de muestra de un preview siguen siendo contenido. Quien la hace cumplir es el cop de
+  la entrada siguiente; los archivos que todavía traen español se traducen al tocarlos por otra
+  razón, no en una barrida.
 
   **Para un anfitrión no cambia nada** — es guía para quien escribe en este repo, no API. Se
   calibró contra #1165, que llevó ~40 líneas de comentario y 66 de CHANGELOG para tres líneas de
   CSS y cuatro versiones.
+
+- **La regla de inglés ya la comprueba `rubocop`** (#1174). El repo adopta `bali-rubocop` v0.1.0
+  —el cop `Bali/EnglishOnly` de la flota— en el bundle de desarrollo y pruebas, así que
+  `bundle exec rubocop` marca comentarios y nombres de prueba en español, con acento y sin él. La
+  deuda quedó congelada en `.rubocop_todo.yml`: 142 renglones, de los que 63 ya estaban limpios
+  al mergear —eran los del lote de `test/` (#1176), que entró antes— y 79 traían deuda real, 422
+  hallazgos. La lista **sólo encoge**; cualquier archivo nuevo o movido nace en inglés.
+  La entrada siguiente la deja en cero.
+
+  **Para un anfitrión no cambia nada**: la gema no entra al gemspec. Y rubocop sólo lee Ruby, así
+  que los comentarios `<%# %>` de las 610 plantillas `.erb` y los `describe`/`it` de los 96 specs
+  de Cypress siguen dependiendo de la revisión.
 
 ### Added
 
@@ -34,6 +72,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tabulación (`tabindex="0"` más un `aria-label` que sale de la clave nueva
   `bali_view.workflow_steps.rail_label`), porque si no los pasos que se desbordan no se
   alcanzan sin ratón. `:vertical` y `:horizontal` no cambian.
+
+- **`Bali::WorkflowSteps` gana una cuarta forma: `orientation: :progress`** (#1145). La
+  misma fila del `:rail`, más callada: línea de **2px monocroma**, etiquetas de 12px y el
+  veredicto entero en el marcador. Es para la pantalla cuya pregunta es «¿hasta dónde llegó
+  esto?» y no «¿qué pasó en cada paso?».
+
+  **La línea tiene dos colores y una sola pregunta**: el conector que sale del paso *i* es
+  `primary` si el paso *i+1* **fue alcanzado** y gris si no. Alcanzado es todo menos
+  `:pending` —un `:skipped` se recorrió, solo que sin entrar—, así que **el tramo de color
+  termina en el primer paso `:pending`**, y en ningún otro lado. El marcador es el que dice
+  el veredicto: relleno con palomita, ✗ o ⚠ en los tres estados que ya se resolvieron;
+  contorno con su número en el actual y en el pendiente; borde punteado con guion en el
+  omitido.
+
+  **«Primer `:pending`» no es «paso actual»**, y hay tres cadenas donde se separan: un
+  `:pending` *antes* de un paso alcanzado —aprobaciones en paralelo, una rama que se
+  adelanta— deja un conector de color saliendo de un círculo gris; una cadena toda
+  `:skipped` dibuja la línea entera en `primary` bajo tres círculos huecos, porque la ruta
+  pasó por los tres sin entrar a ninguno; y un paso alcanzado después del actual —`[:success,
+  :current, :error, :pending]`— se lleva el color más allá del actual. La regla lee la cadena
+  como una subida y el modelo de datos no tiene otro eje que leer. Una cadena donde eso es lo
+  normal quiere `:rail`, donde cada conector declara su propio paso.
+
+  **Los grises de la mitad que el flujo todavía no alcanzó están medidos, no elegidos.** El
+  `base-300` que usa el `:rail` para lo mismo da 1.16:1 contra `base-100`: una línea de 2px y
+  un contorno de 1px que no se ven, justo en la forma cuya única respuesta es esa línea. Acá
+  son `base-content`: `/60` en el glifo y en la etiqueta de 12px (4.66:1 en claro, 5.82:1 en
+  `afal-dark`, contra los 4.5:1 de AA) y `/50` en el contorno y en la línea (3.40:1 y 4.47:1,
+  los 3:1 de una forma que carga significado).
+
+  Hereda del `:rail` todo lo que no es aspecto: la fila es parada de tabulación con
+  `aria-label` (`bali_view.workflow_steps.rail_label`, la misma clave para las dos filas),
+  no envuelve, scrollea adentro del componente, y la barra N/M viene **apagada** —que no
+  tiene nada que ver con la orientación que se llama igual: `new(orientation: :progress,
+  progress: true)` es una línea de progreso con barra N/M encima—. La numeración de abajo
+  tampoco cambia: un `:skipped` sigue sin consumir número y un `number:` explícito le sigue
+  ganando al automático. Lo que sí cambia es que **acá el glifo le gana al número**, propio o
+  automático: un paso `:success`, `:error` o `:warning` dibuja su glifo y nada más, y el
+  `number:` que le pases no se dibuja. Si cada paso tiene que mostrar su posición, es `:rail`.
+
+  **Esta forma asume que está parada sobre `base-100`.** El conector corre de centro a centro
+  *por debajo* de cada marcador, y lo que lo mantiene fuera del círculo es un disco opaco, que
+  tiene que estar pintado de algún color. Adentro de una tarjeta `bg-base-200` ese disco es un
+  halo de 1.06:1 en claro y de 1.21:1 en `afal-dark` —invisible en uno, un anillo más oscuro
+  alrededor de cada marcador en el otro—. Se arregla pasándole la superficie real, y el halo
+  baja a 1.00:1 en los dos temas:
+
+  ```erb
+  <div class="card bg-base-200 [--bali-workflow-steps-surface:var(--color-base-200)]">
+  ```
+
+  `--bali-workflow-steps-surface` se hereda, así que una declaración en la tarjeta alcanza
+  para todos los flujos de adentro. Las otras tres formas no necesitan nada: sus círculos son
+  rellenos opacos y no dibujan disco.
+
+  Su clase raíz es `.workflow-steps-progress-rail`, no la `.workflow-steps-progress` que
+  predeciría el patrón de las otras tres: ese nombre ya es el del encabezado N/M, que esta
+  forma rinde adentro de esa misma raíz. **Hay que reconstruir el CSS** (`rails
+  tailwindcss:build`) para verla; `:vertical`, `:horizontal` y `:rail` no cambian ni un byte.
 
 - **`state_label:` por paso** (#1145). Cambia el nombre accesible del estado de **ese** paso,
   sin tocar las seis cadenas globales `bali_view.workflow_steps.states.*`:

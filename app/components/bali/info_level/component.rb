@@ -14,10 +14,10 @@ module Bali
 
       renders_many :items, Item::Component
 
-      # @deprecated Se elimina en 4.0. Cada `InfoLevel::Item` es una tarjeta de estadística
-      #   (rótulo arriba, cifra grande abajo) con un tercer diseño propio; el que queda es
-      #   {Bali::StatCard::Component}, que es también el que DashboardPage#with_stat pinta
-      #   desde v3. Para una fila de cifras, una grilla de StatCard.
+      # @deprecated Removed in 4.0. Every `InfoLevel::Item` is a stat card (label on top,
+      #   large figure below) with a third design of its own; the one that stays is
+      #   {Bali::StatCard::Component}, which is also what DashboardPage#with_stat has
+      #   rendered since v3. For a row of figures, a grid of StatCard.
       def initialize(align: :center, **options)
         Bali.deprecator.warn(
           "Bali::InfoLevel::Component is deprecated. Use a grid of " \

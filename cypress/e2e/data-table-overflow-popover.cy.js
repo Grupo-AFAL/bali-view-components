@@ -1,95 +1,95 @@
-// El ⋯ es un popover: abrir uno de sus hijos no puede cambiarle el tamano. Lo hacia porque
-// el contenedor del menu forzaba `position: static` en todo `.dropdown-content` de adentro,
-// una decision tomada cuando el ⋯ ERA el modo de movil. Desde #842 la valvula salta a
-// cualquier ancho, asi que esa regla se aplicaba tambien en escritorio: medido en
-// /admin/studios a 1900px, el panel del ⋯ pasaba de 320x176 a 320x338 al abrir Views.
+// The ⋯ is a popover: opening one of its children cannot change its size. It did, because
+// the menu container forced `position: static` on every `.dropdown-content` inside it,
+// a decision taken back when the ⋯ WAS the mobile mode. Since #842 the valve trips at
+// any width, so that rule applied on desktop too: measured on /admin/studios at 1900px,
+// the ⋯ panel went from 320x176 to 320x338 when Views was opened.
 //
-// Sobre por que la pagina es /admin/studios y no un preview, ver
+// On why the page is /admin/studios and not a preview, see
 // data-table-toolbar-alignment.cy.js.
 const appOrigin = new URL(Cypress.config('baseUrl')).origin
-const estudios = () => cy.visit(`${appOrigin}/admin/studios`)
+const studios = () => cy.visit(`${appOrigin}/admin/studios`)
 
-const disparadorPuntos = () => cy.get('[data-toolbar-overflow-target="overflow"] .btn').first()
-const primerHijo = () =>
+const overflowTrigger = () => cy.get('[data-toolbar-overflow-target="overflow"] .btn').first()
+const firstChild = () =>
   cy.get('[data-toolbar-overflow-target="menu"] .dropdown').first().find('.btn').first()
-const contenidoDelHijo = () =>
+const childContent = () =>
   cy.get('[data-toolbar-overflow-target="menu"] .dropdown .dropdown-content').first()
 
-const caja = el => {
+const box = el => {
   const b = el.getBoundingClientRect()
   return { w: Math.round(b.width), h: Math.round(b.height) }
 }
 
-describe('DataTable: el popover del ⋯', () => {
-  it('no cambia de tamano cuando se abre uno de sus hijos', () => {
+describe('DataTable: the ⋯ popover', () => {
+  it('does not change size when one of its children is opened', () => {
     cy.viewport(1900, 1000)
-    estudios()
+    studios()
     cy.get('[data-toolbar-overflow-target="overflow"]').should('not.have.class', 'hidden')
-    disparadorPuntos().click()
+    overflowTrigger().click()
     cy.get('[data-toolbar-overflow-target="menu"]').should('be.visible')
 
     cy.get('[data-toolbar-overflow-target="menu"]').then($menu => {
       const panel = $menu[0].closest('.dropdown-content')
-      const antes = caja(panel)
+      const before = box(panel)
 
-      primerHijo().click()
-      contenidoDelHijo()
+      firstChild().click()
+      childContent()
         .should('be.visible')
         .then($sub => {
-          expect(window.getComputedStyle($sub[0]).position, 'el hijo flota').to.equal('absolute')
-          expect(caja(panel), 'y el contenedor no se movio').to.deep.equal(antes)
+          expect(window.getComputedStyle($sub[0]).position, 'the child floats').to.equal('absolute')
+          expect(box(panel), 'and the container did not move').to.deep.equal(before)
         })
     })
   })
 
-  // #1080: flotar no alcanza, hay que flotar POR ENCIMA de la banda de contenido. El panel
-  // del ⋯ tiene su propio contexto de apilamiento (absolute + z-index), asi que un hijo
-  // absoluto de adentro se pinta arriba de la tabla — salvo que un ancestro con
-  // `overflow` lo RECORTE, que es lo que hacia el `overflow-y-auto` del contenedor del
-  // menu. Recortado, del panel asomaba un borde y `elementFromPoint` en su centro devolvia
-  // un `<td>`: el control quedaba inservible justo en los anchos donde el ⋯ es la unica
-  // salida. Se mide con hit-testing y no con clases porque el sintoma es de pintado.
-  it('deja el panel del hijo clicable por encima de la tabla', () => {
+  // #1080: floating is not enough, it has to float ABOVE the content band. The ⋯ panel
+  // has its own stacking context (absolute + z-index), so an absolute child inside it
+  // paints above the table — unless an ancestor with `overflow` CLIPS it, which is what
+  // the menu container's `overflow-y-auto` did. Clipped, only an edge of the panel showed
+  // and `elementFromPoint` at its center returned a `<td>`: the control was unusable at
+  // exactly the widths where the ⋯ is the only way out. Measured with hit-testing and not
+  // with classes because the symptom is one of painting.
+  it('keeps the child panel clickable above the table', () => {
     cy.viewport(1440, 900)
-    estudios()
+    studios()
     cy.get('[data-toolbar-overflow-target="overflow"]').should('not.have.class', 'hidden')
-    disparadorPuntos().click()
-    primerHijo().click()
+    overflowTrigger().click()
+    firstChild().click()
 
-    contenidoDelHijo()
+    childContent()
       .should('be.visible')
       .then($sub => {
         const panel = $sub[0]
         const b = panel.getBoundingClientRect()
-        const puntos = [
-          ['arriba', b.top + 4],
-          ['al medio', b.top + b.height / 2],
-          ['abajo', b.bottom - 4]
+        const points = [
+          ['at the top', b.top + 4],
+          ['in the middle', b.top + b.height / 2],
+          ['at the bottom', b.bottom - 4]
         ]
 
-        puntos.forEach(([donde, y]) => {
-          const encima = panel.ownerDocument.elementFromPoint(b.left + b.width / 2, y)
-          expect(panel.contains(encima), `${donde} el panel recibe el click`).to.equal(true)
+        points.forEach(([where, y]) => {
+          const topmost = panel.ownerDocument.elementFromPoint(b.left + b.width / 2, y)
+          expect(panel.contains(topmost), `${where} the panel receives the click`).to.equal(true)
         })
       })
   })
 
-  // En un telefono apilar en flujo sigue siendo lo razonable, y es la razon por la que la
-  // regla existe: anidados y absolutos se posicionan contra el contenedor y se salen del
-  // viewport (medido: left -115px en 375px).
-  it('deja los hijos apilados en flujo en un telefono, sin salirse', () => {
+  // On a phone stacking in flow is still the sensible thing, and it is the reason the rule
+  // exists: nested and absolute children position against the container and leave the
+  // viewport (measured: left -115px at 375px).
+  it('keeps the children stacked in flow on a phone, without overflowing', () => {
     cy.viewport(375, 800)
-    estudios()
+    studios()
     cy.get('[data-toolbar-overflow-target="overflow"]').should('not.have.class', 'hidden')
-    disparadorPuntos().click()
-    primerHijo().click()
+    overflowTrigger().click()
+    firstChild().click()
 
-    contenidoDelHijo().should($sub => {
+    childContent().should($sub => {
       expect(window.getComputedStyle($sub[0]).position).to.equal('static')
 
       const b = $sub[0].getBoundingClientRect()
-      expect(b.left, 'no se sale por la izquierda').to.be.at.least(0)
-      expect(b.right, 'ni por la derecha').to.be.at.most(375)
+      expect(b.left, 'does not overflow on the left').to.be.at.least(0)
+      expect(b.right, 'nor on the right').to.be.at.most(375)
     })
   })
 })

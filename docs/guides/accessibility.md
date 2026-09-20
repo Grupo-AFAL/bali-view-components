@@ -453,10 +453,11 @@ Measured in the browser on an `<ol>` of nine items:
 | `<ol tabindex="0" role="region" aria-label="Workflow steps">` | `region "Workflow steps"` — the reader is no longer told it is a list of nine |
 
 So the rule is: `tabindex="0"` always, a name always, and `role="region"` only
-when the element had no useful role of its own. `Bali::WorkflowSteps`'
-`orientation: :rail` is the worked example — its `<ol>` is the scroll
-container, and it ships `tabindex="0"` plus an `aria-label` from
-`bali_view.workflow_steps.rail_label` and no `role`.
+when the element had no useful role of its own. `Bali::WorkflowSteps` is the
+worked example — in both its row shapes (`orientation: :rail` and
+`orientation: :progress`) the `<ol>` is the scroll container, and it ships
+`tabindex="0"` plus an `aria-label` from `bali_view.workflow_steps.rail_label`
+and no `role`.
 
 A tab stop also has to be visible when focus lands on it, which a scrolling box
 of plain content is not by default — see [Focus Visibility](#focus-visibility).

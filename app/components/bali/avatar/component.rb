@@ -123,8 +123,8 @@ module Bali
         )
       end
 
-      # Two initials: first letter of the first and the last word ("Ana García
-      # López" → "AL"), unicode-aware upcase; a single word yields one letter.
+      # Two initials: first letter of the first and the last word
+      # ("Ana García López" → "AL"), unicode-aware upcase; a single word yields one letter.
       # An explicit `initials:` always wins over the derivation.
       def initials
         @derived_initials ||= @initials || derive_initials

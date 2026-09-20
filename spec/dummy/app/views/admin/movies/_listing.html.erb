@@ -1,9 +1,9 @@
-<%# La composición canónica del listado, compartida por index.html.erb y
-    index.turbo_stream.erb. El stream reemplaza EXACTAMENTE este nodo (el que lleva el
-    controlador de selección), así que las dos ramas tienen que producir el mismo DOM;
-    cuando eran dos copias, divergían en silencio.
+<%# The canonical listing composition, shared by index.html.erb and
+    index.turbo_stream.erb. The stream replaces EXACTLY this node (the one carrying the
+    selection controller), so both branches have to produce the same DOM; when they were
+    two copies, they drifted apart in silence.
 
-    El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
+    The DataTable comes in bare: the surface travels with its content slot. %>
 <%= render Bali::DataTable::Component.new(
   filter_form: @filter_form,
   url: admin_movies_path,
@@ -12,28 +12,28 @@
   display_mode: params[:view]
 ) do |data_table| %>
 
-  <%# Filtros + búsqueda: todo se auto-configura desde @filter_form %>
+  <%# Filters + search: everything auto-configures from @filter_form %>
   <% data_table.with_filters_panel(
     available_attributes: movie_filter_attributes,
     search: { placeholder: t('movies.search_placeholder') }
   ) %>
 
-  <%# Cada vista declara su `value:` (lo que viaja en ?view=) y el DataTable arma el href
-      preservando filtros, orden, agrupación y la vista guardada aplicada. %>
+  <%# Each view declares its own `value:` (what travels in ?view=) and the DataTable builds
+      the href preserving filters, sorting, grouping and the applied saved view. %>
   <% data_table.with_view_switch do |switch| %>
     <% switch.with_view(name: t('movies.views.table'), icon: 'list', value: :table) %>
     <% switch.with_view(name: t('movies.views.cards'), icon: 'grid-2x2', value: :grid) %>
     <% switch.with_view(name: t('movies.views.calendar'), icon: 'calendar', value: :calendar) %>
   <% end %>
 
-  <%# Vistas guardadas: combinaciones de filtros CON NOMBRE. Sin `url:` apunta a las rutas
-      del engine montado (/bali), que es la adopción de una línea que documenta la guía; el
-      store y el dueño los trae el FilterForm. %>
+  <%# Saved views: NAMED filter combinations. With no `url:` it points at the mounted
+      engine's routes (/bali), which is the one-line adoption the guide documents; the store
+      and the owner come from the FilterForm. %>
   <% data_table.with_saved_views %>
 
-  <%# El selector de columnas solo tiene sentido sobre la tabla: las tarjetas y el
-      calendario no tienen columnas que esconder. La 0 es la de selección, que pinta el
-      propio componente, por eso la lista arranca en 1. %>
+  <%# The column selector only makes sense over the table: cards and calendar have no
+      columns to hide. Column 0 is the selection one, painted by the component itself, which
+      is why the list starts at 1. %>
   <% if data_table.display_mode == :table %>
     <% data_table.with_column_selector do |cs| %>
       <% cs.with_column(index: 1, label: t('movies.columns.name')) %>
@@ -45,9 +45,9 @@
     <% end %>
   <% end %>
 
-  <%# Fila contextual que reemplaza la toolbar mientras haya selección. `bulk_action` viaja
-      en el query string porque cada acción es su propio form y su único hidden es
-      `selected_ids`. %>
+  <%# Contextual row that replaces the toolbar while there is a selection. `bulk_action`
+      travels in the query string because each action is its own form and its only hidden
+      field is `selected_ids`. %>
   <% data_table.with_bulk_actions do |bulk| %>
     <% bulk.with_action(label: t('movies.bulk_actions.mark_done'),
                         href: admin_movies_bulk_actions_path(bulk_action: 'mark_done'),
@@ -60,10 +60,10 @@
                         variant: :error) %>
   <% end %>
 
-  <%# UNA sola banda de contenido: declarar dos levanta DuplicateContent. %>
+  <%# ONE content band only: declaring two raises DuplicateContent. %>
   <% case data_table.display_mode %>
   <% when :grid %>
-    <%# Sin superficie: las tarjetas YA son la superficie. %>
+    <%# No surface: the cards ALREADY are the surface. %>
     <% data_table.with_grid do %>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @movies.each do |movie| %>
@@ -87,15 +87,15 @@
       </div>
     <% end %>
   <% when :calendar %>
-    <%# El tercer modo es justo para lo que existe `with_content`: una superficie que el
-        DataTable no conoce. Un Calendar trae su propia card Y su propio scroll horizontal,
-        así que no le pide ninguna de las dos al slot — al revés que `with_table`, que pide
-        las dos. Que las dos perillas sean independientes es la razón de que el slot
-        genérico las reciba por separado.
+    <%# The third mode is exactly what `with_content` exists for: a surface the DataTable
+        does not know about. A Calendar brings its own card AND its own horizontal scroll,
+        so it asks the slot for neither — the opposite of `with_table`, which asks for both.
+        Those two knobs being independent is the reason the generic slot takes them
+        separately.
 
-        El header entra sin `route_path:`: pinta el mes y ningún prev/next, porque navegar
-        de mes metería un segundo query string compitiendo con el que ya son los filtros,
-        el orden y el propio view switch. %>
+        The header comes in without `route_path:`: it paints the month and no prev/next,
+        because navigating by month would add a second query string competing with the one
+        the filters, the sorting and the view switch itself already are. %>
     <% data_table.with_content(surface: false) do %>
       <%= render Bali::Calendar::Component.new(
         events: @movies,
@@ -110,32 +110,32 @@
       <% end %>
     <% end %>
   <% else %>
-    <%# La superficie y el scroll horizontal los trae with_table. %>
+    <%# The surface and the horizontal scroll come from with_table. %>
     <% data_table.with_table do %>
-      <%# `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
-          sobre el set filtrado, no solo lo que entró en la página. %>
+      <%# `group_counts` is what makes the group header show the GLOBAL total over the
+          filtered set, not just what landed on the page. %>
       <%= render Bali::Table::Component.new(form: @filter_form, selectable: true,
                                             group_counts: @filter_form.group_counts) do |table| %>
         <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
         <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
         <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
-        <%# `studio_name` es el camino Ransack por la asociación (`belongs_to :studio`), no
-            el alias `tenant`, que Ransack no puede ver. %>
+        <%# `studio_name` is the Ransack path through the association (`belongs_to :studio`),
+            not the `tenant` alias, which Ransack cannot see. %>
         <% table.with_header(name: t('movies.columns.studio'), sort: :studio_name) %>
         <% table.with_header(name: t('movies.columns.indie'), sort: :indie, class: 'text-center') %>
         <% table.with_header(name: t('movies.columns.created'), sort: :created_at) %>
-        <%# La columna de acciones va nombrada y alineada con `class:`. Un `<th>` vacío deja la
-            columna sin nombre accesible, y `align:` no existe en el componente: sale como el
-            atributo HTML obsoleto `<th align="right">`. %>
+        <%# The actions column goes named and aligned with `class:`. An empty `<th>` leaves the
+            column with no accessible name, and `align:` does not exist on the component: it
+            comes out as the obsolete HTML attribute `<th align="right">`. %>
         <% table.with_header(name: t('movies.columns.actions'), class: 'text-right w-12') %>
 
         <% @movies.each do |movie| %>
-          <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
-              dan N controles con el mismo nombre accesible. `group_value_for` es el lector de
-              la banda: devuelve la llave CRUDA que hay que hacer coincidir con group_counts,
-              y nil cuando la agrupación está apagada O suspendida. Leerlo a mano con
-              `movie.public_send(...)` solo funciona para una columna — por un ransacker o un
-              camino de asociación pasa por el `value:` de la declaración (#1102). %>
+          <%# `select_label:` gives the row checkbox its record context: without it, N rows
+              give N controls with the same accessible name. `group_value_for` is the band's
+              reader: it returns the RAW key that has to match group_counts, and nil when
+              grouping is off OR suspended. Reading it by hand with `movie.public_send(...)`
+              only works for a column — through a ransacker or an association path it goes
+              via the declaration's `value:` (#1102). %>
           <% table.with_row(record_id: movie.id, select_label: movie.name,
                             group: @filter_form.group_value_for(movie)) do %>
             <td class="font-medium">
@@ -160,7 +160,7 @@
                 <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
                   <% dropdown.with_item(href: admin_movie_path(movie), icon: 'eye') { t('movies.actions.view') } %>
                   <% dropdown.with_item(href: edit_admin_movie_path(movie), icon: 'pencil') { t('movies.actions.edit') } %>
-                  <%# Borrar sin confirmar es lo que la página de referencia NO puede enseñar. %>
+                  <%# Deleting with no confirmation is the one thing the reference page cannot teach. %>
                   <% dropdown.with_item(
                     href: admin_movie_path(movie),
                     method: :delete,
@@ -174,9 +174,10 @@
           <% end %>
         <% end %>
 
-        <%# El EmptyState del componente ya distingue "sin registros" de "sin resultados" según
-            haya filtros activos; el Alert que estaba acá se saltaba esa distinción y dejaba el
-            mismo texto en los dos casos. Lo único que le falta es a dónde ir. %>
+        <%# The component's EmptyState already tells "no records" from "no results" depending
+            on whether there are active filters; the Alert that used to be here skipped that
+            distinction and left the same text in both cases. The only thing it lacks is where
+            to go. %>
         <% table.with_new_record_link(name: t('movies.new_movie'), href: new_admin_movie_path, modal: false) %>
       <% end %>
     <% end %>

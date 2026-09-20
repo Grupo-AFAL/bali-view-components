@@ -1,12 +1,18 @@
+inherit_from: .rubocop_todo.yml
+
 inherit_gem:
   rubocop-rails-omakase: rubocop.yml
+
+# `require:` and not another `inherit_gem:` entry: inheriting the gem's
+# config/default.yml pulls its settings without loading the cop class, and rubocop
+# aborts with `unrecognized cop or department Bali`. This line carries both.
+require:
+  - bali-rubocop
 
 AllCops:
   TargetRubyVersion: 4.0
   NewCops: enable
   Exclude:
-    - 'app/components/bali/*/preview.rb'
-    - 'app/components/bali/*/*/preview.rb'
     - 'coverage/**/*'
     - 'log/*'
     - 'config/**/*'
@@ -20,7 +26,6 @@ AllCops:
     - 'bin/**/*'
     - 'vendor/**/*'
     - 'spec/dummy/bin/*'
-    - 'spec/dummy/config/**/*'
     - 'spec/dummy/db/**/*'
     - 'spec/dummy/public/**/*'
 
@@ -48,3 +53,35 @@ Metrics/PerceivedComplexity:
 Lint/MissingSuper:
   Exclude:
     - 'app/components/**/*'
+
+# Fleet cop from bali-rubocop v0.1.0.
+Bali/EnglishOnly:
+  # Adds 0 offenses today: the identifiers here are already English, so the half of the
+  # rule the gem leaves off costs nothing to switch on and freezes nothing.
+  CheckIdentifiers: true
+
+# Los previews salen de `AllCops: Exclude` para que `Bali/EnglishOnly` los alcance: la regla
+# cubre «la copia de los previews de Lookbook» y un `Include` por cop no rescata lo que AllCops
+# excluye —medido—, así que la única vía es admitirlos y callar aquí lo que no queremos de ellos.
+# Son 1,986 ofensas de formato en 132 archivos, contra 0 de cualquier otro cop: admitirlos con
+# estas cinco exclusiones cuesta ruido cero y deja a los previews dentro de la compuerta.
+Style/StringLiterals:
+  Exclude:
+    - 'app/components/bali/*/preview.rb'
+    - 'app/components/bali/*/*/preview.rb'
+Layout/SpaceInsideArrayLiteralBrackets:
+  Exclude:
+    - 'app/components/bali/*/preview.rb'
+    - 'app/components/bali/*/*/preview.rb'
+Layout/EmptyLinesAroundClassBody:
+  Exclude:
+    - 'app/components/bali/*/preview.rb'
+    - 'app/components/bali/*/*/preview.rb'
+Layout/ElseAlignment:
+  Exclude:
+    - 'app/components/bali/*/preview.rb'
+    - 'app/components/bali/*/*/preview.rb'
+Layout/EndAlignment:
+  Exclude:
+    - 'app/components/bali/*/preview.rb'
+    - 'app/components/bali/*/*/preview.rb'

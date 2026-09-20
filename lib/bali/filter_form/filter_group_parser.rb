@@ -57,27 +57,27 @@ module Bali
         @combinator || "and"
       end
 
-      # El combinador tal como llegó (nil cuando la URL/estado no traía `q[m]`), a diferencia
-      # de `combinator`, que colapsa nil al default "and". Quien re-emite el estado necesita
-      # distinguir "el usuario eligió AND" de "nadie eligió nada": re-emitir el default como
-      # si fuera elección convierte un OR aplicado en AND en el siguiente round-trip.
+      # The combinator just as it arrived (nil when the URL/state carried no `q[m]`), unlike
+      # `combinator`, which collapses nil to the "and" default. Whoever re-emits the state
+      # needs to tell "the user chose AND" apart from "nobody chose anything": re-emitting the
+      # default as if it were a choice turns an applied OR into AND on the next round-trip.
       def applied_combinator
         @combinator
       end
 
-      # Las condiciones del panel avanzado que de verdad recortan el listado, en una lista
-      # plana (el grupo al que pertenecen no cambia si una condición cuenta o no).
+      # The advanced panel's conditions that really do narrow the listing, as a flat list (the
+      # group a condition belongs to does not change whether it counts).
       #
-      # Existe porque el panel avanzado viaja APARTE del resto: sus condiciones son
-      # `q[g][N][attr_pred]`, mientras que los `filter_attribute`, los filtros simples y la
-      # búsqueda rápida viven planos bajo `q` y son lo que responde `active_filters`. Ese
-      # hash no las puede incluir sin romperse —se re-emite como pares `q[...]`, así que una
-      # condición de grupo saldría DOS veces, plana y anidada—, de modo que la mitad
-      # anidada se cuenta desde acá y `active_filters?` suma las dos (#1085).
+      # It exists because the advanced panel travels APART from the rest: its conditions are
+      # `q[g][N][attr_pred]`, while the `filter_attribute`s, the simple filters and the quick
+      # search live flat under `q` and are what `active_filters` answers. That hash cannot
+      # include them without breaking —it is re-emitted as `q[...]` pairs, so a group
+      # condition would go out TWICE, flat and nested—, so the nested half is counted from
+      # here and `active_filters?` adds the two together (#1085).
       #
-      # Qué cuenta como aplicada lo decide `ActiveFilterParams.applied?`, que es la misma
-      # regla que decide qué VIAJA. Si contáramos con una regla propia, un `between` vacío
-      # diría "filtrado" sin aportar un solo par a la query.
+      # What counts as applied is decided by `ActiveFilterParams.applied?`, which is the same
+      # rule that decides what TRAVELS. Were we to count with a rule of our own, an empty
+      # `between` would say "filtered" without contributing a single pair to the query.
       def applied_filter_conditions
         filter_groups.flat_map do |group|
           Array(group[:conditions]).select do |condition|

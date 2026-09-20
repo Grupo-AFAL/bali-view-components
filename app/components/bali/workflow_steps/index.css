@@ -1,11 +1,11 @@
-/* WorkflowSteps component — a flow with a verdict per step, in three shapes.
+/* WorkflowSteps component — a flow with a verdict per step, in four shapes.
  *
- * `.workflow-steps` is the root in all three, and carries whatever is shared:
+ * `.workflow-steps` is the root in all four, and carries whatever is shared:
  * the body typography every step renders the same way, the numbered circle
- * (vertical and rail draw one; horizontal draws a dot instead), and the N/M
- * header (horizontal and rail wrap their list in a div that can hold one).
- * The rest hangs off the orientation class next to it, because the three
- * shapes agree on almost nothing above the title.
+ * (every shape but the horizontal one draws one; that one draws a dot), and
+ * the N/M header (every shape but the vertical one wraps its list in a div
+ * that can hold one). The rest hangs off the orientation class next to it,
+ * because the shapes agree on almost nothing above the title.
  *
  * Vertical: two-column grid per step, marker (connector + circle) and body. The
  * connector is absolutely positioned from the circle's centre down through the
@@ -23,9 +23,14 @@
  * scroll the floor can cause inside the component: measured at 400px with nine
  * steps, documentElement.scrollWidth == clientWidth.
  *
- * The rail is NOT `.workflow-steps-horizontal` plus a modifier, and that is
- * load-bearing: `.workflow-steps-horizontal .workflow-step-marker` boxes the
- * marker into 1.5rem for the dot, which would crush the rail's 2rem circle.
+ * Progress: the rail's row with a 2px monochrome line, 12px labels and the
+ * verdict left to the marker. It repeats the rail's row rules rather than
+ * sharing a class with it, for the reason below: neither is the other's base,
+ * and a host restyling one must not move the other.
+ *
+ * Neither row shape is `.workflow-steps-horizontal` plus a modifier, and that
+ * is load-bearing: `.workflow-steps-horizontal .workflow-step-marker` boxes the
+ * marker into 1.5rem for the dot, which would crush their 2rem circle.
  *
  * State colours (bg-success, bg-error, …) come from the literal tables in
  * step/component.rb; only structure lives here. Imported in
@@ -162,6 +167,66 @@
        the label, and they set the row height: a rail that has to stay one
        line tall is a rail whose caller does not pass them. */
     @apply mt-2 w-full px-1 text-sm;
+  }
+
+  .workflow-step-assignee {
+    @apply justify-center;
+  }
+}
+
+/* Written after the rail block for the same reason that one comes after the
+   horizontal block: same specificity (0,2,0), same layer, same sheet, so
+   source order is what decides.
+
+   The root class is `.workflow-steps-progress-rail`, not the
+   `.workflow-steps-<orientation>` the other three use: `.workflow-steps-progress`
+   is already the N/M header, which this shape can render inside this same root. */
+.workflow-steps-progress-rail {
+  /* The row rules through `.workflow-step-connector` are the rail's, repeated
+     rather than shared; the reasons behind each one are in that block above. */
+  .workflow-steps-list {
+    @apply flex list-none items-start overflow-x-auto;
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+
+  .workflow-step {
+    @apply flex min-w-[6rem] flex-1 flex-col items-center text-center;
+  }
+
+  .workflow-step-marker {
+    @apply relative isolate flex w-full justify-center;
+
+    /* The opaque ground the state fills sit on. The connector runs
+       centre-to-centre UNDER the marker, and half the fills let it through:
+       `:pending` and `:skipped` paint no background at all, and `:current` is
+       `bg-primary/10`, which Tailwind mixes with *transparent* — so the 2px
+       line crossed the disc behind the number. `z-[1]` is what puts this
+       above the connector (`z-auto`) and below the circle (`z-10`); the size
+       tracks `.workflow-step-circle`'s `h-8 w-8` in the root block. */
+    &::before {
+      @apply absolute top-0 left-1/2 z-[1] h-8 w-8 -translate-x-1/2 rounded-full content-[''];
+
+      /* The disc cannot read which surface it was dropped on, and `inherit`
+         yields transparent — the marker's own background. Measured inside a
+         `bg-base-200` card, a `base-100` disc is a halo of 1.06:1 in light and
+         1.21:1 in `afal-dark`; a host on another surface names its own here. */
+      background-color: var(--bali-workflow-steps-surface, var(--color-base-100));
+    }
+  }
+
+  .workflow-step-connector {
+    @apply absolute top-4 left-1/2 h-0.5 w-full -translate-y-1/2;
+  }
+
+  .workflow-step-body {
+    @apply mt-1.5 w-full px-1 text-xs;
+  }
+
+  .workflow-step-title {
+    /* Emphasis this shape spends on the current step alone. The
+       `font-semibold` in PROGRESS_TITLE_CLASSES takes it back from
+       @layer utilities, which beats this one. */
+    @apply font-normal;
   }
 
   .workflow-step-assignee {

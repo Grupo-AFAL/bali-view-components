@@ -54,8 +54,8 @@ Rails.application.routes.draw do
   end
 
   # === Existing routes (keep for Cypress tests) ===
-  # Sin `index`: los cuatro índices de referencia viven bajo /admin. Lo que queda acá son las
-  # páginas de detalle y de formulario que Cypress y los previews visitan directo.
+  # No `index`: the four reference indexes live under /admin. What is left here are the
+  # detail and form pages Cypress and the previews visit directly.
   resources :movies, except: :index do
     resources :characters, only: %i[new create destroy] do
       collection do
@@ -124,10 +124,10 @@ Rails.application.routes.draw do
   # No `edit`: editing a document happens in the overlay `documents#show` opens, not on a
   # page of its own, so `DocumentsController` implements six of the seven actions and the
   # seventh route answered 404 to anyone who followed it.
-  # Las versiones ya NO son rutas de esta app: `versions_url: :auto` en el DocumentEditor
-  # apunta a `Bali::ContentVersionsController` del engine montado abajo (#707). Los
-  # comentarios tampoco (#706): `comments: { url: :auto, commentable: }` apunta a los
-  # nueve endpoints del engine.
+  # Versions are NOT routes of this app anymore: `versions_url: :auto` in the DocumentEditor
+  # points at the `Bali::ContentVersionsController` of the engine mounted below (#707). Nor
+  # are the comments (#706): `comments: { url: :auto, commentable: }` points at the engine's
+  # nine endpoints.
   resources :documents, except: :edit
 
   mount Bali::Engine, at: '/bali'

@@ -1,88 +1,88 @@
-// `app_layout/with_topbar` es la config de referencia del app shell: sidebar fijo como LA
-// navegacion + Bali::Topbar como barra de cuenta sobre la columna de contenido. Lo que se
-// cuida aca es que siga siendo UNA franja de chrome, que no repita destinos, y que en movil
-// el sidebar se siga abriendo desde la hamburguesa del propio Topbar.
-describe('AppLayout with_topbar: la franja de chrome', () => {
-  const anchoEscritorio = () => {
+// `app_layout/with_topbar` is the app shell's reference configuration: a fixed sidebar as THE
+// navigation + Bali::Topbar as the account bar over the content column. What is guarded here is
+// that it stays ONE strip of chrome, that it does not repeat destinations, and that on mobile the
+// sidebar still opens from the Topbar's own hamburger.
+describe('AppLayout with_topbar: the chrome strip', () => {
+  const atDesktopWidth = () => {
     cy.viewport(1440, 900)
     cy.visit('/bali/app_layout/with_topbar')
     cy.get('.bali-topbar').should('be.visible')
   }
 
-  it('no repite en el topbar los destinos que ya lleva el sidebar', () => {
-    anchoEscritorio()
+  it('does not repeat in the topbar the destinations the sidebar already carries', () => {
+    atDesktopWidth()
 
-    const enElSidebar = ['Dashboard', 'Movies', 'Studios']
+    const inSidebar = ['Dashboard', 'Movies', 'Studios']
     cy.get('.side-menu-component a').then($sidebar => {
-      const nombres = [...$sidebar].map(a => a.textContent.trim())
-      enElSidebar.forEach(n => expect(nombres, `${n} vive en el sidebar`).to.include(n))
+      const names = [...$sidebar].map(a => a.textContent.trim())
+      inSidebar.forEach(n => expect(names, `${n} lives in the sidebar`).to.include(n))
     })
 
     cy.get('.bali-topbar a').then($top => {
-      const nombres = [...$top].map(a => a.textContent.trim())
-      enElSidebar.forEach(n =>
-        expect(nombres, `${n} no se repite en el topbar`).to.not.include(n)
+      const names = [...$top].map(a => a.textContent.trim())
+      inSidebar.forEach(n =>
+        expect(names, `${n} is not repeated in the topbar`).to.not.include(n)
       )
     })
   })
 
-  it('es un header/banner con UN solo nav en la pagina: el del sidebar', () => {
-    anchoEscritorio()
+  it('is a header/banner with a single nav on the page: the sidebar one', () => {
+    atDesktopWidth()
 
-    // Topbar y no Navbar a proposito: con el sidebar cargando los destinos, la franja
-    // superior es chrome (banner), no un segundo landmark de navegacion vacio.
+    // Topbar and not Navbar on purpose: with the sidebar carrying the destinations, the top
+    // strip is chrome (banner), not a second empty navigation landmark.
     cy.get('header.bali-topbar').should('exist')
     cy.get('.bali-topbar nav').should('not.exist')
     cy.get('nav.side-menu-component').should('exist')
   })
 
-  it('pone el command palette a la izquierda y con relleno, no con borde', () => {
-    anchoEscritorio()
+  it('places the command palette on the left, filled, not bordered', () => {
+    atDesktopWidth()
 
     cy.get('[data-controller="command"] .bali-command-trigger').should($t => {
-      const caja = $t[0].getBoundingClientRect()
-      const cuenta = $t[0].ownerDocument
+      const box = $t[0].getBoundingClientRect()
+      const account = $t[0].ownerDocument
         .querySelector('.bali-topbar [aria-label="Notifications"]')
         .getBoundingClientRect()
 
-      expect(caja.left, 'a la izquierda de los controles de cuenta').to.be.lessThan(cuenta.left)
-      // El trigger default es un pozo, no un .btn: relleno pintado y CERO borde
-      // propio — con un borde, el outline de focus-visible que queda al cerrar
-      // la paleta con Escape se leía como un borde doble.
-      expect($t[0].className, 'pozo, no boton').to.not.match(/\bbtn\b/)
-      const estilo = window.getComputedStyle($t[0])
-      expect(estilo.borderTopWidth, 'sin borde propio').to.eq('0px')
-      expect(estilo.backgroundColor, 'y el relleno se pinta').to.not.match(/rgba\(0, 0, 0, 0\)|transparent/)
+      expect(box.left, 'to the left of the account controls').to.be.lessThan(account.left)
+      // The default trigger is a well, not a .btn: painted fill and ZERO border of its
+      // own — with a border, the focus-visible outline left behind when the palette is
+      // closed with Escape read as a double border.
+      expect($t[0].className, 'a well, not a button').to.not.match(/\bbtn\b/)
+      const style = window.getComputedStyle($t[0])
+      expect(style.borderTopWidth, 'no border of its own').to.eq('0px')
+      expect(style.backgroundColor, 'and the fill is painted').to.not.match(/rgba\(0, 0, 0, 0\)|transparent/)
     })
   })
 
-  it('al cerrar la paleta con Escape el foco vuelve al trigger con UN solo anillo', () => {
-    anchoEscritorio()
+  it('returns focus to the trigger with a single ring when the palette is closed with Escape', () => {
+    atDesktopWidth()
 
     cy.get('.bali-command-trigger').click()
     cy.get('[data-command-target="input"]').should('be.focused').type('{esc}')
 
-    // El escenario que motivó el pozo: Escape devuelve el foco al trigger, y ahí
-    // el anillo de focus-visible tiene que ser el ÚNICO anillo (borde propio 0px).
+    // The scenario that motivated the well: Escape returns focus to the trigger, and there
+    // the focus-visible ring has to be the ONLY ring (own border 0px).
     cy.get('.bali-command-trigger').should($t => {
-      expect($t[0].ownerDocument.activeElement, 'el foco volvió al trigger').to.eq($t[0])
-      const estilo = window.getComputedStyle($t[0])
-      expect(estilo.borderTopWidth, 'sin borde propio').to.eq('0px')
-      expect(parseFloat(estilo.outlineWidth), 'con el anillo del design system').to.be.greaterThan(0)
-      expect(estilo.outlineStyle).to.not.eq('none')
+      expect($t[0].ownerDocument.activeElement, 'focus returned to the trigger').to.eq($t[0])
+      const style = window.getComputedStyle($t[0])
+      expect(style.borderTopWidth, 'no border of its own').to.eq('0px')
+      expect(parseFloat(style.outlineWidth), 'with the design system ring').to.be.greaterThan(0)
+      expect(style.outlineStyle).to.not.eq('none')
     })
   })
 
-  it('deja los breadcrumbs sobre el fondo de la pagina, fuera del Topbar', () => {
-    anchoEscritorio()
+  it('leaves the breadcrumbs on the page background, outside the Topbar', () => {
+    atDesktopWidth()
 
     cy.get('.bali-topbar .breadcrumbs').should('not.exist')
     cy.get('.breadcrumbs').should($bc => {
-      const fondo = window.getComputedStyle($bc[0].parentElement).backgroundColor
-      expect(fondo, 'sin fondo propio').to.match(/rgba\(0, 0, 0, 0\)|transparent/)
+      const background = window.getComputedStyle($bc[0].parentElement).backgroundColor
+      expect(background, 'no background of its own').to.match(/rgba\(0, 0, 0, 0\)|transparent/)
     })
 
-    // Arriba del titulo y dentro del cuerpo, no en la franja de chrome.
+    // Above the title and inside the body, not in the chrome strip.
     cy.get('main .breadcrumbs').should('exist')
     cy.get('.breadcrumbs').then($bc => {
       cy.get('.page-header-component .title').then($t => {
@@ -93,10 +93,10 @@ describe('AppLayout with_topbar: la franja de chrome', () => {
     })
   })
 
-  // Con un Topbar real en el slot, la fila movil por defecto de AppLayout
-  // (`fixed_sidebar? && !topbar?`) NO se renderiza: la hamburguesa que abre el
-  // sidebar en un telefono es la del propio Topbar (lg:hidden).
-  it('conserva el disparador del sidebar en movil, dentro del Topbar', () => {
+  // With a real Topbar in the slot, AppLayout's default mobile row
+  // (`fixed_sidebar? && !topbar?`) is NOT rendered: the hamburger that opens the
+  // sidebar on a phone is the Topbar's own (lg:hidden).
+  it('keeps the sidebar trigger on mobile, inside the Topbar', () => {
     cy.viewport(390, 844)
     cy.visit('/bali/app_layout/with_topbar')
 

@@ -13,9 +13,9 @@ module Bali
     #
     # Includers must set `@url` and `@preserved_params` in their initializer.
     module PreservedParams
-      # `saved_view` NO se preserva: re-enviarlo hace que el server re-aplique el payload de
-      # la vista, pisando en silencio los filtros o la búsqueda que el usuario acaba de
-      # escribir. (`page` sí viaja: preservarlo es comportamiento deliberado de Bali.)
+      # `saved_view` is NOT preserved: re-sending it makes the server re-apply the view's
+      # payload, silently trampling the filters or the search the user has just typed.
+      # (`page` does travel: preserving it is deliberate Bali behaviour.)
       EXCLUDED_PARAMS = %w[q clear_filters clear_search saved_view].freeze
 
       # Extract non-filter query params to preserve them when submitting.
@@ -37,9 +37,9 @@ module Bali
       end
 
       # Render hidden fields for preserved params (call from template).
-      # `id: nil` porque estos campos pueden pintarse en más de un form del mismo documento
-      # (en modo popover van en el de búsqueda rápida Y en el del panel), y con id derivado
-      # del name quedaban ids duplicados.
+      # `id: nil` because these fields can be painted in more than one form of the same
+      # document (in popover mode they go in the quick-search one AND in the panel one), and
+      # with an id derived from the name they left duplicate ids behind.
       def preserved_params_hidden_fields
         safe_join(
           preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value, id: nil) }
