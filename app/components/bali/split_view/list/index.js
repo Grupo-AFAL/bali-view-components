@@ -94,6 +94,7 @@ export class SplitViewListController extends Controller {
       throw new Error(`no #${this.rowsIdValue} rows in the response`)
     }
 
+    this.mergeGroups(rows)
     this.rowsTarget.append(...rows.children)
 
     // The next page is read back out of the page we just fetched rather than
@@ -103,6 +104,55 @@ export class SplitViewListController extends Controller {
       this.showState('end')
       this.observer?.unobserve(this.sentinelTarget)
     }
+  }
+
+  // A grouped listing arrives as its own set of groups, and the first of them is
+  // usually the group the list already ends with — the page boundary fell inside
+  // it. Left alone that renders the heading twice, one per page.
+  //
+  // ONLY the seam is merged: the last group on screen against the first group
+  // that arrived. A repeat anywhere else means the listing is not ordered by its
+  // group (`order(:kind, …)`, the key first), and moving those rows up under an
+  // earlier heading would silently reorder what the server sent — a worse bug
+  // than a repeated heading, and a much quieter one. So it is left visible and
+  // named in the console instead.
+  //
+  // An ungrouped listing has no keys, falls through both branches, and appends
+  // exactly as it did before.
+  mergeGroups (incoming) {
+    const first = incoming.firstElementChild
+    const key = first?.dataset.splitViewGroupKey
+    const last = this.rowsTarget.lastElementChild
+
+    if (key && key === last?.dataset.splitViewGroupKey) {
+      const into = last.querySelector('.split-view-group-rows')
+      const from = first.querySelector('.split-view-group-rows')
+      if (into && from) {
+        into.append(...from.children)
+        // Removed before the caller appends what is left, so the heading that
+        // was merged away does not come along with it.
+        first.remove()
+      }
+    }
+
+    this.warnAboutScatteredGroups(incoming)
+  }
+
+  warnAboutScatteredGroups (incoming) {
+    const seen = new Set(
+      [...this.rowsTarget.children].map(group => group.dataset.splitViewGroupKey).filter(Boolean)
+    )
+    const repeated = [...incoming.children]
+      .map(group => group.dataset.splitViewGroupKey)
+      .filter(key => key && seen.has(key))
+
+    if (repeated.length === 0) return
+
+    console.warn(
+      `[split-view-list] the appended page repeats ${repeated.join(', ')}, which means the ` +
+      'listing is not ordered by its group key. Order it by the key first ' +
+      '(`order(:kind, :created_at)`) or the same heading will show up once per page.'
+    )
   }
 
   showState (name) {

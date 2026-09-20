@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`SplitView::List` agrupa el listado: `with_group`** (#974). Las dos listas de las que salió
+  el componente agrupan —gc por urgencia, afal-apps por tipo— y las dos ponen el total del grupo
+  junto a la cabecera. Quedó fuera de #971 por una razón técnica, no de demanda: la agrupación
+  pelea con el infinite scroll, porque una página anexada llega como su propio juego de grupos y
+  fundirla con las cabeceras que ya están en pantalla exige un contrato fila→grupo. Ese es el
+  diseño que entra ahora.
+
+  ```erb
+  <% @items.group_by(&:kind).each do |kind, rows| %>
+    <% list.with_group(key: kind, label: t("inbox.kinds.#{kind}"), count: @totals[kind]) do |group| %>
+      <% rows.each { |item| group.with_item(id: item.id, href: ..., title: item.title) } %>
+    <% end %>
+  <% end %>
+  ```
+
+  **La llamada de la fila no cambia**: pasa de `list.with_item` a `group.with_item` con los
+  mismos keywords, y el frame, el target, la acción y la selección se inyectan a través del grupo
+  igual que se inyectaban a través de la lista. Es excluyente: filas sueltas y grupos en la misma
+  lista renderizarían las sueltas encima de la primera cabecera, sin pertenecer a ningún grupo,
+  así que el componente levanta `ArgumentError` en vez de hacerlo callado.
+
+  **`count:` es el total del grupo, no las filas en pantalla.** El servidor lo sabe —un
+  `GROUP BY`— y el cliente no puede saberlo, porque solo tiene las páginas cargadas hasta ahora.
+  Eso es lo que mantiene el número honesto mientras siguen llegando filas debajo, y por lo que
+  una página fundida no necesita recontar nada.
+
+  **Lo que la agrupación le pide a la consulta: ordenar por la llave del grupo primero**
+  (`order(:kind, :created_at)`). Es el requisito entero y es la razón de que esto esperara a
+  tener diseño. El infinite scroll anexa *páginas*: ordenado por el grupo, un corte de página
+  solo puede caer dentro de **un** grupo —el último de una página lo continúa el primero de la
+  siguiente—, y esa costura única es la que el controlador funde, tirando la cabecera que llega y
+  moviendo sus filas bajo la que ya está. Ordenado por cualquier otra cosa el mismo grupo vuelve
+  en la página 1, la 3 y la 4, y no hay costura que fundir: el componente **no** busca una
+  cabecera anterior donde archivar esas filas, porque eso movería filas fuera del orden que mandó
+  el servidor —un error peor y mucho más callado que una cabecera repetida—. La repetición queda
+  a la vista y la consola dice la causa.
+
+  La cabecera es `position: sticky` dentro del área de scroll, con fondo opaco (veinte filas
+  adentro de una corrida hay que seguir sabiendo en cuál se está), y se nombra con
+  `role="group"` + `aria-labelledby` apuntando a sí misma, así que un lector de pantalla anuncia
+  las mismas palabras que ve un lector vidente, una sola vez.
+
+  Escenario `grouped_list` en el preview, y `?grouped=status` en `/split-view` de la dummy, donde
+  el infinite scroll es real: 3 draft y 17 done de cinco en cinco, así que la página 1 lleva las
+  dos cabeceras y las páginas 2-4 son todas continuación de `done`. Medido en navegador al llegar
+  al final: **20 filas, 20 ids distintos, 2 cabeceras**.
+
 ### Documentation
 
 - **Se retiran los vestigios de RSpec** (#1174 de rebote). El repo usa Minitest desde siempre,

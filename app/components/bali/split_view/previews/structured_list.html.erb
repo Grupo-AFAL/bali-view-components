@@ -13,7 +13,11 @@
     preview cannot page against itself. %>
 <% active_genres = Array(request.query_parameters.dig("q", "genre_in")) %>
 <% scope = scope.where(genre: active_genres) if active_genres.any? %>
-<% movies = scope.includes(:studio).order(:name).limit(5) %>
+<% group_by = local_assigns[:group_by] %>
+<%# Ordered by the group key FIRST when grouping — the contract `with_group`
+    asks of the query. Ordered by name instead, the same status would come back
+    on page 2 and page 3 and the reader would get its heading three times. %>
+<% movies = scope.includes(:studio).order(*[ group_by, :name ].compact).limit(5) %>
 <% total = scope.count %>
 <% pagy = Pagy::Offset.new(count: [ total, 1 ].max, page: 1, limit: 5) %>
 <%= render Bali::SplitView::Component.new(
@@ -28,13 +32,17 @@
   <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
                      pagy: pagy, item_name: "películas", max_height: "16rem",
                      filter_mode: filter_mode,
-                     next_url: ["/split-view?page=2", ("selected=#{selected.id}" if selected)].compact.join("&")) do |list| %>
+                     next_url: [ local_assigns[:next_url] || "/split-view?page=2",
+                                 ("selected=#{selected.id}" if selected) ].compact.join("&")) do |list| %>
     <% filters.each do |filter| %>
       <% list.with_filter(**filter) %>
     <% end %>
 
-    <% movies.each do |movie| %>
-      <% list.with_item(
+    <%# The row call is identical in both branches: it moves from `list.with_item`
+        to `group.with_item` and takes the same keywords. That is the whole of what
+        grouping changes on the caller's side. %>
+    <% row_for = ->(slot, movie) do %>
+      <% slot.with_item(
         id: movie.id,
         href: "/split-view?selected=#{movie.id}",
         title: movie.name,
@@ -45,6 +53,20 @@
         <% row.with_tag(text: movie.genre, color: :info) %>
         <% row.with_tag(text: movie.status.humanize, color: movie.status_color) %>
       <% end %>
+    <% end %>
+
+    <% if group_by %>
+      <%# The count beside a heading is the group's TOTAL over the whole listing,
+          not the rows on screen — the server knows it, the client cannot, and it
+          is what keeps the number honest while pages keep arriving under it. %>
+      <% totals = scope.group(group_by).count %>
+      <% movies.group_by(&group_by).each do |key, rows| %>
+        <% list.with_group(key: key, label: key.to_s.humanize, count: totals[key].to_i) do |group| %>
+          <% rows.each { |movie| row_for.call(group, movie) } %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <% movies.each { |movie| row_for.call(list, movie) } %>
     <% end %>
 
     <% if movies.none? %>

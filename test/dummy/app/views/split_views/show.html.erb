@@ -24,17 +24,23 @@
                                 count: @counts[status].to_i) %>
           <% end %>
         <% end %>
-        <% @movies.each do |movie| %>
-          <% list.with_item(
-            id: movie.id,
-            href: split_view_path(selected: movie.id),
-            title: movie.name,
-            subtitle: movie.studio&.name,
-            meta: movie.production_ends_on && l(movie.production_ends_on, format: :short),
-            meta_color: (:error if movie.production_ends_on&.past?)
-          ) do |row| %>
-            <% row.with_tag(text: movie.genre, color: :info) %>
-            <% row.with_tag(text: movie.status.humanize, color: movie.status_color) %>
+        <%# `?grouped=status` renders the same listing under headings. The rows are
+            identical either way — they move from `list.with_item` to
+            `group.with_item` and nothing else about them changes — and the count
+            beside each heading is the group's TOTAL from the server, not the rows
+            on screen, which is what keeps it honest while pages keep arriving. %>
+        <% if @grouped %>
+          <% @movies.group_by(&:status).each do |status, movies| %>
+            <% list.with_group(key: status, label: status.humanize,
+                               count: @group_counts[status].to_i) do |group| %>
+              <% movies.each do |movie| %>
+                <%= render_split_view_row(group, movie) %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% else %>
+          <% @movies.each do |movie| %>
+            <%= render_split_view_row(list, movie) %>
           <% end %>
         <% end %>
       <% end %>
