@@ -1,10 +1,10 @@
-// #1099 — Cada navegación re-renderiza el sidebar y su scroll vuelve arriba. En un menú
-// más alto que la pantalla eso deja el ítem activo fuera de vista: llegás a una página y
-// el menú no te muestra dónde estás.
+// #1099 — Every navigation re-renders the sidebar and its scroll goes back to the top. In a
+// menu taller than the screen that leaves the active item out of view: you land on a page and
+// the menu does not show you where you are.
 //
-// El preview recorta el menú a 380 px con 18 entradas y la página actual
-// (`/reports/audit-log`) casi al final, que es la única forma de ver el comportamiento:
-// en un menú que entra en pantalla no hay nada que revelar.
+// The preview clips the menu to 380 px with 18 entries and the current page
+// (`/reports/audit-log`) near the end, which is the only way to see the behaviour: in a menu
+// that fits on screen there is nothing to reveal.
 const PREVIEW = '/bali/side_menu/reveal_current'
 const MENU = '.sidebar-menu'
 const CURRENT = '.side-menu-expanded[aria-current="page"]'
@@ -17,8 +17,8 @@ describe('SideMenu reveal current item', () => {
     cy.get(CURRENT).should('be.visible')
   })
 
-  // Visible de verdad y no solo "en el DOM": el ítem tiene que caer DENTRO de la caja del
-  // menú, que es lo que fallaba. `should('be.visible')` de Cypress no lo distingue.
+  // Really visible and not just "in the DOM": the item has to land INSIDE the menu's box,
+  // which is what was failing. Cypress' `should('be.visible')` does not tell them apart.
   it('leaves the current item inside the menu box', () => {
     cy.visit(PREVIEW)
 
@@ -40,8 +40,8 @@ describe('SideMenu reveal current item', () => {
     cy.get(MENU).should('have.prop', 'scrollTop', 0)
   })
 
-  // Solo mueve el scroll del propio menú. `scrollIntoView` habría movido también los
-  // ancestros que hiciera falta, hasta el documento.
+  // Only moves the menu's own scroll. `scrollIntoView` would also have moved whatever
+  // ancestors it needed, up to the document.
   it('never scrolls the page', () => {
     cy.visit(PREVIEW)
 
@@ -49,8 +49,8 @@ describe('SideMenu reveal current item', () => {
     cy.window().its('scrollY').should('equal', 0)
   })
 
-  // La guarda de visibilidad: sin ella el menú saltaría en cada carga de una página cuyo
-  // ítem ya se ve.
+  // The visibility guard: without it the menu would jump on every load of a page whose item
+  // is already in view.
   it('stays put when the current item is already in view', () => {
     cy.visit('/bali/side_menu/default')
 
@@ -58,9 +58,9 @@ describe('SideMenu reveal current item', () => {
   })
 })
 
-// El otro caso que el issue dejaba abierto: un drawer móvil cerrado está `inert` y
-// trasladado fuera de pantalla, así que medirlo en `connect` gastaría el scroll en un panel
-// que nadie está viendo. El reveal espera a `open()`.
+// The other case the issue left open: a closed mobile drawer is `inert` and translated off
+// screen, so measuring it on `connect` would spend the scroll on a panel nobody is looking
+// at. The reveal waits for `open()`.
 describe('SideMenu reveal current item — mobile drawer', () => {
   const FIXED = `${PREVIEW}?fixed=true`
 

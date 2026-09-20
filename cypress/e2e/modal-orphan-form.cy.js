@@ -1,16 +1,16 @@
-// #984 — `submit_group(..., drawer: true)` en página completa: el `drawer#submit` del
-// botón y el `drawer#close` del Cancel caen en el controller huérfano que AppLayout monta
-// en `<main>` (`data-controller="modal drawer"`, sin targets). Las guardias devuelven los
-// eventos al browser ANTES del preventDefault: el submit degrada al submit normal del form
-// y el Cancel navega. Antes de la guardia esto era el botón muerto con spinner eterno, el
-// 422 comido por `_replaceContent` y el Cancel tragado.
+// #984 — `submit_group(..., drawer: true)` on a full page: the button's `drawer#submit`
+// and the Cancel's `drawer#close` land on the orphan controller AppLayout mounts on
+// `<main>` (`data-controller="modal drawer"`, with no targets). The guards hand the events
+// back to the browser BEFORE the preventDefault: the submit degrades to the normal form
+// submit and the Cancel navigates. Before the guard this was the dead button with an
+// endless spinner, the 422 eaten by `_replaceContent` and the Cancel swallowed.
 //
-// El preview manda por GET a su propia URL, así que la prueba de que el submit salió por
-// el camino del browser es el query string — mismo criterio que simple-filters-auto-submit.
+// The preview sends by GET to its own URL, so the proof that the submit went out through
+// the browser path is the query string — same criterion as simple-filters-auto-submit.
 const PREVIEW = '/bali/app_layout/orphan_drawer_form'
 
-describe('drawer: true huérfano en página completa (#984)', () => {
-  it('el submit degrada al submit normal del form y el botón no queda muerto', () => {
+describe('drawer: true orphan on a full page (#984)', () => {
+  it('the submit degrades to the normal form submit and the button does not go dead', () => {
     cy.visit(PREVIEW)
     cy.get('form button[type="submit"]').click()
 
@@ -19,7 +19,7 @@ describe('drawer: true huérfano en página completa (#984)', () => {
     cy.get('form button[type="submit"] .loading-spinner').should('not.exist')
   })
 
-  it('el Cancel navega en vez de tragarse el click', () => {
+  it('the Cancel navigates instead of swallowing the click', () => {
     cy.visit(PREVIEW)
     cy.contains('a', /cancel/i).click()
 
