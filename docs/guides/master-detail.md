@@ -265,6 +265,11 @@ parameterizes to nothing at all. Two groups sharing an id is not just invalid HT
 — `aria-labelledby` then resolves to the other group's heading and the second
 group is announced under the first one's name.
 
+The two pieces of text in the heading are written with a translucent
+`text-base-content/*` token, so what a reader gets is the token composited over
+the band. `/70` for both: `/50` composites to 3.33:1 on the light theme and
+2.96:1 on `afal`, under AA's 4.5 for 12px text.
+
 Because the heading is sticky, the rows carry a `scroll-margin-top` the height of
 the band. Without it the browser aligns a row it scrolls into view — for a
 keyboard tab, or a deep link — flush with the top of the scroll area, which is

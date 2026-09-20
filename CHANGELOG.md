@@ -59,6 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     inválido: `aria-labelledby` resuelve entonces a la cabecera del OTRO grupo y el segundo se
     anuncia con el nombre del primero, que es justo la doble denominación que este atributo
     venía a evitar.
+  - **El contador va en `text-base-content/70`, no en `/50`.** Ese token es traslúcido, así que
+    lo que llega al lector es el token **compuesto** sobre la banda: medir el color declarado a
+    secas reporta un contraste que nadie ve. Compuesto, `/50` da 3.33:1 en el tema claro y
+    **2.96:1 en `afal`**, bajo el 4.5 que AA pide para texto de 12px, mientras
+    `.split-view-filter-count` —el mismo tipo de número junto al mismo tipo de etiqueta— ya
+    estaba en 6.38. `/70` deja los cuatro temas entre 6.38 y 6.59.
   - **Las filas llevan `scroll-margin-top` de la altura de la banda.** Una banda sticky pinta
     encima de lo que pasa por debajo, y el navegador alinea la fila que trae a la vista —por un
     tabulador, por un enlace profundo— justo con el borde superior del área de scroll, que es
@@ -94,6 +100,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de reintentar sobre un panel que se está yendo.
 
 ### Documentation
+
+- **El renglón del directorio en `rails-performance-expert.md` contaba mal sus archivos**
+  (#1194 de rebote). Decía «102 files» —los del primer nivel— cuando el runner desciende y la
+  medición de 6.6 s salió de los **128** que hay contando subcarpetas. El número de pruebas se
+  actualiza a 3 581. La conclusión del renglón no cambia.
 
 - **Las instrucciones de `.claude/` dejan de enseñar cosas que no existen** (#1194). Salió de la
   revisión de #1192: una docena de afirmaciones falsas contra el repo real, verificadas una por
