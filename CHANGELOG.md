@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **El repo quedó en inglés, y hay con qué mantenerlo así** (#1174). Cierra el barrido: siete PRs
+  tradujeron **1 417 comentarios y nombres de prueba** en 207 archivos, borraron 23 que no cargaban
+  ni una medición, ni una restricción invisible desde su línea, ni por qué lo obvio está mal, y
+  dejaron 84 en español a propósito —datos de muestra, y texto que una prueba compara contra una
+  página que rinde en español—. Ninguna línea de comportamiento cambió.
+
+  **La deuda real era casi el doble de lo medido**, porque rubocop parsea Ruby y ahí se acaba su
+  alcance: 462 hallazgos en Ruby contra **1 299 fuera de él**, de los cuales 960 eran nombres de
+  `describe`/`it` de Cypress. Este PR cierra las tres rendijas por las que el español podía
+  volver sin que nada se quejara:
+
+  - **Los 132 previews entran a rubocop** para `Bali/EnglishOnly`. Estaban en `AllCops: Exclude`,
+    y un `Include` por cop no rescata lo que AllCops excluye —medido—, así que la vía es
+    admitirlos y silenciar ahí mismo los cinco cops de formato que sí hacen ruido (1 986 ofensas,
+    todas de esos cinco). Coste en ruido: cero.
+  - **`spec/dummy/config/**` también entra**, por la misma razón y con 14 correcciones de espacios.
+  - **`test/english_outside_ruby_test.rb`** cubre lo que ningún cop puede ver: los comentarios de
+    ERB, JavaScript, CSS y shell, y los nombres de prueba de Cypress. **Sin lista base** — el
+    barrido lo dejó en cero, así que la aserción es cero y cualquier ofensa es una línea recién
+    escrita.
+
+  `.rubocop_todo.yml` se queda sin su bloque de `Bali/EnglishOnly`: el trinquete llegó a cero y el
+  cop corre sin excepciones.
+
+  **Para un anfitrión no cambia nada.**
+
 - **Los comentarios se ganan su lugar, y el código va en inglés** (#1172). Dos reglas nuevas en
   `.claude/CLAUDE.md`. Un comentario tiene que cargar lo que el código no puede decir —una
   medición, una restricción que no se ve desde esa línea, o por qué lo obvio está mal—; narrar el
@@ -26,9 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **La regla de inglés ya la comprueba `rubocop`** (#1174). El repo adopta `bali-rubocop` v0.1.0
   —el cop `Bali/EnglishOnly` de la flota— en el bundle de desarrollo y pruebas, así que
   `bundle exec rubocop` marca comentarios y nombres de prueba en español, con acento y sin él. La
-  deuda de hoy queda congelada en `.rubocop_todo.yml`: **142 archivos, 938 hallazgos** sobre los
-  689 archivos que rubocop inspecciona. Al traducir un archivo se borra su renglón de esa
-  lista, que **sólo encoge**; cualquier archivo nuevo o movido nace en inglés.
+  deuda quedó congelada en `.rubocop_todo.yml`: 142 renglones, de los que 63 ya estaban limpios
+  al mergear —eran los del lote de `test/` (#1176), que entró antes— y 79 traían deuda real, 422
+  hallazgos. La lista **sólo encoge**; cualquier archivo nuevo o movido nace en inglés.
+  La entrada siguiente la deja en cero.
 
   **Para un anfitrión no cambia nada**: la gema no entra al gemspec. Y rubocop sólo lee Ruby, así
   que los comentarios `<%# %>` de las 610 plantillas `.erb` y los `describe`/`it` de los 96 specs

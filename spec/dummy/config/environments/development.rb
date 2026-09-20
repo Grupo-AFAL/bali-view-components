@@ -16,8 +16,8 @@ Rails.application.configure do
 
   config.autoload_paths << gem_components_path
   config.autoload_paths << gem_lib_path
-  config.watchable_dirs[gem_components_path.to_s] = [:rb, :erb]
-  config.watchable_dirs[gem_lib_path.to_s] = [:rb]
+  config.watchable_dirs[gem_components_path.to_s] = [ :rb, :erb ]
+  config.watchable_dirs[gem_lib_path.to_s] = [ :rb ]
   # lib/bali reloading is handled by config/initializers/bali_lib_reloader.rb
 
   # Show full error reports.
