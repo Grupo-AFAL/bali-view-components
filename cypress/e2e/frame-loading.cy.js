@@ -1,25 +1,25 @@
-// El swap de Bali::Frame es CSS puro sobre [busy] (`:has(> turbo-frame[busy])`).
-// Hay que MEDIRLO en un navegador de verdad: un @import roto o un selector mal
-// escrito pasarían los tests de render del componente (que solo miran el markup
-// del server, sin CSS ni Turbo). Aquí se togglea [busy] como lo hace Turbo en
-// cada carga y se asserta la visibilidad COMPUTADA.
-describe('Bali::Frame: swap de carga con [busy]', () => {
+// The Bali::Frame swap is pure CSS on [busy] (`:has(> turbo-frame[busy])`).
+// It has to be MEASURED in a real browser: a broken @import or a badly written
+// selector would pass the component's render tests (which only look at the server
+// markup, without CSS or Turbo). Here [busy] is toggled the way Turbo does on
+// every load and the COMPUTED visibility is asserted.
+describe('Bali::Frame: loading swap with [busy]', () => {
   const frame = 'turbo-frame#frame-preview-default'
 
-  it('sin [busy]: se ve el frame, se oculta el placeholder', () => {
+  it('without [busy]: the frame shows, the placeholder is hidden', () => {
     cy.visit('/bali/frame/default')
     cy.get(frame).should('be.visible')
     cy.get('.frame-loading').should('not.be.visible')
   })
 
-  it('con [busy]: se oculta el frame y aparece el placeholder', () => {
+  it('with [busy]: the frame is hidden and the placeholder appears', () => {
     cy.visit('/bali/frame/default')
     cy.get(frame).invoke('attr', 'busy', '')
     cy.get('.frame-loading').should('be.visible')
     cy.get(frame).should('not.be.visible')
   })
 
-  it('quitar [busy] (carga terminada) devuelve el frame y oculta el placeholder', () => {
+  it('removing [busy] (load finished) brings the frame back and hides the placeholder', () => {
     cy.visit('/bali/frame/default')
     cy.get(frame).invoke('attr', 'busy', '')
     cy.get('.frame-loading').should('be.visible')

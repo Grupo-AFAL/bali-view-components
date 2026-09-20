@@ -1,13 +1,13 @@
-// #708 — el `#` del BlockEditor contra los endpoints del engine
-// (Bali::EntityReferencesController). El preview `with_entity_references` apunta a
-// /bali/entity_references, así que esto ejercita la cadena completa: registry del dummy →
-// búsqueda → payload → chip. Los datos vienen de los seeds (el proyecto "Bali Component
-// Library"), los mismos que carga el workflow de Cypress antes de correr.
+// #708 — the BlockEditor's `#` against the engine endpoints
+// (Bali::EntityReferencesController). The `with_entity_references` preview points at
+// /bali/entity_references, so this exercises the whole chain: dummy registry → search →
+// payload → chip. The data comes from the seeds (the "Bali Component Library" project),
+// the same ones the Cypress workflow loads before running.
 //
-// Nada de intercept: el valor de la prueba está justamente en que la respuesta la arma el
-// engine, no un stub.
+// No intercept: the value of this test is precisely that the response is built by the
+// engine, not by a stub.
 
-describe('BlockEditor: referencias de entidades', () => {
+describe('BlockEditor: entity references', () => {
   beforeEach(() => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/with_entity_references')
@@ -16,10 +16,10 @@ describe('BlockEditor: referencias de entidades', () => {
 
   const editor = () => cy.get('.bn-editor [contenteditable="true"], .bn-editor[contenteditable="true"]').first()
 
-  // El menú se pinta cuando vuelve el fetch, y el hook pide una vez por tecleo sin garantizar
-  // cuál request es la última: en vez de adivinarla, se deja reintentar la aserción. El
-  // timeout es amplio a propósito — con la máquina cargada los 4s por default no alcanzan, y
-  // eso es lo único que falla acá, nunca el resultado.
+  // The menu is painted when the fetch comes back, and the hook fires one request per
+  // keystroke without guaranteeing which one is the last: rather than guessing it, the
+  // assertion is left to retry. The timeout is wide on purpose — on a loaded machine the
+  // default 4s are not enough, and that is the only thing that fails here, never the result.
   const MENU_TIMEOUT = 20000
 
   const search = query => {
@@ -27,18 +27,18 @@ describe('BlockEditor: referencias de entidades', () => {
     return cy.get('.bn-suggestion-menu', { timeout: MENU_TIMEOUT }).should('be.visible')
   }
 
-  it('busca en el engine y agrupa por la etiqueta que declara el registry', () => {
-    // El grupo es `display: { label: }` del registry: sin él el menú diría el entityType
-    // crudo, y el punto de #708-2 es que la declaración del tipo lo alimenta.
+  it('searches in the engine and groups by the label the registry declares', () => {
+    // The group is the registry's `display: { label: }`: without it the menu would say the
+    // raw entityType, and the point of #708-2 is that the type's declaration feeds it.
     search('Bali')
       .should('contain.text', 'Bali Component Library')
       .and('contain.text', 'Project')
   })
 
-  it('inserta el chip con el tipo y el id que el servidor resolvió', () => {
+  it('inserts the chip with the type and the id the server resolved', () => {
     search('Bali')
-    // El timeout de `search` cubre su propia cadena; el resultado dentro del menú necesita
-    // el suyo, que es lo que la espera del fetch se come.
+    // `search`'s timeout covers its own chain; the result inside the menu needs its own,
+    // which is what waiting on the fetch eats up.
     cy.get('.bn-suggestion-menu')
       .contains('Bali Component Library', { timeout: MENU_TIMEOUT })
       .click()
@@ -49,9 +49,10 @@ describe('BlockEditor: referencias de entidades', () => {
     cy.get('.bn-entity-reference').should('have.attr', 'data-entity-id').and('not.be.empty')
   })
 
-  // Un caso negativo puro ("busca algo que no existe") pasaría igual con el endpoint roto.
-  // Este discrimina: el término solo casa con una tarea, y el proyecto se queda fuera.
-  it('solo ofrece los tipos cuyo scope casa con el término', () => {
+  // A pure negative case ("search for something that does not exist") would pass just the
+  // same with a broken endpoint. This one discriminates: the term only matches a task, and
+  // the project stays out.
+  it('only offers the types whose scope matches the term', () => {
     search('Kanban')
       .should('contain.text', 'Task')
       .and('contain.text', 'Build Kanban component')

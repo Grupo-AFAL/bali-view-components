@@ -5,7 +5,7 @@
 //
 // A raw `history.pushState` therefore leaves orphan entries Turbo later refuses
 // to restore. Reported from these exact steps — Edit, Done, "View all", Back —
-// as "se traga el back: se cambia la URL, pero el contenido de la pagina no."
+// as "it swallows the Back: the URL changes, but the page content does not."
 // Entering and leaving wrote two orphans, so one Back appeared to do nothing.
 //
 // Against the REAL dashboard rather than the Lookbook preview: the preview's stub

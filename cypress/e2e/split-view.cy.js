@@ -19,11 +19,11 @@ describe('SplitView', () => {
     })
 
     it('starts on the empty detail with no row selected', () => {
-      // 10s y no los 4s default: primera consulta tras un visit frío — en CI el
-      // primer render del preview (dev mode, templates sin compilar, runner
-      // cargado) ha tardado más que el timeout y este assert era el flake más
-      // frecuente de la suite. Si vuelve a fallar con 10s, ya no es timing: el
-      // workflow ahora sube screenshots para verlo.
+      // 10s and not the 4s default: first query after a cold visit — in CI the
+      // preview's first render (dev mode, uncompiled templates, a loaded
+      // runner) has taken longer than the timeout and this assert was the
+      // suite's most frequent flake. If it fails again at 10s it is no longer
+      // timing: the workflow now uploads screenshots to see it.
       cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
       cy.get('.split-view-row[aria-current]').should('not.exist')
     })
@@ -103,8 +103,8 @@ describe('SplitView', () => {
 
         cy.go('back')
         cy.location('pathname').should('include', '/lookbook/preview/bali/split_view/custom_master')
-        // Mismo margen que el assert de carga fría: la restauración del back
-        // puede rerenderizar el preview completo en CI.
+        // Same margin as the cold-load assert: the back restoration can
+        // re-render the whole preview in CI.
         cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
         // The highlight has to rewind with the frame. Turbo caches the snapshot
         // of the page it leaves, and it takes it AFTER the controller has moved
@@ -203,25 +203,25 @@ describe('SplitView', () => {
   })
 })
 
-// #1012 — un frame que el lector navegó en página no puede llegar al caché de
-// snapshots de Turbo todavía con su `src`: al restaurar, Turbo recarga todo
-// frame con `src`, esa recarga vuelve a disparar el `advance` del propio frame,
-// y quien apretó atrás termina empujado de vuelta al detalle que acababa de
-// dejar. En CI pasaba ~1 de cada 3 corridas; local, nunca — el snapshot se toma
-// antes de que llegue la respuesta del frame y sale limpio por casualidad.
+// #1012 — a frame the reader navigated in-page must not reach Turbo's snapshot
+// cache still carrying its `src`: on restore Turbo reloads every frame with a
+// `src`, that reload fires the frame's own `advance` again, and whoever pressed
+// back is thrown forward to the detail they had just left. In CI it happened in
+// ~1 run out of 3; locally, never — the snapshot is taken before the frame's
+// response arrives and comes out clean by accident.
 //
-// Por eso el disparo del evento es explícito: el bug no depende de que el
-// usuario haga nada distinto, sino de CUÁNDO Turbo lee el DOM, y eso no se
-// puede pedir desde un test. Lo que sí es determinista —y es el contrato— es
-// qué queda en el DOM cuando `turbo:before-cache` corre.
+// Hence the explicit event dispatch: the bug does not depend on the user doing
+// anything different, but on WHEN Turbo reads the DOM, and that cannot be asked
+// for from a test. What IS deterministic — and is the contract — is what is
+// left in the DOM when `turbo:before-cache` runs.
 //
-// El rebobinado quita SOLO el `src`, no el contenido: el `advance` de un click
-// (`data-turbo-action="advance"`, willRender: false) dispara `turbo:before-cache`
-// contra la página que SIGUE en pantalla, así que borrar el detalle aquí vaciaba
-// el panel que el lector acababa de abrir, en cada click. Quitar el `src` es lo
-// que #1012 necesita; que la lista vuelva vacía al restaurar lo hace
-// `syncFrameFromLocation` según la URL (ver "restores the preview on back").
-describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
+// The rewind strips ONLY the `src`, not the content: a click's `advance`
+// (`data-turbo-action="advance"`, willRender: false) fires `turbo:before-cache`
+// against the page that STAYS on screen, so wiping the detail here emptied the
+// pane the reader had just opened, on every click. Dropping the `src` is what
+// #1012 needs; the list coming back empty on restore is done by
+// `syncFrameFromLocation` from the URL (see "restores the preview on back").
+describe('SplitView: what gets cached after the frame is navigated (#1012)', () => {
   beforeEach(() => {
     cy.visit('/bali/split_view/custom_master')
     cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
@@ -234,18 +234,18 @@ describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
 
     cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
 
-    // Sin `src` no hay recarga al restaurar, y sin recarga no hay advance.
+    // With no `src` there is no reload on restore, and with no reload no advance.
     cy.get('.split-view-detail').should('not.have.attr', 'src')
-    // Y el detalle que el lector está viendo NO se destruye: el before-cache de
-    // un advance corre sobre la página que se queda.
+    // And the detail the reader is looking at is NOT destroyed: an advance's
+    // before-cache runs against the page that stays.
     cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
   })
 
-  // La otra mitad: ir HACIA una URL que selecciona una fila DISTINTA de la que
-  // el panel muestra tiene que refetchear, porque el frame quedó rebobinado al
-  // cachearse y su contenido es de otra fila. (Ir hacia la MISMA fila ya no
-  // refetchea: el stash de #1029 reconoce el panel como correcto — ver el
-  // describe de abajo.)
+  // The other half: traversing TO a URL that selects a row OTHER than the one
+  // the pane shows has to refetch, because the frame was left rewound when it
+  // was cached and its content belongs to another row. (Traversing to the SAME
+  // row no longer refetches: the #1029 stash recognises the pane as already
+  // right — see the describe below.)
   it('points the frame at the row a traversal selects when the pane shows another', () => {
     cy.get('.split-view-row').eq(1).invoke('attr', 'href').then((otherHref) => {
       cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
@@ -257,16 +257,16 @@ describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
       })
 
       cy.get('.split-view-detail').should('have.attr', 'src', otherHref)
-      // Y esperar el detalle: si el test termina con el fetch del frame en
-      // vuelo, el `cy.visit` del test siguiente descarga la página, el fetch
-      // se aborta y Cypress le atribuye el AbortError al test equivocado.
+      // And wait for the detail: if the test ends with the frame's fetch in
+      // flight, the next test's `cy.visit` tears the page down, the fetch is
+      // aborted and Cypress attributes the AbortError to the wrong test.
       cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
     })
   })
 
-  // El caso simétrico del anterior, y el corazón de #1029: el rebobinado dejó
-  // el panel sin `src` pero MOSTRANDO el detalle correcto; volver a esa misma
-  // URL no debe refetchear nada.
+  // The symmetric case of the one above, and the heart of #1029: the rewind
+  // left the pane without a `src` but SHOWING the right detail; going back to
+  // that same URL must refetch nothing.
   it('leaves the frame alone when the traversal lands on what it already shows', () => {
     cy.get('.split-view-row').eq(2).invoke('attr', 'href').then((href) => {
       cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
@@ -287,11 +287,11 @@ describe('SplitView: lo que se cachea tras navegar el frame (#1012)', () => {
   })
 })
 
-// #1029 — el guard del refetch comparaba el `src` del frame (que Turbo deja
-// ABSOLUTO tras navegar) contra el `href` de la fila (relativo, tal como se
-// escribió), así que nunca coincidían: cada popstate reescribía el `src` y
-// refetcheaba un detalle que ya estaba en pantalla. El guard compara ahora
-// las dos URLs resueltas contra el documento.
+// #1029 — the refetch guard compared the frame's `src` (which Turbo leaves
+// ABSOLUTE after navigating) against the row's `href` (relative, as written),
+// so they never matched: every popstate rewrote the `src` and refetched a
+// detail that was already on screen. The guard now compares the two URLs
+// resolved against the document.
 describe('SplitView: a traversal to the URL the frame already shows (#1029)', () => {
   it('re-derives the highlight without refetching the detail', () => {
     cy.visit('/bali/split_view/custom_master')
@@ -302,19 +302,19 @@ describe('SplitView: a traversal to the URL the frame already shows (#1029)', ()
 
     cy.intercept('GET', '/split-view*').as('detail')
 
-    // La URL no cambia: el popstate llega estando ya en la entrada que el
-    // frame muestra (un back que vuelve exactamente aquí).
+    // The URL does not change: the popstate arrives while already on the entry
+    // the frame shows (a back that lands exactly here).
     cy.window().then((win) => {
       win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
     })
 
-    // El highlight se re-deriva igual (la URL sigue seleccionando la fila)...
+    // The highlight is re-derived all the same (the URL still selects the row)...
     cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
     cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
 
-    // ...pero el frame no se vuelve a pedir: ya muestra este detalle. La
-    // espera fija es deliberada — "no hubo request" necesita dejar pasar el
-    // tiempo en el que habría ocurrido.
+    // ...but the frame is not requested again: it already shows this detail.
+    // The fixed wait is deliberate — "there was no request" needs to let the
+    // time in which it would have happened go by.
     cy.wait(400)
     cy.get('@detail.all').should('have.length', 0)
   })
