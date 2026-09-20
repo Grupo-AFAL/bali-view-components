@@ -96,11 +96,12 @@ time bundle exec rails runner "puts 'booted'"
 
 **For Tests:**
 ```bash
-# Profile slow tests
-bundle exec rspec --profile 10
+# The verbose reporter prints seconds next to every test name; no profiling gem
+# is installed here, so this is what the repo has
+bin/rails test -v
 
-# If test-prof available
-TEST_PROF=1 bundle exec rspec spec/ --format documentation 2>&1 | head -100
+# Slowest tests of a run, worst first
+bin/rails test -v | grep ' = [0-9]' | sort -t= -k2 -rn | head -20
 ```
 
 ### Step 4: Invoke Rails Performance Expert Agent
@@ -167,10 +168,10 @@ For this ViewComponent library:
 ### Component Tests
 ```bash
 # Count render_inline calls
-grep -rn "render_inline" spec/components/ --include="*.rb" | wc -l
+grep -rn "render_inline" test/bali/components/ --include="*.rb" | wc -l
 
 # Check for expensive setup
-grep -rn "before.*do" spec/components/ --include="*.rb"
+grep -rn "def setup\|setup do" test/bali/components/ --include="*.rb"
 ```
 
 ### Lookbook Previews

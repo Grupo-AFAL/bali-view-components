@@ -178,14 +178,16 @@ When all checks pass:
 
 2. **Run Final Test Verification**:
    ```bash
-   bundle exec rspec spec/components/bali/[name]/
+   bin/rails test test/bali/components/[name]_test.rb
    ```
+   Touched a Stimulus controller? Minitest does not load it. Run Cypress too, with the
+   dummy server up: `cd spec/dummy && bin/dev`, then `yarn run cy:run`.
 
 3. **Generate Cycle Report**
 
 5. **Optional Auto-Commit** (if `--auto-commit`):
    ```bash
-   git add app/components/bali/[name]/ spec/components/bali/[name]/
+   git add app/components/bali/[name]/ test/bali/components/[name]_test.rb
    git commit -m "Fix [ComponentName] - improve component quality
 
    - Add proper DaisyUI semantic classes
@@ -246,7 +248,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 **Fixes Applied**:
 - Added SIZES/OFFSETS constants to Column component
 - Updated preview to use size: param
-- Generated component_spec.rb with 8 test cases
+- Generated columns_test.rb with 8 test cases
 
 **Verification**: 3 issues remain
 
@@ -286,7 +288,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 |------|--------|
 | app/components/bali/columns/column/component.rb | Modified |
 | app/components/bali/columns/preview.rb | Modified |
-| spec/components/bali/columns/component_spec.rb | Created |
+| test/bali/components/columns_test.rb | Created |
 
 ### Tests
 - Total: 8
@@ -410,10 +412,10 @@ Delegating to frontend-ui-ux-engineer...
 ## Files Changed
 - app/components/bali/columns/column/component.rb (modified)
 - app/components/bali/columns/preview.rb (modified)
-- spec/components/bali/columns/component_spec.rb (created)
+- test/bali/components/columns_test.rb (created)
 
 Ready to commit? Use --auto-commit or run:
-git add app/components/bali/columns/ spec/components/bali/columns/
+git add app/components/bali/columns/ test/bali/components/columns_test.rb
 git commit -m "Fix Columns - improve component quality"
 ```
 

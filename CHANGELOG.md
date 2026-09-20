@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- **Se retiran los vestigios de RSpec** (#1174 de rebote). El repo usa Minitest desde siempre,
+  pero quedaban 25 invocaciones de `bundle exec rspec` y 41 rutas `spec/…` repartidas en las
+  instrucciones de los agentes, dos scripts y la documentación: comandos que **fallan al
+  ejecutarse** y rutas que no existen. Lo grave era el generador `view_component`, que **viajaba
+  en la gema** y escribía `spec/bali/components/<n>_spec.rb` con `require 'rails_helper'` y
+  `RSpec.describe` — un archivo que nace muerto y que quien lo genera cree que es una prueba.
+  Se borra entero: ninguna de las siete apps de la flota lo usa, no tenía pruebas, y
+  `bali:install` y `bali:widget` cubren lo que un anfitrión necesita. También se va
+  `scripts/pre-commit-check.sh`, que corría RSpec y al que **ningún hook llamaba**.
+
+  **Para un anfitrión cambia una cosa**: `rails g view_component` deja de existir. Si alguna app
+  lo usaba —ninguna lo hace, medido—, los componentes se escriben a mano siguiendo
+  `docs/reference/component-patterns.md`.
+
 - **El repo quedó en inglés, y hay con qué mantenerlo así** (#1174). Cierra el barrido: siete PRs
   tradujeron **1 417 comentarios y nombres de prueba** en 207 archivos, borraron 23 que no cargaban
   ni una medición, ni una restricción invisible desde su línea, ni por qué lo obvio está mal, y

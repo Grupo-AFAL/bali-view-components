@@ -154,7 +154,7 @@ Results are saved to `.claude/review-results/[component].json`:
   "commit": "abc1234",
   "files_changed": [
     "app/components/bali/button/component.rb",
-    "spec/bali/components/button_spec.rb"
+    "test/bali/components/button_test.rb"
   ]
 }
 ```
@@ -291,7 +291,7 @@ Add missing permissions to `.claude/settings.local.json`. Required permissions:
       "Skill(review-cycle)",
       "Skill(review)",
       "Skill(review-all)",
-      "Bash(bundle exec rspec:*)",
+      "Bash(bin/rails test:*)",
       "Bash(bundle exec rubocop:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",

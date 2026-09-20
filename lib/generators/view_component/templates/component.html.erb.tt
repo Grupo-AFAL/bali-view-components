@@ -1,3 +1,0 @@
-<%%= tag.div(**options) do %>
-  <%%= content %>
-<%% end %>

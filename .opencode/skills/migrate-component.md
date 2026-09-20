@@ -36,7 +36,7 @@ You are migrating a Bali ViewComponent from Bulma CSS to DaisyUI/Tailwind CSS.
 4. **Update preview.rb** - Use DaisyUI param values (xs/sm/md/lg/xl)
 5. **Minimize SCSS** - Prefer Tailwind utilities
 6. **Update tests** - Expect new class names
-7. **Verify** - `bundle exec rspec spec/bali/components/{component}_spec.rb`
+7. **Verify** - `bin/rails test test/bali/components/{component}_test.rb`
 8. **Visual check** - Lookbook at http://localhost:3001/lookbook
 
 ## Component Argument

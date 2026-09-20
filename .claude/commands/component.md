@@ -13,7 +13,7 @@ Where `$ARGUMENTS` is:
 - `--slots` - Include slot definitions
 - `--stimulus` - Include Stimulus controller
 - `--preview` - Generate Lookbook preview (default: true)
-- `--test` - Generate RSpec test (default: true)
+- `--test` - Generate Minitest test (default: true)
 
 ## Workflow
 
@@ -34,8 +34,8 @@ app/components/bali/[name]/
 ├── component.scss         # Styles (minimal, prefer Tailwind)
 └── preview.rb             # Lookbook preview
 
-spec/components/bali/[name]/
-└── component_spec.rb      # RSpec tests
+test/bali/components/
+└── [name]_test.rb         # Minitest tests
 
 app/assets/javascripts/bali/controllers/
 └── [name]_controller.js   # Stimulus controller (if --stimulus)
@@ -337,56 +337,59 @@ module Bali
 end
 ```
 
-## RSpec Test Template
+## Minitest Test Template
+
+Tests are Minitest, live in `test/`, and subclass `ComponentTestCase` — a
+`ViewComponent::TestCase` with `Capybara::Minitest::Assertions` mixed in, defined in
+`test/test_helper.rb`. The component class is named in full; there is no
+`described_class`. Grouping that RSpec would express with `describe` is carried in the
+method name instead (`test_variants_...`, `test_options_passthrough_...`), which is how
+`test/bali/components/button_test.rb` and `alert_test.rb` are written.
 
 ```ruby
-# spec/components/bali/badge/component_spec.rb
-RSpec.describe Bali::Badge::Component, type: :component do
-  it "renders with base badge class" do
-    render_inline(described_class.new) { "Badge" }
-    expect(page).to have_css("span.badge", text: "Badge")
+# test/bali/components/badge_test.rb
+# frozen_string_literal: true
+
+require "test_helper"
+
+class BaliBadgeComponentTest < ComponentTestCase
+  def test_basic_rendering_renders_with_base_badge_class
+    render_inline(Bali::Badge::Component.new) { "Badge" }
+    assert_selector("span.badge", text: "Badge")
   end
 
-  describe "variants" do
-    described_class::VARIANTS.each do |variant, css_class|
-      it "renders #{variant} variant" do
-        render_inline(described_class.new(variant: variant)) { variant.to_s }
-        expect(page).to have_css("span.badge.#{css_class}")
-      end
-    end
-  end
-
-  describe "sizes" do
-    described_class::SIZES.each do |size, css_class|
-      it "renders #{size} size" do
-        render_inline(described_class.new(size: size)) { size.to_s }
-        expect(page).to have_css("span.badge.#{css_class}")
-      end
+  Bali::Badge::Component::VARIANTS.each do |variant, css_class|
+    define_method("test_variants_renders_#{variant}_variant") do
+      render_inline(Bali::Badge::Component.new(variant: variant)) { variant.to_s }
+      assert_selector("span.badge.#{css_class}")
     end
   end
 
-  describe "outline" do
-    it "applies outline class when true" do
-      render_inline(described_class.new(outline: true)) { "Outline" }
-      expect(page).to have_css("span.badge.badge-outline")
-    end
-
-    it "does not apply outline class when false" do
-      render_inline(described_class.new(outline: false)) { "Solid" }
-      expect(page).not_to have_css("span.badge-outline")
+  Bali::Badge::Component::SIZES.each do |size, css_class|
+    define_method("test_sizes_renders_#{size}_size") do
+      render_inline(Bali::Badge::Component.new(size: size)) { size.to_s }
+      assert_selector("span.badge.#{css_class}")
     end
   end
 
-  describe "options passthrough" do
-    it "applies custom classes" do
-      render_inline(described_class.new(class: "custom")) { "Custom" }
-      expect(page).to have_css("span.badge.custom")
-    end
+  def test_outline_applies_outline_class_when_true
+    render_inline(Bali::Badge::Component.new(outline: true)) { "Outline" }
+    assert_selector("span.badge.badge-outline")
+  end
 
-    it "applies data attributes" do
-      render_inline(described_class.new(data: { testid: "badge" })) { "Data" }
-      expect(page).to have_css("[data-testid='badge']")
-    end
+  def test_outline_does_not_apply_outline_class_when_false
+    render_inline(Bali::Badge::Component.new(outline: false)) { "Solid" }
+    assert_no_selector("span.badge-outline")
+  end
+
+  def test_options_passthrough_applies_custom_classes
+    render_inline(Bali::Badge::Component.new(class: "custom")) { "Custom" }
+    assert_selector("span.badge.custom")
+  end
+
+  def test_options_passthrough_applies_data_attributes
+    render_inline(Bali::Badge::Component.new(data: { testid: "badge" })) { "Data" }
+    assert_selector('span.badge[data-testid="badge"]')
   end
 end
 ```
@@ -409,8 +412,8 @@ AI: Creating Bali::Tooltip::Component...
 ### 3. app/components/bali/tooltip/preview.rb
 [Lookbook preview with playground and variants]
 
-### 4. spec/components/bali/tooltip/component_spec.rb
-[RSpec tests for all variants and positions]
+### 4. test/bali/components/tooltip_test.rb
+[Minitest tests for all variants and positions]
 
 ### 5. app/assets/javascripts/bali/controllers/tooltip_controller.js
 [Stimulus controller for dynamic tooltips]
@@ -418,10 +421,10 @@ AI: Creating Bali::Tooltip::Component...
 ## Running Tests
 
 ```bash
-bundle exec rspec spec/components/bali/tooltip/
+bin/rails test test/bali/components/tooltip_test.rb
 ```
 
-✓ 10 examples, 0 failures
+✓ 10 runs, 14 assertions, 0 failures, 0 errors, 0 skips
 
 ## Usage
 
