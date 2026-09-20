@@ -98,14 +98,39 @@
    with a transparent one shows the rows sliding underneath it. base-200 rather
    than base-100 so the band reads as chrome against the rows, the same contrast
    the list header above it has. */
+.split-view-group {
+  /* The heading's height, and the only place it is written down. Two rules need
+     it and they must not drift apart: the band itself, and the `scroll-margin`
+     that keeps a row out from under it. 29px measured — `py-1.5` over an
+     `text-xs` line box. */
+  --bali-split-group-header-h: 1.8125rem;
+}
+
 .split-view-group-header {
   @apply sticky top-0 z-[1] flex items-center gap-2 px-4 py-1.5
          bg-base-200 border-b border-b-base-200
          text-xs font-medium uppercase tracking-wide text-base-content/70;
+  min-height: var(--bali-split-group-header-h);
 }
 
 .split-view-group-count {
   @apply ml-auto font-normal tabular-nums text-base-content/50;
+}
+
+/* A sticky band paints over whatever passes under it — including a row the
+   browser has just scrolled into view for the keyboard, which it aligns flush
+   with the top of the scroll area, exactly where the band is.
+
+   Measured at 1280x900 on a grouped listing: shift-tabbing up the list put the
+   focused row at the scrollport top and the band covered 29px of its 84px — its
+   whole tag strip, and the top edge of its focus ring — on every third row. The
+   same listing ungrouped: 0px. So it arrived with the heading.
+
+   `scroll-margin-top` is read only by the scroll that brings an element into
+   view, so no other scroll moves. Scoped to a grouped list because an ungrouped
+   one has no band to clear. */
+.split-view-group .split-view-item {
+  scroll-margin-top: var(--bali-split-group-header-h);
 }
 
 /* ── The filter band ──────────────────────────────────────────────────────

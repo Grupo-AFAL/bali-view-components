@@ -55,8 +55,23 @@ module Bali
           # The heading's own id, so the group can be named by the text a sighted
           # reader sees rather than by a second copy of it in an `aria-label`,
           # which screen readers would then announce twice.
+          #
+          # The digest is load-bearing, not decoration. `parameterize` is lossy:
+          # "Warner Bros" and "Warner Bros." both fold to `warner-bros`, "Done" and
+          # "done" to `done`, and a key with no ASCII word characters folds to the
+          # empty string. Measured on the slug alone, four groups with four distinct
+          # keys rendered TWO ids — and a duplicate id does not merely fail
+          # validation, it makes `aria-labelledby` resolve to another group's
+          # heading, so the second group is announced under the first one's name.
+          # That is the exact double-naming this attribute was chosen to avoid.
+          #
+          # Derived from the key and nothing else, so the same group has the same id
+          # on every page. An appended page's heading is dropped when it merges, so
+          # the only way two of them can coexist is a listing that is not ordered by
+          # its group — which `warnAboutScatteredGroups` already reports.
           def header_id
-            [ @frame_id, "group", key.to_s.parameterize.presence || "item" ].compact.join("-")
+            [ @frame_id, "group", key.to_s.parameterize.presence,
+              Digest::SHA1.hexdigest(key.to_s).first(6) ].compact.join("-")
           end
 
           private
