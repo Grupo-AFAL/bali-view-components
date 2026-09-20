@@ -466,4 +466,41 @@ describe('SplitView structured list', () => {
       cy.get('[data-split-view-list-target="error"]').should('have.attr', 'hidden')
     })
   })
+
+  // A teardown is not a failure — and it used to be a licence. A page still in
+  // flight when the list is disconnected arrived anyway, appended itself to a
+  // list the controller no longer owns, and the recursion at the end of
+  // `loadNext` kept the dead controller paging: measured, three requests for a
+  // listing nobody is looking at, where an aborted one asks once. The
+  // `AbortError` that the abort then produces has to read as the teardown it is
+  // rather than painting "could not load" and a retry button over a pane on its
+  // way out (#1180).
+  context('when the list is torn down mid-load', () => {
+    it('stops fetching pages for a list that is gone', () => {
+      cy.visit('/bali/split_view/default')
+      let issued = 0
+      cy.intercept('GET', '/split-view*', (req) => {
+        issued += 1
+        req.on('response', (res) => { res.setDelay(800) })
+      }).as('page')
+
+      scrollToBottom()
+      // Counted on the way out rather than waited for with `@page`: the alias
+      // resolves on the RESPONSE, and by then the page has already landed and
+      // there is nothing left in flight to tear down. `loading` keeps this at
+      // one until that response arrives, so the wait is not a race.
+      cy.wrap(null).should(() => {
+        expect(issued, 'the first page is in flight').to.eq(1)
+      })
+
+      // Out of the document: Stimulus disconnects, which is what a re-render of
+      // the pane does to this controller.
+      cy.get('[data-controller="split-view-list"]').then(($list) => { $list[0].remove() })
+
+      // Four seconds against a reply 800ms out: long enough for the abandoned
+      // page to have landed and asked for the next one twice over.
+      cy.wait(4000)
+      cy.get('@page.all').should('have.length', 1)
+    })
+  })
 })

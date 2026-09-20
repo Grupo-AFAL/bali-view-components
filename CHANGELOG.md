@@ -55,8 +55,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   el infinite scroll es real: 3 draft y 17 done de cinco en cinco, así que la página 1 lleva las
   dos cabeceras y las páginas 2-4 son todas continuación de `done`. Medido en navegador al llegar
   al final: **20 filas, 20 ids distintos, 2 cabeceras**.
+### Fixed
+
+- **Una petición abortada dejaba de reprobar la suite de Cypress** (#1180). El síntoma era
+  `AbortError: The user aborted a request` como rechazo sin manejar, achacado a la prueba que
+  estuviera corriendo. No venía de Bali: en la página que fallaba —`custom_master`— no se monta
+  ni un controlador que haga `fetch`. Viene de Turbo, que llama a su delegado asíncrono **sin
+  esperarlo** (`@hotwired/turbo` 8.0.23, `dist/turbo.es2017-esm.js:826`) y ahí dentro espera
+  `FetchResponse#responseHTML`, o sea `response.clone().text()`. Cancelá la petición entre las
+  cabeceras y el cuerpo —lo que hace un Turbo Frame cada vez que navega de nuevo, con lo cual
+  bastan dos clics seguidos en dos filas— y ese `text()` rechaza en una cadena que nadie
+  sostiene: el `catch` de `perform()`, que sí ignora `AbortError`, quedó desenganchado dos
+  líneas antes. Medido con Cypress 16.1.0: la prueba «moves aria-current to the clicked row»
+  abortaba uno de sus cuatro `fetch` y fallaba **5 de 5 corridas**. La suite deja de reprobar
+  por un rechazo `AbortError`, y sólo por ése; cualquier otro error sin capturar sigue
+  reprobando.
+
+- **`SplitView::List` deja de pedir páginas para una lista que ya no existe** (#1180 de rebote).
+  Una página en vuelo cuando el listado se desconecta llegaba igual, se agregaba a un listado
+  que el controlador ya no gobierna, y la recursión del final de `loadNext` mantenía al
+  controlador muerto paginando: medidas **tres peticiones** contra el servidor por un listado que
+  nadie está viendo, donde abortar pide una. `disconnect()` aborta el `fetch`, y el `AbortError`
+  que eso produce se lee como el desmontaje que es —no se pinta el estado de error con su botón
+  de reintentar sobre un panel que se está yendo.
 
 ### Documentation
+
+- **Las instrucciones de `.claude/` dejan de enseñar cosas que no existen** (#1194). Salió de la
+  revisión de #1192: una docena de afirmaciones falsas contra el repo real, verificadas una por
+  una. No es documentación de adorno —`.claude/commands/` son las instrucciones que sigue un
+  agente, y una plantilla que hereda de una clase inexistente no confunde: **produce código
+  roto**.
+
+  Lo que producía código que no carga:
+
+  - `class Component < ApplicationComponent` en `component.md` (3 veces), `deprecate.md` (2),
+    `dhh-code-reviewer.md` (4) y `docs.md`. **Esa clase no existe**; los 173 componentes reales
+    heredan de `ApplicationViewComponent`.
+  - `class Preview < Lookbook::Preview` en `component.md`, prohibido por `.claude/CLAUDE.md`
+    porque las apps anfitrionas no tienen Lookbook. Los 132 previews usan
+    `ApplicationViewComponentPreview`.
+  - En esa misma plantilla, `render Component.new(...)` —la constante hermana sin calificar que
+    `test/requests/icon_previews_test.rb` reprueba desde #843— y
+    `export default class extends Controller`, que nunca llega a la página: el registro importa
+    por nombre (`import { DropdownController } from …`).
+
+  Estructura que no es la de este repo: `component.scss` y «Has SCSS file» cuando hay **0
+  archivos `.scss`** y cada componente lleva `index.css`; `dropdown_controller.js` cuando los 25
+  controladores compartidos van con guion medio y el de un componente va co-locado como
+  `index.js`; un bloque ` ```ruby ` en `audit.md` que contiene shell.
+
+  Herramientas y rutas que no están: `lsp_diagnostics` y `skill_mcp` (Playwright), exigidos en
+  seis archivos y ausentes en este setup — se reemplazan por los comandos que sí existen
+  (`rubocop`, `yarn standard`) y por la verificación en navegador que manda el `CLAUDE.md` raíz,
+  sin nombrar una herramienta concreta. Además `docs/reference/daisyui-mapping.md`,
+  `config/locales/view_components.{en,es}.yml` (se llaman `bali_view.*`),
+  `test/dummy/tailwind.config.js` (Tailwind v4 no tiene config: los `@source` viven en el propio
+  entry point), `.claude/commands/migrate-component.md`, y seis rutas `spec/dummy` que #1193
+  dejó atrás.
+
+  Contradicciones con las reglas del propio repo: la plantilla del cuerpo del PR en `pr.md` no
+  mencionaba `Closes #` ni una vez, que es justo lo que el hook `pr-closes-keyword.sh` existe
+  para atrapar; y `docker/sandbox-setup.sh` corría `db:prepare`, que aquí **pisa `db/schema.rb`**
+  (y se quedaba sin seeds, sin los cuales fallan 60 specs de Cypress).
+
+  Una medición falsa, rehecha: el renglón «Boot dominates» de `rails-performance-expert.md`
+  afirmaba que un archivo y un directorio «ambos caen en ~2 s». Medido dos veces, en caliente y
+  en serie: boot solo 1.5 s, `button_test.rb` 1.7 s de reloj con `Finished in 0.20 s`, y
+  `test/bali/components/` 6.6 s con `Finished in 4.78 s` — **3.9× el archivo suelto**. Con eso
+  se cae la recomendación: comparar directorios sí dice algo; lo que no dice nada es el reloj de
+  un archivo, que es 88 % boot.
+
+  Dos de fuera de `.claude/`: `package.json` ahora **declara el script `standard`** —lo invocaba
+  el workflow de CI y funcionaba sólo por el fallback de yarn v1 al binario de `node_modules`,
+  o sea una bomba para una subida a yarn 2+—, y el ejemplo del FormBuilder en el `README`
+  pasa de `text_field_group`/`email_field_group`/`date_field_group` a los nombres vigentes
+  `text_group`/`email_group`/`date_group`.
 
 - **Se retiran los vestigios de RSpec** (#1174 de rebote). El repo usa Minitest desde siempre,
   pero quedaban 25 invocaciones de `bundle exec rspec` y 41 rutas `spec/…` repartidas en las

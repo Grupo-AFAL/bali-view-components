@@ -41,6 +41,11 @@ export class SplitViewListController extends Controller {
   disconnect () {
     this.observer?.disconnect()
     this.observer = null
+    // The rows this page was going to be appended to are on their way out, so
+    // the request has nothing left to land in. Aborting it also makes the only
+    // `AbortError` `loadNext` can see one this controller caused itself.
+    this.abortController?.abort()
+    this.abortController = null
   }
 
   retry (event) {
@@ -56,16 +61,24 @@ export class SplitViewListController extends Controller {
 
     this.loading = true
     this.showState('loader')
+    this.abortController = new AbortController()
 
     try {
       const response = await fetch(this.nextUrlValue, {
         headers: { Accept: 'text/html' },
-        credentials: 'same-origin'
+        credentials: 'same-origin',
+        signal: this.abortController.signal
       })
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
 
       this.append(await response.text())
     } catch (error) {
+      // An abort is a teardown, not a failure: the list is being replaced or the
+      // reader has left, and painting "could not load" with a retry button on a
+      // pane that is about to disappear reports a problem that nobody has. Leave
+      // the loader where it was — whatever renders next starts over anyway.
+      if (error.name === 'AbortError') return
+
       // Nothing is appended and nextUrlValue is untouched, so `retry` resumes from
       // exactly where this attempt started.
       this.showState('error')

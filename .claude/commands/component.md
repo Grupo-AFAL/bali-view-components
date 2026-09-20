@@ -31,15 +31,22 @@ Where `$ARGUMENTS` is:
 app/components/bali/[name]/
 ├── component.rb           # Ruby class
 ├── component.html.erb     # Template
-├── component.scss         # Styles (minimal, prefer Tailwind)
+├── index.css              # Styles (optional; plain CSS — this repo has no SCSS)
+├── index.js               # Co-located Stimulus controller (if --stimulus)
 └── preview.rb             # Lookbook preview
 
 test/bali/components/
 └── [name]_test.rb         # Minitest tests
-
-app/assets/javascripts/bali/controllers/
-└── [name]_controller.js   # Stimulus controller (if --stimulus)
 ```
+
+A component's controller is **co-located** in its own directory as `index.js` — 47
+components do it that way. `app/assets/javascripts/bali/controllers/` holds the 25
+controllers that are not tied to one component, and they are dash-named
+(`slim-select-controller.js`), never `snake_case`.
+
+The full layout, with the nested-component and preview-template cases, is in
+`docs/reference/component-patterns.md`. When that document and this one disagree,
+that one wins.
 
 ### Step 3: Apply Bali Patterns
 
@@ -51,7 +58,7 @@ app/assets/javascripts/bali/controllers/
 # app/components/bali/badge/component.rb
 module Bali
   module Badge
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       VARIANTS = {
         primary: "badge-primary",
         secondary: "badge-secondary",
@@ -110,7 +117,7 @@ end
 # app/components/bali/card/component.rb
 module Bali
   module Card
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       renders_one :header
       renders_one :image, ->(src:, alt: "", **options) do
         tag.figure do
@@ -190,7 +197,7 @@ end
 # app/components/bali/dropdown/component.rb
 module Bali
   module Dropdown
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       renders_one :trigger
       renders_many :items, ->(href: nil, **options, &block) do
         if href
@@ -254,10 +261,14 @@ end
 ```
 
 ```javascript
-// app/assets/javascripts/bali/controllers/dropdown_controller.js
-import { Controller } from "@hotwired/stimulus"
+// app/components/bali/dropdown/index.js
+import { Controller } from '@hotwired/stimulus'
 
-export default class extends Controller {
+// A NAMED export, and named `<Name>Controller`: registration imports it by name
+// (`import { DropdownController } from '../../../components/bali/dropdown/index'`
+// in `app/frontend/bali/components/index.js`, which also lists it in the
+// `registerControllers` map). A default export never reaches the page.
+export class DropdownController extends Controller {
   static targets = ["menu"]
   static values = { open: { type: Boolean, default: false } }
 
@@ -296,11 +307,23 @@ export default class extends Controller {
 
 ## Lookbook Preview Template
 
+Two things this template is strict about, both of which produce a broken preview if
+copied loosely:
+
+- **`ApplicationViewComponentPreview`**, never `Lookbook::Preview` — the host apps do
+  not have Lookbook, and the class has to load there too. All 132 previews in the repo
+  inherit from it.
+- **Sibling constants written in full** — `Bali::Badge::Component`, never `Component`.
+  `Module.nesting` is captured at parse time, Lookbook keeps the class from boot, and a
+  later `reload!` leaves a bare sibling resolving against a module Zeitwerk has already
+  discarded (#843). `test/requests/icon_previews_test.rb` fails the build on the bare
+  form.
+
 ```ruby
 # app/components/bali/badge/preview.rb
 module Bali
   module Badge
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @!group Playground
       
       # @param variant select [primary, secondary, accent, success, warning, error, info, ghost]
@@ -308,7 +331,7 @@ module Bali
       # @param outline toggle
       # @param text text
       def playground(variant: :primary, size: :md, outline: false, text: "Badge")
-        render Component.new(
+        render Bali::Badge::Component.new(
           variant: variant.to_sym,
           size: size.to_sym,
           outline: outline
@@ -415,7 +438,7 @@ AI: Creating Bali::Tooltip::Component...
 ### 4. test/bali/components/tooltip_test.rb
 [Minitest tests for all variants and positions]
 
-### 5. app/assets/javascripts/bali/controllers/tooltip_controller.js
+### 5. app/components/bali/tooltip/index.js
 [Stimulus controller for dynamic tooltips]
 
 ## Running Tests

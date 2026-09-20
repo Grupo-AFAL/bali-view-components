@@ -50,7 +50,12 @@ yarn install
 # 5. Prepare dummy app database
 echo ""
 echo "=== Preparing database ==="
-cd test/dummy && bin/rails db:prepare && cd ../..
+# `db:schema:load`, never `db:prepare`: in this repo `db:prepare` rewrites
+# `db/schema.rb` from the migrations and the diff shows up as an unrelated
+# change in the next commit. The seeds are not optional either — without them
+# every Cypress spec that reads a record fails (60 failures across 12 specs,
+# measured), and CI runs the same pair.
+cd test/dummy && bin/rails db:schema:load db:seed && cd ../..
 
 echo ""
 echo "=== Setup complete! ==="

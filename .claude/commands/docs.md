@@ -376,7 +376,7 @@ When generating docs, these variables are extracted:
 {
   component_name: "Button",
   full_class_name: "Bali::Button::Component",
-  parent_class: "ApplicationComponent",
+  parent_class: "ApplicationViewComponent",
   
   parameters: [
     { name: "variant", type: "Symbol", default: ":primary", description: "..." },

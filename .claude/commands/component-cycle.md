@@ -94,7 +94,9 @@ For each iteration (max N):
    - Update preview examples
 
 3. **Verify Fixes** - Quick verification:
-   - Run `lsp_diagnostics`
+   - `bundle exec rubocop app/components/bali/[name]/` and, if the component has JS,
+     `yarn standard app/components/bali/[name]/index.js`. There is no
+     `lsp_diagnostics` in this setup
    - Run component tests
    - Check Lookbook renders
 
@@ -136,18 +138,17 @@ Final UX review of [ComponentName] after functional fixes.
 - Do not add unnecessary complexity
 
 ## REQUIRED TOOLS
-- skill_mcp (Playwright) for browser automation
-
-## PLAYWRIGHT CALL FORMAT (CRITICAL)
-When using skill_mcp for Playwright, arguments MUST be a JSON string:
-
-CORRECT:
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook/inspect/bali/[component]/default"}')
-skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
-
-WRONG (will cause parse error):
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})
+- A browser tool, whichever this session has — see the note below.
 ```
+
+**Browser automation**: use whatever browser tool this session actually has — a
+Playwright MCP, a Chrome integration, or a Playwright script driven from `Bash`.
+**`skill_mcp` is not one of them**: it does not exist in this repo's setup, and an
+instruction that names it leaves the review with no way to open a page. What is not
+negotiable is the verification itself — a real browser against the running Lookbook
+(`cd test/dummy && bin/dev`, then http://localhost:3001/lookbook), with a screenshot
+as evidence. See "Browser Verification (MANDATORY)" in the root `CLAUDE.md`.
+
 
 2. **Apply UX Fixes** (if any):
    - Delegate visual changes to frontend-ui-ux-engineer
@@ -181,7 +182,7 @@ When all checks pass:
    bin/rails test test/bali/components/[name]_test.rb
    ```
    Touched a Stimulus controller? Minitest does not load it. Run Cypress too, with the
-   dummy server up: `cd spec/dummy && bin/dev`, then `yarn run cy:run`.
+   dummy server up: `cd test/dummy && bin/dev`, then `yarn run cy:run`.
 
 3. **Generate Cycle Report**
 

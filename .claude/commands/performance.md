@@ -183,11 +183,13 @@ grep -rn "\.all" test/dummy/app/components/*/preview.rb
 
 ### Asset Build
 ```bash
-# Measure Tailwind build time
-time bin/rails tailwindcss:build 2>&1
+# Measure Tailwind build time. `app:` because this is an engine: the bare
+# `tailwindcss:build` is the APP's task and does not exist from the repo root.
+time bin/rails app:tailwindcss:build 2>&1
 
-# Check content paths
-grep -A 10 "content:" test/dummy/tailwind.config.js
+# What Tailwind scans. v4 has no tailwind.config.js — the sources are `@source`
+# lines in the entry point itself.
+grep -n "@source\|@import" test/dummy/app/assets/tailwind/application.css
 ```
 
 ## Quick Reference
