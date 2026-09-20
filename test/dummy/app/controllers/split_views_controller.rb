@@ -67,8 +67,26 @@ class SplitViewsController < ApplicationController
   # several at once over `q[genre_in][]`).
   def load_listing(limit:)
     @filter_mode = params[:filter_mode] == "multi" ? :multi : :single
-    @pagy, @movies = pagy(filtered.includes(:studio).order(:name), limit: limit)
+    @grouped = params[:grouped] == "status"
+    @pagy, @movies = pagy(filtered.includes(:studio).order(*listing_order), limit: limit)
+    # The number next to a heading is the group's total IN THIS LISTING, which is
+    # not what the filter pills show: a bucket strip counts the whole table so the
+    # buckets you are not in still have a number. Two different questions, two
+    # different counts.
+    @group_counts = filtered.group(:status).count if @grouped
     @selected = Movie.find_by(id: params[:selected])
+  end
+
+  # The contract grouping asks of the query, written out: **the group key
+  # first**. Infinite scroll appends whole pages, so ordered by anything else the
+  # same status would come back on page 1 and again on page 3 and the reader
+  # would get the heading twice. Ordered by status, a page boundary can only ever
+  # fall inside ONE group, which is the seam the component merges.
+  #
+  # Here that is visible in the data: 3 draft and 17 done over pages of five, so
+  # page 1 carries both headings and pages 2-4 are all continuations of `done`.
+  def listing_order
+    @grouped ? [ :status, :name ] : [ :name ]
   end
 
   def filtered

@@ -57,6 +57,20 @@ module Bali
         render_structured(selected: Movie.order(:name).offset(Bali::SplitView::Preview::PER_PAGE + 1).first)
       end
 
+      # `with_group`: the same rows under headings, each with its own total. The
+      # row call does not change at all — it moves from `list.with_item` to
+      # `group.with_item` and takes the same keywords.
+      #
+      # **The listing has to be ordered by the group key.** Here that is
+      # `order(:status, :name)`, and the data makes the reason visible: 3 draft
+      # and 17 done over pages of five, so this page carries both headings and
+      # every page the sentinel fetches afterwards is a continuation of `done` —
+      # one seam, which is what the controller merges. Ordered by name instead,
+      # `done` would come back on every page and the heading with it.
+      def grouped_list
+        render_structured(group_by: :status, next_url: "/split-view?grouped=status&page=2")
+      end
+
       # `advance: false` for a split view that is not a location of its own — the
       # frame still swaps, but nothing is pushed into the history.
       def without_advance
@@ -65,8 +79,9 @@ module Bali
 
       # The **escape hatch**: the free `master` slot, with every row attribute
       # written by hand. Still supported, and the answer for a listing `with_list`
-      # cannot express — a tree, a calendar, a grouped inbox. For anything that
-      # can be a row of title/subtitle/tags/meta, use `default`.
+      # cannot express — a tree, a calendar. For anything that can be a row of
+      # title/subtitle/tags/meta, use `default`; for runs of those under
+      # headings, `grouped_list`.
       # @param master_width [String] select ["320px", "420px", "36rem", "35%"]
       def custom_master(master_width: "420px")
         render_with_template(
@@ -78,7 +93,7 @@ module Bali
       private
 
       def render_structured(scope: Movie.all, status: "", selected: nil, filter_mode: :single,
-                            filters: nil, advance: true)
+                            filters: nil, advance: true, group_by: nil, next_url: nil)
         scope = scope.where(status: status) if status.present?
 
         render_with_template(
@@ -88,7 +103,9 @@ module Bali
             selected: selected,
             filter_mode: filter_mode,
             filters: filters || status_filters,
-            advance: advance
+            advance: advance,
+            group_by: group_by,
+            next_url: next_url
           }
         )
       end

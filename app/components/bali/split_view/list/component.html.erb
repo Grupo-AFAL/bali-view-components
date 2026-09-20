@@ -21,13 +21,19 @@
     <% end %>
 
     <%= tag.div(**scroll_attributes) do %>
+      <%# One container either way: the controller appends into this element and
+          knows nothing about which of the two slots filled it. A grouped listing
+          holds groups here, an ungrouped one holds rows. %>
       <div data-split-view-list-target="rows">
         <% items.each do |item| %>
           <%= item %>
         <% end %>
+        <% groups.each do |group| %>
+          <%= group %>
+        <% end %>
       </div>
 
-      <% if items.none? && empty_state? %>
+      <% if !rows? && empty_state? %>
         <%= empty_state %>
       <% end %>
 

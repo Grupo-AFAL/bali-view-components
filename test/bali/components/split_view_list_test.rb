@@ -489,6 +489,140 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector(".split-view-list[data-controller]")
   end
 
+  # --- grouping -----------------------------------------------------------------------
+
+  def render_groups(list_options = {}, groups: [ { key: "overdue", label: "Overdue", count: 12,
+                                                   items: [ { id: 1, title: "First", href: "/inbox?selected=1" } ] } ])
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_list(**list_options) do |list|
+        groups.each do |attributes|
+          items = attributes.fetch(:items)
+          list.with_group(**attributes.except(:items)) do |group|
+            items.each { |item| group.with_item(**item) }
+          end
+        end
+      end
+    end
+  end
+
+  # `key` is the contract with infinite scroll: it is how the controller knows
+  # that the first group of an appended page continues the last one on screen.
+  def test_a_group_carries_its_key_for_the_appended_page_to_match
+    render_groups
+    assert_selector('.split-view-group[data-split-view-group-key="overdue"]')
+  end
+
+  def test_a_group_renders_its_label_and_its_count
+    render_groups
+    assert_selector(".split-view-group-header", text: "Overdue")
+    assert_selector('[data-testid="group-count"]', text: "12")
+  end
+
+  # Nothing to show, nothing to announce — a heading with an empty number beside
+  # it reads as a count of zero.
+  def test_a_group_without_a_count_renders_no_count
+    render_groups({}, groups: [ { key: "overdue", label: "Overdue",
+                                  items: [ { id: 1, title: "First", href: "/x" } ] } ])
+    assert_selector(".split-view-group-header", text: "Overdue")
+    assert_no_selector('[data-testid="group-count"]')
+  end
+
+  def test_a_group_falls_back_to_its_key_when_no_label_is_given
+    render_groups({}, groups: [ { key: "overdue", items: [ { id: 1, title: "First", href: "/x" } ] } ])
+    assert_selector(".split-view-group-header", text: "overdue")
+  end
+
+  # Named by the heading a sighted reader sees rather than by a second copy of it
+  # in an `aria-label`, which a screen reader would announce twice.
+  def test_a_group_is_named_by_its_own_heading
+    render_groups
+    assert_selector('.split-view-group[role="group"][aria-labelledby="inbox-detail-group-overdue"]')
+    assert_selector("#inbox-detail-group-overdue.split-view-group-header", text: "Overdue")
+  end
+
+  # A row inside a group is wired exactly like a row outside one: the list
+  # injects the frame and the selection into the group, and the group into its
+  # items.
+  def test_a_row_inside_a_group_gets_the_same_wiring_as_a_loose_one
+    render_groups
+    assert_selector('.split-view-group .split-view-item[data-turbo-frame="inbox-detail"]')
+    assert_selector('.split-view-group .split-view-item[data-split-view-target="row"]')
+    assert_selector('.split-view-group .split-view-item[data-action="click->split-view#select"]')
+    assert_selector(".split-view-group a#inbox-detail-item-1")
+  end
+
+  def test_selection_inside_a_group_is_decided_by_the_list_like_any_other
+    render_groups(
+      { selected: 2 },
+      groups: [ { key: "overdue", label: "Overdue", items: [
+        { id: 1, title: "First", href: "/x?selected=1" },
+        { id: 2, title: "Second", href: "/x?selected=2" }
+      ] } ]
+    )
+
+    assert_selector('.split-view-item[aria-current="true"]', count: 1)
+    assert_selector('a#inbox-detail-item-2[aria-current="true"]')
+  end
+
+  # The rows go in a container of their own so the controller can merge an
+  # appended page by moving them, leaving the heading above where it is.
+  def test_group_rows_live_in_a_container_the_controller_can_merge_into
+    render_groups
+    assert_selector(".split-view-group > .split-view-group-rows > .split-view-item")
+  end
+
+  def test_groups_render_inside_the_same_container_the_controller_appends_to
+    render_groups
+    assert_selector('[data-split-view-list-target="rows"] > .split-view-group')
+  end
+
+  # Loose rows would render above the first heading, belonging to no group, and
+  # the reader could not tell why. Always a caller mistake, and a silent one.
+  def test_mixing_loose_rows_and_groups_is_refused
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+        split.with_list do |list|
+          list.with_item(id: 1, title: "Loose", href: "/x")
+          list.with_group(key: "overdue") { |group| group.with_item(id: 2, title: "Grouped", href: "/y") }
+        end
+      end
+    end
+
+    assert_match(/with_item.*or.*with_group/m, error.message)
+  end
+
+  # Without it an appended page has nothing to match on and repeats the heading.
+  def test_a_group_without_a_key_is_refused
+    error = assert_raises(ArgumentError) do
+      render_groups({}, groups: [ { key: nil, label: "Overdue",
+                                    items: [ { id: 1, title: "First", href: "/x" } ] } ])
+    end
+
+    assert_match(/key:/, error.message)
+  end
+
+  # The empty state asks "is the rows area empty", which has to account for both
+  # slots — a grouped listing has no `items` at all.
+  def test_a_grouped_listing_does_not_show_the_empty_state
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_list do |list|
+        list.with_empty_state { "NOTHING HERE" }
+        list.with_group(key: "overdue") { |group| group.with_item(id: 1, title: "First", href: "/x") }
+      end
+    end
+
+    assert_no_text("NOTHING HERE")
+    assert_selector(".split-view-group .split-view-item")
+  end
+
+  def test_the_empty_state_still_shows_when_there_are_neither_rows_nor_groups
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_list { |list| list.with_empty_state { "NOTHING HERE" } }
+    end
+
+    assert_text("NOTHING HERE")
+  end
+
   # --- the escape hatch is untouched ------------------------------------------------------
 
   def test_the_free_master_slot_still_renders

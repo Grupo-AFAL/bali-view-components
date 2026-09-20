@@ -728,13 +728,31 @@ takes the id of the selected record and each item its own `id:`.
 
 **`with_list` options:** `header`, `count`, `selected`, `pagy`, `next_url`,
 `infinite_scroll` (default `true`), `item_name`, `max_height`. `with_empty_state`
-replaces the rows when there are none, and `with_filter` adds a pill to the filter
-band between the header and the rows.
+replaces the rows when there are none, `with_filter` adds a pill to the filter
+band between the header and the rows, and `with_group` puts runs of rows under
+headings.
 
 **`with_item` options:** `title` and `href` are required; `id`, `subtitle`,
 `icon`, `meta`, `meta_color` (`:error`, `:warning`, `:success`, `:primary`) are
 optional, `with_tag(text:, color:)` adds any number of badges, and a block
 renders free content under the subtitle.
+
+**Grouping is `with_group(key:, label:, count:)`,** and the rows move into it:
+`group.with_item(...)` takes exactly what `list.with_item` takes, so the row call
+does not change. `count:` is the group's **total** from the server, not the rows
+on screen — the client only ever holds the pages loaded so far. Rows and groups
+in the same list is refused: loose rows would render above the first heading,
+belonging to no group.
+
+Grouping asks one thing of the query: **order by the group key first**
+(`order(:kind, :created_at)`). Infinite scroll appends whole pages, so ordered by
+the group a page boundary can only fall inside one group — the last on a page
+continued by the first on the next — and that single seam is what the controller
+merges, dropping the arriving heading and moving its rows under the one on
+screen. Ordered by anything else the same heading comes back once per page; the
+component leaves the repeat visible and says why in the console rather than
+filing rows under an earlier heading, which would silently reorder what the
+server sent. Full treatment in `docs/guides/master-detail.md`.
 
 **Paging is infinite by default.** Given a `pagy:`, the list renders ordinary
 pagination controls plus a sentinel; the `split-view-list` controller hides the

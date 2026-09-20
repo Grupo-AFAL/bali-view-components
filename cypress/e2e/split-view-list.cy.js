@@ -299,6 +299,129 @@ describe('SplitView structured list', () => {
     })
   })
 
+  // Grouping, and the seam it has with infinite scroll. Against the dummy's own
+  // page: a preview cannot page against itself, and the whole point here is what
+  // arrives on page 2.
+  //
+  // The data makes the contract visible. `?grouped=status` orders by status
+  // first — 3 draft, 17 done, five to a page — so page 1 carries both headings
+  // and pages 2-4 are all continuations of `done`. One seam, which is exactly
+  // what a listing ordered by its group key can produce.
+  context('a grouped listing', () => {
+    const app = path =>
+      `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+    const groups = () => cy.get('.split-view-group')
+    const headers = () => cy.get('.split-view-group-header')
+    const group = key => cy.get(`[data-split-view-group-key="${key}"]`)
+
+    beforeEach(() => cy.visit(app('/split-view?grouped=status')))
+
+    it('puts a heading over each run of rows, with the group total beside it', () => {
+      groups().should('have.length', 2)
+      rows().should('have.length', 5)
+
+      // The TOTAL, not the rows on screen: `done` shows 17 while two of them are
+      // rendered. The server is the only one that knows that number, and it is
+      // what keeps the heading honest while the rest arrive underneath it.
+      group('draft').find('[data-testid="group-count"]').should('have.text', '3')
+      group('done').find('[data-testid="group-count"]').should('have.text', '17')
+      group('draft').find('.split-view-item').should('have.length', 3)
+      group('done').find('.split-view-item').should('have.length', 2)
+    })
+
+    // The seam. Page 2 is five more `done` rows and arrives as its own `done`
+    // group; merged into the one on screen, not appended next to it, or the
+    // reader gets the heading twice and the count twice with it.
+    it('merges an appended page into the group it continues', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+
+      headers().should('have.length', 2)
+      group('done').should('have.length', 1)
+      group('done').find('.split-view-item').should('have.length', 7)
+      group('done').find('[data-testid="group-count"]').should('have.text', '17')
+    })
+
+    it('reaches the end of the list with two headings and every row exactly once', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+      scrollToBottom()
+      rows().should('have.length', 15)
+      scrollToBottom()
+      rows().should('have.length', 20)
+
+      cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
+      headers().should('have.length', 2)
+      group('draft').find('.split-view-item').should('have.length', 3)
+      group('done').find('.split-view-item').should('have.length', 17)
+      rows().then(($rows) => {
+        const ids = [...$rows].map(row => row.id)
+        expect(new Set(ids).size, 'row ids are unique').to.eq(ids.length)
+      })
+    })
+
+    // Sticky is not decoration: twenty rows into a run the reader still has to be
+    // able to tell which one they are in. It is also why the heading needs an
+    // opaque background — the rows pass under it.
+    it('keeps the heading on screen while its own rows scroll under it', () => {
+      headers().first().should('have.css', 'position', 'sticky')
+      headers().first().should('have.css', 'background-color')
+        .and('not.match', /rgba\(0, 0, 0, 0\)|transparent/)
+    })
+
+    // Named by the heading a sighted reader sees, rather than by a second copy of
+    // the same words in an aria-label that a screen reader would announce twice.
+    it('names each group with the heading itself', () => {
+      group('draft').should('have.attr', 'role', 'group')
+      group('draft').invoke('attr', 'aria-labelledby').then((id) => {
+        cy.get(`#${id}`).should('contain.text', 'Draft')
+      })
+    })
+
+    // The failure the contract exists to prevent, and what the component does
+    // about it. A listing ordered by anything but its group key scatters the same
+    // group across pages; only the seam is merged, on purpose — moving those rows
+    // up under an earlier heading would silently reorder what the server sent,
+    // which is worse and much quieter than a repeated heading. So the heading
+    // repeats, visibly, and the console says why.
+    //
+    // Forced by rewriting the reply's group key rather than by a listing that
+    // really is misordered: the seed data cannot produce one (ordered by name the
+    // three drafts still land together, at the end).
+    it('leaves a scattered group visible and names the cause in the console', () => {
+      rows().should('have.length', 5)
+      cy.window().then((win) => cy.spy(win.console, 'warn').as('warn'))
+
+      cy.intercept('GET', '/split-view*', (req) => {
+        req.continue((res) => {
+          res.body = res.body.replaceAll(
+            'data-split-view-group-key="done"', 'data-split-view-group-key="draft"'
+          )
+        })
+      })
+
+      scrollToBottom()
+      rows().should('have.length', 10)
+
+      // Three headings for two groups: the page that arrived says `draft`, the
+      // list does not end in `draft`, so there is no seam to merge.
+      headers().should('have.length', 3)
+      cy.get('@warn').should('have.been.calledWithMatch', /not ordered by its group key/)
+    })
+
+    // A row inside a group is wired exactly like a row outside one; which slot it
+    // came from is the only difference.
+    it('selects a row inside a group like any other', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+
+      group('done').find('.split-view-item').eq(4).click()
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.get('.split-view-item[aria-current="true"]').should('have.length', 1)
+      group('done').find('.split-view-item').eq(4).should('have.attr', 'aria-current', 'true')
+    })
+  })
+
   context('when a page fails to load', () => {
     // The other failure shape, and the one a status code does not describe: a
     // perfectly good 200 that is not this listing — a redirect to a login page,

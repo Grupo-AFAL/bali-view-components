@@ -154,6 +154,9 @@ pane rather than to the capped list it used to be.
 [Two empty states, not one](#two-empty-states-not-one) for why the words are
 yours and not the component's.
 
+`with_group` puts runs of rows under headings — see
+[Grouping](#grouping) below.
+
 **Options on `with_item`**
 
 | | |
@@ -185,17 +188,75 @@ either:
 | Bordered card around it | yes | yes | rendered by the component |
 | Urgency dot | yes | no | the block |
 | Requester avatar | yes | no | the block |
-| Grouping with a per-group count | yes (by urgency) | yes (by kind) | **not yet — see below** |
+| Grouping with a per-group count | yes (by urgency) | yes (by kind) | `with_group`, see [Grouping](#grouping) |
 
 The two rows disagree about almost everything except the title and the subtitle,
 which is why the rest is optional and why the block exists at all.
 
-**Grouping is deliberately absent.** Both listings group, so unlike in the first
-release the pattern is now triangulable — but grouping and infinite scroll pull
-against each other: an appended page arrives as a flat list of rows, and merging
-it into existing group headers needs the server to say which group each row
-belongs to. That is its own design, and shipping half of it would produce
-listings that break on the second page.
+---
+
+## Grouping
+
+Both source listings group — gc by urgency, afal-apps by kind — and both put the
+group's own total next to the heading. `with_group` is that shape:
+
+```erb
+<% @items.group_by(&:kind).each do |kind, rows| %>
+  <% list.with_group(key: kind, label: t("inbox.kinds.#{kind}"),
+                     count: @totals[kind]) do |group| %>
+    <% rows.each do |item| %>
+      <% group.with_item(id: item.id, href: inbox_path(selected: item.id),
+                         title: item.title, subtitle: item.subtitle) %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+**The row call does not change.** It moves from `list.with_item` to
+`group.with_item` and takes the same keywords; the frame, the target, the action
+and the selection are injected through the group exactly as they were through the
+list. It is also either/or: rows and groups in the same list would render the
+loose ones above the first heading, belonging to no group, so the component
+raises instead.
+
+**`count:` is the group's total, not the rows on screen.** The server knows it —
+one `GROUP BY` — and the client cannot, because it only ever holds the pages
+loaded so far. That is what keeps the number honest while rows keep arriving
+under it, and it is why a merged page needs no recount.
+
+### What grouping asks of the query
+
+**Order by the group key first.** `order(:kind, :created_at)`, not
+`order(:created_at)`.
+
+This is the one requirement, and it is the whole reason grouping waited for a
+design. Infinite scroll appends *pages*, and a page is whatever the server put in
+it. Ordered by the group, a page boundary can only ever fall inside **one**
+group: the last one on a page is continued by the first one on the next, and
+everything else on the new page is a group that has not been seen. That single
+seam is what the controller merges — the arriving heading is dropped and its rows
+join the group already on screen, so the reader sees one heading with its rows
+arriving under it.
+
+Ordered by anything else the same group comes back on page 1, page 3 and page 4,
+and there is no single seam to merge. The component does **not** try to fix that
+by hunting for an earlier heading to file the rows under: that would move rows out
+of the order the server sent them in, silently, which is a worse bug and a much
+quieter one than a repeated heading. So the repeat stays visible and the console
+says what caused it:
+
+> [split-view-list] the appended page repeats done, which means the listing is not
+> ordered by its group key.
+
+### The markup contract
+
+Each group carries `data-split-view-group-key`, which is what the arriving page is
+matched on, and its rows sit in a `.split-view-group-rows` container so the merge
+can move them without disturbing the heading. The heading is `position: sticky`
+inside the scroll area with an opaque background — twenty rows into a run the
+reader still has to be able to tell which run they are in — and names the group
+through `role="group"` + `aria-labelledby` pointing at itself, so a screen reader
+announces the same words a sighted reader sees, once.
 
 ---
 
