@@ -123,9 +123,9 @@ module Bali
         )
         data[:side_menu_collapsible_value] = @collapsible
         data[:side_menu_fixed_value] = @fixed
-        # Emitido solo cuando está apagado: el default del controller ya es `true`, y un
-        # `data-side-menu-reveal-current-value="true"` en cada sidebar es ruido que además
-        # invita a leerlo como si fuera el interruptor.
+        # Emitted only when it is off: the controller already defaults to `true`, and a
+        # `data-side-menu-reveal-current-value="true"` on every sidebar is noise that also
+        # invites reading it as if it were the switch.
         data[:side_menu_reveal_current_value] = false unless @reveal_current
         data
       end

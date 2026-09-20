@@ -56,8 +56,8 @@
                data-controller="multi-select"
                data-multi-select-translations-value="<%= multi_select_translations_json %>"
                data-condition-target="value">
-            <%# Un div con role=button no dispara click con Enter/Espacio como un
-                <button> real: el teclado necesita sus propias actions (#1028). %>
+            <%# A div with role=button does not fire click on Enter/Space the way a real
+                <button> does: the keyboard needs actions of its own (#1028). %>
             <div tabindex="0"
                  role="button"
                  aria-haspopup="listbox"

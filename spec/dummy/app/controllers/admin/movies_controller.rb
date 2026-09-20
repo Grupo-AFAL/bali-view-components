@@ -5,36 +5,38 @@ module Admin
     before_action :set_movie, only: %i[show edit update destroy]
 
     def index
-      # `Bali::Filterable#filter_form` cierra el circuito de la persistencia (#999):
-      # `context:` sale de `Bali.filter_context` (ver config/initializers/bali.rb) y
-      # `persist_enabled:` de la cookie `bali_persist_admin_movies` que escribe el toggle —
-      # los dos kwargs que antes iban a mano acá, con el formato de la cookie filtrado al
-      # host. `storage_id:` va explícito porque este listado ya tenía identidad publicada
-      # ('admin_movies', con guion bajo); derivado del controller sería 'admin-movies'.
+      # `Bali::Filterable#filter_form` closes the persistence loop (#999):
+      # `context:` comes from `Bali.filter_context` (see config/initializers/bali.rb) and
+      # `persist_enabled:` from the `bali_persist_admin_movies` cookie the toggle writes —
+      # the two kwargs that used to be passed by hand here, with the cookie's format leaking
+      # into the host. `storage_id:` goes explicit because this listing already had a
+      # published identity ('admin_movies', with an underscore); derived from the controller
+      # it would be 'admin-movies'.
       @filter_form = filter_form(
         Bali::FilterForm,
         Movie.all,
-        # `studio_name` y no `tenant_name`: `alias_method :tenant, :studio` es un método Ruby
-        # que Ransack no ve, y un campo inválido dentro de un predicado combinado hace que
-        # Ransack descarte la condición ENTERA sin levantar nada — la búsqueda rápida
-        # devolvía las 20 películas para cualquier texto.
+        # `studio_name` and not `tenant_name`: `alias_method :tenant, :studio` is a Ruby
+        # method Ransack does not see, and an invalid field inside a combined predicate makes
+        # Ransack discard the WHOLE condition without raising anything — the quick search
+        # returned all 20 movies for any text.
         search_fields: %i[name genre studio_name],
         storage_id: 'admin_movies',
-        # El control "Agrupar por" se auto-configura desde acá: esta página es la referencia
-        # end-to-end del index canónico, así que tiene que ejercitar la familia de controles,
-        # no solo describirla. Las TRES formas que Ransack sabe ordenar —y que desde #1102
-        # también agrupan— están representadas: columnas (`genre`, `status`), un `ransacker`
-        # (`budget_band`, un CASE en SQL con su gemelo en Ruby) y un camino de asociación,
-        # que necesita `value:` porque `movie.studio_name` no existe.
+        # The "Group by" control auto-configures from here: this page is the end-to-end
+        # reference of the canonical index, so it has to exercise the family of controls, not
+        # just describe it. The THREE shapes Ransack knows how to sort —and which since #1102
+        # also group— are represented: columns (`genre`, `status`), a `ransacker`
+        # (`budget_band`, a SQL CASE with its twin in Ruby) and an association path, which
+        # needs `value:` because `movie.studio_name` does not exist.
         group_by_attributes: [
           :genre,
           :status,
           { attribute: :budget_band, label: 'Budget' },
           { attribute: :studio_name, label: 'Studio', value: ->(movie) { movie.studio&.name } }
         ],
-        # Storage default del engine (tabla bali_saved_views). El dueño va explícito porque
-        # el FilterForm vive en el host; las mutaciones las resuelve el controller del engine
-        # por `Bali.saved_views_owner` (ver config/initializers/bali.rb).
+        # The engine's default store (bali_saved_views table). The owner goes explicit
+        # because the FilterForm lives in the host; the mutations are resolved by the
+        # engine's controller through `Bali.saved_views_owner` (see
+        # config/initializers/bali.rb).
         saved_views_store: :default,
         saved_views_owner: current_user
       )
@@ -43,7 +45,8 @@ module Admin
       respond_to do |format|
         format.html
         format.turbo_stream
-        # Sin esto el link de export es un 406 y no hay forma de ver que el recorte viajó.
+        # Without this the export link is a 406 and there is no way to see that the active
+        # filtering travelled with it.
         format.csv do
           render plain: @filter_form.result.pluck(:name).join("\n"), content_type: 'text/csv'
         end

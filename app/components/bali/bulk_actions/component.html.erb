@@ -6,12 +6,12 @@
   <%= content %>
 
   <% if actions.any? %>
-    <%# Región viva SIEMPRE presente y nunca en display:none: el contador vive dentro de un
-        contenedor que arranca oculto, y una live region que aparece junto con su texto no se
-        anuncia. Sin esto, seleccionar filas no le decía NADA al lector de pantalla — ni el
-        conteo, ni que aparecieron acciones masivas, ni que la búsqueda y los filtros se
-        fueron de la página (WCAG 2.1 SC 4.1.3). El plural lo sirve el servidor en dos data
-        attributes para no interpolar i18n en JS. %>
+    <%# Live region ALWAYS present and never in display:none: the counter lives inside a
+        container that starts hidden, and a live region that appears together with its text
+        is not announced. Without this, selecting rows told the screen reader NOTHING — not
+        the count, not that bulk actions had appeared, not that the search and the filters
+        had left the page (WCAG 2.1 SC 4.1.3). The server serves the plural in two data
+        attributes so i18n is not interpolated in JS. %>
     <%= tag.div class: 'sr-only', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true',
                 data: { bulk_actions_target: 'announcement',
                         selected_one: t('.selected_one'), selected_other: t('.selected_other') } %>
@@ -30,11 +30,11 @@
 
         <%= tag.div class: actions_wrapper_classes do %>
           <% if select_all_filtered? %>
-            <%# La oferta aparece cuando la selección ya cubre la página entera y hay más
-                resultados detrás (el JS compara N contra las filas que ve). N viaja en un
-                data attribute y el texto ya viene pluralizado por el servidor: el mismo
-                trato que la live region le da a `selected_one/other`, para no interpolar
-                i18n en JS. %>
+            <%# The offer shows up when the selection already covers the whole page and
+                there are more results behind it (the JS compares N against the rows it
+                sees). N travels in a data attribute and the text comes already pluralized
+                from the server: the same treatment the live region gives
+                `selected_one/other`, so i18n is not interpolated in JS. %>
             <%= tag.div class: CLASSES[:select_all_offer],
                         data: { bulk_actions_target: 'selectAllOffer', total_count: total_count } do %>
               <%= render Bali::Button::Component.new(
@@ -55,7 +55,6 @@
         <% end %>
 
         <% if toolbar? %>
-          <%# Limpiar la selección es una ACCIÓN, no navegación: botón, no link. %>
           <%= render Bali::Button::Component.new(
                 icon: 'times', variant: :ghost, size: :xs, responsive: false,
                 'aria-label': t('.clear'),

@@ -1,8 +1,8 @@
-<%# `url:` explícito: el recurso vive bajo `admin`, y `form_with model:` a secas deriva
-    `studios_path`, que ya no existe.
+<%# Explicit `url:`: the resource lives under `admin`, and a bare `form_with model:` derives
+    `studios_path`, which no longer exists.
 
-    `data: { turbo: true }` es lo que hace que un 200 con `text/vnd.turbo-stream.html` se aplique
-    en vez de navegar: sin él el drawer se va con la página en lugar de cerrarse. %>
+    `data: { turbo: true }` is what makes a 200 with `text/vnd.turbo-stream.html` be applied
+    instead of navigating: without it the drawer leaves with the page instead of closing. %>
 <%= form_with model: studio,
                url: studio.persisted? ? admin_studio_path(studio) : admin_studios_path,
                class: 'space-y-4', builder: Bali::FormBuilder,
@@ -23,11 +23,11 @@
     <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
   <% end %>
 
-  <%# Por `submit_group` y no por una fila de botones a mano: es el helper el que cablea
-      `drawer#submit` en el submit y `drawer#close` en el Cancel cuando el formulario se está
-      pintando dentro del drawer, y el que resuelve el Cancel a link o a botón según haya un
-      `cancel_path`. El contexto llega desde el componente, no desde `params` — la vista pasa
-      `drawer: page.drawer?`. %>
+  <%# Through `submit_group` and not a hand-rolled row of buttons: the helper is what wires
+      `drawer#submit` on the submit and `drawer#close` on the Cancel when the form is being
+      painted inside the drawer, and what resolves the Cancel to a link or to a button
+      depending on whether there is a `cancel_path`. The context arrives from the component,
+      not from `params` — the view passes `drawer: page.drawer?`. %>
   <%= f.submit_group(
     studio.persisted? ? t('studios.form.update') : t('studios.form.create'),
     cancel_path: local_assigns.fetch(:drawer, false) ? nil : (studio.persisted? ? admin_studio_path(studio) : admin_studios_path),

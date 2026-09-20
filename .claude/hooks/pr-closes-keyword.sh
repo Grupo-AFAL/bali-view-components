@@ -1,58 +1,58 @@
 #!/bin/bash
 #
-# PreToolUse (Bash) — impide abrir o editar una PR cuyo cuerpo intente cerrar un
-# issue EN ESPAÑOL.
+# PreToolUse (Bash) — stops a PR from being opened or edited when its body tries
+# to close an issue IN SPANISH.
 #
-# Por qué existe: GitHub solo cierra el issue al mergear si el cuerpo de la PR
-# trae una de sus palabras clave, y TODAS son en inglés —`Closes`, `Fixes`,
-# `Resolves` y sus variantes—. «Cierra #123» es texto muerto: se lee igual de
-# bien, no cierra nada, y el issue se queda abierto sin que nadie se entere
-# hasta que alguien lo barre a mano. Pasó decenas de veces.
+# Why it exists: GitHub only closes the issue on merge if the PR body carries one
+# of its keywords, and every one of them is English —`Closes`, `Fixes`,
+# `Resolves` and their variants—. «Cierra #123» is dead text: it reads just as
+# well, closes nothing, and the issue stays open with nobody the wiser until
+# someone sweeps it by hand. It happened dozens of times.
 #
-# Esto no es un recordatorio, es una compuerta: el comando no corre.
+# This is not a reminder, it is a gate: the command does not run.
 #
-# Contrato del hook: recibe el JSON de la llamada por stdin y decide por código
-# de salida — 0 deja pasar, 2 bloquea y le devuelve a Claude lo que se imprima
-# en stderr. Cualquier otro fallo (jq ausente, JSON raro) deja pasar: una
-# compuerta rota no puede volverse un tapón para todo lo demás.
+# Hook contract: it receives the call's JSON on stdin and decides by exit code
+# — 0 lets it through, 2 blocks and hands Claude whatever is printed on stderr.
+# Any other failure (jq missing, odd JSON) lets it through: a broken gate cannot
+# turn into a plug for everything else.
 set -uo pipefail
 
 command -v jq >/dev/null 2>&1 || exit 0
 
-ENTRADA=$(cat)
-COMANDO=$(printf '%s' "$ENTRADA" | jq -r '.tool_input.command // empty' 2>/dev/null) || exit 0
+INPUT=$(cat)
+COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null) || exit 0
 
-# Solo mira los dos comandos que publican un cuerpo de PR.
-printf '%s' "$COMANDO" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+(create|edit)' || exit 0
+# Only the two commands that publish a PR body.
+printf '%s' "$COMMAND" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+(create|edit)' || exit 0
 
-# El verbo en español, seguido de un issue. `arregla|corrige|resuelve|cierra`
-# son los cuatro que se escriben solos cuando uno viene redactando en español.
-PATRON='(^|[^[:alnum:]])([Cc]ierra|[Cc]ierran|[Rr]esuelve|[Rr]esuelven|[Cc]orrige|[Aa]rregla)[[:space:]]+#[0-9]+'
+# The Spanish verb, followed by an issue. `arregla|corrige|resuelve|cierra` are
+# the four that write themselves when one is drafting in Spanish.
+PATTERN='(^|[^[:alnum:]])([Cc]ierra|[Cc]ierran|[Rr]esuelve|[Rr]esuelven|[Cc]orrige|[Aa]rregla)[[:space:]]+#[0-9]+'
 
-# El cuerpo viaja de dos maneras: `--body-file ruta` o `--body "texto"`. La
-# primera es la que usa este repo; la segunda se revisa sobre el comando mismo.
-CUERPO=""
-RUTA=$(printf '%s' "$COMANDO" | sed -nE "s/.*--body-file[[:space:]]+('([^']*)'|\"([^\"]*)\"|([^[:space:]]+)).*/\2\3\4/p")
-if [ -n "$RUTA" ] && [ -f "$RUTA" ]; then
-  CUERPO=$(cat "$RUTA")
+# The body travels two ways: `--body-file path` or `--body "text"`. The first is
+# the one this repo uses; the second is checked against the command itself.
+BODY=""
+BODY_FILE=$(printf '%s' "$COMMAND" | sed -nE "s/.*--body-file[[:space:]]+('([^']*)'|\"([^\"]*)\"|([^[:space:]]+)).*/\2\3\4/p")
+if [ -n "$BODY_FILE" ] && [ -f "$BODY_FILE" ]; then
+  BODY=$(cat "$BODY_FILE")
 else
-  CUERPO="$COMANDO"
+  BODY="$COMMAND"
 fi
 
-printf '%s' "$CUERPO" | grep -Eq "$PATRON" || exit 0
+printf '%s' "$BODY" | grep -Eq "$PATTERN" || exit 0
 
-OFENSA=$(printf '%s' "$CUERPO" | grep -Eo "$PATRON" | head -3 | sed 's/^/    /')
+OFFENDERS=$(printf '%s' "$BODY" | grep -Eo "$PATTERN" | head -3 | sed 's/^/    /')
 
 cat >&2 <<EOF
-El cuerpo de la PR intenta cerrar un issue en español y GitHub no lo entiende:
+The PR body tries to close an issue in Spanish and GitHub does not understand it:
 
-$OFENSA
+$OFFENDERS
 
-GitHub SOLO cierra el issue al mergear con sus palabras clave, y todas son en
-inglés: Closes / Fixes / Resolves (y closed/fixed/resolved). «Cierra #123» se
-lee bien y no cierra nada — el issue se queda abierto.
+GitHub ONLY closes the issue on merge with its own keywords, and every one of
+them is English: Closes / Fixes / Resolves (and closed/fixed/resolved).
+«Cierra #123» reads well and closes nothing — the issue stays open.
 
-Cámbialo a «Closes #123» (el resto del cuerpo puede seguir en español) y vuelve
-a correr el comando.
+Change it to «Closes #123» (the rest of the body can stay in Spanish) and run
+the command again.
 EOF
 exit 2

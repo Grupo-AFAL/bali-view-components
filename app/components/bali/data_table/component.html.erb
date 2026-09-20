@@ -1,13 +1,14 @@
 <%= tag.div(**container_attributes) do %>
-  <%# Toolbar: una sola fila agrupada por función — izquierda el ESTADO del listado y cómo se
-      recuerda, derecha CÓMO se ve. Bajo el breakpoint el controlador `toolbar-overflow`
-      MUEVE los controles secundarios al menú ⋯ (ver OVERFLOW_PRIORITIES) y los devuelve al
-      subir. %>
-  <%# Sin JS no hay quién saque el atributo que reserva el lugar de los controles
-      colapsables, así que se destapan acá. Es la única forma de que la fila siga completa
-      para quien no ejecuta scripts: el atributo tiene que venir del servidor —el parpadeo
-      que evita ocurre ANTES de que el bundle corra— y por lo tanto no puede depender de JS
-      para irse. `!important` porque la utilidad que esconde vive en @layer utilities. %>
+  <%# Toolbar: a single row grouped by function — on the left the listing's STATE and how it
+      is remembered, on the right HOW it looks. Below the breakpoint the `toolbar-overflow`
+      controller MOVES the secondary controls into the ⋯ menu (see OVERFLOW_PRIORITIES) and
+      brings them back on the way up. %>
+  <%# Without JS there is nobody to strip the attribute that reserves the place of the
+      collapsible controls, so they are uncovered here. It is the only way the row stays
+      complete for whoever does not run scripts: the attribute has to come from the server
+      —the flicker it prevents happens BEFORE the bundle runs— and therefore cannot depend on
+      JS to go away. `!important` because the utility that hides them lives in
+      @layer utilities. %>
   <% if show_toolbar? && overflow_menu? %>
     <noscript>
       <style>[data-toolbar-overflow-settling] [data-toolbar-overflow-target="item"] { visibility: visible !important }</style>
@@ -16,29 +17,31 @@
 
   <% if show_toolbar? %>
     <%= tag.div(**toolbar_attributes) do %>
-      <%# Los cuatro grupos alinean por abajo, igual que la fila que los contiene: la línea
-          de controles es la que el ojo usa de referencia, y el bloque de `SimpleFilters`
-          mide el doble que sus vecinos porque lleva la etiqueta arriba. Alinear la fila y
-          dejar los grupos centrados corrige un nivel y deja el otro: medido en
-          /admin/studios a 2600px, "Views" y el marcador de persistencia quedaban a 0 del
-          botón Filter, pero "Group by" y "Columns" —que viven en ESTE grupo, el único que
-          contiene el bloque alto— quedaban 11px arriba. Con los items de igual alto las dos
-          alineaciones dan lo mismo, así que a los otros tres no les cambia nada; van igual
-          para que el próximo control que sea más alto que sus vecinos no reabra esto.
+      <%# The four groups align to the bottom, same as the row that contains them: the line
+          of controls is what the eye uses as a reference, and the `SimpleFilters` block is
+          twice as tall as its neighbours because it carries the label on top. Aligning the
+          row and leaving the groups centered fixes one level and leaves the other: measured
+          on /admin/studios at 2600px, "Views" and the persistence marker sat at 0 from the
+          Filter button, but "Group by" and "Columns" —which live in THIS group, the only one
+          that contains the tall block— sat 11px higher. With items of equal height both
+          alignments give the same result, so nothing changes for the other three; they are
+          written the same way so the next control taller than its neighbours does not reopen
+          this.
 
-          Izquierda, primer subgrupo: el CONTENIDO de la vista — qué filas y qué columnas.
-          `flex-1` solo bajo `sm`: ahí la búsqueda tiene que llenar la fila, y arriba de `sm`
-          es de ancho fijo (`sm:w-64`), así que creciendo empujaba la barrita y las vistas
-          contra el view switch en vez de dejar el hueco donde va. %>
+          Left, first subgroup: the CONTENT of the view — which rows and which columns.
+          `flex-1` only below `sm`: there the search has to fill the row, and above `sm` it is
+          fixed width (`sm:w-64`), so by growing it pushed the separator and the views against
+          the view switch instead of leaving the gap where it belongs. %>
       <% if show_toolbar_left? %>
         <%= tag.div(**overflow_group_attributes("left", css_class: "flex items-end gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0")) do %>
-          <%# Se pregunta por el CONTENIDO y no por el slot: un control declarado que decide no
-              pintar (p.ej. vistas guardadas sin store) dejaba un envoltorio vacío que el JS
-              movía al ⋯, destapando un botón que abre un menú vacío. %>
-          <%# `sm:flex-auto` y no `flex-1` arriba del breakpoint: con base 0 este item no pesa
-              nada al repartir el faltante, así que la fila apretada lo dejaba en 0px y la
-              búsqueda —que mide lo suyo igual— se pintaba ENCIMA de agrupar y columnas. Con
-              base en el contenido absorbe el faltante encogiéndose, que es lo que se ve. %>
+          <%# What is asked for is the CONTENT and not the slot: a declared control that
+              decides not to paint (e.g. saved views with no store) left an empty wrapper that
+              the JS moved into the ⋯, uncovering a button that opens an empty menu. %>
+          <%# `sm:flex-auto` and not `flex-1` above the breakpoint: with basis 0 this item
+              carries no weight when distributing the shortfall, so a tight row left it at 0px
+              and the search —which measures its own width anyway— painted itself ON TOP of
+              group by and columns. With the basis taken from the content it absorbs the
+              shortfall by shrinking, which is what you see. %>
           <% if control_content(:filters_panel) || control_content(:simple_filters) %>
             <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 sm:flex-auto min-w-0")) do %>
               <%= control_content(:filters_panel) %>
@@ -46,16 +49,17 @@
             <% end %>
           <% end %>
 
-          <%# En un modo que no aplica agrupación el control va INERTE, no ausente: el propio
-              botón apagado dice que ahí no se agrupa, sin mover la fila al cambiar de modo. %>
+          <%# In a mode that applies no grouping the control goes INERT, not absent: the
+              disabled button itself says there is no grouping there, without moving the row
+              when the mode changes. %>
           <% if group_by_control? %>
             <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
               <%= render group_by_control %>
             <% end %>
           <% end %>
 
-          <%# `shrink-0`: este grupo SÍ encoge (a diferencia del de la derecha), y sin esto el
-              botón de columnas se aplasta en vez de dejar que la búsqueda absorba. %>
+          <%# `shrink-0`: this group DOES shrink (unlike the one on the right), and without
+              this the columns button gets squashed instead of letting the search absorb. %>
           <% if control_content(:column_selector) %>
             <%= tag.div(**overflow_item_attributes(:column_selector, group: "left", css_class: "shrink-0")) do %>
               <%= control_content(:column_selector) %>
@@ -64,28 +68,28 @@
         <% end %>
       <% end %>
 
-      <%# Frontera entre "qué contiene la vista" y "cómo se recuerda". Va ENTRE los dos grupos
-          y no adentro de uno: el JS ordena a los hijos de un grupo por prioridad y un nodo sin
-          prioridad cuenta como 0, así que la barrita terminaba empujada al final de la fila ya
-          en el primer render de escritorio. %>
+      <%# Boundary between "what the view contains" and "how it is remembered". It goes BETWEEN
+          the two groups and not inside one: the JS sorts a group's children by priority and a
+          node with no priority counts as 0, so the separator ended up pushed to the end of the
+          row already on the first desktop render. %>
       <% if toolbar_separator? %>
         <%= tag.div(**overflow_separator_attributes("left", "memory")) do %>
-          <%# Regla propia y no `divider divider-horizontal` de daisyUI: esa clase trae
-              `width: 1rem` en `.divider-horizontal.divider`, a (0,2,0) y en la misma capa,
-              así que NINGUNA utilidad de ancho la baja —medido: con `w-px` encima el ancho
-              calculado sigue siendo 16px—. Ese ancho se suma a los dos `sm:gap-4` de la
-              fila, y la frontera medía 48px de caja a caja (23px de aire a cada lado de la
-              regla de 2px) contra los 16px de cualquier otro par de la misma fila. `mx-0`
-              sólo mataba el `margin: 0 1rem`, que era la mitad del problema. Sin ancho
-              propio quedan 16px por lado, el mismo gap que separa a los demás grupos, y la
-              regla sigue midiendo 2×24 con el mismo color: `bg-base-content/10` compila al
-              mismo `color-mix()` que daisyUI usa en `--divider-color`. %>
+          <%# Our own rule and not daisyUI's `divider divider-horizontal`: that class brings
+              `width: 1rem` on `.divider-horizontal.divider`, at (0,2,0) and in the same
+              layer, so NO width utility brings it down —measured: with `w-px` on top the
+              computed width is still 16px—. That width adds to the row's two `sm:gap-4`, and
+              the boundary measured 48px box to box (23px of air on each side of the 2px rule)
+              against the 16px of any other pair in the same row. `mx-0` only killed the
+              `margin: 0 1rem`, which was half the problem. With no width of its own 16px are
+              left on each side, the same gap that separates the other groups, and the rule
+              still measures 2×24 with the same color: `bg-base-content/10` compiles to the
+              same `color-mix()` daisyUI uses in `--divider-color`. %>
           <div class="w-0.5 h-6 bg-base-content/10"></div>
         <% end %>
       <% end %>
 
-      <%# Izquierda, segundo subgrupo: cómo se RECUERDA ese contenido — las vistas guardadas
-          con nombre y el marcador que recuerda el último estado. %>
+      <%# Left, second subgroup: how that content is REMEMBERED — the named saved views and
+          the marker that remembers the last state. %>
       <% if show_toolbar_memory? %>
         <%= tag.div(**overflow_group_attributes("memory", css_class: "flex items-end gap-1 sm:gap-2 shrink-0")) do %>
           <% if control_content(:saved_views) %>
@@ -102,10 +106,10 @@
         <% end %>
       <% end %>
 
-      <%# Botones del host: contenido arbitrario que Bali no cubre, así que no son ni estado
-          del listado ni modo de visualización. Grupo PROPIO y no adentro del de la derecha:
-          ahí el JS ordena por prioridad descendente (10 contra 50) y quedaban a la derecha
-          DEL view switch, que es lo único que puede ir pegado al borde. %>
+      <%# Host buttons: arbitrary content Bali does not cover, so they are neither listing
+          state nor display mode. Their OWN group and not inside the right-hand one: there the
+          JS sorts by descending priority (10 against 50) and they ended up to the right OF the
+          view switch, which is the only thing that can sit against the edge. %>
       <% if show_toolbar_host? %>
         <%= tag.div(**overflow_group_attributes("host", css_class: "flex items-end gap-1 sm:gap-2 shrink-0")) do %>
           <% toolbar_buttons.each do |button| %>
@@ -116,9 +120,9 @@
         <% end %>
       <% end %>
 
-      <%# Derecha: cómo se ven. `ml-auto` acá y no `flex-1` en la izquierda: el margen auto
-          absorbe el espacio libre DESPUÉS de resolver grow/shrink, así que en móvil —donde la
-          izquierda sí crece— es un no-op, y arriba de `sm` clava el switch contra el borde. %>
+      <%# Right: how they look. `ml-auto` here and not `flex-1` on the left: the auto margin
+          absorbs the free space AFTER grow/shrink is resolved, so on mobile —where the left
+          side does grow— it is a no-op, and above `sm` it pins the switch against the edge. %>
       <% if show_toolbar_right? %>
         <%= tag.div(**overflow_group_attributes("right", css_class: "flex items-end gap-1 sm:gap-2 shrink-0 ml-auto")) do %>
           <%= tag.div(**overflow_item_attributes(:view_switch, group: "right")) do %>
@@ -127,50 +131,50 @@
         <% end %>
       <% end %>
 
-      <%# Menú ⋯: solo existe si hay algo que colapsar, y se sirve oculto — lo destapa el JS
-          al mover el primer control adentro, así no parpadea un menú vacío. Sin `sm:hidden`:
-          el colapso ya no lo decide el breakpoint sino cuánto ancho tiene la fila (ver
-          `toolbar_overflow_controller`), y con la clase el ⋯ quedaba invisible justo en los
-          anchos intermedios donde es la única salida. %>
+      <%# ⋯ menu: it only exists if there is something to collapse, and it is served hidden —
+          the JS uncovers it when it moves the first control inside, so no empty menu flashes.
+          No `sm:hidden`: the collapse is no longer decided by the breakpoint but by how much
+          width the row has (see `toolbar_overflow_controller`), and with the class the ⋯ was
+          invisible at exactly the intermediate widths where it is the only way out. %>
       <% if overflow_menu? %>
         <div class="shrink-0 hidden" data-toolbar-overflow-target="overflow">
-          <%# `menu: false`: acá adentro no hay menuitems sino widgets enteros (otros
-              dropdowns, checkboxes de columnas, el form de renombrar vistas). Declarado como
-              `role="menu"` el lector de pantalla entra en modo menú sobre un formulario y
-              expone hijos que ese rol no permite. Esto es un popover contenedor. %>
+          <%# `menu: false`: in here there are no menuitems but whole widgets (other
+              dropdowns, column checkboxes, the view rename form). Declared as `role="menu"`
+              the screen reader enters menu mode over a form and exposes children that role
+              does not allow. This is a container popover. %>
           <%= render Bali::Dropdown::Component.new(direction: :bottom, align: :end, width: :xl, menu: false) do |dropdown| %>
             <% dropdown.with_trigger(variant: :ghost, class: "btn-sm btn-square",
                                      "aria-label": overflow_menu_label) do %>
               <%= render Bali::Icon::Component.new("ellipsis", class: "w-4 h-4") %>
             <% end %>
-            <%# Sin la clase `.menu` de daisyUI el contenedor ya no impone display:grid +
-                padding + hover a sus hijos, así que las utilidades van sin `!`.
+            <%# Without daisyUI's `.menu` class the container no longer imposes display:grid
+                + padding + hover on its children, so the utilities go without `!`.
 
-                Los dropdowns que caen acá (columnas, vistas, agrupar) tienen contenido
-                ABSOLUTO: anidados se posicionan contra este contenedor y se salen del
-                viewport (medido: left -115px en un teléfono de 375px, cuando además eran
-                `.dropdown-end`). En flujo quedan como secciones apiladas, que es lo
-                razonable en un teléfono. Cerrados siguen siendo `display:none`, así que no
-                dejan huecos.
+                The dropdowns that land here (columns, views, group by) have ABSOLUTE
+                content: nested, they position against this container and go off the
+                viewport (measured: left -115px on a 375px phone, when they were also
+                `.dropdown-end`). In flow they end up as stacked sections, which is the
+                reasonable thing on a phone. Closed they are still `display:none`, so they
+                leave no gaps.
 
-                `max-sm:` es lo que acota esa decisión al teléfono para el que se tomó.
-                Cuando se escribió, el ⋯ ERA el modo de móvil; desde #842 la válvula se
-                dispara a cualquier ancho — medido, se lleva cuatro controles a 1900px. En
-                un escritorio apilar en flujo hace que el popover contenedor CREZCA al abrir
-                un hijo: medido en /admin/studios, el panel del ⋯ pasaba de 320x176 a
-                320x338 al abrir Views. Arriba del breakpoint el anidado vuelve a flotar,
-                que es lo que un popover dentro de otro tiene que hacer.
+                `max-sm:` is what scopes that decision to the phone it was taken for. When it
+                was written, the ⋯ WAS the mobile mode; since #842 the valve trips at any
+                width — measured, it takes four controls at 1900px. On a desktop, stacking in
+                flow makes the container popover GROW when a child opens: measured on
+                /admin/studios, the ⋯ panel went from 320x176 to 320x338 when Views was
+                opened. Above the breakpoint the nested one floats again, which is what a
+                popover inside another has to do.
 
-                El tope de alto lleva el MISMO `max-sm:`, y eso es lo que arregla #1080: un
-                scroll container solo puede contener lo que está EN FLUJO, así que arriba
-                del breakpoint —donde el hijo es absoluto— `overflow-y: auto` no lo
-                acotaba, lo RECORTABA. Medido a 1440px en /admin/studios: del panel de
-                Views asomaba un borde y `elementFromPoint` en su centro devolvía un `<td>`,
-                con el control inservible justo en los anchos donde el ⋯ es la única
-                salida. Sin recorte el hijo se pinta dentro del contexto de apilamiento del
-                propio ⋯ (absolute + z-index), que ya está por encima de la banda de
-                contenido. Y no hace falta acotarlo: flotando, el hijo no aporta alto: el
-                menú mide lo que miden sus controles. %>
+                The height cap carries the SAME `max-sm:`, and that is what fixes #1080: a
+                scroll container can only contain what is IN FLOW, so above the breakpoint
+                —where the child is absolute— `overflow-y: auto` was not bounding it, it was
+                CLIPPING it. Measured at 1440px on /admin/studios: a border of the Views
+                panel peeked out and `elementFromPoint` at its center returned a `<td>`, with
+                the control unusable at exactly the widths where the ⋯ is the only way out.
+                Without clipping, the child paints inside the ⋯'s own stacking context
+                (absolute + z-index), which is already above the content band. And there is
+                no need to bound it: floating, the child contributes no height: the menu
+                measures what its controls measure. %>
             <div class="toolbar-overflow-menu
                         flex flex-col items-stretch gap-2 w-full p-1
                         max-w-[calc(100vw-3rem)] max-sm:max-h-[70vh] max-sm:overflow-y-auto
@@ -182,8 +186,8 @@
     <% end %>
   <% end %>
 
-  <%# Fila contextual de selección: hermana inmediata de la toolbar, para caer en su mismo
-      hueco vertical cuando el controlador se la esconde %>
+  <%# Contextual selection row: immediate sibling of the toolbar, so it falls into the
+      toolbar's own vertical gap when the controller hides it %>
   <%= bulk_actions if bulk_actions? %>
 
   <%# Custom summary slot (top position) or summary_position: :top %>
@@ -193,13 +197,14 @@
     </div>
   <% end %>
 
-  <%# Contenido: la superficie viaja con el slot (with_table la trae, with_grid no) %>
+  <%# Content: the surface travels with the slot (with_table brings it, with_grid does not) %>
   <%= content_band %>
 
-  <%# Footer: summary (izquierda) + controles (derecha). Es el MISMO PaginationFooter que
-      cualquier host puede renderizar suelto, no una copia inline de él. %>
-  <%# `.to_s` y no el slot pelado: `capture` devuelve lo que el bloque ESCRIBIÓ en el buffer,
-      y un Slot devuelto sin renderizar no escribe nada — el nav salía vacío en silencio. %>
+  <%# Footer: summary (left) + controls (right). It is the SAME PaginationFooter any host can
+      render standalone, not an inline copy of it. %>
+  <%# `.to_s` and not the bare slot: `capture` returns what the block WROTE into the buffer,
+      and a Slot returned without rendering writes nothing — the nav came out empty in
+      silence. %>
   <%= render pagination_footer do |footer| %>
     <% footer.with_controls { custom_pagy_nav.to_s } if custom_pagy_nav? %>
   <% end %>

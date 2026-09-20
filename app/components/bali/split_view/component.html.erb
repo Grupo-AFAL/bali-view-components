@@ -2,8 +2,8 @@
     dependency here, not a runtime one, so the component builds the element
     itself instead of reaching for a helper a host may not have loaded. %>
 <%= tag.div(**container_attributes) do %>
-  <%# `frame_value`: el controller vive en el master y el frame es su HERMANO, así que un
-      target de Stimulus no lo alcanza — el id es la única forma de nombrarlo (#1012). %>
+  <%# `frame_value`: the controller lives on the master and the frame is its SIBLING, so a
+      Stimulus target cannot reach it — the id is the only way to name it (#1012). %>
   <div class="split-view-master" data-controller="split-view"
        data-split-view-frame-value="<%= frame_id %>">
     <%= list? ? list : master %>

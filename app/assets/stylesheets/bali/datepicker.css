@@ -679,15 +679,15 @@ span.flatpickr-weekday {
   transition: background var(--fp-animation-timing) ease;
 }
 
-/* La hora, los minutos y los segundos son `input[type=number]`, y el
- * `appearance: textfield` de arriba ya no los desarma: Chrome dejó de honrarlo
- * para ese tipo de input, así que sobre el campo que tiene el mouse encima pinta
- * SU spinner además de las flechas que flatpickr dibuja en `.numInputWrapper`.
- * Se ven dos pares de flechas en la misma columna —el nativo es más grande, más
- * oscuro y trae su propia pista gris— y encima queda montado sobre el de
- * flatpickr, que es el único de los dos conectado al valor del calendario.
- * Es el par que `input.cur-year` ya trae desde siempre unas líneas más arriba;
- * a esta fila nunca se le puso. */
+/* The hour, the minutes and the seconds are `input[type=number]`, and the
+ * `appearance: textfield` above no longer disarms them: Chrome stopped honouring
+ * it for that input type, so over the field the mouse is on it paints ITS spinner
+ * on top of the arrows flatpickr draws in `.numInputWrapper`.
+ * Two pairs of arrows show in the same column —the native one is bigger, darker
+ * and carries its own grey track— and on top of that it sits over flatpickr's,
+ * which is the only one of the two wired to the calendar's value.
+ * It is the pair `input.cur-year` has always carried a few lines above; this row
+ * never got it. */
 .flatpickr-time input::-webkit-outer-spin-button,
 .flatpickr-time input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -718,19 +718,20 @@ span.flatpickr-weekday {
   align-self: center;
 }
 
-/* El `:` es lo único que estructura la fila `12 : 00 PM` y era lo menos visible de ella.
- * Dos causas, medidas en /lookbook/preview/bali/form/time/with_value: heredaba el
- * `font-size: 0.875rem` del calendario contra el `1rem` explícito de `.flatpickr-time
- * input` (14px contra 16px), y el `width: 2%` que compartía con `.flatpickr-am-pm` —que
- * lo pisa con 18% en el bloque de abajo, así que el 2% sólo le tocaba a él— le dejaba una
- * caja de 6.12px sin lugar para aire. Las flechas del stepper van `position: absolute;
- * right: 0` sobre el numInputWrapper de la hora, cuyo borde derecho ES el borde izquierdo
- * del separador: 0.00px entre el triángulo y los dos puntos, y por eso el `:` se leía como
- * un control más. Con ancho automático y 0.5rem de padding la caja pasa a 20.98px y el
- * glifo arranca a 8px de la flecha; el ancho del calendario (308px) y el alto de la fila
- * (48px) no se mueven, y `hasSeconds` sigue sin desbordar (scrollWidth === clientWidth
- * === 306). `flex: none` porque los numInputWrapper son `flex: 1` y sin esto el separador
- * es el único que puede encogerse cuando la fila aprieta. */
+/* The `:` is the only thing that structures the `12 : 00 PM` row and it was the least
+ * visible part of it. Two causes, measured at /lookbook/preview/bali/form/time/with_value:
+ * it inherited the calendar's `font-size: 0.875rem` against the explicit `1rem` of
+ * `.flatpickr-time input` (14px against 16px), and the `width: 2%` it shared with
+ * `.flatpickr-am-pm` —which overrides it with 18% in the block below, so the 2% only ever
+ * applied to the separator— left it a 6.12px box with no room for air. The stepper arrows
+ * are `position: absolute; right: 0` over the hour's numInputWrapper, whose right edge IS
+ * the separator's left edge: 0.00px between the triangle and the colon, which is why the
+ * `:` read as one more control. With automatic width and 0.5rem of padding the box goes to
+ * 20.98px and the glyph starts 8px away from the arrow; the calendar's width (308px) and
+ * the row's height (48px) do not move, and `hasSeconds` still does not overflow
+ * (scrollWidth === clientWidth === 306). `flex: none` because the numInputWrappers are
+ * `flex: 1` and without it the separator is the only one that can shrink when the row
+ * gets tight. */
 .flatpickr-time .flatpickr-time-separator {
   flex: none;
   width: auto;

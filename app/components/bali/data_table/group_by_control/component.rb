@@ -3,7 +3,7 @@
 module Bali
   module DataTable
     module GroupByControl
-      # GroupByControl renders the "Agrupar por" dropdown for a DataTable.
+      # GroupByControl renders the "Group by" dropdown for a DataTable.
       #
       # It is a Bali::Dropdown of LINKS (not a form): each option links to the
       # current URL with `group_by` merged into the existing query parameters, so
@@ -20,15 +20,15 @@ module Bali
         # @param filter_form [Bali::FilterForm] Form exposing group_by_options / group_by
         # @param current_params [Hash] Current query params to preserve (merged into links)
         # @param options [Array<Hash>] Explicit {attribute:, label:} options — for surfaces
-        #   whose grouping no vive en un FilterForm (p.ej. un roadmap server-rendered).
-        #   Gana sobre las del form.
+        #   whose grouping does not live in a FilterForm (e.g. a server-rendered roadmap).
+        #   Wins over the form's.
         # @param current [String, Symbol] Explicit current grouping value (pairs with options:)
         # @param param [String] Query param that carries the grouping (default "group_by")
         # @param include_none [Boolean] Whether to offer the "no grouping" item
         # @param label [String] Trigger label override (defaults to the i18n "Group by")
-        # @param disabled [Boolean] Renderizar el control INERTE en vez de esconderlo. Se usa
-        #   cuando el modo de visualización actual no aplica agrupación: esconderlo movía la
-        #   toolbar al cambiar de modo y dejaba sin explicar por qué el control desapareció.
+        # @param disabled [Boolean] Render the control INERT instead of hiding it. Used when
+        #   the current display mode does not apply grouping: hiding it moved the toolbar when
+        #   switching modes and left no explanation for why the control had disappeared.
         def initialize(url:, filter_form: nil, current_params: {}, options: nil, current: nil,
                        param: "group_by", include_none: true, label: nil, disabled: false)
           @disabled = disabled
@@ -46,8 +46,9 @@ module Bali
 
         def disabled? = @disabled
 
-        # Por qué está inerte. Va como `title` y no como cartel en la fila: el estado ya lo
-        # comunica el botón apagado, y un texto permanente ahí competía con los filtros.
+        # Why it is inert. Goes in `title` and not as a notice in the row: the disabled
+        # button already communicates the state, and a permanent text there competed with
+        # the filters.
         def disabled_title
           I18n.t("bali_view.data_table.group_by_control.disabled_title",
                  modes: disabled_modes)
@@ -97,10 +98,11 @@ module Bali
           build_href(attribute.to_s)
         end
 
-        # `""` y no `nil`: el param se queda en la URL, vacío. Sacándolo, "sin agrupación" era
-        # indistinguible de "no vino nada", y un listado con persistencia de filtros restaura
-        # de la caché lo que la URL no dice — o sea que apagar la agrupación la resucitaba en
-        # el mismo render (ver FilterForm#fetch_stored_filter_state).
+        # `""` and not `nil`: the param stays in the URL, empty. Dropping it made "no
+        # grouping" indistinguishable from "nothing came in", and a listing with filter
+        # persistence restores from the cache what the URL does not say — that is, turning
+        # grouping off resurrected it in the same render (see
+        # FilterForm#fetch_stored_filter_state).
         #
         # Where a `group_by_attribute default:` is declared, empty is not enough either: see
         # Bali::FilterForm::GroupByConfiguration::NO_GROUPING_VALUE.

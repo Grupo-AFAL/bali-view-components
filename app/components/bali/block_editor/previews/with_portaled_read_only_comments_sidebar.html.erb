@@ -1,10 +1,10 @@
-<%# El panel de hilos vive en un contenedor del anfitrión, no al lado del editor.
-    Bali no pinta nada adentro de `#panel-de-hilos` —eso lo portalea React—, así que
-    la bandera del modo tiene que viajar con el portal. Si no viaja, la caja de
-    responder y el menú de acciones se ven acá aunque se haya pedido `:read_only`. %>
+<%# The threads panel lives in a host container, not next to the editor. Bali renders
+    nothing inside `#panel-de-hilos` —React portals that— so the mode flag has to travel
+    with the portal. If it does not, the reply box and the actions menu show up here even
+    when `:read_only` was asked for. %>
 <div class="flex gap-4">
-  <%# `min-w-0`: el editor trae ancho mínimo propio, y sin esto la columna que crece
-      no se deja encoger y el panel se sale de la pantalla. %>
+  <%# `min-w-0`: the editor carries a minimum width of its own, and without this the
+      growing column refuses to shrink and the panel runs off the screen. %>
   <div class="grow min-w-0">
     <%= render Bali::BlockEditor::Component.new(
           editable: editable,

@@ -4,8 +4,8 @@
       <tr>
         <% if selectable? %>
           <th class="w-4">
-            <%# `bulk_actions_group` acota este seleccionar-todo a las filas de esta tabla;
-                nil no emite atributo, y sin atributo el universo es toda la selección. %>
+            <%# `bulk_actions_group` scopes this select-all to the rows of this table;
+                nil emits no attribute, and with no attribute the universe is the whole selection. %>
             <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm', 'aria-label': t('.select_all'),
                           data: { bulk_actions_target: 'selectAll', bulk_actions_group: select_group,
                                   action: 'change->bulk-actions#toggleAll' } %>
@@ -22,10 +22,10 @@
           <% row_groups.each do |group| %>
             <tr class="bali-table-group-row">
               <% if selectable? %>
-                <%# El seleccionar-todo del grupo va en SU PROPIA celda, alineado con la
-                    columna de casillas de las filas; el acento de la izquierda se muda con
-                    él, que ahora es la celda de más a la izquierda. Un grupo sin ninguna
-                    fila seleccionable deja la celda vacía: la casilla no marcaría nada. %>
+                <%# The group select-all goes in ITS OWN cell, aligned with the rows'
+                    checkbox column; the left accent moves with it, since it is now the
+                    leftmost cell. A group with no selectable row leaves the cell empty:
+                    the checkbox would mark nothing. %>
                 <%= tag.td(class: "w-4 bg-base-300 border-l-4 border-l-primary") do %>
                   <% if group_selectable?(group) %>
                     <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm',
@@ -37,10 +37,10 @@
                 <% end %>
               <% end %>
               <% if collapsible_groups? %>
-                <%# La banda entera es el botón: el chevron gira con `aria-expanded` y el
-                    contenido —texto o bloque de `with_group_header`— es su nombre accesible.
-                    La casilla del grupo queda AFUERA, en su celda: un control dentro de
-                    otro es HTML inválido. %>
+                <%# The whole band is the button: the chevron rotates with `aria-expanded`
+                    and the content —text or `with_group_header` block— is its accessible
+                    name. The group checkbox stays OUTSIDE, in its own cell: a control
+                    inside another control is invalid HTML. %>
                 <%= tag.td(**group_header_cell_options) do %>
                   <%= tag.button(**group_trigger_options(group)) do %>
                     <%= render Bali::Icon::Component.new('chevron-down', class: Bali::Table::Component::GROUP_CHEVRON_CLASSES) %>
@@ -59,8 +59,8 @@
         <% end %>
       <% else %>
         <tr id="<%= empty_table_row_id %>">
-          <%# `group_colspan` y no `headers.count`: suma la columna de selección y descuenta
-              los headers ocultos, así el empty state cubre el ancho REAL de la tabla. %>
+          <%# `group_colspan` and not `headers.count`: it adds the selection column and
+              discounts the hidden headers, so the empty state covers the table's REAL width. %>
           <td class="empty-table text-center" colspan="<%= group_colspan %>">
             <% if custom_empty_state_content.present? %>
               <div class="<%= Bali::EmptyState::Component.container_classes %>">

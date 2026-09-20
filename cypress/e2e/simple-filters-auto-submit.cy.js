@@ -1,44 +1,45 @@
-// #725 PR2 — `auto_submit: true` por filtro: las pills filtran al click, sin pasar por el
-// botón Filtrar.
+// #725 PR2 — `auto_submit: true` per filter: the pills filter on click, without going
+// through the Filter button.
 //
-// Los submits se cuentan con `cy.intercept` del GET del form y nunca leyendo el DOM: el
-// preview manda a su propia URL, así que lo único que distingue "no se mandó" de "se mandó"
-// es el query string del request. Una pill marcada no prueba nada — la marca el browser al
-// click, antes de que el server conteste.
+// Submits are counted with `cy.intercept` on the form's GET and never by reading the DOM:
+// the preview submits to its own URL, so the only thing that tells "nothing was sent" apart
+// from "something was sent" is the request's query string. A checked pill proves nothing —
+// the browser checks it on click, before the server answers.
 const PREVIEW = '/bali/data_table/simple_filters/auto_submit'
 
-// Solo un submit lleva query string, así que un `cy.visit(PREVIEW)` pelado no cae acá. Un
-// visit CON query sí: cuando la URL de partida trae estado, el espía se arma después.
+// Only a submit carries a query string, so a bare `cy.visit(PREVIEW)` does not land here. A
+// visit WITH a query does: when the starting URL carries state, the spy is armed afterwards.
 const spyOnSubmits = () =>
   cy.intercept('GET', '**/simple_filters/auto_submit?*').as('submit')
 
-describe('SimpleFilters con auto_submit', () => {
+describe('SimpleFilters with auto_submit', () => {
   beforeEach(() => {
     spyOnSubmits()
     cy.visit(PREVIEW)
     cy.get('form[data-controller="submit-on-change"]').should('exist')
   })
 
-  it('no manda nada al cargar la fila', () => {
+  it('sends nothing when the row loads', () => {
     cy.wait(500)
 
     cy.get('@submit.all').should('have.length', 0)
     cy.location('search').should('eq', '')
   })
 
-  it('filtra al click de una pill de radio, sin tocar Filtrar', () => {
+  it('filters on a radio pill click, without touching Filter', () => {
     cy.get('input[type="radio"][value="published"]').check()
 
     cy.wait('@submit').its('request.url').should('include', 'q%5Bstatus_eq%5D=published')
     cy.get('@submit.all').should('have.length', 1)
 
-    // Hay que esperar la URL nueva antes de mirar el DOM: sin eso se lee la página vieja,
-    // donde la pill está marcada porque la marcó el browser y no porque volvió del server.
+    // The new URL has to be awaited before looking at the DOM: without that you read the old
+    // page, where the pill is checked because the browser checked it and not because it came
+    // back from the server.
     cy.location('search').should('include', 'q%5Bstatus_eq%5D=published')
     cy.get('input[type="radio"][value="published"]').should('be.checked')
   })
 
-  it('filtra al click de una pill de toggle', () => {
+  it('filters on a toggle pill click', () => {
     cy.get('input[type="checkbox"][value="public"]').check()
 
     cy.wait('@submit').its('request.url').should('include', 'q%5Bkind_in%5D%5B%5D=public')
@@ -46,9 +47,9 @@ describe('SimpleFilters con auto_submit', () => {
     cy.get('input[type="checkbox"][value="public"]').should('be.checked')
   })
 
-  // #996 — el select nativo también auto-envía: su change dispara al cerrar el menú con
-  // una selección, que es una elección tan terminada como el click de una pill.
-  it('filtra al elegir en el select, sin tocar Filtrar', () => {
+  // #996 — the native select auto-submits too: its change fires when the menu closes on a
+  // selection, which is as finished a choice as a pill click.
+  it('filters when choosing in the select, without touching Filter', () => {
     cy.get('select[name="q[genre_eq]"]').select('comedy')
 
     cy.wait('@submit').its('request.url').should('include', 'q%5Bgenre_eq%5D=comedy')
@@ -56,21 +57,21 @@ describe('SimpleFilters con auto_submit', () => {
     cy.get('select[name="q[genre_eq]"]').should('have.value', 'comedy')
   })
 
-  // El opt-in no se lleva puesto el botón: los filtros que no optaron lo siguen necesitando.
-  it('deja el botón Filtrar en su lugar', () => {
+  // The opt-in does not take the button with it: the filters that did not opt in still need it.
+  it('leaves the Filter button in place', () => {
     cy.get('form[data-controller="submit-on-change"] button[type="submit"]').should('exist')
   })
 })
 
-// La acumulación del grupo multi arranca de una URL que ya trae la primera pill, en vez de
-// encadenar dos clicks: entre uno y otro hay una visita de Turbo, y el snapshot cacheado que
-// restaura primero se lleva el segundo click a un nodo que está por descartarse.
-describe('SimpleFilters con auto_submit, grupo multi', () => {
-  it('acumula la segunda pill en vez de reemplazar la primera', () => {
+// The multi group's accumulation starts from a URL that already carries the first pill,
+// instead of chaining two clicks: between one and the other there is a Turbo visit, and the
+// cached snapshot it restores first takes the second click to a node about to be discarded.
+describe('SimpleFilters with auto_submit, multi group', () => {
+  it('accumulates the second pill instead of replacing the first', () => {
     cy.visit(`${PREVIEW}?q%5Bkind_in%5D%5B%5D=public`)
     cy.get('input[type="checkbox"][value="public"]').should('be.checked')
 
-    // Después del visit, para que el espía no cuente la carga inicial — que acá sí trae query.
+    // After the visit, so the spy does not count the initial load — which here does carry a query.
     spyOnSubmits()
     cy.get('input[type="checkbox"][value="private"]').check()
 
@@ -81,10 +82,10 @@ describe('SimpleFilters con auto_submit, grupo multi', () => {
   })
 })
 
-describe('SimpleFilters sin auto_submit', () => {
-  // El control: la misma fila de pills sin la opción no monta el controller ni cablea nada,
-  // que es lo que deja intacta cualquier fila que ya existía.
-  it('no monta submit-on-change ni cablea las pills', () => {
+describe('SimpleFilters without auto_submit', () => {
+  // The control: the same pill row without the option mounts no controller and wires nothing,
+  // which is what leaves any row that already existed untouched.
+  it('does not mount submit-on-change or wire the pills', () => {
     cy.visit('/bali/data_table/simple_filters/toggle_group')
 
     cy.get('form[data-turbo-frame="_top"]').should('exist')

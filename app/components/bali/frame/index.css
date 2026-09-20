@@ -1,16 +1,17 @@
-/* Bali::Frame — carga diferida de `<turbo-frame>` con swap a un placeholder.
+/* Bali::Frame — deferred `<turbo-frame>` loading with a swap to a placeholder.
  *
- * Turbo marca el frame con [busy] durante CUALQUIER carga: la diferida inicial
- * (loading: :lazy con src) y cada recarga dirigida al frame (un link con
- * data-turbo-frame, un botón de "Refrescar"). Mientras está [busy] mostramos la
- * card hermana .frame-loading y ocultamos el frame, así el contenido se
- * reemplaza por el indicador de carga y vuelve al terminar. Puro CSS, sin JS —
- * :has() sobre el atributo [busy] que Turbo ya maneja, sin costura que abortar
- * ni re-disparar.
+ * Turbo marks the frame with [busy] during ANY load: the initial deferred one
+ * (loading: :lazy with src) and every reload targeted at the frame (a link with
+ * data-turbo-frame, a "Refresh" button). While it is [busy] we show the sibling
+ * .frame-loading card and hide the frame, so the content is replaced by the
+ * loading indicator and comes back when it finishes. Pure CSS, no JS — :has()
+ * over the [busy] attribute Turbo already manages, with no seam to abort or
+ * re-fire.
  */
-/* Todo con hijo directo (`>`): si el contenido del frame trae OTRO turbo-frame
-   y ese se pone [busy], el wrapper externo no debe reaccionar ni esconder su
-   propio frame. `:has(> turbo-frame[busy])` mira solo el frame propio. */
+/* Everything through the direct child (`>`): if the frame's content carries
+   ANOTHER turbo-frame and that one goes [busy], the outer wrapper must not
+   react nor hide its own frame. `:has(> turbo-frame[busy])` looks only at its
+   own frame. */
 .frame-loading {
   display: none;
 }

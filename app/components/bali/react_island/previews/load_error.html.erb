@@ -1,20 +1,22 @@
 <%= react_island_meta_tags('react-island-demo', js: 'island-demo.js') %>
 
-<%# Dos montajes, porque el fallo de carga tiene dos formas y solo una se veía:
+<%# Two mounts, because a load failure has two shapes and only one of them was
+    visible:
 
-    1. Mount VACÍO: la isla no tenía nada server-rendered que enseñar, así que
-       el aviso de error es todo lo que queda.
-    2. Mount CON CONTENIDO: lo que el servidor pintó dentro ES el fallback
-       (Bali::Gantt mete ahí su esqueleto de carga). Si el bundle no llega, ese
-       contenido tiene que SOBREVIVIR y el aviso ponerse encima — no al revés. %>
+    1. EMPTY mount: the island had nothing server-rendered to show, so the error
+       notice is all that is left.
+    2. Mount WITH CONTENT: what the server painted inside IS the fallback
+       (Bali::Gantt puts its loading skeleton there). If the bundle never arrives,
+       that content has to SURVIVE and the notice go on top — not the other way
+       round. %>
 
-<h3 class="mb-2 text-sm font-semibold">Mount vacío</h3>
+<h3 class="mb-2 text-sm font-semibold">Empty mount</h3>
 <div
   data-controller="react-island-demo"
   data-react-island-demo-fail-load-value="true"
 ></div>
 
-<h3 class="mt-6 mb-2 text-sm font-semibold">Mount con fallback server-rendered</h3>
+<h3 class="mt-6 mb-2 text-sm font-semibold">Mount with a server-rendered fallback</h3>
 <div
   id="isla-con-fallback"
   data-controller="react-island-demo"

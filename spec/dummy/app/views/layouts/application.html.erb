@@ -4,11 +4,12 @@
     <% content_for(:title) { "Kitchen Sink Demo" } %>
     <%= render "layouts/head" %>
   </head>
-  <%# `:wide` y no `:contained`: el contenedor del layout es lo que decide el ancho de la
-      página, no el page component — los cinco heredan `max_width: :full`, así que un cap
-      acá los recorta a todos por fuera y sin que la vista lo pida. Es también lo que hace
-      que /studios y /admin/studios midan lo mismo, que están en layouts distintos. Una
-      página que sí quiere cap lo pide con `content_for(:body_container) { "contained" }`. %>
+  <%# `:wide` and not `:contained`: the layout's container is what decides the page width,
+      not the page component — all five inherit `max_width: :full`, so a cap here clips every
+      one of them from the outside and without the view asking for it. It is also what makes
+      /studios and /admin/studios measure the same, sitting as they do in different layouts.
+      A page that does want a cap asks for it with
+      `content_for(:body_container) { "contained" }`. %>
   <%= render Bali::AppLayout::Component.new(
     flash: flash,
     body_container: content_for?(:body_container) ? content_for(:body_container).strip.to_sym : :wide,

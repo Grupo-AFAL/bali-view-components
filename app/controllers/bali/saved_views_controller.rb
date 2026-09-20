@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 module Bali
-  # B2 — endpoints del storage default de las vistas guardadas (la UI es
-  # Bali::DataTable::SavedViews; el listado las consume vía Bali::SavedView::Store).
-  # Sin index/show: las lista el FilterForm.
+  # B2 — endpoints of the saved views' default storage (the UI is
+  # Bali::DataTable::SavedViews; the index consumes them through Bali::SavedView::Store).
+  # No index/show: the FilterForm lists them.
   #
-  # Autorización: este controller NO hereda los hooks del ApplicationController del host
-  # (un `verify_pundit` app-wide no aplica aquí), así que el gate vive adentro:
-  # `Bali.saved_views_owner` resuelve al dueño y `Bali.saved_views_authorize` decide —
-  # el default exige owner presente (sin sesión → 403). TODO lo demás es del dueño:
-  # create scopea el store por el owner y update/destroy buscan SOLO entre las vistas
-  # propias (una vista ajena es un 404, no un 403 que confirme que existe).
+  # Authorization: this controller does NOT inherit the host ApplicationController's hooks
+  # (an app-wide `verify_pundit` does not apply here), so the gate lives inside:
+  # `Bali.saved_views_owner` resolves the owner and `Bali.saved_views_authorize` decides —
+  # the default requires the owner to be present (no session → 403). EVERYTHING else is
+  # the owner's: create scopes the store by the owner and update/destroy look ONLY among
+  # the user's own views (someone else's view is a 404, not a 403 confirming it exists).
   class SavedViewsController < ApplicationController
     before_action :authorize_saved_views!
 
@@ -21,10 +21,10 @@ module Bali
       redirect_back fallback_location: fallback_path, alert: e.record.errors.full_messages.to_sentence
     end
 
-    # Atiende DOS operaciones: renombrar (manda `name`) y actualizar la configuración guardada
-    # (manda `payload`). Se asigna SOLO lo que vino: asignar ambos siempre haría que renombrar
-    # VACIARA el payload —`SavedView#payload=` slicea, así que un nil borra la configuración en
-    # silencio— y que actualizar pisara el nombre con vacío.
+    # Serves TWO operations: renaming (sends `name`) and updating the saved configuration
+    # (sends `payload`). ONLY what came in is assigned: always assigning both would make
+    # renaming EMPTY the payload —`SavedView#payload=` slices, so a nil silently wipes the
+    # configuration— and make updating overwrite the name with a blank.
     def update
       view = own_views.find(params[:id])
       attributes = params.permit(:name, :payload).to_h.symbolize_keys.compact
@@ -61,8 +61,8 @@ module Bali
       SavedView::Store.new(owner: owner, storage_id: params.require(:storage_id))
     end
 
-    # El drawer de Bali postea con redirect_back, así que el referer casi siempre existe;
-    # el engine no conoce los listados del host, de ahí el fallback neutro.
+    # Bali's drawer posts with redirect_back, so the referer almost always exists; the
+    # engine does not know the host's index pages, hence the neutral fallback.
     def fallback_path = main_app.try(:root_path) || "/"
   end
 end

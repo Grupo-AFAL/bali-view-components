@@ -133,9 +133,9 @@ module Bali
               status: "backlog", starts_on: (today + 21).iso8601 },
             { id: 41, group_id: 4, name: "Docs", status: "backlog" },
             { id: 42, group_id: 4, name: "Announcement", status: "cancelled" },
-            # Sin fechas Y sin grupo — la forma exacta del reporte de #1015: no
-            # puede tener barra ni fila, así que solo existe en el conteo del
-            # pie y en el drawer "No dates".
+            # No dates AND no group — the exact shape reported in #1015: it can
+            # have neither a bar nor a row, so it only exists in the footer count
+            # and in the "No dates" drawer.
             { id: 43, name: "Postmortem review", status: "backlog" }
           ],
           dependencies: [

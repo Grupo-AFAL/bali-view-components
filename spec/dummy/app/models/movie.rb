@@ -26,11 +26,11 @@ class Movie < ApplicationRecord
   attribute :cover_photo
   attribute :available_region
 
-  # Un `ransacker` es la única forma de meter una expresión SQL en el panel avanzado —un
-  # `ransackable_scope` no cabe ahí— y desde #1102 también AGRUPA, no solo ordena: el
-  # `GROUP BY` sale de este mismo Arel. `#budget_band` es su gemelo en Ruby, el que lee la
-  # banda de UNA fila; los dos tienen que devolver las mismas etiquetas o el conteo global
-  # del encabezado no se encuentra.
+  # A `ransacker` is the only way to put a SQL expression in the advanced panel —a
+  # `ransackable_scope` does not fit there— and since #1102 it also GROUPS, not just sorts:
+  # the `GROUP BY` comes out of this same Arel. `#budget_band` is its twin in Ruby, the one
+  # that reads ONE row's band; the two have to return the same labels or the header's global
+  # count is not found.
   BUDGET_BANDS = { "blockbuster" => 50_000_000, "mid" => 5_000_000 }.freeze
 
   ransacker :budget_band do |parent|
@@ -77,9 +77,9 @@ class Movie < ApplicationRecord
     done? ? :success : :warning
   end
 
-  # El gemelo en Ruby del ransacker `budget_band`: mismo umbral, mismas etiquetas. Un budget
-  # nulo cae en "indie" del lado de SQL (`NULL >= x` es NULL, así que gana el ELSE) y tiene
-  # que caer ahí también acá.
+  # The Ruby twin of the `budget_band` ransacker: same thresholds, same labels. A null budget
+  # falls into "indie" on the SQL side (`NULL >= x` is NULL, so the ELSE wins) and has to fall
+  # there here too.
   def budget_band
     return "indie" if budget.blank?
 

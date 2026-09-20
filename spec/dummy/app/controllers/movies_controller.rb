@@ -5,8 +5,8 @@ class MoviesController < ApplicationController
 
   before_action :set_movie, only: %i[show edit update destroy]
 
-  # Sin `index`: el índice canónico de películas es `/admin/movies`. Lo que sigue son las
-  # páginas de detalle y de formulario, que Cypress y los previews visitan directo.
+  # No `index`: the canonical movies index is `/admin/movies`. What follows are the detail
+  # and form pages, which Cypress and the previews visit directly.
 
   def show
     @characters = @movie.characters.positioned

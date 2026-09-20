@@ -51,7 +51,7 @@ describe('BulkActionsController', () => {
   it('leaves the header checkbox indeterminate on a partial selection', () => {
     cy.get(rows).first().find('input[type="checkbox"]').check()
 
-    // La propiedad, no el atributo: `indeterminate` no existe como atributo HTML.
+    // The property, not the attribute: `indeterminate` does not exist as an HTML attribute.
     cy.get(selectAll).should(($input) => {
       expect($input[0].indeterminate).to.eq(true)
       expect($input[0].checked).to.eq(false)
@@ -68,8 +68,8 @@ describe('BulkActionsController', () => {
     cy.get(bar).should('have.class', 'hidden')
   })
 
-  // El modo "actuar sobre los N filtrados": la barra lo ofrece solo cuando la selección ya
-  // cubre la página entera y hay más resultados detrás.
+  // The "act on the N filtered" mode: the bar only offers it once the selection already
+  // covers the whole page and there are more results behind it.
   describe('select all filtered', () => {
     const offer = '[data-bulk-actions-target="selectAllOffer"]'
     const notice = '[data-bulk-actions-target="selectAllNotice"]'
@@ -82,7 +82,7 @@ describe('BulkActionsController', () => {
       cy.get(selectAll).check()
       cy.get(offer).should('be.visible')
       cy.get(notice).should('not.be.visible')
-      // N es el total del listado, no el de la página.
+      // N is the total of the listing, not the total of the page.
       cy.get(rows).then(($rows) => {
         cy.get(offer).invoke('attr', 'data-total-count').then((total) => {
           expect(Number(total)).to.be.greaterThan($rows.length)
@@ -103,15 +103,15 @@ describe('BulkActionsController', () => {
 
       cy.get(`${bar} ${flag}`).should('have.length.greaterThan', 1)
       cy.get(`${bar} ${flag}`).each(($input) => expect($input.val()).to.eq('true'))
-      // Los ids salen VACÍOS: el servidor re-deriva el scope de los filtros del mismo POST.
+      // The ids come out EMPTY: the server re-derives the scope from the filters in the same POST.
       cy.get(`${bar} input[name="selected_ids"]`).each(($input) => {
         expect(JSON.parse($input.val())).to.have.length(0)
       })
     })
 
-    // El cambio de modo no mueve el foco: si la live region solo dice el número, el usuario
-    // de lector de pantalla oye "20 seleccionados" sin nada que le diga que la selección ya
-    // no es la página que está mirando.
+    // The mode change does not move focus: if the live region only says the number, the
+    // screen reader user hears "20 selected" with nothing telling them that the selection is
+    // no longer the page they are looking at.
     it('announces the mode change, not just the new number', () => {
       const announcement = '[data-bulk-actions-target="announcement"]'
 
@@ -151,17 +151,17 @@ describe('BulkActionsController', () => {
     })
   })
 
-  // El evento existe porque el `change` de la casilla NO cubre todos los caminos: doble
-  // clic, ✕ y "todos los filtrados" escriben `checkbox.checked` por asignación, y asignar la
-  // propiedad no dispara el evento nativo. Un consumidor enganchado a las casillas se
-  // quedaba con su estado equivocado y en silencio.
+  // The event exists because the checkbox `change` does NOT cover every path: double click,
+  // ✕ and "select all filtered" write `checkbox.checked` by assignment, and assigning the
+  // property does not fire the native event. A consumer hooked to the checkboxes was left
+  // with the wrong state, and silently.
   describe('bulk-actions:change', () => {
     const record = () => cy.window().then((win) => {
       win.selectionEvents = []
       win.addEventListener('bulk-actions:change', (event) => win.selectionEvents.push(event.detail))
     })
 
-    it('anuncia la selección al marcar una fila', () => {
+    it('announces the selection when a row is checked', () => {
       record()
       cy.get(rows).first().find('input[type="checkbox"]').check()
 
@@ -173,7 +173,7 @@ describe('BulkActionsController', () => {
       })
     })
 
-    it('anuncia también los caminos que no disparan el change de la casilla', () => {
+    it('also announces the paths that do not fire the checkbox change', () => {
       record()
       cy.get(rows).first().find('td').eq(1).dblclick()
       cy.window().its('selectionEvents').should('have.length', 1)
@@ -185,7 +185,7 @@ describe('BulkActionsController', () => {
       })
     })
 
-    it('anuncia el modo "todos los filtrados", que no tiene ids que anunciar', () => {
+    it('announces the "select all filtered" mode, which has no ids to announce', () => {
       cy.get(selectAll).check()
       record()
       cy.get('[data-bulk-actions-target="selectAllOffer"] button').click()

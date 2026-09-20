@@ -1,19 +1,19 @@
-<%# Sin `dropdown-end`: el control vive en el grupo IZQUIERDO de la toolbar, y anclado al
-    borde derecho de su trigger el panel abría hacia afuera de la fila a la que pertenece. %>
+<%# No `dropdown-end`: the control lives in the toolbar's LEFT group, and anchored to its
+    trigger's right edge the panel opened outside the row it belongs to. %>
 <div class="dropdown"
      data-controller="saved-views"
      data-saved-views-table-value="<%= table_selector %>"
      data-saved-views-storage-key-value="<%= columns_storage_key %>"
      data-saved-views-server-columns-value="<%= server_columns_json %>">
-  <%# El botón nombra la vista ACTIVA (aplicada por URL, o la que coincide con el estado
-      actual — incluye atajos); el ícono se rellena para señalarla también con el popover
-      cerrado. %>
-  <%# aria-label explícito y calculado igual que el texto visible (que vive en un span
-      `hidden sm:inline`): con un label estático rompería "Label in Name" cuando el botón
-      nombra la vista activa. %>
-  <%# `aria-haspopup`/`aria-expanded`: el panel lo abre el `:focus-within` de daisyUI, no un JS,
-      así que sin esto el botón no anunciaba ni que abre un popover ni si está abierto. Lo
-      mantiene al día `syncPopoverAria` desde el controlador. %>
+  <%# The button names the ACTIVE view (the one applied by URL, or the one matching the
+      current state — shortcuts included); the icon fills in so it is signalled with the
+      popover closed too. %>
+  <%# Explicit aria-label, computed the same way as the visible text (which lives in a
+      `hidden sm:inline` span): with a static label it would break "Label in Name" when the
+      button names the active view. %>
+  <%# `aria-haspopup`/`aria-expanded`: daisyUI's `:focus-within` is what opens the panel, not
+      a JS, so without these the button announced neither that it opens a popover nor whether
+      it is open. `syncPopoverAria` keeps them up to date from the controller. %>
   <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>"
           aria-haspopup="true" aria-expanded="false">
     <%= render Bali::Icon::Component.new(active_view ? 'bookmark-check' : 'bookmark', class: 'w-4 h-4') %>
@@ -57,20 +57,19 @@
               <%= render Bali::Icon::Component.new('trash-2', class: 'w-3 h-3') %>
             <% end %>
           </li>
-          <%# Form de renombrar, oculto hasta que se pide (PATCH url/:id con solo `name`). %>
           <li class="hidden" data-saved-views-target="renameForm" data-saved-views-id="<%= view.id %>">
-            <%# `builder:` explícito: un form interno de la gema no puede cambiar de forma porque
-                el anfitrión declare `default_form_builder = Bali::FormBuilder` (lo que recomienda
-                docs/guides/installation.md y lo que tienen encendido las seis apps del grupo).
-                Sin él, `f.text_field` salía envuelto en `div.control` con la clase `input`
-                repetida y `f.submit` como `<button>`, perdiendo el `name="commit"` del POST
-                (#1137). El `data-disable-with` vuelve con el `<input>` pero no cuenta como
-                argumento: lo lee rails-ujs y ninguna de las seis apps lo tiene. Pasar estos
-                forms al idioma del builder de Bali es otra discusión, apartada para v4 (#903). %>
+            <%# Explicit `builder:`: a form internal to the gem cannot change shape just because
+                the host declares `default_form_builder = Bali::FormBuilder` (what
+                docs/guides/installation.md recommends and what the group's six apps have on).
+                Without it, `f.text_field` came out wrapped in a `div.control` with the `input`
+                class repeated and `f.submit` as a `<button>`, losing the POST's `name="commit"`
+                (#1137). The `data-disable-with` comes back with the `<input>` but does not count
+                as an argument: rails-ujs reads it and none of the six apps has it. Moving these
+                forms to the Bali builder's idiom is another discussion, set aside for v4 (#903). %>
             <%= form_with url: view_url(view), method: :patch, class: 'flex gap-1 p-1',
                   builder: ActionView::Helpers::FormBuilder do |f| %>
-              <%# id explícito por vista: N forms de renombrar + el de guardar generaban N+1
-                  ids "name" duplicados (HTML inválido, autofill confundido). %>
+              <%# Explicit id per view: N rename forms + the save one generated N+1 duplicate
+                  "name" ids (invalid HTML, confused autofill). %>
               <%= f.text_field :name, value: view.name, required: true,
                     id: "saved-view-name-#{view.id}",
                     class: 'input input-bordered input-xs grow' %>
@@ -82,12 +81,12 @@
     <% end %>
 
     <div class="border-t border-base-200 mt-1 pt-1">
-      <%# Con una vista de origen modificada, ACTUALIZARLA es la acción esperada y guardar otra
-          pasa a secundaria. Antes la única forma de sobrescribir era teclear el nombre exacto
-          en "Guardar": nada lo decía, y un typo creaba una vista nueva en vez de actualizar.
-          Es destructivo (pisa lo guardado), así que confirma igual que borrar. %>
+      <%# With a modified origin view, UPDATING it is the expected action and saving another
+          one becomes secondary. Before, the only way to overwrite was typing the exact name
+          into "Guardar": nothing said so, and a typo created a new view instead of updating.
+          It is destructive (it overwrites what was saved), so it confirms just like deleting. %>
       <% if updatable? %>
-        <%# Builder de Rails explícito, por lo mismo que el form de renombrar (#1137). %>
+        <%# Explicit Rails builder, for the same reason as the rename form (#1137). %>
         <%= form_with url: view_url(origin_view), method: :patch,
               builder: ActionView::Helpers::FormBuilder,
               data: { action: 'submit->saved-views#injectColumns',
@@ -101,10 +100,10 @@
         <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
         <%= save_label %>
       </button>
-      <%# Guardar el estado ACTUAL: el payload viaja serializado en un hidden; el Stimulus
-          agrega las columnas visibles del column selector justo antes de enviar. %>
+      <%# Saves the CURRENT state: the payload travels serialized in a hidden field; the
+          Stimulus controller adds the column selector's visible columns just before submitting. %>
       <div class="hidden p-1" data-saved-views-target="saveForm">
-        <%# Builder de Rails explícito, por lo mismo que el form de renombrar (#1137). %>
+        <%# Explicit Rails builder, for the same reason as the rename form (#1137). %>
         <%= form_with url: url, method: :post, class: 'flex gap-1',
               builder: ActionView::Helpers::FormBuilder,
               data: { action: 'submit->saved-views#injectColumns' } do |f| %>

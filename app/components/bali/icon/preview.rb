@@ -2,16 +2,17 @@
 
 module Bali
   module Icon
-    # Las constantes hermanas van escritas completas (`Bali::Icon::LucideMapping`, no
-    # `LucideMapping`) a propósito, y no es estilo: `Module.nesting` se captura al parsear y
-    # guarda una referencia al objeto módulo. Lookbook carga este archivo al arrancar para armar
-    # su navegación; si después corre un `reload!`, Zeitwerk descarta ese `Bali::Icon` y crea
-    # otro, la constante hermana se autoloadea dentro del nuevo, y el nesting de esta clase
-    # sigue apuntando al viejo — `uninitialized constant Bali::Icon::Preview::LucideMapping`
-    # sobre una constante que `bin/rails runner` resuelve sin chistar (#843). El nombre completo
-    # se resuelve contra el `Bali` vigente en el momento de la llamada.
+    # Sibling constants are written in full (`Bali::Icon::LucideMapping`, not
+    # `LucideMapping`) on purpose, and it is not style: `Module.nesting` is captured at parse
+    # time and holds a reference to the module object. Lookbook loads this file at boot to
+    # build its navigation; if a `reload!` runs afterwards, Zeitwerk discards that
+    # `Bali::Icon` and creates another one, the sibling constant autoloads inside the new
+    # one, and this class's nesting still points at the old one —
+    # `uninitialized constant Bali::Icon::Preview::LucideMapping` over a constant that
+    # `bin/rails runner` resolves without complaint (#843). The full name resolves against
+    # the `Bali` in force at the time of the call.
     #
-    # `test/requests/icon_previews_test.rb` prohíbe el patrón en todos los `preview.rb`.
+    # `test/requests/icon_previews_test.rb` forbids the pattern in every `preview.rb`.
     class Preview < ApplicationViewComponentPreview
       # Icon
       # ----

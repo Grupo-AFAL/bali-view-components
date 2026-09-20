@@ -1,31 +1,32 @@
 import { Controller } from '@hotwired/stimulus'
 
-// GEMELA EN RUBY: `Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`. Un test lee este literal
-// y lo compara contra la constante de Ruby: moverla de un lado sin el otro dejaba las dos
-// mitades del mismo link en desacuerdo y no fallaba nada.
+// RUBY TWIN: `Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`. A test reads this literal and
+// compares it against the Ruby constant: moving it on one side without the other left the two
+// halves of the same link disagreeing and nothing failed.
 const TRANSIENT_PARAMS = ['page', 'clear_filters', 'clear_search']
 
-// Un submit de filtros responde `turbo_stream` y reemplaza SOLO el nodo del listado: no hay
-// visita, así que Turbo NO dispara `turbo:load` y este controlador tampoco se reconecta —
-// vive fuera del nodo reemplazado. Escuchar solo esa señal dejaba el href congelado justo en
-// el caso para el que existe. `turbo:before-stream-render` es el que cubre esa rama;
-// `turbo:submit-end` cubre el submit que ni navega ni streamea (una respuesta de frame).
+// A filters submit responds `turbo_stream` and replaces ONLY the listing node: there is no
+// visit, so Turbo does NOT fire `turbo:load` and this controller does not reconnect either —
+// it lives outside the replaced node. Listening to that signal alone left the href frozen in
+// exactly the case it exists for. `turbo:before-stream-render` is the one that covers that
+// branch; `turbo:submit-end` covers the submit that neither navigates nor streams (a frame
+// response).
 const SYNC_EVENTS = ['turbo:load', 'turbo:before-stream-render', 'turbo:submit-end']
 
 /**
  * Export Links Controller
  *
- * Mantiene los href del export apuntando al recorte que el usuario está mirando.
+ * Keeps the export hrefs pointing at the slice the user is looking at.
  *
- * El server ya los pinta bien en una carga completa o en una visita de Turbo Drive, pero el
- * export vive en el ⋯ del PageHeader — FUERA del nodo que el turbo_stream de un submit de
- * filtros reemplaza. Sin esto, el primer filtro deja el href congelado con el recorte de la
- * carga inicial: el mismo bug de "exporté lo filtrado y me llevé todo", otra vez en silencio.
+ * The server already paints them right on a full load or on a Turbo Drive visit, but the
+ * export lives in the PageHeader's ⋯ — OUTSIDE the node that a filters submit's turbo_stream
+ * replaces. Without this, the first filter leaves the href frozen with the slice from the
+ * initial load: the same "I exported what was filtered and took everything" bug, silently
+ * again.
  *
- * `filters#_submit` empuja la URL nueva al history ANTES de enviar el form, así que cuando
- * cualquiera de los SYNC_EVENTS llega `location.search` ya describe el recorte nuevo.
- * También cubre la restauración de caché de Turbo, donde el snapshot puede traer hrefs de
- * otra visita.
+ * `filters#_submit` pushes the new URL to the history BEFORE sending the form, so by the time
+ * any of the SYNC_EVENTS arrives `location.search` already describes the new slice. It also
+ * covers Turbo's cache restoration, where the snapshot can bring hrefs from another visit.
  *
  *   <div data-controller="export-links">
  *     <a data-export-links-target="link" href="/movies?format=csv">CSV</a>
@@ -34,8 +35,8 @@ const SYNC_EVENTS = ['turbo:load', 'turbo:before-stream-render', 'turbo:submit-e
 export default class extends Controller {
   static targets = ['link']
 
-  // `false` cuando el server pintó el recorte a mano (ver `params:` en with_export): ahí el
-  // href no es una foto de la URL sino una decisión del host.
+  // `false` when the server painted the slice by hand (see `params:` in with_export): there
+  // the href is not a snapshot of the URL but a host decision.
   static values = { sync: { type: Boolean, default: true } }
 
   connect () {
@@ -48,9 +49,9 @@ export default class extends Controller {
   }
 
   sync = () => {
-    // Con `params:` explícito el host ya decidió qué exportar —incluido `{}`, que es el
-    // opt-out de "exportar todo a propósito"—, así que adivinarlo desde la URL se lo deshace
-    // apenas bootea Stimulus, sin que nada lo delate.
+    // With an explicit `params:` the host has already decided what to export —including `{}`,
+    // which is the opt-out for "exporting everything on purpose"—, so guessing it from the URL
+    // undoes that as soon as Stimulus boots, with nothing to give it away.
     if (!this.syncValue) return
 
     const current = new URLSearchParams(window.location.search)
@@ -58,8 +59,8 @@ export default class extends Controller {
     this.linkTargets.forEach((link) => {
       const url = new URL(link.href, window.location.origin)
       const format = url.searchParams.get('format')
-      // Sin `format` el link no es un link de export: no hay nada que preservar y
-      // reescribirlo lo convertiría en una copia de la URL actual.
+      // Without `format` the link is not an export link: there is nothing to preserve and
+      // rewriting it would turn it into a copy of the current URL.
       if (!format) return
 
       link.href = this.mergedHref(url, current, format)
@@ -67,11 +68,11 @@ export default class extends Controller {
   }
 
   /**
-   * El MISMO merge que `ToolbarHref#build_toolbar_href` hace en Ruby: la URL del navegador
-   * pisa la clave entera (como `Hash#merge`, sin intercalar valores de una clave repetida),
-   * pero lo que el host puso en la `url:` y el navegador no trae sobrevive. Reemplazar el
-   * query string de una lo borraba: un `url: exports_path(kind: :movies)` salía sin `kind` y
-   * el export apuntaba a otro set — lo contrario de lo que el server había servido.
+   * The SAME merge `ToolbarHref#build_toolbar_href` does in Ruby: the browser URL overwrites
+   * the whole key (like `Hash#merge`, without interleaving values of a repeated key), but what
+   * the host put in `url:` and the browser does not carry survives. Replacing one's query
+   * string erased it: a `url: exports_path(kind: :movies)` came out without `kind` and the
+   * export pointed at another set — the opposite of what the server had served.
    */
   mergedHref (url, current, format) {
     const merged = new URLSearchParams(url.search)
@@ -80,8 +81,8 @@ export default class extends Controller {
       merged.delete(key)
       current.getAll(key).forEach(value => merged.append(key, value))
     }
-    // Se tiran del resultado MERGEADO, como el `.except` de Ruby: un `page` que venga de la
-    // `url:` del host exporta una página igual que si viniera del navegador.
+    // They are dropped from the MERGED result, like Ruby's `.except`: a `page` coming from
+    // the host's `url:` exports one page just as if it came from the browser.
     TRANSIENT_PARAMS.forEach(key => merged.delete(key))
     merged.set('format', format)
 

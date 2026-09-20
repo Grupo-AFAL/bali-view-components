@@ -1,8 +1,8 @@
-// #1028 — SortableList no tenía spec E2E (16 componentes con JS sin cobertura;
-// este es de los de mayor riesgo: reordenar persiste con un PATCH). Cubre el
-// camino de ratón (SortableJS) y la alternativa de teclado nueva (WCAG 2.1.1):
-// foco en el ítem + ArrowUp/ArrowDown mueven un puesto y persisten igual que
-// un drop.
+// #1028 — SortableList had no E2E spec (16 components with JS had no coverage;
+// this is one of the highest-risk ones: reordering persists with a PATCH). Covers
+// the mouse path (SortableJS) and the new keyboard alternative (WCAG 2.1.1):
+// focus on the item + ArrowUp/ArrowDown move it one place and persist just like
+// a drop.
 describe('SortableList', () => {
   const items = () => cy.get('.sortable-list-component > .sortable-item')
 
@@ -26,7 +26,7 @@ describe('SortableList', () => {
 
       items().eq(0).should('contain.text', 'Item 2')
       items().eq(1).should('contain.text', 'Item 1')
-      // El foco viaja con el ítem: el lector puede seguir moviéndolo.
+      // Focus travels with the item: the user can keep moving it.
       cy.focused().should('contain.text', 'Item 1')
 
       cy.wait('@reorder').its('request.url').should('match', /\/sortable_list/)
@@ -70,19 +70,19 @@ describe('SortableList', () => {
     it('leaves a disabled list inert', () => {
       cy.visit('/bali/sortable_list/default?disabled=true')
       items().should('have.length', 5)
-      // Sin tabindex no hay foco, y sin foco no hay teclado: la lista
-      // deshabilitada queda fuera del orden de tabulación.
+      // No tabindex means no focus, and no focus means no keyboard: the disabled
+      // list stays out of the tab order.
       items().each(($item) => {
         cy.wrap($item).should('not.have.attr', 'tabindex')
       })
     })
   })
 
-  // El camino de RATÓN no tiene test aquí a propósito: en desktop SortableJS
-  // usa el drag nativo de HTML5, y ni la secuencia mousedown/mousemove ni
-  // dragstart/dragover/drop sintéticos (con DataTransfer y DragEvent reales)
-  // lo arrancan bajo Cypress — limitación conocida del drag nativo en tests.
-  // El contrato que persiste el drop (PATCH + evento) queda cubierto E2E por
-  // los tests de teclado, que comparten el mismo onEnd; el arranque del drag
-  // es de SortableJS y lo cubre su propia suite.
+  // The MOUSE path deliberately has no test here: on desktop SortableJS uses the
+  // native HTML5 drag, and neither the mousedown/mousemove sequence nor synthetic
+  // dragstart/dragover/drop (with real DataTransfer and DragEvent) start it under
+  // Cypress — a known limitation of native drag in tests. The contract that
+  // persists the drop (PATCH + event) is covered E2E by the keyboard tests, which
+  // share the same onEnd; starting the drag belongs to SortableJS and its own
+  // suite covers it.
 })

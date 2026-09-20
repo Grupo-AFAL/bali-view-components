@@ -1,8 +1,8 @@
-<%# El caso #984 completo: AppLayout monta `modal drawer` en <main> (default) y el form
-    de la página hardcodea `drawer: true` — el patrón que el uso correcto evita con
-    `drawer: page.drawer?`, pero que un host puede traer hardcodeado. El form manda por
-    GET a este mismo preview, así que el query string de abajo es la prueba de que el
-    submit salió por el camino normal del browser. %>
+<%# The full #984 case: AppLayout mounts `modal drawer` on <main> (the default) and the
+    page's form hardcodes `drawer: true` — the pattern correct usage avoids with
+    `drawer: page.drawer?`, but that a host may bring in hardcoded. The form submits by
+    GET to this same preview, so the query string below is the proof that the submit went
+    out through the browser's normal path. %>
 <%= render Bali::AppLayout::Component.new(modal: true, drawer: true, flash: {}) do |layout| %>
   <% layout.with_body do %>
     <div class="max-w-md space-y-4 p-4">
@@ -11,7 +11,7 @@
       <%= form_with url: request.path, method: :get, builder: Bali::FormBuilder do |f| %>
         <%= hidden_field_tag :probe, "1" %>
         <%= f.text_field :name, value: params[:name] %>
-        <%= f.submit_group "Crear", drawer: true, cancel_path: "#{request.path}?cancelled=1" %>
+        <%= f.submit_group "Create", drawer: true, cancel_path: "#{request.path}?cancelled=1" %>
       <% end %>
 
       <p class="text-sm" data-testid="query">

@@ -91,8 +91,8 @@ export function useContentSync (editor, outputElement, format, ready) {
 
     const commit = (value) => {
       outputElement.value = value
-      // En qué forma quedó escrito, para el host que lo lea antes de mandarlo. Del lado de
-      // Rails la misma pregunta la responde `Bali::BlockEditor.content_format`.
+      // Which form it ended up written in, for the host that reads it before sending it.
+      // On the Rails side `Bali::BlockEditor.content_format` answers the same question.
       outputElement.dataset.contentFormat = shape
       outputElement.dispatchEvent(new Event('input', { bubbles: true }))
     }
