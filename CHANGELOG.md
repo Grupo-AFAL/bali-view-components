@@ -51,6 +51,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `role="group"` + `aria-labelledby` apuntando a sí misma, así que un lector de pantalla anuncia
   las mismas palabras que ve un lector vidente, una sola vez.
 
+  Dos detalles de esa cabecera que se ven sólo midiendo, y que están cubiertos por pruebas:
+
+  - **Su `id` lleva un digest de la llave**, porque el slug solo no es identidad: `"Warner Bros"`
+    y `"Warner Bros."` caen los dos en `warner-bros`, `"Done"` y `"done"` en `done`, y una llave
+    sin caracteres ASCII de palabra cae en la cadena vacía. Un `id` repetido no es sólo HTML
+    inválido: `aria-labelledby` resuelve entonces a la cabecera del OTRO grupo y el segundo se
+    anuncia con el nombre del primero, que es justo la doble denominación que este atributo
+    venía a evitar.
+  - **Las filas llevan `scroll-margin-top` de la altura de la banda.** Una banda sticky pinta
+    encima de lo que pasa por debajo, y el navegador alinea la fila que trae a la vista —por un
+    tabulador, por un enlace profundo— justo con el borde superior del área de scroll, que es
+    donde está la banda. Medido a 1280×900: 29px de una fila de 84, su franja de etiquetas
+    entera, en una de cada tres filas; 0px en el mismo listado sin agrupar.
+
   Escenario `grouped_list` en el preview, y `?grouped=status` en `/split-view` de la dummy, donde
   el infinite scroll es real: 3 draft y 17 done de cinco en cinco, así que la página 1 lleva las
   dos cabeceras y las páginas 2-4 son todas continuación de `done`. Medido en navegador al llegar

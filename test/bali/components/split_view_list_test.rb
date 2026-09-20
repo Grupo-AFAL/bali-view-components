@@ -536,8 +536,54 @@ class BaliSplitViewListComponentTest < ComponentTestCase
   # in an `aria-label`, which a screen reader would announce twice.
   def test_a_group_is_named_by_its_own_heading
     render_groups
-    assert_selector('.split-view-group[role="group"][aria-labelledby="inbox-detail-group-overdue"]')
-    assert_selector("#inbox-detail-group-overdue.split-view-group-header", text: "Overdue")
+
+    group = page.find(".split-view-group[role='group']")
+    assert_equal group.find(".split-view-group-header")[:id], group["aria-labelledby"]
+    assert_match(/\Ainbox-detail-group-overdue-[0-9a-f]{6}\z/, group["aria-labelledby"])
+    assert_selector(".split-view-group-header", text: "Overdue")
+  end
+
+  # `parameterize` is lossy, so the slug alone is not an identity: these two keys
+  # both fold to `warner-bros`, and a duplicate id makes `aria-labelledby` resolve
+  # to the OTHER group's heading — the second group announced under the first
+  # one's name, which is the double-naming the attribute was chosen to avoid.
+  def test_two_keys_that_slug_alike_still_get_different_ids
+    render_groups({}, groups: [
+      { key: "Warner Bros", items: [ { id: 1, title: "A", href: "/a" } ] },
+      { key: "Warner Bros.", items: [ { id: 2, title: "B", href: "/b" } ] }
+    ])
+
+    ids = page.all(".split-view-group-header").map { |header| header[:id] }
+    assert_equal 2, ids.size
+    assert_equal ids.size, ids.uniq.size, "two group keys collapsed to one id: #{ids.inspect}"
+  end
+
+  # A key with no ASCII word characters slugs to the empty string, so every such
+  # group would share one id and none would be named correctly.
+  def test_a_key_with_no_sluggable_characters_still_gets_a_unique_id
+    render_groups({}, groups: [
+      { key: "日本語", items: [ { id: 1, title: "A", href: "/a" } ] },
+      { key: "中文", items: [ { id: 2, title: "B", href: "/b" } ] }
+    ])
+
+    ids = page.all(".split-view-group-header").map { |header| header[:id] }
+    assert_equal ids.size, ids.uniq.size, "unsluggable keys collapsed to one id: #{ids.inspect}"
+    ids.each { |id| assert_match(/\Ainbox-detail-group-[0-9a-f]{6}\z/, id) }
+  end
+
+  # Whatever the id turns out to be, the two places that have to agree do.
+  def test_every_group_is_labelled_by_its_own_header
+    render_groups({}, groups: [
+      { key: "Done", items: [ { id: 1, title: "A", href: "/a" } ] },
+      { key: "done", items: [ { id: 2, title: "B", href: "/b" } ] },
+      { key: "C++", items: [ { id: 3, title: "C", href: "/c" } ] }
+    ])
+
+    groups = page.all(".split-view-group[role='group']")
+    assert_equal 3, groups.size
+    groups.each do |group|
+      assert_equal group.find(".split-view-group-header")[:id], group["aria-labelledby"]
+    end
   end
 
   # A row inside a group is wired exactly like a row outside one: the list

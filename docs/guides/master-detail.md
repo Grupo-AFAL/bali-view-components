@@ -258,6 +258,18 @@ reader still has to be able to tell which run they are in — and names the grou
 through `role="group"` + `aria-labelledby` pointing at itself, so a screen reader
 announces the same words a sighted reader sees, once.
 
+The heading's id is derived from the key and carries a short digest of it, because
+a slug alone is not an identity: `"Warner Bros"` and `"Warner Bros."` both
+parameterize to `warner-bros`, and a key with no ASCII word characters
+parameterizes to nothing at all. Two groups sharing an id is not just invalid HTML
+— `aria-labelledby` then resolves to the other group's heading and the second
+group is announced under the first one's name.
+
+Because the heading is sticky, the rows carry a `scroll-margin-top` the height of
+the band. Without it the browser aligns a row it scrolls into view — for a
+keyboard tab, or a deep link — flush with the top of the scroll area, which is
+exactly where the band is, and the top of that row disappears behind it.
+
 ---
 
 ## The Rails side

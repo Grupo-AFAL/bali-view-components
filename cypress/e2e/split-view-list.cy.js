@@ -409,6 +409,36 @@ describe('SplitView structured list', () => {
       cy.get('@warn').should('have.been.calledWithMatch', /not ordered by its group key/)
     })
 
+    // A sticky band paints over whatever passes under it, and the browser aligns
+    // a row it scrolls into view flush with the top of the scroll area — which is
+    // where the band is. Surfaced by shift-tabbing up the list: the focused row
+    // landed under the heading and lost its whole tag strip and the top of its
+    // focus ring, 29px of 84 (measured at 1280x900; 0px on the same listing
+    // ungrouped). `scrollIntoView` is the same mechanism `scroll-margin-top`
+    // governs, and unlike Tab it is deterministic here.
+    it('keeps a row scrolled into view clear of the sticky heading', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+      scrollToBottom()
+      rows().should('have.length', 15)
+
+      // The NATIVE `scrollIntoView`, called inside the `then` on the element
+      // itself: Cypress's command of the same name computes its own offsets and
+      // does not read `scroll-margin`, so it would scroll past the very thing
+      // this asserts. Row 1 of the group sits well above the fold by now, so
+      // bringing it into view really scrolls.
+      group('done').find('.split-view-item').eq(1).then(($row) => {
+        $row[0].scrollIntoView()
+        const row = $row[0].getBoundingClientRect()
+        const header = Cypress.$('.split-view-group-header')
+          .toArray()
+          .map(h => h.getBoundingClientRect())
+          .find(h => h.bottom > row.top && h.top < row.bottom)
+        const covered = header ? Math.min(row.bottom, header.bottom) - Math.max(row.top, header.top) : 0
+        expect(Math.round(covered), 'pixels of the row hidden behind the heading').to.be.at.most(1)
+      })
+    })
+
     // A row inside a group is wired exactly like a row outside one; which slot it
     // came from is the only difference.
     it('selects a row inside a group like any other', () => {
