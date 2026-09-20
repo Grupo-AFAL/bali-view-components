@@ -166,15 +166,20 @@ Bali extends Rails' `FormBuilder` with DaisyUI-styled inputs:
 
 ```erb
 <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
-  <%= f.text_field_group :name %>
-  <%= f.email_field_group :email %>
+  <%= f.text_group :name %>
+  <%= f.email_group :email %>
   <%= f.slim_select_group :role, User.roles.keys.map { |r| [r.humanize, r] } %>
   <%= f.switch_field :active, color: :primary %>
-  <%= f.date_field_group :birth_date %>
+  <%= f.date_group :birth_date %>
   <%= f.rich_text_area_group :bio %>
   <%= f.submit_group 'Save', variant: :primary %>
 <% end %>
 ```
+
+`<type>_group` renders the control inside its fieldset and `<type>_field` the bare
+control; everything after the attribute is a keyword. The v2 `*_field_group` spellings
+still resolve for one more cycle, warning through `Bali.deprecator`
+(`lib/bali/form_builder/deprecated_names.rb`) — do not write them in new code.
 
 ## Development
 

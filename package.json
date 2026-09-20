@@ -30,7 +30,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "yarn --cwd test/dummy build",
+        "standard": "standard",
+"build": "yarn --cwd test/dummy build",
     "check:manifest": "node scripts/check-controller-manifest.mjs",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",

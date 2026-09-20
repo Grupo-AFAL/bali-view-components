@@ -54,7 +54,7 @@ bin/rails test test/bali/components/button_test.rb -n /variant/
 bin/rails test test/bali/components/button_test.rb:6
 ```
 
-`COVERAGE=1` starts SimpleCov from `spec/dummy/config/boot.rb` (before Bundler, so
+`COVERAGE=1` starts SimpleCov from `test/dummy/config/boot.rb` (before Bundler, so
 coverage tracks the files loaded during boot) and the config enforces
 `minimum_coverage line: 80`. Only the whole suite clears that bar: a single component
 file measures around 14% and the run exits non-zero on the coverage gate alone, with
@@ -260,7 +260,7 @@ Minitest does not exercise the Stimulus controllers. Those are Cypress, rendered
 through the Lookbook previews, and need the dummy server up on port 3001:
 
 ```bash
-cd spec/dummy && bin/dev   # in another terminal
+cd test/dummy && bin/dev   # in another terminal
 yarn run cy:run            # headless
 yarn run cy:open           # interactive
 ```
