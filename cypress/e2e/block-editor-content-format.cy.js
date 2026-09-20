@@ -1,81 +1,81 @@
-// #1091 — el editor persiste en una de dos formas de JSON, y con `format: :json` cual te
-// tocaba no lo decidia el host: BlockNote borra las marcas de comentario de
-// `editor.document`, asi que el editor cambia solo a la forma ProseMirror para no perderlas.
-// El primer usuario que dejaba un comentario reescribia la columna en el otro esquema, y con
-// auto-guardado eso pasaba sin que nadie lo pidiera.
+// #1091 — the editor persists in one of two JSON shapes, and with `format: :json` which one
+// you got was not the host's decision: BlockNote strips the comment marks from
+// `editor.document`, so the editor switches to the ProseMirror shape on its own to keep them.
+// The first user to leave a comment rewrote the column in the other schema, and with
+// auto-save that happened without anyone asking for it.
 //
-// Los tres editores del preview cargan EL MISMO documento —uno que ya trae marcas— y se
-// diferencian solo en `format:`. Se afirma sobre el VALOR del hidden input, que es lo que el
-// host termina guardando; el `data-content-format` de al lado es lo que le ahorra adivinarlo
-// por la estructura.
+// The preview's three editors load THE SAME document —one that already carries marks— and
+// differ only in `format:`. The assertion is on the hidden input's VALUE, which is what the
+// host ends up saving; the `data-content-format` next to it is what saves the host from
+// guessing it from the structure.
 //
-// El editor del DOCUMENTO y no cualquier `.bn-editor`: con comentarios encendidos, cada
-// comentario de la barra lateral monta el suyo, asi que el selector suelto devuelve cuatro.
-// El de primer nivel es el hijo directo del `.bn-container` de `.bn-with-comments`, el mismo
-// alcance que usa block-editor-comments.cy.js.
-const editorDe = seccion =>
-  cy.get(`[data-test="${seccion}"] .bn-with-comments > .bn-container > .bn-editor`)
-const inputDe = seccion =>
-  cy.get(`[data-test="${seccion}"] input[data-block-editor-target="output"]`)
+// The DOCUMENT's editor and not just any `.bn-editor`: with comments on, every sidebar
+// comment mounts its own, so the loose selector returns four. The top-level one is the direct
+// child of the `.bn-container` of `.bn-with-comments`, the same scope
+// block-editor-comments.cy.js uses.
+const editorFor = section =>
+  cy.get(`[data-test="${section}"] .bn-with-comments > .bn-container > .bn-editor`)
+const inputFor = section =>
+  cy.get(`[data-test="${section}"] input[data-block-editor-target="output"]`)
 
-const escribirEn = seccion => {
-  editorDe(seccion).should('exist')
-  editorDe(seccion).find('.bn-block-content').should('have.length.at.least', 1)
-  editorDe(seccion).type('{moveToEnd} listo', { delay: 0 })
+const typeIn = section => {
+  editorFor(section).should('exist')
+  editorFor(section).find('.bn-block-content').should('have.length.at.least', 1)
+  editorFor(section).type('{moveToEnd} done', { delay: 0 })
 }
 
-// Se espera al TEXTO TECLEADO y no a que el input deje de estar vacio: el servidor lo
-// rendea ya con el contenido original, asi que "no vacio" es verdad antes de que el editor
-// haya escrito una sola vez — y en este preview ese contenido original es ProseMirror, con
-// lo que dos de los tres casos pasarian sin haber medido nada. El write esta debounceado
-// 500ms.
-const valorDe = seccion =>
-  inputDe(seccion).should($input => expect($input.val()).to.include('listo'))
+// It waits for the TYPED TEXT and not for the input to stop being empty: the server renders
+// it already holding the original content, so "not empty" is true before the editor has
+// written a single time — and in this preview that original content is ProseMirror, which
+// would make two of the three cases pass without having measured anything. The write is
+// debounced 500ms.
+const valueFor = section =>
+  inputFor(section).should($input => expect($input.val()).to.include('done'))
     .then($input => JSON.parse($input.val()))
 
-describe('BlockEditor: forma del contenido persistido', () => {
+describe('BlockEditor: shape of the persisted content', () => {
   beforeEach(() => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/with_pinned_format')
   })
 
-  it('con :json y marcas de comentario escribe la forma ProseMirror, como siempre', () => {
-    escribirEn('adaptive')
+  it('with :json and comment marks it writes the ProseMirror shape, as always', () => {
+    typeIn('adaptive')
 
-    valorDe('adaptive').should(content => {
-      expect(content.type, 'la raiz').to.equal('doc')
+    valueFor('adaptive').should(content => {
+      expect(content.type, 'the root').to.equal('doc')
     })
-    inputDe('adaptive').should('have.attr', 'data-content-format', 'prosemirror')
+    inputFor('adaptive').should('have.attr', 'data-content-format', 'prosemirror')
   })
 
-  it('con :blocks se queda en el Array de bloques aunque haya marcas', () => {
-    escribirEn('pinned-blocks')
+  it('with :blocks it stays on the Array of blocks even when there are marks', () => {
+    typeIn('pinned-blocks')
 
-    valorDe('pinned-blocks').should(content => {
-      expect(Array.isArray(content), 'la raiz es un Array de bloques').to.equal(true)
+    valueFor('pinned-blocks').should(content => {
+      expect(Array.isArray(content), 'the root is an Array of blocks').to.equal(true)
       expect(content.length).to.be.greaterThan(0)
-      // La forma que el host lee del lado de Rails: props, no attrs.
+      // The shape the host reads on the Rails side: props, not attrs.
       expect(content[0]).to.have.property('props')
     })
-    inputDe('pinned-blocks').should('have.attr', 'data-content-format', 'blocks')
+    inputFor('pinned-blocks').should('have.attr', 'data-content-format', 'blocks')
   })
 
-  it('con :prosemirror escribe la forma ProseMirror aunque no hubiera hecho falta', () => {
-    escribirEn('pinned-prosemirror')
+  it('with :prosemirror it writes the ProseMirror shape even when it was not needed', () => {
+    typeIn('pinned-prosemirror')
 
-    valorDe('pinned-prosemirror').should(content => {
+    valueFor('pinned-prosemirror').should(content => {
       expect(content.type).to.equal('doc')
     })
-    inputDe('pinned-prosemirror').should('have.attr', 'data-content-format', 'prosemirror')
+    inputFor('pinned-prosemirror').should('have.attr', 'data-content-format', 'prosemirror')
   })
 
-  // Perder el anclaje de un hilo es un intercambio que el host puede querer; perderlo en
-  // silencio es lo que este `format:` existe para evitar.
-  it('avisa por consola cuando :blocks descarta una marca de comentario', () => {
+  // Losing a thread's anchor is a trade-off the host may want; losing it silently is what
+  // this `format:` exists to prevent.
+  it('warns on the console when :blocks drops a comment mark', () => {
     cy.window().then(win => cy.spy(win.console, 'warn').as('warn'))
 
-    escribirEn('pinned-blocks')
-    valorDe('pinned-blocks')
+    typeIn('pinned-blocks')
+    valueFor('pinned-blocks')
 
     cy.get('@warn').should('have.been.calledWithMatch', /does not persist comment marks/)
   })
