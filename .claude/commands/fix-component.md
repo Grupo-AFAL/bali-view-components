@@ -139,7 +139,8 @@ c.with_column(class: 'w-1/2') { ... }
 
 After applying fixes:
 
-1. Run `lsp_diagnostics` on changed files
+1. `bundle exec rubocop` on the changed Ruby and `yarn standard` on the changed JS.
+   There is no `lsp_diagnostics` in this setup
 2. Run component tests: `bin/rails test test/bali/components/[name]_test.rb`
 3. Visual check in Lookbook
 

@@ -96,27 +96,22 @@ This tool can help translate design requirements into proper DaisyUI implementat
 | Timeline | `timeline` | `timeline-snap-icon`, `timeline-compact` |
 | Carousel | `carousel` | `carousel-center`, `carousel-end`, `carousel-vertical` |
 
-### Step 3: Visual Verification via Playwright
+### Step 3: Visual Verification in a Browser
 
-Use the Playwright MCP to verify components visually.
+**Browser automation**: use whatever browser tool this session actually has — a
+Playwright MCP, a Chrome integration, or a Playwright script driven from `Bash`.
+**`skill_mcp` is not one of them**: it does not exist in this repo's setup, and an
+instruction that names it leaves the review with no way to open a page. What is not
+negotiable is the verification itself — a real browser against the running Lookbook
+(`cd test/dummy && bin/dev`, then http://localhost:3001/lookbook), with a screenshot
+as evidence. See "Browser Verification (MANDATORY)" in the root `CLAUDE.md`.
 
-**CRITICAL: Playwright MCP Call Format**
+Whatever drives it, the moves are the same: navigate to the preview, snapshot the
+accessibility tree, interact (click, hover, focus) to reach the states a static read
+cannot, and screenshot for evidence.
 
-When calling Playwright via `skill_mcp`, the `arguments` parameter MUST be a JSON STRING, not an object.
+**The moves, by their Playwright MCP names** (another tool will spell them its own way):
 
-```
-# CORRECT - arguments is a JSON string:
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook"}')
-
-skill_mcp(mcp_name="playwright", tool_name="browser_click", arguments='{"element": "button.btn"}')
-
-skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
-
-# WRONG - do NOT pass object literals:
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})  # FAILS
-```
-
-**Available Playwright Tools:**
 - `browser_navigate` - Navigate to URL. Args: `{"url": "..."}`
 - `browser_snapshot` - Take accessibility snapshot. Args: `{}`
 - `browser_click` - Click element. Args: `{"element": "...", "ref": "..."}` (use ref from snapshot)

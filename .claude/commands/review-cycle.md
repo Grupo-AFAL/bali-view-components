@@ -149,8 +149,8 @@ Run comprehensive code review:
    grep -ohE "t\(['\"][^'\"]+['\"]" app/components/bali/[name]/**/*.{rb,erb}
 
    # Check each key exists in both locale files:
-   # - config/locales/view_components.en.yml
-   # - config/locales/view_components.es.yml
+   # - config/locales/bali_view.en.yml
+   # - config/locales/bali_view.es.yml
    ```
 
    **c) Translation key convention:**
@@ -408,8 +408,8 @@ end
 ### Translation Fixes
 
 **Locale files location:**
-- English: `config/locales/view_components.en.yml`
-- Spanish: `config/locales/view_components.es.yml`
+- English: `config/locales/bali_view.en.yml`
+- Spanish: `config/locales/bali_view.es.yml`
 
 **Step 1: Replace hardcoded strings with t() helper**
 
@@ -438,7 +438,7 @@ end
 **Step 2: Add translation keys to BOTH locale files**
 
 ```yaml
-# config/locales/view_components.en.yml
+# config/locales/bali_view.en.yml
 en:
   view_components:
     bali:
@@ -447,7 +447,7 @@ en:
         no_records: No records found
         confirm_message: Are you sure?
 
-# config/locales/view_components.es.yml
+# config/locales/bali_view.es.yml
 es:
   view_components:
     bali:

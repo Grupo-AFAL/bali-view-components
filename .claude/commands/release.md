@@ -679,12 +679,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'yarn'
-          cache-dependency-path: spec/dummy/yarn.lock
-      - run: cd spec/dummy && yarn install
+          cache-dependency-path: test/dummy/yarn.lock
+      - run: cd test/dummy && yarn install
       - run: bin/rails db:schema:load
         env:
           RAILS_ENV: test
-      - run: cd spec/dummy && bin/rails tailwindcss:build && yarn build
+      - run: cd test/dummy && bin/rails tailwindcss:build && yarn build
       - run: bundle exec rails test
 
   notify:

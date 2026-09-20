@@ -8,7 +8,7 @@ This skill provides quick reference for DaisyUI styling in Bali ViewComponents.
 
 ## Full Reference
 
-See `docs/reference/daisyui-mapping.md` for the complete mapping reference.
+See `docs/guides/migration-v2-to-v3.md` for the complete mapping reference.
 
 ## Quick Reference
 
@@ -63,5 +63,5 @@ See `docs/reference/daisyui-mapping.md` for the complete mapping reference.
 ## Full Documentation
 
 For complete mappings and patterns, see:
-- `docs/reference/daisyui-mapping.md`
+- `docs/guides/migration-v2-to-v3.md`
 - `docs/reference/component-patterns.md`

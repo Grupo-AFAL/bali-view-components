@@ -31,7 +31,7 @@ For each component, gather:
 - Component path
 - Has preview.rb
 - Has test file
-- Has SCSS file
+- Has index.css
 - Has Stimulus controller
 
 ### Step 2: DaisyUI Compliance Check
@@ -39,7 +39,7 @@ For each component, gather:
 Check each component for proper DaisyUI class usage:
 
 1. **DaisyUI Classes**:
-   ```ruby
+   ```bash
    # Grep for DaisyUI patterns
    grep -l "btn-primary\|btn-success\|btn-error" component.rb
    grep -l "badge-\|alert-\|card-body" component.rb
@@ -276,7 +276,7 @@ Most components need review for:
 ### Technical Debt
 - 12 components have no test coverage
 - 35 components need accessibility review
-- SCSS files exist for 45 components (should minimize)
+- 34 components carry an index.css (plain CSS; there is no SCSS in this repo)
 
 ---
 
@@ -305,7 +305,7 @@ When `--json` flag is used:
       "has_preview": true,
       "has_test": true,
       "test_count": 46,
-      "has_scss": true,
+      "has_css": true,
       "has_stimulus": false,
       "a11y_status": "compliant",
       "daisyui_classes": ["btn", "btn-primary", "btn-sm"]
