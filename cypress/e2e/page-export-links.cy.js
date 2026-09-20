@@ -1,6 +1,6 @@
-// El ⋯ de acciones secundarias vive en el PageHeader, FUERA del nodo que el turbo_stream de
-// un submit de filtros reemplaza. Que el href quede al día después de filtrar es
-// invisible para Minitest: el HTML servido siempre trae el estado correcto.
+// The secondary-actions ⋯ lives in the PageHeader, OUTSIDE the node that a filter
+// submit's turbo_stream replaces. Whether the href stays up to date after filtering is
+// invisible to Minitest: the served HTML always carries the correct state.
 describe('Page export links', () => {
   const exportLink = '[data-export-links-target="link"]'
   const secondaryActions = '[aria-label="More actions"]'
@@ -19,17 +19,17 @@ describe('Page export links', () => {
       expect(href).to.include('format=csv')
       expect(href).to.include('group_by=genre')
       expect(href).to.include('name_cont')
-      // Exportar la página 2 sola nunca es lo que "exportar" quiere decir.
+      // Exporting page 2 on its own is never what "export" means.
       expect(href).to.not.include('page=')
     })
   })
 
   it('re-syncs the href from the URL, so filtering does not freeze it', () => {
-    // `filters#_submit` empuja la URL nueva al history ANTES de enviar el form, así que
-    // cuando llega el evento la URL ya describe el recorte nuevo. Se despacha sobre
-    // `documentElement` y burbujeando porque es lo que hace Turbo: el controlador escucha
-    // en `document`, y un dispatch sobre `window` no llega ahí — su ruta de propagación es
-    // solo [window].
+    // `filters#_submit` pushes the new URL to the history BEFORE submitting the form, so
+    // by the time the event arrives the URL already describes the new slice. It is
+    // dispatched on `documentElement` and bubbling because that is what Turbo does: the
+    // controller listens on `document`, and a dispatch on `window` never reaches it — its
+    // propagation path is only [window].
     cy.visit('/bali/index_page/complete')
 
     cy.get(secondaryActions).click()
@@ -51,10 +51,10 @@ describe('Page export links', () => {
   })
 
   it('follows a real filter submit that answers with a turbo_stream', () => {
-    // EL caso para el que existe el controlador, y el único que el evento sintético de
-    // arriba no prueba: la respuesta es un turbo_stream que reemplaza solo el listado, así
-    // que no hay visita, `turbo:load` NO se dispara y el ⋯ tampoco se reconecta. Va contra
-    // la app dummy porque los previews de Lookbook no tienen controller que responda
+    // THE case the controller exists for, and the only one the synthetic event above does
+    // not test: the response is a turbo_stream that replaces only the listing, so there is
+    // no visit, `turbo:load` does NOT fire and the ⋯ does not reconnect either. It runs
+    // against the dummy app because Lookbook previews have no controller that answers
     // `turbo_stream`.
     cy.visit(`${appOrigin}/admin/movies`)
 
@@ -72,8 +72,8 @@ describe('Page export links', () => {
   })
 
   it('opts the download out of Turbo Drive', () => {
-    // Un CSV no es una respuesta que Turbo Drive pueda renderizar: la visita se queda a
-    // mitad de camino en vez de disparar la descarga.
+    // A CSV is not a response Turbo Drive can render: the visit stalls halfway instead of
+    // triggering the download.
     cy.visit('/bali/index_page/complete')
 
     cy.get(secondaryActions).click()
