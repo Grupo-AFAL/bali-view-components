@@ -3,30 +3,31 @@
 module Bali
   module Dropdown
     module Title
-      # Encabezado de sección de un menú: es lo que deja AGRUPAR items bajo un nombre sin
-      # abrir un submenú. El column selector y las vistas guardadas ya pintaban un
-      # `menu-title` a mano; esto es el primitivo que les faltaba.
+      # A menu section heading: it is what lets items be GROUPED under a name without
+      # opening a submenu.
       #
-      # Span y no `<li>`: el template del Dropdown ya envuelve cada item en `<li role="none">`.
+      # A span and not an `<li>`: the Dropdown template already wraps every item in
+      # `<li role="none">`.
       class Component < ApplicationViewComponent
-        # `role="presentation"`: dentro de un `<ul role="menu">` un span genérico es un hijo
-        # que ese rol no admite (solo menuitem/group/separator), y el lector de pantalla en
-        # modo menú lo saltea igual. Marcado como presentacional deja de ser un hijo inválido,
-        # y el texto sigue disponible para el `aria-describedby` con el que los items de la
-        # sección se lo apropian (ver PageComponents::Shared#export_menu_items).
+        # `role="presentation"`: inside a `<ul role="menu">` a generic span is a child that
+        # role does not allow (only menuitem/group/separator), and the screen reader in menu
+        # mode skips it anyway. Marked as presentational it stops being an invalid child, and
+        # the text stays available for the `aria-describedby` through which the section's
+        # items claim it (see PageComponents::Shared#export_menu_items).
         def initialize(name: nil, **options)
           @name = name
           @options = prepend_class_name(options, "menu-title").reverse_merge(role: "presentation")
         end
 
-        # El Dropdown filtra sus items por este predicado antes de pintarlos (ver
-        # Dropdown::Component#render? y su template): un encabezado no tiene permisos.
+        # The Dropdown filters its items by this predicate before rendering them (see
+        # Dropdown::Component#render? and its template): a heading has no permissions.
         def authorized?
           true
         end
 
-        # Un menú de puros encabezados no es un menú — el que decide si el Dropdown pinta es
-        # `render?`, y sin esta marca un título solo alcanzaba para destapar un menú vacío.
+        # A menu of headings alone is not a menu — what decides whether the Dropdown renders
+        # is `render?`, and without this marker a title on its own was enough to open an
+        # empty menu.
         def menu_title?
           true
         end

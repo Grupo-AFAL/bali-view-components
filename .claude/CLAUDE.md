@@ -21,7 +21,7 @@ Three project skills load on demand: `lookbook-previews` (writing/editing previe
 
 ## Development Commands
 
-The Lookbook preview server is not a plain `rails s` — start it with `cd spec/dummy && bin/dev`
+The Lookbook preview server is not a plain `rails s` — start it with `cd test/dummy && bin/dev`
 and open http://localhost:3001/lookbook. Cypress needs that server already running.
 
 Bulk component review: `./scripts/batch-review.sh` (read the script for its flags).
@@ -76,6 +76,66 @@ not — run `yarn run cy:run` yourself when you touch JS, and confirm the Lookbo
 `Closes` / `Fixes` / `Resolves`. «Cierra #NNN» reads fine and closes nothing. The rest of the body
 stays in Spanish. Enforced by `.claude/hooks/pr-closes-keyword.sh` (PreToolUse).
 
+## Comments, and the language everything is written in
+
+**Everything in the repo is written in English** — code, identifiers, tests, comments, and the
+copy inside Lookbook previews. Spanish stays in the prose written for the team: the CHANGELOG,
+the commit message and the PR body.
+
+Sample data is content, not code: a preview seeding `Ana García López` or `Priorización` is
+showing a Mexican app what it will look like, and that name is the input to an initials test.
+`config/locales/bali_view.es.yml` is content too, and so is
+`app/services/rrule/spanish_humanizer.rb`, whose output *is* Spanish. What has to be English is
+what a reader of the source reads: identifiers, comments and test names — Cypress
+`describe`/`it` included, where 32 of the 37 Spanish ones live.
+
+**Never add Spanish. Translate what is there as you touch it.** `bundle exec rubocop` is what
+enforces it now: `Bali/EnglishOnly`, from the fleet's `bali-rubocop` gem, reads comments and test
+names — accented Spanish and accent-free Spanish alike — and today's debt is frozen in
+`.rubocop_todo.yml`, 142 files and 938 findings. Anything outside that list is already red, so a
+new or moved file is born in English. Adding Spanish is a review blocker; translating the old is
+opportunistic, never a sweep of its own.
+
+**When you translate a file, delete its line from `.rubocop_todo.yml`.** Never regenerate the
+file to make a run go green, and never add a line to it: the list only shrinks. An entry for a
+file that no longer exists, or one already translated, costs nothing and fails nothing — that is
+deliberate, so two translation PRs never break each other on merge.
+
+Three pockets the cop cannot reach, all on review: the `<%# %>` comments of the 610 `.erb`
+templates and the `describe`/`it` of the Cypress specs (rubocop only parses Ruby), and the ten
+`preview.rb` that `AllCops` excludes wholesale.
+
+Its one false positive is an English test name quoting Spanish UI — `test "renders the
+Configuración entry"`, 1 in 938 here. Put the term in `AllowedWords` under
+`inherit_mode: { merge: [AllowedWords] }`, or disable that line; do not translate the UI string
+to satisfy the cop.
+
+**A comment has to carry what the code cannot.** One of these:
+
+- a **measurement** — a contrast ratio, a byte count, a benchmark. The number is not recoverable
+  by reading the line.
+- a **constraint invisible from here** — a selector daisyUI emits, a Zeitwerk behaviour, an
+  ordering that some other file depends on.
+- **why the obvious thing is wrong**, where the next person would otherwise undo the line in
+  good faith.
+
+Everything else is noise: narrating the change (the diff already says it), recounting the
+investigation or what you decided *not* to do (that belongs in the PR body), restating in prose
+the declaration written underneath. The headers of the unlayered CSS files are the shape to
+copy — the rule they have to beat and the measurement that put them there, and nothing else.
+
+Three kinds are not prose and are not optional: `@param` and `@label` in a `preview.rb` (Lookbook
+builds the preview's controls from them), YARD on a public API, and the pragmas
+(`frozen_string_literal`, `rubocop:disable`).
+
+The CHANGELOG is held to the same bar: what changed, who it affects, what they have to do about
+it. The evidence behind it lives in the PR.
+
+**Calibration.** #1165 changed three lines of CSS and four dependency versions, and carried ~40
+lines of comment plus a 66-line CHANGELOG entry. Two sentences earned their place: the daisyUI
+5.7.42 selector that broke the premise written at the top of that file, and the measured contrast
+it cost (6.98 → 1.06, AA wants 4.5). Aim for those two.
+
 ## Which CSS layer a rule belongs in
 
 Since v3 the package's CSS sits in three deliberate positions. Put a new rule in the wrong
@@ -84,7 +144,7 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 | Position | What goes there | Why |
 |---|---|---|
 | `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so a real theme *in that layer* wins. They are fallbacks, not overrides. |
-| `@layer components` | Bali's own look — nearly every `index.css` and global sheet | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. |
+| `@layer components` | Bali's own look — nearly every `index.css` and global sheet, and any default the caller is meant to be able to override | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. Written on the template instead, that same default stays in `@layer utilities` and the caller needs `!` — see below. |
 | unlayered | Only rules whose job is to outrank daisyUI (or Tailwind itself) | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
@@ -111,6 +171,25 @@ template beats anything in `@layer components`, so the moment Bali's own CSS dec
 `:hover`, an `.is-active` or a density variant for that property, the default has to move into
 the sheet next to it or the variant is dead. `command/index.css` carries the worked example.
 
+**A default the host must be able to beat goes in the sheet, not in the template's `class`.**
+Two utilities for the same property both land in `@layer utilities` at the same specificity,
+and inside one layer only emission order breaks the tie — not authorship, and not who wrote
+theirs last. Tailwind emits each family ascending by value, 0 first (`.ml-0` sits immediately
+before `.ml-1` in the compiled sheet), so a `pb-6` written on a Bali template always sorted
+after a host's `pb-0` and always won; the host's only escape was `pb-0!`, and whether their
+value won at all depended on which number it was. Declared in the component's `index.css` the
+same default sits in `@layer components`, which every host utility beats outright — at any
+value and with no `!`. `reveal/index.css` is the worked example: the trigger's `pb-6 mb-6`,
+the content's `mb-8` and the chevron's `h-3.5`, all three defaults a caller has a hook for
+(#1148). The give-away is a constant that concatenates Bali's value with the caller's own
+option for the same property.
+
+This is the opposite reading of the same measurement as `pagination_footer/component.rb:31-45`,
+which writes its spacing as named variant constants precisely because the pair resolves by
+stylesheet order — the note there is right about the mechanism and settles it inline. Reveal is
+the only component migrated so far; the pattern is dominant in the library (~19 `*_CLASSES`
+constants) and a sweep is debt with its own issue, not something to do in passing.
+
 Careful with `!important` in an unlayered file: it is the *weakest* important in the author
 origin, so a host escapes it with `lg:!hidden`. Move that same rule into a layer and it
 becomes nearly unbeatable — the opposite of what you usually want.
@@ -119,7 +198,7 @@ becomes nearly unbeatable — the opposite of what you usually want.
 After editing component CSS files, rebuild with: `bundle exec rails app:tailwindcss:build`
 (`rails tailwindcss:build` is the app's own task and does not exist here — the engine
 namespaces it under `app:`.)
-Compiled output: `spec/dummy/app/assets/builds/tailwind.css`
+Compiled output: `test/dummy/app/assets/builds/tailwind.css`
 
 ## DaisyUI Tooltip Mobile Gotcha
 
@@ -241,6 +320,24 @@ app actually used them, warning through `Bali.deprecator` — see
 control on the families that render one, and is dropped by the ones whose control is a
 widget over a hidden field. `test/bali/form_builder/required_option_test.rb` names which
 is which, and fails if a new family lands in neither list.
+
+Four class options, four destinations, and nothing to invent: `class:` lands on the
+`<fieldset>` **and** the control — both halves are load-bearing in host apps, so it is
+not to be narrowed — `field_class:` on the `<fieldset>`, `control_class:` on the box
+around the control, `input_class:` on the control itself (and `html: { class: }` is the
+older spelling of that last one in the four families with two hashes). The box is the
+`.control` div, or the `.join` when an addon replaces it.
+
+Which one a property wants is measured, not a matter of taste: inherited properties come
+down from the box, so `control_class:` is enough; width belongs to the box too, because
+every control is `w-full` — but as a `max-w-*`, since a bare `w-32` loses to that
+`w-full` on the same element; and anything the control paints for itself (background,
+border, radius) is hidden behind the control if you put it on the box, so it needs
+`input_class:` (#1147).
+
+`test/bali/form_builder/control_class_option_test.rb` and
+`input_class_option_test.rb` are the authoritative lists — each declares every family in
+one of its two camps and fails if a new family lands in neither.
 
 ## Icons
 

@@ -5,7 +5,7 @@ namespace :docs do
   task yard: :environment do
     puts "Generating YARD documentation..."
     system("bundle exec yard doc")
-    puts "Documentation generated at spec/dummy/public/api-docs/index.html"
+    puts "Documentation generated at test/dummy/public/api-docs/index.html"
   end
 
   desc "Start YARD documentation server"

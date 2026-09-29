@@ -496,10 +496,9 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
   end
 end
 
-# #1098 — `format:` fija la forma persistida (#1091), pero hasta ahora solo si el host
-# montaba el BlockEditor directo: este wrapper ni lo aceptaba ni lo reenviaba, así que la
-# pantalla que más lo necesita —comentarios encendidos y auto-guardado— se quedaba con el
-# `:json` adaptativo.
+# #1098 — `format:` fixes the persisted shape (#1091), but until now only if the host mounted the
+# BlockEditor directly: this wrapper neither accepted it nor forwarded it, so the screen that needs
+# it most —comments on and autosaving— was left with the adaptive `:json`.
 class BaliDocumentEditorFormatTest < ComponentTestCase
   def test_an_explicit_format_reaches_the_inner_block_editor
     render_editor(format: :blocks)
@@ -513,9 +512,9 @@ class BaliDocumentEditorFormatTest < ComponentTestCase
     assert_selector("[data-block-editor-format-value='json']", visible: :all)
   end
 
-  # `:json` cambia SOLO a ProseMirror en cuanto alguien deja un comentario, y con
-  # auto-guardado esa reescritura de esquema llega a la columna sin que nadie la pida.
-  # Fijarla es escribir desde el primer guardado lo que el adaptativo iba a escribir igual.
+  # `:json` switches to ProseMirror the moment ANYBODY leaves a comment, and with autosaving that
+  # schema rewrite reaches the column without anyone asking for it. Pinning it means writing from the
+  # first save what the adaptive one was going to write anyway.
   def test_with_comments_on_the_default_pins_prosemirror
     render_editor(config: { comments: true })
 
@@ -528,15 +527,15 @@ class BaliDocumentEditorFormatTest < ComponentTestCase
     assert_selector("[data-block-editor-format-value='prosemirror']", visible: :all)
   end
 
-  # El host que quiere el adaptativo lo pide y se lo lleva: el explícito gana sobre el
-  # default opinado, incluso cuando coincide con el valor que el default reemplazaría.
+  # The host that wants the adaptive one asks for it and gets it: the explicit value beats the
+  # opinionated default, even when it matches the value the default would have replaced.
   def test_an_explicit_json_wins_over_the_opinionated_default
     render_editor(format: :json, config: { comments: true })
 
     assert_selector("[data-block-editor-format-value='json']", visible: :all)
   end
 
-  # La validación es una sola y vive en BlockEditor: el wrapper no la copia.
+  # There is one validation and it lives in BlockEditor: the wrapper does not copy it.
   def test_an_unknown_format_still_raises_through_the_inner_component
     error = assert_raises(ArgumentError) { render_editor(format: :prose) }
 

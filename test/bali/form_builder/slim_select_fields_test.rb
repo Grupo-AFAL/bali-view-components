@@ -324,8 +324,8 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-ajax-text-name-value="name"]')
   end
 
-  # #1084: lo que la búsqueda remota manda además del término. Los dos viajan como JSON en
-  # el data attribute porque el value de Stimulus es un Object.
+  # #1084: what the remote search sends besides the term. Both travel as JSON in the data attribute
+  # because Stimulus' value is an Object.
   def test_slim_select_field_ajax_extra_params_travel_as_json
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_url: "/api/search",
@@ -344,8 +344,8 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
                 'div[data-slim-select-ajax-param-selectors-value=\'{"type":"#assignable_type"}\']')
   end
 
-  # Un data attribute con "null" adentro no es lo mismo que no tener el attribute: el
-  # value de Stimulus lo parsearía y el default `{}` no aplicaría.
+  # A data attribute with "null" inside is not the same as not having the attribute: Stimulus' value
+  # would parse it and the `{}` default would not apply.
   def test_slim_select_field_omits_the_extra_ajax_params_when_not_provided
     result = builder.slim_select_field(:status, Movie.statuses.to_a, ajax_url: "/api/search")
 

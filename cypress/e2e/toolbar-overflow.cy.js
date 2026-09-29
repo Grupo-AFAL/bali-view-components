@@ -1,10 +1,10 @@
-// El movimiento de nodos solo es observable en un navegador: Minitest ve el HTML servido,
-// que es siempre el layout expandido.
+// Node movement is only observable in a browser: Minitest sees the served HTML, which is
+// always the expanded layout.
 //
-// 1440 y no 1280 como viewport "ancho": el colapso ya no lo decide el breakpoint sino cuánto
-// ancho NECESITA la fila (medido ~1180px en este preview), y a 1280 el margen quedaba en
-// ~70px — menos de lo que puede moverse el mismo texto renderizado con otras fuentes en CI.
-// Un ancho holgado prueba lo que la prueba quiere probar: expandido es expandido.
+// 1440 and not 1280 as the "wide" viewport: the collapse is no longer decided by the breakpoint
+// but by how much width the row NEEDS (measured ~1180px in this preview), and at 1280 the margin
+// was down to ~70px — less than the same text can shift when rendered with other fonts in CI.
+// A roomy width tests what the test means to test: expanded is expanded.
 describe('DataTable toolbar overflow', () => {
   const menu = '[data-toolbar-overflow-target="menu"]'
   const overflow = '[data-toolbar-overflow-target="overflow"]'
@@ -28,12 +28,12 @@ describe('DataTable toolbar overflow', () => {
 
     cy.get(`${menu} ${columnsItem}`).should('have.length', 1)
     cy.get(`${menu} ${groupByItem}`).should('have.length', 1)
-    // MOVIDO, no duplicado: dos column selectors serían dos controladores sobre una tabla.
+    // MOVED, not duplicated: two column selectors would be two controllers over one table.
     cy.get(columnsItem).should('have.length', 1)
     cy.get('[data-controller~="column-selector"]').should('have.length', 1)
     cy.get(overflow).should('not.have.class', 'hidden')
 
-    // Búsqueda/filtros y el view switch se quedan en la fila: el switch se ENCOGE.
+    // Search/filters and the view switch stay in the row: the switch SHRINKS.
     cy.get(`${menu} ${filtersItem}`).should('not.exist')
     cy.get(`${menu} ${viewSwitchItem}`).should('not.exist')
 
@@ -46,9 +46,9 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('restores the toolbar ordered by priority after a round trip', () => {
-    // `expand()` reordena en vez de recordar la posición original: eso es lo que hace al
-    // controlador stateless frente a un reconnect de Turbo. Es también la única prueba real
-    // del orden de la fila: el HTML servido se ve bien aunque el navegador lo reordene mal.
+    // `expand()` reorders instead of remembering the original position: that is what makes the
+    // controller stateless across a Turbo reconnect. It is also the only real test of the row's
+    // order: the served HTML looks right even when the browser reorders it wrong.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
     cy.viewport(1440, 800)
@@ -59,15 +59,15 @@ describe('DataTable toolbar overflow', () => {
         expect(priorities).to.deep.equal([...priorities].sort((a, b) => b - a))
       })
 
-    // Búsqueda/filtros · agrupar · columnas
+    // Search/filters · group by · columns
     sortedDescending(leftGroup)
-    // Vistas guardadas · marcador de persistencia
+    // Saved views · persistence marker
     sortedDescending(memoryGroup)
   })
 
   it('hides the separator when the overflow empties one of its sides, and brings it back', () => {
-    // La barrita AFIRMA algo sobre sus vecinos: con el grupo de memoria adentro del ⋯ queda
-    // marcando una frontera contra nada.
+    // The separator ASSERTS something about its neighbors: with the memory group inside the ⋯ it
+    // is left marking a boundary against nothing.
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
@@ -85,8 +85,8 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('never moves the separator into the ⋯', () => {
-    // No es un `item`: `collapsibleItems` no la puede ver, así que no puede viajar al menú
-    // ni duplicarse.
+    // Not an `item`: `collapsibleItems` cannot see it, so it can neither travel into the menu
+    // nor be duplicated.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
 
@@ -95,12 +95,12 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('keeps the column selector working after being moved', () => {
-    // La prueba real de que `connect()` es idempotente: moverlo dispara disconnect+connect.
+    // The real test that `connect()` is idempotent: moving it fires disconnect+connect.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
 
-    // Hijo directo: adentro del ⋯ hay más triggers con role="button" (los controles que
-    // acaban de mudarse ahí).
+    // Direct child: inside the ⋯ there are more triggers with role="button" (the controls that
+    // have just moved there).
     cy.get(`${overflow} > .dropdown > [role="button"]`).click()
     cy.get(`${menu} [data-controller~="column-selector"] input[data-column-index="2"]`)
       .uncheck({ force: true })
@@ -109,14 +109,14 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('closes an open dropdown before folding it into the ⋯', () => {
-    // `.dropdown-open` SOBREVIVE al movimiento: sin cerrarlo antes, el control aterriza
-    // abierto dentro del menú. Solo se llega por teclado — los demás dropdowns de la
-    // toolbar abren por :focus-within de daisyUI y no marcan la clase.
+    // `.dropdown-open` SURVIVES the move: without closing it first, the control lands open
+    // inside the menu. It is only reachable by keyboard — the other toolbar dropdowns open
+    // through daisyUI's :focus-within and never set the class.
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
-    // `force`: daisyUI le pone pointer-events:none al trigger de un dropdown abierto (el
-    // :focus-within ya lo abrió), y un keydown no necesita accionabilidad de mouse.
+    // `force`: daisyUI sets pointer-events:none on the trigger of an open dropdown (:focus-within
+    // already opened it), and a keydown does not need mouse actionability.
     cy.get(`${groupByItem} [data-dropdown-target="trigger"]`)
       .focus()
       .trigger('keydown', { key: 'ArrowDown', force: true })
@@ -129,9 +129,9 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('keeps keyboard focus on the toolbar when the breakpoint is crossed', () => {
-    // Un zoom al 400% deja el viewport en 320px CSS: cruzar el umbral no puede costarle al
-    // usuario de teclado su posición. `closeOpenDropdowns` hace blur y el colapso mueve el
-    // nodo, así que sin restaurar el foco cae al <body>.
+    // A 400% zoom leaves the viewport at 320px CSS: crossing the threshold cannot cost a keyboard
+    // user their position. `closeOpenDropdowns` blurs and the collapse moves the node, so without
+    // restoring focus it falls to <body>.
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
@@ -143,15 +143,16 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('keeps keyboard focus when the breakpoint is crossed the OTHER way', () => {
-    // El espejo del caso de arriba, y el que faltaba: angosto, el ⋯ es la única forma de
-    // llegar a lo colapsado, así que ahí es donde está parado el usuario. Al ensanchar el ⋯
-    // se esconde — y no es un `item`, así que no entraba en la restauración de foco.
+    // The mirror of the case above, and the one that was missing: when narrow, the ⋯ is the only
+    // way to reach what collapsed, so that is where the user is standing. On widening, the ⋯
+    // hides — and it is not an `item`, so it was not covered by the focus restoration.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
 
-    // El ⋯ ES un dropdown Y CONTIENE dropdowns: angosto, el overflow le mete adentro Columnas
-    // y Vistas, que traen su propio trigger. El descendiente pelado matcheaba los tres y
-    // `cy.focus()` no acepta más de un elemento. El del ⋯ es el que NO vive dentro del menú.
+    // The ⋯ IS a dropdown AND CONTAINS dropdowns: when narrow, the overflow puts Columns and
+    // Views inside it, and those bring their own trigger. The bare descendant matched all three
+    // and `cy.focus()` does not accept more than one element. The ⋯'s own is the one that does
+    // NOT live inside the menu.
     cy.get(`${overflow} [data-dropdown-target="trigger"]`)
       .not(`${menu} [data-dropdown-target="trigger"]`)
       .focus()
@@ -161,7 +162,7 @@ describe('DataTable toolbar overflow', () => {
 
     cy.get(overflow).should('have.class', 'hidden')
     cy.document().its('activeElement.tagName').should('not.equal', 'BODY')
-    // Aterriza en un control de la fila, no en cualquier lado del documento.
+    // It lands on a control of the row, not just anywhere in the document.
     cy.focused().closest('[data-toolbar-overflow-target="item"]').should('have.length', 1)
   })
 
@@ -174,14 +175,14 @@ describe('DataTable toolbar overflow', () => {
   })
 })
 
-// La válvula del ⋯ se evaluaba SOLO al montar y al cambiar el ancho del contenedor, y ninguno
-// de los dos cubre el caso real: los controles crecen DESPUÉS del primer layout. SlimSelect
-// reemplaza su `<select>` por un widget más ancho, flatpickr monta el suyo, una fuente termina
-// de cargar — y la fila se desborda sin que nada vuelva a medir.
+// The ⋯ valve was evaluated ONLY on mount and when the container width changed, and neither of
+// the two covers the real case: the controls grow AFTER the first layout. SlimSelect replaces
+// its `<select>` with a wider widget, flatpickr mounts its own, a font finishes loading — and
+// the row overflows without anything measuring again.
 //
-// No se puede provocar con `cy.viewport()`: eso cambia el ancho disponible, que es justo la
-// señal que el controlador ya escuchaba. Lo que se ensancha acá es un CONTROL, con el viewport
-// quieto — la misma forma que tiene el caso real.
+// It cannot be provoked with `cy.viewport()`: that changes the available width, which is exactly
+// the signal the controller already listened to. What widens here is a CONTROL, with the viewport
+// still — the same shape the real case has.
 describe('DataTable toolbar overflow when a control grows after mount', () => {
   const menu = '[data-toolbar-overflow-target="menu"]'
   const overflow = '[data-toolbar-overflow-target="overflow"]'
@@ -191,11 +192,10 @@ describe('DataTable toolbar overflow when a control grows after mount', () => {
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
-    // Punto de partida: la fila entra entera y el ⋯ está guardado.
     cy.get(overflow).should('have.class', 'hidden')
     cy.get(menu).children().should('have.length', 0)
 
-    // Un control se ensancha por su cuenta, como haría SlimSelect al montarse.
+    // A control widens on its own, the way SlimSelect would when it mounts.
     cy.get(filtersItem).then(($item) => {
       $item[0].style.minWidth = `${$item[0].getBoundingClientRect().width + 600}px`
     })
@@ -203,7 +203,7 @@ describe('DataTable toolbar overflow when a control grows after mount', () => {
     cy.get(overflow).should('not.have.class', 'hidden')
     cy.get(menu).children().should('have.length.greaterThan', 0)
 
-    // Y vuelve solo cuando el control recupera su tamaño.
+    // And it reverts on its own once the control recovers its size.
     cy.get(filtersItem).then(($item) => { $item[0].style.minWidth = '' })
 
     cy.get(overflow).should('have.class', 'hidden')

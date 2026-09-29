@@ -1,0 +1,37 @@
+<%# Explicit `url:`: the resource lives under `admin`, and a bare `form_with model:` derives
+    `studios_path`, which no longer exists.
+
+    `data: { turbo: true }` is what makes a 200 with `text/vnd.turbo-stream.html` be applied
+    instead of navigating: without it the drawer leaves with the page instead of closing. %>
+<%= form_with model: studio,
+               url: studio.persisted? ? admin_studio_path(studio) : admin_studios_path,
+               class: 'space-y-4', builder: Bali::FormBuilder,
+               data: { turbo: true } do |f| %>
+  <%= f.error_summary %>
+
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
+    <%= f.text_group :name, required: true %>
+    <%= f.select_group :country,
+          Studio::COUNTRIES.map { |c| [c, c] },
+          include_blank: t('studios.form.select_country') %>
+    <%= f.select_group :status,
+          Studio.statuses.keys.map { |s| [s.humanize, s] },
+          include_blank: t('studios.form.select_status') %>
+    <%= f.select_group :size,
+          Studio::SIZES.map { |s| [s.humanize, s] },
+          include_blank: t('studios.form.select_size') %>
+    <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
+  <% end %>
+
+  <%# Through `submit_group` and not a hand-rolled row of buttons: the helper is what wires
+      `drawer#submit` on the submit and `drawer#close` on the Cancel when the form is being
+      painted inside the drawer, and what resolves the Cancel to a link or to a button
+      depending on whether there is a `cancel_path`. The context arrives from the component,
+      not from `params` — the view passes `drawer: page.drawer?`. %>
+  <%= f.submit_group(
+    studio.persisted? ? t('studios.form.update') : t('studios.form.create'),
+    cancel_path: local_assigns.fetch(:drawer, false) ? nil : (studio.persisted? ? admin_studio_path(studio) : admin_studios_path),
+    drawer: local_assigns.fetch(:drawer, false),
+    variant: :primary
+  ) %>
+<% end %>

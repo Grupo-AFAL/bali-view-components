@@ -106,6 +106,15 @@ The component's own invariants go **before** the splat where the host must not
 override them, and derived defaults go where the host may (see the worked example on
 `DataTable#bulk_actions`, `app/components/bali/data_table/component.rb`).
 
+`**options` lands on the component's **root** element, and `id:` is no exception — it is
+just that the root is not always the element the option seems to name. `Bali::Table`
+renders a `<div class="table-component">` around its `<table>`, so the id goes on the
+`<div>` and is extracted from `options` in `initialize` (the one key that does not reach
+the `<table>`; see `container_id`). `Bali::PropertiesTable` renders the `<table>` as its
+root, so there the id goes on the `<table>`. A component that wraps its payload should
+extract `:id` the same way rather than spill it onto both elements — two nodes with one id
+is invalid HTML and `getElementById` returns only the first (#1157).
+
 ## Slots
 
 ```ruby

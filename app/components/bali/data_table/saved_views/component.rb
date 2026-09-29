@@ -3,24 +3,24 @@
 module Bali
   module DataTable
     module SavedViews
-      # Dropdown "Vistas" del DataTable (B2): aplicar, guardar la actual, renombrar y borrar
-      # combinaciones de filtros con nombre. El storage NO vive aquí: el FilterForm trae un
-      # `saved_views_store` (solo lectura) y las mutaciones se POSTean a la URL de la app
-      # (`url:`) — create en `url`, update/delete en `url/:id` (rutas RESTful de la app).
+      # DataTable "Views" dropdown (B2): apply, save the current one, rename and delete named
+      # filter combinations. The storage does NOT live here: the FilterForm brings a
+      # `saved_views_store` (read only) and mutations are POSTed to the app's URL (`url:`) —
+      # create at `url`, update/delete at `url/:id` (the app's RESTful routes).
       #
-      # `default_views:` son atajos ESTÁTICOS (no persistidos) que la app define — pares
-      # {name:, url:} listos para navegar; se pintan en su propia sección "Sugeridas".
+      # `default_views:` are STATIC shortcuts (not persisted) that the app defines — {name:,
+      # url:} pairs ready to navigate to; they are painted in their own "Suggested" section.
       class Component < ApplicationViewComponent
         include Bali::DataTable::ListingIdentity
 
         DefaultView = Struct.new(:name, :url, keyword_init: true)
 
-        # @param filter_form [Bali::FilterForm] con saved_views_store configurado
-        # @param url [String] base RESTful de la app para crear/renombrar/borrar vistas
-        # @param base_url [String] URL del listado donde se aplican (?saved_view=<id>)
-        # @param listing_id [String] identidad del listado (para capturar las columnas
-        #   visibles del selector al guardar; ver Bali::DataTable::ListingIdentity)
-        # @param default_views [Array<Hash>] atajos estáticos {name:, url:}
+        # @param filter_form [Bali::FilterForm] with saved_views_store configured
+        # @param url [String] the app's RESTful base for creating/renaming/deleting views
+        # @param base_url [String] URL of the listing where they are applied (?saved_view=<id>)
+        # @param listing_id [String] listing identity (to capture the selector's visible
+        #   columns when saving; see Bali::DataTable::ListingIdentity)
+        # @param default_views [Array<Hash>] static shortcuts {name:, url:}
         def initialize(filter_form:, url:, base_url:, listing_id: nil, default_views: nil)
           @filter_form = filter_form
           @url = url
@@ -31,9 +31,9 @@ module Bali
 
         attr_reader :filter_form, :url, :listing_id, :default_views
 
-        # Sin URL no hay mutaciones posibles (pasa cuando el slot no recibió `url:` y el
-        # form no tiene storage_id para armar la default del engine): no pintar nada gana
-        # sobre pintar forms rotos.
+        # With no URL no mutation is possible (happens when the slot did not receive `url:`
+        # and the form has no storage_id to build the engine's default): painting nothing beats
+        # painting broken forms.
         def render?
           filter_form&.saved_views_enabled? && url.present?
         end
@@ -46,10 +46,10 @@ module Bali
           filter_form.current_saved_view
         end
 
-        # La vista ACTIVA que se señala en el dropdown y da nombre al botón. Prioridad:
-        # la aplicada por URL (?saved_view=), luego la personal cuyo payload coincide con el
-        # estado actual del form (sobrevive a la persistencia, que reescribe la URL limpia),
-        # y al final el atajo estático cuya query coincide. Una sola gana: sin doble marca.
+        # The ACTIVE view marked in the dropdown, which also names the button. Priority: the
+        # one applied by URL (?saved_view=), then the personal one whose payload matches the
+        # form's current state (it survives persistence, which rewrites the URL clean), and
+        # last the static shortcut whose query matches. Only one wins: no double marking.
         def active_view
           return @active_view if defined?(@active_view)
 
@@ -58,7 +58,6 @@ module Bali
                          default_views.find { |view| default_view_active?(view) }
         end
 
-        # El botón nombra la vista ACTIVA; sin ninguna aplicada, el label genérico.
         def button_label
           active_view ? active_view.name : t(".button_label")
         end
@@ -69,64 +68,65 @@ module Bali
              active_view&.id == view.id)
         end
 
-        # Marca del item activo. NO `menu-active`: en daisyUI 5 esa clase pinta el item con
-        # `neutral`, o sea un bloque negro sólido que se come el resto del menú. El estándar
-        # de este repo para "esto es lo seleccionado" dentro de una lista es texto primary sin
-        # fondo — igual que SlimSelect (`.ss-selected`, slim_select.css:607) y que el dropdown
-        # hermano de "Agrupar por" (GroupByControl#item_class).
+        # Marker for the active item. NOT `menu-active`: in daisyUI 5 that class paints the
+        # item with `neutral`, i.e. a solid black block that eats the rest of the menu. This
+        # repo's standard for "this is the selected one" inside a list is primary text with no
+        # background — same as SlimSelect (`.ss-selected`, slim_select.css:607) and as the
+        # sibling "Group by" dropdown (GroupByControl#item_class).
         def active_item_class(view)
           "text-primary font-medium" if active_view?(view)
         end
 
-        # La vista sobre la que se está trabajando, aunque ya se le hayan cambiado filtros
-        # (sobrevive al submit vía `view_origin`). Es la que se ofrece ACTUALIZAR.
+        # The view being worked on, even once its filters have been changed (it survives the
+        # submit via `view_origin`). It is the one offered for UPDATE.
         def origin_view = filter_form.saved_view_origin
 
-        # Solo se ofrece actualizar si hay de dónde venir Y el estado cambió: con el estado
-        # intacto el botón prometería guardar algo que ya está guardado.
+        # Updating is only offered when there is something to come from AND the state changed:
+        # with the state intact the button would promise to save something already saved.
         def updatable? = filter_form.saved_view_dirty?
 
         def update_label = t(".update_current", name: origin_view.name)
 
         def update_confirm = t(".update_confirm", name: origin_view.name)
 
-        # Con una vista modificada, guardar de nuevo es "guardar como NUEVA": el texto lo dice
-        # para que no se confunda con actualizar la que ya existe.
+        # With a modified view, saving again means "save as NEW": the text says so, so it is
+        # not confused with updating the one that already exists.
         def save_label = updatable? ? t(".save_as_new") : t(".save_current")
 
         def apply_url(view)
           "#{@base_url}#{@base_url.include?('?') ? '&' : '?'}saved_view=#{view.id}"
         end
 
-        # El id se inserta en el PATH (no al final de la URL cruda): una `url` con query
-        # string (p.ej. ?storage_id=...) debe conservarla después del id.
+        # The id is inserted into the PATH (not at the end of the raw URL): a `url` with a
+        # query string (e.g. ?storage_id=...) must keep it after the id.
         def view_url(view)
           path, query = url.split("?", 2)
           "#{path.chomp('/')}/#{view.id}#{"?#{query}" if query}"
         end
 
-        # Payload del estado actual, serializado para el hidden del form de guardar. Las
-        # columnas visibles las agrega el Stimulus al enviar (viven en el DOM del selector).
+        # Payload of the current state, serialized for the save form's hidden field. The
+        # visible columns are added by the Stimulus controller on submit (they live in the
+        # selector's DOM).
         def payload_json
           filter_form.current_view_payload.to_json
         end
 
-        # Columnas que IMPUSO la vista aplicada. El selector solo se pinta en modo tabla, y
-        # sin él el JS caía a localStorage — que es la memoria del dispositivo ANTERIOR a la
-        # vista: guardar una vista nueva desde tarjetas la persistía con columnas que el
-        # usuario no estaba viendo.
+        # Columns the applied view IMPOSED. The selector is only painted in table mode, and
+        # without it the JS fell back to localStorage — which is the device memory from BEFORE
+        # the view: saving a new view from cards persisted it with columns the user was not
+        # looking at.
         def server_columns_json
           Array(filter_form.try(:saved_view_columns)).map(&:to_i).to_json
         end
 
         private
 
-        # Un atajo estático está activo cuando la query de su URL describe el MISMO estado
-        # que el form tiene aplicado. Su query se traduce a la forma del payload: q[g]→
-        # groupings, q[m]→combinator, el predicado de búsqueda→search_value (el form lo lleva
-        # ahí, no en attributes), `group_by` (param top-level, fuera de q) y el resto de q→
-        # attributes. Traducir de menos daba tanto falsos positivos (un atajo que solo agrupa
-        # normalizaba a vacío) como falsos negativos (un atajo con búsqueda nunca casaba).
+        # A static shortcut is active when its URL's query describes the SAME state the form
+        # has applied. Its query is translated into the payload's shape: q[g]→groupings,
+        # q[m]→combinator, the search predicate→search_value (the form carries it there, not in
+        # attributes), `group_by` (a top-level param, outside q) and the rest of q→attributes.
+        # Translating less gave both false positives (a shortcut that only groups normalized to
+        # empty) and false negatives (a shortcut with a search never matched).
         def default_view_active?(view)
           uri = URI.parse(view.url.to_s)
           params = uri.query.present? ? Rack::Utils.parse_nested_query(uri.query) : {}
@@ -143,8 +143,8 @@ module Bali
           false
         end
 
-        # Predicado combinado que emite el buscador rápido (p.ej. "name_or_code_cont"), o nil
-        # si este listado no tiene búsqueda.
+        # Combined predicate emitted by the quick search (e.g. "name_or_code_cont"), or nil if
+        # this listing has no search.
         def search_predicate
           return @search_predicate if defined?(@search_predicate)
 

@@ -76,8 +76,8 @@ class BaliFiltersFilterGroupComponentTest < ComponentTestCase
     assert_selector("button.btn-outline", text: "OR")
   end
 
-  # El estado activo también viaja en aria-pressed, y el grupo tiene nombre:
-  # un lector de pantalla no distingue btn-primary de btn-outline (#1028).
+  # The active state travels in aria-pressed too, and the group has a name: a screen reader cannot
+  # tell btn-primary from btn-outline (#1028).
   def test_the_combinator_toggle_announces_its_state
     render_inline(Bali::Filters::FilterGroup::Component.new(
       group: @group_with_conditions, index: 0, available_attributes: @available_attributes

@@ -6,7 +6,11 @@ require "generators/bali/widget/widget_generator"
 
 class BaliWidgetGeneratorTest < Rails::Generators::TestCase
   tests Bali::WidgetGenerator
-  destination Rails.root.join("tmp/generator_test")
+  # NOT `Rails.root`: that is the dummy app, and since it moved under `test/` its `tmp/` sits
+  # inside the runner's own `test/**/*_test.rb` glob. This generator writes `test/widgets/<n>_test.rb`,
+  # so a second run would collect the first run's output as a test. `Bali::Engine.root` is the
+  # repo root, whose `/tmp/` is gitignored and outside the glob.
+  destination Bali::Engine.root.join("tmp/generator_test")
   setup :prepare_destination
 
   # THE PATTERN IS THE SUPERCLASS, not a declaration in the class body. That is

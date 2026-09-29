@@ -2,11 +2,11 @@
   <%= form_with(model: model, url: '/fake/submit', builder: Bali::FormBuilder) do |form| %>
     <%= form.text_group :text %>
     <%= form.date_group :date %>
-    <%# El slim select portalea su .ss-content al dialog por enterTopLayer, igual
-        que el calendario — la otra mitad del repro de #1013. %>
+    <%# The slim select portals its .ss-content into the dialog through
+        enterTopLayer, just like the calendar — the other half of the #1013 repro. %>
     <%= form.slim_select_group :select, [['Action', 1], ['Comedy', 2], ['Drama', 3]] %>
-    <%# El file input dispara un `cancel` que BUBBLEA cuando se descarta el picker
-        del sistema — la tercera mitad de #1013. %>
+    <%# The file input fires a `cancel` that BUBBLES when the system picker is
+        dismissed — the third half of #1013. %>
     <%= form.file_group :url %>
     <div class="mt-4">
       <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>

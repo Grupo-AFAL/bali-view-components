@@ -66,12 +66,12 @@ describe('DrawerController', () => {
     })
   })
 
-  // `submit` hace `event.preventDefault()` antes de validar, así que el navegador no va a
-  // reportar nada por su cuenta: si el controlador no lo pide, no lo pide nadie. Hasta #894
-  // lo pedía recorriendo `input` a mano, así que un `<textarea>` o un `<select>` requerido
-  // bloqueaba el envío en silencio — sin petición, sin mensaje, sin globo y sin foco en
-  // ninguna parte. El globo nativo no se puede leer desde el DOM; el foco sí, y es donde
-  // `reportValidity()` deja al primer control inválido.
+  // `submit` calls `event.preventDefault()` before validating, so the browser is not going
+  // to report anything on its own: if the controller does not ask for it, nobody does. Until
+  // #894 it asked by walking `input` by hand, so a required `<textarea>` or a `<select>`
+  // blocked the submit silently — no request, no message, no bubble and no focus anywhere.
+  // The native bubble cannot be read from the DOM; focus can, and it is where
+  // `reportValidity()` leaves the first invalid control.
   context('required fields that are not <input>', () => {
     const SUBMIT = '[data-action="drawer#submit"]'
     const focusedId = () => cy.window().then(win => win.document.activeElement.id)
@@ -241,11 +241,11 @@ describe('DrawerController', () => {
       cy.get('.drawer-open').should('not.exist')
     })
 
-    // #1013 — el calendario entra al top layer DENTRO del dialog (enterTopLayer),
-    // como hermano del wrapper: para la detección de overlay sus clicks eran
-    // "click afuera" y, con el form sucio, cambiar de mes preguntaba si querías
-    // cerrar el drawer. Los días nunca lo mostraban solo porque seleccionar
-    // cierra el calendario antes de que el click complete su recorrido.
+    // #1013 — the calendar enters the top layer INSIDE the dialog (enterTopLayer),
+    // as a sibling of the wrapper: to the overlay detection its clicks were "a
+    // click outside" and, with a dirty form, paging the month asked whether you
+    // wanted to close the drawer. The days never surfaced it, only because
+    // selecting closes the calendar before the click finishes its path.
     it('paging the calendar month does not ask to close the dirty drawer', () => {
       cy.get('#form_record_text').type('Hello')
 
@@ -262,10 +262,10 @@ describe('DrawerController', () => {
       cy.get('.drawer-open').should('exist')
     })
 
-    // #1013, la otra mitad: el .ss-content de SlimSelect entra al dialog por el
-    // mismo enterTopLayer (queda [popover]) y sus clicks — el campo de búsqueda,
-    // elegir una opción que re-renderiza el contenido — contaban como click
-    // afuera igual que el calendario.
+    // #1013, the other half: SlimSelect's .ss-content enters the dialog through the
+    // same enterTopLayer (it ends up [popover]) and its clicks — the search field,
+    // picking an option that re-renders the content — counted as a click outside
+    // just like the calendar.
     it('searching and picking in the slim select does not ask to close the dirty drawer', () => {
       cy.get('#form_record_text').type('Hello')
 
@@ -274,18 +274,18 @@ describe('DrawerController', () => {
       cy.get('dialog[data-bali-confirm]').should('not.exist')
       cy.get('.drawer-open').should('exist')
 
-      // Elegir re-renderiza el contenido: el target puede llegar desmontado al
-      // click y composedPath lo sigue contando adentro.
+      // Picking re-renders the content: the target can reach the click already
+      // detached, and composedPath still counts it as inside.
       cy.get('.ss-content .ss-list .ss-option').contains('Comedy').click()
       cy.get('dialog[data-bali-confirm]').should('not.exist')
       cy.get('.drawer-open').should('exist')
     })
 
-    // #1013, tercera mitad: descartar el file picker del sistema dispara un
-    // evento `cancel` que BUBBLEA desde el input (a diferencia del cancel del
-    // dialog, que no bubblea), y el listener de cancel del drawer lo tomaba
-    // como pedido de cierre de plataforma. Cypress no puede tocar el picker
-    // nativo, así que se despacha el mismo evento que el navegador despacha.
+    // #1013, third half: dismissing the system file picker fires a `cancel` event
+    // that DOES bubble from the input (unlike the dialog's own cancel, which does
+    // not), and the drawer's cancel listener took it as a platform close request.
+    // Cypress cannot touch the native picker, so the test dispatches the same event
+    // the browser dispatches.
     it('cancelling the file picker does not ask to close the dirty drawer', () => {
       cy.get('#form_record_text').type('Hello')
 
@@ -296,8 +296,8 @@ describe('DrawerController', () => {
       cy.get('.drawer-open').should('exist')
     })
 
-    // El control del fix: el gesto real de cierre no se puede llevar puesto —
-    // el overlay de verdad sigue preguntando sobre un form sucio.
+    // The control case for the fix: the real close gesture must not get run over —
+    // the actual overlay still asks about a dirty form.
     it('clicking the real overlay still asks for confirmation on a dirty form', () => {
       cy.get('#form_record_text').type('Hello')
 

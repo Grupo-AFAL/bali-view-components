@@ -1,6 +1,6 @@
-<%# El select dependiente: la búsqueda remota se acota con lo elegido acá arriba. El campo
-    del que depende es un `<select>` cualquiera —no tiene que ser del form ni de Bali—,
-    porque `ajax_param_selectors` lo ubica por selector CSS y lo lee en cada búsqueda. %>
+<%# The dependent select: the remote search is narrowed by what is chosen above. The field
+    it depends on is any `<select>` — it need not belong to the form or to Bali — because
+    `ajax_param_selectors` locates it by CSS selector and reads it on every search. %>
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
   <label class="label" for="user-family">Family</label>
   <select id="user-family" class="select select-bordered mb-4">

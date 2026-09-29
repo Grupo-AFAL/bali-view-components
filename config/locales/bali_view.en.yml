@@ -100,10 +100,13 @@ en:
       clear: "Clear"
       # Named periods for a date_range filter (see Bali::DateRangePresets). `custom`
       # reveals the date picker; `any` is the blank option when the filter declares no
-      # `blank:` of its own.
+      # `blank:` of its own. `custom_range` names the picker itself when the filter has
+      # neither caption nor `aria_label:` — it cannot borrow `any`, which says the
+      # opposite of what the picker is for.
       presets:
         any: "Any date"
         custom: "Custom…"
+        custom_range: "Custom date range"
         today: "Today"
         this_week: "This week"
         this_month: "This month"
@@ -705,6 +708,11 @@ en:
         pending: "Pending"
         skipped: "Skipped"
         current: "In progress"
+      # Accessible name of the row that the `:rail` and `:progress` shapes
+      # draw, which is also its scroll container: it carries `tabindex="0"`,
+      # and a tab stop needs a name. One key for both, because the string says
+      # what the row is, not which shape drew it.
+      rail_label: "Workflow steps"
     split_view:
       # The three states of the infinite-scroll sentinel. They ship translated
       # because a `default:` in the template is exactly what hid the missing

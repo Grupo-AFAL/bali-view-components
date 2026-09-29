@@ -15,7 +15,7 @@ module Bali
     #
     # The panel is a composed `Bali::Drawer`, so it is a native `<dialog>`. The
     # embed token is not in the frame's URL: it is sent with `postMessage` once
-    # the frame loads. `spec/dummy`'s `/feedback-widget-demo` is where that round
+    # the frame loads. `test/dummy`'s `/feedback-widget-demo` is where that round
     # trip can actually be seen, since it points the widget at a stand-in embed
     # page on the same origin.
     class Preview < ApplicationViewComponentPreview

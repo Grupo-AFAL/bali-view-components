@@ -1,26 +1,26 @@
-// El marcador "Recordar filtros" gobierna la búsqueda rápida pero no cubría los filtros
-// simplificados, y una vista guardada sobre EL MISMO listado sí los restauraba: dos
-// mecanismos del mismo componente con dos definiciones de "el estado de los filtros" (#852).
+// The "Remember filters" toggle governs the quick search but did not cover the simple
+// filters, and a saved view over THE SAME listing did restore them: two mechanisms of the
+// same component with two definitions of "the filter state" (#852).
 //
-// Vive contra `/admin/studios` y no contra un preview de Lookbook porque el defecto necesita
-// el round-trip completo: la cookie de persistencia, el form GET de SimpleFilters que manda
-// TODOS sus controles, y la caché del server entre dos requests. Nada de eso existe en un
+// It runs against `/admin/studios` and not against a Lookbook preview because the defect
+// needs the full round-trip: the persistence cookie, the SimpleFilters GET form that submits
+// ALL of its controls, and the server cache between two requests. None of that exists in a
 // preview.
-describe('La persistencia de filtros cubre los filtros simplificados', () => {
-  // El dummy vive arriba del path de previews al que apunta `baseUrl`, así que el origen se
-  // deriva de él. Un `http://localhost:3001` literal ignora CYPRESS_BASE_URL y prueba en
-  // silencio el server de otro checkout.
+describe('Filter persistence covers the simple filters', () => {
+  // The dummy lives above the preview path `baseUrl` points at, so the origin is derived from
+  // it. A literal `http://localhost:3001` ignores CYPRESS_BASE_URL and silently tests another
+  // checkout's server.
   const appOrigin = new URL(Cypress.config('baseUrl')).origin
   const listing = `${appOrigin}/admin/studios`
 
-  // El total sale del pie de la paginación, no de contar `<tr>`: la tabla pagina de a 10, así
-  // que las filas no distinguen 9 de 34.
+  // The total comes from the pagination footer, not from counting `<tr>`: the table paginates
+  // by 10, so the rows do not tell 9 from 34.
   const total = () =>
     cy.contains(/of \d+ studios/i).invoke('text').then(text => Number(/of (\d+) studios/i.exec(text)[1]))
 
-  // El submit navega, así que hay que esperar la URL nueva antes de leer nada: sin eso
-  // `total()` lee el DOM viejo una sola vez y no reintenta. Se afirma sobre el nombre
-  // codificado (`q%5Bsize_eq%5D`) porque es lo que un GET pone en la barra.
+  // The submit navigates, so the new URL has to be awaited before reading anything: without
+  // that, `total()` reads the old DOM once and does not retry. The assertion is on the encoded
+  // name (`q%5Bsize_eq%5D`) because that is what a GET puts in the address bar.
   const submitFiltersAndWaitFor = param => {
     cy.get('form[data-turbo-frame="_top"] button[type="submit"]').first().click()
     cy.location('search').should('include', param)
@@ -28,12 +28,12 @@ describe('La persistencia de filtros cubre los filtros simplificados', () => {
 
   beforeEach(() => {
     cy.viewport(1600, 1000)
-    // Lo que el marcador de la toolbar escribe. Cypress limpia las cookies entre tests, y con
-    // ellas la sesión — que es lo que namespacea la caché (ver ApplicationController#filter_context).
+    // What the toolbar toggle writes. Cypress clears the cookies between tests, and with them
+    // the session — which is what namespaces the cache (see ApplicationController#filter_context).
     cy.setCookie('bali_persist_admin_studios', '1')
   })
 
-  it('devuelve el filtro simplificado al volver con la URL limpia, aplicado y pintado', () => {
+  it('brings the simple filter back on a return to a clean URL, applied and rendered', () => {
     cy.visit(listing)
 
     total().then(everything => {
@@ -41,22 +41,22 @@ describe('La persistencia de filtros cubre los filtros simplificados', () => {
       submitFiltersAndWaitFor('q%5Bsize_eq%5D=large')
 
       total().then(filtered => {
-        expect(filtered, 'el filtro tiene que recortar').to.be.lessThan(everything)
+        expect(filtered, 'the filter has to narrow').to.be.lessThan(everything)
 
-        // La vuelta al listado: sin `q` en la URL, la caché es la única fuente del estado.
+        // Back to the listing: with no `q` in the URL, the cache is the only source of the state.
         cy.visit(listing)
         cy.location('search').should('eq', '')
 
-        // Las dos mitades: que RECORTE y que se VEA. Afirmar solo el radio pasaría con un
-        // control pintado sobre un listado sin filtrar.
+        // Both halves: that it NARROWS and that it SHOWS. Asserting only the radio would pass
+        // with a rendered control over an unfiltered listing.
         total().should('eq', filtered)
         cy.get('input[name="q[size_eq]"][value="large"]').should('be.checked')
       })
     })
   })
 
-  it('no lo restaura con el marcador apagado', () => {
-    // El arreglo amplía lo que el marcador CUBRE; no puede cambiar lo que el marcador significa.
+  it('does not restore it with the toggle off', () => {
+    // The fix widens what the toggle COVERS; it cannot change what the toggle means.
     cy.visit(listing)
     total().then(everything => {
       cy.get('input[name="q[size_eq]"][value="large"]').check()
@@ -70,15 +70,16 @@ describe('La persistencia de filtros cubre los filtros simplificados', () => {
     })
   })
 
-  it('deja que la URL le gane a la caché: un enlace compartido no arrastra una búsqueda guardada', () => {
-    // Como `has_filter_params` no contaba los simplificados, una URL que solo pedía uno caía
-    // en el branch de RESTAURAR y la caché le ganaba a la URL: el mismo enlace rendía distinto
-    // según una cookie de quien lo abría (9 filas contra 10, medido sobre `?q[country_eq]=USA`).
+  it('lets the URL beat the cache: a shared link does not drag a saved search along', () => {
+    // Because `has_filter_params` did not count the simple filters, a URL that asked only for
+    // one fell into the RESTORE branch and the cache beat the URL: the same link rendered
+    // differently depending on a cookie of whoever opened it (9 rows against 10, measured over
+    // `?q[country_eq]=USA`).
     cy.visit(`${listing}?q[name_cont]=a`)
     cy.get('input[name="q[name_cont]"]').should('have.value', 'a')
 
     cy.visit(`${listing}?q[country_eq]=USA`)
-    // La prueba directa: la búsqueda vieja se veía en la caja, y nadie la escribió en la URL.
+    // The direct proof: the old search showed up in the box, and nobody wrote it into the URL.
     cy.get('input[name="q[name_cont]"]').should('have.value', '')
 
     total().then(withPersistence => {
@@ -88,9 +89,10 @@ describe('La persistencia de filtros cubre los filtros simplificados', () => {
     })
   })
 
-  it('limpiar la búsqueda no se lleva los filtros simplificados', () => {
-    // `clearSearch` navega descartando TODOS los `q[...]`, así que si el estado guardado no
-    // los conserva —o los conserva y no los aplica— los selects se vacían con la búsqueda.
+  it('clearing the search does not take the simple filters with it', () => {
+    // `clearSearch` navigates discarding ALL the `q[...]`, so if the saved state does not
+    // keep them — or keeps them and does not apply them — the selects empty out along
+    // with the search.
     cy.visit(`${listing}?q[size_eq]=large&q[name_cont]=a`)
 
     total().then(searchedAndFiltered => {

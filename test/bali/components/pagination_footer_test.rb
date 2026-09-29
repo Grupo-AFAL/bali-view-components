@@ -69,7 +69,7 @@ class BaliPaginationFooterComponentTest < ComponentTestCase
     assert_text("Showing 41-47 of 47 items")
   end
 
-  # Con cero resultados el footer decía "Showing 0-0 of 0 items", que no informa nada.
+  # With zero results the footer said "Showing 0-0 of 0 items", which informs nothing.
   def test_renders_nothing_without_results
     empty_pagy = Pagy::Offset.new(count: 0, page: 1, limit: 10)
     render_inline(Bali::PaginationFooter::Component.new(pagy: empty_pagy))
@@ -77,7 +77,7 @@ class BaliPaginationFooterComponentTest < ComponentTestCase
     assert_no_selector("div")
   end
 
-  # Un contenedor con su padding vertical y nada dentro sigue empujando el layout.
+  # A container with its vertical padding and nothing inside still pushes the layout around.
   def test_renders_nothing_when_summary_and_pagination_are_both_off
     render_inline(
       Bali::PaginationFooter::Component.new(pagy: @pagy, show_summary: false, show_pagination: false)
@@ -107,9 +107,9 @@ class BaliPaginationFooterComponentTest < ComponentTestCase
     assert_selector("div#footer.shadow.justify-between")
   end
 
-  # El espaciado NO viaja por `class:` justamente por esto: `py-4` y `pt-4` sobre el mismo
-  # elemento los resuelve Tailwind por orden de hoja de estilos, y contra el `padding-bottom`
-  # que mete `py-4` no hay `pt-*` que valga.
+  # The spacing does NOT travel through `class:` precisely because of this: `py-4` and `pt-4` on the
+  # same element are resolved by Tailwind in stylesheet order, and against the `padding-bottom`
+  # `py-4` sets there is no `pt-*` that helps.
   def test_standing_alone_it_pads_both_sides
     render_inline(Bali::PaginationFooter::Component.new(pagy: @pagy))
     assert_selector("div.py-4.gap-2")
@@ -132,7 +132,7 @@ class BaliPaginationFooterComponentTest < ComponentTestCase
     assert_no_selector(".join")
   end
 
-  # Quien trae su propia nav decide qué hacer con una sola página.
+  # Whoever brings their own nav decides what to do with a single page.
   def test_custom_controls_render_on_a_single_page
     single_page_pagy = Pagy::Offset.new(count: 5, page: 1, limit: 10)
     render_inline(Bali::PaginationFooter::Component.new(pagy: single_page_pagy)) do |footer|

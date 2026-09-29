@@ -5,9 +5,10 @@ module Bali
     class Component < ApplicationViewComponent
       renders_one :toolbar
 
-      # Distingue "el host no pasó `format:`" de "pasó el valor que resulta ser el default",
-      # que es lo que hace posible el default opinado de abajo sin quitarle al host la
-      # posibilidad de pedir `:json` a propósito. Mismo centinela que BlockEditor::Component.
+      # Tells "the host did not pass `format:`" apart from "it passed the value that
+      # happens to be the default", which is what makes the opinionated default below
+      # possible without taking away the host's ability to ask for `:json` on purpose.
+      # Same sentinel as BlockEditor::Component.
       UNSET = Object.new.freeze
       private_constant :UNSET
 
@@ -105,30 +106,30 @@ module Bali
 
       private
 
-      # La forma en que se persiste el contenido, cuando el host no la nombra (#1098).
+      # The form the content is persisted in, when the host does not name it (#1098).
       #
-      # `format:` no viaja en `config:` a propósito —"cada wrapper decide"— y este wrapper no
-      # lo decidía: no lo aceptaba ni lo reenviaba, así que la pantalla que MÁS lo necesita
-      # (un editor de documentos con comentarios y auto-guardado) se quedaba con el `:json`
-      # adaptativo que #1091 existe para terminar. Ahora lo acepta, y cuando no se lo pasan
-      # lo decide de verdad.
+      # `format:` deliberately does not travel in `config:` —"each wrapper decides"— and
+      # this wrapper was not deciding: it neither accepted nor forwarded it, so the screen
+      # that needs it MOST (a document editor with comments and auto-save) was left with
+      # the adaptive `:json` that #1091 exists to end. Now it accepts it, and when it is
+      # not passed one it really does decide.
       #
-      # Con `comments:` encendido eso es `:prosemirror`, que es la única combinación que no
-      # pierde nada: `:json` cambia SOLO a esa misma forma en cuanto alguien deja un
-      # comentario —lo dispara el primer lector, no el host— y con auto-guardado esa
-      # reescritura de esquema llega a la columna sin que nadie la pida. Fijarla es escribir
-      # desde el primer guardado lo que el adaptativo iba a escribir igual, pero declarado.
-      # (`:blocks` no sirve de default: pierde el anclaje de cada hilo.)
+      # With `comments:` on that is `:prosemirror`, which is the only combination that
+      # loses nothing: `:json` switches BY ITSELF to that very form as soon as somebody
+      # leaves a comment —the first reader triggers it, not the host— and with auto-save
+      # that schema rewrite reaches the column without anyone asking for it. Pinning it
+      # means writing from the first save what the adaptive one was going to write anyway,
+      # but declared. (`:blocks` is no good as a default: it loses each thread's anchor.)
       #
-      # Un `format:` explícito gana siempre, `:json` incluido: un host que quiere el
-      # adaptativo lo pide y se lo lleva.
+      # An explicit `format:` always wins, `:json` included: a host that wants the adaptive
+      # one asks for it and gets it.
       def resolve_format(format)
         return format unless format == UNSET
 
         @config.comments.present? ? :prosemirror : :json
       end
 
-      # @deprecated Ver Bali::BlockEditor::Component#resolve_editable. Se elimina en 4.0.
+      # @deprecated See Bali::BlockEditor::Component#resolve_editable. Removed in 4.0.
       def resolve_editable(editable, readonly)
         return editable if readonly.nil?
 

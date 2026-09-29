@@ -83,10 +83,10 @@ module Bali
         # action rows of show pages, none of them from `build_link_item`. Gated there,
         # `plain:` grew a second, undocumented meaning — "take my `<form>` out of the box
         # tree" — that a caller asking for the documented one never signed up for.
-        # `inline-block` no va acá sino en delete_link/index.css, y su encabezado explica
-        # por qué: como utilidad sobre el elemento empata con la que llegue por
-        # `form_class:`, y el desempate lo gana la hoja compilada —medido, `.contents` se
-        # emite ANTES que `.inline-block`— así que `form_class: "contents"` no hacía nada.
+        # `inline-block` does not go here but in delete_link/index.css, and its header
+        # explains why: as a utility on the element it ties with whatever arrives through
+        # `form_class:`, and the compiled sheet breaks the tie —measured, `.contents` is
+        # emitted BEFORE `.inline-block`— so `form_class: "contents"` did nothing.
         @form_class = class_names("bali-delete-link-form", options.delete(:form_class))
         @options = options
 

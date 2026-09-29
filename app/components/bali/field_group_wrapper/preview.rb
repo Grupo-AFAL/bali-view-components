@@ -42,6 +42,16 @@ module Bali
         )
       end
 
+      # Where each class option lands: `class:` on the fieldset and the control,
+      # `field_class:` on the fieldset, `control_class:` on the box around the
+      # control — the `.control` div, or the `.join` when an addon replaces it.
+      def class_targets
+        render_with_template(
+          template: 'bali/field_group_wrapper/previews/class_targets',
+          locals: { model: form_record }
+        )
+      end
+
       # Shows custom CSS classes applied to the wrapper.
       def with_custom_classes
         render_with_template(

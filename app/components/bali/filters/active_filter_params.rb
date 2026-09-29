@@ -29,12 +29,12 @@ module Bali
       #
       # @param filter_form [Bali::FilterForm, nil]
       # @return [Array<Array(String, Object)>]
-      # Los date_range vienen adentro de `active_filters` en sus dos formas (#966): el
-      # declarado como `attribute` viaja RESUELTO (`inicio..fin`, congelado — la forma que
-      # `DateRangeValue` vuelve a castear), y el filtro simple viaja CRUDO, por lo que un
-      # preset (`this_month`) va como token y el servidor lo vuelve a resolver contra su
-      # propio reloj. `test_a_simple_date_range_is_emitted_exactly_once` avisa si los dos
-      # caminos vuelven a emitir el mismo `name` por separado.
+      # date_ranges arrive inside `active_filters` in both of their shapes (#966): the one
+      # declared as an `attribute` travels RESOLVED (`start..end`, frozen — the shape
+      # `DateRangeValue` casts back), and the simple filter travels RAW, so a preset
+      # (`this_month`) goes as a token and the server resolves it again against its own clock.
+      # `test_a_simple_date_range_is_emitted_exactly_once` warns if the two paths go back to
+      # emitting the same `name` separately.
       def for_filter_form(filter_form)
         return [] if filter_form.nil?
 
@@ -70,26 +70,27 @@ module Bali
         pairs
       end
 
-      # ¿Esta condición del builder recorta algo? Se descartan las filas vacías Y las que no
-      # producen ningún par real: un `between` con los dos extremos en blanco pasa `present?`
-      # por ser un Hash, y emitía un grupo fantasma —solo el `m`, sin una sola condición—.
+      # Does this builder condition narrow anything? Empty rows are dropped AND so are the
+      # ones that produce no real pair: a `between` with both ends blank passes `present?`
+      # because it is a Hash, and used to emit a phantom group —just the `m`, without a single
+      # condition—.
       #
-      # Es la única definición de "condición aplicada" que hay: la usan tanto lo que VIAJA
-      # (`group_pairs`) como lo que se CUENTA (`FilterForm#active_filters_count`, el badge del
-      # panel). Dos reglas distintas para la misma pregunta es como el panel avanzado quedó
-      # fuera de `active_filters?` para empezar (#1085).
+      # It is the only definition of "applied condition" there is: both what TRAVELS
+      # (`group_pairs`) and what is COUNTED (`FilterForm#active_filters_count`, the panel
+      # badge) use it. Two different rules for the same question is how the advanced panel
+      # fell out of `active_filters?` in the first place (#1085).
       #
-      # @param condition [Hash] `{ attribute:, operator:, value: }` tal como lo arma
-      #   `FilterGroupParser`
+      # @param condition [Hash] `{ attribute:, operator:, value: }` just as
+      #   `FilterGroupParser` builds it
       def applied?(condition)
         condition[:attribute].present? && condition[:value].present? &&
           condition_pairs(condition, 0).any?
       end
 
-      # Lo que un host puede escribir en `filter_params:`, en la forma que los componentes
-      # necesitan. Los dos que aceptan la opción normalizan por acá: sin esto, un hash anidado
-      # pasado directo a una acción salía como UN hidden llamado `q` con el `to_s` del hash
-      # adentro — un POST que parece bien formado y no filtra nada.
+      # What a host can write in `filter_params:`, in the shape the components need. The two
+      # that accept the option normalize through here: without this, a nested hash passed
+      # straight to an action came out as ONE hidden named `q` with the hash's `to_s` inside
+      # it — a POST that looks well formed and filters nothing.
       #
       # @param value [Array<Array(String, Object)>, Hash, nil]
       # @return [Array<Array(String, Object)>]

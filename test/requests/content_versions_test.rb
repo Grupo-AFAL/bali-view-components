@@ -2,13 +2,13 @@
 
 require "test_helper"
 
-# #707 — Bali::ContentVersionsController. La whitelist y el gate se inyectan por config,
-# igual que hace un host (patrón de test/requests/saved_views_test.rb).
+# #707 — Bali::ContentVersionsController. The whitelist and the gate are injected through config,
+# the same way a host does it (pattern from test/requests/saved_views_test.rb).
 #
-# El contrato JSON no es negociable: `document_editor/index.js` ya está publicado y lee
-# claves concretas. `_buildVersionItem` (:355-369) usa version_number, created_at,
-# author_name, summary, id y url; `previewVersion` (:253-299) usa content y version_number;
-# `restoreVersion` (:238-246) solo mira que la respuesta sea ok.
+# The JSON contract is not negotiable: `document_editor/index.js` is already published and reads
+# specific keys. `_buildVersionItem` (:355-369) uses version_number, created_at, author_name,
+# summary, id and url; `previewVersion` (:253-299) uses content and version_number;
+# `restoreVersion` (:238-246) only checks that the response is ok.
 class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
   def setup
     @document = Document.create!(title: "Acta", author_name: "Ana",
@@ -49,15 +49,15 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_equal "Ana García", newest["author_name"]
     assert_nil newest["summary"]
     assert_equal @document.content_versions.last.id, newest["id"]
-    # El JS prefiere esta url sobre interpolarla: el engine puede estar montado donde sea.
+    # The JS prefers this url over interpolating one: the engine may be mounted anywhere.
     assert_equal bali.content_version_path(newest["id"], record_params), newest["url"]
     assert_equal @document.content_versions.last.created_at.iso8601, newest["created_at"]
   end
 
-  # Hallazgo del security review (MEDIUM-2): el index hacía SELECT * y traía el `content` de
-  # cada versión —el documento entero— sin servirlo. Con 200 versiones eran 31.5 MB leídos
-  # para un body de 22.6 KB. Lo que este test fija es que recortar columnas NO cambió el
-  # contrato: exactamente las mismas claves, y ninguna de ellas es el contenido.
+  # Security review finding (MEDIUM-2): the index did a SELECT * and pulled every version's `content`
+  # —the whole document— without serving it. With 200 versions that was 31.5 MB read for a 22.6 KB
+  # body. What this test pins is that trimming the columns did NOT change the contract: exactly the
+  # same keys, and none of them is the content.
   def test_index_serves_no_content_and_only_the_columns_it_needs
     3.times { @document.create_version!(author_name: "Ana", summary: "s") }
 
@@ -73,8 +73,8 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # La otra mitad de MEDIUM-2: recortar columnas no puede dejar a `version_json` leyendo un
-  # atributo que ya no se seleccionó (sería un MissingAttributeError en producción).
+  # MEDIUM-2's other half: trimming columns cannot leave `version_json` reading an attribute that is
+  # no longer selected (that would be a MissingAttributeError in production).
   def test_index_does_not_load_the_content_column_at_all
     @document.create_version!(author_name: "Ana")
 
@@ -91,7 +91,7 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_empty response.parsed_body
   end
 
-  # La url del index tiene que resolver tal cual, sin que el JS le agregue nada.
+  # The index's url has to resolve as is, with the JS adding nothing to it.
   def test_show_serves_the_content_the_preview_loads_into_the_editor
     version = @document.create_version!(author_name: "Ana", summary: "Primera")
     @document.update!(content: [])
@@ -131,7 +131,7 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_equal 3, response.parsed_body["version_number"]
   end
 
-  # Default-deny: la whitelist vacía es la configuración de fábrica.
+  # Default-deny: an empty whitelist is the factory setting.
   def test_a_record_type_outside_the_whitelist_is_not_found
     Bali.content_versionables = {}
 
@@ -144,9 +144,8 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  # Hallazgo del security review (LOW-4): whitelistear un modelo que nunca incluyó el concern
-  # es un error de configuración del host, y respondía 500 (NoMethodError sobre
-  # `content_versions`) en vez de 404.
+  # Security review finding (LOW-4): whitelisting a model that never included the concern is a host
+  # configuration error, and it answered 500 (NoMethodError on `content_versions`) instead of 404.
   def test_a_whitelisted_model_without_the_concern_is_not_found
     studio = Studio.create!(name: "Sin historial", country: "USA", status: :active)
     refute_kind_of Bali::ContentVersionable, studio
@@ -165,8 +164,8 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  # El default que trae lib/bali.rb es exactamente este lambda; aquí se escribe explícito
-  # porque el initializer del dummy lo sobreescribe para la demo.
+  # The default lib/bali.rb ships is exactly this lambda; it is written out here because the dummy's
+  # initializer overrides it for the demo.
   def test_a_falsy_authorize_forbids_every_action
     Bali.content_versions_authorize = ->(_controller, _record, _action) { false }
     version = @document.create_version!(author_name: "Ana")
@@ -182,7 +181,7 @@ class BaliContentVersionsRequestTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  # El gate recibe la acción, así que leer y restaurar se pueden separar.
+  # The gate receives the action, so reading and restoring can be told apart.
   def test_authorize_can_allow_reading_and_forbid_restoring
     Bali.content_versions_authorize = ->(_controller, _record, action) { action != "restore" }
     version = @document.create_version!(author_name: "Ana")

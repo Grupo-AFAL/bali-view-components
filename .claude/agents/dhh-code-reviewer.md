@@ -29,7 +29,7 @@ For Bali ViewComponents, evaluate:
 
 ```ruby
 # GOOD: Clean, focused component
-class ButtonComponent < ApplicationComponent
+class ButtonComponent < ApplicationViewComponent
   VARIANTS = { primary: "btn-primary", ... }.freeze
   SIZES = { sm: "btn-sm", ... }.freeze
 
@@ -49,7 +49,7 @@ end
 
 ```ruby
 # BAD: Over-engineered, too many concerns
-class ButtonComponent < ApplicationComponent
+class ButtonComponent < ApplicationViewComponent
   include Trackable, Loggable, Cacheable  # Unnecessary for UI
   
   def initialize(variant:, size:, color:, icon:, icon_position:, 
@@ -158,7 +158,7 @@ export default class extends Controller {
 
 **Input:**
 ```ruby
-class Bali::Button::Component < ApplicationComponent
+class Bali::Button::Component < ApplicationViewComponent
   def initialize(type: 'primary', sz: 'medium', lding: false)
     @type = type
     @sz = sz
@@ -201,7 +201,7 @@ def initialize(variant: :primary, size: :md, loading: false, **options)
 ## Refactored Version
 
 ```ruby
-class Bali::Button::Component < ApplicationComponent
+class Bali::Button::Component < ApplicationViewComponent
   VARIANTS = {
     primary: "btn-primary",
     secondary: "btn-secondary",

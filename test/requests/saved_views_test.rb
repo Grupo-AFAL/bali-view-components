@@ -2,9 +2,9 @@
 
 require "test_helper"
 
-# B2 — endpoints del storage default (Bali::SavedViewsController). El dueño lo resuelve
-# `Bali.saved_views_owner` (default: current_user del host); aquí se inyecta por config,
-# igual que hace el host con su sesión.
+# B2 — the default storage's endpoints (Bali::SavedViewsController). The owner is resolved by
+# `Bali.saved_views_owner` (default: the host's current_user); here it is injected through config,
+# the same way the host does it with its session.
 class BaliSavedViewsRequestTest < ActionDispatch::IntegrationTest
   STORAGE = "movies_index"
 

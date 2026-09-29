@@ -1,12 +1,12 @@
-<%# Los tres cargan el MISMO documento —uno que ya trae marcas de comentario— y escriben
-    cada uno en su input. La diferencia es solo `format:`. %>
+<%# The three load the SAME document — one that already carries comment marks — and each
+    writes into its own input. The only difference is `format:`. %>
 <div class="space-y-10">
   <section data-test="adaptive">
-    <h2 class="text-lg font-semibold">format: :json — el default, adaptativo</h2>
+    <h2 class="text-lg font-semibold">format: :json — the default, adaptive</h2>
     <p class="text-sm text-base-content/60 mb-2">
-      Con marcas de comentario en el documento escribe la forma ProseMirror para no
-      perderlas. Es correcto de cara al editor, y es lo que cambiaba el esquema de la
-      columna del host sin que el host lo pidiera.
+      With comment marks in the document it writes the ProseMirror shape so as not to lose
+      them. That is right as far as the editor is concerned, and it is what changed the
+      schema of the host's column without the host asking for it.
     </p>
     <%= render Bali::BlockEditor::Component.new(
           editable: true, format: :json, input_name: 'adaptive[content]',
@@ -15,11 +15,11 @@
   </section>
 
   <section data-test="pinned-blocks">
-    <h2 class="text-lg font-semibold">format: :blocks — fijado a editor.document</h2>
+    <h2 class="text-lg font-semibold">format: :blocks — pinned to editor.document</h2>
     <p class="text-sm text-base-content/60 mb-2">
-      La columna se queda en el Array de bloques pase lo que pase. El anclaje de cada hilo
-      no se persiste —los hilos siguen en su store— y el editor lo avisa por consola la
-      primera vez que descarta una marca.
+      The column stays an Array of blocks no matter what. Each thread's anchor is not
+      persisted — the threads stay in their own store — and the editor warns on the console
+      the first time it drops a mark.
     </p>
     <%= render Bali::BlockEditor::Component.new(
           editable: true, format: :blocks, input_name: 'pinned_blocks[content]',
@@ -28,10 +28,10 @@
   </section>
 
   <section data-test="pinned-prosemirror">
-    <h2 class="text-lg font-semibold">format: :prosemirror — fijado a la forma ProseMirror</h2>
+    <h2 class="text-lg font-semibold">format: :prosemirror — pinned to the ProseMirror shape</h2>
     <p class="text-sm text-base-content/60 mb-2">
-      La otra mitad de la decisión: la columna es siempre <code>{ type: "doc" }</code>,
-      haya comentarios o no.
+      The other half of the decision: the column is always <code>{ type: "doc" }</code>,
+      comments or no comments.
     </p>
     <%= render Bali::BlockEditor::Component.new(
           editable: true, format: :prosemirror, input_name: 'pinned_prosemirror[content]',

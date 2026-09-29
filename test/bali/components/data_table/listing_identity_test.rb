@@ -31,8 +31,8 @@ class BaliDataTableListingIdentityTest < ComponentTestCase
   end
 
   def test_without_identity_the_id_is_random_and_column_persistence_turns_itself_off
-    # Una llave que cambia en cada render no restaura NADA: apagarla es honesto, escribirla
-    # sería un no-op silencioso.
+    # A key that changes on every render restores NOTHING: switching it off is honest, writing it
+    # would be a silent no-op.
     render_data_table
 
     assert_selector "[data-column-selector-storage-key-value='']"
@@ -41,8 +41,8 @@ class BaliDataTableListingIdentityTest < ComponentTestCase
   end
 
   def test_two_listings_over_the_same_scope_no_longer_share_their_column_memory
-    # /movies y /admin/movies filtran el MISMO scope base, así que el id viejo
-    # (FilterForm#id = scope.cache_key) los volvía indistinguibles y compartían '#movies-table'.
+    # /movies and /admin/movies filter the SAME base scope, so the old id (FilterForm#id =
+    # scope.cache_key) made them indistinguishable and they shared '#movies-table'.
     render_data_table(filter_form: form(storage_id: "movies"))
     assert_selector "[data-column-selector-storage-key-value='bali:columns:movies']"
 
@@ -51,12 +51,12 @@ class BaliDataTableListingIdentityTest < ComponentTestCase
   end
 
   def test_the_resolved_id_is_always_a_valid_css_identifier
-    # FilterForm#id es scope.cache_key ('movies/query-abc'): la diagonal rompería el
-    # querySelector del selector de columnas.
+    # FilterForm#id is scope.cache_key ('movies/query-abc'): the slash would break the column
+    # selector's querySelector.
     render_data_table(id: "movies/query-abc")
     assert_selector "[data-column-selector-table-value='#movies-query-abc table']"
 
-    # Un identificador CSS tampoco puede empezar con dígito: '#123 table' lanza SyntaxError.
+    # Nor can a CSS identifier start with a digit: '#123 table' throws a SyntaxError.
     render_data_table(id: "123")
     assert_selector "[data-column-selector-table-value='#listing-123 table']"
   end
@@ -69,9 +69,9 @@ class BaliDataTableListingIdentityTest < ComponentTestCase
   end
 
   def test_the_documented_stream_target_is_the_id_the_component_renders
-    # La receta de la guía de migración: `turbo_stream.replace ListingIdentity.for(form)`.
-    # Turbo resuelve el target con getElementById, así que si esto se separa del id del
-    # contenedor el stream se aplica sobre la nada — sin excepción y sin log.
+    # The migration guide's recipe: `turbo_stream.replace ListingIdentity.for(form)`. Turbo resolves
+    # the target with getElementById, so if this drifts from the container's id the stream applies
+    # over nothing — with no exception and no log.
     [ "movies", "admin/movies", "2026_reports", "#movies-table", "movies index" ].each do |storage_id|
       filter_form = form(storage_id: storage_id)
       render_data_table(filter_form: filter_form)

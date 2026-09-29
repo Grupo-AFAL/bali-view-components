@@ -2,12 +2,11 @@
 
 require "test_helper"
 
-# El preview canónico es el entregable de esta release ("copiá esta composición"), pero vive
-# fuera del alcance de todo lo demás: los tests de componente lo saltean (renderizan clases,
-# no previews) y Cypress solo visita `/bali/data_table/*`. Sin esto, el pegamento propio de
-# IndexPage —el include de `Bali::DataTable::Preview::CanonicalIndex`, el `render partial:`
-# que cruza de directorio, los dos archivos en `do_not_eager_load`— puede 500ear entero y la
-# suite sigue verde.
+# The canonical preview is this release's deliverable ("copy this composition"), but it lives
+# outside everything else's reach: the component tests skip it (they render classes, not previews)
+# and Cypress only visits `/bali/data_table/*`. Without this, IndexPage's own glue —the include of
+# `Bali::DataTable::Preview::CanonicalIndex`, the cross-directory `render partial:`, the two files in
+# `do_not_eager_load`— can 500 outright and the suite stays green.
 class CanonicalPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = {
     "/lookbook/preview/bali/index_page/complete" => ".index-page-component",
@@ -36,11 +35,11 @@ class CanonicalPreviewsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # El stub de request de `ApplicationViewComponentPreview` decía `path: "/lookbook"`, así que
-  # Pagy armaba cada link de página contra el home de Lookbook: clicar "2" sacaba al lector del
-  # componente que estaba mirando (#756). Una preview no tiene UNA sola URL —se sirve en
-  # `/lookbook/preview/...` y dentro del iframe del inspector—, así que la respuesta correcta
-  # es un href relativo y no otra ruta escrita a mano.
+  # `ApplicationViewComponentPreview`'s request stub said `path: "/lookbook"`, so Pagy built every
+  # page link against Lookbook's home: clicking "2" took the reader out of the component they were
+  # looking at (#756). A preview has no single URL —it is served at `/lookbook/preview/...` and
+  # inside the inspector's iframe— so the right answer is a relative href and not another path
+  # written by hand.
   def test_a_paginated_preview_keeps_its_page_links_inside_the_preview
     studio = Tenant.create!(name: "Paginated Studio")
     6.times { |i| studio.movies.create!(name: "Paginated Movie #{i}", status: 0) }

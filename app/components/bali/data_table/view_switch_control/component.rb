@@ -3,37 +3,36 @@
 module Bali
   module DataTable
     module ViewSwitchControl
-      # Segmented control de vistas del DataTable. Envuelve a Bali::ViewSwitch y le agrega
-      # lo único que el switch genérico no puede saber: cómo se ve la URL de ESTE listado.
+      # The DataTable's view segmented control. It wraps Bali::ViewSwitch and adds the one
+      # thing the generic switch cannot know: what THIS listing's URL looks like.
       #
-      # Cada vista declara `value:` (lo que viaja en `?view=`) y el href lo arma
-      # ToolbarHref mergeando el query string actual: se tira `page` (cambiar de vista
-      # vuelve a la primera) y sobreviven filtros, búsqueda, orden y agrupación.
+      # Every view declares `value:` (what travels in `?view=`) and the href is built by
+      # ToolbarHref merging the current query string: `page` is dropped (switching views goes
+      # back to the first one) and filters, search, sorting and grouping survive.
       #
-      # `saved_view` SÍ viaja acá, al revés que en Bali::Filters (EXCLUDED_PARAMS). Allá es
-      # un SUBMIT de filtros: reenviarlo hacía que el server re-aplicara el payload de la
-      # vista encima de lo que el usuario acababa de escribir (#669). Acá es NAVEGACIÓN:
-      # cambiar de modo de visualización sin salirse de la vista guardada es exactamente lo
-      # que se espera.
+      # `saved_view` DOES travel here, the opposite of Bali::Filters (EXCLUDED_PARAMS). There
+      # it is a filter SUBMIT: resending it made the server re-apply the view's payload on top
+      # of what the user had just typed (#669). Here it is NAVIGATION: switching display mode
+      # without leaving the saved view is exactly what is expected.
       #
-      # El nombre es ViewSwitchControl y no ViewSwitch (convención de GroupByControl): dentro
-      # de `module Bali::DataTable` la constante `ViewSwitch::Component` sombrearía a
+      # The name is ViewSwitchControl and not ViewSwitch (GroupByControl's convention): inside
+      # `module Bali::DataTable` the constant `ViewSwitch::Component` would shadow
       # `Bali::ViewSwitch::Component`.
       class Component < ApplicationViewComponent
         include Bali::DataTable::ToolbarHref
 
         View = Struct.new(:name, :icon, :value, :href, :active, :options, keyword_init: true)
 
-        MISSING_TARGET_MESSAGE = "with_view necesita `value:` (una vista de esta misma ruta) " \
-          "o `href:` (una vista que vive en otra ruta)."
+        MISSING_TARGET_MESSAGE = "with_view needs `value:` (a view on this same route) " \
+          "or `href:` (a view that lives on another route)."
 
-        # @param url [String] URL base del listado (la misma `url:` del DataTable)
-        # @param current_params [Hash] query params actuales, preservados en cada link
-        # @param param [String, Symbol] param que lleva la vista (default "view")
-        # @param current [Symbol, String, nil] vista pedida, CRUDA: se valida contra las
-        #   vistas declaradas (ver #current_value)
-        # @param aria_label [String] label accesible del grupo (default i18n)
-        # @param options [Hash] pasan tal cual a Bali::ViewSwitch (size:, icon_only:, class:)
+        # @param url [String] Base URL of the listing (the DataTable's own `url:`)
+        # @param current_params [Hash] current query params, preserved on every link
+        # @param param [String, Symbol] param that carries the view (default "view")
+        # @param current [Symbol, String, nil] requested view, RAW: validated against the
+        #   declared views (see #current_value)
+        # @param aria_label [String] accessible label of the group (i18n default)
+        # @param options [Hash] passed through as-is to Bali::ViewSwitch (size:, icon_only:, class:)
         def initialize(url:, current_params: {}, param: :view, current: nil, aria_label: nil, **options)
           @url = url.to_s
           @current_params = (current_params || {}).to_h.with_indifferent_access
@@ -46,7 +45,7 @@ module Bali
 
         attr_reader :views, :param, :options
 
-        # DSL del slot: dt.with_view_switch { |vs| vs.with_view(name:, icon:, value:) }
+        # Slot DSL: dt.with_view_switch { |vs| vs.with_view(name:, icon:, value:) }
         def with_view(name:, icon:, value: nil, href: nil, active: nil, **view_options)
           raise ArgumentError, MISSING_TARGET_MESSAGE if value.nil? && href.nil?
 
@@ -63,14 +62,14 @@ module Bali
           @aria_label || t(".aria_label")
         end
 
-        # Valores de las vistas que viven en ESTA ruta (las que traen `value:`).
+        # Values of the views that live on THIS route (the ones that carry `value:`).
         def declared_values
           @declared_values ||= views.filter_map(&:value)
         end
 
-        # El `?view=` crudo nunca llega al contenido sin pasar por la lista de vistas
-        # declaradas: un valor desconocido cae a la primera en vez de dejar el listado
-        # vacío. Misma frontera que FilterForm#resolve_group_by.
+        # The raw `?view=` never reaches the content without going through the list of
+        # declared views: an unknown value falls back to the first one instead of leaving the
+        # listing empty. Same boundary as FilterForm#resolve_group_by.
         def current_value
           return @current&.to_sym if declared_values.empty?
 
@@ -89,8 +88,8 @@ module Bali
 
         private
 
-        # Una vista con `href:` propio (otra ruta) no se marca acá: la autodetección por
-        # path de Bali::ViewSwitch es la que sabe si estamos parados encima.
+        # A view with its own `href:` (another route) is not marked here: Bali::ViewSwitch's
+        # path autodetection is the one that knows whether we are standing on it.
         def resolve_active(view)
           return view.active unless view.active.nil?
           return nil if view.value.nil?

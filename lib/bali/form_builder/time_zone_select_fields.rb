@@ -2,9 +2,9 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    # El de Rails, para que la implementación pueda vivir bajo el nombre canónico
-    # `time_zone_select_field`. Se liga por la superclase y no con `alias`: ver la nota larga
-    # en `file_fields.rb` (#840).
+    # Rails' own, so the implementation can live under the canonical name
+    # `time_zone_select_field`. Bound through the superclass and not with `alias`: see the
+    # long note in `file_fields.rb` (#840).
     define_method(:rails_time_zone_select, superclass.instance_method(:time_zone_select))
 
     module TimeZoneSelectFields
@@ -48,7 +48,7 @@ module Bali
                                         error_class: "select-error", options: group)
 
         attributes = html_attributes(html_options).except(:class).merge(
-          class: [ base, html_options[:class] ].compact.join(" ")
+          class: @template.token_list(base, html_options[:class], group[:input_class])
         )
         attributes.delete(:size) if variant
         apply_input_name_options(group, attributes)

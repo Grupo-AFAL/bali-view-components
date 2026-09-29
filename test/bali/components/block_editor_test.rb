@@ -12,8 +12,8 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     Bali.block_editor_enabled = @original_enabled
   end
 
-  # #1091 — el formato de persistencia pasa a ser del host y deja de depender de si alguien
-  # dejó un comentario.
+  # #1091 — the persistence format becomes the host's, and stops depending on whether somebody left
+  # a comment.
   def test_format_accepts_the_two_pinned_json_shapes
     %i[blocks prosemirror].each do |format|
       render_inline(Bali::BlockEditor::Component.new(format: format, input_name: "doc[content]"))
@@ -31,8 +31,8 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_match "prosemirror", error.message
   end
 
-  # El input declara en qué forma está su valor, para que el host no la adivine por la
-  # estructura. Lo pone el servidor y lo mantiene al día `useContentSync`.
+  # The input declares which shape its value is in, so the host does not have to guess from the
+  # structure. The server sets it and `useContentSync` keeps it current.
   def test_the_hidden_input_declares_the_shape_of_the_stored_content
     render_inline(Bali::BlockEditor::Component.new(
                     input_name: "doc[content]",
@@ -545,7 +545,7 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_includes react_translations["user_fallback"], "%{id}"
   end
 
-  # references_config derivado del registry (#708)
+  # references_config derived from the registry (#708)
 
   def test_the_registry_display_config_reaches_the_editor_without_declaring_it_again
     with_entity_reference_types do

@@ -1,6 +1,6 @@
-<%# Modo que no aplica agrupación: el control se queda en su lugar pero INERTE. Esconderlo
-    movía la toolbar entera al cambiar de modo, y el cartel que lo explicaba ocupaba una franja
-    permanente al lado de los filtros para decir algo que el botón apagado ya dice. %>
+<%# A mode that does not apply grouping: the control stays in place but INERT. Hiding it
+    moved the whole toolbar when switching modes, and the notice that explained it took a
+    permanent strip next to the filters to say something the disabled button already says. %>
 <% if disabled? %>
   <%= render Bali::Button::Component.new(name: trigger_label, icon: 'layers',
                                          style: :outline, size: :sm, disabled: true,
@@ -8,8 +8,8 @@
                                          class: 'gap-2 whitespace-nowrap') %>
 <% else %>
 <%= render Bali::Dropdown::Component.new(align: :start, close_on_click: true) do |dropdown| %>
-  <%# aria-label explícito: el texto vive en un span max-sm:hidden, así que en móvil el
-      trigger quedaba solo con iconos y sin nombre accesible. %>
+  <%# Explicit aria-label: the text lives in a max-sm:hidden span, so on mobile the trigger
+      was left with icons only and no accessible name. %>
   <% dropdown.with_trigger(variant: :outline, class: "btn-sm gap-2 whitespace-nowrap",
                            "aria-label": trigger_label) do %>
     <%= render Bali::Icon::Component.new("layers", class: "w-4 h-4") %>

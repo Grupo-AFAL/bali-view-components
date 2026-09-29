@@ -1,7 +1,7 @@
 ---
 name: accessibility-auditor
 description: Audit ViewComponents for WCAG 2.1 accessibility compliance. Use after creating or migrating components to ensure they meet a11y standards.
-tools: Read, Glob, Grep, Write, skill_mcp
+tools: Read, Glob, Grep, Write, Bash
 model: sonnet
 ---
 
@@ -142,11 +142,13 @@ Navigate to component in Lookbook and verify:
 - Color contrast is sufficient
 - Component works at 200% zoom
 
-**Playwright call format**:
-```
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook/inspect/bali/[name]/default"}')
-skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
-```
+**Browser automation**: use whatever browser tool this session actually has — a
+Playwright MCP, a Chrome integration, or a Playwright script driven from `Bash`.
+**`skill_mcp` is not one of them**: it does not exist in this repo's setup, and an
+instruction that names it leaves the review with no way to open a page. What is not
+negotiable is the verification itself — a real browser against the running Lookbook
+(`cd test/dummy && bin/dev`, then http://localhost:3001/lookbook), with a screenshot
+as evidence. See "Browser Verification (MANDATORY)" in the root `CLAUDE.md`.
 
 ## Output Format
 

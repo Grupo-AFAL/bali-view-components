@@ -55,7 +55,7 @@ the daisyUI widget of the same name:
 | Bali component | Renders | Notes |
 |----------------|---------|-------|
 | `Button` / `Link` / `DeleteLink` | `btn btn-*` | One shared table, three axes: `variant:` (colour), `style:` (`outline`/`soft`), `size:` — `Bali::ButtonTaxonomy` |
-| `Card` / `StatCard` | `card bg-base-100 card-border` | StatCard is the Nexus stats pattern, packaged |
+| `Card` / `StatCard` | `card bg-base-100 card-border` | StatCard is the Nexus stats pattern, packaged. Two surfaces: `surface: :cell` drops the card for a flat `rounded-box border` cell, for grids of figures that live inside a card (#1146) |
 | `Table` | `table table-zebra` in an `overflow-x-auto` container | |
 | `Tabs` | `tabs` (`tabs-box`/`tabs-border` styles) | ARIA tabs pattern when panelled |
 | `Dropdown` | `dropdown dropdown-content menu` | |
@@ -65,7 +65,8 @@ the daisyUI widget of the same name:
 | `Alert` | `alert alert-*` | `Notification`/`Message` are its deprecated v2 shells |
 | `Progress` | `progress progress-*` | |
 | `Avatar` | `avatar` (photo, or derived initials) | |
-| `Stepper` / `WorkflowSteps` | `steps step-*` | Axis is `orientation:` on both |
+| `Stepper` | `steps step-*` | Axis is `orientation:` |
+| `WorkflowSteps` | **own classes**, not `steps step-*` | Axis is `orientation:` too, over four values: `:vertical`, `:horizontal`, `:rail` and `:progress`. daisyUI's `.step` takes its status from position and cannot say "step 2 was rejected" |
 | `Timeline` | `timeline timeline-*` | |
 
 The daisyUI-native rows exist so hosts inherit theme/token changes for free; the
@@ -117,7 +118,7 @@ tracked in #730.
 
 ## Verifying alignment
 
-1. **Lookbook** (`cd spec/dummy && bin/dev`, port 3001) next to the handbook
+1. **Lookbook** (`cd test/dummy && bin/dev`, port 3001) next to the handbook
    template, and under each theme — the Theme Sampler previews render components
    under `afal`/`afal-dark`/`costa-norte`.
 2. **Minitest** (the suite is not RSpec) asserts semantic classes:

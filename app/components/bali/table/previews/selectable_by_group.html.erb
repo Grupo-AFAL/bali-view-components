@@ -6,8 +6,8 @@
     </p>
   </div>
 
-  <%# Un solo controlador para las N tablas: una sola barra, un solo contador y un total
-      contra el cual confirmar. Cada tabla acota su seleccionar-todo con `select_group:`. %>
+  <%# A single controller for the N tables: one bar, one counter and one total to confirm
+      against. Each table scopes its select-all with `select_group:`. %>
   <%= render Bali::BulkActions::Component.new do |bulk| %>
     <% bulk.with_action(label: 'Consolidate', href: '/branches/bulk_consolidate', variant: :primary) %>
 

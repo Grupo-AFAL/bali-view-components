@@ -1,0 +1,9 @@
+<%= render Bali::Card::Component.new(class: 'w-96') do |c| %>
+  <% c.with_header(title: 'Dashboard', subtitle: 'Overview of your data', icon: 'home') do |header| %>
+    <% header.with_badge do %>
+      <%= render Bali::Tag::Component.new(text: 'Beta', color: :warning, size: :sm) %>
+    <% end %>
+  <% end %>
+
+  <p>Combine icon, subtitle, and badge for information-rich headers.</p>
+<% end %>

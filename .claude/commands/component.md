@@ -13,7 +13,7 @@ Where `$ARGUMENTS` is:
 - `--slots` - Include slot definitions
 - `--stimulus` - Include Stimulus controller
 - `--preview` - Generate Lookbook preview (default: true)
-- `--test` - Generate RSpec test (default: true)
+- `--test` - Generate Minitest test (default: true)
 
 ## Workflow
 
@@ -31,15 +31,22 @@ Where `$ARGUMENTS` is:
 app/components/bali/[name]/
 ├── component.rb           # Ruby class
 ├── component.html.erb     # Template
-├── component.scss         # Styles (minimal, prefer Tailwind)
+├── index.css              # Styles (optional; plain CSS — this repo has no SCSS)
+├── index.js               # Co-located Stimulus controller (if --stimulus)
 └── preview.rb             # Lookbook preview
 
-spec/components/bali/[name]/
-└── component_spec.rb      # RSpec tests
-
-app/assets/javascripts/bali/controllers/
-└── [name]_controller.js   # Stimulus controller (if --stimulus)
+test/bali/components/
+└── [name]_test.rb         # Minitest tests
 ```
+
+A component's controller is **co-located** in its own directory as `index.js` — 47
+components do it that way. `app/assets/javascripts/bali/controllers/` holds the 25
+controllers that are not tied to one component, and they are dash-named
+(`slim-select-controller.js`), never `snake_case`.
+
+The full layout, with the nested-component and preview-template cases, is in
+`docs/reference/component-patterns.md`. When that document and this one disagree,
+that one wins.
 
 ### Step 3: Apply Bali Patterns
 
@@ -51,7 +58,7 @@ app/assets/javascripts/bali/controllers/
 # app/components/bali/badge/component.rb
 module Bali
   module Badge
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       VARIANTS = {
         primary: "badge-primary",
         secondary: "badge-secondary",
@@ -110,7 +117,7 @@ end
 # app/components/bali/card/component.rb
 module Bali
   module Card
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       renders_one :header
       renders_one :image, ->(src:, alt: "", **options) do
         tag.figure do
@@ -190,7 +197,7 @@ end
 # app/components/bali/dropdown/component.rb
 module Bali
   module Dropdown
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       renders_one :trigger
       renders_many :items, ->(href: nil, **options, &block) do
         if href
@@ -254,10 +261,14 @@ end
 ```
 
 ```javascript
-// app/assets/javascripts/bali/controllers/dropdown_controller.js
-import { Controller } from "@hotwired/stimulus"
+// app/components/bali/dropdown/index.js
+import { Controller } from '@hotwired/stimulus'
 
-export default class extends Controller {
+// A NAMED export, and named `<Name>Controller`: registration imports it by name
+// (`import { DropdownController } from '../../../components/bali/dropdown/index'`
+// in `app/frontend/bali/components/index.js`, which also lists it in the
+// `CONTROLLERS` map it exports). A default export never reaches the page.
+export class DropdownController extends Controller {
   static targets = ["menu"]
   static values = { open: { type: Boolean, default: false } }
 
@@ -296,11 +307,23 @@ export default class extends Controller {
 
 ## Lookbook Preview Template
 
+Two things this template is strict about, both of which produce a broken preview if
+copied loosely:
+
+- **`ApplicationViewComponentPreview`**, never `Lookbook::Preview` — the host apps do
+  not have Lookbook, and the class has to load there too. All 132 previews in the repo
+  inherit from it.
+- **Sibling constants written in full** — `Bali::Badge::Component`, never `Component`.
+  `Module.nesting` is captured at parse time, Lookbook keeps the class from boot, and a
+  later `reload!` leaves a bare sibling resolving against a module Zeitwerk has already
+  discarded (#843). `test/requests/icon_previews_test.rb` fails the build on the bare
+  form.
+
 ```ruby
 # app/components/bali/badge/preview.rb
 module Bali
   module Badge
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @!group Playground
       
       # @param variant select [primary, secondary, accent, success, warning, error, info, ghost]
@@ -308,7 +331,7 @@ module Bali
       # @param outline toggle
       # @param text text
       def playground(variant: :primary, size: :md, outline: false, text: "Badge")
-        render Component.new(
+        render Bali::Badge::Component.new(
           variant: variant.to_sym,
           size: size.to_sym,
           outline: outline
@@ -337,56 +360,59 @@ module Bali
 end
 ```
 
-## RSpec Test Template
+## Minitest Test Template
+
+Tests are Minitest, live in `test/`, and subclass `ComponentTestCase` — a
+`ViewComponent::TestCase` with `Capybara::Minitest::Assertions` mixed in, defined in
+`test/test_helper.rb`. The component class is named in full; there is no
+`described_class`. Grouping that RSpec would express with `describe` is carried in the
+method name instead (`test_variants_...`, `test_options_passthrough_...`), which is how
+`test/bali/components/button_test.rb` and `alert_test.rb` are written.
 
 ```ruby
-# spec/components/bali/badge/component_spec.rb
-RSpec.describe Bali::Badge::Component, type: :component do
-  it "renders with base badge class" do
-    render_inline(described_class.new) { "Badge" }
-    expect(page).to have_css("span.badge", text: "Badge")
+# test/bali/components/badge_test.rb
+# frozen_string_literal: true
+
+require "test_helper"
+
+class BaliBadgeComponentTest < ComponentTestCase
+  def test_basic_rendering_renders_with_base_badge_class
+    render_inline(Bali::Badge::Component.new) { "Badge" }
+    assert_selector("span.badge", text: "Badge")
   end
 
-  describe "variants" do
-    described_class::VARIANTS.each do |variant, css_class|
-      it "renders #{variant} variant" do
-        render_inline(described_class.new(variant: variant)) { variant.to_s }
-        expect(page).to have_css("span.badge.#{css_class}")
-      end
-    end
-  end
-
-  describe "sizes" do
-    described_class::SIZES.each do |size, css_class|
-      it "renders #{size} size" do
-        render_inline(described_class.new(size: size)) { size.to_s }
-        expect(page).to have_css("span.badge.#{css_class}")
-      end
+  Bali::Badge::Component::VARIANTS.each do |variant, css_class|
+    define_method("test_variants_renders_#{variant}_variant") do
+      render_inline(Bali::Badge::Component.new(variant: variant)) { variant.to_s }
+      assert_selector("span.badge.#{css_class}")
     end
   end
 
-  describe "outline" do
-    it "applies outline class when true" do
-      render_inline(described_class.new(outline: true)) { "Outline" }
-      expect(page).to have_css("span.badge.badge-outline")
-    end
-
-    it "does not apply outline class when false" do
-      render_inline(described_class.new(outline: false)) { "Solid" }
-      expect(page).not_to have_css("span.badge-outline")
+  Bali::Badge::Component::SIZES.each do |size, css_class|
+    define_method("test_sizes_renders_#{size}_size") do
+      render_inline(Bali::Badge::Component.new(size: size)) { size.to_s }
+      assert_selector("span.badge.#{css_class}")
     end
   end
 
-  describe "options passthrough" do
-    it "applies custom classes" do
-      render_inline(described_class.new(class: "custom")) { "Custom" }
-      expect(page).to have_css("span.badge.custom")
-    end
+  def test_outline_applies_outline_class_when_true
+    render_inline(Bali::Badge::Component.new(outline: true)) { "Outline" }
+    assert_selector("span.badge.badge-outline")
+  end
 
-    it "applies data attributes" do
-      render_inline(described_class.new(data: { testid: "badge" })) { "Data" }
-      expect(page).to have_css("[data-testid='badge']")
-    end
+  def test_outline_does_not_apply_outline_class_when_false
+    render_inline(Bali::Badge::Component.new(outline: false)) { "Solid" }
+    assert_no_selector("span.badge-outline")
+  end
+
+  def test_options_passthrough_applies_custom_classes
+    render_inline(Bali::Badge::Component.new(class: "custom")) { "Custom" }
+    assert_selector("span.badge.custom")
+  end
+
+  def test_options_passthrough_applies_data_attributes
+    render_inline(Bali::Badge::Component.new(data: { testid: "badge" })) { "Data" }
+    assert_selector('span.badge[data-testid="badge"]')
   end
 end
 ```
@@ -409,19 +435,19 @@ AI: Creating Bali::Tooltip::Component...
 ### 3. app/components/bali/tooltip/preview.rb
 [Lookbook preview with playground and variants]
 
-### 4. spec/components/bali/tooltip/component_spec.rb
-[RSpec tests for all variants and positions]
+### 4. test/bali/components/tooltip_test.rb
+[Minitest tests for all variants and positions]
 
-### 5. app/assets/javascripts/bali/controllers/tooltip_controller.js
+### 5. app/components/bali/tooltip/index.js
 [Stimulus controller for dynamic tooltips]
 
 ## Running Tests
 
 ```bash
-bundle exec rspec spec/components/bali/tooltip/
+bin/rails test test/bali/components/tooltip_test.rb
 ```
 
-✓ 10 examples, 0 failures
+✓ 10 runs, 14 assertions, 0 failures, 0 errors, 0 skips
 
 ## Usage
 

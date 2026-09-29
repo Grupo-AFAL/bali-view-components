@@ -140,8 +140,11 @@ registerAll(application)
 **Check:** Open browser DevTools console. Look for JavaScript errors.
 
 **Common issues:**
-- Import map not configured correctly
 - Vite/esbuild not bundling bali-view-components
+- The app is on import maps, which cannot load Bali at all: one unresolved bare specifier
+  fails the whole module, so `eagerLoadControllersFrom` never runs and every controller stops
+  registering, yours included. See
+  [Import maps](javascript-integration.md#import-maps-not-supported).
 
 ---
 
@@ -362,7 +365,7 @@ This adds the correct Stimulus actions for modal integration.
 
 1. **Start the preview server:**
    ```bash
-   cd spec/dummy && bin/dev
+   cd test/dummy && bin/dev
    ```
 
 2. **Check preview files exist:** Each component should have `preview.rb` in its folder.

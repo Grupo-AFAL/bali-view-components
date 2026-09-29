@@ -2,9 +2,9 @@
   <%# App Bar %>
   <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0">
     <%# Left: TOC toggle %>
-    <%# Los toggles icon-only llevan aria-label explícito (el title solo es
-        nombre de último recurso) y aria-expanded que el controller mantiene
-        al abrir/cerrar su panel (#1028). %>
+    <%# Icon-only toggles carry an explicit aria-label (title is only a
+        last-resort name) and an aria-expanded the controller keeps up to date
+        as it opens/closes its panel (#1028). %>
     <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
           data: { action: "document-editor#toggleToc", document_editor_target: "tocToggle" },
           "aria-label": t('.toggle_toc'), "aria-expanded": "false", title: t('.toggle_toc')) do %>
@@ -64,7 +64,7 @@
 
       <% if export? %>
         <%= render Bali::Dropdown::Component.new(align: :end) do |dropdown| %>
-          <%# Sin aria-label este trigger icon-only no tiene nombre accesible (#1028). %>
+          <%# Without aria-label this icon-only trigger has no accessible name (#1028). %>
           <% dropdown.with_trigger(class: "btn-ghost btn-sm btn-square",
                "aria-label": t('.export'), title: t('.export')) do %>
             <%= render Bali::Icon::Component.new('download', size: :small) %>

@@ -39,6 +39,7 @@ group :test do
 end
 
 group :development, :test do
+  gem "bali-rubocop", github: "Grupo-AFAL/bali-rubocop", tag: "v0.1.0", require: false
   gem "brakeman", require: false
   # Deliberately not in the gemspec: Bali::QrCode::Component requires it lazily so
   # an app that never renders a QR code does not carry the dependency. Here so the

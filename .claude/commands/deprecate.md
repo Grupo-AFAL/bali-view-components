@@ -35,7 +35,7 @@ Where `$ARGUMENTS` is:
 # app/components/bali/box/component.rb
 module Bali
   module Box
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       # @deprecated Use {Card::Component} instead. Will be removed in v3.0.
       
       def initialize(**options)
@@ -57,7 +57,7 @@ end
 # app/components/bali/button/component.rb
 module Bali
   module Button
-    class Component < ApplicationComponent
+    class Component < ApplicationViewComponent
       def initialize(
         variant: :primary,
         type: nil,  # @deprecated Use :variant instead

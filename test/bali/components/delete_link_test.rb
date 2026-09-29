@@ -45,14 +45,14 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     @options.merge!(form_class: "bg-success")
     render_inline(component)
     assert_selector("button.text-error.btn-ghost", text: "Delete")
-    # `form_class:` SUMA, como dice su documentación: el default sigue puesto al lado.
+    # `form_class:` ADDS, as its documentation says: the default stays put alongside.
     assert_selector("form.bali-delete-link-form.bg-success")
   end
 
-  # Sacar el form del árbol de cajas se PIDE, con `form_class:`, y no se deduce de `plain:`
-  # (#868): ese keyword es lo que la API dice —un botón sin la caja del `.btn`— y viaja
-  # lejos de cualquier menú, así que gateado ahí cargaba un segundo significado que su
-  # documentación no anuncia.
+  # Taking the form out of the box tree is ASKED for, with `form_class:`, and not inferred from
+  # `plain:` (#868): that keyword is what the API says it is —a button without the `.btn` box— and it
+  # travels far from any menu, so gating it there loaded it with a second meaning its documentation
+  # does not announce.
   def test_plain_alone_does_not_take_the_form_out_of_the_box_tree
     @options.merge!(plain: true)
     render_inline(component)
@@ -66,10 +66,10 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_selector("form.contents")
   end
 
-  # El default vive en @layer components, no como utilidad sobre el elemento, para que la
-  # utilidad del call site le gane. Como utilidades empataban, y el desempate lo ganaba la
-  # hoja compilada: medido, `.contents` se emite ANTES que `.inline-block`, así que
-  # `class="inline-block contents"` renderiza inline-block y el `form_class` no hacía nada.
+  # The default lives in @layer components, not as a utility on the element, so the call site's
+  # utility beats it. As utilities they tied, and the compiled sheet broke the tie: measured,
+  # `.contents` is emitted BEFORE `.inline-block`, so `class="inline-block contents"` renders
+  # inline-block and `form_class` did nothing.
   def test_the_default_form_display_is_not_a_utility_on_the_element
     render_inline(component)
     assert_selector("form.bali-delete-link-form")

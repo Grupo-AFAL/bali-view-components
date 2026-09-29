@@ -6,10 +6,10 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :record_id, :group
 
-        # @param group [String, Array<String>, nil] Ids de los seleccionar-todo que alcanzan
-        #   a este item. Un `selectAll` con `data-bulk-actions-group="<id>"` solo marca los
-        #   items que declaren ese id; sin el atributo marca todos. Se aceptan varios porque
-        #   los grupos anidan (el de la sección y el de su subgrupo), igual que las clases.
+        # @param group [String, Array<String>, nil] Ids of the select-alls that reach this
+        #   item. A `selectAll` with `data-bulk-actions-group="<id>"` only marks the items
+        #   that declare that id; with no attribute it marks them all. Several are accepted
+        #   because groups nest (the section's and its subgroup's), just like classes.
         def initialize(record_id:, group: nil, **options)
           @record_id = record_id
           @group = Array(group).compact_blank

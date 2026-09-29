@@ -2,9 +2,8 @@
 
 require "test_helper"
 
-# #709 — el libro de firmas que el engine le presta a un modelo del host. `Document` (del
-# dummy) incluye el concern, así que esto ejercita exactamente la adopción que se le pide a
-# una app real.
+# #709 — the signature book the engine lends a host's model. `Document` (from the dummy) includes
+# the concern, so this exercises exactly the adoption a real app is asked for.
 class BaliAcknowledgeableTest < ActiveSupport::TestCase
   def setup
     @document = Document.create!(title: "Política de viáticos", author_name: "Ana")
@@ -31,8 +30,8 @@ class BaliAcknowledgeableTest < ActiveSupport::TestCase
     refute @document.acknowledged_by?(@beto)
   end
 
-  # Lo que hace que esto sirva como evidencia: volver a confirmar el mismo texto no
-  # reescribe la fecha en que la persona lo firmó.
+  # What makes this usable as evidence: acknowledging the same text again does not rewrite the date
+  # the person signed it on.
   def test_acknowledging_the_same_version_twice_keeps_the_original_record_untouched
     first = travel_to(3.days.ago) { @document.acknowledge(user: @ana) }
     original_time = first.reload.acknowledged_at
@@ -44,9 +43,9 @@ class BaliAcknowledgeableTest < ActiveSupport::TestCase
     assert_equal 1, @document.acknowledgments.count
   end
 
-  # Firmar otra versión es un acto NUEVO, así que la fecha se mueve con la etiqueta. Es la
-  # separación deliberada de gobierno-corporativo, que conserva la fecha vieja y termina
-  # afirmando que alguien firmó la 2.0 antes de que la 2.0 existiera.
+  # Signing another version is a NEW act, so the date moves with the label. It is the deliberate
+  # split from gobierno-corporativo, which keeps the old date and ends up claiming somebody signed
+  # 2.0 before 2.0 existed.
   def test_re_acknowledging_a_new_version_label_updates_both_the_label_and_the_date
     first = travel_to(3.days.ago) { @document.acknowledge(user: @ana) }
     original_time = first.reload.acknowledged_at
@@ -60,8 +59,8 @@ class BaliAcknowledgeableTest < ActiveSupport::TestCase
     assert_equal 1, @document.acknowledgments.count
   end
 
-  # El concern le pregunta al modelo por `version_label` con `try`, así que un modelo que ni
-  # siquiera define el método firma igual — y uno que lo define vacío también.
+  # The concern asks the model for `version_label` with `try`, so a model that does not even define
+  # the method signs all the same — and one that defines it empty does too.
   def test_a_record_without_a_version_label_still_signs
     @document.version_label = nil
 
@@ -93,10 +92,10 @@ class BaliAcknowledgeableTest < ActiveSupport::TestCase
     assert_equal 1, other_document.acknowledgments.count
   end
 
-  # Una firma es única por (qué se firmó, quién firmó) y AMBAS mitades son polimórficas: sin
-  # el `_type` en el índice, un `Member` y un `User` con el mismo id serían el mismo firmante
-  # — y ese choque no se puede reproducir con dos secuencias de ids independientes, así que
-  # lo que se fija aquí es la definición del índice.
+  # A signature is unique by (what was signed, who signed) and BOTH halves are polymorphic: without
+  # the `_type` in the index, a `Member` and a `User` with the same id would be the same signer — and
+  # that clash cannot be reproduced with two independent id sequences, so what is pinned here is the
+  # index definition.
   def test_the_uniqueness_index_scopes_on_both_polymorphic_types
     index = ActiveRecord::Base.connection.indexes("bali_acknowledgments")
                               .find { |i| i.name == "index_bali_acknowledgments_uniqueness" }
@@ -114,8 +113,8 @@ class BaliAcknowledgeableTest < ActiveSupport::TestCase
     end
   end
 
-  # La columna existe sin foreign key para que instalar el libro de firmas no obligue a
-  # instalar el historial de contenido (#707). Sin él, se queda en nil.
+  # The column exists without a foreign key so that installing the signature book does not force
+  # installing the content history (#707). Without it, it stays nil.
   def test_content_version_id_stays_empty_without_the_content_history
     ack = @document.acknowledge(user: @ana)
 

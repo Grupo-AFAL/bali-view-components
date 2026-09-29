@@ -53,8 +53,15 @@ module Bali
       # `md` no matter what the call site said (#1076). `:required` stays: the
       # editor is a widget over a hidden field, which constraint validation
       # never reads (see required_option_test.rb).
+      #
+      # `CONTROL_CLASS_OPTIONS` rides along too: what the user types into is a
+      # ProseMirror `contenteditable` BlockNote creates client-side, so there is
+      # no control at render time for `input_class:` to class. Left in the hash
+      # it painted `<div input_class="...">` on the wrapper — measured, and the
+      # very leak the line above exists to stop.
       FIELD_GROUP_OPTIONS = (
-        HtmlUtils::WRAPPER_OPTIONS + HtmlUtils::CONTROL_ONLY_OPTIONS - [ :size ]
+        HtmlUtils::WRAPPER_OPTIONS + HtmlUtils::CONTROL_CLASS_OPTIONS +
+        HtmlUtils::CONTROL_ONLY_OPTIONS - [ :size ]
       ).freeze
 
       def block_editor_field(method, **options)

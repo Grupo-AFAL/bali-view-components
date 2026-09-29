@@ -8,11 +8,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # El job publica un comentario de cobertura en el PR, así que necesita
+    # escritura sobre pull-requests. Sin este bloque hereda el default del repo,
+    # y en un run disparado por Dependabot ese default es de SOLO LECTURA (#1141).
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
+        env:
+          # `bali-rubocop` es un repo privado y el GITHUB_TOKEN del workflow solo alcanza
+          # a este repo, así que sin esto `bundle install` muere clonándolo (exit 11).
+          # Mismo secreto y misma forma que las siete apps de la flota.
+          BUNDLE_GITHUB__COM: x-access-token:${{ secrets.BUNDLE_GITHUB_TOKEN }}
         with:
           bundler-cache: true
       - name: Set up Node.js
@@ -23,15 +34,15 @@ jobs:
           # "Found incompatible module" before a single test runs.
           node-version: '22'
           cache: 'yarn'
-          cache-dependency-path: spec/dummy/yarn.lock
+          cache-dependency-path: test/dummy/yarn.lock
       - name: Install Node dependencies
-        run: cd spec/dummy && yarn install
+        run: cd test/dummy && yarn install
       - name: Set up database schema
         run: bin/rails db:schema:load
         env:
           RAILS_ENV: test
       - name: Build assets
-        run: cd spec/dummy && bin/rails tailwindcss:build && yarn build
+        run: cd test/dummy && bin/rails tailwindcss:build && yarn build
       - name: Run tests with coverage
         run: bundle exec rails test
         env:
@@ -55,7 +66,11 @@ jobs:
             echo "> **Line coverage is below 80% minimum.** Add tests to increase coverage." >> $GITHUB_STEP_SUMMARY
           fi
       - name: Comment coverage on PR
+        # Comodidad, no una puerta: si el token no alcanza (Dependabot, un fork)
+        # o el reporte no existe porque las pruebas reventaron antes, el paso se
+        # salta sin pintar de rojo un job cuyas pruebas sí pasaron.
         if: github.event_name == 'pull_request' && always()
+        continue-on-error: true
         uses: actions/github-script@v9
         with:
           script: |

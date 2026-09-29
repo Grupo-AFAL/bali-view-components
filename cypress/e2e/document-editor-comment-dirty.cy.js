@@ -1,21 +1,21 @@
-// Responder un comentario marcaba el documento como «Cambios sin guardar», y en un visor
-// de solo lectura ese aviso ya no se limpiaba nunca.
+// Replying to a comment flagged the document as «Cambios sin guardar», and in a read-only
+// viewer that notice was never cleared again.
 //
-// El listener de `input` cuelga del CONTENEDOR del área del editor —BlockNote construye su
-// ProseMirror del lado del cliente, así que al conectar no hay otra cosa a la que colgarse—
-// y el composer flotante de BlockNote vive DENTRO de ese contenedor. Su `input` burbujeaba,
-// `contentChanged` llamaba a `scheduleSave` y `_dirty` quedaba en true. Con
-// `auto_save: false` no hay guardado que lo limpie: el aviso se queda para siempre sobre un
-// documento que quien lee no puede haber cambiado ni puede guardar (#1111).
+// The `input` listener hangs off the CONTAINER of the editor area —BlockNote builds its
+// ProseMirror client-side, so on connect there is nothing else to hang it on— and
+// BlockNote's floating composer lives INSIDE that container. Its `input` bubbled,
+// `contentChanged` called `scheduleSave` and `_dirty` stayed true. With
+// `auto_save: false` there is no save to clear it: the notice stays forever over a
+// document the reader cannot have changed and cannot save (#1111).
 //
-// La preview `default` es exactamente el caso reportado: `auto_save: false` y comentarios
-// encendidos. `?editable=false` la vuelve el visor.
+// The `default` preview is exactly the reported case: `auto_save: false` and comments
+// on. `?editable=false` turns it into the viewer.
 //
-// Monta el markup que BlockNote emite para el composer y dispara el `input` real que
-// burbujea: el composer flotante sólo lo abre un click sobre un ancla real, y lo que se
-// prueba acá es de dónde vino el evento, no cómo apareció la tarjeta.
+// Mounts the markup BlockNote emits for the composer and fires the real `input` that
+// bubbles: the floating composer only opens on a click over a real anchor, and what is
+// tested here is where the event came from, not how the card appeared.
 
-const composerFlotante = `
+const floatingComposer = `
   <div data-floating-ui-portal>
     <div tabindex="-1" data-floating-ui-focusable style="position:absolute;top:0;left:0">
       <div class="bn-thread mantine-Card-root mantine-Paper-root">
@@ -30,68 +30,68 @@ const composerFlotante = `
     </div>
   </div>`
 
-const areaEditor = () => cy.get('[data-document-editor-target="editorArea"]:visible')
-// Sin `:visible`: el `<span>` del estado arranca vacío, y un inline vacío mide 0×0, así que
-// Cypress lo daría por invisible justo en el estado que esta prueba necesita leer.
-const estado = () => cy.get('[data-document-editor-target="saveStatus"]')
+const editorArea = () => cy.get('[data-document-editor-target="editorArea"]:visible')
+// No `:visible`: the status `<span>` starts out empty, and an empty inline measures 0×0, so
+// Cypress would call it invisible in exactly the state this test needs to read.
+const saveStatus = () => cy.get('[data-document-editor-target="saveStatus"]')
 
-// El constructor sale de la ventana del AUT, no de la del runner: el nodo vive en el
-// iframe de la app y un evento construido afuera no es del mismo reino.
-const dispararInput = nodo => {
-  const win = nodo.ownerDocument.defaultView
-  nodo.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }))
+// The constructor comes from the AUT's window, not the runner's: the node lives in the
+// app's iframe and an event built outside is not of the same realm.
+const dispatchInput = node => {
+  const win = node.ownerDocument.defaultView
+  node.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }))
 }
 
-const teclearEn = selector => cy.get(selector).then($nodo => dispararInput($nodo[0]))
+const typeIn = selector => cy.get(selector).then($node => dispatchInput($node[0]))
 
-const montarComposer = () =>
-  areaEditor().then($area => {
+const mountComposer = () =>
+  editorArea().then($area => {
     const host = $area[0].ownerDocument.createElement('div')
     host.dataset.test = 'sonda-composer'
-    host.innerHTML = composerFlotante
+    host.innerHTML = floatingComposer
     $area[0].appendChild(host)
   })
 
-const visitar = query => {
+const visitPreview = query => {
   cy.viewport(1280, 900)
   cy.visit(`/bali/document_editor/default${query}`)
-  areaEditor().find('.bn-editor').should('contain.text', 'Project Overview')
-  estado().should('have.text', '')
-  montarComposer()
+  editorArea().find('.bn-editor').should('contain.text', 'Project Overview')
+  saveStatus().should('have.text', '')
+  mountComposer()
 }
 
-describe('DocumentEditor: visor de solo lectura', () => {
-  beforeEach(() => visitar('?editable=false'))
+describe('DocumentEditor: read-only viewer', () => {
+  beforeEach(() => visitPreview('?editable=false'))
 
-  it('no marca cambios sin guardar al teclear una respuesta', () => {
-    teclearEn('[data-test="respuesta"]')
+  it('does not flag unsaved changes when typing a reply', () => {
+    typeIn('[data-test="respuesta"]')
 
-    estado().should('have.text', '')
+    saveStatus().should('have.text', '')
   })
 
-  // El editor no es editable, así que no hay ningún `input` legítimo que pueda venir del
-  // documento: el aviso no puede aparecer por ninguna vía.
-  it('no ofrece un botón de guardar que pudiera limpiarlo', () => {
+  // The editor is not editable, so there is no legitimate `input` that could come from the
+  // document: the notice cannot appear by any route.
+  it('offers no save button that could clear it', () => {
     cy.get('[data-document-editor-target="saveButton"]').should('not.exist')
   })
 })
 
-// `contentChanged` filtra por dos clases de BlockNote, y el markup de arriba es
-// sintético a propósito —el composer flotante sólo lo abre un click sobre un ancla
-// real—, así que el arreglo cuelga de un supuesto que nada verifica: que BlockNote SIGA
-// emitiendo esas clases. Si un bump de versión renombra `.bn-comment-editor`, la sonda
-// sigue verde y el defecto de #1111 vuelve entero, en silencio, sobre el mismo caso que
-// se midió. Esto no prueba comportamiento; falla el día que la clase deje de existir.
+// `contentChanged` filters on two BlockNote classes, and the markup above is
+// synthetic on purpose —the floating composer only opens on a click over a real
+// anchor—, so the fix hangs off an assumption nothing verifies: that BlockNote KEEPS
+// emitting those classes. If a version bump renames `.bn-comment-editor`, the probe
+// stays green and the #1111 defect comes back whole, silently, over the same case that
+// was measured. This does not test behaviour; it fails the day the class stops existing.
 //
-// Acá va la mitad que este preview alcanza sin datos: el sidebar se monta con el panel,
-// haya hilos o no. `.bn-comment-editor` necesita un hilo, y los hilos de este preview
-// salen de la base (`commentable_id=1`), que los seeds no llenan — se canaria en
-// `block-editor-threads-sidebar.cy.js`, sobre los hilos en memoria de su preview.
-describe('DocumentEditor: las clases de las que depende el filtro', () => {
-  it('BlockNote sigue emitiendo .bn-threads-sidebar en el DOM real', () => {
+// Here goes the half this preview reaches without data: the sidebar mounts with the panel,
+// threads or no threads. `.bn-comment-editor` needs a thread, and this preview's threads
+// come from the database (`commentable_id=1`), which the seeds do not fill — that is
+// canaried in `block-editor-threads-sidebar.cy.js`, over the in-memory threads of its preview.
+describe('DocumentEditor: the classes the filter depends on', () => {
+  it('BlockNote still emits .bn-threads-sidebar in the real DOM', () => {
     cy.viewport(1280, 900)
     cy.visit('/bali/document_editor/default')
-    areaEditor().find('.bn-editor').should('contain.text', 'Project Overview')
+    editorArea().find('.bn-editor').should('contain.text', 'Project Overview')
 
     cy.get('[data-document-editor-target="commentsToggle"]').click()
 
@@ -100,20 +100,20 @@ describe('DocumentEditor: las clases de las que depende el filtro', () => {
   })
 })
 
-describe('DocumentEditor: editor con auto_save apagado', () => {
-  beforeEach(() => visitar(''))
+describe('DocumentEditor: editor with auto_save off', () => {
+  beforeEach(() => visitPreview(''))
 
-  it('no marca cambios sin guardar al teclear una respuesta', () => {
-    teclearEn('[data-test="respuesta"]')
+  it('does not flag unsaved changes when typing a reply', () => {
+    typeIn('[data-test="respuesta"]')
 
-    estado().should('have.text', '')
+    saveStatus().should('have.text', '')
   })
 
-  // La otra mitad del contrato: el arreglo filtra por origen del evento, no apaga el aviso.
-  // Un `input` del ProseMirror del documento tiene que seguir marcándolo.
-  it('sí lo marca cuando el input viene del documento', () => {
-    areaEditor().find('.bn-editor').first().then($editor => dispararInput($editor[0]))
+  // The other half of the contract: the fix filters by where the event came from, it does
+  // not turn the notice off. An `input` from the document's ProseMirror must still flag it.
+  it('does flag it when the input comes from the document', () => {
+    editorArea().find('.bn-editor').first().then($editor => dispatchInput($editor[0]))
 
-    estado().should('not.have.text', '')
+    saveStatus().should('not.have.text', '')
   })
 })

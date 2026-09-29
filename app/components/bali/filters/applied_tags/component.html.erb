@@ -24,8 +24,8 @@
           <%= filter[:value_label] %>
         </span>
 
-        <%# aria-label nombra QUÉ filtro quita: la barra lista varios botones
-            visualmente idénticos y "Remove filter" a secas no los distingue (#1028). %>
+        <%# The aria-label names WHICH filter it removes: the bar lists several visually
+            identical buttons and a bare "Remove filter" does not tell them apart (#1028). %>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle h-5 w-5 min-h-0 hover:bg-error/20 hover:text-error"
                 data-action="applied-tags#removeFilter"

@@ -2,18 +2,18 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    # Se liga el método de la SUPERCLASE por su dueño, no `alias file_field`.
+    # The SUPERCLASS's method is bound through its owner, not `alias file_field`.
     #
-    # `alias` captura lo que el nombre resuelva EN ESE MOMENTO. La primera vez que se carga
-    # este archivo `FileFields` todavía no está incluido, así que captura el de ActionView y
-    # todo funciona. Pero el archivo se vuelve a ejecutar en cada reload de código, y para
-    # entonces el módulo YA está incluido: el alias pasaba a apuntar al override de Bali, y
-    # `rails_file_field` terminaba llamándose a sí mismo. Cualquier host en desarrollo se
-    # comía un `SystemStackError` en todos sus file fields desde el primer reload y hasta
-    # reiniciar el servidor (#840). Ningún test lo agarraba porque la suite arranca en frío.
+    # `alias` captures whatever the name resolves to AT THAT MOMENT. The first time this file
+    # is loaded `FileFields` is not included yet, so it captures ActionView's and everything
+    # works. But the file is re-executed on every code reload, and by then the module IS
+    # already included: the alias then pointed at Bali's override, and `rails_file_field`
+    # ended up calling itself. Any host in development ate a `SystemStackError` on every one
+    # of its file fields from the first reload until the server was restarted (#840). No test
+    # caught it because the suite starts cold.
     #
-    # `instance_method` sobre la superclase no depende del orden de carga ni de cuántas veces
-    # se re-ejecute el archivo: sólo puede significar el de Rails.
+    # `instance_method` on the superclass does not depend on load order nor on how many times
+    # the file is re-executed: it can only mean Rails'.
     define_method(:rails_file_field, superclass.instance_method(:file_field))
 
     module FileFields

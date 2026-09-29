@@ -2,11 +2,10 @@
 
 require "test_helper"
 
-# Los previews del ThemeSampler son la puerta de revisión visual de los temas
-# empaquetados (#718): cada tema renderiza el mismo muestrario bajo su propio
-# layout, que estampa data-theme en <html>. Nada más los ejercita — los tests
-# de componente no renderizan previews y Cypress no los visita — así que sin
-# esto un layout borrado o un preview roto deja la puerta 500eando en verde.
+# The ThemeSampler previews are the visual review gate for the packaged themes (#718): each theme
+# renders the same sampler under its own layout, which stamps data-theme on <html>. Nothing else
+# exercises them — the component tests render no previews and Cypress does not visit them — so
+# without this a deleted layout or a broken preview leaves the gate 500ing in green.
 class ThemeSamplerPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = {
     "/lookbook/preview/bali/theme_sampler/costa_norte" => "costa-norte",

@@ -1,5 +1,5 @@
-// El view switch solo se puede probar de verdad navegando: lo que importa es qué sobrevive
-// al cambio de modo, y eso vive en el query string que arma el servidor.
+// The view switch can only really be tested by navigating: what matters is what survives
+// the mode change, and that lives in the query string the server builds.
 describe('DataTable view switch', () => {
   const viewSwitch = '.view-switch-component'
   const savedViews = '[data-controller~="saved-views"]'
@@ -18,7 +18,7 @@ describe('DataTable view switch', () => {
       expect(search).to.include('group_by=genre')
       expect(search).to.include('saved_view=1')
       expect(search).to.include('name_cont')
-      // Cambiar de vista vuelve a la primera página: `page` es lo único que se tira.
+      // Switching views goes back to the first page: `page` is the only thing dropped.
       expect(search).to.not.include('page=')
     })
 
@@ -33,19 +33,19 @@ describe('DataTable view switch', () => {
     cy.get(viewSwitch).contains('a', 'Calendar').click()
 
     cy.get('.calendar-component').should('exist')
-    // El contenedor solo prueba que el slot genérico pintó algo: lo que prueba que el modo
-    // sirve son las celdas con datos del listado adentro.
+    // The container only proves the generic slot painted something: what proves the mode
+    // works are the cells with listing data inside it.
     cy.get('.calendar-component .badge').should('have.length.greaterThan', 0)
-    // No se puede pedir `table` a secas: el propio Calendar dibuja el mes con una <table>.
-    // Lo que tiene que desaparecer es la tabla DEL LISTADO, y su marca inconfundible es la
-    // casilla de "seleccionar todo" del encabezado.
+    // Asking for a bare `table` will not do: Calendar itself draws the month with a <table>.
+    // What has to disappear is the LISTING table, and its unmistakable mark is the header's
+    // "select all" checkbox.
     cy.get('thead input[type="checkbox"]').should('not.exist')
     cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Calendar')
   })
 
   it('falls back to the first declared view when ?view= is unknown', () => {
-    // El param crudo nunca llega al contenido sin pasar por las vistas declaradas: sin el
-    // gateo, un `?view=` inventado dejaba el listado vacío.
+    // The raw param never reaches the content without going through the declared views:
+    // without that gate, a made-up `?view=` left the listing empty.
     cy.visit('/bali/data_table/complete?view=kanban')
 
     cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Table')
@@ -53,8 +53,8 @@ describe('DataTable view switch', () => {
   })
 
   it('keeps the display mode when filters are applied from the cards view', () => {
-    // El submit de filtros reconstruye la URL desde `url:`, sin query string: el modo
-    // sobrevive porque viaja como hidden field, igual que la agrupación.
+    // The filter submit rebuilds the URL from `url:`, with no query string: the mode
+    // survives because it travels as a hidden field, just like the grouping.
     cy.visit('/bali/data_table/complete?view=grid')
 
     cy.get('input[type="hidden"][name="view"]').should('have.value', 'grid')

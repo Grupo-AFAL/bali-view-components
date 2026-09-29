@@ -1,55 +1,55 @@
-// `button_to` envuelve su boton en un `<form>`, y daisyUI pinta el item del menu sobre
-// `li > *` salvo que sea un `.btn`. El form no lo es, asi que se llevaba el padding, el
-// radio y el hover del item mientras el boton quedaba adentro con una segunda caja propia:
-// Delete medido 192x49 con un hover de 168x37 adentro, contra los 192x37 de Edit (#829).
+// `button_to` wraps its button in a `<form>`, and daisyUI paints the menu item on
+// `li > *` unless it is a `.btn`. The form is not, so it took the item's padding, radius
+// and hover while the button sat inside with a second box of its own: Delete measured
+// 192x49 with a 168x37 hover inside it, against Edit's 192x37 (#829).
 //
-// El arreglo es `display: contents` sobre el form, y lo que esta prueba cuida es la CASCADA,
-// que es donde se puede romper sin que falle ningun assert de Ruby. El default vive en
-// @layer components (`.bali-delete-link-form`) justamente para que la utilidad del call site
-// le gane: como utilidad sobre el elemento las dos empataban en capa y especificidad, y el
-// desempate lo ganaba la hoja compilada — medido, `.contents` se emite ANTES que
-// `.inline-block`, asi que `class="inline-block contents"` renderiza inline-block y el
-// `form_class` no hacia nada.
-describe('El item Delete de un menu es la misma caja que sus vecinos', () => {
+// The fix is `display: contents` on the form, and what this test guards is the CASCADE,
+// which is where it can break without any Ruby assert failing. The default lives in
+// @layer components (`.bali-delete-link-form`) precisely so that the call site's utility
+// beats it: as a utility on the element the two tied on layer and specificity, and the
+// compiled sheet broke the tie — measured, `.contents` is emitted BEFORE
+// `.inline-block`, so `class="inline-block contents"` renders inline-block and
+// `form_class` did nothing.
+describe('A menu Delete item is the same box as its neighbors', () => {
   beforeEach(() => {
     cy.viewport(1280, 900)
     cy.visit('/bali/actions_dropdown/default')
     cy.get('[data-dropdown-target="trigger"]').first().click()
   })
 
-  // Se devuelve el rect y no el nodo: lo que sale de un `.then` lo re-envuelve Cypress, y
-  // un `<li>` devuelto ahi vuelve como sujeto, no como elemento.
-  const cajaDelItemDe = texto =>
-    cy.contains('li > *', texto).then($el => {
+  // The rect is returned and not the node: whatever comes out of a `.then` gets re-wrapped
+  // by Cypress, and an `<li>` returned there comes back as a subject, not an element.
+  const itemBoxOf = text =>
+    cy.contains('li > *', text).then($el => {
       const r = $el[0].closest('li').getBoundingClientRect()
       return { w: Math.round(r.width), h: Math.round(r.height) }
     })
 
-  it('el form no genera caja, asi que el boton ES el item', () => {
+  it('the form generates no box, so the button IS the item', () => {
     cy.get('li > form').first().should($form => {
-      expect(window.getComputedStyle($form[0]).display, 'el form no dibuja caja')
+      expect(window.getComputedStyle($form[0]).display, 'the form draws no box')
         .to.equal('contents')
     })
   })
 
-  it('Delete mide lo mismo que un item de enlace', () => {
-    cajaDelItemDe('Edit').then(enlace => {
-      cajaDelItemDe('Delete').then(borrar => {
-        expect(borrar.h, 'mismo alto').to.equal(enlace.h)
-        expect(borrar.w, 'mismo ancho').to.equal(enlace.w)
+  it('Delete measures the same as a link item', () => {
+    itemBoxOf('Edit').then(linkItem => {
+      itemBoxOf('Delete').then(deleteItem => {
+        expect(deleteItem.h, 'same height').to.equal(linkItem.h)
+        expect(deleteItem.w, 'same width').to.equal(linkItem.w)
       })
     })
   })
 
-  // La segunda mitad del defecto: dos cajas de hover anidadas, una con radio de 4px dentro
-  // de otra de 8px. Con el form fuera del arbol queda una sola.
-  it('el boton llena su item, sin una segunda caja adentro', () => {
+  // The second half of the defect: two nested hover boxes, one with a 4px radius inside
+  // another of 8px. With the form out of the tree only one remains.
+  it('the button fills its item, with no second box inside', () => {
     cy.contains('li > form button', 'Delete').should($btn => {
-      const boton = $btn[0].getBoundingClientRect()
+      const button = $btn[0].getBoundingClientRect()
       const item = $btn[0].closest('li').getBoundingClientRect()
 
-      expect(Math.round(boton.width), 'el boton no queda embutido').to.equal(Math.round(item.width))
-      expect(Math.round(boton.left)).to.equal(Math.round(item.left))
+      expect(Math.round(button.width), 'the button is not squeezed in').to.equal(Math.round(item.width))
+      expect(Math.round(button.left)).to.equal(Math.round(item.left))
     })
   })
 })

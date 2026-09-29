@@ -113,13 +113,17 @@ module Bali
         color = html_options[:color]
         custom_class = html_options[:class]
 
-        radio_class = [
+        # `input_class:` travels in the group's `options`, the way `help:` does:
+        # `html:` is the per-radio hash, and this family's whole point is that one
+        # option classes every radio in the group.
+        radio_class = @template.token_list(
           RADIO_CLASS,
           size_variant(html_options, SIZES),
           COLORS[color],
           (errors?(method, options) ? "radio-error" : nil),
-          custom_class
-        ].compact.join(" ")
+          custom_class,
+          options[:input_class]
+        )
 
         attributes = html_attributes(html_options).except(:class, *RADIO_OPTIONS)
                                                   .merge(class: radio_class)
@@ -142,7 +146,7 @@ module Bali
       def build_control_options(options, current_value)
         keep_selection = options[:keep_selection]
 
-        control_class = [ RADIO_BUTTONS_GROUP_CLASS, options[:control_class] ].compact.join(" ")
+        control_class = @template.token_list(RADIO_BUTTONS_GROUP_CLASS, options[:control_class])
         control_data = (options[:control_data] || {}).merge(
           controller: CONTROLLER_NAME,
           "#{CONTROLLER_NAME}-current-value": current_value,

@@ -30,8 +30,8 @@ find app/components/bali -name "component.rb" -type f | wc -l
 For each component, gather:
 - Component path
 - Has preview.rb
-- Has spec file
-- Has SCSS file
+- Has test file
+- Has index.css
 - Has Stimulus controller
 
 ### Step 2: DaisyUI Compliance Check
@@ -39,7 +39,7 @@ For each component, gather:
 Check each component for proper DaisyUI class usage:
 
 1. **DaisyUI Classes**:
-   ```ruby
+   ```bash
    # Grep for DaisyUI patterns
    grep -l "btn-primary\|btn-success\|btn-error" component.rb
    grep -l "badge-\|alert-\|card-body" component.rb
@@ -55,17 +55,28 @@ Check each component for proper DaisyUI class usage:
 For each component:
 
 ```bash
-# Check if spec exists
-test -f spec/bali/components/{name}_spec.rb
+# Check if a test file exists. A few components keep theirs in a subdirectory
+# (data_table/, filters/, form/, icon/, pagination/, …), so search instead of
+# assuming test/bali/components/{name}_test.rb
+find test/bali/components -name "{name}_test.rb"
 
-# Count test examples
-grep -c "it \|context \|describe " spec/bali/components/{name}_spec.rb
+# Count test cases
+grep -cE '^\s*(def test_|define_method\("test_|test ")' test/bali/components/{name}_test.rb
+```
+
+Minitest cases in this repo are `def test_...` methods, plus the `define_method("test_...")`
+loops that generate one case per variant or size; nine files use the `test "..." do` block
+form. The grep counts a generating loop once, so it undercounts — for the exact number run
+the file and read the `N runs` line:
+
+```bash
+bin/rails test test/bali/components/{name}_test.rb
 ```
 
 Categories:
-- **Full Coverage**: Spec exists with >5 examples
-- **Basic Coverage**: Spec exists with 1-5 examples
-- **No Coverage**: No spec file
+- **Full Coverage**: Test file exists with >5 cases
+- **Basic Coverage**: Test file exists with 1-5 cases
+- **No Coverage**: No test file
 
 ### Step 4: Accessibility Analysis
 
@@ -112,8 +123,8 @@ Generated: [timestamp]
 ### Compliant (X components)
 | Component | Tests | A11y | Notes |
 |-----------|-------|------|-------|
-| Button | 12 examples | Yes | |
-| Badge | 8 examples | Yes | |
+| Button | 46 tests | Yes | |
+| Badge | 8 tests | Yes | |
 
 ### Needs Review (X components)
 | Component | Issue | Priority |
@@ -210,7 +221,7 @@ Generated: 2026-01-11 21:00:00
 | Badge | 8 | Yes | |
 | BooleanIcon | 3 | N/A | |
 | Breadcrumb | 4 | Yes | |
-| Button | 12 | Yes | |
+| Button | 46 | Yes | |
 | Columns | 15 | N/A | |
 | Icon | 6 | Yes | |
 | Link | 4 | Yes | |
@@ -265,7 +276,7 @@ Most components need review for:
 ### Technical Debt
 - 12 components have no test coverage
 - 35 components need accessibility review
-- SCSS files exist for 45 components (should minimize)
+- 34 components carry an index.css (plain CSS; there is no SCSS in this repo)
 
 ---
 
@@ -292,9 +303,9 @@ When `--json` flag is used:
       "path": "app/components/bali/button",
       "daisyui_status": "compliant",
       "has_preview": true,
-      "has_spec": true,
-      "test_count": 12,
-      "has_scss": true,
+      "has_test": true,
+      "test_count": 46,
+      "has_css": true,
       "has_stimulus": false,
       "a11y_status": "compliant",
       "daisyui_classes": ["btn", "btn-primary", "btn-sm"]

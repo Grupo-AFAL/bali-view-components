@@ -16,8 +16,8 @@ module Bali
 
         # @param formats [Array<Symbol>] Export formats to show (e.g., [:csv, :excel, :pdf])
         # @param url [String] Base URL for export (required - format param will be appended)
-        # @param params [Hash, nil] Recorte activo que el link tiene que arrastrar. `nil` lo
-        #   lee del request; `{}` es el opt-out explícito (exportar todo a propósito).
+        # @param params [Hash, nil] Active slice the link has to carry along. `nil` reads it
+        #   from the request; `{}` is the explicit opt-out (exporting everything on purpose).
         # @param button_label [String] Label for the dropdown button (i18n default)
         # @param button_icon [String] Icon name (default: 'download')
         def initialize(formats: %i[csv excel pdf], url: nil, params: nil, button_label: nil,
@@ -31,9 +31,9 @@ module Bali
 
         attr_reader :formats, :button_icon
 
-        # Ver `export_links_controller.js`: el re-sync desde la URL solo vale cuando el
-        # recorte salió del request. Con `params:` explícito (o `{}`, el opt-out) el href es
-        # una decisión del host y adivinarla se la deshace en silencio.
+        # See `export_links_controller.js`: the re-sync from the URL only holds when the
+        # slice came from the request. With an explicit `params:` (or `{}`, the opt-out) the
+        # href is the host's decision, and guessing it undoes that decision in silence.
         def sync_links?
           @params.nil?
         end
@@ -58,22 +58,22 @@ module Bali
 
         private
 
-        # Clave ABSOLUTA y no `t('.formats.x')`: el ⋯ del PageHeader CONSTRUYE este componente
-        # y le lee `export_items` sin renderizarlo nunca, y el helper de traducción de
-        # ViewComponent necesita contexto de render. Es la misma clave que resolvía antes, así
-        # que un host que la tenga sobrescrita no se entera.
+        # ABSOLUTE key and not `t('.formats.x')`: the PageHeader's ⋯ BUILDS this component and
+        # reads `export_items` off it without ever rendering it, and ViewComponent's
+        # translation helper needs a render context. It is the same key that resolved before,
+        # so a host that has it overridden notices nothing.
         def format_label(format)
           I18n.t("bali_view.data_table.export.formats.#{format}")
         end
 
-        # El export se lleva EL MISMO recorte que el usuario está mirando: filtros, búsqueda,
-        # orden, agrupación y la vista guardada aplicada. Antes era `url + "?format=x"`, y
-        # como el host pasa un path pelado el usuario filtraba a 3 filas, exportaba y se
-        # llevaba 20, en silencio. Se arma con el helper compartido de la toolbar por dos
-        # razones más: la `url:` del host PUEDE traer query string (y un "?" a secas la
-        # corrompía), y TRANSIENT_PARAMS es lo que evita que el link arrastre `page`
-        # —exportaría una página— o `clear_filters`, que en el server borra los filtros
-        # guardados del usuario como efecto secundario del click.
+        # The export takes THE SAME slice the user is looking at: filters, search, sorting,
+        # grouping and the applied saved view. It used to be `url + "?format=x"`, and since
+        # the host passes a bare path the user filtered down to 3 rows, exported, and got 20,
+        # in silence. It is built with the toolbar's shared helper for two more reasons: the
+        # host's `url:` CAN carry a query string (and a plain "?" corrupted it), and
+        # TRANSIENT_PARAMS is what keeps the link from dragging `page` —it would export one
+        # page— or `clear_filters`, which on the server deletes the user's saved filters as a
+        # side effect of the click.
         def export_url(format)
           build_toolbar_href(@url || "/export", @params || request_query_params, :format, format)
         end

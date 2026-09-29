@@ -1,0 +1,9 @@
+<%= render Bali::Card::Component.new(class: 'w-96') do |c| %>
+  <% c.with_header(title: 'Notifications', subtitle: 'Stay up to date') do |header| %>
+    <% header.with_badge do %>
+      <%= render Bali::Tag::Component.new(text: 'NEW', color: :primary, size: :sm) %>
+    <% end %>
+  <% end %>
+
+  <p>Badges can indicate new features, status, or counts.</p>
+<% end %>

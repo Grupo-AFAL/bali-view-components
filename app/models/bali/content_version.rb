@@ -1,27 +1,27 @@
 # frozen_string_literal: true
 
 module Bali
-  # #707 — una versión del contenido de CUALQUIER modelo del host (`record` polimórfico).
-  # No se crea a mano: el modelo versionado la produce a través de `Bali::ContentVersionable`
-  # (`create_version!` / `create_or_coalesce_version!`), que es quien conoce el atributo
-  # versionado y quien numera.
+  # #707 — one version of the content of ANY host model (polymorphic `record`). It is not
+  # created by hand: the versioned model produces it through `Bali::ContentVersionable`
+  # (`create_version!` / `create_or_coalesce_version!`), which is what knows the versioned
+  # attribute and does the numbering.
   #
-  # `author` es opcional y `author_name` obligatorio a propósito: el JSON que lee
-  # `document_editor/index.js` solo sirve `author_name`, así que un host sin modelo de
-  # usuario deja el FK en nil sin perder nada de la UI.
+  # `author` is optional and `author_name` required on purpose: the JSON that
+  # `document_editor/index.js` reads only serves `author_name`, so a host with no user model
+  # leaves the FK nil without losing any of the UI.
   class ContentVersion < ApplicationRecord
     belongs_to :record, polymorphic: true
     belongs_to :author, polymorphic: true, optional: true
 
-    # ActiveStorage sigue siendo opcional en el engine: un host que no lo carga no tiene
-    # `has_one_attached` definido y el modelo entero fallaría al autoloadearse. Sin
-    # validación de presencia — la columna existe para el caso "versión de un archivo"
-    # (el content_kind de gc), no para exigirla.
+    # ActiveStorage is still optional in the engine: a host that does not load it has no
+    # `has_one_attached` defined and the whole model would fail to autoload. No presence
+    # validation — the column exists for the "version of a file" case (gc's content_kind),
+    # not to require it.
     has_one_attached :file if respond_to?(:has_one_attached)
 
-    # El mismo límite que la columna. Estar en los dos lados es deliberado: la validación
-    # convierte un resumen larguísimo en un error de modelo que el host puede mostrar, y la
-    # columna lo sostiene aunque alguien escriba por fuera del modelo.
+    # The same limit as the column. Being on both sides is deliberate: the validation turns
+    # an overlong summary into a model error the host can show, and the column holds it even
+    # when someone writes around the model.
     SUMMARY_MAX_LENGTH = 255
 
     validates :version_number, presence: true,
@@ -29,14 +29,14 @@ module Bali
     validates :author_name, presence: true
     validates :summary, length: { maximum: SUMMARY_MAX_LENGTH }, allow_nil: true
 
-    # `reorder`, no `order`: la asociación `content_versions` ya ordena ascendente y un
-    # `order` encadenado se APILA detrás, así que la primera cláusula seguiría ganando y
-    # esto devolvería la versión más vieja — que es justo con la que compara el coalescing.
+    # `reorder`, not `order`: the `content_versions` association already orders ascending
+    # and a chained `order` STACKS behind it, so the first clause would still win and this
+    # would return the oldest version — which is just the one the coalescing compares with.
     scope :newest_first, -> { reorder(version_number: :desc) }
 
-    # El mismo autor de dos versiones consecutivas: por FK cuando alguno de los dos lados
-    # lo tiene, por nombre cuando el host no tiene modelo de usuario. Lo usa el coalescing.
-    # Lee `author_id`, no `author`, para no cargar el registro solo para compararlo.
+    # The same author across two consecutive versions: by FK when either side has one, by
+    # name when the host has no user model. The coalescing uses it. It reads `author_id`,
+    # not `author`, so as not to load the record just to compare it.
     def same_author?(other_author, other_author_name)
       return author_name == other_author_name if author_id.nil? && other_author.nil?
 

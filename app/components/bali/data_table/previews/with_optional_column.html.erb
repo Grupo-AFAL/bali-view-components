@@ -1,0 +1,32 @@
+<%# The `id:` is stable on purpose: column persistence is ON here, under the key
+    `bali:columns:optional-demo`, which cypress/e2e/data-table-column-memory.cy.js seeds. %>
+<%= render Bali::DataTable::Component.new(url: request.path, id: 'optional-demo') do |c| %>
+  <% c.with_filters_panel(available_attributes: filter_attributes) %>
+
+  <% c.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: 'Name') %>
+    <% cs.with_column(index: 1, label: 'Status') %>
+    <% cs.with_column(index: 2, label: 'Amount') %>
+    <% cs.with_column(index: 3, label: 'Created At', visible: false) %>
+  <% end %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new do |ct| %>
+      <%= ct.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= ct.with_row do %>
+          <td><%= record[:name] %></td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+                  text: record[:status].capitalize,
+                  color: { 'active' => :success, 'pending' => :warning }[record[:status]],
+                  size: :sm
+                ) %>
+          </td>
+          <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
+          <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

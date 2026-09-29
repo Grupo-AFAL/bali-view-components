@@ -2,11 +2,10 @@
 
 require "test_helper"
 
-# #1092 — las tres superficies del editor terminan en `**options`, que se rendean como
-# atributos del div raíz. Una kwarg que el componente no declara no levantaba error, no
-# advertía, producía HTML válido y dejaba la característica en su valor por omisión: en una
-# app anfitriona, IA, export, referencias y comentarios llevaban apagados desde la migración
-# a v3, y dos pantallas "de solo lectura" eran editables y aceptaban subidas.
+# #1092 — the editor's three surfaces all end in `**options`, which render as attributes of the root
+# div. A kwarg the component does not declare raised no error, warned nothing, produced valid HTML
+# and left the feature at its default: in one host app, AI, export, references and comments had been
+# off since the migration to v3, and two "read-only" screens were editable and accepted uploads.
 class BaliBlockEditorSilentKwargsTest < ComponentTestCase
   def setup
     @original_enabled = Bali.block_editor_enabled
@@ -81,8 +80,8 @@ class BaliBlockEditorSilentKwargsTest < ComponentTestCase
     assert_match "`comments:`", warning
   end
 
-  # Los tres `references_*` de DocumentPage son los que dejaban los chips de la ficha
-  # publicada con el ícono y la etiqueta por omisión.
+  # DocumentPage's three `references_*` are the ones that left the published record's chips with the
+  # default icon and label.
   def test_document_page_warns_about_its_references_keys
     warning = capture_warning do
       Bali::DocumentPage::Component.new(title: "Doc", initial_content: [],
@@ -102,8 +101,8 @@ class BaliBlockEditorSilentKwargsTest < ComponentTestCase
     assert_empty warning
   end
 
-  # `data:` y `class:` SÍ tienen que seguir llegando al elemento: el aviso es sobre las
-  # llaves de Config, no sobre todo lo que caiga en `**options`.
+  # `data:` and `class:` DO have to keep reaching the element: the warning is about Config's keys,
+  # not about everything that lands in `**options`.
   def test_an_ordinary_html_option_still_reaches_the_element
     warning = capture_warning do
       render_inline(Bali::BlockEditor::Component.new(id: "editor-1", data: { role: "editor" }))
@@ -115,8 +114,8 @@ class BaliBlockEditorSilentKwargsTest < ComponentTestCase
 
   # editable: false => uploads off
 
-  # No pasar `upload_url:` no apaga las subidas: las enciende, porque su default es `:auto`
-  # y eso resuelve al endpoint del engine. Un visor no tiene por qué llevarlo.
+  # Not passing `upload_url:` does not switch uploads off: it switches them on, because its default
+  # is `:auto` and that resolves to the engine's endpoint. A viewer has no business carrying it.
   def test_a_viewer_does_not_get_the_engine_upload_endpoint
     render_inline(Bali::BlockEditor::Component.new(editable: false))
 
@@ -129,7 +128,7 @@ class BaliBlockEditorSilentKwargsTest < ComponentTestCase
     assert_selector "[data-block-editor-upload-url-value]", visible: :all
   end
 
-  # La mitad que faltaba: `:auto` ya miraba `editable?`, una url explícita no.
+  # The missing half: `:auto` already looked at `editable?`, an explicit url did not.
   def test_an_explicit_upload_url_is_dropped_on_a_viewer_too
     component = Bali::BlockEditor::Component.new(editable: false, upload_url: "/uploads")
 

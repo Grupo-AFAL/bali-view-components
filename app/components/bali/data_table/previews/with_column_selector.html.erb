@@ -1,14 +1,14 @@
-<%# El selector de columnas sobre una tabla AGRUPADA: la composición donde esconder una
-    columna borraba la celda equivocada (#1144). La banda de grupo y el estado vacío son las
-    dos filas que NO llevan una celda por columna, así que el `td` número N de esas filas no
-    es la columna N; el selector las deja en paz y esconde solo lo que sí es una columna.
+<%# The column selector over a GROUPED table: the composition where hiding a column used to
+    delete the wrong cell (#1144). The group band and the empty state are the two rows that do
+    NOT carry one cell per column, so the Nth `td` of those rows is not column N; the selector
+    leaves them alone and hides only what really is a column.
 
-    `persist: false` en los tres: el preview muestra el estado recién servido y no las
-    columnas que otra visita dejó guardadas en localStorage.
+    `persist: false` in all three: the preview shows the state just served and not the columns
+    another visit left stored in localStorage.
 
-    `id:` explícito en cada `Bali::Table` —además del del DataTable—: sin él los ids de fila
-    y el `aria-controls` del botón de la banda cuelgan de un prefijo aleatorio. Con tres
-    tablas en la página, copiar el ejemplo sin id es copiar el defecto. %>
+    Explicit `id:` on each `Bali::Table` —besides the DataTable's—: without it the row ids and
+    the band button's `aria-controls` hang off a random prefix. With three tables on the page,
+    copying the example with no id is copying the defect. %>
 <div class="p-4 space-y-8">
   <div>
     <h2 class="text-lg font-semibold">Grouped listing</h2>
@@ -42,11 +42,11 @@
           <% end %>
         <% end %>
 
-        <%# La fila de totales es la OTRA fila con `colspan`, y vive en el `tfoot`, que el
-            selector recorre aparte. La primera celda abarca dos columnas, así que de acá en
-            adelante la celda número N tampoco es la columna N: el resumen de "Leader" es la
-            SEGUNDA celda de la fila. Los números salen de los mismos `records` que pinta la
-            tabla — nada que se desincronice. %>
+        <%# The totals row is the OTHER row with `colspan`, and it lives in the `tfoot`,
+            which the selector walks separately. The first cell spans two columns, so from
+            here on the Nth cell is not column N either: the "Leader" summary is the SECOND
+            cell of the row. The numbers come from the same `records` the table renders —
+            nothing that can drift. %>
         <% t.with_footer do %>
           <td colspan="2" class="font-semibold"><%= records.count %> iniciativas</td>
           <td class="text-base-content/70"><%= records.pluck(:leader).uniq.count %> líderes</td>
@@ -66,8 +66,8 @@
   </div>
 
   <%= render Bali::DataTable::Component.new(url: request.path, id: 'selectable-columns') do |dt| %>
-    <%# Con `selectable:` el índice 0 es la COLUMNA DE SELECCIÓN: el selector cuenta `thead
-        th` y el seleccionar-todo es el primero. Las columnas de datos empiezan en 1. %>
+    <%# With `selectable:` index 0 is the SELECTION COLUMN: the selector counts `thead th`
+        and the select-all is the first one. The data columns start at 1. %>
     <% dt.with_column_selector(persist: false) do |cs| %>
       <% cs.with_column(index: 1, label: 'Initiative') %>
       <% cs.with_column(index: 2, label: 'Area') %>

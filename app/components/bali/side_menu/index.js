@@ -192,9 +192,9 @@ export class SideMenuController extends Controller {
   }
 
   handleKeydown (event) {
-    // Ahead of the drawer guard on purpose: el switcher está en el sidebar fijo del
-    // desktop tanto como en el drawer, así que su Escape no puede depender de que haya un
-    // drawer abierto.
+    // Ahead of the drawer guard on purpose: the switcher sits in the desktop's fixed
+    // sidebar as much as in the drawer, so its Escape cannot depend on there being an
+    // open drawer.
     if (event.key === 'Escape' && this.element.contains(event.target)) {
       if (this.closeSwitcherOnEscape()) {
         event.preventDefault()

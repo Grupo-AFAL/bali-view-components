@@ -1,22 +1,23 @@
 # frozen_string_literal: true
 
 module Bali
-  # #707 — historial de contenido para un modelo del host:
+  # #707 — content history for a host model:
   #
   #   class Document < ApplicationRecord
   #     include Bali::ContentVersionable
   #     content_versionable attribute: :content, coalesce_window: 5.minutes
   #   end
   #
-  # El macro es opcional: `include` solo ya aplica los defaults (`:content`, 5 minutos).
+  # The macro is optional: `include` on its own already applies the defaults (`:content`,
+  # 5 minutes).
   #
-  # La ventana de coalescing es un parámetro del MODELO, no config global: cuánto dura una
-  # "sesión de edición" depende de qué se está editando, no de la app.
+  # The coalescing window is a parameter of the MODEL, not global config: how long an
+  # "editing session" lasts depends on what is being edited, not on the app.
   #
-  # OJO con el reparto de responsabilidades: el engine NO crea versiones en el autosave. El
-  # PATCH del autosave va a la URL del host (`document_editor/index.js`), así que es el
-  # host quien llama `create_or_coalesce_version!` en su `update`. El engine solo lee
-  # (index/show) y restaura — ver `Bali::ContentVersionsController`.
+  # Mind the split of responsibilities: the engine does NOT create versions on autosave. The
+  # autosave PATCH goes to the host's URL (`document_editor/index.js`), so it is the host
+  # that calls `create_or_coalesce_version!` in its `update`. The engine only reads
+  # (index/show) and restores — see `Bali::ContentVersionsController`.
   module ContentVersionable
     extend ActiveSupport::Concern
 
@@ -32,8 +33,8 @@ module Bali
     end
 
     class_methods do
-      # Solo configura: la asociación se declara en el `included` para que llamar el macro
-      # dos veces (o no llamarlo) no registre el `dependent: :destroy` por duplicado.
+      # Configuration only: the association is declared in `included` so that calling the
+      # macro twice (or not at all) does not register `dependent: :destroy` twice.
       def content_versionable(attribute: :content, coalesce_window: DEFAULT_COALESCE_WINDOW)
         self.content_version_attribute = attribute.to_sym
         self.content_version_coalesce_window = coalesce_window
@@ -44,17 +45,16 @@ module Bali
       content_versions.maximum(:version_number) || 0
     end
 
-    # Bajo el mismo lock que el coalescing, y por la misma razón: entre leer el número más
-    # alto y escribir el siguiente cabe otra escritura. Sin lock falla cerrado (el índice
-    # único rechaza el duplicado), pero este es el método que los hosts llaman desde su
-    # `create`/`update`, así que el modo de fallo era un 500 en una carrera.
+    # Under the same lock as the coalescing, and for the same reason: another write fits
+    # between reading the highest number and writing the next one. Without the lock it fails
+    # closed (the unique index rejects the duplicate), but this is the method hosts call from
+    # their `create`/`update`, so the failure mode was a 500 in a race.
     #
-    # Efecto secundario, y es el deseable: Rails se niega a lockear un registro con cambios
-    # sin guardar, así que versionar en medio de una edición sin persistir ahora falla
-    # ruidosamente en vez de guardar una versión que afirma un contenido que la base nunca
-    # vio. Hay que llamar esto DESPUÉS del `save`, que es lo que ya hacían el dummy y
-    # gobierno-corporativo. `create_or_coalesce_version!` se comportaba así desde el
-    # principio; ahora los dos coinciden.
+    # Side effect, and it is the desirable one: Rails refuses to lock a record with unsaved
+    # changes, so versioning in the middle of an unpersisted edit now fails loudly instead
+    # of storing a version that claims content the database never saw. This has to be called
+    # AFTER the `save`, which is what the dummy and gobierno-corporativo already did.
+    # `create_or_coalesce_version!` behaved this way from the start; now the two agree.
     def create_version!(author_name:, author: nil, summary: nil, metadata: nil)
       with_lock do
         content_versions.create!(
@@ -68,21 +68,21 @@ module Bali
       end
     end
 
-    # Una ráfaga de autosaves del mismo autor produce UNA versión, no doce: dentro de la
-    # ventana se actualiza la última en vez de crear otra.
+    # A burst of autosaves by the same author produces ONE version, not twelve: inside the
+    # window the last one is updated instead of creating another.
     #
-    # `with_lock` no es decoración — dos autosaves concurrentes leerían la misma "última
-    # versión" y crearían dos filas con el mismo `version_number`, que el índice único
-    # rechaza. Es el patrón de gobierno-corporativo; la implementación del dummy sin lock
-    # era el bug, no el patrón.
+    # `with_lock` is not decoration — two concurrent autosaves would read the same "last
+    # version" and create two rows with the same `version_number`, which the unique index
+    # rejects. It is gobierno-corporativo's pattern; the dummy's lock-less implementation
+    # was the bug, not the pattern.
     def create_or_coalesce_version!(author_name:, author: nil, summary: nil, metadata: nil)
       with_lock do
         last = content_versions.newest_first.first
 
         if last && last.same_author?(author, author_name) &&
            last.created_at > content_version_coalesce_window.ago
-          # `summary` solo pisa cuando viene: el autosave no manda ninguno, y asignar nil
-          # borraría en silencio el nombre que la versión ya tenía ("Initial draft").
+          # `summary` only overwrites when one is given: autosave sends none, and assigning
+          # nil would silently erase the name the version already had ("Initial draft").
           attributes = { content: versioned_content }
           attributes[:summary] = summary if summary
           attributes[:metadata] = metadata if metadata
@@ -99,20 +99,20 @@ module Bali
       content_versions.find_by(version_number: version_number)&.content
     end
 
-    # Restaurar deja rastro: el contenido vuelve y nace una versión nueva que dice de dónde
-    # vino. No se guarda una versión extra "antes de restaurar" porque el autosave del host
-    # ya mantiene la última versión al día con el contenido vigente — la cabeza del
-    # historial ES el estado previo.
+    # Restoring leaves a trail: the content comes back and a new version is born saying
+    # where it came from. No extra "before restoring" version is stored because the host's
+    # autosave already keeps the last version up to date with the live content — the head of
+    # the history IS the previous state.
     #
-    # El `summary` default se traduce al restaurar y se GUARDA como texto: es un dato
-    # histórico, no una vista. Un host que sirva varios idiomas y prefiera resolverlo al
-    # render pasa el suyo.
+    # The default `summary` is translated at restore time and STORED as text: it is a
+    # historical fact, not a view. A host serving several languages that prefers to resolve
+    # it at render time passes its own.
     def restore_content_version!(version, author_name:, author: nil, summary: nil)
-      # Se re-scopea SIEMPRE, también cuando llega un objeto: aceptarlo tal cual dejaba
-      # copiar el contenido de la versión de CUALQUIER otro registro sobre este. El
-      # controller ya buscaba dentro de `@record.content_versions`, pero esto es una API
-      # pública del modelo y un host que traiga la versión de otro lado merecía un
-      # RecordNotFound, no una restauración silenciosa de contenido ajeno.
+      # Re-scoped ALWAYS, an object argument included: taking it as given let the content
+      # of ANY other record's version be copied over this one. The controller already looked
+      # inside `@record.content_versions`, but this is a public API of the model and a host
+      # that brings the version from somewhere else deserved a RecordNotFound, not a silent
+      # restore of someone else's content.
       version = content_versions.find(version.is_a?(Bali::ContentVersion) ? version.id : version)
 
       with_lock do

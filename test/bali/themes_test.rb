@@ -2,12 +2,11 @@
 
 require "test_helper"
 
-# Un tema a medias no falla: la variable que falta la hereda del tema que quedó
-# antes en la cascada, y el bug se ve como "un color raro" meses después. Este
-# test lee cada archivo de app/assets/stylesheets/bali/themes/ y exige el set
-# completo de variables que documenta docs/guides/custom-themes.md, además de
-# `color-scheme` y de que el selector [data-theme] coincida con el nombre del
-# archivo (un typo ahí publica un tema inactivable).
+# A half-finished theme does not fail: the missing variable is inherited from whichever theme came
+# before it in the cascade, and the bug shows up as "an odd colour" months later. This test reads
+# every file in app/assets/stylesheets/bali/themes/ and demands the full set of variables
+# docs/guides/custom-themes.md documents, plus `color-scheme` and that the [data-theme] selector
+# match the file's name (a typo there publishes a theme nobody can activate).
 class BaliThemesTest < ActiveSupport::TestCase
   THEMES_DIR = Bali::Engine.root.join("app/assets/stylesheets/bali/themes")
 
@@ -52,8 +51,8 @@ class BaliThemesTest < ActiveSupport::TestCase
     end
   end
 
-  # El bloque de afal.css es la copia canónica del que las apps llevaban a mano
-  # (#718): los valores de marca no cambian sin ser un cambio visual anunciado.
+  # afal.css's block is the canonical copy of the one the apps used to carry by hand (#718): the
+  # brand values do not change without being an announced visual change.
   def test_the_afal_brand_values_stay_canonical
     css = File.read(THEMES_DIR.join("afal.css"))
 

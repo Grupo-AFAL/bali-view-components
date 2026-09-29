@@ -1,54 +1,55 @@
-// La hora, los minutos y los segundos son `input[type=number]`. Chrome dejo de honrar
-// `appearance: textfield` para ese tipo de input, asi que sobre el campo que tiene el mouse
-// encima dibuja SU spinner ademas de las flechas que flatpickr pinta en `.numInputWrapper`:
-// dos pares en la misma columna, y el nativo —mas grande, mas oscuro, con su propia pista
-// gris— montado sobre el unico de los dos que esta conectado al valor del calendario.
+// Hours, minutes and seconds are `input[type=number]`. Chrome stopped honoring
+// `appearance: textfield` for that input type, so on whichever field the mouse is over it
+// draws ITS spinner in addition to the arrows flatpickr paints in `.numInputWrapper`: two pairs
+// in the same column, and the native one —bigger, darker, with its own grey track—
+// mounted over the only one of the two that is wired to the calendar value.
 //
-// La comprobacion se hace sobre el CSSOM y no sobre estilos computados a proposito:
-// `getComputedStyle(input, '::-webkit-inner-spin-button').appearance` devuelve el valor del
-// input, no el del pseudo — medido, sigue diciendo `textfield` con la regla aplicada y las
-// flechas ya desarmadas. Leer las reglas comprueba lo que si se puede comprobar sin ojos:
-// que la declaracion llega al navegador a traves del build y que nada posterior la revierte.
-const reglasDeSpinner = doc =>
+// The check runs against the CSSOM and not against computed styles on purpose:
+// `getComputedStyle(input, '::-webkit-inner-spin-button').appearance` returns the value of
+// the input, not of the pseudo — measured, it still says `textfield` with the rule applied
+// and the arrows already gone. Reading the rules checks what can be checked without eyes:
+// that the declaration reaches the browser through the build and that nothing later
+// reverts it.
+const spinnerRules = doc =>
   [...doc.styleSheets]
-    .flatMap(hoja => {
+    .flatMap(sheet => {
       try {
-        return [...hoja.cssRules]
+        return [...sheet.cssRules]
       } catch {
-        return [] // hoja de otro origen
+        return [] // cross-origin sheet
       }
     })
     .filter(
-      regla =>
-        regla.selectorText &&
-        /\.flatpickr-time input::-webkit-(inner|outer)-spin-button/.test(regla.selectorText)
+      rule =>
+        rule.selectorText &&
+        /\.flatpickr-time input::-webkit-(inner|outer)-spin-button/.test(rule.selectorText)
     )
 
-describe('Time picker: el spinner nativo', () => {
+describe('Time picker: the native spinner', () => {
   beforeEach(() => {
     cy.visit('/bali/form/time/default')
-    // `.flatpickr-input` es el campo real, y flatpickr lo vuelve `type=hidden` al montar
-    // su altInput. El que se ve, y el que abre el calendario, es el altInput.
+    // `.flatpickr-input` is the real field, and flatpickr turns it into `type=hidden` when
+    // it mounts its altInput. The one you see, the one that opens the calendar, is the altInput.
     cy.get('input.input:visible').click()
     cy.get('.flatpickr-time input.flatpickr-minute').should('be.visible')
   })
 
-  it('queda desarmado en los tres campos de la fila', () => {
+  it('is turned off on the three fields of the row', () => {
     cy.document().then(doc => {
-      const reglas = reglasDeSpinner(doc)
+      const rules = spinnerRules(doc)
 
-      expect(reglas.length, 'la hoja embarca la regla').to.be.greaterThan(0)
-      reglas.forEach(regla => {
-        const valor = regla.style.appearance || regla.style.webkitAppearance
-        expect(valor, `${regla.selectorText} lo apaga`).to.equal('none')
+      expect(rules.length, 'the sheet ships the rule').to.be.greaterThan(0)
+      rules.forEach(rule => {
+        const value = rule.style.appearance || rule.style.webkitAppearance
+        expect(value, `${rule.selectorText} turns it off`).to.equal('none')
       })
     })
   })
 
-  it('las flechas que quedan son las de flatpickr, una por columna', () => {
+  it('the arrows that remain are the flatpickr ones, one pair per column', () => {
     cy.get('.flatpickr-time .numInputWrapper').each($wrapper => {
-      const flechas = $wrapper[0].querySelectorAll('span.arrowUp, span.arrowDown')
-      expect(flechas.length, 'un par por columna').to.equal(2)
+      const arrows = $wrapper[0].querySelectorAll('span.arrowUp, span.arrowDown')
+      expect(arrows.length, 'one pair per column').to.equal(2)
     })
   })
 })

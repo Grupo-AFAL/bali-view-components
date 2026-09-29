@@ -1,0 +1,18 @@
+<%# A refresh, not a `replace` of the listing.
+
+    The drawer's POST travels by `fetch` against the FORM's URL, not against the page's:
+    `ModalController#_buildURL` only appends `layout=false` to it, so on the other side
+    `request.query_parameters` is a bare `{layout=>"false"}`. A listing re-rendered from
+    here comes out without the grouping, without the narrowing and without the ordering the
+    page had set, and on top of that writes that single param into the toolbar hrefs and into
+    ransack's `sort_link`s.
+
+    `turbo_stream.refresh` re-renders nothing here: it asks Turbo to revisit the URL the
+    browser already has, which does carry `?group_by=country`. `method: :morph` keeps scroll
+    and focus instead of repainting the whole page, and `scroll: :preserve` keeps the position.
+
+    FRAGILITY TO DOCUMENT: Turbo discards a refresh whose `X-Turbo-Request-Id` it has seen
+    recently (`isRecentRequest`). The drawer uses bare `fetch`, not `Turbo.fetch`, so it does
+    not send that header and the refresh always fires. If ModalController ever moved to
+    `Turbo.fetch`, this would stop updating the listing without raising any error. %>
+<%= turbo_stream.refresh(method: :morph, scroll: :preserve) %>

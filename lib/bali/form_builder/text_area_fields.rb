@@ -2,10 +2,10 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    # El de Rails, para que la implementación pueda vivir bajo el nombre canónico
-    # `text_area_field` en vez de esconderse dentro del override. Se liga por la superclase y
-    # no con `alias`: ver la nota larga en `file_fields.rb` — con `alias`, un reload de código
-    # re-capturaba el override de Bali y esto se llamaba a sí mismo (#840).
+    # Rails' own, so the implementation can live under the canonical name `text_area_field`
+    # instead of hiding inside the override. Bound through the superclass and not with
+    # `alias`: see the long note in `file_fields.rb` — with `alias`, a code reload re-captured
+    # Bali's override and this called itself (#840).
     define_method(:rails_text_area, superclass.instance_method(:text_area))
 
     module TextAreaFields

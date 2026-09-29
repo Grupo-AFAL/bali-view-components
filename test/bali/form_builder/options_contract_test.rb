@@ -27,7 +27,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     allow_input: true, disable_weekends: true, disabled_dates: [], min_date: "2026-01-01",
     max_date: "2026-12-31", seconds: true, time_24hr: true, default_date: "2026-01-01",
     min_time: "08:00", max_time: "18:00",
-    input_name: "leaked[name]", input_id: "leaked-id"
+    input_name: "leaked[name]", input_id: "leaked-id", input_class: "leaked-input"
   }.freeze
 
   # `attachments` and `wrapper_options` are nested hashes read before render, and

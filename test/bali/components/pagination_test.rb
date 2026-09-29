@@ -21,9 +21,9 @@ class BaliPaginationComponentTest < ComponentTestCase
     assert_selector("a.join-item", text: "»")
   end
 
-  # `btn-active` a secas pasaba este test mientras la página actual se veía IGUAL que las
-  # demás: en daisyUI 5 apenas oscurece un `btn` plano. El marcador tiene que ser el mismo
-  # que usa el resto de Bali para "esto es lo seleccionado" (`ViewSwitch::View`).
+  # A bare `btn-active` passed this test while the current page looked IDENTICAL to the rest: in
+  # daisyUI 5 it barely darkens a plain `btn`. The marker has to be the same one the rest of Bali
+  # uses for "this is the selected thing" (`ViewSwitch::View`).
   def test_marks_current_page_as_active
     render_inline(Bali::Pagination::Component.new(pagy: @pagy))
     assert_selector("button.btn-active.btn-primary[aria-current='page']", text: "3")
@@ -63,14 +63,14 @@ class BaliPaginationComponentTest < ComponentTestCase
     assert_selector("a.join-item[href='/movies?q=batman&page=4']", text: "4")
   end
 
-  # #654: sin ancla, paginar una sección a media página brinca al tope.
+  # #654: with no anchor, paginating a section halfway down the page jumps to the top.
   def test_appends_the_fragment_to_every_link
     render_inline(Bali::Pagination::Component.new(pagy: @pagy, url: "/movies", fragment: "#results"))
     assert_selector("a.join-item[href='/movies?page=4#results']", text: "4")
     assert_selector("a.join-item[href='/movies?page=2#results']", text: "«")
   end
 
-  # #654: sin esto no se puede paginar dentro de un Turbo Frame.
+  # #654: without this there is no paginating inside a Turbo Frame.
   def test_passes_data_attributes_to_every_link
     render_inline(Bali::Pagination::Component.new(pagy: @pagy, data: { turbo_frame: "movies" }))
     assert_selector("a.join-item[data-turbo-frame='movies']", minimum: 3)

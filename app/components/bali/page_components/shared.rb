@@ -7,15 +7,15 @@ module Bali
 
       include Bali::DataTable::ToolbarHref
 
-      # Claves ABSOLUTAS: este concern lo incluyen CINCO componentes, así que `t('.x')`
-      # resolvería a cinco scopes sidecar distintos y ninguno existiría.
+      # ABSOLUTE keys: FIVE components include this concern, so `t('.x')` would resolve to
+      # five different sidecar scopes and none of them would exist.
       SECONDARY_ACTIONS_LABEL_KEY = "bali_view.page_components.secondary_actions.button_label"
       EXPORT_MENU_TITLE_KEY = "bali_view.page_components.export.menu_title"
 
-      # UNA tabla de anchos para los cinco. Antes vivía duplicada en DashboardPage (cuatro
-      # claves, sin `sm`/`md`) y en FormPage (cinco, sin `2xl`), y los otros tres no tenían
-      # `max_width:` en absoluto — así que el mismo símbolo significaba un ancho distinto
-      # según el componente, o nada.
+      # ONE width table for the five. It used to live duplicated in DashboardPage (four keys,
+      # no `sm`/`md`) and in FormPage (five, no `2xl`), and the other three had no
+      # `max_width:` at all — so the same symbol meant a different width depending on the
+      # component, or nothing.
       MAX_WIDTHS = {
         sm: "max-w-xl",
         md: "max-w-3xl",
@@ -25,17 +25,17 @@ module Bali
         full: "max-w-full"
       }.freeze
 
-      # El grid de cuerpo + barra lateral, parametrizado. `:default` es el 2/3 + 1/3 que
-      # ShowPage y FormPage tenían copiado literal.
+      # The body + sidebar grid, parameterized. `:default` is the 2/3 + 1/3 that ShowPage and
+      # FormPage had copied verbatim.
       SIDEBAR_WIDTHS = {
         narrow: { grid: "lg:grid-cols-4", main: "lg:col-span-3" },
         default: { grid: "lg:grid-cols-3", main: "lg:col-span-2" },
         wide: { grid: "lg:grid-cols-2", main: "lg:col-span-1" }
       }.freeze
 
-      # Las keyword args que este concern se queda. Un componente que además recibe opciones
-      # sueltas de HTML (DocumentPage) las reparte con `slice`/`except` sobre esta lista en
-      # vez de repetir la firma.
+      # The keyword args this concern keeps for itself. A component that also takes loose HTML
+      # options (DocumentPage) splits them with `slice`/`except` over this list instead of
+      # repeating the signature.
       PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width context
                         heading].freeze
 
@@ -45,12 +45,12 @@ module Bali
       # wants it to be.
       CONTEXTS = %i[auto page drawer].freeze
 
-      # Niveles válidos para el título de la página. `nil` no está acá porque no es un
-      # nivel: es "que lo decida el contexto" (ver #heading).
+      # Valid levels for the page title. `nil` is not here because it is not a level: it
+      # means "let the context decide" (see #heading).
       HEADINGS = %i[h1 h2 h3 h4 h5 h6].freeze
 
-      # Un solo hueco entre el encabezado (o el nav) y el cuerpo. Antes eran `mt-4` en
-      # IndexPage, `mt-6` en ShowPage/FormPage/DocumentPage y ninguno en DashboardPage.
+      # A single gap between the header (or the nav) and the body. It used to be `mt-4` in
+      # IndexPage, `mt-6` in ShowPage/FormPage/DocumentPage and none at all in DashboardPage.
       BODY_SPACING_CLASS = "mt-6"
 
       included do
@@ -60,14 +60,14 @@ module Bali
         renders_one :body
         renders_one :sidebar
 
-        # El ancho por defecto es lo ÚNICO que cambia entre los cinco: la tabla que lo
-        # resuelve es la misma. `full` para los que nunca tuvieron contenedor, para que
-        # heredarlo no les cambie el layout.
+        # The default width is the ONLY thing that changes between the five: the table that
+        # resolves it is the same. `full` for the ones that never had a container, so that
+        # inheriting it does not change their layout.
         class_attribute :default_max_width, instance_writer: false, default: :full
       end
 
-      # Firma compartida de los cinco. Un componente que agrega argumentos propios los
-      # declara y llama a `super` con el resto.
+      # The shared signature of the five. A component that adds arguments of its own declares
+      # them and calls `super` with the rest.
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: nil,
                      sidebar_width: :default, context: :auto, heading: nil)
         @title = title
@@ -97,38 +97,39 @@ module Bali
         @drawer = context == :auto ? drawer_request? : context == :drawer
       end
 
-      # El nivel del título de la página: el cuarto eje contextual, después de `back:`, los
-      # breadcrumbs y la Card. Mismo contrato que `FormPage#card?`: `nil` —el default— le
-      # deja la decisión al contexto, y un valor explícito gana en los dos sentidos. Dentro
-      # de un drawer baja a `h2` y no a `h3` porque la página que quedó abajo conserva su
-      # `h1`: el panel sigue la jerarquía del documento sin saltar niveles (#1055).
+      # The level of the page title: the fourth contextual axis, after `back:`, the
+      # breadcrumbs and the Card. Same contract as `FormPage#card?`: `nil` —the default—
+      # leaves the decision to the context, and an explicit value wins both ways. Inside a
+      # drawer it drops to `h2` and not to `h3` because the page left underneath keeps its
+      # `h1`: the panel follows the document hierarchy without skipping levels (#1055).
       def heading
         return @heading if @heading
 
         drawer? ? :h2 : :h1
       end
 
-      # Acciones SECUNDARIAS de la página: viven en el ⋯ al lado de la primaria. Se guardan
-      # los ARGUMENTOS y no el contenido ya renderizado porque el ⋯ es un Bali::Dropdown de
-      # verdad y sus items tienen que pasar por `with_item` para heredar el rol de menuitem y
-      # la selección Link/DeleteLink. Mismo patrón que DashboardPage#with_stat.
+      # SECONDARY page actions: they live in the ⋯ next to the primary one. The ARGUMENTS are
+      # stored rather than the already-rendered content because the ⋯ is a real
+      # Bali::Dropdown and its items have to go through `with_item` to inherit the menuitem
+      # role and the Link/DeleteLink selection. Same pattern as DashboardPage#with_stat.
       #
-      # @param options [Hash] Opciones de Bali::Dropdown#with_item (href:, icon:,
+      # @param options [Hash] Bali::Dropdown#with_item options (href:, icon:,
       #   method:, tag:, authorized:)
       def with_secondary_action(**options, &block)
         secondary_action_items << [ options, block ]
         nil
       end
 
-      # Exportar el listado. Vive acá y no en la toolbar del DataTable porque exportar es una
-      # acción SOBRE la página, no un control de cómo se ve el listado — y así importar o
-      # imprimir tienen dónde caer después. Se llama "lo filtrado" porque el link arrastra el
-      # recorte activo (ver Bali::DataTable::Export::Component#export_url).
+      # Export the listing. It lives here and not in the DataTable toolbar because exporting
+      # is an action ON the page, not a control over how the listing looks — and that way
+      # importing or printing have somewhere to land later. It is called "Export filtered"
+      # because the link carries the active slice along (see
+      # Bali::DataTable::Export::Component#export_url).
       #
-      # @param url [String] URL base del listado (sin `format`)
-      # @param formats [Array<Symbol>] Formatos a ofrecer
-      # @param params [Hash, nil] Recorte a arrastrar. `nil` lo lee del request; `{}` es el
-      #   opt-out explícito.
+      # @param url [String] Base URL of the listing (without `format`)
+      # @param formats [Array<Symbol>] Formats to offer
+      # @param params [Hash, nil] Slice to carry along. `nil` reads it from the request; `{}`
+      #   is the explicit opt-out.
       def with_export(url:, formats: %i[csv excel pdf], params: nil)
         @export_options = { url: url, formats: formats, params: params }
         nil
@@ -168,9 +169,9 @@ module Bali
               "Unknown context: #{value.inspect}. Valid: #{CONTEXTS.join(', ')}"
       end
 
-      # El guard de `to_sym` no es paranoia: `2` es plausible porque los niveles son
-      # idiomáticamente enteros (aria-level), y `false` por analogía con `card: false` — y
-      # los dos merecen el ArgumentError que nombra los valores válidos, no un NoMethodError.
+      # The `to_sym` guard is not paranoia: `2` is plausible because levels are idiomatically
+      # integers (aria-level), and `false` by analogy with `card: false` — and both deserve
+      # the ArgumentError that names the valid values, not a NoMethodError.
       def resolve_heading(value)
         return if value.nil?
 
@@ -197,13 +198,13 @@ module Bali
           align: :end,
           data: { controller: "export-links", export_links_sync_value: export_links_sync? }
         )) do |dropdown|
-          # `ellipsis-vertical` y no `ellipsis`: bajo `sm` este menú y el ⋯ del overflow de la
-          # toolbar quedan a un palmo uno del otro, y con el mismo icono son dos botones
-          # idénticos que abren cosas distintas.
+          # `ellipsis-vertical` and not `ellipsis`: below `sm` this menu and the toolbar's
+          # overflow ⋯ end up right next to each other, and with the same icon they are two
+          # identical buttons that open different things.
           #
-          # Sin `btn-sm`: el ⋯ es hermano de flex de la acción primaria y comparte su fila, y
-          # el tamaño chico lo dejaba 8px más bajo que el botón al que está pegado. El `sm` es
-          # el tamaño de los controles de la TOOLBAR, de donde este menú vino.
+          # No `btn-sm`: the ⋯ is a flex sibling of the primary action and shares its row, and
+          # the small size left it 8px shorter than the button it is glued to. `sm` is the
+          # size of the TOOLBAR controls, which is where this menu came from.
           dropdown.with_trigger(variant: :ghost, class: "btn-square",
                                 "aria-label": I18n.t(SECONDARY_ACTIONS_LABEL_KEY)) do
             render Bali::Icon::Component.new("ellipsis-vertical", class: "w-5 h-5")
@@ -213,25 +214,25 @@ module Bali
         end
       end
 
-      # El encabezado de sección es lo que NOMBRA la acción ("Exportar lo filtrado"); debajo
-      # van los formatos. Con un item por formato y sin título el menú diría "CSV / Excel /
-      # PDF" y nadie sabría de qué.
+      # The section heading is what NAMES the action ("Export filtered"); the formats go
+      # underneath it. With one item per format and no title the menu would read "CSV /
+      # Excel / PDF" and nobody would know what of.
       #
-      # El título va además como `aria-describedby` de cada formato: dentro de un
-      # `<ul role="menu">` el lector de pantalla navega SOLO los menuitem —igual que
-      # `DropdownController#getMenuItems`, que los busca por `[role="menuitem"]`—, así que el
-      # texto suelto se saltea y el arreglo quedaba siendo puramente visual. Como descripción
-      # y no como `aria-label` para no pisar el nombre accesible: el visible sigue siendo
-      # "CSV" y no se rompe "Label in Name".
+      # The title also goes as `aria-describedby` on each format: inside a
+      # `<ul role="menu">` the screen reader navigates ONLY the menuitems —the same way
+      # `DropdownController#getMenuItems` looks them up, by `[role="menuitem"]`—, so loose
+      # text is skipped and the fix was left purely visual. As a description and not as an
+      # `aria-label` so as not to clobber the accessible name: the visible one is still
+      # "CSV" and "Label in Name" is not broken.
       def export_menu_items
         return [] unless @export_options
 
         items = [ { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id } ]
         export_component.export_items.each do |item|
-          # `method: nil` para que Link no emita el `data-method="get"` de Rails-UJS, que bajo
-          # Turbo no hace nada. `data-turbo="false"` sí hace falta: un CSV no es una respuesta
-          # que Turbo Drive pueda renderizar y la visita se queda a mitad de camino en vez de
-          # disparar la descarga.
+          # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which
+          # does nothing under Turbo. `data-turbo="false"` IS needed: a CSV is not a response
+          # Turbo Drive can render, and the visit stalls halfway instead of firing the
+          # download.
           items << { href: item[:url], name: item[:label], icon: item[:icon], method: nil,
                      "aria-describedby": export_menu_title_id,
                      data: { turbo: false, export_links_target: "link" } }
@@ -239,23 +240,23 @@ module Bali
         items
       end
 
-      # Único por render y no fijo: dos page components en la misma página repetirían el id y
-      # `aria-describedby` resolvería los dos al primero.
+      # Unique per render and not fixed: two page components on the same page would repeat
+      # the id, and `aria-describedby` would resolve both of them to the first one.
       def export_menu_title_id
         @export_menu_title_id ||= "bali-export-menu-title-#{SecureRandom.hex(4)}"
       end
 
-      # Re-sincronizar los href desde `window.location` es una adivinanza razonable SOLO
-      # cuando el recorte salió del request. Con `params:` explícito el host ya decidió qué
-      # exportar —incluido `{}`, el opt-out de "exportar todo a propósito"—, y el controlador
-      # se lo deshacía apenas booteaba Stimulus, con los tests de Ruby en verde.
+      # Re-syncing the hrefs from `window.location` is a reasonable guess ONLY when the slice
+      # came from the request. With an explicit `params:` the host has already decided what
+      # to export —including `{}`, the "export everything on purpose" opt-out— and the
+      # controller undid that as soon as Stimulus booted, with the Ruby tests green.
       def export_links_sync?
         @export_options.nil? || @export_options[:params].nil?
       end
 
-      # Los params se resuelven ACÁ y se pasan explícitos: el Export se construye para leerle
-      # `export_items` y no se renderiza nunca, y `request_query_params` necesita el contexto
-      # de render que solo tiene el componente que sí se está pintando.
+      # The params are resolved HERE and passed explicitly: the Export is built to read its
+      # `export_items` and is never rendered, and `request_query_params` needs the render
+      # context that only the component actually being painted has.
       def export_component
         @export_component ||= Bali::DataTable::Export::Component.new(
           formats: @export_options[:formats],
@@ -276,7 +277,6 @@ module Bali
         end
       end
 
-      # El ⋯ va DENTRO de la barra de acciones y pegado a la primaria: son el mismo grupo.
       def render_actions_bar
         return unless actions? || secondary_actions?
 
@@ -293,21 +293,21 @@ module Bali
         helpers.tag.div(class: "page-nav mt-4") { nav.to_s }
       end
 
-      # El contenedor de la página. `mx-auto` sin `max-w-*` no centra nada, así que van
-      # juntos y siempre: `max_width: :full` es un no-op deliberado, no una ausencia.
+      # The page container. `mx-auto` without a `max-w-*` centers nothing, so they go
+      # together and always: `max_width: :full` is a deliberate no-op, not an absence.
       def page_container_class(*extra)
         class_names(*extra, "mx-auto", max_width)
       end
 
-      # El encabezado de los cinco. `title:` y `subtitle:` viajan como argumentos del
-      # constructor —y no por los slots `with_title`/`with_subtitle`— para que los cinco
-      # compartan `PageHeader::TITLE_CLASSES` y `SUBTITLE_CLASSES`, y para que el `h1` lo
-      # emita PageHeader: pasarlo por bloque hacía que el slot envolviera el bloque en un
-      # heading y el título quedara siendo lo que el bloque decidiera.
+      # The header of the five. `title:` and `subtitle:` travel as constructor arguments —and
+      # not through the `with_title`/`with_subtitle` slots— so that the five share
+      # `PageHeader::TITLE_CLASSES` and `SUBTITLE_CLASSES`, and so that PageHeader is the one
+      # emitting the `h1`: passing it as a block made the slot wrap the block in a heading
+      # and the title ended up being whatever the block decided.
       #
-      # `title_tags` va al slot homónimo de PageHeader, que los pone como HERMANOS del
-      # heading. Dentro del `h1` pasaban a formar parte de su nombre accesible y el
-      # encabezado se anunciaba "The Matrix Action Released" (#685).
+      # `title_tags` goes to PageHeader's slot of the same name, which places them as
+      # SIBLINGS of the heading. Inside the `h1` they became part of its accessible name and
+      # the header was announced as "The Matrix Action Released" (#685).
       def render_page_header
         render(Bali::PageHeader::Component.new(
           title: title,
@@ -321,8 +321,8 @@ module Bali
         end
       end
 
-      # El hueco derecho del encabezado. DocumentPage lo amplía con sus toggles de panel;
-      # el resto se queda con la barra de acciones.
+      # The right-hand slot of the header. DocumentPage extends it with its panel toggles;
+      # the rest keep just the actions bar.
       def page_header_actions
         render_actions_bar
       end
@@ -333,9 +333,9 @@ module Bali
         helpers.tag.div(render_body_with_sidebar, class: BODY_SPACING_CLASS)
       end
 
-      # ShowPage y FormPage pintaban el MISMO grid con las mismas seis clases; la única
-      # diferencia real era que FormPage envuelve el cuerpo en una Card. Eso es `page_body`,
-      # que FormPage redefine, no una copia del grid.
+      # ShowPage and FormPage painted the SAME grid with the same six classes; the only real
+      # difference was that FormPage wraps the body in a Card. That is `page_body`, which
+      # FormPage overrides, not a copy of the grid.
       def render_body_with_sidebar
         return page_body unless sidebar?
 
@@ -349,9 +349,10 @@ module Bali
         end
       end
 
-      # `.to_s` y no el slot pelado: un slot devuelto desde un bloque Ruby llega a `capture`
-      # como objeto, y `capture` solo entiende String o SafeBuffer — lo demás lo descarta en
-      # silencio y el bloque queda vacío. Mismo motivo que el `nav.to_s` de `render_nav`.
+      # `.to_s` and not the bare slot: a slot returned from a Ruby block reaches `capture` as
+      # an object, and `capture` only understands String or SafeBuffer — anything else it
+      # discards in silence and the block comes out empty. Same reason as the `nav.to_s` in
+      # `render_nav`.
       def page_body
         body.to_s
       end

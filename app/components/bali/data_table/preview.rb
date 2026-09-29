@@ -38,8 +38,8 @@ module Bali
         { key: :created_at, label: "Created At", type: :date }
       ].freeze
 
-      # Fixtures del selector de columnas sobre una tabla AGRUPADA (#1144). Del portafolio
-      # de TDFlow, que es donde se vio: bandas por etapa del embudo, una de ellas plegada.
+      # Column selector fixtures over a GROUPED table (#1144). From the TDFlow portfolio,
+      # which is where it showed up: bands per funnel stage, one of them folded.
       COLUMN_SELECTOR_HEADERS = [
         { name: "Initiative" },
         { name: "Area" },
@@ -53,7 +53,7 @@ module Bali
         "in_project" => "Proyecto asignado"
       }.freeze
 
-      # Pre-ordenadas por etapa, como exige la agrupación.
+      # Pre-sorted by stage, as grouping requires.
       COLUMN_SELECTOR_RECORDS = [
         { stage: "prioritization", title: "Firma electrónica de contratos con proveedores",
           area: "Legal", leader: "Mariana Escobedo", quadrant: "1 - Quick win" },
@@ -69,8 +69,8 @@ module Bali
           area: "Recursos Humanos", leader: "Nancy Morales", quadrant: "2 - Estratégica" }
       ].freeze
 
-      # Store en memoria para el preview de vistas guardadas (B2): cumple el contrato de
-      # SavedViewsConfiguration sin tocar storage real.
+      # In-memory store for the saved views preview (B2): it meets the
+      # SavedViewsConfiguration contract without touching real storage.
       PreviewSavedView = Struct.new(:id, :name, :payload, keyword_init: true)
       class PreviewSavedViewsStore
         VIEWS = [
@@ -84,12 +84,12 @@ module Bali
         def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
       end
 
-      # Fixtures del preview CANÓNICO, compartidas con Bali::IndexPage::Preview: el mismo
-      # listado se muestra con y sin la capa de página, y dos copias del setup derivarían
-      # igual que derivaron los previews que este spec vino a unificar.
+      # Fixtures of the CANONICAL preview, shared with Bali::IndexPage::Preview: the same
+      # listing is shown with and without the page layer, and two copies of the setup would
+      # drift just as the previews this spec came to unify did.
       module CanonicalIndex
-        # Declara TODO lo que la toolbar auto-configura: atributos filtrables, búsqueda
-        # rápida y agrupación. Es el mismo DSL que documenta el skill filterform-datatable.
+        # Declares EVERYTHING the toolbar auto-configures: filterable attributes, quick
+        # search and grouping. The same DSL the filterform-datatable skill documents.
         class MovieFilterForm < Bali::FilterForm
           search_fields :name, :genre
 
@@ -101,9 +101,10 @@ module Bali
           filter_attribute :status, type: :select, options: [ %w[Done done], %w[Draft draft] ]
           filter_attribute :indie, type: :boolean
 
-          # Las tres formas que agrupan desde #1102: columnas, un `ransacker` (una expresión
-          # SQL — el GROUP BY sale de su propio Arel) y un camino de asociación, que lleva
-          # `value:` porque no hay `movie.studio_name` del que leer la banda de una fila.
+          # The three shapes that group since #1102: columns, a `ransacker` (a SQL
+          # expression — the GROUP BY comes from its own Arel) and an association path,
+          # which carries `value:` because there is no `movie.studio_name` to read a row's
+          # band from.
           group_by_attribute :genre, label: "Genre"
           group_by_attribute :status, label: "Status"
           group_by_attribute :budget_band, label: "Budget"
@@ -128,16 +129,16 @@ module Bali
           def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
         end
 
-        # `view` llega por dos caminos y son el MISMO param: el control del panel Params de
-        # Lookbook y los links del view switch dentro del iframe. Lookbook solo reenvía los
-        # query params cuyo nombre coincide con un kwarg del método del preview, así que
-        # declararlos es lo que hace que el switch, el "agrupar por" y las vistas guardadas
-        # sobrevivan al round-trip.
+        # `view` arrives by two routes and they are the SAME param: the control in
+        # Lookbook's Params panel and the view switch links inside the iframe. Lookbook only
+        # forwards query params whose name matches a kwarg of the preview method, so
+        # declaring them is what makes the switch, the "Agrupar por" and the saved views
+        # survive the round-trip.
         def canonical_index_locals(view:, q:, page:, group_by:, saved_view:)
-          # `view` va TAMBIÉN adentro de los params del form: el FilterForm suspende la
-          # agrupación fuera de la tabla leyéndolo de ahí. Pasándolo solo como local
-          # `display_mode:` el form nunca ve el modo y la preview seguiría agrupando en
-          # tarjetas — o sea, dejaría de reproducir lo que hace un host real.
+          # `view` goes ALSO inside the form's params: the FilterForm suspends grouping
+          # outside the table by reading it from there. Passed only as the `display_mode:`
+          # local, the form never sees the mode and the preview would keep grouping in
+          # cards — that is, it would stop reproducing what a real host does.
           filter_params = ActionController::Parameters.new(
             q: ActionController::Parameters.new(q),
             page: page,
@@ -171,9 +172,9 @@ module Bali
       end
 
       # @label With Saved Views
-      # Dropdown "Vistas" (B2): aplicar una vista navega con ?saved_view=<id>; guardar la
-      # actual postea a la URL de la app (aquí un endpoint ficticio). Prueba también los
-      # atajos estáticos de `default_views`.
+      # The "Vistas" dropdown (B2): applying a view navigates with ?saved_view=<id>; saving
+      # the current one posts to the app's URL (a fictional endpoint here). It also
+      # exercises the static shortcuts from `default_views`.
       def with_saved_views(saved_view: nil)
         filter_form = Bali::FilterForm.new(
           Movie.all,
@@ -203,6 +204,23 @@ module Bali
       def with_toolbar_buttons
         render_with_template(
           template: "bali/data_table/previews/with_toolbar_buttons",
+          locals: {
+            headers: HEADERS,
+            records: RECORDS,
+            filter_attributes: FILTER_ATTRIBUTES
+          }
+        )
+      end
+
+      # @label With An Opt-In Column
+      #
+      # "Created At" is declared `visible: false`: the host ships it off and the user turns it
+      # on. The only preview in the package with an off-by-default column, so it is the one that
+      # exercises the column-memory branch where the stored state matches what the server
+      # declared, and therefore belongs to nobody (#1144).
+      def with_optional_column
+        render_with_template(
+          template: "bali/data_table/previews/with_optional_column",
           locals: {
             headers: HEADERS,
             records: RECORDS,
@@ -362,6 +380,9 @@ module Bali
           Studio.all, filter_params,
           simple_filters: Studio.filter_options,
           search_fields: %i[name],
+          # The search box is named by `search_aria_label:`; without it the placeholder
+          # names it, and that disappears as soon as the user types (#1155, review).
+          search_aria_label: "Search studios by name",
           search_icon: "search"
         )
         pagy, studios = pagy(filter_form.result.order(:name), limit: 10, page: page)
@@ -411,6 +432,42 @@ module Bali
             { attribute: :budget_band, label: "Budget" },
             { attribute: :studio_name, label: "Studio", value: ->(movie) { movie.studio&.name } }
           ]
+        )
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
+
+        render_with_template(
+          template: "bali/data_table/previews/with_grouping",
+          locals: { filter_form: filter_form, pagy: pagy, movies: movies }
+        )
+      end
+
+      class DefaultGroupedMoviesFilterForm < Bali::FilterForm
+        group_by_attribute :genre
+        group_by_attribute :status, default: true
+        group_by_attribute :budget_band, label: "Budget"
+      end
+
+      # @label With Default Grouping (Live DB)
+      # `group_by_attribute :status, default: true` — the listing opens grouped by status
+      # without the URL saying anything, and without the host touching `@group_by` after
+      # `super`. The default is the LAST rung: the URL wins, then an applied saved view, then
+      # the choice stored in the filter cache, and only then the declaration. "No grouping"
+      # wins over it too, or a listing with a default could never be ungrouped.
+      #
+      # A default is DERIVED: it is never written to the cache, a saved view payload or a
+      # hidden field, so changing it in code changes what users who already visited see.
+      #
+      # The param below: `unset` means the URL says NOTHING and the default speaks; `none` is
+      # an explicit "no grouping", which is what the control's own item sends where a default
+      # exists. `unset` is here because Lookbook cannot tell a missing param from an empty one.
+      # @param group_by select { choices: [unset, none, genre, status, budget_band] }
+      # @param page number
+      def with_default_grouping(group_by: "unset", page: 1)
+        preview_params = { q: ActionController::Parameters.new({}), page: page }
+        preview_params[:group_by] = group_by unless group_by.to_s == "unset"
+
+        filter_form = Bali::DataTable::Preview::DefaultGroupedMoviesFilterForm.new(
+          Movie.all, ActionController::Parameters.new(preview_params)
         )
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
 

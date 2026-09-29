@@ -1,7 +1,7 @@
-// Grupos plegables de `Bali::Table`: el estado vive en el DOM —`aria-expanded` en el botón,
-// `hidden` en las filas— y lo aplica el controlador al conectar. Lo que el servidor NUNCA
-// hace es esconder una fila: sin JS todo queda visible.
-describe('TableGroupsController — grupos plegables', () => {
+// `Bali::Table` collapsible groups: the state lives in the DOM —`aria-expanded` on the
+// button, `hidden` on the rows— and the controller applies it on connect. What the server
+// NEVER does is hide a row: without JS everything stays visible.
+describe('TableGroupsController — collapsible groups', () => {
   const table = '#portfolio'
   const selectableTable = '#portfolio-selectable'
   const band = 'tr.bali-table-group-row'
@@ -15,7 +15,7 @@ describe('TableGroupsController — grupos plegables', () => {
     cy.visit('/bali/table/collapsible_groups')
   })
 
-  it('pliega y despliega las filas de la banda al pulsar su botón', () => {
+  it('collapses and expands the band rows when its button is pressed', () => {
     cy.get(table).find(trigger).first().then(($trigger) => {
       const token = $trigger.attr('data-group-token')
 
@@ -31,8 +31,8 @@ describe('TableGroupsController — grupos plegables', () => {
     })
   })
 
-  // El servidor marca el botón y nada más; las filas las esconde el controlador al conectar.
-  it('nace plegada la banda que el servidor marcó, sin `hidden` en el HTML servido', () => {
+  // The server marks the button and nothing else; the controller hides the rows on connect.
+  it('the band the server marked is born collapsed, with no `hidden` in the served HTML', () => {
     cy.request('/bali/table/collapsible_groups').its('body').should('not.match', /<tr[^>]*\shidden/)
 
     cy.get(table).find(`${trigger}[aria-expanded="false"]`).should('have.length', 2).each(($trigger) => {
@@ -43,7 +43,7 @@ describe('TableGroupsController — grupos plegables', () => {
     })
   })
 
-  it('lista en aria-controls exactamente las filas que pliega', () => {
+  it('lists in aria-controls exactly the rows it collapses', () => {
     cy.get(table).find(trigger).first().then(($trigger) => {
       const ids = $trigger.attr('aria-controls').split(' ')
       const token = $trigger.attr('data-group-token')
@@ -55,9 +55,9 @@ describe('TableGroupsController — grupos plegables', () => {
     })
   })
 
-  // La casilla del grupo vive fuera del botón y el controlador de selección no mira
-  // visibilidad: marcar la banda plegada cuenta sus filas igual.
-  it('deja que el seleccionar-todo del grupo marque las filas aunque estén plegadas', () => {
+  // The group checkbox lives outside the button and the selection controller does not look
+  // at visibility: checking a collapsed band counts its rows all the same.
+  it('lets the group select-all check the rows even while they are collapsed', () => {
     cy.get(selectableTable).find(`${trigger}[aria-expanded="false"]`).should('have.length', 5)
 
     cy.get(selectableTable).find(band).first().find('input[type="checkbox"]').check()

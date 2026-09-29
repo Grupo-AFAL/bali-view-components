@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.1.0.beta.13"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.5.0"
 ```
 
 Then run:
@@ -32,22 +32,47 @@ Then run:
 bundle install
 ```
 
+Nothing else goes in the `Gemfile`: `csv`, `simple_command` and the rest are the gemspec's
+problem, so lines you wrote by hand under "Required by Bali" can go (`rrule` too, unless your
+own code builds recurrence rules, and `pagy` unless you paginate — Bali renders a Pagy you
+pass in, it never builds one).
+
 **Pin a tag, don't track a branch.** With `branch: "main"` a `bundle update` silently pulls
 whatever landed since — including, eventually, the next major and all of its breaking changes.
 See [Release channels](docs/guides/release-channels.md) for the v2 / v3 lines and how to adopt
 a v3 pre-release.
 
-### 2. Install JavaScript Dependencies
-
-Add to your `package.json`:
+### 2. Run the installer
 
 ```bash
-npm install bali-view-components
-# or
-yarn add bali-view-components
+bin/rails g bali:install
 ```
 
-### 3. Configure Tailwind CSS v4 + DaisyUI
+It writes the wiring the whole fleet shares and then prints what it deliberately left to you
+(daisyUI themes, dark mode, the AFAL theme, localised confirm buttons):
+
+| It writes | Where |
+|---|---|
+| `@plugin "daisyui"` and Bali's two `@import`s, in the order Tailwind needs | your Tailwind entry point — `app/assets/tailwind/application.css` under tailwindcss-rails, `app/assets/stylesheets/application.tailwind.css` under cssbundling-rails |
+| `default_form_builder = "Bali::FormBuilder"`, with the reason it goes through `config.action_view` | `config/initializers/bali.rb` |
+| `registerAll(application)` + `registerCharts(application)` and their imports | `app/javascript/controllers/index.js` |
+| every required peer dependency | `package.json` |
+
+Then `yarn install` and the Tailwind build it names. Running it again writes nothing twice —
+on an app it wired, and on one wired by hand — so it is also what to run after an upgrade; the
+one thing it never touches is your `bali-view-components` pin, which it reports instead when it
+has fallen behind the gem. `--block-editor` turns the Block Editor on (it ships off) and adds
+the `@blocknote/*` packages.
+
+**It writes only what this app can resolve, and says the rest.** An importmap app keeps its
+Stimulus index untouched — a bare specifier there does not degrade, it fails the module and
+takes the app's own controllers with it — and an app with no `package.json` gets only the one
+CSS line that needs no npm. An app where nothing compiles Tailwind (no tailwindcss-rails, no
+`build:css` script) gets no entry point written at all: the file would be the input to a build
+that does not exist. Full detail:
+[Installation § Step 0](docs/guides/installation.md).
+
+### 3. What the installer writes into your CSS
 
 In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
@@ -141,22 +166,27 @@ Bali extends Rails' `FormBuilder` with DaisyUI-styled inputs:
 
 ```erb
 <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
-  <%= f.text_field_group :name %>
-  <%= f.email_field_group :email %>
+  <%= f.text_group :name %>
+  <%= f.email_group :email %>
   <%= f.slim_select_group :role, User.roles.keys.map { |r| [r.humanize, r] } %>
   <%= f.switch_field :active, color: :primary %>
-  <%= f.date_field_group :birth_date %>
+  <%= f.date_group :birth_date %>
   <%= f.rich_text_area_group :bio %>
   <%= f.submit_group 'Save', variant: :primary %>
 <% end %>
 ```
+
+`<type>_group` renders the control inside its fieldset and `<type>_field` the bare
+control; everything after the attribute is a keyword. The v2 `*_field_group` spellings
+still resolve for one more cycle, warning through `Bali.deprecator`
+(`lib/bali/form_builder/deprecated_names.rb`) — do not write them in new code.
 
 ## Development
 
 ### Running the Preview Server
 
 ```bash
-cd spec/dummy && bin/dev
+cd test/dummy && bin/dev
 ```
 
 Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook) to browse component previews.
@@ -174,9 +204,36 @@ yarn run cy:open  # Interactive
 
 ### Creating New Components
 
-```bash
-rails g view_component bali/my_component name
+There is no generator — components are written by hand. Each one lives in its own directory
+under `app/components/bali/`:
+
 ```
+app/components/bali/my_component/
+├── component.rb         # the class, inherits ApplicationViewComponent (required)
+├── component.html.erb   # template, or a `call` method on the class
+├── preview.rb           # Lookbook preview, inherits ApplicationViewComponentPreview (required)
+├── previews/            # ERB templates for preview scenarios that need markup
+├── index.css            # optional
+└── index.js             # optional, a co-located Stimulus controller
+
+test/bali/components/my_component_test.rb   # Minitest (required)
+cypress/e2e/my-component.cy.js              # only when the component has JS behaviour
+```
+
+`index.css` ships only once it is imported from `app/assets/stylesheets/bali/components.css`,
+and `index.js` only once its controller is added to the `CONTROLLERS` map in
+`app/frontend/bali/components/index.js` — `yarn check:manifest` fails on a controller that is
+reachable from neither.
+
+Run the new test on its own with:
+
+```bash
+bin/rails test test/bali/components/my_component_test.rb
+```
+
+[Component Patterns](docs/reference/component-patterns.md) has the class, template, preview and
+CSS conventions; the [components guide](docs/guides/components.md) has the catalog and the
+composition rules.
 
 ## Contributing
 

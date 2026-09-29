@@ -2,12 +2,12 @@
 
 require "test_helper"
 
-# El rename `label:` → `aria_label:` de IconAction (beta.14) llegó al componente y a sus
-# tests, pero no a dos de los previews del Topbar — y nada se puso en rojo porque el suite
-# prueba la clase, no sus templates de preview (#1035). Igual que IconPreviewsTest: pedir
-# cada preview por HTTP es el único camino donde un template roto se manifiesta.
+# IconAction's `label:` → `aria_label:` rename (beta.14) reached the component and its tests, but not
+# two of the Topbar's previews — and nothing went red because the suite tests the class, not its
+# preview templates (#1035). Same as IconPreviewsTest: requesting each preview over HTTP is the only
+# path where a broken template shows.
 class TopbarPreviewsTest < ActionDispatch::IntegrationTest
-  # Un `def` de Bali::Topbar::Preview por entrada; sin `@!group`, cada uno es una URL.
+  # One `def` in Bali::Topbar::Preview per entry; with no `@!group`, each one is a URL.
   PREVIEWS = %w[
     default
     search_only

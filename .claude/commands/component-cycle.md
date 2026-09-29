@@ -94,7 +94,9 @@ For each iteration (max N):
    - Update preview examples
 
 3. **Verify Fixes** - Quick verification:
-   - Run `lsp_diagnostics`
+   - `bundle exec rubocop app/components/bali/[name]/` and, if the component has JS,
+     `yarn standard app/components/bali/[name]/index.js`. There is no
+     `lsp_diagnostics` in this setup
    - Run component tests
    - Check Lookbook renders
 
@@ -136,18 +138,17 @@ Final UX review of [ComponentName] after functional fixes.
 - Do not add unnecessary complexity
 
 ## REQUIRED TOOLS
-- skill_mcp (Playwright) for browser automation
-
-## PLAYWRIGHT CALL FORMAT (CRITICAL)
-When using skill_mcp for Playwright, arguments MUST be a JSON string:
-
-CORRECT:
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook/inspect/bali/[component]/default"}')
-skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
-
-WRONG (will cause parse error):
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})
+- A browser tool, whichever this session has — see the note below.
 ```
+
+**Browser automation**: use whatever browser tool this session actually has — a
+Playwright MCP, a Chrome integration, or a Playwright script driven from `Bash`.
+**`skill_mcp` is not one of them**: it does not exist in this repo's setup, and an
+instruction that names it leaves the review with no way to open a page. What is not
+negotiable is the verification itself — a real browser against the running Lookbook
+(`cd test/dummy && bin/dev`, then http://localhost:3001/lookbook), with a screenshot
+as evidence. See "Browser Verification (MANDATORY)" in the root `CLAUDE.md`.
+
 
 2. **Apply UX Fixes** (if any):
    - Delegate visual changes to frontend-ui-ux-engineer
@@ -170,22 +171,24 @@ When all checks pass:
    - [ ] No console errors related to the component
    
    If any checkbox fails:
-   - Clear cache: `rm -rf spec/dummy/public/assets && rm -rf spec/dummy/tmp/cache/assets`
-   - Restart server: `cd spec/dummy && bin/dev`
+   - Clear cache: `rm -rf test/dummy/public/assets && rm -rf test/dummy/tmp/cache/assets`
+   - Restart server: `cd test/dummy && bin/dev`
    - Re-verify in browser
    
    **DO NOT proceed to completion if browser verification fails.**
 
 2. **Run Final Test Verification**:
    ```bash
-   bundle exec rspec spec/components/bali/[name]/
+   bin/rails test test/bali/components/[name]_test.rb
    ```
+   Touched a Stimulus controller? Minitest does not load it. Run Cypress too, with the
+   dummy server up: `cd test/dummy && bin/dev`, then `yarn run cy:run`.
 
 3. **Generate Cycle Report**
 
 5. **Optional Auto-Commit** (if `--auto-commit`):
    ```bash
-   git add app/components/bali/[name]/ spec/components/bali/[name]/
+   git add app/components/bali/[name]/ test/bali/components/[name]_test.rb
    git commit -m "Fix [ComponentName] - improve component quality
 
    - Add proper DaisyUI semantic classes
@@ -246,7 +249,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 **Fixes Applied**:
 - Added SIZES/OFFSETS constants to Column component
 - Updated preview to use size: param
-- Generated component_spec.rb with 8 test cases
+- Generated columns_test.rb with 8 test cases
 
 **Verification**: 3 issues remain
 
@@ -286,7 +289,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 |------|--------|
 | app/components/bali/columns/column/component.rb | Modified |
 | app/components/bali/columns/preview.rb | Modified |
-| spec/components/bali/columns/component_spec.rb | Created |
+| test/bali/components/columns_test.rb | Created |
 
 ### Tests
 - Total: 8
@@ -410,10 +413,10 @@ Delegating to frontend-ui-ux-engineer...
 ## Files Changed
 - app/components/bali/columns/column/component.rb (modified)
 - app/components/bali/columns/preview.rb (modified)
-- spec/components/bali/columns/component_spec.rb (created)
+- test/bali/components/columns_test.rb (created)
 
 Ready to commit? Use --auto-commit or run:
-git add app/components/bali/columns/ spec/components/bali/columns/
+git add app/components/bali/columns/ test/bali/components/columns_test.rb
 git commit -m "Fix Columns - improve component quality"
 ```
 
@@ -433,7 +436,7 @@ If UX score stays below 7:
    - Is it a JS issue? → Check browser console for errors
    - Is it a Tippy/popup issue? → Verify wrapper classes are applied
 3. Check for root causes before applying more fixes:
-   - Clear `spec/dummy/public/assets/` and cache
+   - Clear `test/dummy/public/assets/` and cache
    - Restart dev server to pick up JS/CSS changes
    - Verify in browser devtools that classes are actually applied
 4. If truly stuck after exhausting options → **BLOCK and escalate**

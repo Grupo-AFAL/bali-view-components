@@ -137,6 +137,1045 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   largo, porque un preview donde toda etiqueta es «Item 5-B» no responde nada sobre el
   caso que un anfitrión sí manda a producción.
 
+## [v3.5.0] - 2026-09-20
+
+### Added
+
+- **`SplitView::List` agrupa el listado: `with_group`** (#974). Las dos listas de las que salió
+  el componente agrupan —gc por urgencia, afal-apps por tipo— y las dos ponen el total del grupo
+  junto a la cabecera. Quedó fuera de #971 por una razón técnica, no de demanda: la agrupación
+  pelea con el infinite scroll, porque una página anexada llega como su propio juego de grupos y
+  fundirla con las cabeceras que ya están en pantalla exige un contrato fila→grupo. Ese es el
+  diseño que entra ahora.
+
+  ```erb
+  <% @items.group_by(&:kind).each do |kind, rows| %>
+    <% list.with_group(key: kind, label: t("inbox.kinds.#{kind}"), count: @totals[kind]) do |group| %>
+      <% rows.each { |item| group.with_item(id: item.id, href: ..., title: item.title) } %>
+    <% end %>
+  <% end %>
+  ```
+
+  **La llamada de la fila no cambia**: pasa de `list.with_item` a `group.with_item` con los
+  mismos keywords, y el frame, el target, la acción y la selección se inyectan a través del grupo
+  igual que se inyectaban a través de la lista. Es excluyente: filas sueltas y grupos en la misma
+  lista renderizarían las sueltas encima de la primera cabecera, sin pertenecer a ningún grupo,
+  así que el componente levanta `ArgumentError` en vez de hacerlo callado.
+
+  **`count:` es el total del grupo, no las filas en pantalla.** El servidor lo sabe —un
+  `GROUP BY`— y el cliente no puede saberlo, porque solo tiene las páginas cargadas hasta ahora.
+  Eso es lo que mantiene el número honesto mientras siguen llegando filas debajo, y por lo que
+  una página fundida no necesita recontar nada.
+
+  **Lo que la agrupación le pide a la consulta: ordenar por la llave del grupo primero**
+  (`order(:kind, :created_at)`). Es el requisito entero y es la razón de que esto esperara a
+  tener diseño. El infinite scroll anexa *páginas*: ordenado por el grupo, un corte de página
+  solo puede caer dentro de **un** grupo —el último de una página lo continúa el primero de la
+  siguiente—, y esa costura única es la que el controlador funde, tirando la cabecera que llega y
+  moviendo sus filas bajo la que ya está. Ordenado por cualquier otra cosa el mismo grupo vuelve
+  en la página 1, la 3 y la 4, y no hay costura que fundir: el componente **no** busca una
+  cabecera anterior donde archivar esas filas, porque eso movería filas fuera del orden que mandó
+  el servidor —un error peor y mucho más callado que una cabecera repetida—. La repetición queda
+  a la vista y la consola dice la causa.
+
+  La cabecera es `position: sticky` dentro del área de scroll, con fondo opaco (veinte filas
+  adentro de una corrida hay que seguir sabiendo en cuál se está), y se nombra con
+  `role="group"` + `aria-labelledby` apuntando a sí misma, así que un lector de pantalla anuncia
+  las mismas palabras que ve un lector vidente, una sola vez.
+
+  Dos detalles de esa cabecera que se ven sólo midiendo, y que están cubiertos por pruebas:
+
+  - **Su `id` lleva un digest de la llave**, porque el slug solo no es identidad: `"Warner Bros"`
+    y `"Warner Bros."` caen los dos en `warner-bros`, `"Done"` y `"done"` en `done`, y una llave
+    sin caracteres ASCII de palabra cae en la cadena vacía. Un `id` repetido no es sólo HTML
+    inválido: `aria-labelledby` resuelve entonces a la cabecera del OTRO grupo y el segundo se
+    anuncia con el nombre del primero, que es justo la doble denominación que este atributo
+    venía a evitar.
+  - **El contador va en `text-base-content/70`, no en `/50`.** Ese token es traslúcido, así que
+    lo que llega al lector es el token **compuesto** sobre la banda: medir el color declarado a
+    secas reporta un contraste que nadie ve. Compuesto, `/50` da **2.96:1 en `afal`**, 3.16 en
+    `costa-norte`, 3.33 en `light` y 4.11 en `afal-dark`, contra el 4.5 que AA pide para texto
+    de 12px; el `dark` de fábrica ya pasaba con 4.91, o sea que los que no pasaban eran los
+    temas que la flota usa. Con `/70` el rango va de **5.27 (`afal`) a 8.26 (`dark`)`**.
+  - **Las filas llevan `scroll-margin-top` de la altura de la banda.** Una banda sticky pinta
+    encima de lo que pasa por debajo, y el navegador alinea la fila que trae a la vista —por un
+    tabulador, por un enlace profundo— justo con el borde superior del área de scroll, que es
+    donde está la banda. Medido a 1280×900: 29px de una fila de 84, su franja de etiquetas
+    entera, en una de cada tres filas; 0px en el mismo listado sin agrupar.
+
+  Escenario `grouped_list` en el preview, y `?grouped=status` en `/split-view` de la dummy, donde
+  el infinite scroll es real: 3 draft y 17 done de cinco en cinco, así que la página 1 lleva las
+  dos cabeceras y las páginas 2-4 son todas continuación de `done`. Medido en navegador al llegar
+  al final: **20 filas, 20 ids distintos, 2 cabeceras**.
+
+- **`Bali::WorkflowSteps` gana una tercera forma: `orientation: :rail`** (#1145). Una sola
+  fila de círculos numerados unidos por conectores de color, con la etiqueta centrada debajo,
+  para un flujo largo arriba de una pantalla. A diferencia de `:horizontal`, **no envuelve**:
+  las columnas son iguales hasta un piso de `6rem`, y por debajo de eso la fila scrollea
+  adentro del componente, no en la página. La barra N/M viene **apagada** acá —los conectores
+  ya dicen hasta dónde llegó el flujo—; `progress: true` la enciende. La fila es parada de
+  tabulación (`tabindex="0"` más un `aria-label` que sale de la clave nueva
+  `bali_view.workflow_steps.rail_label`), porque si no los pasos que se desbordan no se
+  alcanzan sin ratón. `:vertical` y `:horizontal` no cambian.
+
+- **`Bali::WorkflowSteps` gana una cuarta forma: `orientation: :progress`** (#1145). La
+  misma fila del `:rail`, más callada: línea de **2px monocroma**, etiquetas de 12px y el
+  veredicto entero en el marcador. Es para la pantalla cuya pregunta es «¿hasta dónde llegó
+  esto?» y no «¿qué pasó en cada paso?».
+
+  **La línea tiene dos colores y una sola pregunta**: el conector que sale del paso *i* es
+  `primary` si el paso *i+1* **fue alcanzado** y gris si no. Alcanzado es todo menos
+  `:pending` —un `:skipped` se recorrió, solo que sin entrar—, así que **el tramo de color
+  termina en el primer paso `:pending`**, y en ningún otro lado. El marcador es el que dice
+  el veredicto: relleno con palomita, ✗ o ⚠ en los tres estados que ya se resolvieron;
+  contorno con su número en el actual y en el pendiente; borde punteado con guion en el
+  omitido.
+
+  **«Primer `:pending`» no es «paso actual»**, y hay tres cadenas donde se separan: un
+  `:pending` *antes* de un paso alcanzado —aprobaciones en paralelo, una rama que se
+  adelanta— deja un conector de color saliendo de un círculo gris; una cadena toda
+  `:skipped` dibuja la línea entera en `primary` bajo tres círculos huecos, porque la ruta
+  pasó por los tres sin entrar a ninguno; y un paso alcanzado después del actual —`[:success,
+  :current, :error, :pending]`— se lleva el color más allá del actual. La regla lee la cadena
+  como una subida y el modelo de datos no tiene otro eje que leer. Una cadena donde eso es lo
+  normal quiere `:rail`, donde cada conector declara su propio paso.
+
+  **Los grises de la mitad que el flujo todavía no alcanzó están medidos, no elegidos.** El
+  `base-300` que usa el `:rail` para lo mismo da 1.16:1 contra `base-100`: una línea de 2px y
+  un contorno de 1px que no se ven, justo en la forma cuya única respuesta es esa línea. Acá
+  son `base-content`: `/60` en el glifo y en la etiqueta de 12px (4.66:1 en claro, 5.82:1 en
+  `afal-dark`, contra los 4.5:1 de AA) y `/50` en el contorno y en la línea (3.40:1 y 4.47:1,
+  los 3:1 de una forma que carga significado).
+
+  Hereda del `:rail` todo lo que no es aspecto: la fila es parada de tabulación con
+  `aria-label` (`bali_view.workflow_steps.rail_label`, la misma clave para las dos filas),
+  no envuelve, scrollea adentro del componente, y la barra N/M viene **apagada** —que no
+  tiene nada que ver con la orientación que se llama igual: `new(orientation: :progress,
+  progress: true)` es una línea de progreso con barra N/M encima—. La numeración de abajo
+  tampoco cambia: un `:skipped` sigue sin consumir número y un `number:` explícito le sigue
+  ganando al automático. Lo que sí cambia es que **acá el glifo le gana al número**, propio o
+  automático: un paso `:success`, `:error` o `:warning` dibuja su glifo y nada más, y el
+  `number:` que le pases no se dibuja. Si cada paso tiene que mostrar su posición, es `:rail`.
+
+  **Esta forma asume que está parada sobre `base-100`.** El conector corre de centro a centro
+  *por debajo* de cada marcador, y lo que lo mantiene fuera del círculo es un disco opaco, que
+  tiene que estar pintado de algún color. Adentro de una tarjeta `bg-base-200` ese disco es un
+  halo de 1.06:1 en claro y de 1.21:1 en `afal-dark` —invisible en uno, un anillo más oscuro
+  alrededor de cada marcador en el otro—. Se arregla pasándole la superficie real, y el halo
+  baja a 1.00:1 en los dos temas:
+
+  ```erb
+  <div class="card bg-base-200 [--bali-workflow-steps-surface:var(--color-base-200)]">
+  ```
+
+  `--bali-workflow-steps-surface` se hereda, así que una declaración en la tarjeta alcanza
+  para todos los flujos de adentro. Las otras tres formas no necesitan nada: sus círculos son
+  rellenos opacos y no dibujan disco.
+
+  Su clase raíz es `.workflow-steps-progress-rail`, no la `.workflow-steps-progress` que
+  predeciría el patrón de las otras tres: ese nombre ya es el del encabezado N/M, que esta
+  forma rinde adentro de esa misma raíz. **Hay que reconstruir el CSS** (`rails
+  tailwindcss:build`) para verla; `:vertical`, `:horizontal` y `:rail` no cambian ni un byte.
+
+- **`state_label:` por paso** (#1145). Cambia el nombre accesible del estado de **ese** paso,
+  sin tocar las seis cadenas globales `bali_view.workflow_steps.states.*`:
+
+  ```erb
+  <% c.with_step(title: "Evaluación", state: :skipped, state_label: "No se recorrió") %>
+  ```
+
+  Es para la pantalla que necesita «No se recorrió» mientras el panel de aprobaciones sigue
+  necesitando «Omitido». No cambia nada visible. `nil` cae en la traducción; cualquier otra
+  cosa se toma literal, **`""` incluido** —un paso cuyo título ya dice el veredicto puede
+  pedir silencio—. Es la misma regla que `label:` de `Bali::BooleanIcon`.
+
+- **`bin/rails g bali:install`: el cableado de una app nueva deja de copiarse a mano** (#1139).
+  Levantar Bali era abrir el árbol de una app existente y copiar cuatro archivos, comentarios
+  incluidos. Ahora:
+
+  | Escribe | Dónde |
+  |---|---|
+  | `@plugin "daisyui"`, el puente al engine y `bali.css`, en el orden que Tailwind necesita | tu entrada de Tailwind — `app/assets/tailwind/application.css` con tailwindcss-rails, `app/assets/stylesheets/application.tailwind.css` con cssbundling-rails |
+  | `default_form_builder = "Bali::FormBuilder"`, con el porqué de `config.action_view` | `config/initializers/bali.rb` |
+  | los imports y las llamadas de `registerAll` / `registerCharts` | `app/javascript/controllers/index.js` |
+  | las nueve peers requeridas — `daisyui` a `devDependencies`, donde la tienen las siete | `package.json` |
+
+  **Escribe sólo lo que esta app puede resolver, y dice el resto.** Una app con importmap
+  conserva su índice de Stimulus intacto: un especificador pelado ahí no degrada, revienta el
+  módulo entero y se lleva por delante los controllers del propio anfitrión. Una app sin
+  `package.json` recibe únicamente la línea de CSS que no necesita npm; las otras dos tumban el
+  build de Tailwind. Y una app donde NADA construye Tailwind —ni tailwindcss-rails ni un script
+  `build:css`— no recibe entrada de CSS en absoluto: sería el insumo de un build que no existe,
+  Bali rendiría sin estilos y nada diría por qué. En los tres casos imprime qué no escribió, por
+  qué, y qué correr o pegar para cerrarlo.
+
+  **Tu `package.json` conserva su formato**: las líneas nuevas se insertan en el texto, no se
+  regenera el archivo. Sangría, orden de claves y objetos escritos en una línea quedan como
+  estaban, y en una sección ya alfabética la línea nueva cae en su lugar. Si el empalme no
+  cuadra al re-parsear, escribe el archivo desde su forma parseada y lo DICE.
+
+  **Correrlo dos veces no escribe nada dos veces, y sobre una app cableada A MANO tampoco** —
+  que es lo que lo vuelve lo que hay que correr después de un bump. «Ya está» se detecta por la
+  forma y no por la grafía que el generator usaría, porque la flota no usa esa grafía: un
+  `@plugin "daisyui" { ... }` en bloque con tus temas adentro, dos símbolos en la misma línea de
+  `import`, un `registerAll` con alias desde una ruta privada, `daisyui` en `devDependencies`.
+
+  **Lo único que NUNCA reescribe es tu pin de `bali-view-components`**: un pin es una decisión
+  (un tag, una rama, un `link:` a un checkout local). Si se quedó atrás respecto de la gema lo
+  DICE, con las dos versiones, y te deja moverlo.
+
+  Los pasos que imprime son ejecutables tal cual: con npm es `npm run build:css`, porque
+  `npm build:css` responde `Unknown command: "build:css"`.
+
+  `--block-editor` ENCIENDE el Block Editor (viene apagado) y agrega los `@blocknote/*`. No hay
+  `--rich-text-editor`: TipTap está deprecado en v3 y se va en v4, y una bandera es superficie
+  pública con fecha de caducidad — el generator imprime la línea que lo enciende. Tampoco
+  escribe `chart.js`, que es peer opcional.
+
+  **`bin/rails g bali:install` y `bin/rails bali:install:migrations` comparten prefijo y son
+  cosas distintas.** El segundo es el namespace de rake que genera la API de engines. El
+  generator no copia ninguna migración a propósito: las tablas del engine son de las features
+  que las usan y sólo tres de las siete apps lo montan.
+
+  **Qué tiene que saber un anfitrión:** nada. Correrlo sobre cualquiera de las siete no escribe
+  un byte — es para la octava.
+
+- **`Bali::StatCard` tiene una segunda superficie: `surface: :cell`** (#1146). La misma
+  métrica de siempre —etiqueta arriba, cifra grande— sobre una caja plana que **no emite la
+  clase `.card`**: la rejilla de cifras que vive DENTRO de la tarjeta de una sección, donde la
+  superficie por omisión sería una tarjeta dentro de otra. Con ella llegan `note:` (la tercera
+  línea discreta bajo la cifra), `emphasis:` (pinta la celda para destacar una cifra) y
+  `value_class:`.
+
+  **Nada de lo que rindes hoy cambia.** `surface:` nace con `:card` por omisión, y
+  `test/bali/components/stat_card/default_surface_unchanged_test.rb` compara doce formas de la
+  tarjeta contra la captura tomada en v3.4.0, byte a byte. `surface: nil` cae al default igual
+  que `color: nil`.
+
+  **Al cambiar de superficie, borra las claves de tarjeta.** `icon:`, `size:`, `shadow:`,
+  `side:`, `image_full:`, `body_class:` y el `style: :bordered` simbólico levantan
+  `ArgumentError` junto a `surface: :cell`, en vez de caer en silencio hasta la raíz como
+  atributos HTML inválidos. Lo que sí pasa a la raíz en las dos superficies es `class:`, `id:`,
+  `data:` y un `style:` **string**.
+
+  **`emphasis:` es un eje de énfasis, no de color.** `emphasis: true` dice *pinta esta celda* y
+  `color:` / `custom_color:` dicen de qué color; no existe `tone:`. Sobre `surface: :card`
+  levanta `ArgumentError`.
+
+  **`Bali::StatCard::Component::COLORS` gana una clave `:border` por color.** Es aditivo, pero
+  la tabla tiene un segundo consumidor: `Bali::DashboardPage#stat_change_class`.
+
+  **Si vienes de una celda pintada a mano, esto NO es un reemplazo pixel a pixel**: la cifra
+  pasa de 20px/600 monoespaciada a 30px/700 proporcional, la etiqueta pierde peso y gana
+  transparencia, y una celda destacada deja de recolorear su texto. Un `tone: X → color: X`
+  mecánico está mal: los defaults no se corresponden y sin `emphasis:` el color no se ve. La
+  tabla completa está en `docs/guides/components.md`, «Replacing a hand-painted metric cell».
+  Borra el parcial en el mismo commit que adopta la celda.
+
+  `DashboardPage#with_stat` **no** reenvía `surface:`: su lista de parámetros es fija y rinde
+  tarjetas, a propósito. Previews nuevos en la galería: `cells_in_card`, `surfaces_compared` y
+  `emphasised_cell`.
+
+- **`input_class:`, la cuarta opción de clase: el control y nada más** (#1147). Bali ya
+  sabía nombrar el `<fieldset>` (`field_class:`), la caja que envuelve al control
+  (`control_class:`) y las dos cosas a la vez (`class:`); lo que no había forma de decir
+  era «el `<input>` solo». Medido en Chromium sobre el preview nuevo
+  `bali/field_group_wrapper/class_targets`, contra la hoja compilada del dummy:
+
+  - `control_class: "bg-warning/20"` tiñe el `div.control`, pero el input le queda encima
+    con su propio `oklch(1 0 0)` opaco: no se ve nada. Con `rounded-2xl border-2
+    border-error` la caja dibuja un segundo marco más grande alrededor de un input que se
+    queda en 4px de radio y 1px de borde.
+  - `class: "bg-warning/20"` sí llega al input, pero también al `<fieldset>`: una banda
+    amarilla detrás del grupo entero, caption incluido.
+  - `input_class: "bg-warning/20 rounded-2xl border-2 border-error"` pone las tres en el
+    input y en ningún otro elemento. El `<fieldset>` computa
+    `background-color: rgba(0, 0, 0, 0)` y el caption no se mueve.
+
+  O sea: para todo lo que el control pinta por su cuenta —fondo, borde, radio, sombra, un
+  modificador `input-*` de daisyUI— `control_class:` no sirve, porque la caja está *detrás*.
+  Esa es la carencia que el issue nombraba y la que faltaba cerrar.
+
+  **Qué NO resuelve, medido:** el ancho. Todo control de Bali lleva `w-full`, así que
+  `input_class: "w-32"` pierde contra él en el mismo elemento (1248px, no 128px) —
+  `.w-full` se emite después de `.w-32` en el build, y el orden del atributo no decide
+  nada. El ancho va en la caja, y como `max-w-*`: `control_class: "max-w-32"` da 128px en
+  todas las familias, las de fecha incluidas.
+
+  Llega a las 23 familias que rinden un control nativo, las cuatro con hash `html:` entre
+  ellas (ahí `html: { class: }` es la grafía vieja del mismo destino) y el `<trix-editor>`
+  de `rich_text_area_group`; con `alt_input: true` viaja también al input que dibuja
+  flatpickr, que es el que se ve. Las nueve que no tienen un control alcanzable quedan
+  declaradas por nombre, con su alternativa, en
+  `test/bali/form_builder/input_class_option_test.rb`, que falla si una familia nueva no
+  queda en ninguno de los dos bandos. Es una clave reservada, así que no se pinta en el DOM
+  como atributo — el modo de falla de #1111, que `block_editor_group` reprodujo mientras se
+  escribía esto (`<div input_class="…">`) y que la prueba ahora cubre.
+
+- **`Bali::Card::Header` acepta `icon_class:`** (#1148). El icono del encabezado se pintaba
+  siempre con `size-6 shrink-0` y sin ningún gancho de color, así que una tarjeta «Requiere tu
+  validación» con icono ámbar y título neutro no se podía armar: el SVG de Lucide hereda
+  `currentColor`, de modo que `with_header(class: "text-warning")` tiñe el icono **y** el
+  `<h2 class="card-title">` juntos. `icon_class:` va sólo al icono:
+
+  ```erb
+  <% c.with_header(title: 'Requiere tu validación', icon: 'triangle-alert',
+                   icon_class: 'text-warning') %>
+  ```
+
+  Es opcional y aditivo: sin él el atributo `class` del icono sale byte a byte como antes
+  (`test/bali/components/card_test.rb` lo afirma). Medido en el navegador sobre el preview
+  nuevo `header_with_icon_class`: el icono pasa de `oklch(0.21 0.006 285.885)` —el mismo color
+  del título— a `oklch(0.82 0.189 84.429)`, con el título sin moverse. Ojo, antes de este
+  cambio pasar `icon_class:` no fallaba: se colaba como atributo HTML literal
+  (`<div class="flex items-center gap-3" icon_class="text-warning">`). Si tu app ya lo escribía
+  esperando que funcionara, ahora funciona y el atributo suelto desaparece del HTML.
+
+  **Para un título con icono, el slot es `with_header`, no `with_title`.** `with_title` recibe
+  texto y atributos HTML: `with_title("Requiere tu validación", icon: "triangle-alert")` pinta
+  `<h2 icon="triangle-alert">`, en silencio y sin icono. Está documentado en
+  `docs/guides/components.md`.
+
+- **`Bali::Reveal::Component` acepta `content_class:`** (#1148). La caja de contenido no
+  recibía nada del llamador, así que el hueco de abajo (`mb-8`) no se podía tocar desde la
+  vista. `content_class: "mb-2"` añade clases a esa caja, que es la otra mitad de un acordeón
+  compacto.
+
+- **`group_by_attribute :status, default: true` — un listado que abre agrupado** (#1156). La
+  agrupación ya tiene el equivalente de `filter_attribute default:`, en las dos formas de
+  declarar: el DSL de clase y el `group_by_attributes:` del constructor, que antes descartaba
+  la llave en silencio. Una sola declaración puede traerlo, y es un booleano, no un callable.
+
+  **Precedencia:** un `?group_by=` explícito en la URL (incluido «sin agrupación», o el usuario
+  no podría desagrupar), después lo que diga el payload de una vista guardada aplicada, después
+  la elección guardada en la caché de filtros, y recién entonces el default.
+
+  **Dos cambios visibles para el anfitrión.** (1) Donde hay un `default:` declarado, «sin
+  agrupación» viaja como `?group_by=none` en vez del `?group_by=` vacío de siempre —el
+  `sort_link` de Ransack descarta los params vacíos—; los listados sin default siguen con el
+  vacío, byte a byte. (2) La caché de filtros gana la llave `group_by_chosen`; las cachés
+  escritas por versiones anteriores no la traen y se leen como «nadie dijo nada», que es lo que
+  hace que el default funcione desde el primer request.
+
+  El default es DERIVADO: no se escribe en la caché ni entra al payload de una vista guardada,
+  así que cambiar la declaración cambia lo que ven también los usuarios que ya visitaron el
+  listado. Lo que el usuario eligió sí se guarda: una vista guardada sin agrupar lleva
+  `"group_by" => "none"` y vuelve a abrirse sin agrupar, mientras que una vista SIN la llave es
+  silencio y ahí el default sigue hablando.
+
+  **Al adoptarlo sobre un listado que ya tenía su propio default hecho a mano, comparar las dos
+  reglas de vistas guardadas.** Bali suprime el default solo con una vista que diga algo de
+  agrupación, así que las vistas ya guardadas —cuyos payloads no traen la llave— pasan a
+  abrirse agrupadas.
+
+  Preview nuevo: `bali/data_table/with_default_grouping`.
+
+### Changed
+
+- **`yarn build` de una app nueva ya no revienta: seis peers pasan a requeridas y las demás se
+  vuelven opcionales de verdad** (#1139). Una app que instaló las tres peers obvias y cableó lo
+  que documenta la guía se llevaba **22 errores `Could not resolve` en 12 paquetes, y ningún
+  bundle**. La línea entre requerida y opcional no era la que decía `package.json`, y ahora es
+  una sola: **import estático = requerida; import perezoso = opcional.**
+
+  **Requeridas ahora** — `@rails/activestorage`, `@rails/request.js`, `date-fns`,
+  `lodash.debounce`, `lodash.throttle`, `rrule`. Ya estaban en el bundle de todos, así que
+  cambia el contrato y el bundle de nadie: lo nuevo es que `yarn install` avise si faltan en vez
+  de que el build falle sin decir por qué. El caso incómodo es `rrule`, que
+  `recurrent_event_rule_form/index.js` importa estáticamente sin que ningún repo del grupo
+  renderice ese componente: volver perezoso ese import queda como followup.
+
+  **Opcionales de verdad ahora** — `@glidejs/glide`, `@googlemaps/markerclusterer`, `chart.js`,
+  `flatpickr`, `qr-scanner`, `slim-select`, `sortablejs`, `tippy.js`. esbuild resuelve un
+  `import()` dinámico en tiempo de BUILD y rompe con un especificador que no encuentra, salvo
+  que la llamada lleve `.catch()`. Ahora todas lo llevan, vía `optionalPeer()`, que nombra el
+  paquete y la línea de `yarn add` y deja al controller volver — y que distingue «no está
+  instalado» de «está instalado y explotó al cargarse», que es la diferencia entre `yarn add` y
+  arreglar un error. De paso, `qr-scanner` estaba declarada como requerida por omisión aunque su
+  controller ya levantaba un «no instalado»; ahora dice lo que es.
+
+  **Qué tiene que saber un anfitrión:** nada, si ya las tenías —las siete las tienen—. Si partes
+  de cero, `bin/rails g bali:install` escribe las nueve requeridas.
+
+- **daisyUI 5.7.22 → 5.7.42** en `spec/dummy/package.json` (veinte parches). Bali debe
+  correr la última de Tailwind y daisyUI para mantener alineadas a las apps del grupo;
+  `tailwindcss-rails` 4.6.0 y `tailwindcss-ruby` 4.3.3 ya eran las últimas y no se tocan.
+  El `peerDependency` `daisyui: ">=5.7.0"` **no se mueve**: Bali no emite ninguna clase ni
+  token que exista sólo a partir de 5.7.23, y subir el piso rompería anfitriones sin ganar
+  nada.
+
+  **Para un anfitrión, la pantalla no cambia — medido, no afirmado.** Se comparó el CSS
+  compilado del dummy antes y después (433 039 → 439 493 bytes, 725 líneas de diferencia
+  con una declaración por línea) y se capturaron 24 previews en claro y en oscuro, la misma
+  DOM y el mismo servidor, sustituyendo sólo la hoja compilada: **48 de 48 pares idénticos
+  píxel a píxel**. Los overrides sin capa que este paquete mantiene contra daisyUI siguen
+  ganando su pelea, uno por uno, verificado con estilo computado en el navegador:
+  `.toast-component` conserva `animation-name: bali-toast-in`; `.bali-gauge::before` conserva
+  el `conic-gradient` con la pista `base-300`; `.calendar-component .table td` conserva
+  `border-bottom: 1px solid base-300`; `.ss-main.select` conserva 1248 px / `flex` /
+  `appearance: none` (daisyUI lo llevaría a 320 px / `inline-flex` / `base-select`);
+  `.rich-text-editor-component.input` conserva `block` y, en readonly, borde, sombra y
+  padding en cero; `.breadcrumbs` conserva `padding-block: 0`; `.alert-soft` / `.badge-soft`
+  conservan la mezcla al 40 %. Los fuentes de daisyUI para `alert`, `radialprogress` y
+  `table` son byte a byte los mismos entre 5.7.22 y 5.7.42.
+
+  **Lo que sí cambia, y sólo se ve al ejercitarlo:**
+
+  - **La palomita del checkbox marcado se recentra** (`translate: 3.5% -7%` nuevo sobre
+    `.checkbox:checked::before`, y el indeterminado pasa de `-35%` a `-40%`). Medido en
+    `table/selectable`: 440 px de 1 152 000 cambian. Se ve mejor centrada; no es regresión.
+  - **El globo de un tooltip deja de heredar el grosor del disparador** (`font-weight: 400`
+    nuevo sobre `.tooltip::before`). Medido en `data_table/complete` con el tooltip abierto:
+    el texto pasa de 600 a 400 y el globo queda un poco más angosto. Es corrección de
+    daisyUI: antes un tooltip colgado de un `.btn` salía en seminegrita.
+  - **`.badge` pasa a `flex-shrink: 0`.** Un `Bali::Tag` dentro de una fila flex apretada ya
+    no se encoge: ahora empuja o desborda en vez de comprimirse. Medido en `tag/long_text` a
+    420 px de ancho: los anchos no cambian (232 px antes y después), así que el efecto sólo
+    aparece en contenedores más ajustados que los que este paquete rinde.
+  - **`.breadcrumbs` gana `margin-inline-start: -.25rem` y su lista `padding-inline-start:
+    .25rem`.** Los 4 px se cancelan: `breadcrumb/default` e `index_page/default` salen
+    idénticos píxel a píxel. El anillo de foco del primer eslabón ya no queda recortado.
+  - **Los `.dropdown-*` de daisyUI pasan a palabras lógicas de `position-area`**
+    (`span-right` → `span-inline-end`, `bottom` → `block-end`, …). En LTR es el mismo lugar;
+    en RTL es lo que corrige. Bali posiciona sus paneles con `position: fixed` / `inset` desde
+    `side_menu/daisyui-overrides.css`, así que no depende de eso.
+
+- **El espaciado de `Bali::Reveal` ahora lo gana el anfitrión** (#1148). El trigger traía
+  `pb-6 mb-6` y el contenido `mb-8` escritos como utilidades en el atributo `class`, y desde
+  una app no había forma de bajarlos: las utilidades del anfitrión caen en la misma
+  `@layer utilities` con la misma especificidad, y dentro de una capa sólo desempata el orden
+  de emisión — Tailwind emite cada familia de espaciado por valor ascendente, con el 0 primero
+  (en la hoja compilada `.ml-0{margin-left:0}` va inmediatamente antes de `.ml-1`), así que el
+  6 de Bali siempre se declaraba después del 0 del anfitrión y siempre ganaba. La única salida
+  era `pb-0! mb-0!`.
+
+  Los valores por omisión se mudan a `app/components/bali/reveal/index.css`, dentro de
+  `@layer components`, que las utilidades del anfitrión vencen por capa, sin importar la
+  especificidad y sin `!`:
+
+  ```erb
+  <%= render Bali::Reveal::Component.new(content_class: 'mb-2') do |c| %>
+    <% c.with_trigger(class: 'pb-2 mb-2', show_border: false) do |trigger| %>
+  ```
+
+  **El mismo arreglo alcanza al chevron.** `Reveal::Trigger` ya ofrecía `icon_class:`, pero lo
+  concatenaba con `h-3.5` en el mismo atributo, así que era cara o cruz: `icon_class: "h-2"`
+  medía 14px —el valor de Bali— y `icon_class: "h-6"` sí ganaba, sólo porque `.h-6` se emite
+  después. Ahora `h-3.5` es la regla `.trigger-icon` de la misma hoja y `icon_class: "h-2"`
+  mide 8px. Es la caja del icono; el glifo lo dimensiona `Bali::Icon` con `*:h-4 *:w-4` y no
+  se mueve.
+
+  **No cambia ni un píxel por omisión —si reconstruís tu CSS.** Medido con `getComputedStyle`
+  sobre `/lookbook/preview/bali/reveal/default`: el trigger sigue en 24px de `padding-bottom` y
+  24px de `margin-bottom`, y el contenido en 32px. Lo que cambia es quién gana cuando hay una
+  utilidad encima: antes, con `pb-0 mb-0` en el trigger, el cómputo seguía siendo 24px/24px;
+  ahora es 0px/0px (y 8px/8px con `pb-2 mb-2`, en el preview nuevo `compact`).
+  `cypress/e2e/reveal-spacing.cy.js` mide los seis valores en un navegador.
+
+  **La condición no es una formalidad: los valores ya no están en el HTML.** Viven en
+  `reveal/index.css`, que entra a tu hoja recién cuando tu build procesa el `@import` nuevo de
+  `bali/components.css`. Una app que sirva un build cacheado o commiteado —o que arme las hojas
+  a mano, algo que `app/assets/stylesheets/bali.css` contempla— pasa de 24px a 0px sin ningún
+  error. Reconstruí el CSS al subir; y si importás las hojas de componente una por una, agregá
+  `components/bali/reveal/index.css` con `layer(components)`.
+
+  **Qué revisar al subir.** Si tu app ya pasaba una utilidad de padding o margen al trigger
+  —`c.with_trigger(class: "pb-2")`— hasta ahora no hacía nada y veías 24px; ahora verás 8px.
+  Es justo el defecto que se arregla, pero es un cambio visible. Lo mismo con un `icon_class:`
+  de altura menor a `h-3.5`. Quien se defendió con `pb-0! mb-0!` sigue igual. Y `pb-6`/`mb-6`
+  ya no están en el atributo `class` del botón, ni `h-3.5` en el del icono: una aserción de
+  prueba que busque `.reveal-trigger.pb-6` o `.trigger-icon.h-3\.5` deja de encontrarlas (las
+  clases `.reveal-trigger` y `.trigger-icon` y el resto del atributo no cambian).
+
+  **Al bajar el espaciado a 0, `show_border: true` deja la línea pegada al título.** El borde
+  sigue siendo una utilidad en línea y no se movió; con `pb-0` no queda aire entre el texto y
+  la regla, así que un acordeón muy compacto normalmente quiere `show_border: false`.
+
+  No es un barrido de la biblioteca: el resto de los componentes sigue con su espaciado en
+  línea. Este es el caso donde se midió que estorbaba. La regla que lo decide quedó escrita en
+  `.claude/CLAUDE.md`, en la tabla de capas.
+
+- **simplecov 1.1.1 → 1.3.0** (#1141). El salto pide Ruby >= 3.3 y el repo ya corre 4.0, así
+  que no hay nada que migrar: medido con `COVERAGE=1 bundle exec rails test`, la suite sigue en
+  5329 runs con 0 fallas y la cobertura no se movió (línea 95.76 %, rama 85.14 %). Las dos
+  novedades que podían morder no aplican aquí: la que descarta plantillas de un glob `cover`
+  no toca a `track_files "{app,lib}/**/*.rb"`, que sólo mira `.rb`, y la que omite del reporte
+  los grupos vacíos no toca a `Components` ni `Lib`, que tienen archivos.
+
+- **Los comentarios y nombres de prueba de `test/` pasan a inglés** (lote 1 de sacar el
+  español del código del repo). 64 archivos de `test/`: las 825 líneas de comentario con
+  acento que había en 62 de ellos quedan en cero, más los comentarios en español sin acento
+  que esa medición no veía. De paso, 12 comentarios podados por no decir más que la prueba
+  de abajo. También pasan a inglés 13 nombres de prueba, y `pr_closes_keyword_test.rb` se
+  reescribió entero —helpers, variables locales y mensajes de aserción estaban en español—;
+  es el único cambio de código del lote y no mueve el conteo de la suite (9 runs antes y
+  después). Mediciones, números de issue, referencias `archivo:línea` y los datos de muestra
+  quedan intactos. Para un anfitrión no cambia nada: la gema no publica nada de `test/`.
+
+- **`state_label:` deja de llegar al `<li>` como atributo HTML** (#1145). Hasta ahora
+  `c.with_step(..., state_label: "X")` emitía `<li state_label="X">`, un atributo inválido que
+  no cambiaba nada de lo que oye un lector de pantalla; al declararse el keyword, desaparece
+  del DOM. **Si tenés un selector de Cypress o de CSS sobre `[state_label]`, dejará de
+  encontrar nada.**
+
+- **Para ver el riel hay que reconstruir el CSS de la app** (#1145): `.workflow-steps-rail` y
+  sus reglas son clases nuevas, así que un anfitrión que sube la gema y no corre
+  `rails tailwindcss:build` ve el riel como una columna de rectángulos de color. Las formas
+  viejas no lo necesitan: su markup no cambió.
+
+- **Tres reglas de CSS se mudaron al bloque raíz `.workflow-steps`** (#1145):
+  `.workflow-step-circle`, `.workflow-steps-progress` y `.workflow-steps-count`, que el riel
+  comparte con las otras formas. Misma especificidad y misma capa, así que un anfitrión con
+  CSS propio sobre `.workflow-step*` le sigue ganando igual.
+
+### Fixed
+
+- **Una petición abortada dejaba de reprobar la suite de Cypress** (#1180). El síntoma era
+  `AbortError: The user aborted a request` como rechazo sin manejar, achacado a la prueba que
+  estuviera corriendo. No venía de Bali: en la página que fallaba —`custom_master`— no se monta
+  ni un controlador que haga `fetch`. Viene de Turbo, que llama a su delegado asíncrono **sin
+  esperarlo** (`@hotwired/turbo` 8.0.23, `dist/turbo.es2017-esm.js:826`) y ahí dentro espera
+  `FetchResponse#responseHTML`, o sea `response.clone().text()`. Cancelá la petición entre las
+  cabeceras y el cuerpo —lo que hace un Turbo Frame cada vez que navega de nuevo, con lo cual
+  bastan dos clics seguidos en dos filas— y ese `text()` rechaza en una cadena que nadie
+  sostiene: el `catch` de `perform()`, que sí ignora `AbortError`, quedó desenganchado dos
+  líneas antes. Medido con Cypress 16.1.0: la prueba «moves aria-current to the clicked row»
+  abortaba uno de sus cuatro `fetch` y fallaba **5 de 5 corridas**. La suite deja de reprobar
+  por un rechazo `AbortError`, y sólo por ése; cualquier otro error sin capturar sigue
+  reprobando.
+
+- **`SplitView::List` deja de pedir páginas para una lista que ya no existe** (#1180 de rebote).
+  Una página en vuelo cuando el listado se desconecta llegaba igual, se agregaba a un listado
+  que el controlador ya no gobierna, y la recursión del final de `loadNext` mantenía al
+  controlador muerto paginando: medidas **tres peticiones** contra el servidor por un listado que
+  nadie está viendo, donde abortar pide una. `disconnect()` aborta el `fetch`, y el `AbortError`
+  que eso produce se lee como el desmontaje que es —no se pinta el estado de error con su botón
+  de reintentar sobre un panel que se está yendo.
+
+- **La gemspec declara lo que `lib/bali.rb` carga: `csv` y `simple_command`** (#1139). Los dos
+  se requieren sin guarda en el arranque (`Bali::Commands::CsvExport` y `XlsxExport`), y `csv`
+  dejó de ser gema default en Ruby 3.4 — así que una app que nunca escribió la línea dejaba de
+  arrancar con `cannot load such file -- csv`, en un deploy que no había tocado nada de esto.
+  Las siete la tenían a mano, una bajo el comentario «Required by Bali».
+
+  **Qué tiene que saber un anfitrión:** nada que hacer, y en el próximo bump puedes borrar
+  `gem "csv"` y `gem "simple_command"` de tu `Gemfile`.
+
+- **El override de `rrule` ya no tumba el arranque de una app que no usa rrule** (#1139).
+  `lib/bali/overrides/rrule_override.rb` abría con `RRule::Rule.class_eval` y el engine lo
+  `load`ea en cada `to_prepare`: sin la gema, `NameError: uninitialized constant RRule` en la
+  primera request. Ahora intenta el `require` y no hace nada si no está.
+
+  **`rrule` NO se agregó a la gemspec, a propósito**, con el criterio ya escrito para `rqrcode`:
+  una gema opcional falla donde se usa, no donde falta. Aquí ni siquiera hay dónde fallar —
+  Bali nunca construye un `RRule::Rule`, el parche decora objetos que hace el ANFITRIÓN.
+
+  **Qué tiene que saber un anfitrión:** puedes borrar `gem "rrule"` de tu `Gemfile` salvo que tu
+  propio código construya reglas de recurrencia.
+
+- **`pagy` ya no se requiere en el arranque de un anfitrión que no pagina** (#1139).
+  `app/components/bali/pagination/pagy_adapter.rb` abría con
+  `require "pagy/toolbox/helpers/support/series"` sin guarda, y `lib/bali/engine.rb` mete
+  `app/components` en `config.eager_load_paths`: en producción eso es
+  `cannot load such file -- pagy/toolbox/...` en el arranque de una app sin pagy. El `require`
+  se mudó adentro de `#series`, el único método que lo necesita y al que sólo se llega con un
+  Pagy en la mano. Con él sale del eager load `Bali::ApplicationViewComponentPreview`, que abre
+  con `include Pagy::Method`; `Bali::Engine::NOT_EAGER_LOADED` es ahora la lista.
+
+  **Qué tiene que saber un anfitrión:** nada — las siete declaran `pagy` a mano y lo necesitan,
+  porque son ellas las que construyen el Pagy. Una app nueva que siga el README ya no se cae en
+  producción por no tenerlo.
+
+- **La memoria del selector de columnas ya no esconde las columnas nuevas** (#1144).
+  `localStorage` guardaba la lista de índices VISIBLES, así que toda columna agregada a un
+  listado que ya estaba en producción nacía oculta para quien lo hubiera visitado antes. Se
+  guarda ahora lo oculto, más las columnas que había en pantalla, más las que el servidor
+  declaraba ocultas: `{"v":2,"hidden":[3],"known":[0,1,2,3],"serverHidden":[3]}`. La decisión
+  del usuario es la DIFERENCIA entre `hidden` y `serverHidden`; sin diferencia manda el
+  `with_column(visible:)` que el anfitrión declara hoy.
+
+  **Nada que hacer en las apps.** La llave no cambia (`bali:columns:<listing_id>`): lo
+  versionado es el valor, y un valor viejo se traduce y se reescribe solo, una vez, en la
+  primera carga en modo tabla. Sin cambios en el Ruby ni en el HTML que rinde el componente.
+
+  Dos límites conocidos. Si lo que el usuario tenía escondido era la ÚLTIMA columna de la
+  tabla, esa reaparece una vez y hay que volver a esconderla: esa preferencia es
+  indistinguible de una columna que no existía. Y una vista guardada sigue significando
+  «estas columnas visibles», así que una columna agregada después no entra en ella hasta
+  volver a guardar la vista.
+
+- **`Bali::HtmlElementHelper#prepend_style` separa las declaraciones con `;`** (#1146).
+  Concatenaba con un espacio, lo que funde la última declaración del componente con la primera
+  del anfitrión en una sola declaración inválida que el navegador tira entera —se perdían las
+  dos—. En v3.4.0 este helper no tenía ningún llamador, así que nada de lo que rinde la gema
+  hoy cambia; el arreglo llega junto con su primer uso real, la celda de StatCard.
+
+- **`control_class:` deja de descartarse en silencio en las familias con addon** (#1147).
+  La opción existe desde siempre y clasea la caja que envuelve al control, pero sólo la leía
+  el `div.control`. Las tres familias que nunca rinden ese div porque su addon lo reemplaza
+  por un `<div class="join w-full">` —`currency_group`, `percentage_group`, `search_group`,
+  y cualquier campo al que se le pase `addon_left:`/`addon_right:`— se tragaban la clase sin
+  dejar rastro. Medido en Chromium sobre el preview nuevo
+  `bali/field_group_wrapper/class_targets`: `currency_group :currency, control_class:
+  "font-mono"` daba `<div class="join w-full">` y un `<input>` con
+  `font-family: -apple-system,…`; ahora da `<div class="join w-full font-mono">` y el input
+  computa `ui-monospace, SFMono-Regular,…`. Justo la llamada del reporte: un monto en
+  monoespaciada sin tocar el `<fieldset>`.
+
+  **Qué cambia para un anfitrión:** si ya escribías `control_class:` en un campo con addon,
+  la clase ahora aparece en el DOM y puede pintar algo que antes no pintaba —revisa esos
+  call sites antes de subir. La clase cae en el join completo, así que también alcanza a los
+  addons; para dejar los addons fuera, `input_class:`. (`addon_class:` **no** es la forma de
+  clasear addons en general: sólo `search_group` la lee, para su botón. El `$` y el `%` de
+  `currency_group` y `percentage_group` no toman nada del call site.) Lo demás no cambia: el
+  `.control` de las otras ~21 familias, `class:`, `field_class:` y `html: { class: }` rinden
+  exactamente lo mismo que en v3.4.0.
+
+  **Las ocho familias que no rinden caja quedan declaradas, no silenciadas.**
+  `range_group`, `boolean_group`, `switch_group`, `coordinates_polygon_group`,
+  `recurrent_event_rule_group`, `direct_upload_group`, `time_period_group` y `submit_group`
+  no tienen ningún elemento entre el `<fieldset>` y el control, así que la opción no tiene
+  dónde caer. `test/bali/form_builder/control_class_option_test.rb` las nombra una por una
+  —con la alternativa de cada una— y falla si una familia nueva no queda declarada en
+  ninguno de los dos bandos. Queda una fuera de los dos, y también por nombre:
+  `dynamic_fields_group`, que necesita una asociación real para rendir.
+
+- **`control_class:` acepta array y hash en TODAS las familias, las de fecha incluidas**
+  (#1147). Se arma con `token_list` en vez de interpolarse, así que
+  `control_class: { "font-mono" => true }` ya no pinta
+  `class="control {&quot;font-mono&quot;…}"`. `date_group`, `datetime_group` y `time_group`
+  anteponen su propio `w-full` a la opción y lo hacían con `Array#join`, o sea el mismo
+  defecto en una segunda línea: el hash llegaba al DOM como basura en las tres. Medido antes
+  y después en las tres familias; hay prueba por familia.
+
+- **Un textarea con `auto_grow:` y un addon vuelve a crecer** (#1147). El controlador
+  `textarea` tiene que ir sobre el elemento que contiene el control y el contador, que es la
+  caja; cuando un addon reemplazaba el `div.control` por el join, nadie lo llevaba y
+  `auto_grow: true` era un no-op silencioso. Ahora el join lo lleva. Medido en el navegador
+  sobre `bali/form/text_area/auto_grow_example`, que estrena un segundo campo con addon:
+  escribiendo seis líneas el textarea pasa de 80px a 142px, igual que el de al lado sin
+  addon; antes se quedaba en 80px. **Es JS vivo donde no lo había**: ninguna app del grupo
+  escribe hoy esa combinación (cero `auto_grow` junto a un addon en los nueve repos), pero
+  si la tuyas la tiene, ese campo empieza a crecer al escribir.
+
+- **`class:` como Array o Hash ya no destroza la clase del control** (#1147, colateral
+  medido). La clase del `<fieldset>` se armaba con `class_names` y la del control por
+  interpolación, así que las dos mitades de una misma opción no entendían lo mismo:
+  `number_group(:budget, class: %w[font-mono])` rendía
+  `<input class="input w-full [&quot;font-mono&quot;]">` con el fieldset correcto. Ahora las
+  dos usan la misma función. De paso desaparece el espacio sobrante que dejaba un `class:`
+  ausente (`class="input w-full "`).
+
+- **`SimpleFilters`: un control con `label: false` ya no queda sin nombre accesible**
+  (#1155). `label: false` existe desde #882 para una fila que se explica sola —un select de
+  año cuya opción en blanco ya dice «Todos los años»—, y su documentación prometía «un
+  control que ya se nombra solo con su opción en blanco». Esa promesa era falsa: el texto de
+  la opción en blanco es el VALOR seleccionado del `<select>`, no su nombre. Sin caption, el
+  `<label for>` desaparecía y con él lo único que nombraba al control: un lector de pantalla
+  llegaba a «cuadro combinado» pelado (WCAG 4.1.2). Reproducido en afal-apps
+  (`/td_flow/reports`), con tres selects mudos seguidos.
+
+  **No era sólo el `select`, que es lo que decía el issue.** Medido en el árbol de
+  accesibilidad de Chromium sobre el preview nuevo `data_table/simple_filters/uncaptioned`,
+  con `label: false` quedaban sin nombre el select nativo, el `slim_select`, el `date`, el
+  select de períodos de `date_range presets`, y el toggle booleano se anunciaba
+  literalmente «false» —y pintaba esa palabra en pantalla, al lado del switch—. El picker de
+  «Personalizado…» salía con `aria-label="false"`.
+
+  Ahora hay una sola cadena de resolución, la misma para las seis ramas:
+  **el rótulo → `aria_label:` → el texto de `blank:`**. El caption va primero y `aria_label:`
+  no le compite: un rótulo visible tiene que formar parte del nombre accesible (WCAG 2.5.3),
+  así que donde hay caption manda el caption en TODAS las ramas —incluido el picker de
+  «Personalizado…» de un rango con presets, que era la única que sacaba dos nombres para el
+  mismo grupo—. El `blank:` sólo cuenta si es una cadena, porque `blank: true` es una opción
+  en blanco de Rails sin texto y habría nombrado el control «true».
+
+  **El respaldo a `blank:` es una red, no la recomendación.** Nombra al control con el mismo
+  texto que ya lee como su valor: el lector dice «Todos los años, Todos los años». Está para
+  que ningún control salga mudo sin que nadie toque una línea; el nombre bueno se escribe con
+  `aria_label:`.
+
+  **Qué cambia para un anfitrión.** Los filtros con `label: false` y `blank:` quedan
+  nombrados sin tocar el host, así que ninguna pantalla se queda en WCAG 4.1.2 esperando un
+  cambio. Eso **no** quiere decir que un paliativo existente se borre y ya: el de afal-apps
+  (`td_flow/reports_filter_form.rb`, `ARIA_LABEL_KEYS`) nombra sus tres selects «Año de
+  registro», «Área» y «Estado», y la red los nombraría «Todos los años», «Todas las áreas» y
+  «Todos los estados» — peores nombres que los de hoy. La migración es **mover esas tres
+  cadenas a `aria_label:`** en el mismo bump y recién entonces retirar el controlador
+  Stimulus que las escribía desde fuera. Un filtro sin caption y sin `blank:` del que caer
+  (`boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range`) necesita
+  la clave nueva `aria_label:`; sin ella se registra un aviso `[Bali]` en development y test
+  y la pantalla rinde igual. **No hay `ArgumentError`**, que es lo que pedía el issue:
+  reventar en render tiraría la pantalla de un anfitrión en producción por un defecto de
+  accesibilidad, y rompería a la propia `UncaptionedSimpleFilterForm` del repo.
+
+  El aviso dice dos cosas distintas según la forma del filtro. En uno de un solo control, lo
+  anónimo es el control. En `toggle_group`, `radio_group` y `number_range` cada control ya se
+  nombra solo —cada pill con su opción, cada mitad del rango con su placeholder— y lo que
+  falta es el nombre del GRUPO, que sin él ni siquiera se emite.
+
+  **El HTML de una fila captionada no cambia**: el `aria-label` se emite sólo donde no hay
+  un `<label for>` visible que llegue al control. Con dos excepciones, que son defectos más
+  anchos que el propio #1155 y se arreglan acá porque son la misma pregunta:
+
+  - **`slim_select` estaba mudo también CON caption**, o sea en el caso de todos los hosts
+    hoy. Bali recorta el `<select>` real a 1x1 (`bali/slim_select.css`) y el control que el
+    usuario opera es el `div[role="combobox"]` que construye SlimSelect, que copia el
+    `aria-label`/`aria-labelledby` del select y nada más — el `<label for>` no viaja. Medido
+    con CDP antes del cambio: `combobox name="Combobox"`, el default del widget, con el
+    rótulo «Owner» al lado sin conectar. Esa rama ahora emite `aria-labelledby` apuntando al
+    caption, y después: `combobox name="Owner"`.
+  - **`date`/`date_range` sin caption.** flatpickr esconde el input real y crea otro al
+    lado; `datepicker#forwardAccessibleName` ya copiaba el `label[for]` al visible, pero sin
+    caption no había nada que copiar. Ahora se emite el `aria-label` que ese mismo JS
+    reenvía.
+
+  Un `date_range` con `presets:` son dos controles sobre un mismo param, y se nombran por
+  separado: el select de períodos puede caer en su opción en blanco («Cualquier fecha»), y el
+  picker de «Personalizado…» nunca hereda ese texto —es un campo que el usuario abre
+  justamente para no decir «cualquier fecha»—. Sin caption ni `aria_label:` se nombra con la
+  cadena nueva `bali_view.simple_filters.presets.custom_range` («Rango de fechas
+  personalizado»).
+
+  `aria_label:` viaja por las tres capas de configuración —`filter_attribute`,
+  `defined_simple_filters` y los hashes `simple_filters:` de instancia— y acepta un proc de
+  aridad cero, igual que `label:` y `blank:`. Es una clave nueva y `filter_attribute` tenía
+  firma cerrada, así que ningún anfitrión la podía estar pasando: no hay colisión posible.
+  La grafía es la misma que la de `search_fields aria_label:` (#1026).
+
+  Dos previews nuevos, que es lo que hace verificable el arreglo en el navegador:
+  `data_table/simple_filters/uncaptioned` y `data_table/simple_filters/slim_select` (no
+  había ninguno con `type: :slim_select`).
+
+- **El ítem actual de un grupo inferior del `SideMenu` dejaba de leerse con daisyUI 5.7.42.**
+  Esa versión agregó `[aria-current]:not([aria-current=false],[aria-current=""])` a la lista
+  de selectores que reciben el aspecto `.menu-active`, y con ella `color: var(--menu-active-fg)`
+  desde `@layer utilities`. Bali pone `aria-current="page"` en el ítem actual, y un
+  `Bali::SideMenu::BottomGroup` rinde sus hijos dentro de un `ul.dropdown-content.menu`, así
+  que el selector nuevo los alcanza. El `background-color` de Bali seguía ganando —es una regla
+  sin capa— pero el color de texto no, porque vivía en `@layer components` bajo la premisa,
+  escrita en el encabezado del archivo, de que «daisyUI no declara color para ese estado».
+
+  Medido en `side_menu/with_bottom_groups`, contraste WCAG de la etiqueta contra el fondo que
+  la sostiene: **claro 6.98 → 1.06, oscuro 4.10 → 1.12** (AA pide 4.5). El texto desaparecía.
+  `side_menu/daisyui-overrides.css` ahora restituye el par completo (fondo `primary/10` y texto
+  `primary`) sin capa, acotado a `[aria-current]` y no a `.active`, y el contraste vuelve
+  exactamente a 6.98 y 4.10. Queda la sombra suave que daisyUI dibuja bajo el estado activo
+  (`0 2px 3px -2px`), que no cuesta legibilidad y no pisó ninguna declaración de Bali.
+
+  **Para un anfitrión que pintaba ese ítem con una utilidad propia:** dentro de un `.menu`, un
+  `text-*` o `bg-*` sobre un `.menu-item[aria-current]` ya no le gana a Bali —igual que pasa con
+  cualquier regla sin capa de este paquete— y hay que escribirlo con `!` (`!text-warning`).
+
+- **Las previews `header_with_badge` y `header_complete` de `Bali::Card` pintaban el encabezado
+  sin su badge** (#1148). El envoltorio recibía `justify-between` —el slot estaba declarado— y
+  salía vacío: dentro de un método de preview `render` es el de `ViewComponent::Preview`, no el
+  de la vista, así que el `Bali::Tag::Component` se perdía en silencio. Las dos pasan a
+  plantilla, como el resto de las previews de Card que funcionan, y
+  `test/requests/card_header_previews_test.rb` afirma que el badge sale.
+
+- **`Bali::Table` emitía el `id:` dos veces: en el `<div>` contenedor y en la `<table>`.** Dos
+  elementos con el mismo id es HTML inválido, y `document.getElementById` devolvía sólo el
+  primero. No era una copia deliberada sino una fuga: `initialize` sacaba de `**options` las
+  sub-hashes `:tbody` y `:table_container` pero dejaba adentro `:id`, así que el mismo valor
+  salía por `container_id` en el `<div>` y otra vez por el doble splat en la `<table>`. Con
+  `form:` en vez de `id:` esto ya no pasaba —el `<div>` lo recibía y la `<table>` no—, o sea que
+  el caso `id:` era la anomalía. Reproducido en el navegador sobre el preview
+  `Table › Collapsible groups`, donde `portfolio` y `portfolio-selectable` aparecían dos veces
+  cada uno.
+
+  **El id se queda en el contenedor**, que es el root del componente y lo que la convención de
+  `**options` manda (`docs/reference/component-patterns.md`). Es también donde todo lo que lo
+  busca ya lo encontraba, porque el `<div>` es el primero en orden de documento:
+  `getElementById`, `querySelector('#id')`, un ancla y `turbo_stream.replace "id"` siguen
+  resolviendo al mismo nodo que antes **siempre que el `id:` sea el único** —que es el caso de
+  todos los call sites medidos—; la excepción está abajo. Y es lo correcto para Turbo:
+  reemplazar sólo la `<table>` se llevaría por delante el `overflow-x-auto` y el
+  `data-controller` de los grupos plegables. Los ids de fila (`row_id_prefix`) y el del `<tr>`
+  del estado vacío siguen colgando del mismo valor, sin cambio.
+
+  **Qué puede romperse en un anfitrión** —medido contra las nueve apps del grupo, cero
+  coincidencias en las tres—: un selector que nombre el elemento (`table#id`, `#id.table`,
+  `#id.table-zebra`) o use hijo directo (`#id > tbody`, `#id > thead`); cualquier aserción que
+  CUENTE el id pelado (`assert_select "#id", count: 2` pasa a encontrar un nodo, no dos); y
+  **`id:` junto con `table_container: { id: ... }`**, la única combinación en la que el id de
+  nivel superior deja de existir en el DOM. En esa combinación el `<div>` se queda con el id de
+  la sub-hash —la pinta después— y la `<table>` ya no se queda con nada, así que un
+  `getElementById` del id de nivel superior pasa de devolver la `<table>` a devolver `null`.
+  Medido: con `id: "x"` y `table_container: { id: "wrap" }` la salida era
+  `[div#wrap, table#x, tr#x-empty-table-row]` y ahora es `[div#wrap, tr#x-empty-table-row]`.
+  Ningún anfitrión del grupo la usa (el único `table_container: { id: }` va sin `id:` de nivel
+  superior), y queda pinneada en `test/bali/components/table_test.rb`. Los selectores de
+  descendencia —`#id tbody tr`, `#id td`, `#id thead th`, que es la forma de las ~60 aserciones
+  medidas— siguen igual, porque el `<div>` sigue siendo ancestro de todo.
+
+  No hay forma soportada de ponerle un id propio al elemento `<table>`, y nada la necesita: hay
+  **un solo id por componente** y vive en el contenedor. Los atributos propios del contenedor van
+  en `table_container:` (una sub-hash como `tbody:`), ahora documentada en
+  `docs/guides/components.md` y con preview propio en Lookbook (`Table › Container id`) — con el
+  caveat de que ahí van clases y datos, no la identidad: un `id:` dentro de `table_container:`
+  gana el atributo del `<div>` pero no alimenta a `container_id`, así que los ids de fila y el
+  del `<tr>` vacío siguen saliendo del `id:` de nivel superior, o de un prefijo aleatorio si no
+  hay ninguno. El resto de `**options` —`class:`, `data:`— sigue bajando a la `<table>`. Ojo con
+  el contraejemplo: `Bali::PropertiesTable` sí pone su id en la `<table>`, y está bien, porque
+  ahí la `<table>` ES el root del componente. (#1157)
+
+- **La guía de componentes enseñaba `variant:` en `Bali::WorkflowSteps`, un keyword que el
+  componente rechaza desde v3.1** (#1159). El eje se llama `orientation:` —el mismo nombre que
+  usa `Bali::Stepper`, su hermano— y pasar el viejo levanta `ArgumentError`, pero la sección
+  WorkflowSteps de `docs/guides/components.md` siguió repartiéndolo tres minors (v3.1 → v3.4)
+  en la viñeta de opciones, la prosa del flujo horizontal y el ejemplo copiable. Los tres pasan
+  a `orientation:`, y la viñeta nombra el rename, porque hay anfitriones que aprendieron el
+  keyword viejo de esta página y no de una beta. **El guardia del componente se queda**: sin él
+  un `variant:` cae en `**options`, sale como atributo `variant="horizontal"` en el root y el
+  componente rinde vertical en silencio. Quien ya usaba `orientation:` no tiene nada que
+  cambiar. De paso, el párrafo de accesibilidad del flujo horizontal decía «see below» hacia
+  una explicación que está arriba.
+
+- **`Bali::Stepper` envolvía el título del paso cuando el bloque no rendereaba nada** (#1158).
+  El template preguntaba por `content?`, y `content?` de ViewComponent contesta si se **pasó**
+  un bloque, no si ese bloque escribió algo: el anfitrión que decide adentro —el `if` dentro
+  del `with_step`, que es como se escribe «el detalle, si lo hay»— recibía `true` en todos los
+  pasos, así que todos entraban por la rama envolvente y la rama del título pelado quedaba
+  inalcanzable para cualquiera que pasara bloque. La condición pasa a `content.present?`, que
+  mira la cadena ya rendereada y, por `blank?`, cubre también el bloque de puros espacios;
+  evaluarla ahí no cuesta un render extra porque ViewComponent memoiza la captura. Un bloque
+  con contenido real no cambia, espacios alrededor incluidos, y `sublabel:` sigue envolviendo
+  por su cuenta.
+
+  **Esto cambia el marcado, no el pintado.** A diferencia del `.workflow-step-comment` de
+  v3.4.0, el `div` de Stepper no lleva clase ni margen y el grid de `.steps .step` lo coloca en
+  la misma celda que el texto pelado. Lo medido, para que se sepa hasta dónde llega la
+  afirmación: el preview `with_content_block` en Lookbook contra el CSS compilado, a 1280px, en
+  tres disposiciones —horizontal (el ancho por contenido de DaisyUI), `w-full` y
+  `steps-vertical`—. En las tres, los cuatro pasos dan el mismo `getBoundingClientRect()` antes
+  y después, y la captura de página completa sale byte a byte idéntica (`compare -metric AE`
+  = 0). Fuera de esas tres disposiciones no está medido. El paso con bloque en blanco pasa de
+  `<li class="step"><div><div>Título</div></div></li>` a `<li class="step">Título</li>`. Un
+  anfitrión sólo lo nota si tiene CSS, JS o pruebas apuntando a `li.step > div` para un paso
+  cuyo bloque no rinde nada. Cierra el mismo predicado equivocado que #1153 barrió en
+  `Bali::WorkflowSteps`; era el último de la gema. Nueva variante de Lookbook
+  `with_content_block` con el caso, y `test/requests/stepper_previews_test.rb` la sostiene.
+
+- **Todo PR de Dependabot salía en rojo aunque las pruebas pasaran.** El job `test` publica un
+  comentario de cobertura en el PR con `issues.createComment`, pero no declaraba `permissions:`,
+  así que heredaba el default del repo — y en un run disparado por Dependabot ese default es de
+  **solo lectura**. El paso moría con `Resource not accessible by integration` y se llevaba
+  consigo un job cuyas pruebas habían terminado en verde (96.25 % de cobertura en el run de
+  #1141). Ahora el job declara `contents: read` + `pull-requests: write`, y el paso del
+  comentario lleva `continue-on-error: true`: es una comodidad, no una puerta, y un token que no
+  alcance —Dependabot, un fork— ya no puede tumbar la suite.
+
+- **`?q=loquesea` era un 500 en cualquier listado con un `FilterForm`.** `q` llega crudo de la
+  URL y nada obliga a que sea un hash: escrito a mano como escalar (`?q=x`) o como lista
+  (`?q[]=x`) aterrizaba en un `permit` sin guardia —`String` y `Array` no lo tienen— y se
+  llevaba la petición entera. No hace falta sesión, ni conocer la app, ni un listado en
+  particular: sale de la barra de direcciones, y un enlace mal copiado o un crawler bastan.
+  De `q` salen además el orden (`s`), las agrupaciones (`g`) y el combinador (`m`), así que
+  cada lector de más abajo fallaba a su manera. Un `q` que no es un hash no pidió nada, y
+  ahora el listado sale sin filtrar en vez de reventar.
+
+  De paso, `FilterForm.new(scope)` **nunca funcionó**: el propio default `params = {}` moría en
+  ese mismo `permit`, igual que el `Hash` pelado que la firma documenta desde siempre. Un host
+  que arme el form fuera de una petición —un job, un export— ya puede hacerlo.
+
+- **Agrupar sobre un scope con `.distinct` ya no muere con el error crudo del driver** (#1156).
+  Agrupar ordena por la expresión del grupo, y un `SELECT DISTINCT` solo acepta expresiones del
+  `ORDER BY` que estén en su lista del SELECT: de las cuatro formas de agrupar, la única que lo
+  está es una columna de la tabla base. Bali no puede arreglarlo por el anfitrión —meter la
+  expresión en el SELECT cambia qué deduplica el `.distinct`—, así que reemplaza el error del
+  adaptador por `Bali::FilterForm::GroupByOrderingError`, que nombra el listado, la agrupación,
+  el `ORDER BY` culpable y las tres salidas. El error del driver queda como `#cause` y
+  cualquier otro fallo del adaptador sale intacto. MySQL también se traduce; SQLite acepta las
+  cuatro formas y no ve ninguna diferencia.
+
+### Documentation
+
+- **El renglón del directorio en `rails-performance-expert.md` contaba mal sus archivos**
+  (#1194 de rebote). Decía «102 files» —los del primer nivel— cuando el runner desciende y la
+  medición de 6.6 s salió de los **128** que hay contando subcarpetas. El número de pruebas se
+  actualiza a 3 581. La conclusión del renglón no cambia.
+
+- **Las instrucciones de `.claude/` dejan de enseñar cosas que no existen** (#1194). Salió de la
+  revisión de #1192: una docena de afirmaciones falsas contra el repo real, verificadas una por
+  una. No es documentación de adorno —`.claude/commands/` son las instrucciones que sigue un
+  agente, y una plantilla que hereda de una clase inexistente no confunde: **produce código
+  roto**.
+
+  Lo que producía código que no carga:
+
+  - `class Component < ApplicationComponent` en `component.md` (3 veces), `deprecate.md` (2),
+    `dhh-code-reviewer.md` (4) y `docs.md`. **Esa clase no existe**; los 173 componentes reales
+    heredan de `ApplicationViewComponent`.
+  - `class Preview < Lookbook::Preview` en `component.md`, prohibido por `.claude/CLAUDE.md`
+    porque las apps anfitrionas no tienen Lookbook. Los 132 previews usan
+    `ApplicationViewComponentPreview`.
+  - En esa misma plantilla, `render Component.new(...)` —la constante hermana sin calificar que
+    `test/requests/icon_previews_test.rb` reprueba desde #843— y
+    `export default class extends Controller`, que nunca llega a la página: el registro importa
+    por nombre (`import { DropdownController } from …`).
+
+  Estructura que no es la de este repo: `component.scss` y «Has SCSS file» cuando hay **0
+  archivos `.scss`** y cada componente lleva `index.css`; `dropdown_controller.js` cuando los 25
+  controladores compartidos van con guion medio y el de un componente va co-locado como
+  `index.js`; un bloque ` ```ruby ` en `audit.md` que contiene shell.
+
+  Herramientas y rutas que no están: `lsp_diagnostics` y `skill_mcp` (Playwright), exigidos en
+  seis archivos y ausentes en este setup — se reemplazan por los comandos que sí existen
+  (`rubocop`, `yarn standard`) y por la verificación en navegador que manda el `CLAUDE.md` raíz,
+  sin nombrar una herramienta concreta. Además `docs/reference/daisyui-mapping.md`,
+  `config/locales/view_components.{en,es}.yml` (se llaman `bali_view.*`),
+  `test/dummy/tailwind.config.js` (Tailwind v4 no tiene config: los `@source` viven en el propio
+  entry point), `.claude/commands/migrate-component.md`, y seis rutas `spec/dummy` que #1193
+  dejó atrás.
+
+  Contradicciones con las reglas del propio repo: la plantilla del cuerpo del PR en `pr.md` no
+  mencionaba `Closes #` ni una vez, que es justo lo que el hook `pr-closes-keyword.sh` existe
+  para atrapar; y `docker/sandbox-setup.sh` corría `db:prepare`, que aquí **pisa `db/schema.rb`**
+  (y se quedaba sin seeds, sin los cuales fallan 60 specs de Cypress).
+
+  Una medición falsa, rehecha: el renglón «Boot dominates» de `rails-performance-expert.md`
+  afirmaba que un archivo y un directorio «ambos caen en ~2 s». Medido dos veces, en caliente y
+  en serie: boot solo 1.5 s, `button_test.rb` 1.7 s de reloj con `Finished in 0.20 s`, y
+  `test/bali/components/` 6.6 s con `Finished in 4.78 s` — **3.9× el archivo suelto**. Con eso
+  se cae la recomendación: comparar directorios sí dice algo; lo que no dice nada es el reloj de
+  un archivo, que es 88 % boot.
+
+  Dos de fuera de `.claude/`: `package.json` ahora **declara el script `standard`** —lo invocaba
+  el workflow de CI y funcionaba sólo por el fallback de yarn v1 al binario de `node_modules`,
+  o sea una bomba para una subida a yarn 2+—, y el ejemplo del FormBuilder en el `README`
+  pasa de `text_field_group`/`email_field_group`/`date_field_group` a los nombres vigentes
+  `text_group`/`email_group`/`date_group`.
+
+- **Se retiran los vestigios de RSpec** (#1174 de rebote). El repo usa Minitest desde siempre,
+  pero quedaban 25 invocaciones de `bundle exec rspec` y 41 rutas `spec/…` repartidas en las
+  instrucciones de los agentes, dos scripts y la documentación: comandos que **fallan al
+  ejecutarse** y rutas que no existen. Lo grave era el generador `view_component`, que **viajaba
+  en la gema** y escribía `spec/bali/components/<n>_spec.rb` con `require 'rails_helper'` y
+  `RSpec.describe` — un archivo que nace muerto y que quien lo genera cree que es una prueba.
+  Se borra entero: ninguna de las siete apps de la flota lo usa, no tenía pruebas, y
+  `bali:install` y `bali:widget` cubren lo que un anfitrión necesita. También se va
+  `scripts/pre-commit-check.sh`, que corría RSpec y al que **ningún hook llamaba**.
+
+  **Para un anfitrión cambia una cosa**: `rails g view_component` deja de existir. Si alguna app
+  lo usaba —ninguna lo hace, medido—, los componentes se escriben a mano siguiendo
+  `docs/reference/component-patterns.md`.
+
+- **La app dummy se muda de `spec/dummy` a `test/dummy`** (#1174 de rebote). `spec/` era el
+  último rastro de RSpec: no contenía ni una prueba —las 5 635 siempre estuvieron en `test/`—,
+  solo la app anfitriona del engine, que en un engine de Rails va en `test/dummy`. 262 archivos
+  cambian de sitio y 50 referencias vivas se reescriben; las 37 menciones del CHANGELOG y de los
+  planes fechados **se dejan como están**, porque registran la ruta que había cuando se
+  escribieron.
+
+  Dos cosas que el movimiento destapó y que van en el mismo cambio:
+
+  - **Las pruebas de generadores escribían dentro del recorrido del runner.** Usaban
+    `Rails.root.join("tmp/generator_test")` —la raíz de la dummy—, y el generador de widgets emite
+    `test/widgets/<n>_test.rb`. Con la dummy bajo `test/`, la segunda corrida de la suite habría
+    recogido la salida de la primera como si fuera una prueba: medido, el runner desciende por
+    cualquier subcarpeta de `test/`. Pasan a `Bali::Engine.root`, la raíz del repo, cuyo `/tmp/`
+    está ignorado y fuera del recorrido.
+  - **223 comillas simples en 34 archivos de la dummy.** `rubocop-rails-omakase` acota
+    `Style/StringLiterals` a `app/`, `config/`, `lib/`, `test/` y el `Gemfile`; `spec/` no estaba
+    en esa lista, así que la dummy nunca había pasado por ese cop. Se autocorrigen: ya era 70 %
+    comillas dobles, la misma proporción que `app/` y `lib/`, o sea deriva y no un estilo.
+
+  **Para un anfitrión no cambia nada** — la dummy no viaja en la gema (`spec.files` solo empaqueta
+  `app`, `config`, `db` y `lib`). Para quien trabaja en el repo, el servidor de Lookbook se
+  arranca ahora con `cd test/dummy && bin/dev`.
+
+- **El repo quedó en inglés, y hay con qué mantenerlo así** (#1174). Cierra el barrido: siete PRs
+  tradujeron **1 417 comentarios y nombres de prueba** en 207 archivos, borraron 23 que no cargaban
+  ni una medición, ni una restricción invisible desde su línea, ni por qué lo obvio está mal, y
+  dejaron 84 en español a propósito —datos de muestra, y texto que una prueba compara contra una
+  página que rinde en español—. Ninguna línea de comportamiento cambió.
+
+  **La deuda real era casi el doble de lo medido**, porque rubocop parsea Ruby y ahí se acaba su
+  alcance: 462 hallazgos en Ruby contra **1 299 fuera de él**, de los cuales 960 eran nombres de
+  `describe`/`it` de Cypress. Este PR cierra las tres rendijas por las que el español podía
+  volver sin que nada se quejara:
+
+  - **Los 132 previews entran a rubocop** para `Bali/EnglishOnly`. Estaban en `AllCops: Exclude`,
+    y un `Include` por cop no rescata lo que AllCops excluye —medido—, así que la vía es
+    admitirlos y silenciar ahí mismo los cinco cops de formato que sí hacen ruido (1 986 ofensas,
+    todas de esos cinco). Coste en ruido: cero.
+  - **`spec/dummy/config/**` también entra**, por la misma razón y con 14 correcciones de espacios.
+  - **`test/english_outside_ruby_test.rb`** cubre lo que ningún cop puede ver: los comentarios de
+    ERB, JavaScript, CSS y shell, y los nombres de prueba de Cypress. **Sin lista base** — el
+    barrido lo dejó en cero, así que la aserción es cero y cualquier ofensa es una línea recién
+    escrita.
+
+  `.rubocop_todo.yml` se queda sin su bloque de `Bali/EnglishOnly`: el trinquete llegó a cero y el
+  cop corre sin excepciones.
+
+  **Para un anfitrión no cambia nada.**
+
+- **Los comentarios se ganan su lugar, y el código va en inglés** (#1172). Dos reglas nuevas en
+  `.claude/CLAUDE.md`. Un comentario tiene que cargar lo que el código no puede decir —una
+  medición, una restricción que no se ve desde esa línea, o por qué lo obvio está mal—; narrar el
+  cambio o contar la investigación va en el cuerpo del PR. El CHANGELOG se mide con la misma vara.
+  Y todo el repo se escribe en inglés: código, identificadores, pruebas, comentarios y la copia de
+  los previews; el español se queda en el CHANGELOG, el mensaje de commit y el cuerpo del PR, y
+  los datos de muestra de un preview siguen siendo contenido. Quien la hace cumplir es el cop de
+  la entrada siguiente; los archivos que todavía traen español se traducen al tocarlos por otra
+  razón, no en una barrida.
+
+  **Para un anfitrión no cambia nada** — es guía para quien escribe en este repo, no API. Se
+  calibró contra #1165, que llevó ~40 líneas de comentario y 66 de CHANGELOG para tres líneas de
+  CSS y cuatro versiones.
+
+- **La regla de inglés ya la comprueba `rubocop`** (#1174). El repo adopta `bali-rubocop` v0.1.0
+  —el cop `Bali/EnglishOnly` de la flota— en el bundle de desarrollo y pruebas, así que
+  `bundle exec rubocop` marca comentarios y nombres de prueba en español, con acento y sin él. La
+  deuda quedó congelada en `.rubocop_todo.yml`: 142 renglones, de los que 63 ya estaban limpios
+  al mergear —eran los del lote de `test/` (#1176), que entró antes— y 79 traían deuda real, 422
+  hallazgos. La lista **sólo encoge**; cualquier archivo nuevo o movido nace en inglés.
+  La entrada siguiente la deja en cero.
+
+  **Para un anfitrión no cambia nada**: la gema no entra al gemspec. Rubocop sólo lee Ruby, así
+  que los comentarios `<%# %>` de las plantillas `.erb` y los `describe`/`it` de los specs de
+  Cypress le quedan fuera — los cubre la guardia de la entrada siguiente.
+
+- **La tabla «Common Options» de `docs/guides/form-builder.md` ya lista las opciones de
+  clase que existían sin documentar** (#1147): `field_class`, `control_class`, `control_data`,
+  `addon_class`, `field_data` y `control_id`, cada una con el elemento al que llega, más la
+  nueva `input_class`. La sección «Which class lands where» pone los cuatro destinos en una
+  tabla y explica cuál quiere cada propiedad, con la medición de cada caso: heredadas por la
+  caja (`control_class:`), ancho en la caja y como `max-w-*` (porque el control es `w-full`),
+  y lo que el control pinta por su cuenta en el control (`input_class:`). Nombra también las
+  dos familias cuya caja no es la de la descripción general: las de fecha, que anteponen su
+  `w-full`, y `step_number_group`, cuyo `.control` va dentro del join de los botones de paso.
+  `class:` no cambia: cae en el `<fieldset>` **y** en el control, y las dos mitades están
+  vivas en apps del grupo.
+
+- **`addon_class:` queda documentada por lo que hace** (#1147), que es menos de lo que el
+  nombre promete: sólo `search_group` la lee, para reemplazar el `btn btn-neutral` de su
+  botón. Hay prueba que lo fija, para que la guía no vuelva a prometer de más.
+
+- **«Non-model forms» documenta el caso que faltaba** (#1147): un formulario **con** modelo
+  puede rendir un valor que no es atributo pasando `input_name:` junto con `value:`
+  (`selected:` en los select, `checked:` en el booleano y el switch). No hace falta ninguna
+  familia `*_group_tag`: sale el mismo `<fieldset>`, el mismo caption y los mismos ids que
+  cualquier otro campo. Sin el valor, Rails levanta `NoMethodError` — a propósito, para que
+  un typo no rinda un campo vacío.
+
+  Lo que ese hueco **no** cubre, y queda como issue aparte: un grupo con VARIOS controles
+  —una rejilla de radios, un arreglo de casillas— bajo un solo `<legend>`. Medido en los
+  repos del grupo: 15 sitios en 11 archivos de 7 repos rinden el fieldset a mano, y sólo 7 de
+  ellos son «el valor no es atributo del modelo». Los otros 8 son grupos multi-control, que
+  `input_name:` no resuelve porque no es un problema de nombre sino de forma.
+
+### Dependencies
+
+- **Cypress 16.0.0 → 16.1.0** (solo desarrollo; PR de dependabot #1179). Sin cambios que rompan.
+  Lo que sí nos toca: arregla una **fuga de memoria** por la que los service workers conservaban
+  estado durante toda la sesión del navegador, que es justo el problema contra el que
+  `cypress.config.cjs` tiene `numTestsKeptInMemory: 0`; y devuelve el contexto de búsqueda del
+  elemento a los mensajes de aserción de `cy.contains()`, que aquí se llama 71 veces, así que un
+  spec que falle vuelve a decir dónde buscó. `trustedCertificates`, `blockHosts` y
+  `keystrokeDelay` —lo demás del release— no se usan en este repo.
+
 ## [v3.4.0] - 2026-09-17
 
 ### Added

@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 module Bali
-  # #708 — los dos endpoints que el `#` del BlockEditor necesita, para TODOS los tipos que
-  # el host haya declarado en `Bali.entity_reference_types` (uno por tipo era el diseño que
-  # este reemplaza).
+  # #708 — the two endpoints the BlockEditor's `#` needs, for ALL the types the host has
+  # declared in `Bali.entity_reference_types` (one per type was the design this replaces).
   #
-  #   GET  bali/entity_references?q=texto   → autocompletado
+  #   GET  bali/entity_references?q=text    → autocomplete
   #   GET  bali/entity_references?refs[][entityType]=...&refs[][entityId]=...
-  #   POST bali/entity_references/resolve   → {refs: [...]} (el que usa el JS al cargar)
+  #   POST bali/entity_references/resolve   → {refs: [...]} (the one the JS uses on load)
   #
-  # Autorización: este controller NO hereda los hooks del ApplicationController del host,
-  # así que el gate vive adentro y `Bali.entity_references_authorize` DENIEGA por default —
-  # sin él, montar el engine publicaría un buscador de los registros de la app. El filtro
-  # fino por tipo es `permission_scope:` en cada entrada del registry.
+  # Authorization: this controller does NOT inherit the host ApplicationController's hooks,
+  # so the gate lives inside and `Bali.entity_references_authorize` DENIES by default —
+  # without it, mounting the engine would publish a search over the app's records. The
+  # fine-grained per-type filter is `permission_scope:` on each registry entry.
   class EntityReferencesController < ApplicationController
-    # Tope de refs por request. El JS manda las del documento abierto, ya deduplicadas, así
-    # que un documento real nunca lo roza; existe porque el cuerpo del POST lo escribe el
-    # cliente y sin tope una sola request pediría un IN de tamaño arbitrario.
+    # Cap on refs per request. The JS sends those of the open document, already
+    # deduplicated, so a real document never comes close to it; it exists because the POST
+    # body is written by the client and without a cap a single request would ask for an IN
+    # of arbitrary size.
     MAX_REFS = 500
 
     before_action :authorize_entity_references!
@@ -40,8 +40,8 @@ module Bali
 
     def resolver = EntityReference::Resolver.new(controller: self)
 
-    # Solo las dos llaves del contrato sobreviven: el resto del cuerpo no llega al resolver,
-    # que las usa para agrupar y consultar por id.
+    # Only the contract's two keys survive: the rest of the body does not reach the
+    # resolver, which uses them to group and to query by id.
     def permitted_refs
       Array(params[:refs]).first(MAX_REFS).filter_map { |ref| permit_ref(ref) }
     end

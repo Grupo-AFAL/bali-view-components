@@ -25,8 +25,8 @@ it — a table of the same items on the item's own page, for instance.
 
 - Data contract, renames and validation rules: `Bali::Gantt::Data` (start there).
 - Island mechanics (`ReactIslandController`, entries, loaders): [react-island.md](react-island.md).
-- Executable reference for every endpoint below: `spec/dummy/app/controllers/admin/projects/`
-  and `spec/dummy/app/models/project_gantt.rb`.
+- Executable reference for every endpoint below: `test/dummy/app/controllers/admin/projects/`
+  and `test/dummy/app/models/project_gantt.rb`.
 
 ---
 
@@ -120,7 +120,7 @@ the skeleton stays on screen and nothing else breaks.
 ```
 
 `ProjectGantt` here is **your** serializer — the object that turns your models
-into the contract. `spec/dummy/app/models/project_gantt.rb` is a complete one to
+into the contract. `test/dummy/app/models/project_gantt.rb` is a complete one to
 copy from.
 
 `editable` and `manageable` are yours to decide — the island only hides the
@@ -279,7 +279,7 @@ all of them:
 > critical path. It posts an edit and redraws from whatever comes back.
 
 The reference implementation is executable:
-`spec/dummy/app/controllers/admin/projects/schedules_controller.rb` and
+`test/dummy/app/controllers/admin/projects/schedules_controller.rb` and
 `dependencies_controller.rb`.
 
 ### Move or resize an item
@@ -432,7 +432,7 @@ skeleton announces itself as `role="status"` with `aria-busy="true"`.
 | `bali/gantt/stress` | 300 items from a fixed seed: watch the skeleton hand over without a gap |
 | `bali/gantt/empty` | An empty document — the island still mounts and draws its own empty canvas |
 
-`spec/dummy/app/views/admin/projects/show.html.erb` (`?view=timeline`) is the
+`test/dummy/app/views/admin/projects/show.html.erb` (`?view=timeline`) is the
 same island in a **real layout** rather than a preview: the asset paths go up
 through `content_for :head`, which is the step a Lookbook preview cannot show.
 

@@ -12,9 +12,9 @@
     <%= render Bali::Table::Component.new(selectable: true) do |t| %>
       <%= t.with_headers(headers) %>
       <% records.each do |record| %>
-        <%# `selectable:` en la fila gana sobre el de la tabla: sin casilla y fuera del
-            alcance del seleccionar-todo. Su celda se pinta igual, vacía, para que las
-            columnas no se corran. %>
+        <%# `selectable:` on the row wins over the table's: no checkbox and out of the
+            select-all's reach. Its cell is rendered all the same, empty, so the columns
+            do not shift. %>
         <%= t.with_row(selectable: record[:state] == 'proposed',
                        record_id: record[:id], select_label: record[:code]) do %>
           <td class="font-mono text-sm"><%= record[:code] %></td>

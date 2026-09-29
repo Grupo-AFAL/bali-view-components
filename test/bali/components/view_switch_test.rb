@@ -111,8 +111,8 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   end
 
   def test_responsive_icon_only_names_the_button_at_every_size
-    # El texto se esconde por CSS, así que el nombre accesible tiene que viajar SIEMPRE:
-    # sin esto, en móvil quedan botones con solo un icono y sin nombre.
+    # The text is hidden by CSS, so the accessible name has to travel ALWAYS: without this, mobile is
+    # left with icon-only buttons and no name.
     render_switch(icon_only: :responsive)
     assert_selector("a[href='/projects/list'][title='List'][aria-label='List']")
     assert_selector("a[href='/projects/board'][title='Board'][aria-label='Board']")
@@ -138,8 +138,8 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   end
 
   def test_selector_mode_never_emits_aria_pressed
-    # aria-pressed sobre un link es el anti-patrón que v3 retiró: el navegador lo
-    # descarta sobre role=link. El modo selector expresa el activo con aria-current.
+    # aria-pressed on a link is the antipattern v3 withdrew: the browser discards it on role=link.
+    # Selector mode expresses the active one with aria-current.
     render_inline(Bali::ViewSwitch::Component.new(aria_label: "Months", mode: :selector)) do |switch|
       switch.with_view(name: "12 months", href: "/plan?months=12", active: true)
       switch.with_view(name: "24 months", href: "/plan?months=24")

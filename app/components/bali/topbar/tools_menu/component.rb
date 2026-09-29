@@ -3,23 +3,23 @@
 module Bali
   module Topbar
     module ToolsMenu
-      # El menú de herramientas internas del topbar: panel de trabajos, tableros, bandeja de
-      # correo, repositorio, monitoreo. Va en el slot `with_action` de `Bali::Topbar`.
+      # The topbar's internal tools menu: jobs panel, dashboards, mailbox, repository,
+      # monitoring. It goes in `Bali::Topbar`'s `with_action` slot.
       #
-      # Recibe las herramientas YA FILTRADAS POR PERMISO. La gema no evalúa permisos: los
-      # hosts que la usan no comparten vocabulario de autorización (unos tienen permisos con
-      # nombre, otros policies), y dejar esa decisión afuera es lo que permite que el mismo
-      # componente les sirva a todos sin casos especiales.
+      # It receives the tools ALREADY FILTERED BY PERMISSION. The gem does not evaluate
+      # permissions: the hosts that use it share no authorization vocabulary (some have
+      # named permissions, others policies), and leaving that decision outside is what lets
+      # the same component serve all of them with no special cases.
       #
-      # Lo que sí decide el componente es qué existe en ESTE ambiente, preguntándole a su
-      # propio contexto de vista (ver `Tool#available?`). Si no queda ninguna, no se
-      # renderiza: un trigger que abre un panel vacío es peor que no tenerlo.
+      # What the component does decide is what exists in THIS environment, by asking its own
+      # view context (see `Tool#available?`). If none is left it does not render: a trigger
+      # that opens an empty panel is worse than not having one.
       class Component < ApplicationViewComponent
-        # @param tools [Array<Tool>] ya filtradas por permiso.
-        # @param icon [String] ícono del trigger.
-        # @param aria_label [String, nil] nombre accesible del trigger; por default el
-        #   traducido. Es de sólo ícono: sin nombre accesible no tiene nombre.
-        # @param align [Symbol] eje horizontal del dropdown.
+        # @param tools [Array<Tool>] already filtered by permission.
+        # @param icon [String] the trigger's icon.
+        # @param aria_label [String, nil] accessible name of the trigger; the translated one
+        #   by default. It is icon-only: with no accessible name it has no name.
+        # @param align [Symbol] horizontal axis of the dropdown.
         def initialize(tools:, icon: "wrench", aria_label: nil, align: :end, **options)
           @tools = Array(tools)
           @icon = icon
@@ -32,8 +32,8 @@ module Bali
           visible_tools.any?
         end
 
-        # `helpers` es el contexto de vista del render en curso: el colaborador que ya
-        # tenemos, en vez de alcanzar `Rails.application`.
+        # `helpers` is the view context of the render in progress: the collaborator we
+        # already have, instead of reaching for `Rails.application`.
         def visible_tools
           @visible_tools ||= @tools.select { |tool| tool.available?(helpers) }
         end
@@ -42,7 +42,7 @@ module Bali
           tool.href(helpers)
         end
 
-        # `name:` explícito → clave del host → clave de la gema → humanize.
+        # Explicit `name:` → host key → gem key → humanize.
         def label_for(tool)
           return tool.name if tool.name.present?
 
@@ -50,8 +50,8 @@ module Bali
             default: [ :"bali_view.topbar.tools_menu.items.#{tool.key}", tool.key.to_s.humanize ])
         end
 
-        # Clave del host → clave de la gema. Mismo patrón que `label_for`, para que quien
-        # aprenda el override en los ítems lo encuentre también en el trigger.
+        # Host key → gem key. The same pattern as `label_for`, so that whoever learns the
+        # override on the items finds it on the trigger too.
         def trigger_label
           @aria_label ||
             t("topbar.tools_menu.trigger_label", default: :"bali_view.topbar.tools_menu.trigger_label")

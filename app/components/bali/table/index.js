@@ -1,20 +1,20 @@
 import { Controller } from '@hotwired/stimulus'
 
-// Pliega y despliega las filas de cada grupo de un `Bali::Table(collapsible_groups: true)`.
+// Folds and unfolds the rows of each group of a `Bali::Table(collapsible_groups: true)`.
 //
-// El estado vive en el DOM y no en el controlador: el botón de cada banda lleva
-// `aria-expanded` y las filas del grupo el atributo `hidden`. Así un restore de caché de
-// Turbo lo conserva, y sin JS nada se esconde: el servidor nunca emite `hidden`, ni para los
-// grupos que nacen plegados — los pliega este controlador al conectar, leyendo el
-// `aria-expanded="false"` con el que salió su botón.
+// The state lives in the DOM and not in the controller: each band's button carries
+// `aria-expanded` and the group's rows carry the `hidden` attribute. That way a Turbo cache
+// restore preserves it, and without JS nothing is hidden: the server never emits `hidden`,
+// not even for the groups born folded — this controller folds them on connect, reading the
+// `aria-expanded="false"` its button was rendered with.
 //
-// Un valor de grupo que reaparece más abajo es EL MISMO grupo (mismo token, como en la
-// selección): plegar una de sus bandas pliega las dos corridas y sincroniza los dos botones.
+// A group value that reappears further down is THE SAME group (same token, as in the
+// selection): folding one of its bands folds both runs and syncs both buttons.
 export class TableGroupsController extends Controller {
   static targets = ['trigger', 'row']
 
-  // Cubre la carga inicial y las filas que llegan después —un Turbo Stream que reemplaza
-  // la corrida—, para que aparezcan plegadas si su grupo lo está.
+  // Covers the initial load and the rows that arrive later —a Turbo Stream replacing the
+  // run—, so that they show up folded if their group is.
   rowTargetConnected (row) {
     const trigger = this.triggerFor(row.dataset.groupToken)
 

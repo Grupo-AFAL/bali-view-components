@@ -290,7 +290,7 @@ class BaliBlockNoteTextTest < ActiveSupport::TestCase
     assert_equal [ HEADING, PARAGRAPH ], result
   end
 
-  # entity_references — el walker de referencias (#708)
+  # entity_references — the reference walker (#708)
 
   def reference_node(type, id, name)
     { "type" => "entityReference",

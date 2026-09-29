@@ -1,0 +1,19 @@
+<%= tag.div(**container_attributes) do %>
+  <%# Sticky, so the heading of the run being read stays on screen while its rows
+      scroll under it — which is most of what makes a long grouped inbox readable. %>
+  <div class="<%= HEADER_CLASSES %>" id="<%= header_id %>">
+    <span><%= label.presence || key %></span>
+    <% if count.present? %>
+      <span class="<%= COUNT_CLASSES %>" data-testid="group-count"><%= count %></span>
+    <% end %>
+  </div>
+
+  <%# A container of its own, and not the group element, because the controller
+      merges an appended page by moving ROWS into it — the heading above has to
+      stay out of the way. %>
+  <div class="split-view-group-rows">
+    <% items.each do |item| %>
+      <%= item %>
+    <% end %>
+  </div>
+<% end %>

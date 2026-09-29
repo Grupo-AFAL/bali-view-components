@@ -106,6 +106,31 @@ module Bali
       # `test/bali/form_builder/input_name_option_test.rb` is the list now.
       NON_MODEL_OPTIONS = %i[input_name input_id].freeze
 
+      # The third member of that trio, and the one #1147 was opened for: classes
+      # for the control ITSELF, never for the `<fieldset>` around it.
+      #
+      # Bali already had two of the four destinations covered — `field_class:`
+      # names the fieldset, `control_class:` the box around the control — and
+      # `class:` names the fieldset AND the control at once, which is the shape
+      # two host apps depend on and is therefore not going to change.
+      #
+      # What none of them can say is "the control and nothing else", and
+      # `control_class:` is not a substitute for it: the box sits BEHIND the
+      # control, so every property the control paints for itself hides the
+      # copy on the box. Measured in Chromium against the dummy's compiled
+      # sheet: `control_class: "bg-warning/20"` tints the `.control` div while
+      # the input keeps its own opaque `oklch(1 0 0)`; `rounded-2xl border-2
+      # border-error` on the box draws a second, larger frame around an input
+      # that stays at 4px and 1px. `input_class:` puts all three on the input.
+      # Width is the one property that belongs on the box instead — see
+      # "Which class lands where" in docs/guides/form-builder.md.
+      #
+      # Reserved like the two above, and for the same reason: it is not an HTML
+      # attribute, so Rails would forward it onto the element (#1111). The
+      # families that cannot honour it are named, with the reason each cannot,
+      # in `test/bali/form_builder/input_class_option_test.rb`.
+      CONTROL_CLASS_OPTIONS = %i[input_class].freeze
+
       # The canonical list: every option Bali reads itself. None of them is a
       # valid HTML attribute, and Rails' tag helpers forward whatever they do not
       # recognise straight onto the element — so they all have to be gone before
@@ -116,7 +141,8 @@ module Bali
       # are daisyUI variants for a checkbox but real attributes on a text input);
       # those are stripped next to the helper that gives them that meaning.
       RESERVED_OPTIONS = (
-        WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS + NON_MODEL_OPTIONS
+        WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS + NON_MODEL_OPTIONS +
+        CONTROL_CLASS_OPTIONS
       ).freeze
 
       # Attributes that only mean something on a native form control, dropped by
@@ -462,7 +488,7 @@ module Bali
         end
 
         attributes[:class] = field_class_name(
-          method, "#{input_base_class(options)} #{options[:class]}", options: options
+          method, control_class_list(input_base_class(options), options), options: options
         )
 
         counter_attributes(attributes) if char_counter?(options)
@@ -475,7 +501,7 @@ module Bali
         attributes = html_attributes(options)
         attributes.delete(:size) if size_variant(options, TEXTAREA_SIZES)
         attributes[:class] = field_class_name(
-          method, "#{textarea_base_class(options)} #{options[:class]}",
+          method, control_class_list(textarea_base_class(options), options),
           error_class: "textarea-error", options: options
         )
 
@@ -562,20 +588,46 @@ module Bali
         left_addon = options[:addon_left]
         right_addon = options[:addon_right]
         addons = left_addon.present? || right_addon.present?
-        control = addons ? field_with_addons(field, left: left_addon, right: right_addon) : field
 
         # When addons exist, don't wrap in control div - use join pattern directly.
         # A counter is the exception: it has to live inside the element carrying
         # the controller, so the join goes in the control div with it.
-        return control + messages if addons && !char_counter?(options)
+        #
+        # Whichever of the two comes out outermost is the box around the control,
+        # and so the one `control_class:` and `control_data:` name — see `control_box`.
+        join_is_the_box = addons && !char_counter?(options)
+        box = join_is_the_box ? options : {}
+        control = if addons
+          field_with_addons(field, left: left_addon, right: right_addon, box: box)
+        else
+          field
+        end
 
-        control_class = [ "control", options[:control_class] ].compact.join(" ")
-        wrapped_field = content_tag(
-          :div, safe_join([ control, counter_element(options) ].compact),
-          class: control_class, data: control_data(options)
+        return control + messages if join_is_the_box
+
+        control_box(safe_join([ control, counter_element(options) ].compact), options) + messages
+      end
+
+      # The box around the control, and the one element `control_class:` and
+      # `control_data:` are about: the `.control` div, or the `.join` an addon
+      # builds in its place.
+      #
+      # Until #1147 only the `.control` div read the pair, so the three families
+      # whose box is always a join — `currency_group`, `percentage_group`,
+      # `search_group` — and any other family given an addon dropped both without
+      # a trace. `currency_group :amount, control_class: "font-mono"` is the call
+      # that reported it: spelled correctly, nothing rendered, nothing said. The
+      # families that render no box at all are named, with the reason each has
+      # none, in `test/bali/form_builder/control_class_option_test.rb`.
+      #
+      # `token_list` rather than interpolation, so the option takes the array and
+      # hash spellings `class:` already takes on the `<fieldset>`.
+      def control_box(content, options, base: "control")
+        content_tag(
+          :div, content,
+          class: @template.token_list(base, options[:control_class]),
+          data: control_data(options)
         )
-
-        wrapped_field + messages
       end
 
       # The one place the builder renders what it has to say about a field.
@@ -819,8 +871,28 @@ module Bali
         [ TEXTAREA_BASE_CLASS, size_variant(options, TEXTAREA_SIZES) ].compact.join(" ")
       end
 
-      def field_with_addons(field, left:, right:)
-        content_tag(:div, class: "join w-full") do
+      # The control's own class list: Bali's base, then the caller's `class:`,
+      # then the caller's `input_class:`. Every family that renders a native
+      # control builds it through here or spells the same three parts out.
+      #
+      # `token_list` and not interpolation, which is what this line used to do:
+      # `class: %w[font-mono]` rendered `class="input w-full [&quot;font-mono&quot;]"`
+      # on the control while the `<fieldset>` — built with `class_names` all
+      # along — took the same value correctly. The array and hash spellings now
+      # work on both, and a nil no longer leaves a trailing space.
+      def control_class_list(base, options)
+        @template.token_list(base, options[:class], options[:input_class])
+      end
+
+      # `box:` is the options hash when this join is the outermost element — the
+      # box around the control — and empty when a counter puts it inside a
+      # `.control` div that is the box instead. See `control_box`.
+      def field_with_addons(field, left:, right:, box: {})
+        content_tag(
+          :div,
+          class: @template.token_list("join w-full", box[:control_class]),
+          data: control_data(box)
+        ) do
           @template.safe_join([ left, field, right ].compact)
         end
       end

@@ -1,53 +1,53 @@
-// #1084 — la busqueda remota de un slim_select manda ademas del termino: un scope fijo
-// (`ajax_extra_params`) y uno tomado de otro campo del formulario (`ajax_param_selectors`).
+// #1084 — a slim_select remote search sends, besides the term: a fixed scope
+// (`ajax_extra_params`) and one taken from another form field (`ajax_param_selectors`).
 //
-// Se afirma sobre la REQUEST interceptada y no sobre la lista de opciones: lo que este
-// cambio agrega es lo que viaja en el query, y una lista que coincide puede coincidir por
-// casualidad. El recorte del preview lo hace el endpoint del dummy con `family`, asi que
-// la lista se mira despues como confirmacion de que el parametro llego a destino.
+// The assertions are on the intercepted REQUEST and not on the option list: what this
+// change adds is what travels in the query, and a matching list can match by coincidence.
+// The preview's narrowing is done by the dummy endpoint with `family`, so the list is
+// looked at afterwards as confirmation that the parameter reached its destination.
 //
-// El controller no busca con menos de dos caracteres (`ajaxPlaceholder` es lo que se ve
-// hasta entonces), asi que todos los terminos de aca abajo tienen al menos dos.
+// The controller does not search with fewer than two characters (`ajaxPlaceholder` is what
+// shows until then), so every term below has at least two.
 const search = term => {
   cy.get('.ss-main').click()
   cy.get('.ss-content .ss-search input').clear().type(term)
 }
 
-describe('SlimSelect ajax dependiente de otro campo', () => {
+describe('SlimSelect ajax dependent on another field', () => {
   beforeEach(() => {
     cy.intercept('GET', '/users.json*').as('remoteSearch')
     cy.visit('/bali/form/slim_select/remote_dependent')
   })
 
-  it('manda los parametros fijos y omite el dependiente mientras no haya nada elegido', () => {
+  it('sends the fixed params and omits the dependent one while nothing is selected', () => {
     search('jo')
 
     cy.wait('@remoteSearch').then(({ request }) => {
-      expect(request.query.q, 'el termino').to.equal('jo')
-      expect(request.query.source, 'el parametro fijo').to.equal('bali')
-      expect(request.query, 'sin campo elegido no hay recorte').to.not.have.property('family')
+      expect(request.query.q, 'the term').to.equal('jo')
+      expect(request.query.source, 'the fixed param').to.equal('bali')
+      expect(request.query, 'no narrowing without a selected field').to.not.have.property('family')
     })
   })
 
-  it('agrega el parametro del campo del que depende y acota la busqueda', () => {
+  it('adds the param from the field it depends on and narrows the search', () => {
     cy.get('#user-family').select('Smith')
     search('jo')
 
     cy.wait('@remoteSearch').its('request.query.family').should('equal', 'Smith')
 
-    // `.ss-optgroup` y no `.ss-list` entera: SlimSelect deja la opcion SELECCIONADA arriba
-    // de todo, fuera del grupo, asi que la lista completa incluye la que traia el widget.
-    // Los resultados de la busqueda son los del grupo, el que el controller rotula con
-    // `resultsText`. Y `should` con callback y no `each`, que no reintenta.
+    // `.ss-optgroup` and not the whole `.ss-list`: SlimSelect keeps the SELECTED option at
+    // the very top, outside the group, so the full list includes the one the widget came
+    // with. The search results are the ones in the group, the one the controller labels
+    // with `resultsText`. And `should` with a callback and not `each`, which does not retry.
     cy.get('.ss-content .ss-list .ss-optgroup .ss-option').should($options => {
-      expect($options.length, 'resultados').to.be.greaterThan(0)
+      expect($options.length, 'results').to.be.greaterThan(0)
       $options.each((_i, option) => expect(option.textContent.trim()).to.match(/Smith$/))
     })
   })
 
-  // El campo se lee EN CADA BUSQUEDA, no al conectar: cambiarlo despues es todo el caso
-  // de uso, y leerlo una sola vez es exactamente como fallaria en silencio.
-  it('vuelve a leer el campo cuando cambia entre dos busquedas', () => {
+  // The field is read ON EVERY SEARCH, not on connect: changing it afterwards is the whole
+  // use case, and reading it just once is exactly how this would fail silently.
+  it('reads the field again when it changes between two searches', () => {
     cy.get('#user-family').select('Smith')
     search('jo')
     cy.wait('@remoteSearch').its('request.query.family').should('equal', 'Smith')
@@ -57,7 +57,7 @@ describe('SlimSelect ajax dependiente de otro campo', () => {
     cy.wait('@remoteSearch').its('request.query.family').should('equal', 'Doe')
   })
 
-  it('vuelve a omitir el parametro cuando el campo se vacia', () => {
+  it('goes back to omitting the param when the field is cleared', () => {
     cy.get('#user-family').select('Smith')
     search('jo')
     cy.wait('@remoteSearch')

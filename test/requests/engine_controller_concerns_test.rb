@@ -2,16 +2,16 @@
 
 require "test_helper"
 
-# #710 — Bali.engine_controller_concerns: el punto de extensión para que el host inyecte
-# concerns a los controllers del engine. Por isolate_namespace, Bali::ApplicationController
-# NO hereda del ApplicationController del host, así que `current_user` no existe ahí solo;
-# el engine incluye cada módulo del array en un to_prepare. Aquí el prepare! se dispara a
-# mano, igual que lo dispara un reload en development o el boot en producción.
+# #710 — Bali.engine_controller_concerns: the extension point through which a host injects concerns
+# into the engine's controllers. Because of isolate_namespace, Bali::ApplicationController does NOT
+# inherit from the host's ApplicationController, so `current_user` does not exist there on its own;
+# the engine includes each module of the array in a to_prepare. Here prepare! is fired by hand, the
+# same way a reload fires it in development or the boot does in production.
 class BaliEngineControllerConcernsTest < ActionDispatch::IntegrationTest
-  # Concern realista: enseña `current_user`, que es justo lo que el default de
-  # `Bali.saved_views_owner` intenta leer. Módulo plano a propósito (sin
-  # ActiveSupport::Concern): un módulo plano re-dispararía su hook `included` en cada
-  # to_prepare si el engine no guardara la inclusión — el contador lo delata.
+  # A realistic concern: it teaches `current_user`, which is exactly what `Bali.saved_views_owner`'s
+  # default tries to read. A plain module on purpose (no ActiveSupport::Concern): a plain module
+  # would re-fire its `included` hook on every to_prepare if the engine did not remember the
+  # inclusion — the counter gives it away.
   module HostSession
     class << self
       attr_accessor :user, :included_count
@@ -32,7 +32,7 @@ class BaliEngineControllerConcernsTest < ActionDispatch::IntegrationTest
   def setup
     @orig_concerns = Bali.engine_controller_concerns
     @orig_owner = Bali.saved_views_owner
-    # El default real del engine — el que devuelve nil cuando nadie enseñó current_user.
+    # The engine's real default — the one that returns nil when nobody taught current_user.
     Bali.saved_views_owner = ->(controller) { controller.try(:current_user) }
     HostSession.user = User.create!(name: "Ana")
   end
@@ -40,9 +40,9 @@ class BaliEngineControllerConcernsTest < ActionDispatch::IntegrationTest
   def teardown
     Bali.engine_controller_concerns = @orig_concerns
     Bali.saved_views_owner = @orig_owner
-    # Ruby no des-incluye módulos: HostSession queda en los ancestors del controller para
-    # el resto de la suite. Con `user` en nil, `current_user` vuelve a devolver nil y el
-    # comportamiento observable de los demás tests no cambia.
+    # Ruby does not un-include modules: HostSession stays in the controller's ancestors for the rest
+    # of the suite. With `user` at nil, `current_user` goes back to returning nil and the observable
+    # behaviour of the other tests does not change.
     HostSession.user = nil
   end
 

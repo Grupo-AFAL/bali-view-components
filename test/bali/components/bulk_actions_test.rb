@@ -2,23 +2,23 @@
 
 require "test_helper"
 
-# Un form con las dos formas de recortar a la vez: el builder avanzado (que viaja anidado en
-# `q[g][...]`) y un atributo plano. El round-trip del bulk tiene que reproducir las dos.
+# A form with both ways of narrowing at once: the advanced builder (which travels nested in
+# `q[g][...]`) and a flat attribute. The bulk's round trip has to reproduce both.
 class BulkActionsRoundTripFilterForm < Bali::FilterForm
   filter_attribute :name, type: :text
   filter_attribute :status, type: :select, options: [ %w[Draft draft], %w[Done done] ]
 
   attribute :name_cont
   attribute :status_eq
-  # Un date_range declarado como attribute: `result` lo aplica FUERA de Ransack. Desde #966
-  # `active_filters` lo incluye igual (resuelto, `inicio..fin`); si volviera a perderlo, el
-  # bulk actuaría sobre un superconjunto de lo que se ve.
+  # A date_range declared as an attribute: `result` applies it OUTSIDE Ransack. Since #966
+  # `active_filters` includes it anyway (resolved, `start..end`); were it to lose it again, the bulk
+  # would act on a superset of what is on screen.
   attribute :created_at, Bali::Types::DateRangeValue.new
 end
 
-# La otra forma de declarar un date_range: como filtro SIMPLE. Ese camino ya viaja dentro de
-# `active_filters`, así que la re-emisión no tiene que agregarlo — y no puede agregarlo dos
-# veces. Solo aquí existen los `presets:`.
+# The other way of declaring a date_range: as a SIMPLE filter. That path already travels inside
+# `active_filters`, so the re-emission must not add it — and cannot add it twice. `presets:` only
+# exist here.
 class BulkActionsSimpleDateRangeFilterForm < Bali::FilterForm
   filter_attribute :created_at, type: :date, input: :date_range, simple: true, advanced: false,
                    presets: %i[today this_month]
@@ -67,8 +67,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector(".bulk-actions-item.custom-item-class")
   end
 
-  # Un `selectAll` con `data-bulk-actions-group="<id>"` solo alcanza a los items que declaren
-  # ese id. Sin `group:` no se emite atributo, y sin atributo el item entra en todos.
+  # A `selectAll` with `data-bulk-actions-group="<id>"` only reaches the items declaring that id.
+  # With no `group:` no attribute is emitted, and with no attribute the item belongs to all of them.
   def test_items_carry_no_group_by_default
     render_inline(@component) do |c|
       c.with_item(record_id: 1) { "Content" }
@@ -134,13 +134,13 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector("input.btn.btn-sm.btn-error")
   end
 
-  # El marcado embarcado no puede depender de la configuración del anfitrión: el `form_with`
-  # de la acción declara el builder de Rails, así que rinde igual con y sin
-  # `default_form_builder = Bali::FormBuilder` puesto por el host (#1137). Sin ese `builder:`,
-  # `form.submit` salía como `<button class="btn btn-primary">`: se perdía el `name="commit"`
-  # del POST y el `btn-primary` del builder quedaba pegado delante de la variante real
-  # (`btn btn-primary btn btn-sm btn-error`). El `data-disable-with` vuelve con el `<input>`,
-  # pero es solo un hecho del marcado: lo lee rails-ujs, que ninguna app del grupo tiene.
+  # The shipped markup cannot depend on the host's configuration: the action's `form_with` declares
+  # Rails' builder, so it renders the same with and without `default_form_builder = Bali::FormBuilder`
+  # set by the host (#1137). Without that `builder:`, `form.submit` came out as
+  # `<button class="btn btn-primary">`: the POST lost its `name="commit"` and the builder's
+  # `btn-primary` ended up glued in front of the real variant
+  # (`btn btn-primary btn btn-sm btn-error`). The `data-disable-with` comes back with the `<input>`,
+  # but that is only a fact of the markup: rails-ujs reads it, and no app in the group has it.
   def test_an_actions_form_renders_the_same_under_the_hosts_default_builder
     render_action = lambda do
       render_inline(Bali::BulkActions::Action::Component.new(
@@ -152,20 +152,20 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     with_bali_default = with_default_form_builder(Bali::FormBuilder) { render_action.call }
 
     assert_equal(with_rails_default, with_bali_default)
-    # `page` quedó en el segundo render (el del builder de Bali por omisión).
+    # `page` is left holding the second render (the one under Bali's builder as the default).
     assert_selector("form[action='/delete'] input[type='submit'][name='commit'].btn.btn-error")
     assert_selector("form[action='/delete'] input[type='submit'][data-disable-with]")
   end
 
-  # `builder:` va ANTES del splat de `**form_options` a propósito: es un default de la gema,
-  # no un candado, así que un `builder:` que el host pase a `with_action` tiene que seguir
-  # ganando. Vivía solo en un comentario.
+  # `builder:` goes BEFORE the `**form_options` splat on purpose: it is a default of the gem, not a
+  # lock, so a `builder:` the host passes to `with_action` has to keep winning. It lived only in a
+  # comment.
   def test_a_builder_passed_to_with_action_still_wins_over_the_gems_default
     render_inline(@component) do |c|
       c.with_action(label: "Delete", href: "/delete", variant: :error, builder: Bali::FormBuilder)
     end
 
-    # El marcado del builder de Bali: `submit` es un `<button>` dentro de su `div.inline`.
+    # Bali's builder markup: `submit` is a `<button>` inside its `div.inline`.
     assert_selector("form[action='/delete'] div.inline button[type='submit']", text: "Delete")
     assert_no_selector("form[action='/delete'] input[type='submit']")
   end
@@ -236,8 +236,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
   end
 
   def test_standalone_false_does_not_emit_its_own_stimulus_controller
-    # Dos controladores `bulk-actions` anidados se reparten los targets: la barra dejaría
-    # de ver las filas y el contador quedaría en 0 SIN error.
+    # Two nested `bulk-actions` controllers split the targets between them: the bar would stop
+    # seeing the rows and the counter would sit at 0 WITHOUT an error.
     render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false))
     assert_selector("div.bulk-actions-component")
     assert_no_selector("[data-controller='bulk-actions']")
@@ -262,7 +262,7 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_button("Bulk Update")
   end
 
-  # --- Control por acción (#724) ---------------------------------------------------------
+  # --- Per-action control (#724) ----------------------------------------------------------
 
   def test_a_control_renders_inside_the_actions_own_form_before_the_submit
     render_inline(@component) do |c|
@@ -274,7 +274,7 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     end
 
     assert_selector("form[action='/assign'] select[name='driver_id']", visible: :all)
-    # El orden importa: el submit va último para que el control quede antes en el tab order.
+    # Order matters: the submit goes last so the control comes first in the tab order.
     inputs = page.find("form[action='/assign']").all("select, input", visible: :all).map { |n| n[:name] }
     assert_equal(%w[selected_ids driver_id commit], inputs.compact.reject(&:empty?))
   end
@@ -300,8 +300,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_link("Export", href: "/export")
   end
 
-  # Cada acción es su propio form y todas emiten el mismo campo: con el id derivado del name,
-  # una barra de tres acciones repetía `id="selected_ids"` tres veces en el documento.
+  # Every action is its own form and all of them emit the same field: with the id derived from the
+  # name, a bar of three actions repeated `id="selected_ids"` three times in the document.
   def test_the_selected_ids_field_carries_no_id_so_several_actions_can_coexist
     render_inline(@component) do |c|
       c.with_action(label: "Archive", href: "/archive")
@@ -313,8 +313,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert(fields.none? { |field| field[:id].present? }, "el hidden de ids no debe llevar id")
   end
 
-  # La guía promete que `data: { turbo_confirm: }` en la acción pasa por el diálogo de Bali:
-  # eso solo funciona si el atributo aterriza en el `<form>`, que es donde Turbo lo lee.
+  # The guide promises that `data: { turbo_confirm: }` on the action goes through Bali's dialog:
+  # that only works if the attribute lands on the `<form>`, which is where Turbo reads it.
   def test_data_attributes_reach_the_form_so_turbo_confirm_works
     render_inline(@component) do |c|
       c.with_action(label: "Borrar", href: "/borrar", data: { turbo_confirm: "¿Seguro?" })
@@ -332,8 +332,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector("form[action='/print'][target='_blank']", visible: :all)
   end
 
-  # `form_with` solo respeta un puñado de opciones sueltas: un `target:` por **options se
-  # perdía sin avisar, que es la razón de que sea opción de primera clase.
+  # `form_with` honours only a handful of loose options: a `target:` through **options was dropped
+  # without warning, which is why it is a first-class option.
   def test_target_is_not_swallowed_the_way_a_bare_passthrough_was
     render_inline(@component) do |c|
       c.with_action(label: "Print", href: "/print")
@@ -348,8 +348,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector("a[href='/export'][target='_blank']")
   end
 
-  # La fila contextual REEMPLAZA a la toolbar del DataTable en su mismo hueco: si miden
-  # distinto, seleccionar una fila empuja el listado. Antes pasaba (18px: `py-2` + `border`).
+  # The contextual row REPLACES the DataTable's toolbar in the very same slot: if they measure
+  # differently, selecting a row shoves the listing. It used to (18px: `py-2` + `border`).
   def test_the_toolbar_row_declares_the_same_minimum_height_as_the_datatable_toolbar
     assert_includes(Bali::DataTable::Component::TOOLBAR_CLASSES,
                     Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
@@ -362,9 +362,9 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_includes(bar[:class], Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
   end
 
-  # La barra mide lo mismo que la toolbar (32px), así que un botón `sm` —que mide EXACTAMENTE
-  # eso— queda a ras del tinte y se ve apretado. `xs` deja 4px de aire sin mover el alto.
-  # La flotante no vive dentro de una superficie de alto fijo y conserva `sm`.
+  # The bar measures the same as the toolbar (32px), so an `sm` button —which measures EXACTLY that—
+  # sits flush against the tint and looks cramped. `xs` leaves 4px of air without moving the height.
+  # The floating variant does not live inside a fixed-height surface and keeps `sm`.
   def test_the_toolbar_row_sizes_its_actions_below_the_bar_height
     render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
       c.with_action(label: "Borrar", href: "/borrar")
@@ -385,8 +385,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector("input.btn.btn-lg[value='Borrar']")
   end
 
-  # El contorno va con `ring` (box-shadow) y sin padding vertical justamente porque un
-  # `border`/`py-*` sí ocupan layout y devolverían el salto.
+  # The outline uses `ring` (box-shadow) and no vertical padding precisely because a `border`/`py-*`
+  # do take up layout and would bring the jump back.
   def test_the_toolbar_row_outline_costs_no_vertical_space
     render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
       c.with_action(label: "Borrar", href: "/borrar")
@@ -399,8 +399,8 @@ class BaliBulkActionsComponentTest < ComponentTestCase
   end
 end
 
-# El contrato "actuar sobre los N filtrados" (#724): qué se pinta, qué viaja en el POST y que
-# lo que viaja reproduce el MISMO scope que el listado.
+# The "act on the N filtered ones" contract (#724): what is painted, what travels in the POST, and
+# that what travels reproduces the SAME scope as the listing.
 class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
   FILTER_PAIRS = [
     [ "q[g][0][m]", "or" ],
@@ -413,7 +413,7 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
                                      **options)
   end
 
-  # --- Lo que se pinta -------------------------------------------------------------------
+  # --- What is painted --------------------------------------------------------------------
 
   def test_without_a_total_count_nothing_of_the_mode_exists
     render_inline(Bali::BulkActions::Component.new(filter_params: FILTER_PAIRS)) do |c|
@@ -422,7 +422,7 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
 
     assert_no_selector("[data-bulk-actions-target='selectAllOffer']", visible: :all)
     assert_no_selector("input[name='select_all_filtered']", visible: :all)
-    # Los filtros tampoco: sin flag que los active, solo serían ruido en el POST.
+    # Nor the filters: with no flag to switch them on, they would only be noise in the POST.
     assert_no_selector("input[name='q[status_eq]']", visible: :all)
   end
 
@@ -437,8 +437,8 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
                     text: "All 120 results are selected", visible: :all)
   end
 
-  # Ambos arrancan ocultos: la oferta solo aplica con la página entera marcada, y el aviso
-  # solo dentro del modo. El JS decide; el servidor no puede saber ninguna de las dos cosas.
+  # Both start hidden: the offer only applies with the whole page ticked, and the notice only inside
+  # the mode. The JS decides; the server cannot know either of those two things.
   def test_the_offer_and_the_notice_start_hidden
     render_inline(bar) { |c| c.with_action(label: "Borrar", href: "/borrar") }
 
@@ -453,7 +453,7 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_no_selector("a[data-action='bulk-actions#selectAllFiltered']", visible: :all)
   end
 
-  # --- Lo que viaja en el POST -----------------------------------------------------------
+  # --- What travels in the POST ----------------------------------------------------------
 
   def test_every_action_form_carries_the_flag_off_and_the_active_filters
     render_inline(bar) do |c|
@@ -473,8 +473,8 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     end
   end
 
-  # Una acción GET no tiene hidden fields, así que los filtros viajan en su href — y los que
-  # el href ya trajera se descartan: el estado vigente del listado es el que manda.
+  # A GET action has no hidden fields, so the filters travel in its href — and any the href already
+  # carried are discarded: the listing's current state is what rules.
   def test_a_get_action_carries_the_filters_in_its_href
     render_inline(bar) do |c|
       c.with_action(label: "Exportar", href: "/exportar?format=csv&q%5Bname_cont%5D=viejo",
@@ -487,7 +487,7 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_equal("draft", query.dig("q", "status_eq"))
   end
 
-  # --- El round-trip: lo que viaja reproduce el listado ------------------------------------
+  # --- The round trip: what travels reproduces the listing ---------------------------------
 
   def test_the_filters_a_data_table_emits_rebuild_the_very_same_scope
     tenant = Tenant.create(name: "Round trip")
@@ -508,7 +508,7 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
       )
     ) { |c| c.with_action(label: "Borrar", href: "/borrar") }
 
-    # Exactamente lo que el navegador postearía de ese form.
+    # Exactly what the browser would post from that form.
     posted = Rack::Utils.parse_nested_query(
       page.all("form[action='/borrar'] input[type=hidden]", visible: :all)
           .reject { |input| %w[authenticity_token selected_ids].include?(input[:name]) }
@@ -523,11 +523,10 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_equal(listing.result.pluck(:id).sort, rebuilt.result.pluck(:id).sort)
   end
 
-  # Un `date_range` declarado como attribute NO pasa por Ransack: `result` lo aplica aparte.
-  # Antes de #966 `active_filters` lo excluía por construcción y la re-emisión lo perdía: el
-  # listado mostraba 1 registro y el servidor re-derivaba 2 — el bulk actuando sobre un
-  # SUPERCONJUNTO de lo que se ve, que a escala es un destroy_all tocando justo lo que el
-  # filtro de fecha excluía.
+  # A `date_range` declared as an attribute does NOT go through Ransack: `result` applies it apart.
+  # Before #966 `active_filters` excluded it by construction and the re-emission lost it: the listing
+  # showed 1 record and the server re-derived 2 — the bulk acting on a SUPERSET of what is on
+  # screen, which at scale is a destroy_all reaching exactly what the date filter excluded.
   def test_a_date_range_filter_survives_the_round_trip
     tenant = Tenant.create(name: "Date range")
     reciente = tenant.movies.create(name: "Iron man 3", status: 0)
@@ -553,11 +552,11 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
                  "los pares re-emitidos tienen que reproducir el recorte por fecha")
   end
 
-  # Un date_range declarado como filtro SIMPLE viaja dentro de `active_filters` con el valor
-  # CRUDO. La re-emisión no puede agregarlo otra vez: dos hidden con el mismo `name` y el
-  # servidor se queda con uno, en silencio. Hoy eso se sostiene porque los dos caminos de
-  # `active_filters` (attribute resuelto y simple crudo) colisionan en la MISMA clave y el
-  # simple gana — si esa forma cambia, este test es el que avisa.
+  # A date_range declared as a SIMPLE filter travels inside `active_filters` with the RAW value. The
+  # re-emission cannot add it again: two hidden fields with the same `name` and the server keeps one,
+  # silently. Today that holds because the two `active_filters` paths (resolved attribute and raw
+  # simple) collide on the SAME key and the simple one wins — if that shape changes, this test is
+  # what warns.
   def test_a_simple_date_range_is_emitted_exactly_once
     listing = BulkActionsSimpleDateRangeFilterForm.new(
       Movie.all, ActionController::Parameters.new(q: { created_at: "this_month" })
@@ -567,12 +566,12 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     created_at = pairs.select { |name, _| name == "q[created_at]" }
 
     assert_equal(1, created_at.size, "un date_range simple se emite UNA vez: #{pairs.inspect}")
-    # Y viaja como TOKEN, no como el rango ya resuelto: este camino lo sirve `active_filters`
-    # con el valor crudo, así que el servidor lo vuelve a resolver contra su propio reloj.
+    # And it travels as a TOKEN, not as the already-resolved range: `active_filters` serves this path
+    # with the raw value, so the server resolves it again against its own clock.
     assert_equal("this_month", created_at.first.last)
   end
 
-  # --- El DataTable lo cablea solo --------------------------------------------------------
+  # --- The DataTable wires it on its own --------------------------------------------------
 
   def test_a_data_table_feeds_n_from_its_pagy_and_the_filters_from_its_filter_form
     filter_form = BulkActionsRoundTripFilterForm.new(
@@ -592,8 +591,8 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_selector("form[action='/borrar'] input[name='q[name_cont]'][value='Iron']", visible: :all)
   end
 
-  # Paginación countless: `count` es nil por diseño, así que no hay N que ofrecer. Ofrecer
-  # "seleccionar los resultados" sin saber cuántos son es prometer algo que no se puede medir.
+  # Countless pagination: `count` is nil by design, so there is no N to offer. Offering to "select
+  # the results" without knowing how many they are promises something that cannot be measured.
   def test_a_countless_pagy_offers_nothing
     render_inline(
       Bali::DataTable::Component.new(url: "/movies", pagy: Pagy::Offset.new(count: 0, page: 1, limit: 10))
@@ -606,7 +605,6 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_no_selector("input[name='select_all_filtered']", visible: :all)
   end
 
-  # Un hash anidado es la otra forma de escribir los mismos pares.
   def test_filter_params_accepts_a_nested_hash
     render_inline(
       Bali::BulkActions::Component.new(total_count: 5, filter_params: { q: { name_cont: "Iron" } })
@@ -615,9 +613,9 @@ class BaliBulkActionsSelectAllFilteredTest < ComponentTestCase
     assert_selector("input[name='q[name_cont]'][value='Iron']", visible: :all)
   end
 
-  # Una acción montada a mano, fuera de la barra, normaliza igual: `Array(hash)` la dejaba
-  # como UN hidden llamado `q` con el `to_s` del hash adentro — un POST que parece bien
-  # formado y no filtra nada.
+  # An action mounted by hand, outside the bar, normalises the same way: `Array(hash)` left it as ONE
+  # hidden field called `q` with the hash's `to_s` inside — a POST that looks well formed and filters
+  # nothing.
   def test_an_action_mounted_on_its_own_normalizes_a_nested_hash_too
     render_inline(
       Bali::BulkActions::Action::Component.new(

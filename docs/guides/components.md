@@ -427,6 +427,28 @@ Content container with optional header, image, and actions.
 - `shadow` - Enable shadow (default: true)
 - `href` - Renders the card's root element as an `<a class="card">` with a hover shadow affordance, making the whole card one link (drill-downs). The card's content must not contain links or buttons then — interactive content inside an `<a>` is invalid HTML (default: nil)
 
+**Slots:**
+- `with_header(title:, subtitle:, icon:, icon_class:, **html_options)` - The full header row:
+  an optional Lucide icon, the `<h2 class="card-title">`, an optional subtitle and a
+  `with_badge` slot. `icon_class` paints the icon **alone** — a class on the header would tint
+  the title with it too, because the SVG inherits `currentColor` from the wrapper.
+- `with_title(text, **html_options)` - A bare `<h2 class="card-title">`, for a text-only title.
+- `with_image(src:, href:, alt:, figure_class:)`, `with_action(href:, class:)`.
+
+**A title with an icon is `with_header`, not `with_title`.** The title slot takes text and
+HTML attributes, nothing else: `with_title("Needs your approval", icon: "triangle-alert")`
+renders `<h2 icon="triangle-alert">` — a literal attribute, silently, because every keyword
+that is not `class:` is passed through to the tag.
+
+```erb
+<%# ❌ paints an `icon` attribute on the <h2> and no icon %>
+<% c.with_title('Needs your approval', icon: 'triangle-alert') %>
+
+<%# ✅ %>
+<% c.with_header(title: 'Needs your approval', icon: 'triangle-alert',
+                 icon_class: 'text-warning') %>
+```
+
 #### Modal
 
 Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
@@ -706,13 +728,31 @@ takes the id of the selected record and each item its own `id:`.
 
 **`with_list` options:** `header`, `count`, `selected`, `pagy`, `next_url`,
 `infinite_scroll` (default `true`), `item_name`, `max_height`. `with_empty_state`
-replaces the rows when there are none, and `with_filter` adds a pill to the filter
-band between the header and the rows.
+replaces the rows when there are none, `with_filter` adds a pill to the filter
+band between the header and the rows, and `with_group` puts runs of rows under
+headings.
 
 **`with_item` options:** `title` and `href` are required; `id`, `subtitle`,
 `icon`, `meta`, `meta_color` (`:error`, `:warning`, `:success`, `:primary`) are
 optional, `with_tag(text:, color:)` adds any number of badges, and a block
 renders free content under the subtitle.
+
+**Grouping is `with_group(key:, label:, count:)`,** and the rows move into it:
+`group.with_item(...)` takes exactly what `list.with_item` takes, so the row call
+does not change. `count:` is the group's **total** from the server, not the rows
+on screen — the client only ever holds the pages loaded so far. Rows and groups
+in the same list is refused: loose rows would render above the first heading,
+belonging to no group.
+
+Grouping asks one thing of the query: **order by the group key first**
+(`order(:kind, :created_at)`). Infinite scroll appends whole pages, so ordered by
+the group a page boundary can only fall inside one group — the last on a page
+continued by the first on the next — and that single seam is what the controller
+merges, dropping the arriving heading and moving its rows under the one on
+screen. Ordered by anything else the same heading comes back once per page; the
+component leaves the repeat visible and says why in the console rather than
+filing rows under an earlier heading, which would silently reorder what the
+server sent. Full treatment in `docs/guides/master-detail.md`.
 
 **Paging is infinite by default.** Given a `pagy:`, the list renders ordinary
 pagination controls plus a sentinel; the `split-view-list` controller hides the
@@ -1120,6 +1160,16 @@ title, or a free content block for arbitrary markup.
 - `orientation` - `:horizontal` (default) or `:vertical`
 - `color` - DaisyUI step color for completed/active steps
 
+**Step options:**
+- `title` - The step's name (required)
+- `sublabel` - Smaller muted second line under the title (date, actor, note)
+- Content block - Free markup under the title. A block that renders blank draws
+  no wrapper, so deciding *inside* the block — "the detail, if there is one" —
+  leaves the step exactly as one declared with no block at all. Blank is read off
+  the rendered string, so markup that shows no text (a Stimulus mount, a hidden
+  field) does keep the wrapper.
+- HTML attributes for the `li` pass through
+
 #### WorkflowSteps
 
 Steps of a flow with a verdict per step. Stepper is a wizard by index — one
@@ -1142,10 +1192,17 @@ positional.
 ```
 
 **Options:**
-- `variant` - `:vertical` (default) or `:horizontal`
-- `progress` - The N/M bar. On by default in `:horizontal`; `false` drops it.
-  Asking for one on `:vertical` raises — that shape has no header for it.
-- HTML attributes for the root element pass through.
+- `orientation` - `:vertical` (default), `:horizontal`, `:rail` or
+  `:progress`. It was `variant:` in the v3.1 betas; the old keyword raises with
+  a message naming the replacement.
+- `progress` - The N/M bar, which has nothing to do with `orientation:
+  :progress`. On by default in `:horizontal`, off by default in `:rail` and
+  `:progress` (their connectors already say how far the flow got); `false`
+  drops it and `true` turns it on. Asking for one on `:vertical` raises — that
+  shape has no header for it.
+- HTML attributes for the root element pass through, `style:` included: this
+  component has no `style:` keyword, so `style: "max-width:40rem"` lands on the
+  root as a live inline style.
 
 **Step options:**
 - `title` - The step's name (required)
@@ -1154,10 +1211,16 @@ positional.
 - `assignee` - Who the step belongs to, rendered with a user icon
 - `date` - Preformatted date/time text; the component does not format
 - `number` - Circle content, overriding the automatic numbering
+- `state_label` - Accessible name for **this** step's state, overriding the
+  translation without touching the six global strings
 - Content block - Free markup rendered under the meta lines (a rejection
   comment, a `Bali::Tag`, links). A block that renders blank draws no comment
   container, so deciding *inside* the block — "the comment, if there is one" —
-  leaves the step exactly as one declared with no block at all.
+  leaves the step exactly as one declared with no block at all. That is also
+  how you write a short note: `c.with_step(title: "Evaluation", state:
+  :skipped) { "Not taken" }` costs nothing when the note is absent. It renders
+  as `.workflow-step-comment`, so it reads like a comment — a note that must
+  not is a different request.
 
 The connector under each circle takes the state of the **next** step, so the
 line arrives coloured at the step that owns that verdict — the component
@@ -1165,21 +1228,90 @@ computes this; callers only declare states. Auto-numbering counts the real
 route only: a `:skipped` step renders muted with a dash instead of a number and
 consumes no position (an explicit `number:` always wins).
 
-Both markers say the state in colour and nothing else — a number is a position,
-not a verdict — so every step also renders an `sr-only` span with the state's
-name next to its marker. The six strings live under
+No marker says the state in anything but colour — a number is a position, not a
+verdict — so every step also renders an `sr-only` span with the state's name
+next to its marker. The six strings live under
 `bali_view.workflow_steps.states.*` (en/es) and a host overrides them like any
 other Bali key when its domain has better words: "Signed", "Returned",
 "Waiting on legal".
 
-##### The horizontal quick flow
-
-`variant: :horizontal` renders the same steps as a row of cards with an N/M bar
-on top — the shape for a summary card or a table cell, where the whole chain
-has to fit in a glance.
+Those six are **app-wide**, which is the wrong reach when one screen's
+`:skipped` is "Not taken" and the approval panel's is still "Skipped".
+`state_label:` renames the state on one step only:
 
 ```erb
-<%= render Bali::WorkflowSteps::Component.new(variant: :horizontal) do |c| %>
+<% c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken") %>
+```
+
+It changes nothing visible — the circle keeps its colour and its dash — and
+nothing global. `nil` (the default) falls back to the translation; anything
+else is taken literally, `""` included, so a step whose title already says the
+verdict can ask for silence. Same rule as `Bali::BooleanIcon`'s `label:`.
+
+##### Choosing a shape: `:horizontal`, `:rail` or `:progress`
+
+Three of the four shapes lay the flow out left to right, so the names do not
+tell them apart — **`:rail` and `:progress` are horizontal too**. What
+separates them is the question the reader arrives with:
+
+| The reader is asking | Shape |
+|---|---|
+| "what is in this chain, and what does each step carry?" | `:horizontal` |
+| "what happened at each step?" | `:rail` |
+| "how far did this get?" | `:progress` |
+
+| | `:horizontal` | `:rail` | `:progress` |
+|---|---|---|---|
+| The picture | a grid of bordered cards, one state dot each | one row of numbered circles joined by a 6px rail coloured per state | the same row, joined by a 2px line in two colours |
+| Out of room | **wraps** onto a second row (`auto-fit` from 11rem) | **never wraps**: equal columns down to a `6rem` floor, then the row scrolls inside the component | same as `:rail` |
+| Marker | a dot, no number | a circle filled with the state's colour, numbered | filled with a glyph for the three settled states, outlined with its number for the two still to come, dashed for `:skipped` |
+| Connectors | none — the bar says how far it got | one per gap, coloured by the *next* step's state | one per gap, monochrome (see below) |
+| Label | inside the card | centred under the circle, `font-semibold` | centred under the circle, 12px, bold on the current step only |
+| N/M bar | on by default | off by default | off by default |
+| Room for `assignee` / `date` / a comment | yes, inside each card, which just grows | yes, under the label, and the tallest step sets the row's height | same as `:rail` |
+
+**The connector rule is where the two rows really part.** In `:rail` every
+connector takes the state of the step it leads to and paints it — `bg-error`
+into a rejection, `bg-base-300` into a pending step — so the line reads every
+verdict a second time. In `:progress` the line answers one question in two
+colours: the connector leaving step *i* is `primary` when step *i+1* was
+**reached** and grey when it was not. Reached is every state but `:pending`,
+`:skipped` included — a step the route went around was still passed — so **the
+coloured run ends at the first `:pending` step**, and nowhere else.
+
+That is the whole rule, and three chains show that "ends at the first
+`:pending` step" is not the same sentence as "ends at the current step":
+
+| Chain | The line | Why |
+|---|---|---|
+| `[:success, :pending, :success, :current, :pending]` | grey, **primary**, primary, grey | a `:pending` step *before* a reached one leaves a coloured connector running out of a grey circle |
+| `[:skipped, :skipped, :skipped]` | primary, primary | a route that went around every step reached them all, so the line runs full length under three hollow circles |
+| `[:success, :current, :error, :pending]` | primary, **primary**, grey | a reached step after the current one carries the colour past it |
+
+All three are the rule working, not failing: the shape reads a chain as a climb
+and the data model has no second axis to read instead. The first is the one that
+turns up in real screens — parallel approvals, a branch that jumps ahead — and
+when a chain can do that, ask for `:rail`, where every connector states its own
+step.
+
+Rule of thumb: three or four steps that have to fit a summary card or a table
+cell → `:horizontal`. Nine steps across the top of a page → one of the two
+rows, `:rail` when each verdict is the news and `:progress` when the reader only
+needs to know where the thing got to. The same nine as cards are three rows, and
+a funnel in three rows is no longer a funnel.
+
+`:vertical` is none of those three: it is the record — the shape with room for
+the assignee, the date and the rejection comment of every step, one under the
+other.
+
+##### The horizontal quick flow
+
+`orientation: :horizontal` renders the same steps as a row of cards with an N/M
+bar on top — the shape for a summary card or a table cell, where the whole
+chain has to fit in a glance.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
   <% c.with_step(title: "Submitted", state: :success, date: "Jul 1") %>
   <% c.with_step(title: "Legal review", state: :current, assignee: "Carmen Ríos") %>
   <% c.with_step(title: "Director signature", state: :pending) %>
@@ -1200,10 +1332,156 @@ Same `with_step` API. What changes:
   rejected, `progress-warning` if any came back with observations, neutral
   otherwise.
 - The dot is decorative; the state name is announced by the same `sr-only`
-  span the vertical variant uses (see below).
+  span the vertical shape uses (see above).
 
 The cards wrap on their own (`auto-fit` from 11rem), so a long chain becomes
-rows instead of shrinking each card past reading width.
+rows instead of shrinking each card past reading width. When that is the wrong
+answer — a nine-step funnel in three rows is no longer a funnel — the rail is
+the shape that does not wrap.
+
+##### The rail
+
+`orientation: :rail` puts every step on one line: numbered circle, coloured
+connector to the next one, label centred underneath. The shape for a long flow
+at the top of a page, where the reader needs the order and how far it got
+before any detail.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(orientation: :rail) do |c| %>
+  <% c.with_step(title: "Capture", state: :success) %>
+  <% c.with_step(title: "Triage", state: :success) %>
+  <% c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken") %>
+  <% c.with_step(title: "Business case", state: :current) %>
+  <% c.with_step(title: "Project", state: :pending) %>
+<% end %>
+```
+
+It is the vertical shape's marker laid sideways, so everything that shape does
+still holds:
+
+- **Numbered circles**, with the same auto-numbering — a `:skipped` step draws
+  a dash and consumes no position, and `number:` still wins.
+- **Connectors that take the state of the next step**, so the line arrives
+  coloured at the step that owns the verdict. They are what replaces the bar:
+  **`progress` is off by default here**, unlike the horizontal shape. Pass
+  `progress: true` if you want both.
+- **The same `sr-only` state name** next to each circle, `state_label:`
+  included.
+
+What is specific to the rail:
+
+- **It does not wrap.** Columns are equal (`flex-1`) down to a `6rem`
+  readability floor; below that the row scrolls **inside the component**. The
+  page never gains a horizontal scrollbar of its own — measured at 400px with
+  nine steps, `document.documentElement.scrollWidth == clientWidth`.
+- **Nothing is hidden.** `assignee:`, `date:` and the block still render,
+  centred under the label. They stack, so they set the row height: a rail that
+  has to stay one line tall is one whose caller leaves them out. The component
+  does not `display: none` content a caller passed — a screen reader would lose
+  it too.
+- **The row is a keyboard scroll region.** Because it can overflow and holds
+  nothing focusable, the `<ol>` carries `tabindex="0"` and an `aria-label`, so
+  a keyboard user can land on it and arrow the hidden steps into view. The name
+  comes from `bali_view.workflow_steps.rail_label` ("Workflow steps" / "Pasos
+  del flujo"), overridable like any Bali string. It keeps its `list` role — an
+  explicit `role="region"` would replace it and stop telling the reader how
+  many steps there are.
+- **It does not use daisyUI's `.steps`.** That grid draws the same picture, but
+  its status comes from position, which is the one thing this component exists
+  not to do: `.step` cannot say "step 2 was rejected while step 4 is pending".
+
+##### The progress line
+
+`orientation: :progress` is the rail's quiet sibling: the same row, the same
+32px circles, but a **2px monochrome** line, 12px labels, and the verdict left
+to the marker. The shape for a page that has to answer "where is this?" before
+anything else.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+  <% c.with_step(title: "Capture", state: :success) %>
+  <% c.with_step(title: "Triage", state: :success) %>
+  <% c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken") %>
+  <% c.with_step(title: "Business case", state: :current) %>
+  <% c.with_step(title: "Project", state: :pending) %>
+<% end %>
+```
+
+**The line.** `primary` as far as the flow reached, grey after it. The
+connector leaving step *i* asks one thing about step *i+1*: was it reached?
+Everything but `:pending` counts, `:skipped` included, so a route that went
+around a step keeps its line whole and the coloured run ends at the first
+`:pending` step. Nothing else touches the line — a rejection does not paint it
+red. See "Choosing a shape" above for the three chains where that lands
+somewhere a reader would not guess.
+
+**The marker.** It carries the whole verdict, since the line no longer helps:
+
+| State | Marker |
+|---|---|
+| `:success` | filled `primary`, a check instead of the number |
+| `:error` | filled `error`, an ✗ instead of the number |
+| `:warning` | filled `warning`, a ⚠ instead of the number |
+| `:current` | `primary/10` fill, 2px `primary` border, its number, `primary` bold label |
+| `:skipped` | dashed `base-content/50` border, a dash, no fill |
+| `:pending` | thin `base-content/50` border, its number, no fill |
+
+A settled verdict gives up its number because the position stops being the news
+once the flow is past it. **The numbering underneath does not change** —
+`:success` still consumes a position, `:skipped` still does not, and `number:`
+still beats the automatic one — but in this shape the glyph beats the number,
+automatic or explicit: a `:success`, `:error` or `:warning` step draws its glyph
+and nothing else, and a `number:` passed to one of them is not rendered. Use
+`:rail` when every step has to show its position.
+
+Everything the rail resolved carries over unchanged: the row is a tab stop with
+an `aria-label` (`bali_view.workflow_steps.rail_label`, shared by both rows), it
+never wraps, it scrolls inside the component rather than giving the page a
+scrollbar, `assignee:` / `date:` / the block still render under the label, and
+the `sr-only` state name is the same one — the glyphs are `aria-hidden`, so a
+reader still hears "Rejected", not "x".
+
+**The N/M bar is off by default here too**, and it is unrelated to the
+orientation that shares its name: `new(orientation: :progress, progress: true)`
+is a progress line with an N/M bar over it.
+
+**The half of the flow nobody has reached yet is held to a measured floor.**
+`base-300`, which the rail uses for the same job, is 1.16:1 against `base-100`
+— a 2px line and a 1px outline nobody can see, in the shape whose whole answer
+is that line. So the greys here are `base-content`: `/60` for the glyph and the
+12px label (4.66:1 in light, 5.82:1 in `afal-dark`, AA's 4.5:1 for text) and
+`/50` for the outline and the line (3.40:1 and 4.47:1, the 3:1 a shape carrying
+meaning needs). Composited over the disc each marker paints, not over the token.
+
+**The shape assumes it sits on `base-100`.** The connector runs centre-to-centre
+*under* each marker, so an opaque disc is what keeps it out of the circle, and
+that disc has to be painted a colour. Dropped in a `bg-base-200` card the disc
+is a halo of 1.06:1 in light and 1.21:1 in `afal-dark` — invisible in one, a
+darker ring around every marker in the other. Hand the shape the surface it is
+actually on and the halo measures 1.00:1 in both:
+
+```erb
+<div class="card bg-base-200 [--bali-workflow-steps-surface:var(--color-base-200)]">
+  <%= render Bali::WorkflowSteps::Component.new(orientation: :progress) do |c| %>
+    …
+  <% end %>
+</div>
+```
+
+`--bali-workflow-steps-surface` inherits, so one declaration on the card covers
+every flow inside it. The other three shapes need nothing: their circles are
+opaque fills and draw no disc.
+
+**Its root class is `.workflow-steps-progress-rail`**, not the
+`.workflow-steps-progress` the other three shapes' naming would predict:
+`.workflow-steps-progress` is already the N/M header, which this shape renders
+inside that same root.
+
+`:rail` and `:progress` are further values of `orientation:` rather than a
+second keyword: every keyword this component does not declare reaches the root
+as a plain HTML attribute, so declaring `style:` or `shape:` would turn working
+host markup into an `ArgumentError`. The cost is the word — neither row is an
+orientation of its own, which is what the table above is for.
 
 ##### The decision form is the host's
 
@@ -1308,6 +1586,46 @@ Data table with optional sorting and pagination.
   <% end %>
 <% end %>
 ```
+
+**Identity (`id:`)** — a `Bali::Table` emits **one** id, on the
+`<div class="table-component">` that wraps the `<table>`: the id names the whole component,
+and the wrapper is the component's root (the
+[options passthrough](../reference/component-patterns.md#options-passthrough) convention).
+It is the only `**options` key that does not reach the `<table>` — `class:`, `data:` and the
+rest still do. That wrapper is also what a `turbo_stream.replace "my-table"` should replace:
+swapping the `<table>` alone would drop the `overflow-x-auto` and the `data-controller` of
+the collapsible groups.
+
+Selectors keep working as they did, because everything inside the table is a descendant of
+the wrapper (`#my-table tbody tr`, `#my-table td`) and `getElementById`,
+`querySelector('#my-table')`, an `#my-table` anchor and `turbo_stream.replace` already
+resolved to it — the `<div>` comes first in document order. What changes is a selector that
+names the element (`table#my-table`, `#my-table.table`) or uses a direct child
+(`#my-table > tbody`), and any assertion that *counts* the bare id
+(`assert_select "#my-table", count: 2` now finds one node, not two).
+
+The container's own attributes go in `table_container:`, a sub-hash like `tbody:`:
+
+```erb
+<%= render Bali::Table::Component.new(id: "movies", class: "table-sm",
+                                      table_container: { class: "rounded-box border" }) %>
+<%# → <div id="movies" class="overflow-x-auto table-component rounded-box border">
+      <table class="table table-zebra min-w-full table-sm"> %>
+```
+
+**`table_container:` is for classes and data attributes, not for the id.** The sub-hash is
+splatted onto the `<div>` *after* the component's own id, so an `id:` inside it wins that one
+attribute — but it does not become the component's identity: the collapsible row ids and the
+empty-state `<tr>` id still derive from the top-level `id:`, and with no top-level `id:` they
+fall back to a per-render random prefix (`table-a1b2c3-…`), which is unique but not stable
+across requests. Pass both and the top-level id ends up on no element at all: the `<div>`
+carries the sub-hash's, and the `<table>` carries none. Give the component its identity with
+`id:`.
+
+There is no supported way to put an id on the `<table>` element itself, and nothing needs
+one: `Bali::DataTable` already targets the container rather than the table for this reason.
+Note that `Bali::PropertiesTable` *does* put its id on the `<table>` — same rule, different
+root: there the `<table>` is the component's root element.
 
 **Sorting** — `sort:` needs a `form:` (a `Bali::FilterForm`); without one the header raises
 `Bali::Table::Component::MissingFilterForm`. The value is a **Ransack** attribute, so
@@ -1520,11 +1838,14 @@ there is a control inside a control. The group select-all, on a selectable table
 its own cell outside the button and still marks the folded rows.
 
 Each row gets an `id` for the button's `aria-controls` — the one you pass to `with_row`, or
-`<container id>-<group token>-row-<n>` otherwise. Give the table an `id:` (or a `form:`)
-when you want those ids deterministic; without one the prefix is random, so two collapsible
-tables on the same page never share an id. A `skip_tr: true` row owns its `<tr>` and stays
-out of the folding. The same group value reappearing further down is the same group, as it
-is for selection: folding one of its bands folds both runs.
+`<container id>-<group token>-row-<n>` otherwise, where `<container id>` is the id on the
+wrapper `<div>`. Give the table an `id:` when you want those ids stable; without one the
+prefix is random, so two collapsible tables on the same page never share an id. A `form:`
+also supplies the prefix, but `FilterForm#id` is the scope's cache key, so it changes
+whenever the filters do — it keeps the ids unique, not stable across requests. A
+`skip_tr: true` row owns its `<tr>` and stays out of the folding. The same group value
+reappearing further down is the same group, as it is for selection: folding one of its bands
+folds both runs.
 
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
 `Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
@@ -1536,12 +1857,85 @@ Declare groupable attributes on the form (DSL or constructor):
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
   group_by_attribute :genre, label: "Género"
-  group_by_attribute :status
+  group_by_attribute :status, default: true   # the listing opens grouped by status
 end
 
-# or, without subclassing:
-Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
+# or, without subclassing (same options, `default:` included):
+Bali::FilterForm.new(Movie.all, params,
+                     group_by_attributes: [:genre, { attribute: :status, default: true }])
 ```
+
+##### A listing that opens grouped (`default:`)
+
+`default: true` on **one** declaration is the band the listing opens on when nobody has said
+anything about grouping. Declaring it on two attributes raises when the form is built — a
+listing opens on one question. It takes `true`/`false`, **not a callable**: the default is
+resolved while the form is built, with no instance to evaluate against (the same limit
+`filter_attribute default:` has, for the same reason). A grouping that depends on the request
+is the host setting `@group_by` after `super`, not a declaration.
+
+Precedence, top down — the first one that speaks wins:
+
+| Source | Beats the default because |
+|---|---|
+| `?group_by=` in the URL | The user just clicked. **Including "no grouping"** — without that, a listing with a default could never be ungrouped |
+| What an applied saved view (`?saved_view=`) **says** about grouping | A view records what the user chose, and "ungrouped" is a choice |
+| The choice stored in the filters cache | Persistence promises "remember what I chose", and that includes "I turned grouping off" |
+| — | Nothing said: the `default:` applies |
+
+**A saved view speaks by carrying the key, not by carrying a value.** The payload of a view
+saved while grouping was off carries `"group_by" => "none"`, and reopening it leaves the
+listing ungrouped. A payload with **no** `group_by` key at all is silence, not "no grouping",
+so the `default:` still applies there — which is what every view saved before the default
+existed looks like, and every view of a listing that declares no default. The two cases are
+different on purpose: without the distinction, either a user could not save an ungrouped view
+(the default would re-group it on reopen) or every pre-existing view would silently start
+opening ungrouped.
+
+> If a host listing already implements "**any** applied view suppresses the default", that is
+> a different rule from Bali's and adopting `default:` changes behaviour — see the note at the
+> end of this section.
+
+**Unlike `filter_attribute default:`, this default does not travel through the URL.** No
+redirect, no `?group_by=` written on a bare entry. Two measured reasons: `redirect_to_default_filters`
+switches itself off entirely when filter persistence is on (so the URL route could never
+satisfy "respects persistence"), and a redirect writing `?group_by=status` marks the param as
+*requested*, which would overwrite the "no grouping" the user chose in the cache on every
+visit. Neither reason that pushed filter defaults into the URL applies here: grouping does not
+change the **population**, only the order and the bands.
+
+**A default is derived, never stored.** It is not written into the filters cache, does not
+enter a saved view's payload (otherwise every view saved without a grouping would read as
+"modified" against a listing nobody touched) and does not travel as a hidden field. So
+changing the declaration changes what users who already visited the listing see — only what
+they chose is remembered.
+
+One consequence worth knowing: **where a default is declared, "no grouping" travels as
+`?group_by=none`** instead of the empty `?group_by=`. Ransack's `sort_link` drops empty params
+when it composes its href (and so does the filter form's own hidden field, which rejects blank
+preserved params), so the empty spelling could not survive a column sort or a filter submit and
+the default came back. The same spelling goes into a saved view's payload, for the same reason:
+a payload has no way to write an empty value either. Listings without a default keep the empty
+spelling and an unchanged payload.
+
+**A listing that uses `Bali::Filters` without a DataTable** has no "Group by" control to hang
+the value on, so pass it yourself — `group_by_preserved_value` is public and gives the three
+answers in one call:
+
+```erb
+<%= render Bali::Filters::Component.new(url: movies_path,
+      available_attributes: ...,
+      preserved_params: { group_by: @filter_form.group_by_preserved_value }) %>
+```
+
+Measured: a default emits no hidden field, an explicit "no grouping" emits `none`, a chosen
+grouping emits its name — the same three the DataTable emits.
+
+**Adopting `default:` on a listing that already rolls its own.** A host that sets `@group_by`
+after `super` may be enforcing a *different* rule — commonly "any applied saved view suppresses
+the default, whether or not it mentions grouping". Bali's rule is narrower (only a view that
+says something about grouping suppresses it), so views already saved under the host rule will
+start opening grouped. Check for that before deleting the workaround.
 
 ##### What can be grouped by
 
@@ -1578,6 +1972,21 @@ group_by_attribute :budgeted,
 
 A String `sql:` goes through `Arel.sql` — it is the developer's SQL, never the user's;
 the raw `group_by` param can only ever match a declared name.
+
+**Grouping and `SELECT DISTINCT` do not mix on PostgreSQL.** Grouping orders by the group
+expression, and a `SELECT DISTINCT` only accepts `ORDER BY` expressions that are in its select
+list. Of the four shapes, only a column of the **base table** is: an association path
+(`ORDER BY "tenants"."name"`), a ransacker and a `sql:` expression are all absent from
+`SELECT DISTINCT movies.*`, so the query dies with *"for SELECT DISTINCT, ORDER BY expressions
+must appear in select list"*. MySQL says the same thing in other words; SQLite accepts all
+four.
+
+Bali cannot fix it for you — adding the expression to the select list changes **what** gets
+deduplicated, and the `.distinct` is usually there to deduplicate a join. What it does is
+replace the driver's error with `Bali::FilterForm::GroupByOrderingError`, which names the
+listing, the grouping, the offending `ORDER BY` and the three ways out (drop the `.distinct`
+and deduplicate with a subquery; put the expression in the select list yourself; or group by a
+base-table column). The adapter's own error stays available as `#cause`.
 
 **A declaration that cannot work raises when the form is built**, not when someone
 picks that grouping on screen. `group_by_attribute :whatever` used to be accepted in
@@ -1640,7 +2049,9 @@ user can type it, and a 500 is not the answer to a typo.
 
 "No grouping" leaves `?group_by=` (empty) in the URL rather than dropping the
 param: with filter persistence on, an absent param means "restore the cached
-state", so removing it resurrected the grouping the user just turned off.
+state", so removing it resurrected the grouping the user just turned off. Where the form
+declares a `default:`, the same item emits `?group_by=none` instead — an empty param does not
+survive Ransack's `sort_link`, and an absent one means "apply the default".
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
@@ -1966,6 +2377,8 @@ option list below.
   identifier (case preserved). With the random hex the id cannot survive the next render,
   so **column persistence turns itself off** rather than writing a key nothing can read
   back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
+  What that key *holds* is described under [Column memory and saved views](#column-memory-and-saved-views).
+  The key's **name** never changes; the value inside it is versioned.
 
 If the host replaces the listing over Turbo Streams, target the **resolved** id — not the raw
 `storage_id`, which is not the same string whenever sanitizing changes it (`'admin/movies'` →
@@ -2143,6 +2556,57 @@ array injected by the controller); a parameter of your own goes in the action's
 offers to act on the whole filtered result and re-emits the `filter_form`'s `q[...]` so the
 server can rebuild the same scope — see [BulkActions](#bulkactions).
 
+##### Column memory and saved views
+
+A listing remembers its columns in two different places, and they answer the question "should
+this column be visible?" differently **on purpose**. Adding a column to a listing that is
+already in production is the case where the difference shows, so it is worth knowing which is
+which before a user asks.
+
+| | Column selector memory | Saved view |
+|---|---|---|
+| Where | `localStorage`, key `bali:columns:<id>` | `bali_saved_views.payload["columns"]`, in your database |
+| Scope | this browser, this device | the view, for whoever applies it |
+| What it records | the columns the user **switched**, against the `visible:` defaults in force at the time | the columns the view **shows** |
+| A column it never saw | inherits the `visible:` default the host declares **today** | stays hidden |
+| A column the user never switched | inherits the `visible:` default the host declares **today** | stays as the view recorded it |
+
+The selector's memory is **implicit**: nobody asked for it, the user just switched a column
+off. So it only claims what it can prove, and proof is a **difference**: it records the state
+it left on screen *and* the `visible:` defaults the server had declared, and a column only
+counts as the user's doing when the two disagree. "The user hid column 3, which the host was
+showing" is a claim; "column 5 was off, and the host had it off too" is not — that one goes
+back to the host on every load. A column that was not on screen at all is not recorded either.
+
+Both halves of that matter. The first is #1144: a column added later is born with whatever
+`with_column(visible:)` says, which is what the host wanted for a first-time visitor. The
+second is the same bug one size smaller: if the memory wrote down every `visible: false` the
+host declared as though the user had chosen it, then flipping that column to `visible: true`
+later would never reach anyone who had loaded the page before.
+
+A saved view is the opposite: an **explicit**, named choice ("these five columns"). It keeps
+recording visible columns, so applying it shows exactly the five it recorded, and a column
+added afterwards is not one of them. Re-save the view (or create a new one) to take the new
+column in. This is also why the payload format did not change: those rows are already written
+in your database, and flipping their meaning would silently rewrite every saved view.
+
+Two consequences worth spelling out:
+
+- Column identity is still the **position** of the `<th>`, in both places. Adding a column at
+  the end is safe; inserting one in the middle, or reordering them, shifts every preference
+  by one. A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
+  listing whose selection column depends on the user's role has two different column layouts
+  under one name — give each layout its own `id:`.
+- The device memory is per browser. Clearing it for one user is `localStorage.removeItem`;
+  clearing it for everyone means changing the listing's `id:`, which also changes the
+  container id the host's Turbo Stream targets. There is no "reset columns" button.
+
+Upgrading from 3.4.0 or earlier: values written by those releases are a bare array of visible
+indices. They are read, translated and rewritten in place on the next load **in table mode** —
+a listing sitting in cards or calendar mode has no selector on screen, so nothing rewrites its
+key until someone switches back to the table. See the CHANGELOG entry for #1144 for exactly
+what survives the translation.
+
 Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
 
 Export is not one of them: `page.with_export` on the surrounding page component puts it in
@@ -2182,6 +2646,10 @@ pages. Use `DescriptionList` when the pairs form one set but want **a grid, not 
 the dense header block of a show page, a two-column details card. Use `LabelValue` for a pair
 that stands on its own, or when each pair needs its own placement in a layout neither grid can
 express.
+
+None of the three is the right call for a **grid of figures** — a metric snapshot, a financial
+summary — where the number is the content and the label is its caption. That is
+`StatCard` with `surface: :cell`; see [Card or cell?](#card-or-cell) under StatCard.
 
 #### Gantt
 
@@ -2563,15 +3031,153 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
+- `note` - A discreet muted line under the value (`'Creates value · 12.5% rate'`). Not the `footer` slot, which is the trend/status row at the bottom (default: nil)
 - `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
-- `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
+- `color` - Icon accent — and the cell tint when `emphasis:` is on: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
 - `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
+- `surface` - `:card` (default, and what `nil` falls back to) or `:cell`. Anything else raises `ArgumentError`. See "Card or cell?" below
+- `emphasis` - Cell surface only: paints the cell with the soft pair of `color:` to single out one figure. On `surface: :card` it raises (default: false)
+- `value_class` - Classes appended to the value, after the library's own. Additive, and it filters nothing — see "What `value_class:` actually does" below (default: nil)
 - `href` - Renders the whole card as an `<a>` (KPI drill-down to its listing) with a hover shadow affordance. Don't wrap the card in `link_to` anymore; and the footer must not contain links then — an `<a>` inside an `<a>` is invalid HTML (default: nil)
 
-**Slots:** `with_footer` — optional footer for trends or status text.
+**Slots:** `with_footer` — optional footer for trends or status text. It renders on **both**
+surfaces: it is content, and content does not change with the box. On a cell it lands right
+under the figure (or under `note:`, when there is one), in the same
+`flex items-center gap-1 text-sm` row the card surface uses.
 
 This is the one stat card. `DashboardPage#with_stat` renders it, and both `InfoLevel` and
-DashboardPage's own inline card — the other two designs — are gone or deprecated in v3.
+DashboardPage's own inline card — the other two designs — are gone or deprecated in v3. It
+has **two surfaces, not two components**: `surface:` changes the box, never the figure.
+
+##### Card or cell?
+
+```erb
+<%# A grid of figures INSIDE a section card: nothing here may be a card %>
+<%= render Bali::Card::Component.new do |card| %>
+  <% card.with_title('Business case') %>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell, emphasis: true,
+          title: 'NPV', value: '$6.14M', value_class: 'tabular-nums',
+          note: 'Creates value · 12.5% rate'
+        ) %>
+    <%= render Bali::StatCard::Component.new(
+          surface: :cell, title: 'BCR', value: '2.41', value_class: 'tabular-nums',
+          note: 'Benefit / cost'
+        ) %>
+  </div>
+<% end %>
+```
+
+| | `surface: :card` | `surface: :card, size: :sm, shadow: false` | `surface: :cell` |
+|---|---|---|---|
+| Root | `.card.bg-base-100.card-border.shadow-sm` | `.card.bg-base-100.card-border.card-sm` | `.rounded-box.border.border-base-300.p-4.bg-base-100` — **no `.card`** |
+| Inner padding | 24px | 16px | 16px |
+| Border | 1px `base-200` | 1px `base-200` | 1px `base-300` |
+| Icon badge | yes | yes | no |
+| Where | a KPI row that owns its stretch of page | a quiet card, on a page where nothing else is a card | a grid of figures inside a card |
+
+**`size: :sm, shadow: false` already gets you most of the way** — a quiet bordered box with
+1rem of padding, measured the same 16px the cell has. Reach for `surface: :cell` when the
+figures sit **inside** something that is already a card: the cell is the only one of the three
+that does not emit `.card`, so it cannot become a card in a card, and its `base-300` border
+stays visible against the `base-100` the section card paints behind it.
+
+The cell's own `bg-base-100` is a no-op in exactly that case — measured, the section card
+paints the same `oklch(1 0 0)` behind it — and it is there for the other one: dropped
+straight onto a page, the cell sits on `Bali::AppLayout`'s `bg-base-200`
+(`oklch(0.98 0 0)`, measured), where a transparent box would read as a grey panel with a
+line around it.
+
+A cell **takes no icon**: six badges in one grid is noise, and there is nowhere quiet to put
+them. `icon:` with `surface: :cell` raises `ArgumentError` rather than being dropped in
+silence. The same goes for `Bali::Card`'s own keywords — `size:`, `shadow:`, `side:`,
+`image_full:`, `body_class:` and `style: :bordered` — which mean nothing without a card and
+used to land on the root as invalid HTML attributes (`<div size="sm" shadow="false">`,
+measured). They raise too, naming every one you passed: drop them when you switch surfaces.
+
+Everything that is not a keyword of this component still passes through to the root on both
+surfaces — `class:`, `id:`, `data:` and a **string** `style:` (an inline style is legitimate
+on a root element; only the Symbol spelling, which is `Bali::Card`'s, is rejected).
+
+`DashboardPage#with_stat` renders the card surface and does not forward `surface:` — its
+parameter list is fixed (`label:, value:, icon:, change:, color:, href:`). A dashboard row
+wants tiles, so that is on purpose; to put cells inside a dashboard card, render
+`Bali::StatCard::Component` yourself.
+
+**`emphasis:` is an emphasis axis, not a colour axis.** The colour contract is the one every
+component shares — `color:` / `custom_color:` (see [Colors](#colors)); there is no `tone:`.
+`emphasis: true` says *paint this cell*, and `color:` says *which colour*: `bg-primary/10` +
+`border-primary/30` for a name, the same `color-mix` the icon badge uses for a
+`custom_color:` hex. It is a cell option — on the card surface it raises, because the card
+brings its own `bg-base-100` and tinting over it would come down to Tailwind's output order.
+
+##### What `value_class:` actually does
+
+It **appends**, and it filters nothing. The value renders
+`class="text-3xl font-bold mt-1 <your classes>"`, and what the browser does with a class that
+sets a property the library already set is decided by the **order of the compiled sheet**, not
+by the order in the attribute. Measured on the sheet this package builds (`text-xl` at byte
+337394, after `text-3xl` at 336827):
+
+| `value_class:` | rendered value |
+|---|---|
+| *(nothing)* | 30px / 700 |
+| `tabular-nums`, `font-mono` | 30px / 700, monospaced — the reason the option exists |
+| `text-xl` | **20px** |
+| `text-4xl` | **36px** |
+| `text-2xl` | 30px — the one size that loses, because Tailwind emits it before `text-3xl` |
+| `font-semibold` | weight **600** |
+
+So it does resize the figure, in seven of the eight steps. The numbers above are from the
+browser, on the `emphasised_cell` preview, whose `value_class` parameter is there so you can
+repeat them.
+
+Which is a reason to use it for what it is for. The winning is an artifact of Tailwind's
+output order — `text-2xl` already behaves the other way, and an upgrade that reorders the
+sheet flips the rest without touching this repo. **Use it for properties the library does not
+set** (`font-mono`, `tabular-nums`, a colour). If a screen needs a different type scale for
+its figures, that is a change to `VALUE_CLASSES` in the component, measured across the call
+sites — not a class threaded through one call site at a time.
+
+There is deliberately **no `title_class:` and no `note_class:`**. The label and the note are
+the library's typography; a component that takes a class per element is a skin, not a
+component, and the way it ends is fifteen `*_class:` keywords. If you need different
+typography for the label, you need a different design — say so in an issue.
+
+##### Replacing a hand-painted metric cell: what changes
+
+Apps that painted this box by hand before the cell existed can drop their partial — but the
+cell is **the library's design, not a copy of theirs**, and the difference is visible. The
+reference case is afal-apps' `td_flow/shared/_metric_cell` (+ `TDFlow::MetricCellsHelper`),
+the partial #1146 was opened to replace. Measured against it on `origin/main`:
+
+| | the partial | `surface: :cell` |
+|---|---|---|
+| Box | `rounded-box border p-3.5 flex flex-col gap-1.5` — 14px padding, 6px between lines | `rounded-box border p-4` — 16px padding, 4px (`mt-1`) between lines |
+| Figure | `text-xl font-semibold` + `font-mono tabular-nums` **by default** — **20px / 600**, monospaced | `text-3xl font-bold` — **30px / 700**, proportional. `value_class: 'font-mono tabular-nums'` brings the mono back |
+| Label | `text-xs font-semibold` at `text-base-content/45` — 12px / **600** | `text-xs font-medium` at `text-base-content/60` — 12px / **500**. Not configurable |
+| Note | `text-xs text-pretty` at `/60` | `text-xs` at `/60`, plus `mt-1` |
+| Highlight | `tone: :primary` → `bg-primary/10` + `border-primary/20`, **and label, figure and note all turn `text-primary`** | `emphasis: true, color: :primary` → `bg-primary/10` + `border-primary/30`. The tint is the box; **the text keeps its colour** |
+| Defaults | `tone: :neutral`, `mono: true` | `color: :primary` (only visible under `emphasis:`), no mono |
+| Long values | `truncate` + a `title` attribute on the figure | neither. `value_class: 'truncate'` gets the clipping; the tooltip has no keyword (`title:` is the label) |
+| Test hook | `data-metric-cell="<key>"` | same, through the passthrough: `data: { metric_cell: key }` |
+
+Read the first three rows together: **the figure grows 50% and gains weight, the label loses
+weight and gains transparency, and a highlighted cell stops recolouring its text.** A
+mechanical `tone: X → color: X` is wrong twice over — the defaults differ (`:neutral` vs
+`:primary`), and `emphasis:` has to be passed explicitly for `color:` to show at all.
+
+That is the trade the cell asks for, and it is the point: #1146 asked for a metric box that
+does not emit `.card`, is highlightable, and ships in the gallery. Pixel parity with one
+app's partial was never a requirement, and chasing it is how a component ends up with a class
+keyword per element. **Migrate the partial when the app is ready to adopt this typography**,
+in one commit that deletes it — keeping both is how the divergence survives.
+
+**Screen readers.** Both surfaces render the label and the figure as two `<p>`s, which is a
+caption and a number, not a term/definition pair. When the pairing is the point — a details
+block someone reads field by field — reach for `PropertiesTable` or `DescriptionList`, which
+render real `<dl>`/`<dt>`/`<dd>`. See [accessibility.md](accessibility.md#label--value-pairs).
 
 #### Tags
 
@@ -3483,6 +4089,40 @@ Collapsible content section toggled by a trigger with a rotating chevron indicat
 
 **Options:**
 - `opened` - Render with the content revealed initially (default: `false`)
+- `content_class` - Extra classes for the revealed content box (default: `nil`)
+
+**Trigger slot** — `with_trigger(show_border:, icon_class:, **html_options)`:
+- `show_border` - Rule under the trigger (default: `true`)
+- `icon_class` - Extra classes for the chevron, e.g. `'text-primary'` (default: `nil`)
+- Anything else becomes an attribute of the `<button>`; `class:` is appended to Bali's own
+
+**The spacing is yours to change, without `!`.** The trigger's `pb-6 mb-6`, the content's
+`mb-8` and the chevron's `h-3.5` are declared in `reveal/index.css`, inside `@layer
+components`, instead of as utilities on the markup — so a utility you pass beats them, at any
+value:
+
+```erb
+<%= render Bali::Reveal::Component.new(content_class: 'mb-2') do |c| %>
+  <% c.with_trigger(class: 'pb-2 mb-2', show_border: false) do |trigger| %>
+    <% trigger.with_title do %>
+      <span class="font-semibold">Frequently asked questions</span>
+    <% end %>
+  <% end %>
+
+  <p>Compact accordion.</p>
+<% end %>
+```
+
+There is no `compact:` preset and none is needed — see the `compact` preview. In v3.4.0 and
+earlier those defaults were inline utilities and Bali won the tie (inside `@layer utilities`
+only source order decides, and Tailwind emits `.pb-0` before `.pb-6`), so a host had to write
+`pb-0! mb-0!`. That still works; it is no longer necessary. Note that `show_border: true`
+leaves the rule flush against the title once you take the padding to 0.
+
+**Rebuild your CSS when you take this version.** The defaults are no longer in the HTML, so
+until your build has processed the new `@import` in `bali/components.css` the accordion renders
+with no spacing at all. If you assemble the package's sheets by hand instead of importing
+`bali.css`, add `components/bali/reveal/index.css` to your list, layered in `components`.
 
 #### SortableList
 
@@ -3687,6 +4327,72 @@ identity when it is not the one `filter_form` derives.
 A `default:` on an attribute offered in neither UI (`simple: false, advanced: false`) raises
 at class-definition time: it would have no control to sit in and no pill to remove, so it
 would filter invisibly.
+
+**Grouping answers this same question the other way.** `group_by_attribute :status,
+default: true` resolves inside the form and never redirects — see *A listing that opens
+grouped* above. The reasons for the URL do not carry over: grouping does not change the
+population (so a sort cannot silently move it), and the redirect this section describes turns
+itself off exactly where the grouping default is needed most, on a listing with filter
+persistence on.
+
+#### A filter with no caption (`label: false` + `aria_label:`)
+
+A SimpleFilters row is tight, and some filters read fine without a caption over them — a
+year select whose blank option already says "All years". `label: false` drops the caption
+for exactly that. It does **not** drop the control's accessible name: a `<select>` with no
+name is announced as a bare "combo box", which is WCAG 4.1.2 (#1155).
+
+Bali resolves the name for you, in this order:
+
+| Step | Source | When it applies |
+|---|---|---|
+| 1 | `label:` | The caption wins wherever there is one. A visible label has to be part of the accessible name (WCAG 2.5.3), so `aria_label:` never competes with a caption — it is ignored there, in every branch |
+| 2 | `aria_label:` | The name for an uncaptioned control, and the only one available to the widgets with no blank option — `boolean`, `toggle_group`, `radio_group`, `number_range`, `date`, `date_range` |
+| 3 | `blank:` | The blank option's text ("All years"), when it is a String. `blank: true` is a Rails blank option with no text and never becomes a name |
+
+**Step 3 is a safety net, not the recommendation.** It exists so that no control ships
+nameless and no host has to edit a line to get out of WCAG 4.1.2 — but the blank option is
+the select's selected VALUE, so the control ends up named with the text it already reads
+out: "All years, All years". Where the name matters, write `aria_label:`. A host coming from
+a workaround that set the `aria-label` from outside should move those strings into
+`aria_label:` rather than drop them: "Registration year" is a better name than "All years".
+
+```ruby
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: -> { Report.distinct.pluck(:year).map { |y| [y, y] } },
+  blank: 'All years', label: false      # the net: named "All years", its own value
+
+filter_attribute :area_id, type: :select, simple: true, advanced: false,
+  options: -> { Area.pluck(:name, :id) },
+  blank: 'All areas', label: false, aria_label: 'Responsible area'   # the name to aim for
+```
+
+`aria_label:` takes a zero-arity proc, like `label:` and `blank:`, for an I18n lookup that
+must not be frozen at class-load time. Instance-level `simple_filters:` hashes take the same
+key.
+
+**The `aria-label` is only emitted where no visible `<label for>` names the control**, so a
+captioned row's markup is unchanged. Two widgets are the exception, because there the caption
+never reaches the control the user operates and Bali has to point at it explicitly:
+
+- **`slim_select`** clips the real `<select>` to 1x1 and draws its own
+  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and
+  nothing else — a `<label for>` does not travel. Captioned, Bali emits `aria-labelledby`
+  at the caption; uncaptioned, the resolved name. Before #1155 a captioned slim_select
+  announced itself as "Combobox", the widget's own default.
+- **`date` / `date_range`** are drawn by flatpickr, which hides the real input and creates
+  a second one. `datepicker#forwardAccessibleName` copies the caption across; with no
+  caption there was nothing to copy.
+
+A `date_range` with `presets:` is two controls over one param, and they are named
+separately: the period select falls back to its blank option ("Any date"), while the
+"Custom…" picker never borrows that text — a field the user opened precisely to stop saying
+"any date" cannot be called that. With no caption and no `aria_label:` the picker is named
+`bali_view.simple_filters.presets.custom_range` ("Custom date range").
+
+A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a `[Bali]`
+warning in development and test and renders anyway — a missing accessible name is not a
+reason to take a host's page down in production.
 
 #### Quick search (`search:`)
 
@@ -4556,7 +5262,7 @@ Build complex UIs by composing multiple components:
 Browse all components and their variations in Lookbook:
 
 ```bash
-cd spec/dummy && bin/dev
+cd test/dummy && bin/dev
 ```
 
 Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook)

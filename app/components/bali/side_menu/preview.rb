@@ -77,19 +77,19 @@ module Bali
       # @label Reveal current item
       # @param reveal_current toggle
       # @param fixed toggle
-      # Cada navegación re-renderiza el sidebar y su scroll vuelve arriba. En un menú más
-      # alto que la pantalla eso deja el ítem activo FUERA DE VISTA: llegás a una página y
-      # el menú no te muestra dónde estás.
+      # Every navigation re-renders the sidebar and its scroll returns to the top. In a menu
+      # taller than the screen that leaves the active item OUT OF VIEW: you land on a page
+      # and the menu does not show you where you are.
       #
-      # Este preview recorta el menú a 380 px con 18 entradas y la página actual
-      # (`/reports/audit-log`) casi al final. Con el toggle encendido —el default— el menú
-      # abre ya scrolleado hasta "Audit Log"; apagalo y recargá para ver el problema.
+      # This preview crops the menu to 380 px with 18 entries and the current page
+      # (`/reports/audit-log`) almost at the end. With the toggle on — the default — the
+      # menu opens already scrolled to "Audit Log"; turn it off and reload to see the problem.
       #
-      # Solo mueve el scroll del propio menú, nunca el de la página, y no hace nada cuando
-      # el ítem ya se ve. Encendé `fixed` y angostá la ventana por debajo de `lg` para el
-      # otro caso: ahí el sidebar es un drawer, y mientras está cerrado está `inert` y fuera
-      # de pantalla, así que el reveal ESPERA a que se abra — medirlo antes gastaría el
-      # scroll en un panel que nadie está viendo.
+      # It only ever moves the menu's own scroll, never the page's, and it does nothing when
+      # the item is already visible. Turn `fixed` on and narrow the window below `lg` for the
+      # other case: there the sidebar is a drawer, and while closed it is `inert` and
+      # off-screen, so the reveal WAITS for it to open — measuring before that would spend
+      # the scroll on a panel nobody is looking at.
       def reveal_current(reveal_current: true, fixed: false)
         render_with_template(
           template: "bali/side_menu/previews/reveal_current",

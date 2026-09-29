@@ -1,4 +1,12 @@
 GIT
+  remote: https://github.com/Grupo-AFAL/bali-rubocop.git
+  revision: cfecb22c67bb2e4f4f1e8b4d56f8fbf41c9932f4
+  tag: v0.1.0
+  specs:
+    bali-rubocop (0.1.0)
+      rubocop (>= 1.70)
+
+GIT
   remote: https://github.com/square/ruby-rrule
   revision: 7e11c7eff4eefd8faaf166546a94d04df84dbe2c
   specs:
@@ -8,12 +16,14 @@ GIT
 PATH
   remote: .
   specs:
-    bali_view_components (3.4.0)
+    bali_view_components (3.5.0)
       caxlsx
+      csv
       diff-lcs (>= 1.5, < 3.0)
       lucide-rails (>= 0.3.0, < 0.8)
       rails (>= 8.1, < 9.0)
       ransack
+      simple_command
       view_component (>= 4.0.0, < 5.0)
       view_component-contrib
 
@@ -325,7 +335,7 @@ GEM
     rubyzip (3.4.1)
     securerandom (0.4.1)
     simple_command (1.0.1)
-    simplecov (1.1.1)
+    simplecov (1.3.0)
     sqlite3 (2.9.6-aarch64-linux-gnu)
     sqlite3 (2.9.6-aarch64-linux-musl)
     sqlite3 (2.9.6-arm-linux-gnu)
@@ -386,6 +396,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  bali-rubocop!
   bali_view_components!
   brakeman
   bundler-audit
@@ -429,7 +440,8 @@ CHECKSUMS
   activesupport (8.1.3.1) sha256=85458765f25ea48b9019c46b6bb3fa5683197bf4280d9f06710a6e8d7a831376
   addressable (2.9.0) sha256=7fdf6ac3660f7f4e867a0838be3f6cf722ace541dd97767fa42bc6cfa980c7af
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
-  bali_view_components (3.4.0)
+  bali-rubocop (0.1.0)
+  bali_view_components (3.5.0)
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
   brakeman (8.0.6) sha256=759cc69341115e6c2dcd47b6fd8649a0b9bd540e3585ac8a0a94e31c66fee386
@@ -523,7 +535,7 @@ CHECKSUMS
   rubyzip (3.4.1) sha256=0a79e745b5c25872ebd148457df5665da8530ed8626c993b01457128f173ca02
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
   simple_command (1.0.1) sha256=abae895cb11ae8fd99e40a144e6e8e3d199f41e83d4cd747718782bed9f908bb
-  simplecov (1.1.1) sha256=25825ef13f0b2e74694d769817dad6ab8e90131dabdaa666e522fea105521e78
+  simplecov (1.3.0) sha256=d9886307863c1ead47657dcbed869bfffd82318808b09014d8f0ff77dcfe7492
   sqlite3 (2.9.6-aarch64-linux-gnu) sha256=d8b1f7d23efd7abac285775a9566562fc7debfef79d594e3a20354406fb7907c
   sqlite3 (2.9.6-aarch64-linux-musl) sha256=3579e1c98cdc7ff5c3722847bb63ed4e1efb7ff675cb5e1e48ef2d4da5fb3bc9
   sqlite3 (2.9.6-arm-linux-gnu) sha256=33541500e3615da02afe54a9cc38b17a6985d3cf9d8b76d6d0a83002f114e7ec

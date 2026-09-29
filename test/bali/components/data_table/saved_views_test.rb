@@ -33,8 +33,8 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
   end
 
   def test_the_popover_opens_to_the_left_now_that_the_control_lives_on_the_left
-    # Anclado al borde derecho de su trigger (`dropdown-end`) el panel abría hacia afuera de
-    # la fila a la que pertenece, desde que el control se mudó al grupo izquierdo.
+    # Anchored to the right edge of its trigger (`dropdown-end`) the panel opened away from the row
+    # it belongs to, ever since the control moved into the left group.
     render_component(form)
 
     assert_selector "[data-controller='saved-views'].dropdown"
@@ -47,9 +47,9 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "[data-controller='saved-views']"
     assert_selector "a[href='/listado?saved_view=1']", text: "Activos"
     assert_selector "a[href='/listado?saved_view=2']", text: "Míos"
-    # Form de guardar: POST a la URL de la app con el payload serializado en un hidden.
+    # The save form: POST to the app's URL with the payload serialised in a hidden field.
     assert_selector "form[action='/vistas'] input[name='payload']", visible: :all
-    # Renombrar/borrar apuntan a la ruta del recurso.
+    # Rename/delete point at the resource's route.
     assert_selector "form[action='/vistas/1']", visible: :all
   end
 
@@ -75,7 +75,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "a[href='/listado?vista=tabla&saved_view=1']"
   end
 
-  # --- Store default del engine (saved_views_store: :default) ---
+  # --- The engine's default store (saved_views_store: :default) ---
 
   def owner
     @owner ||= User.create!(name: "Ana")
@@ -116,15 +116,15 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
       dt.with_table { "".html_safe }
     end
 
-    # POST del form de guardar contra las rutas del engine montado, con el storage_id
-    # del propio FilterForm en el query string.
+    # The save form POSTs against the mounted engine's routes, with the FilterForm's own storage_id
+    # in the query string.
     assert_selector "form[action='/bali/saved_views?storage_id=movies_index']", visible: :all
   end
 
   def test_saved_views_and_the_column_selector_agree_on_the_listing_target
-    # El JS de saved-views encuentra al selector de columnas comparando ESTA cadena exacta,
-    # y lee sus columnas guardadas de ESTA llave: si las dos derivaciones se separan,
-    # guardar una vista pierde las columnas sin fallar en ningún lado.
+    # The saved-views JS finds the column selector by comparing THIS exact string, and reads its
+    # stored columns from THIS key: if the two derivations drift apart, saving a view loses the
+    # columns without failing anywhere.
     render_inline(Bali::DataTable::Component.new(url: "/listado", filter_form: default_form)) do |dt|
       dt.with_saved_views
       dt.with_column_selector { |cs| cs.with_column(index: 0, label: "Nombre") }
@@ -138,8 +138,8 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
   end
 
   def test_applying_a_view_keeps_the_current_display_mode
-    # El view switch preserva `saved_view` a propósito; la dirección inversa tiene que ser
-    # simétrica — aplicar una vista no puede sacar al usuario del modo que está mirando.
+    # The view switch preserves `saved_view` on purpose; the reverse direction has to be symmetric —
+    # applying a view cannot take the user out of the mode they are looking at.
     render_inline(Bali::DataTable::Component.new(url: "/listado", filter_form: form,
                                                  display_mode: :grid)) do |dt|
       dt.with_saved_views(url: "/vistas")
@@ -159,9 +159,9 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
   end
 
   def test_the_columns_imposed_by_the_applied_view_travel_to_the_controller
-    # Sin selector en el DOM (modos que no son tabla) el JS caía a localStorage, que es la
-    # memoria ANTERIOR a la vista: guardar desde tarjetas persistía columnas que el usuario
-    # no estaba viendo.
+    # With no selector in the DOM (modes other than table) the JS fell back to localStorage, which is
+    # the memory from BEFORE the view: saving from cards persisted columns the user was not looking
+    # at.
     columns_store = FakeStore.new([
       SavedView.new(id: 5, name: "Compacta", payload: { "attributes" => {}, "columns" => [ 1, 3 ] })
     ])
@@ -181,7 +181,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_no_selector "[data-controller='saved-views']"
   end
 
-  # --- Vista activa por coincidencia de ESTADO (la persistencia deja la URL limpia) ---
+  # --- Active view by STATE match (persistence leaves the URL clean) ---
 
   class NamedMovieFilterForm < Bali::FilterForm
     attribute :name_i_cont, :string
@@ -192,9 +192,9 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
   end
 
   def test_a_personal_view_matching_the_current_state_is_active_without_the_url_param
-    # El payload de "Activos" (name_i_cont: "a") describe el estado actual del form aunque
-    # la URL no traiga ?saved_view — exactamente lo que pasa tras una restauración de
-    # persistencia o al navegar de regreso.
+    # The payload of "Activos" (name_i_cont: "a") describes the form's current state even when the
+    # URL carries no ?saved_view — exactly what happens after a persistence restore or when
+    # navigating back.
     matching = named_form(ActionController::Parameters.new(q: { name_i_cont: "a" }))
     render_component(matching)
 
@@ -215,8 +215,8 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
   end
 
   def test_the_view_applied_by_url_wins_over_state_matching
-    # saved_view=2 aplicado explícitamente gana la marca aunque el estado también
-    # coincida con otra vista: una sola activa, sin doble marca.
+    # An explicitly applied saved_view=2 wins the marker even when the state also matches another
+    # view: one active view, no double marking.
     applied = named_form(ActionController::Parameters.new(saved_view: "2"))
     render_component(applied)
 
@@ -225,30 +225,30 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "button", text: "Míos"
   end
 
-  # --- R5 (ronda adversarial): la marca activa no puede MENTIR ---
+  # --- The active marker cannot LIE ---
 
   def test_a_view_whose_payload_normalizes_to_empty_never_matches_by_state
-    # Caso insignia de B2 ("guardo mi arreglo de columnas"): payload sin filtros. Describe el
-    # estado limpio, así que casaba en CADA visita y se marcaba activa aunque sus columnas no
-    # estuvieran aplicadas (columns solo se aplica con ?saved_view=).
+    # B2's flagship case ("I save my column arrangement"): a payload with no filters. It describes
+    # the clean state, so it matched on EVERY visit and marked itself active even though its columns
+    # were not applied (columns only apply with ?saved_view=).
     columns_only = FakeStore.new([
       SavedView.new(id: 9, name: "Compacta", payload: { "attributes" => {}, "columns" => [ 0, 1 ] })
     ])
     render_component(named_form(ActionController::Parameters.new, views_store: columns_only))
 
     assert_no_selector "a.text-primary"
-    # El botón conserva su etiqueta genérica: no hay vista que nombrar.
+    # The button keeps its generic label: there is no view to name.
     assert_selector "button", text: I18n.t("bali_view.data_table.saved_views.button_label")
 
-    # Aplicada por URL sí se reconoce: ahí el estado de la vista realmente está impuesto.
+    # Applied by URL it is recognised: there the view's state really is imposed.
     render_component(named_form(ActionController::Parameters.new(saved_view: "9"),
                                 views_store: columns_only))
     assert_selector "a[href='/listado?saved_view=9'].text-primary"
   end
 
   def test_a_shortcut_stays_marked_after_the_builder_round_trip_adds_the_default_m
-    # El builder re-emite q[g][0][m]=or aunque la URL del atajo no lo trajera: sin normalizar
-    # ese combinador no-op, el atajo se desmarcaba tras aplicar el popover o buscar una vez.
+    # The builder re-emits q[g][0][m]=or even when the shortcut's URL never carried it: without
+    # normalising that no-op combinator, the shortcut lost its mark after one popover apply or search.
     state = ActionController::Parameters.new(q: { g: { "0" => { name_i_cont: "a", m: "or" } } })
     render_component(named_form(state, views_store: FakeStore.new([])),
                      default_views: [ { name: "Con a", url: "/listado?q%5Bg%5D%5B0%5D%5Bname_i_cont%5D=a" } ])
@@ -257,7 +257,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
   end
 
   def test_a_shortcut_matches_on_the_groupings_shape_used_by_real_apps
-    # Los atajos reales viajan como q[g][0][attr_eq] (no como attributes planos).
+    # Real shortcuts travel as q[g][0][attr_eq] (not as flat attributes).
     state = ActionController::Parameters.new(q: { g: { "0" => { name_i_cont: "rojo" } } })
     render_component(named_form(state, views_store: FakeStore.new([])),
                      default_views: [
@@ -276,11 +276,11 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "button", text: "Save current view"
   end
 
-  # Con la vista aplicada y el estado INTACTO no hay nada que actualizar: ofrecerlo prometería
-  # guardar algo que ya está guardado.
-  # El payload va en `groupings` y no en `attributes`: un atributo NO declarado se descarta al
-  # aplicar la vista (el gate de seguridad del FilterForm), así que el estado nunca casaría con
-  # el payload y la vista se leería como modificada — artefacto de la fixture, no del componente.
+  # With the view applied and the state UNTOUCHED there is nothing to update: offering it would
+  # promise to save something that is already saved.
+  # The payload goes in `groupings` and not in `attributes`: an UNdeclared attribute is discarded when
+  # the view is applied (the FilterForm's safety gate), so the state would never match the payload
+  # and the view would read as modified — an artefact of the fixture, not of the component.
   def origin_store
     FakeStore.new([
       SavedView.new(id: 7, name: "Rojos",
@@ -295,7 +295,6 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "button", text: "Save current view"
   end
 
-  # Desviado del origen: actualizar pasa a primario y guardar se vuelve "como nueva".
   def test_a_drifted_origin_offers_updating_it_and_demotes_saving
     state = ActionController::Parameters.new(view_origin: "7", q: { g: { "0" => { name_i_cont: "verde" } } })
     render_component(form(state, views_store: origin_store))
@@ -305,7 +304,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "button", text: "Save as new view"
   end
 
-  # El PATCH de actualizar es destructivo: pisa la configuración guardada.
+  # The update PATCH is destructive: it overwrites the saved configuration.
   def test_updating_a_view_asks_for_confirmation
     state = ActionController::Parameters.new(view_origin: "7", q: { g: { "0" => { name_i_cont: "verde" } } })
     render_component(form(state, views_store: origin_store))
@@ -313,7 +312,6 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "form[data-turbo-confirm*='Rojos']"
   end
 
-  # Una vista de origen borrada entre requests no puede tumbar el listado.
   def test_a_missing_origin_view_degrades_to_saving
     render_component(form(ActionController::Parameters.new(view_origin: "999")))
 
@@ -328,13 +326,13 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_equal ids.uniq.size, ids.size, "los ids de los inputs de nombre deben ser únicos"
   end
 
-  # El marcado embarcado no puede depender de la configuración del anfitrión: los tres forms
-  # del dropdown (renombrar, actualizar y guardar) declaran el builder de Rails, así que rinden
-  # igual con y sin `default_form_builder = Bali::FormBuilder` puesto por el host (#1137).
-  # Quitar ese `builder:` de la vista devuelve `f.text_field` a `div.control` y `f.submit` a
-  # `<button>`, y esta comparación falla.
+  # The shipped markup cannot depend on the host's configuration: the dropdown's three forms (rename,
+  # update and save) declare Rails' builder, so they render the same with and without
+  # `default_form_builder = Bali::FormBuilder` set by the host (#1137). Remove that `builder:` from
+  # the view and `f.text_field` goes back to `div.control` and `f.submit` to a `<button>`, and this
+  # comparison fails.
   def test_the_internal_forms_render_the_same_under_the_hosts_default_builder
-    # El estado desviado de su vista de origen es el que deja los tres forms en pantalla.
+    # The state that has drifted from its origin view is what leaves all three forms on screen.
     state = ActionController::Parameters.new(view_origin: "7", q: { g: { "0" => { name_i_cont: "verde" } } })
     with_rails_default = render_component(form(state, views_store: origin_store)).to_html
     with_bali_default = with_default_form_builder(Bali::FormBuilder) do
@@ -343,10 +341,10 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_equal with_rails_default, with_bali_default
 
-    # `page` quedó en el segundo render (el del builder de Bali por omisión): lo concreto que
-    # se perdía ahí era el submit plano de Rails con su `name="commit"`, y el input se iba
-    # envuelto en el `div.control` del builder. `visible: :all` porque el form de guardar nace
-    # oculto.
+    # `page` is left holding the second render (the one under Bali's builder as the default): what
+    # concretely got lost there was Rails' plain submit with its `name="commit"`, and the input went
+    # out wrapped in the builder's `div.control`. `visible: :all` because the save form is born
+    # hidden.
     assert_selector "form[action='/vistas/7'] input[type='submit'][name='commit']", visible: :all
     assert_no_selector "div.control", visible: :all
   end

@@ -3,20 +3,20 @@
 module Bali
   module Frame
     class Preview < ApplicationViewComponentPreview
-      # Frame con contenido propio: el bloque es el contenido del frame. El
-      # placeholder de carga aparece cuando algo recarga el frame (un link con
-      # `data-turbo-frame` apuntando aquí, o un botón de "Refrescar").
+      # A frame with its own content: the block is the frame's content. The loading
+      # placeholder appears when something reloads the frame (a link with
+      # `data-turbo-frame` pointing here, or a "Refresh" button).
       # @param text text
-      def default(text: "Cargando…")
+      def default(text: "Loading…")
         render Frame::Component.new(id: "frame-preview-default", text: text) do
-          "Contenido cargado del frame."
+          "Content loaded from the frame."
         end
       end
 
       # @label Loading state
-      # El placeholder que se ve mientras el frame está `[busy]` —la primera carga
-      # diferida o una recarga dirigida al frame—. Aquí se fuerza `[busy]` para
-      # verlo sin un backend que responda el `src`.
+      # The placeholder shown while the frame is `[busy]` —the first deferred load
+      # or a reload targeted at the frame—. Here `[busy]` is forced so it can be
+      # seen without a backend answering the `src`.
       def loading_state
         render_with_template
       end

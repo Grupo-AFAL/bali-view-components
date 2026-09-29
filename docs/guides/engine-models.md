@@ -459,7 +459,7 @@ itself under someone because a library was upgraded. To move existing rows, migr
 `view_all_path` is on `Base` rather than on `ListBase`, because a figure, a trend and a ring
 all link somewhere just as a list does. Route helpers are not available to a widget by default:
 put `include Rails.application.routes.url_helpers` in a concern your widgets share, the way
-`spec/dummy/app/widgets/widget_routes.rb` does. (A shared `ApplicationWidget` superclass is not
+`test/dummy/app/widgets/widget_routes.rb` does. (A shared `ApplicationWidget` superclass is not
 an option here — the superclass slot belongs to the pattern.)
 
 `authorized?` is a HOOK, never a rule Bali owns: roles, tenancy and feature flags are things only

@@ -87,13 +87,14 @@ module Bali
       end
 
       def build_checkbox_options(method, options)
-        checkbox_class = [
+        checkbox_class = @template.token_list(
           CHECKBOX_CLASS,
           size_variant(options, SIZES),
           COLORS[options[:color]],
           (errors?(method, options) ? "checkbox-error" : nil),
-          options[:class]
-        ].compact.join(" ")
+          options[:class],
+          options[:input_class]
+        )
 
         attributes = html_attributes(options).except(*CHECKBOX_OPTIONS)
                                              .merge(class: checkbox_class)

@@ -1,93 +1,92 @@
-// El bloque de `SimpleFilters` lleva la etiqueta ARRIBA de cada control, asi que mide el
-// doble que cualquier vecino de una linea, y envuelve a dos renglones cuando la fila
-// aprieta. Con la toolbar centrada, todo lo que comparte fila con el se alineaba contra el
-// CENTRO del bloque en vez de contra su linea de controles: medido en /admin/studios a
-// 1900px, el ⋯ a y=226 y el boton Filter —que vive en la ultima linea de ese bloque— a
-// y=264, 38px abajo.
+// The `SimpleFilters` block carries the label ABOVE each control, so it is twice as tall as
+// any single-line neighbour, and wraps to two rows when the row gets tight. With the toolbar
+// centered, everything sharing the row with it aligned against the block's CENTER instead of
+// against its line of controls: measured on /admin/studios at 1900px, the ⋯ at y=226 and the
+// Filter button —which lives on the last line of that block— at y=264, 38px below.
 //
-// La pagina es `/admin/studios` y no un preview porque hacen falta las dos cosas juntas:
-// `SimpleFilters` y controles colapsables que llenen el ⋯. El preview
-// `data_table/with_simple_filters` tiene lo primero y no lo segundo, asi que ahi el ⋯ ni
-// se renderiza. El origen se deriva de `baseUrl` en vez de escribirse: un
-// `http://localhost:3001` literal ignora CYPRESS_BASE_URL y prueba en silencio el servidor
-// de otro checkout cuando la suite corre desde un worktree.
+// The page is `/admin/studios` and not a preview because both things have to be there at
+// once: `SimpleFilters` and collapsible controls that fill the ⋯. The preview
+// `data_table/with_simple_filters` has the first and not the second, so the ⋯ does not even
+// render there. The origin is derived from `baseUrl` instead of written out: a literal
+// `http://localhost:3001` ignores CYPRESS_BASE_URL and silently tests another checkout's
+// server when the suite runs from a worktree.
 const appOrigin = new URL(Cypress.config('baseUrl')).origin
-const estudios = () => cy.visit(`${appOrigin}/admin/studios`)
+const studios = () => cy.visit(`${appOrigin}/admin/studios`)
 
-const filaFiltros = () => cy.get('.data-table-component form > div').first()
-const abajo = el => Math.round(el.getBoundingClientRect().bottom)
+const filtersRow = () => cy.get('.data-table-component form > div').first()
+const bottom = el => Math.round(el.getBoundingClientRect().bottom)
 
-describe('DataTable: la fila de la toolbar se alinea por su linea de controles', () => {
-  it('apoya el ⋯ en la misma linea que el boton de filtrar', () => {
+describe('DataTable: the toolbar row aligns on its line of controls', () => {
+  it('rests the ⋯ on the same line as the filter button', () => {
     cy.viewport(1900, 1000)
-    estudios()
+    studios()
 
-    // La valvula tarda: los controles que desbordan la fila crecen DESPUES del primer
-    // layout (SlimSelect reemplaza su select, flatpickr monta el suyo), asi que el ⋯ no
-    // esta ahi al montar.
+    // The valve is late: the controls that overflow the row grow AFTER the first layout
+    // (SlimSelect replaces its select, flatpickr mounts its own), so the ⋯ is not there
+    // at mount.
     cy.get('[data-toolbar-overflow-target="overflow"]').should('not.have.class', 'hidden')
 
     cy.get('.data-table-component form button[type="submit"]').first().then($submit => {
-      cy.get('[data-toolbar-overflow-target="overflow"] .btn').first().then($puntos => {
-        expect(abajo($puntos[0]) - abajo($submit[0]), 'diferencia vertical').to.equal(0)
+      cy.get('[data-toolbar-overflow-target="overflow"] .btn').first().then($dots => {
+        expect(bottom($dots[0]) - bottom($submit[0]), 'vertical difference').to.equal(0)
       })
     })
   })
 
-  // Alinear la FILA corrige un nivel y deja el otro: los grupos que la componen tambien
-  // alinean a sus hijos, y el unico que contiene el bloque alto los centraba contra el.
-  // Medido con la fila alineada pero los grupos centrados, a 2600px: "Views" y el marcador
-  // de persistencia a 0 del boton Filter, pero "Group by" y "Columns" 11px arriba.
-  it('deja TODOS los controles de la toolbar en la misma linea', () => {
-    cy.viewport(2600, 1000) // ancho de sobra: nada colapsa y la fila de filtros no envuelve
-    estudios()
+  // Aligning the ROW fixes one level and leaves the other: the groups that make it up align
+  // their own children too, and the only one holding the tall block centered them against it.
+  // Measured with the row aligned but the groups centered, at 2600px: "Views" and the
+  // persistence marker at 0 from the Filter button, but "Group by" and "Columns" 11px above.
+  it('leaves ALL the toolbar controls on the same line', () => {
+    cy.viewport(2600, 1000) // width to spare: nothing collapses and the filters row does not wrap
+    studios()
     cy.get('[data-controller~="toolbar-overflow"]').should('exist')
     cy.get('[data-toolbar-overflow-target="menu"]').should($m => {
-      expect($m[0].children.length, 'nada colapso a este ancho').to.equal(0)
+      expect($m[0].children.length, 'nothing collapsed at this width').to.equal(0)
     })
 
     cy.get('.data-table-component form button[type="submit"]').first().then($submit => {
-      const linea = abajo($submit[0])
+      const line = bottom($submit[0])
 
       cy.get('[data-controller~="toolbar-overflow"] [aria-label]').each($control => {
         const el = $control[0]
-        if (el.getBoundingClientRect().height === 0) return // dentro de un dropdown cerrado
+        if (el.getBoundingClientRect().height === 0) return // inside a closed dropdown
         if ($submit[0].contains(el) || el.contains($submit[0])) return
 
-        expect(abajo(el), `${el.getAttribute('aria-label')} en la linea de controles`)
-          .to.equal(linea)
+        expect(bottom(el), `${el.getAttribute('aria-label')} on the line of controls`)
+          .to.equal(line)
       })
     })
   })
 
-  // Los 4px de relleno que se quitaron para lograr esa alineacion eran el lugar del anillo
-  // de foco del ultimo control: la fila era contenedor de scroll en TODOS los anchos
-  // (`overflow-x-auto` sin condicion) y un contenedor de scroll recorta en su caja de
-  // relleno. Arriba del breakpoint la fila envuelve y no scrollea nunca, asi que el
-  // overflow vuelve a `visible` y no queda nada que recortar.
-  it('no convierte la fila en contenedor de scroll donde no scrollea', () => {
+  // The 4px of padding dropped to get that alignment were the place of the last control's
+  // focus ring: the row was a scroll container at ALL widths (`overflow-x-auto` with no
+  // condition) and a scroll container clips at its padding box. Above the breakpoint the row
+  // wraps and never scrolls, so the overflow goes back to `visible` and there is nothing
+  // left to clip.
+  it('does not turn the row into a scroll container where it does not scroll', () => {
     cy.viewport(1900, 1000)
-    estudios()
+    studios()
 
-    filaFiltros().should($fila => {
-      const cs = window.getComputedStyle($fila[0])
-      expect(cs.overflowX, 'sin contenedor de scroll').to.equal('visible')
+    filtersRow().should($row => {
+      const cs = window.getComputedStyle($row[0])
+      expect(cs.overflowX, 'no scroll container').to.equal('visible')
       expect(cs.overflowY).to.equal('visible')
     })
   })
 
-  // Debajo del breakpoint no cambia nada: ahi la fila SI scrollea en horizontal y el hueco
-  // de abajo es el de su barra.
-  it('conserva el scroll horizontal de los filtros en un telefono', () => {
+  // Below the breakpoint nothing changes: there the row DOES scroll horizontally and the gap
+  // underneath is its scrollbar's.
+  it('keeps the horizontal scroll of the filters on a phone', () => {
     cy.viewport(375, 800)
-    estudios()
+    studios()
 
-    filaFiltros().should($fila => {
-      const cs = window.getComputedStyle($fila[0])
+    filtersRow().should($row => {
+      const cs = window.getComputedStyle($row[0])
       expect(cs.overflowX).to.equal('auto')
-      expect(parseFloat(cs.paddingBottom), 'el hueco de la barra sigue').to.be.greaterThan(0)
-      expect($fila[0].scrollWidth, 'y hay de donde scrollear').to.be.greaterThan(
-        $fila[0].clientWidth
+      expect(parseFloat(cs.paddingBottom), 'the scrollbar gap is still there').to.be.greaterThan(0)
+      expect($row[0].scrollWidth, 'and there is somewhere to scroll').to.be.greaterThan(
+        $row[0].clientWidth
       )
     })
   })

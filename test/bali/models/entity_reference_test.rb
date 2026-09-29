@@ -39,8 +39,8 @@ class BaliEntityReferenceTest < ActiveSupport::TestCase
 
     project.destroy!
 
-    # Sin foreign key: la fila sobrevive para pintarse como chip roto. Un ON DELETE la
-    # habría borrado y el lector perdería la señal de que ahí decía algo.
+    # No foreign key: the row survives so it can be painted as a broken chip. An ON DELETE would have
+    # wiped it and the reader would lose the signal that something was said there.
     assert_predicate reference.reload, :persisted?
     assert_nil reference.referenceable
     assert_predicate reference, :broken?

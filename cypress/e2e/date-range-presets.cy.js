@@ -1,22 +1,22 @@
-// Los presets de periodo de un filtro `date_range` (#725): el select manda un TOKEN por el
-// mismo param que el rango explícito, y "Personalizado…" revela el flatpickr.
+// Period presets on a `date_range` filter (#725): the select sends a TOKEN through the same
+// param as the explicit range, and "Custom…" reveals the flatpickr.
 //
-// Vive contra `/admin/studios` y no contra un preview de Lookbook porque lo que hay que
-// probar es el round-trip: el token tiene que salir en el request, recortar el listado en el
-// server y volver pintado en el select. Un preview renderiza el widget pero no consulta nada.
-describe('Presets de periodo en un filtro de rango de fechas', () => {
-  // El dummy vive arriba del path de previews al que apunta `baseUrl`, así que el origen se
-  // deriva de él: un `http://localhost:3001` literal ignora CYPRESS_BASE_URL y prueba en
-  // silencio el server de otro checkout.
+// It runs against `/admin/studios` and not against a Lookbook preview because what has to be
+// tested is the round-trip: the token has to go out in the request, narrow the listing on the
+// server and come back selected in the select. A preview renders the widget but queries nothing.
+describe('Period presets on a date range filter', () => {
+  // The dummy lives above the preview path `baseUrl` points at, so the origin is derived from
+  // it: a literal `http://localhost:3001` ignores CYPRESS_BASE_URL and silently tests another
+  // checkout's server.
   const appOrigin = new URL(Cypress.config('baseUrl')).origin
   const listing = `${appOrigin}/admin/studios`
 
   const periodSelect = () => cy.get('select[data-time-period-field-target="select"]')
   const hiddenField = () => cy.get('input[type="hidden"][name="q[created_at]"]')
 
-  // Se afirma sobre el REQUEST y no sobre `location.search`. El submit es un GET de Turbo,
-  // que trae la página por fetch y actualiza la barra de direcciones después: leer la URL
-  // mide cuándo la escribió Turbo, no si el filtro viajó. El request es el dato.
+  // The assertion is on the REQUEST and not on `location.search`. The submit is a Turbo GET,
+  // which fetches the page and updates the address bar afterwards: reading the URL measures
+  // when Turbo wrote it, not whether the filter travelled. The request is the evidence.
   const submitAndCaptureRequest = () => {
     cy.intercept('GET', '/admin/studios*').as('filtered')
     cy.get('form[data-turbo-frame="_top"] button[type="submit"]').first().click()
@@ -28,45 +28,44 @@ describe('Presets de periodo en un filtro de rango de fechas', () => {
     cy.visit(listing)
   })
 
-  it('manda el token en el mismo param del rango y lo devuelve elegido', () => {
+  it('sends the token in the same param as the range and gives it back selected', () => {
     periodSelect().select('this_month')
-    // El controller escribe el hidden en cuanto cambia el select — eso es lo único que el
-    // form manda.
+    // The controller writes the hidden as soon as the select changes — that is the only thing
+    // the form submits.
     hiddenField().should('have.value', 'this_month')
 
     submitAndCaptureRequest().should('include', 'q%5Bcreated_at%5D=this_month')
 
-    // La otra mitad: que el token vuelva PINTADO, no que solo haya viajado.
+    // The other half: that the token comes back SELECTED, not just that it travelled.
     periodSelect().should('have.value', 'this_month')
     hiddenField().should('have.value', 'this_month')
   })
 
-  it('el token recorta de verdad: un periodo sin registros vacía el listado', () => {
-    // El seed crea los studios hoy, así que "este mes" los toma a todos y no distingue un
-    // filtro aplicado de uno ignorado. Un rango viejo sí: si el `where` no corriera, la
-    // tabla seguiría llena.
+  it('the token really narrows: a period with no records empties the listing', () => {
+    // The seed creates the studios today, so "this month" takes them all and does not tell an
+    // applied filter from an ignored one. An old range does: if the `where` did not run, the
+    // table would still be full.
     cy.get('tbody tr').should('have.length.greaterThan', 1)
 
     cy.visit(`${listing}?q[created_at]=2001-01-01 to 2001-12-31`)
     cy.contains(/no results/i).should('exist')
-    cy.get('tbody tr').should('have.length', 1) // la fila del empty state
+    cy.get('tbody tr').should('have.length', 1) // the empty state row
   })
 
-  it('esconde el flatpickr hasta que se elige "Personalizado…"', () => {
-    // En reposo el picker no está, y el `hidden` viaja en el HTML del server: no es el JS
-    // el que lo esconde una interacción tarde.
+  it('hides the flatpickr until "Custom…" is chosen', () => {
+    // At rest the picker is not there, and the `hidden` travels in the server HTML: it is not
+    // the JS that hides it one interaction late.
     cy.get('.flatpickr').should('not.be.visible')
 
     periodSelect().select('custom')
     cy.get('.flatpickr').should('be.visible')
 
-    // Y al volver a un preset se esconde otra vez.
     periodSelect().select('today')
     cy.get('.flatpickr').should('not.be.visible')
     hiddenField().should('have.value', 'today')
   })
 
-  it('vuelve en "Personalizado…" con el rango puesto cuando el filtro no es un token', () => {
+  it('comes back on "Custom…" with the range filled in when the filter is not a token', () => {
     cy.visit(`${listing}?q[created_at]=2020-01-01 to 2035-12-31`)
 
     periodSelect().should('have.value', 'custom')
@@ -74,9 +73,9 @@ describe('Presets de periodo en un filtro de rango de fechas', () => {
     hiddenField().should('have.value', '2020-01-01 to 2035-12-31')
   })
 
-  it('el select y el picker no mandan params propios: el hidden es el único con name', () => {
-    // Dos controles con el mismo `name` mandarían `q[created_at]` dos veces y el server se
-    // quedaría con el último, que no es necesariamente el que se ve.
+  it('the select and the picker send no params of their own: only the hidden has a name', () => {
+    // Two controls with the same `name` would send `q[created_at]` twice and the server would
+    // keep the last one, which is not necessarily the one on screen.
     cy.get('[data-controller="time-period-field"]')
       .find('[name="q[created_at]"]')
       .should('have.length', 1)
@@ -84,7 +83,7 @@ describe('Presets de periodo en un filtro de rango de fechas', () => {
 
     periodSelect().select('this_week')
     submitAndCaptureRequest().then(url => {
-      expect(url.match(/created_at/g), 'el param viaja UNA vez').to.have.length(1)
+      expect(url.match(/created_at/g), 'the param travels ONCE').to.have.length(1)
       expect(url).to.include('q%5Bcreated_at%5D=this_week')
     })
   })

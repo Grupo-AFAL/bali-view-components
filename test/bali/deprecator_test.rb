@@ -43,8 +43,8 @@ class BaliDeprecatorTest < ActiveSupport::TestCase
     assert_equal([], form_class.new(Movie.all, ActionController::Parameters.new).available_attributes)
   end
 
-  # Los dos componentes que #684 deja atrás. Ninguno se borra en v3: el aviso sale al
-  # construirlos y el render sigue siendo el de siempre.
+  # The two components #684 leaves behind. Neither is deleted in v3: the warning fires on
+  # construction and the render is the one it always was.
   def test_level_and_info_level_warn_through_the_bali_deprecator
     level = capture_warning { Bali::Level::Component.new }
     assert_match(/Bali::Level::Component is deprecated/, level)
@@ -55,9 +55,8 @@ class BaliDeprecatorTest < ActiveSupport::TestCase
     assert_match(/Bali::StatCard::Component/, info_level)
   end
 
-  # PageHeader todavía se apoya en Level por dentro. Si el aviso saliera de ahí, un host que
-  # nunca escribió `Bali::Level` recibiría una deprecación por cada encabezado de página —
-  # ruido que no puede accionar.
+  # PageHeader still leans on Level internally. Were the warning to come out of there, a host that
+  # never wrote `Bali::Level` would get one deprecation per page header — noise they cannot act on.
   def test_page_header_does_not_leak_the_level_deprecation_to_the_host
     warnings = capture_warning do
       ApplicationController.render(

@@ -214,8 +214,8 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_text("Auto-saved")
   end
 
-  # El DataTable apaga el toggle porque lo pinta él en la toolbar, pero la leyenda del pie
-  # NO es un control: apagarla dejaría al panel sin decir que está guardando.
+  # The DataTable switches the toggle off because it paints one in the toolbar itself, but the
+  # footer's hint is NOT a control: switching it off would leave the panel not saying it is saving.
   def test_persistence_toggle_can_be_turned_off_without_losing_the_auto_saved_hint
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, storage_id: "users_filters",
@@ -293,8 +293,8 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_preserved_params_hidden_fields_carry_no_id
-    # En modo popover se pintan en LOS DOS forms (búsqueda rápida y panel): con el id
-    # derivado del name quedaban ids duplicados en el documento.
+    # In popover mode they are painted in BOTH forms (quick search and panel): with the id derived
+    # from the name that left duplicate ids in the document.
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes,
       search: { fields: [ :name ], value: "" }, preserved_params: { view: "grid" }
@@ -327,7 +327,7 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_no_selector('input[type="hidden"][name="q[name_cont]"]', visible: :hidden)
   end
 
-  # --- R5: la búsqueda rápida NO borra los filtros aplicados ---
+  # --- Quick search does NOT wipe the applied filters ---
 
   def test_the_search_form_carries_the_applied_filters_as_hidden_fields
     render_inline(Bali::Filters::Component.new(
@@ -339,19 +339,19 @@ class BaliFiltersComponentTest < ComponentTestCase
           { attribute: "status", operator: "eq", value: "active" },
           { attribute: "age", operator: "between", value: { start: "18", end: "30" } }
         ] },
-        # Fila del builder sin atributo/valor: NO debe viajar.
+        # A builder row with no attribute and no value: it must NOT travel.
         { combinator: "or", conditions: [ { attribute: "", operator: "cont", value: "" } ] }
       ]
     ))
 
     within = '[data-filters-target="searchForm"]'
     assert_selector "#{within} input[name='q[g][0][status_eq]'][value='active']", visible: :all
-    # `between` se re-expande al par gteq/lteq que el server parsea.
+    # `between` re-expands into the gteq/lteq pair the server parses.
     assert_selector "#{within} input[name='q[g][0][age_gteq]'][value='18']", visible: :all
     assert_selector "#{within} input[name='q[g][0][age_lteq]'][value='30']", visible: :all
     assert_selector "#{within} input[name='q[g][0][m]'][value='or']", visible: :all
     assert_selector "#{within} input[name='q[m]'][value='and']", visible: :all
-    # El grupo vacío del builder no aporta hidden fields.
+    # The builder's empty group contributes no hidden fields.
     assert_no_selector "#{within} input[name^='q[g][1]']", visible: :all
   end
 
@@ -381,11 +381,11 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector "#{within} input[name='q[g][0][status_in][]'][value='inactive']", visible: :all
   end
 
-  # --- R5 (ronda adversarial): el estado re-emitido no debe MUTAR lo aplicado ---
+  # --- The re-emitted state must not MUTATE what is applied ---
 
   def test_the_search_form_emits_the_applied_combinator_not_the_component_default
-    # Sin combinator aplicado no se emite q[m]: emitir el default "and" volteaba a AND un
-    # OR ya aplicado en cuanto el usuario tecleaba una búsqueda.
+    # With no applied combinator, q[m] is not emitted: emitting the "and" default flipped an already
+    # applied OR to AND the moment the user typed a search.
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes,
       search: { fields: [ :name ], value: "" },
@@ -406,8 +406,8 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_a_between_with_both_ends_blank_emits_no_phantom_group
-    # El popover serializa sus inputs vacíos, y un between {start:"",end:""} es un Hash
-    # (present?) — contaba como condición y emitía un grupo con solo los combinadores.
+    # The popover serialises its empty inputs, and a between {start:"",end:""} is a Hash (present?) —
+    # it counted as a condition and emitted a group carrying nothing but the combinators.
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes,
       search: { fields: [ :name ], value: "" }, combinator: "and",
@@ -421,8 +421,8 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_saved_view_is_not_preserved_so_submitting_does_not_reapply_the_view
-    # Con ?saved_view= preservado, el server re-aplicaba el payload de la vista y descartaba
-    # en silencio lo que el usuario acababa de escribir.
+    # With ?saved_view= preserved, the server re-applied the view's payload and silently discarded
+    # what the user had just typed.
     component = Bali::Filters::Component.new(
       url: "/users?saved_view=7&per=25", available_attributes: @available_attributes
     )
@@ -432,7 +432,7 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_not_includes names, "saved_view"
   end
 
-  # --- R5-04: los tooltips localizados viven en el ELEMENTO del controller ---
+  # --- The localised tooltips live on the controller's ELEMENT ---
 
   def test_the_persistence_toggle_carries_the_localized_tooltips_as_stimulus_values
     render_inline(Bali::Filters::Component.new(
@@ -440,7 +440,7 @@ class BaliFiltersComponentTest < ComponentTestCase
       storage_id: "users_index", persist_enabled: true
     ))
 
-    # En el botón hijo el Stimulus no los ve y el tooltip caía al fallback en inglés.
+    # On the child button Stimulus does not see them and the tooltip fell back to the English default.
     assert_selector "[data-controller='filter-persistence']" \
                     "[data-filter-persistence-enabled-tooltip-value]" \
                     "[data-filter-persistence-disabled-tooltip-value]"

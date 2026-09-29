@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
+import { readColumnState, writeColumnState } from './column_storage'
 
 /**
  * Column Selector Controller
@@ -12,6 +13,10 @@ import { syncPopoverAria } from './popover_aria'
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="0" checked>
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="1">  <!-- hidden by default -->
  *   </div>
+ *
+ * Column memory is read against `checkbox.defaultChecked`: it reflects the `checked` attribute
+ * the server rendered — the host's `with_column(visible:)` — and does not move when the user
+ * ticks the box, or when this code does. `column_storage.js` has the format and the why.
  */
 export default class extends Controller {
   static values = {
@@ -42,39 +47,57 @@ export default class extends Controller {
   }
 
   restoreStoredState () {
-    if (!this.storageKeyValue) return
+    const state = readColumnState(this.storageKeyValue)
+    if (!state) return
 
-    let stored
-    try {
-      stored = JSON.parse(window.localStorage.getItem(this.storageKeyValue))
-    } catch { return }
-    if (!Array.isArray(stored)) return
+    this.eachColumnCheckbox((checkbox, index) => {
+      if (!state.known.includes(index)) return
 
-    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
-      const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) checkbox.checked = stored.includes(index)
+      // What the host declared WHEN the memory was written. A v1 value recorded none (`null`),
+      // and there the best data available is what it declares now: crediting the user with a
+      // column the server already shipped hidden is the very mistake to avoid.
+      const declaredHidden = state.serverHidden
+        ? state.serverHidden.includes(index)
+        : !checkbox.defaultChecked
+      const wasHidden = state.hidden.includes(index)
+
+      // Only a difference is a decision. Equal means nobody chose, so the server keeps the say —
+      // and it may have changed its mind since.
+      if (wasHidden !== declaredHidden) checkbox.checked = !wasHidden
     })
+
+    // Rewriting here, and not only in `toggle`, is what gets the migration to someone who never
+    // opens the menu again. Idempotent: the next read already finds the full format.
+    if (state.stale) this.persistState()
   }
 
   persistState () {
     if (!this.storageKeyValue) return
 
-    const visible = [...this.element.querySelectorAll('[data-column-index]')]
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
-    try {
-      window.localStorage.setItem(this.storageKeyValue, JSON.stringify(visible))
-    } catch { /* almacenamiento lleno o bloqueado: la sesión sigue sin persistir */ }
+    const hidden = []
+    const known = []
+    const serverHidden = []
+    this.eachColumnCheckbox((checkbox, index) => {
+      known.push(index)
+      if (!checkbox.checked) hidden.push(index)
+      if (!checkbox.defaultChecked) serverHidden.push(index)
+    })
+
+    writeColumnState(this.storageKeyValue, { hidden, known, serverHidden })
+  }
+
+  // `known` comes from the checkboxes present, not from the table's columns: what is remembered
+  // is what can be toggled. With `selectable:`, column 0 is the selection box — a real `<th>`
+  // the selector does not declare — so the indices start at 1.
+  eachColumnCheckbox (callback) {
+    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
+      const index = parseInt(checkbox.dataset.columnIndex, 10)
+      if (!isNaN(index)) callback(checkbox, index)
+    })
   }
 
   applyInitialState () {
-    const checkboxes = this.element.querySelectorAll('[data-column-index]')
-    checkboxes.forEach(checkbox => {
-      const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) {
-        this.setColumnVisibility(index, checkbox.checked)
-      }
-    })
+    this.eachColumnCheckbox((checkbox, index) => this.setColumnVisibility(index, checkbox.checked))
   }
 
   toggle (event) {
@@ -85,8 +108,7 @@ export default class extends Controller {
     if (isNaN(columnIndex) || !this.table) return
 
     this.setColumnVisibility(columnIndex, visible)
-    // Con una vista aplicada (serverState) el toggle es un ajuste SOBRE la vista: no debe
-    // volverse el default del dispositivo en localStorage.
+    // With a view applied, a toggle is an adjustment ON TOP of the view, not a new device default.
     if (!this.serverStateValue) this.persistState()
   }
 
@@ -113,29 +135,28 @@ export default class extends Controller {
   }
 
   /**
-   * La celda que ES la columna `index` en esa fila, o null cuando el índice no la nombra.
+   * The cell that IS column `index` in that row, or null when the index does not name it.
    *
-   * El índice del selector es una POSICIÓN DE COLUMNA —la del `thead`—, y en una fila con
-   * `colspan` esa posición no es el número de celda: hay que ir sumando `colSpan` hasta
-   * llegar a ella. `Bali::Table` pinta tres filas donde la cuenta se separa: la banda de
-   * grupo (su `td` lleva `colspan`, precedido o no por la celda del seleccionar-todo), el
-   * estado vacío (un `td` que cubre la tabla entera) y una fila de totales en el `tfoot`,
-   * cuya etiqueta abarca varias columnas. Solo la primera lleva clase propia, así que un
-   * `tr:not(.bali-table-group-row)` arreglaría la banda y dejaría las otras dos rotas: por
-   * eso la guarda va sobre la CELDA y no sobre la fila.
+   * The selector's index is a COLUMN POSITION —the one in the `thead`—, and in a row with
+   * `colspan` that position is not the cell number: `colSpan` has to be added up until it is
+   * reached. `Bali::Table` renders three rows where the count comes apart: the group band
+   * (its `td` carries `colspan`, preceded or not by the select-all cell), the empty state (a
+   * `td` covering the whole table) and a totals row in the `tfoot`, whose label spans several
+   * columns. Only the first one carries a class of its own, so a
+   * `tr:not(.bali-table-group-row)` would fix the band and leave the other two broken: that
+   * is why the guard goes on the CELL and not on the row.
    *
-   * Por índice crudo se escondía la cosa equivocada: la banda entera —con el botón de
-   * plegado adentro, y con `collapsed_groups:` sus filas quedaban inalcanzables sin
-   * recargar—, el mensaje de «no hay resultados», o —en el `tfoot`— el total de la columna
-   * de al lado.
+   * By raw index the wrong thing was hidden: the whole band —with the folding button inside
+   * it, and with `collapsed_groups:` its rows left unreachable without a reload—, the "no
+   * results" message, or —in the `tfoot`— the total of the column next to it.
    *
-   * LÍMITE CONOCIDO, medido y no supuesto: lo que distingue a esas filas es que su celda
-   * abarca MÁS de una columna. En una tabla de UNA sola columna visible no abarca más de
-   * una —la banda sale con `colspan="1"` y el estado vacío también—, así que esconder esa
-   * única columna se los lleva igual. El CHANGELOG de #1144 guarda la medición.
+   * KNOWN LIMIT, measured and not assumed: what tells those rows apart is that their cell
+   * spans MORE than one column. In a table with a SINGLE visible column it does not span more
+   * than one —the band comes out with `colspan="1"` and so does the empty state—, so hiding
+   * that single column takes them along anyway. The CHANGELOG for #1144 keeps the measurement.
    *
-   * Tampoco encoge la celda que abarca una columna oculta: conserva su `colspan`, así que una fila
-   * de totales cuya etiqueta cubre esa columna queda una columna más ancha que el encabezado.
+   * Nor does it shrink the cell spanning a hidden column: it keeps its `colspan`, so a totals
+   * row whose label covers that column ends up one column wider than the header.
    */
   columnCell (cells, index) {
     let column = 0

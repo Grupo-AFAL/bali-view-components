@@ -1,0 +1,37 @@
+<%# Admin Movies Index - Showcases: IndexPage, DataTable, Filters, Table, Tag, BooleanIcon, ActionsDropdown, Link %>
+
+<%= render Bali::IndexPage::Component.new(
+  title: t('movies.title'),
+  subtitle: t('movies.subtitle'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
+    { name: t('movies.title') }
+  ]
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('movies.new_movie'),
+      href: new_admin_movie_path,
+      variant: :primary,
+      icon: 'plus'
+    ) %>
+  <% end %>
+
+  <%# The export lives in the PageHeader's ⋯ and not in the toolbar: exporting is an action
+      ON the page, not a control over how the listing looks. The link carries the active
+      filtering, which is why the item reads "Export filtered". %>
+  <%# `formats: [:csv]` and not the three by default: this controller only responds to CSV, and
+      an item that returns 406 on the reference page teaches the trap instead of the fix. %>
+  <% page.with_export(url: admin_movies_path, formats: [:csv]) %>
+
+  <%# The ⋯ exists so the export has neighbours: without a second action, the page does not
+      teach that everything acting ON the listing —rather than on how it looks— lands there. %>
+  <% page.with_secondary_action(name: t('movies.secondary_actions.import'),
+                                icon: 'upload',
+                                href: new_admin_movie_path) %>
+
+  <%# The DataTable goes in bare: the surface travels with its content slot. %>
+  <% page.with_body do %>
+    <%= render 'listing' %>
+  <% end %>
+<% end %>

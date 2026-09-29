@@ -9,9 +9,9 @@ module Bali
         # Simple struct for column data
         Column = Struct.new(:index, :label, :visible, keyword_init: true)
 
-        # @param listing_id [String] Identidad del listado (el id del contenedor del
-        #   DataTable, que la resuelve). De ella se derivan el target de las columnas
-        #   (`#<listing_id> table`) y la llave de localStorage.
+        # @param listing_id [String] Identity of the listing (the id of the DataTable
+        #   container, which resolves it). Both the columns target (`#<listing_id> table`)
+        #   and the localStorage key are derived from it.
         # @param button_label [String] Label for the dropdown button (i18n default)
         # @param button_icon [String] Icon name (default: 'table')
         # @param persist [Boolean] Persist column visibility in localStorage keyed by
@@ -27,14 +27,14 @@ module Bali
 
         attr_reader :listing_id, :button_icon, :columns
 
-        # ¿La visibilidad viene impuesta por el servidor (vista guardada aplicada)? El JS
-        # entonces NO restaura localStorage encima — la vista manda.
+        # Is the visibility imposed by the server (a saved view applied)? The JS then does
+        # NOT restore localStorage on top — the view wins.
         def server_state? = @server_state
 
         def persist? = @persist
 
-        # Impone la visibilidad desde una vista guardada: visibles = los índices dados.
-        # Se llama DESPUÉS del bloque de with_column (el DataTable lo hace solo).
+        # Imposes the visibility from a saved view: visible = the given indices.
+        # Called AFTER the with_column block (the DataTable does it on its own).
         def apply_visible_columns(indices)
           visible = Array(indices).map(&:to_i)
           @columns.each { |column| column.visible = visible.include?(column.index) }

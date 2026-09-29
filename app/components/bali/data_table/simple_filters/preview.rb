@@ -118,6 +118,9 @@ module Bali
             fields: [:name],
             value: search_text.presence,
             placeholder: 'Search by name...',
+            # `label:` is the search box's accessible name. Without it the input is named by
+            # its placeholder, which disappears the moment the user types (#1155 review).
+            label: 'Search records by name',
             icon: 'search'
           }
 
@@ -141,6 +144,7 @@ module Bali
             fields: [:name],
             value: search_text.presence,
             placeholder: 'Search records...',
+            label: 'Search records',
             width: width
           }
 
@@ -369,6 +373,7 @@ module Bali
             fields: [:name],
             value: nil,
             placeholder: 'Search...',
+            label: 'Search records',
             icon: 'search'
           }
 
@@ -378,6 +383,95 @@ module Bali
             search: search,
             show_clear: status.present? || country.present?
           )
+        end
+
+        # @label Slim Select
+        # `type: :slim_select` swaps the native dropdown for a searchable one. SlimSelect
+        # clips the real `<select>` to 1x1 and draws its own `div[role="combobox"]`, so the
+        # caption's `<label for>` never reaches the control the user operates — that is why
+        # this row also emits `aria-labelledby` pointing at the caption.
+        #
+        # @param owner select { choices: ["", ana, beto, carla] }
+        def slim_select(owner: '')
+          filters = [
+            {
+              attribute: :owner_id,
+              collection: [%w[Ana ana], %w[Beto beto], %w[Carla carla]],
+              blank: 'All owners',
+              label: 'Owner',
+              type: :slim_select,
+              value: owner.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: owner.present?
+          )
+        end
+
+        # @label Uncaptioned (label: false)
+        # `label: false` drops the caption over the control — for a row that is already
+        # self-explanatory, or one too narrow for a two-line filter. The control still has
+        # to have an accessible name, so Bali resolves one: the caption where there is one,
+        # then `aria_label:`, and failing both the blank option's own text.
+        #
+        # **Write `aria_label:`.** Falling back to `blank:` is the safety net that keeps a
+        # control from shipping nameless, not the thing to aim for: it names the control
+        # with the same text it reads out as its VALUE, so the year select below announces
+        # "All years, All years". It is left on the net here on purpose, to show what that
+        # sounds like next to the five that name themselves.
+        #
+        # Open the accessibility pane on each control: none of them is a bare "combo box".
+        # A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a
+        # `[Bali]` warning in development instead of rendering nameless.
+        def uncaptioned
+          filters = [
+            {
+              attribute: :year,
+              collection: [%w[2026 2026], %w[2025 2025], %w[2024 2024]],
+              blank: 'All years',
+              label: false
+            },
+            {
+              attribute: :area_id,
+              collection: [%w[Finance finance], %w[People people]],
+              blank: 'All areas',
+              label: false,
+              aria_label: 'Responsible area'
+            },
+            {
+              attribute: :owner_id,
+              collection: [%w[Ana ana], %w[Beto beto]],
+              blank: 'All owners',
+              label: false,
+              aria_label: 'Owner',
+              type: :slim_select
+            },
+            {
+              attribute: :signed_on,
+              label: false,
+              type: :date,
+              aria_label: 'Signature date'
+            },
+            {
+              attribute: :created_at,
+              label: false,
+              type: :date_range,
+              icon: 'calendar',
+              aria_label: 'Creation date',
+              presets: %i[today this_week this_month]
+            },
+            {
+              attribute: :featured,
+              label: false,
+              type: :boolean,
+              aria_label: 'Featured only'
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(url: '/lookbook', filters: filters)
         end
 
         # @label With Persistence

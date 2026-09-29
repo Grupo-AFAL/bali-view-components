@@ -66,9 +66,9 @@ module Bali
         @available_attributes = normalize_attributes(available_attributes)
         @filter_groups = filter_groups.presence || [ default_filter_group ]
         @apply_mode = apply_mode
-        # `@applied_combinator` es nil cuando el estado NO traía `q[m]`; `@combinator` conserva
-        # el default de render ("and"). Re-emitir el default como si fuera elección del usuario
-        # volteaba a AND un OR aplicado en el siguiente round-trip.
+        # `@applied_combinator` is nil when the state did NOT carry `q[m]`; `@combinator` keeps
+        # the render default ("and"). Re-emitting the default as if the user had chosen it
+        # flipped an applied OR to AND on the next round-trip.
         @applied_combinator = combinator.presence&.to_s
         @combinator = @applied_combinator || "and"
         @max_groups = max_groups
@@ -120,9 +120,9 @@ module Bali
         @search.param_name
       end
 
-      # Misma regla que decide qué viaja y que la que cuenta `FilterForm#active_filters_count`
-      # (#1085): un `between` con los dos extremos en blanco pasa `present?` por ser un Hash,
-      # así que el badge decía "1 filtro" sobre una fila que no aportaba un solo par.
+      # The same rule that decides what travels and the one `FilterForm#active_filters_count`
+      # counts (#1085): a `between` with both ends blank passes `present?` because it is a
+      # Hash, so the badge said "1 filter" over a row that contributed not a single pair.
       def active_filter_count
         @filter_groups.sum do |group|
           Array(group[:conditions]).count { |c| ActiveFilterParams.applied?(c) }

@@ -130,8 +130,8 @@
   <% else %>
     <%# A table brings a surface and a horizontal scroll wrapper. %>
     <% dt.with_table do %>
-      <%# `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
-          sobre el set filtrado, no solo lo que entró en la página. %>
+      <%# `group_counts` is what makes the group header show the GLOBAL total over the
+          filtered set, not just what made it onto the page. %>
       <%= render Bali::Table::Component.new(form: filter_form, selectable: true,
                                             group_counts: filter_form.group_counts) do |t| %>
         <%= t.with_header(name: 'Name', sort: :name) %>
@@ -142,12 +142,12 @@
         <%= t.with_header(name: 'Indie', sort: :indie, class: 'text-center') %>
 
         <% movies.each do |movie| %>
-          <%# `group_value_for` devuelve la llave CRUDA de la banda (el enum o el string que
-              devolvió el GROUP BY), y nil cuando la agrupación está apagada O suspendida
-              fuera de la tabla. Es también lo único que sabe leer la banda de un ransacker o
-              de un camino de asociación (#1102). %>
-          <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
-              dan N controles con el mismo nombre accesible ("Select row"). %>
+          <%# `group_value_for` returns the RAW band key (the enum or the string the GROUP BY
+              returned), and nil when grouping is off OR suspended outside the table. It is
+              also the only thing that knows how to read the band of a ransacker or of an
+              association path (#1102). %>
+          <%# `select_label:` gives the row checkbox its record context: without it, N rows
+              give N controls with the same accessible name ("Select row"). %>
           <%= t.with_row(record_id: movie.id, select_label: movie.name,
                          group: filter_form.group_value_for(movie)) do %>
             <td class="font-medium"><%= movie.name %></td>

@@ -2,7 +2,7 @@
     inside it. daisyUI emits `.chat { display: grid }` into @layer utilities, which
     is where Tailwind's own `.hidden` lands too: two single-class selectors in one
     layer, so the winner is whichever the build wrote last. Measured against
-    spec/dummy's compiled sheet, `.hidden` comes ~24kB after `.chat` and does win —
+    test/dummy's compiled sheet, `.hidden` comes ~24kB after `.chat` and does win —
     but that margin is an artefact of how one app's entry point happens to order
     Tailwind and the daisyUI plugin, and this component ships to apps whose entry
     points we never see. An element with no display rule of its own cannot lose. %>

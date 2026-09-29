@@ -13,13 +13,25 @@ Where `$ARGUMENTS` is:
 - `--base [branch]` - Base branch (default: `main`)
 - `--draft` - Create as draft PR
 
+## The first line of the body is not optional
+
+**The body opens with `Closes #NNN`, in English.** GitHub only closes the issue on
+merge with `Closes` / `Fixes` / `Resolves`; the Spanish verb reads just as well and
+closes nothing, and the issue stays open with nobody the wiser.
+`.claude/hooks/pr-closes-keyword.sh` is a PreToolUse gate, not a reminder: a command
+whose body closes the issue in Spanish does not run at all.
+
+Everything after that line is Spanish — the body, like the CHANGELOG and the commit
+message, is prose for the team. The code, the identifiers and the tests are English.
+See "Comments, and the language everything is written in" in `.claude/CLAUDE.md`.
+
 ## Workflow
 
 ### Step 1: Pre-flight Checks
 
 ```bash
 # Ensure all tests pass
-bundle exec rspec spec/components/bali/[component]/
+bin/rails test test/bali/components/[component]_test.rb
 
 # Ensure Rubocop passes
 bundle exec rubocop app/components/bali/[component]/
@@ -47,35 +59,43 @@ gh pr create \
   --base main \
   --title "[ComponentName] Brief description of changes" \
   --body "$(cat <<'EOF'
-## Summary
+Closes #NNN
 
-Brief description of changes to **ComponentName**.
+## Resumen
 
-## Changes
+Qué cambia en **ComponentName** y por qué.
 
-- [List specific changes made]
+## Cambios
 
-## Testing
+- [Lista de los cambios]
 
-- [ ] All tests pass
-- [ ] Lookbook preview renders correctly
-- [ ] Visual regression check complete
+## Verificación
 
-## Screenshots
+- [ ] Las pruebas pasan
+- [ ] El preview de Lookbook renderiza
+- [ ] Revisión visual hecha
 
-[Add before/after if significant visual changes]
+## Capturas
+
+[Antes/después si el cambio es visual]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
 
+A PR that closes no issue simply has no first line — do not invent an issue number.
+
 ## PR Template
 
 ```markdown
-## Summary
+Closes #NNN
 
-Brief description of changes to **[ComponentName]**.
+## Resumen
 
-## Changes
+Qué cambia en **[ComponentName]** y por qué.
+
+## Cambios
 
 ### Ruby Component (`component.rb`)
 - [ ] Updated constants or class mappings
@@ -90,20 +110,22 @@ Brief description of changes to **[ComponentName]**.
 - [ ] Updated variant options
 - [ ] Added new examples for new features
 
-### Tests (`component_spec.rb`)
+### Tests (`test/bali/components/[name]_test.rb`)
 - [ ] Updated class expectations
 - [ ] Added tests for new features
 - [ ] All tests passing
 
-## Verification
+## Verificación
 
-- [x] `bundle exec rspec spec/components/bali/[name]/` passes
-- [x] `bundle exec rubocop app/components/bali/[name]/` passes
-- [x] Lookbook preview renders correctly
+- [x] `bin/rails test test/bali/components/[name]_test.rb` pasa
+- [x] `bundle exec rubocop app/components/bali/[name]/` pasa
+- [x] El preview de Lookbook renderiza
 
-## Screenshots
+## Capturas
 
-[Screenshots if significant visual changes, otherwise "N/A"]
+[Capturas si el cambio es visual; si no, "N/A"]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
 ## Example Execution
@@ -116,9 +138,9 @@ AI: Creating PR for Button changes...
 ## Pre-flight Checks
 
 ```bash
-bundle exec rspec spec/components/bali/button/
+bin/rails test test/bali/components/button_test.rb
 ```
-✓ 12 examples, 0 failures
+✓ 46 runs, 69 assertions, 0 failures, 0 errors, 0 skips
 
 ```bash
 bundle exec rubocop app/components/bali/button/
@@ -133,7 +155,7 @@ git diff main...HEAD --stat
  app/components/bali/button/component.rb       | 45 ++++++++--------
  app/components/bali/button/component.html.erb |  8 ++-
  app/components/bali/button/preview.rb         | 32 ++++++-----
- spec/components/bali/button/component_spec.rb | 28 +++++-----
+ test/bali/components/button_test.rb           | 28 +++++-----
  4 files changed, 65 insertions(+), 48 deletions(-)
 ```
 

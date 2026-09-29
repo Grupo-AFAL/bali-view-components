@@ -299,6 +299,212 @@ describe('SplitView structured list', () => {
     })
   })
 
+  // Grouping, and the seam it has with infinite scroll. Against the dummy's own
+  // page: a preview cannot page against itself, and the whole point here is what
+  // arrives on page 2.
+  //
+  // The data makes the contract visible. `?grouped=status` orders by status
+  // first — 3 draft, 17 done, five to a page — so page 1 carries both headings
+  // and pages 2-4 are all continuations of `done`. One seam, which is exactly
+  // what a listing ordered by its group key can produce.
+  context('a grouped listing', () => {
+    const app = path =>
+      `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+    const groups = () => cy.get('.split-view-group')
+    const headers = () => cy.get('.split-view-group-header')
+    const group = key => cy.get(`[data-split-view-group-key="${key}"]`)
+
+    beforeEach(() => cy.visit(app('/split-view?grouped=status')))
+
+    it('puts a heading over each run of rows, with the group total beside it', () => {
+      groups().should('have.length', 2)
+      rows().should('have.length', 5)
+
+      // The TOTAL, not the rows on screen: `done` shows 17 while two of them are
+      // rendered. The server is the only one that knows that number, and it is
+      // what keeps the heading honest while the rest arrive underneath it.
+      group('draft').find('[data-testid="group-count"]').should('have.text', '3')
+      group('done').find('[data-testid="group-count"]').should('have.text', '17')
+      group('draft').find('.split-view-item').should('have.length', 3)
+      group('done').find('.split-view-item').should('have.length', 2)
+    })
+
+    // The seam. Page 2 is five more `done` rows and arrives as its own `done`
+    // group; merged into the one on screen, not appended next to it, or the
+    // reader gets the heading twice and the count twice with it.
+    it('merges an appended page into the group it continues', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+
+      headers().should('have.length', 2)
+      group('done').should('have.length', 1)
+      group('done').find('.split-view-item').should('have.length', 7)
+      group('done').find('[data-testid="group-count"]').should('have.text', '17')
+    })
+
+    it('reaches the end of the list with two headings and every row exactly once', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+      scrollToBottom()
+      rows().should('have.length', 15)
+      scrollToBottom()
+      rows().should('have.length', 20)
+
+      cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
+      headers().should('have.length', 2)
+      group('draft').find('.split-view-item').should('have.length', 3)
+      group('done').find('.split-view-item').should('have.length', 17)
+      rows().then(($rows) => {
+        const ids = [...$rows].map(row => row.id)
+        expect(new Set(ids).size, 'row ids are unique').to.eq(ids.length)
+      })
+    })
+
+    // Sticky is not decoration: twenty rows into a run the reader still has to be
+    // able to tell which one they are in. It is also why the heading needs an
+    // opaque background — the rows pass under it.
+    it('keeps the heading on screen while its own rows scroll under it', () => {
+      headers().first().should('have.css', 'position', 'sticky')
+      headers().first().should('have.css', 'background-color')
+        .and('not.match', /rgba\(0, 0, 0, 0\)|transparent/)
+    })
+
+    // Named by the heading a sighted reader sees, rather than by a second copy of
+    // the same words in an aria-label that a screen reader would announce twice.
+    it('names each group with the heading itself', () => {
+      group('draft').should('have.attr', 'role', 'group')
+      group('draft').invoke('attr', 'aria-labelledby').then((id) => {
+        cy.get(`#${id}`).should('contain.text', 'Draft')
+      })
+    })
+
+    // The failure the contract exists to prevent, and what the component does
+    // about it. A listing ordered by anything but its group key scatters the same
+    // group across pages; only the seam is merged, on purpose — moving those rows
+    // up under an earlier heading would silently reorder what the server sent,
+    // which is worse and much quieter than a repeated heading. So the heading
+    // repeats, visibly, and the console says why.
+    //
+    // Forced by rewriting the reply's group key rather than by a listing that
+    // really is misordered: the seed data cannot produce one (ordered by name the
+    // three drafts still land together, at the end).
+    it('leaves a scattered group visible and names the cause in the console', () => {
+      rows().should('have.length', 5)
+      cy.window().then((win) => cy.spy(win.console, 'warn').as('warn'))
+
+      cy.intercept('GET', '/split-view*', (req) => {
+        req.continue((res) => {
+          res.body = res.body.replaceAll(
+            'data-split-view-group-key="done"', 'data-split-view-group-key="draft"'
+          )
+        })
+      })
+
+      scrollToBottom()
+      rows().should('have.length', 10)
+
+      // Three headings for two groups: the page that arrived says `draft`, the
+      // list does not end in `draft`, so there is no seam to merge.
+      headers().should('have.length', 3)
+      cy.get('@warn').should('have.been.calledWithMatch', /not ordered by its group key/)
+    })
+
+    // A sticky band paints over whatever passes under it, and the browser aligns
+    // a row it scrolls into view flush with the top of the scroll area — which is
+    // where the band is. Surfaced by shift-tabbing up the list: the focused row
+    // landed under the heading and lost its whole tag strip and the top of its
+    // focus ring, 29px of 84 (measured at 1280x900; 0px on the same listing
+    // ungrouped). `scrollIntoView` is the same mechanism `scroll-margin-top`
+    // governs, and unlike Tab it is deterministic here.
+    it('keeps a row scrolled into view clear of the sticky heading', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+      scrollToBottom()
+      rows().should('have.length', 15)
+
+      // The NATIVE `scrollIntoView`, called inside the `then` on the element
+      // itself: Cypress's command of the same name computes its own offsets and
+      // does not read `scroll-margin`, so it would scroll past the very thing
+      // this asserts. Row 1 of the group sits well above the fold by now, so
+      // bringing it into view really scrolls.
+      group('done').find('.split-view-item').eq(1).then(($row) => {
+        $row[0].scrollIntoView()
+        const row = $row[0].getBoundingClientRect()
+        const header = Cypress.$('.split-view-group-header')
+          .toArray()
+          .map(h => h.getBoundingClientRect())
+          .find(h => h.bottom > row.top && h.top < row.bottom)
+        const covered = header ? Math.min(row.bottom, header.bottom) - Math.max(row.top, header.top) : 0
+        expect(Math.round(covered), 'pixels of the row hidden behind the heading').to.be.at.most(1)
+      })
+    })
+
+    // The heading's two pieces of text sit on the band's own opaque background,
+    // and both are written with a translucent `text-base-content/*` token — so
+    // what reaches the reader is the token COMPOSITED over that band. Measuring
+    // the declared colour alone reports a contrast nobody sees; on a 1px canvas
+    // the ground has to be painted first and the colour over it.
+    //
+    // That is how the count shipped at `/50`: composited, 2.96:1 on `afal`,
+    // 3.16 on `costa-norte`, 3.33 on `light`, 4.11 on `afal-dark`, against AA's
+    // 4.5 for 12px text. `costa-norte` is in the list for that reason — it is a
+    // shipped theme, and leaving it out would have left one of the four failing
+    // cases unguarded.
+    ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+      it(`reads the heading and its count at AA on the ${theme} theme`, () => {
+        cy.document().then((doc) => {
+          doc.documentElement.setAttribute('data-theme', theme)
+
+          const paint = (over, colour) => {
+            const canvas = doc.createElement('canvas')
+            canvas.width = canvas.height = 1
+            const ctx = canvas.getContext('2d')
+            ctx.fillStyle = over
+            ctx.fillRect(0, 0, 1, 1)
+            if (colour) {
+              ctx.fillStyle = colour
+              ctx.fillRect(0, 0, 1, 1)
+            }
+            return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
+          }
+          const luminance = ([r, g, b]) => {
+            const channel = (v) => {
+              v /= 255
+              return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+            }
+            return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+          }
+          const ratio = (a, b) => {
+            const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+            return (high + 0.05) / (low + 0.05)
+          }
+
+          const header = doc.querySelector('.split-view-group-header')
+          const band = getComputedStyle(header).backgroundColor
+
+          ;[['count', '.split-view-group-count'], ['label', 'span']].forEach(([what, selector]) => {
+            const text = header.querySelector(selector)
+            const colour = getComputedStyle(text).color
+            expect(ratio(paint(band, colour), paint(band)), `${theme}: the group ${what}`)
+              .to.be.at.least(4.5)
+          })
+        })
+      })
+    })
+
+    // A row inside a group is wired exactly like a row outside one; which slot it
+    // came from is the only difference.
+    it('selects a row inside a group like any other', () => {
+      scrollToBottom()
+      rows().should('have.length', 10)
+
+      group('done').find('.split-view-item').eq(4).click()
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.get('.split-view-item[aria-current="true"]').should('have.length', 1)
+      group('done').find('.split-view-item').eq(4).should('have.attr', 'aria-current', 'true')
+    })
+  })
+
   context('when a page fails to load', () => {
     // The other failure shape, and the one a status code does not describe: a
     // perfectly good 200 that is not this listing — a redirect to a login page,
@@ -341,6 +547,43 @@ describe('SplitView structured list', () => {
       cy.get('[data-split-view-list-target="error"] button').click({ force: true })
       rows().should('have.length', 10)
       cy.get('[data-split-view-list-target="error"]').should('have.attr', 'hidden')
+    })
+  })
+
+  // A teardown is not a failure — and it used to be a licence. A page still in
+  // flight when the list is disconnected arrived anyway, appended itself to a
+  // list the controller no longer owns, and the recursion at the end of
+  // `loadNext` kept the dead controller paging: measured, three requests for a
+  // listing nobody is looking at, where an aborted one asks once. The
+  // `AbortError` that the abort then produces has to read as the teardown it is
+  // rather than painting "could not load" and a retry button over a pane on its
+  // way out (#1180).
+  context('when the list is torn down mid-load', () => {
+    it('stops fetching pages for a list that is gone', () => {
+      cy.visit('/bali/split_view/default')
+      let issued = 0
+      cy.intercept('GET', '/split-view*', (req) => {
+        issued += 1
+        req.on('response', (res) => { res.setDelay(800) })
+      }).as('page')
+
+      scrollToBottom()
+      // Counted on the way out rather than waited for with `@page`: the alias
+      // resolves on the RESPONSE, and by then the page has already landed and
+      // there is nothing left in flight to tear down. `loading` keeps this at
+      // one until that response arrives, so the wait is not a race.
+      cy.wrap(null).should(() => {
+        expect(issued, 'the first page is in flight').to.eq(1)
+      })
+
+      // Out of the document: Stimulus disconnects, which is what a re-render of
+      // the pane does to this controller.
+      cy.get('[data-controller="split-view-list"]').then(($list) => { $list[0].remove() })
+
+      // Four seconds against a reply 800ms out: long enough for the abandoned
+      // page to have landed and asked for the next one twice over.
+      cy.wait(4000)
+      cy.get('@page.all').should('have.length', 1)
     })
   })
 })

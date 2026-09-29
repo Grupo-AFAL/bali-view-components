@@ -29,9 +29,9 @@ module Bali
 
       private
 
-      # Privado a propósito: Lookbook toma los métodos públicos como escenarios, y esto no es
-      # uno. La guarda queda escrita en cada escenario en vez de envolver al render, para que
-      # el panel Source siga mostrando la llamada al componente, que es lo que un host copia.
+      # Private on purpose: Lookbook takes public methods as scenarios, and this is not one.
+      # The guard is written in each scenario instead of wrapping the render, so that the
+      # Source panel keeps showing the component call, which is what a host copies.
       def why_this_is_empty
         render_with_template(template: 'bali/rich_text_editor/previews/disabled')
       end

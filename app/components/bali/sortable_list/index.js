@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { patch } from '@rails/request.js'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event name stays put when a host registers this controller under a
@@ -22,7 +23,9 @@ export class SortableListController extends Controller {
   async connect () {
     this.setupKeyboardReordering()
 
-    const { default: Sortable } = await import('sortablejs')
+    const sortablejs = await import('sortablejs').catch(optionalPeer('sortablejs'))
+    if (!sortablejs) return
+    const { default: Sortable } = sortablejs
 
     this.sortable = new Sortable(this.element, {
       group: { name: this.groupNameValue, pull: this.pullValue },

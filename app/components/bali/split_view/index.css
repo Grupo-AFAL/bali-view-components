@@ -81,6 +81,71 @@
   @apply px-4;
 }
 
+/* ── Groups ───────────────────────────────────────────────────────────────
+   The heading sticks to the top of the scroll area while its own rows pass
+   under it, which is what a long grouped inbox needs: twenty rows into
+   "Vencidas" the reader still has to be able to tell which run they are in.
+   `top: 0` and not a measured offset — the sticky ancestor is
+   `.split-view-scroll` itself, and the bands above it (header, filters) sit
+   OUTSIDE that element, so there is nothing to subtract.
+
+   `z-[1]` on purpose, not a tier from `bali/z_index.css`: this only orders the
+   heading against the rows of its own group, inside the list's own stacking
+   context, and that file says in as many words that such numbers stay out of
+   the overlay scale.
+
+   An opaque background is load-bearing and not decoration — a sticky element
+   with a transparent one shows the rows sliding underneath it. base-200 rather
+   than base-100 so the band reads as chrome against the rows, the same contrast
+   the list header above it has. */
+.split-view-group {
+  /* The heading's height, and the only place it is written down. Two rules need
+     it and they must not drift apart: the band itself, and the `scroll-margin`
+     that keeps a row out from under it. 29px measured — `py-1.5` over an
+     `text-xs` line box. */
+  --bali-split-group-header-h: 1.8125rem;
+}
+
+.split-view-group-header {
+  @apply sticky top-0 z-[1] flex items-center gap-2 px-4 py-1.5
+         bg-base-200 border-b border-b-base-200
+         text-xs font-medium uppercase tracking-wide text-base-content/70;
+  min-height: var(--bali-split-group-header-h);
+}
+
+/* `/70` and not `/50`. The token is translucent, so what reaches the reader is
+   it composited over the band, and at `/50` that is 2.96:1 on `afal`, 3.16 on
+   `costa-norte`, 3.33 on `light` and 4.11 on `afal-dark`, against AA's 4.5 for
+   12px text. Stock `dark` was already over the line at 4.91 — it is the themes
+   the fleet runs that were not. At `/70` the range is 5.27 (`afal`) to 8.26
+   (`dark`), so even the tightest still carries headroom.
+
+   `.split-view-filter-count` looks like the precedent for this rule and is the
+   opposite of one: it is `opacity-70` on a parent already at
+   `text-base-content/70`, the two multiply to an effective 0.49, and it paints
+   at 2.68–3.82 across those themes — under AA in all of them (#1202). Reading
+   its declared colour without the element opacity gives 6.38 and hides that
+   entirely, which is how it got cited here in the first place. */
+.split-view-group-count {
+  @apply ml-auto font-normal tabular-nums text-base-content/70;
+}
+
+/* A sticky band paints over whatever passes under it — including a row the
+   browser has just scrolled into view for the keyboard, which it aligns flush
+   with the top of the scroll area, exactly where the band is.
+
+   Measured at 1280x900 on a grouped listing: shift-tabbing up the list put the
+   focused row at the scrollport top and the band covered 29px of its 84px — its
+   whole tag strip, and the top edge of its focus ring — on every third row. The
+   same listing ungrouped: 0px. So it arrived with the heading.
+
+   `scroll-margin-top` is read only by the scroll that brings an element into
+   view, so no other scroll moves. Scoped to a grouped list because an ungrouped
+   one has no band to clear. */
+.split-view-group .split-view-item {
+  scroll-margin-top: var(--bali-split-group-header-h);
+}
+
 /* ── The filter band ──────────────────────────────────────────────────────
    `flex-wrap` is the fix for the bug that produced this design: the band used
    to host a filter form whose controls laid out in a row, and a master column

@@ -44,6 +44,34 @@ module Bali
           )
         }
 
+        # Rows under a heading, with the group's own total beside it — the shape
+        # both source listings have (gc groups by urgency, afal-apps by kind).
+        # The rows move from `list.with_item` to `group.with_item`; nothing else
+        # about a row changes.
+        #
+        #   <% @items.group_by(&:kind).each do |kind, rows| %>
+        #     <% list.with_group(key: kind, label: t("inbox.kinds.#{kind}"),
+        #                        count: @totals[kind]) do |group| %>
+        #       <% rows.each do |item| %>
+        #         <% group.with_item(id: item.id, href: ..., title: item.title) %>
+        #       <% end %>
+        #     <% end %>
+        #   <% end %>
+        #
+        # **The listing has to be ordered by the group.** This is the one thing
+        # grouping asks of the query, and it is not a style preference: infinite
+        # scroll appends whole pages, so a listing ordered by anything else
+        # scatters the same group across pages and the reader gets the same
+        # heading three times. Ordered by the group, a page boundary can only
+        # ever split ONE group — the last of a page and the first of the next —
+        # and that is exactly the seam the controller merges. Written
+        # `order(:kind, :created_at)`, the group key first.
+        renders_many :groups, lambda { |**options, &block|
+          Bali::SplitView::List::Group::Component.new(
+            frame_id: @frame_id, selected_id: @selected, **options
+          )
+        }
+
         # Shown in place of the rows when there are none. Composed by the caller so the
         # two empty states a filtered listing needs (nothing yet / nothing matching)
         # stay the caller's words — see docs/guides/master-detail.md.
@@ -106,6 +134,28 @@ module Bali
         end
 
         def infinite_scroll? = @infinite_scroll && next_url.present?
+
+        def grouped? = groups.any?
+
+        # Whether the rows area has anything in it, which is what decides the
+        # empty state. Asked of both slots because only one of them is ever used.
+        def rows? = items.any? || grouped?
+
+        # Mixing them renders the loose rows above the first heading, where they
+        # belong to no group and the reader cannot tell why. It is always a
+        # caller mistake, and a silent one, so it is named here instead.
+        def before_render
+          # The block that fills the slots has not run yet at this point —
+          # ViewComponent leaves `content` unevaluated until the template asks for
+          # it — so asking for it here is what makes `items` and `groups` true.
+          content
+          return unless items.any? && grouped?
+
+          raise ArgumentError,
+                "with_list takes `with_item` or `with_group`, not both: #{items.size} loose " \
+                "row(s) alongside #{groups.size} group(s) would render above the first heading, " \
+                "outside every group. Put every row in a group, or none."
+        end
 
         # Where the sentinel fetches the next rows from. Derived through the same
         # adapter `Bali::Pagination` builds its links with, so a listing does not need

@@ -1,0 +1,34 @@
+<%# The reference for the SIMPLIFIED index: same design line as /admin/movies, and the only
+    deliberate difference is the filter type — `with_simple_filters` here,
+    `with_filters_panel` there. Everything else (subtitle, primary button size, export in
+    the ⋯, empty state, sortable columns) has to match, or the two pages teach two
+    different conventions for the same thing. %>
+<%= render Bali::IndexPage::Component.new(
+  title: t('studios.title'),
+  subtitle: t('studios.subtitle'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
+    { name: t('studios.title') }
+  ]
+) do |page| %>
+  <%# No `size:`: the PageHeader's ⋯ stopped being `btn-sm` to match the primary action's
+      height, so shrinking the primary one brings back the offset that change fixed. %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('studios.new_studio'),
+      href: new_admin_studio_path,
+      variant: :primary,
+      icon: 'plus',
+      data: { action: 'drawer#open', drawer_size: 'lg' }
+    ) %>
+  <% end %>
+
+  <%# `formats: [:csv]` and not the three from the default: the controller only responds to
+      CSV, and an item that returns 406 on a reference page teaches the trap instead of the
+      fix. %>
+  <% page.with_export(url: admin_studios_path, formats: [:csv]) %>
+
+  <% page.with_body do %>
+    <%= render 'listing' %>
+  <% end %>
+<% end %>

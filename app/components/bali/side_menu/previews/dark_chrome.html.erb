@@ -1,6 +1,5 @@
-<%# El chrome oscuro: el sidebar lleva su propio data-theme y la página se queda
-    clara. El tema usado acá es el `dark` que ya trae daisyUI, a propósito — el
-    de cada app es de marca y no viaja en la gema. %>
+<%# The theme used here is the `dark` daisyUI already ships, on purpose — each
+    app's own theme is brand and does not travel in the gem. %>
 <div class="h-[640px] bg-base-200 p-4 flex gap-4">
   <div class="w-xs">
     <%= render Bali::SideMenu::Component.new(current_path: '/admin/movies', fixed: false,
@@ -28,16 +27,16 @@
 
   <div class="flex-1">
     <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
-      <% card.with_title('La página no cambia') %>
+      <% card.with_title('The page does not change') %>
       <p class="text-sm text-base-content/70">
-        El <code>data-theme</code> va en el <code>&lt;nav&gt;</code>, así que daisyUI
-        resuelve sus variables de color contra el sidebar y deja el resto de la
-        página con el tema del documento.
+        The <code>data-theme</code> goes on the <code>&lt;nav&gt;</code>, so daisyUI
+        resolves its colour variables against the sidebar and leaves the rest of the
+        page on the document's theme.
       </p>
       <p class="text-sm text-base-content/70 mt-2">
-        Abrí <strong>Configuration</strong> abajo del sidebar: el panel flotante es
-        lo que se pierde sobre una superficie oscura si nadie le pone borde —
-        la sombra suave de daisyUI no se ve contra un fondo oscuro.
+        Open <strong>Configuration</strong> at the bottom of the sidebar: the floating
+        panel is what gets lost over a dark surface if nobody gives it a border —
+        daisyUI's soft shadow is invisible against a dark background.
       </p>
     <% end %>
   </div>

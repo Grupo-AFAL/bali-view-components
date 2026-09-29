@@ -22,7 +22,7 @@ class <%= class_name %> < <%= parent_class %>
 
   # Where the tile links. Route helpers are not available here by default: add
   # `include Rails.application.routes.url_helpers` to a concern your widgets
-  # share, the way `spec/dummy/app/widgets/widget_routes.rb` does.
+  # share, the way `test/dummy/app/widgets/widget_routes.rb` does.
   #
   # view_all_path { <%= widget_key %>_path }
 

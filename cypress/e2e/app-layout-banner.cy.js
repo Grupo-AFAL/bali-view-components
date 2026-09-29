@@ -1,82 +1,82 @@
-// El offset del banner es geometria, asi que se mide geometria: el `top` y el `height`
-// COMPUTADOS del riel fijo contra la altura real de la franja. Nada de textContent y nada
-// de pixeles hardcodeados — la franja mide lo que midan su fuente y su padding, y lo que
-// esta bajo prueba es que el sidebar la siga, no cuanto mide.
-describe('AppLayout: el sidebar fijo arranca debajo del banner', () => {
-  const ESCRITORIO = [1440, 900]
+// The banner offset is geometry, so geometry is what gets measured: the COMPUTED `top` and
+// `height` of the fixed rail against the real height of the strip. No textContent and no
+// hardcoded pixels — the strip measures whatever its font and its padding measure, and what
+// is under test is that the sidebar follows it, not how tall it is.
+describe('AppLayout: the fixed sidebar starts below the banner', () => {
+  const DESKTOP = [1440, 900]
 
-  const visitar = (banners) => {
-    cy.viewport(...ESCRITORIO)
+  const visitWithBanners = (banners) => {
+    cy.viewport(...DESKTOP)
     cy.visit(`/bali/app_layout/with_banner?banners=${banners}`)
-    // El offset lo escribe el controlador tras medir, asi que hay que esperar a que la
-    // variable exista: sin esto se mide el frame anterior a `connect()`.
+    // The controller writes the offset after measuring, so the variable has to be waited
+    // for: without this we measure the frame before `connect()`.
     cy.get('body').should($body => {
       expect($body[0].style.getPropertyValue('--bali-banner-height')).to.not.equal('')
     })
   }
 
-  // La franja y el riel se tocan sin solaparse ni dejar pagina entre medio.
-  const sidebarPegadoAlBanner = () => {
+  // The strip and the rail touch, with no overlap and no page left in between.
+  const sidebarSitsUnderBanner = () => {
     cy.get('.app-layout-banner').then($banner => {
-      const franja = $banner[0].getBoundingClientRect()
+      const strip = $banner[0].getBoundingClientRect()
 
       cy.get('.side-menu-component--fixed').should($sidebar => {
-        const riel = $sidebar[0].getBoundingClientRect()
+        const rail = $sidebar[0].getBoundingClientRect()
 
-        expect(riel.top, 'el riel arranca donde termina la franja').to.be.closeTo(franja.bottom, 1)
-        expect(riel.bottom, 'y llega hasta el fondo del viewport').to.be.closeTo(
+        expect(rail.top, 'the rail starts where the strip ends').to.be.closeTo(strip.bottom, 1)
+        expect(rail.bottom, 'and reaches the bottom of the viewport').to.be.closeTo(
           $sidebar[0].ownerDocument.defaultView.innerHeight, 1
         )
       })
     })
   }
 
-  it('con un banner, el riel baja exactamente su altura', () => {
-    visitar(1)
-    sidebarPegadoAlBanner()
+  it('with one banner, the rail drops by exactly its height', () => {
+    visitWithBanners(1)
+    sidebarSitsUnderBanner()
 
     cy.get('.side-menu-component--fixed').should($sidebar => {
-      expect($sidebar[0].getBoundingClientRect().top, 'no sigue en cero').to.be.greaterThan(0)
+      expect($sidebar[0].getBoundingClientRect().top, 'not still at zero').to.be.greaterThan(0)
     })
   })
 
-  // El caso que gc parchea a mano con `top: 5.5rem !important`: dos franjas apiladas.
-  it('con dos banners apilados, baja la suma de los dos', () => {
-    visitar(2)
-    sidebarPegadoAlBanner()
+  // The case gc patches by hand with `top: 5.5rem !important`: two stacked strips.
+  it('with two stacked banners, it drops by the sum of both', () => {
+    visitWithBanners(2)
+    sidebarSitsUnderBanner()
 
-    cy.get('.app-layout-banner').then($conDos => {
-      const alturaConDos = $conDos[0].getBoundingClientRect().height
+    cy.get('.app-layout-banner').then($withTwo => {
+      const heightWithTwo = $withTwo[0].getBoundingClientRect().height
 
-      visitar(1)
-      cy.get('.app-layout-banner').should($conUno => {
-        expect(alturaConDos, 'dos franjas miden mas que una').to.be.greaterThan(
-          $conUno[0].getBoundingClientRect().height
+      visitWithBanners(1)
+      cy.get('.app-layout-banner').should($withOne => {
+        expect(heightWithTwo, 'two strips measure more than one').to.be.greaterThan(
+          $withOne[0].getBoundingClientRect().height
         )
       })
     })
   })
 
-  it('al descartar uno de los dos, el riel sube a la nueva altura', () => {
-    visitar(2)
+  it('dismissing one of the two raises the rail to the new height', () => {
+    visitWithBanners(2)
 
-    cy.get('.side-menu-component--fixed').then($antes => {
-      const topAntes = $antes[0].getBoundingClientRect().top
+    cy.get('.side-menu-component--fixed').then($before => {
+      const topBefore = $before[0].getBoundingClientRect().top
 
       cy.get('.app-layout-banner [data-action="alert#dismiss"]').click()
 
-      cy.get('.side-menu-component--fixed').should($despues => {
-        expect($despues[0].getBoundingClientRect().top, 'el riel subio').to.be.lessThan(topAntes)
+      cy.get('.side-menu-component--fixed').should($after => {
+        expect($after[0].getBoundingClientRect().top, 'the rail moved up').to.be.lessThan(topBefore)
       })
 
-      sidebarPegadoAlBanner()
+      sidebarSitsUnderBanner()
     })
   })
 
-  // Sin banner no hay variable que valga: el riel se queda donde siempre estuvo, y esa es
-  // la garantia de que este cambio no toca a quien no usa el slot.
-  it('sin banner, el riel sigue pegado al techo', () => {
-    cy.viewport(...ESCRITORIO)
+  // With no banner there is no variable to apply: the rail stays where it always was, and that
+  // is the guarantee that the banner offset does not touch whoever does not use the slot.
+  it('with no banner, the rail stays flush with the top', () => {
+    cy.viewport(...DESKTOP)
     cy.visit('/bali/app_layout/default')
 
     cy.get('.side-menu-component--fixed').should($sidebar => {
@@ -84,21 +84,21 @@ describe('AppLayout: el sidebar fijo arranca debajo del banner', () => {
     })
   })
 
-  // D726-1: franja completa. Si el banner tomara el padding-left del sidebar, su borde
-  // izquierdo arrancaria a 16rem y quedaria metido en la columna de contenido.
-  it('la franja ocupa el ancho completo, no la columna de contenido', () => {
-    visitar(2)
+  // D726-1: full-width strip. If the banner took the sidebar's padding-left, its left edge
+  // would start at 16rem and end up tucked into the content column.
+  it('the strip spans the full width, not the content column', () => {
+    visitWithBanners(2)
 
     cy.get('.app-layout-banner').should($banner => {
-      const franja = $banner[0].getBoundingClientRect()
+      const strip = $banner[0].getBoundingClientRect()
 
-      expect(franja.left, 'pegada al borde izquierdo').to.be.closeTo(0, 1)
-      // clientWidth y no innerWidth: la pagina del preview desborda en vertical, y en
-      // Linux la scrollbar clasica resta ~15px al ancho de layout mientras innerWidth
-      // la sigue incluyendo — el test fallaba en CI y pasaba en macOS (overlay). Lo
-      // vigilado es "todo el ancho de layout, no la columna de contenido" (~la mitad),
-      // y eso es exactamente documentElement.clientWidth.
-      expect(franja.width, 'ancho completo de layout').to.be.closeTo(
+      expect(strip.left, 'flush with the left edge').to.be.closeTo(0, 1)
+      // clientWidth and not innerWidth: the preview page overflows vertically, and on
+      // Linux the classic scrollbar takes ~15px off the layout width while innerWidth
+      // still includes it — the test failed on CI and passed on macOS (overlay). What
+      // is watched is "the whole layout width, not the content column" (~half of it),
+      // and that is exactly documentElement.clientWidth.
+      expect(strip.width, 'full layout width').to.be.closeTo(
         $banner[0].ownerDocument.documentElement.clientWidth, 1
       )
     })

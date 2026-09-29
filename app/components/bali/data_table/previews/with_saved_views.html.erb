@@ -1,5 +1,5 @@
-<%# `id:` explícito: el filter_form del preview no trae storage_id, y sin identidad estable
-    el demo dejaría de mostrar la captura de columnas al guardar una vista. %>
+<%# Explicit `id:`: the preview's filter_form carries no storage_id, and without a stable
+    identity the demo would stop showing the column capture when saving a view. %>
 <%= render Bali::DataTable::Component.new(url: request.path, filter_form: filter_form,
                                           id: 'saved-views-preview') do |c| %>
   <% c.with_filters_panel(available_attributes: filter_attributes) %>
@@ -16,8 +16,8 @@
   <% end %>
 
   <% c.with_table do %>
-    <%# Sin `id:`: el selector de columnas apunta al contenedor del DataTable
-        (`#saved-views-preview table`), no a la tabla. %>
+    <%# No `id:`: the column selector points at the DataTable container
+        (`#saved-views-preview table`), not at the table. %>
     <%= render Bali::Table::Component.new do |ct| %>
       <%= ct.with_headers(headers) %>
       <% records.each do |record| %>

@@ -189,6 +189,49 @@ Ransack association path) skips the translation, so a select built on its labels
 OPPOSITE records, silently. Declare those options with the raw values
 (`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
 
+### A filter with no caption (`label: false`) still has to be named
+
+`label: false` drops the caption over a SimpleFilters control. It does not drop the control's
+accessible NAME — a `<select>` with none is announced as a bare "combo box" (WCAG 4.1.2,
+#1155). Bali resolves one: the caption → `aria_label:` → the `blank:` text ("All years"),
+and `blank:` only when it is a String (`blank: true` is a nameless Rails blank option). The
+caption wins wherever there is one, in every branch: `aria_label:` does not override a
+visible label (WCAG 2.5.3).
+
+The `blank:` step is the safety net that keeps a control from shipping nameless — it names
+it with the text it reads out as its value ("All years, All years"). **Write `aria_label:`**
+whenever the filter deserves a real name, and when migrating a host off an external
+`aria-label` workaround, move those strings into `aria_label:` instead of deleting them.
+
+```ruby
+filter_attribute :year, type: :select, simple: true, advanced: false,
+  options: [...], blank: 'All years', label: false,
+  aria_label: 'Registration year'                             # the name to aim for
+
+filter_attribute :featured, type: :boolean, simple: true, advanced: false,
+  label: false, aria_label: 'Featured only'                   # no blank to fall back on
+```
+
+`aria_label:` is the same spelling as `search_fields aria_label:` (#1026) and takes a
+zero-arity proc like `label:`. Instance-level `simple_filters:` hashes take the same key.
+
+The `aria-label` is emitted only where no visible `<label for>` reaches the control, so a
+captioned row's markup is untouched. `slim_select` and `date`/`date_range` are the two
+exceptions — their real control is built by JS (`.ss-main`, flatpickr's altInput) and the
+`<label for>` never reaches it, so those carry `aria-labelledby`/`aria-label` even with a
+caption. **Verify them in the accessibility tree, not the markup**
+(`docs/guides/accessibility.md`, "Read the accessibility tree, not the markup"): the Lookbook
+previews are `data_table/simple_filters/uncaptioned` and `.../slim_select`.
+
+A `date_range` with `presets:` names its two controls apart: the period select can fall back
+to its blank option ("Any date"), the "Custom…" picker never borrows that text and falls back
+to `presets.custom_range` instead.
+
+A filter with no caption, no `aria_label:` and no `blank:` logs a `[Bali]` warning in
+development and test and renders anyway — and for `toggle_group`/`radio_group`/`number_range`
+the warning says what is actually missing, which is the name of the GROUP: those controls
+name themselves (each pill its option, each half of a range its placeholder).
+
 ### Pills that filter on click (`auto_submit:`)
 
 `auto_submit: true` makes a SimpleFilters filter submit the row as soon as it changes, with no
@@ -280,7 +323,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `scope` | `ActiveRecord::Relation` | Required | Base scope to filter |
 | `params` | `Hash` | `{}` | Request params containing `q[...]` |
 | `storage_id` | `String` | `nil` | **The listing identity.** Filter-persistence cache key, DataTable container id, column-selector target (`#<id> table`) and localStorage key (`bali:columns:<id>`), and the saved-views scope. Without it a DataTable falls back to a random hex and column persistence turns itself off |
-| `group_by_attributes` | `Array<Symbol, Hash>` | `nil` | Groupable attributes; enables the "Group by" control. A column, a `ransacker` or an association path — the same three shapes sorting takes. A hash entry carries `label:`, `sql:` (an explicit expression, which then drives the ordering too) and `value:` (how to read ONE row's band; required for an association path, which has no matching method). An attribute that is none of the three raises when the form is built |
+| `group_by_attributes` | `Array<Symbol, Hash>` | `nil` | Groupable attributes; enables the "Group by" control. A column, a `ransacker` or an association path — the same three shapes sorting takes. A hash entry carries `label:`, `sql:` (an explicit expression, which then drives the ordering too), `value:` (how to read ONE row's band; required for an association path, which has no matching method) and `default:` (see below). An attribute that is none of the three raises when the form is built. **Grouping breaks on a `.distinct` scope in PostgreSQL** unless the attribute is a base-table column — Bali turns the driver error into `Bali::FilterForm::GroupByOrderingError` naming the ways out |
 | `group_by_modes` | `Array<Symbol>` | `[:table]` | Display modes that APPLY grouping. Outside them the control hides and the grouping is suspended — but the param survives, so switching back finds it as it was left. Paint rows with `group_by_applied`, never `group_by` |
 | `view_param` | `Symbol` | `:view` | URL param carrying the display mode. Must be the SAME one the DataTable gets, or the DataTable raises `ArgumentError` at build time |
 | `display_mode` | `Symbol` | `nil` | The mode the listing RENDERS, for when the URL cannot say it. Only needed when the first declared view is not a grouping mode: without `?view=` the form would assume grouping applies and sort the cards by group. Pass what the DataTable gets (`params[:view] \|\| :grid`) |
@@ -292,6 +335,48 @@ FilterForm is organized into focused concerns for maintainability:
 | `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters. **Needs a real `Rails.cache`** — see below |
 | `clear_filters` | `Boolean` | `false` | Clear all persisted filters (via params) |
 | `clear_search` | `Boolean` | `false` | Clear only persisted search (via params) |
+
+### A listing that opens grouped (`group_by_attribute default:`)
+
+```ruby
+class InitiativesFilterForm < Bali::FilterForm
+  group_by_attribute :stage, label: 'Stage', default: true
+  group_by_attribute :area
+end
+```
+
+One declaration only (two raise at build time), a boolean and **not a callable** — the default
+is resolved while the form is built, with no instance to evaluate against. Precedence: an
+explicit `?group_by=` wins (including "no grouping"), then whatever an applied saved view's
+payload **says** about grouping, then the grouping stored in the filters cache, then the
+declaration.
+
+Unlike `filter_attribute default:` this one does **not** go through the URL: no redirect. The
+redirect turns itself off when filter persistence is on, and writing the param on every bare
+entry would overwrite the user's "no grouping" in the cache. Grouping does not narrow the
+population, so nothing is hidden by resolving it inside the form.
+
+A default is **derived**: never written into the cache, never part of a saved view's payload,
+never a hidden field — change the declaration and everyone sees the new band. Where a default
+exists, "no grouping" travels as `?group_by=none` (an empty param survives neither Ransack's
+`sort_link` nor the form's hidden fields, which drop blanks).
+
+What the user *chose* is stored, "no grouping" included: a view saved while ungrouped carries
+`"group_by" => "none"` and reopens ungrouped. A payload with **no** `group_by` key is silence,
+not "no grouping", so the default still applies there — which is every view saved before the
+default existed. If the host listing already implements "any applied view suppresses the
+default", that rule is wider than Bali's and its existing views will start opening grouped.
+
+### Grouping over a `.distinct` scope breaks on PostgreSQL
+
+Grouping orders by the group expression; `SELECT DISTINCT` only accepts `ORDER BY` expressions
+present in its select list. Only a **base-table column** is — an association path, a ransacker
+and a `sql:` expression are not, so the query dies with *"for SELECT DISTINCT, ORDER BY
+expressions must appear in select list"* (SQLite accepts all four, so it will not show up in
+the dummy). Bali replaces that error with `Bali::FilterForm::GroupByOrderingError`, which names
+the listing, the grouping, the compiled `ORDER BY` term it choked on and the three ways out:
+drop the `.distinct` (deduplicate with a subquery), add the expression to the select list
+yourself (it changes what gets deduplicated), or group by a base-table column.
 
 ### Filter persistence needs a real cache store — and a `context:`
 

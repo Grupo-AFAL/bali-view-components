@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 export class CarouselController extends Controller {
   static values = {
@@ -13,7 +14,9 @@ export class CarouselController extends Controller {
   }
 
   async connect () {
-    const { default: Glide } = await import('@glidejs/glide')
+    const glide = await import('@glidejs/glide').catch(optionalPeer('@glidejs/glide'))
+    if (!glide) return
+    const { default: Glide } = glide
 
     const options = {
       type: this.typeValue,

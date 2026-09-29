@@ -394,11 +394,11 @@ export class FiltersController extends Controller {
   }
 
   /**
-   * URL base del listado CON los params que tienen que sobrevivir a limpiar (el modo de
-   * visualización, la agrupación, y cualquier `preserved_params` del host). `urlValue` llega
-   * sin query string, así que armar la URL solo con él tiraba esos params: limpiar la
-   * búsqueda estando en tarjetas devolvía al usuario a la tabla. Viven como hidden fields del
-   * form; los `q[...]` quedan afuera porque son justo lo que se está limpiando.
+   * The listing's base URL WITH the params that have to survive clearing (the display mode,
+   * the grouping, and any `preserved_params` from the host). `urlValue` arrives with no query
+   * string, so building the URL out of it alone dropped those params: clearing the search
+   * while on cards sent the user back to the table. They live as hidden fields of the form;
+   * the `q[...]` ones stay out because they are exactly what is being cleared.
    */
   preservedParamsUrl () {
     const url = new URL(this.urlValue, window.location.origin)
@@ -464,10 +464,11 @@ export class FiltersController extends Controller {
     // too made the pushed URL describe the PREVIOUS filter (last key wins on nested parse),
     // so an edited or removed condition came back on reload.
     //
-    // El set se arma con TODAS las claves del form de arriba, no solo las `q[`: el estado del
-    // listado (`group_by`, `view`) se pinta como hidden en los DOS forms, así que filtrando
-    // solo las de filtro cada uno se agregaba dos veces y la URL que queda en la barra —la que
-    // el usuario copia— decía `?group_by=genre&view=grid&group_by=genre&view=grid`.
+    // The set is built with ALL the keys of the form above, not only the `q[` ones: the
+    // listing state (`group_by`, `view`) is painted as a hidden field in BOTH forms, so
+    // filtering only the filter ones appended each of them twice and the URL left in the
+    // address bar —the one the user copies— said
+    // `?group_by=genre&view=grid&group_by=genre&view=grid`.
     const filterKeys = new Set(formData.keys())
     for (const [key, value] of searchFormData) {
       if (filterKeys.has(key) || key.startsWith('q[g]') || key === 'q[m]') continue

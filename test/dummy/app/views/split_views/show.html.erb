@@ -1,0 +1,63 @@
+<% content_for(:title) { 'SplitView' } %>
+
+<%= render Bali::ShowPage::Component.new(
+  title: 'SplitView',
+  subtitle: 'Master-detail con listado estructurado e infinite scroll'
+) do |page| %>
+  <% page.with_body do %>
+    <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail') do |split| %>
+      <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
+                         pagy: @pagy, item_name: 'películas', max_height: '26rem',
+                         filter_mode: @filter_mode) do |list| %>
+        <%# The pills are links and the component builds their URLs: all that is
+            declared here is which param each one filters by. A click is an ordinary
+            navigation, so the server repaints page 1 and the sentinel starts from a
+            URL that already carries the filter. There is no form, no Filter, no Clear. %>
+        <% if @filter_mode == :multi %>
+          <% Movie::GENRES.first(6).each do |genre| %>
+            <% list.with_filter(label: genre, param: 'q[genre_in]', value: genre,
+                                count: @counts[genre].to_i) %>
+          <% end %>
+        <% else %>
+          <% Movie.statuses.each_key do |status| %>
+            <% list.with_filter(label: status.humanize, param: :status, value: status,
+                                count: @counts[status].to_i) %>
+          <% end %>
+        <% end %>
+        <%# `?grouped=status` renders the same listing under headings. The rows are
+            identical either way — they move from `list.with_item` to
+            `group.with_item` and nothing else about them changes — and the count
+            beside each heading is the group's TOTAL from the server, not the rows
+            on screen, which is what keeps it honest while pages keep arriving. %>
+        <% if @grouped %>
+          <% @movies.group_by(&:status).each do |status, movies| %>
+            <% list.with_group(key: status, label: status.humanize,
+                               count: @group_counts[status].to_i) do |group| %>
+              <% movies.each do |movie| %>
+                <%= render_split_view_row(group, movie) %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% else %>
+          <% @movies.each do |movie| %>
+            <%= render_split_view_row(list, movie) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if @selected %>
+        <% split.with_detail do %>
+          <%= render 'split_views/detail', movie: @selected %>
+        <% end %>
+      <% else %>
+        <% split.with_empty_detail do %>
+          <%= render Bali::EmptyState::Component.new(
+            title: 'Selecciona una película',
+            description: 'Elige una fila de la izquierda para ver su ficha aquí.',
+            icon: 'inbox'
+          ) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -34,7 +34,7 @@ module Bali
       content = parse(content) if content.is_a?(String)
 
       return :blocks if content.is_a?(Array)
-      # Las dos grafías de la llave: un Hash puede venir de `JSON.parse` o de un literal.
+      # Both spellings of the key: a Hash can come from `JSON.parse` or from a literal.
       return :prosemirror if content.is_a?(Hash) && (content["type"] || content[:type]).to_s == "doc"
 
       nil

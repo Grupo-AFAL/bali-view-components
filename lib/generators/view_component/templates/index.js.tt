@@ -1,9 +1,0 @@
-// import { Controller } from '@hotwired/stimulus'
-//
-// export class <%= class_name %>Controller extends Controller {
-//   connect() {
-//   }
-//
-//   disconnect() {
-//   }
-// }

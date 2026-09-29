@@ -7,10 +7,10 @@
       <span class="<%= dot_classes %>" aria-hidden="true"></span>
     <% else %>
       <span class="<%= circle_classes %>">
-        <% if number.present? %>
+        <% if circle_number? %>
           <%= number %>
         <% else %>
-          <%= render Bali::Icon::Component.new("minus", size: 16) %>
+          <%= render Bali::Icon::Component.new(circle_icon, size: 16) %>
         <% end %>
       </span>
     <% end %>

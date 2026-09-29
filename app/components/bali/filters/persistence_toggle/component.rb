@@ -3,18 +3,18 @@
 module Bali
   module Filters
     module PersistenceToggle
-      # El marcador que decide si los filtros se recuerdan entre visitas.
+      # The bookmark that decides whether filters are remembered between visits.
       #
-      # Vive suelto y no dentro del panel de filtros porque en la toolbar del DataTable es un
-      # control propio —"cómo se recuerda el estado"— y no un botón del panel. Los hosts que
-      # usan Filters/SimpleFilters sin DataTable lo siguen recibiendo desde ahí.
+      # It lives on its own and not inside the filter panel because in the DataTable toolbar
+      # it is a control of its own —"how state is remembered"— and not a panel button. Hosts
+      # using Filters/SimpleFilters without DataTable still get it from there.
       #
-      # INVARIANTE: UN solo toggle por listado. Dos controladores `filter-persistence` sobre
-      # el mismo storage_id se pisan el localStorage y la cookie, y el segundo deja al usuario
-      # sin saber cuál de los dos manda.
+      # INVARIANT: ONE toggle per listing. Two `filter-persistence` controllers over the same
+      # storage_id trample each other's localStorage and cookie, and the second one leaves the
+      # user with no way to know which of the two is in charge.
       class Component < ApplicationViewComponent
-        # @param storage_id [String] Identidad del listado; sin ella no hay dónde guardar
-        # @param enabled [Boolean] Si el usuario ya optó por persistir
+        # @param storage_id [String] The listing's identity; without it there is nowhere to save
+        # @param enabled [Boolean] Whether the user has already opted into persisting
         def initialize(storage_id:, enabled: false)
           @storage_id = storage_id
           @enabled = enabled
@@ -30,11 +30,10 @@ module Bali
           @enabled
         end
 
-        # Claves EXISTENTES de `bali.filters.*`, leídas con `I18n.t` explícito y NO con
-        # `t('.x')`: el helper de ViewComponent resuelve al scope sidecar
-        # (`view_components.bali.filters.persistence_toggle.*`), así que usarlo acá sería
-        # mudar las claves y dejar sin traducción, en silencio, a cualquier host que las
-        # tenga sobrescritas.
+        # EXISTING `bali.filters.*` keys, read through an explicit `I18n.t` and NOT through
+        # `t('.x')`: the ViewComponent helper resolves to the sidecar scope
+        # (`view_components.bali.filters.persistence_toggle.*`), so using it here would move
+        # the keys and silently leave any host that has them overridden untranslated.
         def enabled_tooltip
           I18n.t("bali_view.filters.persistence_enabled")
         end

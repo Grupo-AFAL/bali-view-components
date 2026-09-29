@@ -25,8 +25,8 @@ module Bali
 
       private
 
-      # Lo ÚNICO que FormPage no comparte con ShowPage: el cuerpo va dentro de una Card.
-      # El grid con la barra lateral es el mismo y vive en el concern.
+      # The ONLY thing FormPage does not share with ShowPage: the body goes inside a Card.
+      # The grid with the sidebar is the same and lives in the concern.
       def page_body
         form = super
         return form unless card?

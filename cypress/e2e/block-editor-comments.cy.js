@@ -1,37 +1,37 @@
-// Los comentarios del BlockEditor se rompian por el alcance de dos selectores, no por una
-// interaccion, asi que esto maneja la cascada en vez de la interaccion: monta el markup que
-// BlockNote emite dentro del contenedor real y lee lo que pintan las hojas que se embarcan.
-// Es el mismo enfoque que document-editor.cy.js usa para el tooltip, y por la misma razon —
-// el composer flotante solo lo monta un click real sobre una seleccion real, y nada de lo
-// que se prueba aca depende de como aparecio la tarjeta.
+// BlockEditor comments broke because of the scope of two selectors, not because of an
+// interaction, so this drives the cascade instead of the interaction: it mounts the markup
+// BlockNote emits inside the real container and reads what the shipped stylesheets paint.
+// Same approach document-editor.cy.js takes for the tooltip, and for the same reason — the
+// floating composer is only mounted by a real click on a real selection, and nothing tested
+// here depends on how the card appeared.
 //
-// Lo que reproduce, medido sobre /lookbook/preview/bali/block_editor/with_comments antes
-// del arreglo:
-//   - el `.bn-container` anidado de cada comentario media 163px y su `.bn-editor` 0px,
-//     porque `.bn-with-comments .bn-container > .bn-editor` lo alcanzaba con
-//     `flex: 1; min-width: 0`. Una letra por renglon.
-//   - la tarjeta flotante no tenia ancho propio: 165px con tres letras, 966px con una
-//     linea larga. `.bn-floating-composer` / `.bn-floating-thread`, los selectores que la
-//     hoja usaba para acotarla, no existen en el DOM (0 elementos).
+// What it reproduces, measured on /lookbook/preview/bali/block_editor/with_comments before
+// the fix:
+//   - each comment's nested `.bn-container` measured 163px and its `.bn-editor` 0px,
+//     because `.bn-with-comments .bn-container > .bn-editor` reached it with
+//     `flex: 1; min-width: 0`. One letter per line.
+//   - the floating card had no width of its own: 165px with three letters, 966px with a
+//     long line. `.bn-floating-composer` / `.bn-floating-thread`, the selectors the sheet
+//     used to constrain it, do not exist in the DOM (0 elements).
 
-const LARGO =
+const LONG_TEXT =
   'este es otro comentario con un texto que se expande conforme voy escribiendo y ' +
   'quiero ver hasta donde me limita asdfkjasldkfj alksdjflajsdlkfjasldkfj alksdjflkajsdf'
 
-const comentario = texto => `
+const commentCard = text => `
   <div data-floating-ui-portal>
     <div tabindex="-1" data-floating-ui-focusable style="position:absolute;top:0;left:0">
       <div class="bn-thread mantine-Card-root mantine-Paper-root">
         <div class="bn-root bn-container bn-mantine bn-comment-editor">
           <div class="tiptap ProseMirror bn-editor bn-default-styles">
-            <p class="bn-inline-content">${texto}</p>
+            <p class="bn-inline-content">${text}</p>
           </div>
         </div>
       </div>
     </div>
   </div>`
 
-describe('BlockEditor: comentarios', () => {
+describe('BlockEditor: comments', () => {
   beforeEach(() => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/with_comments')
@@ -41,71 +41,72 @@ describe('BlockEditor: comentarios', () => {
       const doc = $container[0].ownerDocument
       const host = doc.createElement('div')
       host.dataset.test = 'sondas'
-      host.innerHTML = comentario('est') + comentario(LARGO)
+      host.innerHTML = commentCard('est') + commentCard(LONG_TEXT)
       $container[0].appendChild(host)
     })
   })
 
-  const tarjetas = () => cy.get('[data-test="sondas"] .bn-thread')
+  const cards = () => cy.get('[data-test="sondas"] .bn-thread')
 
-  it('deja al editor anidado con el ancho de su tarjeta, no en cero', () => {
-    cy.get('[data-test="sondas"] .bn-comment-editor').each($anidado => {
-      const estilo = window.getComputedStyle($anidado[0])
-      const editor = $anidado[0].querySelector('.bn-editor')
+  it('leaves the nested editor at the width of its card, not at zero', () => {
+    cy.get('[data-test="sondas"] .bn-comment-editor').each($nested => {
+      const styles = window.getComputedStyle($nested[0])
+      const editor = $nested[0].querySelector('.bn-editor')
 
-      // La regla de dos columnas es del contenedor de primer nivel y de nadie mas.
-      expect(estilo.display, 'el contenedor anidado no es una fila flex').to.not.equal('flex')
-      expect(editor.getBoundingClientRect().width, 'el editor mide algo').to.be.greaterThan(100)
+      // The two-column rule belongs to the top-level container and to nobody else.
+      expect(styles.display, 'the nested container is not a flex row').to.not.equal('flex')
+      expect(editor.getBoundingClientRect().width, 'the editor measures something').to.be.greaterThan(100)
     })
   })
 
-  // No hay un tercer caso que mida los renglones del parrafo. Se escribio y pasaba igual
-  // con la hoja vieja: en esta sonda el contenedor flotante es `position: absolute` sin
-  // ancho, o sea shrink-to-fit sobre max-content, y ahi el texto entra en una linea aunque
-  // el `.bn-editor` mida cero. La letra por renglon necesita el ancho que Floating UI le
-  // escribe a la caja real. Los dos casos de arriba SI fallan sin el arreglo — verificado
-  // revirtiendo index.css y reconstruyendo — y son los que describen la causa.
+  // There is no third case measuring the paragraph's lines. It was written and it passed
+  // just the same with the old sheet: in this probe the floating container is
+  // `position: absolute` with no width, that is shrink-to-fit over max-content, and there
+  // the text fits on one line even when `.bn-editor` measures zero. One letter per line
+  // needs the width Floating UI writes onto the real box. The two cases above DO fail
+  // without the fix — verified by reverting index.css and rebuilding — and they are the
+  // ones that describe the cause.
 
-  it('la burbuja flotante mide lo mismo con tres letras que con un parrafo', () => {
-    tarjetas().should('have.length', 2)
-    tarjetas().then($t => {
-      const anchos = [...$t].map(el => Math.round(el.getBoundingClientRect().width))
+  it('the floating bubble measures the same with three letters as with a paragraph', () => {
+    cards().should('have.length', 2)
+    cards().then($cards => {
+      const widths = [...$cards].map(el => Math.round(el.getBoundingClientRect().width))
 
-      expect(anchos[0], 'corta y larga miden igual').to.equal(anchos[1])
-      expect(anchos[0], 'y ese ancho es el declarado').to.equal(320)
+      expect(widths[0], 'short and long measure the same').to.equal(widths[1])
+      expect(widths[0], 'and that width is the declared one').to.equal(320)
     })
   })
 })
 
-// El preview se llama `with_comments` y no traia ninguno (#863). No era cosmetico: es lo
-// que hizo invisible a #832 — para reproducir el desborde del hilo hubo que crear un
-// comentario a mano por la UI, y el barrido de previews contaba la pagina como 200.
+// The preview is called `with_comments` and carried none (#863). Not cosmetic: it is what
+// made #832 invisible — reproducing the thread overflow meant creating a comment by hand
+// through the UI, and the preview sweep counted the page as 200.
 //
-// Un comentario vive en DOS lados y necesita los dos para ser uno de verdad: el hilo en el
-// store, y la marca `comment` sobre el texto al que ancla. Sembrar solo el store deja los
-// hilos en la barra pero rotulados "Original content deleted" — medido.
-describe('BlockEditor: el preview de comentarios abre con comentarios', () => {
+// A comment lives in TWO places and needs both to be a real one: the thread in the store,
+// and the `comment` mark over the text it anchors to. Seeding only the store leaves the
+// threads in the sidebar but labeled "Original content deleted" — measured.
+describe('BlockEditor: the comments preview opens with comments', () => {
   beforeEach(() => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/with_comments')
-    // La barra lateral se puebla desde el store cuando el editor monta.
+    // The sidebar is populated from the store when the editor mounts.
     cy.get('.bn-threads-sidebar .bn-thread', { timeout: 20000 }).should('have.length', 2)
   })
 
-  it('los hilos estan anclados al texto, no huerfanos', () => {
-    // La marca es la mitad que el JSON de bloques no puede llevar: viaja en la forma
-    // ProseMirror de `initial_content`. Sin ella la barra pinta hilos que no apuntan a nada.
+  it('anchors the threads to the text, no orphans', () => {
+    // The mark is the half the block JSON cannot carry: it travels in the ProseMirror form
+    // of `initial_content`. Without it the sidebar paints threads that point at nothing.
     cy.get('.bn-editor .bn-thread-mark').should('have.length', 2)
     cy.get('.bn-threads-sidebar').should('not.contain.text', 'Original content deleted')
   })
 
-  it('mantiene el ancho de la barra con una URL larga sin cortes', () => {
-    // El caso de #832, ahora ejercitado por el preview en vez de a mano: un hilo cuyo
-    // comentario lleva una URL que no tiene donde partirse. Se mide el desborde real del
-    // contenedor, no las clases.
+  it('keeps the sidebar width with a long URL that has no break points', () => {
+    // The #832 case, now exercised by the preview instead of by hand: a thread whose
+    // comment carries a URL with nowhere to break. It measures the container's real
+    // overflow, not the classes.
     cy.get('.bn-threads-sidebar').should($sidebar => {
       const el = $sidebar[0]
-      expect(el.scrollWidth, 'la barra no desborda horizontalmente').to.equal(el.clientWidth)
+      expect(el.scrollWidth, 'the sidebar does not overflow horizontally').to.equal(el.clientWidth)
     })
   })
 })

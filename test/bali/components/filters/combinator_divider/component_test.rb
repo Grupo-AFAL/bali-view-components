@@ -2,10 +2,9 @@
 
 require "test_helper"
 
-# El divisor AND/OR entre grupos de filtros no tenía test propio (#1028). Fija
-# el estado activo (clases Y aria-pressed: un lector de pantalla no distingue
-# btn-primary de btn-outline), el nombre accesible del grupo y el hidden `q[m]`
-# que persiste la elección.
+# The AND/OR divider between filter groups had no test of its own (#1028). It pins the active state
+# (classes AND aria-pressed: a screen reader cannot tell btn-primary from btn-outline), the group's
+# accessible name and the hidden `q[m]` that persists the choice.
 class BaliFiltersCombinatorDividerComponentTest < ComponentTestCase
   def test_renders_both_buttons_with_the_and_state_active
     render_inline(Bali::Filters::CombinatorDivider::Component.new(combinator: "and"))

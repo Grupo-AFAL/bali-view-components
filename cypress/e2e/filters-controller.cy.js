@@ -198,17 +198,17 @@ describe('FiltersController', () => {
   })
 })
 
-// #1013 — la misma familia que el drawer, en el panel: el `.ss-content` de un
-// valor de tipo select se portalea a <body>, fuera del dropdown, así que
-// `dropdownTarget.contains(target)` decía "afuera" y cerraba el panel al tocar
-// el buscador del slim select. `closeOnClickOutside` ya excusaba el calendario
-// de flatpickr por selector; el slim select se había quedado fuera de esa lista.
-describe('FiltersController: widgets portaleados dentro del panel', () => {
+// #1013 — the same family as the drawer's, in the panel: the `.ss-content` of a
+// select-type value is portaled to <body>, outside the dropdown, so
+// `dropdownTarget.contains(target)` said "outside" and closed the panel on a touch
+// of the slim select's search box. `closeOnClickOutside` already excused flatpickr's
+// calendar by selector; the slim select had been left out of that list.
+describe('FiltersController: portaled widgets inside the panel', () => {
   const panel = '[data-filters-target="dropdownContent"]'
 
   beforeEach(() => {
-    // El widget de valor aparece al elegir un atributo de tipo select, y ahi es
-    // donde el panel monta un slim-select (filters/condition/component.html.erb).
+    // The value widget appears when a select-type attribute is chosen, and that is
+    // where the panel mounts a slim-select (filters/condition/component.html.erb).
     cy.visit('/bali/data_table/complete')
     cy.get('[data-filters-target="dropdown"] > button').click()
     cy.get('[data-condition-target="attribute"]').select('genre')
@@ -222,7 +222,7 @@ describe('FiltersController: widgets portaleados dentro del panel', () => {
     cy.get(panel).should('not.have.class', 'hidden')
   })
 
-  // El control: un click de verdad afuera sigue cerrando el panel.
+  // The control: a real click outside still closes the panel.
   it('still closes on a real outside click', () => {
     cy.get('body').click('bottomRight')
 

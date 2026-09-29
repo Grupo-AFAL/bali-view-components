@@ -34,9 +34,9 @@
     <% end %>
 
     <% if editable? && input_name.present? %>
-      <%# `data-content-format` dice en qué forma está el valor, para que el host no tenga
-          que adivinarla por la estructura (#1091). Lo pone el servidor con la del contenido
-          almacenado y lo mantiene al día `useContentSync` en cada escritura del editor. %>
+      <%# `data-content-format` says which shape the value is in, so the host does not have
+          to guess it from the structure (#1091). The server sets it from the stored
+          content's shape, and `useContentSync` keeps it current on every editor write. %>
       <input type="hidden"
              data-block-editor-target="output"
              data-content-format="<%= content_format %>"

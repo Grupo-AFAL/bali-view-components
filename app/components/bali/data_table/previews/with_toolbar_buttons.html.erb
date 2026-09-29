@@ -16,17 +16,16 @@
     <% cs.with_column(index: 3, label: 'Created At') %>
   <% end %>
 
-  <%# Host buttons: contenido arbitrario, último en el orden de supervivencia (colapsa
-      primero al ⋯). Un botón puesto acá tiene que tener connect() idempotente: bajo el
-      breakpoint el controlador de overflow lo MUEVE, y mover un nodo dispara
-      disconnect + connect. %>
+  <%# Host buttons: arbitrary content, last in the survival order (collapses into the ⋯
+      first). A button placed here must have an idempotent connect(): below the breakpoint the
+      overflow controller MOVES it, and moving a node fires disconnect + connect. %>
   <% c.with_toolbar_button do %>
     <%= render Bali::Button::Component.new(name: 'Import', variant: :ghost, size: :sm,
                                            icon: 'upload', responsive: false) %>
   <% end %>
 
   <% c.with_table do %>
-    <%# Sin `id:`: la identidad del listado vive en el DataTable (`#toolbar-demo table`). %>
+    <%# No `id:`: the listing's identity lives in the DataTable (`#toolbar-demo table`). %>
     <%= render Bali::Table::Component.new do |ct| %>
       <%= ct.with_headers(headers) %>
       <% records.each do |record| %>
