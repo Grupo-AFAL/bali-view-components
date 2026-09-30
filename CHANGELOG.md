@@ -50,6 +50,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   día con `day_url` navega y el hover no abre, así que el destino debe alcanzar los eventos;
   y en contenedores angostos conviene `:sm`.
 
+### Dependencies
+
+- **daisyUI 5.7.42 → 5.7.47** en `test/dummy/package.json`. El peer `daisyui: ">=5.7.0"` no se
+  mueve y `tailwindcss-rails` 4.6.0 / `tailwindcss-ruby` 4.3.3 ya eran las últimas. Para un
+  anfitrión la pantalla no cambia: los 601 previews en claro y oscuro, misma DOM con sólo la hoja
+  compilada sustituida, dan 1166 de 1202 capturas idénticas píxel a píxel y las otras 36 difieren
+  en ≤146 px de antialiasing (esquinas redondeadas, el thumb del `range`). El único cambio de
+  selector que alcanza a Bali —`.btn-disabled` ahora sólo aplica junto a `.btn`— no pierde
+  ningún caso: cada sitio que la emite, en Ruby y en JS, la pone sobre un `.btn`.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added
