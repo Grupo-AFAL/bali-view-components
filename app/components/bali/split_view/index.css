@@ -177,9 +177,10 @@
 
 /* No `opacity`: the pill's text is already the translucent `text-base-content/70`,
    and an element opacity on top multiplies the two — 0.49 effective, 2.92–4.74:1
-   across the five themes against AA's 4.5 for 12px text (#1202). Nothing dimmer
-   than the label clears AA on `afal` (the label itself is 5.27 there), so the
-   count sets itself apart by weight instead, like `.split-view-group-count`. */
+   across the five themes against AA's 4.5 for 12px text (#1202). On `afal` the
+   lowest alpha that still clears AA is 0.65, against the label's 0.70 — too
+   close to read as dimmer — so the count sets itself apart by weight instead,
+   like `.split-view-group-count`. */
 .split-view-filter-count {
   @apply ml-1 font-normal tabular-nums;
 }
