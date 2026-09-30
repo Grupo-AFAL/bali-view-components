@@ -3374,8 +3374,9 @@ shape did not understand.
 # v2 — SimpleFilters
 <% dt.with_simple_filters(search: { field_name: "q[name_or_email_cont]", value: params.dig(:q, :name_or_email_cont) }) %>
 
-# v3 — the same hash the Filters panel takes
-<% dt.with_simple_filters(search: { fields: %i[name email], value: params.dig(:q, :name_or_email_cont) }) %>
+# v3 — the same hash the Filters panel takes. `value:` from the FilterForm, which reads a
+# `q` that is not a hash (`?q=x`) as no search instead of raising the way `params.dig` does
+<% dt.with_simple_filters(search: { fields: %i[name email], value: @filter_form.search_value }) %>
 ```
 
 The full shape is `fields:`, `value:`, `placeholder:`, `label:`, `icon:` and `width:`,
