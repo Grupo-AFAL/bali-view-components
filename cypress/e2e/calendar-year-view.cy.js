@@ -42,6 +42,23 @@ describe('Calendar year view', () => {
     cy.get('a.year-day').should('not.exist')
   })
 
+  // Without `day_url` the cell is a `<time>`, which takes no focus by itself; the
+  // card opens on `focusin`, so the tab stop is what makes its events reachable
+  // without a mouse.
+  it('opens the hover card from the keyboard when the day is not a link', () => {
+    cy.viewport(1440, 1200)
+    cy.visit(`${year}?with_day_url=false`)
+
+    cy.get('time.year-day[tabindex="0"]').should('have.length', 36)
+      .first().should('have.attr', 'aria-label').and('match', /^\d+ \w+ \d{4}$/)
+
+    cy.get('time.year-day[tabindex="0"]').first().focus()
+    cy.focused().should('have.class', 'year-day')
+    cy.get('.tippy-box').should('be.visible').within(() => {
+      cy.get('.badge').should('have.length.greaterThan', 0)
+    })
+  })
+
   // `interactive: true` in the hovercard controller is what lets the pointer leave
   // the day square and reach the link; without it the card closes on the way.
   it('lets an event inside the hover card be clicked through to its own url', () => {

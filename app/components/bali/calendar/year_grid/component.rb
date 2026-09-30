@@ -151,7 +151,10 @@ module Bali
         end
 
         # `<time datetime>` and not an `aria-label` on the unlinked cell: a bare
-        # <span> maps to the `generic` role, which ARIA does not name.
+        # <span> maps to the `generic` role, which ARIA does not name. The cell that
+        # carries a hover card is the exception: the card opens on `focusin`, so
+        # without a tab stop its events only exist for the mouse (WCAG 2.1.1), and
+        # a focus stop is announced, so it gets the full date like the linked cell.
         def day_cell(day)
           url = day_url_for(day)
           number = day.day.to_s if show_date
@@ -161,6 +164,9 @@ module Bali
               href: url, name: number, plain: true,
               class: day_classes(day), aria: { label: day_label(day) }
             )
+          elsif hover?(day)
+            tag.time(number, class: day_classes(day), datetime: day.iso8601,
+                             tabindex: 0, aria: { label: day_label(day) })
           else
             tag.time(number, class: day_classes(day), datetime: day.iso8601)
           end

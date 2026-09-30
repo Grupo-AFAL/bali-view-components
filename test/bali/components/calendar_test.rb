@@ -512,6 +512,39 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".year-month .hover-card-component", count: 2)
   end
 
+  # The card opens on `focusin`; an unlinked `<time>` takes no focus by itself.
+  def test_year_view_gives_a_tab_stop_to_the_unlinked_days_that_carry_a_hover_card
+    @options.merge!(
+      start_date: "2020-01-01", period: :year,
+      events: [ year_event("2020-03-05"), year_event("2020-08-11") ],
+      template: "calendar_fixtures/day"
+    )
+    render_inline(component)
+
+    assert_selector("time.year-day[tabindex='0']", count: 2)
+    assert_selector("time.year-day[tabindex='0'][aria-label='5 March 2020']", count: 1)
+  end
+
+  def test_year_view_gives_no_tab_stop_without_a_template
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ]
+    )
+    render_inline(component)
+
+    assert_no_selector("time.year-day[tabindex]")
+  end
+
+  def test_year_view_gives_no_tab_stop_to_a_linked_day
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      template: "calendar_fixtures/day", day_url: ->(day, _events) { "/days/#{day}" }
+    )
+    render_inline(component)
+
+    assert_selector("a.year-day[aria-label='5 March 2020']", count: 1)
+    assert_no_selector("time.year-day[tabindex]")
+  end
+
   def test_year_view_renders_no_hover_card_without_a_template
     @options.merge!(
       start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ]
