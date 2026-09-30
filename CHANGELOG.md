@@ -21,7 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   con los mismos locals, y sólo esos días montan tippy. `weekdays_only` se ignora en
   `:year`. En celular se pinta la misma retícula en una columna. Un día con tarjeta y sin
   `day_url` toma foco (`tabindex="0"`) y anuncia la fecha completa: la tarjeta abre con
-  `focusin`, así que sin tab stop sus eventos sólo existían para el mouse.
+  `focusin`, así que sin tab stop sus eventos sólo existían para el mouse. El número del día
+  sin eventos y las iniciales de la semana van en `text-base-content/70`: compuestos sobre el
+  fondo, `/40` y `/50` medían 2.36:1 y 3.05:1 en `afal`; `/70` mide 5.54:1 en el peor tema.
   Sin tocar `period:` nada cambia: a 1440px el diff pixel a pixel contra v3.5.0 da 0 píxeles.
 
 - **`month_size:` fija el tamaño de cada mes** — `:xs`, `:sm`, `:md` (default), `:lg`,

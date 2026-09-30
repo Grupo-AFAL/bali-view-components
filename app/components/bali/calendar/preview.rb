@@ -61,7 +61,7 @@ module Bali
                  month_size: month_size,
                  weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
                  show_date: ActiveModel::Type::Boolean.new.cast(show_date),
-                 events: with_events ? year_sample_events : [],
+                 events: with_events ? year_sample_events(first_day.year) : [],
                  template: with_events ? 'bali/calendar/previews/template' : nil,
                  day_url: (day_url_lambda if ActiveModel::Type::Boolean.new.cast(with_day_url)),
                  day_variant: (day_variant_lambda if ActiveModel::Type::Boolean.new.cast(with_day_variant)),
@@ -117,8 +117,7 @@ module Bali
 
       # The 11th holds two events (`has-multiple`) and a name long enough to wrap
       # in a hover card tippy caps at 350px. Keep both.
-      def year_sample_events
-        year = Date.current.year
+      def year_sample_events(year)
         statuses = %i[success warning error info]
 
         (1..12).flat_map do |month|

@@ -25,7 +25,10 @@ module Bali
 
         NEUTRAL_HIGHLIGHT = "bg-base-content/20 text-base-content hover:bg-base-content hover:text-base-100"
 
-        EMPTY_DAY = "text-base-content/40"
+        # `/70`, not `/40`: composited over the ground, `/40` read 2.36:1 on `afal`
+        # at 11px; `/70` is 5.54:1 there, the worst of the five themes (AA wants 4.5).
+        # The tint on a day with events is what codes the map, not this number.
+        EMPTY_DAY = "text-base-content/70"
 
         DAY_CLASSES = "year-day relative flex items-center justify-center " \
                       "aspect-square rounded-sm text-[0.6875rem] leading-none"

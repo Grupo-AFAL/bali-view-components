@@ -4489,7 +4489,7 @@ inside a hover card on the days that have events, with the same three locals as 
   start_date: params[:start_time],
   events: @events,
   template: 'events/calendar_event',
-  day_url: ->(day, _events) { events_path(start_time: day, period: :day) },
+  day_url: ->(day, _events) { events_path(start_time: day, period: :month) },
   day_variant: ->(_day, events) { events.first.status_color },
   month_summary: ->(_month, events) { events.size.to_s }
 ) do |c| %>

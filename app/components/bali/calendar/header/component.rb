@@ -114,9 +114,7 @@ module Bali
           base_params = case type
           when :prev then { start_attribute => prev_start_date, period: period }
           when :next then { start_attribute => next_start_date, period: period }
-          # String here, Symbol above: pre-existing, identical after `to_query`, and
-          # unifying it would churn every host's query string.
-          when *Bali::Calendar::Component::PERIODS then { period: type.to_s, start_attribute => start_date }
+          when *Bali::Calendar::Component::PERIODS then { period: type, start_attribute => start_date }
           else {}
           end
 

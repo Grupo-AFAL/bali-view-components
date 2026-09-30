@@ -11,12 +11,6 @@ describe('Calendar year view', () => {
 
     // 12 months x 3 distinct days carrying the sample events.
     cy.get('.hover-card-component').should('have.length', 36)
-
-    cy.window().then(win => {
-      const cards = win.document.querySelectorAll('.hover-card-component')
-      const days = win.document.querySelectorAll('.year-day')
-      cy.log(`hover cards: ${cards.length} of ${days.length} days`)
-    })
   })
 
   it('opens the hover card with the host template inside it', () => {
@@ -56,6 +50,63 @@ describe('Calendar year view', () => {
     cy.focused().should('have.class', 'year-day')
     cy.get('.tippy-box').should('be.visible').within(() => {
       cy.get('.badge').should('have.length.greaterThan', 0)
+    })
+  })
+
+  // The dimmed number of an empty day and the weekday initials are translucent
+  // `text-base-content/*` tokens, so what the reader sees is the token COMPOSITED
+  // over the ground (#1203). Shipped at `/40` and `/50` they measured 2.36:1 and
+  // 3.05:1 on `afal`; AA wants 4.5 for text this size.
+  ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+    it(`reads the empty day number and the weekday initials at AA on the ${theme} theme`, () => {
+      cy.viewport(1440, 1200)
+      cy.visit(year)
+      cy.get('.year-day').should('have.length.greaterThan', 364)
+
+      cy.document().then((doc) => {
+        doc.documentElement.setAttribute('data-theme', theme)
+
+        const paint = (over, colour) => {
+          const canvas = doc.createElement('canvas')
+          canvas.width = canvas.height = 1
+          const ctx = canvas.getContext('2d')
+          ctx.fillStyle = over
+          ctx.fillRect(0, 0, 1, 1)
+          if (colour) {
+            ctx.fillStyle = colour
+            ctx.fillRect(0, 0, 1, 1)
+          }
+          return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
+        }
+        const luminance = ([r, g, b]) => {
+          const channel = (v) => {
+            v /= 255
+            return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+          }
+          return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+        }
+        const ratio = (a, b) => {
+          const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+          return (high + 0.05) / (low + 0.05)
+        }
+        // An empty cell paints no background: the ground is the nearest opaque ancestor.
+        const ground = (el) => {
+          for (let node = el; node; node = node.parentElement) {
+            const bg = getComputedStyle(node).backgroundColor
+            if (bg !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(bg)) return bg
+          }
+          return getComputedStyle(doc.body).backgroundColor
+        }
+
+        const cell = doc.querySelector('time.year-day:not([tabindex])')
+        const over = ground(cell)
+        ;[['empty day number', cell], ['weekday initial', doc.querySelector('.year-weekday')]]
+          .forEach(([what, text]) => {
+            const colour = getComputedStyle(text).color
+            expect(ratio(paint(over, colour), paint(over)), `${theme}: the ${what}`)
+              .to.be.at.least(4.5)
+          })
+      })
     })
   })
 

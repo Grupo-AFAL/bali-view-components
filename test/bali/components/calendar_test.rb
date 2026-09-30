@@ -171,7 +171,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     render_inline(component) do |c|
       params = c.with_header(start_date: "2020-02-02").extra_params(:month)
     end
-    assert_equal({ start_time: Date.parse("2020-02-02"), period: "month" }, params)
+    assert_equal({ start_time: Date.parse("2020-02-02"), period: :month }, params)
   end
 
   def test_extra_params_returns_params_for_week_view
@@ -179,7 +179,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     render_inline(component) do |c|
       params = c.with_header(start_date: "2020-02-02").extra_params(:week)
     end
-    assert_equal({ start_time: Date.parse("2020-02-02"), period: "week" }, params)
+    assert_equal({ start_time: Date.parse("2020-02-02"), period: :week }, params)
   end
   # #sorted_events
 
@@ -405,7 +405,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     @options.merge!(start_date: "2020-06-15", period: :year)
     render_inline(component)
 
-    assert_selector(".year-day.text-base-content\\/40", count: 366)
+    assert_selector(".year-day.text-base-content\\/70", count: 366)
   end
 
   def test_year_view_highlights_days_with_events
@@ -668,7 +668,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     render_inline(component) do |c|
       params = c.with_header(start_date: "2020-02-02").extra_params(:year)
     end
-    assert_equal({ start_time: Date.parse("2020-02-02"), period: "year" }, params)
+    assert_equal({ start_time: Date.parse("2020-02-02"), period: :year }, params)
   end
 
   def test_route_for_the_year_button_carries_the_period_and_the_date

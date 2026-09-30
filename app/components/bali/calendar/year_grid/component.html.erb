@@ -12,9 +12,10 @@
       </div>
 
       <div class="year-month-grid grid grid-cols-7 gap-0.5">
-        <%# aria-hidden: every cell carries its full date (aria-label or `<time datetime>`). %>
+        <%# aria-hidden: every cell carries its full date (aria-label or `<time datetime>`).
+            `/70`: at 10px `/50` composited to 3.05:1 on `afal`; `/70` is 5.54:1 there. %>
         <% weekday_initials.each do |initial| %>
-          <div class="year-weekday text-center text-[0.625rem] text-base-content/50" aria-hidden="true"><%= initial %></div>
+          <div class="year-weekday text-center text-[0.625rem] text-base-content/70" aria-hidden="true"><%= initial %></div>
         <% end %>
 
         <% month_days(month).each do |day| %>
