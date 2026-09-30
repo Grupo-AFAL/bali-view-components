@@ -120,12 +120,9 @@
    the fleet runs that were not. At `/70` the range is 5.27 (`afal`) to 8.26
    (`dark`), so even the tightest still carries headroom.
 
-   `.split-view-filter-count` looks like the precedent for this rule and is the
-   opposite of one: it is `opacity-70` on a parent already at
-   `text-base-content/70`, the two multiply to an effective 0.49, and it paints
-   at 2.68–3.82 across those themes — under AA in all of them (#1202). Reading
-   its declared colour without the element opacity gives 6.38 and hides that
-   entirely, which is how it got cited here in the first place. */
+   Measuring it takes the element's `opacity` as well as the colour's alpha:
+   `getComputedStyle().color` carries only the second, and it hid an
+   `opacity-70` on `.split-view-filter-count` that painted at 2.92:1 (#1202). */
 .split-view-group-count {
   @apply ml-auto font-normal tabular-nums text-base-content/70;
 }
@@ -178,8 +175,13 @@
   @apply bg-primary text-primary-content;
 }
 
+/* No `opacity`: the pill's text is already the translucent `text-base-content/70`,
+   and an element opacity on top multiplies the two — 0.49 effective, 2.92–4.74:1
+   across the five themes against AA's 4.5 for 12px text (#1202). Nothing dimmer
+   than the label clears AA on `afal` (the label itself is 5.27 there), so the
+   count sets itself apart by weight instead, like `.split-view-group-count`. */
 .split-view-filter-count {
-  @apply opacity-70 ml-1;
+  @apply ml-1 font-normal tabular-nums;
 }
 
 .split-view-sentinel {

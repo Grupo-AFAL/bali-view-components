@@ -4,6 +4,50 @@
 // on, which is the whole claim of fetch-and-extract.
 //
 // 20 movies, 5 per page: four pages, and the fourth is the end of the list.
+// WCAG contrast of an element's text as it is PAINTED: its colour at the colour's
+// alpha times every `opacity` between it and the first opaque background, composited
+// over that background on a 1px canvas. `getComputedStyle().color` carries only the
+// colour's alpha: read that way the filter count reported 6.38 while it painted
+// 2.92 (#1202).
+const paintedContrast = (el) => {
+  const win = el.ownerDocument.defaultView
+  const canvas = el.ownerDocument.createElement('canvas')
+  canvas.width = canvas.height = 1
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  const paint = (colour, alpha = 1) => {
+    ctx.globalAlpha = alpha
+    ctx.fillStyle = colour
+    ctx.fillRect(0, 0, 1, 1)
+    ctx.globalAlpha = 1
+    return [...ctx.getImageData(0, 0, 1, 1).data]
+  }
+
+  let opacity = 1
+  let ground = 'white'
+  for (let node = el; node; node = node.parentElement) {
+    const style = win.getComputedStyle(node)
+    opacity *= parseFloat(style.opacity)
+    ctx.clearRect(0, 0, 1, 1)
+    if (paint(style.backgroundColor)[3] === 255) {
+      ground = style.backgroundColor
+      break
+    }
+  }
+
+  const luminance = ([r, g, b]) => {
+    const channel = (v) => {
+      v /= 255
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+    }
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+  }
+  ctx.clearRect(0, 0, 1, 1)
+  const back = paint(ground)
+  const text = paint(win.getComputedStyle(el).color, opacity)
+  const [high, low] = [luminance(text), luminance(back)].sort((x, y) => y - x)
+  return (high + 0.05) / (low + 0.05)
+}
+
 describe('SplitView structured list', () => {
   const scroller = () => cy.get('[data-split-view-list-target="scroller"]')
   const rows = () => cy.get('.split-view-item')
@@ -290,6 +334,30 @@ describe('SplitView structured list', () => {
       })
     })
 
+    // The count sits inside a pill whose text is already a translucent token, so an
+    // element opacity on it multiplies: `opacity-70` over `/70` painted at 2.92–4.74
+    // (#1202). The inactive pill has to clear AA; the active one is the theme's own
+    // primary pair, and its count must read no dimmer than its label. `should` and
+    // not `then`: the pills carry `transition-colors`, so the colour right after the
+    // theme switch is a frame of the transition.
+    ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+      it(`reads the pill counts at AA on the ${theme} theme`, () => {
+        cy.visit(app('/split-view?filter_mode=multi&q%5Bgenre_in%5D%5B%5D=Action'))
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+        cy.get('[data-testid="list-filters"]').should(($band) => {
+          const inactive = $band[0].querySelector('.split-view-filter:not([data-active="true"])')
+          const active = $band[0].querySelector('.split-view-filter[data-active="true"]')
+
+          expect(paintedContrast(inactive), `${theme}: an inactive pill`).to.be.at.least(4.5)
+          expect(paintedContrast(inactive.querySelector('.split-view-filter-count')),
+            `${theme}: its count`).to.be.at.least(4.5)
+          expect(paintedContrast(active.querySelector('.split-view-filter-count')),
+            `${theme}: the active pill's count`).to.be.at.least(paintedContrast(active) - 0.01)
+        })
+      })
+    })
+
     it('keeps selecting a row while a filter is on', () => {
       cy.visit(app('/split-view?status=done'))
       rows().eq(2).click()
@@ -441,9 +509,7 @@ describe('SplitView structured list', () => {
 
     // The heading's two pieces of text sit on the band's own opaque background,
     // and both are written with a translucent `text-base-content/*` token — so
-    // what reaches the reader is the token COMPOSITED over that band. Measuring
-    // the declared colour alone reports a contrast nobody sees; on a 1px canvas
-    // the ground has to be painted first and the colour over it.
+    // what reaches the reader is the token COMPOSITED over that band.
     //
     // That is how the count shipped at `/50`: composited, 2.96:1 on `afal`,
     // 3.16 on `costa-norte`, 3.33 on `light`, 4.11 on `afal-dark`, against AA's
@@ -455,37 +521,9 @@ describe('SplitView structured list', () => {
         cy.document().then((doc) => {
           doc.documentElement.setAttribute('data-theme', theme)
 
-          const paint = (over, colour) => {
-            const canvas = doc.createElement('canvas')
-            canvas.width = canvas.height = 1
-            const ctx = canvas.getContext('2d')
-            ctx.fillStyle = over
-            ctx.fillRect(0, 0, 1, 1)
-            if (colour) {
-              ctx.fillStyle = colour
-              ctx.fillRect(0, 0, 1, 1)
-            }
-            return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-          }
-          const luminance = ([r, g, b]) => {
-            const channel = (v) => {
-              v /= 255
-              return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-            }
-            return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-          }
-          const ratio = (a, b) => {
-            const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-            return (high + 0.05) / (low + 0.05)
-          }
-
           const header = doc.querySelector('.split-view-group-header')
-          const band = getComputedStyle(header).backgroundColor
-
           ;[['count', '.split-view-group-count'], ['label', 'span']].forEach(([what, selector]) => {
-            const text = header.querySelector(selector)
-            const colour = getComputedStyle(text).color
-            expect(ratio(paint(band, colour), paint(band)), `${theme}: the group ${what}`)
+            expect(paintedContrast(header.querySelector(selector)), `${theme}: the group ${what}`)
               .to.be.at.least(4.5)
           })
         })

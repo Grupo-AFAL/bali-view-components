@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
+  (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,
+  2.92–4.74:1 contra el 4.5 que pide un texto de 12px. Ahora hereda el color de la pastilla
+  (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
+  anfitrión.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added
