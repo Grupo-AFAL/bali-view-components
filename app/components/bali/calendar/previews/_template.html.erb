@@ -17,7 +17,9 @@
     without the partial branching.
 
     `whitespace-normal h-auto py-1` is the documented opt-out from
-    `tag/index.css`'s `white-space: nowrap`. The nowrap default is right for a
+    `tag/index.css`'s `white-space: nowrap`, and it is only needed BECAUSE this
+    partial renders a `Bali::Tag`: a host partial whose rows are `block truncate`
+    clips inside the card on its own. The nowrap default is right for a
     table cell — #655 — and wrong here: a hover card is where the host expects to
     READ the name, and tippy caps the box at 350px. Measured before this opt-out,
     a nowrap pill holding a name of about sixty characters was 367px wide and drew

@@ -38,7 +38,23 @@ module Bali
       # Tippy caps the card at 350px, so a name that fits a table cell can
       # overflow here — and `tag/index.css` makes a `.tag-component` nowrap on
       # purpose (#655), which turns that overflow into a pill drawn outside the
-      # card. `previews/_template.html.erb` shows the opt-out.
+      # card. `previews/_template.html.erb` shows the opt-out; a partial whose
+      # rows are `block truncate` needs none of it.
+      #
+      # On a touch screen a tap on a day that has a `day_url` navigates, and the
+      # hover card never opens (the hovercard controller triggers on
+      # `mouseenter focus`). The events of that day are then only reachable at
+      # the `day_url` destination, so it should be somewhere they are — the
+      # month view is the usual answer.
+      #
+      # THE LAMBDAS RUN INSIDE THE COMPONENT
+      # ------------------------------------
+      # All three are called while this grid renders, and for that whole time
+      # ViewComponent points the HOST view's `@virtual_path` at the component. A
+      # lazy `t('.count')` written in the host partial therefore resolves to
+      # `bali_view.calendar.year_grid.count`, not to the partial's own scope
+      # (`test_lazy_translation_inside_a_lambda_resolves_against_the_component_scope`).
+      # Write the full key.
       class Component < ApplicationViewComponent
         # Keyed by Bali::Color::NAMES. Spelled out, never interpolated: Tailwind
         # only emits a class it can find as a literal string in a source file, so
@@ -101,11 +117,14 @@ module Bali
         # @param template [String, nil] Host partial rendered inside the hover card.
         # @param show_date [Boolean] Draw the day number inside each cell.
         # @param day_url [Proc, nil] `->(day, events) { url }`. nil, or a nil return,
-        #   leaves the day unlinked — the component invents no destination.
+        #   leaves the day unlinked — the component invents no destination. On touch
+        #   the tap navigates here and the hover card never opens (see above).
         # @param day_variant [Proc, nil] `->(day, events) { :success }`, a name from
         #   Bali::Color::NAMES. nil falls back to a neutral highlight.
         # @param month_summary [Proc, nil] `->(month, events) { "11" }`, drawn beside
         #   the month name. Receives the first day of the month and that MONTH's events.
+        #   A `t('.x')` inside any of the three resolves against THIS component's
+        #   scope, not the host's (see above): write the full key.
         # @param month_size [Symbol] How big one miniature month gets: :xs, :sm, :md,
         #   :lg, :xl. The name is the MONTH's size, so :xs fits many per row and :xl
         #   few. The browser decides the count from the container's width.
