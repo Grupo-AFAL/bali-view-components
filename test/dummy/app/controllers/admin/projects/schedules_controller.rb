@@ -32,7 +32,7 @@ module Admin
         task = project.tasks.find_by(id: item[:id])
         return head :not_found if task.nil?
 
-        starts_on = Date.iso8601(item.require(:starts_on))
+        starts_on = Bali::IsoDate.parse(item.require(:starts_on)) or raise ArgumentError
         duration_days = Integer(item.require(:duration_days))
         if duration_days < 1
           return render json: { errors: [ "duration_days must be at least 1" ] },

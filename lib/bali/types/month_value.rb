@@ -3,14 +3,18 @@
 module Bali
   module Types
     class MonthValue < ActiveRecord::Type::String
+      # Returns nil for anything it cannot read. The cast runs on assignment, before any
+      # validation, so raising here was a 500 no model could defend against.
       def cast(value)
         return if value.blank?
 
-        Date.parse(normalize_date(value))
+        Bali::IsoDate.parse(normalize_date(value))
       end
 
       def serialize(value)
-        normalize_date(value)
+        return value if value.blank?
+
+        cast(value)&.iso8601
       end
 
       private

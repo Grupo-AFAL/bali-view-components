@@ -150,6 +150,25 @@ class BaliGanttDataTest < ActiveSupport::TestCase
     assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
   end
 
+  # `Date.iso8601` alone reads "2026-09" as the 1st and "20260910" as a date (#1211); a
+  # schedule drawn from either would be wrong without a word.
+  def test_rejects_what_date_iso8601_reads_but_is_not_yyyy_mm_dd
+    [ "2026-09", "20260910", "2026-W37-4", "2026-09-10T08:00:00Z" ].each do |value|
+      payload = base_payload
+      payload[:items][0][:starts_on] = value
+
+      error = assert_raises(Bali::Gantt::Data::InvalidError, value) { data(payload) }
+      assert_includes error.message, value.inspect
+    end
+  end
+
+  def test_rejects_impossible_calendar_dates
+    payload = base_payload
+    payload[:items][0][:starts_on] = "2026-02-31"
+
+    assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
+  end
+
   def test_rejects_unknown_group_references
     payload = base_payload
     payload[:items][0][:group_id] = 99

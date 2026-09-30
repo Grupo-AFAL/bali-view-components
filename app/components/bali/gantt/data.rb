@@ -51,8 +51,6 @@ module Bali
     class Data
       class InvalidError < ArgumentError; end
 
-      ISO_DATE = /\A\d{4}-\d{2}-\d{2}\z/
-
       Group = Struct.new(:id, :name, :parent_id, :position, :status,
                          :starts_on, :ends_on, :href, keyword_init: true) do
         def dated? = starts_on.present?
@@ -202,12 +200,8 @@ module Bali
         return nil if value.blank?
         return value if value.is_a?(Date)
 
-        raise InvalidError, "#{context}: date must be ISO8601 (YYYY-MM-DD), got #{value.inspect}" unless
-          value.is_a?(String) && value.match?(ISO_DATE)
-
-        Date.iso8601(value)
-      rescue Date::Error
-        raise InvalidError, "#{context}: invalid date #{value.inspect}"
+        Bali::IsoDate.parse(value) or
+          raise InvalidError, "#{context}: date must be a YYYY-MM-DD calendar date, got #{value.inspect}"
       end
 
       def normalize_percent(value, id)

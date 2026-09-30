@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::IsoDate.parse(value)`** (#1211): una fecha `AAAA-MM-DD` leída de fuera —un param,
+  un payload— o `nil`. `Date.iso8601` solo no es eso: lee `"2026-09"` como el día 1,
+  `"20260910"`, `"2026-253"` y `"2026-W37-4"` como fechas, y a `"2026-09-10T23:59:00-07:00"` le
+  tira la hora. La regla vivía encerrada en `Gantt::Data` (`ISO_DATE`, que se retira) y
+  centinela-web la acababa de reescribir carácter por carácter. La usan ahora `Gantt::Data` —que
+  sigue levantando `InvalidError` con su contexto— y `MonthValue`; la implementación de
+  referencia del Gantt en la dummy (`Admin::Projects::SchedulesController`) aceptaba
+  `starts_on: "2026-09"` y movía la tarea al día 1, y ahora responde 422.
+
+### Fixed
+
+- **`Bali::Types::MonthValue` levantaba al asignar** (#1209): `"zzz"` daba `Date::Error`,
+  `["2026-09"]` (`?q[mes][]=…`) `TypeError`, y hasta un `Date` levantaba `TypeError`. Como el
+  cast corre en la asignación, ninguna validación podía atajarlo: era un 500 desde la URL. Ahora
+  lo que no puede leer es `nil`, un `Date` pasa tal cual, y `serialize` escribe lo mismo que
+  `cast` leería —`nil` en vez de la basura—. `"2022-08"` sigue siendo el 1 de agosto.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added
