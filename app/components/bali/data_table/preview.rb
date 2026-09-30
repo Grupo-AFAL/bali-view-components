@@ -84,6 +84,22 @@ module Bali
         def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
       end
 
+      # The two readings of a view's columns, side by side: by key, and by position — a view
+      # saved before the host declared keys.
+      class KeyedSavedViewsStore < Bali::DataTable::Preview::PreviewSavedViewsStore
+        VIEWS = [
+          Bali::DataTable::Preview::PreviewSavedView.new(
+            id: 1, name: "Name and amount", payload: { "attributes" => {}, "columns" => %w[name amount] }
+          ),
+          Bali::DataTable::Preview::PreviewSavedView.new(
+            id: 2, name: "Saved by position", payload: { "attributes" => {}, "columns" => [ 0, 2 ] }
+          )
+        ].freeze
+
+        def list = VIEWS
+        def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
+      end
+
       # Fixtures of the CANONICAL preview, shared with Bali::IndexPage::Preview: the same
       # listing is shown with and without the page layer, and two copies of the setup would
       # drift just as the previews this spec came to unify did.
@@ -225,6 +241,34 @@ module Bali
             headers: HEADERS,
             records: RECORDS,
             filter_attributes: FILTER_ATTRIBUTES
+          }
+        )
+      end
+
+      # @label With Column Keys
+      #
+      # Every selector column carries a `key:`, so the device memory and saved views name
+      # columns by key instead of by position. `insert_region` adds a "Region" column between
+      # "Name" and "Status" — what a host does when a listing grows — and a column hidden
+      # before the insertion stays hidden after it (#1213).
+      #
+      # "Name and amount" was saved by key and keeps its columns through the insertion;
+      # "Saved by position" predates the keys and is read by position, as it always was.
+      #
+      # @param insert_region toggle
+      def with_column_keys(insert_region: false, saved_view: nil)
+        filter_form = Bali::FilterForm.new(
+          Movie.all,
+          ActionController::Parameters.new(saved_view: saved_view),
+          saved_views_store: Bali::DataTable::Preview::KeyedSavedViewsStore.new
+        )
+        render_with_template(
+          template: "bali/data_table/previews/with_column_keys",
+          locals: {
+            records: Bali::DataTable::Preview::RECORDS,
+            filter_attributes: Bali::DataTable::Preview::FILTER_ATTRIBUTES,
+            filter_form: filter_form,
+            insert_region: insert_region.to_s == "true"
           }
         )
       end

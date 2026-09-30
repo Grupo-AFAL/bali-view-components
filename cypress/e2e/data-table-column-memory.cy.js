@@ -164,7 +164,7 @@ describe('DataTable: column selector memory', () => {
       // Fail safe against a future format: back to the server's defaults, and the value is NOT
       // overwritten — the version that wrote it can still read it.
       it('ignores a version it does not know and does not overwrite it', () => {
-        const future = JSON.stringify({ v: 3, hidden: [1], known: [0, 1, 2, 3] })
+        const future = JSON.stringify({ v: 4, hidden: [1], known: [0, 1, 2, 3] })
         visit(future)
 
         header(1).should('be.visible')
@@ -253,6 +253,89 @@ describe('DataTable: column selector memory', () => {
       parsedAt(key).should('deep.equal', {
         v: 2, hidden: [3], known: [1, 2, 3, 4, 5], serverHidden: []
       })
+    })
+  })
+
+  // Every column carries a `key:` (#1213). `insert_region=true` puts a "Region" column between
+  // "Name" and "Status", which is exactly the change that used to move every preference after
+  // it onto its neighbour.
+  describe('with column keys', () => {
+    const key = 'bali:columns:keyed-demo'
+    const listing = '#keyed-demo'
+    const url = '/bali/data_table/with_column_keys'
+    const inserted = `${url}?insert_region=true`
+
+    const header = (label) => cy.get(`${listing} thead th`).contains(label).closest('th')
+    const box = (id) =>
+      cy.get(`${listing} [data-controller~="column-selector"] input[data-column-key="${id}"]`)
+    const stored = () => parsedAt(key)
+
+    it('remembers columns by key', () => {
+      visitWith(url, key, null)
+
+      box('status').uncheck({ force: true })
+      stored().should('deep.equal', {
+        v: 3, hidden: ['status'], known: ['amount', 'created_at', 'name', 'status'], serverHidden: []
+      })
+    })
+
+    it('keeps a hidden column hidden when another is inserted before it', () => {
+      visitWith(inserted, key, JSON.stringify({
+        v: 3, hidden: ['amount'], known: ['name', 'status', 'amount', 'created_at'], serverHidden: []
+      }))
+
+      header('Amount').should('not.be.visible')
+      box('amount').should('not.be.checked')
+      header('Status').should('be.visible')
+      header('Created At').should('be.visible')
+      // The memory never knew it, so the server's default stands.
+      header('Region').should('be.visible')
+    })
+
+    // A memory written before the keys can only mean positions. It is read against the layout
+    // where it was written and rewritten by key, and from then on an insertion does not move it.
+    it('reads an index memory by position once, and rewrites it by key', () => {
+      visitWith(url, key, JSON.stringify({ v: 2, hidden: [1], known: [0, 1, 2, 3], serverHidden: [] }))
+
+      header('Status').should('not.be.visible')
+      stored().should('deep.equal', {
+        v: 3, hidden: ['status'], known: ['amount', 'created_at', 'name', 'status'], serverHidden: []
+      })
+
+      cy.visit(inserted)
+      header('Status').should('not.be.visible')
+      header('Region').should('be.visible')
+      header('Amount').should('be.visible')
+    })
+
+    // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
+    // without stopping the Stimulus action, which listens on the form itself.
+    it('saves a view with the keys of its visible columns', () => {
+      cy.visit(url, {
+        onBeforeLoad (win) {
+          win.localStorage.removeItem(key)
+          win.addEventListener('submit', (event) => event.preventDefault(), true)
+        }
+      })
+      box('created_at').uncheck({ force: true })
+
+      cy.get(`${listing} [data-saved-views-target="saveForm"] form`).then(($form) => {
+        $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+      })
+
+      cy.get(`${listing} [data-saved-views-target="payload"]`).invoke('val')
+        .then((raw) => JSON.parse(raw).columns ?? null)
+        .should('deep.equal', ['name', 'status', 'amount'])
+    })
+
+    // View 1 recorded `["name", "amount"]`.
+    it('applies a view saved by key after a column was inserted', () => {
+      cy.visit(`${inserted}&saved_view=1`)
+
+      header('Name').should('be.visible')
+      header('Amount').should('be.visible')
+      header('Status').should('not.be.visible')
+      header('Created At').should('not.be.visible')
     })
   })
 

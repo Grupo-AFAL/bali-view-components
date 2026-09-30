@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`with_column(key:)` en el selector de columnas del `DataTable`** (#1213). Con llave, la
+  memoria del dispositivo y las vistas guardadas nombran la columna por su llave y no por su
+  posición, así que insertar una columna en medio ya no corre las preferencias a la vecina.
+  `index:` sigue diciendo dónde está la columna. Sin llaves nada cambia (la memoria sigue en
+  su formato v2); con llaves se escribe un v3 de ids, y lo guardado antes se lee como
+  posiciones: la memoria una vez —y se reescribe por llave— y cada vista hasta que se vuelva a
+  guardar. Una llave de sólo dígitos levanta `ArgumentError`, porque se leería como posición.
+
+  **Anfitrión:** si vas a insertar una columna en un listado con vistas guardadas o memoria,
+  pon `key:` a sus columnas en un release y la columna nueva en otro. Es lo que evita el
+  cambio de `id:` y la migración de datos que afal-apps tuvo que escribir en #772
+  (`RemapAffiliationsSavedViewColumns`). Listados a revisar: `git grep -n "with_column(index" -- app/views`.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added

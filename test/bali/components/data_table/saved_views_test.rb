@@ -170,6 +170,16 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "[data-saved-views-server-columns-value='[1,3]']"
   end
 
+  # A key is not a number: casting it with `to_i` made every keyed column index 0.
+  def test_a_view_that_names_its_columns_by_key_travels_with_the_keys
+    keyed = FakeStore.new([
+      SavedView.new(id: 5, name: "Compacta", payload: { "attributes" => {}, "columns" => [ "name", 3, "2" ] })
+    ])
+    render_component(form(ActionController::Parameters.new(saved_view: "5"), views_store: keyed))
+
+    assert_selector %([data-saved-views-server-columns-value='["name",3,2]'])
+  end
+
   def test_the_slot_without_url_nor_storage_id_does_not_render_the_dropdown
     form_without_storage = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new,
                                                 saved_views_store: store)

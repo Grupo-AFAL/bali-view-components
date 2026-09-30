@@ -808,6 +808,93 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("[data-column-selector-server-state-value='true']", visible: :all)
   end
 
+  def render_selector_with_view(columns, &declare)
+    view = SavedView.new(id: 1, name: "View", payload: { "attributes" => {}, "columns" => columns })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      storage_id: "movies_index", saved_views_store: SavedViewsStore.new([ view ])
+    )
+
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_column_selector(&declare)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+  end
+
+  def column_checked?(key)
+    page.has_selector?("input[data-column-key='#{key}'][checked]", visible: :all)
+  end
+
+  def test_a_column_key_reaches_the_checkbox
+    render_selector_with_view([ "name" ]) { |cs| cs.with_column(index: 0, label: "Name", key: :name) }
+
+    assert_selector("input[data-column-index='0'][data-column-key='name']", visible: :all)
+  end
+
+  # The case of #1213: a column inserted in the middle moves every index after it. A view that
+  # names its columns by key still hides the one it hid.
+  def test_a_view_saved_by_key_survives_a_column_inserted_before_it
+    render_selector_with_view([ "name", "created" ]) do |cs|
+      cs.with_column(index: 0, label: "Name", key: :name)
+      cs.with_column(index: 1, label: "Inserted later", key: :region)
+      cs.with_column(index: 2, label: "Genre", key: :genre)
+      cs.with_column(index: 3, label: "Created", key: :created)
+    end
+
+    assert column_checked?("name")
+    assert column_checked?("created"), "moved from index 2 to 3 and is still the one the view showed"
+    assert_not column_checked?("genre")
+    # A view shows exactly what it recorded, and it did not record this one.
+    assert_not column_checked?("region")
+  end
+
+  # Saved before the host declared keys: the only reading there is, by position — what it
+  # always meant.
+  def test_a_view_saved_by_position_is_read_by_position
+    render_selector_with_view([ 0, 2 ]) do |cs|
+      cs.with_column(index: 0, label: "Name", key: :name)
+      cs.with_column(index: 1, label: "Genre", key: :genre)
+      cs.with_column(index: 2, label: "Created", key: :created)
+    end
+
+    assert column_checked?("name")
+    assert_not column_checked?("genre")
+    assert column_checked?("created")
+  end
+
+  # Keys are adopted column by column; one without a key is still named by its index.
+  def test_a_column_without_a_key_is_named_by_its_index
+    render_selector_with_view([ "name", 1 ]) do |cs|
+      cs.with_column(index: 0, label: "Name", key: :name)
+      cs.with_column(index: 1, label: "Genre")
+      cs.with_column(index: 2, label: "Created", key: :created)
+    end
+
+    assert column_checked?("name")
+    assert_selector("input[data-column-index='1'][checked]", visible: :all)
+    assert_not column_checked?("created")
+  end
+
+  # A payload that came back through a form arrives as strings; "3" is an index, not a key.
+  def test_a_numeric_string_in_a_view_is_an_index
+    render_selector_with_view([ "0" ]) do |cs|
+      cs.with_column(index: 0, label: "Name")
+      cs.with_column(index: 1, label: "Genre")
+    end
+
+    assert_selector("input[data-column-index='0'][checked]", visible: :all)
+    assert_no_selector("input[data-column-index='1'][checked]", visible: :all)
+  end
+
+  # Numeric keys would be read back as positions.
+  def test_a_key_made_of_digits_is_refused
+    error = assert_raises(ArgumentError) do
+      render_selector_with_view([]) { |cs| cs.with_column(index: 0, label: "Year", key: "2026") }
+    end
+
+    assert_match(/2026/, error.message)
+  end
+
   def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family
     render_full_toolbar
 

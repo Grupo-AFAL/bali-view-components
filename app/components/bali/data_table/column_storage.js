@@ -23,9 +23,16 @@
  * `visible: false` and the user never touched is recorded as the user's own preference on the
  * first write, and a later `visible: true` from the host never reaches them. Without `known`
  * — v1, a bare list of visible indices — a column added later is born hidden, which is #1144.
+ *
+ * Format v3 is v2 with column IDS in the lists: a String is a column's `key:`, an Integer the
+ * index of a column without one. It is only written when the selector declares a key, so a
+ * table without keys keeps writing v2. Indices are positions, and inserting a column moved
+ * every preference after it onto its neighbour (#1213); a v1 or v2 value is still read, as
+ * positions against the current layout — `positional: true` — and rewritten as v3.
  */
 
 export const COLUMN_STORAGE_VERSION = 2
+export const COLUMN_IDS_VERSION = 3
 
 // Valid indices are 0..255; a real table is nowhere near. The ceiling is there so a corrupt
 // value — `[999999999]` written by something else — cannot make `fromLegacy` build a
@@ -44,6 +51,19 @@ const columnIndices = (value) => {
   }
 
   return [...seen].sort((a, b) => a - b)
+}
+
+// What `with_column(key:)` accepts, bounded so a corrupt value cannot pass for one.
+const COLUMN_KEY = /^[A-Za-z_][\w-]{0,63}$/
+
+// Sanitised column ids: the indices `columnIndices` keeps plus well-formed keys, deduped,
+// indices first.
+const columnIds = (value) => {
+  if (!Array.isArray(value)) return []
+
+  const keys = [...new Set(value.filter((entry) => typeof entry === 'string' && COLUMN_KEY.test(entry)))]
+
+  return [...columnIndices(value.filter((entry) => typeof entry === 'number')), ...keys.sort()]
 }
 
 /**
@@ -68,19 +88,21 @@ const fromLegacy = (visible) => {
     hidden: known.filter((index) => !visible.includes(index)),
     known,
     serverHidden: null,
-    stale: true
+    stale: true,
+    positional: true
   }
 }
 
 /**
- * Reads the memory at `key`. Returns `{ hidden, known, serverHidden, stale }` — always in the
- * v2 shape, whatever format was stored — or `null` when there is nothing readable.
+ * Reads the memory at `key`. Returns `{ hidden, known, serverHidden, stale, positional }` —
+ * always in the same shape, whatever format was stored — or `null` when there is nothing
+ * readable. `positional` says the lists hold indices (v1, v2) rather than ids (v3).
  *
  * `serverHidden` is `null` when the stored value recorded no baseline: all of v1, and a v2
  * missing the list. `stale: true` says the caller may rewrite it so the inference does not run
  * on every load; nobody is obliged to.
  *
- * A future version (v3) reads as `null` and is left untouched: falling back to the server's
+ * A future version (v4) reads as `null` and is left untouched: falling back to the server's
  * defaults beats misreading a format this code does not know.
  */
 export function readColumnState (key) {
@@ -98,26 +120,30 @@ export function readColumnState (key) {
   } catch { return null }
 
   if (Array.isArray(parsed)) return fromLegacy(columnIndices(parsed))
-  if (!parsed || parsed.v !== COLUMN_STORAGE_VERSION) return null
+  if (!parsed || ![COLUMN_STORAGE_VERSION, COLUMN_IDS_VERSION].includes(parsed.v)) return null
 
-  const baseline = Array.isArray(parsed.serverHidden) ? columnIndices(parsed.serverHidden) : null
+  const ids = parsed.v === COLUMN_IDS_VERSION ? columnIds : columnIndices
+  const baseline = Array.isArray(parsed.serverHidden) ? ids(parsed.serverHidden) : null
 
   return {
-    hidden: columnIndices(parsed.hidden),
-    known: columnIndices(parsed.known),
+    hidden: ids(parsed.hidden),
+    known: ids(parsed.known),
     serverHidden: baseline,
-    stale: baseline === null
+    stale: baseline === null,
+    positional: parsed.v === COLUMN_STORAGE_VERSION
   }
 }
 
 export function writeColumnState (key, { hidden, known, serverHidden }) {
   if (!key) return
 
+  const keyed = known.some((id) => typeof id === 'string')
+  const ids = keyed ? columnIds : columnIndices
   const value = {
-    v: COLUMN_STORAGE_VERSION,
-    hidden: columnIndices(hidden),
-    known: columnIndices(known),
-    serverHidden: columnIndices(serverHidden)
+    v: keyed ? COLUMN_IDS_VERSION : COLUMN_STORAGE_VERSION,
+    hidden: ids(hidden),
+    known: ids(known),
+    serverHidden: ids(serverHidden)
   }
 
   try {
@@ -127,8 +153,8 @@ export function writeColumnState (key, { hidden, known, serverHidden }) {
 
 /**
  * The VISIBLE columns according to the memory, or `null` when there is none. That is what a
- * saved view's payload needs, and it is still — deliberately — a list of visible indices; see
- * `saved_views_controller#storedColumns`.
+ * saved view's payload needs, and it is still — deliberately — a list of visible columns (ids,
+ * or indices from a positional memory); see `saved_views_controller#storedColumns`.
  *
  * Derived from `known \ hidden`, that is from the RESOLVED state and not from the decisions: a
  * column the host declared hidden and the user never touched is not on screen, so it does not

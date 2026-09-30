@@ -24,7 +24,8 @@
                  <%= 'checked' if column.visible %>
                  class="checkbox checkbox-sm checkbox-primary"
                  data-action="column-selector#toggle"
-                 data-column-index="<%= column.index %>" />
+                 data-column-index="<%= column.index %>"
+                 <% if column.key %>data-column-key="<%= column.key %>"<% end %> />
           <span class="label-text"><%= column.label %></span>
         </label>
       </li>

@@ -2587,14 +2587,32 @@ later would never reach anyone who had loaded the page before.
 A saved view is the opposite: an **explicit**, named choice ("these five columns"). It keeps
 recording visible columns, so applying it shows exactly the five it recorded, and a column
 added afterwards is not one of them. Re-save the view (or create a new one) to take the new
-column in. This is also why the payload format did not change: those rows are already written
-in your database, and flipping their meaning would silently rewrite every saved view.
+column in. This is also why the payload format did not change — still a list of visible
+columns, named by key when the columns have one: those rows are already written in your
+database, and flipping their meaning would silently rewrite every saved view.
 
 Two consequences worth spelling out:
 
-- Column identity is still the **position** of the `<th>`, in both places. Adding a column at
-  the end is safe; inserting one in the middle, or reordering them, shifts every preference
-  by one. A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
+- Without keys, column identity is the **position** of the `<th>`, in both places. Adding a
+  column at the end is safe; inserting one in the middle, or reordering them, shifts every
+  preference by one. **Give each column a `key:`** and both places name it by key instead:
+
+  ```erb
+  <% dt.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: t(".name"), key: :name) %>
+    <% cs.with_column(index: 1, label: t(".region"), key: :region) %>  <%# inserted later %>
+    <% cs.with_column(index: 2, label: t(".status"), key: :status) %>
+  <% end %>
+  ```
+
+  `index:` still says where the column is in the table; the key is what the memory and the
+  views remember. A key is not all digits (that reads as a position, and raises). What was
+  saved before the keys can only mean positions, so it is read as positions: device memory
+  once — then rewritten by key on that load — and a saved view for as long as it exists
+  (re-save it to move it to keys). So **ship the keys in one release and insert the column in
+  a later one**; doing both at once reads the old positions against the new layout — and a
+  user who did not open the listing in between still gets that once.
+- A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
   listing whose selection column depends on the user's role has two different column layouts
   under one name — give each layout its own `id:`.
 - The device memory is per browser. Clearing it for one user is `localStorage.removeItem`;
