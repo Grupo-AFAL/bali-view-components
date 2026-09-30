@@ -57,15 +57,18 @@ module Bali
       # @param with_day_url toggle "Make days with events navigate somewhere"
       # @param with_day_variant toggle "Colour each day from its events"
       # @param with_month_summary toggle "Label each month with its event count"
+      # @param bounded toggle "Limit navigation to the drawn year: both arrows go disabled"
       # rubocop:disable Metrics/ParameterLists
       def year(start_date: nil, month_size: :md, show_date: true, weekdays_only: false,
                with_events: true, with_day_url: true, with_day_variant: true,
-               with_month_summary: true)
+               with_month_summary: true, bounded: false)
         # rubocop:enable Metrics/ParameterLists
         with_events = ActiveModel::Type::Boolean.new.cast(with_events)
+        bounded = ActiveModel::Type::Boolean.new.cast(bounded)
+        first_day = (start_date.presence || Date.current).to_date.beginning_of_year
 
         render(Bali::Calendar::Component.new(
-                 start_date: start_date || Date.current.beginning_of_year,
+                 start_date: first_day,
                  period: :year,
                  month_size: month_size,
                  weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
@@ -76,7 +79,8 @@ module Bali
                  day_variant: (day_variant_lambda if ActiveModel::Type::Boolean.new.cast(with_day_variant)),
                  month_summary: (month_summary_lambda if ActiveModel::Type::Boolean.new.cast(with_month_summary))
                )) do |c|
-          c.with_header(route_path: '/lookbook', period_switch: %i[month year])
+          c.with_header(route_path: '/lookbook', period_switch: %i[month year],
+                        min_date: (first_day if bounded), max_date: (first_day.end_of_year if bounded))
         end
       end
 

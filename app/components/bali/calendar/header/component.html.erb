@@ -1,7 +1,7 @@
 <div class="header mb-4 flex items-center justify-between">
   <div class="flex-none">
     <% if route_path.present? %>
-      <%= render Bali::Link::Component.new(href: route(extra_params(:prev)), variant: :ghost, aria: { label: t('bali_view.calendar.header.previous') }) do %>
+      <%= render Bali::Link::Component.new(**arrow_options(:prev)) do %>
         <%= render Bali::Icon::Component.new('arrow-left') %>
       <% end %>
     <% end %>
@@ -29,7 +29,7 @@
   </div>
   <div class="flex-none">
     <% if route_path.present? %>
-      <%= render Bali::Link::Component.new(href: route(extra_params(:next)), variant: :ghost, aria: { label: t('bali_view.calendar.header.next') }) do %>
+      <%= render Bali::Link::Component.new(**arrow_options(:next)) do %>
         <%= render Bali::Icon::Component.new('arrow-right') %>
       <% end %>
     <% end %>

@@ -724,6 +724,95 @@ class BaliCalendarComponentTest < ComponentTestCase
 
     assert_equal([ :month ], header.switch_periods)
   end
+  # header — min_date / max_date
+
+  def test_arrows_are_live_links_when_no_bound_is_set
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar", period: :year)
+    end
+
+    assert_selector(".header a[href][aria-label='Previous']:not([aria-disabled])")
+    assert_selector(".header a[href][aria-label='Next']:not([aria-disabled])")
+  end
+
+  def test_previous_arrow_is_disabled_once_the_period_before_falls_under_min_date
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar", period: :year,
+                    min_date: "2020-06-15")
+    end
+
+    assert_selector(".header a.btn-disabled[aria-disabled='true'][aria-label='Previous']:not([href])")
+    assert_selector(".header a[href][aria-label='Next']:not([aria-disabled])")
+  end
+
+  def test_next_arrow_is_disabled_once_the_period_after_passes_max_date
+    render_inline(component) do |c|
+      c.with_header(start_date: "2020-01-01", route_path: "/calendar", period: :year,
+                    max_date: "2020-06-15")
+    end
+
+    assert_selector(".header a.btn-disabled[aria-disabled='true'][aria-label='Next']:not([href])")
+    assert_selector(".header a[href][aria-label='Previous']:not([aria-disabled])")
+  end
+
+  # The bound sits inside the destination period, so the arrow still goes there.
+  def test_a_bound_inside_the_neighbouring_period_keeps_the_arrow_live
+    header = Bali::Calendar::Header::Component.new(
+      start_date: "2020-03-01", period: :month, min_date: "2020-02-20", max_date: "2020-04-03"
+    )
+
+    assert_predicate(header, :prev_in_range?)
+    assert_predicate(header, :next_in_range?)
+  end
+
+  def test_a_bound_outside_the_neighbouring_period_disables_the_arrow
+    header = Bali::Calendar::Header::Component.new(
+      start_date: "2020-03-01", period: :month, min_date: "2020-03-01", max_date: "2020-03-31"
+    )
+
+    assert_not_predicate(header, :prev_in_range?)
+    assert_not_predicate(header, :next_in_range?)
+  end
+  # header — drop_params
+
+  def test_the_links_carry_route_path_query_string_by_default
+    href = ""
+    render_inline(component) do |c|
+      header = c.with_header(start_date: "2026-03-03", period: :year, start_attribute: :date,
+                             route_path: "/calendar?year=2026&q=x")
+      href = header.route(header.extra_params(:next))
+    end
+
+    assert_equal("/calendar?date=2027-01-01&period=year&q=x&year=2026", href)
+  end
+
+  def test_drop_params_leaves_the_named_host_keys_out_of_every_link
+    href = ""
+    render_inline(component) do |c|
+      header = c.with_header(start_date: "2026-03-03", period: :year, start_attribute: :date,
+                             route_path: "/calendar?year=2026&q=x", drop_params: %i[year])
+      href = header.route(header.extra_params(:next))
+    end
+
+    assert_equal("/calendar?date=2027-01-01&period=year&q=x", href)
+  end
+  # year view — the lambdas run inside the component
+
+  # ViewComponent points the host view's @virtual_path at the component for the
+  # whole render, and the three lambdas run inside it: a lazy `t('.x')` written in
+  # the host partial lands on the component's scope. Pinned so the YARD stays true.
+  def test_lazy_translation_inside_a_lambda_resolves_against_the_component_scope
+    view = vc_test_controller.view_context
+    view.instance_variable_set(:@virtual_path, "events/index")
+
+    html = view.render(Bali::Calendar::Component.new(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      month_summary: ->(_month, _events) { view.t(".count") }
+    ))
+
+    assert_includes(html, "translation missing: en.bali_view.calendar.year_grid.count")
+    assert_not_includes(html, "events.index.count")
+  end
 
   private
 

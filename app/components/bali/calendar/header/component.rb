@@ -11,11 +11,15 @@ module Bali
         # the two buttons it sees today and no third one.
         DEFAULT_SWITCH_PERIODS = %i[week month].freeze
 
-        attr_reader :route_path, :period, :start_date, :period_switch, :start_attribute
+        attr_reader :route_path, :period, :start_date, :period_switch, :start_attribute,
+                    :min_date, :max_date
 
         # @param start_date [Date|String] The date to start the calendar from.
         # @param period [Symbol] The period of the calendar: :month, :week, :day or :year.
-        # @param route_path [String] The route to use for the links.
+        # @param route_path [String] The route to use for the links. Its query string is
+        #   carried over to every link the header builds, with `start_attribute` and
+        #   `period` merged on top — so a key of the host's that DEPENDS on the date
+        #   (`year=2026` next to `date=2027-01-01`) has to be named in `drop_params`.
         # @param period_switch [Boolean, Array<Symbol>] `true` renders the historical
         #   `%i[week month]` pair, `false` renders nothing, and an array names the
         #   buttons to render — `period_switch: %i[month year]`. Opting the year in has
@@ -23,31 +27,59 @@ module Bali
         #   calendar's header without anyone asking for it.
         # @param start_attribute [Symbol] Method to be called on each event object for the
         #  start_date.
-
+        # @param min_date [Date, String, nil] Earliest date the arrows may navigate to;
+        #   nil is no limit. The previous arrow is disabled once the period before this
+        #   one no longer contains it.
+        # @param max_date [Date, String, nil] Latest date, the mirror of `min_date`.
+        # @param drop_params [Array<Symbol, String>] Keys of `route_path`'s query string
+        #   that the header's links leave out. Written in code, so a typo names a key
+        #   that is simply not there and drops nothing.
+        # rubocop:disable Metrics/ParameterLists
         def initialize(start_date:, period: :month, route_path: "", period_switch: true,
-                       start_attribute: :start_time, **options)
+                       start_attribute: :start_time, min_date: nil, max_date: nil,
+                       drop_params: [], **options)
+          # rubocop:enable Metrics/ParameterLists
           @start_date = normalize_date(start_date)
           @period = normalize_period(period)
           @route_path = route_path
           @period_switch = period_switch
           @start_attribute = start_attribute
+          @min_date = min_date&.to_date
+          @max_date = max_date&.to_date
+          @drop_params = Array(drop_params).map(&:to_s)
           @options = options
         end
 
         def prev_start_date
-          case period
-          when :year then start_date.beginning_of_year - 1.year
-          when :month then start_date.beginning_of_month - 1.month
-          else start_date.beginning_of_week - 1.week
-          end
+          period_start(start_date) - period_step
         end
 
         def next_start_date
-          case period
-          when :year then start_date.beginning_of_year + 1.year
-          when :month then start_date.beginning_of_month + 1.month
-          else start_date.beginning_of_week + 1.week
-          end
+          period_start(start_date) + period_step
+        end
+
+        # Inclusive on the period, not the day: `min_date: "2020-06-15"` still lets a
+        # year view reach 2020 and a month view reach June 2020, because the bound
+        # sits inside that period.
+        def prev_in_range?
+          min_date.nil? || prev_start_date >= period_start(min_date)
+        end
+
+        def next_in_range?
+          max_date.nil? || next_start_date <= period_start(max_date)
+        end
+
+        # An arrow that has nowhere to go is drawn disabled rather than left out.
+        # Measured at 1440px: removing one arrow moves the title 25px, half the
+        # arrow's 50px, the moment a host reaches the edge of its range.
+        def arrow_options(type)
+          in_range = type == :prev ? prev_in_range? : next_in_range?
+          label = t("bali_view.calendar.header.#{type == :prev ? 'previous' : 'next'}")
+
+          {
+            href: route(extra_params(type)), variant: :ghost, disabled: !in_range,
+            aria: { label: label, disabled: (true unless in_range) }.compact
+          }
         end
 
         # @return [Array<Symbol>] The periods the switch offers, in render order.
@@ -77,7 +109,7 @@ module Bali
         end
 
         def route(params = {})
-          uri.query = query_params.merge(params).to_query
+          uri.query = query_params.except(*@drop_params).merge(params).to_query
           uri.to_s
         end
 
@@ -101,6 +133,24 @@ module Bali
           end
 
           base_params.merge(@options[:extra_params] || {})
+        end
+
+        private
+
+        def period_start(date)
+          case period
+          when :year then date.beginning_of_year
+          when :month then date.beginning_of_month
+          else date.beginning_of_week
+          end
+        end
+
+        def period_step
+          case period
+          when :year then 1.year
+          when :month then 1.month
+          else 1.week
+          end
         end
       end
     end

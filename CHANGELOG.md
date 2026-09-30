@@ -137,6 +137,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   largo, porque un preview donde toda etiqueta es «Item 5-B» no responde nada sobre el
   caso que un anfitrión sí manda a producción.
 
+- **El header del calendario acepta `min_date:` y `max_date:`.** Un anfitrión cuyo año
+  sólo puede ser uno de los del selector dibujaba la flecha → en el borde y no pasaba
+  nada al pulsarla. Ahora la flecha cuyo destino queda fuera del rango se dibuja
+  **deshabilitada** (`btn-disabled`, sin `href`, `aria-disabled="true"`), no se quita:
+  medido a 1440px, quitar una flecha mueve el título 25px, la mitad de sus 50px. El
+  límite es inclusivo sobre el periodo —`min_date: "2020-06-15"` deja llegar al año 2020
+  y a junio de 2020— y sin los dos no cambia nada. El preview `calendar/year` tiene el
+  toggle `bounded` para verlo.
+
+- **`drop_params:` en el header.** La query string de `route_path` viaja a todos los
+  enlaces del header con `start_attribute` y `period` encima, así que un anfitrión que
+  filtra por `year` terminaba con `?year=2026&date=2027-01-01&period=year` y, según qué
+  leyera primero, saltaba al año viejo. `drop_params: %i[year]` deja esa llave fuera de
+  todos los enlaces; por default no se descarta nada.
+
+- **Tres notas de uso que faltaban, en YARD y en la guía**, las tres salidas de la
+  primera app que consumió la vista de año. (1) Las lambdas `day_url`, `day_variant` y
+  `month_summary` corren durante el render del grid, y ViewComponent apunta el
+  `@virtual_path` de la vista del anfitrión al componente todo ese tiempo: un `t('.x')`
+  dentro de ellas resuelve a `bali_view.calendar.year_grid.x`, no al scope del partial.
+  Llave completa; hay prueba que lo fija. (2) En táctil un tap sobre un día con
+  `day_url` navega y el hover nunca abre, así que el destino debe ser donde los eventos
+  se alcancen, como la vista de mes. (3) En un contenedor con sidebar (~1060px a 1440)
+  `:md` da 3 meses por fila con celdas de 47px y `:sm` da 4 con celdas de 34px. Se evaluó
+  un tope al ancho de la pista y se descartó con medición: `auto-fit` cuenta columnas con
+  el máximo definido de la pista, y `minmax(20rem, 22rem)` baja `:md` a 1440px de 4
+  columnas a 3.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added
