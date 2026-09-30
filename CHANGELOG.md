@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Salir con Turbo de una página con `BlockEditor` y comentarios lanzaba `NotFoundError:
+  removeChild`** (#1212, el `GOBIERNO-CORPORATIVO-3V` de Sentry). BlockNote pone un `<style>`
+  vacío en el `<head>` por editor —cada comentario es un editor— y lo quita al destruirse; la
+  fusión de `<head>` de Turbo borraba antes todos menos uno por idénticos, y la destrucción de
+  cada editor de comentario reventaba a medias. Medido en un documento con 16 hilos: 18 de 19
+  estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
+  los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added

@@ -1,5 +1,39 @@
 import { ReactIslandController } from '../../../frontend/bali/react-island'
 
+// BlockNote's placeholder plugin appends an EMPTY `<style>` to `document.head`
+// per editor — its rules go in through `sheet.insertRule`, so none of them show
+// in the markup — and removes it with `head.removeChild` when the editor is
+// destroyed. Turbo's head merge keys head elements by `outerHTML` and drops all
+// but the first of identical ones, so on a Turbo visit every style after the
+// first is already gone when the editors unmount: `removeChild` throws
+// NotFoundError from inside ProseMirror's `destroyPluginViews`, which aborts
+// that editor's teardown half way. Measured on a document with 16 comment
+// threads (#1212): 18 of its 19 styles removed by Turbo, 16 errors — the main
+// editor's is swallowed by the try/catch in `beforeUnmount`. Naming each style
+// after the editor it belongs to makes them distinct, so Turbo leaves them and
+// each editor removes its own.
+const PLACEHOLDER_SELECTOR = /^\.(placeholder-selector-[\w-]+)/
+
+let placeholderStylesNamed = false
+
+const namePlaceholderStyles = () => {
+  if (placeholderStylesNamed) return
+  placeholderStylesNamed = true
+
+  const name = (node) => {
+    if (node.localName !== 'style' || node.dataset.blocknotePlaceholder) return
+
+    try {
+      const owner = node.sheet?.cssRules[0]?.selectorText?.match(PLACEHOLDER_SELECTOR)
+      if (owner) node.dataset.blocknotePlaceholder = owner[1]
+    } catch { /* a sheet the page cannot read is not one of these */ }
+  }
+
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) mutation.addedNodes.forEach(name)
+  }).observe(document.head, { childList: true })
+}
+
 // The block editor is the island the react-island base was extracted FROM
 // (#703), so it is also the proof the base carries its weight: everything this
 // controller used to spell out — the `_disconnected` guard, createRoot over an
@@ -65,6 +99,8 @@ export class BlockEditorController extends ReactIslandController {
   }
 
   async loadComponent () {
+    namePlaceholderStyles()
+
     const [react, reactDom, { default: Component }] = await Promise.all([
       import('react'),
       import('react-dom/client'),
