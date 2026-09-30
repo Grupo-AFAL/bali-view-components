@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   con fuentes de merge vacías), subiendo su `resolutions` a `>=5.4.1`. Y
   `@ai-sdk/provider-utils` 4.0.19 → 4.0.56 en `test/dummy` (baja: consumo de recursos sin
   límite), re-resolviendo `ai` (6.0.116 → 6.0.297) y los `@ai-sdk/*` dentro de los rangos que
-  ya declara la dummy. Nada llega a un anfitrión: ninguno de los dos está en el `package.json`
-  publicado.
+  ya declara la dummy. Nada llega a un anfitrión: ninguno de los dos es dependencia del
+  paquete, y `resolutions` sólo rige la instalación de este repo.
 
 ## [v3.5.0] - 2026-09-20
 
