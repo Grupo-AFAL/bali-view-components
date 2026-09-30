@@ -8,7 +8,7 @@ One line is maintained today:
 
 | Channel | Branch | Tags | For |
 |---|---|---|---|
-| **Stable (v3.1)** | `main` | `v3.1.0`, `v3.1.1`, … | Every app in production |
+| **Stable (v3)** | `main` | `v3.MINOR.PATCH` — the newest is `git tag --sort=-v:refname \| head -1` | Every app in production |
 
 When the next line of work opens (its branch named after the version it targets), it gets
 a **Next** row here, its branch joins the CI filters, and it ships `beta.N` tags until its
@@ -73,10 +73,12 @@ one-line, reviewable diff in the `Gemfile.lock`.
 
 ## What lands where
 
-- **A v3 fix or feature** → `main`. Release with the normal flow, tag `v3.0.x`.
-- **Anything for v3.1** → `3.1`. Behaviour changes and anything risky live here and only here.
-- **`main` → `3.1`, never the reverse.** After each stable release, merge `main` into `3.1` so
-  the next line does not drift. Merging `3.1` into `main` before v3.1 is ready would leak
+- **A v3 fix or feature** → `main`. Release with the flow under
+  [Cutting a release](#cutting-a-release).
+- **Anything for the next line**, when one is open → its branch. Behaviour changes and
+  anything risky live there and only there. None is open today.
+- **`main` → next line, never the reverse.** After each stable release, merge `main` into the
+  open line so it does not drift. Merging the line into `main` before it is ready would leak
   unfinished changes into the stable channel — which is the whole thing this split exists
   to prevent.
 
@@ -86,25 +88,74 @@ Every workflow triggers on `push` and `pull_request` for **both** `main` and `3.
 a pre-release tag cut from a branch nothing verified is worse than no pre-release at all.
 
 Note the quotes in `branches: [main, "3.1"]` — unquoted, YAML parses `3.1` as the number
-`3.1` and the filter silently never matches.
+`3.1` and the filter silently never matches. The `"3.1"` still in the filters is left over
+from that line; it is the slot the next line's branch takes.
 
-## Cutting a v3.1 pre-release
+## Cutting a release
 
-Whenever `3.1` reaches a state an app could adopt:
+A release goes through a **release PR** off `main`, the same way every other change does.
+v3.3.1, v3.4.0 and v3.5.0 were cut like this; nothing is pushed to `main` directly.
 
-1. Bump `lib/bali/version.rb` and `package.json` to the next `3.1.0.beta.N`, then run
-   `bundle install` and commit the regenerated **`Gemfile.lock` in the same commit** — the
-   lock records the PATH gem's version, and CI bundles with a frozen lock, so a bump
-   without the lock fails every Ruby workflow with exit 16 at `setup-ruby` before a single
-   test runs (measured on v3.1.0.beta.6/7: the tag itself carried the stale lock, and a
-   tag cannot be fixed after the fact). Consuming apps are unaffected either way — a host
-   resolves the git-sourced gem from its gemspec, never from this repo's lock — but the
-   release commit should be the one CI can verify.
-2. Move the `## [Unreleased]` entries under `## [v3.1.0.beta.N] - <date>`.
-3. Tag `v3.1.0.beta.N` on `3.1` and publish a GitHub Release marked **pre-release**.
+1. Branch `release/vX.Y.Z` from `main`.
+2. Bump the version in **six files**, in one commit:
 
-`3.1.0.beta.1` sorts before `3.1.0` under both RubyGems and semver rules, so the numbering
-still reads correctly if this ever moves to a registry.
+   | File | What changes |
+   |---|---|
+   | `lib/bali/version.rb` | `VERSION` |
+   | `package.json` | `"version"` — same number, npm spelling (`3.1.0-beta.1` for `3.1.0.beta.1`) |
+   | `Gemfile.lock` | regenerated with `bundle install`, never by hand |
+   | `README.md` | the `tag:` of the install snippet |
+   | `docs/guides/installation.md` | the `tag:` and the console transcript `=> "X.Y.Z"` |
+   | `CHANGELOG.md` | `## [Unreleased]` becomes `## [vX.Y.Z] - YYYY-MM-DD`, repeated `###` headings merged |
+
+   The last three are not optional. `BaliDependencyContractTest#test_the_install_instructions_pin_this_version`
+   compares the three install pins against `Bali::VERSION` and fails the suite when they
+   disagree — the README sat on `v3.1.0.beta.13` for four releases before it existed.
+
+   The lock goes in the same commit because it records the PATH gem's version and CI bundles
+   with a frozen lock: a bump without it fails every Ruby workflow with exit 16 at
+   `setup-ruby` before a single test runs (measured on v3.1.0.beta.6/7, where the tag itself
+   carried the stale lock — and a tag cannot be fixed after the fact). Consuming apps are
+   unaffected either way; a host resolves the git-sourced gem from its gemspec, never from
+   this repo's lock.
+3. Run the suite (`bin/rails test`) and open the PR. Its body carries the host steps — see
+   [Host steps](#host-steps) below.
+4. After the merge, tag the merge commit and publish the GitHub Release:
+
+   ```sh
+   git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z
+   gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <notes> --verify-tag
+   ```
+
+   Between the merge and the tag, the install pins name a ref that does not exist yet. The
+   window closes with the tag, so tag right after merging.
+
+A pre-release of a next line is the same flow on that line's branch, numbered
+`X.Y.0.beta.N` and published with `--prerelease`. `3.1.0.beta.1` sorts before `3.1.0` under
+both RubyGems and semver rules, so the numbering still reads correctly if this ever moves to
+a registry.
+
+## Host steps
+
+What a host has to do on upgrading is read by people bumping several apps at once, often
+skipping versions. Two rules make those steps something they can execute rather than
+interpret (#1207):
+
+- **Every step carries the exact `git grep` that measures it, with its glob.** "23 views" is
+  not reproducible; `git grep -l with_saved_views origin/main -- app/views` is, and the glob
+  is load-bearing: the same search over `app` counted concerns and controllers too, and gave
+  23 where the views were 21. Measure against `origin/main`, never the working tree — the
+  checkouts in `~/code` sit on old branches.
+- **The release PR says which versions its steps cover, and what else to read.** Open its
+  host-steps section with a block like this one, listing every release since the oldest
+  version an app of the group is still on:
+
+  > These steps cover an app on **v3.4.0**. Coming from further back, apply these too, oldest
+  > first: [v3.4.0](../../CHANGELOG.md#v340---2026-09-17), [v3.3.1](../../CHANGELOG.md#v331---2026-09-14).
+
+  An app that skips versions needs every intermediate release's steps, and nothing else
+  tells it so: in the v3.5.0 rollout, three of the eight apps declared a complete sweep that
+  covered only v3.5.0's own steps.
 
 ## Shipping a line
 

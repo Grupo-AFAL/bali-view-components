@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **Las guías de release describen el procedimiento real** (#1205, #1207). Un release es un PR
+  de release que toca **seis** archivos —los tres pines de instalación de `README.md` e
+  `installation.md` los exige `test_the_install_instructions_pin_this_version` desde #1139—, y
+  el tag se pone después del merge. `docs/guides/release-channels.md` lo dice, la tabla de
+  canales deja de hablar de v3.1, y `.claude/commands/release.md` deja el flujo de dos fases que
+  empujaba a `main` con `--no-verify`. Nueva sección **Host steps**: cada paso de anfitrión lleva
+  su `git grep` con su glob, y el PR de release dice desde qué versión cubren sus pasos y qué
+  releases intermedios hay que leer. El hook `pr-closes-keyword.sh` revisa también los PRs que
+  se abren o editan por `gh api … pulls`. En `[v3.4.0]`, dos pasos de anfitrión ganan la
+  medición que les faltaba: 21 vistas con vistas guardadas en gobierno-corporativo (`app/views`,
+  no las 23 de `app`), y las 20 + 12 vistas con selector de columnas.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added
@@ -1179,6 +1193,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `origin/main`). El arreglo sería ajustar el `colspan` al vuelo, que es otro contrato para el
   controlador y queda fuera de este corte.
 
+  _Medición, para el anfitrión (añadida el 2026-09-30, #1207):_ las vistas con selector de
+  columnas son las que cambian con este arreglo —`git grep -l with_column_selector origin/main
+  -- app/views`: 20 en gobierno-corporativo y 12 en afal-apps, 0 en las demás— y el cero de
+  arriba es el de esas mismas vistas que además llevan `with_footer`.
+
   La composición está en el preview nuevo **DataTable › With Column Selector (grouped)**, con los
   tres listados que cubre `cypress/e2e/data-table-column-selector.cy.js`: uno agrupado con una
   banda plegada y fila de totales, uno agrupado y `selectable:` —el de gobierno-corporativo,
@@ -1209,9 +1228,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   default lo tienen las seis (`git grep -l default_form_builder origin/main -- config` da un
   hit en cada una), pero la superficie donde se nota son cinco: medido con
   `git grep -l with_saved_views origin/main -- app` y su par `with_bulk_actions`, son
-  gobierno-corporativo (23 vistas con vistas guardadas, 3 con acciones masivas), afal-apps
+  gobierno-corporativo (23 archivos con vistas guardadas, 3 con acciones masivas), afal-apps
   (11 y 3), centinela-web (4 y 0), identity (0 y 1) y costa-norte (0 y 1). opina tiene el
   default puesto y ni una vista de las dos (0 y 0), así que ahí no cambia nada.
+  _Corrección del 2026-09-30 (#1207):_ ese glob, `app`, cuenta también concerns y
+  controladores. Las **vistas** —`-- app/views`— son 21 y 2 en gobierno-corporativo; en las
+  demás apps los dos globs coinciden.
 
   Lo que se ve en esas cinco: los submits vuelven de `<button>` a `<input type="submit">` y
   recuperan `name="commit"`. **La única diferencia visual es la etiqueta del botón
