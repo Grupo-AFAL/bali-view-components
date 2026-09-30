@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`radio-toggle` cubre los tres casos por los que afal-apps escribió dos controladores
+  propios** (#1214):
+  - **Un target que llega después** —un Turbo Stream que lo reemplaza— toma la visibilidad del
+    radio en pantalla, no la que pintó el servidor.
+  - **`data-radio-toggle-disable-hidden-value="true"`** deshabilita los `input`, `select` y
+    `textarea` de un target oculto, así que el formulario no los manda, y los rehabilita al
+    mostrarlo. Deshabilitar y no vaciar conserva el archivo elegido; un campo que el servidor
+    pintó `disabled` sigue así.
+  - **`+` une condiciones**: `damaged+serial_unknown` exige el radio y una casilla con
+    `data-action="radio-toggle#change"` y ese `value` marcada. El checkbox del FormBuilder manda
+    `"1"`, así que lleva `checked_value: "serial_unknown"`.
+
+  Lo de hoy no cambia (`current`, valores con coma, la clase `hidden`). Preview nuevo en
+  `bali/radio_toggle`. **afal-apps** puede pasar sus dos vistas a `radio-toggle` y borrar
+  `terminals/census_item_controller.js` y `terminals/reported_photos_controller.js`.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added

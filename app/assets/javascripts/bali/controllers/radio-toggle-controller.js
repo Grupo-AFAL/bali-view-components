@@ -32,29 +32,82 @@ import { Controller } from '@hotwired/stimulus'
  *   </div>
  * </div>
  *
+ *
+ * Requires a checkbox as well: `+` joins conditions, and a checkbox wired to
+ * `radio-toggle#change` counts with its `value` while checked
+ *
+ * <input type="checkbox" data-action="radio-toggle#change" value="serial_unknown">
+ * <div data-radio-toggle-target="element" data-radio-toggle-value="damaged+serial_unknown">
+ *
+ *
+ * `data-radio-toggle-disable-hidden-value="true"` disables the fields of a hidden
+ * target, so the form does not send them, and enables them again when it shows.
  */
 
 export class RadioToggleController extends Controller {
   static targets = ['element']
-  static values = { current: String }
+  static values = { current: String, disableHidden: Boolean }
 
   connect () {
-    this.toggleTargets(this.currentValue)
+    this.toggleTargets()
   }
 
   change (event) {
-    this.toggleTargets(event.target.value)
+    if (event.target.type === 'radio') this.currentValue = event.target.value
+
+    this.toggleTargets()
   }
 
-  toggleTargets (value) {
-    this.elementTargets.forEach(element => {
-      const valuesProperties = element.dataset.radioToggleValue.split(',')
+  // A target that arrives after connect — a Turbo Stream replacing it — carries
+  // the state the server painted, which can lag behind the radio on screen.
+  elementTargetConnected (element) {
+    this.toggle(element)
+  }
 
-      if (valuesProperties.includes(value)) {
-        element.classList.remove('hidden')
-      } else {
-        element.classList.add('hidden')
+  toggleTargets (value = this.currentValue) {
+    this.elementTargets.forEach(element => this.toggle(element, value))
+  }
+
+  toggle (element, value = this.currentValue) {
+    const visible = this.matches(element, value)
+
+    element.classList.toggle('hidden', !visible)
+    if (this.disableHiddenValue) this.disableFields(element, !visible)
+  }
+
+  matches (element, value) {
+    const checked = this.checkedBoxValues
+
+    return element.dataset.radioToggleValue.split(',').some(condition =>
+      condition.split('+').every(token => token === value || checked.has(token))
+    )
+  }
+
+  // Disabled rather than emptied, so a file already chosen survives a trip to
+  // another option and back. Only what this controller disabled is re-enabled:
+  // a field the server rendered `disabled` stays that way.
+  disableFields (element, disabled) {
+    const fields = [element, ...element.querySelectorAll('input, select, textarea')]
+      .filter(field => field.matches('input, select, textarea'))
+
+    fields.forEach(field => {
+      if (disabled && !field.disabled) {
+        field.disabled = true
+        field.dataset.radioToggleDisabled = ''
+      } else if (!disabled && 'radioToggleDisabled' in field.dataset) {
+        field.disabled = false
+        delete field.dataset.radioToggleDisabled
       }
     })
+  }
+
+  get checkedBoxValues () {
+    const boxes = this.element.querySelectorAll('input[type="checkbox"][data-action*="radio-toggle#change"]')
+
+    return new Set(
+      [...boxes]
+        .filter(box => box.checked && box.closest('[data-controller~="radio-toggle"]') === this.element)
+        .map(box => box.value)
+    )
   }
 }

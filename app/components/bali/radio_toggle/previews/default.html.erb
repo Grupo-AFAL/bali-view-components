@@ -1,0 +1,27 @@
+<% methods = [ [ "Pick up in store", "pickup" ], [ "Home delivery", "delivery" ], [ "Courier", "courier" ] ] %>
+<div data-controller="radio-toggle" data-radio-toggle-current-value="<%= status %>" class="max-w-md space-y-4">
+  <%= form_with(scope: :order, url: "#", builder: Bali::FormBuilder) do |form| %>
+    <%= form.radio_group :delivery,
+          methods.map { |label, value| [ label, value, { checked: value == status } ] },
+          label: "Delivery method",
+          html: { orientation: :horizontal, data: { action: "radio-toggle#change" } } %>
+  <% end %>
+
+  <div data-radio-toggle-target="element" data-radio-toggle-value="pickup" data-testid="pickup">
+    <%= render Bali::Alert::Component.new(color: :info) do %>
+      Ready at the store you chose, within two hours.
+    <% end %>
+  </div>
+
+  <div data-radio-toggle-target="element" data-radio-toggle-value="delivery" data-testid="delivery">
+    <%= render Bali::Alert::Component.new(color: :info) do %>
+      Delivered by our own drivers, next business day.
+    <% end %>
+  </div>
+
+  <div data-radio-toggle-target="element" data-radio-toggle-value="delivery,courier" data-testid="address">
+    <%= render Bali::Alert::Component.new(color: :warning) do %>
+      Shown for delivery and for courier: confirm the shipping address.
+    <% end %>
+  </div>
+</div>

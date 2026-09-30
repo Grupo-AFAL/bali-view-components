@@ -486,6 +486,23 @@ value (comma-separated to match several) — the single-level sibling of
 </div>
 ```
 
+- **A radio and a checkbox** — `+` joins conditions inside one value, so
+  `damaged+serial_unknown` shows only while "damaged" is the radio **and** a
+  checkbox with `value="serial_unknown"` is checked. The checkbox takes part by
+  carrying `data-action="radio-toggle#change"`. The FormBuilder's checkbox sends
+  `"1"` by default, so give it the value the condition names:
+  `f.boolean_group :serial_unknown, checked_value: "serial_unknown", data: { action: "radio-toggle#change" }`.
+- **Hidden fields are not sent** — `data-radio-toggle-disable-hidden-value="true"`
+  disables the `input`, `select` and `textarea` of every hidden target, and
+  enables them when it shows. Disabled rather than cleared, so a file chosen
+  before switching away is still there on the way back. A field the server
+  rendered `disabled` stays disabled.
+- **Targets that arrive later** — a target a Turbo Stream adds or replaces takes
+  the visibility of the choice on screen at that moment, not the one the server
+  painted.
+
+All three are live in the `bali/radio_toggle/dependent_fields` preview.
+
 ## `slim-select`
 
 Wraps a `<select>` in the [SlimSelect](https://slimselectjs.com/) widget (optional
