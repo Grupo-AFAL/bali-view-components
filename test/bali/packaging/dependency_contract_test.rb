@@ -12,9 +12,8 @@ require "test_helper"
 # carry those lines by hand today, one of them under the comment "Required by
 # Bali" — a dependency the gem declined to declare.
 #
-# "MADE TO LOAD" IS BIGGER THAN `lib/`. `lib/bali/engine.rb` assigns
-# `config.eager_load_paths`, so in production every file under those six `app/`
-# directories loads at boot too: a walk of `lib/` alone sees neither the unguarded
+# "MADE TO LOAD" IS BIGGER THAN `lib/`. In production a host eager-loads every
+# `app/` directory of the engine at boot too: a walk of `lib/` alone sees neither the unguarded
 # `require "pagy/..."` in `app/components/bali/pagination/pagy_adapter.rb` nor the
 # `include Pagy::Method` in
 # `app/components/bali/application_view_component_preview.rb`. Both halves are
@@ -73,8 +72,8 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
   end
 
   # The other half of the same boot: a file does not have to `require` a gem to
-  # need it. `include Pagy::Method` in the class body of a file `eager_load_paths`
-  # covers is a NameError at boot in a host without pagy, and no scan of `require`
+  # need it. `include Pagy::Method` in the class body of a file the host
+  # eager-loads is a NameError at boot in a host without pagy, and no scan of `require`
   # lines can see it.
   #
   # The owning gem is MEASURED — `const_source_location`, then the gem whose
@@ -91,11 +90,25 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
     end.to_h
 
     assert_empty offenders,
-                 "these files are eager-loaded in a host — lib/bali/engine.rb assigns " \
-                 "config.eager_load_paths — and name a constant from a gem the gemspec does " \
+                 "these files are eager-loaded in a host — every app/ directory of the " \
+                 "engine is — and name a constant from a gem the gemspec does " \
                  "not declare, so merely defining the class raises NameError during boot. " \
                  "Declare the gem, move the reference inside a method, or keep the file out " \
                  "of the eager load through Bali::Engine::NOT_EAGER_LOADED."
+  end
+
+  # Ruby under an `app/` directory the host does not autoload resolves in the dummy
+  # anyway — Lookbook pushes the engine's dirs into its autoloader — and is a
+  # NameError in a host. Rails globs every `app/*` today; this fails if an `exclude`
+  # or a hand-written path list ever narrows that.
+  def test_every_app_directory_with_ruby_is_autoloaded_in_a_host
+    surface = Bali::Engine.config.all_eager_load_paths.map(&:to_s)
+    missing = Dir[ROOT.join("app/*/").to_s].map { |dir| dir.chomp("/") }
+      .select { |dir| Dir["#{dir}/**/*.rb"].any? }
+      .reject { |dir| surface.include?(dir) }
+
+    assert_empty missing, "app/ directories with Ruby that a host neither autoloads nor " \
+                          "eager-loads:\n#{missing.join("\n")}"
   end
 
   # The other half of the same contract, and the reason `rrule` is NOT declared:
@@ -226,7 +239,7 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
   # Every file Ruby reads to boot this engine inside a host, followed the way Ruby
   # follows it: from `lib/bali.rb` and `lib/bali/engine.rb` through their
   # unindented `require`s, the overrides `engine.rb` loads by glob on every
-  # prepare, and everything `config.eager_load_paths` reaches.
+  # prepare, and everything the engine's eager-load paths reach.
   def boot_requires
     @boot_requires ||= begin
       external = Hash.new { |hash, key| hash[key] = [] }
@@ -253,13 +266,19 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
 
   # From the engine's own config, minus the engine's own exclusions, so this test
   # cannot drift from what a host is actually made to load.
+  #
+  # `all_eager_load_paths`, not `eager_load_paths`: since Rails 7.1 the latter holds
+  # only an engine's ADDITIONS, and what Rails eager-loads is those plus
+  # `paths.eager_load`, the glob of every `app/*`. Reading the additions alone left
+  # `app/services` outside this scan (#1206).
   def eager_load_surface
     @eager_load_surface ||= begin
       excluded = Bali::Engine::NOT_EAGER_LOADED
         .flat_map { |pattern| Dir[ROOT.join(pattern).to_s] }.to_set
 
-      Bali::Engine.config.eager_load_paths
+      Bali::Engine.config.all_eager_load_paths
         .flat_map { |directory| Dir["#{directory}/**/*.rb"] }
+        .uniq
         .reject { |file| excluded.include?(file) }
         .map { |file| Pathname(file) }
     end

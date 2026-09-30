@@ -43,10 +43,9 @@ class BlockEditorHelperTest < ActionView::TestCase
 
   # The assertion above is NOT enough: in this repo Lookbook pushes the engine's
   # dirs into the dummy's autoloader, so Bali::BlockEditorHelper resolves here
-  # even when a real host app raises NameError at boot (as v2.17.0 did). Pin the
-  # engine config that hosts actually rely on.
+  # whatever the engine declares. Pin the engine config that hosts rely on.
   def test_engine_declares_its_helpers_dir_as_autoloadable
-    assert_includes Bali::Engine.config.eager_load_paths.map(&:to_s),
+    assert_includes Bali::Engine.config.all_eager_load_paths.map(&:to_s),
                     Bali::Engine.root.join("app/helpers").to_s
   end
 
