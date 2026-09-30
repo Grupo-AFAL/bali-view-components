@@ -654,10 +654,9 @@ en:
       tools_menu:
         trigger_label: "Tools"
         items:
-          # Same string twice on purpose: `mission_control-jobs` and `solid_queue-flightdeck`
-          # are two gems for the one Solid Queue screen. Do NOT collapse them — four apps run
-          # flightdeck and afal-apps still mounts mission_control, and dropping either key
-          # sends that app back to overriding the label in its own config/locales (#1138).
+          # Same string twice: `flightdeck` is the Solid Queue screen every fleet app mounts, and
+          # `mission_control` the gem it replaced, which none mounts any more (#1208). The key
+          # stays so a host still on Mission Control keeps its label.
           mission_control: "Jobs dashboard"
           flightdeck: "Jobs dashboard"
           analytics: "Adoption dashboard"

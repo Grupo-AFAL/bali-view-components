@@ -651,11 +651,9 @@ es:
       tools_menu:
         trigger_label: "Herramientas"
         items:
-          # La misma cadena dos veces a propósito: `mission_control-jobs` y
-          # `solid_queue-flightdeck` son dos gemas para la misma pantalla de Solid Queue. NO
-          # las fundas — cuatro apps corren flightdeck y afal-apps sigue montando
-          # mission_control, y quitar cualquiera de las dos claves devuelve a esa app a
-          # cargar la etiqueta en su propio config/locales (#1138).
+          # Same string twice: `flightdeck` is the Solid Queue screen every fleet app mounts, and
+          # `mission_control` the gem it replaced, which none mounts any more (#1208). The key
+          # stays so a host still on Mission Control keeps its label.
           mission_control: "Panel de trabajos"
           flightdeck: "Panel de trabajos"
           analytics: "Tablero de adopción"
