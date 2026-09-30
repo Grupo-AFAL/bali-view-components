@@ -2,8 +2,6 @@
   <%= render Bali::Card::Component.new(class: card_class) do %>
     <%= header %>
     <% if year_view? %>
-      <%# The year view is a grid of twelve miniature months, not a wider version
-          of the table below, so it branches here rather than reusing `date_range`. %>
       <%= render year_grid_component %>
     <% else %>
       <div class="overflow-x-auto">

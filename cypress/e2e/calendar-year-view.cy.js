@@ -1,8 +1,5 @@
-// The year view's two claims that only a browser can settle: a hover card
-// actually opens with the host's own partial inside it, and tippy is mounted
-// ONLY on the days that have something to show. The second one is the reason
-// `hover?` exists at all — the hovercard controller creates its tippy instance
-// in `connect()`, so an unrestricted year view would mount one per day.
+// The hovercard controller mounts its tippy in `connect()`, so a card on every
+// cell would cost 365 instances; `hover?` restricts it to days with events.
 describe('Calendar year view', () => {
   const year = '/bali/calendar/year'
 
@@ -45,11 +42,8 @@ describe('Calendar year view', () => {
     cy.get('a.year-day').should('not.exist')
   })
 
-  // The month view has always been able to link one event; the year view puts the
-  // same partial inside a tippy popper, and a popper is where that stops being
-  // obvious. `interactive: true` in the hovercard controller is what lets the
-  // pointer leave the day square and land on the link — without it the card
-  // closes on the way there and the link is unreachable by mouse.
+  // `interactive: true` in the hovercard controller is what lets the pointer leave
+  // the day square and reach the link; without it the card closes on the way.
   it('lets an event inside the hover card be clicked through to its own url', () => {
     cy.viewport(1440, 1200)
     cy.visit(year)
@@ -70,10 +64,8 @@ describe('Calendar year view', () => {
     cy.location('search').should('include', 'start_date=')
   })
 
-  // #655's rule — a `.tag-component` is single-line — is right for a table cell
-  // and wrong inside a hover card tippy caps at 350px. Before the
-  // `whitespace-normal h-auto` opt-out in the preview partial, a name this long
-  // measured 367px and drew its own background past the card's right edge.
+  // Tippy caps the card at 350px; before the preview partial's `whitespace-normal
+  // h-auto` opt-out (#655) a name this long measured 367px and spilled past it.
   it('wraps a long event name instead of spilling it outside the card', () => {
     cy.viewport(1440, 1200)
     cy.visit(year)

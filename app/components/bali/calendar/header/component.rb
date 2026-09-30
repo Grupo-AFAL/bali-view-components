@@ -6,9 +6,8 @@ module Bali
       class Component < ApplicationViewComponent
         include Normalization
 
-        # What `period_switch: true` has always meant. It stays exactly this pair, in
-        # this order: every host that has never touched the keyword must keep seeing
-        # the two buttons it sees today and no third one.
+        # Exactly this pair, in this order: adding :year here would put a third
+        # button on every host that never touched `period_switch:`.
         DEFAULT_SWITCH_PERIODS = %i[week month].freeze
 
         attr_reader :route_path, :period, :start_date, :period_switch, :start_attribute,
@@ -17,14 +16,11 @@ module Bali
         # @param start_date [Date|String] The date to start the calendar from.
         # @param period [Symbol] The period of the calendar: :month, :week, :day or :year.
         # @param route_path [String] The route to use for the links. Its query string is
-        #   carried over to every link the header builds, with `start_attribute` and
-        #   `period` merged on top — so a key of the host's that DEPENDS on the date
-        #   (`year=2026` next to `date=2027-01-01`) has to be named in `drop_params`.
-        # @param period_switch [Boolean, Array<Symbol>] `true` renders the historical
-        #   `%i[week month]` pair, `false` renders nothing, and an array names the
-        #   buttons to render — `period_switch: %i[month year]`. Opting the year in has
-        #   to be explicit, because `true` adding a button would change every existing
-        #   calendar's header without anyone asking for it.
+        #   carried over to every link, with `start_attribute` and `period` merged on
+        #   top — a host key that depends on the date (`year=2026` next to
+        #   `date=2027-01-01`) goes in `drop_params`.
+        # @param period_switch [Boolean, Array<Symbol>] `true` renders `%i[week month]`,
+        #   `false` renders nothing, an array names the buttons — `%i[month year]`.
         # @param start_attribute [Symbol] Method to be called on each event object for the
         #  start_date.
         # @param min_date [Date, String, nil] Earliest date the arrows may navigate to;
@@ -32,8 +28,7 @@ module Bali
         #   one no longer contains it.
         # @param max_date [Date, String, nil] Latest date, the mirror of `min_date`.
         # @param drop_params [Array<Symbol, String>] Keys of `route_path`'s query string
-        #   that the header's links leave out. Written in code, so a typo names a key
-        #   that is simply not there and drops nothing.
+        #   that the header's links leave out.
         # rubocop:disable Metrics/ParameterLists
         def initialize(start_date:, period: :month, route_path: "", period_switch: true,
                        start_attribute: :start_time, min_date: nil, max_date: nil,
@@ -58,9 +53,8 @@ module Bali
           period_start(start_date) + period_step
         end
 
-        # Inclusive on the period, not the day: `min_date: "2020-06-15"` still lets a
-        # year view reach 2020 and a month view reach June 2020, because the bound
-        # sits inside that period.
+        # Compared on the period, not the day: `min_date: "2020-06-15"` still lets a
+        # year view reach 2020 and a month view reach June 2020.
         def prev_in_range?
           min_date.nil? || prev_start_date >= period_start(min_date)
         end
@@ -69,9 +63,8 @@ module Bali
           max_date.nil? || next_start_date <= period_start(max_date)
         end
 
-        # An arrow that has nowhere to go is drawn disabled rather than left out.
-        # Measured at 1440px: removing one arrow moves the title 25px, half the
-        # arrow's 50px, the moment a host reaches the edge of its range.
+        # Disabled rather than left out: measured at 1440px, removing one arrow
+        # moves the title 25px, half the arrow's 50px.
         def arrow_options(type)
           in_range = type == :prev ? prev_in_range? : next_in_range?
           label = t("bali_view.calendar.header.#{type == :prev ? 'previous' : 'next'}")
@@ -83,9 +76,7 @@ module Bali
         end
 
         # @return [Array<Symbol>] The periods the switch offers, in render order.
-        #   An array is filtered against PERIODS so a stray value cannot reach the
-        #   translation lookup; anything truthy that is not an array keeps meaning
-        #   "the historical pair", which is what it meant before this took arrays.
+        #   Filtered against PERIODS so a stray value never reaches the translation.
         def switch_periods
           @switch_periods ||= if period_switch.is_a?(Array)
             period_switch.map(&:to_sym) & Bali::Calendar::Component::PERIODS
@@ -100,10 +91,8 @@ module Bali
           switch_periods.any? && route_path.present?
         end
 
-        # `:outline` marks the periods that are NOT the current one — but only when
-        # the current one is on the switch at all. With `period: :day` and the default
-        # pair, neither button is current and both render solid, which is what this
-        # header has always produced for that combination.
+        # With a period that is not on the switch (`:day` and the default pair) every
+        # button renders solid, which is what this header always produced there.
         def switch_style(switch_period)
           :outline if switch_periods.include?(period) && period != switch_period
         end
@@ -125,9 +114,8 @@ module Bali
           base_params = case type
           when :prev then { start_attribute => prev_start_date, period: period }
           when :next then { start_attribute => next_start_date, period: period }
-          # `period` as a String here and as a Symbol above is a pre-existing
-          # inconsistency; both survive `to_query` identically, and changing it
-          # would be an unrelated churn in every host's query string.
+          # String here, Symbol above: pre-existing, identical after `to_query`, and
+          # unifying it would churn every host's query string.
           when *Bali::Calendar::Component::PERIODS then { period: type.to_s, start_attribute => start_date }
           else {}
           end

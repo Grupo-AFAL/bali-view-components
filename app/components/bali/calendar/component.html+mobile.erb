@@ -1,8 +1,5 @@
-<%# The only +mobile template in the package. It has always answered "phone" with
-    the day view, whatever `period:` said, and for :month/:week/:day it still does.
-    :year is the exception because the year grid is not a table: its months are a
-    responsive grid that reflows to one column, so the phone gets the same map the
-    desktop gets rather than a single day standing in for a whole year. %>
+<%# Every other period answers "phone" with the day view; the year grid reflows
+    to one column instead, so it is not replaced by a single day. %>
 <% if year_view? %>
   <div class="calendar-component">
     <%= render Bali::Card::Component.new(class: card_class) do %>

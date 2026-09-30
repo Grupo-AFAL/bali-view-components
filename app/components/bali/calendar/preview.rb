@@ -2,11 +2,9 @@
 
 module Bali
   module Calendar
-    # Sibling constants are written in full — `Bali::Calendar::Component`, never
-    # `Calendar::Component`. `Module.nesting` is captured at parse time and holds
-    # the module OBJECT, and Lookbook keeps this class in its own registry across
-    # a `reload!`, so a short form resolves against a namespace Zeitwerk has
-    # already discarded (#843).
+    # Sibling constants in full — `Bali::Calendar::Component`: Lookbook keeps this
+    # class across a `reload!`, so a short form resolves against a namespace
+    # Zeitwerk already discarded (#843).
     class Preview < ApplicationViewComponentPreview
       # Interactive calendar preview
       # ---------------------------
@@ -36,18 +34,8 @@ module Bali
 
       # Year view
       # ---------
-      # Twelve miniature months as a density map: a day with nothing on it is
-      # dimmed, a day with events takes the colour the HOST returns from
-      # `day_variant`, and a day holding more than one event also gets the
-      # `has-multiple` dot. `weekdays_only` is ignored here on purpose — a map
-      # that hides Saturdays hides events.
-      #
-      # The three lambdas are all optional; turn them off to see the grid with
-      # nothing but the on/off signal.
-      #
-      # `month_size` names the size of the MONTH, not of the view: `xs` fits many
-      # small months per row, `xl` few large ones. Resize the preview pane and the
-      # count follows the container, with no breakpoint involved.
+      # Twelve miniature months. The three lambdas are optional; turn them off to
+      # see the bare on/off map. Resize the pane: the month count follows the container.
       #
       # @param start_date text "Any date in the year to draw"
       # @param month_size select { choices: [xs, sm, md, lg, xl] }
@@ -116,8 +104,8 @@ module Bali
 
       private
 
-      # One long name here too: the month view's cell is a `table-fixed` column,
-      # which is the narrowest place this partial ever renders.
+      # One long name: the month view's `table-fixed` cell is the narrowest place
+      # the partial renders.
       def sample_events
         [
           build_event(Date.current, 'Today Event', nil),
@@ -127,15 +115,8 @@ module Bali
         ]
       end
 
-      # Scattered across the whole year so the grid has something to show in every
-      # month, with a few days deliberately holding two events of different status —
-      # that is the case `has-multiple` exists for.
-      #
-      # The 11th of every month carries a DELIBERATELY LONG name. A preview whose
-      # every label is "Item 5-B" answers nothing about the case a host actually
-      # ships: tippy caps the hover card at 350px, and a name only fits because it
-      # is short. Keep one long name here so the wrapping stays visible to whoever
-      # changes this partial next.
+      # The 11th holds two events (`has-multiple`) and a name long enough to wrap
+      # in a hover card tippy caps at 350px. Keep both.
       def year_sample_events
         year = Date.current.year
         statuses = %i[success warning error info]
@@ -153,10 +134,7 @@ module Bali
         end
       end
 
-      # Every sample event gets a `url`, so the previews demonstrate the thing the
-      # month view has always had and the year view was never shown doing: one
-      # event, one destination. It points at this same preview because Lookbook is
-      # the only route the gem can be sure exists.
+      # `url` points at this preview: the only route the gem can be sure exists.
       def build_event(date, name, status)
         Bali::Calendar::Previews::Event.new(
           start_time: date, name: name, status: status,
@@ -164,9 +142,6 @@ module Bali
         )
       end
 
-      # A day is a link only where there is something to open — the nil return is
-      # as much a part of the contract as the URL. Here it opens that day's month,
-      # which is the shape of the drill-down a host usually wants.
       def day_url_lambda
         lambda do |day, events|
           next if events.empty?
@@ -176,8 +151,6 @@ module Bali
         end
       end
 
-      # The host decides which of its own states wins when a day holds several —
-      # here, simply the first event's. The component never guesses that order.
       def day_variant_lambda
         ->(_day, events) { events.first&.status }
       end

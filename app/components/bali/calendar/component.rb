@@ -29,34 +29,22 @@ module Bali
       # @param start_attribute [Symbol] Method to call on each event for the start date.
       # @param end_attribute [Symbol] Method to call on each event for the end date.
       # @param weekdays_only [Boolean] Show only Monday-Friday (default: false).
-      #   IGNORED by `period: :year`, deliberately. In the month view the host is
-      #   choosing a working agenda and knows the weekend is out of scope; in a
-      #   year-long density map, dropping two columns would make a Saturday event
-      #   vanish with nothing on screen saying it had. A map that hides days is
-      #   not a map, so the year grid always draws seven.
+      #   Ignored by `period: :year`: a year map that drops two columns hides every
+      #   Saturday event with nothing on screen saying so.
       # @param show_date [Boolean] Display the date number or not.
       # @param weekly_title_class [String] Extra classes for the day number in week view.
       # @param day_url [Proc, nil] Year view only. `->(day, events) { url }`; nil, or a
-      #   nil return, leaves that day unlinked. There is no default destination — the
-      #   component does not know the host's routes. On a touch screen the tap
-      #   navigates and the hover card never opens, so point it somewhere the day's
-      #   events are reachable, such as the month view.
+      #   nil return, leaves that day unlinked. On a touch screen the tap navigates and
+      #   the hover card never opens, so point it where the day's events are reachable.
       # @param day_variant [Proc, nil] Year view only. `->(day, events) { :success }`,
-      #   a name from Bali::Color::NAMES, validated. ONE colour per day: see the header
-      #   of Bali::Calendar::YearGrid::Component for why it is not a gradient.
+      #   a name from Bali::Color::NAMES. One colour per day; the host picks it.
       # @param month_summary [Proc, nil] Year view only. `->(month, events) { "11" }`,
       #   drawn beside the month name. Receives the first day of the month and that
-      #   month's events; the component supplies the events, the host the wording.
-      #   The three lambdas run while the grid renders, so a `t('.x')` inside them
-      #   resolves against the component's i18n scope, not the host view's — write
-      #   the full key. Bali::Calendar::YearGrid::Component has the mechanism.
-      # @param month_size [Symbol] Year view only. How big one miniature month gets:
-      #   :xs, :sm, :md (default), :lg, :xl. The level names the MONTH, not the view,
-      #   so :xs means small months and many per row, :xl large months and few. How
-      #   many actually fit is the browser's answer, measured against the CONTAINER:
-      #   a page with a sidebar leaves ~1060px at 1440, where :md fits 3 months per
-      #   row and :sm fits 4. An unknown level raises ArgumentError — it is written
-      #   in code, not read off a query string.
+      #   month's events. Inside any of the three lambdas `t('.x')` resolves against
+      #   the year grid's i18n scope, not the host view's: write the full key.
+      # @param month_size [Symbol] Year view only. Size of one miniature month: :xs,
+      #   :sm, :md (default), :lg, :xl — :xs fits many per row, :xl few. The container
+      #   decides the count. An unknown level raises ArgumentError.
       # `**options` is accepted and ignored: it has never reached the markup, and letting
       # a stray keyword through is what the previous signature did.
       # rubocop:disable Metrics/ParameterLists
@@ -163,8 +151,6 @@ module Bali
         period == :year
       end
 
-      # The twelve-month grid, built here so both the default template and the
-      # +mobile one render the same thing from one call.
       def year_grid_component
         YearGrid::Component.new(
           start_date: start_date,

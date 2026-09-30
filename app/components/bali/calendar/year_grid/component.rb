@@ -3,71 +3,14 @@
 module Bali
   module Calendar
     module YearGrid
-      # The twelve miniature months behind `Bali::Calendar::Component` with
-      # `period: :year`. It is a density map, not a third grid: the question it
-      # answers is "which days of this year have something on them", and every
-      # word of meaning on top of that comes from the host through three
-      # lambdas — `day_url`, `day_variant` and `month_summary`.
-      #
-      # ONE COLOUR PER DAY, PLUS A COUNT
-      # --------------------------------
-      # A day can hold events the host considers different in kind. The cell
-      # still gets exactly one colour, the one `day_variant` returns, because
-      # the host is the only party that knows which of its own states outranks
-      # the others. What the component adds is `has-multiple`: a dot in the
-      # corner saying "there is more than one thing here", and the full list
-      # inside the hover card.
-      #
-      # A gradient across the cell was the alternative and it is worse. The cell
-      # is roughly 20px on a phone; two colours in that space encode no order —
-      # nothing tells the reader which half is "first" — and the blend between
-      # them reads as a third state nobody defined. A dot says "more" and says
-      # nothing else, which is the only thing the component actually knows.
-      #
-      # TWO LINKS, TWO QUESTIONS
-      # ------------------------
-      # `day_url` links the DAY — one destination for the whole square, drawn by
-      # this component. Links on individual EVENTS come from the host's
-      # `template:` partial, the same one the month view renders, and they work
-      # inside the hover card: the hovercard controller mounts tippy with
-      # `interactive: true`, so the pointer can leave the day square, travel over
-      # the gap and land on a link without the card closing on the way. The month
-      # view's clickable event needs nothing added to be clickable here.
-      #
-      # What DOES change between the two views is the room the partial gets.
-      # Tippy caps the card at 350px, so a name that fits a table cell can
-      # overflow here — and `tag/index.css` makes a `.tag-component` nowrap on
-      # purpose (#655), which turns that overflow into a pill drawn outside the
-      # card. `previews/_template.html.erb` shows the opt-out; a partial whose
-      # rows are `block truncate` needs none of it.
-      #
-      # On a touch screen a tap on a day that has a `day_url` navigates, and the
-      # hover card never opens (the hovercard controller triggers on
-      # `mouseenter focus`). The events of that day are then only reachable at
-      # the `day_url` destination, so it should be somewhere they are — the
-      # month view is the usual answer.
-      #
-      # THE LAMBDAS RUN INSIDE THE COMPONENT
-      # ------------------------------------
-      # All three are called while this grid renders, and for that whole time
-      # ViewComponent points the HOST view's `@virtual_path` at the component. A
-      # lazy `t('.count')` written in the host partial therefore resolves to
-      # `bali_view.calendar.year_grid.count`, not to the partial's own scope
-      # (`test_lazy_translation_inside_a_lambda_resolves_against_the_component_scope`).
-      # Write the full key.
       class Component < ApplicationViewComponent
-        # Keyed by Bali::Color::NAMES. Spelled out, never interpolated: Tailwind
-        # only emits a class it can find as a literal string in a source file, so
-        # `"bg-#{name}"` compiles to nothing at all. See Bali::Color.
+        # Keyed by Bali::Color::NAMES, spelled out: Tailwind only emits a class it
+        # finds as a literal in a source file, so `"bg-#{name}"` compiles to nothing.
         #
-        # A 20% tint at rest and the solid colour under the pointer. The number
-        # stays `text-base-content` on the tint and does NOT follow daisyUI's
-        # `badge-soft` (text in the colour): on the light themes that text reads
-        # at 1.5–3.4:1 for six of the eight colours (`warning` 1.59, `accent`
-        # 1.68), while base-content on the same tint measures 9.25:1 at worst
-        # (`accent`/`warning` on `afal-dark`) — AA wants 4.5. Both variants are static
-        # utilities on the same element, so the `hover:` pair wins by being the
-        # variant, not by layer.
+        # The number stays `text-base-content` on the tint instead of taking the
+        # colour like daisyUI's `badge-soft`: measured on the light themes, text in
+        # the colour reads at 1.59:1 for `warning` and 1.68:1 for `accent`;
+        # base-content on the same 20% tint is 9.25:1 at worst (AA wants 4.5).
         DAY_COLORS = {
           neutral: "bg-neutral/20 text-base-content hover:bg-neutral hover:text-neutral-content",
           primary: "bg-primary/20 text-base-content hover:bg-primary hover:text-primary-content",
@@ -80,33 +23,19 @@ module Bali
           ghost: "bg-base-300/50 text-base-content hover:bg-base-300"
         }.freeze
 
-        # A day that has events but whose host named no colour for it. Still
-        # visibly "on", because the map's whole job is on/off.
         NEUTRAL_HIGHLIGHT = "bg-base-content/20 text-base-content hover:bg-base-content hover:text-base-100"
 
-        # A day with nothing on it. Dimmed, never hidden: an empty day is data.
         EMPTY_DAY = "text-base-content/40"
 
         DAY_CLASSES = "year-day relative flex items-center justify-center " \
                       "aspect-square rounded-sm text-[0.6875rem] leading-none"
 
-        # How wide one miniature month is allowed to get before the row takes
-        # another one. The level names the MONTH, not the view: `xs` is small
-        # months and therefore many per row, `xl` is large months and few.
-        #
-        # `auto-fit` and not a ramp of `sm:`/`lg:`/`xl:` breakpoints, because a
-        # breakpoint measures the VIEWPORT and this has to measure the
-        # CONTAINER: a calendar dropped into a 400px drawer on a wide screen
-        # would otherwise draw four columns squeezed into 400px. The
-        # `min(Xrem, 100%)` is the guard for the other direction — when the
-        # container is narrower than the track minimum, the minimum collapses to
-        # the container instead of overflowing it.
-        #
-        # Literal strings and not a custom property. `split_view/index.css`
-        # documents the escape hatch to `--bali-*` variables, but its reason is a
-        # RUNTIME value: a width the host types in, which Tailwind cannot know at
-        # build time. Five named levels are a closed set, so they stay in the
-        # utility system where a host can still override them with a class.
+        # `auto-fit` against the CONTAINER, not a `sm:`/`lg:`/`xl:` ramp against the
+        # viewport: measured at 1440px with the calendar in a 400px drawer, the ramp
+        # drew 4 columns of 76px with 9px day cells. `min(Xrem, 100%)` keeps the
+        # track from overflowing a container narrower than its minimum. No track
+        # maximum either: `auto-fit` counts columns against a definite max, and
+        # `minmax(20rem, 22rem)` drops `:md` at 1440px from 4 columns to 3.
         MONTH_SIZES = {
           xs: "grid-cols-[repeat(auto-fit,minmax(min(10rem,100%),1fr))]",
           sm: "grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))]",
@@ -115,10 +44,8 @@ module Bali
           xl: "grid-cols-[repeat(auto-fit,minmax(min(34rem,100%),1fr))]"
         }.freeze
 
-        # `date.abbr_day_names` is indexed by wday, so index 0 is Sunday. The
-        # grid starts on whatever `Date.beginning_of_week` says, the same day the
-        # month view's rows start on, so the initials are rotated to match rather
-        # than assumed to begin on Monday.
+        # `date.abbr_day_names` is indexed by wday (0 = Sunday); the initials are
+        # rotated to `Date.beginning_of_week`, which is where the rows start.
         WDAYS = %i[sunday monday tuesday wednesday thursday friday saturday].freeze
 
         # @param start_date [Date] Any date in the year to draw.
@@ -126,17 +53,14 @@ module Bali
         # @param template [String, nil] Host partial rendered inside the hover card.
         # @param show_date [Boolean] Draw the day number inside each cell.
         # @param day_url [Proc, nil] `->(day, events) { url }`. nil, or a nil return,
-        #   leaves the day unlinked — the component invents no destination. On touch
-        #   the tap navigates here and the hover card never opens (see above).
+        #   leaves the day unlinked. On touch the tap navigates and the hover card
+        #   never opens, so the destination should be where the events are reachable.
         # @param day_variant [Proc, nil] `->(day, events) { :success }`, a name from
         #   Bali::Color::NAMES. nil falls back to a neutral highlight.
         # @param month_summary [Proc, nil] `->(month, events) { "11" }`, drawn beside
-        #   the month name. Receives the first day of the month and that MONTH's events.
-        #   A `t('.x')` inside any of the three resolves against THIS component's
-        #   scope, not the host's (see above): write the full key.
-        # @param month_size [Symbol] How big one miniature month gets: :xs, :sm, :md,
-        #   :lg, :xl. The name is the MONTH's size, so :xs fits many per row and :xl
-        #   few. The browser decides the count from the container's width.
+        #   the month name. Receives the first day of the month and that month's events.
+        # @param month_size [Symbol] Size of one miniature month: :xs, :sm, :md, :lg,
+        #   :xl — :xs fits many per row, :xl few. The container decides the count.
         # rubocop:disable Metrics/ParameterLists
         def initialize(start_date:, events_by_date: {}, template: nil, show_date: true,
                        day_url: nil, day_variant: nil, month_summary: nil, month_size: :md)
@@ -168,9 +92,8 @@ module Bali
           @weekday_initials ||= t("date.abbr_day_names").rotate(first_wday)
         end
 
-        # @return [Array<Date, nil>] The month's days padded with nil to whole weeks.
-        #   nil rather than the neighbouring month's dates: a day drawn twice in the
-        #   same year is a day counted twice by the reader.
+        # @return [Array<Date, nil>] The month's days padded with nil to whole weeks —
+        #   not the neighbouring month's dates, which a year grid would draw twice.
         def month_days(month)
           first = month.beginning_of_month
           last = month.end_of_month
@@ -186,14 +109,16 @@ module Bali
           @events_by_date.fetch(day, [])
         end
 
-        # The events of a whole month, deduplicated: a multi-day event is indexed
-        # under every date it spans.
+        # `uniq`: a multi-day event is indexed under every date it spans.
         def events_in(month)
           (month.beginning_of_month..month.end_of_month)
             .flat_map { |day| events_on(day) }
             .uniq
         end
 
+        # The three lambdas run while this grid renders, and for that whole time
+        # ViewComponent points the host view's `@virtual_path` at this component: a
+        # lazy `t('.x')` inside them resolves to `bali_view.calendar.year_grid.x`.
         def month_summary_for(month)
           @month_summary&.call(month, events_in(month))
         end
@@ -202,9 +127,8 @@ module Bali
           @day_url&.call(day, events_on(day))
         end
 
-        # Tippy is mounted per hover card, so a year of empty cells would cost 365
-        # instances to show 365 empty popups. Only the days that have something to
-        # say get one.
+        # The hovercard controller mounts its tippy in `connect()`, so a card on every
+        # cell costs 365 instances (measured: 36 against 365, 118 KB against 311 KB of HTML).
         def hover?(day)
           template.present? && events_on(day).any?
         end
@@ -220,18 +144,14 @@ module Bali
           )
         end
 
-        # Built from `date.month_names` rather than `l(day, format: :long)`: the
-        # gem ships no date formats of its own, and the format a host has is not
-        # something this component can assume.
+        # Not `l(day, format: :long)`: the gem ships no date formats and cannot
+        # assume the host's.
         def day_label(day)
           "#{day.day} #{month_name(day)} #{day.year}"
         end
 
-        # `aria-label` on the link and `<time>` on the rest, not `aria-label` on both:
-        # a link takes an accessible name, a bare <span> maps to `generic` and ARIA
-        # does not name those — the attribute would be there and do nothing. `<time
-        # datetime>` is what actually carries the full date on a cell whose visible
-        # text is a bare number.
+        # `<time datetime>` and not an `aria-label` on the unlinked cell: a bare
+        # <span> maps to the `generic` role, which ARIA does not name.
         def day_cell(day)
           url = day_url_for(day)
           number = day.day.to_s if show_date
@@ -248,10 +168,8 @@ module Bali
 
         private
 
-        # `month_size:` is written by a developer, never read off a query string,
-        # so an unknown level is a mistake to report rather than one to survive.
-        # The opposite call from `normalize_period`, which degrades precisely
-        # because a visitor can put anything in the URL.
+        # Raises, unlike `normalize_period`: `month_size:` is written in code, never
+        # read off a query string.
         def month_size_class!(size)
           MONTH_SIZES.fetch(size&.to_sym) do
             raise ArgumentError,

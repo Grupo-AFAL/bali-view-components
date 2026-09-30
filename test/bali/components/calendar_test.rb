@@ -349,10 +349,8 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
   # year view
   #
-  # normalize_period degrades anything it does not recognise to :month WITHOUT
-  # raising, so a year view that was never wired up would still answer 200 and
-  # paint a month. Every assertion below has to name something only twelve
-  # months can produce; "it rendered" proves nothing here.
+  # normalize_period degrades an unknown period to :month without raising, so every
+  # assertion below names something only twelve months can produce.
 
   def test_year_is_a_period_rather_than_falling_back_to_month
     @options.merge!(period: "year")
@@ -424,7 +422,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     )
     render_inline(component)
 
-    # The tint at rest and the solid colour on hover ride on the same element.
     assert_selector(".year-day.bg-success\\/20.text-base-content", count: 1)
     assert_selector(".year-day.hover\\:bg-success.hover\\:text-success-content", count: 1)
     assert_no_selector(".year-day.bg-success")
@@ -440,8 +437,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_match(/day_variant/, error.message)
   end
 
-  # One colour per day and a dot for the rest: the host owns the precedence
-  # between its own states, the component only knows how many there are.
   def test_year_view_marks_a_day_holding_more_than_one_event
     @options.merge!(
       start_date: "2020-01-01", period: :year,
@@ -472,8 +467,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector("a.year-day[aria-label='5 March 2020']", count: 1)
   end
 
-  # A bare <span> maps to `generic`, which ARIA does not name, so the full date on an
-  # unlinked cell rides on <time datetime> instead of an aria-label that does nothing.
   def test_year_view_carries_the_machine_readable_date_on_every_unlinked_day
     @options.merge!(start_date: "2020-01-01", period: :year)
     render_inline(component)
@@ -508,8 +501,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_no_selector(".year-month .badge")
   end
 
-  # Tippy is mounted per hover card, so a year of empty cells would cost 365
-  # instances to show 365 empty popups.
   def test_year_view_mounts_a_hover_card_only_on_days_with_events
     @options.merge!(
       start_date: "2020-01-01", period: :year,
@@ -564,8 +555,6 @@ class BaliCalendarComponentTest < ComponentTestCase
                     Bali::Calendar::YearGrid::Component::MONTH_SIZES.fetch(:lg))
   end
 
-  # Written in code, never read off a query string, so an unknown level is a
-  # mistake to report — the opposite call from normalize_period.
   def test_month_size_rejects_a_level_that_is_not_on_the_scale
     @options.merge!(start_date: "2020-01-01", period: :year, month_size: :enormous)
 
@@ -574,9 +563,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_match(/:xs, :sm, :md, :lg, :xl/, error.message)
   end
 
-  # The ramp of breakpoints this replaced measured the VIEWPORT, so a calendar in a
-  # 400px drawer on a wide screen drew four columns 76px wide with 9px day cells.
-  # `auto-fit` measures the container instead. Nobody may put the ramp back.
+  # A breakpoint ramp measures the viewport; MONTH_SIZES has the 400px-drawer numbers.
   def test_year_grid_emits_no_breakpoint_column_classes
     @options.merge!(start_date: "2020-01-01", period: :year)
     render_inline(component)
@@ -584,9 +571,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     refute_match(/(sm|md|lg|xl):grid-cols-/, year_grid_classes)
   end
 
-  # The names come from I18n, never from a literal: `date.month_names` is 1-indexed
-  # and `date.abbr_day_names` starts on Sunday, so both are easy to get subtly wrong
-  # in a grid that starts on Monday.
   def test_year_view_names_the_months_and_weekdays_in_spanish
     @options.merge!(start_date: "2020-06-15", period: :year)
     I18n.with_locale(:es) { render_inline(component) }
@@ -611,8 +595,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".header a.btn", text: "Mes")
   end
 
-  # The one +mobile template in the package answers "phone" with the day view for
-  # every other period; the year grid reflows instead of being replaced.
   def test_year_view_is_drawn_on_mobile_too
     @options.merge!(start_date: "2020-01-01", period: :year)
     with_variant(:mobile) { render_inline(component) }
@@ -656,7 +638,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_equal({ start_time: Date.parse("2020-02-02"), period: "year" }, params)
   end
 
-  # The round trip #route builds, which is what a host actually clicks.
   def test_route_for_the_year_button_carries_the_period_and_the_date
     href = ""
     render_inline(component) do |c|
@@ -801,9 +782,7 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
   # year view — the lambdas run inside the component
 
-  # ViewComponent points the host view's @virtual_path at the component for the
-  # whole render, and the three lambdas run inside it: a lazy `t('.x')` written in
-  # the host partial lands on the component's scope. Pinned so the YARD stays true.
+  # Pins the `@virtual_path` behaviour documented at YearGrid#month_summary_for.
   def test_lazy_translation_inside_a_lambda_resolves_against_the_component_scope
     view = vc_test_controller.view_context
     view.instance_variable_set(:@virtual_path, "events/index")
