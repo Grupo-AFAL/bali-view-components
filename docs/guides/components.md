@@ -4507,6 +4507,10 @@ that whole time ViewComponent points the host view's `@virtual_path` at the comp
 your scope, and reports a missing translation. Write the full key:
 `t('events.calendar.month_summary', count: events.size)`.
 
+**How a day is painted.** At rest a day with events wears a 20% tint of its `day_variant` colour
+with the number in `base-content`; under the pointer it turns the solid colour. There is no
+hover on a touch screen, so there the tint is the only look.
+
 **Touch screens.** A tap on a day that has a `day_url` navigates; the hover card, which opens on
 `mouseenter`/`focus`, never shows. The day's events are then only reachable at the `day_url`
 destination, so point it somewhere they are — the month view, as above.

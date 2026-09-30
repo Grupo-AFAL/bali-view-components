@@ -424,7 +424,10 @@ class BaliCalendarComponentTest < ComponentTestCase
     )
     render_inline(component)
 
-    assert_selector(".year-day.bg-success", count: 1)
+    # The tint at rest and the solid colour on hover ride on the same element.
+    assert_selector(".year-day.bg-success\\/20.text-base-content", count: 1)
+    assert_selector(".year-day.hover\\:bg-success.hover\\:text-success-content", count: 1)
+    assert_no_selector(".year-day.bg-success")
   end
 
   def test_year_view_rejects_a_variant_that_is_not_a_bali_colour

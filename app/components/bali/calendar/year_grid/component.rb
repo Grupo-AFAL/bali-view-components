@@ -59,21 +59,30 @@ module Bali
         # Keyed by Bali::Color::NAMES. Spelled out, never interpolated: Tailwind
         # only emits a class it can find as a literal string in a source file, so
         # `"bg-#{name}"` compiles to nothing at all. See Bali::Color.
+        #
+        # A 20% tint at rest and the solid colour under the pointer. The number
+        # stays `text-base-content` on the tint and does NOT follow daisyUI's
+        # `badge-soft` (text in the colour): on the light themes that text reads
+        # at 1.5–3.4:1 for six of the eight colours (`warning` 1.59, `accent`
+        # 1.68), while base-content on the same tint measures 9.25:1 at worst
+        # (`accent`/`warning` on `afal-dark`) — AA wants 4.5. Both variants are static
+        # utilities on the same element, so the `hover:` pair wins by being the
+        # variant, not by layer.
         DAY_COLORS = {
-          neutral: "bg-neutral text-neutral-content",
-          primary: "bg-primary text-primary-content",
-          secondary: "bg-secondary text-secondary-content",
-          accent: "bg-accent text-accent-content",
-          info: "bg-info text-info-content",
-          success: "bg-success text-success-content",
-          warning: "bg-warning text-warning-content",
-          error: "bg-error text-error-content",
-          ghost: "bg-base-300 text-base-content"
+          neutral: "bg-neutral/20 text-base-content hover:bg-neutral hover:text-neutral-content",
+          primary: "bg-primary/20 text-base-content hover:bg-primary hover:text-primary-content",
+          secondary: "bg-secondary/20 text-base-content hover:bg-secondary hover:text-secondary-content",
+          accent: "bg-accent/20 text-base-content hover:bg-accent hover:text-accent-content",
+          info: "bg-info/20 text-base-content hover:bg-info hover:text-info-content",
+          success: "bg-success/20 text-base-content hover:bg-success hover:text-success-content",
+          warning: "bg-warning/20 text-base-content hover:bg-warning hover:text-warning-content",
+          error: "bg-error/20 text-base-content hover:bg-error hover:text-error-content",
+          ghost: "bg-base-300/50 text-base-content hover:bg-base-300"
         }.freeze
 
         # A day that has events but whose host named no colour for it. Still
         # visibly "on", because the map's whole job is on/off.
-        NEUTRAL_HIGHLIGHT = "bg-base-content/20 text-base-content"
+        NEUTRAL_HIGHLIGHT = "bg-base-content/20 text-base-content hover:bg-base-content hover:text-base-100"
 
         # A day with nothing on it. Dimmed, never hidden: an empty day is data.
         EMPTY_DAY = "text-base-content/40"

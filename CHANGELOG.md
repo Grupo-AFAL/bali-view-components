@@ -165,6 +165,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   el máximo definido de la pista, y `minmax(20rem, 22rem)` baja `:md` a 1440px de 4
   columnas a 3.
 
+- **El día de la vista de año se pinta suave en reposo y sólido bajo el puntero.** La
+  celda lleva un tinte del 20% de su `day_variant` con el número en `base-content`, y al
+  pasar el mouse toma el color sólido de antes, con su `*-content`. Es el único look de la
+  vista —no hay opción para el sólido en reposo— y en táctil, donde no hay hover, el tinte
+  es lo que se ve. Cambia también `NEUTRAL_HIGHLIGHT` (el día con eventos sin color del
+  anfitrión) y `ghost`, con el mismo par reposo/hover.
+
+  **El número NO va en el color, como lo haría `badge-soft` de daisyUI, y la razón es
+  medida.** Contraste del número sobre el tinte del 20%, en los cuatro temas del dummy
+  (`light`, `dark`, `afal`, `afal-dark`): texto en el color / texto en `base-content`. AA
+  pide 4.5:
+
+  | color | light | dark | afal | afal-dark |
+  |---|---|---|---|---|
+  | neutral | 11.66 / 11.26 | 1.18 / 15.62 | 9.48 / 9.88 | 1.58 / 13.14 |
+  | primary | 5.97 / 12.41 | 2.77 / 11.96 | 2.94 / 11.64 | 5.15 / 10.11 |
+  | secondary | 2.90 / 13.48 | 3.39 / 12.02 | 3.31 / 11.39 | 4.88 / 10.29 |
+  | accent | 1.68 / 15.20 | 5.71 / 9.77 | 1.87 / 12.63 | 7.20 / 9.25 |
+  | info | 1.92 / 14.84 | 5.04 / 10.17 | 1.84 / 12.62 | 6.02 / 9.68 |
+  | success | 1.72 / 15.12 | 5.57 / 9.86 | 1.70 / 12.77 | 6.42 / 9.52 |
+  | warning | 1.59 / 15.75 | 6.02 / 9.48 | 1.54 / 13.18 | 7.10 / 9.25 |
+  | error | 2.35 / 14.38 | 4.09 / 11.00 | 2.28 / 12.10 | 4.82 / 10.58 |
+
+  Con el texto en el color, 19 de las 32 celdas quedan bajo AA; con `base-content`, la
+  peor es 9.25. Las cifras de `base-content` están tomadas de las celdas reales después
+  del build (`bg-*/20` de Tailwind, compuesto sobre el fondo de la página); las del texto
+  en el color, de un `color-mix` de prueba con la receta de `badge-soft`, porque esa
+  variante no se construyó. El 20% se eligió sobre 8, 12, 16, 25 y 30: el 8% de
+  `badge-soft` deja los ocho colores casi iguales en una celda de 45px, y del 20% en
+  adelante la ganancia de identidad ya no compensa lo que pierde el número (a 30%,
+  `neutral` en `light` baja a 7.72).
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added
