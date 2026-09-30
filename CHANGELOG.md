@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
+  (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
+  (`?q[]=x`) dejaba un `String` o un `Array` donde la pastilla escribe `q[...]`, y la escritura
+  levantaba. Ahora ese `q` se trata como sin filtro y la pastilla enlaza a
+  `?q[genre_in][]=…`. Lo mismo arreglado en el preview `structured_list` y en `/split-view` de
+  la dummy, y `docs/guides/master-detail.md` deja de enseñar `params.dig(:q, :genre_in)`, que
+  revienta igual. **Anfitrión:** si copiaste ese `dig` de la guía, cámbialo por la forma nueva:
+  `git grep -n "dig(:q" -- app`.
+
 ## [v3.5.0] - 2026-09-20
 
 ### Added

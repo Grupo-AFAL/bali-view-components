@@ -11,7 +11,8 @@
     The full flow — frame swaps, infinite scroll against a real paginated index,
     deep links, back and forward — lives at `/split-view` in the dummy app. A
     preview cannot page against itself. %>
-<% active_genres = Array(request.query_parameters.dig("q", "genre_in")) %>
+<% q = request.query_parameters["q"] %>
+<% active_genres = Array(q.is_a?(Hash) ? q["genre_in"] : nil) %>
 <% scope = scope.where(genre: active_genres) if active_genres.any? %>
 <% group_by = local_assigns[:group_by] %>
 <%# Ordered by the group key FIRST when grouping — the contract `with_group`

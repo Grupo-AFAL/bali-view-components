@@ -290,6 +290,24 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector(".split-view-filter[aria-current]")
   end
 
+  # `q` arrives raw from the URL, so where a pill writes `q[genre_in]` the request can hold a
+  # String (`?q=x`) or an Array (`?q[]=x`) instead of a Hash — and writing into either raised,
+  # a 500 on every page with nested-param pills. Neither asked for a filter, so it is replaced.
+  def test_a_scalar_q_gives_way_to_the_nested_param
+    assert_equal "/split-view?q%5Bgenre_in%5D=Drama",
+      pill_at("/split-view?q=x", param: "q[genre_in]", value: "Drama")["href"]
+  end
+
+  def test_a_list_q_gives_way_to_the_nested_param
+    assert_equal "/split-view?q%5Bgenre_in%5D%5B%5D=Drama",
+      pill_at("/split-view?q%5B%5D=x", mode: :multi, param: "q[genre_in]", value: "Drama")["href"]
+  end
+
+  def test_a_q_that_is_not_a_hash_marks_no_pill_active
+    refute_equal "true",
+      pill_at("/split-view?q=x", param: "q[genre_in]", value: "x")["data-active"]
+  end
+
   # --- what a pill's URL keeps and what it throws away --------------------------------------
 
   # Filtering starts the listing over, and page 4 of an unfiltered list is nowhere

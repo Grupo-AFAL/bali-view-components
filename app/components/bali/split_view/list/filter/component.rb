@@ -169,8 +169,12 @@ module Bali
           # the right-hand side — the original `{}` — while what got stored is a
           # converted copy, so writing through the returned object updated a hash
           # nobody would ever read. Reading the key back returns the stored one.
+          #
+          # Nor is `||=` enough for what the URL can hold: `?q=x` and `?q[]=x` leave
+          # a String and an Array where the pill writes `q[...]`, `||=` keeps them,
+          # and the write raised — a 500 on the whole page.
           def descend(scope, key)
-            scope[key] ||= {}
+            scope[key] = {} unless scope[key].is_a?(Hash)
             scope[key]
           end
 
