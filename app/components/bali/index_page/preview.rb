@@ -50,6 +50,22 @@ module Bali
       def with_back
         render_with_template(template: "bali/index_page/previews/with_back")
       end
+
+      # @label Secondary actions menu
+      # The `⋯` takes its width and its trigger's accessible name from the page:
+      # `secondary_actions_width:` (Bali::Dropdown's scale) and `secondary_actions_aria_label:`
+      # (#1230). Below `sm` the trigger wraps to the left of the row and the menu still opens
+      # inside the screen (#1231). Click, Enter, Space or ↓ open it; focus alone does not.
+      # @param secondary_actions_width select { choices: [sm, md, lg, xl] }
+      # @param secondary_actions_aria_label text
+      def with_secondary_actions(secondary_actions_width: :xl,
+                                 secondary_actions_aria_label: "More calendar actions")
+        render_with_template(
+          template: "bali/index_page/previews/with_secondary_actions",
+          locals: { secondary_actions_width: secondary_actions_width.to_sym,
+                    secondary_actions_aria_label: secondary_actions_aria_label.presence }
+        )
+      end
     end
   end
 end

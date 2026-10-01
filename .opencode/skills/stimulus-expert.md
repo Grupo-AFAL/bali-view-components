@@ -115,20 +115,14 @@ trapFocus() {
 #### Dropdown
 
 ```erb
-<div data-controller="dropdown"
-     data-dropdown-open-value="false">
-  <button data-action="click->dropdown#toggle"
-          aria-haspopup="true"
-          aria-expanded="false">
-    Menu
-  </button>
-  <ul data-dropdown-target="menu"
-      role="menu"
-      class="hidden">
-    <li role="menuitem"><a href="#">Item 1</a></li>
-  </ul>
-</div>
+<%= render Bali::Dropdown::Component.new do |dropdown| %>
+  <% dropdown.with_trigger { "Menu" } %>
+  <% dropdown.with_item(name: "Item 1", href: "/items/1") %>
+<% end %>
 ```
+
+The `dropdown` controller opens it on a click; a `click->dropdown#toggle` on the trigger
+toggles it straight back, on the same click.
 
 #### Modal
 

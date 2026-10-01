@@ -209,6 +209,24 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
+  # #1230: the ⋯ was always `w-52` and always "More actions", so a page whose items were longer
+  # than 208px wrapped them onto three lines and lost "of the calendar" from the trigger's name.
+  def test_the_five_size_and_name_the_overflow_menu_on_request
+    each_page do |component|
+      render_inline(component.new(title: "Calendars", secondary_actions_width: :xl,
+                                  secondary_actions_aria_label: "More calendar actions")) do |page|
+        page.with_secondary_action(name: "View approval flow", href: "/flow")
+        page.with_body { "Body" }
+      end
+
+      assert page.has_css?('[role="menu"].w-80', visible: :all),
+             "#{component}: the ⋯ menu ignores secondary_actions_width"
+      assert page.has_css?('[data-dropdown-target="trigger"][aria-label="More calendar actions"]',
+                           visible: :all),
+             "#{component}: the ⋯ trigger ignores secondary_actions_aria_label"
+    end
+  end
+
   def test_the_five_offer_the_export_menu
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|
@@ -258,6 +276,33 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
       end
 
       assert_match(/Unknown sidebar_width/, error.message, "#{component}: mensaje inesperado")
+    end
+  end
+
+  # `nil` is "the default", as for `max_width:`: what a host passes when it forwards an option
+  # it did not set.
+  def test_the_five_read_a_nil_secondary_actions_width_as_md
+    each_page do |component|
+      render_inline(component.new(title: "Calendars", secondary_actions_width: nil)) do |page|
+        page.with_secondary_action(name: "View approval flow", href: "/flow")
+        page.with_body { "Body" }
+      end
+
+      assert page.has_css?('[role="menu"].w-52', visible: :all),
+             "#{component}: nil secondary_actions_width is not the w-52 default"
+    end
+  end
+
+  # Raised by the constructor, not by the Dropdown: that one is only built when the ⋯ has items,
+  # so a typo whose items sit behind a `policy` check raised only once the check let one through.
+  def test_the_five_reject_an_unknown_secondary_actions_width
+    each_page do |component|
+      error = assert_raises(ArgumentError) do
+        component.new(title: "The Matrix", secondary_actions_width: :huge)
+      end
+
+      assert_match(/Unknown secondary_actions_width/, error.message,
+                   "#{component}: unexpected message")
     end
   end
 

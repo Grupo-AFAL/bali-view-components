@@ -10,6 +10,11 @@ describe('Topbar::UserMenu', () => {
 
   const press = (key) => cy.focused().trigger('keydown', { key, bubbles: true, force: true })
 
+  // `display` and not `not.be.visible`: see docs/reference/testing-traps.md.
+  const expectClosed = ($menu) => {
+    expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
+  }
+
   beforeEach(() => {
     cy.visit('/bali/topbar/user_menu')
   })
@@ -19,17 +24,18 @@ describe('Topbar::UserMenu', () => {
     cy.get('@t').should('have.attr', 'aria-expanded', 'false')
 
     cy.get('@t').focus()
-    cy.get('@t').should('have.attr', 'aria-expanded', 'true')
-    cy.get(userMenu).first().find(menu).should('be.visible')
+    cy.get('@t').should('have.attr', 'aria-expanded', 'false')
 
     // The name/email header is role="presentation": the first ArrowDown must land on
     // the first actionable item, not on the identity block.
     press('ArrowDown')
     cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Profile')
+    cy.get(userMenu).first().find(menu).should('be.visible')
+    cy.get('@t').should('have.attr', 'aria-expanded', 'true')
 
     press('Escape')
     cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
-    cy.get(userMenu).first().find(menu).should('not.be.visible')
+    cy.get(userMenu).first().find(menu).should(expectClosed)
     cy.get('@t').should('have.attr', 'aria-expanded', 'false')
   })
 

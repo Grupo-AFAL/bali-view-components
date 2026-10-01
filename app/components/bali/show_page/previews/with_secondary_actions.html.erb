@@ -1,0 +1,29 @@
+<%= render Bali::ShowPage::Component.new(
+  title: 'The Matrix',
+  subtitle: 'Added 2 days ago',
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon: 'home' },
+    { name: 'Movies', href: '/lookbook' },
+    { name: 'The Matrix' }
+  ],
+  back: { href: '/lookbook' },
+  secondary_actions_width: secondary_actions_width,
+  secondary_actions_aria_label: secondary_actions_aria_label
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Duplicate', href: '#', variant: :ghost, icon: 'copy') %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Share', href: '#', variant: :ghost, icon: 'share-2') %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: '#', variant: :primary, icon: 'pencil') %>
+  <% end %>
+  <% page.with_secondary_action(name: 'Request a licensing review', href: '#', icon: 'file-check') %>
+  <% page.with_secondary_action(name: 'Archive with every review and rating', href: '#', icon: 'archive') %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <p class="text-base-content/60">Properties table and details would go here.</p>
+    <% end %>
+  <% end %>
+<% end %>
