@@ -10,10 +10,8 @@ describe('DropdownController', () => {
   const menu = '[data-dropdown-target="menu"]'
 
   const press = (key) => cy.focused().trigger('keydown', { key, bubbles: true, force: true })
-  const release = (key) => cy.focused().trigger('keyup', { key, bubbles: true, force: true })
 
-  // `display` and not `not.be.visible`: Cypress counts a menu fading in from daisyUI's
-  // `@starting-style` `opacity: 0` as hidden, and measured, that assertion passed on an open one.
+  // `display` and not `not.be.visible`: see docs/reference/testing-traps.md.
   const expectClosed = ($menu) => {
     expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
   }
@@ -33,29 +31,27 @@ describe('DropdownController', () => {
       cy.get('@t').should('have.attr', 'aria-expanded', 'false')
     })
 
-    it('opens on Enter and moves the focus to the first item', () => {
-      cy.get(cssDropdown).first().find(trigger).as('t')
-      cy.get('@t').focus()
+    // A Turbo morph that rewrites `class` takes `dropdown-close` with it, and `:focus-within`
+    // opened the menu on focus again — #1231 back, now with `aria-expanded="false"`.
+    it('does not open on focus after its classes are rewritten', () => {
+      cy.get(cssDropdown).first().as('dropdown')
+      cy.get('@dropdown').then(($d) => $d[0].classList.remove('dropdown-close'))
 
-      press('Enter')
+      cy.get('@dropdown').find(trigger).focus()
 
-      cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
-      cy.get('@t').should('have.attr', 'aria-expanded', 'true')
+      cy.get('@dropdown').find(menu).should(expectClosed)
     })
 
-    // A `<button>` item answers a Space keyup with a click, and opened on the keydown the
-    // menu had already moved the focus onto its first item when the keyup landed.
-    it('opens on the Space keyup, not on the keydown', () => {
-      cy.get(cssDropdown).first().find(trigger).as('t')
-      cy.get('@t').focus()
+    ;['Enter', ' '].forEach((key) => {
+      it(`opens on ${JSON.stringify(key)} and moves the focus to the first item`, () => {
+        cy.get(cssDropdown).first().find(trigger).as('t')
+        cy.get('@t').focus()
 
-      press(' ')
-      cy.get('@t').should('have.attr', 'aria-expanded', 'false')
-      cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+        press(key)
 
-      release(' ')
-      cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
-      cy.get('@t').should('have.attr', 'aria-expanded', 'true')
+        cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
+        cy.get('@t').should('have.attr', 'aria-expanded', 'true')
+      })
     })
 
     // The second click lands on the wrapper: daisyUI gives an open trigger
@@ -141,7 +137,7 @@ describe('DropdownController', () => {
       press('Escape')
 
       cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
-      cy.get(cssDropdown).first().find(menu).should('not.be.visible')
+      cy.get(cssDropdown).first().find(menu).should(expectClosed)
       cy.get('@t').should('have.attr', 'aria-expanded', 'false')
     })
 
@@ -181,16 +177,34 @@ describe('DropdownController', () => {
     })
   })
 
-  // /z-stack renders a dropdown with `class: 'dropdown-open'`, to show every overlay at once.
-  context('rendered open by the server', () => {
-    it('stays open', () => {
-      cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/z-stack`)
+  // Turbo caches the page with the menu as it was. Chromium blurs a focused node when Turbo
+  // removes it, which closed the menu before the snapshot was taken; Firefox does not, and
+  // Back brought it back open. Opened here with a click that moves no focus, so the
+  // snapshot keeps it open in any browser.
+  context('Turbo cache', () => {
+    const appOrigin = new URL(Cypress.config('baseUrl')).origin
+    const userMenu = '.bali-topbar-user-menu'
 
-      cy.get(`#probe-dropdown-wrap ${trigger}`).should('have.attr', 'aria-expanded', 'true')
-      cy.get(`#probe-dropdown-wrap ${menu}`).should(($menu) => {
-        expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display)
-          .to.not.equal('none')
+    it('comes back closed from a snapshot taken with the menu open', () => {
+      cy.visit(`${appOrigin}/admin`)
+      cy.window().then((win) => {
+        win.notReloaded = true
+        win.document.addEventListener('turbo:before-render', (event) => {
+          win.restoredClasses = event.detail.newBody.querySelector(userMenu).className
+        })
       })
+      cy.get(`${userMenu} ${trigger}`).then(($t) => $t[0].click())
+      cy.get(userMenu).should('have.class', 'dropdown-open')
+
+      cy.window().then((win) => win.Turbo.visit('/admin/settings'))
+      cy.location('pathname').should('eq', '/admin/settings')
+      cy.go('back')
+      cy.location('pathname').should('eq', '/admin')
+
+      cy.window().its('notReloaded').should('eq', true)
+      cy.window().its('restoredClasses').should('contain', 'dropdown-open')
+      cy.get(`${userMenu} ${menu}`).should(expectClosed)
+      cy.get(`${userMenu} ${trigger}`).should('have.attr', 'aria-expanded', 'false')
     })
   })
 
@@ -247,7 +261,7 @@ describe('DropdownController', () => {
       cy.focused().should('contain', 'Edit')
     })
 
-    it('opens on Enter and on the Space keyup with the focus on the first item', () => {
+    it('opens on Enter and on Space with the focus on the first item', () => {
       cy.get(popoverDropdown).find(trigger).focus()
       press('Enter')
       cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Edit')
@@ -256,11 +270,24 @@ describe('DropdownController', () => {
       cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
 
       press(' ')
-      release(' ')
       cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Edit')
     })
 
-    // Focus-out was not listened to in popover mode, so Tab away left the popper up.
+    // The popper hangs at the end of `<body>`, so the browser's Tab out of it went to the
+    // wrong place. Handed back to the trigger, the browser's own Tab carries on from there.
+    it('closes on Tab from inside the popper and hands the focus to the trigger', () => {
+      cy.get(popoverDropdown).find(trigger).as('t')
+      cy.get('@t').focus()
+      press('Enter')
+      cy.focused().should('contain', 'Edit')
+
+      press('Tab')
+
+      cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+      cy.get('[data-tippy-root]').should('not.exist')
+    })
+
+    // Focus-out was ignored in popover mode, so Tab away left the popper up.
     it('closes when the focus leaves it', () => {
       cy.get(popoverDropdown).find(trigger).as('t')
       cy.get('@t').focus()

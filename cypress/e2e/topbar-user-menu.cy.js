@@ -10,6 +10,11 @@ describe('Topbar::UserMenu', () => {
 
   const press = (key) => cy.focused().trigger('keydown', { key, bubbles: true, force: true })
 
+  // `display` and not `not.be.visible`: see docs/reference/testing-traps.md.
+  const expectClosed = ($menu) => {
+    expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
+  }
+
   beforeEach(() => {
     cy.visit('/bali/topbar/user_menu')
   })
@@ -30,7 +35,7 @@ describe('Topbar::UserMenu', () => {
 
     press('Escape')
     cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
-    cy.get(userMenu).first().find(menu).should('not.be.visible')
+    cy.get(userMenu).first().find(menu).should(expectClosed)
     cy.get('@t').should('have.attr', 'aria-expanded', 'false')
   })
 

@@ -23,7 +23,7 @@
 
 <div class="p-6 flex gap-4 items-start">
   <div id="probe-dropdown-wrap">
-    <%= render Bali::Dropdown::Component.new(align: :end, class: 'dropdown-open') do |c| %>
+    <%= render Bali::Dropdown::Component.new(align: :end) do |c| %>
       <% c.with_trigger(name: 'Dropdown trigger') %>
       <% c.with_item(name: 'Item one', href: '#') %>
       <% c.with_item(name: 'Item two', href: '#') %>
@@ -94,8 +94,11 @@
   // classes, because since the palette became a <dialog> the classes alone leave
   // it out of the top layer — which is the very thing this page is checking.
   // The drawer and the modal are rendered `active:`, and their controllers
-  // promote them on connect.
+  // promote them on connect. The dropdown is opened by a click, as a reader
+  // would: its controller closes whatever it finds open on connect, because
+  // that is what a Turbo snapshot taken with the menu open brings back.
   document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#probe-dropdown-wrap [data-dropdown-target="trigger"]').click()
     window.dispatchEvent(new Event('bali:command:open'))
   })
 </script>

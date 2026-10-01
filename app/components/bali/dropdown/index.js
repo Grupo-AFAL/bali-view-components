@@ -29,10 +29,7 @@ export class DropdownController extends Controller {
     if (this.popoverValue) {
       this.setupPopover()
     } else if (this.opensOnClick) {
-      // Not `close()`: a menu the server rendered open (`class: 'dropdown-open'`, as /z-stack
-      // does) stays open.
-      this.element.classList.toggle('dropdown-close', !this.element.classList.contains('dropdown-open'))
-      this.syncExpanded()
+      this.close()
       this.element.addEventListener('mousedown', this.holdTriggerFocus)
       this.element.addEventListener('click', this.handleTriggerClick, true)
     }
@@ -77,9 +74,6 @@ export class DropdownController extends Controller {
     // the wrong box and hide it outright, since daisyUI's open rules are all descendants
     // of `.dropdown`, which the panel has just stopped being.
     this.menu.classList.remove('dropdown-content')
-    // A menu the keyboard opened before tippy resolved carries the CSS mode's nudge (see
-    // `keepInViewport`); inside the popper it would push the panel off its own box.
-    this.menu.style.transform = ''
 
     // `manual` and `hideOnClick: false` on purpose: tippy is a positioner here, not the
     // thing that decides when the menu is open. Its own `click` trigger has toggle rules of
@@ -154,14 +148,12 @@ export class DropdownController extends Controller {
 
   listenOn (node) {
     node.addEventListener('keydown', this.handleKeydown)
-    node.addEventListener('keyup', this.handleKeyup)
     node.addEventListener('focusin', this.handleFocusIn)
     node.addEventListener('focusout', this.handleFocusOut)
   }
 
   stopListeningOn (node) {
     node.removeEventListener('keydown', this.handleKeydown)
-    node.removeEventListener('keyup', this.handleKeyup)
     node.removeEventListener('focusin', this.handleFocusIn)
     node.removeEventListener('focusout', this.handleFocusOut)
   }
@@ -185,12 +177,13 @@ export class DropdownController extends Controller {
   handleFocusIn = (event) => {
     if (this.popoverValue) return
 
-    // Focus arriving from outside is the reader coming back, and daisyUI's `:focus-within`
-    // is about to open the hover menu — so the explicit-close mark has to go, or an outside
-    // click would leave the dropdown shut for the rest of the page's life. Focus arriving
-    // from INSIDE is Escape handing the trigger its focus back, and that must not reopen it.
-    if (!this.opensOnClick && !this.owns(event.relatedTarget)) {
-      this.element.classList.remove('dropdown-close')
+    // Focus arriving from outside is the reader coming back. A hover menu loses its
+    // explicit-close mark, or an outside click would leave it shut for the rest of the page's
+    // life; a closed click menu gets it back, in case a Turbo morph rewrote `class` and
+    // `:focus-within` is about to open it again. Focus arriving from INSIDE is Escape handing
+    // the trigger its focus back, and that changes nothing.
+    if (!this.owns(event.relatedTarget)) {
+      this.element.classList.toggle('dropdown-close', this.opensOnClick && !this.isOpen)
     }
     this.syncExpanded()
   }
@@ -298,6 +291,7 @@ export class DropdownController extends Controller {
         this.focusPreviousItem()
         break
       case 'Enter':
+      case ' ':
         // Opens and steps in, like ArrowDown — the menu button of the WAI-ARIA APG. A toggle
         // here closed whatever `:focus-within` had opened under the very key meant to open it.
         if (this.triggerFocused) {
@@ -306,21 +300,16 @@ export class DropdownController extends Controller {
           this.focusNextItem()
         }
         break
-      case ' ':
-        // Space opens on its keyup, as it activates a native button. Opened here, the focus
-        // would be on the first item when the keyup lands, and a `<button>` item answers a
-        // Space keyup with a click.
-        if (this.triggerFocused) event.preventDefault()
+      case 'Tab':
+        // The popper hangs at the end of `<body>`: Tab from its last item left the document
+        // and Shift+Tab from its first went to the end of the page. From the trigger, the
+        // browser's own Tab carries on in the trigger's place.
+        if (this.tippy && this.menu.contains(event.target)) {
+          this.close()
+          this.triggerTarget.focus()
+        }
         break
     }
-  }
-
-  handleKeyup = (event) => {
-    if (event.key !== ' ' || !this.triggerFocused) return
-
-    event.preventDefault()
-    this.open()
-    this.focusNextItem()
   }
 
   get triggerFocused () {

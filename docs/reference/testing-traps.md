@@ -27,6 +27,10 @@ goes here.
   `opacity`. Measure with `paintedContrast` from `cypress/support/painted_contrast.js`, which
   composites both over the nearest opaque background. Translucent backgrounds between the text
   and that ground are skipped, not composited.
+- **`should('not.be.visible')` passes on a dropdown that is open.** daisyUI fades the panel in
+  from `opacity: 0` through `@starting-style`, and Cypress counts opacity: measured in #1231, a
+  "stays closed" assertion went green on a menu at `display: flex`. Assert `display` from
+  `getComputedStyle` instead (`expectClosed` in `dropdown-controller.cy.js`).
 - **Hidden text is still text.** Assert visibility or state, not `textContent` — hidden notices
   are always in the DOM.
 - **"No request happened"** needs a bounded `cy.wait(…)` before asserting

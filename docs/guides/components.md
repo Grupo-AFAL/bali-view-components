@@ -1122,12 +1122,15 @@ on the same page with a matching `id:` and `shared: false` (a drawer with `drawe
 `shared: false`), so it only ever answers by name. See
 [Overlays and the top layer](overlays-and-the-top-layer.md) for the full contract.
 
-**Keyboard**, and it is the same in both modes. Tab reaches the trigger without opening it.
-A click, Enter, Space or `↓` open it; in a menu of items (`menu: true`) the keys also move the
-focus to the first one, `↑` opens it on the last, and the arrows walk them. Escape closes it and
-puts the focus back on the trigger; a click outside or the focus leaving closes it too.
-`hoverable:` is the exception: daisyUI's CSS still opens it on hover and on focus.
-`aria-expanded` follows what is on screen rather than the path that got there.
+**Keyboard.** Tab reaches the trigger without opening it. A click, Enter, Space or `↓` open
+it; in a menu of items (`menu: true`) the keys also move the focus to the first one, `↑` opens it
+on the last, and the arrows walk them. Escape closes it and puts the focus back on the trigger;
+a click outside or the focus leaving closes it too. All of that is the same in both modes. Tab
+is the one difference: in the CSS mode the panel follows the trigger in the document and Tab
+walks its items, while in popover mode it hangs at the end of `<body>`, so a Tab from inside it
+closes it and carries on from the trigger. `hoverable:` is the exception: daisyUI's CSS still
+opens it on hover and on focus. `aria-expanded` follows what is on screen rather than the path
+that got there.
 
 **Position.** daisyUI places the menu against the trigger and nothing else, so an `align: :end`
 trigger that wrapped to the left of a phone opened its menu off screen (#1231). A menu the
@@ -4963,7 +4966,8 @@ one adds.
   because the page underneath keeps the document's `h1`. An explicit value always wins; an
   unknown one raises `ArgumentError`.
 - `secondary_actions_width` - Width of the `⋯` menu, on `Bali::Dropdown`'s scale: `:sm`
-  (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
+  (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80). An unknown value raises
+  `ArgumentError`.
 - `secondary_actions_aria_label` - Accessible name of the `⋯` trigger, which shows only an icon
   (default: `bali_view.page_components.secondary_actions.button_label`, "More actions")
 

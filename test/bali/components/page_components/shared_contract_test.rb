@@ -279,6 +279,20 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
+  # `nil` is "the default", as for `max_width:`: what a host passes when it forwards an option
+  # it did not set.
+  def test_the_five_read_a_nil_secondary_actions_width_as_md
+    each_page do |component|
+      render_inline(component.new(title: "Calendars", secondary_actions_width: nil)) do |page|
+        page.with_secondary_action(name: "View approval flow", href: "/flow")
+        page.with_body { "Body" }
+      end
+
+      assert page.has_css?('[role="menu"].w-52', visible: :all),
+             "#{component}: nil secondary_actions_width is not the w-52 default"
+    end
+  end
+
   # Raised by the constructor, not by the Dropdown: that one is only built when the ⋯ has items,
   # so a typo whose items sit behind a `policy` check raised only once the check let one through.
   def test_the_five_reject_an_unknown_secondary_actions_width

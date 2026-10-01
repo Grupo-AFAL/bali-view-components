@@ -267,8 +267,6 @@ and the action toggles it straight back.
 - Escape: Close menu
 - Arrow Down: Move to next item
 - Arrow Up: Move to previous item
-- Home: Move to first item
-- End: Move to last item
 
 ### Tabs
 

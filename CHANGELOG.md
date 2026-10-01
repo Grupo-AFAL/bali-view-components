@@ -80,12 +80,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
   menú de ítems las teclas llevan el foco al primero— y lo cierran Escape, un clic fuera o que el
-  foco salga, también en modo `popover:`, donde Tab dejaba el menú abierto. `hoverable:` sigue
-  abriéndose también al enfocarlo. Y al abrirse hacia arriba o abajo, un menú se corre para quedar
-  a 5 px dentro de la pantalla: el ⋯ de las páginas abría en x = −104 a 390 px. Sin nada que
-  hacer en el anfitrión, salvo quitar el `click->dropdown#toggle` que traía el ejemplo de
-  `accessibility.md` si alguien lo copió: con él, el menú se abre y se cierra en el mismo clic
-  (`git grep -n "dropdown#toggle" origin/main -- app` da cero en las siete).
+  foco salga, también en modo `popover:`, donde además Tab desde el menú lo cierra y sigue desde
+  el disparador (antes salía del documento). `hoverable:` sigue abriéndose también al enfocarlo.
+  Y al abrirse hacia arriba o abajo, un menú se corre para quedar a 5 px dentro de la pantalla:
+  el ⋯ de las páginas abría en x = −104 a 390 px. Sin nada que hacer en el anfitrión, salvo
+  quitar el `click->dropdown#toggle` que traía el ejemplo de `accessibility.md` si alguien lo
+  copió: con él, el menú se abre y se cierra en el mismo clic (`git grep -n "dropdown#toggle"
+  origin/main -- app` da cero en las siete).
 
 - **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
   (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,
