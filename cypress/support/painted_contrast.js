@@ -8,6 +8,10 @@
 // Two things it still does not see: the `opacity` of the node that carries a tint is not applied
 // to the tint, which on a light theme measures the tint darker than it paints (the safe side), and
 // the background of a pseudo-element.
+//
+// `over` is where the search for that background starts. Text starts at its own element; a shape
+// drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own
+// fill and measure 1:1 against itself, so it starts at the parent.
 
 const luminance = ([r, g, b]) => {
   const channel = (v) => {
@@ -17,7 +21,9 @@ const luminance = ([r, g, b]) => {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-export const paintedContrast = (el) => {
+export const paintedContrast = (el, { over = el } = {}) => {
+  if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')
+
   const win = el.ownerDocument.defaultView
   const canvas = el.ownerDocument.createElement('canvas')
   canvas.width = canvas.height = 1
@@ -32,7 +38,10 @@ export const paintedContrast = (el) => {
   let opacity = 1
   let groundColour = 'white'
   const tints = []
-  for (let node = el; node; node = node.parentElement) {
+  for (let node = el; node !== over; node = node.parentElement) {
+    opacity *= parseFloat(win.getComputedStyle(node).opacity)
+  }
+  for (let node = over; node; node = node.parentElement) {
     const style = win.getComputedStyle(node)
     opacity *= parseFloat(style.opacity)
     ctx.clearRect(0, 0, 1, 1)

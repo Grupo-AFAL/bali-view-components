@@ -1,11 +1,11 @@
-/* WorkflowSteps component — a flow with a verdict per step, in four shapes.
+/* WorkflowSteps component — a flow with a verdict per step, in five shapes.
  *
- * `.workflow-steps` is the root in all four, and carries whatever is shared:
- * the body typography every step renders the same way, the numbered circle
- * (every shape but the horizontal one draws one; that one draws a dot), and
- * the N/M header (every shape but the vertical one wraps its list in a div
- * that can hold one). The rest hangs off the orientation class next to it,
- * because the shapes agree on almost nothing above the title.
+ * `.workflow-steps` is the root in all five, and carries whatever is shared:
+ * the body typography every titled step renders the same way, the numbered
+ * circle (vertical, rail and progress draw one), and the N/M header (the
+ * horizontal and row shapes wrap their list in a div that can hold one). The
+ * rest hangs off the orientation class next to it, because the shapes agree on
+ * almost nothing above the title.
  *
  * Vertical: two-column grid per step, marker (connector + circle) and body. The
  * connector is absolutely positioned from the circle's centre down through the
@@ -27,6 +27,11 @@
  * verdict left to the marker. It repeats the rail's row rules rather than
  * sharing a class with it, for the reason below: neither is the other's base,
  * and a host restyling one must not move the other.
+ *
+ * Segments: one short bar per step for a table cell, and the current step's
+ * title beside them. Neither a scroll container nor a tab stop: the segments
+ * shrink before the row overflows, and the title wraps under them when the
+ * cell is too narrow for both on one line.
  *
  * Neither row shape is `.workflow-steps-horizontal` plus a modifier, and that
  * is load-bearing: `.workflow-steps-horizontal .workflow-step-marker` boxes the
@@ -233,5 +238,36 @@
 
   .workflow-step-assignee {
     @apply justify-center;
+  }
+}
+
+.workflow-steps-segments {
+  /* `w-auto` takes back the root's `w-full`: a host's own text beside the
+     bar, in a flex row, sat 414px away at the far edge of the cell. In a
+     cell with nothing beside it the root is a block and fills it anyway. */
+  @apply flex w-auto flex-wrap items-center gap-x-2 gap-y-1;
+
+  .workflow-steps-list {
+    /* `gap-1`, not `gap-0.5`: the current segment's outline reaches 3px
+       past it, and at 2px it touched its neighbours.
+       `min-w-0` lets the list be narrower than its 24px segments add up to,
+       which is what hands the shrinking down to them. */
+    @apply flex min-w-0 list-none items-center gap-1;
+  }
+
+  .workflow-step {
+    /* A 24px segment that gives way to an 8px floor: nine steps in a 160px
+       box shrink to 14px each instead of overflowing it. `w-6`, not
+       `basis-6`: Chrome sizes the list from its items' widths and ignores a
+       basis there, so the segments came out at the 8px floor. */
+    @apply flex w-6 min-w-2;
+  }
+
+  .workflow-step-segment {
+    @apply block h-2 w-full rounded-full border border-current;
+  }
+
+  .workflow-steps-current-title {
+    @apply min-w-0 text-sm;
   }
 }

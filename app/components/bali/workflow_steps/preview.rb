@@ -47,9 +47,10 @@ module Bali
       # Horizontal — the quick flow
       # ---------------------------
       # The same steps as a row of cards with an N/M bar on top, for the
-      # summary card or the table cell where the whole chain has to fit in a
-      # glance. Same `with_step` API; the marker becomes a dot, and there are
-      # no connectors — the bar already says how far the flow got.
+      # summary card where the whole chain has to fit in a glance. Same
+      # `with_step` API; the marker becomes a dot, and there are no
+      # connectors — the bar already says how far the flow got. A table cell
+      # wants `:segments`: each card is at least 11rem wide.
       #
       # ```erb
       # <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
@@ -179,6 +180,46 @@ module Bali
       # inside a `bg-base-200` card, with and without it.
       def progress(progress: false)
         render_with_template(locals: { progress: progress })
+      end
+
+      # Segments — the table cell
+      # -------------------------
+      # `orientation: :segments` draws one short bar per step and paints no
+      # title, with the current step's title beside the bar. The shape for a
+      # table column, where every other shape is too tall or scrolls.
+      #
+      # ```erb
+      # <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+      #   <% c.with_step(title: 'Submitted', state: :success) %>
+      #   <% c.with_step(title: 'Legal review', state: :current) %>
+      #   <% c.with_step(title: 'Director signature', state: :pending) %>
+      # <% end %>
+      # ```
+      #
+      # **Every state is a shape, not only a colour**: solid, hatched,
+      # half-filled, a thin line, outlined and hollow, so success and rejection
+      # still differ for a reader who cannot tell green from red. The three
+      # state colours are mixed with `base-content` to clear 3:1 against
+      # `base-100` and a zebra row's `base-200` in all five themes.
+      #
+      # **`title:` is still required**: it is no longer painted, but it is each
+      # segment's name — a screen reader reads the first row's list as
+      # "Request: Completed, Register · Committee office: Completed, …", and a
+      # pointer gets the same words as a `title` tooltip. `state_label:`
+      # renames the state as in every other shape.
+      #
+      # **The text beside the bar is the first `:current` step's title**, with
+      # no option to set it, and it is hidden from screen readers, which have
+      # just read that step in the list. A flow that waits on nobody —
+      # rejected or finished — shows the bar alone; the "Concluded" rows put
+      # the host's own text beside it, in a `flex flex-wrap` row.
+      #
+      # It is never a scroll container or a tab stop: the segments shrink from
+      # 24px to an 8px floor before the row overflows, and the title wraps
+      # under the bar when both do not fit. `assignee:`, `date:` and the block
+      # are not rendered; nor is the N/M bar, and `progress: true` raises.
+      def segments
+        render_with_template
       end
 
       # Decision pattern (approve / reject)
