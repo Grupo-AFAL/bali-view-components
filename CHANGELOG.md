@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
+  son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
+  `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
+  no estaba en ella, carga igual en un anfitrión: medido en una app Rails 8.1.4 nueva, en
+  desarrollo y en producción con `eager_load!`— y su comentario afirmaba lo contrario. Sin
+  efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
+  nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
+
 ### Fixed
 
 - **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
