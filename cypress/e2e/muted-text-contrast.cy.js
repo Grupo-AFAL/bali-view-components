@@ -5,10 +5,12 @@ import { paintedContrast } from '../support/painted_contrast'
 // composited over the surface it lands on. Shipped at `/40`, `/50` and `/60`, it
 // measured 2.33–4.47:1 against AA's 4.5 (#1233, #1234), and no one theme showed
 // all of it: `light` passed the timeline's `/60` and `dark` the date's `/50`.
-// Hence all five themes, and the base-200 cards of the progress preview.
+// Hence all five themes, and the base-200 cards of the progress preview, where
+// only the labels are measured: a glyph there paints on its marker's `::before`
+// disc, which `paintedContrast` cannot see.
 //
-// Titles and glyphs are collected by their base-content grey, because the
-// current step's `primary` pair is the theme's own and is measured in #1221.
+// Titles and glyphs are collected by their base-content grey: the current
+// step's `primary` pair is the theme's own, not measured against AA here (#1221).
 describe('muted text contrast in WorkflowSteps and Timeline', () => {
   const AA = 4.5
   const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
@@ -25,7 +27,7 @@ describe('muted text contrast in WorkflowSteps and Timeline', () => {
     ],
     'workflow_steps/progress': [
       ['label', `.workflow-steps-progress-rail .workflow-step-title${GREY}`, 21],
-      ['grey glyph', `.workflow-steps-progress-rail .workflow-step-circle${GREY}`, 10]
+      ['grey glyph', `:not(.card) > .workflow-steps-progress-rail .workflow-step-circle${GREY}`, 8]
     ],
     'timeline/states': [
       ['timestamp', 'li > .timeline-end:not(.timeline-content-box)', 4],
@@ -59,8 +61,6 @@ describe('muted text contrast in WorkflowSteps and Timeline', () => {
     })
   })
 
-  // daisyUI's `.timeline-box` sets 12px, the heading's size. A size of the
-  // timestamp's own put it at 14px under that heading (#1234).
   it('keeps the compact timestamp no larger than the heading above it', () => {
     cy.visit('/bali/timeline/tracking')
 

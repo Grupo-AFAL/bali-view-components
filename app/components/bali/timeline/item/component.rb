@@ -206,8 +206,8 @@ module Bali
         end
 
         # No size of its own: daisyUI's `.timeline-box` sets 12px, the heading's
-        # size, and a `text-sm` here put the metadata a size above the heading
-        # it belongs to.
+        # size, and a `text-sm` here would set the metadata a size above its
+        # heading.
         def box_timestamp_classes
           TIMESTAMP_CLASSES
         end

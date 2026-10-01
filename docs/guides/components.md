@@ -1448,10 +1448,11 @@ is a progress line with an N/M bar over it.
 **The half of the flow nobody has reached yet is held to a measured floor.**
 `base-300`, which the rail uses for the same job, is 1.16:1 against `base-100`
 — a 2px line and a 1px outline nobody can see, in the shape whose whole answer
-is that line. So the greys here are `base-content`: `/60` for the glyph and the
-12px label (4.66:1 in light, 5.82:1 in `afal-dark`, AA's 4.5:1 for text) and
-`/50` for the outline and the line (3.40:1 and 4.47:1, the 3:1 a shape carrying
-meaning needs). Composited over the disc each marker paints, not over the token.
+is that line. So the greys here are `base-content`, measured on all five
+themes with `afal` as the floor of both: `/70` for the glyph and the 12px label
+(5.54:1 over `base-100`, AA's 4.5:1 for text) and `/50` for the outline and the
+line (3.05:1, the 3:1 a shape carrying meaning needs). Composited over the disc
+each marker paints, not over the token.
 
 **The shape assumes it sits on `base-100`.** The connector runs centre-to-centre
 *under* each marker, so an opaque disc is what keeps it out of the circle, and

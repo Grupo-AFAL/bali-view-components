@@ -329,13 +329,12 @@ class BaliTimelineComponentTest < ComponentTestCase
     assert_no_selector("div.timeline-start")
   end
 
-  # daisyUI's `.timeline-box` sets 12px, the heading's size; a `text-sm` of its
-  # own put the timestamp a size above the heading it belongs to.
   def test_compact_timestamp_takes_the_size_of_its_box
     render_inline(Bali::Timeline::Component.new(compact: true)) do |c|
       c.with_item(heading: "Package received", timestamp: "Jul 28, 09:14")
     end
-    assert_selector(".timeline-content-box p:not(.text-sm)", text: "Jul 28, 09:14")
+    timestamp = page.find(".timeline-content-box p", text: "Jul 28, 09:14")
+    assert_no_match(/(^|\s)([\w-]+:)*text-(xs|sm|base|lg|\d*xl)(\s|$)/, timestamp[:class])
   end
 
   def test_timestamp_slot_wins_over_the_keyword

@@ -110,12 +110,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   temas. Todos pasan a `/70`: 4.98:1 o más en los cinco. En `compact: true` el `timestamp:` toma
   además los 12px de la caja, los del encabezado, en vez de quedar en 14px debajo de él; lo ven
   las líneas de tiempo compactas de afal-apps, costa-norte, identity y gobierno-corporativo.
-  **gobierno-corporativo** puede borrar sus parches, que ahora repiten el mismo tono: las clases
-  `[&_.workflow-step-…]` de `calendars/approval_flows/show.html.erb` y
-  `requests/_detail_flow.html.erb`, y los `with_timestamp` de un solo `span` en
-  `agreement_listings/_follow_ups.html.erb` y `calendars/approval_flows/show.html.erb`, que
-  vuelven a `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e
-  "with_timestamp" origin/main -- app/views`).
+  **gobierno-corporativo** puede borrar sus parches, que ahora repiten el tono o ya no coinciden
+  con nada: las clases `[&_.workflow-step-…]` de
+  `app/views/governing_bodies/calendars/approval_flows/show.html.erb` y
+  `app/views/governing_bodies/requests/_detail_flow.html.erb`, y los `with_timestamp` de un solo
+  `span` en `app/views/governing_bodies/agreement_listings/_follow_ups.html.erb` y
+  `app/views/governing_bodies/calendars/approval_flows/show.html.erb`, que vuelven a
+  `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e "with_timestamp"
+  origin/main -- app/views`).
 
 ### Documentation
 
