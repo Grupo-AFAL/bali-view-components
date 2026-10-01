@@ -120,6 +120,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cambia: lo que cambia es que una variante traslúcida ya no pasaría. Para quien trabaja en el
   repo; nada que hacer en un anfitrión.
 
+- **El texto atenuado de `WorkflowSteps` y `Timeline` quedaba bajo AA** (#1233, #1234): el
+  título y el círculo de un paso `:pending` o `:skipped`, la fecha, la etiqueta de los pasos por
+  venir en `orientation: :progress`, y el `timestamp:` y el encabezado `:pending` de
+  `Timeline::Item` iban en `/40`, `/50` o `/60` y medían 2.33–4.47:1 en uno o más de los cinco
+  temas. Todos pasan a `/70`: 4.98:1 o más en los cinco. En `compact: true` el `timestamp:` toma
+  además los 12px de la caja, los del encabezado, en vez de quedar en 14px debajo de él; lo ven
+  las líneas de tiempo compactas de afal-apps, costa-norte, identity y gobierno-corporativo.
+  **gobierno-corporativo** puede borrar sus parches, que ahora repiten el tono o ya no coinciden
+  con nada: las clases `[&_.workflow-step-…]` de
+  `app/views/governing_bodies/calendars/approval_flows/show.html.erb` y
+  `app/views/governing_bodies/requests/_detail_flow.html.erb`, y los `with_timestamp` de un solo
+  `span` en `app/views/governing_bodies/agreement_listings/_follow_ups.html.erb` y
+  `app/views/governing_bodies/calendars/approval_flows/show.html.erb`, que vuelven a
+  `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e "with_timestamp"
+  origin/main -- app/views`).
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
