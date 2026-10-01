@@ -1,54 +1,13 @@
+import { paintedContrast } from '../support/painted_contrast'
+
 // Infinite scroll for the structured SplitView listing. The preview renders page
 // one and points the sentinel at the dummy's `/split-view`, so every fetch here is
 // a real request against a real paginated index — the same URL one page further
 // on, which is the whole claim of fetch-and-extract.
 //
 // 20 movies, 5 per page: four pages, and the fourth is the end of the list.
-// WCAG contrast of an element's text as it is PAINTED: its colour at the colour's
-// alpha times every `opacity` between it and the first opaque background, composited
-// over that background on a 1px canvas. `getComputedStyle().color` carries only the
-// colour's alpha: read that way the filter count reported 6.38 while it painted
-// 2.92 (#1202).
-const paintedContrast = (el) => {
-  const win = el.ownerDocument.defaultView
-  const canvas = el.ownerDocument.createElement('canvas')
-  canvas.width = canvas.height = 1
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  const paint = (colour, alpha = 1) => {
-    ctx.globalAlpha = alpha
-    ctx.fillStyle = colour
-    ctx.fillRect(0, 0, 1, 1)
-    ctx.globalAlpha = 1
-    return [...ctx.getImageData(0, 0, 1, 1).data]
-  }
-
-  let opacity = 1
-  let ground = 'white'
-  for (let node = el; node; node = node.parentElement) {
-    const style = win.getComputedStyle(node)
-    opacity *= parseFloat(style.opacity)
-    ctx.clearRect(0, 0, 1, 1)
-    if (paint(style.backgroundColor)[3] === 255) {
-      ground = style.backgroundColor
-      break
-    }
-  }
-
-  const luminance = ([r, g, b]) => {
-    const channel = (v) => {
-      v /= 255
-      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-    }
-    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-  }
-  ctx.clearRect(0, 0, 1, 1)
-  const back = paint(ground)
-  const text = paint(win.getComputedStyle(el).color, opacity)
-  const [high, low] = [luminance(text), luminance(back)].sort((x, y) => y - x)
-  return (high + 0.05) / (low + 0.05)
-}
-
 describe('SplitView structured list', () => {
+  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
   const scroller = () => cy.get('[data-split-view-list-target="scroller"]')
   const rows = () => cy.get('.split-view-item')
   const scrollToBottom = () => scroller().scrollTo('bottom', { ensureScrollable: false })
@@ -334,26 +293,26 @@ describe('SplitView structured list', () => {
       })
     })
 
-    // The count sits inside a pill whose text is already a translucent token, so an
-    // element opacity on it multiplies: `opacity-70` over `/70` painted at 2.92–4.74
-    // (#1202). The inactive pill has to clear AA; the active one is the theme's own
-    // primary pair, and its count must read no dimmer than its label. `should` and
-    // not `then`: the pills carry `transition-colors`, so the colour right after the
-    // theme switch is a frame of the transition.
-    ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+    // The active pill is the theme's own primary pair, not measured against AA here (#1221):
+    // its count only has to read no dimmer than its label. The pills carry
+    // `transition-colors`, and a frame of the transition still has the previous theme's
+    // colours — which can pass — so nothing is measured until the transitions settle.
+    THEMES.forEach((theme) => {
       it(`reads the pill counts at AA on the ${theme} theme`, () => {
-        cy.visit(app('/split-view?filter_mode=multi&q%5Bgenre_in%5D%5B%5D=Action'))
+        cy.visit(app('/split-view?status=done'))
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         cy.get('[data-testid="list-filters"]').should(($band) => {
-          const inactive = $band[0].querySelector('.split-view-filter:not([data-active="true"])')
-          const active = $band[0].querySelector('.split-view-filter[data-active="true"]')
+          expect($band[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
 
-          expect(paintedContrast(inactive), `${theme}: an inactive pill`).to.be.at.least(4.5)
-          expect(paintedContrast(inactive.querySelector('.split-view-filter-count')),
-            `${theme}: its count`).to.be.at.least(4.5)
-          expect(paintedContrast(active.querySelector('.split-view-filter-count')),
-            `${theme}: the active pill's count`).to.be.at.least(paintedContrast(active) - 0.01)
+          const inactiveCount = $band[0].querySelector('.split-view-filter:not([data-active="true"]) .split-view-filter-count')
+          const activeCount = $band[0].querySelector('.split-view-filter[data-active="true"] .split-view-filter-count')
+
+          expect(paintedContrast(inactiveCount.closest('.split-view-filter')), `${theme}: an inactive pill`)
+            .to.be.at.least(4.5)
+          expect(paintedContrast(inactiveCount), `${theme}: its count`).to.be.at.least(4.5)
+          expect(paintedContrast(activeCount), `${theme}: the active pill's count`)
+            .to.be.at.least(paintedContrast(activeCount.closest('.split-view-filter')))
         })
       })
     })
@@ -516,7 +475,7 @@ describe('SplitView structured list', () => {
     // 4.5 for 12px text. `costa-norte` is in the list for that reason — it is a
     // shipped theme, and leaving it out would have left one of the four failing
     // cases unguarded.
-    ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+    THEMES.forEach((theme) => {
       it(`reads the heading and its count at AA on the ${theme} theme`, () => {
         cy.document().then((doc) => {
           doc.documentElement.setAttribute('data-theme', theme)
