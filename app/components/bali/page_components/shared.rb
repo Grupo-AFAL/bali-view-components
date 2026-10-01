@@ -37,7 +37,7 @@ module Bali
       # options (DocumentPage) splits them with `slice`/`except` over this list instead of
       # repeating the signature.
       PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width context
-                        heading].freeze
+                        heading secondary_actions_width secondary_actions_label].freeze
 
       # Where the page is being rendered. `:auto` asks the request; the other two state it,
       # which is what lets a test or a Lookbook preview pin the variant without simulating a
@@ -68,8 +68,14 @@ module Bali
 
       # The shared signature of the five. A component that adds arguments of its own declares
       # them and calls `super` with the rest.
+      #
+      # @param secondary_actions_width [Symbol] width of the ⋯ menu, on Bali::Dropdown's scale:
+      #   `:sm`, `:md` (default), `:lg`, `:xl`.
+      # @param secondary_actions_label [String, nil] accessible name of the ⋯ trigger, which
+      #   shows no text. Left out, the `SECONDARY_ACTIONS_LABEL_KEY` translation.
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: nil,
-                     sidebar_width: :default, context: :auto, heading: nil)
+                     sidebar_width: :default, context: :auto, heading: nil,
+                     secondary_actions_width: :md, secondary_actions_label: nil)
         @title = title
         @subtitle = subtitle
         @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
@@ -82,6 +88,8 @@ module Bali
                 "Unknown max_width: #{@max_width_key.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
         end
         @sidebar_width = resolve_sidebar_width(sidebar_width)
+        @secondary_actions_width = secondary_actions_width
+        @secondary_actions_label = secondary_actions_label
       end
 
       # Whether this page is rendering as the contents of a Modal or a Drawer. Public, and
@@ -190,12 +198,17 @@ module Bali
         @export_options.present? || secondary_action_items.any?
       end
 
+      def secondary_actions_label
+        @secondary_actions_label || I18n.t(SECONDARY_ACTIONS_LABEL_KEY)
+      end
+
       def render_secondary_actions
         return unless secondary_actions?
 
         render(Bali::Dropdown::Component.new(
           direction: :bottom,
           align: :end,
+          width: @secondary_actions_width,
           data: { controller: "export-links", export_links_sync_value: export_links_sync? }
         )) do |dropdown|
           # `ellipsis-vertical` and not `ellipsis`: below `sm` this menu and the toolbar's
@@ -206,7 +219,7 @@ module Bali
           # the small size left it 8px shorter than the button it is glued to. `sm` is the
           # size of the TOOLBAR controls, which is where this menu came from.
           dropdown.with_trigger(variant: :ghost, class: "btn-square",
-                                "aria-label": I18n.t(SECONDARY_ACTIONS_LABEL_KEY)) do
+                                "aria-label": secondary_actions_label) do
             render Bali::Icon::Component.new("ellipsis-vertical", class: "w-5 h-5")
           end
           export_menu_items.each { |item| dropdown.with_item(**item) }

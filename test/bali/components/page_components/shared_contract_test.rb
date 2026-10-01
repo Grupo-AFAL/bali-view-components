@@ -209,6 +209,24 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
+  # #1230: the ⋯ was always `w-52` and always "More actions", so a page whose items were longer
+  # than 208px wrapped them onto three lines and lost "of the calendar" from the trigger's name.
+  def test_the_five_size_and_name_the_overflow_menu_on_request
+    each_page do |component|
+      render_inline(component.new(title: "Calendars", secondary_actions_width: :xl,
+                                  secondary_actions_label: "More calendar actions")) do |page|
+        page.with_secondary_action(name: "View approval flow", href: "/flow")
+        page.with_body { "Body" }
+      end
+
+      assert page.has_css?('[role="menu"].w-80', visible: :all),
+             "#{component}: the ⋯ menu ignores secondary_actions_width"
+      assert page.has_css?('[data-dropdown-target="trigger"][aria-label="More calendar actions"]',
+                           visible: :all),
+             "#{component}: the ⋯ trigger ignores secondary_actions_label"
+    end
+  end
+
   def test_the_five_offer_the_export_menu
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|

@@ -50,6 +50,22 @@ module Bali
       def with_many_actions
         render_with_template(template: "bali/show_page/previews/with_many_actions")
       end
+
+      # @label Secondary actions menu
+      # The same two options as IndexPage's: `secondary_actions_width:` and
+      # `secondary_actions_label:` live in `Bali::PageComponents::Shared` (#1230). With three
+      # primary actions the `⋯` lands mid-row below `sm`, where an `align: :end` menu wider
+      # than the row's left part is nudged back inside the screen (#1231).
+      # @param secondary_actions_width select { choices: [sm, md, lg, xl] }
+      # @param secondary_actions_label text
+      def with_secondary_actions(secondary_actions_width: :xl,
+                                 secondary_actions_label: "More movie actions")
+        render_with_template(
+          template: "bali/show_page/previews/with_secondary_actions",
+          locals: { secondary_actions_width: secondary_actions_width.to_sym,
+                    secondary_actions_label: secondary_actions_label.presence }
+        )
+      end
     end
   end
 end
