@@ -96,15 +96,15 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     # at the preview's directory left it blind to the rest: a bare constant there passed the guard
     # and blew up on the request.
     #
-    # DERIVED from `eager_load_paths`, not a copy of it: when `app/lib/bali/widget` moved to
-    # `app/widgets/bali/widget`, a list written by hand here would have gone on passing while the
-    # guard looked at a directory that no longer exists.
+    # DERIVED from the engine's eager-load paths, not a copy of them: when `app/lib/bali/widget`
+    # moved to `app/widgets/bali/widget`, a list written by hand here would have gone on passing
+    # while the guard looked at a directory that no longer exists.
     # THE PATH RELATIVE TO ITS OWN ROOT, never `File.basename`. That shortcut is
     # only correct for a first-level `Bali::<Name>`: for `widget/list/preview.rb`
     # the basename is `list`, so it would scan `bali/list` and offer
     # `Bali::List`'s constants as siblings of `Bali::Widget::List::Preview` —
     # unrelated names, and a guard that flags them is a guard nobody trusts.
-    roots = Bali::Engine.config.eager_load_paths.map(&:to_s)
+    roots = Bali::Engine.config.all_eager_load_paths.map(&:to_s)
     root = roots.find { |candidate| dir.start_with?("#{candidate}/") }
     relative = root ? dir.delete_prefix("#{root}/") : File.basename(dir)
 

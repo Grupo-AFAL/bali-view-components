@@ -3375,7 +3375,8 @@ shape did not understand.
 <% dt.with_simple_filters(search: { field_name: "q[name_or_email_cont]", value: params.dig(:q, :name_or_email_cont) }) %>
 
 # v3 — the same hash the Filters panel takes
-<% dt.with_simple_filters(search: { fields: %i[name email], value: params.dig(:q, :name_or_email_cont) }) %>
+<% q = params[:q].is_a?(ActionController::Parameters) ? params[:q] : {} %>
+<% dt.with_simple_filters(search: { fields: %i[name email], value: q[:name_or_email_cont] }) %>
 ```
 
 The full shape is `fields:`, `value:`, `placeholder:`, `label:`, `icon:` and `width:`,
