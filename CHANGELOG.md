@@ -18,6 +18,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   referencia del Gantt en la dummy (`Admin::Projects::SchedulesController`) aceptaba
   `starts_on: "2026-09"` y movía la tarea al día 1, y ahora responde 422.
 
+- **`radio-toggle` cubre los tres casos por los que afal-apps escribió dos controladores
+  propios** (#1214):
+  - **Un target que llega después** —un Turbo Stream que lo reemplaza— toma la visibilidad del
+    radio en pantalla, no la que pintó el servidor.
+  - **`data-radio-toggle-disable-hidden-value="true"`** deshabilita cada target oculto, que tiene
+    que ser un `<fieldset>`: el formulario no manda sus campos, conservan su propio `disabled` y
+    el archivo elegido, y lo que un stream le agregue después queda cubierto.
+  - **`+` une condiciones**: `damaged+serial_unknown` exige el radio y una casilla marcada con ese
+    `value`, declarada como target `checkbox` que dispara `radio-toggle#change`. El checkbox del
+    FormBuilder manda `"1"`, así que lleva `checked_value: "serial_unknown"`.
+
+  Lo de hoy no cambia (`current`, valores con coma, la clase `hidden`), salvo que `+` pasa a ser
+  carácter reservado en los valores. Preview nuevo en `bali/radio_toggle`. **afal-apps** puede
+  pasar sus dos vistas a `radio-toggle` y borrar `terminals/census_item_controller.js` y
+  `terminals/reported_photos_controller.js`.
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista

@@ -454,7 +454,7 @@ with `data-radio-buttons-group-active-class` and
 
 ## `radio-toggle`
 
-Shows the elements whose `data-radio-toggle-value` matches the selected radio's
+Shows the elements whose `data-radio-toggle-value` names the selected radio's
 value (comma-separated to match several) — the single-level sibling of
 `radio-buttons-group`.
 
@@ -467,6 +467,26 @@ value (comma-separated to match several) — the single-level sibling of
   <div data-radio-toggle-target="element" data-radio-toggle-value="one,two">One or two</div>
 </div>
 ```
+
+- **A radio and a checkbox** — `+` joins terms inside one value:
+  `damaged+serial_unknown` shows only while "damaged" is the radio **and** a
+  checkbox with `value="serial_unknown"` is checked. The checkbox takes part as a
+  `checkbox` target that also fires `radio-toggle#change`. The FormBuilder's
+  checkbox sends `"1"`, so give it the value the condition names:
+  `f.boolean_group :serial_unknown, checked_value: "serial_unknown", data: { action: "radio-toggle#change", radio_toggle_target: "checkbox" }`.
+  A term on its own is met by the checkbox alone (`damaged,serial_unknown` shows
+  for either), and a checkbox whose `value` equals a radio's counts as that radio.
+  `+` joins the one current radio with checkboxes, and it is reserved: a radio
+  valued `65+` no longer matches.
+- **Hidden fields are not sent** — `data-radio-toggle-disable-hidden-value="true"`
+  disables every hidden target, which has to be a `<fieldset>`. A disabled
+  fieldset sends none of its fields, keeps their own `disabled` and a file already
+  chosen, and covers fields a Turbo Stream adds to it later.
+- **Targets that arrive later** — a target a Turbo Stream adds or replaces takes
+  the visibility of the choice on screen at that moment, not the one the server
+  painted.
+
+All three are live in the `bali/radio_toggle/dependent_fields` preview.
 
 ## `slim-select`
 
