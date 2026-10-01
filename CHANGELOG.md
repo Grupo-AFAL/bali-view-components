@@ -160,6 +160,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e "with_timestamp"
   origin/main -- app/views`).
 
+- **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
+  acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
+  (#1229). Antes ese mismo tap navegaba y la tarjeta se iba con la página. Con mouse y teclado
+  nada cambia. **Anfitrión:** el `day_url` de la vista de año ya no tiene que llevar a donde estén
+  los eventos del día para que se alcancen en celular (lo que hizo
+  Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
+  `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte

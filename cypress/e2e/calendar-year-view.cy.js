@@ -1,3 +1,5 @@
+import { tap } from '../support/tap'
+
 // The hovercard controller mounts its tippy in `connect()`, so a card on every
 // cell would cost 365 instances; `hover?` restricts it to days with events.
 describe('Calendar year view', () => {
@@ -130,6 +132,27 @@ describe('Calendar year view', () => {
     cy.get('.tippy-box a.tag-component').first().click()
     cy.location('pathname').should('include', '/bali/calendar/default')
     cy.location('search').should('include', 'start_date=')
+  })
+
+  // `defaultPrevented` is read on `document`, before Turbo's listener on `window`
+  // prevents every click it follows.
+  it('opens a linked day\'s card on the first tap and follows day_url on the second', () => {
+    cy.viewport(390, 844)
+    cy.visit(year)
+    const day = () => cy.get('.hover-card-component a.year-day').eq(1)
+    day().should($a => expect($a.closest('[data-hovercard-target]')[0]._tippy, 'tippy mounted').to.exist)
+    cy.document().then(doc => {
+      const prevented = []
+      doc.addEventListener('click', e => prevented.push(e.defaultPrevented))
+      cy.wrap(prevented).as('prevented')
+    })
+
+    day().then(tap)
+    cy.get('@prevented').should('deep.equal', [true])
+    cy.get('.tippy-box').should('be.visible').find('.badge').should('have.length.greaterThan', 0)
+
+    day().then(tap)
+    cy.location('pathname').should('eq', '/lookbook/preview/bali/calendar/default')
   })
 
   // Tippy caps the card at 350px; before the preview partial's `whitespace-normal

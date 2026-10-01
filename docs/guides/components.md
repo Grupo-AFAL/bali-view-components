@@ -4181,9 +4181,13 @@ Popup card that displays content on hover (or click), positioned with Tippy.js. 
 - `placement` - Tippy.js placement, e.g. `auto`, `top`, `bottom-start`, `right-end` (default: `"auto"`)
 - `open_on_click` - Open on click instead of hover (default: `false`)
 - `append_to` - Where to append the popup: `'body'`, `'parent'`, or CSS selector (default: `"body"`)
-- `z_index` - Z-index for the popup (default: `9999`)
+- `z_index` - Z-index for the popup (default: `nil`, which reads `--bali-z-tooltip` when the card connects)
 - `content_padding` - Add padding around the content (default: `true`)
 - `arrow` - Show an arrow pointing to the trigger (default: `true`)
+
+**Touch screens.** The first tap on a trigger opens the card and holds back its default action —
+following a link, submitting a form — until the second tap. A tap outside closes the card, and
+links inside it work on the first tap.
 
 #### Reveal
 
@@ -4627,9 +4631,8 @@ your scope, and reports a missing translation. Write the full key:
 with the number in `base-content`; under the pointer it turns the solid colour. There is no
 hover on a touch screen, so there the tint is the only look.
 
-**Touch screens.** A tap on a day that has a `day_url` navigates; the hover card, which opens on
-`mouseenter`/`focus`, never shows. The day's events are then only reachable at the `day_url`
-destination, so point it somewhere they are — the month view, as above.
+**Touch screens.** The first tap on a day that has a hover card opens the card and the second
+follows `day_url`, as with any HoverCard whose trigger is a link.
 
 **`month_size` names the size of the MONTH, not of the view**, so `:xs` means small months and
 many per row, `:xl` large months and few. How many actually fit is the browser's answer: the level

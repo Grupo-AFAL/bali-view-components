@@ -66,6 +66,9 @@ export class HovercardController extends Controller {
       onShow: this.onShow,
       onHide: this.onHide
     })
+
+    this.triggerTarget.addEventListener('pointerdown', this.onPointerDown)
+    this.triggerTarget.addEventListener('click', this.onClick)
   }
 
   getInitialContent () {
@@ -100,7 +103,23 @@ export class HovercardController extends Controller {
   }
 
   disconnect () {
+    this.tippy?.reference.removeEventListener('pointerdown', this.onPointerDown)
+    this.tippy?.reference.removeEventListener('click', this.onClick)
     this.tippy?.destroy()
+  }
+
+  // A tap fires pointerdown, then the compatibility `mouseenter` that opens the card,
+  // then its own `click` (measured in Chromium). Holding back the click of the tap that
+  // found the card closed keeps the card up; the next tap does what the trigger does.
+  // Every pointerdown rewrites the mark, so a mouse or pen press clears what a drag left.
+  onPointerDown = event => {
+    this.tapOpensCard = event.pointerType === 'touch' && !this.tippy.state.isVisible
+  }
+
+  // A click from the keyboard or from `el.click()` has `detail` 0 and no pointerdown of
+  // its own: any mark it finds was left by an earlier gesture.
+  onClick = event => {
+    if (this.tapOpensCard && event.detail > 0) event.preventDefault()
   }
 
   onCreate = instance => {
