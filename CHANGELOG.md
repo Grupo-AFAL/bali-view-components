@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::IsoDate.parse(value)`** (#1211): una fecha `AAAA-MM-DD` leída de fuera —un param,
+  un payload— o `nil`. `Date.iso8601` solo no es eso: lee `"2026-09"` como el día 1,
+  `"20260910"`, `"2026-253"` y `"2026-W37-4"` como fechas, y a `"2026-09-10T23:59:00-07:00"` le
+  tira la hora. La regla vivía encerrada en `Gantt::Data` (`ISO_DATE`, que se retira) y
+  centinela-web la acababa de reescribir carácter por carácter. La usan ahora `Gantt::Data` —que
+  sigue levantando `InvalidError` con su contexto— y `MonthValue`; la implementación de
+  referencia del Gantt en la dummy (`Admin::Projects::SchedulesController`) aceptaba
+  `starts_on: "2026-09"` y movía la tarea al día 1, y ahora responde 422.
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
@@ -34,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `master-detail.md` para las pastillas, y el valor de búsqueda de `Filters` / `SimpleFilters` en
   `components.md` y `migration-v2-to-v3.md`. **Anfitrión:** si copiaste ese `dig` de alguna
   guía, cámbialo por la forma nueva: `git grep -n "dig(:q" origin/main -- app`.
+
+- **`Bali::Types::MonthValue` levantaba al asignar** (#1209): `"zzz"` daba `Date::Error`,
+  `["2026-09"]` (`?q[mes][]=…`) `TypeError`, y hasta un `Date` levantaba `TypeError`. Como el
+  cast corre en la asignación, ninguna validación podía atajarlo: era un 500 desde la URL. Ahora
+  lo que no puede leer es `nil`, un `Date` pasa tal cual, un `Time` o `DateTime` da su fecha, y
+  `serialize` escribe lo mismo que `cast` leería —`nil` en vez de la basura o de `""`—.
+  `"2022-08"` sigue siendo el 1 de agosto. **Ahora sólo lee `AAAA-MM` y `AAAA-MM-DD`**: lo demás
+  que `Date.parse` aceptaba (`"2022/08/15"`, `"15 Aug 2022"`) queda en `nil`. Con PostgreSQL y
+  `load_defaults` ≥ 7.2, que entrega un `Date` o un `Time` al leer, el registro ya no levanta al
+  cargarse.
 
 ### Dependencies
 

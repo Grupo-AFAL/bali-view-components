@@ -202,7 +202,7 @@ Documented in full, with validation rules, in `Bali::Gantt::Data`. The shape:
 }
 ```
 
-Structural problems — missing ids, unknown references, malformed ISO dates,
+Structural problems — missing ids, unknown references, dates that are not YYYY-MM-DD,
 nesting deeper than one level — raise `Bali::Gantt::Data::InvalidError` instead
 of quietly dropping bars. A typo that silently loses rows would lie about the
 plan.
@@ -289,7 +289,9 @@ PATCH <urls[:patch]>
 { "item": { "id": 10, "starts_on": "2026-02-03", "duration_days": 12 } }
 ```
 
-`duration_days` counts inclusive days, so a one-day item sends `1`.
+`duration_days` counts inclusive days, so a one-day item sends `1`. Parse `starts_on` with
+`Bali::IsoDate.parse`, which returns `nil` for anything but a YYYY-MM-DD calendar date —
+`Date.iso8601` takes `"2026-09"` as the 1st.
 
 ### Create a dependency
 
