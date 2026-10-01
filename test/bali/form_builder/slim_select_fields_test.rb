@@ -263,6 +263,19 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # `TEXT_KEYS` looks its keys up at runtime, which `i18n_usage_test.rb` — it reads only
+  # literal `t("…")` calls — cannot see.
+  def test_every_slim_select_text_key_exists_in_both_locales
+    missing = %i[en es].flat_map do |locale|
+      Bali::FormBuilder::SlimSelectFields::TEXT_KEYS.values.filter_map do |key|
+        exists = I18n.exists?(key, locale, scope: "bali_view.form_builder.slim_select", fallback: false)
+        "#{locale}: #{key}" unless exists
+      end
+    end
+
+    assert_equal [], missing
+  end
+
   # The English defaults are SlimSelect's own `maxValuesMessage` and `addableText`, word for
   # word, so an English host reads what it read before #1232.
   def test_slim_select_field_max_values_message_defaults_to_slim_selects_own_text

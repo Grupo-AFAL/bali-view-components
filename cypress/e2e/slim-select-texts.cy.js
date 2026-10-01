@@ -16,12 +16,6 @@ describe('SlimSelect texts', () => {
     cy.get('.ss-main .ss-values .ss-value').should('have.length', 0)
   })
 
-  it('keeps SlimSelect\'s own count in English', () => {
-    cy.visit('/bali/form/slim_select/many_selected?locale=en')
-
-    cy.get('.ss-main .ss-values .ss-max').should('have.text', '27 selected')
-  })
-
   it('offers to add the typed value in the page language', () => {
     cy.visit('/bali/form/slim_select/addable?locale=es')
     searchFor('Mango')

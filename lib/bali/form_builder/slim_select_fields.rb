@@ -232,13 +232,10 @@ module Bali
           slim_select_placeholder_value: html_options[:placeholder] || options[:placeholder],
           slim_select_show_content_value: options[:show_content],
           slim_select_search_placeholder_value: options[:search_placeholder],
-          slim_select_select_all_text_value: options[:select_all_text],
-          slim_select_deselect_all_text_value: options[:deselect_all_text],
           slim_select_no_results_text_value: options[:no_results_text],
           slim_select_searching_text_value: options[:searching_text],
           slim_select_results_text_value: options[:results_text],
-          # `{number}` and `{value}` are SlimSelect's own markers, which it fills in itself:
-          # slim-select-controller.js hands both strings over untouched.
+          # slim-select-controller.js hands both to SlimSelect untouched.
           slim_select_max_values_message_value: options[:max_values_message],
           slim_select_addable_text_value: options[:addable_text],
           slim_select_ajax_param_name_value: options[:ajax_param_name],
