@@ -17,6 +17,10 @@ require "tempfile"
 # `Rails.root` here is `test/dummy`, not the repo: the hook's path hangs off
 # `Bali::Engine.root`, the gem's root — the same idiom `i18n_usage_test` and
 # `stimulus_target_guards_test` use.
+#
+# Editing this file from a shell command trips the hook itself: it reads the command text, and
+# a Spanish closing verb next to `gh pr create|edit` or `gh api … pulls` is what it blocks. Its
+# matcher is `Bash` only, so edit here with an editor, not a heredoc.
 class PrClosesKeywordTest < ActiveSupport::TestCase
   HOOK = Bali::Engine.root.join(".claude/hooks/pr-closes-keyword.sh").freeze
 

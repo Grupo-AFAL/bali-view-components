@@ -12,7 +12,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 | `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
 | `docs/reference/widget-design-notes.md` | Why `Bali::Widget` is shaped the way it is |
 | `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
-| `docs/reference/testing-traps.md` | Ways a test here goes green without testing anything |
+| `docs/reference/testing-traps.md` | Ways a test here goes green without testing what it names |
 | `docs/guides/components.md` | Full component catalog and usage guide |
 | `docs/guides/accessibility.md` | WCAG 2.1 accessibility standards |
 
@@ -70,34 +70,32 @@ changes if either is behind, then run the full test suite.
 
 ## Resolving an issue
 
-Go through this, in order, before opening the PR. In the batch #1216–#1227, each of the nine PRs
-reviewed had passed its own tests and the browser, and each still came back from an independent
-review needing changes — mostly tests that asserted nothing, prose that was false, and contracts
-split between Ruby and JS.
+Passing tests and the browser is not the bar: in #1216–#1227 the nine PRs given an independent
+review had done both, and all nine came back needing changes. From the issue to the PR, in order:
 
-1. **The issue's premise is a hypothesis.** Reproduce it before fixing. #1206 said `app/services`
-   did not load in a host; a throwaway host showed it did. In #1210 the real bug was in the
-   component, not the template the issue named. If the premise falls, the PR says so.
-2. **Walk every reader of what changes**, not just the one you touched: host apps
-   (`git grep … origin/main`), what is persisted (device memory, saved views), the five themes, both
-   modes of the component, and whoever follows the guide's example.
-3. **Red test, for the right reason.** Run it before the fix and read the message: it fails on the
-   assertion that matters, not on an error on the way there.
-4. **The negative control removes only what each new test asserts** — `elementTargetConnected`, not
-   the whole controller — and the failure names that assertion. Reverting a whole file made a
-   Turbo Stream test fail for another reason and hid that it tested nothing.
-   `docs/reference/testing-traps.md` lists the ways that happened.
-5. **One contract, one source.** When Ruby validates what JS also reads (a key, a format), the same
-   pattern on both sides, each pointing at the other, with a test on each side.
-6. **Retire before you justify.** A key nobody uses is removed, not defended in a comment; what the
+1. **Reproduce the issue's premise before fixing it.** It is a hypothesis — issue #1206's
+   `app/services` did load in a fresh host. If the premise falls, the PR says so.
+2. **Walk every reader of what changes**, not just the one you touched: host apps (after a
+   `git fetch`, `git grep -n "…" origin/main -- <glob>` in each), persisted data (column memory in
+   localStorage, saved views), every theme (`light`, `dark` and
+   `app/assets/stylesheets/bali/themes/*`), each option the change touches both on and off, and
+   whoever copies the guide's example.
+3. **Each new test fails for the right reason.** Run it without the code it covers — before the
+   fix, or after it with only that code taken out (`radio-toggle`'s `elementTargetConnected`, not
+   the whole controller) — and read the failure: it is the test's own assertion, not an error on
+   the way there. Reverting a whole file fails for other reasons and hides a test that asserts
+   nothing; `docs/reference/testing-traps.md` lists how that happens here.
+4. **A contract Ruby and JS both read** (a key, a format) is the same pattern on both sides, each
+   naming the other, with a test on each side.
+5. **Retire before you justify.** A key nobody uses is removed, not defended in a comment; what the
    platform already does (`<fieldset disabled>`) is not rebuilt with bookkeeping.
-7. **Prose is checked like code.** Every claim in the CHANGELOG, a guide or a comment against the
-   repo's history and against step 2. Written false in that batch and caught in review: «two
-   releases avoid a data migration» (not for saved views), «a release is a release PR» (v3.6.0
-   rode in a feature PR), a guide example that only worked if the form declared `search_fields`.
-8. **Browser**, per the root `CLAUDE.md`.
-9. **Independent review before the PR**: the `dhh-code-reviewer` agent, read-only, on a worktree
-   of the branch. Check each finding, apply what holds, and summarise the review in the PR body.
+6. **Every claim in the CHANGELOG, a guide or a comment is checked** against the repo's history
+   and against step 2. A guide example is run as written, without anything it does not show.
+7. **Browser**, per the root `CLAUDE.md`.
+8. **Independent review before the PR**: the `dhh-code-reviewer` agent on a worktree of the
+   branch. Its definition carries `Write` and reviews component API, so the prompt opens with the
+   scope — read-only, this worktree, this diff — and hands it steps 1–6 as the criteria. Check
+   each finding, apply what holds, and summarise the review in the PR body.
 
 A step you cannot do — no host to boot, nothing to see in a browser — is said in the PR, not
 skipped quietly.
