@@ -8,7 +8,7 @@ One line is maintained today:
 
 | Channel | Branch | Tags | For |
 |---|---|---|---|
-| **Stable (v3.1)** | `main` | `v3.1.0`, `v3.1.1`, … | Every app in production |
+| **Stable (v3)** | `main` | `v3.MINOR.PATCH` — the newest is `gh api repos/Grupo-AFAL/bali-view-components/releases/latest --jq .tag_name` | Every app in production |
 
 When the next line of work opens (its branch named after the version it targets), it gets
 a **Next** row here, its branch joins the CI filters, and it ships `beta.N` tags until its
@@ -61,8 +61,8 @@ tests. Only a host can hit it.
 # Stable
 gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.0.0"
 
-# Early v3.1
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.1.0.beta.1"
+# Early access to the next line, when one is open
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v4.0.0.beta.1"
 ```
 
 Tracking `branch: "main"` looks convenient and is the thing that bites: `bundle update`
@@ -73,38 +73,102 @@ one-line, reviewable diff in the `Gemfile.lock`.
 
 ## What lands where
 
-- **A v3 fix or feature** → `main`. Release with the normal flow, tag `v3.0.x`.
-- **Anything for v3.1** → `3.1`. Behaviour changes and anything risky live here and only here.
-- **`main` → `3.1`, never the reverse.** After each stable release, merge `main` into `3.1` so
-  the next line does not drift. Merging `3.1` into `main` before v3.1 is ready would leak
+- **A v3 fix or feature** → `main`. Release with the flow under
+  [Cutting a release](#cutting-a-release).
+- **Anything for the next line**, when one is open → its branch. Behaviour changes and
+  anything risky live there and only there. None is open today.
+- **`main` → next line, never the reverse.** After each stable release, merge `main` into the
+  open line so it does not drift. Merging the line into `main` before it is ready would leak
   unfinished changes into the stable channel — which is the whole thing this split exists
   to prevent.
 
 ## CI covers both lines
 
-Every workflow triggers on `push` and `pull_request` for **both** `main` and `3.1`. It has to:
-a pre-release tag cut from a branch nothing verified is worse than no pre-release at all.
+While a next line is open, every workflow triggers on `push` and `pull_request` for **both**
+`main` and that line's branch. It has to: a pre-release tag cut from a branch nothing verified
+is worse than no pre-release at all.
 
-Note the quotes in `branches: [main, "3.1"]` — unquoted, YAML parses `3.1` as the number
-`3.1` and the filter silently never matches.
+Quote the branch in the filter — `branches: [main, "4.0"]`. Unquoted, YAML parses `4.0` as a
+number and the filter silently never matches.
 
-## Cutting a v3.1 pre-release
+## Cutting a release
 
-Whenever `3.1` reaches a state an app could adopt:
+A release is a PR that bumps the version — nothing is pushed to `main` directly. It comes one
+of two ways:
 
-1. Bump `lib/bali/version.rb` and `package.json` to the next `3.1.0.beta.N`, then run
-   `bundle install` and commit the regenerated **`Gemfile.lock` in the same commit** — the
-   lock records the PATH gem's version, and CI bundles with a frozen lock, so a bump
-   without the lock fails every Ruby workflow with exit 16 at `setup-ruby` before a single
-   test runs (measured on v3.1.0.beta.6/7: the tag itself carried the stale lock, and a
-   tag cannot be fixed after the fact). Consuming apps are unaffected either way — a host
-   resolves the git-sourced gem from its gemspec, never from this repo's lock — but the
-   release commit should be the one CI can verify.
-2. Move the `## [Unreleased]` entries under `## [v3.1.0.beta.N] - <date>`.
-3. Tag `v3.1.0.beta.N` on `3.1` and publish a GitHub Release marked **pre-release**.
+- **A release PR** off `main` that only cuts the version: v3.3.1, v3.4.0, v3.5.0.
+- **The bump riding in a feature PR**, with its own CHANGELOG section: v3.2.0 (#1108),
+  v3.3.0 (#1112), v3.6.0 (#1115). Then the release is only step 4, and whatever sits under
+  `[Unreleased]` after that merge belongs to the next release.
 
-`3.1.0.beta.1` sorts before `3.1.0` under both RubyGems and semver rules, so the numbering
-still reads correctly if this ever moves to a registry.
+For a release PR:
+
+1. Branch `release/vX.Y.Z` from `main`.
+2. Bump the version in **six files**, in one commit:
+
+   | File | What changes |
+   |---|---|
+   | `lib/bali/version.rb` | `VERSION` |
+   | `package.json` | `"version"` — same number, npm spelling (`3.1.0-beta.1` for `3.1.0.beta.1`) |
+   | `Gemfile.lock` | regenerated with `bundle install`, never by hand |
+   | `README.md` | the `tag:` of the install snippet |
+   | `docs/guides/installation.md` | the `tag:` and the console transcript `=> "X.Y.Z"` |
+   | `CHANGELOG.md` | `## [Unreleased]` becomes `## [vX.Y.Z] - YYYY-MM-DD`, repeated `###` headings merged |
+
+   `README.md` and `installation.md` are not optional:
+   `BaliDependencyContractTest#test_the_install_instructions_pin_this_version` compares their
+   three install pins — two `tag:` and the console transcript — against `Bali::VERSION`, and
+   fails the suite when they disagree. The README sat on `v3.1.0.beta.13` for four releases
+   before it existed.
+
+   The lock goes in the same commit because it records the PATH gem's version and CI bundles
+   with a frozen lock: a bump without it fails every Ruby workflow with exit 16 at
+   `setup-ruby` before a single test runs (measured on v3.1.0.beta.6/7, where the tag itself
+   carried the stale lock — and a tag cannot be fixed after the fact). Consuming apps are
+   unaffected either way; a host resolves the git-sourced gem from its gemspec, never from
+   this repo's lock.
+3. Run the suite (`bin/rails test`) and open the PR. Its body carries the host steps — see
+   [Host steps](#host-steps) below.
+4. After the merge, tag the merge commit of the PR that brought the bump — not `main`'s
+   HEAD, which may already carry later work — and publish the GitHub Release:
+
+   ```sh
+   sha=$(gh api repos/Grupo-AFAL/bali-view-components/pulls/<N> --jq .merge_commit_sha)
+   git fetch origin && git tag -a vX.Y.Z "$sha" -m "Release vX.Y.Z" && git push origin vX.Y.Z
+   gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <notes> --verify-tag
+   ```
+
+   Between the merge and the tag, the install pins name a ref that does not exist yet. The
+   window closes with the tag, so tag right after merging.
+
+A pre-release of a next line is the same flow on that line's branch, numbered
+`X.Y.0.beta.N` and published with `--prerelease`. `3.1.0.beta.1` sorts before `3.1.0` under
+both RubyGems and semver rules, so the numbering still reads correctly if this ever moves to
+a registry.
+
+## Host steps
+
+What a host has to do on upgrading is read by people bumping several apps at once, often
+skipping versions. Two rules make those steps something they can execute rather than
+interpret (#1207):
+
+- **Every step carries the exact `git grep` that measures it, with its glob.** "23 views" is
+  not reproducible; `git grep -l with_saved_views origin/main -- app/views` is, and the glob
+  is load-bearing: the same search over `app` counted concerns and controllers too, and gave
+  23 where the views were 21. `git fetch` first and measure against `origin/main`, never the
+  working tree: local checkouts sit on old branches.
+- **The release PR says which versions its steps cover, and what else to read.** Open its
+  host-steps section with a block like this one, listing every release since the oldest
+  version an app of the group is still on —
+  `git show origin/main:Gemfile.lock | grep -A3 Grupo-AFAL/bali-view-components` in each app
+  gives its `tag:`. Absolute links, because the block is pasted into a PR body:
+
+  > These steps cover an app on **v3.4.0**. Coming from further back, apply these too, oldest
+  > first: [v3.3.1](https://github.com/Grupo-AFAL/bali-view-components/blob/main/CHANGELOG.md#v331---2026-09-14), [v3.4.0](https://github.com/Grupo-AFAL/bali-view-components/blob/main/CHANGELOG.md#v340---2026-09-17).
+
+  An app that skips versions needs every intermediate release's steps, and nothing else
+  tells it so: in the v3.5.0 rollout, three of the eight apps declared a complete sweep that
+  covered only v3.5.0's own steps.
 
 ## Shipping a line
 
@@ -166,6 +230,6 @@ Five details are load-bearing, all of them learned the expensive way.
 
 ## The CHANGELOG will conflict
 
-Both lines write under `## [Unreleased]`, so every `main` → `3.1` merge conflicts there. It is
-mechanical: keep both sets of entries, the v3.1 ones under their own `## [Unreleased]` heading
-on the `3.1` branch. Nothing else in the file moves.
+Both lines write under `## [Unreleased]`, so every `main` → next-line merge conflicts there. It
+is mechanical: keep both sets of entries, the next line's under its own `## [Unreleased]`
+heading on its branch. Nothing else in the file moves.

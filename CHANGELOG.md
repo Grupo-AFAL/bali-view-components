@@ -103,6 +103,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
   los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
 
+### Documentation
+
+- **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
+  real —PR de release o bump dentro de un PR de feature, seis archivos, tag sobre el merge que
+  trae el bump— y cómo escribir los pasos de anfitrión; el hook de `Closes` cubre
+  `gh api … pulls`. En `[v3.4.0]` dos pasos ganan su medición: 21 vistas con vistas guardadas en
+  gobierno-corporativo (no 23) y 20 + 12 con selector de columnas.
+
 ### Dependencies
 
 - **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
@@ -1345,6 +1353,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `origin/main`). El arreglo sería ajustar el `colspan` al vuelo, que es otro contrato para el
   controlador y queda fuera de este corte.
 
+  _Medición, para el anfitrión (añadida el 2026-09-30, #1207):_ las vistas con selector de
+  columnas son las que cambian con este arreglo —`git grep -l with_column_selector origin/main
+  -- app/views`: 20 en gobierno-corporativo y 12 en afal-apps, 0 en las demás— y el cero de
+  arriba es el de esas mismas vistas que además llevan `with_footer`.
+
   La composición está en el preview nuevo **DataTable › With Column Selector (grouped)**, con los
   tres listados que cubre `cypress/e2e/data-table-column-selector.cy.js`: uno agrupado con una
   banda plegada y fila de totales, uno agrupado y `selectable:` —el de gobierno-corporativo,
@@ -1378,6 +1391,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gobierno-corporativo (23 vistas con vistas guardadas, 3 con acciones masivas), afal-apps
   (11 y 3), centinela-web (4 y 0), identity (0 y 1) y costa-norte (0 y 1). opina tiene el
   default puesto y ni una vista de las dos (0 y 0), así que ahí no cambia nada.
+
+  _Corrección del 2026-09-30 (#1207):_ ese glob, `app`, cuenta también concerns y
+  controladores. Las **vistas** —`-- app/views`— son 21 y 2 en gobierno-corporativo; en las
+  demás apps los dos globs coinciden.
 
   Lo que se ve en esas cinco: los submits vuelven de `<button>` a `<input type="submit">` y
   recuperan `name="commit"`. **La única diferencia visual es la etiqueta del botón

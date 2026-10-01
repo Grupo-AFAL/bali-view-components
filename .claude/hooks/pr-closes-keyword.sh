@@ -22,17 +22,26 @@ command -v jq >/dev/null 2>&1 || exit 0
 INPUT=$(cat)
 COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null) || exit 0
 
-# Only the two commands that publish a PR body.
-printf '%s' "$COMMAND" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+(create|edit)' || exit 0
+# One line: a command continued with `\` would split `gh api` from the path it calls.
+FLAT=$(printf '%s' "$COMMAND" | tr '\n' ' ')
+
+# The commands that publish a PR body: `gh pr create|edit`, and the REST calls the team uses
+# when GraphQL is rate-limited — POST `repos/<owner>/<repo>/pulls` and PATCH `.../pulls/N`.
+# Reviews, comments and merges hang off `pulls/N/...` and carry no PR body.
+PULLS="repos/[^/[:space:]]+/[^/[:space:]]+/pulls(/[0-9]+)?([[:space:]'\"?]|\$)"
+printf '%s' "$FLAT" | grep -Eq "gh[[:space:]]+pr[[:space:]]+(create|edit)|gh[[:space:]]+api[[:space:]].*$PULLS" || exit 0
 
 # The Spanish verb, followed by an issue. `arregla|corrige|resuelve|cierra` are
 # the four that write themselves when one is drafting in Spanish.
 PATTERN='(^|[^[:alnum:]])([Cc]ierra|[Cc]ierran|[Rr]esuelve|[Rr]esuelven|[Cc]orrige|[Aa]rregla)[[:space:]]+#[0-9]+'
 
-# The body travels two ways: `--body-file path` or `--body "text"`. The first is
-# the one this repo uses; the second is checked against the command itself.
+# The body travels as a file — `-F body=@path` through `gh api`, `--body-file path` or
+# `-F path` through `gh pr`, `-f body="$(cat path)"` — or inline, which is checked against the
+# command itself.
 BODY=""
-BODY_FILE=$(printf '%s' "$COMMAND" | sed -nE "s/.*--body-file[[:space:]]+('([^']*)'|\"([^\"]*)\"|([^[:space:]]+)).*/\2\3\4/p")
+BODY_FILE=$(printf '%s' "$FLAT" | sed -nE "s/.*body=@([^'\"[:space:]]+).*/\1/p")
+[ -n "$BODY_FILE" ] || BODY_FILE=$(printf '%s' "$FLAT" | sed -nE "s/.*(--body-file|-F)[[:space:]]+('([^']*)'|\"([^\"]*)\"|([^[:space:]]+)).*/\3\4\5/p")
+[ -f "$BODY_FILE" ] || BODY_FILE=$(printf '%s' "$FLAT" | sed -nE 's/.*\$\(cat[[:space:]]+([^)[:space:]]+)\).*/\1/p')
 if [ -n "$BODY_FILE" ] && [ -f "$BODY_FILE" ]; then
   BODY=$(cat "$BODY_FILE")
 else

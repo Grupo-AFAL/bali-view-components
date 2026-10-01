@@ -67,7 +67,42 @@ class PrClosesKeywordTest < ActiveSupport::TestCase
     end
   end
 
+  # The REST route the team takes when GraphQL is rate-limited (POST and PATCH on `pulls`).
+  test "it blocks a PR body sent through gh api, in every way the body travels" do
+    with_body("Cierra #12\n") do |path|
+      [
+        "gh api repos/x/y/pulls -f title=t -f head=b -f base=main -F body=@#{path}",
+        "gh api -X PATCH repos/x/y/pulls/12 --field 'body=@#{path}'",
+        "gh api -X PATCH repos/x/y/pulls/12 -f body=\"$(cat #{path})\"",
+        "gh api -X PATCH \\\n  repos/x/y/pulls/12 \\\n  -F body=@#{path}",
+        "gh pr create -F #{path}"
+      ].each do |cmd|
+        status, = run_hook(cmd)
+        assert_equal 2, status, cmd
+      end
+    end
+
+    status, = run_hook("gh api -X PATCH repos/x/y/pulls/12 -f body='Cierra #12'")
+    assert_equal 2, status, "an inline body"
+  end
+
   # --- what it must NOT block -------------------------------------------------
+
+  # Reading a PR, and the endpoints under `pulls/N/` — reviews, comments, a merge — carry no
+  # PR body, so a review that quotes «Cierra #12» is not stopped.
+  test "it lets reads, reviews and merges through gh api" do
+    with_body("Esto no cierra nada. Cierra #12 era el problema.\n") do |path|
+      [
+        "gh api repos/x/y/pulls/12",
+        "gh api repos/x/y/pulls/12 --jq .body",
+        "gh api repos/x/y/pulls/12/reviews -F body=@#{path}",
+        "gh api -X PUT repos/x/y/pulls/12/merge -f merge_method=merge"
+      ].each do |cmd|
+        status, = run_hook(cmd)
+        assert_equal 0, status, cmd
+      end
+    end
+  end
 
   test "it lets the correct body through, with the rest in Spanish" do
     with_body("Closes #963\n\nEl cuerpo sigue en español, que es lo normal aquí.\n") do |path|
