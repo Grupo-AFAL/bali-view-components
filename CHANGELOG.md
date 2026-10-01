@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
   parser con el que StandardJS lee el JS del repo; `yarn standard` sigue limpio con él.
 
+- **Dos alertas de dependabot sobre dependencias transitivas, sólo de desarrollo y de la
+  dummy.** `js-yaml` 5.2.2 → 5.4.2 en la raíz (moderada: `maxTotalMergeKeys` no acotaba el CPU
+  con fuentes de merge vacías), subiendo su `resolutions` a `>=5.4.1`. Y
+  `@ai-sdk/provider-utils` 4.0.19 → 4.0.56 en `test/dummy` (baja: consumo de recursos sin
+  límite), re-resolviendo `ai` (6.0.116 → 6.0.297) y los `@ai-sdk/*` dentro de los rangos que
+  ya declara la dummy. Nada llega a un anfitrión: ninguno de los dos es dependencia del
+  paquete, y `resolutions` sólo rige la instalación de este repo.
+
 ## [v3.6.0] - 2026-09-30
 
 ### Added
