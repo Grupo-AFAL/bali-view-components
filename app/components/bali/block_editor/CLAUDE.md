@@ -3,10 +3,10 @@
 Applies to `block_editor`, `document_editor`, and `document_page`.
 
 ### Turbo + React + ProseMirror cleanup
-ProseMirror plugins (e.g. Placeholder) remove DOM nodes during destroy. If Turbo detaches the tree first, `removeChild` throws. Fix: destroy `_tiptapEditor` before calling `root.unmount()` in Stimulus `disconnect()`.
+ProseMirror plugins remove DOM nodes during destroy. If Turbo detaches the tree first, `removeChild` throws. Fix: destroy `_tiptapEditor` before calling `root.unmount()` in Stimulus `disconnect()`.
 
 ### Turbo's head merge and BlockNote's placeholder `<style>`
-BlockNote appends one EMPTY `<style>` per editor to `document.head` (rules via `insertRule`) and `head.removeChild`s it on destroy. Turbo's head merge drops head elements with identical `outerHTML` except the first, so on a Turbo visit every editor but one lost its style before unmounting and its teardown threw NotFoundError — the comment editors of a document with threads, out of React's unmount, to Sentry (#1212). `namePlaceholderStyles` in `index.js` tags each style with its editor's `placeholder-selector-*` so they stay distinct. A new library that injects empty `<style>` elements into the head will hit the same merge.
+BlockNote appends one EMPTY `<style>` per editor to `document.head` (rules via `insertRule`) and `head.removeChild`s it on destroy. Turbo's head merge drops head elements with identical `outerHTML` except the first, so on a Turbo visit every editor but one lost its style before unmounting and its teardown threw NotFoundError — the comment editors of a document with threads, out of React's unmount, to Sentry (#1212). `namePlaceholderStyle` in `index.js` tags each style (`data-bali-placeholder-style`) with its editor's `placeholder-selector-*` so they stay distinct. A new library that injects empty `<style>` elements into the head will hit the same merge.
 
 ### Content serialization with comment marks
 `useContentSync` debounces content writes to the hidden input by 500ms. If `save()` reads the input immediately, it may get stale content without comment marks. Fix: flush content synchronously from the editor before reading the hidden input in `save()`.

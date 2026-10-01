@@ -1,7 +1,5 @@
-// BlockNote's placeholder plugin puts an empty `<style>` in the head for each editor and
-// removes it when the editor is destroyed. Turbo's head merge used to delete all but one of
-// them as duplicates first, and every comment editor's teardown then threw NotFoundError
-// from inside React's unmount (#1212). An uncaught error fails the test by itself.
+// #1212: Turbo's head merge removed BlockNote's identical placeholder <style>s before their
+// editors' teardown, which then threw NotFoundError. An uncaught error fails the test by itself.
 describe('BlockEditor: leaving the page through Turbo', () => {
   // Found by their rule, not by markup: the style element itself is empty.
   const placeholderStyles = doc => [...doc.head.querySelectorAll('style')].filter((style) => {
@@ -16,14 +14,19 @@ describe('BlockEditor: leaving the page through Turbo', () => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/with_comments')
     cy.get('.bn-threads-sidebar .ProseMirror').should('have.length.at.least', 2)
-    cy.document().should(doc => expect(placeholderStyles(doc)).to.have.length.at.least(3))
+    // What Turbo's head merge keys on: identical markup is a duplicate it removes.
+    cy.document().should((doc) => {
+      const styles = placeholderStyles(doc)
+      expect(styles).to.have.length.at.least(3)
+      expect(new Set(styles.map(style => style.outerHTML)).size).to.equal(styles.length)
+    })
 
     cy.window().then((win) => {
       win.Turbo.visit(win.location.pathname.replace(/block_editor\/.*$/, 'button/default'))
     })
 
     cy.location('pathname').should('match', /button\/default$/)
-    // Removed by each editor's own teardown, which is the part that used to throw.
+    // None left behind: Turbo no longer removes them, so only their own editors can.
     cy.document().should(doc => expect(placeholderStyles(doc)).to.have.length(0))
   })
 })
