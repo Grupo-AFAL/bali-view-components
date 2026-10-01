@@ -263,6 +263,52 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # The English defaults are SlimSelect's own `maxValuesMessage` and `addableText`, word for
+  # word, so an English host reads what it read before #1232.
+  def test_slim_select_field_max_values_message_defaults_to_slim_selects_own_text
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    assert_html(result, 'div[data-slim-select-max-values-message-value="{number} selected"]')
+  end
+
+  def test_slim_select_field_max_values_message_default_is_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a)
+      assert_html(result, 'div[data-slim-select-max-values-message-value="{number} seleccionados"]')
+    end
+  end
+
+  def test_slim_select_field_max_values_message_option_wins_over_the_translated_default
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a, max_values_message: "{number} salas")
+      assert_html(result, 'div[data-slim-select-max-values-message-value="{number} salas"]')
+    end
+  end
+
+  def test_slim_select_field_addable_text_defaults_to_slim_selects_own_text
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true)
+    assert_html(result, %(div[data-slim-select-addable-text-value='Press "Enter" to add {value}']))
+  end
+
+  def test_slim_select_field_addable_text_default_is_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true)
+      assert_html(result, %(div[data-slim-select-addable-text-value='Presiona "Enter" para agregar {value}']))
+    end
+  end
+
+  def test_slim_select_field_addable_text_option_wins_over_the_translated_default
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true,
+                                                                     addable_text: "Create {value}")
+    assert_html(result, 'div[data-slim-select-addable-text-value="Create {value}"]')
+  end
+
+  def test_slim_select_field_ajax_placeholder_default_is_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a, ajax_url: "/api/search")
+      assert_html(result, 'div[data-slim-select-ajax-placeholder-value="Escribe al menos 2 caracteres para buscar..."]')
+    end
+  end
+
   def test_slim_select_field_stimulus_data_values_sets_add_items_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true)
     assert_html(result, 'div[data-slim-select-add-items-value="true"]')

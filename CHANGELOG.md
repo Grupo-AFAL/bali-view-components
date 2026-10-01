@@ -48,6 +48,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   columna nueva, en el release siguiente. Así se evita el cambio de `id:` que afal-apps tuvo
   que hacer en #772. Listados a revisar: `git grep -n "with_column(index" origin/main -- app/views`.
 
+- **SlimSelect deja de decir «27 selected» y «Press "Enter" to add…» en una app en español**
+  (#1232). `slim_select_group` gana `max_values_message:` y `addable_text:` (con las marcas
+  `{number}` y `{value}` de SlimSelect, sin `%`), que como el resto de sus textos —ahora también
+  `ajax_placeholder:`— toman por omisión `bali_view.form_builder.slim_select`; en `en` ningún
+  texto cambia. El valor de una condición de `Bali::Filters` dice «Sin resultados» en vez de
+  «No results». **gobierno-corporativo** puede volver a `slim_select_group` en
+  `_room_availability.html.erb`. El marcado escrito a mano no recibe nada de esto y tiene que
+  pasar sus `data-slim-select-*-value` (6 en afal-apps, 5 en gobierno-corporativo):
+  `git grep -n 'data-controller="slim-select"' origin/main -- app/views`.
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista

@@ -106,6 +106,28 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_selector('[data-controller="slim-select"][data-slim-select-search-placeholder-value]')
   end
 
+  def test_select_type_slim_select_says_no_results_in_the_page_language
+    condition = { attribute: "status", operator: "eq", value: "active" }
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    assert_selector('[data-controller="slim-select"][data-slim-select-no-results-text-value="Sin resultados"]')
+  end
+
+  # The value widget the controller builds when the user picks a select-type attribute
+  # reads its texts from here, not from the markup above.
+  def test_translations_carry_the_no_results_text_for_the_select_built_in_js
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
+    assert_equal "Sin resultados", translations["no_results"]
+  end
+
   def test_with_pre_selected_attribute_shows_select_for_boolean_type
     condition = { attribute: "verified", operator: "eq", value: "true" }
     render_inline(Bali::Filters::Condition::Component.new(

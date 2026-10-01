@@ -228,6 +228,9 @@ es:
         no_results: "Sin resultados"
         searching: "Buscando..."
         results: "Resultados"
+        ajax_placeholder: "Escribe al menos 2 caracteres para buscar..."
+        max_values_message: "{number} seleccionados"
+        addable: 'Presiona "Enter" para agregar {value}'
 
     # Saved views (B2) — notices de Bali::SavedViewsController
     saved_views:
