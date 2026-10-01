@@ -6,27 +6,33 @@ module Bali
       # One step of a workflow: a marker, the title, and the optional assignee
       # / date / free comment block.
       #
-      # The marker is the only thing the four shapes disagree on. Everything
-      # below it is the same markup, which is why one template covers all four;
-      # so is the `sr-only` state name beside it, since no marker says the
-      # state in anything but colour.
+      # The marker is the only thing the four titled shapes disagree on.
+      # Everything below it is the same markup, which is why one template
+      # covers all four; so is the `sr-only` state name beside it, since no
+      # marker says the state in anything but colour. The segments shape is
+      # the fifth and paints no title, so its step is a branch of its own.
       #
       # `marker` and `connector_state` are written by the parent, not passed to
-      # `new`: `dot:` is the boolean v3.4.0 published, which leaves a third
-      # marker no keyword to arrive through, and `connector_state` is the
+      # `new`: `dot:` is the boolean v3.4.0 published, which leaves the other
+      # markers no keyword to arrive through, and `connector_state` is the
       # FOLLOWING step's state, unknowable until every step is declared — nil
-      # on the last step and on every step of the horizontal shape.
+      # on the last step and on every step of the horizontal and segments
+      # shapes.
       class Component < ApplicationViewComponent
         SKIPPED = :skipped
 
         # Literal class tables, like `Stepper::Step::COLORS`: Tailwind's source
         # scanner only sees classes written out in full in this file.
+        #
+        # The two greys draw their number or dash at `/70`: on the pending
+        # circle's `base-300` it measures 4.98:1 on `afal`, the lowest of the
+        # five themes, where `/60` was 3.75:1.
         CIRCLE_CLASSES = {
           success: "bg-success text-success-content",
           error: "bg-error text-error-content",
           warning: "bg-warning text-warning-content",
-          pending: "bg-base-300 text-base-content/60",
-          skipped: "bg-base-200 text-base-content/40",
+          pending: "bg-base-300 text-base-content/70",
+          skipped: "bg-base-200 text-base-content/70",
           current: "bg-primary text-primary-content ring-2 ring-primary/40 " \
                    "ring-offset-2 ring-offset-base-100"
         }.freeze
@@ -59,16 +65,17 @@ module Bali
         # ground it needs is drawn once by `.workflow-step-marker::before`
         # (index.css) instead of six times here.
         #
-        # Their greys are measured over that disc, not picked: `base-content`
-        # clears AA's 4.5:1 for the glyph at `/60` (4.66:1 light, 5.82:1 dark;
-        # `/55` is 3.94:1) and 3:1 for the outline at `/50` (3.40:1, 4.47:1).
-        # `base-300`, which the rail uses for both, tops out at 1.16:1.
+        # Their greys are measured over that disc, not picked, on the five
+        # themes, and `afal` is the floor of both: `base-content` clears AA's
+        # 4.5:1 for the glyph at `/70` (5.54:1; `/60` is 4.04:1) and 3:1 for
+        # the outline at `/50` (3.05:1). `base-300`, which the rail uses for
+        # both, tops out at 1.16:1.
         PROGRESS_CIRCLE_CLASSES = {
           success: "bg-primary text-primary-content",
           error: "bg-error text-error-content",
           warning: "bg-warning text-warning-content",
-          pending: "border border-base-content/50 text-base-content/60",
-          skipped: "border border-dashed border-base-content/50 text-base-content/60",
+          pending: "border border-base-content/50 text-base-content/70",
+          skipped: "border border-dashed border-base-content/50 text-base-content/70",
           current: "border-2 border-primary bg-primary/10 text-primary"
         }.freeze
 
@@ -90,14 +97,14 @@ module Bali
           current: "bg-primary"
         }.freeze
 
-        # `/60` is the floor, not a shade: these labels are 12px, so AA wants
-        # 4.5:1 and `/50` measured 3.40:1.
+        # The muted `/70` holds AA, it is not a shade to tune: these labels are
+        # 12px, so AA wants 4.5:1, and `/60` measured 4.04:1 on `afal`.
         PROGRESS_TITLE_CLASSES = {
           success: "text-base-content/80",
           error: "text-base-content/80",
           warning: "text-base-content/80",
-          pending: "text-base-content/60",
-          skipped: "text-base-content/60",
+          pending: "text-base-content/70",
+          skipped: "text-base-content/70",
           current: "font-semibold text-primary"
         }.freeze
 
@@ -109,9 +116,46 @@ module Bali
           warning: "triangle-alert"
         }.freeze
 
+        # Each state is a different SHAPE, not only a different colour (WCAG
+        # 1.4.1): solid, hatched, half-filled, a thin line for the step the
+        # route went around, solid and outlined for the current one, hollow for
+        # what has not happened. Measured through a deuteranopia filter, success
+        # and error are the same brown and only the hatching tells them apart.
+        #
+        # The three state colours are 60% the state's own colour and 40%
+        # `base-content`, because the plain fills are below the 3:1 a shape
+        # carrying meaning needs (1.4.11) in every light theme: `success`
+        # 1.96:1, `warning` 1.76:1 and `error` 2.86:1 on light's `base-100`.
+        # At 60% the worst of the fifteen theme × state pairs is `warning` in
+        # `afal`, 3.80:1 on `base-100` and 3.45:1 on the `base-200` of a zebra
+        # row; 70% left it at 2.78:1. `primary` and the `base-content/60` grey
+        # pass as they are.
+        SEGMENT_CLASSES = {
+          success: "bg-current " \
+                   "text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-base-content))]",
+          error: "bg-[repeating-linear-gradient(-45deg,currentColor_0_1.5px,transparent_1.5px_3.5px)] " \
+                 "text-[color-mix(in_oklab,var(--color-error)_60%,var(--color-base-content))]",
+          warning: "bg-[linear-gradient(to_right,currentColor_50%,transparent_50%)] " \
+                   "text-[color-mix(in_oklab,var(--color-warning)_60%,var(--color-base-content))]",
+          pending: "text-base-content/60",
+          skipped: "h-0.5 border-0 bg-current text-base-content/60",
+          current: "bg-current text-primary outline-2 outline-offset-1 outline-current"
+        }.freeze
+
+        # Forced colours repaint `background-color` as Canvas and drop every
+        # `background-image` that is not a url: measured, success, error,
+        # warning and pending came out as the same hollow pill and `:skipped`
+        # vanished. Opting out paints all six shapes in CanvasText instead.
+        # Here and not in index.css: the colour is set by a `text-*` utility,
+        # which no rule in @layer components can beat.
+        SEGMENT_FORCED_COLORS_CLASSES =
+          "forced-colors:forced-color-adjust-none forced-colors:text-[color:CanvasText]"
+
         STATES = CIRCLE_CLASSES.keys.freeze
 
-        # Steps that have not happened read muted, like the rest of their row.
+        # Steps that have not happened read muted, like the rest of their row —
+        # at the `/70` of the assignee and the comment, because `/40` measured
+        # 2.36:1 on `afal` against AA's 4.5:1.
         MUTED_TITLE_STATES = %i[pending skipped].freeze
 
         attr_reader :title, :state, :number, :assignee, :date
@@ -155,6 +199,10 @@ module Bali
 
         def progress?
           marker == :progress
+        end
+
+        def segment?
+          marker == :segment
         end
 
         private
@@ -223,6 +271,18 @@ module Bali
           @state_label || I18n.t("bali_view.workflow_steps.states.#{state}")
         end
 
+        def segment_classes
+          class_names("workflow-step-segment", SEGMENT_CLASSES.fetch(state),
+                      SEGMENT_FORCED_COLORS_CLASSES)
+        end
+
+        # The segment's whole text, for the `title` a pointer hovers and the
+        # `sr-only` copy a screen reader reads; `state_label: ""` leaves the
+        # title alone, without a dangling separator.
+        def segment_label
+          [ title, state_label ].compact_blank.join(": ")
+        end
+
         def connector_classes
           table = progress? ? PROGRESS_CONNECTOR_CLASSES : CONNECTOR_CLASSES
           class_names("workflow-step-connector", table.fetch(connector_state))
@@ -233,7 +293,7 @@ module Bali
 
           class_names(
             "workflow-step-title",
-            "text-base-content/40" => MUTED_TITLE_STATES.include?(state)
+            "text-base-content/70" => MUTED_TITLE_STATES.include?(state)
           )
         end
       end

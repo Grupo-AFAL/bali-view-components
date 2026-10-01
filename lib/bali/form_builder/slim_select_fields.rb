@@ -29,6 +29,19 @@ module Bali
         content_width: nil
       }.freeze
 
+      TEXT_KEYS = {
+        placeholder: :placeholder,
+        search_placeholder: :search_placeholder,
+        select_all_text: :select_all,
+        deselect_all_text: :deselect_all,
+        no_results_text: :no_results,
+        searching_text: :searching,
+        results_text: :results,
+        ajax_placeholder: :ajax_placeholder,
+        max_values_message: :max_values_message,
+        addable_text: :addable
+      }.freeze
+
       # Same split as SelectFields: `**options` are the field's own — SlimSelect's
       # behaviour flags and the group's caption — and `html:` is what lands on the
       # `<select>` element.
@@ -113,29 +126,11 @@ module Bali
       end
 
       def build_options(options)
-        DEFAULT_OPTIONS.merge(options).merge(
-          placeholder: options.fetch(:placeholder) do
-            I18n.t("bali_view.form_builder.slim_select.placeholder")
-          end,
-          search_placeholder: options.fetch(:search_placeholder) do
-            I18n.t("bali_view.form_builder.slim_select.search_placeholder")
-          end,
-          select_all_text: options.fetch(:select_all_text) do
-            I18n.t("bali_view.form_builder.slim_select.select_all")
-          end,
-          deselect_all_text: options.fetch(:deselect_all_text) do
-            I18n.t("bali_view.form_builder.slim_select.deselect_all")
-          end,
-          no_results_text: options.fetch(:no_results_text) do
-            I18n.t("bali_view.form_builder.slim_select.no_results")
-          end,
-          searching_text: options.fetch(:searching_text) do
-            I18n.t("bali_view.form_builder.slim_select.searching")
-          end,
-          results_text: options.fetch(:results_text) do
-            I18n.t("bali_view.form_builder.slim_select.results")
-          end
-        )
+        texts = TEXT_KEYS.to_h do |option, key|
+          [ option, options.fetch(option) { I18n.t(key, scope: "bali_view.form_builder.slim_select") } ]
+        end
+
+        DEFAULT_OPTIONS.merge(options).merge(texts)
       end
 
       # The `multiple` key is always seeded on the element so the widget can read it — but
@@ -237,11 +232,12 @@ module Bali
           slim_select_placeholder_value: html_options[:placeholder] || options[:placeholder],
           slim_select_show_content_value: options[:show_content],
           slim_select_search_placeholder_value: options[:search_placeholder],
-          slim_select_select_all_text_value: options[:select_all_text],
-          slim_select_deselect_all_text_value: options[:deselect_all_text],
           slim_select_no_results_text_value: options[:no_results_text],
           slim_select_searching_text_value: options[:searching_text],
           slim_select_results_text_value: options[:results_text],
+          # slim-select-controller.js hands both to SlimSelect untouched.
+          slim_select_max_values_message_value: options[:max_values_message],
+          slim_select_addable_text_value: options[:addable_text],
           slim_select_ajax_param_name_value: options[:ajax_param_name],
           slim_select_ajax_value_name_value: options[:ajax_value_name],
           slim_select_ajax_text_name_value: options[:ajax_text_name],

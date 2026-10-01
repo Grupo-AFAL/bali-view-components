@@ -505,7 +505,7 @@ peer, imported on demand): search, multi-select, remote options, addable items.
 
 The values map mostly 1:1 onto SlimSelect settings (`show-search`,
 `close-on-select`, `allow-deselect-option`, `hide-selected`, `search-highlight`,
-`content-width`, the `*-text` strings). Beyond passthrough:
+`content-width`, the `*-text` strings, `max-values-message`). Beyond passthrough:
 
 - **Remote search** — set all four of `ajax-url`, `ajax-param-name`,
   `ajax-value-name`, `ajax-text-name`; the endpoint returns a JSON array and the

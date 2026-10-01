@@ -18,6 +18,10 @@ export class SlimSelectController extends Controller {
     noResultsText: { type: String, default: 'No results' },
     searchingText: { type: String, default: 'Searching...' },
     resultsText: { type: String, default: 'Results' },
+    // Templates with SlimSelect's own `{number}` / `{value}` markers, filled in by SlimSelect.
+    // `slim_select_fields.rb` emits them translated; left empty, SlimSelect's English applies.
+    maxValuesMessage: String,
+    addableText: String,
     ajaxParamName: String,
     ajaxValueName: String,
     ajaxTextName: String,
@@ -84,7 +88,9 @@ export class SlimSelectController extends Controller {
           hideSelected: this.hideSelectedValue,
           searchHighlight: this.searchHighlightValue,
           searchText: this.noResultsTextValue,
-          searchingText: this.searchingTextValue
+          searchingText: this.searchingTextValue,
+          maxValuesMessage: this.maxValuesMessageValue,
+          addableText: this.addableTextValue
         },
         events: {}
       }

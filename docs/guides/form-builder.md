@@ -455,7 +455,32 @@ Enhanced select with search, multi-select, and AJAX support.
 - `select_all` - Show select all/deselect all buttons (default: false)
 - `hide_selected` - Hide selected items from dropdown (default: false)
 - `search_highlight` - Highlight search matches (default: false)
-- `placeholder` - Placeholder text
+
+**Text options:** every string the widget paints defaults to Bali's translation under
+`bali_view.form_builder.slim_select`, shipped in `en` and `es`, and the option replaces it
+for one field.
+
+| Option | Key | `en` |
+|---|---|---|
+| `placeholder` | `placeholder` | Select value |
+| `search_placeholder` | `search_placeholder` | Search |
+| `no_results_text` | `no_results` | No results |
+| `searching_text` | `searching` | Searching... |
+| `results_text` | `results` | Results |
+| `ajax_placeholder` | `ajax_placeholder` | Type 2 chars to search... |
+| `select_all_text` | `select_all` | Select all |
+| `deselect_all_text` | `deselect_all` | Deselect all |
+| `max_values_message` | `max_values_message` | {number} selected |
+| `addable_text` | `addable` | Press "Enter" to add {value} |
+
+Past 20 selected values a multi-select shows `max_values_message` instead of one chip per
+value, with the count in `{number}`. `addable_text` shows under `add_items: true` while the
+search matches nothing, with the typed text in `{value}`. Both markers are SlimSelect's and
+are written without Rails' `%`:
+
+```erb
+<%= f.slim_select_group :room_ids, rooms, multiple: true, max_values_message: "{number} rooms" %>
+```
 
 **AJAX Options:**
 - `ajax_url` - URL to fetch options
