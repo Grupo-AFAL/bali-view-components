@@ -1,0 +1,5 @@
+<%# The `template:` partial for calendar_test.rb. It lives here because app/components
+    is on the engine's autoload path, not on any view path a test can reach. %>
+<div class="calendar-fixture-day" data-period="<%= period %>" data-day="<%= day %>">
+  <%= events.size %>
+</div>

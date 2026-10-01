@@ -19,7 +19,7 @@ module Bali
     #     ],
     #     items: [
     #       { id: 10, group_id: 1, name: "Wireframes",                  # id/name required
-    #         starts_on: "2026-01-02", ends_on: "2026-01-15",           # ISO8601 dates
+    #         starts_on: "2026-01-02", ends_on: "2026-01-15",           # YYYY-MM-DD
     #         parent_id: nil,          # sub-item (subtask); one level, like row_kind
     #         status: "in_progress", priority: "high",                  # optional
     #         milestone: false,        # D6: boolean, drawn as a diamond by the island
@@ -45,13 +45,11 @@ module Bali
     # Dates follow the portfolio rules: an item with a single date is drawn as a
     # minimum-width bar instead of vanishing into "no dates", and an inverted range
     # is clamped to its start so a negative-width bar cannot render out of place.
-    # Structural problems (missing ids, unknown references, bad ISO dates, nesting
+    # Structural problems (missing ids, unknown references, bad YYYY-MM-DD dates, nesting
     # deeper than one level) raise InvalidError: a typo that silently drops bars
     # would lie about the schedule.
     class Data
       class InvalidError < ArgumentError; end
-
-      ISO_DATE = /\A\d{4}-\d{2}-\d{2}\z/
 
       Group = Struct.new(:id, :name, :parent_id, :position, :status,
                          :starts_on, :ends_on, :href, keyword_init: true) do
@@ -202,12 +200,8 @@ module Bali
         return nil if value.blank?
         return value if value.is_a?(Date)
 
-        raise InvalidError, "#{context}: date must be ISO8601 (YYYY-MM-DD), got #{value.inspect}" unless
-          value.is_a?(String) && value.match?(ISO_DATE)
-
-        Date.iso8601(value)
-      rescue Date::Error
-        raise InvalidError, "#{context}: invalid date #{value.inspect}"
+        Bali::IsoDate.parse(value) or
+          raise InvalidError, "#{context}: date must be a YYYY-MM-DD calendar date, got #{value.inspect}"
       end
 
       def normalize_percent(value, id)

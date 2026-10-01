@@ -100,7 +100,8 @@ class SplitViewsController < ApplicationController
   end
 
   def by_genres
-    @genres = Array(params.dig(:q, :genre_in)).select { |g| g.in?(Movie::GENRES) }
+    genres = params[:q][:genre_in] if params[:q].is_a?(ActionController::Parameters)
+    @genres = Array(genres) & Movie::GENRES
     @counts = Movie.group(:genre).count
     @genres.any? ? Movie.where(genre: @genres) : Movie.all
   end
