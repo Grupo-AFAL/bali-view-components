@@ -42,10 +42,10 @@
     json5 "^2.2.3"
     semver "^6.3.1"
 
-"@babel/eslint-parser@^7.28.6":
-  version "7.28.6"
-  resolved "https://registry.yarnpkg.com/@babel/eslint-parser/-/eslint-parser-7.28.6.tgz#6a294a4add732ebe7ded8a8d2792dd03dd81dc3f"
-  integrity sha512-QGmsKi2PBO/MHSQk+AAgA9R6OHQr+VqnniFE0eMWZcVcfBZoA2dKn2hUsl3Csg/Plt9opRUWdY7//VXsrIlEiA==
+"@babel/eslint-parser@^7.29.9":
+  version "7.29.9"
+  resolved "https://registry.yarnpkg.com/@babel/eslint-parser/-/eslint-parser-7.29.9.tgz#48005ed01026fd31875257d504d7186ccb591484"
+  integrity sha512-GmrJTAtiRbNip+eKFqeuSvoHMJhKlH36j8U0yE3Gqn45B+SIO7NvsEiHtsmzkBqV1hLSMqYr41dI1aZLTkJ37g==
   dependencies:
     "@nicolo-ribaudo/eslint-scope-5-internals" "5.1.1-v1"
     eslint-visitor-keys "^2.1.0"
@@ -2700,10 +2700,10 @@ iterator.prototype@^1.1.5:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
-js-yaml@>=5.2.2, js-yaml@^4.1.0:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-5.2.2.tgz#497bfe63f0b0db11c7bbc5ce8bc568e836c8b08c"
-  integrity sha512-dayzUzKkJ1MkuUtZglSebU43utNXH0OWQByK9rKOOuYIO8M5TV1y+n8ALMdG0rdzBnfNkOmZEqrURepb0ejqBw==
+js-yaml@>=5.4.1, js-yaml@^4.1.0:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-5.4.2.tgz#eebc7a57e0bbe1d6b6d9416a72e7463082c7da85"
+  integrity sha512-m+aqu+LwO1O6sIopafj8HUVl5aawITwZQe/yHpMCKjaWBaA/d07B/QdMb3529REftiU+RMMHL3Vlsw3hON7vWg==
   dependencies:
     argparse "^2.0.1"
 

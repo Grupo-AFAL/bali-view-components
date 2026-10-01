@@ -32,7 +32,12 @@ module Admin
         task = project.tasks.find_by(id: item[:id])
         return head :not_found if task.nil?
 
-        starts_on = Date.iso8601(item.require(:starts_on))
+        starts_on = Bali::IsoDate.parse(item.require(:starts_on))
+        if starts_on.nil?
+          return render json: { errors: [ "starts_on must be a YYYY-MM-DD date" ] },
+                        status: :unprocessable_entity
+        end
+
         duration_days = Integer(item.require(:duration_days))
         if duration_days < 1
           return render json: { errors: [ "duration_days must be at least 1" ] },
@@ -41,8 +46,8 @@ module Admin
 
         task.update!(start_date: starts_on, due_date: starts_on + duration_days - 1)
         render json: gantt_document
-      rescue ArgumentError, Date::Error, ActionController::ParameterMissing
-        render json: { errors: [ "starts_on must be an ISO8601 date and duration_days an integer" ] },
+      rescue ArgumentError, ActionController::ParameterMissing
+        render json: { errors: [ "starts_on must be a YYYY-MM-DD date and duration_days an integer" ] },
                status: :unprocessable_entity
       end
 

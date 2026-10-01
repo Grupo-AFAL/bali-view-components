@@ -38,7 +38,7 @@ module Bali
           if route_helper && !route_helper.to_s.end_with?("_path", "_url")
             raise ArgumentError,
                   "`route_helper:` has to be a route helper name ending in `_path` or " \
-                  "`_url` (e.g. `:mission_control_jobs_path`). `#{route_helper.inspect}` " \
+                  "`_url` (e.g. `:flightdeck_path`). `#{route_helper.inspect}` " \
                   "looks like an engine proxy (`main_app`, `bali_auth_admin`), not a " \
                   "helper — the proxy itself responds to `respond_to?`, and `href` would " \
                   "return it verbatim instead of a URL."

@@ -3,14 +3,16 @@
 module Bali
   module Types
     class MonthValue < ActiveRecord::Type::String
+      # Never raises: cast runs on assignment, before any validation could catch it.
       def cast(value)
         return if value.blank?
+        return value.to_date if value.acts_like?(:date) || value.acts_like?(:time)
 
-        Date.parse(normalize_date(value))
+        Bali::IsoDate.parse(normalize_date(value))
       end
 
       def serialize(value)
-        normalize_date(value)
+        cast(value)&.iso8601
       end
 
       private
