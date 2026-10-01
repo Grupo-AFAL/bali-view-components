@@ -23,8 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Types::MonthValue` levantaba al asignar** (#1209): `"zzz"` daba `Date::Error`,
   `["2026-09"]` (`?q[mes][]=…`) `TypeError`, y hasta un `Date` levantaba `TypeError`. Como el
   cast corre en la asignación, ninguna validación podía atajarlo: era un 500 desde la URL. Ahora
-  lo que no puede leer es `nil`, un `Date` pasa tal cual, y `serialize` escribe lo mismo que
-  `cast` leería —`nil` en vez de la basura—. `"2022-08"` sigue siendo el 1 de agosto.
+  lo que no puede leer es `nil`, un `Date` pasa tal cual, un `Time` o `DateTime` da su fecha, y
+  `serialize` escribe lo mismo que `cast` leería —`nil` en vez de la basura o de `""`—.
+  `"2022-08"` sigue siendo el 1 de agosto. **Ahora sólo lee `AAAA-MM` y `AAAA-MM-DD`**: lo demás
+  que `Date.parse` aceptaba (`"2022/08/15"`, `"15 Aug 2022"`) queda en `nil`. Con PostgreSQL y
+  `load_defaults` ≥ 7.2, que entrega un `Date` o un `Time` al leer, el registro ya no levanta al
+  cargarse.
 
 ## [v3.5.0] - 2026-09-20
 

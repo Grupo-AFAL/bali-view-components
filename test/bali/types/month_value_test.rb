@@ -14,8 +14,6 @@ class BaliTypesMonthValueTest < ActiveSupport::TestCase
     assert_equal(Date.parse("2022-08-01"), character.birth_month)
   end
 
-  # The type casts on ASSIGNMENT, so a raise here cannot be caught by a validation — it was
-  # a 500 from any params-fed form or filter (#1209).
   def test_integration_with_a_model_assigns_unreadable_input_as_nil
     [ "zzz", [ "2026-09" ] ].each do |value|
       character = Character.new(birth_month: value)
@@ -41,6 +39,12 @@ class BaliTypesMonthValueTest < ActiveSupport::TestCase
     assert_equal(Date.new(2022, 8, 15), @type.cast(Date.new(2022, 8, 15)))
   end
 
+  # What the PostgreSQL adapter hands over for a timestamp column.
+  def test_cast_takes_the_date_of_a_time
+    assert_equal(Date.new(2022, 8, 15), @type.cast(Time.utc(2022, 8, 15, 12)))
+    assert_equal(Date.new(2022, 8, 15), @type.cast(DateTime.new(2022, 8, 15, 12)))
+  end
+
   def test_cast_returns_nil_for_unreadable_text
     [ "zzz", "2022-13", "2022-02-31", "08/2022" ].each do |value|
       assert_nil @type.cast(value), value.inspect
@@ -55,8 +59,8 @@ class BaliTypesMonthValueTest < ActiveSupport::TestCase
 
   # serialize
 
-  def test_serialize_returns_value_if_is_blank
-    assert_equal("", @type.serialize(""))
+  def test_serialize_writes_nil_for_a_blank_value
+    assert_nil @type.serialize("")
   end
 
   def test_serialize_returns_a_normalized_date

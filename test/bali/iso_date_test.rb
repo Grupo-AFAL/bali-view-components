@@ -7,12 +7,11 @@ class BaliIsoDateTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 9, 10), Bali::IsoDate.parse("2026-09-10")
   end
 
-  def test_a_date_round_trips
+  def test_returns_a_date_unchanged
     assert_equal Date.new(2026, 9, 10), Bali::IsoDate.parse(Date.new(2026, 9, 10))
   end
 
-  # Every one of these is a date to `Date.iso8601`, measured on Ruby 4.0.1 (#1211). None of
-  # them is the YYYY-MM-DD a caller asked for.
+  # Measured on Ruby 4.0.1.
   def test_rejects_what_date_iso8601_accepts_but_nobody_sent
     {
       "2026-09" => "invents the day",

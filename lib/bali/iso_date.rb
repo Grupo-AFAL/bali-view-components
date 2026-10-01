@@ -11,15 +11,13 @@ module Bali
     FORMAT = /\A\d{4}-\d{2}-\d{2}\z/
 
     # @param value [Object] anything; `to_s` makes `?date[]=x` fail the format instead of
-    #   raising `TypeError`, and lets a `Date` round-trip
+    #   raising `TypeError`
     # @return [Date, nil]
     def self.parse(value)
       text = value.to_s
       Date.iso8601(text) if text.match?(FORMAT)
-    # FORMAT bounds the input to ten ASCII characters, so the only failure left is an
-    # impossible calendar date ("2026-02-31"). Loosen FORMAT and this rescue has to widen
-    # too: the `date` gem's 128-character anti-ReDoS cut raises a bare ArgumentError, which
-    # is not a Date::Error.
+    # Date::Error alone: FORMAT keeps input far below the date gem's 128-char cut, whose
+    # ArgumentError is not a Date::Error. Loosen FORMAT, widen this.
     rescue Date::Error
       nil
     end

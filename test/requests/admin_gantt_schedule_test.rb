@@ -72,7 +72,6 @@ class AdminGanttScheduleTest < ActionDispatch::IntegrationTest
     assert_equal Date.new(2026, 8, 3), @a.reload.start_date, "un 422 no debe mutar nada"
   end
 
-  # `Date.iso8601` read "2026-09" as September 1st and moved the task there (#1211).
   def test_patch_with_a_date_that_is_not_yyyy_mm_dd_is_422
     patch "/admin/projects/#{@project.id}/schedule",
           params: { item: { id: @a.id, starts_on: "2026-09", duration_days: 2 } },

@@ -150,16 +150,12 @@ class BaliGanttDataTest < ActiveSupport::TestCase
     assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
   end
 
-  # `Date.iso8601` alone reads "2026-09" as the 1st and "20260910" as a date (#1211); a
-  # schedule drawn from either would be wrong without a word.
-  def test_rejects_what_date_iso8601_reads_but_is_not_yyyy_mm_dd
-    [ "2026-09", "20260910", "2026-W37-4", "2026-09-10T08:00:00Z" ].each do |value|
-      payload = base_payload
-      payload[:items][0][:starts_on] = value
+  def test_names_the_item_and_the_value_of_a_date_that_is_not_yyyy_mm_dd
+    payload = base_payload
+    payload[:items][0][:starts_on] = "2026-09"
 
-      error = assert_raises(Bali::Gantt::Data::InvalidError, value) { data(payload) }
-      assert_includes error.message, value.inspect
-    end
+    error = assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
+    assert_equal 'item 10: date must be a YYYY-MM-DD calendar date, got "2026-09"', error.message
   end
 
   def test_rejects_impossible_calendar_dates
