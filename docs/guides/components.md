@@ -1305,7 +1305,7 @@ inside the cell. Nine steps across the top of a page → one of the two rows,
 needs to know where the thing got to. The same nine as cards are three rows,
 and a funnel in three rows is no longer a funnel.
 
-`:vertical` is none of those three: it is the record — the shape with room for
+`:vertical` is none of those four: it is the record — the shape with room for
 the assignee, the date and the rejection comment of every step, one under the
 other.
 
@@ -1474,19 +1474,20 @@ actually on and the halo measures 1.00:1 in both:
 ```
 
 `--bali-workflow-steps-surface` inherits, so one declaration on the card covers
-every flow inside it. The other three shapes need nothing: their circles are
-opaque fills and draw no disc.
+every flow inside it. The other four shapes need nothing: their markers are
+opaque fills or have no line running under them.
 
 **Its root class is `.workflow-steps-progress-rail`**, not the
-`.workflow-steps-progress` the other three shapes' naming would predict:
+`.workflow-steps-progress` the other shapes' naming would predict:
 `.workflow-steps-progress` is already the N/M header, which this shape renders
 inside that same root.
 
-`:rail` and `:progress` are further values of `orientation:` rather than a
-second keyword: every keyword this component does not declare reaches the root
-as a plain HTML attribute, so declaring `style:` or `shape:` would turn working
-host markup into an `ArgumentError`. The cost is the word — neither row is an
-orientation of its own, which is what the table above is for.
+`:rail`, `:progress` and `:segments` are further values of `orientation:`
+rather than a second keyword: every keyword this component does not declare
+reaches the root as a plain HTML attribute, so declaring `style:` or `shape:`
+would turn working host markup into an `ArgumentError`. The cost is the word —
+none of the three is an orientation of its own, which is what the table above
+is for.
 
 ##### Segments: the table cell
 
@@ -1515,11 +1516,14 @@ red one are the same bar to a reader who cannot tell red from green (WCAG
 | `:current` | solid with an outline, and its title beside the bar |
 | `:pending` | hollow |
 
-**The three state colours are mixed 60% with `base-content`.** Plain, `success`,
-`warning` and `error` measure 1.96, 1.76 and 2.86:1 on light's `base-100`,
-below the 3:1 a shape carrying meaning needs (1.4.11). Mixed, every segment
-clears 3:1 in the five themes, on `base-100` and on a zebra row's `base-200`;
-the lowest is `:current` in `afal` on `base-200`, 3.34:1.
+**The three state colours are 60% the state's own colour and 40%
+`base-content`.** Plain, `success`, `warning` and `error` measure 1.96, 1.76
+and 2.86:1 on light's `base-100`, below the 3:1 a shape carrying meaning needs
+(1.4.11). Mixed, every segment clears 3:1 in the five themes, on `base-100` and
+on a zebra row's `base-200`; the lowest is `:current` in `afal` on `base-200`,
+3.34:1. Under forced colours (Windows High Contrast) the six shapes are drawn
+in `CanvasText`: left to the browser, four of them became the same hollow pill
+and `:skipped` disappeared.
 
 **`title:` is still required.** It is not painted, but it names the segment:
 the `<ol>` stays a list and each item carries "Title: State" as `sr-only` text,
@@ -1528,10 +1532,26 @@ are the segment's `title` tooltip for a pointer. `state_label:` renames the
 state as in every other shape, and `state_label: ""` leaves the title alone.
 
 **The title beside the bar is the first `:current` step's**, and there is no
-option to set it. A flow that waits on nobody — rejected, or finished — shows
-the bar alone; if the screen has to say "Finished", it says so next to the
-component. That title is `aria-hidden`, because the list has just read the same
-step out with its state.
+option to set it. That title is `aria-hidden`, because the list has just read
+the same step out with its state. A flow that waits on nobody — rejected, or
+finished — shows the bar alone; when the screen has to say where it ended, the
+text is the host's, beside the component in a row that wraps the way the
+component wraps its own title:
+
+```erb
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+  <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+    <% c.with_step(title: "Request", state: :success) %>
+    <% c.with_step(title: "Register · Committee office", state: :success) %>
+    <% c.with_step(title: "Validate · Corporate direction", state: :success) %>
+  <% end %>
+  <span class="text-sm">Concluded</span>
+</div>
+```
+
+The text sits 8px after the bar when both fit and drops under it when they do
+not. Without `flex-wrap` the row cannot be narrower than the bar and the word
+together — 186px for four segments and "Concluded", so a 180px cell grows.
 
 **It never scrolls and is never a tab stop.** A segment is 24px and gives way
 to an 8px floor when the cell is narrower than the bar: nine steps in a 160px

@@ -3,7 +3,7 @@
     <%# The `title` sits on the hidden segment so it only reaches a pointer: on
         the `<li>` a screen reader would read it as a description, after the
         same words in the `sr-only` span. %>
-    <%= tag.span(class: segment_classes, title: segment_label, aria: { hidden: true }) %>
+    <span class="<%= segment_classes %>" title="<%= segment_label %>" aria-hidden="true"></span>
     <span class="sr-only"><%= segment_label %></span>
   <% else %>
   <div class="workflow-step-marker">

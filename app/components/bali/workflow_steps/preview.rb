@@ -186,10 +186,7 @@ module Bali
       # -------------------------
       # `orientation: :segments` draws one short bar per step and paints no
       # title, with the current step's title beside the bar. The shape for a
-      # table column, where every other shape is too tall or scrolls: measured
-      # with four steps in a 180px cell, `:vertical` is 200px tall,
-      # `:horizontal` stacks four cards 236px tall, and `:rail` and `:progress`
-      # need 384px and scroll inside the cell.
+      # table column, where every other shape is too tall or scrolls.
       #
       # ```erb
       # <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
@@ -212,9 +209,10 @@ module Bali
       # renames the state as in every other shape.
       #
       # **The text beside the bar is the first `:current` step's title**, with
-      # no option to set it: a flow that waits on nobody — rejected or
-      # finished — shows the bar alone. It is hidden from screen readers, which
-      # have just read that step in the list.
+      # no option to set it, and it is hidden from screen readers, which have
+      # just read that step in the list. A flow that waits on nobody —
+      # rejected or finished — shows the bar alone; the "Concluded" rows put
+      # the host's own text beside it, in a `flex flex-wrap` row.
       #
       # It is never a scroll container or a tab stop: the segments shrink from
       # 24px to an 8px floor before the row overflows, and the title wraps

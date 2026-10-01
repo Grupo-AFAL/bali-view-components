@@ -13,10 +13,11 @@ module Bali
       # the fifth and paints no title, so its step is a branch of its own.
       #
       # `marker` and `connector_state` are written by the parent, not passed to
-      # `new`: `dot:` is the boolean v3.4.0 published, which leaves a third
-      # marker no keyword to arrive through, and `connector_state` is the
+      # `new`: `dot:` is the boolean v3.4.0 published, which leaves the other
+      # markers no keyword to arrive through, and `connector_state` is the
       # FOLLOWING step's state, unknowable until every step is declared — nil
-      # on the last step and on every step of the horizontal shape.
+      # on the last step and on every step of the horizontal and segments
+      # shapes.
       class Component < ApplicationViewComponent
         SKIPPED = :skipped
 
@@ -113,16 +114,17 @@ module Bali
         # Each state is a different SHAPE, not only a different colour (WCAG
         # 1.4.1): solid, hatched, half-filled, a thin line for the step the
         # route went around, solid and outlined for the current one, hollow for
-        # what has not happened. Measured through a deuteranopia filter, success and
-        # error are the same brown and only the hatching tells them apart.
+        # what has not happened. Measured through a deuteranopia filter, success
+        # and error are the same brown and only the hatching tells them apart.
         #
-        # The three state colours are mixed 60% with `base-content` because
-        # the plain fills are below the 3:1 a shape carrying meaning needs
-        # (1.4.11) in every light theme: `success` 1.96:1, `warning` 1.76:1 and
-        # `error` 2.86:1 on light's `base-100`. At 60% the worst of the fifteen
-        # theme × state pairs is `warning` in `afal`, 3.80:1 on `base-100` and
-        # 3.45:1 on the `base-200` of a zebra row; 70% left it at 2.78:1.
-        # `primary` and the `base-content/60` grey pass as they are.
+        # The three state colours are 60% the state's own colour and 40%
+        # `base-content`, because the plain fills are below the 3:1 a shape
+        # carrying meaning needs (1.4.11) in every light theme: `success`
+        # 1.96:1, `warning` 1.76:1 and `error` 2.86:1 on light's `base-100`.
+        # At 60% the worst of the fifteen theme × state pairs is `warning` in
+        # `afal`, 3.80:1 on `base-100` and 3.45:1 on the `base-200` of a zebra
+        # row; 70% left it at 2.78:1. `primary` and the `base-content/60` grey
+        # pass as they are.
         SEGMENT_CLASSES = {
           success: "bg-current " \
                    "text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-base-content))]",
@@ -134,6 +136,15 @@ module Bali
           skipped: "h-0.5 border-0 bg-current text-base-content/60",
           current: "bg-current text-primary outline-2 outline-offset-1 outline-current"
         }.freeze
+
+        # Forced colours repaint `background-color` as Canvas and drop every
+        # `background-image` that is not a url: measured, success, error,
+        # warning and pending came out as the same hollow pill and `:skipped`
+        # vanished. Opting out paints all six shapes in CanvasText instead.
+        # Here and not in index.css: the colour is set by a `text-*` utility,
+        # which no rule in @layer components can beat.
+        SEGMENT_FORCED_COLORS_CLASSES =
+          "forced-colors:forced-color-adjust-none forced-colors:text-[color:CanvasText]"
 
         STATES = CIRCLE_CLASSES.keys.freeze
 
@@ -254,7 +265,8 @@ module Bali
         end
 
         def segment_classes
-          class_names("workflow-step-segment", SEGMENT_CLASSES.fetch(state))
+          class_names("workflow-step-segment", SEGMENT_CLASSES.fetch(state),
+                      SEGMENT_FORCED_COLORS_CLASSES)
         end
 
         # The segment's whole text, for the `title` a pointer hovers and the

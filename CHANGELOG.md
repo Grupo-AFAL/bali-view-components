@@ -11,13 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
-  al lado. Ninguna de las otras cuatro cabía: con cuatro pasos en una celda de 180 px,
-  `:vertical` mide 200 px de alto, `:horizontal` apila sus tarjetas en 236 px, y `:rail` y
-  `:progress` piden 384 px y hacen scroll dentro de la celda. **gobierno-corporativo** puede
-  pasar `governing_bodies/requests/_flow_stage.html.erb` a esta forma, con el nombre de cada
-  paso como `title:`, y borrar `FLOW_SEGMENT_CLASSES` y `governing_body_request_segment_class`
-  (`git grep -n "governing_body_request_segment_class" origin/main`); el paso en curso pasa de
-  ámbar a `primary`, y «Concluida» sigue siendo suyo.
+  al lado. Cada estado es una forma distinta, también con colores forzados. **gobierno-corporativo**
+  puede pasar `governing_bodies/requests/_flow_stage.html.erb` a esta forma: cada paso con
+  `title:` igual al «nombre · rol» que hoy arma `FlowStages#pending_label` (ahora para todos los
+  pasos, no solo el que está en curso) y su estado de `StepState` traducido con
+  `governing_body_request_step_workflow_state`, el mapa de cuatro entradas que ya usa el detalle.
+  Así borra `FLOW_SEGMENT_CLASSES` y `governing_body_request_segment_class`
+  (`git grep -n "governing_body_request_segment_class" origin/main`). El paso en curso pasa de
+  ámbar a `primary`, y «Concluida» queda como texto suyo junto a la barra, con el marcado de la
+  guía.
 
 - **`Bali::IsoDate.parse(value)`** (#1211): una fecha `AAAA-MM-DD` leída de fuera —un param,
   un payload— o `nil`. `Date.iso8601` solo no es eso: lee `"2026-09"` como el día 1,

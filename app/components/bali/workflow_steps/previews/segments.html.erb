@@ -1,5 +1,5 @@
 <% long_route = ['Request', 'Register · Committee office', 'Validate · Corporate direction', 'Authorize · Board chair'] %>
-<% requests = [
+<% inbox = [
      { folio: 'GB-0142', subject: 'New governing body', route: long_route,
        states: %i[success success current pending], status: ['In validation', :info] },
      { folio: 'GB-0139', subject: 'Membership change', route: long_route,
@@ -21,20 +21,27 @@
       <% table.with_header(name: 'Request') %>
       <% table.with_header(name: 'Flow stage') %>
       <% table.with_header(name: 'Status') %>
-      <% requests.each do |request| %>
+      <% inbox.each do |item| %>
         <% table.with_row do %>
-          <td class="font-mono text-xs"><%= request[:folio] %></td>
-          <td><%= request[:subject] %></td>
+          <td class="font-mono text-xs"><%= item[:folio] %></td>
+          <td><%= item[:subject] %></td>
           <td class="w-48">
-            <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
-              <% request[:route].zip(request[:states]).each do |title, state| %>
-                <% c.with_step(title: title, state: state) %>
+            <%# A flow that waits on nobody shows no title, so the host says
+                where it ended: its own text, beside the bar in a flex row. %>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+                <% item[:route].zip(item[:states]).each do |title, state| %>
+                  <% c.with_step(title: title, state: state) %>
+                <% end %>
               <% end %>
-            <% end %>
+              <% unless item[:states].include?(:current) %>
+                <span class="text-sm" data-concluded>Concluded</span>
+              <% end %>
+            </div>
           </td>
           <td>
-            <%= render Bali::Tag::Component.new(text: request[:status].first,
-                                                color: request[:status].last, size: :sm) %>
+            <%= render Bali::Tag::Component.new(text: item[:status].first,
+                                                color: item[:status].last, size: :sm) %>
           </td>
         <% end %>
       <% end %>

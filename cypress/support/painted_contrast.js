@@ -16,6 +16,8 @@ const luminance = ([r, g, b]) => {
 }
 
 export const paintedContrast = (el, { over = el } = {}) => {
+  if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')
+
   const win = el.ownerDocument.defaultView
   const canvas = el.ownerDocument.createElement('canvas')
   canvas.width = canvas.height = 1

@@ -102,10 +102,6 @@ module Bali
       # `.workflow-steps-progress` is taken — it is the N/M header inside every
       # boxed shape, this one included, so the root would share a class name
       # with its own child.
-      #
-      # `:segments` and not `:bar`: "the bar" is already the N/M header that
-      # `progress:` turns on, and `orientation: :progress` next to `progress:`
-      # is the collision not to repeat.
       ORIENTATION_CLASSES = {
         vertical: "workflow-steps-vertical",
         horizontal: "workflow-steps-horizontal",

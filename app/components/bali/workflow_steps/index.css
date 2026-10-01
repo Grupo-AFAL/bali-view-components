@@ -240,7 +240,10 @@
 }
 
 .workflow-steps-segments {
-  @apply flex flex-wrap items-center gap-x-2 gap-y-1;
+  /* `w-auto` takes back the root's `w-full`: a host's own text beside the
+     bar, in a flex row, sat 414px away at the far edge of the cell. In a
+     cell with nothing beside it the root is a block and fills it anyway. */
+  @apply flex w-auto flex-wrap items-center gap-x-2 gap-y-1;
 
   .workflow-steps-list {
     /* `gap-1`, not `gap-0.5`: the current segment's outline reaches 3px

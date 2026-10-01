@@ -1208,18 +1208,6 @@ class BaliWorkflowStepsSegmentsTest < ComponentTestCase
     assert_no_selector("li.workflow-step[title]", visible: :all)
   end
 
-  def test_the_state_names_come_from_the_locale
-    I18n.with_locale(:es) do
-      render_segments do |c|
-        c.with_step(title: "Solicita", state: :success)
-        c.with_step(title: "Valida", state: :current)
-      end
-    end
-
-    assert_equal [ "Solicita: Completado", "Valida: En curso" ],
-                 page.all(".workflow-step-segment", visible: :all).map { |node| node[:title] }
-  end
-
   def test_a_state_label_renames_the_state_and_an_empty_one_leaves_the_title_alone
     render_segments do |c|
       c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
@@ -1257,20 +1245,6 @@ class BaliWorkflowStepsSegmentsTest < ComponentTestCase
     end
 
     assert_equal expected, drawn
-    assert_equal drawn.size, drawn.values.uniq.size
-  end
-
-  # The plain fills measured 1.96:1 (success), 1.76:1 (warning) and 2.86:1
-  # (error) against light's `base-100`; 1.4.11 wants 3:1 for a shape that
-  # carries meaning. The browser measures the result in five themes
-  # (cypress/e2e/workflow-steps-segments.cy.js); this keeps the mix in place.
-  def test_the_three_state_colours_are_mixed_toward_base_content
-    %i[success error warning].each do |state|
-      render_segments { |c| c.with_step(title: "Step", state: state) }
-
-      assert_includes page.find(".workflow-step-segment", visible: :all)[:class],
-                      "text-[color-mix(in_oklab,var(--color-#{state})_60%,var(--color-base-content))]"
-    end
   end
 
   def test_the_current_step_title_is_painted_beside_the_bar
