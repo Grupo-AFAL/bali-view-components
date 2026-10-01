@@ -63,4 +63,21 @@
       }
     }
   }
+
+  /* `has-multiple` is a dot, not a second colour: a cell is ~20px on a phone, and
+   * two colours in that space encode no order while their blend reads as a state
+   * the host never defined.
+   *
+   * `year-today` and not `today`: `.today` above is `!important` and would repaint
+   * the background `day_variant` chose. */
+  .year-view {
+    .year-day.has-multiple::after {
+      content: '';
+      @apply absolute top-px right-px size-1 rounded-full bg-current opacity-60;
+    }
+
+    .year-day.year-today {
+      @apply ring-1 ring-base-content/50;
+    }
+  }
 }
