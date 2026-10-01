@@ -24,8 +24,12 @@ describe('tinted variant text contrast', () => {
 
   // The three Bali themes plus daisyUI's own pair: the fix has to hold where the
   // `*-content` token would NOT have (a dark theme puts a dark `*-content`
-  // over a dark tint — measured at 1.03–1.48 with that token).
+  // over a dark tint — measured at 1.01–1.48 with that token).
   const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
+
+  // The alert's body, the `<div>` #1126 reported unreadable: inside the title's
+  // column when there is a title, straight under the alert when there is not.
+  const ALERT_BODY = ':scope > .flex-col > div:last-child, :scope > div:not(.flex-col)'
 
   // Any CSS colour string → [r, g, b], through a 1px canvas. Chrome serialises
   // `color-mix()` results as `oklab(…)` and the theme tokens as `oklch(…)`;
@@ -40,42 +44,48 @@ describe('tinted variant text contrast', () => {
     return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
   }
 
-  // The alert's body is a `<span>`; the icon is skipped because it deliberately
-  // keeps the accent (see below).
-  const textOf = (el) => el.querySelector('span:not(.icon-component)') || el
-
-  const withTheme = (theme, fn) => {
-    cy.document().then((doc) => {
-      doc.documentElement.setAttribute('data-theme', theme)
-      fn(doc)
-    })
+  const useTheme = (theme) => {
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
   }
 
-  // Nothing is measured while a colour transition runs: its first frame still
-  // paints the previous theme, which can pass (docs/reference/testing-traps.md).
-  const everyTextReadsAtAA = (theme, selector, fewest) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-
-    cy.get(selector).should(($els) => {
-      const els = $els.toArray()
-      expect(els.flatMap(el => el.getAnimations({ subtree: true })), 'colour transitions settled').to.have.length(0)
-      expect(els, 'the preview renders soft, outline and dash').to.have.length.greaterThan(fewest)
-
-      els.forEach((el) => {
-        expect(paintedContrast(textOf(el)), `${theme}: ${el.className}`).to.be.at.least(AA)
-      })
-    })
+  // Nothing is measured while a transition runs anywhere in the document: its
+  // first frame still paints the previous theme — on the text, or on the
+  // ancestor an outline variant takes its ground from — and that frame can pass
+  // (docs/reference/testing-traps.md). None of the three previews animates on
+  // its own, so the document does go still.
+  const expectSettled = (el) => {
+    expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
   }
 
   THEMES.forEach((theme) => {
     it(`every tinted alert reads at AA on the ${theme} theme`, () => {
       cy.visit('/bali/alert/all_combinations')
-      everyTextReadsAtAA(theme, ALERTS, 11)
+      useTheme(theme)
+
+      cy.get(ALERTS).should(($alerts) => {
+        const alerts = $alerts.toArray()
+        expectSettled(alerts[0])
+        expect(alerts, 'soft, outline and dash alerts').to.have.length.at.least(15)
+
+        alerts.forEach((alert) => {
+          expect(paintedContrast(alert.querySelector(ALERT_BODY)), `${theme}: ${alert.className}`).to.be.at.least(AA)
+        })
+      })
     })
 
     it(`every tinted tag reads at AA on the ${theme} theme`, () => {
       cy.visit('/bali/tag/all_combinations')
-      everyTextReadsAtAA(theme, TAGS, 20)
+      useTheme(theme)
+
+      cy.get(TAGS).should(($tags) => {
+        const tags = $tags.toArray()
+        expectSettled(tags[0])
+        expect(tags, 'soft, outline and dash tags').to.have.length.at.least(52)
+
+        tags.forEach((tag) => {
+          expect(paintedContrast(tag), `${theme}: ${tag.className}`).to.be.at.least(AA)
+        })
+      })
     })
   })
 
@@ -84,15 +94,17 @@ describe('tinted variant text contrast', () => {
   ;['soft', 'outline', 'dash'].forEach((style) => {
     it(`keeps the accent colour on the ${style} alert icon`, () => {
       cy.visit(`/bali/alert/soft_block?style=${style}`)
+      useTheme('afal')
 
-      withTheme('afal', (doc) => {
-        const alert = doc.querySelector(`.alert-${style}.alert-warning`)
+      cy.get(`.alert-${style}.alert-warning`).should(([alert]) => {
+        expectSettled(alert)
+        const doc = alert.ownerDocument
         const icon = alert.querySelector('.icon-component')
-        const text = alert.querySelector('span:not(.icon-component)')
+        const body = alert.querySelector(ALERT_BODY)
         const accent = getComputedStyle(alert).getPropertyValue('--alert-color')
 
         expect(rgb(doc, getComputedStyle(icon).color), 'icon is the accent').to.deep.equal(rgb(doc, accent))
-        expect(rgb(doc, getComputedStyle(text).color), 'text is not').to.not.deep.equal(rgb(doc, accent))
+        expect(rgb(doc, getComputedStyle(body).color), 'text is not').to.not.deep.equal(rgb(doc, accent))
       })
     })
   })
@@ -102,9 +114,11 @@ describe('tinted variant text contrast', () => {
   // restated from `--badge-color` or the pill loses its colour altogether.
   it('keeps the accent colour on the outline tag border', () => {
     cy.visit('/bali/alert/soft_block?style=outline')
+    useTheme('afal')
 
-    withTheme('afal', (doc) => {
-      const tag = doc.querySelector('.badge-outline.badge-warning')
+    cy.get('.badge-outline.badge-warning').should(([tag]) => {
+      expectSettled(tag)
+      const doc = tag.ownerDocument
       const accent = getComputedStyle(tag).getPropertyValue('--badge-color')
 
       expect(rgb(doc, getComputedStyle(tag).borderTopColor), 'border is the accent').to.deep.equal(rgb(doc, accent))
