@@ -4411,7 +4411,7 @@ to the other keeps searching the same thing.
 | `width` | String | Tailwind width classes for the box |
 
 ```erb
-<%# Not `params.dig(:q, ...)`: `?q=x` makes `q` a String, and `dig` raises on it. %>
+<%# Not `params.dig(:q, ...)`: `?q=x` or `?q[]=x` make `q` a String or an Array, and `dig` raises on both. %>
 <% q = params[:q].is_a?(ActionController::Parameters) ? params[:q] : {} %>
 <%= render Bali::Filters::Component.new(
   url: movies_path,

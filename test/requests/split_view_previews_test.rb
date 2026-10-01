@@ -73,6 +73,7 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
     [ "x", [ "x" ] ].each do |q|
       get "/split-view", params: { filter_mode: "multi", q: q }
       assert_response :ok, "/split-view with q=#{q.inspect}"
+      assert_select ".split-view-filter[data-active='true']", false
     end
   end
 

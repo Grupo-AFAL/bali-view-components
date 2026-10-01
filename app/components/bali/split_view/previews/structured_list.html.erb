@@ -12,7 +12,7 @@
     deep links, back and forward — lives at `/split-view` in the dummy app. A
     preview cannot page against itself. %>
 <% q = request.query_parameters["q"] %>
-<% active_genres = Array(q.is_a?(Hash) ? q["genre_in"] : nil) %>
+<% active_genres = q.is_a?(Hash) ? Array(q["genre_in"]) : [] %>
 <% scope = scope.where(genre: active_genres) if active_genres.any? %>
 <% group_by = local_assigns[:group_by] %>
 <%# Ordered by the group key FIRST when grouping — the contract `with_group`

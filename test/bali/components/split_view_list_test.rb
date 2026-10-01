@@ -290,9 +290,7 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_no_selector(".split-view-filter[aria-current]")
   end
 
-  # `q` arrives raw from the URL, so where a pill writes `q[genre_in]` the request can hold a
-  # String (`?q=x`) or an Array (`?q[]=x`) instead of a Hash — and writing into either raised,
-  # a 500 on every page with nested-param pills. Neither asked for a filter, so it is replaced.
+  # Neither `?q=x` nor `?q[]=x` asked for a filter, so the pill replaces it.
   def test_a_scalar_q_gives_way_to_the_nested_param
     assert_equal "/split-view?q%5Bgenre_in%5D=Drama",
       pill_at("/split-view?q=x", param: "q[genre_in]", value: "Drama")["href"]
@@ -304,8 +302,19 @@ class BaliSplitViewListComponentTest < ComponentTestCase
   end
 
   def test_a_q_that_is_not_a_hash_marks_no_pill_active
-    refute_equal "true",
-      pill_at("/split-view?q=x", param: "q[genre_in]", value: "x")["data-active"]
+    pill = pill_at("/split-view?q=x", param: "q[genre_in]", value: "x")
+
+    assert_equal "false", pill["data-active"]
+    assert_nil pill["aria-current"]
+  end
+
+  # `?q[genre_in][a]=b` is no value either: it would travel into every pill's href.
+  def test_a_hash_where_the_value_goes_is_no_value
+    pill = pill_at("/split-view?q%5Bgenre_in%5D%5Ba%5D=b", mode: :multi, param: "q[genre_in]",
+                   value: "Drama")
+
+    assert_equal "false", pill["data-active"]
+    assert_equal "/split-view?q%5Bgenre_in%5D%5B%5D=Drama", pill["href"]
   end
 
   # --- what a pill's URL keeps and what it throws away --------------------------------------
