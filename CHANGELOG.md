@@ -103,6 +103,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
   los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
 
+- **La guardia de contraste de las variantes soft, outline y dash mide lo que se pinta** (#1236):
+  `soft-variant-contrast.cy.js` deja su propia copia de la medición y usa `paintedContrast`, que
+  compone el alfa del color y la `opacity` de cada ancestro; mide el cuerpo de la alerta, suma
+  `costa-norte`, que faltaba, y no mide mientras quede una transición en curso. Hoy ningún número
+  cambia: lo que cambia es que una variante traslúcida ya no pasaría. Para quien trabaja en el
+  repo; nada que hacer en un anfitrión.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
