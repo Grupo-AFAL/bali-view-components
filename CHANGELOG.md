@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
   anfitrión.
 
+- **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
+  (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
+  (`?q[]=x`) dejaba un `String` o un `Array` donde la pastilla escribe `q[...]`, y la escritura
+  levantaba. Ahora ese `q` se trata como sin filtro y la pastilla enlaza a
+  `?q[genre_in][]=…`. Lo mismo arreglado en el preview `structured_list` y en `/split-view` de
+  la dummy, y las guías dejan de enseñar `params.dig(:q, …)`, que revienta igual:
+  `master-detail.md` para las pastillas, y el valor de búsqueda de `Filters` / `SimpleFilters` en
+  `components.md` y `migration-v2-to-v3.md`. **Anfitrión:** si copiaste ese `dig` de alguna
+  guía, cámbialo por la forma nueva: `git grep -n "dig(:q" origin/main -- app`.
+
 ### Dependencies
 
 - **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el

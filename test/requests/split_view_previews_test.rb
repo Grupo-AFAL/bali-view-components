@@ -56,6 +56,27 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
     assert_select ".split-view-filter[aria-current='true']", 1
   end
 
+  # `q` arrives raw from the URL (#1210): typed as a scalar or a list it is not a hash, and
+  # both the template and the pills read it as one.
+  def test_every_scenario_survives_a_q_that_is_not_a_hash
+    [ "x", [ "x" ] ].each do |q|
+      SCENARIOS.each do |scenario|
+        get "#{BASE}/#{scenario}", params: { q: q }
+        assert_response :ok, "#{scenario} with q=#{q.inspect}"
+      end
+    end
+  end
+
+  # The dummy page is the full flow the guide sends hosts to copy, and its controller read
+  # `q` the same way.
+  def test_the_dummy_page_survives_a_q_that_is_not_a_hash
+    [ "x", [ "x" ] ].each do |q|
+      get "/split-view", params: { filter_mode: "multi", q: q }
+      assert_response :ok, "/split-view with q=#{q.inspect}"
+      assert_select ".split-view-filter[data-active='true']", false
+    end
+  end
+
   # Several active at once, and `aria-current` cannot say "all of these" — so it
   # is absent and the state lives in text.
   def test_multi_mode_marks_several_pills_without_aria_current

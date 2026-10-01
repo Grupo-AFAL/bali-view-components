@@ -126,7 +126,8 @@ module Bali
           end
 
           def current_values
-            Array(dig_param(query_params)).map(&:to_s)
+            values = dig_param(query_params)
+            values.is_a?(Hash) ? [] : Array(values).map(&:to_s)
           end
 
           def dig_param(params)
@@ -163,14 +164,13 @@ module Bali
             prune_empty(params, ancestors)
           end
 
-          # `acc[name] ||= {}` is not enough here, and the reason is worth the
-          # method: `request.query_parameters` is a HashWithIndifferentAccess,
-          # which CONVERTS a plain Hash on write. The assignment then evaluates to
-          # the right-hand side — the original `{}` — while what got stored is a
-          # converted copy, so writing through the returned object updated a hash
-          # nobody would ever read. Reading the key back returns the stored one.
+          # Not `scope[key] ||= {}`, for two reasons. The URL can put a String (`?q=x`)
+          # or an Array (`?q[]=x`) where the pill writes `q[...]`; `||=` keeps it and the
+          # write raises. And `request.query_parameters` is a HashWithIndifferentAccess,
+          # which stores a converted copy of the `{}` it is given — so this returns what
+          # it reads back.
           def descend(scope, key)
-            scope[key] ||= {}
+            scope[key] = {} unless scope[key].is_a?(Hash)
             scope[key]
           end
 
