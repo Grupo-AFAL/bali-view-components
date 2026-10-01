@@ -1,3 +1,21 @@
-<% events&.each do |event| %>
-  <%= render Bali::Tag::Component.new(text: event.name, color: :primary, size: :sm) %>
+<% if period == :year %>
+  <div class="text-xs font-semibold mb-1 whitespace-nowrap">
+    <%= day.day %> <%= t('date.month_names')[day.month] %>
+  </div>
 <% end %>
+<%# `whitespace-normal h-auto py-1` opts out of tag/index.css's nowrap (#655), and
+    only because this partial renders a `Bali::Tag` — `block truncate` rows need
+    nothing. Tippy caps the card at 350px; measured without it, a ~60-character name
+    made a 367px pill, 29px past the card's edge. `h-auto` goes with it because
+    daisyUI pins `.badge` to `height: var(--size)`. %>
+<div class="flex flex-col gap-1 items-start">
+  <% events&.each do |event| %>
+    <%= render Bali::Tag::Component.new(
+          text: event.name,
+          href: event.try(:url),
+          color: event.status || :primary,
+          size: :sm,
+          class: 'whitespace-normal h-auto py-1 text-left'
+        ) %>
+  <% end %>
+</div>

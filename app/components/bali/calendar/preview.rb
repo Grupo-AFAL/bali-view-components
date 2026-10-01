@@ -2,6 +2,9 @@
 
 module Bali
   module Calendar
+    # Sibling constants in full — `Bali::Calendar::Component`: Lookbook keeps this
+    # class across a `reload!`, so a short form resolves against a namespace
+    # Zeitwerk already discarded (#843).
     class Preview < ApplicationViewComponentPreview
       # Interactive calendar preview
       # ---------------------------
@@ -17,7 +20,7 @@ module Bali
         events = with_events ? sample_events : []
         event_template = with_events ? 'bali/calendar/previews/template' : nil
 
-        render(Calendar::Component.new(
+        render(Bali::Calendar::Component.new(
                  start_date: start_date,
                  period: period,
                  weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
@@ -29,11 +32,51 @@ module Bali
         end
       end
 
+      # Year view
+      # ---------
+      # Twelve miniature months. The three lambdas are optional; turn them off to
+      # see the bare on/off map. Resize the pane: the month count follows the container.
+      #
+      # @param start_date text "Any date in the year to draw"
+      # @param month_size select { choices: [xs, sm, md, lg, xl] }
+      # @param show_date toggle "Display day numbers"
+      # @param weekdays_only toggle "Ignored by the year view — the grid stays at seven columns"
+      # @param with_events toggle "Display sample events (and their hover cards)"
+      # @param with_day_url toggle "Make days with events navigate somewhere"
+      # @param with_day_variant toggle "Colour each day from its events"
+      # @param with_month_summary toggle "Label each month with its event count"
+      # @param bounded toggle "Limit navigation to the drawn year: both arrows go disabled"
+      # rubocop:disable Metrics/ParameterLists
+      def year(start_date: nil, month_size: :md, show_date: true, weekdays_only: false,
+               with_events: true, with_day_url: true, with_day_variant: true,
+               with_month_summary: true, bounded: false)
+        # rubocop:enable Metrics/ParameterLists
+        with_events = ActiveModel::Type::Boolean.new.cast(with_events)
+        bounded = ActiveModel::Type::Boolean.new.cast(bounded)
+        first_day = (start_date.presence || Date.current).to_date.beginning_of_year
+
+        render(Bali::Calendar::Component.new(
+                 start_date: first_day,
+                 period: :year,
+                 month_size: month_size,
+                 weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
+                 show_date: ActiveModel::Type::Boolean.new.cast(show_date),
+                 events: with_events ? year_sample_events(first_day.year) : [],
+                 template: with_events ? 'bali/calendar/previews/template' : nil,
+                 day_url: (day_url_lambda if ActiveModel::Type::Boolean.new.cast(with_day_url)),
+                 day_variant: (day_variant_lambda if ActiveModel::Type::Boolean.new.cast(with_day_variant)),
+                 month_summary: (month_summary_lambda if ActiveModel::Type::Boolean.new.cast(with_month_summary))
+               )) do |c|
+          c.with_header(route_path: '/lookbook', period_switch: %i[month year],
+                        min_date: (first_day if bounded), max_date: (first_day.end_of_year if bounded))
+        end
+      end
+
       # Calendar with footer
       # --------------------
       # Demonstrates the footer slot for custom content below the calendar.
       def with_footer
-        render(Calendar::Component.new(
+        render(Bali::Calendar::Component.new(
                  start_date: Date.current,
                  weekdays_only: true,
                  period: :month,
@@ -51,7 +94,7 @@ module Bali
       # Shows calendar without the header navigation controls.
       # Useful when embedding in contexts where navigation is handled externally.
       def without_header
-        render(Calendar::Component.new(
+        render(Bali::Calendar::Component.new(
                  start_date: Date.current,
                  weekdays_only: true,
                  period: :month,
@@ -61,13 +104,58 @@ module Bali
 
       private
 
+      # One long name: the month view's `table-fixed` cell is the narrowest place
+      # the partial renders.
       def sample_events
         [
-          Calendar::Previews::Event.new(start_time: Date.current, name: 'Today Event'),
-          Calendar::Previews::Event.new(start_time: Date.current - 1.day, name: 'Yesterday'),
-          Calendar::Previews::Event.new(start_time: Date.current + 2.days, name: 'Upcoming'),
-          Calendar::Previews::Event.new(start_time: Date.current - 3.days, name: 'Past Event')
+          build_event(Date.current, 'Today Event', nil),
+          build_event(Date.current - 1.day, 'Yesterday', nil),
+          build_event(Date.current + 2.days, 'Upcoming, with a deliberately long name that wraps onto several lines', nil),
+          build_event(Date.current - 3.days, 'Past Event', nil)
         ]
+      end
+
+      # The 11th holds two events (`has-multiple`) and a name long enough to wrap
+      # in a hover card tippy caps at 350px. Keep both.
+      def year_sample_events(year)
+        statuses = %i[success warning error info]
+
+        (1..12).flat_map do |month|
+          first = Date.new(year, month, 1)
+
+          [
+            build_event(first + 4, "Item #{month}-A", statuses[month % 4]),
+            build_event(first + 11, "Item #{month}-B, with a deliberately long name that wraps onto several lines",
+                        statuses[(month + 1) % 4]),
+            build_event(first + 11, "Item #{month}-C", statuses[(month + 2) % 4]),
+            build_event(first + 19, "Item #{month}-D", statuses[(month + 3) % 4])
+          ]
+        end
+      end
+
+      # `url` points at this preview: the only route the gem can be sure exists.
+      def build_event(date, name, status)
+        Bali::Calendar::Previews::Event.new(
+          start_time: date, name: name, status: status,
+          url: "/lookbook/preview/bali/calendar/default?start_date=#{date}"
+        )
+      end
+
+      def day_url_lambda
+        lambda do |day, events|
+          next if events.empty?
+
+          "/lookbook/preview/bali/calendar/default?period=month&with_events=true" \
+            "&start_date=#{day}"
+        end
+      end
+
+      def day_variant_lambda
+        ->(_day, events) { events.first&.status }
+      end
+
+      def month_summary_lambda
+        ->(_month, events) { events.size.to_s }
       end
     end
   end
