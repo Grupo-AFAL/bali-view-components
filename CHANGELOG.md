@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dependencies
+
+- **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
+  parser con el que StandardJS lee el JS del repo; `yarn standard` sigue limpio con él.
+
 ## [v3.6.0] - 2026-09-30
 
 ### Added
