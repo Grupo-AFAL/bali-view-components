@@ -1,6 +1,4 @@
-// `radio-toggle` has no component of its own: the previews are hand markup over the
-// FormBuilder, the same shape a host writes.
-describe('radio-toggle controller', () => {
+describe('RadioToggleController', () => {
   const target = name => cy.get(`[data-testid="${name}"]`)
   const radio = label => cy.contains('label', label).find('input[type="radio"]')
 
@@ -28,23 +26,29 @@ describe('radio-toggle controller', () => {
   context('dependent fields', () => {
     const box = () => cy.contains('label', "I can't find the serial number").find('input[type="checkbox"]')
     const fields = name => target(name).find('input:not([type="hidden"]), textarea')
+    const allDisabled = name => fields(name).each($field => expect($field, name).to.be.disabled)
+    const allEnabled = name => fields(name).each($field => expect($field, name).to.be.enabled)
+
+    // Turbo applies a stream on the next frame, so a test waits for the replacement
+    // (`data-streamed`) before asserting on it — the old node would pass just as well.
+    const stream = html => cy.window().then(win => win.Turbo.renderStreamMessage(html))
 
     beforeEach(() => cy.visit('/bali/radio_toggle/dependent_fields'))
 
-    it('disables the fields of every target hidden on connect', () => {
+    it('disables every target hidden on connect', () => {
       ;['damaged', 'label-photo', 'lost'].forEach((name) => {
         target(name).should('have.class', 'hidden')
-        fields(name).each($field => expect($field, name).to.be.disabled)
+        allDisabled(name)
       })
     })
 
-    it('enables the fields of a target when it shows, and disables them when it hides', () => {
+    it('enables a target when it shows, and disables it when it hides', () => {
       radio('Lost').check()
-      fields('lost').should('be.enabled')
+      allEnabled('lost')
 
       radio('Damaged').check()
-      fields('lost').should('be.disabled')
-      fields('damaged').should('be.enabled')
+      allDisabled('lost')
+      allEnabled('damaged')
     })
 
     it('needs the radio and the checkbox for a target joined with +', () => {
@@ -53,14 +57,17 @@ describe('radio-toggle controller', () => {
 
       box().check()
       target('label-photo').should('not.have.class', 'hidden')
-      fields('label-photo').should('be.enabled')
+      allEnabled('label-photo')
 
       box().uncheck()
       target('label-photo').should('have.class', 'hidden')
+    })
 
-      // The checkbox alone is not enough either.
+    it('keeps a + target hidden with the checkbox alone', () => {
+      radio('Damaged').check()
       box().check()
       radio('Lost').check()
+
       target('label-photo').should('have.class', 'hidden')
     })
 
@@ -76,8 +83,6 @@ describe('radio-toggle controller', () => {
       cy.get('[data-testid="query"]').should('not.contain', 'last_seen')
     })
 
-    // Disabling rather than emptying is the point: a user who chose a file and wandered
-    // off to another option finds it still there on the way back.
     it('keeps a chosen file across a trip to another option', () => {
       radio('Damaged').check()
       box().check()
@@ -85,56 +90,52 @@ describe('radio-toggle controller', () => {
       fields('label-photo').selectFile({ contents: Cypress.Buffer.from('jpeg'), fileName: 'label.jpg' }, { force: true })
 
       radio('Lost').check()
-      fields('label-photo').should('be.disabled')
+      allDisabled('label-photo')
 
       radio('Damaged').check()
-      fields('label-photo').should('be.enabled')
-        .its('0.files').should('have.length', 1)
+      allEnabled('label-photo')
+      fields('label-photo').its('0.files').should('have.length', 1)
     })
 
-    // A Turbo Stream repaints a target the way the server last saw the form, which can
-    // be behind the radio on screen — here the server still thinks "Working".
+    // The server repaints both targets as it last saw the form ("Working"): the photo
+    // hidden and the lost panel shown, both behind the radio on screen.
     it('applies the current choice to a target a Turbo Stream replaces', () => {
       radio('Damaged').check()
       box().check()
 
-      cy.window().then((win) => {
-        win.Turbo.renderStreamMessage(`
-          <turbo-stream action="replace" target="terminal-label-photo"><template>
-            <div id="terminal-label-photo" data-testid="label-photo" class="hidden"
-                 data-radio-toggle-target="element" data-radio-toggle-value="damaged+serial_unknown">
-              <input type="file" name="terminal[label_photo]">
-            </div>
-          </template></turbo-stream>
-          <turbo-stream action="replace" target="terminal-lost"><template>
-            <div id="terminal-lost" data-testid="lost"
-                 data-radio-toggle-target="element" data-radio-toggle-value="lost">
-              <textarea name="terminal[last_seen]">from the server</textarea>
-            </div>
-          </template></turbo-stream>`)
-      })
+      stream(`
+        <turbo-stream action="replace" target="terminal-label-photo"><template>
+          <fieldset id="terminal-label-photo" data-testid="label-photo" data-streamed class="hidden" disabled
+                    data-radio-toggle-target="element" data-radio-toggle-value="damaged+serial_unknown">
+            <input type="file" name="terminal[label_photo]">
+          </fieldset>
+        </template></turbo-stream>
+        <turbo-stream action="replace" target="terminal-lost"><template>
+          <fieldset id="terminal-lost" data-testid="lost" data-streamed
+                    data-radio-toggle-target="element" data-radio-toggle-value="lost">
+            <textarea name="terminal[last_seen]">from the server</textarea>
+          </fieldset>
+        </template></turbo-stream>`)
 
-      target('label-photo').should('not.have.class', 'hidden')
-      fields('label-photo').should('be.enabled')
-      target('lost').should('have.class', 'hidden')
-      fields('lost').should('be.disabled')
+      cy.get('[data-testid="label-photo"][data-streamed]').should('not.have.class', 'hidden')
+      allEnabled('label-photo')
+      cy.get('[data-testid="lost"][data-streamed]').should('have.class', 'hidden')
+      allDisabled('lost')
     })
 
     it('leaves a field the server disabled disabled when its target shows', () => {
-      cy.window().then((win) => {
-        win.Turbo.renderStreamMessage(`
-          <turbo-stream action="replace" target="terminal-lost"><template>
-            <div id="terminal-lost" data-testid="lost"
-                 data-radio-toggle-target="element" data-radio-toggle-value="lost">
-              <textarea name="terminal[last_seen]" disabled>read only</textarea>
-            </div>
-          </template></turbo-stream>`)
-      })
-      target('lost').should('have.class', 'hidden')
+      stream(`
+        <turbo-stream action="replace" target="terminal-lost"><template>
+          <fieldset id="terminal-lost" data-testid="lost" data-streamed
+                    data-radio-toggle-target="element" data-radio-toggle-value="lost">
+            <textarea name="terminal[last_seen]" disabled>read only</textarea>
+          </fieldset>
+        </template></turbo-stream>`)
+      cy.get('[data-testid="lost"][data-streamed]').should('have.class', 'hidden')
 
       radio('Lost').check()
       target('lost').should('not.have.class', 'hidden')
-      fields('lost').should('be.disabled')
+      allDisabled('lost')
     })
   })
 })

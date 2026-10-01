@@ -1,31 +1,33 @@
 <%# The form GETs its own URL so the query string at the bottom is the record of what
     was sent: with `disable-hidden` on, a field hidden at submit time is not in it. %>
+<% statuses = [ [ "Working", "working" ], [ "Damaged", "damaged" ], [ "Lost", "lost" ] ] %>
 <%= form_with(scope: :terminal, url: request.path, method: :get, builder: Bali::FormBuilder,
               class: "max-w-lg space-y-2",
               data: { controller: "radio-toggle",
-                      radio_toggle_current_value: terminal.status,
+                      radio_toggle_current_value: status,
                       radio_toggle_disable_hidden_value: true }) do |form| %>
   <%= form.radio_group :status,
-        statuses.map { |label, value| [ label, value, { checked: value == terminal.status } ] },
+        statuses.map { |label, value| [ label, value, { checked: value == status } ] },
         label: "Terminal status",
         html: { orientation: :horizontal, data: { action: "radio-toggle#change" } } %>
 
-  <div id="terminal-damaged" data-radio-toggle-target="element" data-radio-toggle-value="damaged"
-       data-testid="damaged">
+  <fieldset id="terminal-damaged" data-radio-toggle-target="element" data-radio-toggle-value="damaged"
+            data-testid="damaged">
     <%= form.text_group :damage_notes, label: "What is damaged?" %>
     <%= form.boolean_group :serial_unknown, text: "I can't find the serial number",
-          checked_value: "serial_unknown", data: { action: "radio-toggle#change" } %>
-  </div>
+          checked_value: "serial_unknown",
+          data: { action: "radio-toggle#change", radio_toggle_target: "checkbox" } %>
+  </fieldset>
 
-  <div id="terminal-label-photo" data-radio-toggle-target="element"
-       data-radio-toggle-value="damaged+serial_unknown" data-testid="label-photo">
+  <fieldset id="terminal-label-photo" data-radio-toggle-target="element"
+            data-radio-toggle-value="damaged+serial_unknown" data-testid="label-photo">
     <%= form.file_group :label_photo, label: "Photo of the label" %>
-  </div>
+  </fieldset>
 
-  <div id="terminal-lost" data-radio-toggle-target="element" data-radio-toggle-value="lost"
-       data-testid="lost">
+  <fieldset id="terminal-lost" data-radio-toggle-target="element" data-radio-toggle-value="lost"
+            data-testid="lost">
     <%= form.text_area_group :last_seen, label: "Where was it last seen?" %>
-  </div>
+  </fieldset>
 
   <%= form.submit_group "Send" %>
 <% end %>

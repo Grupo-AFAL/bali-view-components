@@ -5,20 +5,13 @@ module Bali
     # The `radio-toggle` utility controller, which has no component of its own.
     # See docs/guides/controllers.md for the full catalog.
     class Preview < ApplicationViewComponentPreview
-      Terminal = Struct.new(:status, :damage_notes, :serial_unknown, :last_seen, keyword_init: true)
-
-      STATUSES = [ [ "Working", "working" ], [ "Damaged", "damaged" ], [ "Lost", "lost" ] ].freeze
-
       # @label Default
       # One radio group and three targets. The last target lists two values separated by
       # a comma, so it shows for either.
       #
       # @param status select { choices: [pickup, delivery, courier] }
       def default(status: "pickup")
-        render_with_template(
-          template: "bali/radio_toggle/previews/default",
-          locals: { status: status.to_s }
-        )
+        render_with_template(template: "bali/radio_toggle/previews/default", locals: { status: status.to_s })
       end
 
       # @label Dependent fields
@@ -29,13 +22,8 @@ module Bali
       #
       # @param status select { choices: [working, damaged, lost] }
       def dependent_fields(status: "working")
-        render_with_template(
-          template: "bali/radio_toggle/previews/dependent_fields",
-          locals: {
-            terminal: Bali::RadioToggle::Preview::Terminal.new(status: status.to_s),
-            statuses: Bali::RadioToggle::Preview::STATUSES
-          }
-        )
+        render_with_template(template: "bali/radio_toggle/previews/dependent_fields",
+                             locals: { status: status.to_s })
       end
     end
   end

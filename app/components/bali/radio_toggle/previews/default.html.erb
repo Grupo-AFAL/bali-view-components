@@ -1,8 +1,8 @@
-<% methods = [ [ "Pick up in store", "pickup" ], [ "Home delivery", "delivery" ], [ "Courier", "courier" ] ] %>
+<% delivery_methods = [ [ "Pick up in store", "pickup" ], [ "Home delivery", "delivery" ], [ "Courier", "courier" ] ] %>
 <div data-controller="radio-toggle" data-radio-toggle-current-value="<%= status %>" class="max-w-md space-y-4">
   <%= form_with(scope: :order, url: "#", builder: Bali::FormBuilder) do |form| %>
     <%= form.radio_group :delivery,
-          methods.map { |label, value| [ label, value, { checked: value == status } ] },
+          delivery_methods.map { |label, value| [ label, value, { checked: value == status } ] },
           label: "Delivery method",
           html: { orientation: :horizontal, data: { action: "radio-toggle#change" } } %>
   <% end %>
