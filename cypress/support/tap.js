@@ -31,11 +31,11 @@ const centreOf = ($el) => {
   return [r.left + r.width / 2, r.top + r.height / 2]
 }
 
-// `x` and `y` are viewport coordinates inside the app.
-export const tapAt = (x, y) =>
-  touch('touchStart', [inRunner(x, y)]).then(() => touch('touchEnd', []))
+export const tap = ($el) => {
+  const [x, y] = centreOf($el)
 
-export const tap = ($el) => tapAt(...centreOf($el))
+  return touch('touchStart', [inRunner(x, y)]).then(() => touch('touchEnd', []))
+}
 
 // Starts on the element and moves `dy` pixels: the browser reads it as a scroll and
 // fires no click.

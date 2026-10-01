@@ -4102,15 +4102,13 @@ Popup card that displays content on hover (or click), positioned with Tippy.js. 
 - `placement` - Tippy.js placement, e.g. `auto`, `top`, `bottom-start`, `right-end` (default: `"auto"`)
 - `open_on_click` - Open on click instead of hover (default: `false`)
 - `append_to` - Where to append the popup: `'body'`, `'parent'`, or CSS selector (default: `"body"`)
-- `z_index` - Z-index for the popup (default: `9999`)
+- `z_index` - Z-index for the popup (default: `nil`, which reads `--bali-z-tooltip` when the card connects)
 - `content_padding` - Add padding around the content (default: `true`)
 - `arrow` - Show an arrow pointing to the trigger (default: `true`)
 
-**Touch screens.** A tap fires the `mouseenter` the card opens on, and then its own `click`. So
-the first tap on a trigger only opens the card: its default action — following a link,
-submitting a form — waits for the second tap. A `click->` handler on the trigger still runs on
-the first. A tap outside closes the card, and links inside it work on the first tap. Mouse and
-keyboard are unchanged.
+**Touch screens.** The first tap on a trigger opens the card and holds back its default action —
+following a link, submitting a form — until the second tap. A tap outside closes the card, and
+links inside it work on the first tap.
 
 #### Reveal
 

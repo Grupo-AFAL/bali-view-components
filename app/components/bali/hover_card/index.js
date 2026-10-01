@@ -66,9 +66,8 @@ export class HovercardController extends Controller {
       onShow: this.onShow,
       onHide: this.onHide
     })
-    this.input = tippy.currentInput
 
-    this.triggerTarget.addEventListener('touchstart', this.onTouchStart, { passive: true })
+    this.triggerTarget.addEventListener('pointerdown', this.onPointerDown)
     this.triggerTarget.addEventListener('click', this.onClick)
   }
 
@@ -104,24 +103,23 @@ export class HovercardController extends Controller {
   }
 
   disconnect () {
-    this.tippy?.reference.removeEventListener('touchstart', this.onTouchStart)
+    this.tippy?.reference.removeEventListener('pointerdown', this.onPointerDown)
     this.tippy?.reference.removeEventListener('click', this.onClick)
     this.tippy?.destroy()
   }
 
-  // A tap fires the compatibility `mouseenter` that opens the card ~6ms before its own
-  // `click`, so a link trigger navigated in the same tap and the card was on screen for
-  // one round trip (~100ms). The tap that finds the card closed only opens it; the next
-  // one does what the trigger does. Read at `touchstart`, before that `mouseenter`.
-  onTouchStart = () => {
-    this.tapOpensCard = !this.tippy.state.isVisible
+  // A tap fires pointerdown, then the compatibility `mouseenter` that opens the card,
+  // then its own `click` (measured in Chromium). Holding back the click of the tap that
+  // found the card closed keeps the card up; the next tap does what the trigger does.
+  // Every pointerdown rewrites the mark, so a mouse or pen press clears what a drag left.
+  onPointerDown = event => {
+    this.tapOpensCard = event.pointerType === 'touch' && !this.tippy.state.isVisible
   }
 
-  // A drag that starts on the trigger sets `tapOpensCard` and fires no click to clear
-  // it. `isTouch`, tippy's record of the last input, lets the next mouse click through.
+  // A click from the keyboard or from `el.click()` has `detail` 0 and no pointerdown of
+  // its own: any mark it finds was left by an earlier gesture.
   onClick = event => {
-    if (this.tapOpensCard && this.input.isTouch) event.preventDefault()
-    this.tapOpensCard = false
+    if (this.tapOpensCard && event.detail > 0) event.preventDefault()
   }
 
   onCreate = instance => {

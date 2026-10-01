@@ -103,13 +103,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
   los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
 
-- **En táctil, el primer tap sobre un `HoverCard` cuyo disparador es un enlace abre la tarjeta,
-  y el segundo sigue el enlace** (#1229). Antes el `click` del mismo tap navegaba ~6 ms después
-  de que tippy la abriera, y la tarjeta duraba lo que la respuesta (~100 ms en local); con mouse
-  y teclado nada cambia. **Anfitrión:** el `day_url` de la vista de año ya no tiene que llevar a
-  donde estén los eventos del día para que se alcancen en celular (lo que hizo
+- **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
+  acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
+  (#1229). Antes ese mismo tap navegaba y la tarjeta se iba con la página. Con mouse y teclado
+  nada cambia. **Anfitrión:** el `day_url` de la vista de año ya no tiene que llevar a donde estén
+  los eventos del día para que se alcancen en celular (lo que hizo
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
-  `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap.
+  `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
 
 ### Documentation
 
