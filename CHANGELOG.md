@@ -48,6 +48,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   columna nueva, en el release siguiente. Así se evita el cambio de `id:` que afal-apps tuvo
   que hacer en #772. Listados a revisar: `git grep -n "with_column(index" origin/main -- app/views`.
 
+- **SlimSelect deja de decir «27 selected» y «Press "Enter" to add…» en una app en español**
+  (#1232). `slim_select_group` gana `max_values_message:` y `addable_text:` (con las marcas
+  `{number}` y `{value}` de SlimSelect, sin `%`), que como el resto de sus textos —ahora también
+  `ajax_placeholder:`— toman por omisión `bali_view.form_builder.slim_select`; en `en` ningún
+  texto cambia. El valor de una condición de `Bali::Filters` dice «Sin resultados» en vez de
+  «No results». **gobierno-corporativo** puede volver a `slim_select_group` en
+  `_room_availability.html.erb`. El marcado escrito a mano no recibe nada de esto y tiene que
+  pasar sus `data-slim-select-*-value` (6 en afal-apps, 5 en gobierno-corporativo):
+  `git grep -n 'data-controller="slim-select"' origin/main -- app/views`.
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
@@ -102,6 +112,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cada editor de comentario reventaba a medias. Medido en un documento con 16 hilos: 18 de 19
   estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
   los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
+
+- **La guardia de contraste de las variantes soft, outline y dash mide lo que se pinta** (#1236):
+  `soft-variant-contrast.cy.js` deja su propia copia de la medición y usa `paintedContrast`, que
+  compone el alfa del color y la `opacity` de cada ancestro; mide el cuerpo de la alerta, suma
+  `costa-norte`, que faltaba, y no mide mientras quede una transición en curso. Hoy ningún número
+  cambia: lo que cambia es que una variante traslúcida ya no pasaría. Para quien trabaja en el
+  repo; nada que hacer en un anfitrión.
 
 - **El texto atenuado de `WorkflowSteps` y `Timeline` quedaba bajo AA** (#1233, #1234): el
   título y el círculo de un paso `:pending` o `:skipped`, la fecha, la etiqueta de los pasos por

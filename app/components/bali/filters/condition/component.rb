@@ -104,7 +104,8 @@ module Bali
             placeholders: placeholders_translations,
             boolean: boolean_translations,
             selected_count: selected_count_translation,
-            search: t("bali_view.filters.search")
+            search: t("bali_view.filters.search"),
+            no_results: t("bali_view.form_builder.slim_select.no_results")
           }.to_json
         end
 
