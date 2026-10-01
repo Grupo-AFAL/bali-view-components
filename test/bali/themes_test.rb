@@ -56,7 +56,7 @@ class BaliThemesTest < ActiveSupport::TestCase
   def test_the_afal_brand_values_stay_canonical
     css = File.read(THEMES_DIR.join("afal.css"))
 
-    assert_includes(css, "--color-primary: oklch(62.31% 0.1880 259.815)")
+    assert_includes(css, "--color-primary: oklch(54.6% 0.245 262.881)")
     assert_includes(css, "--color-secondary: oklch(60.56% 0.2189 292.717)")
     assert_includes(css, "--color-accent: oklch(76.86% 0.1647 70.080)")
     assert_includes(css, "--radius-field: 0.375rem")

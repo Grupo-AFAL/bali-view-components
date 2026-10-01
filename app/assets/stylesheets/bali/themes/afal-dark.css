@@ -10,7 +10,7 @@
  * Derivation rules (from the light theme):
  * - Surfaces invert down the same gray ramp: base-100/200/300 become
  *   gray-900/800/700 and base-content becomes gray-200.
- * - Brand hues are kept but lifted one Tailwind step (500 -> 400) so they
+ * - Brand hues are kept but lifted to their Tailwind 400 step so they
  *   hold contrast on dark surfaces, paired with -950 content colors.
  *   Every pair measures >= 4.5:1 (WCAG AA).
  * - Status colors are identical to the light theme: those pastels already

@@ -69,6 +69,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **El primario del tema `afal` pasa de blue-500 (`#3B82F6`) a blue-600 de Tailwind v4
+  (`#155DFC`)** (#1221): con blanco encima pintaba 3.68:1, bajo el 4.5 que pide la etiqueta de
+  14px de un botón, y ahora 5.25:1, igual que el primario como texto sobre `base-100`. Es el de
+  v4 y no el `#2563EB` de v3 que afal-apps usa en su correo porque con ese el ítem activo de
+  `SideMenu` (texto primario sobre su tinte al 10%) se queda en 4.49:1; el correo, sin ese ítem,
+  puede seguir en `#2563EB` (5.17:1 con blanco). Cambia lo que ven afal-apps, garita y
+  gobierno-corporativo; centinela-web, identity y opina siguen en su blue-500 mientras carguen su
+  propio bloque `[data-theme="afal"]` (#718). **Anfitrión:** los hex copiados para correo, PDF o
+  gráficas no siguen al tema: `git grep -n -i "3b82f6" origin/main -- app`.
+
 - **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
   (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,
   2.92–4.74:1 contra el 4.5 que pide un texto de 12px. Ahora hereda el color de la pastilla
