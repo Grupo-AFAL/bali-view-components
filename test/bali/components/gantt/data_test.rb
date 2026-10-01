@@ -150,6 +150,21 @@ class BaliGanttDataTest < ActiveSupport::TestCase
     assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
   end
 
+  def test_names_the_item_and_the_value_of_a_date_that_is_not_yyyy_mm_dd
+    payload = base_payload
+    payload[:items][0][:starts_on] = "2026-09"
+
+    error = assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
+    assert_equal 'item 10: date must be a YYYY-MM-DD calendar date, got "2026-09"', error.message
+  end
+
+  def test_rejects_impossible_calendar_dates
+    payload = base_payload
+    payload[:items][0][:starts_on] = "2026-02-31"
+
+    assert_raises(Bali::Gantt::Data::InvalidError) { data(payload) }
+  end
+
   def test_rejects_unknown_group_references
     payload = base_payload
     payload[:items][0][:group_id] = 99

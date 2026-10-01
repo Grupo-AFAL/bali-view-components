@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::IsoDate.parse(value)`** (#1211): una fecha `AAAA-MM-DD` leída de fuera —un param,
+  un payload— o `nil`. `Date.iso8601` solo no es eso: lee `"2026-09"` como el día 1,
+  `"20260910"`, `"2026-253"` y `"2026-W37-4"` como fechas, y a `"2026-09-10T23:59:00-07:00"` le
+  tira la hora. La regla vivía encerrada en `Gantt::Data` (`ISO_DATE`, que se retira) y
+  centinela-web la acababa de reescribir carácter por carácter. La usan ahora `Gantt::Data` —que
+  sigue levantando `InvalidError` con su contexto— y `MonthValue`; la implementación de
+  referencia del Gantt en la dummy (`Admin::Projects::SchedulesController`) aceptaba
+  `starts_on: "2026-09"` y movía la tarea al día 1, y ahora responde 422.
+
+### Changed
+
+- **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
+  son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
+  `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
+  no estaba en ella, carga igual en un anfitrión: medido en una app Rails 8.1.4 nueva, en
+  desarrollo y en producción con `eager_load!`— y su comentario afirmaba lo contrario. Sin
+  efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
+  nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
+
 ### Removed
 
 - **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
@@ -15,6 +36,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   todavía la usara no truena: el menú cae a `humanize` y muestra «Mission control» en vez de
   «Panel de trabajos». **Anfitrión:** si apareces en ese `git grep`, cambia la clave a
   `:flightdeck` o pasa `name:`.
+
+### Fixed
+
+- **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
+  (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,
+  2.92–4.74:1 contra el 4.5 que pide un texto de 12px. Ahora hereda el color de la pastilla
+  (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
+  anfitrión.
+
+- **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
+  (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
+  (`?q[]=x`) dejaba un `String` o un `Array` donde la pastilla escribe `q[...]`, y la escritura
+  levantaba. Ahora ese `q` se trata como sin filtro y la pastilla enlaza a
+  `?q[genre_in][]=…`. Lo mismo arreglado en el preview `structured_list` y en `/split-view` de
+  la dummy, y las guías dejan de enseñar `params.dig(:q, …)`, que revienta igual:
+  `master-detail.md` para las pastillas, y el valor de búsqueda de `Filters` / `SimpleFilters` en
+  `components.md` y `migration-v2-to-v3.md`. **Anfitrión:** si copiaste ese `dig` de alguna
+  guía, cámbialo por la forma nueva: `git grep -n "dig(:q" origin/main -- app`.
+
+- **`Bali::Types::MonthValue` levantaba al asignar** (#1209): `"zzz"` daba `Date::Error`,
+  `["2026-09"]` (`?q[mes][]=…`) `TypeError`, y hasta un `Date` levantaba `TypeError`. Como el
+  cast corre en la asignación, ninguna validación podía atajarlo: era un 500 desde la URL. Ahora
+  lo que no puede leer es `nil`, un `Date` pasa tal cual, un `Time` o `DateTime` da su fecha, y
+  `serialize` escribe lo mismo que `cast` leería —`nil` en vez de la basura o de `""`—.
+  `"2022-08"` sigue siendo el 1 de agosto. **Ahora sólo lee `AAAA-MM` y `AAAA-MM-DD`**: lo demás
+  que `Date.parse` aceptaba (`"2022/08/15"`, `"15 Aug 2022"`) queda en `nil`. Con PostgreSQL y
+  `load_defaults` ≥ 7.2, que entrega un `Date` o un `Time` al leer, el registro ya no levanta al
+  cargarse.
 
 ### Dependencies
 
