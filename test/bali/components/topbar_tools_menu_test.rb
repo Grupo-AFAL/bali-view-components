@@ -83,19 +83,9 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
 
   # `:sentry` is ambiguous, which is what was wrong with the old version of this test: the gem's
   # label and `humanize` coincide ("Sentry"), so it passed just as well with `label_for` empty.
-  # `:mission_control` really tells them apart: the gem says "Jobs dashboard", humanize would say
-  # "Mission control".
+  # `:flightdeck` really tells them apart: the gem says "Jobs dashboard", humanize would say
+  # "Flightdeck".
   def test_a_known_key_uses_the_gems_label
-    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mission_control) ]))
-
-    assert_selector(".bali-topbar-tools-menu", text: "Jobs dashboard")
-  end
-
-  # `:flightdeck` is the jobs dashboard of the apps that swapped mission_control-jobs for
-  # solid_queue-flightdeck (#1138). It tells them apart the same way `:mission_control` does: the gem
-  # says "Jobs dashboard" and humanize would say "Flightdeck". `:mission_control` stays —afal-apps is
-  # still on that gem— so both keys coexist under the same label.
-  def test_the_flightdeck_key_uses_the_gems_label
     render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :flightdeck) ]))
 
     assert_selector(".bali-topbar-tools-menu", text: "Jobs dashboard")
@@ -110,9 +100,9 @@ class BaliTopbarToolsMenuComponentTest < ComponentTestCase
   # The host's override lives outside the gem's namespace: `topbar.tools_menu.items.<key>`, not
   # `bali_view.topbar.tools_menu.items.<key>`. `label_for` looks there first.
   def test_a_host_override_wins_over_the_gems_label
-    I18n.backend.store_translations(:en, topbar: { tools_menu: { items: { mission_control: "Panel propio" } } })
+    I18n.backend.store_translations(:en, topbar: { tools_menu: { items: { flightdeck: "Panel propio" } } })
 
-    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :mission_control) ]))
+    render_inline(Bali::Topbar::ToolsMenu::Component.new(tools: [ externa(key: :flightdeck) ]))
 
     assert_selector(".bali-topbar-tools-menu", text: "Panel propio")
   ensure

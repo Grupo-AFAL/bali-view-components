@@ -28,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
   nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
 
+### Removed
+
+- **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
+  del panel de Mission Control Jobs, que Flightdeck reemplazó en toda la flota: ninguna app la
+  pasa (`git grep -n "key: :mission_control" origin/main -- app` da cero en las siete). Una app que
+  todavía la usara no truena: el menú cae a `humanize` y muestra «Mission control» en vez de
+  «Panel de trabajos». **Anfitrión:** si apareces en ese `git grep`, cambia la clave a
+  `:flightdeck` o pasa `name:`.
+
 ### Fixed
 
 - **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
