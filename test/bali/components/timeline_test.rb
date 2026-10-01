@@ -240,7 +240,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     assert_selector(".timeline-middle.text-base-content")
     assert_no_selector(".timeline-middle svg path")
     assert_no_selector('.timeline-middle svg circle[r="1"]')
-    assert_selector('p.font-semibold[class~="text-base-content/60"]', text: "Later")
+    assert_selector('p.font-semibold[class~="text-base-content/70"]', text: "Later")
     assert_no_selector("hr.bg-primary")
   end
 
@@ -302,7 +302,7 @@ class BaliTimelineComponentTest < ComponentTestCase
       c.with_item(heading: "Event", timestamp: "Jul 28, 09:14")
     end
     # Box on the start side, so the timestamp takes the end side.
-    assert_selector('div.timeline-end[class~="text-base-content/60"]', text: "Jul 28, 09:14")
+    assert_selector('div.timeline-end[class~="text-base-content/70"]', text: "Jul 28, 09:14")
     assert_no_selector(".timeline-content-box", text: "Jul 28, 09:14")
   end
 
@@ -310,7 +310,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new(position: :right)) do |c|
       c.with_item(heading: "Event", timestamp: "Jul 28, 09:14")
     end
-    assert_selector('div.timeline-start[class~="text-base-content/60"]', text: "Jul 28, 09:14")
+    assert_selector('div.timeline-start[class~="text-base-content/70"]', text: "Jul 28, 09:14")
   end
 
   def test_timestamp_localizes_non_strings
@@ -324,9 +324,17 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new(compact: true)) do |c|
       c.with_item(heading: "Package received", timestamp: "Jul 28, 09:14 · A. García")
     end
-    assert_selector('.timeline-content-box p[class~="text-base-content/60"]',
+    assert_selector('.timeline-content-box p[class~="text-base-content/70"]',
                     text: "Jul 28, 09:14 · A. García")
     assert_no_selector("div.timeline-start")
+  end
+
+  def test_compact_timestamp_takes_the_size_of_its_box
+    render_inline(Bali::Timeline::Component.new(compact: true)) do |c|
+      c.with_item(heading: "Package received", timestamp: "Jul 28, 09:14")
+    end
+    timestamp = page.find(".timeline-content-box p", text: "Jul 28, 09:14")
+    assert_no_match(/(^|\s)([\w-]+:)*text-(xs|sm|base|lg|\d*xl)(\s|$)/, timestamp[:class])
   end
 
   def test_timestamp_slot_wins_over_the_keyword

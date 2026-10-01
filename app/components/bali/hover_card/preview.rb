@@ -27,6 +27,17 @@ module Bali
         end
       end
 
+      # Link Trigger
+      # ------------
+      # The trigger is a link of its own, and so is something inside the card.
+      # With a mouse, hovering opens the card and clicking the trigger navigates;
+      # on a touch screen the first tap opens the card and the second navigates.
+      #
+      # @param placement select [auto, auto-start, auto-end, top, top-start, top-end, bottom, bottom-start, bottom-end, right, right-start, right-end, left, left-start, left-end]
+      def link_trigger(placement: 'auto')
+        render_with_template(locals: { placement: placement })
+      end
+
       # With Hover URL
       # --------------
       # Content is loaded asynchronously from the provided URL.

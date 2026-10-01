@@ -9,14 +9,13 @@ module Bali
     # carries its own semantic state — an approval chain where step 2 was
     # rejected while step 4 is still pending cannot be told with an index.
     #
-    # Four shapes over the same steps:
+    # Five shapes over the same steps:
     #
     #   :vertical (default)  the record — numbered circle, coloured connector,
     #                        assignee, date and comment per step.
     #   :horizontal          the quick flow — a row of cards with a state dot
-    #                        and an N/M bar on top, for the summary card or the
-    #                        table cell where the whole chain has to fit in a
-    #                        glance.
+    #                        and an N/M bar on top, for the summary card where
+    #                        the whole chain has to fit in a glance.
     #   :rail                the funnel — one row of numbered circles joined by
     #                        coloured connectors, label centred underneath, for
     #                        a long flow (nine steps) that has to read as an
@@ -24,19 +23,22 @@ module Bali
     #   :progress            the same row, quieter — a 2px monochrome line that
     #                        runs primary as far as the flow reached and grey
     #                        after it, with the verdict left to the marker.
+    #   :segments            the table cell — one short bar per step, no title
+    #                        painted, and the current step's title beside it.
     #
-    # Every shape but the horizontal one paints the connector after each circle
-    # with the state of the *next* step, so the line "arrives" at the step that
-    # owns that verdict. That is computed here, not by the caller; what each
-    # shape does with the state is its own class table. The horizontal shape
-    # draws no connectors: the bar already says how far the flow got, and a
-    # line between wrapped cards has nowhere to run.
+    # The three circle shapes paint the connector after each circle with the
+    # state of the *next* step, so the line "arrives" at the step that owns
+    # that verdict. That is computed here, not by the caller; what each shape
+    # does with the state is its own class table. The horizontal shape draws
+    # no connectors: the bar already says how far the flow got, and a line
+    # between wrapped cards has nowhere to run. Nor do the segments, which
+    # are the line.
     #
     # Auto-numbering counts the real route only: a `:skipped` step renders
     # without a number and consumes no position, and an explicit `number:`
     # beats the automatic one. In the progress shape the glyph of a settled
     # verdict then beats both. None of it reaches the horizontal shape, whose
-    # marker is a dot.
+    # marker is a dot, nor the segments, which carry no text.
     #
     # The assignee names below are sample data, like every other name in this repo's previews
     # and docs: the gallery shows a Mexican app what it will look like.
@@ -73,6 +75,13 @@ module Bali
     #     c.with_step(title: 'Project', state: :pending)
     #   end
     #
+    # @example An approval chain in a table cell
+    #   render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c|
+    #     c.with_step(title: 'Submitted', state: :success)
+    #     c.with_step(title: 'Legal review', state: :current)
+    #     c.with_step(title: 'Director signature', state: :pending)
+    #   end
+    #
     class Component < ApplicationViewComponent
       BASE_CLASSES = "workflow-steps"
 
@@ -83,13 +92,13 @@ module Bali
       # betas, which collided with the `variant:` the button taxonomy reserves
       # for colour.
       #
-      # `:rail` and `:progress` are further values of this keyword, not a
-      # second axis: every keyword this component does not declare reaches the
-      # root as a plain HTML attribute, so declaring `style:` or `shape:` would
-      # turn working host markup into an ArgumentError with the whole suite
-      # still green.
+      # `:rail`, `:progress` and `:segments` are further values of this
+      # keyword, not a second axis: every keyword this component does not
+      # declare reaches the root as a plain HTML attribute, so declaring
+      # `style:` or `shape:` would turn working host markup into an
+      # ArgumentError with the whole suite still green.
       #
-      # `:progress`'s class breaks the pattern of the other three because
+      # `:progress`'s class breaks the pattern of the other four because
       # `.workflow-steps-progress` is taken — it is the N/M header inside every
       # boxed shape, this one included, so the root would share a class name
       # with its own child.
@@ -97,7 +106,8 @@ module Bali
         vertical: "workflow-steps-vertical",
         horizontal: "workflow-steps-horizontal",
         rail: "workflow-steps-rail",
-        progress: "workflow-steps-progress-rail"
+        progress: "workflow-steps-progress-rail",
+        segments: "workflow-steps-segments"
       }.freeze
 
       ORIENTATIONS = ORIENTATION_CLASSES.keys.freeze
@@ -127,12 +137,13 @@ module Bali
       }
 
       # @param orientation [Symbol] `:vertical` (default), `:horizontal`,
-      #   `:rail` or `:progress`
+      #   `:rail`, `:progress` or `:segments`
       # @param progress [Boolean, nil] The N/M bar, which has nothing to do
       #   with `orientation: :progress`. On by default in the horizontal
       #   orientation; off by default in the two row shapes, where the
       #   connectors already say how far the flow got. The vertical shape has
-      #   no header to hang it on and refuses it.
+      #   no header to hang it on and refuses it, and so do the segments,
+      #   which are that bar already.
       # @param options [Hash] HTML attributes for the root element
       def initialize(orientation: :vertical, progress: nil, **options)
         reject_renamed_variant!(options)
@@ -172,8 +183,13 @@ module Bali
         rail? || progress_shape?
       end
 
+      def segments?
+        orientation == :segments
+      end
+
       # The shapes whose list sits inside a div — that div is the only place
-      # the N/M header can go; the vertical shape is the `<ol>` itself. Not
+      # the N/M header can go; the vertical shape is the `<ol>` itself. The
+      # segments wrap theirs too, but beside a title, not under a header. Not
       # `wrapped?`: wrapping here means the horizontal cards flowing onto a
       # second row, which is the one thing the row shapes exist not to do.
       def boxed?
@@ -182,10 +198,11 @@ module Bali
 
       # Which marker the steps draw — written onto each step rather than
       # passed to `new`: `dot:` is the keyword `Step::Component` published in
-      # v3.4.0, and a boolean has room for two of the three.
+      # v3.4.0, and a boolean has room for two of the four.
       def marker
         return :dot if horizontal?
         return :progress if progress_shape?
+        return :segment if segments?
 
         :circle
       end
@@ -220,8 +237,10 @@ module Bali
       end
 
       # The bar is part of the boxed shapes' header, and the vertical shape
-      # has no header to hang it on. Asking for one there is a request this
-      # component cannot honour, so it says so instead of dropping it silently.
+      # has no header to hang it on — nor do the segments, which would draw
+      # the same count twice in one cell. Asking for one there is a request
+      # this component cannot honour, so it says so instead of dropping it
+      # silently.
       # `false` asks for nothing, so it stays legal everywhere.
       #
       # The default differs between the shapes that can draw it: the
@@ -235,7 +254,7 @@ module Bali
         raise ArgumentError,
               "#{self.class.name}: progress: true needs orientation: " \
               ":horizontal, :rail or :progress. The N/M bar belongs to their " \
-              "header; the vertical orientation has none."
+              "header; :vertical has none, and :segments already is one."
       end
 
       # Each connector is painted with the state of the step it leads to, so
@@ -248,7 +267,7 @@ module Bali
       def rendered_steps
         @rendered_steps ||= begin
           slots = steps
-          pair_connectors unless horizontal?
+          pair_connectors unless horizontal? || segments?
           slots
         end
       end
@@ -271,6 +290,14 @@ module Bali
       # reachable for the connector pairing and for the N/M counts.
       def tracked_steps
         @tracked_steps ||= []
+      end
+
+      # What the segments shape paints beside the bar: where the flow is now.
+      # The first `:current` step, because that is the one the flow waits on;
+      # with none, the flow is not waiting on anyone and there is nothing to
+      # name.
+      def current_title
+        declared_steps.find { |step| step.state == :current }&.title
       end
 
       def resolved_count

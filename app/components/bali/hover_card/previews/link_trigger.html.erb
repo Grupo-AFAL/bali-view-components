@@ -1,0 +1,8 @@
+<%= render Bali::HoverCard::Component.new(placement: placement) do |card| %>
+  <% card.with_trigger do %>
+    <%= render Bali::Link::Component.new(name: 'Ana García López', href: '/lookbook/preview/bali/hover_card/default') %>
+  <% end %>
+
+  <p>Head of Legal · 3 open matters</p>
+  <%= render Bali::Link::Component.new(name: 'Open matters', href: '/lookbook/preview/bali/hover_card/with_hover_url') %>
+<% end %>

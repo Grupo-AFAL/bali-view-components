@@ -25,8 +25,9 @@ goes here.
   error.
 - **Contrast.** `getComputedStyle().color` carries the colour's alpha but not the element's
   `opacity`. Measure with `paintedContrast` from `cypress/support/painted_contrast.js`, which
-  composites both over the nearest opaque background. Translucent backgrounds between the text
-  and that ground are skipped, not composited.
+  composites both over the nearest opaque background, after painting every translucent
+  background between the text and that ground. It still misses a pseudo-element's background,
+  and the `opacity` of the node that carries a tint is not applied to that tint.
 - **`should('not.be.visible')` passes on a dropdown that is open.** daisyUI fades the panel in
   from `opacity: 0` through `@starting-style`, and Cypress counts opacity: measured in #1231, a
   "stays closed" assertion went green on a menu at `display: flex`. Assert `display` from

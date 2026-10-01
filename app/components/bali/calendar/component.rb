@@ -34,8 +34,7 @@ module Bali
       # @param show_date [Boolean] Display the date number or not.
       # @param weekly_title_class [String] Extra classes for the day number in week view.
       # @param day_url [Proc, nil] Year view only. `->(day, events) { url }`; nil, or a
-      #   nil return, leaves that day unlinked. On a touch screen the tap navigates and
-      #   the hover card never opens, so point it where the day's events are reachable.
+      #   nil return, leaves that day unlinked.
       # @param day_variant [Proc, nil] Year view only. `->(day, events) { :success }`,
       #   a name from Bali::Color::NAMES. One colour per day; the host picks it.
       # @param month_summary [Proc, nil] Year view only. `->(month, events) { "11" }`,

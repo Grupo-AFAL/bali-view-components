@@ -1,3 +1,5 @@
+import { drag, tap } from '../support/tap'
+
 // #1041 — HoverCard had no E2E spec. Everything it shows is built at runtime:
 // tippy is imported on connect, the card is portaled out of the component into
 // <body>, and with `hover_url` the content arrives over the network — behind a
@@ -91,6 +93,88 @@ describe('HoverCard', () => {
       card().should('contain.text', 'Loaded from the server')
 
       cy.get('@content.all').should('have.length', 1)
+    })
+  })
+
+  describe('with a link as the trigger', () => {
+    const link = () => trigger().find('a')
+    const destination = '/lookbook/preview/bali/hover_card/default'
+
+    // Read on `document`: after the trigger's own listener, and before Turbo's on
+    // `window`, which prevents every click it follows.
+    const recordClicks = () => cy.document().then(doc => {
+      const prevented = []
+      doc.addEventListener('click', e => prevented.push(e.defaultPrevented))
+      cy.wrap(prevented).as('prevented')
+    })
+
+    // Through the browser's keyboard path, so the link's click carries `detail` 0 as a
+    // real Enter's does.
+    const pressEnter = () => {
+      const key = { key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 }
+      const send = params => Cypress.automation('remote:debugger:protocol', { command: 'Input.dispatchKeyEvent', params })
+
+      return send({ type: 'keyDown', text: '\r', ...key }).then(() => send({ type: 'keyUp', ...key }))
+    }
+
+    beforeEach(() => {
+      cy.viewport(390, 844)
+      cy.visit('/bali/hover_card/link_trigger')
+      trigger().should($t => expect($t[0]._tippy, 'tippy mounted').to.exist)
+    })
+
+    it('opens the card on the first tap and follows the link on the second', () => {
+      recordClicks()
+
+      link().then(tap)
+      card().should('be.visible')
+      cy.get('@prevented').should('deep.equal', [true])
+
+      link().then(tap)
+      cy.location('pathname').should('eq', destination)
+    })
+
+    it('lets a tap reach a link inside the card', () => {
+      link().then(tap)
+      card().find('a').should('be.visible').then(tap)
+
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/hover_card/with_hover_url')
+    })
+
+    it('a tap, then Enter, follows the link', () => {
+      link().then(tap)
+      card().should('be.visible')
+      cy.focused().should('match', 'a')
+
+      cy.then(pressEnter)
+      cy.location('pathname').should('eq', destination)
+    })
+
+    // A drag sets the mark of a touch press and fires no click to use it.
+    it('a drag, then Enter, follows the link', () => {
+      link().then($a => drag($a, 150))
+      link().focus()
+      card().should('be.visible')
+
+      cy.then(pressEnter)
+      cy.location('pathname').should('eq', destination)
+    })
+
+    it('follows the link on the first click with a mouse', () => {
+      link().trigger('mouseenter')
+      card().should('be.visible')
+
+      link().click()
+      cy.location('pathname').should('eq', destination)
+    })
+
+    it('follows a mouse click that comes after a drag started on the link', () => {
+      link().then($a => drag($a, 150))
+      link().trigger('mouseenter')
+      card().should('be.visible')
+
+      link().click()
+      cy.location('pathname').should('eq', destination)
     })
   })
 
