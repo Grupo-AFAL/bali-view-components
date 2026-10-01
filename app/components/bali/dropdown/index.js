@@ -2,6 +2,9 @@ import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
+// tippy's own `preventOverflow` padding, so both modes stop the same distance from the edge.
+const VIEWPORT_PADDING = 5
+
 export class DropdownController extends Controller {
   static targets = ['trigger', 'menu']
   static values = {
@@ -23,7 +26,13 @@ export class DropdownController extends Controller {
       document.addEventListener('click', this.handleOutsideClick)
     }
     this.listenOn(this.element)
-    if (this.popoverValue) this.setupPopover()
+    if (this.popoverValue) {
+      this.setupPopover()
+    } else if (this.opensOnClick) {
+      this.close()
+      this.element.addEventListener('mousedown', this.holdTriggerFocus)
+      this.element.addEventListener('click', this.handleTriggerClick, true)
+    }
   }
 
   disconnect () {
@@ -32,7 +41,8 @@ export class DropdownController extends Controller {
     }
     this.stopListeningOn(this.element)
     if (this.menu) this.stopListeningOn(this.menu)
-    this.element.removeEventListener('click', this.handleTriggerClick)
+    this.element.removeEventListener('mousedown', this.holdTriggerFocus)
+    this.element.removeEventListener('click', this.handleTriggerClick, true)
 
     // destroy() leaves the menu inside the popper it is about to throw away, so put it
     // back where the server rendered it. Without this, a Turbo Frame re-render that
@@ -94,7 +104,15 @@ export class DropdownController extends Controller {
       onHide: this.onPopoverHide
     })
 
-    this.element.addEventListener('click', this.handleTriggerClick)
+    this.element.addEventListener('click', this.handleTriggerClick, true)
+  }
+
+  // daisyUI's CSS dropdown opens from `:focus-within`, so Tab alone unfolded the menu and the
+  // Enter meant to open it closed it (#1231). A click dropdown rests in daisyUI's own
+  // `dropdown-close`, which outranks `:focus-within`, and only `open()` takes it out. The
+  // hover one keeps focus as its keyboard way in; popover mode never opened on focus.
+  get opensOnClick () {
+    return !this.popoverValue && !this.element.classList.contains('dropdown-hover')
   }
 
   // Bound on the wrapper rather than on the trigger, because a press and a release do not
@@ -102,13 +120,26 @@ export class DropdownController extends Controller {
   // and it is an ancestor, so a click that starts on the trigger and ends a pixel outside
   // it still arrives. Measured in Cypress, where focusing on `mousedown` scrolls the page
   // enough that `mouseup` and `click` retarget from the trigger to the wrapper and a
-  // trigger-bound listener never fires at all. In popover mode the menu lives in the
-  // popper, so no item click reaches this handler.
+  // trigger-bound listener never fires at all. In the CSS mode the menu is inside the
+  // wrapper, so its clicks — a nested dropdown's included — are let through.
+  //
+  // Bound in the capture phase so the menu is open before any action on the trigger runs:
+  // with `:focus-within` it already was, from the `mousedown`, and the rich text editor's
+  // link panel focuses its input from a click action on its trigger.
+  //
+  // Clicking an open trigger lands here too, on the wrapper: daisyUI gives that trigger
+  // `pointer-events: none`.
   handleTriggerClick = (event) => {
-    if (this.fromNestedDropdown(event.target)) return
+    if (this.menu?.contains(event.target)) return
 
     event.preventDefault()
     this.toggle()
+  }
+
+  // The wrapper takes no focus, so that press on an open trigger blurred it: `handleFocusOut`
+  // closed the menu and the click that followed opened it again.
+  holdTriggerFocus = (event) => {
+    if (event.target === this.element) event.preventDefault()
   }
 
   listenOn (node) {
@@ -134,22 +165,19 @@ export class DropdownController extends Controller {
   }
 
   /**
-   * `aria-expanded` followed the KEYBOARD, not the screen. Whoever opens the panel with the
-   * mouse never goes through `open()`: daisyUI unfolds it from `:focus-within` when the
-   * trigger takes focus, so the screen reader announced "collapsed" with the menu in plain
-   * sight (WCAG 4.1.2). Focus is daisyUI's REAL open signal, so the attribute is synced to it.
-   *
-   * In popover mode focus is not the signal —tippy is what opens and closes the panel— so
-   * there `onPopoverShow`/`onPopoverHide` are in charge and this steps aside.
+   * In the hover dropdown focus is still an open signal — daisyUI unfolds it from
+   * `:focus-within` — so `aria-expanded` is synced to it, or the screen reader announces
+   * "collapsed" with the menu in plain sight (WCAG 4.1.2). A click dropdown only opens
+   * through `open()`, and in popover mode `onPopoverShow`/`onPopoverHide` are in charge.
    */
   handleFocusIn = (event) => {
     if (this.popoverValue) return
 
     // Focus arriving from outside is the reader coming back, and daisyUI's `:focus-within`
-    // is about to open the menu — so the explicit-close mark has to go, or an outside click
-    // would leave the dropdown shut for the rest of the page's life. Focus arriving from
-    // INSIDE is Escape handing the trigger its focus back, and that must not reopen it.
-    if (!this.owns(event.relatedTarget)) {
+    // is about to open the hover menu — so the explicit-close mark has to go, or an outside
+    // click would leave the dropdown shut for the rest of the page's life. Focus arriving
+    // from INSIDE is Escape handing the trigger its focus back, and that must not reopen it.
+    if (!this.opensOnClick && !this.owns(event.relatedTarget)) {
       this.element.classList.remove('dropdown-close')
     }
     this.syncExpanded()
@@ -159,6 +187,11 @@ export class DropdownController extends Controller {
     if (this.popoverValue) return
     // Focus can jump BETWEEN children (from the trigger to an item): that is not closing.
     if (event.relatedTarget && this.owns(event.relatedTarget)) return
+
+    if (this.opensOnClick) {
+      this.close()
+      return
+    }
 
     // Focus has genuinely left. Drop the explicit-close mark so that coming back with Tab
     // opens the menu again, the way focusing a dropdown that was never closed does.
@@ -250,9 +283,12 @@ export class DropdownController extends Controller {
         break
       case 'Enter':
       case ' ':
-        if (document.activeElement === this.triggerTarget) {
+        // Opens and steps in, like ArrowDown — the menu button of the WAI-ARIA APG. A toggle
+        // here closed whatever `:focus-within` had opened under the very key meant to open it.
+        if (this.hasTriggerTarget && document.activeElement === this.triggerTarget) {
           event.preventDefault()
-          this.toggle()
+          this.open()
+          this.focusNextItem()
         }
         break
     }
@@ -287,7 +323,28 @@ export class DropdownController extends Controller {
 
     this.element.classList.remove('dropdown-close')
     this.element.classList.add('dropdown-open')
+    this.keepInViewport()
     this.syncExpanded()
+  }
+
+  // daisyUI anchors the panel to one edge of the trigger and never looks at the screen: the
+  // page ⋯, `align: :end`, wraps to the left of a 390px phone and opened at x = −104 (#1231).
+  // Popover mode has Popper for that; this is the same nudge. Read from the centre and the
+  // layout width because the opening `scale` (.95 around the top centre) is still running.
+  keepInViewport () {
+    if (!this.menu) return
+
+    this.menu.style.transform = ''
+    if (!this.menu.offsetWidth) return
+
+    const { left, right } = this.menu.getBoundingClientRect()
+    const centre = (left + right) / 2
+    const half = this.menu.offsetWidth / 2
+    const spillLeft = VIEWPORT_PADDING - (centre - half)
+    const spillRight = centre + half - (document.documentElement.clientWidth - VIEWPORT_PADDING)
+    const shift = spillLeft > 0 ? spillLeft : -Math.max(spillRight, 0)
+
+    if (shift) this.menu.style.transform = `translateX(${shift}px)`
   }
 
   // `dropdown-close` is daisyUI's own escape hatch and the only thing that makes Escape

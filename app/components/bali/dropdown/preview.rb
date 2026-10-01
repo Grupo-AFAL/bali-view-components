@@ -73,6 +73,15 @@ module Bali
         render_with_template
       end
 
+      # At the Viewport Edges
+      # ---------------
+      # `align: :end` against the left edge and `align: :start` against the right one: daisyUI
+      # anchors the menu to the trigger alone and would open both off screen. The controller
+      # nudges each back inside, 5px from the edge as tippy does in popover mode (#1231).
+      def viewport_edges
+        render_with_template
+      end
+
       # @!endgroup
 
       # @!group Content

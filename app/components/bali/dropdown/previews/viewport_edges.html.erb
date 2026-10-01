@@ -1,0 +1,14 @@
+<div class="flex justify-between items-start min-h-[250px] p-4">
+  <%= render(Bali::Dropdown::Component.new(align: :end, width: :xl, id: 'viewport-edge-end')) do |c|
+    c.with_trigger(class: 'btn-info') { 'End' }
+
+    c.with_item(href: '#') { 'Anchored to the right of its trigger' }
+    c.with_item(href: '#') { 'Item 2' }
+  end %>
+  <%= render(Bali::Dropdown::Component.new(align: :start, width: :xl, id: 'viewport-edge-start')) do |c|
+    c.with_trigger(class: 'btn-info') { 'Start' }
+
+    c.with_item(href: '#') { 'Anchored to the left of its trigger' }
+    c.with_item(href: '#') { 'Item 2' }
+  end %>
+</div>

@@ -16,14 +16,76 @@ describe('DropdownController', () => {
       cy.visit('/bali/dropdown/basic')
     })
 
-    it('reports aria-expanded from what is on screen, not from the keyboard path', () => {
+    // #1231: daisyUI opens the CSS dropdown from `:focus-within`, so Tab alone unfolded it and
+    // the Enter meant to open it closed it.
+    it('does not open on focus', () => {
       cy.get(cssDropdown).first().find(trigger).as('t')
-      cy.get('@t').should('have.attr', 'aria-expanded', 'false')
-
-      // Focusing the trigger is how daisyUI opens it — no controller method runs.
       cy.get('@t').focus()
+
+      cy.get('@t').should('have.attr', 'aria-expanded', 'false')
+      cy.get(cssDropdown).first().find(menu).should('not.be.visible')
+    })
+
+    ;['Enter', ' '].forEach((key) => {
+      it(`opens on ${JSON.stringify(key)} and moves the focus to the first item`, () => {
+        cy.get(cssDropdown).first().find(trigger).as('t')
+        cy.get('@t').focus()
+
+        press(key)
+
+        cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
+        cy.get('@t').should('have.attr', 'aria-expanded', 'true')
+      })
+    })
+
+    // The second click lands on the wrapper: daisyUI gives an open trigger
+    // `pointer-events: none`. Clicked through Cypress's hit test, not forced onto the trigger.
+    it('opens on a click and closes on a second one, keeping the focus on the trigger', () => {
+      cy.get(cssDropdown).first().as('dropdown')
+      cy.get('@dropdown').find(trigger).as('t')
+
+      cy.get('@t').click()
+      cy.get('@dropdown').find(menu).should('be.visible')
       cy.get('@t').should('have.attr', 'aria-expanded', 'true')
-      cy.get(cssDropdown).first().find(menu).should('be.visible')
+
+      cy.get('@dropdown').click('topLeft')
+      cy.get('@dropdown').find(menu).should('not.be.visible')
+      cy.get('@t').should('have.attr', 'aria-expanded', 'false')
+      cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+    })
+
+    // With `:focus-within` the menu was open from the `mousedown`, and the rich text editor's
+    // link panel focuses its input from a click action on the trigger.
+    it('is open by the time a click action on the trigger runs', () => {
+      cy.get(cssDropdown).first().as('dropdown')
+      cy.get('@dropdown').find(trigger).then(($t) => {
+        const panel = $t[0].parentElement.querySelector(menu)
+        $t[0].addEventListener('click', () => {
+          $t[0].dataset.menuDisplay = $t[0].ownerDocument.defaultView.getComputedStyle(panel).display
+        })
+      })
+
+      cy.get('@dropdown').find(trigger).click()
+
+      cy.get('@dropdown').find(trigger).should(($t) => {
+        expect($t[0].dataset.menuDisplay, 'menu display seen by the click action')
+          .to.exist.and.not.equal('none')
+      })
+    })
+
+    it('closes when the focus leaves it', () => {
+      cy.get(cssDropdown).first().find(trigger).focus()
+      press('Enter')
+      cy.focused().should('contain', 'Item 1')
+
+      cy.get('.dropdown-hover').find(trigger).focus()
+
+      // `display`, not `not.be.visible`: with the close on focus-out taken out, that assertion
+      // still passed on this menu, open at `display: flex`.
+      cy.get(cssDropdown).first().find(menu).should(($menu) => {
+        expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
+      })
+      cy.get(cssDropdown).first().find(trigger).should('have.attr', 'aria-expanded', 'false')
     })
 
     it('walks the items with the arrow keys', () => {
@@ -161,6 +223,48 @@ describe('DropdownController', () => {
           const contained = popper.top >= box.top && popper.bottom <= box.bottom &&
                             popper.left >= box.left && popper.right <= box.right
           expect(contained, 'menu rect fits inside the scroll box').to.eq(false)
+        })
+      })
+    })
+  })
+
+  // #1231: daisyUI anchors the panel to one edge of the trigger and never looks at the screen.
+  // The page ⋯ is `align: :end`; below `sm` its row wraps and the trigger lands at the left of
+  // it (IndexPage) or mid-row (ShowPage, after three actions), where its w-80 menu opened at
+  // x = −216 and x = −120.
+  context('inside the viewport', () => {
+    const pageMenu = '[data-controller~="export-links"]'
+
+    const expectOnScreen = ($menu) => {
+      expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
+      const { left, right } = $menu[0].getBoundingClientRect()
+      expect(left, 'left edge').to.be.at.least(0)
+      expect(right, 'right edge').to.be.at.most($menu[0].ownerDocument.documentElement.clientWidth)
+    }
+
+    ;[390, 1280].forEach((width) => {
+      context(`at ${width}px`, () => {
+        beforeEach(() => cy.viewport(width, 800))
+
+        ;[
+          ['/bali/index_page/with_secondary_actions', 'IndexPage'],
+          ['/bali/show_page/with_secondary_actions', 'ShowPage']
+        ].forEach(([path, page]) => {
+          it(`opens the ${page} ⋯ menu on screen`, () => {
+            cy.visit(path)
+            cy.get(`${pageMenu} ${trigger}`).click()
+
+            cy.get(`${pageMenu} ${menu}`).should('be.visible').and(expectOnScreen)
+          })
+        })
+
+        ;['#viewport-edge-end', '#viewport-edge-start'].forEach((dropdown) => {
+          it(`opens ${dropdown} on screen`, () => {
+            cy.visit('/bali/dropdown/alignments')
+            cy.get(`${dropdown} ${trigger}`).click()
+
+            cy.get(`${dropdown} ${menu}`).should('be.visible').and(expectOnScreen)
+          })
         })
       })
     })

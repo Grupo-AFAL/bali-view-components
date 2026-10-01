@@ -19,13 +19,14 @@ describe('Topbar::UserMenu', () => {
     cy.get('@t').should('have.attr', 'aria-expanded', 'false')
 
     cy.get('@t').focus()
-    cy.get('@t').should('have.attr', 'aria-expanded', 'true')
-    cy.get(userMenu).first().find(menu).should('be.visible')
+    cy.get('@t').should('have.attr', 'aria-expanded', 'false')
 
     // The name/email header is role="presentation": the first ArrowDown must land on
     // the first actionable item, not on the identity block.
     press('ArrowDown')
     cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Profile')
+    cy.get(userMenu).first().find(menu).should('be.visible')
+    cy.get('@t').should('have.attr', 'aria-expanded', 'true')
 
     press('Escape')
     cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
