@@ -1,0 +1,38 @@
+<div class="year-grid grid <%= month_size_class %> gap-4">
+  <% months.each do |month| %>
+    <div class="year-month">
+      <%# Not `justify-between`: at 1440px (328px columns) it parked the badge 280px
+          from its own title, against the next month's heading. %>
+      <div class="flex items-baseline gap-2 mb-2">
+        <h4 class="font-semibold text-base-content"><%= month_name(month) %></h4>
+        <% summary = month_summary_for(month) %>
+        <% if summary.present? %>
+          <%= render Bali::Tag::Component.new(text: summary, color: :ghost, size: :sm) %>
+        <% end %>
+      </div>
+
+      <div class="year-month-grid grid grid-cols-7 gap-0.5">
+        <%# aria-hidden: every cell carries its full date (aria-label or `<time datetime>`).
+            `/70`: at 10px `/50` composited to 3.05:1 on `afal`; `/70` is 5.54:1 there. %>
+        <% weekday_initials.each do |initial| %>
+          <div class="year-weekday text-center text-[0.625rem] text-base-content/70" aria-hidden="true"><%= initial %></div>
+        <% end %>
+
+        <% month_days(month).each do |day| %>
+          <% if day.nil? %>
+            <div class="year-blank aspect-square" aria-hidden="true"></div>
+          <% elsif hover?(day) %>
+            <%# w-full beats hover_card/index.css's `w-max` — that sheet is in
+                @layer components and this is a utility. %>
+            <%= render Bali::HoverCard::Component.new(placement: "top", class: "w-full") do |card| %>
+              <% card.with_trigger { day_cell(day) } %>
+              <%= render template, events: events_on(day), period: :year, day: day %>
+            <% end %>
+          <% else %>
+            <%= day_cell(day) %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
