@@ -420,8 +420,13 @@ removes **its** value and leaves the others alone:
 ```
 
 ```ruby
-@genres = Array(params.dig(:q, :genre_in)) & Movie::GENRES
+genres = params[:q][:genre_in] if params[:q].is_a?(ActionController::Parameters)
+@genres = Array(genres) & Movie::GENRES
 ```
+
+Not `params.dig(:q, :genre_in)`: `q` comes straight from the URL, and `?q=x` or
+`?q[]=x` makes it a String or an Array, which `dig` raises on — a 500 anyone can
+type into the address bar. The pills already treat such a `q` as no filter at all.
 
 ### What the URLs keep, and what they drop
 

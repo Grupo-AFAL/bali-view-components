@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::IsoDate.parse(value)`** (#1211): una fecha `AAAA-MM-DD` leída de fuera —un param,
+  un payload— o `nil`. `Date.iso8601` solo no es eso: lee `"2026-09"` como el día 1,
+  `"20260910"`, `"2026-253"` y `"2026-W37-4"` como fechas, y a `"2026-09-10T23:59:00-07:00"` le
+  tira la hora. La regla vivía encerrada en `Gantt::Data` (`ISO_DATE`, que se retira) y
+  centinela-web la acababa de reescribir carácter por carácter. La usan ahora `Gantt::Data` —que
+  sigue levantando `InvalidError` con su contexto— y `MonthValue`; la implementación de
+  referencia del Gantt en la dummy (`Admin::Projects::SchedulesController`) aceptaba
+  `starts_on: "2026-09"` y movía la tarea al día 1, y ahora responde 422.
+
+- **`radio-toggle` cubre los tres casos por los que afal-apps escribió dos controladores
+  propios** (#1214):
+  - **Un target que llega después** —un Turbo Stream que lo reemplaza— toma la visibilidad del
+    radio en pantalla, no la que pintó el servidor.
+  - **`data-radio-toggle-disable-hidden-value="true"`** deshabilita cada target oculto, que tiene
+    que ser un `<fieldset>`: el formulario no manda sus campos, conservan su propio `disabled` y
+    el archivo elegido, y lo que un stream le agregue después queda cubierto.
+  - **`+` une condiciones**: `damaged+serial_unknown` exige el radio y una casilla marcada con ese
+    `value`, declarada como target `checkbox` que dispara `radio-toggle#change`. El checkbox del
+    FormBuilder manda `"1"`, así que lleva `checked_value: "serial_unknown"`.
+
+  Lo de hoy no cambia (`current`, valores con coma, la clase `hidden`), salvo que `+` pasa a ser
+  carácter reservado en los valores. Preview nuevo en `bali/radio_toggle`. **afal-apps** puede
+  pasar sus dos vistas a `radio-toggle` y borrar `terminals/census_item_controller.js` y
+  `terminals/reported_photos_controller.js`.
+
 - **`with_column(key:)` en el selector de columnas del `DataTable`** (#1213). Con llave, la
   memoria del dispositivo y las vistas guardadas nombran la columna por su llave y no por su
   posición, así que insertar una columna en medio ya no corre las preferencias a la vecina.
@@ -22,6 +47,131 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   guardada por posición se sigue leyendo por posición mientras nadie la vuelva a guardar. La
   columna nueva, en el release siguiente. Así se evita el cambio de `id:` que afal-apps tuvo
   que hacer en #772. Listados a revisar: `git grep -n "with_column(index" origin/main -- app/views`.
+
+### Changed
+
+- **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
+  son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
+  `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
+  no estaba en ella, carga igual en un anfitrión: medido en una app Rails 8.1.4 nueva, en
+  desarrollo y en producción con `eager_load!`— y su comentario afirmaba lo contrario. Sin
+  efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
+  nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
+
+### Removed
+
+- **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
+  del panel de Mission Control Jobs, que Flightdeck reemplazó en toda la flota: ninguna app la
+  pasa (`git grep -n "key: :mission_control" origin/main -- app` da cero en las siete). Una app que
+  todavía la usara no truena: el menú cae a `humanize` y muestra «Mission control» en vez de
+  «Panel de trabajos». **Anfitrión:** si apareces en ese `git grep`, cambia la clave a
+  `:flightdeck` o pasa `name:`.
+
+### Fixed
+
+- **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
+  (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,
+  2.92–4.74:1 contra el 4.5 que pide un texto de 12px. Ahora hereda el color de la pastilla
+  (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
+  anfitrión.
+
+- **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
+  (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
+  (`?q[]=x`) dejaba un `String` o un `Array` donde la pastilla escribe `q[...]`, y la escritura
+  levantaba. Ahora ese `q` se trata como sin filtro y la pastilla enlaza a
+  `?q[genre_in][]=…`. Lo mismo arreglado en el preview `structured_list` y en `/split-view` de
+  la dummy, y las guías dejan de enseñar `params.dig(:q, …)`, que revienta igual:
+  `master-detail.md` para las pastillas, y el valor de búsqueda de `Filters` / `SimpleFilters` en
+  `components.md` y `migration-v2-to-v3.md`. **Anfitrión:** si copiaste ese `dig` de alguna
+  guía, cámbialo por la forma nueva: `git grep -n "dig(:q" origin/main -- app`.
+
+- **`Bali::Types::MonthValue` levantaba al asignar** (#1209): `"zzz"` daba `Date::Error`,
+  `["2026-09"]` (`?q[mes][]=…`) `TypeError`, y hasta un `Date` levantaba `TypeError`. Como el
+  cast corre en la asignación, ninguna validación podía atajarlo: era un 500 desde la URL. Ahora
+  lo que no puede leer es `nil`, un `Date` pasa tal cual, un `Time` o `DateTime` da su fecha, y
+  `serialize` escribe lo mismo que `cast` leería —`nil` en vez de la basura o de `""`—.
+  `"2022-08"` sigue siendo el 1 de agosto. **Ahora sólo lee `AAAA-MM` y `AAAA-MM-DD`**: lo demás
+  que `Date.parse` aceptaba (`"2022/08/15"`, `"15 Aug 2022"`) queda en `nil`. Con PostgreSQL y
+  `load_defaults` ≥ 7.2, que entrega un `Date` o un `Time` al leer, el registro ya no levanta al
+  cargarse.
+
+- **Salir con Turbo de una página con `BlockEditor` y comentarios lanzaba `NotFoundError:
+  removeChild`** (#1212, el `GOBIERNO-CORPORATIVO-3V` de Sentry). BlockNote pone un `<style>`
+  vacío en el `<head>` por editor —cada comentario es un editor— y lo quita al destruirse; la
+  fusión de `<head>` de Turbo borraba antes todos menos uno por idénticos, y la destrucción de
+  cada editor de comentario reventaba a medias. Medido en un documento con 16 hilos: 18 de 19
+  estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
+  los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
+
+### Dependencies
+
+- **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
+  parser con el que StandardJS lee el JS del repo; `yarn standard` sigue limpio con él.
+
+- **Dos alertas de dependabot sobre dependencias transitivas, sólo de desarrollo y de la
+  dummy.** `js-yaml` 5.2.2 → 5.4.2 en la raíz (moderada: `maxTotalMergeKeys` no acotaba el CPU
+  con fuentes de merge vacías), subiendo su `resolutions` a `>=5.4.1`. Y
+  `@ai-sdk/provider-utils` 4.0.19 → 4.0.56 en `test/dummy` (baja: consumo de recursos sin
+  límite), re-resolviendo `ai` (6.0.116 → 6.0.297) y los `@ai-sdk/*` dentro de los rangos que
+  ya declara la dummy. Nada llega a un anfitrión: ninguno de los dos es dependencia del
+  paquete, y `resolutions` sólo rige la instalación de este repo.
+
+## [v3.6.0] - 2026-09-30
+
+### Added
+
+- **`Bali::Calendar::Component` gana la vista de año: `period: :year`.** Doce meses en
+  miniatura como mapa de densidad: un día sin eventos se apaga y un día con eventos toma
+  el color que devuelva el anfitrión. Tres lambdas opcionales, todas admiten `nil`:
+  `day_url` (enlace del día; `nil` = sin enlace), `day_variant` (un nombre de
+  `Bali::Color::NAMES`, un solo color por día; un día con varios eventos suma el punto
+  `has-multiple`) y `month_summary` (texto junto al nombre del mes). El partial
+  `template:` de la vista de mes se reusa dentro del hover card de cada día con eventos,
+  con los mismos locals, y sólo esos días montan tippy. `weekdays_only` se ignora en
+  `:year`. En celular se pinta la misma retícula en una columna. Un día con tarjeta y sin
+  `day_url` toma foco (`tabindex="0"`) y anuncia la fecha completa: la tarjeta abre con
+  `focusin`, así que sin tab stop sus eventos sólo existían para el mouse. El número del día
+  sin eventos y las iniciales de la semana van en `text-base-content/70`: compuestos sobre el
+  fondo, `/40` y `/50` medían 2.36:1 y 3.05:1 en `afal`; `/70` mide 5.54:1 en el peor tema.
+  Sin tocar `period:` nada cambia: a 1440px el diff pixel a pixel contra v3.5.0 da 0 píxeles.
+
+- **`month_size:` fija el tamaño de cada mes** — `:xs`, `:sm`, `:md` (default), `:lg`,
+  `:xl` — y el contenedor decide cuántos caben por fila (`auto-fit`, no breakpoints). En un
+  contenedor con sidebar (~1060px a 1440) `:md` da 3 por fila y `:sm` 4. Un nivel
+  desconocido levanta `ArgumentError`.
+
+- **La celda del día se pinta suave en reposo y sólida bajo el puntero.** El número va en
+  `base-content`, no en el color como `badge-soft`: en tema claro ese texto mide 1.59:1 en
+  `warning` (AA pide 4.5); `base-content` sobre el tinte mide 9.25:1 en el peor caso. En
+  táctil no hay hover, así que el tinte es lo único que se ve.
+
+- **`period_switch:` del header acepta un arreglo.** `true` sigue siendo exactamente
+  `%i[week month]`; quien quiera el botón de año lo pide: `period_switch: %i[month year]`.
+  Traducciones nuevas `year`/`day` en `bali_view.calendar.header` (es y en).
+
+- **`min_date:`/`max_date:` en el header.** La flecha cuyo destino queda fuera del rango se
+  dibuja deshabilitada (`btn-disabled`, sin `href`, `aria-disabled="true"`), no se quita:
+  quitarla mueve el título 25px. El límite es inclusivo sobre el periodo. Sin ellos, nada
+  cambia.
+
+- **`drop_params:` en el header.** La query string de `route_path` viaja a todos los enlaces
+  del header; una llave del anfitrión que depende de la fecha (`year=2026` junto a
+  `date=2027-01-01`) se nombra en `drop_params: %i[year]`. Por default no se descarta nada.
+
+- **Tres notas de uso, en YARD y en la guía**: dentro de las lambdas `t('.x')` resuelve
+  contra el scope del componente, así que va la llave completa; en táctil un tap sobre un
+  día con `day_url` navega y el hover no abre, así que el destino debe alcanzar los eventos;
+  y en contenedores angostos conviene `:sm`.
+
+### Dependencies
+
+- **daisyUI 5.7.42 → 5.7.47** en `test/dummy/package.json`. El peer `daisyui: ">=5.7.0"` no se
+  mueve y `tailwindcss-rails` 4.6.0 / `tailwindcss-ruby` 4.3.3 ya eran las últimas. Para un
+  anfitrión la pantalla no cambia: los 601 previews en claro y oscuro, misma DOM con sólo la hoja
+  compilada sustituida, dan 1166 de 1202 capturas idénticas píxel a píxel y las otras 36 difieren
+  en ≤146 px de antialiasing (esquinas redondeadas, el thumb del `range`). El único cambio de
+  selector que alcanza a Bali —`.btn-disabled` ahora sólo aplica junto a `.btn`— no pierde
+  ningún caso: cada sitio que la emite, en Ruby y en JS, la pone sobre un `.btn`.
 
 ## [v3.5.0] - 2026-09-20
 

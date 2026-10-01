@@ -1,5 +1,29 @@
 import { ReactIslandController } from '../../../frontend/bali/react-island'
 
+// BlockNote appends an EMPTY <style> per editor to the head (its rules go in
+// through insertRule) and takes it out with `head.removeChild`. Turbo's head
+// merge drops all but the first of identical head elements, so every other
+// editor's teardown threw NotFoundError half way through `destroyPluginViews`
+// (#1212). Naming each style after its editor keeps them distinct; it has to
+// happen on insertion, because Turbo reads the head before `turbo:before-render`.
+// Delete once BlockNote's Placeholder removes its style with `style.remove()`.
+const PLACEHOLDER_SELECTOR = /^\.(placeholder-selector-[\w-]+)/
+
+const namePlaceholderStyle = (node) => {
+  if (node.localName !== 'style' || node.dataset.baliPlaceholderStyle) return
+
+  try {
+    const owner = node.sheet?.cssRules[0]?.selectorText?.match(PLACEHOLDER_SELECTOR)
+    if (owner) node.dataset.baliPlaceholderStyle = owner[1]
+  } catch { /* a sheet the page cannot read is not one of these */ }
+}
+
+// Observing a node this observer already watches replaces its options rather
+// than adding a second registration, so every editor can call `observe`.
+const placeholderStyles = new MutationObserver((mutations) => {
+  for (const { addedNodes } of mutations) addedNodes.forEach(namePlaceholderStyle)
+})
+
 // The block editor is the island the react-island base was extracted FROM
 // (#703), so it is also the proof the base carries its weight: everything this
 // controller used to spell out — the `_disconnected` guard, createRoot over an
@@ -65,6 +89,8 @@ export class BlockEditorController extends ReactIslandController {
   }
 
   async loadComponent () {
+    placeholderStyles.observe(document.head, { childList: true })
+
     const [react, reactDom, { default: Component }] = await Promise.all([
       import('react'),
       import('react-dom/client'),
@@ -201,13 +227,10 @@ export class BlockEditorController extends ReactIslandController {
     }
     this._flush = null
 
-    // Destroy the tiptap/ProseMirror editor BEFORE React unmount.
-    // ProseMirror plugins (e.g. Placeholder) remove DOM nodes during destroy —
-    // if Turbo has already detached the tree, removeChild throws.
-    // Destroying while DOM is still attached prevents the error.
-    if (this.blockNoteEditor?._tiptapEditor) {
-      try { this.blockNoteEditor._tiptapEditor.destroy() } catch { /* noop */ }
-    }
+    // Destroy the tiptap/ProseMirror editor BEFORE React unmount, while the
+    // island's DOM is still attached. A failure here reaches the base, which
+    // logs it: swallowing it is what hid #1212 for the main editor.
+    this.blockNoteEditor?._tiptapEditor?.destroy()
     this.blockNoteEditor = null
   }
 
