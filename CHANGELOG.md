@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
+  del panel de Mission Control Jobs, que Flightdeck reemplazó en toda la flota: ninguna app la
+  pasa (`git grep -n "key: :mission_control" origin/main -- app` da cero en las siete). Una app que
+  todavía la usara no truena: el menú cae a `humanize` y muestra «Mission control» en vez de
+  «Panel de trabajos». **Anfitrión:** si apareces en ese `git grep`, cambia la clave a
+  `:flightdeck` o pasa `name:`.
+
 ### Dependencies
 
 - **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
