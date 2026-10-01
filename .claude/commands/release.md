@@ -1,8 +1,8 @@
 # Release Command
 
 Cuts a release of Bali (one git tag, two packages: the gem and the npm package) through a
-**release PR**, the way v3.3.1, v3.4.0 and v3.5.0 were cut. Nothing is pushed to `main`
-directly, and no hook is skipped. The procedure and its reasons live in
+**release PR**, the way v3.3.1, v3.4.0 and v3.5.0 were cut — or tags one whose bump rode in a
+feature PR, like v3.6.0. Nothing is pushed to `main` directly, and no hook is skipped. The procedure and its reasons live in
 `docs/guides/release-channels.md` (§ Cutting a release, § Host steps); this command is the
 checklist.
 
@@ -27,8 +27,9 @@ git tag -l "v*" --sort=-v:refname | head -3
 sed -n '1,15p' CHANGELOG.md
 ```
 
-If the version is already bumped in all six files and its tag does not exist, skip to
-step 5 (tag and release).
+If the version is already bumped in all six files and its tag does not exist, the release
+is step 5 alone, on the merge commit of the PR that brought the bump. Whatever sits under
+`[Unreleased]` after that merge belongs to the next release.
 
 ## 1. Choose the version
 
@@ -37,8 +38,7 @@ section decide it:
 
 - **patch** — fixes, docs, dependency bumps.
 - **minor** — new components, new options, deprecations (not removals).
-- **major** — a removed or renamed public API, a markup change a host selector can depend on,
-  a raised Ruby/Rails/daisyUI floor.
+- **major** — a removed or renamed public API, a raised Ruby/Rails/daisyUI floor.
 
 ## 2. Bump the six files on `release/vX.Y.Z`
 
@@ -56,8 +56,10 @@ git checkout -b release/vX.Y.Z
 | `CHANGELOG.md` | `## [Unreleased]` → `## [vX.Y.Z] - YYYY-MM-DD`; merge repeated `###` headings; leave an empty `## [Unreleased]` on top |
 
 Before touching the CHANGELOG, check that every entry since the last tag landed under
-`[Unreleased]` and not inside an already-published version:
-`git show <commit> -- CHANGELOG.md | grep '^@@'` for each commit since the tag.
+`[Unreleased]` and not inside an already-published version: the hunks of
+`git diff -U0 $(git describe --tags --abbrev=0) origin/main -- CHANGELOG.md | grep '^@@'`
+should all sit above the first `grep -n '^## \[v' CHANGELOG.md` (dated notes added on
+purpose to a released entry are the exception).
 
 ## 3. Verify
 
@@ -79,18 +81,17 @@ In Spanish, with these sections:
    > Estos pasos cubren una app en **vA.B.C**. Si vienes de más atrás, aplica también, de la
    > más vieja a la más nueva: [vA.B.C](…), […].
 
-   List every release since the oldest version an app of the group is still on. Each step
-   cites its CHANGELOG line and carries the exact `git grep … origin/main -- <glob>` that
-   measures it — the glob is part of the measurement (`app` vs `app/views` counted 23 vs 21
-   views in the same app).
+   List every release since the oldest version an app of the group is still on, oldest
+   first, with absolute links. Each step cites its CHANGELOG line and carries the exact
+   `git grep … origin/main -- <glob>` that measures it (see § Host steps in the guide).
 3. **Cambios del release** — the six files.
 4. **Verificación** — the commands above, with their numbers.
 
 ## 5. After the merge: tag and publish
 
 ```bash
-git checkout main && git pull --ff-only
-git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z
+sha=$(gh api repos/Grupo-AFAL/bali-view-components/pulls/<N> --jq .merge_commit_sha)
+git fetch origin && git tag -a vX.Y.Z "$sha" -m "Release vX.Y.Z" && git push origin vX.Y.Z
 gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <notes> --verify-tag
 ```
 
@@ -104,8 +105,9 @@ gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "vX.
 "bali-view-components": "github:Grupo-AFAL/bali-view-components#vX.Y.Z"
 ```
 
-Tag right after the merge: until then the install pins in `main` name a ref that does not
-exist. `gh release list` goes through GraphQL and can hit its rate limit; `gh release create`
+Tag the merge commit of the PR that brought the bump, not `main`'s HEAD, which may carry
+later work. Tag right after the merge: until then the install pins in `main` name a ref that
+does not exist. `gh release list` goes through GraphQL and can hit its rate limit; `gh release create`
 and `gh api repos/Grupo-AFAL/bali-view-components/releases` are REST.
 
 ## Errors worth knowing

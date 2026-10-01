@@ -8,7 +8,7 @@ One line is maintained today:
 
 | Channel | Branch | Tags | For |
 |---|---|---|---|
-| **Stable (v3)** | `main` | `v3.MINOR.PATCH` — the newest is `git tag --sort=-v:refname \| head -1` | Every app in production |
+| **Stable (v3)** | `main` | `v3.MINOR.PATCH` — the newest is `gh api repos/Grupo-AFAL/bali-view-components/releases/latest --jq .tag_name` | Every app in production |
 
 When the next line of work opens (its branch named after the version it targets), it gets
 a **Next** row here, its branch joins the CI filters, and it ships `beta.N` tags until its
@@ -61,8 +61,8 @@ tests. Only a host can hit it.
 # Stable
 gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.0.0"
 
-# Early v3.1
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.1.0.beta.1"
+# Early access to the next line, when one is open
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v4.0.0.beta.1"
 ```
 
 Tracking `branch: "main"` looks convenient and is the thing that bites: `bundle update`
@@ -84,17 +84,24 @@ one-line, reviewable diff in the `Gemfile.lock`.
 
 ## CI covers both lines
 
-Every workflow triggers on `push` and `pull_request` for **both** `main` and `3.1`. It has to:
-a pre-release tag cut from a branch nothing verified is worse than no pre-release at all.
+While a next line is open, every workflow triggers on `push` and `pull_request` for **both**
+`main` and that line's branch. It has to: a pre-release tag cut from a branch nothing verified
+is worse than no pre-release at all.
 
-Note the quotes in `branches: [main, "3.1"]` — unquoted, YAML parses `3.1` as the number
-`3.1` and the filter silently never matches. The `"3.1"` still in the filters is left over
-from that line; it is the slot the next line's branch takes.
+Quote the branch in the filter — `branches: [main, "4.0"]`. Unquoted, YAML parses `4.0` as a
+number and the filter silently never matches.
 
 ## Cutting a release
 
-A release goes through a **release PR** off `main`, the same way every other change does.
-v3.3.1, v3.4.0 and v3.5.0 were cut like this; nothing is pushed to `main` directly.
+A release is a PR that bumps the version — nothing is pushed to `main` directly. It comes one
+of two ways:
+
+- **A release PR** off `main` that only cuts the version: v3.3.1, v3.4.0, v3.5.0.
+- **The bump riding in a feature PR**, with its own CHANGELOG section: v3.2.0 (#1108),
+  v3.3.0 (#1112), v3.6.0 (#1115). Then the release is only step 4, and whatever sits under
+  `[Unreleased]` after that merge belongs to the next release.
+
+For a release PR:
 
 1. Branch `release/vX.Y.Z` from `main`.
 2. Bump the version in **six files**, in one commit:
@@ -108,9 +115,11 @@ v3.3.1, v3.4.0 and v3.5.0 were cut like this; nothing is pushed to `main` direct
    | `docs/guides/installation.md` | the `tag:` and the console transcript `=> "X.Y.Z"` |
    | `CHANGELOG.md` | `## [Unreleased]` becomes `## [vX.Y.Z] - YYYY-MM-DD`, repeated `###` headings merged |
 
-   The last three are not optional. `BaliDependencyContractTest#test_the_install_instructions_pin_this_version`
-   compares the three install pins against `Bali::VERSION` and fails the suite when they
-   disagree — the README sat on `v3.1.0.beta.13` for four releases before it existed.
+   `README.md` and `installation.md` are not optional:
+   `BaliDependencyContractTest#test_the_install_instructions_pin_this_version` compares their
+   three install pins — two `tag:` and the console transcript — against `Bali::VERSION`, and
+   fails the suite when they disagree. The README sat on `v3.1.0.beta.13` for four releases
+   before it existed.
 
    The lock goes in the same commit because it records the PATH gem's version and CI bundles
    with a frozen lock: a bump without it fails every Ruby workflow with exit 16 at
@@ -120,10 +129,12 @@ v3.3.1, v3.4.0 and v3.5.0 were cut like this; nothing is pushed to `main` direct
    this repo's lock.
 3. Run the suite (`bin/rails test`) and open the PR. Its body carries the host steps — see
    [Host steps](#host-steps) below.
-4. After the merge, tag the merge commit and publish the GitHub Release:
+4. After the merge, tag the merge commit of the PR that brought the bump — not `main`'s
+   HEAD, which may already carry later work — and publish the GitHub Release:
 
    ```sh
-   git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z
+   sha=$(gh api repos/Grupo-AFAL/bali-view-components/pulls/<N> --jq .merge_commit_sha)
+   git fetch origin && git tag -a vX.Y.Z "$sha" -m "Release vX.Y.Z" && git push origin vX.Y.Z
    gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <notes> --verify-tag
    ```
 
@@ -144,14 +155,16 @@ interpret (#1207):
 - **Every step carries the exact `git grep` that measures it, with its glob.** "23 views" is
   not reproducible; `git grep -l with_saved_views origin/main -- app/views` is, and the glob
   is load-bearing: the same search over `app` counted concerns and controllers too, and gave
-  23 where the views were 21. Measure against `origin/main`, never the working tree — the
-  checkouts in `~/code` sit on old branches.
+  23 where the views were 21. `git fetch` first and measure against `origin/main`, never the
+  working tree: local checkouts sit on old branches.
 - **The release PR says which versions its steps cover, and what else to read.** Open its
   host-steps section with a block like this one, listing every release since the oldest
-  version an app of the group is still on:
+  version an app of the group is still on —
+  `git show origin/main:Gemfile.lock | grep -A3 Grupo-AFAL/bali-view-components` in each app
+  gives its `tag:`. Absolute links, because the block is pasted into a PR body:
 
   > These steps cover an app on **v3.4.0**. Coming from further back, apply these too, oldest
-  > first: [v3.4.0](../../CHANGELOG.md#v340---2026-09-17), [v3.3.1](../../CHANGELOG.md#v331---2026-09-14).
+  > first: [v3.3.1](https://github.com/Grupo-AFAL/bali-view-components/blob/main/CHANGELOG.md#v331---2026-09-14), [v3.4.0](https://github.com/Grupo-AFAL/bali-view-components/blob/main/CHANGELOG.md#v340---2026-09-17).
 
   An app that skips versions needs every intermediate release's steps, and nothing else
   tells it so: in the v3.5.0 rollout, three of the eight apps declared a complete sweep that
@@ -217,6 +230,6 @@ Five details are load-bearing, all of them learned the expensive way.
 
 ## The CHANGELOG will conflict
 
-Both lines write under `## [Unreleased]`, so every `main` → `3.1` merge conflicts there. It is
-mechanical: keep both sets of entries, the v3.1 ones under their own `## [Unreleased]` heading
-on the `3.1` branch. Nothing else in the file moves.
+Both lines write under `## [Unreleased]`, so every `main` → next-line merge conflicts there. It
+is mechanical: keep both sets of entries, the next line's under its own `## [Unreleased]`
+heading on its branch. Nothing else in the file moves.
