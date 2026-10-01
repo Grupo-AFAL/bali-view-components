@@ -48,6 +48,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   columna nueva, en el release siguiente. Así se evita el cambio de `id:` que afal-apps tuvo
   que hacer en #772. Listados a revisar: `git grep -n "with_column(index" origin/main -- app/views`.
 
+- **`secondary_actions_width:` y `secondary_actions_label:` en los cinco page components**
+  (#1230). El menú ⋯ era siempre `w-52` y su disparador siempre «Más acciones»; ahora la página
+  elige el ancho en la escala de `Bali::Dropdown` y el rótulo. Sin ellos nada cambia.
+  **gobierno-corporativo** puede devolverle a `governing_bodies/calendars/index.html.erb` el
+  ancho y el «Más acciones del calendario» que perdió al pasar a `with_secondary_action` (su #1224).
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
@@ -68,6 +74,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `:flightdeck` o pasa `name:`.
 
 ### Fixed
+
+- **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
+  (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —las
+  teclas llevan el foco al primer ítem— y lo cierra lo de antes: Escape, un clic fuera o que el
+  foco salga. `hoverable:` sigue abriéndose también al enfocarlo. Y al abrirse, un menú que
+  cruza el borde de la pantalla se corre adentro: el ⋯ de las páginas abría en x = −104 a 390 px.
+  Sin nada que hacer en el anfitrión.
 
 - **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
   (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,

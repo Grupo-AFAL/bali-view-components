@@ -1120,11 +1120,18 @@ on the same page with a matching `id:` and `shared: false` (a drawer with `drawe
 `shared: false`), so it only ever answers by name. See
 [Overlays and the top layer](overlays-and-the-top-layer.md) for the full contract.
 
-**Keyboard**, and it is the same in both modes. Tab reaches the trigger, Enter or Space
-opens it, `↓` / `↑` walk the items, Escape closes it and puts the focus back on the trigger,
-and `aria-expanded` follows what is on screen rather than the path that got there — daisyUI
-opens the CSS dropdown from `:focus-within` without any JavaScript running, so an attribute
-set by hand goes stale the moment somebody uses a mouse.
+**Keyboard**, and it is the same in both modes. Tab reaches the trigger without opening it.
+A click opens it; Enter, Space or `↓` open it and move the focus to the first item (`↑` to the
+last), and the arrows walk the items. Escape closes it and puts the focus back on the trigger;
+a click outside or the focus leaving closes it too. `hoverable:` is the exception: daisyUI's CSS
+still opens it on hover and on focus. `aria-expanded` follows what is on screen rather than the
+path that got there.
+
+**Position.** daisyUI places the menu against the trigger and nothing else, so an `align: :end`
+trigger that wrapped to the left of a phone opened its menu off screen (#1231). When the
+controller opens a menu that crosses an edge of the viewport, it nudges it back inside, 5px from
+the edge — what tippy already does in popover mode. A `hoverable:` menu opened by the pointer is
+left where daisyUI puts it.
 
 #### ActionsDropdown
 
@@ -4953,6 +4960,10 @@ one adds.
   the level. The default `nil` lets `context` decide: `h1` on a page, `h2` inside a drawer,
   because the page underneath keeps the document's `h1`. An explicit value always wins; an
   unknown one raises `ArgumentError`.
+- `secondary_actions_width` - Width of the `⋯` menu, on `Bali::Dropdown`'s scale: `:sm`
+  (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
+- `secondary_actions_label` - Accessible name of the `⋯` trigger, which shows only an icon
+  (default: `bali_view.page_components.secondary_actions.button_label`, "More actions")
 
 **Slots:**
 - `with_action` (many) - Primary actions, top right
@@ -5190,6 +5201,23 @@ deserve a button of its own — export, import, print.
 `Bali::Dropdown#with_item` (`href:`, `icon:`, `method:`, `tag: :link | :button |
 :title`, `authorized:`), because it *is* an item of that dropdown. The `⋯` is not rendered
 when nothing is declared — a button that opens an empty menu is a bug.
+
+The menu is `w-52` and its trigger is called "More actions" unless the page says otherwise.
+Widen it when the items are sentences, and name what they act on when "more actions" alone
+does not say (#1230):
+
+```erb
+<%= render Bali::IndexPage::Component.new(
+  title: 'Session calendars',
+  secondary_actions_width: :xl,
+  secondary_actions_label: 'More calendar actions'
+) do |page| %>
+  <% page.with_secondary_action(name: 'View approval flow', icon: 'eye',
+                                href: '/calendars/2026/approval_flow') %>
+  <% page.with_secondary_action(name: 'Publish 4 pending or failed notices', icon: 'send',
+                                href: '/calendars/2026/notices', method: :post) %>
+<% end %>
+```
 
 **`with_export(url:, formats: %i[csv excel pdf], params: nil)`** renders a section titled
 *Export filtered* with one item per format. The name is a promise the links keep: each href
