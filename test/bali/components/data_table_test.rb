@@ -808,6 +808,109 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("[data-column-selector-server-state-value='true']", visible: :all)
   end
 
+  def render_selector_with_view(columns, &declare)
+    view = SavedView.new(id: 1, name: "View", payload: { "attributes" => {}, "columns" => columns })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      storage_id: "movies_index", saved_views_store: SavedViewsStore.new([ view ])
+    )
+
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_column_selector(&declare)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+  end
+
+  def assert_column_checked(key)
+    assert_selector("input[data-column-key='#{key}'][checked]", visible: :all)
+  end
+
+  def assert_column_unchecked(key)
+    assert_selector("input[data-column-key='#{key}']:not([checked])", visible: :all)
+  end
+
+  def test_a_column_key_reaches_the_checkbox
+    render_selector_with_view([ "name" ]) { |cs| cs.with_column(index: 0, label: "Name", key: :name) }
+
+    assert_selector("input[data-column-index='0'][data-column-key='name']", visible: :all)
+  end
+
+  # The case of #1213: a column inserted in the middle moves every index after it. A view that
+  # names its columns by key still hides the one it hid.
+  def test_a_view_saved_by_key_survives_a_column_inserted_before_it
+    render_selector_with_view([ "name", "created" ]) do |cs|
+      cs.with_column(index: 0, label: "Name", key: :name)
+      cs.with_column(index: 1, label: "Inserted later", key: :region)
+      cs.with_column(index: 2, label: "Genre", key: :genre)
+      cs.with_column(index: 3, label: "Created", key: :created)
+    end
+
+    assert_column_checked("name")
+    assert_column_checked("created")
+    assert_column_unchecked("genre")
+    # A view shows exactly what it recorded, and it did not record this one.
+    assert_column_unchecked("region")
+  end
+
+  # Saved before the host declared keys: position is all it can mean.
+  def test_a_view_saved_by_position_is_read_by_position
+    render_selector_with_view([ 0, 2 ]) do |cs|
+      cs.with_column(index: 0, label: "Name", key: :name)
+      cs.with_column(index: 1, label: "Genre", key: :genre)
+      cs.with_column(index: 2, label: "Created", key: :created)
+    end
+
+    assert_column_checked("name")
+    assert_column_unchecked("genre")
+    assert_column_checked("created")
+  end
+
+  def test_a_column_without_a_key_is_named_by_its_index
+    render_selector_with_view([ "name", 1 ]) do |cs|
+      cs.with_column(index: 0, label: "Name", key: :name)
+      cs.with_column(index: 1, label: "Genre")
+      cs.with_column(index: 2, label: "Created", key: :created)
+    end
+
+    assert_column_checked("name")
+    assert_selector("input[data-column-index='1'][checked]", visible: :all)
+    assert_column_unchecked("created")
+  end
+
+  # A payload that came back through a form arrives as strings; "3" is an index, not a key.
+  def test_a_numeric_string_in_a_view_is_an_index
+    render_selector_with_view([ "0" ]) do |cs|
+      cs.with_column(index: 0, label: "Name")
+      cs.with_column(index: 1, label: "Genre")
+    end
+
+    assert_selector("input[data-column-index='0'][checked]", visible: :all)
+    assert_no_selector("input[data-column-index='1'][checked]", visible: :all)
+  end
+
+  def test_column_ids_keep_positions_and_keys_and_drop_the_rest
+    assert_equal [ 3, 0, "name" ],
+                 Bali::DataTable::ColumnSelector::Component.column_ids([ 3, "0", "name", nil, "", "a.b", "2026x" ])
+  end
+
+  def selector = Bali::DataTable::ColumnSelector::Component.new(listing_id: "movies")
+
+  # Digits alone read back as a position; anything outside the JS pattern would be dropped from
+  # the device memory without a word.
+  def test_a_key_the_device_memory_cannot_store_is_refused
+    [ "2026", "client.name", "año", "a" * 65 ].each do |key|
+      assert_raises(ArgumentError, key) { selector.with_column(index: 0, label: "Column", key: key) }
+    end
+  end
+
+  def test_a_repeated_key_is_refused
+    columns = selector
+    columns.with_column(index: 0, label: "Status", key: :status)
+
+    error = assert_raises(ArgumentError) { columns.with_column(index: 1, label: "Copy", key: :status) }
+    assert_match(/duplicate column key "status"/, error.message)
+  end
+
   def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family
     render_full_toolbar
 

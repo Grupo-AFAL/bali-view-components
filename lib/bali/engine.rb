@@ -7,21 +7,6 @@ module Bali
   class Engine < ::Rails::Engine
     isolate_namespace Bali
 
-    # This ASSIGNMENT (not append) is the engine's complete autoload surface in
-    # a host app: any app/ directory missing here resolves to NameError there.
-    # Do not trust the dummy suite to catch an omission — Lookbook pushes engine
-    # dirs into the dummy's autoloader, so constants resolve in this repo that
-    # do not resolve in a real host (Bali::BlockEditorHelper broke every host
-    # boot in v2.17.0 while 2860 tests stayed green here).
-    config.eager_load_paths = %W[
-      #{root}/app/components
-      #{root}/app/controllers
-      #{root}/app/helpers
-      #{root}/app/lib
-      #{root}/app/widgets
-      #{root}/app/models
-    ]
-
     overrides = File.expand_path(
       File.join(File.dirname(__FILE__), "overrides", "**", "*_override.rb")
     )

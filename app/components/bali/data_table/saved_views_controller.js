@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
-import { readColumnState, visibleColumns } from './column_storage'
+import { columnId, readColumnState, visibleColumns } from './column_storage'
 
 /**
  * Saved Views Controller
@@ -16,7 +16,8 @@ import { readColumnState, visibleColumns } from './column_storage'
  * new polarity. It is an EXPLICIT, named choice, so it shows exactly what it recorded; the
  * device memory is implicit, and there the server's default wins ties. The payload also lives
  * in `bali_saved_views.payload`, already written in three apps of the group — the contract
- * with `apply_visible_columns` does not move.
+ * with `apply_visible_columns` does not move. Each entry is a column id: the column's `key:`,
+ * or its index when it has none.
  */
 export default class extends Controller {
   static targets = ['saveForm', 'renameForm', 'payload']
@@ -65,7 +66,7 @@ export default class extends Controller {
   visibleColumnsFrom (selector) {
     return [...selector.querySelectorAll('[data-column-index]')]
       .filter(checkbox => checkbox.checked)
-      .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
+      .map(columnId)
   }
 
   // The selector is only painted in table mode. Without it, the columns imposed by the

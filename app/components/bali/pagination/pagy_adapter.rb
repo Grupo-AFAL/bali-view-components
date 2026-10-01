@@ -68,7 +68,7 @@ module Bali
       #
       # The `require` is HERE, not at the top of the file, and the difference is a host
       # that boots. `series` lives in a toolbox file Pagy does not load by default, but
-      # `app/components` is in the engine's eager_load_paths (lib/bali/engine.rb), so a
+      # a host eager-loads every `app/` directory of the engine in production, so a
       # top-level `require "pagy/..."` is a `cannot load such file` during boot of every
       # application that has no pagy — and pagy is not in the gemspec, on purpose: Bali
       # never builds a Pagy, it only decorates one the host passes in. Whoever reaches

@@ -116,7 +116,7 @@ module Bali
         # the view: saving a new view from cards persisted it with columns the user was not
         # looking at.
         def server_columns_json
-          Array(filter_form.try(:saved_view_columns)).map(&:to_i).to_json
+          ColumnSelector::Component.column_ids(filter_form.try(:saved_view_columns)).to_json
         end
 
         private

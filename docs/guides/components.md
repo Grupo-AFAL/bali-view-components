@@ -2587,16 +2587,51 @@ later would never reach anyone who had loaded the page before.
 A saved view is the opposite: an **explicit**, named choice ("these five columns"). It keeps
 recording visible columns, so applying it shows exactly the five it recorded, and a column
 added afterwards is not one of them. Re-save the view (or create a new one) to take the new
-column in. This is also why the payload format did not change: those rows are already written
-in your database, and flipping their meaning would silently rewrite every saved view.
+column in. This is also why the payload format did not change — still a list of visible
+columns, named by key when the columns have one: those rows are already written in your
+database, and flipping their meaning would silently rewrite every saved view.
 
-Two consequences worth spelling out:
+Consequences worth spelling out:
 
-- Column identity is still the **position** of the `<th>`, in both places. Adding a column at
-  the end is safe; inserting one in the middle, or reordering them, shifts every preference
-  by one. A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
-  listing whose selection column depends on the user's role has two different column layouts
-  under one name — give each layout its own `id:`.
+- Without keys, column identity is the **position** of the `<th>`, in both places. Adding a
+  column at the end is safe; inserting one in the middle, or reordering them, shifts every
+  preference by one. **Give each column a `key:`** and both places name it by key instead:
+
+  ```erb
+  <% dt.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: t(".name"), key: :name) %>
+    <% cs.with_column(index: 1, label: t(".region"), key: :region) %>  <%# inserted later %>
+    <% cs.with_column(index: 2, label: t(".status"), key: :status) %>
+  <% end %>
+  ```
+
+  `index:` still says where the column is in the table; the key is what the memory and the
+  views remember. A key starts with a letter or `_` and holds letters, digits, `_` or `-`
+  (64 at most); anything else raises, and so does a key used twice.
+
+  What was saved before the keys can only mean positions. The device memory is read by
+  position once and rewritten by key on that same load. **A saved view is read by position
+  for as long as it exists**, so the release that adds the keys migrates the views, while the
+  layout is still the one they were saved against — and the column is inserted in a later
+  release:
+
+  ```ruby
+  # Data migration, in the release that adds `key:` — keys in column order.
+  KEYS = %w[name status amount created_at].freeze
+
+  Bali::SavedView.where(storage_id: "affiliations_index").find_each do |view|
+    columns = view.payload["columns"]
+    next unless columns.is_a?(Array) && columns.none?(String)
+
+    view.update!(payload: view.payload.merge("columns" => columns.map { |i| KEYS[i.to_i] || i }))
+  end
+  ```
+
+  A user who did not open the listing between the two releases still has a positional device
+  memory, read once against the new layout.
+- Without keys, a `selectable:` table's checkbox column is a real `<th>` that occupies index
+  0, so a listing whose selection column depends on the user's role has two different column
+  layouts under one name — give each layout its own `id:`.
 - The device memory is per browser. Clearing it for one user is `localStorage.removeItem`;
   clearing it for everyone means changing the listing's `id:`, which also changes the
   container id the host's Turbo Stream targets. There is no "reset columns" button.
@@ -4411,10 +4446,12 @@ to the other keeps searching the same thing.
 | `width` | String | Tailwind width classes for the box |
 
 ```erb
+<%# Not `params.dig(:q, ...)`: `?q=x` or `?q[]=x` make `q` a String or an Array, and `dig` raises on both. %>
+<% q = params[:q].is_a?(ActionController::Parameters) ? params[:q] : {} %>
 <%= render Bali::Filters::Component.new(
   url: movies_path,
   available_attributes: [...],
-  search: { fields: %i[name genre], value: params.dig(:q, :name_or_genre_cont) }
+  search: { fields: %i[name genre], value: q[:name_or_genre_cont] }
 ) %>
 ```
 
@@ -4433,7 +4470,7 @@ a filter panel, use the FormBuilder's `search_group`.
 
 #### Calendar
 
-Month, week, or day calendar that displays events grouped by date, with optional navigation header and custom day templates.
+Month, week, day, or year calendar that displays events grouped by date, with optional navigation header and custom day templates.
 
 ```erb
 <%= render Bali::Calendar::Component.new(
@@ -4450,20 +4487,88 @@ Month, week, or day calendar that displays events grouped by date, with optional
 **Options:**
 - `template` - Path to an HTML partial rendered for each day's events (default: nil)
 - `start_date` - Date or string to center the calendar on (default: `Date.current`)
-- `period` - Calendar view, one of `:month`, `:week`, or `:day` (default: `:month`)
+- `period` - Calendar view, one of `:month`, `:week`, `:day`, or `:year` (default: `:month`)
 - `events` - Array of events; each must respond to `start_attribute` (default: `[]`)
 - `start_attribute` - Method called on each event for its start date (default: `:start_time`)
 - `end_attribute` - Method called on each event for its end date, enables multi-day events (default: `:end_time`)
 - `weekdays_only` - Show only Monday-Friday (default: false)
 - `show_date` - Display the day number in each cell (default: true)
 - `weekly_title_class` - Extra classes for the day number, aimed at week view (default: nil)
+- `day_url` - Year view only. `->(day, events) { url }`; `nil`, or a `nil` return, leaves that day unlinked (default: nil)
+- `day_variant` - Year view only. `->(day, events) { :success }`, a name from `Bali::Color::NAMES` (default: nil)
+- `month_summary` - Year view only. `->(month, events) { "11" }`, drawn beside the month name (default: nil)
+- `month_size` - Year view only. How big one miniature month gets: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`). Unknown levels raise `ArgumentError`
 
-**Slots:** `header` (navigation with period switch, accepts `route_path:` and `period_switch:`), `footer`.
+**Slots:** `header` (navigation with period switch, accepts `route_path:`, `period_switch:`,
+`min_date:` / `max_date:` and `drop_params:`), `footer`.
+
+**Header bounds.** `min_date:` / `max_date:` (default: nil, no limit) disable the arrow whose
+destination period no longer contains the bound — inclusive on the period, so `min_date:
+"2020-06-15"` still lets a year view reach 2020 and a month view reach June 2020. The arrow is
+drawn disabled (`btn-disabled`, no `href`, `aria-disabled="true"`) rather than removed: measured
+at 1440px, removing one arrow shifts the title 25px, half the arrow's 50px.
+
+**Query string round trip.** Every link the header builds carries `route_path`'s query string
+with `start_attribute` and `period` merged on top. A host key that depends on the date ends up
+stale next to the new one — `?year=2026&date=2027-01-01` — so name it in `drop_params:
+%i[year]` and read `date`/`period` back instead. Nothing is dropped by default.
+
+**Year view.** `period: :year` draws twelve miniature months as a density map. A day with no
+events is dimmed; a day with events takes the colour `day_variant` returns, and a day holding
+more than one gets a `has-multiple` dot in the corner — one colour per day, because only the
+host knows which of its own states outranks the others. The `template:` partial is rendered
+inside a hover card on the days that have events, with the same three locals as the month view
+(`events:`, `period:`, `day:`), so one partial serves both. All three lambdas are optional.
+
+```erb
+<%= render Bali::Calendar::Component.new(
+  period: :year,
+  start_date: params[:start_time],
+  events: @events,
+  template: 'events/calendar_event',
+  day_url: ->(day, _events) { events_path(start_time: day, period: :month) },
+  day_variant: ->(_day, events) { events.first.status_color },
+  month_summary: ->(_month, events) { events.size.to_s }
+) do |c| %>
+  <% c.with_header(route_path: events_path, period_switch: %i[month year]) %>
+<% end %>
+```
+
+`weekdays_only` is ignored by the year view: a map that hides Saturdays hides events. The
+header's `period_switch:` takes an array as well as a boolean — `true` still means exactly
+`%i[week month]`, so the year button has to be asked for.
+
+**The three lambdas run inside the component.** They are called while the grid renders, and for
+that whole time ViewComponent points the host view's `@virtual_path` at the component — so a lazy
+`t('.count')` written in your partial resolves to `bali_view.calendar.year_grid.count`, not to
+your scope, and reports a missing translation. Write the full key:
+`t('events.calendar.month_summary', count: events.size)`.
+
+**How a day is painted.** At rest a day with events wears a 20% tint of its `day_variant` colour
+with the number in `base-content`; under the pointer it turns the solid colour. There is no
+hover on a touch screen, so there the tint is the only look.
+
+**Touch screens.** A tap on a day that has a `day_url` navigates; the hover card, which opens on
+`mouseenter`/`focus`, never shows. The day's events are then only reachable at the `day_url`
+destination, so point it somewhere they are — the month view, as above.
+
+**`month_size` names the size of the MONTH, not of the view**, so `:xs` means small months and
+many per row, `:xl` large months and few. How many actually fit is the browser's answer: the level
+sets a track minimum and CSS `auto-fit` fills the row against the **container's** width, not the
+viewport's. That is why a calendar inside a 400px drawer stacks to one readable column even on a
+wide screen, where a viewport breakpoint would have drawn four columns 76px wide. Measured at
+1440px, `:xs` fits 7 months per row, `:sm` 5, `:md` 4, `:lg` 3 and `:xl` 2.
+
+Those counts are for the full width. A page with a sidebar leaves the calendar about 1060px at
+1440, and there `:md` fits 3 months per row (343px each, 47px day cells) while `:sm` fits 4
+(253px, 34px cells) — pick the level for the container the calendar actually sits in. The track
+has no maximum on purpose: `auto-fit` counts columns with the track's definite maximum when it
+has one, so capping `:md` at `minmax(20rem, 22rem)` drops the full-width count from 4 to 3.
 
 `start_date` and `period` normally arrive from the query string — the header's prev/next
 and period links write them back to `route_path` — so both degrade rather than raise:
 anything `Date.parse` cannot read becomes `Date.current`, and any period outside
-`:month`/`:week`/`:day` becomes `:month`. Handing `params[:start_time]` straight to the
+`:month`/`:week`/`:day`/`:year` becomes `:month`. Handing `params[:start_time]` straight to the
 component is safe.
 
 The component renders its own `Bali::Card`, so do not wrap it in another one.
