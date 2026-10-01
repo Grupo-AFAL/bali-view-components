@@ -12,6 +12,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 | `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
 | `docs/reference/widget-design-notes.md` | Why `Bali::Widget` is shaped the way it is |
 | `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
+| `docs/reference/testing-traps.md` | Ways a test here goes green without testing anything |
 | `docs/guides/components.md` | Full component catalog and usage guide |
 | `docs/guides/accessibility.md` | WCAG 2.1 accessibility standards |
 
@@ -66,6 +67,40 @@ Cypress tests render Stimulus controllers by visiting `http://localhost:3001/loo
 Bali must stay on the latest Tailwind CSS (`tailwindcss-rails` gem) and daisyUI (npm) to keep all
 AFAL apps aligned. Check both at the start of substantial work and update them *before* other
 changes if either is behind, then run the full test suite.
+
+## Resolving an issue
+
+Go through this, in order, before opening the PR. In the batch #1216–#1227, each of the nine PRs
+reviewed had passed its own tests and the browser, and each still came back from an independent
+review needing changes — mostly tests that asserted nothing, prose that was false, and contracts
+split between Ruby and JS.
+
+1. **The issue's premise is a hypothesis.** Reproduce it before fixing. #1206 said `app/services`
+   did not load in a host; a throwaway host showed it did. In #1210 the real bug was in the
+   component, not the template the issue named. If the premise falls, the PR says so.
+2. **Walk every reader of what changes**, not just the one you touched: host apps
+   (`git grep … origin/main`), what is persisted (device memory, saved views), the five themes, both
+   modes of the component, and whoever follows the guide's example.
+3. **Red test, for the right reason.** Run it before the fix and read the message: it fails on the
+   assertion that matters, not on an error on the way there.
+4. **The negative control removes only what each new test asserts** — `elementTargetConnected`, not
+   the whole controller — and the failure names that assertion. Reverting a whole file made a
+   Turbo Stream test fail for another reason and hid that it tested nothing.
+   `docs/reference/testing-traps.md` lists the ways that happened.
+5. **One contract, one source.** When Ruby validates what JS also reads (a key, a format), the same
+   pattern on both sides, each pointing at the other, with a test on each side.
+6. **Retire before you justify.** A key nobody uses is removed, not defended in a comment; what the
+   platform already does (`<fieldset disabled>`) is not rebuilt with bookkeeping.
+7. **Prose is checked like code.** Every claim in the CHANGELOG, a guide or a comment against the
+   repo's history and against step 2. Written false in that batch and caught in review: «two
+   releases avoid a data migration» (not for saved views), «a release is a release PR» (v3.6.0
+   rode in a feature PR), a guide example that only worked if the form declared `search_fields`.
+8. **Browser**, per the root `CLAUDE.md`.
+9. **Independent review before the PR**: the `dhh-code-reviewer` agent, read-only, on a worktree
+   of the branch. Check each finding, apply what holds, and summarise the review in the PR body.
+
+A step you cannot do — no host to boot, nothing to see in a browser — is said in the PR, not
+skipped quietly.
 
 ## Pre-Commit Checklist
 
