@@ -334,7 +334,8 @@ The prefabricated user dropdown for the `with_user_menu` slot — a preset of
 via `avatar_url:`, or initials with a deterministic colour derived from
 `name:` — see Avatar), the name (hidden on mobile) and a chevron. The panel
 opens with a non-actionable name/email header, then your `with_item`s, then
-the sign-out entry.
+the **Dark mode** switch when `Bali.themes` declares a `dark:` theme, then the
+sign-out entry (see *Dark mode* in `docs/guides/custom-themes.md`).
 
 **Options:**
 - `name` (required) - the user's full name; feeds avatar, header and the trigger's `aria-label`
@@ -344,8 +345,8 @@ the sign-out entry.
 - Everything else is `Bali::Dropdown::Component`'s (`align:` defaults to `:end` here)
 
 `with_item` is Dropdown's items lambda: `method:`, `icon:`, `modal:`, `drawer:`
-all work. A UserMenu with no items and no `sign_out:` renders nothing — a menu
-with nothing actionable in it is not a menu.
+all work. A UserMenu with no items, no `sign_out:` and no dark theme declared
+renders nothing — a menu with nothing actionable in it is not a menu.
 
 ##### Topbar::IconAction
 

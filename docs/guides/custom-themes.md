@@ -7,8 +7,9 @@ Bali ships optional DaisyUI themes that you can import alongside the default `li
 | Theme | File | Description |
 |-------|------|-------------|
 | `afal` | `css/themes/afal.css` | Grupo AFAL brand - light variant with blue/violet/amber palette |
-| `afal-dark` | `css/themes/afal-dark.css` | **Draft / experimental** - dark variant derived from `afal`, pending visual approval |
+| `afal-dark` | `css/themes/afal-dark.css` | Dark variant of `afal` |
 | `costa-norte` | `css/themes/costa-norte.css` | Costa Norte brand - light variant with teal/gold palette |
+| `costa-norte-dark` | `css/themes/costa-norte-dark.css` | Dark variant of `costa-norte`: the dark teal and gold of costa-norte's sidebar |
 
 ## Installation
 
@@ -51,7 +52,7 @@ exist, whichever appears later in the compiled CSS wins, silently.
 
 ```css
 @import "bali-view-components/css/themes/afal.css";
-@import "bali-view-components/css/themes/afal-dark.css"; /* optional, draft */
+@import "bali-view-components/css/themes/afal-dark.css"; /* for dark mode */
 ```
 
 ```html
@@ -64,21 +65,59 @@ nothing. The theming comes entirely from the unlayered `[data-theme="afal"]` blo
 wins over daisyUI's own themes by layer order. You can drop `afal` and `afal-dark` from the
 plugin's `themes:` list when you adopt the imports.
 
-### `afal-dark` (draft) and the `dark:` variant
+## Dark mode
 
-`afal-dark` is an experimental first design — no app activates it yet, and its tokens may
-change before it is announced as stable. Preview it in Lookbook under
-*Theme Sampler → Afal Dark*.
+Each brand has a dark theme: `afal-dark` and `costa-norte-dark`. Nobody sees one until the app
+opts in, and then only the people who choose it: the light theme stays the default.
 
-If your app defines a `@custom-variant dark` so `dark:` utilities follow the theme (all
-AFAL hosts do), `dark:` will **not** fire under `afal-dark` unless you extend the variant:
+### 1. Declare the pair
+
+In `config/initializers/bali.rb`:
+
+```ruby
+Bali.themes = { light: "afal", dark: "afal-dark" }
+# costa-norte: { light: "costa-norte", dark: "costa-norte-dark" }
+```
+
+Without `dark:` there is no switch, and `bali_theme` always answers the light theme.
+
+### 2. Let the server paint the `<html>`
+
+```erb
+<html data-theme="<%= bali_theme %>">
+```
+
+`bali_theme` reads the `bali_theme` cookie and answers the dark theme only when the person chose
+it, so a dark page arrives dark instead of flashing light first. Import both theme files.
+
+### 3. The switch
+
+`Bali::Topbar::UserMenu` adds a **Dark mode** item, between your items and sign out, as soon as
+`Bali.themes` declares a `dark:` theme. It is a `menuitemcheckbox`: a click (or Enter / Space)
+flips `<html data-theme>` in place, writes the cookie for a year and leaves the menu open. The
+choice is per app and per device — a cookie does not cross the apps' domains.
+
+### 4. The `dark:` variant
+
+If your app defines a `@custom-variant dark` so `dark:` utilities follow the theme (all AFAL
+hosts do), extend it with your dark theme, or `dark:` keeps its light styling under it:
 
 ```css
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, [data-theme=afal-dark], [data-theme=afal-dark] *));
 ```
 
-Without this, components styled with `dark:` utilities keep their light-theme styling even
-though the daisyUI palette around them has gone dark.
+### 5. Fixed colours in your views
+
+A class that names a colour instead of a theme token does not follow the theme: a `bg-white`
+card stays white under `afal-dark`, now with light text on it. Before turning dark mode on, swap
+them for tokens — `bg-white` for `bg-base-100` (or nothing on a `Bali::Card`, which already
+paints it), `text-gray-*` for `text-base-content` at the opacity you need:
+
+```sh
+git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components
+```
+
+Preview both dark themes in Lookbook under *Theme Sampler → Afal Dark* and *Costa Norte Dark*.
 
 ## Creating Your Own Theme
 
@@ -155,7 +194,9 @@ Since #726 the mechanism is one keyword:
 `theme:` emits `data-theme` on the `<nav>`, and daisyUI resolves every colour
 variable against the nearest ancestor that carries one — so the sidebar re-skins
 itself and nothing outside it changes. The theme's *values* stay in your app: chrome
-colours are brand, so the gem ships the mechanism, not a palette.
+colours are brand, so the gem ships the mechanism, not a palette. The exception is a
+brand whose dark theme the gem already ships: `costa-norte-dark` paints the sidebar with
+the same surfaces and gold as costa-norte's own block, which that app can drop.
 
 A chrome theme does not need the full token list above. The sidebar only reads the
 base surfaces and its accent, so the working recipe (measured in costa-norte, which

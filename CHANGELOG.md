@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Modo oscuro: `costa-norte-dark` y el interruptor en el menú de usuario.** Bali trae el tema
+  `costa-norte-dark` (las superficies teal y el dorado del menú lateral de costa-norte) junto a
+  `afal-dark`, y `Bali::Topbar::UserMenu` ofrece «Modo oscuro» cuando la app declara su tema
+  oscuro. Nadie lo ve hasta que la app lo active, y entonces sólo quien lo elige; la elección se
+  guarda en la cookie `bali_theme`, por app y por dispositivo. **Anfitrión que lo quiera:**
+  `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`,
+  `<html data-theme="<%= bali_theme %>">` en el layout, importar el tema oscuro y sumarlo a la
+  línea `@custom-variant dark`. Antes de activarlo, cambiar los colores fijos de las vistas por
+  tokens del tema (`bg-white` → `bg-base-100`, o nada sobre un `Bali::Card`, que ya lo pinta):
+  en oscuro quedan como tarjetas blancas con texto claro
+  (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`). costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]`
+  e importar el de Bali: su menú lateral, que ya lleva ese tema, conserva superficies y dorado;
+  sólo cambian el texto sobre info y error, que ahora pasa AA, y el secundario.
+
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
   al lado. Cada estado es una forma distinta, también con colores forzados. **gobierno-corporativo**
