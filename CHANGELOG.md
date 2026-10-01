@@ -68,6 +68,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
   nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
 
+- **El primario del tema `afal` pasa de blue-500 (`#3B82F6`) a blue-600 de Tailwind v4
+  (`#155DFC`)** (#1221): con blanco encima pintaba 3.68:1, bajo el 4.5 de AA, y ahora 5.25:1.
+  Cambio visible en botones, enlaces y estados activos de afal-apps, garita y
+  gobierno-corporativo, que importan el tema de la gema. **Anfitrión:** identity y opina cargan
+  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor: bórrenlo e importen
+  el de la gema, `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
+  `themes/afal.css` difiere en más tokens, cambia sólo su `--color-primary` a
+  `oklch(54.6% 0.245 262.881)`. Los hex copiados pasan a `#155DFC`
+  (`git grep -n -i "3b82f6" origin/main -- app`), incluido el `PRIMARY` de
+  `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
+  ser cierto.
+
 ### Removed
 
 - **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta

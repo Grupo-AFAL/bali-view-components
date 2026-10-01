@@ -1,7 +1,13 @@
 // WCAG contrast of an element's text as it is PAINTED: its colour at the colour's alpha times
 // every `opacity` between it and the first opaque background, composited over that background on
 // a 1px canvas. `getComputedStyle().color` carries only the colour's alpha: read that way the
-// SplitView filter count reported 6.38:1 while it painted 2.92:1 (#1202).
+// SplitView filter count reported 6.38:1 while it painted 2.92:1 (#1202). Every translucent
+// background on the way is painted over that ground first, the farthest first: SideMenu's active
+// item reads 5.25:1 against the bare page and 4.51 over its own primary/10 tint (#1221).
+//
+// Two things it still does not see: the `opacity` of the node that carries a tint is not applied
+// to the tint, which on a light theme measures the tint darker than it paints (the safe side), and
+// the background of a pseudo-element.
 
 const luminance = ([r, g, b]) => {
   const channel = (v) => {
@@ -25,17 +31,21 @@ export const paintedContrast = (el) => {
 
   let opacity = 1
   let groundColour = 'white'
+  const tints = []
   for (let node = el; node; node = node.parentElement) {
     const style = win.getComputedStyle(node)
     opacity *= parseFloat(style.opacity)
     ctx.clearRect(0, 0, 1, 1)
-    if (paint(style.backgroundColor)[3] === 255) {
+    const alpha = paint(style.backgroundColor)[3]
+    if (alpha === 255) {
       groundColour = style.backgroundColor
       break
     }
+    if (alpha > 0) tints.unshift(style.backgroundColor)
   }
 
-  const ground = paint(groundColour)
+  let ground = paint(groundColour)
+  tints.forEach((tint) => { ground = paint(tint) })
   const text = paint(win.getComputedStyle(el).color, opacity)
   const [high, low] = [luminance(text), luminance(ground)].sort((x, y) => y - x)
   return (high + 0.05) / (low + 0.05)
