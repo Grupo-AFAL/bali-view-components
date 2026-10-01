@@ -111,6 +111,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `gh api … pulls`. En `[v3.4.0]` dos pasos ganan su medición: 21 vistas con vistas guardadas en
   gobierno-corporativo (no 23) y 20 + 12 con selector de columnas.
 
+- **Cómo resolver un issue** (#1237): `.claude/CLAUDE.md` gana «Resolving an issue», ocho pasos
+  del issue al PR, de reproducir la premisa a la revisión independiente antes de abrirlo. El
+  nuevo `docs/reference/testing-traps.md` reúne las formas en que una spec de Cypress pasa sin
+  probar lo que nombra, con las reglas que `stimulus-patterns.md` tenía aparte. Para quien
+  trabaja en el repo; nada que hacer en un anfitrión.
+
 ### Dependencies
 
 - **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
