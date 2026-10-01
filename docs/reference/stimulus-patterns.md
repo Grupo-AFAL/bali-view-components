@@ -221,17 +221,12 @@ describe('SortableList', () => {
 })
 ```
 
-Hard-earned rules for these specs:
+Native HTML5 drag (SortableJS on desktop) cannot be started synthetically from
+Cypress — neither mousemove sequences nor dragstart/dragover/drop with a real
+`DataTransfer`. Cover the drop contract through keyboard/state paths instead.
 
-- Assert **visibility/state**, not `textContent` — hidden notices are always in the
-  DOM.
-- After `yarn build`, **restart the dummy server**: digested assets are served with
-  immutable caching and the browser keeps executing the old bundle.
-- Native HTML5 drag (SortableJS on desktop) cannot be started synthetically from
-  Cypress — neither mousemove sequences nor dragstart/dragover/drop with a real
-  `DataTransfer`. Cover the drop contract through keyboard/state paths instead.
-- "No request happened" needs a bounded `cy.wait(…)` before asserting
-  `cy.get('@alias.all').should('have.length', 0)`.
+The ways a spec here passes without testing what it names are in
+`docs/reference/testing-traps.md`.
 
 ## Debug mode
 
@@ -263,3 +258,4 @@ broke every call that passed native options such as `target:` or `prefix:`.
 | Listeners without `disconnect` cleanup | bound reference added in `connect`, removed in `disconnect` |
 | Kitchen-sink controllers | one controller, one behaviour (see any `index.js` here) |
 | Instance state that must survive a Turbo render | module-scope state (`split_view/index.js`) |
+| Initial render in `connect()` and again in `[name]TargetConnected` | the target callback alone — Stimulus runs it before `connect()`, for every target already in the DOM, so it cannot use what `connect()` sets up |

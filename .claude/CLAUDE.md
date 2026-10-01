@@ -12,6 +12,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 | `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
 | `docs/reference/widget-design-notes.md` | Why `Bali::Widget` is shaped the way it is |
 | `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
+| `docs/reference/testing-traps.md` | Ways a test here goes green without testing what it names |
 | `docs/guides/components.md` | Full component catalog and usage guide |
 | `docs/guides/accessibility.md` | WCAG 2.1 accessibility standards |
 
@@ -66,6 +67,38 @@ Cypress tests render Stimulus controllers by visiting `http://localhost:3001/loo
 Bali must stay on the latest Tailwind CSS (`tailwindcss-rails` gem) and daisyUI (npm) to keep all
 AFAL apps aligned. Check both at the start of substantial work and update them *before* other
 changes if either is behind, then run the full test suite.
+
+## Resolving an issue
+
+Passing tests and the browser is not the bar: in #1216–#1227 the nine PRs given an independent
+review had done both, and all nine came back needing changes. From the issue to the PR, in order:
+
+1. **Reproduce the issue's premise before fixing it.** It is a hypothesis — issue #1206's
+   `app/services` did load in a fresh host. If the premise falls, the PR says so.
+2. **Walk every reader of what changes**, not just the one you touched: host apps (after a
+   `git fetch`, `git grep -n "…" origin/main -- <glob>` in each), persisted data (column memory in
+   localStorage, saved views), every theme (`light`, `dark` and
+   `app/assets/stylesheets/bali/themes/*`), each option the change touches both on and off, and
+   whoever copies the guide's example.
+3. **Each new test fails for the right reason.** Run it without the code it covers — before the
+   fix, or after it with only that code taken out (`radio-toggle`'s `elementTargetConnected`, not
+   the whole controller) — and read the failure: it is the test's own assertion, not an error on
+   the way there. Reverting a whole file fails for other reasons and hides a test that asserts
+   nothing; `docs/reference/testing-traps.md` lists how that happens here.
+4. **A contract Ruby and JS both read** (a key, a format) is the same pattern on both sides, each
+   naming the other, with a test on each side.
+5. **Retire before you justify.** A key nobody uses is removed, not defended in a comment; what the
+   platform already does (`<fieldset disabled>`) is not rebuilt with bookkeeping.
+6. **Every claim in the CHANGELOG, a guide or a comment is checked** against the repo's history
+   and against step 2. A guide example is run as written, without anything it does not show.
+7. **Browser**, per the root `CLAUDE.md`.
+8. **Independent review before the PR**: the `dhh-code-reviewer` agent on a worktree of the
+   branch. Its definition carries `Write` and reviews component API, so the prompt opens with the
+   scope — read-only, this worktree, this diff — and hands it steps 1–6 as the criteria. Check
+   each finding, apply what holds, and summarise the review in the PR body.
+
+A step you cannot do — no host to boot, nothing to see in a browser — is said in the PR, not
+skipped quietly.
 
 ## Pre-Commit Checklist
 
