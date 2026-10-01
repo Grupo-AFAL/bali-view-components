@@ -1,3 +1,5 @@
+import { paintedContrast } from '../support/painted_contrast'
+
 // Infinite scroll for the structured SplitView listing. The preview renders page
 // one and points the sentinel at the dummy's `/split-view`, so every fetch here is
 // a real request against a real paginated index — the same URL one page further
@@ -5,6 +7,7 @@
 //
 // 20 movies, 5 per page: four pages, and the fourth is the end of the list.
 describe('SplitView structured list', () => {
+  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
   const scroller = () => cy.get('[data-split-view-list-target="scroller"]')
   const rows = () => cy.get('.split-view-item')
   const scrollToBottom = () => scroller().scrollTo('bottom', { ensureScrollable: false })
@@ -290,6 +293,30 @@ describe('SplitView structured list', () => {
       })
     })
 
+    // The active pill is the theme's own primary pair, not measured against AA here (#1221):
+    // its count only has to read no dimmer than its label. The pills carry
+    // `transition-colors`, and a frame of the transition still has the previous theme's
+    // colours — which can pass — so nothing is measured until the transitions settle.
+    THEMES.forEach((theme) => {
+      it(`reads the pill counts at AA on the ${theme} theme`, () => {
+        cy.visit(app('/split-view?status=done'))
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+        cy.get('[data-testid="list-filters"]').should(($band) => {
+          expect($band[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+
+          const inactiveCount = $band[0].querySelector('.split-view-filter:not([data-active="true"]) .split-view-filter-count')
+          const activeCount = $band[0].querySelector('.split-view-filter[data-active="true"] .split-view-filter-count')
+
+          expect(paintedContrast(inactiveCount.closest('.split-view-filter')), `${theme}: an inactive pill`)
+            .to.be.at.least(4.5)
+          expect(paintedContrast(inactiveCount), `${theme}: its count`).to.be.at.least(4.5)
+          expect(paintedContrast(activeCount), `${theme}: the active pill's count`)
+            .to.be.at.least(paintedContrast(activeCount.closest('.split-view-filter')))
+        })
+      })
+    })
+
     it('keeps selecting a row while a filter is on', () => {
       cy.visit(app('/split-view?status=done'))
       rows().eq(2).click()
@@ -441,51 +468,21 @@ describe('SplitView structured list', () => {
 
     // The heading's two pieces of text sit on the band's own opaque background,
     // and both are written with a translucent `text-base-content/*` token — so
-    // what reaches the reader is the token COMPOSITED over that band. Measuring
-    // the declared colour alone reports a contrast nobody sees; on a 1px canvas
-    // the ground has to be painted first and the colour over it.
+    // what reaches the reader is the token COMPOSITED over that band.
     //
     // That is how the count shipped at `/50`: composited, 2.96:1 on `afal`,
     // 3.16 on `costa-norte`, 3.33 on `light`, 4.11 on `afal-dark`, against AA's
     // 4.5 for 12px text. `costa-norte` is in the list for that reason — it is a
     // shipped theme, and leaving it out would have left one of the four failing
     // cases unguarded.
-    ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+    THEMES.forEach((theme) => {
       it(`reads the heading and its count at AA on the ${theme} theme`, () => {
         cy.document().then((doc) => {
           doc.documentElement.setAttribute('data-theme', theme)
 
-          const paint = (over, colour) => {
-            const canvas = doc.createElement('canvas')
-            canvas.width = canvas.height = 1
-            const ctx = canvas.getContext('2d')
-            ctx.fillStyle = over
-            ctx.fillRect(0, 0, 1, 1)
-            if (colour) {
-              ctx.fillStyle = colour
-              ctx.fillRect(0, 0, 1, 1)
-            }
-            return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-          }
-          const luminance = ([r, g, b]) => {
-            const channel = (v) => {
-              v /= 255
-              return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-            }
-            return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-          }
-          const ratio = (a, b) => {
-            const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-            return (high + 0.05) / (low + 0.05)
-          }
-
           const header = doc.querySelector('.split-view-group-header')
-          const band = getComputedStyle(header).backgroundColor
-
           ;[['count', '.split-view-group-count'], ['label', 'span']].forEach(([what, selector]) => {
-            const text = header.querySelector(selector)
-            const colour = getComputedStyle(text).color
-            expect(ratio(paint(band, colour), paint(band)), `${theme}: the group ${what}`)
+            expect(paintedContrast(header.querySelector(selector)), `${theme}: the group ${what}`)
               .to.be.at.least(4.5)
           })
         })
