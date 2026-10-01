@@ -1,4 +1,5 @@
 import { tap } from '../support/tap'
+import { THEMES } from '../support/themes'
 
 // The hovercard controller mounts its tippy in `connect()`, so a card on every
 // cell would cost 365 instances; `hover?` restricts it to days with events.
@@ -59,7 +60,7 @@ describe('Calendar year view', () => {
   // `text-base-content/*` tokens, so what the reader sees is the token COMPOSITED
   // over the ground (#1203). Shipped at `/40` and `/50` they measured 2.36:1 and
   // 3.05:1 on `afal`; AA wants 4.5 for text this size.
-  ;['light', 'dark', 'afal', 'afal-dark', 'costa-norte'].forEach((theme) => {
+  THEMES.forEach((theme) => {
     it(`reads the empty day number and the weekday initials at AA on the ${theme} theme`, () => {
       cy.viewport(1440, 1200)
       cy.visit(year)
