@@ -1085,7 +1085,9 @@ is a preset of this one, not a second implementation.
 - `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
   it (default: `false`). What a dropdown inside a scrollable table needs.
 - `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
-- `close_on_click` - close when the reader clicks outside (default: `true`)
+- `close_on_click` - close on a click outside even when the focus is not inside the dropdown
+  (default: `true`). With the focus inside, the click takes it out, and that closes the menu
+  either way.
 - `menu` - `<ul role="menu">` semantics (default: `true`). Pass `false` when the panel holds
   a form or checkboxes rather than menu items: `role="menu"` exposes children it does not
   allow and puts a screen reader into menu mode over a form.
@@ -1121,17 +1123,17 @@ on the same page with a matching `id:` and `shared: false` (a drawer with `drawe
 [Overlays and the top layer](overlays-and-the-top-layer.md) for the full contract.
 
 **Keyboard**, and it is the same in both modes. Tab reaches the trigger without opening it.
-A click opens it; Enter, Space or `↓` open it and move the focus to the first item (`↑` to the
-last), and the arrows walk the items. Escape closes it and puts the focus back on the trigger;
-a click outside or the focus leaving closes it too. `hoverable:` is the exception: daisyUI's CSS
-still opens it on hover and on focus. `aria-expanded` follows what is on screen rather than the
-path that got there.
+A click, Enter, Space or `↓` open it; in a menu of items (`menu: true`) the keys also move the
+focus to the first one, `↑` opens it on the last, and the arrows walk them. Escape closes it and
+puts the focus back on the trigger; a click outside or the focus leaving closes it too.
+`hoverable:` is the exception: daisyUI's CSS still opens it on hover and on focus.
+`aria-expanded` follows what is on screen rather than the path that got there.
 
 **Position.** daisyUI places the menu against the trigger and nothing else, so an `align: :end`
-trigger that wrapped to the left of a phone opened its menu off screen (#1231). When the
-controller opens a menu that crosses an edge of the viewport, it nudges it back inside, 5px from
-the edge — what tippy already does in popover mode. A `hoverable:` menu opened by the pointer is
-left where daisyUI puts it.
+trigger that wrapped to the left of a phone opened its menu off screen (#1231). A menu the
+controller opens above or below its trigger is shifted sideways to stay at least 5px inside the
+viewport — tippy's padding in popover mode. A menu that opens sideways (`direction: :left` or
+`:right`), and a `hoverable:` one opened by the pointer, stay where daisyUI puts them.
 
 #### ActionsDropdown
 
@@ -4962,7 +4964,7 @@ one adds.
   unknown one raises `ArgumentError`.
 - `secondary_actions_width` - Width of the `⋯` menu, on `Bali::Dropdown`'s scale: `:sm`
   (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
-- `secondary_actions_label` - Accessible name of the `⋯` trigger, which shows only an icon
+- `secondary_actions_aria_label` - Accessible name of the `⋯` trigger, which shows only an icon
   (default: `bali_view.page_components.secondary_actions.button_label`, "More actions")
 
 **Slots:**
@@ -5210,7 +5212,7 @@ does not say (#1230):
 <%= render Bali::IndexPage::Component.new(
   title: 'Session calendars',
   secondary_actions_width: :xl,
-  secondary_actions_label: 'More calendar actions'
+  secondary_actions_aria_label: 'More calendar actions'
 ) do |page| %>
   <% page.with_secondary_action(name: 'View approval flow', icon: 'eye',
                                 href: '/calendars/2026/approval_flow') %>

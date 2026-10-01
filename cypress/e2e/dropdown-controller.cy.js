@@ -10,6 +10,13 @@ describe('DropdownController', () => {
   const menu = '[data-dropdown-target="menu"]'
 
   const press = (key) => cy.focused().trigger('keydown', { key, bubbles: true, force: true })
+  const release = (key) => cy.focused().trigger('keyup', { key, bubbles: true, force: true })
+
+  // `display` and not `not.be.visible`: Cypress counts a menu fading in from daisyUI's
+  // `@starting-style` `opacity: 0` as hidden, and measured, that assertion passed on an open one.
+  const expectClosed = ($menu) => {
+    expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
+  }
 
   context('CSS mode', () => {
     beforeEach(() => {
@@ -22,20 +29,33 @@ describe('DropdownController', () => {
       cy.get(cssDropdown).first().find(trigger).as('t')
       cy.get('@t').focus()
 
+      cy.get(cssDropdown).first().find(menu).should(expectClosed)
       cy.get('@t').should('have.attr', 'aria-expanded', 'false')
-      cy.get(cssDropdown).first().find(menu).should('not.be.visible')
     })
 
-    ;['Enter', ' '].forEach((key) => {
-      it(`opens on ${JSON.stringify(key)} and moves the focus to the first item`, () => {
-        cy.get(cssDropdown).first().find(trigger).as('t')
-        cy.get('@t').focus()
+    it('opens on Enter and moves the focus to the first item', () => {
+      cy.get(cssDropdown).first().find(trigger).as('t')
+      cy.get('@t').focus()
 
-        press(key)
+      press('Enter')
 
-        cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
-        cy.get('@t').should('have.attr', 'aria-expanded', 'true')
-      })
+      cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
+      cy.get('@t').should('have.attr', 'aria-expanded', 'true')
+    })
+
+    // A `<button>` item answers a Space keyup with a click, and opened on the keydown the
+    // menu had already moved the focus onto its first item when the keyup landed.
+    it('opens on the Space keyup, not on the keydown', () => {
+      cy.get(cssDropdown).first().find(trigger).as('t')
+      cy.get('@t').focus()
+
+      press(' ')
+      cy.get('@t').should('have.attr', 'aria-expanded', 'false')
+      cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+
+      release(' ')
+      cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Item 1')
+      cy.get('@t').should('have.attr', 'aria-expanded', 'true')
     })
 
     // The second click lands on the wrapper: daisyUI gives an open trigger
@@ -49,9 +69,21 @@ describe('DropdownController', () => {
       cy.get('@t').should('have.attr', 'aria-expanded', 'true')
 
       cy.get('@dropdown').click('topLeft')
-      cy.get('@dropdown').find(menu).should('not.be.visible')
+      cy.get('@dropdown').find(menu).should(expectClosed)
       cy.get('@t').should('have.attr', 'aria-expanded', 'false')
       cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+    })
+
+    // A Turbo morph that rewrites `class` takes `dropdown-close` away with everything else, and
+    // read as "open" by `:focus-within`, the first click closed a menu nobody could see.
+    it('opens on the first click after its classes are rewritten', () => {
+      cy.get(cssDropdown).first().as('dropdown')
+      cy.get('@dropdown').then(($d) => $d[0].classList.remove('dropdown-close'))
+
+      cy.get('@dropdown').find(trigger).click()
+
+      cy.get('@dropdown').find(trigger).should('have.attr', 'aria-expanded', 'true')
+      cy.get('@dropdown').should('have.class', 'dropdown-open')
     })
 
     // With `:focus-within` the menu was open from the `mousedown`, and the rich text editor's
@@ -80,11 +112,7 @@ describe('DropdownController', () => {
 
       cy.get('.dropdown-hover').find(trigger).focus()
 
-      // `display`, not `not.be.visible`: with the close on focus-out taken out, that assertion
-      // still passed on this menu, open at `display: flex`.
-      cy.get(cssDropdown).first().find(menu).should(($menu) => {
-        expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
-      })
+      cy.get(cssDropdown).first().find(menu).should(expectClosed)
       cy.get(cssDropdown).first().find(trigger).should('have.attr', 'aria-expanded', 'false')
     })
 
@@ -137,6 +165,32 @@ describe('DropdownController', () => {
 
       press('ArrowDown')
       cy.focused().should('have.attr', 'role', 'menuitem')
+    })
+
+    // Enter sets `dropdown-open` on a hover dropdown too, and leaving it only dropped
+    // `dropdown-close`, so the menu stayed open behind the reader.
+    it('closes a hoverable dropdown opened with Enter once the focus leaves it', () => {
+      cy.get('.dropdown-hover').find(trigger).focus()
+      press('Enter')
+      cy.focused().should('have.attr', 'role', 'menuitem')
+
+      cy.get(cssDropdown).first().find(trigger).focus()
+
+      cy.get('.dropdown-hover').find(menu).should(expectClosed)
+      cy.get('.dropdown-hover').find(trigger).should('have.attr', 'aria-expanded', 'false')
+    })
+  })
+
+  // /z-stack renders a dropdown with `class: 'dropdown-open'`, to show every overlay at once.
+  context('rendered open by the server', () => {
+    it('stays open', () => {
+      cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/z-stack`)
+
+      cy.get(`#probe-dropdown-wrap ${trigger}`).should('have.attr', 'aria-expanded', 'true')
+      cy.get(`#probe-dropdown-wrap ${menu}`).should(($menu) => {
+        expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display)
+          .to.not.equal('none')
+      })
     })
   })
 
@@ -193,6 +247,45 @@ describe('DropdownController', () => {
       cy.focused().should('contain', 'Edit')
     })
 
+    it('opens on Enter and on the Space keyup with the focus on the first item', () => {
+      cy.get(popoverDropdown).find(trigger).focus()
+      press('Enter')
+      cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Edit')
+
+      press('Escape')
+      cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+
+      press(' ')
+      release(' ')
+      cy.focused().should('have.attr', 'role', 'menuitem').and('contain', 'Edit')
+    })
+
+    // Focus-out was not listened to in popover mode, so Tab away left the popper up.
+    it('closes when the focus leaves it', () => {
+      cy.get(popoverDropdown).find(trigger).as('t')
+      cy.get('@t').focus()
+      press('Enter')
+      cy.focused().should('contain', 'Edit')
+
+      cy.get(cssDropdown).first().find(trigger).focus()
+
+      cy.get('[data-tippy-root]').should('not.exist')
+      cy.get('@t').should('have.attr', 'aria-expanded', 'false')
+    })
+
+    // Same wrapper press as in the CSS mode: with focus-out now closing the popper, a blur on
+    // that press closed it and the click reopened it.
+    it('closes on a second click on its trigger', () => {
+      cy.get(popoverDropdown).as('dropdown')
+      cy.get('@dropdown').find(trigger).click()
+      cy.get('[data-tippy-root]').should('exist')
+
+      cy.get('@dropdown').click('topLeft')
+
+      cy.get('[data-tippy-root]').should('not.exist')
+      cy.get('@dropdown').find(trigger).should('have.attr', 'aria-expanded', 'false')
+    })
+
     it('closes on Escape from inside the popper and returns the focus to the trigger', () => {
       cy.get(popoverDropdown).find(trigger).as('t')
       cy.get('@t').focus()
@@ -235,11 +328,13 @@ describe('DropdownController', () => {
   context('inside the viewport', () => {
     const pageMenu = '[data-controller~="export-links"]'
 
+    // 5px from each edge, less half a pixel for subpixel layout.
     const expectOnScreen = ($menu) => {
       expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
       const { left, right } = $menu[0].getBoundingClientRect()
-      expect(left, 'left edge').to.be.at.least(0)
-      expect(right, 'right edge').to.be.at.most($menu[0].ownerDocument.documentElement.clientWidth)
+      const width = $menu[0].ownerDocument.documentElement.clientWidth
+      expect(left, 'left edge').to.be.at.least(4.5)
+      expect(right, 'right edge').to.be.at.most(width - 4.5)
     }
 
     ;[390, 1280].forEach((width) => {

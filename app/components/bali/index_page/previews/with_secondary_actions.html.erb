@@ -6,7 +6,7 @@
     { name: 'Session calendars' }
   ],
   secondary_actions_width: secondary_actions_width,
-  secondary_actions_label: secondary_actions_label
+  secondary_actions_aria_label: secondary_actions_aria_label
 ) do |page| %>
   <% page.with_action do %>
     <%= render Bali::Link::Component.new(name: 'Plan 2027', href: '#', variant: :primary, icon: 'calendar-days') %>

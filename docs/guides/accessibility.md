@@ -250,30 +250,20 @@ opened with `showModal()` is not modal, whatever the attribute says.
 ### Dropdown Menu
 
 ```erb
-<div class="dropdown" data-controller="dropdown">
-  <button class="btn" 
-          aria-haspopup="true"
-          aria-expanded="false"
-          aria-controls="dropdown-menu"
-          data-action="click->dropdown#toggle">
-    Options
-  </button>
-  <ul id="dropdown-menu"
-      class="dropdown-content menu"
-      role="menu"
-      aria-label="Options menu">
-    <li role="none">
-      <a href="#" role="menuitem">Edit</a>
-    </li>
-    <li role="none">
-      <a href="#" role="menuitem">Delete</a>
-    </li>
-  </ul>
-</div>
+<%= render Bali::Dropdown::Component.new do |dropdown| %>
+  <% dropdown.with_trigger { "Options" } %>
+  <% dropdown.with_item(name: "Edit", href: "/movies/1/edit") %>
+  <% dropdown.with_item(name: "Delete", href: "/movies/1", method: :delete) %>
+<% end %>
 ```
 
+The trigger comes out as `role="button"` with `aria-haspopup` and `aria-expanded`, the list as a
+`<ul role="menu">` of `menuitem`s, and the `dropdown` controller opens it on a click. Do not add
+a `click->dropdown#toggle` action to the trigger: the controller's own click toggles it first,
+and the action toggles it straight back.
+
 **Keyboard Requirements:**
-- Enter/Space: Open menu
+- Enter/Space: Open menu and move focus to the first item
 - Escape: Close menu
 - Arrow Down: Move to next item
 - Arrow Up: Move to previous item

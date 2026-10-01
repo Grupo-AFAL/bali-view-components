@@ -110,16 +110,14 @@ describe('DataTable toolbar overflow', () => {
 
   it('closes an open dropdown before folding it into the ⋯', () => {
     // `.dropdown-open` SURVIVES the move: without closing it first, the control lands open
-    // inside the menu. It is only reachable by keyboard — the other toolbar dropdowns open
-    // through daisyUI's :focus-within and never set the class.
+    // inside the menu. Group by is a Bali::Dropdown and sets the class; Columns and Views open
+    // through daisyUI's :focus-within and never do.
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
-    // `force`: daisyUI sets pointer-events:none on the trigger of an open dropdown (:focus-within
-    // already opened it), and a keydown does not need mouse actionability.
     cy.get(`${groupByItem} [data-dropdown-target="trigger"]`)
       .focus()
-      .trigger('keydown', { key: 'ArrowDown', force: true })
+      .trigger('keydown', { key: 'ArrowDown' })
     cy.get(`${groupByItem} .dropdown-open`).should('have.length', 1)
 
     cy.viewport(375, 667)

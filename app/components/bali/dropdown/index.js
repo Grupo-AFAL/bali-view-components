@@ -29,7 +29,10 @@ export class DropdownController extends Controller {
     if (this.popoverValue) {
       this.setupPopover()
     } else if (this.opensOnClick) {
-      this.close()
+      // Not `close()`: a menu the server rendered open (`class: 'dropdown-open'`, as /z-stack
+      // does) stays open.
+      this.element.classList.toggle('dropdown-close', !this.element.classList.contains('dropdown-open'))
+      this.syncExpanded()
       this.element.addEventListener('mousedown', this.holdTriggerFocus)
       this.element.addEventListener('click', this.handleTriggerClick, true)
     }
@@ -74,6 +77,9 @@ export class DropdownController extends Controller {
     // the wrong box and hide it outright, since daisyUI's open rules are all descendants
     // of `.dropdown`, which the panel has just stopped being.
     this.menu.classList.remove('dropdown-content')
+    // A menu the keyboard opened before tippy resolved carries the CSS mode's nudge (see
+    // `keepInViewport`); inside the popper it would push the panel off its own box.
+    this.menu.style.transform = ''
 
     // `manual` and `hideOnClick: false` on purpose: tippy is a positioner here, not the
     // thing that decides when the menu is open. Its own `click` trigger has toggle rules of
@@ -104,6 +110,7 @@ export class DropdownController extends Controller {
       onHide: this.onPopoverHide
     })
 
+    this.element.addEventListener('mousedown', this.holdTriggerFocus)
     this.element.addEventListener('click', this.handleTriggerClick, true)
   }
 
@@ -111,6 +118,9 @@ export class DropdownController extends Controller {
   // Enter meant to open it closed it (#1231). A click dropdown rests in daisyUI's own
   // `dropdown-close`, which outranks `:focus-within`, and only `open()` takes it out. The
   // hover one keeps focus as its keyboard way in; popover mode never opened on focus.
+  //
+  // Hover is read off `dropdown-hover` (Component#dropdown_classes) and not off a value: it
+  // is the class daisyUI's hover rules read, so the controller and the CSS cannot disagree.
   get opensOnClick () {
     return !this.popoverValue && !this.element.classList.contains('dropdown-hover')
   }
@@ -144,12 +154,14 @@ export class DropdownController extends Controller {
 
   listenOn (node) {
     node.addEventListener('keydown', this.handleKeydown)
+    node.addEventListener('keyup', this.handleKeyup)
     node.addEventListener('focusin', this.handleFocusIn)
     node.addEventListener('focusout', this.handleFocusOut)
   }
 
   stopListeningOn (node) {
     node.removeEventListener('keydown', this.handleKeydown)
+    node.removeEventListener('keyup', this.handleKeyup)
     node.removeEventListener('focusin', this.handleFocusIn)
     node.removeEventListener('focusout', this.handleFocusOut)
   }
@@ -184,18 +196,18 @@ export class DropdownController extends Controller {
   }
 
   handleFocusOut = (event) => {
-    if (this.popoverValue) return
     // Focus can jump BETWEEN children (from the trigger to an item): that is not closing.
     if (event.relatedTarget && this.owns(event.relatedTarget)) return
 
-    if (this.opensOnClick) {
+    if (this.tippy || this.opensOnClick) {
       this.close()
       return
     }
 
-    // Focus has genuinely left. Drop the explicit-close mark so that coming back with Tab
-    // opens the menu again, the way focusing a dropdown that was never closed does.
-    this.element.classList.remove('dropdown-close')
+    // Focus has genuinely left a hover dropdown (or a popover one whose tippy never loaded,
+    // which is the CSS dropdown). Drop both marks: `dropdown-close` so that coming back with
+    // Tab opens it again, and the `dropdown-open` that Enter or an arrow may have set.
+    this.element.classList.remove('dropdown-close', 'dropdown-open')
     this.syncExpanded()
   }
 
@@ -208,7 +220,11 @@ export class DropdownController extends Controller {
     // `dropdown-open` and not `tippy.state.isVisible`: tippy runs `onShow` BEFORE it flips
     // that flag, so reading it from inside the callback reports the state the menu is
     // leaving. Measured: the popper on screen with `aria-expanded="false"` beside it.
-    if (this.tippy) return this.element.classList.contains('dropdown-open')
+    //
+    // A click dropdown is open when `dropdown-open` says so, and only then: a Turbo morph
+    // that rewrites `class` takes `dropdown-close` away too, and reading its absence as
+    // "open" made the first click after it close a menu nobody could see.
+    if (this.tippy || this.opensOnClick) return this.element.classList.contains('dropdown-open')
 
     const el = this.element
     if (el.classList.contains('dropdown-close')) return false
@@ -233,9 +249,9 @@ export class DropdownController extends Controller {
     return this.element.contains(node) || Boolean(this.menu && this.menu.contains(node))
   }
 
-  // Only a dropdown that is actually open gets closed. `close()` now leaves `dropdown-close`
-  // behind, and that class outranks `:focus-within`: closing a menu nobody had opened would
-  // mark it shut for good, and the next click on its trigger would do nothing at all.
+  // Only a dropdown that is actually open gets closed: in a hover dropdown `close()` leaves
+  // `dropdown-close` behind, which outranks `:hover`, so closing one nobody had opened would
+  // stop the pointer from opening it.
   handleOutsideClick = (event) => {
     if (this.owns(event.target)) return
     if (!this.isOpen) return
@@ -267,11 +283,11 @@ export class DropdownController extends Controller {
         // Inside a field the arrows belong to the field: they move the caret or selection.
         if (this.fromFormControl(event.target)) break
         event.preventDefault()
-        // Unconditionally, even when the menu is already on screen: daisyUI may have opened
-        // it from `:focus-within` without `dropdown-open` on the wrapper, and that class is
-        // how the rest of the package tells an explicitly-opened dropdown from a merely
-        // focused one — `toolbar_overflow_controller` closes exactly those before folding a
-        // control into the ⋯, and it looked for a class the keyboard had stopped setting.
+        // Unconditionally, even when the menu is already on screen: a hover menu that
+        // `:hover` or `:focus-within` opened has no `dropdown-open` on the wrapper, and that
+        // class is how the rest of the package tells an explicitly-opened dropdown from one
+        // merely shown — `toolbar_overflow_controller` closes exactly those before folding a
+        // control into the ⋯.
         this.open()
         this.focusNextItem()
         break
@@ -282,16 +298,33 @@ export class DropdownController extends Controller {
         this.focusPreviousItem()
         break
       case 'Enter':
-      case ' ':
         // Opens and steps in, like ArrowDown — the menu button of the WAI-ARIA APG. A toggle
         // here closed whatever `:focus-within` had opened under the very key meant to open it.
-        if (this.hasTriggerTarget && document.activeElement === this.triggerTarget) {
+        if (this.triggerFocused) {
           event.preventDefault()
           this.open()
           this.focusNextItem()
         }
         break
+      case ' ':
+        // Space opens on its keyup, as it activates a native button. Opened here, the focus
+        // would be on the first item when the keyup lands, and a `<button>` item answers a
+        // Space keyup with a click.
+        if (this.triggerFocused) event.preventDefault()
+        break
     }
+  }
+
+  handleKeyup = (event) => {
+    if (event.key !== ' ' || !this.triggerFocused) return
+
+    event.preventDefault()
+    this.open()
+    this.focusNextItem()
+  }
+
+  get triggerFocused () {
+    return this.hasTriggerTarget && document.activeElement === this.triggerTarget
   }
 
   // Was the event born in a dropdown NESTED inside this one? Then it belongs to the inner
@@ -331,11 +364,15 @@ export class DropdownController extends Controller {
   // page ⋯, `align: :end`, wraps to the left of a 390px phone and opened at x = −104 (#1231).
   // Popover mode has Popper for that; this is the same nudge. Read from the centre and the
   // layout width because the opening `scale` (.95 around the top centre) is still running.
+  //
+  // Only for menus that open above or below: one opening sideways (`dropdown-left`/`-right`,
+  // the classes daisyUI positions it by) would be pushed over its own trigger.
   keepInViewport () {
     if (!this.menu) return
 
     this.menu.style.transform = ''
     if (!this.menu.offsetWidth) return
+    if (this.element.matches('.dropdown-left, .dropdown-right')) return
 
     const { left, right } = this.menu.getBoundingClientRect()
     const centre = (left + right) / 2

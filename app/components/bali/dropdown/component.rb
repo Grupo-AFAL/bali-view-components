@@ -246,6 +246,9 @@ module Bali
         raise ArgumentError, WIDE_REMOVED_MESSAGE
       end
 
+      # The controller reads `dropdown-hover`, `dropdown-left` and `dropdown-right` off this list
+      # rather than off values (`opensOnClick` and `keepInViewport` in index.js): they are what
+      # daisyUI's rules read, so the CSS and the controller cannot disagree.
       def dropdown_classes
         class_names(
           "dropdown",
