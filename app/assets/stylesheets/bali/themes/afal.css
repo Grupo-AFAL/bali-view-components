@@ -7,8 +7,9 @@
  * original Tailwind palette. Delete the local copy when importing this file.
  * The one departure is the primary: that block's blue-500 (#3B82F6) put white
  * text at 3.68:1, under AA's 4.5. It is Tailwind v4's blue-600 (5.25:1), not
- * v3's #2563EB like the rest: that one leaves SideMenu's active item, primary
- * text on a primary/10 tint, at 4.49:1 (4.51 with this one).
+ * v3's #2563EB like the other brand colours: that one leaves primary text on a
+ * primary/10 tint over base-100 (SideMenu's active item) at 4.49:1, and this
+ * one at 4.51.
  * Brand: Grupo AFAL
  *
  * Usage:

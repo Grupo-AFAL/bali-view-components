@@ -51,8 +51,8 @@ class BaliThemesTest < ActiveSupport::TestCase
     end
   end
 
-  # afal.css's block is the canonical copy of the one the apps used to carry by hand (#718): the
-  # brand values do not change without being an announced visual change.
+  # The brand values every host importing afal.css paints: one does not change without an
+  # announced visual change (#718, #1221).
   def test_the_afal_brand_values_stay_canonical
     css = File.read(THEMES_DIR.join("afal.css"))
 
