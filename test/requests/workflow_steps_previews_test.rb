@@ -7,7 +7,7 @@ require "test_helper"
 # (`Module.nesting`; see `.claude/CLAUDE.md`). Component tests render classes,
 # not previews, so only a request test catches it.
 class WorkflowStepsPreviewsTest < ActionDispatch::IntegrationTest
-  PREVIEWS = %w[default horizontal rail progress decision_pattern provisional_route].freeze
+  PREVIEWS = %w[default horizontal rail progress segments decision_pattern provisional_route].freeze
 
   def test_every_workflow_steps_preview_renders_over_the_request_path
     PREVIEWS.each do |name|
@@ -18,13 +18,14 @@ class WorkflowStepsPreviewsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # All four shapes come out of the same root class, so a preview that renders
+  # All five shapes come out of the same root class, so a preview that renders
   # is no proof it rendered the shape it documents.
   def test_each_preview_renders_the_shape_it_documents
     { "default" => "ol.workflow-steps.workflow-steps-vertical",
       "horizontal" => "div.workflow-steps.workflow-steps-horizontal",
       "rail" => "div.workflow-steps.workflow-steps-rail",
-      "progress" => "div.workflow-steps.workflow-steps-progress-rail" }.each do |name, selector|
+      "progress" => "div.workflow-steps.workflow-steps-progress-rail",
+      "segments" => "div.workflow-steps.workflow-steps-segments" }.each do |name, selector|
       get "/lookbook/preview/bali/workflow_steps/#{name}"
       assert_response :ok
       assert_select selector, { minimum: 1 }, "#{name} did not render #{selector}"
@@ -75,5 +76,13 @@ class WorkflowStepsPreviewsTest < ActionDispatch::IntegrationTest
     get "/lookbook/preview/bali/workflow_steps/rail", params: { progress: true }
     assert_response :ok
     assert_select ".workflow-steps-rail .workflow-steps-progress", { minimum: 1 }
+  end
+
+  # The case the shape exists for: a request inbox, with the shape inside the
+  # cells of a `Bali::Table` rather than beside one.
+  def test_the_segments_preview_draws_the_shape_inside_a_table
+    get "/lookbook/preview/bali/workflow_steps/segments"
+    assert_response :ok
+    assert_select "table td .workflow-steps-segments", 5
   end
 end

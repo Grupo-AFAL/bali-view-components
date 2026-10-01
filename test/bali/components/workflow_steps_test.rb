@@ -345,6 +345,7 @@ class BaliWorkflowStepsStepComponentTest < ComponentTestCase
   TABLES = %i[
     CIRCLE_CLASSES CONNECTOR_CLASSES DOT_CLASSES
     PROGRESS_CIRCLE_CLASSES PROGRESS_CONNECTOR_CLASSES PROGRESS_TITLE_CLASSES
+    SEGMENT_CLASSES
   ].freeze
 
   def test_constants_the_class_tables_are_frozen_and_agree_on_the_states
@@ -1137,6 +1138,250 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
 
   def circle_icon_paths
     page.all(".workflow-step-circle svg *", visible: :all).map { |node| node.native.to_html }
+  end
+end
+
+# The segments shape is the table cell: one short bar per step, no title
+# painted, and the current step's title beside the bar.
+class BaliWorkflowStepsSegmentsTest < ComponentTestCase
+  def test_the_segments_are_a_fifth_orientation_with_their_own_root_class
+    render_segments do |c|
+      c.with_step(title: "Submitted", state: :success)
+      c.with_step(title: "Legal review", state: :current)
+    end
+
+    assert_selector("div.workflow-steps.workflow-steps-segments > ol.workflow-steps-list > li.workflow-step",
+                    count: 2)
+    assert_selector(".workflow-step-segment", count: 2, visible: :all)
+  end
+
+  # Nothing in a segment is text a sighted reader sees: the title, the marker
+  # and the body of the other shapes are all absent.
+  def test_a_segment_paints_no_title_and_no_marker
+    render_segments do |c|
+      c.with_step(title: "Submitted", state: :success, assignee: "Luis Pérez", date: "Jul 1")
+      c.with_step(title: "Legal review", state: :error)
+    end
+
+    assert_no_selector(".workflow-step-title, .workflow-step-body, .workflow-step-marker", visible: :all)
+    assert_no_selector(".workflow-step-circle, .workflow-step-dot, .workflow-step-connector", visible: :all)
+    assert_no_text("Luis Pérez")
+  end
+
+  # Not rendered and not evaluated either: a host's block can query, and a
+  # shape that draws nothing of it should not pay for it.
+  def test_the_block_is_never_evaluated
+    evaluated = false
+    render_segments do |c|
+      c.with_step(title: "Legal review", state: :error) do
+        evaluated = true
+        "Rejected: missing appendix B."
+      end
+    end
+
+    assert_not evaluated, "the step's block ran"
+    assert_no_text("Rejected: missing appendix B.")
+  end
+
+  # The title is the segment's name: read out with its state from the list,
+  # and offered to a pointer as a `title` on the segment itself.
+  def test_each_segment_is_named_by_its_title_and_state
+    render_segments do |c|
+      c.with_step(title: "Submitted", state: :success)
+      c.with_step(title: "Legal review", state: :current)
+      c.with_step(title: "Director signature", state: :pending)
+    end
+
+    names = [ "Submitted: Completed", "Legal review: In progress", "Director signature: Pending" ]
+    assert_equal names, page.all("li.workflow-step > .sr-only", visible: :all).map { |node| node.text(:all) }
+    assert_equal names, page.all(".workflow-step-segment", visible: :all).map { |node| node[:title] }
+  end
+
+  # On the `<li>` the `title` would be read as a description, after the same
+  # words in the `sr-only` span.
+  def test_the_segment_is_hidden_from_assistive_tech_and_carries_the_title_alone
+    render_segments do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_selector('.workflow-step-segment[aria-hidden="true"]', visible: :all)
+    assert_no_selector("li.workflow-step[title]", visible: :all)
+  end
+
+  def test_the_state_names_come_from_the_locale
+    I18n.with_locale(:es) do
+      render_segments do |c|
+        c.with_step(title: "Solicita", state: :success)
+        c.with_step(title: "Valida", state: :current)
+      end
+    end
+
+    assert_equal [ "Solicita: Completado", "Valida: En curso" ],
+                 page.all(".workflow-step-segment", visible: :all).map { |node| node[:title] }
+  end
+
+  def test_a_state_label_renames_the_state_and_an_empty_one_leaves_the_title_alone
+    render_segments do |c|
+      c.with_step(title: "Evaluation", state: :skipped, state_label: "Not taken")
+      c.with_step(title: "Pilot", state: :skipped, state_label: "")
+    end
+
+    assert_equal [ "Evaluation: Not taken", "Pilot" ],
+                 page.all(".workflow-step-segment", visible: :all).map { |node| node[:title] }
+  end
+
+  def test_a_title_is_escaped_in_both_places
+    render_segments do |c|
+      c.with_step(title: "<b>Legal</b>", state: :pending)
+    end
+
+    assert_no_selector("li.workflow-step b", visible: :all)
+    assert_equal "<b>Legal</b>: Pending", page.find(".workflow-step-segment", visible: :all)[:title]
+  end
+
+  # WCAG 1.4.1: a reader who cannot tell green from red still has to tell a
+  # completed step from a rejected one, so no two states share a shape.
+  def test_every_state_is_drawn_as_a_different_shape
+    expected = {
+      success: %w[fill],
+      error: %w[hatch],
+      warning: %w[half],
+      skipped: %w[fill line],
+      current: %w[fill outline],
+      pending: []
+    }
+
+    drawn = expected.keys.index_with do |state|
+      render_segments { |c| c.with_step(title: "Step", state: state) }
+      shape_of(page.find(".workflow-step-segment", visible: :all)[:class])
+    end
+
+    assert_equal expected, drawn
+    assert_equal drawn.size, drawn.values.uniq.size
+  end
+
+  # The plain fills measured 1.96:1 (success), 1.76:1 (warning) and 2.86:1
+  # (error) against light's `base-100`; 1.4.11 wants 3:1 for a shape that
+  # carries meaning. The browser measures the result in five themes
+  # (cypress/e2e/workflow-steps-segments.cy.js); this keeps the mix in place.
+  def test_the_three_state_colours_are_mixed_toward_base_content
+    %i[success error warning].each do |state|
+      render_segments { |c| c.with_step(title: "Step", state: state) }
+
+      assert_includes page.find(".workflow-step-segment", visible: :all)[:class],
+                      "text-[color-mix(in_oklab,var(--color-#{state})_60%,var(--color-base-content))]"
+    end
+  end
+
+  def test_the_current_step_title_is_painted_beside_the_bar
+    render_segments do |c|
+      c.with_step(title: "Request", state: :success)
+      c.with_step(title: "Validate · Corporate direction", state: :current)
+      c.with_step(title: "Authorize", state: :pending)
+    end
+
+    assert_selector(".workflow-steps-segments > .workflow-steps-current-title",
+                    text: "Validate · Corporate direction", count: 1)
+  end
+
+  # The list has just read that step out with its state.
+  def test_the_current_step_title_is_hidden_from_assistive_tech
+    render_segments do |c|
+      c.with_step(title: "Validate", state: :current)
+    end
+
+    assert_selector('.workflow-steps-current-title[aria-hidden="true"]', visible: :all)
+  end
+
+  # A rejected or finished flow waits on nobody, so there is nothing to name.
+  def test_a_flow_with_no_current_step_paints_no_title
+    render_segments do |c|
+      c.with_step(title: "Request", state: :success)
+      c.with_step(title: "Validate", state: :error)
+      c.with_step(title: "Authorize", state: :pending)
+    end
+
+    assert_no_selector(".workflow-steps-current-title", visible: :all)
+  end
+
+  def test_with_two_current_steps_the_first_is_named
+    render_segments do |c|
+      c.with_step(title: "Legal", state: :current)
+      c.with_step(title: "Finance", state: :current)
+    end
+
+    assert_selector(".workflow-steps-current-title", text: "Legal", count: 1)
+  end
+
+  # The rail's list scrolls and is a tab stop; this one does neither, and a tab
+  # stop on something that never scrolls is one more stop for nothing.
+  def test_the_list_is_not_a_focusable_scroll_region
+    render_segments do |c|
+      c.with_step(title: "Submitted", state: :success)
+    end
+
+    assert_no_selector("[tabindex]", visible: :all)
+    assert_no_selector("ol.workflow-steps-list[aria-label]")
+  end
+
+  def test_no_bar_is_drawn_and_asking_for_one_raises
+    render_segments do |c|
+      c.with_step(title: "A", state: :success)
+    end
+    assert_no_selector(".workflow-steps-progress")
+
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(orientation: :segments, progress: true))
+    end
+    assert_includes(error.message, ":segments already is one")
+  end
+
+  def test_an_explicit_progress_false_is_allowed
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :segments, progress: false)) do |c|
+      c.with_step(title: "A", state: :success)
+    end
+
+    assert_selector("div.workflow-steps-segments")
+  end
+
+  def test_html_attributes_land_on_the_root
+    render_inline(
+      Bali::WorkflowSteps::Component.new(orientation: :segments, class: "my-flow",
+                                         data: { testid: "flow" }, title: "Approval chain")
+    ) do |c|
+      c.with_step(title: "A", state: :success, data: { testid: "step-a" })
+    end
+
+    assert_selector('div.workflow-steps-segments.my-flow[data-testid="flow"][title="Approval chain"]')
+    assert_selector('li.workflow-step[data-testid="step-a"]')
+  end
+
+  def test_the_orientation_error_names_the_fifth_shape
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::WorkflowSteps::Component.new(orientation: :sideways))
+    end
+
+    assert_includes(error.message, ":segments")
+  end
+
+  private
+
+  def render_segments(&block)
+    render_inline(Bali::WorkflowSteps::Component.new(orientation: :segments), &block)
+  end
+
+  SHAPE_CLASSES = {
+    "fill" => "bg-current",
+    "hatch" => "bg-[repeating-linear-gradient(",
+    "half" => "bg-[linear-gradient(to_right,",
+    "line" => "h-0.5",
+    "outline" => "outline-2"
+  }.freeze
+
+  # The shape names a segment's classes add up to, in SHAPE_CLASSES order.
+  def shape_of(classes)
+    tokens = classes.split
+    SHAPE_CLASSES.select { |_, prefix| tokens.any? { |token| token.start_with?(prefix) } }.keys
   end
 end
 

@@ -1192,14 +1192,15 @@ positional.
 ```
 
 **Options:**
-- `orientation` - `:vertical` (default), `:horizontal`, `:rail` or
-  `:progress`. It was `variant:` in the v3.1 betas; the old keyword raises with
-  a message naming the replacement.
+- `orientation` - `:vertical` (default), `:horizontal`, `:rail`, `:progress`
+  or `:segments`. It was `variant:` in the v3.1 betas; the old keyword raises
+  with a message naming the replacement.
 - `progress` - The N/M bar, which has nothing to do with `orientation:
   :progress`. On by default in `:horizontal`, off by default in `:rail` and
   `:progress` (their connectors already say how far the flow got); `false`
   drops it and `true` turns it on. Asking for one on `:vertical` raises — that
-  shape has no header for it.
+  shape has no header for it — and so does asking on `:segments`, which are
+  that count already.
 - HTML attributes for the root element pass through, `style:` included: this
   component has no `style:` keyword, so `style: "max-width:40rem"` lands on the
   root as a live inline style.
@@ -1248,17 +1249,18 @@ nothing global. `nil` (the default) falls back to the translation; anything
 else is taken literally, `""` included, so a step whose title already says the
 verdict can ask for silence. Same rule as `Bali::BooleanIcon`'s `label:`.
 
-##### Choosing a shape: `:horizontal`, `:rail` or `:progress`
+##### Choosing a shape: `:horizontal`, `:rail`, `:progress` or `:segments`
 
-Three of the four shapes lay the flow out left to right, so the names do not
-tell them apart — **`:rail` and `:progress` are horizontal too**. What
-separates them is the question the reader arrives with:
+Four of the five shapes lay the flow out left to right, so the names do not
+tell them apart — **`:rail`, `:progress` and `:segments` are horizontal too**.
+What separates them is the question the reader arrives with, and where:
 
 | The reader is asking | Shape |
 |---|---|
 | "what is in this chain, and what does each step carry?" | `:horizontal` |
 | "what happened at each step?" | `:rail` |
 | "how far did this get?" | `:progress` |
+| "where is each of these?", down a table column | `:segments` |
 
 | | `:horizontal` | `:rail` | `:progress` |
 |---|---|---|---|
@@ -1294,11 +1296,14 @@ turns up in real screens — parallel approvals, a branch that jumps ahead — a
 when a chain can do that, ask for `:rail`, where every connector states its own
 step.
 
-Rule of thumb: three or four steps that have to fit a summary card or a table
-cell → `:horizontal`. Nine steps across the top of a page → one of the two
-rows, `:rail` when each verdict is the news and `:progress` when the reader only
-needs to know where the thing got to. The same nine as cards are three rows, and
-a funnel in three rows is no longer a funnel.
+Rule of thumb: three or four steps that have to fit a summary card →
+`:horizontal`. A table cell → `:segments`, and no other shape: measured with
+four steps in a 180px cell, `:vertical` is 200px tall, `:horizontal` stacks its
+four 11rem cards 236px tall, and `:rail` and `:progress` need 384px and scroll
+inside the cell. Nine steps across the top of a page → one of the two rows,
+`:rail` when each verdict is the news and `:progress` when the reader only
+needs to know where the thing got to. The same nine as cards are three rows,
+and a funnel in three rows is no longer a funnel.
 
 `:vertical` is none of those three: it is the record — the shape with room for
 the assignee, the date and the rejection comment of every step, one under the
@@ -1307,8 +1312,8 @@ other.
 ##### The horizontal quick flow
 
 `orientation: :horizontal` renders the same steps as a row of cards with an N/M
-bar on top — the shape for a summary card or a table cell, where the whole
-chain has to fit in a glance.
+bar on top — the shape for a summary card, where the whole chain has to fit in
+a glance. Each card is at least 11rem wide, so a table cell wants `:segments`.
 
 ```erb
 <%= render Bali::WorkflowSteps::Component.new(orientation: :horizontal) do |c| %>
@@ -1482,6 +1487,59 @@ second keyword: every keyword this component does not declare reaches the root
 as a plain HTML attribute, so declaring `style:` or `shape:` would turn working
 host markup into an `ArgumentError`. The cost is the word — neither row is an
 orientation of its own, which is what the table above is for.
+
+##### Segments: the table cell
+
+`orientation: :segments` draws one short bar per step and paints no title, with
+the current step's title beside the bar. It is the shape for a table column —
+the "where is each request" column of an inbox.
+
+```erb
+<%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+  <% c.with_step(title: "Request", state: :success) %>
+  <% c.with_step(title: "Validate · Corporate direction", state: :current) %>
+  <% c.with_step(title: "Authorize · Board chair", state: :pending) %>
+<% end %>
+```
+
+**Every state is a shape**, not only a colour: a solid green bar and a solid
+red one are the same bar to a reader who cannot tell red from green (WCAG
+1.4.1).
+
+| State | Segment |
+|---|---|
+| `:success` | solid |
+| `:error` | hatched |
+| `:warning` | half-filled |
+| `:skipped` | a thin line — the route went around it |
+| `:current` | solid with an outline, and its title beside the bar |
+| `:pending` | hollow |
+
+**The three state colours are mixed 60% with `base-content`.** Plain, `success`,
+`warning` and `error` measure 1.96, 1.76 and 2.86:1 on light's `base-100`,
+below the 3:1 a shape carrying meaning needs (1.4.11). Mixed, every segment
+clears 3:1 in the five themes, on `base-100` and on a zebra row's `base-200`;
+the lowest is `:current` in `afal` on `base-200`, 3.34:1.
+
+**`title:` is still required.** It is not painted, but it names the segment:
+the `<ol>` stays a list and each item carries "Title: State" as `sr-only` text,
+so a screen reader hears "list, 3 items, Request: Completed, …". The same words
+are the segment's `title` tooltip for a pointer. `state_label:` renames the
+state as in every other shape, and `state_label: ""` leaves the title alone.
+
+**The title beside the bar is the first `:current` step's**, and there is no
+option to set it. A flow that waits on nobody — rejected, or finished — shows
+the bar alone; if the screen has to say "Finished", it says so next to the
+component. That title is `aria-hidden`, because the list has just read the same
+step out with its state.
+
+**It never scrolls and is never a tab stop.** A segment is 24px and gives way
+to an 8px floor when the cell is narrower than the bar: nine steps in a 160px
+column measure 14px each. The title wraps under the bar when the two do not fit
+on one line.
+
+**What it does not draw**: `assignee:`, `date:`, `number:` and the step's block
+(the block is never evaluated). Nor the N/M bar — `progress: true` raises.
 
 ##### The decision form is the host's
 

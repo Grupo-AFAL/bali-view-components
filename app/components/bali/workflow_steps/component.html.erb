@@ -1,4 +1,17 @@
-<% if boxed? %>
+<% if segments? %>
+  <div <%= tag.attributes(**container_options) %>>
+    <ol class="workflow-steps-list">
+      <% rendered_steps.each do |step| %>
+        <%= step %>
+      <% end %>
+    </ol>
+    <% if current_title %>
+      <%# Hidden from assistive tech because the list above already reads this
+          step out with its state; heard twice, it is the same step again. %>
+      <span class="workflow-steps-current-title" aria-hidden="true"><%= current_title %></span>
+    <% end %>
+  </div>
+<% elsif boxed? %>
   <div <%= tag.attributes(**container_options) %>>
     <% if progress? %>
       <div class="workflow-steps-progress">

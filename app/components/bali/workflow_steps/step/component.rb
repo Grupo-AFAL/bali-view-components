@@ -6,10 +6,11 @@ module Bali
       # One step of a workflow: a marker, the title, and the optional assignee
       # / date / free comment block.
       #
-      # The marker is the only thing the four shapes disagree on. Everything
-      # below it is the same markup, which is why one template covers all four;
-      # so is the `sr-only` state name beside it, since no marker says the
-      # state in anything but colour.
+      # The marker is the only thing the four titled shapes disagree on.
+      # Everything below it is the same markup, which is why one template
+      # covers all four; so is the `sr-only` state name beside it, since no
+      # marker says the state in anything but colour. The segments shape is
+      # the fifth and paints no title, so its step is a branch of its own.
       #
       # `marker` and `connector_state` are written by the parent, not passed to
       # `new`: `dot:` is the boolean v3.4.0 published, which leaves a third
@@ -109,6 +110,31 @@ module Bali
           warning: "triangle-alert"
         }.freeze
 
+        # Each state is a different SHAPE, not only a different colour (WCAG
+        # 1.4.1): solid, hatched, half-filled, a thin line for the step the
+        # route went around, solid and outlined for the current one, hollow for
+        # what has not happened. Measured through a deuteranopia filter, success and
+        # error are the same brown and only the hatching tells them apart.
+        #
+        # The three state colours are mixed 60% with `base-content` because
+        # the plain fills are below the 3:1 a shape carrying meaning needs
+        # (1.4.11) in every light theme: `success` 1.96:1, `warning` 1.76:1 and
+        # `error` 2.86:1 on light's `base-100`. At 60% the worst of the fifteen
+        # theme × state pairs is `warning` in `afal`, 3.80:1 on `base-100` and
+        # 3.45:1 on the `base-200` of a zebra row; 70% left it at 2.78:1.
+        # `primary` and the `base-content/60` grey pass as they are.
+        SEGMENT_CLASSES = {
+          success: "bg-current " \
+                   "text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-base-content))]",
+          error: "bg-[repeating-linear-gradient(-45deg,currentColor_0_1.5px,transparent_1.5px_3.5px)] " \
+                 "text-[color-mix(in_oklab,var(--color-error)_60%,var(--color-base-content))]",
+          warning: "bg-[linear-gradient(to_right,currentColor_50%,transparent_50%)] " \
+                   "text-[color-mix(in_oklab,var(--color-warning)_60%,var(--color-base-content))]",
+          pending: "text-base-content/60",
+          skipped: "h-0.5 border-0 bg-current text-base-content/60",
+          current: "bg-current text-primary outline-2 outline-offset-1 outline-current"
+        }.freeze
+
         STATES = CIRCLE_CLASSES.keys.freeze
 
         # Steps that have not happened read muted, like the rest of their row.
@@ -155,6 +181,10 @@ module Bali
 
         def progress?
           marker == :progress
+        end
+
+        def segment?
+          marker == :segment
         end
 
         private
@@ -221,6 +251,17 @@ module Bali
         # generic string back to a caller who asked for silence.
         def state_label
           @state_label || I18n.t("bali_view.workflow_steps.states.#{state}")
+        end
+
+        def segment_classes
+          class_names("workflow-step-segment", SEGMENT_CLASSES.fetch(state))
+        end
+
+        # The segment's whole text, for the `title` a pointer hovers and the
+        # `sr-only` copy a screen reader reads; `state_label: ""` leaves the
+        # title alone, without a dangling separator.
+        def segment_label
+          [ title, state_label ].compact_blank.join(": ")
         end
 
         def connector_classes

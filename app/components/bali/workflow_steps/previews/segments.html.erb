@@ -1,0 +1,81 @@
+<% long_route = ['Request', 'Register · Committee office', 'Validate · Corporate direction', 'Authorize · Board chair'] %>
+<% requests = [
+     { folio: 'GB-0142', subject: 'New governing body', route: long_route,
+       states: %i[success success current pending], status: ['In validation', :info] },
+     { folio: 'GB-0139', subject: 'Membership change', route: long_route,
+       states: %i[success error pending pending], status: ['Rejected', :error] },
+     { folio: 'GB-0137', subject: 'Guest invitation', route: ['Request', 'Resolve · Committee office'],
+       states: %i[success current], status: ['Pending authorization', :warning] },
+     { folio: 'GB-0135', subject: 'Matrix change', route: long_route,
+       states: %i[success warning current pending], status: ['In validation', :info] },
+     { folio: 'GB-0131', subject: 'Session rescheduling', route: long_route.first(3),
+       states: %i[success success success], status: ['Authorized', :success] }
+   ] %>
+<div class="max-w-4xl space-y-8 p-4">
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The case it exists for: a request inbox
+    </p>
+    <%= render Bali::Table::Component.new do |table| %>
+      <% table.with_header(name: 'Folio') %>
+      <% table.with_header(name: 'Request') %>
+      <% table.with_header(name: 'Flow stage') %>
+      <% table.with_header(name: 'Status') %>
+      <% requests.each do |request| %>
+        <% table.with_row do %>
+          <td class="font-mono text-xs"><%= request[:folio] %></td>
+          <td><%= request[:subject] %></td>
+          <td class="w-48">
+            <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+              <% request[:route].zip(request[:states]).each do |title, state| %>
+                <% c.with_step(title: title, state: state) %>
+              <% end %>
+            <% end %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(text: request[:status].first,
+                                                color: request[:status].last, size: :sm) %>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      The six states, one per row
+    </p>
+    <div id="six-states" class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-sm">
+      <% { success: 'Completed: solid',
+           error: 'Rejected: hatched',
+           warning: 'Needs attention: half-filled',
+           skipped: 'Skipped: a thin line',
+           current: 'In progress: outlined, and named beside the bar',
+           pending: 'Pending: hollow' }.each do |state, description| %>
+        <div class="w-24">
+          <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+            <% c.with_step(title: 'Step', state: state) %>
+          <% end %>
+        </div>
+        <span><%= description %></span>
+      <% end %>
+    </div>
+  </div>
+
+  <div id="nine-steps" class="w-40 space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+      Nine steps in 160px
+    </p>
+    <%= render Bali::WorkflowSteps::Component.new(orientation: :segments) do |c| %>
+      <% c.with_step(title: 'Capture', state: :success) %>
+      <% c.with_step(title: 'Triage', state: :success) %>
+      <% c.with_step(title: 'Evaluation', state: :skipped, state_label: 'Not taken') %>
+      <% c.with_step(title: 'Business case', state: :success) %>
+      <% c.with_step(title: 'Estimation', state: :warning) %>
+      <% c.with_step(title: 'Prioritisation', state: :success) %>
+      <% c.with_step(title: 'Investment committee', state: :current) %>
+      <% c.with_step(title: 'Funding', state: :pending) %>
+      <% c.with_step(title: 'Project', state: :pending) %>
+    <% end %>
+  </div>
+</div>

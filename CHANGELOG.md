@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
+  (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
+  al lado. Ninguna de las otras cuatro cabía: con cuatro pasos en una celda de 180 px,
+  `:vertical` mide 200 px de alto, `:horizontal` apila sus tarjetas en 236 px, y `:rail` y
+  `:progress` piden 384 px y hacen scroll dentro de la celda. **gobierno-corporativo** puede
+  pasar `governing_bodies/requests/_flow_stage.html.erb` a esta forma, con el nombre de cada
+  paso como `title:`, y borrar `FLOW_SEGMENT_CLASSES` y `governing_body_request_segment_class`
+  (`git grep -n "governing_body_request_segment_class" origin/main`); el paso en curso pasa de
+  ámbar a `primary`, y «Concluida» sigue siendo suyo.
+
 - **`Bali::IsoDate.parse(value)`** (#1211): una fecha `AAAA-MM-DD` leída de fuera —un param,
   un payload— o `nil`. `Date.iso8601` solo no es eso: lee `"2026-09"` como el día 1,
   `"20260910"`, `"2026-253"` y `"2026-W37-4"` como fechas, y a `"2026-09-10T23:59:00-07:00"` le

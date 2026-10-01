@@ -1,4 +1,11 @@
 <li <%= tag.attributes(**step_options) %>>
+  <% if segment? %>
+    <%# The `title` sits on the hidden segment so it only reaches a pointer: on
+        the `<li>` a screen reader would read it as a description, after the
+        same words in the `sr-only` span. %>
+    <%= tag.span(class: segment_classes, title: segment_label, aria: { hidden: true }) %>
+    <span class="sr-only"><%= segment_label %></span>
+  <% else %>
   <div class="workflow-step-marker">
     <% if connector_state %>
       <span class="<%= connector_classes %>" aria-hidden="true"></span>
@@ -48,4 +55,5 @@
       <div class="workflow-step-comment"><%= content %></div>
     <% end %>
   </div>
+  <% end %>
 </li>
