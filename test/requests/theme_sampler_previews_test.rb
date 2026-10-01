@@ -10,7 +10,8 @@ class ThemeSamplerPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = {
     "/lookbook/preview/bali/theme_sampler/costa_norte" => "costa-norte",
     "/lookbook/preview/bali/theme_sampler/afal/default" => "afal",
-    "/lookbook/preview/bali/theme_sampler/afal_dark/default" => "afal-dark"
+    "/lookbook/preview/bali/theme_sampler/afal_dark/default" => "afal-dark",
+    "/lookbook/preview/bali/theme_sampler/costa_norte_dark/default" => "costa-norte-dark"
   }.freeze
 
   def test_each_theme_preview_renders_under_its_theme

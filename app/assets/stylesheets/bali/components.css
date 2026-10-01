@@ -15,6 +15,7 @@
 @import "../../../components/bali/navbar/index.css" layer(components);
 @import "../../../components/bali/side_menu/index.css" layer(components);
 @import "../../../components/bali/command/index.css" layer(components);
+@import "../../../components/bali/topbar/user_menu/index.css" layer(components);
 
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css" layer(components);

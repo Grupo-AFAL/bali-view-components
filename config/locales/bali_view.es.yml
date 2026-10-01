@@ -655,6 +655,7 @@ es:
       user_menu:
         trigger_label: "Menú de usuario de %{name}"
         sign_out: "Cerrar sesión"
+        dark_mode: "Modo oscuro"
       tools_menu:
         trigger_label: "Herramientas"
         items:

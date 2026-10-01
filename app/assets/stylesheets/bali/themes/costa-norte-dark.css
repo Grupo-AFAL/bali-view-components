@@ -1,0 +1,68 @@
+/*
+ * Costa Norte Dark Theme for DaisyUI 5
+ *
+ * Dark variant of themes/costa-norte.css. The surfaces, the text and the gold
+ * primary are the exact values the costa-norte app has painted its sidebar with
+ * since it scoped `data-theme="costa-norte-dark"` onto it: keep them equal, or
+ * that app's sidebar changes the day it drops its own block for this file.
+ *
+ * Derivation rules (from the light theme):
+ * - Surfaces are the light theme's `neutral` (dark teal) and two lifted steps;
+ *   base-content is the light theme's neutral-content.
+ * - Primary is the brand gold: the brand teal sits on base-100 at 1.69:1,
+ *   unusable as a fill or as text.
+ * - Secondary is the brand teal lifted until it reads on those surfaces, so it
+ *   stays distinct from primary.
+ * - Status colors are the light theme's. Their content colors are the app's,
+ *   except info and error: its near-white content measured 2.1 and 2.7:1 on
+ *   those pastels, so they take the light theme's dark content instead.
+ * - Structural tokens (radius/size/border/depth/noise) are identical.
+ *
+ * Usage:
+ *   @import "bali-view-components/css/themes/costa-norte-dark.css";
+ *   <html data-theme="costa-norte-dark">
+ *
+ * If your app uses `dark:` utilities, extend your @custom-variant so they
+ * also fire under this theme (see docs/guides/custom-themes.md).
+ */
+[data-theme="costa-norte-dark"] {
+  color-scheme: dark;
+
+  --color-base-100: oklch(0.2493 0.0385 215.27);
+  --color-base-200: oklch(0.305 0.04 215.27);
+  --color-base-300: oklch(0.37 0.04 215.27);
+  --color-base-content: oklch(0.95 0.01 80);
+
+  --color-primary: oklch(0.7909 0.1712 70.15);
+  --color-primary-content: oklch(0.2493 0.0385 215.27);
+
+  --color-secondary: oklch(0.72 0.09 197.73);
+  --color-secondary-content: oklch(0.2493 0.0385 215.27);
+
+  --color-accent: oklch(0.7417 0.0864 72.83);
+  --color-accent-content: oklch(0.2493 0.0385 215.27);
+
+  --color-neutral: oklch(0.305 0.04 215.27);
+  --color-neutral-content: oklch(0.95 0.01 80);
+
+  --color-info: oklch(0.74 0.16 232.661);
+  --color-info-content: oklch(0.29 0.066 243.157);
+
+  --color-success: oklch(0.76 0.177 163.223);
+  --color-success-content: oklch(0.2 0.05 163);
+
+  --color-warning: oklch(0.7364 0.184 54.26);
+  --color-warning-content: oklch(0.2493 0.0385 215.27);
+
+  --color-error: oklch(0.71 0.194 13.428);
+  --color-error-content: oklch(0.27 0.105 12.094);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}

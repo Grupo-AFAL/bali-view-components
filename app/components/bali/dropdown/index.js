@@ -414,6 +414,6 @@ export class DropdownController extends Controller {
   getMenuItems () {
     if (!this.menu) return []
 
-    return Array.from(this.menu.querySelectorAll('[role="menuitem"]'))
+    return Array.from(this.menu.querySelectorAll('[role^="menuitem"]'))
   }
 }

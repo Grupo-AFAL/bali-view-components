@@ -30,7 +30,7 @@ class BaliThemesTest < ActiveSupport::TestCase
   end
 
   def test_the_expected_themes_ship_with_the_gem
-    assert_equal(%w[afal-dark.css afal.css costa-norte.css],
+    assert_equal(%w[afal-dark.css afal.css costa-norte-dark.css costa-norte.css],
                  theme_files.map { |file| File.basename(file) })
   end
 

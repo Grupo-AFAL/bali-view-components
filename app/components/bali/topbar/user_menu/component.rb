@@ -27,6 +27,7 @@ module Bali
         # names: a relative key would resolve against this subclass's own scope.
         TRIGGER_LABEL_KEY = "bali_view.topbar.user_menu.trigger_label"
         SIGN_OUT_KEY = "bali_view.topbar.user_menu.sign_out"
+        DARK_MODE_KEY = "bali_view.topbar.user_menu.dark_mode"
 
         SIGN_OUT_MESSAGE = "Bali::Topbar::UserMenu::Component: `sign_out:` takes a Hash " \
                            "with `href:` — e.g. `sign_out: { href: sign_out_path }`. " \
@@ -53,11 +54,13 @@ module Bali
 
         # Slot order is registration order, so the surrounding entries are added
         # here, around an explicit `content` call: header first, then the call
-        # site's `with_item`s (evaluated by `content`), then sign-out.
+        # site's `with_item`s (evaluated by `content`), then the dark-mode switch,
+        # then sign-out.
         def before_render
           header = header_content
           with_item(tag: :title, class: "bali-topbar-user-menu-header") { header }
           content
+          add_dark_mode_item if Bali.themes&.dig(:dark).present?
           add_sign_out_item if @sign_out
           super
         end
@@ -104,6 +107,23 @@ module Bali
                                                        sign_out[:href].present?
 
           { method: SIGN_OUT_METHOD }.merge(sign_out)
+        end
+
+        # The theme pair and the cookie name travel as values, so the theme-toggle
+        # controller never names a theme or a cookie of its own: what it writes is
+        # what Bali::ThemeHelper reads to paint the next page.
+        def add_dark_mode_item
+          themes = Bali.themes
+          with_item(tag: :button, name: t(DARK_MODE_KEY), icon: "moon",
+                    role: "menuitemcheckbox",
+                    "aria-checked": ThemeHelper.dark?(request).to_s,
+                    class: "bali-theme-toggle",
+                    data: { controller: "theme-toggle", action: "theme-toggle#toggle",
+                            theme_toggle_light_value: themes[:light],
+                            theme_toggle_dark_value: themes[:dark],
+                            theme_toggle_cookie_value: ThemeHelper::COOKIE }) do
+            tag.span(class: "bali-theme-toggle-switch", "aria-hidden": "true")
+          end
         end
 
         # Routed through the same `with_item` lambda as everything else, so

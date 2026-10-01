@@ -118,6 +118,11 @@ module Bali
     @@google_maps_key.presence || ENV["GOOGLE_MAPS_KEY"].presence
   end
 
+  # The daisyUI themes the host paints with: `{ light: "afal", dark: "afal-dark" }`.
+  # `bali_theme` (Bali::ThemeHelper) picks one for the `<html>` per request, and the
+  # UserMenu offers the dark-mode switch only when a `dark:` theme is declared.
+  mattr_accessor :themes, default: nil
+
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
   mattr_accessor :rich_text_editor_enabled, default: false

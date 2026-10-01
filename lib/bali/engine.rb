@@ -57,9 +57,9 @@ module Bali
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end
 
-    # isolate_namespace keeps engine helpers out of the host app, but the
-    # island meta-tag helpers are meant for the HOST layout (they publish the
-    # digested paths of the app's own island bundles), so expose just those.
+    # isolate_namespace keeps engine helpers out of the host app, but these are
+    # meant for the HOST layout: the island meta tags publish the digested paths
+    # of the app's own island bundles, and `bali_theme` fills its `<html>`.
     #
     # to_prepare, NOT on_load(:action_controller_base): a host that loads
     # ActionController::Base during boot (any gem requiring it does) fires that
@@ -68,6 +68,7 @@ module Bali
     config.to_prepare do
       ActionController::Base.helper(Bali::ReactIslandHelper)
       ActionController::Base.helper(Bali::BlockEditorHelper)
+      ActionController::Base.helper(Bali::ThemeHelper)
     end
 
     # Host-injected controller concerns (#710) — see docs/guides/engines.md. In a

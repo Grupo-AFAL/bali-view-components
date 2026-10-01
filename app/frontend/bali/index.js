@@ -126,6 +126,7 @@ export {
   StatusController,
   TableGroupsController,
   TabsController,
+  ThemeToggleController,
   TimeagoController,
   ToastContainerController,
   ToolbarOverflowController,

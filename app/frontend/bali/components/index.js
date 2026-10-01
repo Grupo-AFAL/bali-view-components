@@ -33,6 +33,7 @@ import { CarouselController } from '../../../components/bali/carousel/index'
 import { ChatController } from '../../../components/bali/chat/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
+import { ThemeToggleController } from '../../../components/bali/topbar/user_menu/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
 import { WidgetGridController, WidgetGridEditModeController } from '../../../components/bali/widget_grid/index'
 import { WidgetRefreshController } from '../../../components/bali/widget/refresh/index'
@@ -112,6 +113,7 @@ export {
   StatusController,
   TableGroupsController,
   TabsController,
+  ThemeToggleController,
   TimeagoController,
   ToastContainerController,
   ToolbarOverflowController,
@@ -149,6 +151,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'side-menu': SideMenuController,
   'side-menu-flyout': SideMenuFlyoutController,
   'side-menu-trigger': SideMenuTriggerController,
+  'theme-toggle': ThemeToggleController,
 
   // Data display
   avatar: AvatarController,
