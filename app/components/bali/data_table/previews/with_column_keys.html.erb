@@ -1,12 +1,5 @@
 <%# The `id:` is stable on purpose: column persistence is ON here, under the key
     `bali:columns:keyed-demo`, which cypress/e2e/data-table-column-memory.cy.js seeds. %>
-<% columns = [
-     { key: :name, label: 'Name', cell: ->(record) { record[:name] } },
-     ({ key: :region, label: 'Region', cell: ->(record) { record[:amount] > 1000 ? 'North' : 'South' } } if insert_region),
-     { key: :status, label: 'Status', cell: ->(record) { record[:status].capitalize } },
-     { key: :amount, label: 'Amount', cell: ->(record) { "$#{number_with_delimiter(record[:amount])}" } },
-     { key: :created_at, label: 'Created At', cell: ->(record) { record[:created_at] } }
-   ].compact %>
 <%= render Bali::DataTable::Component.new(url: request.path, filter_form: filter_form,
                                           id: 'keyed-demo') do |c| %>
   <% c.with_filters_panel(available_attributes: filter_attributes) %>
@@ -24,7 +17,7 @@
       <% records.each do |record| %>
         <%= ct.with_row do %>
           <% columns.each do |column| %>
-            <td><%= column[:cell].call(record) %></td>
+            <td><%= record[column[:attribute] || column[:key]] %></td>
           <% end %>
         <% end %>
       <% end %>

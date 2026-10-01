@@ -25,14 +25,18 @@
  * — v1, a bare list of visible indices — a column added later is born hidden, which is #1144.
  *
  * Format v3 is v2 with column IDS in the lists: a String is a column's `key:`, an Integer the
- * index of a column without one. It is only written when the selector declares a key, so a
- * table without keys keeps writing v2. Indices are positions, and inserting a column moved
- * every preference after it onto its neighbour (#1213); a v1 or v2 value is still read, as
- * positions against the current layout — `positional: true` — and rewritten as v3.
+ * index of a column without one — inserting a column moves every index after it (#1213). v3
+ * is only written when the selector declares a key: a table without keys writes exactly what it
+ * wrote before, and a rollback to ≤3.6.0 still reads it. v1 and v2 are read as positions against
+ * the current layout (`positional: true`) and rewritten as v3.
  */
 
-export const COLUMN_STORAGE_VERSION = 2
-export const COLUMN_IDS_VERSION = 3
+const POSITIONS_VERSION = 2
+const IDS_VERSION = 3
+
+// How the memory and a saved view name the column a checkbox toggles.
+export const columnId = (checkbox) =>
+  checkbox.dataset.columnKey || parseInt(checkbox.dataset.columnIndex, 10)
 
 // Valid indices are 0..255; a real table is nowhere near. The ceiling is there so a corrupt
 // value — `[999999999]` written by something else — cannot make `fromLegacy` build a
@@ -53,11 +57,9 @@ const columnIndices = (value) => {
   return [...seen].sort((a, b) => a - b)
 }
 
-// What `with_column(key:)` accepts, bounded so a corrupt value cannot pass for one.
+// Must match ColumnSelector::Component::KEY.
 const COLUMN_KEY = /^[A-Za-z_][\w-]{0,63}$/
 
-// Sanitised column ids: the indices `columnIndices` keeps plus well-formed keys, deduped,
-// indices first.
 const columnIds = (value) => {
   if (!Array.isArray(value)) return []
 
@@ -120,9 +122,9 @@ export function readColumnState (key) {
   } catch { return null }
 
   if (Array.isArray(parsed)) return fromLegacy(columnIndices(parsed))
-  if (!parsed || ![COLUMN_STORAGE_VERSION, COLUMN_IDS_VERSION].includes(parsed.v)) return null
+  if (!parsed || ![POSITIONS_VERSION, IDS_VERSION].includes(parsed.v)) return null
 
-  const ids = parsed.v === COLUMN_IDS_VERSION ? columnIds : columnIndices
+  const ids = parsed.v === IDS_VERSION ? columnIds : columnIndices
   const baseline = Array.isArray(parsed.serverHidden) ? ids(parsed.serverHidden) : null
 
   return {
@@ -130,7 +132,7 @@ export function readColumnState (key) {
     known: ids(parsed.known),
     serverHidden: baseline,
     stale: baseline === null,
-    positional: parsed.v === COLUMN_STORAGE_VERSION
+    positional: parsed.v === POSITIONS_VERSION
   }
 }
 
@@ -140,7 +142,7 @@ export function writeColumnState (key, { hidden, known, serverHidden }) {
   const keyed = known.some((id) => typeof id === 'string')
   const ids = keyed ? columnIds : columnIndices
   const value = {
-    v: keyed ? COLUMN_IDS_VERSION : COLUMN_STORAGE_VERSION,
+    v: keyed ? IDS_VERSION : POSITIONS_VERSION,
     hidden: ids(hidden),
     known: ids(known),
     serverHidden: ids(serverHidden)
@@ -163,5 +165,5 @@ export function writeColumnState (key, { hidden, known, serverHidden }) {
 export function visibleColumns (state) {
   if (!state) return null
 
-  return state.known.filter((index) => !state.hidden.includes(index))
+  return state.known.filter((id) => !state.hidden.includes(id))
 }

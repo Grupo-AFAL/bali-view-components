@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
-import { readColumnState, visibleColumns } from './column_storage'
+import { columnId, readColumnState, visibleColumns } from './column_storage'
 
 /**
  * Saved Views Controller
@@ -66,7 +66,7 @@ export default class extends Controller {
   visibleColumnsFrom (selector) {
     return [...selector.querySelectorAll('[data-column-index]')]
       .filter(checkbox => checkbox.checked)
-      .map(checkbox => checkbox.dataset.columnKey || parseInt(checkbox.dataset.columnIndex, 10))
+      .map(columnId)
   }
 
   // The selector is only painted in table mode. Without it, the columns imposed by the

@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
-import { readColumnState, writeColumnState } from './column_storage'
+import { columnId, readColumnState, writeColumnState } from './column_storage'
 
 /**
  * Column Selector Controller
@@ -118,7 +118,7 @@ export default class extends Controller {
   eachColumnCheckbox (callback) {
     this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
       const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) callback(checkbox, index, checkbox.dataset.columnKey || index)
+      if (!isNaN(index)) callback(checkbox, index, columnId(checkbox))
     })
   }
 

@@ -13,13 +13,21 @@ module Bali
           def id = key || index
         end
 
-        # Keys are told from positions by type, and a payload that went through a form comes
-        # back as strings — so a key made only of digits would be read as a position.
-        NUMERIC = /\A\d+\z/
+        # The same pattern as COLUMN_KEY in column_storage.js, which drops any other key from
+        # the device memory without a word. Keys are told from positions by type, and a payload
+        # that went through a form comes back as strings, so a key cannot start with a digit.
+        KEY = /\A[A-Za-z_][\w-]{0,63}\z/
+        POSITION = /\A\d+\z/
 
-        # The column ids of a saved view's payload: Integers are positions, Strings are keys.
+        # The column ids of a saved view's payload: Integers are positions, Strings are keys,
+        # and anything else is dropped.
         def self.column_ids(values)
-          Array(values).map { |value| value.to_s.match?(NUMERIC) ? value.to_i : value.to_s }
+          Array(values).filter_map do |value|
+            case value.to_s
+            when POSITION then value.to_i
+            when KEY then value.to_s
+            end
+          end
         end
 
         # @param listing_id [String] Identity of the listing (the id of the DataTable
@@ -75,15 +83,16 @@ module Bali
         # @param visible [Boolean] Whether the column is visible by default
         # @param key [String, Symbol, nil] Stable name the device memory and saved views use
         #   instead of the index, so inserting a column does not shift what users saved.
-        #   Not only digits: those read as positions.
+        #   A letter or `_` first, then letters, digits, `_` or `-`; 64 characters at most.
         def with_column(index:, label:, visible: true, key: nil)
-          key = key&.to_s
-          if key&.match?(NUMERIC)
-            raise ArgumentError, "column key #{key.inspect} is only digits, which reads as a " \
-                                 "column position; give it a name"
+          key = key.to_s.presence
+          if key && !key.match?(KEY)
+            raise ArgumentError, "column key #{key.inspect} must start with a letter or _ and use " \
+                                 "only letters, digits, _ or - (64 at most)"
           end
+          raise ArgumentError, "duplicate column key #{key.inspect}" if key && @columns.any? { it.key == key }
 
-          @columns << Column.new(index: index, label: label, visible: visible, key: key.presence)
+          @columns << Column.new(index: index, label: label, visible: visible, key: key)
         end
       end
     end

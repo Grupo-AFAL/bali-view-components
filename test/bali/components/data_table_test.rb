@@ -821,8 +821,12 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
   end
 
-  def column_checked?(key)
-    page.has_selector?("input[data-column-key='#{key}'][checked]", visible: :all)
+  def assert_column_checked(key)
+    assert_selector("input[data-column-key='#{key}'][checked]", visible: :all)
+  end
+
+  def assert_column_unchecked(key)
+    assert_selector("input[data-column-key='#{key}']:not([checked])", visible: :all)
   end
 
   def test_a_column_key_reaches_the_checkbox
@@ -841,15 +845,14 @@ class BaliDataTableComponentTest < ComponentTestCase
       cs.with_column(index: 3, label: "Created", key: :created)
     end
 
-    assert column_checked?("name")
-    assert column_checked?("created"), "moved from index 2 to 3 and is still the one the view showed"
-    assert_not column_checked?("genre")
+    assert_column_checked("name")
+    assert_column_checked("created")
+    assert_column_unchecked("genre")
     # A view shows exactly what it recorded, and it did not record this one.
-    assert_not column_checked?("region")
+    assert_column_unchecked("region")
   end
 
-  # Saved before the host declared keys: the only reading there is, by position — what it
-  # always meant.
+  # Saved before the host declared keys: position is all it can mean.
   def test_a_view_saved_by_position_is_read_by_position
     render_selector_with_view([ 0, 2 ]) do |cs|
       cs.with_column(index: 0, label: "Name", key: :name)
@@ -857,12 +860,11 @@ class BaliDataTableComponentTest < ComponentTestCase
       cs.with_column(index: 2, label: "Created", key: :created)
     end
 
-    assert column_checked?("name")
-    assert_not column_checked?("genre")
-    assert column_checked?("created")
+    assert_column_checked("name")
+    assert_column_unchecked("genre")
+    assert_column_checked("created")
   end
 
-  # Keys are adopted column by column; one without a key is still named by its index.
   def test_a_column_without_a_key_is_named_by_its_index
     render_selector_with_view([ "name", 1 ]) do |cs|
       cs.with_column(index: 0, label: "Name", key: :name)
@@ -870,9 +872,9 @@ class BaliDataTableComponentTest < ComponentTestCase
       cs.with_column(index: 2, label: "Created", key: :created)
     end
 
-    assert column_checked?("name")
+    assert_column_checked("name")
     assert_selector("input[data-column-index='1'][checked]", visible: :all)
-    assert_not column_checked?("created")
+    assert_column_unchecked("created")
   end
 
   # A payload that came back through a form arrives as strings; "3" is an index, not a key.
@@ -886,13 +888,27 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("input[data-column-index='1'][checked]", visible: :all)
   end
 
-  # Numeric keys would be read back as positions.
-  def test_a_key_made_of_digits_is_refused
-    error = assert_raises(ArgumentError) do
-      render_selector_with_view([]) { |cs| cs.with_column(index: 0, label: "Year", key: "2026") }
-    end
+  def test_column_ids_keep_positions_and_keys_and_drop_the_rest
+    assert_equal [ 3, 0, "name" ],
+                 Bali::DataTable::ColumnSelector::Component.column_ids([ 3, "0", "name", nil, "", "a.b", "2026x" ])
+  end
 
-    assert_match(/2026/, error.message)
+  def selector = Bali::DataTable::ColumnSelector::Component.new(listing_id: "movies")
+
+  # Digits alone read back as a position; anything outside the JS pattern would be dropped from
+  # the device memory without a word.
+  def test_a_key_the_device_memory_cannot_store_is_refused
+    [ "2026", "client.name", "año", "a" * 65 ].each do |key|
+      assert_raises(ArgumentError, key) { selector.with_column(index: 0, label: "Column", key: key) }
+    end
+  end
+
+  def test_a_repeated_key_is_refused
+    columns = selector
+    columns.with_column(index: 0, label: "Status", key: :status)
+
+    error = assert_raises(ArgumentError) { columns.with_column(index: 1, label: "Copy", key: :status) }
+    assert_match(/duplicate column key "status"/, error.message)
   end
 
   def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family

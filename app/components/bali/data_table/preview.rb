@@ -86,7 +86,7 @@ module Bali
 
       # The two readings of a view's columns, side by side: by key, and by position — a view
       # saved before the host declared keys.
-      class KeyedSavedViewsStore < Bali::DataTable::Preview::PreviewSavedViewsStore
+      class KeyedSavedViewsStore
         VIEWS = [
           Bali::DataTable::Preview::PreviewSavedView.new(
             id: 1, name: "Name and amount", payload: { "attributes" => {}, "columns" => %w[name amount] }
@@ -254,21 +254,29 @@ module Bali
       #
       # "Name and amount" was saved by key and keeps its columns through the insertion;
       # "Saved by position" predates the keys and is read by position, as it always was.
+      # `partial_keys` leaves "Created At" without a key: keys can be adopted column by column.
       #
       # @param insert_region toggle
-      def with_column_keys(insert_region: false, saved_view: nil)
-        filter_form = Bali::FilterForm.new(
-          Movie.all,
-          ActionController::Parameters.new(saved_view: saved_view),
-          saved_views_store: Bali::DataTable::Preview::KeyedSavedViewsStore.new
-        )
+      # @param partial_keys toggle
+      def with_column_keys(insert_region: false, partial_keys: false, saved_view: nil)
+        columns = [
+          { key: :name, label: "Name" },
+          { key: :status, label: "Status" },
+          { key: :amount, label: "Amount" },
+          { key: (:created_at unless partial_keys.to_s == "true"), label: "Created At", attribute: :created_at }
+        ]
+        columns.insert(1, { key: :region, label: "Region" }) if insert_region.to_s == "true"
+
         render_with_template(
           template: "bali/data_table/previews/with_column_keys",
           locals: {
-            records: Bali::DataTable::Preview::RECORDS,
+            columns: columns,
+            records: Bali::DataTable::Preview::RECORDS.map { |r| r.merge(region: r[:amount] > 1000 ? "North" : "South") },
             filter_attributes: Bali::DataTable::Preview::FILTER_ATTRIBUTES,
-            filter_form: filter_form,
-            insert_region: insert_region.to_s == "true"
+            filter_form: Bali::FilterForm.new(
+              Movie.all, ActionController::Parameters.new(saved_view: saved_view),
+              saved_views_store: Bali::DataTable::Preview::KeyedSavedViewsStore.new
+            )
           }
         )
       end

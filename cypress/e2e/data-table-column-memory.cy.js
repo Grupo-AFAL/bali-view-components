@@ -10,6 +10,27 @@ describe('DataTable: column selector memory', () => {
       }
     })
 
+  // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
+  // without stopping the Stimulus action, which listens on the form itself.
+  const visitIntercepting = (url, setup = () => {}) =>
+    cy.visit(url, {
+      onBeforeLoad (win) {
+        setup(win)
+        win.addEventListener('submit', (event) => event.preventDefault(), true)
+      }
+    })
+
+  // `?? null`: a `.then` returning `undefined` passes the previous subject through, and the
+  // assertion would compare against the raw JSON instead of failing on the missing columns.
+  const submittedColumns = (scope = '') => {
+    cy.get(`${scope} [data-saved-views-target="saveForm"] form`).then(($form) => {
+      $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+
+    return cy.get(`${scope} [data-saved-views-target="payload"]`).invoke('val')
+      .then((raw) => JSON.parse(raw).columns ?? null)
+  }
+
   const storedAt = (key) => cy.window().then((win) => win.localStorage.getItem(key))
   const parsedAt = (key) => storedAt(key).then((raw) => JSON.parse(raw))
 
@@ -308,24 +329,27 @@ describe('DataTable: column selector memory', () => {
       header('Amount').should('be.visible')
     })
 
-    // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
-    // without stopping the Stimulus action, which listens on the form itself.
     it('saves a view with the keys of its visible columns', () => {
-      cy.visit(url, {
-        onBeforeLoad (win) {
-          win.localStorage.removeItem(key)
-          win.addEventListener('submit', (event) => event.preventDefault(), true)
-        }
-      })
+      visitIntercepting(url, (win) => win.localStorage.removeItem(key))
       box('created_at').uncheck({ force: true })
 
-      cy.get(`${listing} [data-saved-views-target="saveForm"] form`).then(($form) => {
-        $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-      })
+      submittedColumns(listing).should('deep.equal', ['name', 'status', 'amount'])
+    })
 
-      cy.get(`${listing} [data-saved-views-target="payload"]`).invoke('val')
-        .then((raw) => JSON.parse(raw).columns ?? null)
-        .should('deep.equal', ['name', 'status', 'amount'])
+    // Keys are adopted column by column: "Created At" has none here and is named by its index,
+    // in the memory and in a saved view.
+    it('mixes keys and indices while a table adopts keys', () => {
+      visitIntercepting(`${url}?partial_keys=true`, (win) => win.localStorage.removeItem(key))
+      cy.get(`${listing} [data-controller~="column-selector"] input[data-column-index="3"]`)
+        .uncheck({ force: true })
+
+      stored().should('deep.equal', {
+        v: 3, hidden: [3], known: [3, 'amount', 'name', 'status'], serverHidden: []
+      })
+      submittedColumns(listing).should('deep.equal', ['name', 'status', 'amount'])
+
+      cy.reload()
+      cy.get(`${listing} thead th`).eq(3).should('not.be.visible')
     })
 
     // View 1 recorded `["name", "amount"]`.
@@ -357,33 +381,17 @@ describe('DataTable: column selector memory', () => {
 
   // The other reader of the same key. With no selector on screen (cards, calendar) the saved
   // views controller falls back to the device memory, and the payload that travels to
-  // `bali_saved_views.payload` is still a list of VISIBLE indices, which is what
+  // `bali_saved_views.payload` is still a list of VISIBLE columns, which is what
   // `apply_visible_columns` reads on the other side.
   describe('saved views in cards mode', () => {
     const gridUrl = '/bali/data_table/complete?view=grid'
     const gridKey = 'bali:columns:lookbook_movies'
 
-    // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
-    // without stopping the Stimulus action, which listens on the form itself.
-    const visitGrid = (value) =>
-      cy.visit(gridUrl, {
-        onBeforeLoad (win) {
-          win.localStorage.setItem(gridKey, value)
-          win.addEventListener('submit', (event) => event.preventDefault(), true)
-        }
-      })
+    const visitGrid = (value) => visitIntercepting(gridUrl, (win) => win.localStorage.setItem(gridKey, value))
 
-    // `?? null`: a `.then` returning `undefined` passes the previous subject through, and the
-    // assertion would compare against the raw JSON instead of failing on the missing columns.
     const payloadAfterSubmit = (value) => {
       visitGrid(value)
-
-      cy.get('[data-saved-views-target="saveForm"] form').then(($form) => {
-        $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-      })
-
-      return cy.get('[data-saved-views-target="payload"]').invoke('val')
-        .then((raw) => JSON.parse(raw).columns ?? null)
+      return submittedColumns()
     }
 
     it('translates the v2 format into the list of visible columns', () => {
