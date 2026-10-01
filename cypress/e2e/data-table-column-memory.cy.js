@@ -10,6 +10,27 @@ describe('DataTable: column selector memory', () => {
       }
     })
 
+  // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
+  // without stopping the Stimulus action, which listens on the form itself.
+  const visitIntercepting = (url, setup = () => {}) =>
+    cy.visit(url, {
+      onBeforeLoad (win) {
+        setup(win)
+        win.addEventListener('submit', (event) => event.preventDefault(), true)
+      }
+    })
+
+  // `?? null`: a `.then` returning `undefined` passes the previous subject through, and the
+  // assertion would compare against the raw JSON instead of failing on the missing columns.
+  const submittedColumns = (scope = '') => {
+    cy.get(`${scope} [data-saved-views-target="saveForm"] form`).then(($form) => {
+      $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+
+    return cy.get(`${scope} [data-saved-views-target="payload"]`).invoke('val')
+      .then((raw) => JSON.parse(raw).columns ?? null)
+  }
+
   const storedAt = (key) => cy.window().then((win) => win.localStorage.getItem(key))
   const parsedAt = (key) => storedAt(key).then((raw) => JSON.parse(raw))
 
@@ -164,7 +185,7 @@ describe('DataTable: column selector memory', () => {
       // Fail safe against a future format: back to the server's defaults, and the value is NOT
       // overwritten — the version that wrote it can still read it.
       it('ignores a version it does not know and does not overwrite it', () => {
-        const future = JSON.stringify({ v: 3, hidden: [1], known: [0, 1, 2, 3] })
+        const future = JSON.stringify({ v: 4, hidden: [1], known: [0, 1, 2, 3] })
         visit(future)
 
         header(1).should('be.visible')
@@ -256,6 +277,92 @@ describe('DataTable: column selector memory', () => {
     })
   })
 
+  // Every column carries a `key:` (#1213). `insert_region=true` puts a "Region" column between
+  // "Name" and "Status", which is exactly the change that used to move every preference after
+  // it onto its neighbour.
+  describe('with column keys', () => {
+    const key = 'bali:columns:keyed-demo'
+    const listing = '#keyed-demo'
+    const url = '/bali/data_table/with_column_keys'
+    const inserted = `${url}?insert_region=true`
+
+    const header = (label) => cy.get(`${listing} thead th`).contains(label).closest('th')
+    const box = (id) =>
+      cy.get(`${listing} [data-controller~="column-selector"] input[data-column-key="${id}"]`)
+    const stored = () => parsedAt(key)
+
+    it('remembers columns by key', () => {
+      visitWith(url, key, null)
+
+      box('status').uncheck({ force: true })
+      stored().should('deep.equal', {
+        v: 3, hidden: ['status'], known: ['amount', 'created_at', 'name', 'status'], serverHidden: []
+      })
+    })
+
+    it('keeps a hidden column hidden when another is inserted before it', () => {
+      visitWith(inserted, key, JSON.stringify({
+        v: 3, hidden: ['amount'], known: ['name', 'status', 'amount', 'created_at'], serverHidden: []
+      }))
+
+      header('Amount').should('not.be.visible')
+      box('amount').should('not.be.checked')
+      header('Status').should('be.visible')
+      header('Created At').should('be.visible')
+      // The memory never knew it, so the server's default stands.
+      header('Region').should('be.visible')
+    })
+
+    // A memory written before the keys can only mean positions. It is read against the layout
+    // where it was written and rewritten by key, and from then on an insertion does not move it.
+    it('reads an index memory by position once, and rewrites it by key', () => {
+      visitWith(url, key, JSON.stringify({ v: 2, hidden: [1], known: [0, 1, 2, 3], serverHidden: [] }))
+
+      header('Status').should('not.be.visible')
+      stored().should('deep.equal', {
+        v: 3, hidden: ['status'], known: ['amount', 'created_at', 'name', 'status'], serverHidden: []
+      })
+
+      cy.visit(inserted)
+      header('Status').should('not.be.visible')
+      header('Region').should('be.visible')
+      header('Amount').should('be.visible')
+    })
+
+    it('saves a view with the keys of its visible columns', () => {
+      visitIntercepting(url, (win) => win.localStorage.removeItem(key))
+      box('created_at').uncheck({ force: true })
+
+      submittedColumns(listing).should('deep.equal', ['name', 'status', 'amount'])
+    })
+
+    // Keys are adopted column by column: "Created At" has none here and is named by its index,
+    // in the memory and in a saved view.
+    it('mixes keys and indices while a table adopts keys', () => {
+      visitIntercepting(`${url}?partial_keys=true`, (win) => win.localStorage.removeItem(key))
+      cy.get(`${listing} [data-controller~="column-selector"] input[data-column-index="3"]`)
+        .uncheck({ force: true })
+
+      stored().should('deep.equal', {
+        v: 3, hidden: [3], known: [3, 'amount', 'name', 'status'], serverHidden: []
+      })
+      submittedColumns(listing).should('deep.equal', ['name', 'status', 'amount'])
+
+      cy.reload()
+      cy.get(`${listing} thead th`).eq(3).should('not.be.visible')
+    })
+
+    // View 1 recorded `["name", "amount"]`.
+    it('applies a view saved by key after a column was inserted', () => {
+      cy.visit(`${inserted}&saved_view=1`)
+
+      header('Name').should('be.visible')
+      header('Amount').should('be.visible')
+      header('Status').should('not.be.visible')
+      header('Created At').should('not.be.visible')
+    })
+  })
+
   // View 2 of the preview records columns [0, 2].
   describe('with a saved view applied', () => {
     const key = 'bali:columns:saved-views-preview'
@@ -274,33 +381,17 @@ describe('DataTable: column selector memory', () => {
 
   // The other reader of the same key. With no selector on screen (cards, calendar) the saved
   // views controller falls back to the device memory, and the payload that travels to
-  // `bali_saved_views.payload` is still a list of VISIBLE indices, which is what
+  // `bali_saved_views.payload` is still a list of VISIBLE columns, which is what
   // `apply_visible_columns` reads on the other side.
   describe('saved views in cards mode', () => {
     const gridUrl = '/bali/data_table/complete?view=grid'
     const gridKey = 'bali:columns:lookbook_movies'
 
-    // The submit is intercepted in the capture phase: preventDefault stops Turbo and the browser
-    // without stopping the Stimulus action, which listens on the form itself.
-    const visitGrid = (value) =>
-      cy.visit(gridUrl, {
-        onBeforeLoad (win) {
-          win.localStorage.setItem(gridKey, value)
-          win.addEventListener('submit', (event) => event.preventDefault(), true)
-        }
-      })
+    const visitGrid = (value) => visitIntercepting(gridUrl, (win) => win.localStorage.setItem(gridKey, value))
 
-    // `?? null`: a `.then` returning `undefined` passes the previous subject through, and the
-    // assertion would compare against the raw JSON instead of failing on the missing columns.
     const payloadAfterSubmit = (value) => {
       visitGrid(value)
-
-      cy.get('[data-saved-views-target="saveForm"] form').then(($form) => {
-        $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-      })
-
-      return cy.get('[data-saved-views-target="payload"]').invoke('val')
-        .then((raw) => JSON.parse(raw).columns ?? null)
+      return submittedColumns()
     }
 
     it('translates the v2 format into the list of visible columns', () => {

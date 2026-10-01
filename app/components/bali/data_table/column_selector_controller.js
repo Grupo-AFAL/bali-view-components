@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { syncPopoverAria } from './popover_aria'
-import { readColumnState, writeColumnState } from './column_storage'
+import { columnId, readColumnState, writeColumnState } from './column_storage'
 
 /**
  * Column Selector Controller
@@ -17,6 +17,9 @@ import { readColumnState, writeColumnState } from './column_storage'
  * Column memory is read against `checkbox.defaultChecked`: it reflects the `checked` attribute
  * the server rendered — the host's `with_column(visible:)` — and does not move when the user
  * ticks the box, or when this code does. `column_storage.js` has the format and the why.
+ *
+ * The memory names a column by its id: `data-column-key` when the host gave it a `key:`, its
+ * index otherwise. The index is still what finds the column in the table.
  */
 export default class extends Controller {
   static values = {
@@ -47,19 +50,21 @@ export default class extends Controller {
   }
 
   restoreStoredState () {
-    const state = readColumnState(this.storageKeyValue)
-    if (!state) return
+    const stored = readColumnState(this.storageKeyValue)
+    if (!stored) return
 
-    this.eachColumnCheckbox((checkbox, index) => {
-      if (!state.known.includes(index)) return
+    const state = stored.positional ? this.atCurrentPositions(stored) : stored
+
+    this.eachColumnCheckbox((checkbox, index, id) => {
+      if (!state.known.includes(id)) return
 
       // What the host declared WHEN the memory was written. A v1 value recorded none (`null`),
       // and there the best data available is what it declares now: crediting the user with a
       // column the server already shipped hidden is the very mistake to avoid.
       const declaredHidden = state.serverHidden
-        ? state.serverHidden.includes(index)
+        ? state.serverHidden.includes(id)
         : !checkbox.defaultChecked
-      const wasHidden = state.hidden.includes(index)
+      const wasHidden = state.hidden.includes(id)
 
       // Only a difference is a decision. Equal means nobody chose, so the server keeps the say —
       // and it may have changed its mind since.
@@ -67,8 +72,29 @@ export default class extends Controller {
     })
 
     // Rewriting here, and not only in `toggle`, is what gets the migration to someone who never
-    // opens the menu again. Idempotent: the next read already finds the full format.
-    if (state.stale) this.persistState()
+    // opens the menu again. Idempotent: the next read already finds the full format. A
+    // positional memory in a table with keys is rewritten by key, so the next inserted column
+    // no longer moves it.
+    if (state.stale || (stored.positional && this.declaresKeys)) this.persistState()
+  }
+
+  // A memory written by index says nothing but positions, so it is read against the columns
+  // where they stand now — what it always meant — and translated to their ids.
+  atCurrentPositions (state) {
+    const idAt = new Map()
+    this.eachColumnCheckbox((_checkbox, index, id) => idAt.set(index, id))
+    const translate = (indices) => indices && indices.map(index => idAt.get(index) ?? index)
+
+    return {
+      ...state,
+      hidden: translate(state.hidden),
+      known: translate(state.known),
+      serverHidden: translate(state.serverHidden)
+    }
+  }
+
+  get declaresKeys () {
+    return this.element.querySelector('[data-column-key]') !== null
   }
 
   persistState () {
@@ -77,10 +103,10 @@ export default class extends Controller {
     const hidden = []
     const known = []
     const serverHidden = []
-    this.eachColumnCheckbox((checkbox, index) => {
-      known.push(index)
-      if (!checkbox.checked) hidden.push(index)
-      if (!checkbox.defaultChecked) serverHidden.push(index)
+    this.eachColumnCheckbox((checkbox, _index, id) => {
+      known.push(id)
+      if (!checkbox.checked) hidden.push(id)
+      if (!checkbox.defaultChecked) serverHidden.push(id)
     })
 
     writeColumnState(this.storageKeyValue, { hidden, known, serverHidden })
@@ -92,7 +118,7 @@ export default class extends Controller {
   eachColumnCheckbox (callback) {
     this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
       const index = parseInt(checkbox.dataset.columnIndex, 10)
-      if (!isNaN(index)) callback(checkbox, index)
+      if (!isNaN(index)) callback(checkbox, index, columnId(checkbox))
     })
   }
 

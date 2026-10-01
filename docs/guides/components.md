@@ -2587,16 +2587,51 @@ later would never reach anyone who had loaded the page before.
 A saved view is the opposite: an **explicit**, named choice ("these five columns"). It keeps
 recording visible columns, so applying it shows exactly the five it recorded, and a column
 added afterwards is not one of them. Re-save the view (or create a new one) to take the new
-column in. This is also why the payload format did not change: those rows are already written
-in your database, and flipping their meaning would silently rewrite every saved view.
+column in. This is also why the payload format did not change — still a list of visible
+columns, named by key when the columns have one: those rows are already written in your
+database, and flipping their meaning would silently rewrite every saved view.
 
-Two consequences worth spelling out:
+Consequences worth spelling out:
 
-- Column identity is still the **position** of the `<th>`, in both places. Adding a column at
-  the end is safe; inserting one in the middle, or reordering them, shifts every preference
-  by one. A `selectable:` table's checkbox column is a real `<th>` that occupies index 0, so a
-  listing whose selection column depends on the user's role has two different column layouts
-  under one name — give each layout its own `id:`.
+- Without keys, column identity is the **position** of the `<th>`, in both places. Adding a
+  column at the end is safe; inserting one in the middle, or reordering them, shifts every
+  preference by one. **Give each column a `key:`** and both places name it by key instead:
+
+  ```erb
+  <% dt.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: t(".name"), key: :name) %>
+    <% cs.with_column(index: 1, label: t(".region"), key: :region) %>  <%# inserted later %>
+    <% cs.with_column(index: 2, label: t(".status"), key: :status) %>
+  <% end %>
+  ```
+
+  `index:` still says where the column is in the table; the key is what the memory and the
+  views remember. A key starts with a letter or `_` and holds letters, digits, `_` or `-`
+  (64 at most); anything else raises, and so does a key used twice.
+
+  What was saved before the keys can only mean positions. The device memory is read by
+  position once and rewritten by key on that same load. **A saved view is read by position
+  for as long as it exists**, so the release that adds the keys migrates the views, while the
+  layout is still the one they were saved against — and the column is inserted in a later
+  release:
+
+  ```ruby
+  # Data migration, in the release that adds `key:` — keys in column order.
+  KEYS = %w[name status amount created_at].freeze
+
+  Bali::SavedView.where(storage_id: "affiliations_index").find_each do |view|
+    columns = view.payload["columns"]
+    next unless columns.is_a?(Array) && columns.none?(String)
+
+    view.update!(payload: view.payload.merge("columns" => columns.map { |i| KEYS[i.to_i] || i }))
+  end
+  ```
+
+  A user who did not open the listing between the two releases still has a positional device
+  memory, read once against the new layout.
+- Without keys, a `selectable:` table's checkbox column is a real `<th>` that occupies index
+  0, so a listing whose selection column depends on the user's role has two different column
+  layouts under one name — give each layout its own `id:`.
 - The device memory is per browser. Clearing it for one user is `localStorage.removeItem`;
   clearing it for everyone means changing the listing's `id:`, which also changes the
   container id the host's Turbo Stream targets. There is no "reset columns" button.

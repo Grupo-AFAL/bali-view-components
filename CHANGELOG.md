@@ -34,6 +34,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pasar sus dos vistas a `radio-toggle` y borrar `terminals/census_item_controller.js` y
   `terminals/reported_photos_controller.js`.
 
+- **`with_column(key:)` en el selector de columnas del `DataTable`** (#1213). Con llave, la
+  memoria del dispositivo y las vistas guardadas nombran la columna por su llave y no por su
+  posición, así que insertar una columna en medio ya no corre las preferencias a la vecina.
+  `index:` sigue diciendo dónde está la columna. Sin llaves nada cambia (la memoria sigue en su
+  formato v2); con llaves se escribe un v3 de ids. Una llave empieza con letra o `_` y lleva
+  letras, dígitos, `_` o `-`; otra forma, o una llave repetida, levanta `ArgumentError`.
+
+  **Anfitrión que vaya a insertar una columna en un listado con vistas guardadas:** en un
+  release pon `key:` a sus columnas **y migra `payload["columns"]` de sus vistas** de índice a
+  llave (receta en `docs/guides/components.md`, § Column memory and saved views): una vista
+  guardada por posición se sigue leyendo por posición mientras nadie la vuelva a guardar. La
+  columna nueva, en el release siguiente. Así se evita el cambio de `id:` que afal-apps tuvo
+  que hacer en #772. Listados a revisar: `git grep -n "with_column(index" origin/main -- app/views`.
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista

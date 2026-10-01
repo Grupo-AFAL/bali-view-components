@@ -31,7 +31,7 @@ module Bali
     # `fetch_stored_filter_state`, so the applied view becomes the listing's "last state" when
     # navigating back.
     module SavedViewsConfiguration
-      # Allowed keys of a view's payload. `columns` (the column selector's visible indexes) is
+      # Allowed keys of a view's payload. `columns` (the column selector's visible columns) is
       # added by the dropdown's Stimulus when SAVING and consumed by the column selector when
       # APPLYING — the FilterForm only transports it.
       PAYLOAD_KEYS = %w[attributes simple_filters groupings combinator search_value group_by
@@ -79,7 +79,7 @@ module Bali
         origin.present? && !view_matches_current_state?(origin)
       end
 
-      # Visible column indexes the applied view carries saved (or nil): the DataTable passes
+      # Visible columns the applied view carries saved (or nil): the DataTable passes
       # them to the column selector so that the initial state is the view's.
       def saved_view_columns
         current_saved_view && normalized_view_payload(current_saved_view)["columns"]
