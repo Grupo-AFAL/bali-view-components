@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
+  son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
+  `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
+  no estaba en ella, carga igual en un anfitrión: medido en una app Rails 8.1.4 nueva, en
+  desarrollo y en producción con `eager_load!`— y su comentario afirmaba lo contrario. Sin
+  efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
+  nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
+
 ### Fixed
+
+- **El contador de las pastillas de `SplitView` quedaba bajo AA en cuatro de los cinco temas**
+  (#1202): `opacity-70` sobre un texto que ya es `text-base-content/70` pinta con alfa 0.49,
+  2.92–4.74:1 contra el 4.5 que pide un texto de 12px. Ahora hereda el color de la pastilla
+  (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
+  anfitrión.
 
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
@@ -18,6 +34,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `master-detail.md` para las pastillas, y el valor de búsqueda de `Filters` / `SimpleFilters` en
   `components.md` y `migration-v2-to-v3.md`. **Anfitrión:** si copiaste ese `dig` de alguna
   guía, cámbialo por la forma nueva: `git grep -n "dig(:q" origin/main -- app`.
+
+### Dependencies
+
+- **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
+  parser con el que StandardJS lee el JS del repo; `yarn standard` sigue limpio con él.
+
+- **Dos alertas de dependabot sobre dependencias transitivas, sólo de desarrollo y de la
+  dummy.** `js-yaml` 5.2.2 → 5.4.2 en la raíz (moderada: `maxTotalMergeKeys` no acotaba el CPU
+  con fuentes de merge vacías), subiendo su `resolutions` a `>=5.4.1`. Y
+  `@ai-sdk/provider-utils` 4.0.19 → 4.0.56 en `test/dummy` (baja: consumo de recursos sin
+  límite), re-resolviendo `ai` (6.0.116 → 6.0.297) y los `@ai-sdk/*` dentro de los rangos que
+  ya declara la dummy. Nada llega a un anfitrión: ninguno de los dos es dependencia del
+  paquete, y `resolutions` sólo rige la instalación de este repo.
+
+## [v3.6.0] - 2026-09-30
+
+### Added
+
+- **`Bali::Calendar::Component` gana la vista de año: `period: :year`.** Doce meses en
+  miniatura como mapa de densidad: un día sin eventos se apaga y un día con eventos toma
+  el color que devuelva el anfitrión. Tres lambdas opcionales, todas admiten `nil`:
+  `day_url` (enlace del día; `nil` = sin enlace), `day_variant` (un nombre de
+  `Bali::Color::NAMES`, un solo color por día; un día con varios eventos suma el punto
+  `has-multiple`) y `month_summary` (texto junto al nombre del mes). El partial
+  `template:` de la vista de mes se reusa dentro del hover card de cada día con eventos,
+  con los mismos locals, y sólo esos días montan tippy. `weekdays_only` se ignora en
+  `:year`. En celular se pinta la misma retícula en una columna. Un día con tarjeta y sin
+  `day_url` toma foco (`tabindex="0"`) y anuncia la fecha completa: la tarjeta abre con
+  `focusin`, así que sin tab stop sus eventos sólo existían para el mouse. El número del día
+  sin eventos y las iniciales de la semana van en `text-base-content/70`: compuestos sobre el
+  fondo, `/40` y `/50` medían 2.36:1 y 3.05:1 en `afal`; `/70` mide 5.54:1 en el peor tema.
+  Sin tocar `period:` nada cambia: a 1440px el diff pixel a pixel contra v3.5.0 da 0 píxeles.
+
+- **`month_size:` fija el tamaño de cada mes** — `:xs`, `:sm`, `:md` (default), `:lg`,
+  `:xl` — y el contenedor decide cuántos caben por fila (`auto-fit`, no breakpoints). En un
+  contenedor con sidebar (~1060px a 1440) `:md` da 3 por fila y `:sm` 4. Un nivel
+  desconocido levanta `ArgumentError`.
+
+- **La celda del día se pinta suave en reposo y sólida bajo el puntero.** El número va en
+  `base-content`, no en el color como `badge-soft`: en tema claro ese texto mide 1.59:1 en
+  `warning` (AA pide 4.5); `base-content` sobre el tinte mide 9.25:1 en el peor caso. En
+  táctil no hay hover, así que el tinte es lo único que se ve.
+
+- **`period_switch:` del header acepta un arreglo.** `true` sigue siendo exactamente
+  `%i[week month]`; quien quiera el botón de año lo pide: `period_switch: %i[month year]`.
+  Traducciones nuevas `year`/`day` en `bali_view.calendar.header` (es y en).
+
+- **`min_date:`/`max_date:` en el header.** La flecha cuyo destino queda fuera del rango se
+  dibuja deshabilitada (`btn-disabled`, sin `href`, `aria-disabled="true"`), no se quita:
+  quitarla mueve el título 25px. El límite es inclusivo sobre el periodo. Sin ellos, nada
+  cambia.
+
+- **`drop_params:` en el header.** La query string de `route_path` viaja a todos los enlaces
+  del header; una llave del anfitrión que depende de la fecha (`year=2026` junto a
+  `date=2027-01-01`) se nombra en `drop_params: %i[year]`. Por default no se descarta nada.
+
+- **Tres notas de uso, en YARD y en la guía**: dentro de las lambdas `t('.x')` resuelve
+  contra el scope del componente, así que va la llave completa; en táctil un tap sobre un
+  día con `day_url` navega y el hover no abre, así que el destino debe alcanzar los eventos;
+  y en contenedores angostos conviene `:sm`.
+
+### Dependencies
+
+- **daisyUI 5.7.42 → 5.7.47** en `test/dummy/package.json`. El peer `daisyui: ">=5.7.0"` no se
+  mueve y `tailwindcss-rails` 4.6.0 / `tailwindcss-ruby` 4.3.3 ya eran las últimas. Para un
+  anfitrión la pantalla no cambia: los 601 previews en claro y oscuro, misma DOM con sólo la hoja
+  compilada sustituida, dan 1166 de 1202 capturas idénticas píxel a píxel y las otras 36 difieren
+  en ≤146 px de antialiasing (esquinas redondeadas, el thumb del `range`). El único cambio de
+  selector que alcanza a Bali —`.btn-disabled` ahora sólo aplica junto a `.btn`— no pierde
+  ningún caso: cada sitio que la emite, en Ruby y en JS, la pone sobre un `.btn`.
 
 ## [v3.5.0] - 2026-09-20
 
