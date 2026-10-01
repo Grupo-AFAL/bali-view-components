@@ -1,3 +1,5 @@
+import { paintedContrast } from '../support/painted_contrast'
+
 // The text colour of the soft, outline and dash variants, which only exists in
 // compiled CSS and so cannot be seen by a component test.
 //
@@ -20,10 +22,10 @@ describe('tinted variant text contrast', () => {
   const ALERTS = '.alert-soft, .alert-outline, .alert-dash'
   const TAGS = '.badge-soft, .badge-outline, .badge-dash'
 
-  // Both Bali themes plus daisyUI's own pair: the fix has to hold where the
+  // The three Bali themes plus daisyUI's own pair: the fix has to hold where the
   // `*-content` token would NOT have (a dark theme puts a dark `*-content`
   // over a dark tint — measured at 1.03–1.48 with that token).
-  const THEMES = ['afal', 'afal-dark', 'light', 'dark']
+  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
 
   // Any CSS colour string → [r, g, b], through a 1px canvas. Chrome serialises
   // `color-mix()` results as `oklab(…)` and the theme tokens as `oklch(…)`;
@@ -38,37 +40,9 @@ describe('tinted variant text contrast', () => {
     return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
   }
 
-  const luminance = ([r, g, b]) => {
-    const channel = (v) => {
-      v /= 255
-      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-    }
-    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-  }
-
-  const contrast = (doc, foreground, background) => {
-    const [high, low] = [luminance(rgb(doc, foreground)), luminance(rgb(doc, background))].sort((a, b) => b - a)
-    return (high + 0.05) / (low + 0.05)
-  }
-
-  // Outline and dash have no background of their own (`background-color: #0000`),
-  // so the ground the text really sits on is the first painted ancestor's.
-  const transparent = (css) => css === 'transparent' || /^rgba\(0, 0, 0, 0\)$/.test(css) || /\/\s*0\)$/.test(css)
-  const groundOf = (el) => {
-    for (let node = el; node; node = node.parentElement) {
-      const background = getComputedStyle(node).backgroundColor
-      if (!transparent(background)) return background
-    }
-    return 'white'
-  }
-
-  // The text node's colour against the ground it sits on. The alert's body is a
-  // `<span>`; the icon is skipped because it deliberately keeps the accent (see
-  // below).
-  const textContrast = (doc, el) => {
-    const text = el.querySelector('span:not(.icon-component)') || el
-    return contrast(doc, getComputedStyle(text).color, groundOf(el))
-  }
+  // The alert's body is a `<span>`; the icon is skipped because it deliberately
+  // keeps the accent (see below).
+  const textOf = (el) => el.querySelector('span:not(.icon-component)') || el
 
   const withTheme = (theme, fn) => {
     cy.document().then((doc) => {
@@ -77,31 +51,31 @@ describe('tinted variant text contrast', () => {
     })
   }
 
+  // Nothing is measured while a colour transition runs: its first frame still
+  // paints the previous theme, which can pass (docs/reference/testing-traps.md).
+  const everyTextReadsAtAA = (theme, selector, fewest) => {
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+    cy.get(selector).should(($els) => {
+      const els = $els.toArray()
+      expect(els.flatMap(el => el.getAnimations({ subtree: true })), 'colour transitions settled').to.have.length(0)
+      expect(els, 'the preview renders soft, outline and dash').to.have.length.greaterThan(fewest)
+
+      els.forEach((el) => {
+        expect(paintedContrast(textOf(el)), `${theme}: ${el.className}`).to.be.at.least(AA)
+      })
+    })
+  }
+
   THEMES.forEach((theme) => {
     it(`every tinted alert reads at AA on the ${theme} theme`, () => {
       cy.visit('/bali/alert/all_combinations')
-
-      withTheme(theme, (doc) => {
-        const alerts = [...doc.querySelectorAll(ALERTS)]
-        expect(alerts, 'the preview renders soft, outline and dash alerts').to.have.length.greaterThan(11)
-
-        alerts.forEach((el) => {
-          expect(textContrast(doc, el), `${theme}: ${el.className}`).to.be.at.least(AA)
-        })
-      })
+      everyTextReadsAtAA(theme, ALERTS, 11)
     })
 
     it(`every tinted tag reads at AA on the ${theme} theme`, () => {
       cy.visit('/bali/tag/all_combinations')
-
-      withTheme(theme, (doc) => {
-        const tags = [...doc.querySelectorAll(TAGS)]
-        expect(tags, 'the preview renders soft, outline and dash tags').to.have.length.greaterThan(20)
-
-        tags.forEach((el) => {
-          expect(textContrast(doc, el), `${theme}: ${el.className}`).to.be.at.least(AA)
-        })
-      })
+      everyTextReadsAtAA(theme, TAGS, 20)
     })
   })
 
