@@ -103,6 +103,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
   los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
 
+- **El texto atenuado de `WorkflowSteps` y `Timeline` quedaba bajo AA** (#1233, #1234): el
+  título y el círculo de un paso `:pending` o `:skipped`, la fecha, la etiqueta de los pasos por
+  venir en `orientation: :progress`, y el `timestamp:` y el encabezado `:pending` de
+  `Timeline::Item` iban en `/40`, `/50` o `/60` y medían 2.33–4.47:1 en uno o más de los cinco
+  temas. Todos pasan a `/70`: 4.98:1 o más en los cinco. En `compact: true` el `timestamp:` toma
+  además los 12px de la caja, los del encabezado, en vez de quedar en 14px debajo de él; lo ven
+  las líneas de tiempo compactas de afal-apps, costa-norte, identity y gobierno-corporativo.
+  **gobierno-corporativo** puede borrar sus parches, que ahora repiten el mismo tono: las clases
+  `[&_.workflow-step-…]` de `calendars/approval_flows/show.html.erb` y
+  `requests/_detail_flow.html.erb`, y los `with_timestamp` de un solo `span` en
+  `agreement_listings/_follow_ups.html.erb` y `calendars/approval_flows/show.html.erb`, que
+  vuelven a `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e
+  "with_timestamp" origin/main -- app/views`).
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
