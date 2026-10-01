@@ -1,3 +1,5 @@
+import { drag, tap, tapAt } from '../support/tap'
+
 // #1041 — HoverCard had no E2E spec. Everything it shows is built at runtime:
 // tippy is imported on connect, the card is portaled out of the component into
 // <body>, and with `hover_url` the content arrives over the network — behind a
@@ -91,6 +93,73 @@ describe('HoverCard', () => {
       card().should('contain.text', 'Loaded from the server')
 
       cy.get('@content.all').should('have.length', 1)
+    })
+  })
+
+  describe('with a link as the trigger', () => {
+    const link = () => trigger().find('a')
+    const preview = '/lookbook/preview/bali/hover_card/link_trigger'
+
+    beforeEach(() => {
+      cy.viewport(390, 844)
+      cy.visit('/bali/hover_card/link_trigger')
+      trigger().should($t => expect($t[0]._tippy, 'tippy mounted').to.exist)
+    })
+
+    // A tap fires the compatibility `mouseenter` ~6ms before its `click`: tippy did
+    // open the card, and the same tap followed the link, so the card was on screen
+    // for one round trip (~100ms locally) and then the page was gone (#1229).
+    it('opens the card on the first tap and follows the link on the second', () => {
+      link().then(tap)
+      // Turbo renders the destination ~100ms after the tap; asserting the URL any
+      // sooner would pass before the navigation could have happened.
+      cy.wait(500)
+      cy.location('pathname').should('eq', preview)
+      card().should('be.visible')
+
+      link().then(tap)
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/hover_card/default')
+    })
+
+    it('closes the card on a tap outside it', () => {
+      link().then(tap)
+      card().should('be.visible')
+
+      cy.then(() => tapAt(195, 700))
+      card().should('not.exist')
+      // Gone because it closed, not because the first tap took the page with it.
+      cy.location('pathname').should('eq', preview)
+    })
+
+    it('lets a tap reach a link inside the card', () => {
+      link().then(tap)
+      card().find('a').should('be.visible').then(tap)
+
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/hover_card/with_hover_url')
+    })
+
+    it('follows the link on the first click with a mouse', () => {
+      link().trigger('mouseenter')
+      card().should('be.visible')
+
+      link().click()
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/hover_card/default')
+    })
+
+    // A drag fires touchstart and no click, so the next click on the link can come from
+    // the mouse of a touch laptop. Two `mousemove` within 20ms are what turn tippy's
+    // `currentInput.isTouch` back off (`onDocumentMouseMove` in tippy.js).
+    it('follows a mouse click that comes after a drag started on the link', () => {
+      link().then($a => drag($a, 150))
+      cy.document().then(doc => {
+        doc.dispatchEvent(new doc.defaultView.MouseEvent('mousemove'))
+        doc.dispatchEvent(new doc.defaultView.MouseEvent('mousemove'))
+      })
+      link().trigger('mouseenter')
+      card().should('be.visible')
+
+      link().click()
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/hover_card/default')
     })
   })
 

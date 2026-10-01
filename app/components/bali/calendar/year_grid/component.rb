@@ -56,8 +56,7 @@ module Bali
         # @param template [String, nil] Host partial rendered inside the hover card.
         # @param show_date [Boolean] Draw the day number inside each cell.
         # @param day_url [Proc, nil] `->(day, events) { url }`. nil, or a nil return,
-        #   leaves the day unlinked. On touch the tap navigates and the hover card
-        #   never opens, so the destination should be where the events are reachable.
+        #   leaves the day unlinked.
         # @param day_variant [Proc, nil] `->(day, events) { :success }`, a name from
         #   Bali::Color::NAMES. nil falls back to a neutral highlight.
         # @param month_summary [Proc, nil] `->(month, events) { "11" }`, drawn beside

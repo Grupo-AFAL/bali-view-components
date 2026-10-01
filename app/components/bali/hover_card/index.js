@@ -66,6 +66,10 @@ export class HovercardController extends Controller {
       onShow: this.onShow,
       onHide: this.onHide
     })
+    this.input = tippy.currentInput
+
+    this.triggerTarget.addEventListener('touchstart', this.onTouchStart, { passive: true })
+    this.triggerTarget.addEventListener('click', this.onClick)
   }
 
   getInitialContent () {
@@ -100,7 +104,24 @@ export class HovercardController extends Controller {
   }
 
   disconnect () {
+    this.tippy?.reference.removeEventListener('touchstart', this.onTouchStart)
+    this.tippy?.reference.removeEventListener('click', this.onClick)
     this.tippy?.destroy()
+  }
+
+  // A tap fires the compatibility `mouseenter` that opens the card ~6ms before its own
+  // `click`, so a link trigger navigated in the same tap and the card was on screen for
+  // one round trip (~100ms). The tap that finds the card closed only opens it; the next
+  // one does what the trigger does. Read at `touchstart`, before that `mouseenter`.
+  onTouchStart = () => {
+    this.tapOpensCard = !this.tippy.state.isVisible
+  }
+
+  // A drag that starts on the trigger sets `tapOpensCard` and fires no click to clear
+  // it. `isTouch`, tippy's record of the last input, lets the next mouse click through.
+  onClick = event => {
+    if (this.tapOpensCard && this.input.isTouch) event.preventDefault()
+    this.tapOpensCard = false
   }
 
   onCreate = instance => {
