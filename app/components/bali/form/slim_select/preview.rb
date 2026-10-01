@@ -69,12 +69,26 @@ module Bali
           )
         end
 
+        # @label Many Selected
+        # Past 20 values SlimSelect replaces the chips with one count, `max_values_message:`.
+        # Its default is Bali's translation: switch `locale` to see it.
+        # @param locale select { choices: [en, es] }
+        def many_selected(locale: 'en')
+          rooms = (1..27).map { |n| ["Room #{n}", n] }
+
+          render_with_template(
+            template: 'bali/form/slim_select/previews/many_selected',
+            locals: { model: form_record, options: rooms, locale: locale }
+          )
+        end
+
         # @label Addable
         # Allows users to add new options that don't exist in the list
-        def addable
+        # @param locale select { choices: [en, es] }
+        def addable(locale: 'en')
           render_with_template(
             template: 'bali/form/slim_select/previews/addable',
-            locals: { model: form_record, options: OPTIONS }
+            locals: { model: form_record, options: OPTIONS, locale: locale }
           )
         end
 

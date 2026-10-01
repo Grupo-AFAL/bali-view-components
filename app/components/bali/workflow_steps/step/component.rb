@@ -23,12 +23,16 @@ module Bali
 
         # Literal class tables, like `Stepper::Step::COLORS`: Tailwind's source
         # scanner only sees classes written out in full in this file.
+        #
+        # The two greys draw their number or dash at `/70`: on the pending
+        # circle's `base-300` it measures 4.98:1 on `afal`, the lowest of the
+        # five themes, where `/60` was 3.75:1.
         CIRCLE_CLASSES = {
           success: "bg-success text-success-content",
           error: "bg-error text-error-content",
           warning: "bg-warning text-warning-content",
-          pending: "bg-base-300 text-base-content/60",
-          skipped: "bg-base-200 text-base-content/40",
+          pending: "bg-base-300 text-base-content/70",
+          skipped: "bg-base-200 text-base-content/70",
           current: "bg-primary text-primary-content ring-2 ring-primary/40 " \
                    "ring-offset-2 ring-offset-base-100"
         }.freeze
@@ -61,16 +65,17 @@ module Bali
         # ground it needs is drawn once by `.workflow-step-marker::before`
         # (index.css) instead of six times here.
         #
-        # Their greys are measured over that disc, not picked: `base-content`
-        # clears AA's 4.5:1 for the glyph at `/60` (4.66:1 light, 5.82:1 dark;
-        # `/55` is 3.94:1) and 3:1 for the outline at `/50` (3.40:1, 4.47:1).
-        # `base-300`, which the rail uses for both, tops out at 1.16:1.
+        # Their greys are measured over that disc, not picked, on the five
+        # themes, and `afal` is the floor of both: `base-content` clears AA's
+        # 4.5:1 for the glyph at `/70` (5.54:1; `/60` is 4.04:1) and 3:1 for
+        # the outline at `/50` (3.05:1). `base-300`, which the rail uses for
+        # both, tops out at 1.16:1.
         PROGRESS_CIRCLE_CLASSES = {
           success: "bg-primary text-primary-content",
           error: "bg-error text-error-content",
           warning: "bg-warning text-warning-content",
-          pending: "border border-base-content/50 text-base-content/60",
-          skipped: "border border-dashed border-base-content/50 text-base-content/60",
+          pending: "border border-base-content/50 text-base-content/70",
+          skipped: "border border-dashed border-base-content/50 text-base-content/70",
           current: "border-2 border-primary bg-primary/10 text-primary"
         }.freeze
 
@@ -92,14 +97,14 @@ module Bali
           current: "bg-primary"
         }.freeze
 
-        # `/60` is the floor, not a shade: these labels are 12px, so AA wants
-        # 4.5:1 and `/50` measured 3.40:1.
+        # The muted `/70` holds AA, it is not a shade to tune: these labels are
+        # 12px, so AA wants 4.5:1, and `/60` measured 4.04:1 on `afal`.
         PROGRESS_TITLE_CLASSES = {
           success: "text-base-content/80",
           error: "text-base-content/80",
           warning: "text-base-content/80",
-          pending: "text-base-content/60",
-          skipped: "text-base-content/60",
+          pending: "text-base-content/70",
+          skipped: "text-base-content/70",
           current: "font-semibold text-primary"
         }.freeze
 
@@ -148,7 +153,9 @@ module Bali
 
         STATES = CIRCLE_CLASSES.keys.freeze
 
-        # Steps that have not happened read muted, like the rest of their row.
+        # Steps that have not happened read muted, like the rest of their row —
+        # at the `/70` of the assignee and the comment, because `/40` measured
+        # 2.36:1 on `afal` against AA's 4.5:1.
         MUTED_TITLE_STATES = %i[pending skipped].freeze
 
         attr_reader :title, :state, :number, :assignee, :date
@@ -286,7 +293,7 @@ module Bali
 
           class_names(
             "workflow-step-title",
-            "text-base-content/40" => MUTED_TITLE_STATES.include?(state)
+            "text-base-content/70" => MUTED_TITLE_STATES.include?(state)
           )
         end
       end

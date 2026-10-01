@@ -81,8 +81,9 @@ module Bali
         # Classes the clickable box adds so hovering reads as interactive
         CLICKABLE_BOX_CLASSES = "hover:bg-base-200 transition-colors"
 
-        # Muted metadata line, custody-chain style
-        TIMESTAMP_CLASSES = "text-sm text-base-content/60"
+        # Muted metadata line, custody-chain style. `/70`, like the pending
+        # heading, because `/60` measured 4.04:1 on `afal` against AA's 4.5:1.
+        TIMESTAMP_CLASSES = "text-base-content/70"
 
         # Set by the parent so the line below this item takes the colour of the
         # item that follows it — a coloured line then reads as "travelled this
@@ -163,7 +164,7 @@ module Bali
         end
 
         def heading_classes
-          class_names("font-semibold", "text-base-content/60" => state == :pending)
+          class_names("font-semibold", "text-base-content/70" => state == :pending)
         end
 
         def marker_classes
@@ -201,9 +202,12 @@ module Bali
         # there is no free side, so it becomes a line inside the box.
         def timestamp_side_classes
           opposite = side == :end ? :start : :end
-          class_names(SIDES.fetch(opposite), TIMESTAMP_CLASSES)
+          class_names(SIDES.fetch(opposite), "text-sm", TIMESTAMP_CLASSES)
         end
 
+        # No size of its own: daisyUI's `.timeline-box` sets 12px, the heading's
+        # size, and a `text-sm` here would set the metadata a size above its
+        # heading.
         def box_timestamp_classes
           TIMESTAMP_CLASSES
         end

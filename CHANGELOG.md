@@ -60,6 +60,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   columna nueva, en el release siguiente. Así se evita el cambio de `id:` que afal-apps tuvo
   que hacer en #772. Listados a revisar: `git grep -n "with_column(index" origin/main -- app/views`.
 
+- **SlimSelect deja de decir «27 selected» y «Press "Enter" to add…» en una app en español**
+  (#1232). `slim_select_group` gana `max_values_message:` y `addable_text:` (con las marcas
+  `{number}` y `{value}` de SlimSelect, sin `%`), que como el resto de sus textos —ahora también
+  `ajax_placeholder:`— toman por omisión `bali_view.form_builder.slim_select`; en `en` ningún
+  texto cambia. El valor de una condición de `Bali::Filters` dice «Sin resultados» en vez de
+  «No results». **gobierno-corporativo** puede volver a `slim_select_group` en
+  `_room_availability.html.erb`. El marcado escrito a mano no recibe nada de esto y tiene que
+  pasar sus `data-slim-select-*-value` (6 en afal-apps, 5 en gobierno-corporativo):
+  `git grep -n 'data-controller="slim-select"' origin/main -- app/views`.
+
 ### Changed
 
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
@@ -69,6 +79,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   desarrollo y en producción con `eager_load!`— y su comentario afirmaba lo contrario. Sin
   efecto para un anfitrión. Las pruebas que la leían pasan a leer `all_eager_load_paths`, y una
   nueva falla si algún directorio de `app/` con Ruby queda fuera de lo que un anfitrión carga.
+
+- **El primario del tema `afal` pasa de blue-500 (`#3B82F6`) a blue-600 de Tailwind v4
+  (`#155DFC`)** (#1221): con blanco encima pintaba 3.68:1, bajo el 4.5 de AA, y ahora 5.25:1.
+  Cambio visible en botones, enlaces y estados activos de afal-apps, garita y
+  gobierno-corporativo, que importan el tema de la gema. **Anfitrión:** identity y opina cargan
+  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor: bórrenlo e importen
+  el de la gema, `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
+  `themes/afal.css` difiere en más tokens, cambia sólo su `--color-primary` a
+  `oklch(54.6% 0.245 262.881)`. Los hex copiados pasan a `#155DFC`
+  (`git grep -n -i "3b82f6" origin/main -- app`), incluido el `PRIMARY` de
+  `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
+  ser cierto.
 
 ### Removed
 
@@ -114,6 +136,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cada editor de comentario reventaba a medias. Medido en un documento con 16 hilos: 18 de 19
   estilos borrados por Turbo y 16 errores; ahora cada estilo lleva el nombre de su editor, Turbo
   los deja y cada editor quita el suyo. Sin nada que hacer en el anfitrión.
+
+- **La guardia de contraste de las variantes soft, outline y dash mide lo que se pinta** (#1236):
+  `soft-variant-contrast.cy.js` deja su propia copia de la medición y usa `paintedContrast`, que
+  compone el alfa del color y la `opacity` de cada ancestro; mide el cuerpo de la alerta, suma
+  `costa-norte`, que faltaba, y no mide mientras quede una transición en curso. Hoy ningún número
+  cambia: lo que cambia es que una variante traslúcida ya no pasaría. Para quien trabaja en el
+  repo; nada que hacer en un anfitrión.
+
+- **El texto atenuado de `WorkflowSteps` y `Timeline` quedaba bajo AA** (#1233, #1234): el
+  título y el círculo de un paso `:pending` o `:skipped`, la fecha, la etiqueta de los pasos por
+  venir en `orientation: :progress`, y el `timestamp:` y el encabezado `:pending` de
+  `Timeline::Item` iban en `/40`, `/50` o `/60` y medían 2.33–4.47:1 en uno o más de los cinco
+  temas. Todos pasan a `/70`: 4.98:1 o más en los cinco. En `compact: true` el `timestamp:` toma
+  además los 12px de la caja, los del encabezado, en vez de quedar en 14px debajo de él; lo ven
+  las líneas de tiempo compactas de afal-apps, costa-norte, identity y gobierno-corporativo.
+  **gobierno-corporativo** puede borrar sus parches, que ahora repiten el tono o ya no coinciden
+  con nada: las clases `[&_.workflow-step-…]` de
+  `app/views/governing_bodies/calendars/approval_flows/show.html.erb` y
+  `app/views/governing_bodies/requests/_detail_flow.html.erb`, y los `with_timestamp` de un solo
+  `span` en `app/views/governing_bodies/agreement_listings/_follow_ups.html.erb` y
+  `app/views/governing_bodies/calendars/approval_flows/show.html.erb`, que vuelven a
+  `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e "with_timestamp"
+  origin/main -- app/views`).
 
 ### Documentation
 

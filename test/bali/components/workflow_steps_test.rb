@@ -235,9 +235,9 @@ class BaliWorkflowStepsComponentTest < ComponentTestCase
       c.with_step(title: "Later", state: :pending)
     end
 
-    assert_selector('li:nth-child(2) .workflow-step-title[class*="text-base-content/40"]')
-    assert_selector('li:nth-child(3) .workflow-step-title[class*="text-base-content/40"]')
-    assert_no_selector('li:nth-child(1) .workflow-step-title[class*="text-base-content/40"]')
+    assert_selector('li:nth-child(2) .workflow-step-title[class*="text-base-content/70"]')
+    assert_selector('li:nth-child(3) .workflow-step-title[class*="text-base-content/70"]')
+    assert_no_selector('li:nth-child(1) .workflow-step-title[class*="text-base-content/70"]')
   end
 
   def test_step_html_attributes_reach_the_list_item
@@ -1010,14 +1010,15 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
     assert_selector(".workflow-step-title.font-semibold", count: 1, text: "Now")
     assert_selector(".workflow-step-title.text-primary", text: "Now")
     assert_selector(".workflow-step-title.text-base-content\\/80", text: "Done")
-    assert_selector(".workflow-step-title.text-base-content\\/60", text: "Later")
-    assert_selector(".workflow-step-title.text-base-content\\/60", text: "Around")
+    assert_selector(".workflow-step-title.text-base-content\\/70", text: "Later")
+    assert_selector(".workflow-step-title.text-base-content\\/70", text: "Around")
   end
 
   # The half of the flow nobody has reached yet is the half that disappears:
-  # every grey in it is held to a measured floor (4.66:1 for the glyph and the
-  # 12px label, 3.40:1 for the outline and the line), and the alphas below are
-  # what those floors cost over a `base-100` disc.
+  # every grey in it is held to a measured floor on all five themes (5.54:1 for
+  # the glyph and the 12px label, 3.05:1 for the outline and the line, both on
+  # `afal`), and the alphas below are what those floors cost over a `base-100`
+  # disc.
   def test_the_states_still_to_come_hold_their_measured_greys
     render_progress do |c|
       c.with_step(title: "A", state: :success)
@@ -1025,8 +1026,8 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
       c.with_step(title: "C", state: :pending)
     end
 
-    assert_selector(".workflow-step-circle.text-base-content\\/60", count: 2)
-    assert_selector(".workflow-step-title.text-base-content\\/60", count: 2)
+    assert_selector(".workflow-step-circle.text-base-content\\/70", count: 2)
+    assert_selector(".workflow-step-title.text-base-content\\/70", count: 2)
     assert_selector(".workflow-step-circle.border-base-content\\/50", count: 2)
     assert_no_selector('[class*="base-300"]')
   end

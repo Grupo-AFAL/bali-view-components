@@ -76,8 +76,10 @@
     @apply mt-0.5 flex items-center gap-1.5 text-sm text-base-content/70;
   }
 
+  /* The tone of the lines around it, not a shade lighter: at 12px `/50`
+     measured 3.05:1 on `afal`, against AA's 4.5:1. */
   .workflow-step-date {
-    @apply mt-0.5 text-xs text-base-content/50;
+    @apply mt-0.5 text-xs text-base-content/70;
   }
 
   .workflow-step-comment {
