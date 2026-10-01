@@ -13,9 +13,9 @@ require "test_helper"
 # Bali" — a dependency the gem declined to declare.
 #
 # "MADE TO LOAD" IS BIGGER THAN `lib/`. In production a host eager-loads every
-# `app/` directory of the engine at boot too: a walk of `lib/` alone sees neither the unguarded
-# `require "pagy/..."` in `app/components/bali/pagination/pagy_adapter.rb` nor the
-# `include Pagy::Method` in
+# `app/` directory of the engine at boot too: a walk of `lib/` alone sees neither
+# the unguarded `require "pagy/..."` in `app/components/bali/pagination/pagy_adapter.rb`
+# nor the `include Pagy::Method` in
 # `app/components/bali/application_view_component_preview.rb`. Both halves are
 # covered below: what a file `require`s, and what it needs in order to be DEFINED.
 #
@@ -73,8 +73,8 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
 
   # The other half of the same boot: a file does not have to `require` a gem to
   # need it. `include Pagy::Method` in the class body of a file the host
-  # eager-loads is a NameError at boot in a host without pagy, and no scan of `require`
-  # lines can see it.
+  # eager-loads is a NameError at boot in a host without pagy, and no scan of
+  # `require` lines can see it.
   #
   # The owning gem is MEASURED — `const_source_location`, then the gem whose
   # directory that file sits in — never listed here: a hand-kept list is the
@@ -97,18 +97,16 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
                  "of the eager load through Bali::Engine::NOT_EAGER_LOADED."
   end
 
-  # Ruby under an `app/` directory the host does not autoload resolves in the dummy
-  # anyway — Lookbook pushes the engine's dirs into its autoloader — and is a
-  # NameError in a host. Rails globs every `app/*` today; this fails if an `exclude`
-  # or a hand-written path list ever narrows that.
-  def test_every_app_directory_with_ruby_is_autoloaded_in_a_host
+  # Rails globs every `app/*` except `assets`, `javascript` and `views`; this fails if
+  # Ruby lands in one of those, or if `config.paths["app"]` is ever narrowed.
+  def test_every_app_directory_with_ruby_is_eager_loaded_in_a_host
     surface = Bali::Engine.config.all_eager_load_paths.map(&:to_s)
     missing = Dir[ROOT.join("app/*/").to_s].map { |dir| dir.chomp("/") }
       .select { |dir| Dir["#{dir}/**/*.rb"].any? }
       .reject { |dir| surface.include?(dir) }
 
-    assert_empty missing, "app/ directories with Ruby that a host neither autoloads nor " \
-                          "eager-loads:\n#{missing.join("\n")}"
+    assert_empty missing, "app/ directories with Ruby that a host does not eager-load:\n" \
+                          "#{missing.join("\n")}"
   end
 
   # The other half of the same contract, and the reason `rrule` is NOT declared:
@@ -147,7 +145,7 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
 
       assert_equal "loaded", out,
                    "#{relative} does not survive a host without the gem it reaches for, which " \
-                   "is a boot crash: lib/bali/engine.rb eager-loads app/components, and the " \
+                   "is a boot crash: a host eager-loads app/components, and the " \
                    "engine loads every override on each to_prepare"
     end
   end
@@ -269,8 +267,7 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
   #
   # `all_eager_load_paths`, not `eager_load_paths`: since Rails 7.1 the latter holds
   # only an engine's ADDITIONS, and what Rails eager-loads is those plus
-  # `paths.eager_load`, the glob of every `app/*`. Reading the additions alone left
-  # `app/services` outside this scan (#1206).
+  # `paths.eager_load`, the glob of every `app/*`.
   def eager_load_surface
     @eager_load_surface ||= begin
       excluded = Bali::Engine::NOT_EAGER_LOADED

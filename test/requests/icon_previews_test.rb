@@ -96,9 +96,9 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     # at the preview's directory left it blind to the rest: a bare constant there passed the guard
     # and blew up on the request.
     #
-    # DERIVED from the engine's eager-load paths, not a copy of them: when `app/lib/bali/widget` moved to
-    # `app/widgets/bali/widget`, a list written by hand here would have gone on passing while the
-    # guard looked at a directory that no longer exists.
+    # DERIVED from the engine's eager-load paths, not a copy of them: when `app/lib/bali/widget`
+    # moved to `app/widgets/bali/widget`, a list written by hand here would have gone on passing
+    # while the guard looked at a directory that no longer exists.
     # THE PATH RELATIVE TO ITS OWN ROOT, never `File.basename`. That shortcut is
     # only correct for a first-level `Bali::<Name>`: for `widget/list/preview.rb`
     # the basename is `list`, so it would scan `bali/list` and offer
