@@ -9,6 +9,10 @@
  * Keyed on `.drawer-open`, not `[open]`: the class is what puts the panel on screen, and
  * an `active:` drawer carries it from the server before its controller calls
  * `showModal()`.
+ *
+ * Only `.skeleton`, not `*`: unlayered, a `*` would also strip any animation a host puts in
+ * a drawer, through the 300ms slide-out too, and a Tailwind `animate-*` could only take it
+ * back with `!`.
  */
 .drawer-component:not(.drawer-open) .skeleton {
   animation: none;
