@@ -12,8 +12,8 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   // The burger only shows below `lg`.
   beforeEach(() => cy.viewport(400, 800))
 
-  const open = (color, theme) => {
-    cy.visit(`/bali/navbar/default?color=${color}`)
+  const open = (color, theme, query = '') => {
+    cy.visit(`/bali/navbar/default?color=${color}${query}`)
     // Proves the preview honoured `?color=`: one it ignored renders `navbar-base`.
     cy.get('nav.navbar').should('have.class', `navbar-${color}`)
     cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -47,9 +47,10 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
   })
 
-  // Why `currentColor` and not the preset's `-content`: the menu that opens under the burger is
-  // `bg-base-100 text-base-content`, inside the bar.
-  COLORS.forEach((color) => {
+  // Why `currentColor` and not the preset's `-content`: the mobile menu inside the bar is
+  // `bg-base-100 max-lg:text-base-content`. These pass without the rule too; what they catch is
+  // the `-content` alternative, which a `base` bar cannot tell apart, so it is left out.
+  COLORS.filter(color => color !== 'base').forEach((color) => {
     it(`a ghost button in the open menu of the ${color} navbar paints the menu's text colour`, () => {
       open(color, 'light')
       cy.get('[data-navbar-target="burger"]').click()
@@ -63,7 +64,8 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
   })
 
-  // The value keeps daisyUI's chain and only drops its base-content step.
+  // The value keeps daisyUI's chain and only drops its base-content step. Green without the rule
+  // too: what it catches is a bare `currentColor`.
   it('a ghost button with a colour of its own keeps it inside the bar', () => {
     open('neutral', 'light')
     cy.get('nav.navbar').then(($nav) => {
@@ -76,6 +78,21 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
       expect($buttons, 'one in the bar, one on the page').to.have.length(2)
       const [inBar, onPage] = $buttons.toArray().map(b => window.getComputedStyle(b).color)
       expect(inBar, 'the error colour, not the text of the bar').to.equal(onPage)
+    })
+  })
+
+  // A transparent bar keeps its preset's text colour for the dark hero it is meant to sit on (the
+  // `.is-transparent` rule in index.css), and its ghost buttons follow it as its links do.
+  it('the burger of a transparent coloured navbar paints the text colour of the bar', () => {
+    open('neutral', 'light', '&transparency=true')
+
+    cy.get('nav.navbar').should('have.class', 'is-transparent').should(($nav) => {
+      expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+      const bar = window.getComputedStyle($nav[0]).color
+      expect(bar, 'the bar keeps its preset text colour').not.to.equal(window.getComputedStyle($nav[0].ownerDocument.body).color)
+      const burger = $nav[0].querySelector('[data-navbar-target="burger"]')
+      expect(burger.matches(':hover'), 'measured at rest').to.equal(false)
+      expect(window.getComputedStyle(burger).color, 'the burger').to.equal(bar)
     })
   })
 })
