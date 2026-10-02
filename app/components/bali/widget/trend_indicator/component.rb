@@ -66,7 +66,7 @@ module Bali
         attr_reader :trend, :compact, :options
 
         def colour
-          return "text-base-content/60" if trend.flat?
+          return "text-base-content/70" if trend.flat?
 
           trend.good? ? "text-success" : "text-error"
         end

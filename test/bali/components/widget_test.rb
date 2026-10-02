@@ -133,7 +133,7 @@ class BaliWidgetComponentTest < ComponentTestCase
   def test_a_zero_count_small_card_dims_the_number
     render_inline(card(value_widget(value: 0)))
 
-    assert_selector(".stat-value.text-base-content\\/30", text: "0")
+    assert_selector(".stat-value.text-base-content\\/55", text: "0")
   end
 
   # `href="#"` would make the card look clickable while doing nothing.

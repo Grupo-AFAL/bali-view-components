@@ -21,7 +21,9 @@ module Bali
           class_names(
             "tabular-nums",
             hero? ? "stat-value text-4xl" : "text-3xl font-semibold leading-none",
-            muted? ? "text-base-content/30" : "text-base-content"
+            # `/55` and not the `/70` of muted body text: the figure is large text, which AA
+            # holds to 3:1. `/30` measured 1.86:1 on `afal`.
+            muted? ? "text-base-content/55" : "text-base-content"
           )
         end
       end

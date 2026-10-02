@@ -43,6 +43,15 @@ class BaliWidgetTrendIndicatorComponentTest < ComponentTestCase
     assert_no_selector(".text-error")
   end
 
+  # No preview draws a flat trend, so the Cypress contrast guard never reaches it: `/60` measured
+  # 4.04:1 on `afal`, and the period's `/50` 3.05:1, against AA's 4.5.
+  def test_a_flat_trend_and_its_period_are_muted_text_at_70
+    render_trend(delta: 0)
+
+    assert_selector("span[class~='text-base-content/70'] > span[aria-hidden='true']", text: "0%")
+    assert_selector("span[class~='text-base-content/70']", exact_text: "vs last week")
+  end
+
   # The arrow describes the MOVEMENT, where the colour describes the meaning —
   # which is why one reads `direction` and the other does not.
   # Asserted on the decision rather than the markup: `Bali::Icon` inlines the
