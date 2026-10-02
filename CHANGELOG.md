@@ -119,8 +119,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **gobierno-corporativo**, `mdm/departments/cut_proposals/index.html.erb`), un
   `slim_select_field` junto a una etiqueta propia (receta en `form-builder.md`;
   `governing_bodies/member_matrices/_filters.html.erb`) y el marcado escrito a mano que no trae
-  `aria-label` (receta en `controllers.md`; 6 en afal-apps y 5 en gobierno-corporativo:
-  `git grep -n 'data-controller="slim-select"' origin/main -- app/views`).
+  `aria-label` (receta en `controllers.md`): dos vistas en **afal-apps**
+  (`finance/conciliacion/shared/_store_filter` y `td_flow/open_questions/_question`) y las
+  cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
+  -- app/views`).
 
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
