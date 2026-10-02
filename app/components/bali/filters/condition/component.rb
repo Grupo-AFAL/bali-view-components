@@ -106,7 +106,7 @@ module Bali
             selected_count: selected_count_translation,
             search: t("bali_view.filters.search"),
             no_results: t("bali_view.form_builder.slim_select.no_results"),
-            value_label: value_label
+            value_aria_label: value_aria_label
           }.to_json
         end
 
@@ -120,8 +120,8 @@ module Bali
 
         private
 
-        def value_label
-          t("bali_view.filters.value_label")
+        def value_aria_label
+          t("bali_view.filters.aria_labels.value")
         end
 
         def operators_translations

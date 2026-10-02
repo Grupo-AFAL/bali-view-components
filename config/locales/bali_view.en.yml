@@ -13,9 +13,10 @@ en:
       select_values: "Select values..."
       enter_value: "Enter value..."
       remove_condition: "Remove condition"
-      field_label: "Field"
-      operator_label: "Operator"
-      value_label: "Value"
+      aria_labels:
+        field: "Field"
+        operator: "Operator"
+        value: "Value"
       remove_filter: "Remove filter"
       incomplete_condition: "No value chosen, so this condition is ignored"
       add_condition: "Add condition"

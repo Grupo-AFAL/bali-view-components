@@ -180,7 +180,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       ))
     end
     translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
-    assert_equal "Valor", translations["value_label"]
+    assert_equal "Valor", translations["value_aria_label"]
   end
 
   def test_with_pre_selected_attribute_shows_select_for_boolean_type

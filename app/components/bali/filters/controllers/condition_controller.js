@@ -605,9 +605,10 @@ export class ConditionController extends Controller {
   // Input builders
 
   // The name condition/component.html.erb gives the widgets it paints, sent here as
-  // `value_label` in its translations_json; that file says why it is an aria-label.
-  get valueLabel () {
-    return this.t.value_label || 'Value'
+  // `value_aria_label` in component.rb's translations_json. The ERB says why it is an
+  // aria-label.
+  get valueAriaLabel () {
+    return this.t.value_aria_label || 'Value'
   }
 
   buildTextInput (fieldName) {
@@ -617,7 +618,7 @@ export class ConditionController extends Controller {
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
-             aria-label="${this.escapeHtml(this.valueLabel)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-condition-target="value">
     `
   }
@@ -630,7 +631,7 @@ export class ConditionController extends Controller {
              name="${fieldName}"
              step="any"
              placeholder="${this.escapeHtml(placeholder)}"
-             aria-label="${this.escapeHtml(this.valueLabel)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-condition-target="value">
     `
   }
@@ -660,7 +661,7 @@ export class ConditionController extends Controller {
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
-             aria-label="${this.escapeHtml(this.valueLabel)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
@@ -677,7 +678,7 @@ export class ConditionController extends Controller {
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
-             aria-label="${this.escapeHtml(this.valueLabel)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
@@ -695,7 +696,7 @@ export class ConditionController extends Controller {
         <input type="text"
                class="input input-bordered input-sm w-full"
                placeholder="${this.escapeHtml(placeholder)}"
-               aria-label="${this.escapeHtml(this.valueLabel)}"
+               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
@@ -716,7 +717,7 @@ export class ConditionController extends Controller {
         <input type="text"
                class="input input-bordered input-sm w-full"
                placeholder="${this.escapeHtml(placeholder)}"
-               aria-label="${this.escapeHtml(this.valueLabel)}"
+               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
@@ -738,7 +739,7 @@ export class ConditionController extends Controller {
     return `
       <select class="select select-bordered select-sm w-full"
               name="${fieldName}"
-              aria-label="${this.escapeHtml(this.valueLabel)}"
+              aria-label="${this.escapeHtml(this.valueAriaLabel)}"
               data-condition-target="value">
         <option value="">${this.escapeHtml(anyLabel)}</option>
         <option value="true">${this.escapeHtml(yesLabel)}</option>
@@ -765,7 +766,7 @@ export class ConditionController extends Controller {
            data-slim-select-no-results-text-value="${this.escapeHtml(noResults)}">
         <select class="select select-bordered select-sm w-full"
                 name="${fieldName}"
-                aria-label="${this.escapeHtml(this.valueLabel)}"
+                aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                 data-slim-select-target="select"
                 data-condition-target="value">
           <option value="">${this.escapeHtml(placeholder)}</option>
