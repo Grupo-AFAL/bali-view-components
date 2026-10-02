@@ -340,7 +340,7 @@
     }
 
     [contenteditable='true']:empty:before {
-      @apply text-base-300 block pointer-events-none;
+      @apply text-base-content/70 block pointer-events-none;
       content: attr(placeholder);
     }
 
