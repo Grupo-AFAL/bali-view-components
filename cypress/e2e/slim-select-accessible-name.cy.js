@@ -1,9 +1,9 @@
 // #1253 — SlimSelect hides the real <select> and draws a div[role="combobox"] named from the
-// select's aria-label / aria-labelledby and, before SlimSelect 3.5 (the dummy runs 3.4.3),
-// nothing else. The markup looked labelled all along — a <label for> reached the select — so
-// these read the name — and, for #1270, the description and invalid state — from Chromium's
-// accessibility tree, which is what a screen reader is handed. The attributes the FormBuilder
-// writes for them are asserted in test/bali/form_builder/slim_select_fields_test.rb.
+// select's aria-label / aria-labelledby and, before SlimSelect 3.5, nothing else. The markup
+// looked labelled all along — a <label for> reached the select — so these read the name — and,
+// for #1270, the description and invalid state — from Chromium's accessibility tree, which is
+// what a screen reader is handed. The attributes the FormBuilder writes for them are asserted
+// in test/bali/form_builder/slim_select_fields_test.rb.
 describe('SlimSelect accessible name', () => {
   const cdp = (command, params = {}) =>
     Cypress.automation('remote:debugger:protocol', { command, params })
@@ -65,8 +65,9 @@ describe('SlimSelect accessible name', () => {
       names('listbox').should('deep.equal', ['Owner'])
     })
 
-    // SlimSelect 2.x (centinela-web) puts the listbox role on `.ss-content` itself and leaves
-    // it unnamed. The dummy runs 3.x, so this moves the role to where 2.x draws it.
+    // The peer range admits SlimSelect 2.x, which puts the listbox role on `.ss-content`
+    // itself and leaves it unnamed. The dummy runs 3.x, so this moves the role to where 2.x
+    // draws it.
     it('is named where SlimSelect 2.x puts the role, on the content box', () => {
       cy.visit('/bali/form/slim_select/many_selected?locale=es')
       cy.get('.ss-main').should('exist')

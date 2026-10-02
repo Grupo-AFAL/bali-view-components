@@ -43,7 +43,8 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # Accessible name (#1253). The Ruby half: the attribute SlimSelect copies onto its
   # combobox, and the error pair (aria-invalid, aria-describedby) that
   # slim-select-controller.js#forwardAccessibility carries across (#1270).
-  # cypress/e2e/slim-select-accessible-name.cy.js reads the name and description that result.
+  # cypress/e2e/slim-select-accessible-name.cy.js reads the name, description and invalid
+  # state that result.
 
   def test_slim_select_group_points_the_select_at_its_caption
     result = builder.slim_select_group(:status, Movie.statuses.to_a)
