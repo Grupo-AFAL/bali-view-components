@@ -485,11 +485,12 @@ describe('muted icon contrast', () => {
 })
 
 // The placeholder rule lives in two layers: unlayered in `bali/forms.css` for the input inside a
-// `label.input`, which daisyUI paints from @layer utilities, and in @layer components in
-// `bali/general.css` for an `input.input` or a `textarea.textarea`, which only the preflight
-// paints. The contrast guard above sees neither promise the halves make: the unlayered half
-// leaves a disabled control at daisyUI's `opacity: .2` (1.48:1 on `afal`, against 4.98 or more
-// at 70%), and a host's `placeholder:` utility beats the layered half without `!`.
+// `label.input`, which daisyUI paints from a sublayer of @layer utilities, and in @layer
+// components in `bali/general.css` for an `input.input` or a `textarea.textarea`, which only the
+// preflight paints. The contrast guard above sees neither promise the halves make: the unlayered
+// half leaves a disabled control at daisyUI's `opacity: .2` (1.48:1 on `afal`, against 4.98 or
+// more at 70%), and a host's `placeholder:` colour utility beats both halves without `!` — the
+// unlayered one declares only the opacity, because a colour there would beat the host too.
 describe('form placeholder cascade', () => {
   it("leaves the placeholder of a disabled input inside a label.input at daisyUI's opacity", () => {
     const search = '[data-filters-target="searchInput"]'
@@ -506,6 +507,7 @@ describe('form placeholder cascade', () => {
 
   // [page, what, selector]
   const FIELDS = [
+    ['data_table/with_search', 'label.input input', '[data-filters-target="searchInput"]'],
     ['data_table/with_simple_filters', 'input.input', 'input.input[placeholder]:not(.hidden)'],
     ['form/text_area/default', 'textarea.textarea', 'textarea.textarea']
   ]

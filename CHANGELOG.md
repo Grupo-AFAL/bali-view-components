@@ -342,8 +342,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   las nueve apps estiliza esos placeholders
   (`git grep -nE "placeholder:[a-z!\[]|::placeholder" origin/main -- app config` sólo da dos
   campos sin `.input` en `gobierno-corporativo`), así que no hay nada que hacer. Un
-  `placeholder:text-…` de la app sobre un `input.input` o un `textarea.textarea` sigue ganando sin
-  `!`; sobre el `input` de dentro de un `label.input` lo necesita, como antes.
+  `placeholder:text-…` de la app sigue ganando sin `!` en los tres; un `placeholder:opacity-…`
+  sobre el `input` de dentro de un `label.input` ahora lo necesita.
 
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
