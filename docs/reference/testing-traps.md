@@ -33,9 +33,10 @@ goes here.
   background between the text and that ground. It still misses a `background-image` and a
   pseudo-element's background, which the caller hands over as `under`, and the `opacity` of the
   node that carries a tint is not applied to that tint. Nor does it see a `filter`, an inset
-  `box-shadow` or a pseudo-element drawn over the text: rule them out, as
-  `status-palette-contrast.cy.js` does by comparing the hovered row's computed style with the
-  row at rest.
+  `box-shadow`, an `opacity` above the ground, a pseudo-element drawn over the text or a
+  `::first-line` or `::first-letter` colour, which a `<button>` honours in Chromium: rule them
+  out, as `status-palette-contrast.cy.js` does by comparing the computed style of the hovered
+  row, its ancestors and their pseudo-elements with the same elements at rest.
 - **`should('not.be.visible')` passes on a dropdown that is open.** daisyUI fades the panel in
   from `opacity: 0` through `@starting-style`, and Cypress counts opacity: measured in #1231, a
   "stays closed" assertion went green on a menu at `display: flex`. Assert `display` from
