@@ -5326,8 +5326,8 @@ saved view — merged from the current query string. Three parameters are delibe
 listing is never what "export" means, and the one-shot orders `clear_filters` and
 `clear_search` — the first *deletes* the user's stored filters on the server as a side effect of
 the click. Pass `params: {}` to opt out and export everything on purpose, or an explicit hash to
-override. `formats:` takes `:csv`, `:excel`, `:pdf` and `:json`, in the order the items should
-appear; anything else raises `ArgumentError`.
+override. `formats:` takes one or more of `:csv`, `:excel`, `:pdf` and `:json`, in the order the
+items should appear; an empty list or anything else raises `ArgumentError`.
 
 Export is **not** a DataTable toolbar control. It acts on the page, not on how the listing
 looks, which is also what gives import and print somewhere to land later. Because the `⋯`

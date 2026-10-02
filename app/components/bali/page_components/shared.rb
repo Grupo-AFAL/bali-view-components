@@ -136,8 +136,8 @@ module Bali
       # because the link carries the active slice along.
       #
       # @param url [String] Base URL of the listing (without `format`)
-      # @param formats [Array<Symbol>] Formats to offer, out of EXPORT_FORMATS; any other raises
-      #   ArgumentError
+      # @param formats [Array<Symbol>] One or more of EXPORT_FORMATS, in menu order; an empty list
+      #   or any other format raises ArgumentError
       # @param params [Hash, nil] Slice to carry along. `nil` reads it from the request; `{}`
       #   is the explicit opt-out.
       def with_export(url:, formats: %i[csv excel pdf], params: nil)
@@ -193,12 +193,11 @@ module Bali
       end
 
       def resolve_export_formats(formats)
-        keys = formats.map(&:to_sym)
-        unknown = keys - EXPORT_FORMATS
-        return keys if unknown.empty?
+        keys = Array(formats).map { |format| format.to_s.to_sym }
+        return keys if keys.any? && (keys - EXPORT_FORMATS).empty?
 
         raise ArgumentError,
-              "Unknown export format: #{unknown.map(&:inspect).join(', ')}. Valid: #{EXPORT_FORMATS.join(', ')}"
+              "Invalid export formats: #{formats.inspect}. Valid: one or more of #{EXPORT_FORMATS.join(', ')}"
       end
 
       def secondary_action_items

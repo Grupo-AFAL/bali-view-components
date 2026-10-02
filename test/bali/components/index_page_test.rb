@@ -158,14 +158,23 @@ class BaliIndexPageComponentTest < ComponentTestCase
     assert_selector('a[href="/movies?format=excel"]', text: "Excel", visible: :all)
   end
 
-  # Raised and not skipped: skipping every format makes the export vanish without a word, or leaves
-  # its title alone in a ⋯ shared with other actions.
+  # Raised and not skipped: an export left with no format vanishes without a word, or leaves its
+  # title alone in a ⋯ shared with other actions.
   def test_export_raises_on_an_unknown_format
     error = assert_raises(ArgumentError) do
-      Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: %i[csv xml])
+      Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: %w[csv xml])
     end
 
-    assert_equal "Unknown export format: :xml. Valid: csv, excel, pdf, json", error.message
+    assert_equal 'Invalid export formats: ["csv", "xml"]. Valid: one or more of csv, excel, pdf, json',
+                 error.message
+  end
+
+  def test_export_raises_without_a_format
+    [ [], nil, [ nil ] ].each do |formats|
+      assert_raises(ArgumentError, "formats: #{formats.inspect}") do
+        Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: formats)
+      end
+    end
   end
 
   def test_export_links_read_the_slice_from_the_request_by_default
