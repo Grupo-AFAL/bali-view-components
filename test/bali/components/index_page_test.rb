@@ -100,9 +100,9 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
 
     assert_selector("span.menu-title", text: "Export filtered", visible: :all)
-    assert_selector('a[href="/movies?format=csv"][data-turbo="false"]', visible: :all)
-    assert_selector('a[href="/movies?format=excel"]', visible: :all)
-    assert_selector('a[href="/movies?format=pdf"]', visible: :all)
+    assert_selector('a[href="/movies?format=csv"][data-turbo="false"]', text: "CSV", visible: :all)
+    assert_selector('a[href="/movies?format=excel"]', text: "Excel", visible: :all)
+    assert_selector('a[href="/movies?format=pdf"]', text: "PDF", visible: :all)
   end
 
   def test_export_links_carry_the_active_slice

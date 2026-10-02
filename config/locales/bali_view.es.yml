@@ -321,12 +321,6 @@ es:
         rename: Renombrar
         delete: Borrar
         delete_confirm: "¿Borrar la vista \"%{name}\"?"
-      export:
-        formats:
-          csv: CSV
-          excel: Excel
-          pdf: PDF
-          json: JSON
     page_header:
       back: Volver
     page_components:
@@ -334,6 +328,11 @@ es:
         button_label: Más acciones
       export:
         menu_title: Exportar lo filtrado
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
     pagination:
       aria_label: Paginación
       previous_page: Página anterior

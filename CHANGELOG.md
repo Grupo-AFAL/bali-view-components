@@ -155,12 +155,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `:flightdeck` o pasa `name:`.
 - **`Bali::DataTable::Export::Component` se retira** (#1275), aunque la entrada de v3 lo dejaba
   «usable standalone»: su plantilla no la pintaba nadie, porque desde v3 la exportación vive en
-  el ⋯ de la página (`page.with_export`), que sale idéntico. Se van con él `button_label:`,
-  `button_icon:` y la llave `bali_view.data_table.export.button_label`. Ninguna de las nueve apps
-  los usa: `git grep -n "DataTable::Export" origin/main -- app lib config test spec` y
-  `git grep -n "data_table.export.button_label" origin/main` dan cero. **Anfitrión:** si apareces
-  en el primero, cambia el `render` por `page.with_export(url:, formats:)` en la página; si
-  apareces en el segundo, cambia esa llamada a `t` por tu propio texto.
+  el ⋯ de la página (`page.with_export`), cuyo HTML no cambia. Se va con él la llave
+  `bali_view.data_table.export.button_label`, y las etiquetas de formato pasan de
+  `bali_view.data_table.export.formats.*` a `bali_view.page_components.export.formats.*`, junto a
+  `menu_title`. Ninguna de las nueve apps toca nada de esto:
+  `git grep -n "DataTable::Export" origin/main -- app lib config test spec` y
+  `git grep -n "data_table.export" origin/main` dan cero, y ninguna declara una llave
+  `bali_view:` en sus `*.yml`. **Anfitrión:** si apareces en el primero, cambia el `render` por
+  `page.with_export(url:, formats:)` en la página; si apareces en el segundo, cambia esa llamada
+  a `t` por tu propio texto, o pasa tu traducción a la llave nueva.
 
 ### Fixed
 

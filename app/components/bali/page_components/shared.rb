@@ -12,8 +12,6 @@ module Bali
       SECONDARY_ACTIONS_LABEL_KEY = "bali_view.page_components.secondary_actions.button_label"
       EXPORT_MENU_TITLE_KEY = "bali_view.page_components.export.menu_title"
 
-      # The formats `with_export` offers. Their labels stay under
-      # `bali_view.data_table.export.formats`: moving the keys would drop a host's override.
       EXPORT_FORMATS = %i[csv excel pdf json].freeze
 
       # ONE width table for the five. It used to live duplicated in DashboardPage (four keys,
@@ -254,7 +252,7 @@ module Bali
       # Drive can render, and the visit stalls halfway instead of firing the download.
       def export_menu_item(format, params)
         { href: build_toolbar_href(@export_options[:url], params, :format, format),
-          name: I18n.t("bali_view.data_table.export.formats.#{format}"),
+          name: I18n.t("bali_view.page_components.export.formats.#{format}"),
           icon: "file-export", method: nil,
           "aria-describedby": export_menu_title_id,
           data: { turbo: false, export_links_target: "link" } }
