@@ -18,8 +18,10 @@
 // — an outline in `borderTopColor`, a line in `backgroundColor` — passes the property; a line is
 // its own fill, so it starts at the parent too.
 //
-// `pseudo` reads the colour off a pseudo-element of `el` — an input's `::placeholder` — while the
-// search for the ground still starts at `el`.
+// `pseudo` reads the colour off a pseudo-element of `el` — an input's `::placeholder` — and that
+// pseudo-element's own `opacity`, while the search for the ground still starts at `el`. daisyUI
+// paints the placeholder inside an `.input` in full `base-content` at `opacity: .5`: read without
+// that opacity, the Filters search placeholder measured 14.68:1 on `afal` and painted 3.05.
 //
 // `under` is a fill the shape sits straight on, inside the ground the search found. The colour is
 // painted over it and measured against it and against that ground, and the lower of the two is
@@ -53,7 +55,7 @@ export const paintedContrast = (el, { over = el, property = 'color', pseudo, und
     return [...ctx.getImageData(0, 0, 1, 1).data]
   }
 
-  let opacity = 1
+  let opacity = pseudo ? parseFloat(win.getComputedStyle(el, pseudo).opacity) : 1
   let groundColour = 'white'
   const tints = []
   for (let node = el; node !== over; node = node.parentElement) {

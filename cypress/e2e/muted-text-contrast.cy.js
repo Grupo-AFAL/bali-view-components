@@ -100,22 +100,40 @@ describe('muted text contrast', () => {
       ['caption', '.applied-filters > span:first-child', 1],
       ['operator', '.applied-filters .badge > span:nth-child(2)', 2]
     ],
+    // The search sits inside a `label.input`, whose placeholder daisyUI paints; the
+    // inputs of simple_filters and the text area carry `.input`/`.textarea` themselves.
+    'data_table/with_search': [
+      ['search placeholder', '[data-filters-target="searchInput"]', 1, '::placeholder']
+    ],
     'data_table/with_simple_filters': [
       ['filter label', '[id^="simple-filter-"][id$="-label"]', 5],
-      ['range dash', 'input[type="number"] + span.text-xs', 1]
+      ['range dash', 'input[type="number"] + span.text-xs', 1],
+      ['placeholder', 'input.input[placeholder]:not(.hidden)', 4, '::placeholder']
+    ],
+    'form/text_area/default': [
+      ['placeholder', 'textarea.textarea', 1, '::placeholder']
     ],
     'direct_upload/basic_usage': [
       ['drop zone line', '[data-direct-upload-target="dropzone"] > p', 4]
     ],
+    'direct_upload/with_existing_file': [
+      ['file size', '[data-direct-upload-target="existingFiles"] .text-xs', 1]
+    ],
     // The selected row is tinted `primary/5`: its subtitle and date are measured over it.
+    // Only the server's first five rows: infinite scroll keeps appending pages while the
+    // guard waits, 15 or 20 rows by the time it measures.
     'split_view/with_selection': [
       ['count', '[data-testid="list-count"]', 1],
-      ['subtitle and date', `.split-view-item ${GREY}`, 28],
+      ['subtitle and date', `.split-view-item:nth-child(-n+5) ${GREY}`, 10],
       ['loading line', '.split-view-sentinel', 1]
     ],
     'widget/default?pattern=trend': [
       ['view-all link', '.page-header-component a.link', 1],
       ['trend period', '.bali-widget-body span[aria-hidden="true"]:not(.icon-component) + span', 1]
+    ],
+    // One row this week against one the week before: no change, which is muted too.
+    'widget/default?pattern=trend&count=1': [
+      ['flat trend', '.bali-widget-body span[aria-hidden="true"]:not(.icon-component)', 1]
     ],
     'widget/default?pattern=list': [
       ['row subtitle', '.list-row p.text-xs', 3]
