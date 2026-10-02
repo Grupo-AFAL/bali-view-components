@@ -11,6 +11,7 @@ class BaliDataTableToolbarHrefTest < ActiveSupport::TestCase
     literal = source[/const TRANSIENT_PARAMS = \[(.*?)\]/m, 1]
     refute_nil literal, "TRANSIENT_PARAMS literal not found in the controller"
 
-    assert_equal Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS, literal.scan(/'([^']+)'/).flatten
+    entries = literal.split(",").map { |entry| entry.strip.delete("'\"") }
+    assert_equal Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS, entries
   end
 end
