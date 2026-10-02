@@ -94,11 +94,13 @@ describe('a colour over a tint of itself', () => {
       ['custom violet icon on its tint', '.rounded-full svg', 1, GRAPHIC]
     ]],
     // Not over a tint: DashboardPage#stat_change_class paints the change line with the same
-    // class as the icon, on the card's base-100.
+    // class as the icon, on the card's base-100. As `text-primary`, the change line of a stat in
+    // the default colour read 3.40:1 on `dark`.
     ['dashboard_page/default', null, [
-      ['stat change', '.dashboard-page-component > .grid .card .text-sm > span', 2]
+      ['stat change', '.dashboard-page-component > .grid .card .text-sm > span', 3]
     ]],
-    // The footer the guide's StatCard example writes.
+    // A footer in `text-soft-success` on the card's base-100, the class the guide's StatCard
+    // example writes.
     ['stat_card/with_trend', null, [
       ['trend', '.card .text-sm > span:not(.icon-component)', 1]
     ]],
@@ -145,7 +147,7 @@ describe('a colour over a tint of itself', () => {
             elements.forEach((el) => {
               expect(el.matches(':hover'), hovered ? 'under the pointer' : 'at rest').to.equal(hovered)
               const label = (el.textContent.trim() || el.getAttribute('aria-label') ||
-                el.closest('.card').querySelector('p').textContent.trim()).replace(/\s+/g, ' ')
+                el.closest('.card')?.querySelector('p')?.textContent.trim() || what).replace(/\s+/g, ' ')
               expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(minimum)
             })
           })
