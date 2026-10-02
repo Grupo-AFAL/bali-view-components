@@ -2,16 +2,20 @@ import { paintedContrast } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
-// Text in a colour over a tint of that same colour fails by construction wherever the colour
-// does not contrast with a dilution of itself. Measured before `text-soft-*`
+// A colour over a tint of that same colour fails by construction wherever the colour does not
+// contrast with a dilution of itself. Measured before `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css): the Command's match highlight in the active row
 // 2.23:1 on `dark` and 3.52 on `afal`, SideMenu's active item 4.12 on `afal`, its warning badge
-// 1.46 (#1245, #1247). Each state is reached the way a user reaches it: a query typed into the
-// palette, a group opened, a mention picked, a pointer resting on the button.
-describe('text over a tint of its own colour', () => {
+// 1.46 (#1245, #1247); a StatCard's warning icon 1.60 on `afal` (#1274). Each state is reached the
+// way a user reaches it: a query typed into the palette, a group opened, a mention picked, a
+// pointer resting on the button.
+describe('a colour over a tint of itself', () => {
   const AA = 4.5
+  // WCAG 1.4.11: an icon is a graphical object, not text.
+  const GRAPHIC = 3
 
-  // [preview, how the state is reached, [[what, selector, how many]], whether the pointer is on it]
+  // [preview, how the state is reached, [[what, selector, how many, minimum = AA]], whether the
+  // pointer is on it]
   const PREVIEWS = [
     ['command/default', () => {
       cy.get('body').type('{meta+k}')
@@ -71,7 +75,27 @@ describe('text over a tint of its own colour', () => {
       cy.get('[data-action="filters#addGroup"]').then(hover)
     }, [
       ['hovered "Add filter group"', '[data-action="filters#addGroup"]', 1]
-    ], true]
+    ], true],
+    ['stat_card/all_colors', null, [
+      ['icon on its tint', '.rounded-full svg', 9, GRAPHIC]
+    ]],
+    // The two ends of costa-norte's dashboard, which hands Bali::Status hexes to `custom_color:`:
+    // amber read 1.99:1 on the light themes, violet 2.14 on `dark`.
+    ['stat_card/with_custom_color?custom_color=%23f59e0b', null, [
+      ['custom amber icon on its tint', '.rounded-full svg', 1, GRAPHIC]
+    ]],
+    ['stat_card/with_custom_color?custom_color=%236d28d9', null, [
+      ['custom violet icon on its tint', '.rounded-full svg', 1, GRAPHIC]
+    ]],
+    // Not over a tint: DashboardPage#stat_change_class paints the change line with the same
+    // class as the icon, on the card's base-100.
+    ['dashboard_page/default', null, [
+      ['stat change', '.dashboard-page-component > .grid .card .text-sm > span', 2]
+    ]],
+    // The footer the guide's StatCard example writes.
+    ['stat_card/with_trend', null, [
+      ['trend', '.card .text-sm > span:not(.icon-component)', 1]
+    ]]
   ]
 
   // Below `lg` a fixed SideMenu is a closed drawer, and its bottom group cannot be opened.
@@ -80,7 +104,7 @@ describe('text over a tint of its own colour', () => {
 
   PREVIEWS.forEach(([preview, reach, targets, hovered = false]) => {
     THEMES.forEach((theme) => {
-      it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} at AA on the ${theme} theme`, () => {
+      it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} on the ${theme} theme`, () => {
         cy.visit(`/bali/${preview}`)
         if (reach) reach()
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -90,13 +114,14 @@ describe('text over a tint of its own colour', () => {
         cy.document({ timeout: 10000 }).should((doc) => {
           expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
 
-          targets.forEach(([what, selector, count]) => {
+          targets.forEach(([what, selector, count, minimum = AA]) => {
             const elements = [...doc.querySelectorAll(selector)]
             expect(elements, `${preview}: every ${what}`).to.have.length(count)
             elements.forEach((el) => {
               expect(el.matches(':hover'), hovered ? 'under the pointer' : 'at rest').to.equal(hovered)
-              const label = (el.textContent.trim() || el.getAttribute('aria-label')).replace(/\s+/g, ' ')
-              expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(AA)
+              const label = (el.textContent.trim() || el.getAttribute('aria-label') ||
+                el.closest('.card').querySelector('p').textContent.trim()).replace(/\s+/g, ' ')
+              expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(minimum)
             })
           })
         })

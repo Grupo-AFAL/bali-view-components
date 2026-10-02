@@ -16,6 +16,11 @@ module Bali
         )
       end
 
+      # Every `color:`, each icon over the tint of its own colour.
+      def all_colors
+        render_with_template(template: 'bali/stat_card/previews/all_colors')
+      end
+
       # The hex escape hatch. `custom_color:` replaces the semantic pair with an
       # inline colour, so it stops following the theme — that is the trade.
       # @param custom_color text

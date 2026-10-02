@@ -16,20 +16,25 @@ module Bali
       # Keyed by Bali::Color::NAMES. Spelled out because Tailwind only emits a
       # class it can find literally in a source file.
       #
-      # `Bali::DashboardPage#stat_change_class` reads `[:text]` out of this table.
+      # `[:text]` is the soft colour (bali/utilities.css) because the icon sits on `[:bg]`, a tint
+      # of itself: as `text-<colour>` the warning icon measured 1.60:1 on `afal` and the success
+      # one 1.80 on every light theme (3:1 for a graphic). `Bali::DashboardPage#stat_change_class`
+      # paints its change line with it too, on base-100, where `text-success` read 1.96 (AA: 4.5).
       # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
       # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
       COLORS = {
         neutral: { bg: "bg-base-content/10", text: "text-base-content",
                    border: "border-base-content/30" },
-        primary: { bg: "bg-primary/10", text: "text-primary", border: "border-primary/30" },
-        secondary: { bg: "bg-secondary/10", text: "text-secondary",
+        primary: { bg: "bg-primary/10", text: "text-soft-primary", border: "border-primary/30" },
+        secondary: { bg: "bg-secondary/10", text: "text-soft-secondary",
                      border: "border-secondary/30" },
-        accent: { bg: "bg-accent/10", text: "text-accent", border: "border-accent/30" },
-        info: { bg: "bg-info/10", text: "text-info", border: "border-info/30" },
-        success: { bg: "bg-success/10", text: "text-success", border: "border-success/30" },
-        warning: { bg: "bg-warning/10", text: "text-warning", border: "border-warning/30" },
-        error: { bg: "bg-error/10", text: "text-error", border: "border-error/30" },
+        accent: { bg: "bg-accent/10", text: "text-soft-accent", border: "border-accent/30" },
+        info: { bg: "bg-info/10", text: "text-soft-info", border: "border-info/30" },
+        success: { bg: "bg-success/10", text: "text-soft-success",
+                   border: "border-success/30" },
+        warning: { bg: "bg-warning/10", text: "text-soft-warning",
+                   border: "border-warning/30" },
+        error: { bg: "bg-error/10", text: "text-soft-error", border: "border-error/30" },
         ghost: { bg: "bg-base-200", text: "text-base-content", border: "border-base-300" }
       }.freeze
 
@@ -133,8 +138,13 @@ module Bali
         COLORS.dig(@color, :text)
       end
 
+      # `text-soft-*` (bali/utilities.css) written out for a hex, which no utility can name. The
+      # hex itself over its own tint read 1.99:1 for an amber on the light themes and 2.14 for a
+      # violet on `dark`, the two ends of the Bali::Status hexes costa-norte hands in here.
       def icon_style
-        "color: #{@custom_color}" if @custom_color.present?
+        return if @custom_color.blank?
+
+        "color: color-mix(in oklab, #{@custom_color} 40%, var(--color-base-content))"
       end
 
       private

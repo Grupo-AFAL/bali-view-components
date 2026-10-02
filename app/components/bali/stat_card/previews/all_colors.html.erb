@@ -1,0 +1,5 @@
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <% Bali::Color::NAMES.each do |color| %>
+    <%= render Bali::StatCard::Component.new(title: color, value: '1,234', icon: 'users', color: color) %>
+  <% end %>
+</div>

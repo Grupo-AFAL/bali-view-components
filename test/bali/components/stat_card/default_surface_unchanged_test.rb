@@ -3,7 +3,8 @@
 require "test_helper"
 
 # The fixture next to this file is the output of v3.4.0, captured before a line of
-# the cell surface was written — v3.4.0's bytes but for the label's `/70` (#1248).
+# the cell surface was written — v3.4.0's bytes but for the label's `/70` (#1248) and the
+# icon's soft colour (#1274).
 # It pins bytes, not "the same DOM": the template captures its body into a local,
 # and the two ways of writing that differ only in whitespace.
 #
