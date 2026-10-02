@@ -7,7 +7,7 @@ import { BALI_THEMES as THEMES } from '../support/themes'
 // 4.23 (#1261). The secondary is not measured as text: `costa-norte`'s is a gold fill, 1.99:1 on
 // the page. Text over a primary tint is not the theme's to carry: Bali paints it
 // `text-soft-primary` (soft-text-contrast.cy.js). daisyUI's own `light` and `dark` are not Bali's
-// to change: `dark` paints its primary button at 4.13:1, and both their secondary at 3.04.
+// to change: `dark` paints its primary button at 4.13:1, and both paint their secondary at 3.04.
 describe('theme primary and secondary contrast', () => {
   const AA = 4.5
   // The selector is what proves the preview honoured its params: a `?variant=link` it ignored
