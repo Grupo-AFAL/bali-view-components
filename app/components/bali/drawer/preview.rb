@@ -84,10 +84,10 @@ module Bali
 
       # Skeleton Placeholder
       # ---
-      # A named drawer (`shared: false`) holding a `Bali::Skeleton` until its content
-      # arrives, the way a remote trigger fills it. The skeleton animates only while the
-      # drawer is open, although a closed drawer stays rendered (#1273). Used by the
-      # Cypress suite.
+      # A named drawer (`shared: false`) whose only content is the `Bali::Skeleton` a
+      # remote trigger would replace; the local trigger here opens it as is. The skeleton
+      # animates only while the drawer is open, although a closed drawer stays rendered
+      # (#1273). Used by the Cypress suite.
       def skeleton_placeholder
         render_with_template
       end
