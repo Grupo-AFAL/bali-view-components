@@ -268,6 +268,11 @@ export class DropdownController extends Controller {
       case 'Escape':
         if (isOpen) {
           event.preventDefault()
+          // In a modal dialog this key is the menu's, not also the dialog's:
+          // `keydown.esc->modal#close` (and `drawer#close`) cannot read `defaultPrevented`
+          // instead, because SlimSelect cancels every Escape, open or not. Outside one,
+          // ancestors still see it.
+          if (topLayerHost(this.element)) event.stopPropagation()
           this.close()
           // `?.` cannot guard a Stimulus target: the getter throws rather than returning
           // undefined. This file already asks `hasTriggerTarget` at setupPopover and
