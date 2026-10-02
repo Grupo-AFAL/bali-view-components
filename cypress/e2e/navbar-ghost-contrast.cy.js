@@ -12,8 +12,8 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   // The burger only shows below `lg`.
   beforeEach(() => cy.viewport(400, 800))
 
-  const open = (color, theme, query = '') => {
-    cy.visit(`/bali/navbar/default?color=${color}${query}`)
+  const open = (color, theme, query = '', preview = 'default') => {
+    cy.visit(`/bali/navbar/${preview}?color=${color}${query}`)
     // Proves the preview honoured `?color=`: one it ignored renders `navbar-base`.
     cy.get('nav.navbar').should('have.class', `navbar-${color}`)
     cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -78,8 +78,54 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
         expect($menu.css('display'), 'the menu is open').to.equal('flex')
         expect($menu[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
         const ghost = $menu[0].querySelector('.btn-ghost')
-        expect(window.getComputedStyle(ghost).color).to.equal(window.getComputedStyle($menu[0]).color)
+        expect(window.getComputedStyle(ghost).color, `${color} navbar: the menu's text colour`).to.equal(window.getComputedStyle($menu[0]).color)
       })
+    })
+  })
+
+  // Narrowed to the brand and the main burger, the rule keeps every case above green. These pin
+  // the rest of its reach: the desktop menu's ghost, the `:alt` burger and the `:sidebar` one.
+  COLORS.filter(color => color !== 'base').forEach((color) => {
+    it(`the ghost "Log in" of the desktop menu paints the text colour of the ${color} navbar`, () => {
+      cy.viewport(1280, 800)
+      open(color, 'light')
+
+      cy.get('nav.navbar').should(($nav) => {
+        expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+        const login = [...$nav[0].querySelectorAll('.btn-ghost')].find(b => b.textContent.trim() === 'Log in')
+        expect(login.offsetWidth, 'the desktop menu shows at this width').to.be.greaterThan(0)
+        expect(login.matches(':hover'), 'measured at rest').to.equal(false)
+        expect(window.getComputedStyle(login).color, `${color} navbar: Log in`).to.equal(window.getComputedStyle($nav[0]).color)
+      })
+    })
+
+    it(`the :alt burger paints the text colour of the ${color} navbar`, () => {
+      open(color, 'light', '', 'with_multiple_menus')
+
+      cy.get('nav.navbar').should(($nav) => {
+        expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+        const alt = $nav[0].querySelector('[data-navbar-target="altBurger"]')
+        expect(alt.offsetWidth, 'the alt burger shows at this width').to.be.greaterThan(0)
+        expect(alt.matches(':hover'), 'measured at rest').to.equal(false)
+        expect(window.getComputedStyle(alt).color, `${color} navbar: alt burger`).to.equal(window.getComputedStyle($nav[0]).color)
+      })
+    })
+  })
+
+  it('the :sidebar burger paints the text colour of a neutral navbar', () => {
+    cy.visit('/bali/navbar/with_sidebar_burger?transparency=false')
+    // The preview pins `color: :base`; this is the class `color: :neutral` renders instead.
+    cy.get('nav.navbar').should('not.have.class', 'is-transparent').then(($nav) => {
+      $nav[0].classList.replace('navbar-base', 'navbar-neutral')
+    })
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', 'light'))
+
+    cy.get('nav.navbar').should(($nav) => {
+      expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+      const trigger = $nav[0].querySelector('[data-controller~="side-menu-trigger"]')
+      expect(trigger.offsetWidth, 'the sidebar burger shows at this width').to.be.greaterThan(0)
+      expect(trigger.matches(':hover'), 'measured at rest').to.equal(false)
+      expect(window.getComputedStyle(trigger).color, 'neutral navbar: sidebar burger').to.equal(window.getComputedStyle($nav[0]).color)
     })
   })
 
