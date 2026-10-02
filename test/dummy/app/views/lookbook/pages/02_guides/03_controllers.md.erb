@@ -513,13 +513,18 @@ peer, imported on demand): search, multi-select, remote options, addable items.
 `f.slim_select_group` / `f.slim_select_field` render it; by hand:
 
 ```html
+<label id="country-label" for="country">Country</label>
 <div data-controller="slim-select" data-slim-select-placeholder-value="Pick a country">
-  <select name="country" data-slim-select-target="select">
+  <select id="country" name="country" aria-labelledby="country-label" data-slim-select-target="select">
     <option value="mx">México</option>
     <option value="us">United States</option>
   </select>
 </div>
 ```
+
+The `aria-labelledby` is what names the widget: SlimSelect reads the select's `aria-label`
+or `aria-labelledby` and nothing else, so with a bare `<label for>` it announces itself as
+"Combobox". `f.slim_select_group` writes it for you.
 
 The values map mostly 1:1 onto SlimSelect settings (`show-search`,
 `close-on-select`, `allow-deselect-option`, `hide-selected`, `search-highlight`,

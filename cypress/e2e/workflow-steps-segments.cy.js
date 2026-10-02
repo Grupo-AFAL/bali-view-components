@@ -1,8 +1,8 @@
 import { paintedContrast } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
 
 // `Bali::WorkflowSteps` with `orientation: :segments`, the shape for a table cell (#1235).
 describe('WorkflowSteps segments', () => {
-  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
   const MIXED_STATES = ['Completed', 'Rejected', 'Needs attention']
 
   beforeEach(() => cy.visit('/bali/workflow_steps/segments'))
