@@ -272,7 +272,7 @@ class BaliTimelineComponentTest < ComponentTestCase
       c.with_item(heading: "Clickable", href: "/shipments/42")
     end
     assert_selector('a.timeline-box.timeline-content-box[href="/shipments/42"]')
-    assert_selector("a.timeline-content-box.hover\\:bg-base-200.transition-colors")
+    assert_selector("a.timeline-content-box.hover\\:bg-base-content\\/8.transition-colors")
   end
 
   def test_without_href_the_content_box_stays_a_div
