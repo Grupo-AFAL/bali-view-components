@@ -111,6 +111,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
+  SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
+  `<select>`, y el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
+  etiqueta, salvo que `html:` ya traiga uno de los dos. Siguen en «Combobox» y necesitan el
+  nombre a mano: un `slim_select_group` con `label: false` (`html: { "aria-label": … }`; en
+  **gobierno-corporativo**, `mdm/departments/cut_proposals/index.html.erb`), un
+  `slim_select_field` junto a una etiqueta propia (receta en `form-builder.md`;
+  `governing_bodies/member_matrices/_filters.html.erb`) y el marcado escrito a mano que no trae
+  `aria-label` (receta en `controllers.md`): dos vistas en **afal-apps**
+  (`finance/conciliacion/shared/_store_filter` y `td_flow/open_questions/_question`) y las
+  cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
+  -- app/views`).
+
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
   menú de ítems las teclas llevan el foco al primero— y lo cierran Escape, un clic fuera o que el
@@ -127,6 +140,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   2.92–4.74:1 contra el 4.5 que pide un texto de 12px. Ahora hereda el color de la pastilla
   (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
   anfitrión.
+
+- **En `RecurrentEventRuleForm`, un día marcado bajo el cursor quedaba bajo AA, y el foco de
+  teclado no se veía en ningún día** (#1246): `bg-primary/80` dejaba ver la página bajo el texto
+  (afal 5.25 → 3.76:1, light 4.33, afal-dark 4.09). Ahora un día marcado conserva su relleno
+  bajo el cursor y lo señala un anillo `primary`, y el día con el foco de teclado lleva uno
+  `base-content`. En `dark` de daisyUI el día marcado pinta 4.13:1 en reposo —el de su
+  `.btn-primary`— y ahora también bajo el cursor (antes 5.33). Ninguna app lo usa hoy:
+  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las ocho.
 
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
@@ -162,6 +183,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `costa-norte`, que faltaba, y no mide mientras quede una transición en curso. Hoy ningún número
   cambia: lo que cambia es que una variante traslúcida ya no pasaría. Para quien trabaja en el
   repo; nada que hacer en un anfitrión.
+
+- **Las guardias de contraste del calendario anual y del encabezado de grupo de `SplitView` miden
+  lo pintado, una vez quieto el tema** (#1252): `calendar-year-view.cy.js` deja su copia de la
+  medición, que no veía la `opacity`, ni la del día ni la de sus ancestros —con `opacity-60` en
+  el día vacío pasaba en los cinco temas, y pintado mide 2.47:1 en `afal`—, y las dos esperan a
+  que termine la transición antes de medir. Los seis specs que recorren temas toman la lista de
+  `cypress/support/themes.js`, y Minitest falla si esa lista y los temas de la gema no coinciden.
+  Para quien trabaja en el repo; nada que hacer en un anfitrión.
 
 - **El texto atenuado de `WorkflowSteps` y `Timeline` quedaba bajo AA** (#1233, #1234): el
   título y el círculo de un paso `:pending` o `:skipped`, la fecha, la etiqueta de los pasos por

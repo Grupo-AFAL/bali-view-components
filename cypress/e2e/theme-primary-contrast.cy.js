@@ -1,4 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
+import { BALI_THEMES as THEMES } from '../support/themes'
 
 // The primary of every theme Bali ships, as painted: filled under its `-content`, as text on the
 // page and as text on its own 10% tint. `afal` shipped blue-500 under white, 3.68:1 on the first
@@ -7,8 +8,6 @@ import { paintedContrast } from '../support/painted_contrast'
 // Bali's to change, and `dark` paints its button at 4.13:1.
 describe('theme primary contrast', () => {
   const AA = 4.5
-  // The list test_the_expected_themes_ship_with_the_gem holds in test/bali/themes_test.rb.
-  const THEMES = ['afal', 'afal-dark', 'costa-norte']
   // The selector is what proves the preview honoured its params: a `?variant=link` it ignored
   // renders `.btn-primary`, and the `get` fails instead of measuring the wrong button.
   const SURFACES = [

@@ -8,8 +8,8 @@ import { THEMES } from '../support/themes'
 // theme, and the base-200 cards of the progress preview, where only the labels are
 // measured as text: a glyph there paints on its marker's `::before` disc, which this
 // guard does not hand to `paintedContrast` (the outline guard below does, as `under`).
-// StatCard's cells include an emphasised one, whose
-// primary tint took `/60` down to 3.83:1 on `afal`.
+// StatCard's cells include an emphasised one, whose primary tint took `/60` down
+// to 3.83:1 on `afal`.
 //
 // Titles and glyphs are collected by their base-content grey: the current
 // step's `primary` pair is the theme's own, not measured against AA here (#1221).
