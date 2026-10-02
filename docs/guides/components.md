@@ -1915,7 +1915,7 @@ needs `collapsible_groups:` — a group born folded with nothing to unfold it ra
     <span class="size-2 rounded-sm <%= STATUS_DOTS.fetch(group.value) %>"></span>
     <span><%= group.label %></span>
     <%= render Bali::Tag::Component.new(text: group.count, size: :sm, style: :soft) %>
-    <span class="ml-auto text-xs font-normal text-base-content/60"><%= summaries[group.value] %></span>
+    <span class="ml-auto text-xs font-normal text-base-content/70"><%= summaries[group.value] %></span>
   <% end %>
 
   <% @initiatives.each do |initiative| %>
@@ -2327,7 +2327,7 @@ Responsive image gallery with optional lightbox and empty state.
 ```erb
 <%= render Bali::ImageGrid::Component.new(columns: 4, expandable: true) do |grid| %>
   <% grid.with_empty_state do %>
-    <p class="text-sm text-base-content/60"><%= t('bali_view.image_grid.empty_state.title') %></p>
+    <p class="text-sm text-base-content/70"><%= t('bali_view.image_grid.empty_state.title') %></p>
     <%= render Bali::Link::Component.new(name: t('bali_view.image_grid.empty_state.add_image'),
           href: new_image_path, variant: :primary) %>
   <% end %>
@@ -5171,7 +5171,7 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
     <% end %>
   <% end %>
   <% page.with_sidebar do %>
-    <p class="text-base-content/60">Tips for filling out this form.</p>
+    <p class="text-base-content/70">Tips for filling out this form.</p>
   <% end %>
 <% end %>
 ```

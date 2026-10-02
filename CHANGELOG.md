@@ -317,6 +317,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **gobierno-corporativo** puede quitar el `class: 'text-base-content/70'` que le puso al subtítulo
   en `app/views/governing_bodies/documents/_controlled_forms.html.erb`, y su comentario.
 
+- **El resto del texto atenuado pasa a `/70` y los íconos atenuados a `/55`** (#1256). Lo que #1248
+  no cubría, a `/40`, `/50` y `/60`, medía de 2.34:1 a 4.04:1 en `afal` contra el 4.5 de AA: las
+  etiquetas de grupo y los subtítulos del `SideMenu`, la paleta de `Command` (disparador,
+  encabezados, metadatos, pie y placeholder), los paneles de `DocumentEditor` y `DocumentPage`,
+  `Filters`, `DirectUpload`, `SplitView`, `Widget` y `WidgetGrid`, `Gantt`, las etiquetas de
+  `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el correo del `UserMenu` y los placeholders
+  de SlimSelect y `RichTextEditor`. En `/70` el mínimo es 4.88:1 (el subtítulo del switcher del
+  `SideMenu` con el puntero encima). Los íconos que son todo el control o toda la respuesta (el
+  vacío de `BooleanIcon`, los chevrons del `SideMenu`, los de `Filters`, `DirectUpload` y `Gantt`)
+  pasan a `/55`, lo primero que llega a 3:1 en los seis temas sobre `base-300` (3.27:1 en `afal`), y
+  el cero que atenúa un `Widget` (texto grande) de `/30` (1.86:1) a `/55`. Sin nada que hacer en el
+  anfitrión.
+
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
   (#1229). Antes ese mismo tap navegaba y la tarjeta se iba con la página. Con mouse y teclado
