@@ -275,6 +275,11 @@ describe('RecurrentEventRuleForm', () => {
     }
 
     // Both previews tick Monday and leave Tuesday unticked.
+    const days = {
+      'a checked': [0, 'be.checked'],
+      'an unchecked': [1, 'not.be.checked']
+    }
+
     const ways = {
       'disabled: true': () => cy.visit('/bali/recurrent_event_rule_form/disabled'),
       // A host disabling the whole form: the days are disabled without the component's option.
@@ -298,7 +303,7 @@ describe('RecurrentEventRuleForm', () => {
 
         afterEach(() => cy.then(unhover))
 
-        ;[['a checked', 0, 'be.checked'], ['an unchecked', 1, 'not.be.checked']].forEach(([day, index, state]) => {
+        Object.entries(days).forEach(([day, [index, state]]) => {
           it(`does not react to the cursor on ${day} day`, () => {
             weekday(index).should('be.disabled').and(state)
 
