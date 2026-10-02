@@ -88,12 +88,13 @@ export class DatepickerController extends Controller {
 
   // With `altInput` on — the default — flatpickr builds a brand new input, copies
   // only the placeholder, disabled, required and tabIndex across, and turns the
-  // original into `type="hidden"`. On a phone user agent it hides the altInput too
-  // and puts a native `mobileInput` (date, datetime-local or time), copied the
-  // same way, in front of the user. Everything that named the original therefore
-  // stops applying to the field the user actually types into: the `<label for>`
-  // now points at a hidden element, and so do `aria-describedby` and
-  // `aria-invalid`. Carry them over by hand.
+  // original into `type="hidden"`. On a phone user agent, in `single` mode with no
+  // `disable` list, it hides the altInput too and puts a native `mobileInput`
+  // (date, datetime-local or time) in front of the user, carrying the placeholder,
+  // disabled and required and nothing aria. Everything that named the original
+  // therefore stops applying to the field the user actually types into: the
+  // `<label for>` now points at a hidden element, and so do `aria-describedby`
+  // and `aria-invalid`. Carry them over by hand.
   forwardAccessibleName (input) {
     const field = this.flatpickr?.mobileInput || this.flatpickr?.altInput
     if (!field || !input) return

@@ -213,8 +213,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   al que el datepicker le pasaba el nombre. Ahora se lo pasa al nativo, con `aria-describedby`
   y `aria-invalid`: `date_group`, `datetime_group`, `time_group` y el filtro de fecha de
   `SimpleFilters` se anuncian con su etiqueta, y la fecha de una condición de `Bali::Filters`
-  como «Valor». Los rangos no cambian: flatpickr no los pasa a un campo nativo. Sin nada que
-  hacer en el anfitrión.
+  como «Valor». Los rangos y los campos con `disable_weekends` o `disabled_dates` no cambian:
+  flatpickr no los pasa a un campo nativo y ya se anunciaban con su nombre. Sin nada que hacer
+  en el anfitrión.
 
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
