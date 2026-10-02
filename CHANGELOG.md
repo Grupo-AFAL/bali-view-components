@@ -317,25 +317,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **gobierno-corporativo** puede quitar el `class: 'text-base-content/70'` que le puso al subtítulo
   en `app/views/governing_bodies/documents/_controlled_forms.html.erb`, y su comentario.
 
-- **El resto del texto atenuado pasa a `/70` y los íconos atenuados a `/55`** (#1256). Lo que #1248
-  no cubría, a `/40`, `/50` y `/60`, medía de 2.34:1 a 4.04:1 en `afal` contra el 4.5 de AA: las
+- **Más texto atenuado pasa a `/70`, y los íconos atenuados a `/55`** (#1256). Lo que #1248 no
+  cubría, de `/30` a `/60`, medía de 1.86:1 a 4.04:1 en `afal` contra el 4.5 de AA: las
   etiquetas de grupo y los subtítulos del `SideMenu`, la paleta de `Command` (disparador,
-  encabezados, metadatos, pie y placeholder), los paneles de `DocumentEditor` y `DocumentPage`,
-  `Filters`, `DirectUpload`, `SplitView`, `Widget` y `WidgetGrid`, `Gantt`, las etiquetas de
-  `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el correo del `UserMenu`, los placeholders
-  de SlimSelect y `RichTextEditor` (el del campo de enlace iba en `base-300`, 1.24:1) y los
-  encabezados de sección de los menús, que heredaban el `/40` de `.menu-title` de daisyUI (2.36:1):
-  el `tag: :title` de `Dropdown`, el selector de columnas y las vistas guardadas de `DataTable` y
-  los menús del `Gantt`. En `/70` el mínimo es 4.88:1 (el subtítulo del switcher del `SideMenu` con
-  el puntero encima). Los íconos que son todo el control o toda la respuesta (el vacío de
-  `BooleanIcon`, los chevrons del `SideMenu`, los de `Filters`, `DirectUpload` y `Gantt`) pasan a
-  `/55`, el primer múltiplo de 5 que llega a 3:1 en los seis temas sobre `base-300` (3.27:1 en
-  `afal`), y el cero que atenúa un `Widget` (texto grande) de `/30` (1.86:1) a `/55`.
+  encabezados, metadatos, pie y placeholder), los paneles de `DocumentEditor` y `DocumentPage`
+  (con el extracto de un comentario), `Filters`, `DirectUpload`, `SplitView`, `Widget` y
+  `WidgetGrid`, `Gantt`, las etiquetas de `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el
+  correo del `UserMenu`, el `BlockEditor` (placeholder, aviso de un toggle vacío y enlaces del
+  índice, también en `DocumentEditor` y `DocumentPage`), SlimSelect (placeholder, etiquetas de
+  grupo, «Searching...» y «No results»), el placeholder de `RichTextEditor` (el del campo de enlace
+  iba en `base-300`, 1.24:1) y los encabezados de sección de los menús, que heredaban el `/40` de
+  `.menu-title` de daisyUI (2.36:1): el `tag: :title` de `Dropdown`, el selector de columnas y las
+  vistas guardadas de `DataTable` y los menús del `Gantt`. En `/70` el mínimo es 4.88:1 (el
+  subtítulo del switcher del `SideMenu` con el puntero encima). Los íconos que son todo el control
+  o toda la respuesta (el vacío de `BooleanIcon`, los chevrons del `SideMenu`, los de `Filters`,
+  `DirectUpload` y `Gantt`, el chip de agregar reacción de un comentario) pasan a `/55`, el primer
+  múltiplo de 5 que llega a 3:1 en los seis temas sobre `base-300` (3.27:1 en `afal`), y el cero
+  que atenúa un `Widget` (texto grande) de `/30` (1.86:1) a `/55`.
 
-  También el placeholder de todo `.input` y `.textarea` habilitado, que daisyUI y el preflight de
-  Tailwind pintaban al 50 % (3.05:1): los campos del FormBuilder, la búsqueda de `Filters`,
-  `simple_filters` y los campos daisyUI que la app escribe a mano. Ninguna de las nueve apps
-  estiliza esos placeholders
+  También el placeholder habilitado de todo `input.input`, `textarea.textarea` y el `input` de
+  dentro de un `label.input`, que el preflight de Tailwind y daisyUI pintaban al 50 % (3.05:1), sea
+  del FormBuilder, de la búsqueda de `Filters`, de `simple_filters` o escrito a mano. Ninguna de
+  las nueve apps estiliza esos placeholders
   (`git grep -nE "placeholder:[a-z!\[]|::placeholder" origin/main -- app config` sólo da dos
   campos sin `.input` en `gobierno-corporativo`), así que no hay nada que hacer. Un
   `placeholder:text-…` de la app sobre un `input.input` o un `textarea.textarea` sigue ganando sin
