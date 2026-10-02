@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`text-soft-<color>`, el color del texto sobre un tinte de ese mismo color** (#1245, #1247):
+  cualquier color del tema mezclado al 40% con `base-content`, que llega a AA donde `text-<color>`
+  no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
+  `<span class="bg-primary/10 text-soft-primary">12</span>`.
+
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
   al lado. Cada estado es una forma distinta, también con colores forzados. **gobierno-corporativo**

@@ -23,7 +23,7 @@ describe('text over a tint of its own colour', () => {
     // Inline: the item's tint sits on the container's base-200.
     ['side_menu/with_badges', null, [
       ['active item', '.menu-item.active.side-menu-expanded', 1],
-      ['12px badge', '[class~="text-[12px]"]', 6]
+      ['12px badge', '[class~="text-[12px]"]', 8]
     ]],
     ['side_menu/default', null, [
       ['active item, fixed', '.menu-item.active.side-menu-expanded', 1]
