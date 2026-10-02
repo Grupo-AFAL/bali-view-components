@@ -16,9 +16,9 @@
  *   unusable as a fill or as text.
  * - Secondary is the brand teal lifted until it reads on those surfaces, so it
  *   stays distinct from primary.
- * - Neutral is a dark fill above base-100, under the light text, as in
- *   daisyUI's dark. Bali paints a neutral stat, gauge, loader or timeline
- *   marker with base-content instead.
+ * - Neutral is a fill one step above base-100, under the light text, so a
+ *   neutral button, badge or navbar still shows on the page. Bali paints
+ *   neutral ink with base-content instead.
  * - Status colors are the light theme's. Their content colors are the app's,
  *   except info and error: its near-white content measured 2.1 and 2.7:1 on
  *   those pastels, so they take the light theme's dark content instead.

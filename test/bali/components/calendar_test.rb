@@ -427,6 +427,17 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_no_selector(".year-day.bg-success")
   end
 
+  def test_year_view_paints_a_neutral_variant_like_the_default_highlight
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      day_variant: ->(_day, _events) { :neutral }
+    )
+    render_inline(component)
+
+    assert_selector(".year-day.bg-base-content\\/20", count: 1)
+    assert_no_selector(".year-day.bg-neutral\\/20")
+  end
+
   def test_year_view_rejects_a_variant_that_is_not_a_bali_colour
     @options.merge!(
       start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],

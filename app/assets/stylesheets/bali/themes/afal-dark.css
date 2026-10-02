@@ -11,10 +11,10 @@
  * - Brand hues are kept but lifted to their Tailwind 400 step so they
  *   hold contrast on dark surfaces, paired with -950 content colors.
  *   Every pair measures >= 4.5:1 (WCAG AA).
- * - Neutral is a dark fill (gray-700 under gray-200), as in daisyUI's dark.
- *   As text it does not read on these surfaces, so Bali paints a neutral
- *   stat, gauge, loader or timeline marker with base-content, which is the
- *   same colour as neutral on Bali's light themes.
+ * - Neutral is a fill, gray-700 under gray-200, one step above base-100 so a
+ *   neutral button, badge or navbar still shows on the page (daisyUI's dark
+ *   puts it below). As text it does not read here; Bali paints neutral ink
+ *   with base-content, the same colour as neutral on Bali's light themes.
  * - Status colors are identical to the light theme: those pastels already
  *   sit on dark content colors that pass AA on both schemes.
  * - Structural tokens (radius/size/border/depth/noise) are identical.

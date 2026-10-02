@@ -1475,9 +1475,9 @@ each marker paints, not over the token.
 **The shape assumes it sits on `base-100`.** The connector runs centre-to-centre
 *under* each marker, so an opaque disc is what keeps it out of the circle, and
 that disc has to be painted a colour. Dropped in a `bg-base-200` card the disc
-is a halo of 1.06:1 in light and 1.21:1 in `afal-dark` — invisible in one, a
-darker ring around every marker in the other. Hand the shape the surface it is
-actually on and the halo measures 1.00:1 in both:
+is a halo of 1.06:1 in light and 1.05:1 in `afal-dark` — a faint ring around
+every marker in both. Hand the shape the surface it is actually on and the halo
+measures 1.00:1:
 
 ```erb
 <div class="card bg-base-200 [--bali-workflow-steps-surface:var(--color-base-200)]">
@@ -3208,7 +3208,8 @@ has **two surfaces, not two components**: `surface:` changes the box, never the 
 1rem of padding, measured the same 16px the cell has. Reach for `surface: :cell` when the
 figures sit **inside** something that is already a card: the cell is the only one of the three
 that does not emit `.card`, so it cannot become a card in a card, and its `base-300` border
-stays visible against the `base-100` the section card paints behind it.
+marks it off from the `base-100` the section card paints behind it — 1.24:1 on `afal`, 1.09 on
+`afal-dark`, as faint as daisyUI's own `dark`.
 
 The cell's own `bg-base-100` is a no-op in exactly that case — measured, the section card
 paints the same `oklch(1 0 0)` behind it — and it is there for the other one: dropped

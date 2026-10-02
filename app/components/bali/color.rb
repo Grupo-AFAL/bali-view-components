@@ -87,9 +87,16 @@ module Bali
       # for a hex or for anything already written as CSS.
       def css(color)
         return color if css_value?(color)
-        return "var(#{GHOST_VARIABLE})" if color.to_sym == GHOST
+        return "var(#{GHOST_VARIABLE})" if page_ink?(color)
 
         "var(--color-#{color})"
+      end
+
+      # `:neutral` as a value is data ink — a chart bar, a heatmap cell — and a dark theme's
+      # neutral is a fill that does not read as ink; base-content is the same colour on Bali's
+      # light themes.
+      def page_ink?(color)
+        [ GHOST, :neutral ].include?(color.to_sym)
       end
 
       def css_value?(color)
@@ -100,7 +107,7 @@ module Bali
       # JavaScript rather than write it into a stylesheet.
       def variable_name(color)
         return if color.blank?
-        return GHOST_VARIABLE if color.to_sym == GHOST
+        return GHOST_VARIABLE if page_ink?(color)
 
         "--color-#{color}"
       end

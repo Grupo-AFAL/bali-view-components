@@ -69,10 +69,10 @@ class BaliThemesTest < ActiveSupport::TestCase
   def test_every_theme_steps_its_surfaces_down_from_base_100
     theme_files.each do |file|
       css = File.read(file)
-      levels = %w[100 200 300].map { |step| lightness(css, "--color-base-#{step}") }
+      levels = %w[100 200 300].map { |step| lightness(css, "--color-base-#{step}", file) }
 
-      assert_equal levels.sort.reverse, levels,
-                   "#{File.basename(file)}: base-100/200/300 lightness #{levels.join(' / ')}"
+      assert levels.each_cons(2).all? { |upper, lower| upper > lower },
+             "#{File.basename(file)}: base-100/200/300 lightness #{levels.join(' / ')}"
     end
   end
 
@@ -85,8 +85,10 @@ class BaliThemesTest < ActiveSupport::TestCase
   private
 
   # The L of an `oklch()` token, written either as a percentage or as a fraction.
-  def lightness(css, variable)
-    number, percent = css.match(/#{Regexp.escape(variable)}:\s*oklch\(([\d.]+)(%?)/).captures
+  def lightness(css, variable, file)
+    pattern = /#{Regexp.escape(variable)}:\s*oklch\(([\d.]+)(%?)/
+    assert_match pattern, css, "#{File.basename(file)}: #{variable} is not an oklch() colour"
+    number, percent = css.match(pattern).captures
     percent.empty? ? number.to_f : number.to_f / 100
   end
 end

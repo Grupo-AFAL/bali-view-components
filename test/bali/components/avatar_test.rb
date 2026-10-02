@@ -246,6 +246,11 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_selector(".ring-2.ring-primary.ring-offset-2")
   end
 
+  def test_a_neutral_ring_is_drawn_in_base_content
+    render_inline(Bali::Avatar::Component.new(src: "/default.png", ring: :neutral))
+    assert_selector(".ring-2.ring-base-content")
+  end
+
   def test_ring_styling_renders_with_success_ring
     render_inline(Bali::Avatar::Component.new(src: "/default.png", ring: :success))
     assert_selector(".ring-2.ring-success")

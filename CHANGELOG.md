@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   elige; la elección se guarda en la cookie `bali_theme`, por app y por dispositivo. Los dos
   temas oscuros siguen la forma del `dark` de daisyUI: `base-200` y `base-300` son más oscuros
   que `base-100`, así que una página sobre `base-200` queda debajo de sus tarjetas, y `neutral`
-  es un relleno oscuro con texto claro.
+  es un relleno oscuro con texto claro. Por lo mismo, un borde `base-300` sobre `base-100` es en
+  oscuro tan tenue como en el `dark` de daisyUI (1.09:1 en `afal-dark`, 1.11 en `dark`).
   **Anfitrión que lo quiera:**
   - `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`; una
     clave desconocida o sin `light:` levanta al arrancar.
@@ -145,10 +146,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   desde `base-100`, y dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el
   borde más oscuro todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa
   del tema. Sin nada que hacer en el anfitrión.
-- **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline) y
-  también el botón neutral `outline`: pintaban `neutral` como texto, que en oscuro es un relleno
-  oscuro (1.72:1 en `afal-dark`, 1.26 en el `dark` de daisyUI). Ahora usan `base-content`,
-  idéntico a `neutral` en `afal` y `costa-norte`. Sin nada que hacer en el anfitrión.
+- **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline,
+  Progress, Chart, Heatmap, el día de `Calendar::YearGrid` y el anillo del Avatar) y también el
+  botón neutral `outline`: pintaban `neutral` como tinta, que en oscuro es un relleno oscuro
+  (1.72:1 en `afal-dark`, 1.26 en el `dark` de daisyUI). Ahora usan `base-content`, idéntico a
+  `neutral` en `afal` y `costa-norte`. Sin nada que hacer en el anfitrión.
 - **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
   claro de daisyUI, y bajo un tema oscuro el disparador se volvía oscuro con el texto todavía
   oscuro (1.04–1.10:1). Ahora todo texto y superficie del archivo es un token del tema, lo que

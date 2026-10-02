@@ -1,18 +1,19 @@
-/* Button — the neutral outline and dash buttons, which daisyUI paints with `neutral` as text.
+/* Button — the neutral outline button, which daisyUI paints with `neutral` as text.
  *
- * daisyUI 5 colours `.btn-outline` and `.btn-dash` at rest with
- * `var(--btn-rest-fg, var(--btn-color))`, and `.btn-neutral` sets `--btn-rest-fg: initial`
- * so the text falls through to `neutral`. That is a fill colour: on a dark theme it is a dark
- * grey, and over the page the label measured 1.72:1 on `afal-dark`, 1.54 on
- * `costa-norte-dark` and 1.26 on daisyUI's `dark`. `base-content` is the same colour as
- * `neutral` on Bali's light themes, so only the dark ones change.
+ * daisyUI 5 colours `.btn-outline` at rest with `var(--btn-rest-fg, var(--btn-color))`, and
+ * `.btn-neutral` sets `--btn-rest-fg: initial` so the text falls through to `neutral`. That is
+ * a fill colour: on a dark theme it is a dark grey, and over the page the label measured 1.72:1
+ * on `afal-dark`, 1.54 on `costa-norte-dark` and 1.26 on daisyUI's `dark`.
  *
- * Unlayered because `.btn-neutral` is emitted inside `@layer utilities`, which no layered rule
- * can outrank. The soft variant is left alone: its ground is a mix of `neutral-content`,
- * light on the dark themes, and base-content would vanish on it. Hover is untouched — daisyUI
- * paints it with `--btn-fg`, not this property.
+ * Unscoped, like the alert and tag sheets: it applies on every theme and to a host's own
+ * `btn-neutral btn-outline` markup. On Bali's light themes `base-content` is `neutral`, so
+ * nothing moves there; on daisyUI's `light` the label goes from 14% to 21% lightness, both
+ * past 15:1. Unlayered because `.btn-neutral` is emitted inside `@layer utilities`, which no
+ * rule in `@layer components` can outrank. Soft is left alone: its ground is a mix of
+ * `neutral-content`, light on the dark themes, and base-content would vanish on it. Hover is
+ * untouched — daisyUI paints it with `--btn-fg`, not this property.
  */
 
-.btn-neutral:is(.btn-outline, .btn-dash) {
+.btn-neutral.btn-outline {
   --btn-rest-fg: var(--color-base-content);
 }

@@ -3,11 +3,12 @@
 module Bali
   module Progress
     class Component < ApplicationViewComponent
+      # No `neutral`: daisyUI's own bar is base-content, and `progress-neutral` paints a dark
+      # theme's fill colour, which does not read against the track.
       COLORS = {
         primary: "progress-primary",
         secondary: "progress-secondary",
         accent: "progress-accent",
-        neutral: "progress-neutral",
         info: "progress-info",
         success: "progress-success",
         warning: "progress-warning",

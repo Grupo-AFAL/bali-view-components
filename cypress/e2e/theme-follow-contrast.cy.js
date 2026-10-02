@@ -83,7 +83,8 @@ describe('colours that follow the theme', () => {
     ['loader text', '/bali/loader/default?color=neutral', 'p.text-xl', AA],
     ['stat card icon', '/bali/stat_card/default?color=neutral', '.card-body .rounded-full svg', 3],
     ['timeline marker', '/bali/timeline/with_colors', 'li:contains("Archived") .timeline-middle', 3],
-    ['outline button', '/bali/button/default?variant=neutral&style=outline', '.btn-outline', AA]
+    ['outline button', '/bali/button/default?variant=neutral&style=outline', '.btn-outline', AA],
+    ['progress bar', '/bali/progress/default?color=neutral', 'progress', 3]
   ]
 
   THEMES.forEach((theme) => {

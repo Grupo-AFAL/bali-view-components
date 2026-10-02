@@ -126,7 +126,7 @@ daisyUI's own `dark`, and as text it does not read on the page; `text-base-conte
 colour on `afal` and `costa-norte`:
 
 ```sh
-git grep -n -E 'text-neutral(\b|/)' -- app | grep -v neutral-content
+git grep -n -E 'text-neutral([^-]|$)' -- app
 ```
 
 Preview both dark themes in Lookbook under *Theme Sampler → Afal Dark* and *Costa Norte Dark*.

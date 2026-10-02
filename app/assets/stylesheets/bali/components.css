@@ -77,6 +77,6 @@
    that contrasts (#1126). */
 @import "../../../components/bali/alert/daisyui-overrides.css";
 @import "../../../components/bali/tag/daisyui-overrides.css";
-/* daisyUI paints the neutral outline and dash buttons with `neutral` as text, a dark fill
-   on the dark themes. */
+/* daisyUI paints the neutral outline button with `neutral` as text, a dark fill on the
+   dark themes. */
 @import "../../../components/bali/button/daisyui-overrides.css";
