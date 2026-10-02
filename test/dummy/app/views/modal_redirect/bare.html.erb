@@ -1,0 +1,12 @@
+<div class="space-y-4" id="modal-redirect-bare" data-controller="modal">
+  <h1 class="text-2xl font-bold">Modal redirect origin, bare body</h1>
+
+  <%= render Bali::Link::Component.new(
+        name: 'Open the redirecting modal',
+        href: modal_redirect_go_path,
+        variant: :primary,
+        modal: true,
+        id: 'bare-redirecting-trigger') %>
+
+  <%= render Bali::Modal::Component.new(active: false, id: 'bare-modal') %>
+</div>

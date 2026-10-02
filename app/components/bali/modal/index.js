@@ -204,13 +204,10 @@ export class ModalController extends Controller {
     this.templateTarget.addEventListener('cancel', this._onDialogCancel)
   }
 
-  // The element Stimulus hands over, not `this.templateTarget`: the panel can leave while
-  // the controller stays — AppLayout's sits on <body>, which `_replaceBodyAndURL` keeps —
-  // and on a page with no panel left that getter throws.
-  templateTargetDisconnected (element) {
-    element.removeEventListener('mousedown', this._onOverlayMousedown)
-    element.removeEventListener('click', this._onOverlayClick)
-    element.removeEventListener('cancel', this._onDialogCancel)
+  templateTargetDisconnected () {
+    this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
+    this.templateTarget.removeEventListener('click', this._onOverlayClick)
+    this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
   }
 
   setOptionsAndOpenModal = event => {
@@ -556,7 +553,7 @@ export class ModalController extends Controller {
     element.innerHTML = html
 
     return {
-      body: element.querySelector('body').innerHTML,
+      body: element.querySelector('body'),
       title: element.querySelector('title').text
     }
   }
@@ -564,7 +561,10 @@ export class ModalController extends Controller {
   _replaceBodyAndURL = (html, url) => {
     const { body, title } = this._extractResponseBodyAndTitle(html)
 
-    document.body.innerHTML = body
+    // The element, not `innerHTML`: <body> carries controllers of its own (AppLayout's
+    // `modal drawer`, #1268), and a children-only swap leaves the origin's attributes on it,
+    // so the destination's controllers never connect and the origin's stay on.
+    document.body.replaceWith(body)
 
     if (window.Turbo) {
       window.Turbo.session.history.push(new URL(url))

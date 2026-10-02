@@ -34,7 +34,7 @@ describe('modal history', () => {
     cy.get('#modal-redirect-origin').should('not.exist')
   })
 
-  // The swap is `document.body.innerHTML = …` plus a history push, so the realm
+  // The swap is `document.body.replaceWith(…)` plus a history push, so the realm
   // is never torn down — which is the whole reason the pushed entry has no
   // snapshot behind it.
   it('swaps the body without reloading the page', () => {
@@ -91,10 +91,10 @@ describe('modal history', () => {
     cy.get('@originGet.all').should('have.length', 1)
   })
 
-  // The swap keeps <body>, and since #1268 the page-level `modal` controller AppLayout puts
-  // there survives it, so the departing `#main-modal` disconnects from a controller that stays.
-  // On a destination with no shared modal — the login page an expired session is sent to —
-  // `templateTargetDisconnected` read `this.templateTarget` and threw on the window.
+  // AppLayout puts `modal drawer` on <body> (#1268), so the swap has to bring the
+  // destination's <body>, attributes included. Here the destination is the login page an
+  // expired session is sent to: no shared modal, so none of the origin's overlay controllers
+  // may stay on — a page-level `modal` left there throws as its panel goes.
   it('swaps to a page with no shared modal without an uncaught error', () => {
     const errors = []
     cy.on('uncaught:exception', (err) => {
@@ -106,6 +106,22 @@ describe('modal history', () => {
 
     cy.location('pathname').should('eq', '/login')
     cy.get('form[action="/login"]').should('exist')
+    cy.get('body').should('have.attr', 'data-controller', 'app-layout')
     cy.then(() => expect(errors, 'uncaught errors').to.deep.equal([]))
+  })
+
+  // The other direction: from a <body> with no overlay controller, a children-only swap left
+  // the destination's `#main-drawer` with nothing to open it, and its trigger navigated.
+  it('connects the overlay controllers of the page it swaps in', () => {
+    cy.visit(`${appOrigin}/modal_redirect/bare`)
+    cy.get('#bare-redirecting-trigger').click()
+    cy.get('#modal-redirect-landing').should('exist')
+
+    cy.get('#landing-drawer-trigger').click()
+
+    cy.document().should((doc) => {
+      expect(doc.location.pathname, 'still on the landing').to.eq('/modal_redirect/landing')
+      expect(doc.getElementById('main-drawer').matches(':modal'), '#main-drawer is open').to.equal(true)
+    })
   })
 })

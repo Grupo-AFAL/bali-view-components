@@ -23,4 +23,10 @@ class ModalRedirectController < ApplicationController
   def expired
     redirect_to login_path
   end
+
+  # An origin whose <body> carries no overlay controller: the auth layout renders AppLayout
+  # with `modal: false, drawer: false`, and the page brings a `modal` of its own.
+  def bare
+    render layout: "auth"
+  end
 end
