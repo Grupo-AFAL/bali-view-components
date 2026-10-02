@@ -198,14 +198,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
   -- app/views`).
 
-- **El combobox de SlimSelect anuncia el error y la ayuda de su campo, y su lista ya no se
-  llama «Combobox listbox»** (#1270). SlimSelect esconde el `<select>` y no copiaba a su
-  combobox el `aria-invalid` ni el `aria-describedby` que el FormBuilder escribe para el error
-  y `help:`; ahora el controlador los copia. La lista toma el nombre del combobox (el
-  `aria-label` o `aria-labelledby` del `<select>`), también con SlimSelect 2.x, que la dejaba
-  sin nombre. Nada que hacer en el anfitrión. Un `<select>` sin ninguno de los dos —los casos
-  que lista la entrada de #1253, todos así en `origin/main`— sigue en «Combobox» y «Combobox
-  listbox» hasta que se le ponga.
+- **El combobox de SlimSelect anuncia el error y la ayuda de su campo, y su lista se llama
+  como él** (#1270). SlimSelect esconde el `<select>` y no copiaba a su combobox el
+  `aria-invalid` ni el `aria-describedby` que el FormBuilder escribe para el error y `help:`;
+  ahora el controlador los copia. La lista, que se llamaba «Combobox listbox» en todos los
+  campos (y con SlimSelect 2.x no tenía nombre), toma el del combobox. Nada que hacer en el
+  anfitrión. Un `<select>` sin nombre (los casos que lista la entrada de #1253) sigue sin
+  nombre propio en el combobox y en la lista hasta que se le ponga.
 
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
