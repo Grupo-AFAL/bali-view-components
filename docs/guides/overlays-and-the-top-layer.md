@@ -59,13 +59,13 @@ The two halves fix different failures:
   the signal to leave the widget alone rather than reparent it half-way.
 - `leaveTopLayer(popup)` — idempotent, and safe on a popup that never entered.
 
-Four controllers use it, and each takes only what it needs:
+These controllers use it, and each takes only what it needs:
 
 | Widget | What happens inside a modal dialog |
 | --- | --- |
 | `datepicker-controller` (flatpickr) | The calendar joins the top layer on `onOpen` and leaves on `onClose`. Skipped when the calendar is deliberately in flow (`static`) or when the call site named its own container with an `appendTo` target. |
 | `slim-select-controller` | `.ss-content` joins once, at connect. SlimSelect debounces all four of its open/close callbacks by 100 ms, so a hook that reparented there would fire long after the list was already on screen. The list is parked at `top: -9999px` while closed, so staying in the top layer shows nothing. |
-| `tooltip` and `hover_card` (tippy) | The balloon is appended to the dialog instead of the configured `appendTo`. No popover: Popper recomputes its offsets against whatever `offsetParent` the balloon ends up with, and the dialog root is `position: fixed`, so the arithmetic stays right by itself. |
+| `tooltip`, `hover_card` and `dropdown` with `popover: true` (tippy) | The popper is appended to the dialog instead of the configured `appendTo` (`<body>`, for the dropdown). No popover: Popper recomputes its offsets against whatever `offsetParent` the popper ends up with, and the dialog root is `position: fixed`, so the arithmetic stays right by itself. |
 | `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct. |
 
 Two small CSS blocks — in `bali/datepicker.css` and `bali/slim_select.css` — undo the
@@ -177,6 +177,11 @@ A toast that is already showing when an overlay opens is *not* pulled up after i
 toasts that arrive while an overlay is open, plus whatever the stack is holding at that
 moment. In practice a toast auto-dismisses in three seconds, so the window is small; if it
 matters to you, open the overlay first.
+
+The `dropdown` tier sits below them, and a dropdown on the page behind an open overlay needs
+nothing: nobody can reach it anyway. A `popover: true` dropdown rendered *inside* the panel is
+the other case. Its menu would hang off `<body>`, outside the dialog, so it is appended to the
+dialog like a tooltip's balloon (#1269).
 
 ## What is not covered
 
