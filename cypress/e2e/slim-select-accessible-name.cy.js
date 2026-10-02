@@ -1,8 +1,9 @@
 // #1253 — SlimSelect hides the real <select> and draws a div[role="combobox"] named from the
-// select's aria-label / aria-labelledby and, up to the 3.4 the dummy runs, nothing else. The
-// markup looked labelled all along — a <label for> reached the select — so these read the name from Chromium's
-// accessibility tree, which is what a screen reader is handed. The attribute the FormBuilder
-// writes for it is asserted in test/bali/form_builder/slim_select_fields_test.rb.
+// select's aria-label / aria-labelledby and, before SlimSelect 3.5 (the dummy runs 3.4.3),
+// nothing else. The markup looked labelled all along — a <label for> reached the select — so
+// these read the name — and, for #1270, the description and invalid state — from Chromium's
+// accessibility tree, which is what a screen reader is handed. The attributes the FormBuilder
+// writes for them are asserted in test/bali/form_builder/slim_select_fields_test.rb.
 describe('SlimSelect accessible name', () => {
   const cdp = (command, params = {}) =>
     Cypress.automation('remote:debugger:protocol', { command, params })
@@ -86,6 +87,26 @@ describe('SlimSelect accessible name', () => {
 
       names('listbox').should('deep.equal', ['Rooms'])
     })
+
+    // Every SlimSelect from 2.x to 4.x names the combobox from aria-label when the select
+    // carries both; the name calculation prefers aria-labelledby. Copied off the <select>, the
+    // list would be "Rooms".
+    it('follows the combobox when the select carries both aria-label and aria-labelledby', () => {
+      cy.intercept('GET', '**/slim_select/many_selected*', (req) =>
+        req.continue((res) => {
+          res.body = res.body.replace(
+            'aria-labelledby=',
+            'aria-label="Meeting rooms" aria-labelledby='
+          )
+        })
+      )
+      cy.visit('/bali/form/slim_select/many_selected?locale=es')
+      cy.get('select[aria-label="Meeting rooms"][aria-labelledby]').should('exist')
+      cy.get('.ss-main').should('exist')
+
+      names('combobox').should('deep.equal', ['Meeting rooms'])
+      names('listbox').should('deep.equal', ['Meeting rooms'])
+    })
   })
 
   // #1270 — the FormBuilder writes `aria-invalid` and `aria-describedby` on the <select>
@@ -100,6 +121,15 @@ describe('SlimSelect accessible name', () => {
         description: 'Name must be selected Pick the option that applies to this record.',
         invalid: 'true'
       }
+    ])
+  })
+
+  it('leaves the combobox of a field without errors neither invalid nor described', () => {
+    cy.visit('/bali/form/slim_select/many_selected?locale=es')
+    cy.get('.ss-main').should('exist')
+
+    axNodes('combobox').should('deep.equal', [
+      { name: 'Rooms', description: undefined, invalid: undefined }
     ])
   })
 })
