@@ -156,6 +156,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
+  de la pantalla para poder deslizarse, y el `.skeleton` de daisyUI anima sin fin: cada página
+  con `Bali::AppLayout` (`drawer: true` por omisión) mantenía 15 animaciones corriendo que nadie
+  veía. Ahora el `.skeleton` sólo anima mientras el panel está en pantalla. Vale para todo
+  `Bali::Drawer`, también los que no pone AppLayout: el `main-drawer` de
+  `layouts/process_modeler.html.erb` en gobierno-corporativo y el drawer de detalle de los
+  tableros de bali-analytics (`git grep -n "Drawer::Component" origin/main -- app`). Sin nada
+  que hacer en el anfitrión.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
