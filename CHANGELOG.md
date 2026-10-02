@@ -161,11 +161,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `base-content` de un panel dentro de ella, como el menú abierto— y no el `base-content` fijo
   que le daba daisyUI: la hamburguesa y una marca `variant: :ghost` pasan de 1.00 a 14.68:1
   sobre `neutral` en `afal`. En un Navbar transparente de color toman, como sus enlaces, el
-  `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content` es claro (con
-  `accent`, en ningún tema; en `afal-dark` y `costa-norte-dark`, sólo con `neutral`), y sobre la
-  página pueden dejar de verse. Ninguna de las nueve apps tiene un `.navbar` de color (el único
-  escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de texto):
-  nada que hacer.
+  `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content` es claro, y
+  sobre la página pueden dejar de verse. Ninguna de las nueve apps tiene un `.navbar` de color
+  (el único escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de
+  texto): nada que hacer.
 
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
