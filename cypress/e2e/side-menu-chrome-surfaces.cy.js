@@ -1,4 +1,4 @@
-import { pointAt, pointAway } from '../support/tap'
+import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 import { paintedLuminance as luminance } from '../support/painted_contrast'
 
@@ -7,7 +7,7 @@ import { paintedLuminance as luminance } from '../support/painted_contrast'
 // themes step base-200/300 DOWN from base-100 — the page sits under its cards — so inside the
 // rail that panel measured 1.05–1.07:1 against the rail and its border went darker still.
 describe('SideMenu chrome surfaces', () => {
-  afterEach(() => { pointAway() })
+  afterEach(() => { unhover() })
 
   ;['dark', 'afal-dark', 'costa-norte-dark'].forEach((theme) => {
     it(`lifts the panel and the borders above a ${theme} rail`, () => {
@@ -30,7 +30,7 @@ describe('SideMenu chrome surfaces', () => {
     it(`shows the hovered item inside the panel of a ${theme} rail`, () => {
       cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
       cy.get('.side-menu-component').contains('Configuration').click()
-      cy.get('.side-menu-bottom-section .dropdown-content .menu-item').first().then(pointAt)
+      cy.get('.side-menu-bottom-section .dropdown-content .menu-item').first().then(hover)
 
       cy.get('.side-menu-bottom-section .dropdown-content').should(($panel) => {
         const doc = $panel[0].ownerDocument
@@ -93,7 +93,7 @@ describe('SideMenu chrome surfaces', () => {
         cy.viewport(1280, 800)
         cy.visit(url)
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-        cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(pointAt)
+        cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(hover)
 
         cy.get('.side-menu-component a.menu-item:hover').should(($item) => {
           const doc = $item[0].ownerDocument

@@ -1,3 +1,4 @@
+import { paintedContrast } from '../support/painted_contrast'
 import { tap } from '../support/tap'
 import { THEMES } from '../support/themes'
 
@@ -65,49 +66,14 @@ describe('Calendar year view', () => {
       cy.viewport(1440, 1200)
       cy.visit(year)
       cy.get('.year-day').should('have.length.greaterThan', 364)
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
-      cy.document().then((doc) => {
-        doc.documentElement.setAttribute('data-theme', theme)
+      cy.document().should((doc) => {
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
 
-        const paint = (over, colour) => {
-          const canvas = doc.createElement('canvas')
-          canvas.width = canvas.height = 1
-          const ctx = canvas.getContext('2d')
-          ctx.fillStyle = over
-          ctx.fillRect(0, 0, 1, 1)
-          if (colour) {
-            ctx.fillStyle = colour
-            ctx.fillRect(0, 0, 1, 1)
-          }
-          return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-        }
-        const luminance = ([r, g, b]) => {
-          const channel = (v) => {
-            v /= 255
-            return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-          }
-          return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-        }
-        const ratio = (a, b) => {
-          const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-          return (high + 0.05) / (low + 0.05)
-        }
-        // An empty cell paints no background: the ground is the nearest opaque ancestor.
-        const ground = (el) => {
-          for (let node = el; node; node = node.parentElement) {
-            const bg = getComputedStyle(node).backgroundColor
-            if (bg !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(bg)) return bg
-          }
-          return getComputedStyle(doc.body).backgroundColor
-        }
-
-        const cell = doc.querySelector('time.year-day:not([tabindex])')
-        const over = ground(cell)
-        ;[['empty day number', cell], ['weekday initial', doc.querySelector('.year-weekday')]]
-          .forEach(([what, text]) => {
-            const colour = getComputedStyle(text).color
-            expect(ratio(paint(over, colour), paint(over)), `${theme}: the ${what}`)
-              .to.be.at.least(4.5)
+        ;[['empty day number', 'time.year-day:not([tabindex])'], ['weekday initial', '.year-weekday']]
+          .forEach(([what, selector]) => {
+            expect(paintedContrast(doc.querySelector(selector)), `${theme}: the ${what}`).to.be.at.least(4.5)
           })
       })
     })

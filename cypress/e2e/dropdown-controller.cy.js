@@ -1,6 +1,6 @@
 import { THEMES } from '../support/themes'
 import { paintedLuminance } from '../support/painted_contrast'
-import { pointAt, pointAway } from '../support/tap'
+import { hover, unhover } from '../support/tap'
 
 // The point of the merge: the SAME controller drives the menu in both modes. In popover
 // mode the menu is moved into a tippy popper on `<body>`, so every "is this mine?" question
@@ -400,7 +400,7 @@ describe('DropdownController', () => {
   // theme swallows: panel and page measured 1.00:1. The border is what a reader sees end where
   // the menu ends.
   context('panel edge', () => {
-    afterEach(() => { pointAway() })
+    afterEach(() => { unhover() })
 
     const edgeContrast = (panel) => {
       const doc = panel.ownerDocument
@@ -432,7 +432,7 @@ describe('DropdownController', () => {
         cy.visit('/bali/dropdown/basic')
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
         cy.get(cssDropdown).first().find(trigger).click()
-        cy.get(cssDropdown).first().find(`${menu} .menu-item`).first().then(pointAt)
+        cy.get(cssDropdown).first().find(`${menu} .menu-item`).first().then(hover)
 
         cy.get(cssDropdown).first().find(menu).should(($menu) => {
           const doc = $menu[0].ownerDocument

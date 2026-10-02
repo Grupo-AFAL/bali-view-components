@@ -1,13 +1,13 @@
 import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
-import { pointAt, pointAway } from '../support/tap'
+import { hover, unhover } from '../support/tap'
 
 // Pieces that used to paint fixed colours and only broke under a dark theme: SlimSelect's
 // own stylesheet froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes),
 // BlockEditor's code block kept github-light's ink (1.00:1), and a comments sidebar portaled out
 // of the editor kept BlockNote's #3f3f3f (1.51–1.68:1).
 describe('colours that follow the theme', () => {
-  afterEach(() => { pointAway() })
+  afterEach(() => { unhover() })
 
   const AA = 4.5
   // github-light on base-200 measures 3.17–3.29:1 on the light themes, before and after this
@@ -51,7 +51,7 @@ describe('colours that follow the theme', () => {
       cy.visit('/bali/form/slim_select/default')
       useTheme(theme)
       cy.get('.ss-main').first().click()
-      cy.get('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)').eq(1).then(pointAt)
+      cy.get('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)').eq(1).then(hover)
 
       cy.get('.ss-content.ss-open').should(($list) => {
         const doc = $list[0].ownerDocument

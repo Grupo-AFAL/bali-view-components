@@ -1,12 +1,14 @@
-// Touch input through Chromium's own pipeline, sent over CDP. For a tap the browser
-// fires touchstart, touchend and then the compatibility mouseover, mousedown, focusin,
-// mouseup and click a phone fires — the same order Playwright's `isMobile` tap
+// Touch and mouse input through Chromium's own pipeline, sent over CDP. For a tap the
+// browser fires touchstart, touchend and then the compatibility mouseover, mousedown,
+// focusin, mouseup and click a phone fires — the same order Playwright's `isMobile` tap
 // measured. `.trigger('touchstart')` would fire only the event it names, so the spec
-// would be deciding the order instead of the browser. `pointAt` does the same for a mouse.
+// would be deciding the order instead of the browser.
 //
 // After a failed test's screenshot, a later `touchStart` in the run can wait forever
 // and surface as "promise never resolved": read the first failure, or rerun with
-// `CYPRESS_screenshotOnRunFailure=false`.
+// `CYPRESS_screenshotOnRunFailure=false`. A `mouseMoved` still resolves, but slowly:
+// measured after one, each took ~1 s instead of ~10 ms, and a theme's transitions
+// took 3.7–3.9 s of the 4 s retry to settle.
 const touch = (type, touchPoints) =>
   Cypress.automation('remote:debugger:protocol', {
     command: 'Input.dispatchTouchEvent',
@@ -47,19 +49,28 @@ export const drag = ($el, dy) => {
     .then(() => touch('touchEnd', []))
 }
 
-// A real mouse over the element, so `:hover` applies; `.trigger('mouseover')` fires the
-// event and leaves the pseudo-class off.
 const moveMouse = (point) =>
   Cypress.automation('remote:debugger:protocol', {
     command: 'Input.dispatchMouseEvent',
     params: { type: 'mouseMoved', ...point }
   })
 
-export const pointAt = ($el) => {
+// A mouse resting on the element, through the same pipeline, so the browser itself
+// matches `:hover`. `.trigger('mouseover')` dispatches the event and nothing else: no
+// rule a stylesheet scopes to `:hover` ever applies. A browser that reports
+// `(hover: none)` matches `:hover` all the same but applies no `hover:` utility, so a spec
+// measures the element at rest and passes wherever that colour already does (four of the
+// five themes did in CI); it fails here instead (cypress/plugins/index.cjs).
+export const hover = ($el) => {
+  if (!$el[0].ownerDocument.defaultView.matchMedia('(hover: hover)').matches) {
+    throw new Error('hover: the browser reports (hover: none), so no hover: utility applies')
+  }
+
   const [x, y] = centreOf($el)
 
   return moveMouse(inRunner(x, y))
 }
 
-// The pointer stays where a test left it, and so does its `:hover`: park it in an afterEach.
-export const pointAway = () => moveMouse({ x: 0, y: 0 })
+// The pointer stays where the last test left it, over whatever the next page draws
+// there. The runner's corner is outside the app.
+export const unhover = () => moveMouse({ x: 0, y: 0 })

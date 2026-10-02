@@ -82,6 +82,16 @@ class BaliThemesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_the_contrast_guards_walk_every_shipped_theme
+    js = File.read(Bali::Engine.root.join("cypress/support/themes.js"))
+    listed = js[/BALI_THEMES = \[([^\]]*)\]/, 1]
+
+    refute_nil(listed, "cypress/support/themes.js no longer declares BALI_THEMES = [...]")
+    assert_equal(theme_files.map { |file| File.basename(file, ".css") }.sort,
+                 listed.scan(/'([\w-]+)'/).flatten.sort,
+                 "BALI_THEMES in cypress/support/themes.js has to list every theme the gem ships")
+  end
+
   private
 
   # The L of an `oklch()` token, written either as a percentage or as a fraction.

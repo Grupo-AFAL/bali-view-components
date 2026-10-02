@@ -50,7 +50,7 @@ module Bali
         group = group_options(options, html)
 
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, group) do
-          slim_select_field(method, values, html: html, **options)
+          slim_select_field(method, values, html: labelled_by_caption(html, method, group), **options)
         end
       end
 
@@ -88,6 +88,26 @@ module Bali
       end
 
       private
+
+      # SlimSelect names the `div[role="combobox"]` it draws from the `<select>`'s
+      # `aria-label` or `aria-labelledby` alone, read once when it mounts. The caption's
+      # `<label for>` never reached it: every captioned group announced itself as
+      # "Combobox", SlimSelect's default (#1253; SimpleFilters hit the same in #1155).
+      def labelled_by_caption(html, method, group)
+        return html if aria_named?(html)
+
+        html.merge("aria-labelledby": caption_id(method, group))
+      end
+
+      # Every spelling Rails renders: `"aria-label":`, `"aria-label" =>`, `aria: { label: }`
+      # and `"aria" => { "label" => }`.
+      def aria_named?(html)
+        nested = html[:aria] || html["aria"]
+        names = html.keys.map(&:to_s)
+        names += nested.keys.map { |key| "aria-#{key}" } if nested.is_a?(Hash)
+
+        names.intersect?(%w[aria-label aria-labelledby])
+      end
 
       # `required` on this family is a constraint the user can never be told about, so it is
       # not emitted at all.

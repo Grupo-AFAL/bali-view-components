@@ -1,22 +1,18 @@
 /// <reference types="cypress" />
-// ***********************************************************
-// This example plugins/index.js can be used to load plugins
-//
-// You can change the location of this file or turn off loading
-// the plugins file with the 'pluginsFile' configuration option.
-//
-// You can read more here:
-// https://on.cypress.io/plugins-guide
-// ***********************************************************
 
-// This function is called when a project is opened or re-opened (e.g. due to
-// the project's config changing)
+// Tailwind 4 wraps every `hover:` utility in `@media (hover: hover)`, and headless Chrome on
+// a machine with no mouse reports `(hover: none)` (measured with Chrome for Testing 151):
+// `:hover` still matches, but no `hover:` style applies. These Blink settings make Chrome
+// report a fine pointer that hovers, like the laptops the apps are used on. Electron under
+// xvfb already reports the X server's pointer, so it needs nothing.
+const DESKTOP_POINTER =
+  '--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4'
 
-/**
- * @type {Cypress.PluginConfig}
- */
-// eslint-disable-next-line no-unused-vars
-module.exports = (on, config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
+/** @type {Cypress.PluginConfig} */
+module.exports = (on) => {
+  on('before:browser:launch', (browser, launchOptions) => {
+    if (browser.family === 'chromium' && browser.name !== 'electron') launchOptions.args.push(DESKTOP_POINTER)
+
+    return launchOptions
+  })
 }
