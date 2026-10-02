@@ -163,6 +163,14 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     end
   end
 
+  def test_leaves_the_multi_select_trigger_named_by_the_choices_it_shows
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: { attribute: "status", operator: "in" }, group_index: 0, condition_index: 0,
+      available_attributes: @available_attributes
+    ))
+    assert_selector('[data-multi-select-target="trigger"]:not([aria-label]):not([aria-labelledby])')
+  end
+
   # condition_controller.js rebuilds the value widget whenever the field changes, and names
   # it from here.
   def test_translations_carry_the_name_of_the_value_widget_built_in_js

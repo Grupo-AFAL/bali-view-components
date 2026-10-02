@@ -15,7 +15,7 @@ describe('Filter condition accessible names', () => {
   // The page under test is an iframe of the runner, so the condition is reached through the
   // frame's document, and only its own subtree is asked for: the page around it has
   // comboboxes and text boxes of its own.
-  const conditionControls = () =>
+  const conditionControls = (roles = ['combobox', 'textbox', 'spinbutton']) =>
     cy.url().then((url) =>
       cdp('Page.getFrameTree')
         .then(({ frameTree }) => cdp('DOM.getFrameOwner', { frameId: frameAt(frameTree, url).id }))
@@ -29,7 +29,7 @@ describe('Filter condition accessible names', () => {
         )
         .then(({ result }) =>
           Promise.all(
-            ['combobox', 'textbox', 'spinbutton'].map((role) =>
+            roles.map((role) =>
               cdp('Accessibility.queryAXTree', { objectId: result.objectId, role })
             )
           )
@@ -125,6 +125,12 @@ describe('Filter condition accessible names', () => {
     slimSelectMounted()
     conditionControls().should('deep.equal', [
       'combobox «Field»', 'combobox «Operator»', 'combobox «Value»'
+    ])
+
+    // The multi-select trigger keeps the name its text gives it, which lists what is chosen.
+    operator().select('in')
+    conditionControls(['button']).should('deep.equal', [
+      'button «Remove condition»', 'button «Select values...»'
     ])
   })
 })
