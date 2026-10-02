@@ -149,8 +149,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_selector(".drawer-panel.max-w-sm")
   end
 
-  # On <body>, not <main>: a trigger in a chrome slot, or in a `popover: true` menu that
-  # tippy moves to the end of <body>, has no other ancestor to find them on (#1268).
+  # Why <body> and not <main>: Component#body_controllers (#1268).
   def test_mounts_the_modal_and_drawer_controllers_on_body
     render_inline(Bali::AppLayout::Component.new(modal: true, drawer: true)) do |layout|
       layout.with_body { "Content" }
