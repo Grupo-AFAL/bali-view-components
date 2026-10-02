@@ -355,7 +355,7 @@ export class ModalController extends Controller {
   }
 
   trapFocus () {
-    if (!this.hasWrapperTarget) return
+    if (!this.hasTemplateTarget || !this.hasWrapperTarget) return
 
     // Idempotent: openModal runs once for the skeleton and again for the loaded
     // content, and the same listener must not stack up.
