@@ -156,15 +156,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Un color sobre su propio tinte, también en íconos, botones y referencias** (#1274): pasan a
-  `text-soft-<color>`, o a la misma mezcla escrita a mano donde no hay utilidad que la nombre, el
-  ícono de `StatCard` (salvo `neutral` y `ghost`, que ya pintaban `base-content`; también con
-  `custom_color:`); la línea `change:` de `DashboardPage#with_stat`, que lee la misma clase; el
-  rojo bajo el cursor de los botones de quitar condición y quitar filtro de `Filters`; el botón de
-  quitar archivo de `file_group(multiple: true)`, en reposo y bajo el cursor; y las referencias
-  `#` del BlockEditor, cuyo ícono y etiqueta de tipo pierden además su `opacity: 0.7`. Lo ve toda
-  app que use esos componentes: esos colores salen más oscuros en los temas claros y más claros
-  en los oscuros. Sin nada que hacer en el anfitrión.
+- **Un color sobre su propio tinte pasa a `text-soft-<color>` también en íconos, botones y
+  referencias** (#1274), o a la misma mezcla escrita a mano donde ninguna utilidad nombra el
+  color (para un hex, `Bali::Color.soft`):
+  - `StatCard`: el ícono, también con `custom_color:`. `neutral` y `ghost` ya pintaban
+    `base-content` y no cambian.
+  - `DashboardPage#with_stat`: la línea `change:`, que lee la misma clase que ese ícono.
+  - `Filters`: el rojo bajo el cursor de quitar condición y de quitar filtro.
+  - `file_group(multiple: true)`: el botón de quitar archivo, en reposo y bajo el cursor.
+  - BlockEditor: las referencias `#`; su ícono y su etiqueta de tipo pierden además el
+    `opacity: 0.7`.
+
+  Lo ve toda app que use esos componentes: esos colores salen más oscuros en los temas claros y
+  más claros en los oscuros. Nada que hacer en el anfitrión. Con `custom_color:` el tinte sigue
+  siendo el hex, pero el ícono ya no: en **costa-norte** deja de ser el color exacto de la
+  píldora de estatus, y el comentario de `shipment_status_hex` que lo afirma queda viejo.
 
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
