@@ -1,19 +1,19 @@
 import { paintedContrast } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
 
-// What WorkflowSteps and Timeline mute — the steps still to come, the date line,
-// a timeline's timestamp and its pending heading — is `base-content` at an alpha,
-// composited over the surface it lands on. Shipped at `/40`, `/50` and `/60`, it
-// measured 2.33–4.47:1 against AA's 4.5 (#1233, #1234), and no one theme showed
-// all of it: `light` passed the timeline's `/60` and `dark` the date's `/50`.
-// Hence all five themes, and the base-200 cards of the progress preview, where
-// only the labels are measured: a glyph there paints on its marker's `::before`
-// disc, which `paintedContrast` cannot see.
+// The text a component mutes is `base-content` at an alpha, composited over the
+// surface it lands on. Shipped at `/40`, `/50` and `/60`, it measured as low as
+// 2.33:1 against AA's 4.5 (#1233, #1234, #1248), and no one theme showed all of
+// it: `light` passed the timeline's `/60` and `dark` the date's `/50`. Hence every
+// theme, and the base-200 cards of the progress preview, where only the labels are
+// measured: a glyph there paints on its marker's `::before` disc, which
+// `paintedContrast` cannot see. StatCard's cells include an emphasised one, whose
+// primary tint took `/60` down to 3.83:1 on `afal`.
 //
 // Titles and glyphs are collected by their base-content grey: the current
 // step's `primary` pair is the theme's own, not measured against AA here (#1221).
-describe('muted text contrast in WorkflowSteps and Timeline', () => {
+describe('muted text contrast', () => {
   const AA = 4.5
-  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
   const GREY = '[class*="text-base-content/"]'
 
   // preview → [what, selector, how many the preview renders]
@@ -36,6 +36,22 @@ describe('muted text contrast in WorkflowSteps and Timeline', () => {
     'timeline/tracking': [
       ['timestamp', '.timeline-content-box > p.font-semibold + p', 3],
       ['pending heading', `.timeline-content-box > p.font-semibold${GREY}`, 2]
+    ],
+    'list/default': [
+      ['subtitle', `.list-row ${GREY}`, 3]
+    ],
+    'page_header/with_subtitle_as_param': [
+      ['subtitle', '.page-header-component .subtitle', 1]
+    ],
+    'form/file/default': [
+      ['file name', '[data-file-input-target="value"]', 1]
+    ],
+    'form/range/with_ticks': [
+      ['tick', `input.range ~ ${GREY} > span`, 11]
+    ],
+    'stat_card/cells_in_card': [
+      ['label', 'p:has(+ p.text-3xl)', 6],
+      ['note', 'p.text-3xl + p', 6]
     ]
   }
 
@@ -46,7 +62,7 @@ describe('muted text contrast in WorkflowSteps and Timeline', () => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         cy.get('body').should(($body) => {
-          expect($body[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+          expect($body[0].ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
 
           targets.forEach(([what, selector, count]) => {
             const elements = [...$body[0].querySelectorAll(selector)]
@@ -69,6 +85,45 @@ describe('muted text contrast in WorkflowSteps and Timeline', () => {
       $stamps.each((_, stamp) => {
         const size = el => parseFloat(el.ownerDocument.defaultView.getComputedStyle(el).fontSize)
         expect(size(stamp), `"${stamp.textContent.trim()}"`).to.be.at.most(size(stamp.previousElementSibling))
+      })
+    })
+  })
+})
+
+// The outline of a step still to come and the line into it, in the progress
+// shape. Neither is text, but that shape's whole answer is the line, so WCAG
+// 1.4.11 wants 3:1 against what they are drawn on. At `/50` they measured 2.96:1
+// over `afal`'s base-200, the ground of the preview's cards (#1249). An outline
+// is measured against the card, its outer side: the inner one is the marker's
+// `::before` disc, which `paintedContrast` cannot see, and on the bare page,
+// where the disc and the page are both base-100, the two sides are one colour.
+describe('muted outline and line contrast in WorkflowSteps :progress', () => {
+  const NON_TEXT = 3
+
+  // [what, selector, the property it is drawn in, how many the preview renders]
+  const TARGETS = [
+    ['outline', '.workflow-step-circle[class*="border-base-content/"]', 'borderTopColor', 10],
+    ['line', '.workflow-step-connector[class*="bg-base-content/"]', 'backgroundColor', 7]
+  ]
+
+  THEMES.forEach((theme) => {
+    it(`draws the grey outline and line at 3:1 on the ${theme} theme`, () => {
+      cy.visit('/bali/workflow_steps/progress')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.get('.workflow-steps-progress-rail').should(($shapes) => {
+        expect($shapes[0].ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
+
+        TARGETS.forEach(([what, selector, property, count]) => {
+          const elements = $shapes.find(selector).toArray()
+          expect(elements, `every grey ${what}`).to.have.length(count)
+          elements.forEach((el) => {
+            const over = property === 'backgroundColor' ? el.parentElement : el
+            const step = el.closest('.workflow-step').querySelector('.workflow-step-title').textContent.trim()
+            const ground = el.closest('.card') ? 'card' : 'page'
+            expect(paintedContrast(el, { over, property }), `${theme}: ${what} of "${step}" on the ${ground}`).to.be.at.least(NON_TEXT)
+          })
+        })
       })
     })
   })

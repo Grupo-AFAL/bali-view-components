@@ -237,7 +237,7 @@ renders a removable list and keeps the input's `FileList` in sync.
            data-action="file-input#onChange" data-file-input-target="input">
     <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
   </label>
-  <span class="text-sm text-base-content/60 truncate"
+  <span class="text-sm text-base-content/70 truncate"
         data-file-input-target="value">No file selected</span>
 </div>
 ```

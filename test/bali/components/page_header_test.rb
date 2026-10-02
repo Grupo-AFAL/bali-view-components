@@ -21,7 +21,7 @@ class BaliPageHeaderComponentTest < ComponentTestCase
   end
 
   def test_constants_defines_subtitle_classes
-    assert_includes(Bali::PageHeader::Component::SUBTITLE_CLASSES, "subtitle", "text-base-content/60")
+    assert_equal("subtitle text-sm text-base-content/70", Bali::PageHeader::Component::SUBTITLE_CLASSES)
   end
 
   def test_rendering_with_title_and_subtitle_as_params_renders

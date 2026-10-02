@@ -146,6 +146,6 @@ class BaliListComponentTest < ComponentTestCase
   end
 
   def test_item_constants_has_subtitle_classes_constant
-    assert_equal("text-sm text-base-content/60", Bali::List::Item::Component::SUBTITLE_CLASSES)
+    assert_equal("text-sm text-base-content/70", Bali::List::Item::Component::SUBTITLE_CLASSES)
   end
 end

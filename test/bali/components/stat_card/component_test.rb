@@ -383,7 +383,7 @@ class BaliStatCardComponentTest < ComponentTestCase
         **default_attrs.except(:icon), surface: :cell, note: "Creates value \u00b7 12.5% rate"
       )
     )
-    assert_selector("p.text-xs.text-base-content\\/60", text: "Creates value \u00b7 12.5% rate")
+    assert_selector("p.text-xs.text-base-content\\/70", text: "Creates value \u00b7 12.5% rate")
   end
 
   def test_note_also_works_on_the_card_surface

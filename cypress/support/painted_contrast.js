@@ -12,6 +12,10 @@
 // `over` is where the search for that background starts. Text starts at its own element; a shape
 // drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own
 // fill and measure 1:1 against itself, so it starts at the parent.
+//
+// `property` is the colour measured, `color` unless told otherwise. A shape that is not text is
+// drawn in another one: an outline in `borderTopColor`, a line in `backgroundColor` — and a line
+// is its own fill, so it starts at the parent too.
 
 const luminance = ([r, g, b]) => {
   const channel = (v) => {
@@ -21,7 +25,7 @@ const luminance = ([r, g, b]) => {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-export const paintedContrast = (el, { over = el } = {}) => {
+export const paintedContrast = (el, { over = el, property = 'color' } = {}) => {
   if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')
 
   const win = el.ownerDocument.defaultView
@@ -55,7 +59,7 @@ export const paintedContrast = (el, { over = el } = {}) => {
 
   let ground = paint(groundColour)
   tints.forEach((tint) => { ground = paint(tint) })
-  const text = paint(win.getComputedStyle(el).color, opacity)
-  const [high, low] = [luminance(text), luminance(ground)].sort((x, y) => y - x)
+  const ink = paint(win.getComputedStyle(el)[property], opacity)
+  const [high, low] = [luminance(ink), luminance(ground)].sort((x, y) => y - x)
   return (high + 0.05) / (low + 0.05)
 }

@@ -4,7 +4,8 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RangeFields
       RANGE_CLASS = "range"
-      TICKS_CLASS = "flex justify-between text-xs text-base-content/60 px-0.5 mt-1"
+      # `/70`, not `/60`: at 12px `/60` measured 4.04:1 on `afal`, under AA's 4.5:1.
+      TICKS_CLASS = "flex justify-between text-xs text-base-content/70 px-0.5 mt-1"
 
       # Read by the slider itself: `size` and `color` are daisyUI variants here,
       # and the tick options only ever feed the labels rendered under the input.

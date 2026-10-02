@@ -1440,8 +1440,8 @@ somewhere a reader would not guess.
 | `:error` | filled `error`, an ✗ instead of the number |
 | `:warning` | filled `warning`, a ⚠ instead of the number |
 | `:current` | `primary/10` fill, 2px `primary` border, its number, `primary` bold label |
-| `:skipped` | dashed `base-content/50` border, a dash, no fill |
-| `:pending` | thin `base-content/50` border, its number, no fill |
+| `:skipped` | dashed `base-content/55` border, a dash, no fill |
+| `:pending` | thin `base-content/55` border, its number, no fill |
 
 A settled verdict gives up its number because the position stops being the news
 once the flow is past it. **The numbering underneath does not change** —
@@ -1467,9 +1467,9 @@ is a progress line with an N/M bar over it.
 — a 2px line and a 1px outline nobody can see, in the shape whose whole answer
 is that line. So the greys here are `base-content`, measured on all five
 themes with `afal` as the floor of both: `/70` for the glyph and the 12px label
-(5.54:1 over `base-100`, AA's 4.5:1 for text) and `/50` for the outline and the
-line (3.05:1, the 3:1 a shape carrying meaning needs). Composited over the disc
-each marker paints, not over the token.
+(5.54:1 over `base-100`, AA's 4.5:1 for text) and `/55` for the outline and the
+line (3.38:1 over `base-200`, the 3:1 a shape carrying meaning needs; `/50` was
+2.96:1 there). Composited over the disc each marker paints, not over the token.
 
 **The shape assumes it sits on `base-100`.** The connector runs centre-to-centre
 *under* each marker, so an opaque disc is what keeps it out of the circle, and
@@ -3282,8 +3282,8 @@ the partial #1146 was opened to replace. Measured against it on `origin/main`:
 |---|---|---|
 | Box | `rounded-box border p-3.5 flex flex-col gap-1.5` — 14px padding, 6px between lines | `rounded-box border p-4` — 16px padding, 4px (`mt-1`) between lines |
 | Figure | `text-xl font-semibold` + `font-mono tabular-nums` **by default** — **20px / 600**, monospaced | `text-3xl font-bold` — **30px / 700**, proportional. `value_class: 'font-mono tabular-nums'` brings the mono back |
-| Label | `text-xs font-semibold` at `text-base-content/45` — 12px / **600** | `text-xs font-medium` at `text-base-content/60` — 12px / **500**. Not configurable |
-| Note | `text-xs text-pretty` at `/60` | `text-xs` at `/60`, plus `mt-1` |
+| Label | `text-xs font-semibold` at `text-base-content/45` — 12px / **600** | `text-xs font-medium` at `text-base-content/70` — 12px / **500**. Not configurable |
+| Note | `text-xs text-pretty` at `/60` | `text-xs` at `/70`, plus `mt-1` |
 | Highlight | `tone: :primary` → `bg-primary/10` + `border-primary/20`, **and label, figure and note all turn `text-primary`** | `emphasis: true, color: :primary` → `bg-primary/10` + `border-primary/30`. The tint is the box; **the text keeps its colour** |
 | Defaults | `tone: :neutral`, `mono: true` | `color: :primary` (only visible under `emphasis:`), no mono |
 | Long values | `truncate` + a `title` attribute on the figure | neither. `value_class: 'truncate'` gets the clipping; the tooltip has no keyword (`title:` is the label) |
