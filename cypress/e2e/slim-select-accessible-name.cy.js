@@ -89,9 +89,19 @@ describe('SlimSelect accessible name', () => {
       names('listbox').should('deep.equal', ['Rooms'])
     })
 
+    // A select with neither attribute leaves SlimSelect's `ariaLabel` default on the combobox.
+    // Picking a name from the <select>'s own attributes, the list would keep "Combobox listbox".
+    it('takes the default name of the combobox when the select has none', () => {
+      cy.visit('/bali/form/slim_select/default')
+      cy.get('.ss-main').should('exist')
+
+      names('combobox').should('deep.equal', ['Combobox'])
+      names('listbox').should('deep.equal', ['Combobox'])
+    })
+
     // Every SlimSelect from 2.x to 4.x names the combobox from aria-label when the select
-    // carries both; the name calculation prefers aria-labelledby. Copied off the <select>, the
-    // list would be "Rooms".
+    // carries both; the name calculation prefers aria-labelledby. Copying both attributes off
+    // the <select>, the list would be "Rooms".
     it('follows the combobox when the select carries both aria-label and aria-labelledby', () => {
       cy.intercept('GET', '**/slim_select/many_selected*', (req) =>
         req.continue((res) => {
