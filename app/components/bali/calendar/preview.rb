@@ -117,8 +117,8 @@ module Bali
 
       # The 12th holds two events (`has-multiple`) and a name long enough to wrap
       # in a hover card tippy caps at 350px. Keep both. `ghost` and `neutral` are in
-      # the cycle so both are drawn: base-surface-steps.cy.js measures the ghost
-      # 20 January against the neutral 20 February.
+      # the cycle so both are drawn: base-surface-steps.cy.js measures a ghost day
+      # against a neutral one.
       def year_sample_events(year)
         (1..12).flat_map do |month|
           first = Date.new(year, month, 1)
