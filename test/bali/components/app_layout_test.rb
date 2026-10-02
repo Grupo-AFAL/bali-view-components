@@ -162,6 +162,11 @@ class BaliAppLayoutComponentTest < ComponentTestCase
       layout.with_body { "Content" }
     end
     assert_selector("body[data-controller='app-layout drawer']")
+
+    render_inline(Bali::AppLayout::Component.new(modal: true, drawer: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body[data-controller='app-layout modal']")
   end
 
   def test_no_overlay_controllers_when_both_modal_and_drawer_disabled
