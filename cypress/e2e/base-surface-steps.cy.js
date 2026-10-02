@@ -27,6 +27,17 @@ describe('hovers, tints and edges over a base surface', () => {
     under: panel.ownerDocument.defaultView.getComputedStyle(panel).backgroundColor
   })
 
+  // The Command palette's backdrop is the panel's sibling, not its ancestor, so no search from
+  // the panel finds what paints outside its edge. Over that backdrop the ink at 15% paints
+  // 1.63:1 at worst (afal-dark), over the panel's own fill 1.33 (afal): the fill is the lower side.
+  const edgeOnOwnFill = (panel) => paintedContrast(panel, { property: 'borderTopColor' })
+
+  const openCommand = () => {
+    cy.visit('/bali/command/default')
+    cy.get('.bali-command-trigger').click()
+    cy.get('[data-command-target="panel"]').should('not.have.class', 'hidden')
+  }
+
   const openFilters = (query = '') => {
     cy.visit(`/bali/data_table/complete${query}`)
     cy.get('.filters button').contains('Filters').click()
@@ -96,7 +107,8 @@ describe('hovers, tints and edges over a base surface', () => {
     ['the Gantt zoom controls', openGantt, 'div:has(> button[title="Zoom in"])'],
     ['the Gantt minimap', openGantt, 'div[title^="Minimap"]'],
     ['the Gantt filter menu', openGanttMenu('Filter'), 'details[open] > ul.menu'],
-    ['the Gantt columns menu', openGanttMenu('Columns'), 'details[open] > ul.menu']
+    ['the Gantt columns menu', openGanttMenu('Columns'), 'details[open] > ul.menu'],
+    ['the Command palette', openCommand, '.cmd-panel', edgeOnOwnFill]
   ]
 
   beforeEach(() => cy.viewport(1280, 900))
@@ -109,20 +121,33 @@ describe('hovers, tints and edges over a base surface', () => {
   HOVERS.forEach(([what, reach, selector]) => {
     THEMES.forEach((theme) => {
       it(`lifts ${what} under the pointer off its surface on the ${theme} theme`, () => {
+        let atRest
         reach()
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-        cy.get(selector).first().then(hover)
 
         cy.get(selector).first({ timeout: 10000 }).should(($el) => {
           settled($el[0].ownerDocument)
+          expect($el[0].matches(':hover'), 'at rest').to.equal(false)
+          atRest = lift($el[0])
+        })
+        cy.get(selector).first().then(hover)
+
+        // A fill worn at rest too lifts the element off its surface without the pointer, so the
+        // step is also taken from the same element at rest. Two lifts off one surface divide into
+        // the contrast between the two fills when both sit on the same side of it, and into less
+        // when they do not: the safe side.
+        cy.get(selector).first({ timeout: 10000 }).should(($el) => {
+          settled($el[0].ownerDocument)
           expect($el[0].matches(':hover'), 'under the pointer').to.equal(true)
-          expect(lift($el[0]), `${theme}: ${what} against its surface`).to.be.at.least(STEP)
+          const lifted = lift($el[0])
+          expect(lifted, `${theme}: ${what} against its surface`).to.be.at.least(STEP)
+          expect(lifted / atRest, `${theme}: ${what} against itself at rest`).to.be.at.least(STEP)
         })
       })
     })
   })
 
-  EDGES.forEach(([what, reach, selector]) => {
+  EDGES.forEach(([what, reach, selector, measure = edge]) => {
     THEMES.forEach((theme) => {
       it(`draws the edge of ${what} off the surface under it on the ${theme} theme`, () => {
         reach()
@@ -132,7 +157,7 @@ describe('hovers, tints and edges over a base surface', () => {
           settled($panel[0].ownerDocument)
           const style = $panel[0].ownerDocument.defaultView.getComputedStyle($panel[0])
           expect(parseFloat(style.borderTopWidth), 'border width').to.be.at.least(1)
-          expect(edge($panel[0]), `${theme}: edge of ${what}`).to.be.above(EDGE)
+          expect(measure($panel[0]), `${theme}: edge of ${what}`).to.be.above(EDGE)
         })
       })
     })
@@ -146,10 +171,16 @@ describe('hovers, tints and edges over a base surface', () => {
   const offPage = (doc, a) => contrastRatio(onPage(doc, a), onPage(doc))
   const side = (doc, a) => Math.sign(onPage(doc, a) - onPage(doc))
 
-  // The preview's sample events cycle through `ghost` and `neutral`: 20 January is a ghost day,
-  // 20 February a neutral one.
-  const GHOST = 'a.year-day[aria-label="20 January 2026"]'
-  const NEUTRAL = 'a.year-day[aria-label="20 February 2026"]'
+  // The preview colours a day after its first event (`day_variant_lambda`) and lists the day's
+  // events in order as Tags in its hover card, so the card's first Tag names the day's variant.
+  const dayWith = (doc, variant) => {
+    const day = [...doc.querySelectorAll('.hover-card-component')]
+      .find(card => card.querySelector(':scope > template')?.content
+        .querySelector('.badge')?.classList.contains(`badge-${variant}`))
+      ?.querySelector('a.year-day')
+    expect(day, `a ${variant} day in the year preview`).to.not.equal(undefined)
+    return day
+  }
   const fill = (el) => el.ownerDocument.defaultView.getComputedStyle(el).backgroundColor
   const openYear = (theme) => {
     cy.viewport(1440, 1200)
@@ -161,10 +192,11 @@ describe('hovers, tints and edges over a base surface', () => {
     it(`tints a ghost day off an empty one on the ${theme} theme`, () => {
       openYear(theme)
 
-      cy.get(GHOST, { timeout: 10000 }).should(($day) => {
-        settled($day[0].ownerDocument)
-        expect($day[0].matches(':hover'), 'at rest').to.equal(false)
-        expect(lift($day[0]), `${theme}: ghost day against an empty one`).to.be.at.least(STEP)
+      cy.document({ timeout: 10000 }).should((doc) => {
+        const day = dayWith(doc, 'ghost')
+        settled(doc)
+        expect(day.matches(':hover'), 'at rest').to.equal(false)
+        expect(lift(day), `${theme}: ghost day against an empty one`).to.be.at.least(STEP)
       })
     })
 
@@ -172,29 +204,28 @@ describe('hovers, tints and edges over a base surface', () => {
       let atRest, neutralAtRest
       openYear(theme)
 
-      cy.get(GHOST, { timeout: 10000 }).should(($day) => {
-        const doc = $day[0].ownerDocument
+      cy.document({ timeout: 10000 }).should((doc) => {
+        const day = dayWith(doc, 'ghost')
         settled(doc)
-        expect($day[0].matches(':hover'), 'at rest').to.equal(false)
-        expect(doc.querySelector(NEUTRAL), 'a neutral day').to.not.equal(null)
-        atRest = fill($day[0])
-        neutralAtRest = fill(doc.querySelector(NEUTRAL))
+        expect(day.matches(':hover'), 'at rest').to.equal(false)
+        atRest = fill(day)
+        neutralAtRest = fill(dayWith(doc, 'neutral'))
       })
-      cy.get(GHOST).then(hover)
+      cy.document().then(doc => hover(Cypress.$(dayWith(doc, 'ghost'))))
 
       // Away from its rest is not enough: base-300 under the pointer is a step away from the ink
       // at 8% on the dark themes too, but across the page and nearer to it than the day at rest.
       // The number's AA is what kept the hover at 30%: at 40% it read 4.11:1 on `dark`.
-      cy.get(GHOST, { timeout: 10000 }).should(($day) => {
-        const doc = $day[0].ownerDocument
+      cy.document({ timeout: 10000 }).should((doc) => {
+        const day = dayWith(doc, 'ghost')
         settled(doc)
-        expect($day[0].matches(':hover'), 'under the pointer').to.equal(true)
-        const hovered = fill($day[0])
+        expect(day.matches(':hover'), 'under the pointer').to.equal(true)
+        const hovered = fill(day)
         expect(apart(doc, hovered, atRest), `${theme}: hovered ghost day against the same day at rest`).to.be.at.least(STEP)
         expect(side(doc, hovered), `${theme}: hovered ghost day on the side of the page the day at rest is`).to.equal(side(doc, atRest))
         expect(offPage(doc, hovered), `${theme}: hovered ghost day off the page, against the day at rest`).to.be.above(offPage(doc, atRest))
         expect(apart(doc, hovered, neutralAtRest), `${theme}: hovered ghost day against a neutral day at rest`).to.be.at.least(STEP)
-        expect(paintedContrast($day[0]), `${theme}: number on a hovered ghost day`).to.be.at.least(4.5)
+        expect(paintedContrast(day), `${theme}: number on a hovered ghost day`).to.be.at.least(4.5)
       })
     })
   })
