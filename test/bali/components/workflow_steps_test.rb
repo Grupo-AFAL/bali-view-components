@@ -1016,9 +1016,9 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
 
   # The half of the flow nobody has reached yet is the half that disappears:
   # every grey in it is held to a measured floor on all five themes (5.54:1 for
-  # the glyph and the 12px label, 3.05:1 for the outline and the line, both on
-  # `afal`), and the alphas below are what those floors cost over a `base-100`
-  # disc.
+  # the glyph and the 12px label; 3.17:1 for the outline and 3.38:1 for the line,
+  # in the `base-200` card on `afal`), and the alphas below are what those floors
+  # cost.
   def test_the_states_still_to_come_hold_their_measured_greys
     render_progress do |c|
       c.with_step(title: "A", state: :success)

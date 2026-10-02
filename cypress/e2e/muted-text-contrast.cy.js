@@ -6,8 +6,9 @@ import { THEMES } from '../support/themes'
 // 2.33:1 against AA's 4.5 (#1233, #1234, #1248), and no one theme showed all of
 // it: `light` passed the timeline's `/60` and `dark` the date's `/50`. Hence every
 // theme, and the base-200 cards of the progress preview, where only the labels are
-// measured: a glyph there paints on its marker's `::before` disc, which
-// `paintedContrast` cannot see. StatCard's cells include an emphasised one, whose
+// measured as text: a glyph there paints on its marker's `::before` disc, which this
+// guard does not hand to `paintedContrast` (the outline guard below does, as `under`).
+// StatCard's cells include an emphasised one, whose
 // primary tint took `/60` down to 3.83:1 on `afal`.
 //
 // Titles and glyphs are collected by their base-content grey: the current
