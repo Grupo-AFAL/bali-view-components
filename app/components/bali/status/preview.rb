@@ -46,12 +46,15 @@ module Bali
         )
       end
 
-      # Full named palette gallery. The twelve pairs are public API:
+      # Full named palette gallery: the twelve as pills, then as the rows of an
+      # editable pill's panel. The pairs are public API:
       # `Bali::Status.palette(:green)` returns the `{ bg:, fg: }` hex pair for
       # painting something that is not a pill (a Gantt bar) in the same colour.
       def palette
         render_with_template(locals: {
-          swatches: Bali::Status::Component::PALETTE.keys
+          options: Bali::Status::Component::PALETTE.keys.map do |name|
+            { value: name.to_s, label: name.to_s.titleize, color: name }
+          end
         })
       end
 

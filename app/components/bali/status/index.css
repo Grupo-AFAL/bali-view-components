@@ -110,7 +110,15 @@
   transition: filter 0.1s ease-in-out;
 }
 
-.status-option:hover { filter: brightness(0.95); }
+/* 5% black over a row's fill paints the fill `filter: brightness(0.95)` did and leaves the
+   text alone; the filter dimmed the text as well, and white on pink read 4.49:1. The
+   no-status row keeps the filter: it has no fill, and the black over the panel would take
+   its muted text on `light` from 4.66 to 4.48:1. */
+.status-option:not(.status-option--none):hover {
+  background-image: linear-gradient(rgb(0 0 0 / 5%), rgb(0 0 0 / 5%));
+}
+
+.status-option--none:hover { filter: brightness(0.95); }
 
 .status-option[aria-selected="true"] {
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-base-content) 30%, transparent);
