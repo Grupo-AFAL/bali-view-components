@@ -12,7 +12,7 @@
     <button type="button"
             data-action="click->command#open"
             aria-haspopup="dialog"
-            class="bali-command-trigger flex items-center gap-2 w-full bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/60 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content">
+            class="bali-command-trigger flex items-center gap-2 w-full bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/70 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content">
       <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
       <span class="flex-1 text-left"><%= trigger_label %></span>
       <% if shortcut_label.present? %>
@@ -58,7 +58,7 @@
                  data-action="input->command#filter keydown->command#nav"
                  type="text"
                  placeholder="<%= placeholder %>"
-                 class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base-content placeholder:text-base-content/40"
+                 class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base-content placeholder:text-base-content/70"
                  aria-label="<%= placeholder %>" />
           <kbd class="kbd kbd-xs"><%= t('.esc_key') %></kbd>
         </div>
@@ -72,18 +72,18 @@
           <div data-command-target="noResults" class="hidden text-center px-4 pt-8 pb-3">
             <div class="text-sm font-semibold text-base-content"><%= no_results_text %></div>
             <% if no_results_subtitle %>
-              <div class="text-xs text-base-content/60 mt-1"><%= no_results_subtitle %></div>
+              <div class="text-xs text-base-content/70 mt-1"><%= no_results_subtitle %></div>
             <% end %>
           </div>
         </div>
 
         <%# Footer %>
-        <div class="flex items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/60">
+        <div class="flex items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/70">
           <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> <%= t('bali_view.command.navigate') %></span>
           <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> <%= t('bali_view.command.open_action') %></span>
           <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs"><%= t('.esc_key') %></kbd> <%= t('bali_view.command.close') %></span>
           <span class="flex-1"></span>
-          <span class="font-mono text-[10.5px] text-base-content/60" data-command-target="count"></span>
+          <span class="font-mono text-[10.5px] text-base-content/70" data-command-target="count"></span>
         </div>
       </div>
     </div>
