@@ -354,9 +354,9 @@
 /* Entity reference chips - styled inline elements for #references.
  * Each chip sets --entity-ref-color inline via JS for per-type coloring.
  * Host apps define colors via references_config Ruby param.
- * The colour is `text-soft-*` written out, over any colour a host names: the colour itself
- * over its own tint measured 1.71:1 for accent on `light`, 1.79 for the default secondary on
- * `costa-norte` and 1.19 for neutral on `dark`. */
+ * The colour is `text-soft-*` (bali/utilities.css) written out, over any colour a host names:
+ * the colour itself over its own tint measured 1.71:1 for accent on `light`, 1.79 for the
+ * default secondary on `costa-norte` and 1.19 for neutral on `dark`. */
 .block-editor-component .bn-entity-reference {
   --entity-ref-color: var(--color-secondary);
   background-color: color-mix(in oklch, var(--entity-ref-color) 15%, transparent);
@@ -372,13 +372,12 @@
   gap: 0.2em;
 }
 
+/* No `opacity` on the icon or the type label: at 0.7 both read 2.97:1 over a warning chip on
+ * `afal` and 2.88 under the pointer (3:1 for the icon, AA 4.5 for the label). */
 .block-editor-component .bn-entity-reference-icon {
   font-size: 0.85em;
-  opacity: 0.7;
 }
 
-/* No `opacity` here: at 0.7 the type label read 2.97:1 over a warning chip on `afal`, 3.11 over
- * a success one (AA: 4.5). The icon keeps it, the label beside it saying the same in words. */
 .block-editor-component .bn-entity-reference-label {
   font-size: 0.9em;
 }

@@ -154,14 +154,15 @@ describe('a colour over a tint of itself', () => {
     })
   })
 
-  // The chip's name and its type label, at rest over a 15% tint and under the pointer over a 25%
-  // one, in every colour a host can name — the default `secondary` among them.
+  // The chip's name, its type label and its icon, at rest over a 15% tint and under the pointer
+  // over a 25% one, in every colour a host can name — the default `secondary` among them.
   THEMES.forEach((theme) => {
     it(`reads every entity reference at rest and under the pointer on the ${theme} theme`, () => {
       const expectReads = (chip) => {
         const what = `${theme}: ${chip.style.getPropertyValue('--entity-ref-color')}`
         expect(paintedContrast(chip), `${what} name`).to.be.at.least(AA)
         expect(paintedContrast(chip.querySelector('.bn-entity-reference-label')), `${what} type label`).to.be.at.least(AA)
+        expect(paintedContrast(chip.querySelector('.bn-entity-reference-icon')), `${what} icon`).to.be.at.least(GRAPHIC)
       }
 
       cy.visit('/bali/block_editor/entity_reference_colors')
