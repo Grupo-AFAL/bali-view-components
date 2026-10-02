@@ -82,6 +82,16 @@ module Bali
         render_with_template(locals: { model: form_record })
       end
 
+      # Skeleton Placeholder
+      # ---
+      # A named drawer (`shared: false`) holding a `Bali::Skeleton` until its content
+      # arrives, the way a remote trigger fills it. The skeleton animates only while the
+      # drawer is open, although a closed drawer stays rendered (#1273). Used by the
+      # Cypress suite.
+      def skeleton_placeholder
+        render_with_template
+      end
+
       # Left Position
       # ---
       # Drawer opens from the left side.
