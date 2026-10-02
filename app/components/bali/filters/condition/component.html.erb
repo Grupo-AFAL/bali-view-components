@@ -68,12 +68,14 @@
                 <%= t('bali_view.filters.select_values') %>
               </span>
             </div>
-            <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
+            <%# The panel and its options paint like condition_controller.js#buildMultiSelectInput,
+                which draws this widget when the operator changes: change both. %>
+            <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/15 rounded-lg w-full max-h-60 overflow-y-auto"
                  data-multi-select-target="dropdown">
               <% attribute_options.each do |opt| %>
                 <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
                 <% checked = Array(value).map(&:to_s).include?(opt_value.to_s) %>
-                <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
+                <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-content/8 cursor-pointer">
                   <input type="checkbox"
                          class="checkbox checkbox-sm checkbox-primary"
                          name="<%= field_name %>[]"
