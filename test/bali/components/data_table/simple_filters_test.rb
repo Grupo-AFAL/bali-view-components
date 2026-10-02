@@ -927,8 +927,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("select[aria-label='All owners']", visible: :all)
   end
 
-  # The datepicker copies the `label[for]` onto the altInput, and failing that the `aria-label`
-  # (datepicker-controller.js#forwardAccessibleName). With no caption there was neither.
+  # The datepicker points the field flatpickr shows at the `label[for]`, and failing that copies
+  # the `aria-label` onto it (datepicker-controller.js#forwardAccessibleName). With no caption
+  # there was neither.
   def test_an_uncaptioned_date_filter_carries_an_aria_label
     render_filter(attribute: :signed_on, type: :date, label: false, aria_label: "Fecha de firma")
 
