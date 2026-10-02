@@ -202,8 +202,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   campo y el operador salían sin nombre, y el valor como «Combobox» (SlimSelect), sin nombre
   (booleano) o como «0» (número). Ahora se llaman «Campo», «Operador» y «Valor» («Field»,
   «Operator», «Value» en inglés), también cuando el valor se rehace al cambiar de campo; el
-  texto y las fechas, que se nombraban con su placeholder, pasan también a «Valor». Lo notan
-  las apps con `with_filters_panel` (afal-apps, gobierno-corporativo e identity:
+  texto y las fechas, que se nombraban con su placeholder, pasan también a «Valor». La
+  excepción es el multi-select de «es cualquiera de» / «no es ninguno de»: sigue nombrándose
+  por lo que muestra («Action, Adventure», «3 seleccionados»). Lo notan las apps con
+  `with_filters_panel` (afal-apps, gobierno-corporativo e identity:
   `git grep -l -E 'with_filters_panel|Bali::Filters::Component' origin/main -- app`). Sin nada
   que hacer en el anfitrión.
 
