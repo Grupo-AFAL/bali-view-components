@@ -95,17 +95,19 @@ describe('modal history', () => {
   // destination's <body>, attributes included. Here the destination is the login page an
   // expired session is sent to: no shared modal, so none of the origin's overlay controllers
   // may stay on — a page-level `modal` left there throws as its panel goes.
-  it('swaps to a page with no shared modal without an uncaught error', () => {
+  it('leaves none of the origin overlay controllers on a swapped-in page with no shared modal', () => {
     const errors = []
     cy.on('uncaught:exception', (err) => {
       errors.push(err.message)
       return false
     })
+    cy.window().then((win) => { win.__cySurvivesSwap = true })
 
     cy.get('#expired-session-trigger').click()
 
     cy.location('pathname').should('eq', '/login')
     cy.get('form[action="/login"]').should('exist')
+    cy.window().should('have.prop', '__cySurvivesSwap', true)
     cy.get('body').should('have.attr', 'data-controller', 'app-layout')
     cy.then(() => expect(errors, 'uncaught errors').to.deep.equal([]))
   })
@@ -114,8 +116,10 @@ describe('modal history', () => {
   // the destination's `#main-drawer` with nothing to open it, and its trigger navigated.
   it('connects the overlay controllers of the page it swaps in', () => {
     cy.visit(`${appOrigin}/modal_redirect/bare`)
+    cy.window().then((win) => { win.__cySurvivesSwap = true })
     cy.get('#bare-redirecting-trigger').click()
     cy.get('#modal-redirect-landing').should('exist')
+    cy.window().should('have.prop', '__cySurvivesSwap', true)
 
     cy.get('#landing-drawer-trigger').click()
 
