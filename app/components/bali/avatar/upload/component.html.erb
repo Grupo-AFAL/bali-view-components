@@ -4,8 +4,7 @@
   <% end %>
 
   <%= tag.div class: button_classes do %>
-    <%= tag.label class: 'cursor-pointer flex items-center justify-center w-full h-full',
-                  aria: { label: t('.upload_image') } do %>
+    <%= tag.label class: label_classes, aria: { label: t('.upload_image') } do %>
       <%= render Bali::Icon::Component.new('camera', size: :sm) %>
       <div class="hidden">
         <%= @form.file_field @method,
