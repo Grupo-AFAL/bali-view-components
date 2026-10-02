@@ -116,12 +116,13 @@ module Bali
       end
 
       # The 12th holds two events (`has-multiple`) and a name long enough to wrap
-      # in a hover card tippy caps at 350px. Keep both. `ghost` is in the cycle so a
-      # ghost day is drawn: base-surface-steps.cy.js measures 20 January.
+      # in a hover card tippy caps at 350px. Keep both. `ghost` and `neutral` are in
+      # the cycle so both are drawn: base-surface-steps.cy.js measures the ghost
+      # 20 January against the neutral 20 February.
       def year_sample_events(year)
         (1..12).flat_map do |month|
           first = Date.new(year, month, 1)
-          statuses = %i[success warning error info ghost].rotate(month)
+          statuses = %i[success warning error info ghost neutral].rotate(month)
 
           [
             build_event(first + 4, "Item #{month}-A", statuses[0]),
