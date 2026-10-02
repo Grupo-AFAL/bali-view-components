@@ -141,6 +141,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (5.27–8.26:1) y se distingue por peso, como el contador de grupo. Sin nada que hacer en el
   anfitrión.
 
+- **En `RecurrentEventRuleForm`, un día marcado bajo el cursor quedaba bajo AA, y el foco de
+  teclado no se veía en ningún día** (#1246): `bg-primary/80` dejaba ver la página bajo el texto
+  (afal 5.25 → 3.76:1, light 4.33, afal-dark 4.09). Ahora un día marcado conserva su relleno
+  bajo el cursor y lo señala un anillo `primary`, y el día con el foco de teclado lleva uno
+  `base-content`. En `dark` de daisyUI el día marcado pinta 4.13:1 en reposo —el de su
+  `.btn-primary`— y ahora también bajo el cursor (antes 5.33). Ninguna app lo usa hoy:
+  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las ocho.
+
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
   (`?q[]=x`) dejaba un `String` o un `Array` donde la pastilla escribe `q[...]`, y la escritura
