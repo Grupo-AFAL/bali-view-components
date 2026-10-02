@@ -247,11 +247,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las ocho.
 
 - **En `RecurrentEventRuleForm`, un día deshabilitado ya no reacciona al cursor** (#1272): con
-  `disabled: true`, o dentro de un `<fieldset disabled>`, los días crecían, se teñían y, los
-  marcados, mostraban el anillo de #1246, como si se pudieran elegir. Ahora no toman el puntero y
-  conservan el cursor `not-allowed`; habilitados no cambian. El preview `disabled` pasa a una
-  regla semanal para que se vean los días. Ninguna app lo usa:
-  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las nueve.
+  `disabled: true`, o dentro de un `<fieldset disabled>`, los días crecían y se teñían bajo el
+  cursor, como si se pudieran elegir. Ahora no toman el puntero y conservan el cursor
+  `not-allowed`. Sin nada que hacer en el anfitrión; ninguna app lo usa:
+  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las diez.
 
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
