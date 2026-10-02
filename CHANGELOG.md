@@ -185,12 +185,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
   esos que ponga el anfitrión entra ahora en el recorrido con teclado.
 
-- **Un `Bali::Dropdown` con `popover: true` dentro de un `Modal` o un `Drawer` abierto ya se
-  puede usar** (#1269): el menú colgaba de `<body>`, que el `<dialog>` deja inerte, y se abría
-  debajo del panel, fuera del alcance del puntero y del teclado. Ahora cuelga del `<dialog>`
-  modal, como el tooltip y el hover card; fuera de uno sigue en `<body>`. Ningún anfitrión lo
-  tiene hoy dentro de un panel: los de **afal-apps** están en páginas
-  (`git grep -n "popover: true" origin/main -- app/views`). Sin nada que hacer en el anfitrión.
+- **Un `Bali::Dropdown` con `popover: true` dentro de un `<dialog>` abierto con `showModal()`
+  (un `Modal`, un `Drawer` o uno propio) ya se puede usar** (#1269): el menú colgaba de
+  `<body>`, que el `<dialog>` deja inerte, y se abría debajo de él, fuera del alcance del
+  puntero y del teclado. Ahora cuelga del `<dialog>` modal, como el tooltip y el hover card;
+  fuera de uno sigue en `<body>`. Ningún anfitrión lo tiene hoy dentro de un diálogo: los de
+  **afal-apps** están en páginas (`git grep -n "popover: true" origin/main -- app/views`). Sin
+  nada que hacer en el anfitrión.
 
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
   SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
