@@ -68,8 +68,8 @@ module Bali
         # Their greys are measured, not picked, on every theme, and `afal` is
         # the floor of both: `base-content` clears AA's 4.5:1 for the glyph at
         # `/70` (5.54:1; `/60` is 4.04:1) and 3:1 for the outline at `/55`
-        # (3.38:1 on a `base-200` card, where `/50` was 2.96:1). `base-300`,
-        # which the rail uses for both, tops out at 1.16:1.
+        # (3.17:1 on its disc inside a `base-200` card, where `/50` painted
+        # 2.77:1). `base-300`, which the rail uses for both, tops out at 1.16:1.
         PROGRESS_CIRCLE_CLASSES = {
           success: "bg-primary text-primary-content",
           error: "bg-error text-error-content",

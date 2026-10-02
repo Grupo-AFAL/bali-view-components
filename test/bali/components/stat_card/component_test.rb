@@ -467,7 +467,8 @@ class BaliStatCardComponentTest < ComponentTestCase
   def test_the_cells_internal_constants_are_private
     public_constants = Bali::StatCard::Component.constants
 
-    %i[SURFACES CELL_CLASSES CELL_SURFACE_CLASSES VALUE_CLASSES NOTE_CLASSES CARD_KEYWORDS]
+    %i[SURFACES CELL_CLASSES CELL_SURFACE_CLASSES VALUE_CLASSES LABEL_CLASSES NOTE_CLASSES
+       CARD_KEYWORDS]
       .each do |name|
         assert_not_includes(public_constants, name, "#{name} is public API nobody asked for")
       end

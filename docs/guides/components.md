@@ -1468,8 +1468,11 @@ is a progress line with an N/M bar over it.
 is that line. So the greys here are `base-content`, measured on all five
 themes with `afal` as the floor of both: `/70` for the glyph and the 12px label
 (5.54:1 over `base-100`, AA's 4.5:1 for text) and `/55` for the outline and the
-line (3.38:1 over `base-200`, the 3:1 a shape carrying meaning needs; `/50` was
-2.96:1 there). Composited over the disc each marker paints, not over the token.
+line, for the 3:1 a shape carrying meaning needs. The outline is painted over
+the disc each marker paints and measured against that disc and against the
+surface around it: in a `base-200` card that does not hand its surface over
+(below) it is 3.17:1, where `/50` painted 2.77:1. The line, over that card,
+is 3.38:1.
 
 **The shape assumes it sits on `base-100`.** The connector runs centre-to-centre
 *under* each marker, so an opaque disc is what keeps it out of the circle, and

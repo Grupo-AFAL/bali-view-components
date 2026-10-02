@@ -3,9 +3,9 @@
 require "test_helper"
 
 # The fixture next to this file is the output of v3.4.0, captured before a line of
-# the cell surface was written. It pins bytes, not "the same DOM": the template
-# captures its body into a local, and the two ways of writing that differ only in
-# whitespace.
+# the cell surface was written — v3.4.0's bytes but for the label's `/70` (#1248).
+# It pins bytes, not "the same DOM": the template captures its body into a local,
+# and the two ways of writing that differ only in whitespace.
 #
 # If this fails, read the diff before touching the fixture. Regenerate it only when
 # the card surface is MEANT to change, and say so in the CHANGELOG.
@@ -30,7 +30,7 @@ class BaliStatCardDefaultSurfaceUnchangedTest < ComponentTestCase
     "deprecated_icon_name" => { title: "T", value: "1", icon_name: "users" }
   }.freeze
 
-  def test_the_card_surface_renders_the_v3_4_0_bytes
+  def test_the_card_surface_renders_the_pinned_bytes
     assert_equal(File.read(GOLDEN), render_every_case)
   end
 

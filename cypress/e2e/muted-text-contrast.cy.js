@@ -37,8 +37,9 @@ describe('muted text contrast', () => {
       ['timestamp', '.timeline-content-box > p.font-semibold + p', 3],
       ['pending heading', `.timeline-content-box > p.font-semibold${GREY}`, 2]
     ],
+    // The third subtitle wraps a `text-info` paragraph: its grey paints no glyph.
     'list/default': [
-      ['subtitle', `.list-row ${GREY}`, 3]
+      ['subtitle', `.list-row ${GREY}:not(:has([class*="text-"]))`, 2]
     ],
     'page_header/with_subtitle_as_param': [
       ['subtitle', '.page-header-component .subtitle', 1]
@@ -92,18 +93,21 @@ describe('muted text contrast', () => {
 
 // The outline of a step still to come and the line into it, in the progress
 // shape. Neither is text, but that shape's whole answer is the line, so WCAG
-// 1.4.11 wants 3:1 against what they are drawn on. At `/50` they measured 2.96:1
-// over `afal`'s base-200, the ground of the preview's cards (#1249). An outline
-// is measured against the card, its outer side: the inner one is the marker's
-// `::before` disc, which `paintedContrast` cannot see, and on the bare page,
-// where the disc and the page are both base-100, the two sides are one colour.
+// 1.4.11 wants 3:1 against what they are drawn on (#1249). The line runs over
+// the page or the card. The outline sits on its marker's `::before` disc, which
+// stays base-100 inside a base-200 card that does not hand its surface over, so
+// it is painted over the disc and measured against the disc and the card both:
+// at `/50` it painted 2.77:1 there on `afal`, and the line 2.96 over the card.
 describe('muted outline and line contrast in WorkflowSteps :progress', () => {
   const NON_TEXT = 3
+  const disc = el => el.ownerDocument.defaultView.getComputedStyle(el.parentElement, '::before').backgroundColor
 
-  // [what, selector, the property it is drawn in, how many the preview renders]
+  // [what, selector, how many the preview renders, how it is drawn]
   const TARGETS = [
-    ['outline', '.workflow-step-circle[class*="border-base-content/"]', 'borderTopColor', 10],
-    ['line', '.workflow-step-connector[class*="bg-base-content/"]', 'backgroundColor', 7]
+    ['outline', '.workflow-step-circle[class*="border-base-content/"]', 10,
+      el => ({ property: 'borderTopColor', under: disc(el) })],
+    ['line', '.workflow-step-connector[class*="bg-base-content/"]', 7,
+      el => ({ property: 'backgroundColor', over: el.parentElement })]
   ]
 
   THEMES.forEach((theme) => {
@@ -114,14 +118,13 @@ describe('muted outline and line contrast in WorkflowSteps :progress', () => {
       cy.get('.workflow-steps-progress-rail').should(($shapes) => {
         expect($shapes[0].ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
 
-        TARGETS.forEach(([what, selector, property, count]) => {
+        TARGETS.forEach(([what, selector, count, drawn]) => {
           const elements = $shapes.find(selector).toArray()
           expect(elements, `every grey ${what}`).to.have.length(count)
           elements.forEach((el) => {
-            const over = property === 'backgroundColor' ? el.parentElement : el
             const step = el.closest('.workflow-step').querySelector('.workflow-step-title').textContent.trim()
             const ground = el.closest('.card') ? 'card' : 'page'
-            expect(paintedContrast(el, { over, property }), `${theme}: ${what} of "${step}" on the ${ground}`).to.be.at.least(NON_TEXT)
+            expect(paintedContrast(el, drawn(el)), `${theme}: ${what} of "${step}" on the ${ground}`).to.be.at.least(NON_TEXT)
           })
         })
       })

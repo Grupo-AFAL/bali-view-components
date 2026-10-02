@@ -183,9 +183,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   archivo y rango, y la línea de `WorkflowSteps` `:progress` bajo 3:1** (#1248, #1249). El
   subtítulo de `List::Item` y de `PageHeader`, el nombre del archivo de `file_group`, las marcas de
   `range_group` y la etiqueta y la nota de `StatCard` iban en `/60`: 4.04:1 sobre `base-100` en
-  `afal`, y 3.77:1 sobre una celda con `emphasis:`. Pasan a `/70`, 5.01:1 o más en los cinco temas.
-  El contorno de los pasos por venir y la línea hacia ellos en `orientation: :progress` pasan de
-  `/50` (2.96:1 sobre `base-200` en `afal`) a `/55` (3.38:1). Sin nada que hacer en el anfitrión;
+  `afal`, y 3.77:1 sobre una celda con `emphasis:`, la peor de los nueve colores. Pasan a `/70`,
+  5.01:1 o más en los cinco temas. El contorno de los pasos por venir y la línea hacia ellos en
+  `orientation: :progress` pasan de `/50` a `/55`: en `afal`, dentro de una tarjeta `base-200`, el
+  contorno sobre su disco va de 2.77:1 a 3.17:1 y la línea de 2.96:1 a 3.38:1. Sin nada que hacer
+  en el anfitrión;
   **gobierno-corporativo** puede quitar el `class: 'text-base-content/70'` que le puso al subtítulo
   en `app/views/governing_bodies/documents/_controlled_forms.html.erb`, y su comentario.
 
