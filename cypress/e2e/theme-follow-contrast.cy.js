@@ -74,11 +74,7 @@ describe('colours that follow the theme', () => {
       useTheme(theme)
       everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2)
     })
-  })
 
-  // A comment is the faintest ink in both shiki themes, so the preview's snippet has to keep one
-  // for this to measure the worst case.
-  THEMES.forEach((theme) => {
     it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
       cy.visit('/bali/block_editor/readonly')
       cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
@@ -87,6 +83,8 @@ describe('colours that follow the theme', () => {
         const tokens = $tokens.toArray().filter(el => el.textContent.trim())
         expectSettled(tokens[0])
         expect(tokens, 'code tokens').to.have.length.at.least(5)
+        // A comment is the faintest ink in both shiki themes, so the preview's snippet has to keep
+        // one for this to measure the worst case.
         expect(tokens.some(el => el.textContent.trim().startsWith('//')), 'a comment token').to.equal(true)
         tokens.forEach((el) => {
           expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(AA)
