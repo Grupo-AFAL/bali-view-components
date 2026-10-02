@@ -82,7 +82,8 @@ module Bali
       # ---------------
       # Side-by-side comparison showing how popover mode escapes overflow containers.
       # The CSS dropdown (left) gets clipped by the container's `overflow-x-auto`.
-      # The popover (right) appends to `<body>` so it displays above everything.
+      # The popover (right) appends to `<body>`, or to the open modal `<dialog>`, so no
+      # ancestor's `overflow` clips it.
       def popover_vs_css
         render_with_template
       end

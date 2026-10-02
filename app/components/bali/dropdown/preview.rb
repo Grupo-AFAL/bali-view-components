@@ -49,7 +49,7 @@ module Bali
       # The same menu, moved into a popper on `<body>` so no ancestor's `overflow` can clip
       # it — the case a dropdown inside a scrollable table always hits. The keyboard is not
       # a second implementation: the menu element is MOVED rather than copied, so the same
-      # controller drives the same list from the top layer.
+      # controller drives the same list from `<body>`.
       def popover
         render_with_template
       end
