@@ -84,6 +84,12 @@
 @import "./bali/prose-invert.css";
 
 /* ==============================================
+   Utilities — without `layer()`: Tailwind refuses an `@utility` nested in one,
+   and puts what it emits in @layer utilities itself.
+   ============================================== */
+@import "./bali/utilities.css";
+
+/* ==============================================
    Component styles (mostly @layer components — see the file)
    ============================================== */
 @import "./bali/components.css";

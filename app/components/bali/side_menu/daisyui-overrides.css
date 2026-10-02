@@ -106,7 +106,7 @@
    preview it reads as a soft elevation under the pill, it costs no legibility, and
    nothing of Bali's lost a declaration to it. */
 .menu .menu-item[aria-current]:not([aria-current="false"], [aria-current=""]) {
-  @apply bg-primary/10 text-primary;
+  @apply bg-primary/10 text-soft-primary;
 }
 
 /* ── .tooltip ────────────────────────────────────────────────────────────

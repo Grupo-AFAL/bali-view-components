@@ -46,3 +46,22 @@ export const drag = ($el, dy) => {
     .then(() => touch('touchMove', [inRunner(x, y + dy)]))
     .then(() => touch('touchEnd', []))
 }
+
+const moveMouse = (point) =>
+  Cypress.automation('remote:debugger:protocol', {
+    command: 'Input.dispatchMouseEvent',
+    params: { type: 'mouseMoved', ...point }
+  })
+
+// A mouse resting on the element, through the same pipeline, so the browser itself
+// matches `:hover`. `.trigger('mouseover')` dispatches the event and nothing else: no
+// rule a stylesheet scopes to `:hover` ever applies.
+export const hover = ($el) => {
+  const [x, y] = centreOf($el)
+
+  return moveMouse(inRunner(x, y))
+}
+
+// The pointer stays where the last test left it, over whatever the next page draws
+// there. The runner's corner is outside the app.
+export const unhover = () => moveMouse({ x: 0, y: 0 })
