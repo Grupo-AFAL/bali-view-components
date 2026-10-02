@@ -68,8 +68,8 @@
                 <%= t('bali_view.filters.select_values') %>
               </span>
             </div>
-            <%# The options' classes, and the panel's past how it is placed and shown, match
-                condition_controller.js#buildMultiSelectInput: change both. %>
+            <%# The option classes, and the panel classes other than the ones that position and
+                show it, match condition_controller.js#buildMultiSelectInput: change both. %>
             <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/15 rounded-lg w-full max-h-60 overflow-y-auto"
                  data-multi-select-target="dropdown">
               <% attribute_options.each do |opt| %>
