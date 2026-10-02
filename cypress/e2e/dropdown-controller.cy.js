@@ -1,3 +1,5 @@
+import { THEMES } from '../support/themes'
+
 // The point of the merge: the SAME controller drives the menu in both modes. In popover
 // mode the menu is moved into a tippy popper on `<body>`, so every "is this mine?" question
 // the controller asks — `this.element.contains`, the nested-dropdown guard, the item list —
@@ -387,6 +389,46 @@ describe('DropdownController', () => {
 
             cy.get(`${dropdown} ${menu}`).should('be.visible').and(expectOnScreen)
           })
+        })
+      })
+    })
+  })
+
+  // The panel is base-100 like the page under it, so its only edge was the shadow, which a dark
+  // theme swallows: panel and page measured 1.00:1. The border is what a reader sees end where
+  // the menu ends.
+  context('panel edge', () => {
+    const edgeContrast = (panel) => {
+      const doc = panel.ownerDocument
+      const win = doc.defaultView
+      const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
+        .getContext('2d', { willReadFrequently: true })
+      const paint = (colour) => {
+        ctx.fillStyle = colour
+        ctx.fillRect(0, 0, 1, 1)
+        return [...ctx.getImageData(0, 0, 1, 1).data]
+      }
+      const luminance = ([r, g, b]) => [r, g, b]
+        .map(v => v / 255)
+        .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+        .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0)
+
+      const page = paint(win.getComputedStyle(doc.body).backgroundColor)
+      const edge = paint(win.getComputedStyle(panel).borderTopColor)
+      const [hi, lo] = [luminance(edge), luminance(page)].sort((a, b) => b - a)
+      return (hi + 0.05) / (lo + 0.05)
+    }
+
+    THEMES.forEach((theme) => {
+      it(`draws an edge the page does not swallow on the ${theme} theme`, () => {
+        cy.visit('/bali/dropdown/basic')
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+        cy.get(cssDropdown).first().find(trigger).click()
+
+        cy.get(cssDropdown).first().find(menu).should(($menu) => {
+          const style = $menu[0].ownerDocument.defaultView.getComputedStyle($menu[0])
+          expect(parseFloat(style.borderTopWidth), 'border width').to.be.at.least(1)
+          expect(edgeContrast($menu[0]), `${theme}: edge against the page`).to.be.above(1.2)
         })
       })
     })

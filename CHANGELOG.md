@@ -104,6 +104,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Los menús desplegables (`Bali::Dropdown`) llevan un borde fino**, `base-content` al 15 %. El
+  panel es `base-100` como la página, y en un tema oscuro la sombra no se ve: panel y página
+  medían 1.00:1. Cambia en todas las apps, también en claro, donde apenas se nota. Sin nada que
+  hacer en el anfitrión.
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
   son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
   `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
