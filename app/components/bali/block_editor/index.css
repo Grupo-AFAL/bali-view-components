@@ -339,7 +339,8 @@
 
 /* Mention chips - styled inline elements for @mentions.
  * The colour is `text-soft-primary` written out (bali/utilities.css), since this file
- * cannot @apply: primary over its own tint measured 2.92:1 on daisyUI's `dark`. */
+ * cannot @apply: primary over its own tint measured 2.92:1 on daisyUI's `dark`.
+ * test/bali/components/color_test.rb fails if it drifts from the utility. */
 .block-editor-component .bn-mention {
   background-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
   color: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-content));
@@ -355,8 +356,9 @@
  * Each chip sets --entity-ref-color inline via JS for per-type coloring.
  * Host apps define colors via references_config Ruby param.
  * The colour is `text-soft-*` (bali/utilities.css) written out, over any colour a host names:
- * the colour itself over its own tint measured 1.71:1 for accent on `light`, 1.79 for the
- * default secondary on `costa-norte` and 1.19 for neutral on `dark`. */
+ * the colour itself over its own tint measured 1.56:1 for warning on `afal`, 1.79 for the
+ * default secondary on `costa-norte` and 1.19 for neutral on `dark`.
+ * test/bali/components/color_test.rb fails if it drifts from the utility. */
 .block-editor-component .bn-entity-reference {
   --entity-ref-color: var(--color-secondary);
   background-color: color-mix(in oklch, var(--entity-ref-color) 15%, transparent);

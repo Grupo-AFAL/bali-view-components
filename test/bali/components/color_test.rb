@@ -107,14 +107,21 @@ class BaliColorTest < ComponentTestCase
     )
   end
 
-  # The utility's own declaration with the hex in place of `--value(--color-*)`, so a change to
-  # the mix in bali/utilities.css fails here as well as in the browser.
+  # The copies bali/utilities.css names are held to its declaration here and not only to the
+  # browser's thresholds, which a copy can drift inside: `soft` at 45% still passed every
+  # StatCard row of soft-text-contrast.cy.js.
   def test_soft_is_the_text_soft_utility_written_for_a_hex
-    utilities = Bali::Engine.root.join("app/assets/stylesheets/bali/utilities.css").read
-    declaration = utilities[/@utility text-soft-\* \{\s*color: ([^;]+);/, 1]
+    assert_equal(text_soft_mix("#f59e0b"), Bali::Color.soft("#f59e0b"))
+  end
 
-    refute_nil(declaration, "bali/utilities.css no longer declares text-soft-*")
-    assert_equal(declaration.sub("--value(--color-*)", "#f59e0b"), Bali::Color.soft("#f59e0b"))
+  def test_block_editor_chips_write_out_the_text_soft_utility
+    css = Bali::Engine.root.join("app/components/bali/block_editor/index.css").read
+    color_of = ->(rule) { css[/^#{Regexp.escape(rule)} \{[^}]*?^\s*color: ([^;]+);/, 1] }
+
+    assert_equal(text_soft_mix("var(--color-primary)"),
+                 color_of[".block-editor-component .bn-mention"])
+    assert_equal(text_soft_mix("var(--entity-ref-color)"),
+                 color_of[".block-editor-component .bn-entity-reference"])
   end
 
   def test_gradient_ramps_from_transparent_to_the_colour
@@ -141,5 +148,15 @@ class BaliColorTest < ComponentTestCase
     [ "fff", "#ff", "#fffff", "red", :red, nil ].each do |value|
       refute(Bali::Color.hex?(value), value.inspect)
     end
+  end
+
+  private
+
+  def text_soft_mix(color)
+    utilities = Bali::Engine.root.join("app/assets/stylesheets/bali/utilities.css").read
+    declaration = utilities[/@utility text-soft-\* \{\s*color: ([^;]+);/, 1]
+
+    refute_nil(declaration, "bali/utilities.css no longer declares text-soft-*")
+    declaration.sub("--value(--color-*)", color)
   end
 end
