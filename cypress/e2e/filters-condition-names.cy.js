@@ -47,18 +47,23 @@ describe('Filter condition accessible names', () => {
   const flatpickrMounted = () =>
     cy.get(`${container} [data-controller="datepicker"][type="hidden"]`).should('exist')
 
+  // multi_select_controller.js writes what is chosen into the trigger on connect and on
+  // every change.
+  const multiSelectShows = (text) =>
+    cy.get(`${container} [data-multi-select-target="label"]`).should('have.text', text)
+
   context('in the page language', () => {
-    beforeEach(() => {
-      // The dummy app lives above the Lookbook preview path `baseUrl` points at, and is
-      // the only place that serves Spanish.
-      cy.visit(
-        `${new URL(Cypress.config('baseUrl')).origin}/admin/movies?locale=es&q[g][0][genre_eq]=Drama`
-      )
+    // The dummy app lives above the Lookbook preview path `baseUrl` points at, and is the
+    // only place that serves Spanish.
+    const openMovieFilters = (query) => {
+      cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/admin/movies?locale=es&${query}`)
       cy.get('[data-action="click->filters#toggleDropdown"]').first().click()
-      slimSelectMounted()
-    })
+    }
 
     it('names the controls the server painted', () => {
+      openMovieFilters('q[g][0][genre_eq]=Drama')
+      slimSelectMounted()
+
       conditionControls().should('deep.equal', [
         'combobox «Campo»',
         'combobox «Operador»',
@@ -66,7 +71,19 @@ describe('Filter condition accessible names', () => {
       ])
     })
 
+    it('leaves the multi-select trigger it painted named by the choices it shows', () => {
+      openMovieFilters('q[g][0][genre_in][]=Action&q[g][0][genre_in][]=Adventure')
+      multiSelectShows('Action, Adventure')
+
+      conditionControls(['button']).should('deep.equal', [
+        'button «Action, Adventure»', 'button «Eliminar condición»'
+      ])
+    })
+
     it('names the value widget it rebuilds when the field changes', () => {
+      openMovieFilters('q[g][0][genre_eq]=Drama')
+      slimSelectMounted()
+
       attribute().select('status')
       slimSelectMounted()
 
@@ -131,6 +148,13 @@ describe('Filter condition accessible names', () => {
     operator().select('in')
     conditionControls(['button']).should('deep.equal', [
       'button «Remove condition»', 'button «Select values...»'
+    ])
+
+    cy.get(`${container} [data-multi-select-target="trigger"]`).click()
+    cy.get(`${container} input[type="checkbox"][value="pending"]`).check()
+    multiSelectShows('Pending')
+    conditionControls(['button']).should('deep.equal', [
+      'button «Pending»', 'button «Remove condition»'
     ])
   })
 })

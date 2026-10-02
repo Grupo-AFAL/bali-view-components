@@ -163,7 +163,10 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     end
   end
 
-  def test_leaves_the_multi_select_trigger_named_by_the_choices_it_shows
+  # Whatever is chosen, the server paints "Select values..." here: multi_select_controller.js
+  # writes the choices in on connect, so the name they give it is read in
+  # cypress/e2e/filters-condition-names.cy.js.
+  def test_leaves_the_multi_select_trigger_named_by_its_contents
     render_inline(Bali::Filters::Condition::Component.new(
       condition: { attribute: "status", operator: "in" }, group_index: 0, condition_index: 0,
       available_attributes: @available_attributes
