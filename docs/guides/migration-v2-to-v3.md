@@ -1186,7 +1186,7 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 | `ActionsDropdown` menu (CSS mode) | `actions_dropdown/component.rb` | `z-1` | `--bali-z-dropdown` |
 | `Navbar::DropdownItem` menu | `navbar/dropdown_item/component.rb` | `z-50` | `--bali-z-dropdown` |
 | `SideMenu` collapsed group / bottom group / item flyouts | 4 templates | `z-50` | `--bali-z-dropdown` |
-| `DataTable` saved views, column selector, export | 3 templates | `z-50` | `--bali-z-dropdown` |
+| `DataTable` saved views, column selector | through `Bali::Dropdown` (#1250) | `z-50` | `--bali-z-dropdown` |
 | `Filters` popover panel | `filters/component.html.erb` | `z-50` | `--bali-z-dropdown` |
 | `Filters::Condition` value menu | `filters/condition/component.html.erb` | `z-[100]` | `--bali-z-dropdown` |
 | `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `.filters-multi-select-content` → `--bali-z-dropdown` |
