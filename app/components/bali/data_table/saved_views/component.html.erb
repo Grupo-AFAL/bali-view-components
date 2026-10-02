@@ -22,7 +22,7 @@
 
     <div class="max-h-[70vh] overflow-y-auto">
       <% if default_views.any? %>
-        <div class="menu-title px-2 pt-1"><%= t('.suggested_title') %></div>
+        <div class="menu-title px-2 pt-1 text-base-content/70"><%= t('.suggested_title') %></div>
         <ul class="menu p-0 w-full">
           <% default_views.each do |view| %>
             <li class="w-full"><%= link_to view.name, view.url,
@@ -32,7 +32,7 @@
       <% end %>
 
       <% if views.any? %>
-        <div class="menu-title px-2 pt-1"><%= t('.mine_title') %></div>
+        <div class="menu-title px-2 pt-1 text-base-content/70"><%= t('.mine_title') %></div>
         <ul class="menu p-0 w-full">
           <% views.each do |view| %>
             <li class="flex-row items-center flex-nowrap w-full">

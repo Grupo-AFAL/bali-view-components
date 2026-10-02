@@ -156,7 +156,7 @@ describe('muted text contrast', () => {
     // The `·` between the footer's figures is decoration and keeps a colour of its own.
     'gantt/default': [
       ['monospaced figure', '.bali-gantt .font-mono', 53],
-      ['caps label', '.bali-gantt .uppercase:not(.menu-title)', 11],
+      ['caps label', '.bali-gantt .uppercase', 13],
       ['legend label', '.bali-gantt .font-sans', 5]
     ],
     '/dashboard_widgets/edit': [
@@ -295,6 +295,14 @@ describe('muted text contrast', () => {
       opened: 'a user menu open',
       open: () => cy.get('.bali-topbar-user-menu [data-dropdown-target="trigger"]').first().click(),
       targets: [['email', '.bali-topbar-user-menu:has([aria-expanded="true"]) .bali-topbar-user-menu-header > span + span', 1]]
+    },
+    // The section titles of the page's three menus: the ⋯ (a Dropdown title), the column
+    // selector and the saved views. A click opens one at a time; `open()` is these two classes.
+    {
+      page: 'index_page/complete',
+      opened: 'every menu open',
+      open: () => cy.get('.dropdown:has(.menu-title)').invoke('removeClass', 'dropdown-close').invoke('addClass', 'dropdown-open'),
+      targets: [['menu section title', '.menu-title', 4]]
     },
     // What the refresh controller does after two failed refreshes: the stamp stops being sr-only.
     {

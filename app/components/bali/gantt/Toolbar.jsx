@@ -156,7 +156,7 @@ export default memo(function Toolbar ({
           </svg>
         </summary>
         <ul className='menu absolute left-0 top-full z-50 mt-1 w-48 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg'>
-          <li className='menu-title px-2 py-1 text-[10px] uppercase tracking-wide'>{t('filter_by_status')}</li>
+          <li className='menu-title px-2 py-1 text-[10px] uppercase tracking-wide text-base-content/70'>{t('filter_by_status')}</li>
           {filterOptions.map(([key, label]) => {
             const active = (filterStatus || 'all') === key
             const dot = key === 'all' ? null : statusColor(key, catalogs).solid
@@ -197,7 +197,7 @@ export default memo(function Toolbar ({
           </svg>
         </summary>
         <ul className='menu absolute left-0 top-full z-50 mt-1 w-44 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg'>
-          <li className='menu-title px-2 py-1 text-[10px] uppercase tracking-wide'>{t('show_columns')}</li>
+          <li className='menu-title px-2 py-1 text-[10px] uppercase tracking-wide text-base-content/70'>{t('show_columns')}</li>
           {COLUMN_DEFS.map(([key, i18nKey]) => {
             const on = cols[key] !== false
             return (
