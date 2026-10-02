@@ -156,10 +156,11 @@ module Bali
       # own step.
       #
       # **The greys of the half nobody has reached are measured**, not picked,
-      # over `base-100` on all five themes: `/70` on the glyph and the 12px
-      # label for AA's 4.5:1 (5.54:1 on `afal`, the lowest) and `/50` on the
-      # outline and the line for 3:1 (3.05:1, `afal` again). The rail's
-      # `base-300` is 1.16:1 here and was the first thing to go.
+      # on every theme: `/70` on the glyph and the 12px label for AA's 4.5:1
+      # (5.54:1 over `base-100` on `afal`, the lowest) and `/55` on the outline
+      # and the line for 3:1 (`afal` again: 3.17:1 for an outline on its disc
+      # in the first `base-200` card below, 3.38:1 for the line over it). The
+      # rail's `base-300` is 1.16:1 here and was the first thing to go.
       #
       # **The marker carries the verdict, the line never does.** `:success`,
       # `:error` and `:warning` fill and swap the number for a glyph;

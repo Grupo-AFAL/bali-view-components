@@ -395,7 +395,7 @@ class BaliWorkflowStepsStepComponentTest < ComponentTestCase
     step.marker = :progress
     render_inline(step)
 
-    assert_selector(".workflow-step-circle.border-base-content\\/50", text: "1")
+    assert_selector(".workflow-step-circle.border-base-content\\/55", text: "1")
   end
 end
 
@@ -891,7 +891,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
     end
 
     assert_selector(".workflow-step-circle.border-2.border-primary", text: "1")
-    assert_selector(".workflow-step-circle.border-base-content\\/50", text: "2")
+    assert_selector(".workflow-step-circle.border-base-content\\/55", text: "2")
     assert_no_selector(".workflow-step-circle svg")
   end
 
@@ -930,7 +930,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
       c.with_step(title: "B", state: :pending)
     end
 
-    assert_selector("li:nth-child(1) .workflow-step-connector.bg-base-content\\/50")
+    assert_selector("li:nth-child(1) .workflow-step-connector.bg-base-content\\/55")
     assert_no_selector(".workflow-step-connector.bg-primary")
   end
 
@@ -942,7 +942,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
         .each_with_index { |state, i| c.with_step(title: "Step #{i + 1}", state: state) }
     end
 
-    assert_equal((%w[primary] * 5) + ([ "base-content/50" ] * 3), connector_colors)
+    assert_equal((%w[primary] * 5) + ([ "base-content/55" ] * 3), connector_colors)
   end
 
   # The three chains where "ends at the first `:pending` step" and "ends at the
@@ -955,7 +955,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
       end
     end
 
-    assert_equal([ "primary", "primary", "base-content/50" ], connector_colors)
+    assert_equal([ "primary", "primary", "base-content/55" ], connector_colors)
   end
 
   def test_a_chain_that_was_skipped_end_to_end_draws_a_full_primary_line
@@ -973,7 +973,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
       c.with_step(title: "C", state: :pending)
     end
 
-    assert_equal([ "primary", "base-content/50" ], connector_colors)
+    assert_equal([ "primary", "base-content/55" ], connector_colors)
   end
 
   def test_no_state_colours_the_line_the_way_the_rail_does
@@ -1016,9 +1016,9 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
 
   # The half of the flow nobody has reached yet is the half that disappears:
   # every grey in it is held to a measured floor on all five themes (5.54:1 for
-  # the glyph and the 12px label, 3.05:1 for the outline and the line, both on
-  # `afal`), and the alphas below are what those floors cost over a `base-100`
-  # disc.
+  # the glyph and the 12px label; 3.17:1 for the outline and 3.38:1 for the line,
+  # in the `base-200` card on `afal`), and the alphas below are what those floors
+  # cost.
   def test_the_states_still_to_come_hold_their_measured_greys
     render_progress do |c|
       c.with_step(title: "A", state: :success)
@@ -1028,7 +1028,7 @@ class BaliWorkflowStepsProgressTest < ComponentTestCase
 
     assert_selector(".workflow-step-circle.text-base-content\\/70", count: 2)
     assert_selector(".workflow-step-title.text-base-content\\/70", count: 2)
-    assert_selector(".workflow-step-circle.border-base-content\\/50", count: 2)
+    assert_selector(".workflow-step-circle.border-base-content\\/55", count: 2)
     assert_no_selector('[class*="base-300"]')
   end
 
