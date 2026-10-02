@@ -143,10 +143,14 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
   VALUE_WIDGETS = {
     { attribute: "name", operator: "cont" } => 'input[type="text"][data-condition-target="value"]',
     { attribute: "age", operator: "eq" } => 'input[type="number"][data-condition-target="value"]',
-    { attribute: "created_at", operator: "eq" } => 'input[data-controller="datepicker"][data-condition-target="value"]',
-    { attribute: "created_at", operator: "between" } => 'input[data-controller="datepicker"][data-condition-target="rangeInput"]',
-    { attribute: "logged_in_at", operator: "eq" } => 'input[data-controller="datepicker"][data-condition-target="value"]',
-    { attribute: "logged_in_at", operator: "between" } => 'input[data-controller="datepicker"][data-condition-target="rangeInput"]',
+    { attribute: "created_at", operator: "eq" } =>
+      'input[data-controller="datepicker"][data-condition-target="value"]:not([data-datepicker-enable-time-value])',
+    { attribute: "created_at", operator: "between" } =>
+      'input[data-controller="datepicker"][data-condition-target="rangeInput"]:not([data-datepicker-enable-time-value])',
+    { attribute: "logged_in_at", operator: "eq" } =>
+      'input[data-controller="datepicker"][data-condition-target="value"][data-datepicker-enable-time-value="true"]',
+    { attribute: "logged_in_at", operator: "between" } =>
+      'input[data-controller="datepicker"][data-condition-target="rangeInput"][data-datepicker-enable-time-value="true"]',
     { attribute: "verified", operator: "eq" } => 'select[data-condition-target="value"]',
     { attribute: "status", operator: "eq" } => 'select[data-slim-select-target="select"]'
   }.freeze
