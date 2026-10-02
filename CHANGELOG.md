@@ -181,16 +181,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
   recargar. Sin nada que hacer en el anfitrión.
 
-- **Los hovers, los tintes y los bordes de panel que pintaban `base-200` o `base-300` se ven en
-  claro y en oscuro** (#1276): el hover y el tinte pasan al texto al 8 % y el borde de un panel
-  al 15 %, los valores del menú desde #1255. El hover de una opción de Filters, por ejemplo, va
-  de 1.05:1 a 1.20:1 en `afal-dark`; en los temas claros también se marcan un poco más (un
-  borde de panel que era `base-300`, de 1.24 a 1.33:1 en `afal`). Cambian TreeView, Filters
-  (opciones «es alguno de» y bordes de panel), Timeline con `href:`, Clipboard, DirectUpload,
+- **Más hovers, tintes y bordes de panel que pintaban `base-200` o `base-300` se ven en claro y
+  en oscuro** (#1276): el hover y el tinte pasan al texto al 8 % y el borde de un panel al 15 %,
+  los valores del menú desde #1255. El hover de una opción de Filters, por ejemplo, va de 1.05:1
+  a 1.20:1 en `afal-dark`; en los temas claros también se marcan un poco más (un borde de panel
+  que era `base-300`, de 1.24 a 1.33:1 en `afal`). Cambian TreeView, Filters (opciones «es
+  alguno de» y bordes de panel), Timeline con `href:`, Clipboard, DirectUpload,
   RecurrentEventRuleForm, la fila de SplitView, el Gantt (zoom, plegar fila, minimapa y menús),
   el panel de la paleta de Command y el día `:ghost` de `Calendar::YearGrid`; el disparador de
   Command, la píldora de filtro de SplitView y el botón de `Avatar::Upload`, con relleno
-  `base-200` en reposo, conservan su hover `base-300`. Sin nada que hacer en el anfitrión.
+  `base-200` en reposo, conservan su hover `base-300`, y el hover de un día del Datepicker y el
+  tinte del grupo de Filters quedan para otro cambio. Sin nada que hacer en el anfitrión.
 
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
