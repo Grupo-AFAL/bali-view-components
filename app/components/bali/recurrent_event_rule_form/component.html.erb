@@ -203,6 +203,10 @@
                 disabled: disabled,
                 class: 'peer sr-only',
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+            <%# `peer-checked:hover:bg-primary` is not redundant: without it `hover:bg-base-content/20`,
+                emitted later at the same specificity, repaints a checked day (1.53:1 on afal). The
+                hover is a ring because every tint lowers the text on some theme: `/80` took afal from
+                5.25 to 3.76:1 (#1246), and 15% of base-content takes `dark` from 4.13 to 3.19. %>
             <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
                 disabled: disabled,
                 class: 'flex items-center justify-center w-8 h-8 rounded-full ' \
@@ -210,7 +214,11 @@
                        'cursor-pointer select-none transition-all duration-150 ' \
                        'hover:bg-base-content/20 hover:scale-105 ' \
                        'peer-checked:bg-primary peer-checked:text-primary-content peer-checked:shadow-md ' \
-                       'peer-checked:hover:bg-primary/80 peer-checked:hover:shadow-lg ' \
+                       'peer-checked:hover:bg-primary peer-checked:hover:shadow-lg ' \
+                       'peer-checked:hover:outline-2 peer-checked:hover:outline-offset-2 ' \
+                       'peer-checked:hover:outline-primary ' \
+                       'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ' \
+                       'peer-focus-visible:outline-base-content ' \
                        'peer-disabled:opacity-50 peer-disabled:cursor-not-allowed' %>
           </span>
         <% end %>

@@ -1,3 +1,7 @@
+import { paintedContrast } from '../support/painted_contrast'
+import { hover, unhover } from '../support/tap'
+import { THEMES } from '../support/themes'
+
 // #1041 — RecurrentEventRuleForm had no E2E spec, and it is the component with
 // the widest gap between what is on screen and what is submitted: every control
 // is inert decoration except one hidden input, which the controller rewrites as
@@ -185,6 +189,75 @@ describe('RecurrentEventRuleForm', () => {
       rule().should('have.value', 'FREQ=DAILY;INTERVAL=1')
       frequency().should('be.disabled')
       cy.get('#form_record_rule_interval').should('be.disabled')
+    })
+  })
+
+  // A checked day is the theme's primary pair, which theme-primary-contrast.cy.js holds at AA on
+  // Bali's themes; daisyUI's `dark` paints it at 4.13:1, so the bar under the cursor is the day at
+  // rest, not 4.5. `primary/80` let the page through: afal 5.25 → 3.76:1 (#1246).
+  describe('the weekdays as painted', () => {
+    const dayLabel = (index) => cy.get(`label[for="byweekday_form_record_rule_${index}"]`)
+
+    // A transition's first frame still paints the previous theme or state, and can pass.
+    const expectSettled = (el) => {
+      expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
+    }
+
+    // An outline is drawn outside the box, over whatever the element sits on: measured as text
+    // of its colour placed beside it.
+    const ringContrast = (el) => {
+      const probe = el.ownerDocument.createElement('span')
+      probe.style.color = getComputedStyle(el).outlineColor
+      el.after(probe)
+      try {
+        return paintedContrast(probe)
+      } finally {
+        probe.remove()
+      }
+    }
+
+    beforeEach(() => {
+      cy.then(unhover)
+      cy.visit('/bali/recurrent_event_rule_form/with_value')
+      // Monday, checked by the preview's BYDAY=MO,WE,FR.
+      weekday(0).should('be.checked')
+    })
+
+    afterEach(() => cy.then(unhover))
+
+    THEMES.forEach((theme) => {
+      it(`rings a checked day under the cursor, as legible as at rest, on the ${theme} theme`, () => {
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+        let atRest
+        dayLabel(0).should(([label]) => {
+          expectSettled(label)
+          atRest = paintedContrast(label)
+        })
+
+        dayLabel(0).then(hover)
+
+        dayLabel(0).should(([label]) => {
+          expectSettled(label)
+          expect(label.matches(':hover'), 'under the cursor').to.equal(true)
+          expect(paintedContrast(label), `${theme}: text under the cursor`).to.be.at.least(atRest)
+          expect(getComputedStyle(label).outlineStyle, 'ring drawn').to.not.equal('none')
+          expect(ringContrast(label), `${theme}: hover ring`).to.be.at.least(3)
+        })
+      })
+
+      // The checkbox is `sr-only`: its own focus ring is clipped away with it.
+      it(`rings the day the keyboard is on at 3:1 on the ${theme} theme`, () => {
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+        weekday(0).focus()
+
+        dayLabel(0).should(([label]) => {
+          expectSettled(label)
+          expect(label.control.matches(':focus-visible'), 'keyboard focus').to.equal(true)
+          expect(getComputedStyle(label).outlineStyle, 'ring drawn').to.not.equal('none')
+          expect(ringContrast(label), `${theme}: focus ring`).to.be.at.least(3)
+        })
+      })
     })
   })
 })
