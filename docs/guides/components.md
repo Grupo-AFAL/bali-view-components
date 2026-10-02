@@ -4514,13 +4514,14 @@ key.
 
 **The `aria-label` is only emitted where no visible `<label for>` names the control**, so a
 captioned row's markup is unchanged. Two widgets are the exception, because there the caption
-never reaches the control the user operates and Bali has to point at it explicitly:
+may not reach the control the user operates and Bali has to point at it explicitly:
 
 - **`slim_select`** clips the real `<select>` to 1x1 and draws its own
-  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and
-  nothing else — a `<label for>` does not travel. Captioned, Bali emits `aria-labelledby`
-  at the caption; uncaptioned, the resolved name. Before #1155 a captioned slim_select
-  announced itself as "Combobox", the widget's own default.
+  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and,
+  before SlimSelect 3.5, nothing else — a `<label for>` does not travel. Bali's controller
+  carries `aria-describedby` and `aria-invalid` across. Captioned, Bali emits
+  `aria-labelledby` at the caption; uncaptioned, the resolved name. Before #1155 a captioned
+  slim_select announced itself as "Combobox", the widget's own default.
 - **`date` / `date_range`** are drawn by flatpickr, which hides the real input and creates
   a second one. `datepicker#forwardAccessibleName` copies the caption across; with no
   caption there was nothing to copy.

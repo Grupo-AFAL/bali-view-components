@@ -910,8 +910,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
   end
 
   # SlimSelect shrinks the real `<select>` to 1x1 and draws its own `div[role=combobox]`, which
-  # takes its name ONLY from the select's aria attributes: the `<label for>` does not travel. So
-  # this branch is mute in the captioned case too, which is every host's case today.
+  # takes its name ONLY from the select's aria attributes up to SlimSelect 3.4: the `<label for>`
+  # does not travel. So this branch is mute in the captioned case too, which is every host's
+  # case today.
   def test_a_captioned_slim_select_points_at_its_caption
     render_filter(attribute: :owner_id, collection: [ %w[Ana ana] ], blank: "All owners",
                   label: "Owner", type: :slim_select)
