@@ -146,9 +146,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ser cierto.
 - **`page.with_export(formats:)` levanta `ArgumentError` ante una lista vacía o un formato que no
   sea `csv`, `excel`, `pdf` o `json`** (#1275), como ya hacían `context:`, `heading:` y
-  `sidebar_width:`. Antes, con `formats: %i[xml]` o `formats: []`, la exportación desaparecía sin
-  aviso, o dejaba su título solo en un ⋯ con otras acciones. Las nueve llamadas de las apps pasan
-  `[:csv]` (`git grep -n "with_export(" origin/main -- app`). Sin nada que hacer en el anfitrión.
+  `sidebar_width:`. Antes, un formato mal escrito (`%i[csv exel]`) desaparecía del ⋯ sin aviso, y
+  con `%i[xml]` o `[]` la exportación entera desaparecía, o dejaba su título solo en un ⋯ con otras
+  acciones. Las nueve llamadas de las apps pasan `[:csv]`
+  (`git grep -n "with_export(" origin/main -- app`). Sin nada que hacer en el anfitrión.
 
 ### Removed
 
