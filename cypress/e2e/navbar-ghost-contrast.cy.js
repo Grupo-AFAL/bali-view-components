@@ -83,8 +83,8 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
   })
 
-  // Narrowed to the brand and the main burger, the rule keeps every case above green. These pin
-  // the rest of its reach: the desktop menu's ghost, the `:alt` burger and the `:sidebar` one.
+  // The cases above that need the rule only reach the brand and the main burger; these pin the
+  // rest of its reach: the desktop menu's ghost, the `:alt` burger and the `:sidebar` one.
   COLORS.filter(color => color !== 'base').forEach((color) => {
     it(`the ghost "Log in" of the desktop menu paints the text colour of the ${color} navbar`, () => {
       cy.viewport(1280, 800)
@@ -110,22 +110,17 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
         expect(window.getComputedStyle(alt).color, `${color} navbar: alt burger`).to.equal(window.getComputedStyle($nav[0]).color)
       })
     })
-  })
 
-  it('the :sidebar burger paints the text colour of a neutral navbar', () => {
-    cy.visit('/bali/navbar/with_sidebar_burger?transparency=false')
-    // The preview pins `color: :base`; this is the class `color: :neutral` renders instead.
-    cy.get('nav.navbar').should('not.have.class', 'is-transparent').then(($nav) => {
-      $nav[0].classList.replace('navbar-base', 'navbar-neutral')
-    })
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', 'light'))
+    it(`the :sidebar burger paints the text colour of the ${color} navbar`, () => {
+      open(color, 'light', '&transparency=false', 'with_sidebar_burger')
 
-    cy.get('nav.navbar').should(($nav) => {
-      expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
-      const trigger = $nav[0].querySelector('[data-controller~="side-menu-trigger"]')
-      expect(trigger.offsetWidth, 'the sidebar burger shows at this width').to.be.greaterThan(0)
-      expect(trigger.matches(':hover'), 'measured at rest').to.equal(false)
-      expect(window.getComputedStyle(trigger).color, 'neutral navbar: sidebar burger').to.equal(window.getComputedStyle($nav[0]).color)
+      cy.get('nav.navbar').should(($nav) => {
+        expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+        const trigger = $nav[0].querySelector('[data-controller~="side-menu-trigger"]')
+        expect(trigger.offsetWidth, 'the sidebar burger shows at this width').to.be.greaterThan(0)
+        expect(trigger.matches(':hover'), 'measured at rest').to.equal(false)
+        expect(window.getComputedStyle(trigger).color, `${color} navbar: sidebar burger`).to.equal(window.getComputedStyle($nav[0]).color)
+      })
     })
   })
 
