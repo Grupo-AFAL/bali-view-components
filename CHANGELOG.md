@@ -156,6 +156,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). daisyUI pinta un
+  `btn-ghost` en reposo con `base-content` sobre cualquier fondo: en celular la hamburguesa, y una
+  marca `variant: :ghost`, quedaban en 1.00:1 sobre `neutral` en `afal` y `costa-norte` y en 1.69
+  sobre `primary` en `costa-norte`. Ahora un `btn-ghost` dentro de un `.navbar` toma el color de
+  texto de la barra: de 3.04 a 15.68:1 en los cuatro colores y los seis temas. En el menú que se
+  abre debajo sigue con `base-content`; un ghost con color propio lo conserva; y en un Navbar
+  transparente de color pinta, como sus enlaces, el `-content` del preset. Ninguna app usa
+  `Bali::Navbar` (`git grep -n "Navbar::" origin/main` en las nueve): nada que hacer en el
+  anfitrión.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
