@@ -23,21 +23,19 @@
       ) %>
 
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <div class="overflow-x-auto">
-          <%= render Bali::Table::Component.new do |table| %>
-            <% table.with_headers([{ name: "Name" }, { name: "Email" }, { name: "" }]) %>
-            <% table.with_row do %>
-              <td>Ana García López</td>
-              <td>ana@example.com</td>
-              <td class="text-right">
-                <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |menu| %>
-                  <% menu.with_item(name: "Open in drawer", href: "/drawers/user_details", icon: "panel-right", drawer: true) %>
-                  <% menu.with_item(name: "Open in modal", href: "/modals/basic", icon: "app-window", modal: true) %>
-                <% end %>
-              </td>
-            <% end %>
+        <%= render Bali::Table::Component.new do |table| %>
+          <% table.with_headers([{ name: "Name" }, { name: "Email" }, { name: "" }]) %>
+          <% table.with_row do %>
+            <td>Ana García López</td>
+            <td>ana@example.com</td>
+            <td class="text-right">
+              <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |menu| %>
+                <% menu.with_item(name: "Open in drawer", href: "/drawers/user_details", icon: "panel-right", drawer: true) %>
+                <% menu.with_item(name: "Open in modal", href: "/modals/basic", icon: "app-window", modal: true) %>
+              <% end %>
+            </td>
           <% end %>
-        </div>
+        <% end %>
       <% end %>
     </div>
   <% end %>
