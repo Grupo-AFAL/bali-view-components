@@ -12,7 +12,7 @@
 <% if hero? %>
   <% hero_content = capture do %>
     <%= headline %>
-    <div class="stat-title mt-1 whitespace-normal text-sm leading-tight"><%= short_title %></div>
+    <div class="stat-title mt-1 whitespace-normal text-sm leading-tight text-base-content/70"><%= short_title %></div>
     <%= hero_footer %>
   <% end %>
   <% if view_all_path.present? %>
