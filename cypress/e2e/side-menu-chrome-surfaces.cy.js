@@ -1,4 +1,5 @@
 import { pointAt } from '../support/tap'
+import { THEMES } from '../support/themes'
 import { paintedLuminance as luminance } from '../support/painted_contrast'
 
 // A rail with its own `theme:` is chrome next to the page, and its hover, borders and the
@@ -22,7 +23,7 @@ describe('SideMenu chrome surfaces', () => {
       })
     })
 
-    // The bottom group's items are `.menu-item`s, whose hover is base-200 — the panel's own
+    // The bottom group's items are `.menu-item`s, whose hover was base-200 — the panel's own
     // colour inside a themed rail, so the hovered item measured 1.00:1 against it.
     it(`shows the hovered item inside the panel of a ${theme} rail`, () => {
       cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
@@ -59,6 +60,30 @@ describe('SideMenu chrome surfaces', () => {
         expect(parseFloat(style($panel[0]).borderTopWidth), 'border width').to.be.at.least(1)
         expect((Math.max(edge, rail) + 0.05) / (Math.min(edge, rail) + 0.05), `${theme}: edge against the rail`)
           .to.be.above(1.2)
+      })
+    })
+  })
+
+  // base-200 steps down on the dark themes, so a hovered item painted darker than its rail,
+  // 1.05:1. The ink at 8% lifts it on a dark rail and darkens it on a light one: 1.20 and
+  // 1.16 on afal-dark and afal, the proposal Federico chose.
+  THEMES.forEach((theme) => {
+    it(`shows the hovered item of an unthemed rail on the ${theme} theme`, () => {
+      cy.viewport(1280, 800)
+      cy.visit('/bali/side_menu/default')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+      cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(pointAt)
+
+      cy.get('.side-menu-component a.menu-item:hover').should(($item) => {
+        const doc = $item[0].ownerDocument
+        const style = (el) => doc.defaultView.getComputedStyle(el)
+        const railColour = style($item[0].closest('.side-menu-component')).backgroundColor
+        const rail = luminance(doc, railColour)
+        const hovered = luminance(doc, railColour, style($item[0]).backgroundColor)
+
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+        expect((Math.max(hovered, rail) + 0.05) / (Math.min(hovered, rail) + 0.05), `${theme}: hovered item against the rail`)
+          .to.be.at.least(1.15)
       })
     })
   })

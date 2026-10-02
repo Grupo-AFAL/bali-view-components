@@ -107,6 +107,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **El hover de los ítems de menú es el texto al 8 %**, no `base-200`: en el SideMenu, en sus
+  grupos y su switcher, y en los ítems de `Bali::Dropdown`, que comparten la clase `.menu-item`.
+  En oscuro `base-200` queda debajo de `base-100` y el hover se pintaba más oscuro que el riel,
+  casi invisible (1.05:1); ahora se ve en los dos sentidos (1.20 en `afal-dark`, 1.16 en `afal`,
+  antes 1.10) y también dentro de un panel, donde era del mismo color que él. Decisión de
+  Federico en la revisión visual. Sin nada que hacer en el anfitrión.
 - **Los menús desplegables (`Bali::Dropdown` y los paneles del SideMenu) llevan un borde fino**,
   `base-content` al 15 %. El panel es `base-100` como la página, y en un tema oscuro la sombra no
   se ve: panel y página medían 1.00:1. Cambia en todas las apps, también en claro, donde apenas
@@ -145,9 +151,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Un SideMenu con `theme:` levanta su hover, sus bordes y el panel del switcher** sobre el
   riel. Con el `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde
   `base-100`, y dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más
-  oscuro todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa del tema,
-  y un ítem bajo el cursor dentro del panel sube un paso más (antes era del mismo color que el
-  panel). Vale para cualquier riel con tema: en uno claro, bordes y hover quedan un poco más
+  oscuro todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa del tema.
+  Vale para cualquier riel con tema: en uno claro, bordes y hover quedan un poco más
   marcados (el borde pasa de 1.24 a 1.48:1 en `afal`); hoy ninguna app usa uno. Sin nada que
   hacer en el anfitrión.
 - **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline,
