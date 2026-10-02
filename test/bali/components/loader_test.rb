@@ -58,14 +58,14 @@ class BaliLoaderComponentTest < ComponentTestCase
     end
   end
 
-  Bali::Loader::Component::COLORS.each_key do |color|
+  Bali::Loader::Component::COLORS.each do |color, css_class|
     define_method("test_colors_renders_#{color}_color_on_spinner") do
       render_inline(Bali::Loader::Component.new(color: color, hide_text: true))
-      assert_selector("span.loading.text-#{color}")
+      assert_selector("span.loading.#{css_class}")
     end
     define_method("test_colors_renders_#{color}_color_on_text") do
       render_inline(Bali::Loader::Component.new(color: color))
-      assert_selector("p.text-#{color}")
+      assert_selector("p.#{css_class}")
     end
   end
 
