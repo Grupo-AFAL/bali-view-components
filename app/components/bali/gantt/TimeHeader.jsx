@@ -46,7 +46,7 @@ export default memo(function TimeHeader ({ windowStart, windowEnd, pxPerDay, uni
         {bands.map((band) => (
           <div
             key={`band-${band.key}`}
-            className='absolute top-0 flex items-center border-r border-base-300/70 bg-base-200 text-[11px] font-semibold uppercase tracking-wide text-base-content/60'
+            className='absolute top-0 flex items-center border-r border-base-300/70 bg-base-200 text-[11px] font-semibold uppercase tracking-wide text-base-content/70'
             style={{ left: band.x, width: band.width, height: BAND_H }}
             title={band.label}
           >

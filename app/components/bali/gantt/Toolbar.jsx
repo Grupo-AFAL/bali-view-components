@@ -247,7 +247,7 @@ export default memo(function Toolbar ({
       <span className='flex-1' />
 
       {/* Color-by. */}
-      <span className='shrink-0 text-[10px] font-bold uppercase tracking-wide text-base-content/40'>{t('color')}</span>
+      <span className='shrink-0 text-[10px] font-bold uppercase tracking-wide text-base-content/70'>{t('color')}</span>
       <div className='shrink-0'>
         <Segmented
           options={COLOR_MODES.map(([key, i18nKey]) => [key, t(i18nKey)])}
