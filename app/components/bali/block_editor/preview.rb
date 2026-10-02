@@ -522,8 +522,9 @@ module Bali
           {
             type: 'codeBlock',
             content: [{ type: 'text', styles: {},
-                        text: "function greet(name) {\n  " \
-                              "return `Hello, \#{'{'}name\#{'}'}!`;\n" \
+                        text: "// Greets whoever it is given\n" \
+                              "function greet(name) {\n  " \
+                              "return `Hello, ${name}!`;\n" \
                               "}\n\nconsole.log(greet('World'));" }],
             props: { language: 'javascript' }
           },
