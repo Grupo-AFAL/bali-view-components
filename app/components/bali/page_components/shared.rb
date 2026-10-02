@@ -136,11 +136,12 @@ module Bali
       # because the link carries the active slice along.
       #
       # @param url [String] Base URL of the listing (without `format`)
-      # @param formats [Array<Symbol>] Formats to offer, out of EXPORT_FORMATS; others are skipped
+      # @param formats [Array<Symbol>] Formats to offer, out of EXPORT_FORMATS; any other raises
+      #   ArgumentError
       # @param params [Hash, nil] Slice to carry along. `nil` reads it from the request; `{}`
       #   is the explicit opt-out.
       def with_export(url:, formats: %i[csv excel pdf], params: nil)
-        @export_options = { url: url, formats: formats, params: params }
+        @export_options = { url: url, formats: resolve_export_formats(formats), params: params }
         nil
       end
 
@@ -189,6 +190,15 @@ module Bali
 
         raise ArgumentError,
               "Unknown heading: #{value.inspect}. Valid: #{HEADINGS.join(', ')}"
+      end
+
+      def resolve_export_formats(formats)
+        keys = formats.map(&:to_sym)
+        unknown = keys - EXPORT_FORMATS
+        return keys if unknown.empty?
+
+        raise ArgumentError,
+              "Unknown export format: #{unknown.map(&:inspect).join(', ')}. Valid: #{EXPORT_FORMATS.join(', ')}"
       end
 
       def secondary_action_items
@@ -242,9 +252,8 @@ module Bali
         return [] unless @export_options
 
         params = @export_options[:params] || request_query_params
-        formats = @export_options[:formats].map(&:to_sym) & EXPORT_FORMATS
         title = { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id }
-        [ title, *formats.map { |format| export_menu_item(format, params) } ]
+        [ title, *@export_options[:formats].map { |format| export_menu_item(format, params) } ]
       end
 
       # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which does

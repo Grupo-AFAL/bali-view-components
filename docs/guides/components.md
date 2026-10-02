@@ -5321,11 +5321,13 @@ does not say (#1230):
 **`with_export(url:, formats: %i[csv excel pdf], params: nil)`** renders a section titled
 *Export filtered* with one item per format. The name is a promise the links keep: each href
 carries the same slice of data the user is looking at — filters, search, sort, grouping and the applied
-saved view — merged from the current query string. Two parameters are deliberately dropped
+saved view — merged from the current query string. Three parameters are deliberately dropped
 (`Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`): `page`, because exporting page 3 of a
-listing is never what "export" means, and `clear_filters`, which on the server *deletes* the
-user's stored filters as a side effect of the click. Pass `params: {}` to opt out and export
-everything on purpose, or an explicit hash to override.
+listing is never what "export" means, and the one-shot orders `clear_filters` and
+`clear_search` — the first *deletes* the user's stored filters on the server as a side effect of
+the click. Pass `params: {}` to opt out and export everything on purpose, or an explicit hash to
+override. `formats:` takes `:csv`, `:excel`, `:pdf` and `:json`, in the order the items should
+appear; anything else raises `ArgumentError`.
 
 Export is **not** a DataTable toolbar control. It acts on the page, not on how the listing
 looks, which is also what gives import and print somewhere to land later. Because the `⋯`

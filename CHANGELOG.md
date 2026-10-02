@@ -144,6 +144,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`git grep -n -i "3b82f6" origin/main -- app`), incluido el `PRIMARY` de
   `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
   ser cierto.
+- **`page.with_export(formats:)` levanta `ArgumentError` ante un formato que no sea `csv`,
+  `excel`, `pdf` o `json`** (#1275), como ya hacían `context:`, `heading:` y `sidebar_width:`.
+  Antes lo saltaba en silencio: con `formats: %i[xml]` la exportación desaparecía sin aviso, o
+  dejaba su título solo en un ⋯ con otras acciones. Las nueve llamadas de las apps pasan `[:csv]`
+  (`git grep -n "with_export(" origin/main -- app`). Sin nada que hacer en el anfitrión.
 
 ### Removed
 

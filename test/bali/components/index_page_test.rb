@@ -139,14 +139,33 @@ class BaliIndexPageComponentTest < ComponentTestCase
     assert_selector('a[href="/movies?format=csv&scope=archived"]', visible: :all)
   end
 
-  def test_export_offers_the_known_formats_in_the_order_given
+  def test_export_offers_the_formats_in_the_order_given
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
-      page.with_export(url: "/movies", formats: %i[pdf xml csv])
+      page.with_export(url: "/movies", formats: %i[pdf csv])
       page.with_body { "Content" }
     end
 
     links = page.all('[data-export-links-target="link"]', visible: :all)
     assert_equal %w[/movies?format=pdf /movies?format=csv], links.pluck("href")
+  end
+
+  def test_export_takes_formats_given_as_strings
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", formats: %w[excel])
+      page.with_body { "Content" }
+    end
+
+    assert_selector('a[href="/movies?format=excel"]', text: "Excel", visible: :all)
+  end
+
+  # Raised and not skipped: skipping every format makes the export vanish without a word, or leaves
+  # its title alone in a ⋯ shared with other actions.
+  def test_export_raises_on_an_unknown_format
+    error = assert_raises(ArgumentError) do
+      Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: %i[csv xml])
+    end
+
+    assert_equal "Unknown export format: :xml. Valid: csv, excel, pdf, json", error.message
   end
 
   def test_export_links_read_the_slice_from_the_request_by_default
