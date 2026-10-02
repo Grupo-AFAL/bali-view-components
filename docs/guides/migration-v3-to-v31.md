@@ -374,9 +374,9 @@ compiled CSS silently wins):
      darker, so white text on them clears AA (#1221, #1261), and those two repaint.
    - **centinela-web**: delete `app/assets/tailwind/themes/afal.css` (and its import).
      **Expect a visible delta** — centinela's copy came from an independent OKLCH
-     conversion of the same hex values, so its secondary (a darker, differently-hued
-     violet), accent, neutral and the five status pairs all shift to the canonical
-     values. Screenshot before/after in the adoption PR.
+     conversion of the same hex values, so its secondary (the same lightness, 7° off in
+     hue), accent, neutral and the five status pairs all shift to the canonical values,
+     and since #1221 its primary too. Screenshot before/after in the adoption PR.
 
 3. Optionally clean the phantom declaration: `afal --default, afal-dark` inside
    `@plugin "daisyui" { themes: ... }` never registered anything (daisyUI does not know
