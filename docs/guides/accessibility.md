@@ -189,9 +189,9 @@ it is gone as soon as the user types — the same reasoning that gave the quick 
 own `aria_label:` in #982.
 
 **Where a widget draws its own control, verify in the tree.** SlimSelect clips the real
-`<select>` to 1x1 and builds a `div[role="combobox"]` that copies only the select's name —
-its `aria-label` or `aria-labelledby`, and its `<label for>` only from SlimSelect 3.5 (Bali's
-controller carries `aria-describedby` and `aria-invalid` across); flatpickr hides the real
+`<select>` to 1x1 and builds a `div[role="combobox"]` named from the select's `aria-label` or
+`aria-labelledby` — and, from SlimSelect 3.5, its `<label for>`. Bali's `slim-select`
+controller carries `aria-describedby` and `aria-invalid` across. flatpickr hides the real
 input and creates a second one. In both, a `<label for>` can name an element the user never
 touches while the markup looks correct. Read the accessibility tree — see the section below.
 
