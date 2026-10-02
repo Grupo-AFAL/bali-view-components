@@ -299,7 +299,7 @@ module Bali
         entity_reference_color_types.keys.flat_map do |type|
           [
             { type: 'entityReference',
-              props: { entityType: type, entityId: '1', entityName: 'Q4 Release', url: '#' } },
+              props: { entityType: type, entityId: '1', entityName: 'Q4 Release', url: '/lookbook' } },
             { type: 'text', text: ' ', styles: {} }
           ]
         end
