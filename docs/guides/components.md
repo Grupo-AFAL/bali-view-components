@@ -183,7 +183,7 @@ slots are independent so non-shell layouts work too.
 - `skip_link` - Render the "skip to main content" link as the first focusable element (default: true)
 - `body_container` - `:wide` (default), `:contained`, `:narrow`, `:full`
 - `flash` - Pass `flash` for built-in toast notifications
-- `modal` / `drawer` - Render shared modal/drawer slots (default: true)
+- `modal` / `drawer` - Render the shared `#main-modal` / `#main-drawer` and put their Stimulus controllers on `<body>`, so a `modal: true` / `drawer: true` trigger opens them from anywhere on the page — a chrome slot or a `popover: true` menu included (default: true)
 - `mobile_bottom_padding` - Room under the content on a phone, for the browser's floating bar plus the device safe area (default: false) — see below
 
 The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
@@ -1084,7 +1084,9 @@ is a preset of this one, not a second implementation.
   Left out, daisyUI's default (below the trigger) applies. It composes with `align:`.
 - `width` - `:sm` (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
 - `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
-  it (default: `false`). What a dropdown inside a scrollable table needs.
+  it (default: `false`). What a dropdown inside a scrollable table needs. An item that opens a
+  `modal:` / `drawer:` then needs that controller on `<body>`: `AppLayout` puts both there, and
+  a layout of your own has to as well, or the item navigates to its href.
 - `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
 - `close_on_click` - close on a click outside even when the focus is not inside the dropdown
   (default: `true`). With the focus inside, the click takes it out, and that closes the menu

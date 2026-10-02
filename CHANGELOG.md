@@ -325,6 +325,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
 
+- **Bajo `AppLayout`, un ítem `drawer:` o `modal:` de un menú `popover: true` abre el overlay en
+  vez de navegar** (#1268). AppLayout montaba los controllers `modal drawer` en `<main>`, y tippy
+  cuelga el menú al final de `<body>`: sin el controller encima, el enlace cargaba su URL a página
+  completa. Lo mismo un disparador en los slots `banner`, `navbar`, `sidebar` o `topbar`. Ahora
+  van en el `<body>` que AppLayout rinde, junto a `app-layout`. Sin nada que hacer en el
+  anfitrión: en **afal-apps**, los hasta seis ítems `drawer: true` del menú de
+  `td_flow/feedback_items/index.html.erb` pasan a abrir el drawer, y el comentario de
+  `finance/terminals/terminals/show.html.erb` que evita `popover: true` por esto queda sin motivo
+  (`git grep -n "popover: true" origin/main -- app/views`).
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
