@@ -150,11 +150,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en todo lo que pinta `secondary` en afal-apps, garita y gobierno-corporativo, que importan el
   tema de la gema (`git grep -n "css/themes/afal.css" origin/main -- app/assets`).
   `afal-dark` no cambia. **Anfitrión:** identity y opina, con su bloque propio, lo reciben al
-  borrarlo e importar el de la gema, como en el primario. centinela-web ya pinta un violeta más
-  oscuro (5.62:1) y no tiene que hacer nada; para igualar el canónico, su `--color-secondary`
-  pasa a `oklch(54.13% 0.2466 293.009)`. Los hex copiados pasan a `#7C3AED`
+  borrarlo e importar el de la gema, como en el primario. centinela-web, cuyo
+  `oklch(0.541 0.241 285.8)` ya pasa (5.62:1), no tiene que hacer nada; si quiere el canónico:
+  `--color-secondary: oklch(54.13% 0.2466 293.009)`. Los hex copiados pasan a `#7C3AED`
   (`git grep -n -i "8b5cf6" origin/main -- app`), como el `purple` de
-  `app/models/business_processes/sheet_pdf.rb` en gobierno-corporativo.
+  `app/models/business_processes/sheet_pdf.rb` en gobierno-corporativo. Ahí mismo copia el
+  violeta viejo con la utilidad el `badge: "bg-violet-500"` que
+  `app/controllers/concerns/processes/catalog_builder.rb` pone junto a `dot: "bg-secondary"`:
+  pasa a `bg-violet-600`.
 
 ### Removed
 
