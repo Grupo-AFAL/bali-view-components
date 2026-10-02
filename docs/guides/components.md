@@ -1086,7 +1086,8 @@ is a preset of this one, not a second implementation.
 - `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
   it (default: `false`). What a dropdown inside a scrollable table needs. Inside a
   `<dialog>` opened with `showModal()` (`Modal`, `Drawer`) the popper goes into that dialog
-  instead, because everything outside it is inert.
+  instead, because everything outside it is inert, and there the dialog's own `overflow` still
+  applies (see [Overlays and the top layer](overlays-and-the-top-layer.md)).
 - `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
 - `close_on_click` - close on a click outside even when the focus is not inside the dropdown
   (default: `true`). With the focus inside, the click takes it out, and that closes the menu

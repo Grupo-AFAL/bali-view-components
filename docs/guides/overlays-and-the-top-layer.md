@@ -92,7 +92,8 @@ Three things are worth knowing:
   `overflow: auto`. Measured in Chromium and Firefox with a `w-96` dialog: `elementFromPoint`
   at the centre of each of the 3 items returned the dialog; with `overflow: visible` on the
   same dialog, the item. daisyUI's `.modal` fills the viewport, and so does `Modal`;
-  `Drawer`'s dialog is `overflow: visible`. None of the three clips the menu.
+  `Drawer`'s dialog is `overflow: visible`. None of the three clips the menu. Give a
+  smaller dialog of your own `overflow: visible`, or `class="modal"`.
 - If you portal an overlay of your own to `<body>` and open it from inside a modal dialog,
   it will hit the same wall. The three functions are published for exactly that:
 
