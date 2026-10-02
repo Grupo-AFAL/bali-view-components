@@ -18,6 +18,9 @@
 // — an outline in `borderTopColor`, a line in `backgroundColor` — passes the property; a line is
 // its own fill, so it starts at the parent too.
 //
+// `pseudo` reads the colour off a pseudo-element of `el` — an input's `::placeholder` — while the
+// search for the ground still starts at `el`.
+//
 // `under` is a fill the shape sits straight on, inside the ground the search found. The colour is
 // painted over it and measured against it and against that ground, and the lower of the two is
 // the answer: the outline of a WorkflowSteps marker on its `::before` disc, in a base-200 card on
@@ -36,7 +39,7 @@ const contrast = (a, b) => {
   return (high + 0.05) / (low + 0.05)
 }
 
-export const paintedContrast = (el, { over = el, property = 'color', under } = {}) => {
+export const paintedContrast = (el, { over = el, property = 'color', pseudo, under } = {}) => {
   if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')
 
   const win = el.ownerDocument.defaultView
@@ -71,7 +74,7 @@ export const paintedContrast = (el, { over = el, property = 'color', under } = {
   let ground = paint(groundColour)
   tints.forEach((tint) => { ground = paint(tint) })
   const bed = under ? paint(under) : ground
-  const ink = paint(win.getComputedStyle(el)[property], opacity)
+  const ink = paint(win.getComputedStyle(el, pseudo)[property], opacity)
   return Math.min(contrast(ink, ground), contrast(ink, bed))
 }
 
