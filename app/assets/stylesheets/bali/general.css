@@ -67,3 +67,12 @@ a {
 .box {
   @apply card card-border card-body bg-base-100 shadow-sm;
 }
+
+/* Tailwind's preflight paints this placeholder at 50% of `currentColor` (3.05:1 on `afal`; AA
+   wants 4.5), from @layer base, and daisyUI only paints it disabled, at `opacity: .2`, from
+   @layer utilities, which beats this one. Not in the unlayered forms.css: there it would also
+   beat a host's `placeholder:` utility, which today needs no `!`. */
+input.input::placeholder,
+textarea.textarea::placeholder {
+  @apply text-base-content/70;
+}

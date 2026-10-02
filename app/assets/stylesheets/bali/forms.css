@@ -70,15 +70,12 @@
   }
 }
 
-/* A placeholder is text, and AA wants 4.5:1 for it. daisyUI paints the one inside an
-   `.input`/`.textarea` in `base-content` at `opacity: .5`, and Tailwind's preflight the one
-   on an `input.input`/`textarea.textarea` at 50% of `currentColor`: both measured 3.05:1 on
-   `afal`. `:not(:disabled)` leaves a disabled control, which AA exempts, at daisyUI's
-   `opacity: .2`. */
-.input:not([disabled]) input:not(:disabled)::placeholder,
-input.input:not(:disabled)::placeholder,
-.textarea:not([disabled]) textarea:not(:disabled)::placeholder,
-textarea.textarea:not(:disabled)::placeholder {
+/* daisyUI paints the placeholder of an input inside a `label.input` in `base-content` at
+   `opacity: .5` (3.05:1 on `afal`; AA wants 4.5), from @layer utilities at (0,1,2): only
+   unlayered does this beat it, and a host's `placeholder:` utility already needed `!` there.
+   `:not(:disabled)` leaves a disabled control, which AA exempts, at daisyUI's `opacity: .2`.
+   The placeholder of an `input.input` itself is lifted in general.css, layered. */
+.input:not([disabled]) input:not(:disabled)::placeholder {
   @apply text-base-content/70 opacity-100;
 }
 

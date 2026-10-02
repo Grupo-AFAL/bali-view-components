@@ -402,6 +402,50 @@ describe('muted icon contrast', () => {
   })
 })
 
+// The placeholder rule lives in two layers: unlayered in `bali/forms.css` for the input inside a
+// `label.input`, which daisyUI paints from @layer utilities, and in @layer components in
+// `bali/general.css` for an `input.input` or a `textarea.textarea`, which only the preflight
+// paints. The contrast guard above sees neither promise the halves make: a disabled control
+// keeps daisyUI's `opacity: .2` (1.48:1 on `afal`, against 4.98 or more at 70%), and a host's
+// `placeholder:` utility beats the layered half without `!`.
+describe('form placeholder cascade', () => {
+  // [page, what, selector]
+  const FIELDS = [
+    ['data_table/with_search', 'input inside a label.input', '[data-filters-target="searchInput"]'],
+    ['data_table/with_simple_filters', 'input.input', 'input.input[placeholder]:not(.hidden)'],
+    ['form/text_area/default', 'textarea.textarea', 'textarea.textarea']
+  ]
+
+  FIELDS.forEach(([page, what, selector]) => {
+    it(`leaves the placeholder of a disabled ${what} at daisyUI's opacity`, () => {
+      cy.visit(`/bali/${page}`)
+      cy.get(selector).first().invoke('attr', 'disabled', '')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', 'afal'))
+
+      cy.get(selector).first().should(($field) => {
+        expect(transitions($field[0].ownerDocument), 'transitions settled').to.have.length(0)
+        expect(paintedContrast($field[0], { pseudo: '::placeholder' }), `afal: disabled ${what} "${$field.attr('placeholder')}"`)
+          .to.be.below(2)
+      })
+    })
+  })
+
+  FIELDS.slice(1).forEach(([page, what, selector]) => {
+    it(`yields the ${what} placeholder to a host utility`, () => {
+      cy.visit(`/bali/${page}`)
+      cy.document().then((doc) => {
+        const host = doc.createElement('style')
+        host.textContent = '@layer utilities { .host-placeholder::placeholder { color: rgb(255, 0, 0) } }'
+        doc.head.appendChild(host)
+      })
+      cy.get(selector).first().invoke('addClass', 'host-placeholder').should(($field) => {
+        const placeholder = $field[0].ownerDocument.defaultView.getComputedStyle($field[0], '::placeholder')
+        expect(placeholder.color, `${what}: placeholder colour`).to.eq('rgb(255, 0, 0)')
+      })
+    })
+  })
+})
+
 // The outline of a step still to come and the line into it, in the progress
 // shape. Neither is text, but that shape's whole answer is the line, so WCAG
 // 1.4.11 wants 3:1 against what they are drawn on (#1249). The line runs over

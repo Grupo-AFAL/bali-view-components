@@ -333,9 +333,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   También el placeholder de todo `.input` y `.textarea` habilitado, que daisyUI y el preflight de
   Tailwind pintaban al 50 % (3.05:1): los campos del FormBuilder, la búsqueda de `Filters`,
   `simple_filters` y los campos daisyUI que la app escribe a mano. Ninguna de las nueve apps
-  estiliza esos placeholders (`git grep -nE "placeholder:|::placeholder" origin/main -- app config`
-  sólo da dos campos sin `.input` en `gobierno-corporativo`), así que no hay nada que hacer; la
-  regla va sin capa, y quien quiera otro color en un campo lo pone con `placeholder:text-…!`.
+  estiliza esos placeholders
+  (`git grep -nE "placeholder:[a-z!\[]|::placeholder" origin/main -- app config` sólo da dos
+  campos sin `.input` en `gobierno-corporativo`), así que no hay nada que hacer. Un
+  `placeholder:text-…` de la app sobre un `input.input` o un `textarea.textarea` sigue ganando sin
+  `!`; sobre el `input` de dentro de un `label.input` lo necesita, como antes.
 
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
