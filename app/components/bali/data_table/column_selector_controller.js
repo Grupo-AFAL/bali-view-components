@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import { syncPopoverAria } from './popover_aria'
 import { columnId, readColumnState, writeColumnState } from './column_storage'
 
 /**
@@ -29,8 +28,6 @@ export default class extends Controller {
   }
 
   connect () {
-    this.disconnectAria = syncPopoverAria(this.element, this.element.querySelector('button'))
-
     this.table = document.querySelector(this.tableValue)
     if (!this.table) {
       console.warn(`Column selector: table not found with selector "${this.tableValue}"`)
@@ -43,10 +40,6 @@ export default class extends Controller {
 
     // Apply initial visibility based on checkbox state
     this.applyInitialState()
-  }
-
-  disconnect () {
-    this.disconnectAria?.()
   }
 
   restoreStoredState () {

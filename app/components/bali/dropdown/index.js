@@ -325,8 +325,10 @@ export class DropdownController extends Controller {
     return Boolean(nearest) && nearest !== this.element && this.owns(nearest)
   }
 
+  // A checkbox has no caret or selection for the arrows to move: in the DataTable's column
+  // selector it is the menuitemcheckbox they walk.
   fromFormControl (target) {
-    return Boolean(target?.closest?.('input, textarea, select'))
+    return Boolean(target?.closest?.('input:not([type="checkbox"]), textarea, select'))
   }
 
   toggle () {
@@ -414,6 +416,6 @@ export class DropdownController extends Controller {
   getMenuItems () {
     if (!this.menu) return []
 
-    return Array.from(this.menu.querySelectorAll('[role="menuitem"]'))
+    return Array.from(this.menu.querySelectorAll('[role^="menuitem"]'))
   }
 }

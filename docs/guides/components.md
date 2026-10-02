@@ -2585,6 +2585,13 @@ to the edge: inside `right` the JS orders by priority and they landed to its rig
 Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
 [Secondary page actions](#secondary-page-actions-and-export).
 
+**Keyboard.** Group by, columns and saved views are each a [`Bali::Dropdown`](#dropdown), so
+the row has one keyboard: Tab reaches a trigger without opening it, a click, Enter, Space or
+`↓` open it, and Escape closes it and gives the focus back. In the columns menu the arrows
+walk the checkboxes. They stay in the CSS mode, not `popover:`: tippy would move the panels
+out of the `column-selector` and `saved-views` elements whose Stimulus actions and targets
+live in them.
+
 **Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
 `⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
 copies of the column selector would be two Stimulus controllers driving one table. Survival

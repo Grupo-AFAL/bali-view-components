@@ -258,15 +258,10 @@ export default class extends Controller {
   }
 
   /**
-   * Close before moving. The columns and saved views dropdowns open through daisyUI's
-   * :focus-within: moving the node takes it out of the document and focus jumps to the body in
-   * the middle of the move. The ones using the DropdownController keep their state in the
-   * `dropdown-open` class, which SURVIVES the move — they would stay open inside the ⋯.
+   * Close before moving. A dropdown keeps its state in the `dropdown-open` class, which SURVIVES
+   * the move — it would stay open inside the ⋯.
    */
   closeOpenDropdowns () {
-    const active = document.activeElement
-    if (active && this.itemTargets.some(item => item.contains(active))) active.blur()
-
     this.element.querySelectorAll('.dropdown-open').forEach(dropdown => {
       const controller = this.application.getControllerForElementAndIdentifier(dropdown, 'dropdown')
       if (controller) {
@@ -279,8 +274,8 @@ export default class extends Controller {
 
   /**
    * Crossing the breakpoint (a 400% zoom, rotating the phone) cannot cost the keyboard user
-   * their position: `closeOpenDropdowns` blurs and `collapse`/`expand` move the focused node,
-   * so without this focus falls to the <body> with no ring and no announcement.
+   * their position: `collapse`/`expand` move the focused node, so without this focus falls to
+   * the <body> with no ring and no announcement.
    *
    * The ⋯ counts as a control and is NOT an `item`: narrow, it is the only way to reach what
    * is collapsed, and on widening it hides. Without counting it here, crossing upwards

@@ -772,8 +772,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   def test_the_column_selector_popover_opens_to_the_left
     render_collapsible_toolbar
 
-    assert_selector("[data-controller='column-selector'].dropdown", visible: :all)
-    assert_no_selector("[data-controller='column-selector'].dropdown-end", visible: :all)
+    assert_selector("[data-controller='column-selector'] .dropdown.dropdown-start", visible: :all)
+    assert_no_selector("[data-controller='column-selector'] .dropdown-end", visible: :all)
   end
 
   SavedView = Struct.new(:id, :name, :payload, keyword_init: true)

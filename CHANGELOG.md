@@ -111,6 +111,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
+  los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
+  `Bali::Dropdown`, con el teclado de «Agrupar por» (#1231); en Columnas las flechas recorren
+  las casillas, que pasan a `role="menuitemcheckbox"`. Sus paneles toman el aspecto del de
+  «Agrupar por»: sin borde, y el de Vistas pasa de 288 a 320 px. **Anfitrión:** el disparador
+  deja de ser un `<button>` (es el `div[role=button]` de `Bali::Dropdown`), así que una prueba
+  que lo busque como `button` deja de encontrarlo; hay una, en gobierno-corporativo
+  (`git grep -n -E "(saved-views|column-selector)['\"]?\] button" origin/main -- test spec`).
+  `[data-controller='column-selector']` y `[data-controller='saved-views']` siguen valiendo tal
+  cual, con sus `li label` e `input[data-column-index]`.
+
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
   menú de ítems las teclas llevan el foco al primero— y lo cierran Escape, un clic fuera o que el
