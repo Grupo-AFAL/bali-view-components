@@ -60,7 +60,8 @@ module Bali
       # ---------------
       # `popover: true` in a panel opened with `showModal()`. Everything outside the
       # `<dialog>` is inert while it is open, so the popper hangs off the dialog instead of
-      # `<body>` there — see the guide "Overlays and the top layer".
+      # `<body>` there — see the guide "Overlays and the top layer". Escape closes the menu
+      # and leaves the panel open, and Tab from the menu stays in the panel.
       def in_dialog
         render_with_template
       end
