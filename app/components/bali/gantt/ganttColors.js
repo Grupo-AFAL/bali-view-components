@@ -87,8 +87,7 @@ export function hueColor (hue) {
   }
 }
 
-// Stable 0..359 hue from a string (assignee id/name). Same algorithm as
-// Bali::Gantt::Colors.hash_hue so Ruby and JS color one assignee identically.
+// Stable 0..359 hue from a string (assignee id/name).
 export function hashHue (value) {
   const s = String(value == null ? '' : value)
   let h = 0
@@ -100,7 +99,6 @@ export function hashHue (value) {
 // White initials over L 0.5 measure 5.15–6.52:1 across all 360 hues; L 0.6
 // gave 3.49–4.27, under the 4.5 AA asks of 9px bold text (#1260).
 export function avatarColor (assignee) {
-  if (!assignee) return 'color-mix(in oklch, var(--color-base-content) 30%, transparent)'
   return `oklch(0.5 0.14 ${hashHue(assignee.id ?? assignee.name)})`
 }
 
