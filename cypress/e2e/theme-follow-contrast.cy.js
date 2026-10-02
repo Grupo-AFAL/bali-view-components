@@ -83,8 +83,8 @@ describe('colours that follow the theme', () => {
         const tokens = $tokens.toArray().filter(el => el.textContent.trim())
         expectSettled(tokens[0])
         expect(tokens, 'code tokens').to.have.length.at.least(5)
-        // A comment is the faintest ink in both shiki themes, so the preview's snippet has to keep
-        // one for this to measure the worst case.
+        // Of the colours the supported grammars get, a comment is the faintest in both shiki
+        // themes, so the preview's snippet has to keep one for this to measure the worst case.
         expect(tokens.some(el => el.textContent.trim().startsWith('//')), 'a comment token').to.equal(true)
         tokens.forEach((el) => {
           expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(AA)
