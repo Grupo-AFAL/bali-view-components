@@ -142,7 +142,7 @@ describe('Gantt island', () => {
     })
   })
 
-  it('the Owner legend swatch is the colour that owner\'s bars are painted with', () => {
+  it('the Owner legend swatch is the colour of that owner\'s progress fill', () => {
     cy.visit('/bali/gantt/default')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
     cy.get('[role="group"][aria-label="Color by"]').contains('button', 'Owner').click()
