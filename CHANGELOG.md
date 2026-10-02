@@ -187,12 +187,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Un `Bali::Dropdown` con `popover: true` dentro de un `Modal` o un `Drawer` abierto ya se
   puede usar** (#1269): el menú colgaba de `<body>`, que el `<dialog>` deja inerte, y se abría
-  debajo del panel sin ningún ítem al alcance del puntero ni del teclado (0 de 3 en Chromium y
-  Firefox). Ahora cuelga del `<dialog>`, como el tooltip y el hover card; fuera de uno sigue en
-  `<body>`. Ningún anfitrión lo tiene hoy dentro de un panel: los cinco `ActionsDropdown` con
-  `popover: true` de **afal-apps** están en páginas
-  (`git grep -n "popover: true" origin/main -- app/views`; la sexta línea es un comentario).
-  Sin nada que hacer en el anfitrión.
+  debajo del panel, fuera del alcance del puntero y del teclado. Ahora cuelga del `<dialog>`
+  modal, como el tooltip y el hover card; fuera de uno sigue en `<body>`. Ningún anfitrión lo
+  tiene hoy dentro de un panel: los de **afal-apps** están en páginas
+  (`git grep -n "popover: true" origin/main -- app/views`). Sin nada que hacer en el anfitrión.
 
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
   SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
