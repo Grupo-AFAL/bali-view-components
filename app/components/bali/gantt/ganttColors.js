@@ -139,13 +139,13 @@ export function legendFor (colorBy, ctx) {
   if (colorBy === 'group') {
     return groups.map((g, i) => ({
       label: firstWord(g.name),
-      color: `oklch(0.62 0.15 ${GROUP_HUES[i % GROUP_HUES.length]})`
+      color: hueColor(GROUP_HUES[i % GROUP_HUES.length]).solid
     }))
   }
   if (colorBy === 'priority') {
     return catalogs.priorities.map((p) => ({
       label: p.label || p.value,
-      color: p.hue != null ? `oklch(0.62 0.15 ${p.hue})` : neutralColor().solid
+      color: hueColor(p.hue).solid
     }))
   }
   return catalogs.statuses.map((s) => ({
