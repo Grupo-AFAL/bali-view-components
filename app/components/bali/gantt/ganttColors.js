@@ -133,7 +133,7 @@ export function legendFor (colorBy, ctx) {
   if (colorBy === 'assignee') {
     return assignees.map((a) => ({
       label: firstWord(a.name),
-      color: `oklch(0.6 0.14 ${hashHue(a.id ?? a.name)})`
+      color: hueColor(hashHue(a.id ?? a.name)).solid
     }))
   }
   if (colorBy === 'group') {

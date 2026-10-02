@@ -142,6 +142,28 @@ describe('Gantt island', () => {
     })
   })
 
+  it('the Owner legend swatch is the colour that owner\'s bars are painted with', () => {
+    cy.visit('/bali/gantt/default')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+    cy.get('[role="group"][aria-label="Color by"]').contains('button', 'Owner').click()
+
+    cy.get('.react-flow__node span.rounded-full[title]').should(($avatars) => {
+      const doc = $avatars[0].ownerDocument
+      const paint = (el) => doc.defaultView.getComputedStyle(el).backgroundColor
+      // The toolbar's status filter draws the same swatch; the footer is the `.border-t` bar.
+      const swatches = new Map(
+        [...doc.querySelectorAll('.border-t span.rounded-sm[style*="background"]')]
+          .map((swatch) => [swatch.nextElementSibling.textContent, paint(swatch)])
+      )
+      expect($avatars.length, 'bars with an owner').to.be.at.least(2)
+      $avatars.toArray().forEach((avatar) => {
+        const owner = avatar.title.split(/\s+/)[0]
+        const progress = avatar.parentElement.querySelector('.inset-y-0.left-0')
+        expect(swatches.get(owner), `${owner}'s legend swatch`).to.equal(paint(progress))
+      })
+    })
+  })
+
   it('dragging a bar posts the contract PATCH and reconciles', () => {
     cy.intercept('PATCH', '/admin/projects/*/schedule').as('patch')
     cy.visit('/bali/gantt/editable')
