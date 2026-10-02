@@ -12,7 +12,8 @@ module Bali
         # the colour reads at 1.59:1 for `warning` and 1.68:1 for `accent`;
         # base-content on the same 20% tint is 9.25:1 at worst (AA wants 4.5).
         # `neutral` falls through to NEUTRAL_HIGHLIGHT: `bg-neutral` is a dark theme's fill,
-        # and its tint vanished against an empty day.
+        # and its tint vanished against an empty day. `ghost` is the ink at 8% for the same
+        # reason: base-300/50 steps down on the dark themes, 1.05:1 against an empty day.
         DAY_COLORS = {
           primary: "bg-primary/20 text-base-content hover:bg-primary hover:text-primary-content",
           secondary: "bg-secondary/20 text-base-content hover:bg-secondary hover:text-secondary-content",
@@ -21,7 +22,7 @@ module Bali
           success: "bg-success/20 text-base-content hover:bg-success hover:text-success-content",
           warning: "bg-warning/20 text-base-content hover:bg-warning hover:text-warning-content",
           error: "bg-error/20 text-base-content hover:bg-error hover:text-error-content",
-          ghost: "bg-base-300/50 text-base-content hover:bg-base-300"
+          ghost: "bg-base-content/8 text-base-content hover:bg-base-content/20"
         }.freeze
 
         NEUTRAL_HIGHLIGHT = "bg-base-content/20 text-base-content hover:bg-base-content hover:text-base-100"

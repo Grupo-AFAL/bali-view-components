@@ -4651,7 +4651,8 @@ your scope, and reports a missing translation. Write the full key:
 `t('events.calendar.month_summary', count: events.size)`.
 
 **How a day is painted.** At rest a day with events wears a 20% tint of its `day_variant` colour
-with the number in `base-content`; under the pointer it turns the solid colour. There is no
+with the number in `base-content`; under the pointer it turns the solid colour. `:ghost` has no
+colour of its own: it tints with the text at 8%, and at 20% under the pointer. There is no
 hover on a touch screen, so there the tint is the only look.
 
 **Touch screens.** The first tap on a day that has a hover card opens the card and the second
