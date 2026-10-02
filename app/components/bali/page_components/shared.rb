@@ -12,6 +12,10 @@ module Bali
       SECONDARY_ACTIONS_LABEL_KEY = "bali_view.page_components.secondary_actions.button_label"
       EXPORT_MENU_TITLE_KEY = "bali_view.page_components.export.menu_title"
 
+      # The formats `with_export` offers. Their labels stay under
+      # `bali_view.data_table.export.formats`: moving the keys would drop a host's override.
+      EXPORT_FORMATS = %i[csv excel pdf json].freeze
+
       # ONE width table for the five. It used to live duplicated in DashboardPage (four keys,
       # no `sm`/`md`) and in FormPage (five, no `2xl`), and the other three had no
       # `max_width:` at all — so the same symbol meant a different width depending on the
@@ -131,10 +135,10 @@ module Bali
       # Export the listing. It lives here and not in the DataTable toolbar because exporting
       # is an action ON the page, not a control over how the listing looks — and that way
       # importing or printing have somewhere to land later. It is called "Export filtered"
-      # because the link carries the active slice along (see Bali::DataTable::ExportLinks).
+      # because the link carries the active slice along.
       #
       # @param url [String] Base URL of the listing (without `format`)
-      # @param formats [Array<Symbol>] Formats to offer
+      # @param formats [Array<Symbol>] Formats to offer, out of EXPORT_FORMATS; others are skipped
       # @param params [Hash, nil] Slice to carry along. `nil` reads it from the request; `{}`
       #   is the explicit opt-out.
       def with_export(url:, formats: %i[csv excel pdf], params: nil)
@@ -239,17 +243,21 @@ module Bali
       def export_menu_items
         return [] unless @export_options
 
-        items = [ { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id } ]
-        export_links.items.each do |item|
-          # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which
-          # does nothing under Turbo. `data-turbo="false"` IS needed: a CSV is not a response
-          # Turbo Drive can render, and the visit stalls halfway instead of firing the
-          # download.
-          items << { href: item[:url], name: item[:label], icon: "file-export", method: nil,
-                     "aria-describedby": export_menu_title_id,
-                     data: { turbo: false, export_links_target: "link" } }
-        end
-        items
+        params = @export_options[:params] || request_query_params
+        formats = @export_options[:formats].map(&:to_sym) & EXPORT_FORMATS
+        title = { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id }
+        [ title, *formats.map { |format| export_menu_item(format, params) } ]
+      end
+
+      # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which does
+      # nothing under Turbo. `data-turbo="false"` IS needed: a CSV is not a response Turbo
+      # Drive can render, and the visit stalls halfway instead of firing the download.
+      def export_menu_item(format, params)
+        { href: build_toolbar_href(@export_options[:url], params, :format, format),
+          name: I18n.t("bali_view.data_table.export.formats.#{format}"),
+          icon: "file-export", method: nil,
+          "aria-describedby": export_menu_title_id,
+          data: { turbo: false, export_links_target: "link" } }
       end
 
       # Unique per render and not fixed: two page components on the same page would repeat
@@ -264,14 +272,6 @@ module Bali
       # controller undid that as soon as Stimulus booted, with the Ruby tests green.
       def export_links_sync?
         @export_options.nil? || @export_options[:params].nil?
-      end
-
-      def export_links
-        Bali::DataTable::ExportLinks.new(
-          url: @export_options[:url],
-          formats: @export_options[:formats],
-          params: @export_options[:params] || request_query_params
-        )
       end
 
       def breadcrumb_spacer_class

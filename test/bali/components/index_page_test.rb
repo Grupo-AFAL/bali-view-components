@@ -116,6 +116,38 @@ class BaliIndexPageComponentTest < ComponentTestCase
     refute_includes href, "page="
   end
 
+  # On the server `clear_filters` runs `Rails.cache.delete(cache_key)`: a user standing on
+  # `?clear_filters=true` wiped their stored filters by clicking export.
+  def test_export_links_drop_the_one_shot_orders
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", params: { "clear_filters" => "true", "clear_search" => "true" })
+      page.with_body { "Content" }
+    end
+
+    assert_selector('a[href="/movies?format=csv"]', visible: :all)
+  end
+
+  # A bare `?` gave `/movies?scope=archived?format=csv`, which Rack reads as ONE corrupt scope and
+  # no format.
+  def test_export_links_keep_the_query_string_of_the_url
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies?scope=archived", params: {})
+      page.with_body { "Content" }
+    end
+
+    assert_selector('a[href="/movies?format=csv&scope=archived"]', visible: :all)
+  end
+
+  def test_export_offers_the_known_formats_in_the_order_given
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", formats: %i[pdf xml csv])
+      page.with_body { "Content" }
+    end
+
+    links = page.all('[data-export-links-target="link"]', visible: :all)
+    assert_equal %w[/movies?format=pdf /movies?format=csv], links.pluck("href")
+  end
+
   def test_export_links_read_the_slice_from_the_request_by_default
     with_request_url "/admin/movies?q%5Bname_cont%5D=dune&page=2" do
       render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
