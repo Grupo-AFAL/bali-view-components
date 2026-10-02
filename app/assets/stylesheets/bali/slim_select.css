@@ -630,7 +630,7 @@
   /* Searching/loading message */
   .ss-searching {
     padding: var(--ss-spacing-l);
-    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     font-size: 0.875rem;
   }
 
@@ -639,7 +639,7 @@
      the top search bar's padding, border, and magnifier ::before icon. */
   .ss-search {
     padding: var(--ss-spacing-s) var(--ss-spacing-l);
-    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     font-size: 0.875rem;
     border-bottom: none;
 
@@ -784,7 +784,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   }
 }
 
