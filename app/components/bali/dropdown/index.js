@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
 import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 // tippy's own `preventOverflow` padding, so both modes stop the same distance from the edge.
@@ -14,7 +15,7 @@ export class DropdownController extends Controller {
     // the reader operates, so ids, Stimulus targets, `data-turbo-confirm` and every
     // listener already on it survive the trip. `this.menu` is captured at connect, before
     // the move, because a Stimulus target lookup is scoped to the controller element and
-    // stops finding it the moment tippy appends the popper to `<body>`.
+    // stops finding it the moment tippy moves the menu into its popper.
     popover: { type: Boolean, default: false },
     placement: { type: String, default: 'bottom-start' }
   }
@@ -83,7 +84,11 @@ export class DropdownController extends Controller {
     // also what keeps the two modes behaving alike.
     this.tippy = tippy(this.triggerTarget, {
       content: this.menu,
-      appendTo: () => document.body,
+      // Inside a Modal or Drawer, everything outside the `<dialog>` is inert: hung off
+      // `<body>` there, the menu opened under the panel with 0 of its 3 items reachable
+      // (#1269). Asked on every show, not once at connect: a dropdown in a panel rendered
+      // closed connects before its dialog is modal.
+      appendTo: (reference) => topLayerHost(reference) ?? document.body,
       trigger: 'manual',
       hideOnClick: false,
       interactive: true,
@@ -234,8 +239,8 @@ export class DropdownController extends Controller {
   }
 
   // Everything this dropdown is made of, whichever mode it is in. In popover mode the menu
-  // hangs off `<body>` rather than off the wrapper, so `this.element.contains` on its own
-  // answers "not mine" about this dropdown's own panel.
+  // hangs off `<body>`, or off the dialog around the dropdown, rather than off the wrapper,
+  // so `this.element.contains` on its own answers "not mine" about this dropdown's own panel.
   owns (node) {
     if (!node) return false
 

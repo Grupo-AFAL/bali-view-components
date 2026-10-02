@@ -352,6 +352,112 @@ describe('DropdownController', () => {
     })
   })
 
+  // #1269: Modal and Drawer open with `showModal()`, which makes everything outside the
+  // `<dialog>` inert. A popper on `<body>` opened there — `aria-expanded="true"`, the popper in
+  // the DOM — with not one item the pointer or the keyboard could reach.
+  context('popover mode inside a Modal or Drawer', () => {
+    const OVERLAYS = {
+      Modal: { dialog: '#dropdown-modal', event: 'bali:modal:open' },
+      Drawer: { dialog: '#dropdown-drawer', event: 'bali:drawer:open' }
+    }
+    const item = '[data-tippy-root] [role="menuitem"]'
+
+    const expectModal = ($dialog) => expect($dialog[0].matches(':modal'), ':modal').to.equal(true)
+
+    // `elementFromPoint` and not `be.visible`: an item painted under the panel, or made inert by
+    // it, is still visible to Cypress.
+    const expectTopMostAtTheirCentres = ($items) => {
+      expect($items, 'menu items').to.have.length(3)
+      $items.each((_, el) => {
+        const rect = el.getBoundingClientRect()
+        const hit = el.ownerDocument.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+        expect(el.contains(hit), `"${el.textContent.trim()}" is the top-most thing at its centre`).to.equal(true)
+      })
+    }
+
+    Object.entries(OVERLAYS).forEach(([name, { dialog, event }]) => {
+      context(name, () => {
+        // The trigger buttons are what a reader clicks, but a click scrolls them into view, and
+        // one test needs the page behind left where it was. Same event, same addressed open.
+        const openOverlay = () => {
+          cy.window().then((win) => {
+            win.document.dispatchEvent(
+              new win.CustomEvent(event, { detail: { id: dialog.slice(1), options: {} } })
+            )
+          })
+          cy.get(dialog).should(expectModal)
+        }
+
+        beforeEach(() => {
+          cy.visit('/bali/dropdown/in_dialog')
+          cy.get(`${dialog} ${popoverDropdown}`).find(menu).should('not.exist')
+        })
+
+        it('hangs the menu off the dialog with every item reachable', () => {
+          openOverlay()
+          cy.get(`${dialog} ${trigger}`).click()
+
+          cy.get('[data-tippy-root]').should(($popper) => {
+            expect($popper[0].parentElement, 'the popper parent').to.equal(Cypress.$(dialog)[0])
+          })
+          cy.get(item).should(expectTopMostAtTheirCentres)
+        })
+
+        // `showModal()` leaves the page behind scrollable. Popper measures against the dialog,
+        // which is `position: fixed`, so the menu has to land under its trigger at any offset.
+        it('keeps the menu under its trigger with the page behind scrolled', () => {
+          cy.document().then((doc) => {
+            const spacer = doc.createElement('div')
+            spacer.style.height = '3000px'
+            doc.body.appendChild(spacer)
+          })
+          cy.scrollTo(0, 1500)
+          openOverlay()
+          cy.get(`${dialog} ${trigger}`).click()
+
+          cy.window().its('scrollY').should('equal', 1500)
+          cy.get(item).should(expectTopMostAtTheirCentres)
+          cy.get(`${dialog} ${trigger}`).then(($trigger) => {
+            cy.get('[data-tippy-root]').should(($popper) => {
+              const gap = $popper[0].getBoundingClientRect().top - $trigger[0].getBoundingClientRect().bottom
+              // tippy's `offset: [0, 4]`.
+              expect(gap, 'distance from the trigger').to.be.closeTo(4, 1)
+            })
+          })
+        })
+
+        // No `{ force: true }`: `cy.click()` refuses an element something else covers.
+        it(`takes a click on an item and leaves the ${name} open`, () => {
+          openOverlay()
+          cy.get(`${dialog} ${trigger}`).click()
+
+          cy.get(item).contains('Export').click()
+
+          cy.get(dialog).should(expectModal)
+        })
+
+        // `focus()` cannot land on an inert node, so the keyboard was locked out too.
+        it('walks the items from the keyboard', () => {
+          const expectFocusOn = (label) =>
+            cy.document().should((doc) => {
+              const focused = doc.activeElement
+              const name = focused.matches(item) ? focused.textContent.trim() : `<${focused.tagName.toLowerCase()}>`
+              expect(name, 'the focused element').to.equal(label)
+            })
+
+          openOverlay()
+          cy.get(`${dialog} ${trigger}`).focus()
+
+          press('ArrowDown')
+          expectFocusOn('Edit')
+
+          press('ArrowDown')
+          expectFocusOn('Export')
+        })
+      })
+    })
+  })
+
   // #1231: daisyUI anchors the panel to one edge of the trigger and never looks at the screen.
   // The page ⋯ is `align: :end`; below `sm` its row wraps and the trigger lands at the left of
   // it (IndexPage) or mid-row (ShowPage, after three actions), where its w-80 menu opened at
