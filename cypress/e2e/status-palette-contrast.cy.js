@@ -1,5 +1,6 @@
 import { paintedContrast } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
+import { THEMES } from '../support/themes'
 
 // The palette's pairs at rest are test_every_palette_pair_reads_at_aa's job. What only a
 // browser shows is a row of the editable panel under the pointer: the row's `:hover` rule
@@ -12,8 +13,9 @@ import { hover, unhover } from '../support/tap'
 // row's background-image and nothing else computed for the row, its ancestors or their
 // pseudo-elements. One run stands for all six themes only while that overlay is a flat black:
 // a `color-mix` of base-content follows the theme, and its stops serialize as oklch(), not rgba().
-describe('Status palette: hovered panel rows', () => {
+describe('Status palette contrast', () => {
   const AA = 4.5
+  const NON_TEXT = 3
   const FLAT_BLACK = /^linear-gradient\((rgba\(0, 0, 0, [\d.]+\)), \1\)$/
   const PSEUDOS = ['', '::before', '::after', '::first-line', '::first-letter']
 
@@ -48,6 +50,18 @@ describe('Status palette: hovered panel rows', () => {
     })
   }
 
+  const expectFlatBlackAtAA = (row, changed, what) => {
+    const { backgroundImage } = row.ownerDocument.defaultView.getComputedStyle(row)
+
+    expect(changed, `${what}: what the hover changes`).to.deep.equal(['0 background-image'])
+    expect(backgroundImage, `${what}: a flat black overlay`).to.match(FLAT_BLACK)
+
+    const [, overlay] = backgroundImage.match(FLAT_BLACK)
+    expect(paintedContrast(row, { under: overlay }), `${what} hovered`).to.be.at.least(AA)
+  }
+
+  const caretContrast = (caret) => paintedContrast(caret, { property: 'borderTopColor' })
+
   afterEach(() => { unhover() })
 
   it('paints only a flat black overlay on a hovered colour row, at 4.5:1 or more', () => {
@@ -55,27 +69,46 @@ describe('Status palette: hovered panel rows', () => {
     cy.get('[data-status-target="trigger"]').click()
 
     cy.get('.status-option:not(.status-option--none)').should('have.length', 12).each(($row) => {
-      hoverRow($row, (row, changed) => {
-        const { backgroundImage } = row.ownerDocument.defaultView.getComputedStyle(row)
+      hoverRow($row, (row, changed) => expectFlatBlackAtAA(row, changed, row.value))
+    })
+  })
 
-        expect(changed, `${row.value}: what the hover changes`)
-          .to.deep.equal(['0 background-image'])
-        expect(backgroundImage, `${row.value}: a flat black overlay`).to.match(FLAT_BLACK)
+  // The caret is drawn in the pill's text colour and is what tells an editable pill from a
+  // read-only one, so it owes WCAG 1.4.11's 3:1 against the pill. At `opacity: 0.7` it read
+  // 2.89:1 on pink and 2.99 on red. The pairs are inline, so one theme stands for six.
+  it('draws the caret of every colour at 3:1 on its pill', () => {
+    cy.visit('/bali/status/palette?editable=true')
 
-        const [, overlay] = backgroundImage.match(FLAT_BLACK)
-        expect(paintedContrast(row, { under: overlay }), `${row.value} hovered`).to.be.at.least(AA)
+    cy.get('.status-pill:not(.status-pill--none) .status-pill__caret').should(($carets) => {
+      expect($carets, 'a caret per colour').to.have.length(12)
+      $carets.each((_, caret) => {
+        const colour = caret.closest('.status-pill').textContent.trim()
+        expect(caretContrast(caret), `${colour} caret`).to.be.at.least(NON_TEXT)
       })
     })
   })
 
-  // The black over the bare panel would take the row's muted text from 4.66 to 4.48:1 on `light`.
-  it('leaves the no-status row as it is under the pointer', () => {
-    cy.visit('/bali/status/editable')
-    cy.get('[data-status-target="trigger"]').click()
+  // No status is base-content mixed with transparent, over the page under the pill and over the
+  // panel under its row, so it follows the theme: mixed at 60% the text read 4.04:1 on `afal`
+  // and 4.32 on `costa-norte`.
+  THEMES.forEach((theme) => {
+    it(`reads the no-status pill, its caret and its panel row at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/status/palette')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
-    cy.get('.status-option--none').should('have.length', 1).then(($row) => {
-      hoverRow($row, (_row, changed) => {
-        expect(changed, 'what the hover changes').to.deep.equal([])
+      cy.get('.status-pill--none').should('have.length', 1).should(([pill]) => {
+        expect(pill.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
+        expect(paintedContrast(pill.querySelector('.status-pill__label > span')), `${theme}: pill text`)
+          .to.be.at.least(AA)
+        expect(caretContrast(pill.querySelector('.status-pill__caret')), `${theme}: pill caret`)
+          .to.be.at.least(NON_TEXT)
+      })
+
+      cy.get('[data-status-target="trigger"]').click()
+      cy.get('.status-option--none').should('have.length', 1).should(([row]) => {
+        expect(paintedContrast(row), `${theme}: row text`).to.be.at.least(AA)
+      }).then(($row) => {
+        hoverRow($row, (row, changed) => expectFlatBlackAtAA(row, changed, `${theme}: row`))
       })
     })
   })

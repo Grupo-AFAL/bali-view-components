@@ -46,12 +46,16 @@ module Bali
         )
       end
 
-      # Full named palette gallery: the twelve as pills, then as the rows of an
-      # editable pill's panel. The pairs are public API:
+      # Full named palette gallery: the twelve as pills, then an editable pill with
+      # no status whose panel lists them as rows. The pairs are public API:
       # `Bali::Status.palette(:green)` returns the `{ bg:, fg: }` hex pair for
       # painting something that is not a pill (a Gantt bar) in the same colour.
-      def palette
+      # `editable` gives the twelve their caret.
+      # @param editable toggle
+      def palette(editable: false)
         render_with_template(locals: {
+          editable: editable,
+          form: { url: "/lookbook", method: :patch, param: "palette[status]" },
           options: Bali::Status::Component::PALETTE.keys.map do |name|
             { value: name.to_s, label: name.to_s.titleize, color: name }
           end
