@@ -1,16 +1,18 @@
 <%= render Bali::AppLayout::Component.new(fixed_sidebar: false, drawer_size: :md, flash: {}) do |layout| %>
   <% layout.with_topbar do %>
-    <div class="flex items-center justify-end gap-2 px-4 py-2 bg-base-100 border-b border-base-300">
-      <%= render Bali::Link::Component.new(
-        name: "User details",
-        href: "/drawers/user_details",
-        icon: "user",
-        drawer: true,
-        variant: :primary,
-        size: :sm,
-        data: { testid: "topbar-drawer-trigger" }
-      ) %>
-    </div>
+    <%= render Bali::Topbar::Component.new(menu_id: nil) do |bar| %>
+      <% bar.with_action do %>
+        <%= render Bali::Link::Component.new(
+          name: "User details",
+          href: "/drawers/user_details",
+          icon: "user",
+          drawer: true,
+          variant: :primary,
+          size: :sm,
+          data: { testid: "topbar-drawer-trigger" }
+        ) %>
+      <% end %>
+    <% end %>
   <% end %>
 
   <% layout.with_body do %>

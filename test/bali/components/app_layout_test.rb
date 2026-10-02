@@ -149,7 +149,6 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_selector(".drawer-panel.max-w-sm")
   end
 
-  # Why <body> and not <main>: Component#body_controllers (#1268).
   def test_mounts_the_modal_and_drawer_controllers_on_body
     render_inline(Bali::AppLayout::Component.new(modal: true, drawer: true)) do |layout|
       layout.with_body { "Content" }
