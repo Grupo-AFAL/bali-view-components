@@ -42,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
   `<span class="bg-primary/10 text-soft-primary">12</span>`.
 
+- **`Bali::Color.soft(color)`**: la mezcla de `text-soft-*` como valor CSS, para un hex que
+  ninguna utilidad puede nombrar (#1274). StatCard pinta con ella el ícono de `custom_color:`.
+
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
   al lado. Cada estado es una forma distinta, también con colores forzados. **gobierno-corporativo**
@@ -158,7 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Un color sobre su propio tinte pasa a `text-soft-<color>` también en íconos, botones y
   referencias** (#1274), o a la misma mezcla escrita a mano donde ninguna utilidad nombra el
-  color (para un hex, `Bali::Color.soft`):
+  color:
   - `StatCard`: el ícono, también con `custom_color:`. `neutral` y `ghost` ya pintaban
     `base-content` y no cambian.
   - `DashboardPage#with_stat`: la línea `change:`, que lee la misma clase que ese ícono.
@@ -168,9 +171,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `opacity: 0.7`.
 
   Lo ve toda app que use esos componentes: esos colores salen más oscuros en los temas claros y
-  más claros en los oscuros. Nada que hacer en el anfitrión. Con `custom_color:` el tinte sigue
-  siendo el hex, pero el ícono ya no: en **costa-norte** deja de ser el color exacto de la
-  píldora de estatus, y el comentario de `shipment_status_hex` que lo afirma queda viejo.
+  más claros en los oscuros. Ningún cambio de código en el anfitrión. Con `custom_color:` el
+  tinte sigue siendo el hex, pero el ícono ya no: en **costa-norte** deja de ser el color exacto
+  de la píldora de estatus, así que hay que corregir los dos comentarios que lo afirman, el de
+  `shipment_status_hex` y el de `dashboard/show.html.erb`.
 
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
