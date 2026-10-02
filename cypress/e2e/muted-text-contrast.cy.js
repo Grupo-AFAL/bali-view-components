@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { BALI_THEMES, THEMES } from '../support/themes'
 
 const AA = 4.5
 const NON_TEXT = 3
@@ -162,6 +162,23 @@ describe('muted text contrast', () => {
     ],
     'widget/default?pattern=list&count=0': [
       ['empty message', '.bali-widget-detail > p', 1]
+    ],
+    // daisyUI's `.stat-title` paints the hero's title at /60.
+    'widget/default?size=small&pattern=value': [
+      ['hero title', '.stat-title', 1]
+    ],
+    'qr_scanner/default': [
+      ['hint', '.qr-scanner-hint', 1]
+    ],
+    'stepper/with_sublabels': [
+      ['sublabel', '.step-sublabel', 3]
+    ],
+    'chat/bubbles': [
+      ['timestamp', '.chat-header time', 2]
+    ],
+    // The default bubble; the primary one is measured on its own below.
+    'chat/typing_indicator?show_label=true': [
+      ['typing label', '#typing-visible .chat-bubble span.text-xs', 1]
     ],
     'widget_grid/default': [
       ['edit hint', '[data-controller~="bali-widget-grid-edit-mode"] > div:first-child > p', 1]
@@ -386,6 +403,19 @@ describe('muted text contrast', () => {
     THEMES.forEach((theme) => {
       it(`reads the muted text of ${page} at AA with ${opened} on the ${theme} theme`, () => {
         guard({ page, stub, open, targets, theme, floor: AA })
+      })
+    })
+  })
+
+  // On a primary bubble the label stands on the theme's own pair, 5.25:1 on `afal`, where 70%
+  // measured 3.33. daisyUI's `dark` paints that pair at 4.13 (theme-primary-contrast.cy.js).
+  BALI_THEMES.forEach((theme) => {
+    it(`reads the typing label on a primary bubble at AA on the ${theme} theme`, () => {
+      guard({
+        page: 'chat/typing_indicator?show_label=true',
+        targets: [['typing label on a primary bubble', '#typing-end .chat-bubble-primary span.text-xs', 1]],
+        theme,
+        floor: AA
       })
     })
   })
