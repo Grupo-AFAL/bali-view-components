@@ -1,102 +1,103 @@
-# Modo oscuro: temas validados e interruptor en el menú de usuario — Design
+# Dark mode: validated themes and a switch in the user menu — Design
 
 Date: 2026-10-01
 Status: Approved (brainstorming) — 2026-10-01
 
 ## Purpose
 
-Las apps del grupo no tienen modo oscuro. Bali ya trae `afal-dark`, pero como borrador que nadie
-validó ni activa, y Costa Norte no tiene tema oscuro en Bali: la app costa-norte define un
-`costa-norte-dark` propio sólo para pintar oscuro su menú lateral.
+The group's apps have no dark mode. Bali already ships `afal-dark`, but as a draft nobody has
+validated or turned on, and Costa Norte has no dark theme in Bali: the costa-norte app defines a
+`costa-norte-dark` of its own only to paint its sidebar dark.
 
-Este diseño entrega dos temas oscuros validados —uno para AFAL y otro para Costa Norte— y una
-forma de que cada persona elija claro u oscuro desde el menú de usuario, sin que ninguna app
-cambie hasta que lo active.
+This design delivers two validated dark themes — one for AFAL, one for Costa Norte — and a way
+for each person to choose light or dark from the user menu, with no app changing until it opts
+in.
 
-## Decisiones (de la sesión de brainstorming)
+## Decisions (from the brainstorming session)
 
-| Pregunta | Decisión |
+| Question | Decision |
 |---|---|
-| Cómo llega la persona al modo oscuro | Un interruptor; vive en el menú de usuario (`Bali::Topbar::UserMenu`), no en el Topbar |
-| Dónde se recuerda la elección | Una cookie del navegador, que el servidor lee para pintar la página ya en oscuro |
-| Qué ve quien no ha elegido | Claro. El interruptor tiene dos posiciones: claro y oscuro |
-| De dónde sale el Costa Norte oscuro | Del `costa-norte-dark` que la app ya usa en su menú lateral, completado a tema entero |
+| How a person reaches dark mode | A switch; it lives in the user menu (`Bali::Topbar::UserMenu`), not in the Topbar |
+| Where the choice is remembered | A browser cookie, which the server reads to paint the page already dark |
+| What someone who has not chosen sees | Light. The switch has two positions: light and dark |
+| Where the dark Costa Norte comes from | The `costa-norte-dark` the app already uses on its sidebar, completed into a whole theme |
 
-## 1. Los temas
+## 1. The themes
 
-**`afal-dark`** existe en `app/assets/stylesheets/bali/themes/afal-dark.css`. Se valida completo
-(sección 4) y se ajustan los tokens que no pasen. Tras la aprobación visual, su cabecera deja de
-decir «DRAFT / EXPERIMENTAL».
+**`afal-dark`** exists in `app/assets/stylesheets/bali/themes/afal-dark.css`. It is validated in
+full (section 4) and the tokens that fail are adjusted. After the visual approval its header stops
+saying "DRAFT / EXPERIMENTAL".
 
-**`costa-norte-dark`** es nuevo en `app/assets/stylesheets/bali/themes/costa-norte-dark.css`. Parte
-de los valores que costa-norte tiene hoy en `app/assets/tailwind/application.css` (superficies
-teal oscuras, primario dorado, texto claro) **sin cambiarlos**, para que la app pueda borrar su
-bloque al subir de versión y su menú lateral se vea igual. Se completa con lo que un tema entero
-necesita y se valida igual que `afal-dark`.
+**`costa-norte-dark`** is new, in `app/assets/stylesheets/bali/themes/costa-norte-dark.css`. It
+starts from the values costa-norte has today in `app/assets/tailwind/application.css` (dark teal
+surfaces, gold primary, light text) **without changing them**, so the app can delete its block on
+upgrading and its sidebar looks the same. It is completed with what a whole theme needs and
+validated like `afal-dark`.
 
-Los dos se publican por el mismo `exports` de `package.json` que ya sirve `css/themes/*.css`, así
-que una app los importa con `@import "bali-view-components/css/themes/<tema>.css";`.
+Both are published through the same `package.json` `exports` that already serves
+`css/themes/*.css`, so an app imports them with
+`@import "bali-view-components/css/themes/<theme>.css";`.
 
-## 2. Adopción en una app
+## 2. Adoption in an app
 
-Tres cambios por app, que el CHANGELOG nombra:
+Three changes per app, which the CHANGELOG names:
 
-1. **Configuración.** En `config/initializers/bali.rb`:
+1. **Configuration.** In `config/initializers/bali.rb`:
    `Bali.themes = { light: "afal", dark: "afal-dark" }` (costa-norte: `costa-norte` /
-   `costa-norte-dark`). Sin esta línea nada cambia: no hay interruptor y el helper devuelve el
-   tema claro.
-2. **Layout.** `<html data-theme="afal">` pasa a `<html data-theme="<%= bali_theme %>">`.
-   `bali_theme` (helper de Bali expuesto a las vistas del host, como `react_island_meta_tags`)
-   lee la cookie y devuelve el tema claro u oscuro configurado. Lo decide el servidor: la página
-   llega ya en oscuro, sin parpadeo.
-3. **Variante `dark:` de Tailwind.** La línea `@custom-variant dark (...)` de la app suma su tema
-   oscuro, para que las clases `dark:` también se activen con él.
+   `costa-norte-dark`). Without this line nothing changes: there is no switch and the helper
+   answers the light theme.
+2. **Layout.** `<html data-theme="afal">` becomes `<html data-theme="<%= bali_theme %>">`.
+   `bali_theme` (a Bali helper exposed to the host's views, like `react_island_meta_tags`) reads
+   the cookie and answers the configured light or dark theme. The server decides: the page
+   arrives already dark, with no flash.
+3. **Tailwind's `dark:` variant.** The app's `@custom-variant dark (...)` line adds its dark
+   theme, so `dark:` classes fire under it too.
 
-**La cookie** se llama `bali_theme` y guarda `light` o `dark`, con `path=/`, un año y
-`SameSite=Lax`. No es `HttpOnly`: la escribe el JS del interruptor. Nombre y valores son un
-contrato entre Ruby (que la lee) y JS (que la escribe): mismo patrón en los dos lados, cada uno
-nombrando al otro y con una prueba de cada lado. Cualquier otro valor se lee como claro.
+**The cookie** is called `bali_theme` and holds `light` or `dark`, with `path=/`, one year and
+`SameSite=Lax`. It is not `HttpOnly`: the switch's JS writes it. Name and values are a contract
+between Ruby (which reads it) and JS (which writes it): the same pattern on both sides, each
+naming the other, with a test on each side. Any other value reads as light.
 
-**Límite conocido:** la elección es por app y por dispositivo; cada app vive en su dominio y una
-cookie no lo cruza. Una preferencia de flota pediría guardarla en la cuenta (Pasaporte), fuera de
-este diseño.
+**Known limit:** the choice is per app and per device; each app lives on its own domain and a
+cookie does not cross it. A fleet-wide preference would need storing it on the account
+(Pasaporte), outside this design.
 
-## 3. El interruptor
+## 3. The switch
 
-- **Dónde:** un ítem de `Bali::Topbar::UserMenu`, entre los ítems de la app y «Cerrar sesión».
-  Sólo se pinta si `Bali.themes` declara un tema `dark:`.
-- **Cómo se ve:** «Modo oscuro» con un ícono de luna y un interruptor visual a la derecha que
-  muestra el estado. La etiqueta no cambia con el estado.
-- **Accesibilidad:** un `<button role="menuitemcheckbox" aria-checked="true|false">`. El
-  controlador del dropdown recorre con las flechas los `menuitem*`, no sólo los `menuitem`, así
-  que el ítem entra en el teclado que dejó #1244.
-- **Qué hace:** un controlador Stimulus cambia `data-theme` del `<html>` al otro tema del par,
-  escribe la cookie y actualiza `aria-checked`, sin recargar. El menú se queda abierto (un clic
-  dentro del menú no lo cierra), así que la persona ve el cambio y puede deshacerlo.
-- **Los nombres de los temas** viajan del Ruby al controlador como values de Stimulus, desde
-  `Bali.themes`; no están escritos en el JS.
-- **Textos:** `bali_view.topbar.user_menu.dark_mode` — «Modo oscuro» / «Dark mode».
-- **Fuera de alcance:** un interruptor suelto fuera del menú de usuario. identity, la única app
-  sin `UserMenu`, migra su topbar en Grupo-AFAL/identity#350.
+- **Where:** an item of `Bali::Topbar::UserMenu`, between the app's items and "Sign out". It is
+  only rendered when `Bali.themes` declares a `dark:` theme.
+- **How it looks:** "Dark mode" with a moon icon and a visual switch on the right showing the
+  state. The label does not change with the state.
+- **Accessibility:** a `<button role="menuitemcheckbox" aria-checked="true|false">`. The dropdown
+  controller walks the `menuitem*` roles with the arrow keys, not only `menuitem`, so the item
+  joins the keyboard support #1244 left.
+- **What it does:** a Stimulus controller flips `<html data-theme>` to the other theme of the
+  pair, writes the cookie and updates `aria-checked`, without reloading. The menu stays open (a
+  click inside the menu does not close it), so the person sees the change and can undo it.
+- **The theme names** travel from Ruby to the controller as Stimulus values, from
+  `Bali.themes`; they are not written in the JS.
+- **Copy:** `bali_view.topbar.user_menu.dark_mode` — "Dark mode" / "Modo oscuro".
+- **Out of scope:** a standalone switch outside the user menu. identity, the only app without
+  `UserMenu`, migrates its topbar in Grupo-AFAL/identity#350.
 
-## 4. Validación
+## 4. Validation
 
-- **Barrido de contraste** de todos los previews de Lookbook en `afal-dark` y `costa-norte-dark`,
-  con pintado real (`paintedContrast`, que compone alfa, opacidad y fondos translúcidos): texto a
-  4.5:1. Lo que falle por el tema se corrige en el tema; lo que sea receta de un componente va a
-  un issue aparte.
-- **Guardias permanentes:** una sola lista de temas en `cypress/support/`, que las guardias de
-  contraste comparten y que suma `costa-norte-dark` (resuelve la parte de la lista duplicada de
-  #1252). `test/bali/themes_test.rb` exige el archivo nuevo y su completitud.
-- **ThemeSampler:** página de `costa-norte-dark` junto a la de `afal-dark`; capturas de los dos
-  para la aprobación visual.
-- **Pruebas del interruptor:** Minitest (el helper según la cookie y la configuración; el ítem
-  sólo con `dark:` configurado; su marcado) y Cypress (el clic cambia el tema y escribe la cookie;
-  al recargar sigue oscuro; `aria-checked`; teclado). Cada una con su control negativo.
+- **Contrast sweep** of every Lookbook preview under `afal-dark` and `costa-norte-dark`, with
+  real painting (`paintedContrast`, which composites alpha, opacity and translucent grounds):
+  text at 4.5:1. What fails because of the theme is fixed in the theme; what is a component's
+  own recipe goes to a separate issue.
+- **Permanent guards:** a single theme list in `cypress/support/`, shared by the contrast guards
+  and adding `costa-norte-dark` (settles the duplicated-list part of #1252).
+  `test/bali/themes_test.rb` requires the new file and its completeness.
+- **ThemeSampler:** a `costa-norte-dark` page next to the `afal-dark` one; screenshots of both
+  for the visual approval.
+- **Switch tests:** Minitest (the helper by cookie and configuration; the item only with `dark:`
+  configured; its markup) and Cypress (the click flips the theme and writes the cookie; a reload
+  stays dark; `aria-checked`; keyboard). Each with its negative control.
 
-## 5. Lanzamiento
+## 5. Rollout
 
-1. Bali publica los temas y el interruptor; ninguna app cambia hasta configurarlo.
-2. El CHANGELOG lleva los tres pasos de la sección 2.
-3. Se activa primero en una app piloto de AFAL y en costa-norte, y se prueba en uso real antes de
-   extenderlo.
+1. Bali publishes the themes and the switch; no app changes until it configures them.
+2. The CHANGELOG carries the steps of section 2.
+3. It is turned on first in an AFAL pilot app and in costa-norte, and tried in real use before
+   it is extended.
