@@ -98,7 +98,7 @@ export class FileInputController extends Controller {
       <li class="flex items-center gap-2 text-sm">
         <span class="truncate">${escapedName}</span>
         <button type="button"
-                class="btn btn-ghost btn-xs text-error hover:bg-error/10"
+                class="btn btn-ghost btn-xs text-soft-error hover:bg-error/10"
                 data-action="file-input#removeFile"
                 data-file-input-name-param="${escapedName}"
                 aria-label="Remove ${escapedName}">

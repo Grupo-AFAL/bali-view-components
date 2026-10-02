@@ -6,13 +6,18 @@ import { THEMES } from '../support/themes'
 // contrast with a dilution of itself. Measured before `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css): the Command's match highlight in the active row
 // 2.23:1 on `dark` and 3.52 on `afal`, SideMenu's active item 4.12 on `afal`, its warning badge
-// 1.46 (#1245, #1247); a StatCard's warning icon 1.60 on `afal` (#1274). Each state is reached the
-// way a user reaches it: a query typed into the palette, a group opened, a mention picked, a
-// pointer resting on the button.
+// 1.46 (#1245, #1247); a StatCard's warning icon 1.60 on `afal` and the hovered remove-filter
+// button 2.27 there (#1274). Each state is reached the way a user reaches it: a query typed into
+// the palette, a group opened, a mention picked, a pointer resting on the button.
 describe('a colour over a tint of itself', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.
   const GRAPHIC = 3
+
+  const pickFile = () => {
+    cy.get('input[type="file"]').selectFile({ contents: Cypress.Buffer.from('%PDF-1.4'), fileName: 'contract.pdf' }, { force: true })
+    cy.get('[data-action="file-input#removeFile"]').should('have.length', 1)
+  }
 
   // [preview, how the state is reached, [[what, selector, how many, minimum = AA]], whether the
   // pointer is on it]
@@ -95,7 +100,26 @@ describe('a colour over a tint of itself', () => {
     // The footer the guide's StatCard example writes.
     ['stat_card/with_trend', null, [
       ['trend', '.card .text-sm > span:not(.icon-component)', 1]
-    ]]
+    ]],
+    ['filters/default?popover=false', () => {
+      cy.get('[data-action="condition#remove"]').then(hover)
+    }, [
+      ['hovered "Remove condition"', '[data-action="condition#remove"]', 1, GRAPHIC]
+    ], true],
+    ['filters/with_applied_tags', () => {
+      cy.get('[data-action="applied-tags#removeFilter"]').first().then(hover)
+    }, [
+      ['hovered "Remove filter"', '[data-action="applied-tags#removeFilter"]:hover', 1, GRAPHIC]
+    ], true],
+    ['form/file/multiple', pickFile, [
+      ['"Remove file"', '[data-action="file-input#removeFile"]', 1, GRAPHIC]
+    ]],
+    ['form/file/multiple', () => {
+      pickFile()
+      cy.get('[data-action="file-input#removeFile"]').then(hover)
+    }, [
+      ['hovered "Remove file"', '[data-action="file-input#removeFile"]', 1, GRAPHIC]
+    ], true]
   ]
 
   // Below `lg` a fixed SideMenu is a closed drawer, and its bottom group cannot be opened.
