@@ -6,9 +6,10 @@ import { THEMES } from '../support/themes'
 // contrast with a dilution of itself. Measured before `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css): the Command's match highlight in the active row
 // 2.23:1 on `dark` and 3.52 on `afal`, SideMenu's active item 4.12 on `afal`, its warning badge
-// 1.46 (#1245, #1247); a StatCard's warning icon 1.60 on `afal` and the hovered remove-filter
-// button 2.27 there (#1274). Each state is reached the way a user reaches it: a query typed into
-// the palette, a group opened, a mention picked, a pointer resting on the button.
+// 1.46 (#1245, #1247); a StatCard's warning icon 1.60 on `afal`, the hovered remove-filter button
+// 2.27 there, an accent entity reference 1.71 on `light` (#1274). Each state is reached the way a
+// user reaches it: a query typed into the palette, a group opened, a mention picked, a pointer
+// resting on the button.
 describe('a colour over a tint of itself', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.
@@ -148,6 +149,39 @@ describe('a colour over a tint of itself', () => {
               expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(minimum)
             })
           })
+        })
+      })
+    })
+  })
+
+  // The chip's name and its type label, at rest over a 15% tint and under the pointer over a 25%
+  // one, in every colour a host can name — the default `secondary` among them.
+  THEMES.forEach((theme) => {
+    it(`reads every entity reference at rest and under the pointer on the ${theme} theme`, () => {
+      const expectReads = (chip) => {
+        const what = `${theme}: ${chip.style.getPropertyValue('--entity-ref-color')}`
+        expect(paintedContrast(chip), `${what} name`).to.be.at.least(AA)
+        expect(paintedContrast(chip.querySelector('.bn-entity-reference-label')), `${what} type label`).to.be.at.least(AA)
+      }
+
+      cy.visit('/bali/block_editor/entity_reference_colors')
+      cy.get('.bn-entity-reference-link > .bn-entity-reference').should('have.length', 9)
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.document({ timeout: 10000 }).should((doc) => {
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+        doc.querySelectorAll('.bn-entity-reference').forEach((chip) => {
+          expect(chip.matches(':hover'), 'at rest').to.equal(false)
+          expectReads(chip)
+        })
+      })
+
+      cy.get('.bn-entity-reference').each(($chip) => {
+        cy.wrap($chip).then(hover)
+        cy.document({ timeout: 10000 }).should((doc) => {
+          expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+          expect($chip[0].matches(':hover'), 'under the pointer').to.equal(true)
+          expectReads($chip[0])
         })
       })
     })

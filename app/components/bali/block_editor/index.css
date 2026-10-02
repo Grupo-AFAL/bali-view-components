@@ -353,11 +353,14 @@
 
 /* Entity reference chips - styled inline elements for #references.
  * Each chip sets --entity-ref-color inline via JS for per-type coloring.
- * Host apps define colors via references_config Ruby param. */
+ * Host apps define colors via references_config Ruby param.
+ * The colour is `text-soft-*` written out, over any colour a host names: the colour itself
+ * over its own tint measured 1.71:1 for accent on `light`, 1.79 for the default secondary on
+ * `costa-norte` and 1.19 for neutral on `dark`. */
 .block-editor-component .bn-entity-reference {
   --entity-ref-color: var(--color-secondary);
   background-color: color-mix(in oklch, var(--entity-ref-color) 15%, transparent);
-  color: var(--entity-ref-color);
+  color: color-mix(in oklab, var(--entity-ref-color) 40%, var(--color-base-content));
   border-radius: 0.25rem;
   padding: 0.1em 0.35em;
   font-weight: 500;
@@ -374,8 +377,9 @@
   opacity: 0.7;
 }
 
+/* No `opacity` here: at 0.7 the type label read 2.97:1 over a warning chip on `afal`, 3.11 over
+ * a success one (AA: 4.5). The icon keeps it, the label beside it saying the same in words. */
 .block-editor-component .bn-entity-reference-label {
-  opacity: 0.7;
   font-size: 0.9em;
 }
 
