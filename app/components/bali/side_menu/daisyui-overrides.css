@@ -22,7 +22,7 @@
  * Rule of thumb when adding here: only rules whose right-most compound is a
  * daisyUI class, and only the declarations daisyUI also sets. The one other
  * adversary is a theme's own unlayered `[data-theme]` block, which a rail that
- * redefines a theme token has to outrank (the last rules of this file).
+ * redefines a theme token has to outrank (the last rule of this file).
  */
 
 /* ── .menu ───────────────────────────────────────────────────────────────
@@ -274,10 +274,10 @@
   }
 }
 
-/* A rail with its own `theme:` is chrome, and its hover, borders and the switcher's panel
-   sit a step ABOVE the rail. daisyUI's `dark` and Bali's dark themes step base-200/300
-   DOWN from base-100 (the page sits under its cards), which inside the rail put the panel
-   and the hover darker than the rail, 1.05–1.07:1. Mixing the ink into the rail lifts them
+/* A rail with its own `theme:` is chrome, and its borders and the switcher's panel sit a
+   step ABOVE the rail. daisyUI's `dark` and Bali's dark themes step base-200/300 DOWN from
+   base-100 (the page sits under its cards), which inside the rail put the panel darker than
+   the rail, 1.05–1.07:1. Mixing the ink into the rail lifts them
    whichever way the theme's own ramp runs; 8% and 18% paint 0.305 / 0.375 against the
    0.305 / 0.37 costa-norte hand-tuned for its rail. The theme files are unlayered `[data-theme="…"]`
    blocks, so this has to be unlayered too, and outranks them on specificity. */

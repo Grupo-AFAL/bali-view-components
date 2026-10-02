@@ -674,14 +674,14 @@
   white-space: normal;
   transition: background-color var(--ss-animation-timing) ease;
 
-  /* Hover state */
+  /* Hover and keyboard highlight: the ink at 8%, as on a menu item. base-200 steps down on
+     the dark themes and read 1.05:1 against the list. */
   &:hover:not(.ss-disabled) {
-    background-color: var(--color-base-200);
+    background-color: color-mix(in oklab, var(--color-base-content) 8%, transparent);
   }
 
-  /* Keyboard highlighted */
   &.ss-highlighted {
-    background-color: var(--color-base-200);
+    background-color: color-mix(in oklab, var(--color-base-content) 8%, transparent);
   }
 
   /* Selected state — blue text + checkmark, no background tint */
@@ -692,7 +692,7 @@
     padding-right: calc(12px + 1.25rem);
 
     &:hover {
-      background-color: var(--color-base-200);
+      background-color: color-mix(in oklab, var(--color-base-content) 8%, transparent);
     }
 
     &::after {

@@ -69,5 +69,9 @@ export const paintedLuminance = (doc, ...colours) => {
     ctx.fillStyle = colour
     ctx.fillRect(0, 0, 1, 1)
   })
-  return luminance([...ctx.getImageData(0, 0, 1, 1).data])
+  const pixel = [...ctx.getImageData(0, 0, 1, 1).data]
+  // A canvas hands back a translucent pixel un-premultiplied — the bare ink — so a colour
+  // with nothing opaque under it would measure as if it were solid.
+  if (pixel[3] !== 255) throw new Error(`paintedLuminance: ${colours.join(' over ')} is not opaque`)
+  return luminance(pixel)
 }

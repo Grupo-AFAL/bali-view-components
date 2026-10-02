@@ -2,7 +2,7 @@
 // fires touchstart, touchend and then the compatibility mouseover, mousedown, focusin,
 // mouseup and click a phone fires — the same order Playwright's `isMobile` tap
 // measured. `.trigger('touchstart')` would fire only the event it names, so the spec
-// would be deciding the order instead of the browser.
+// would be deciding the order instead of the browser. `pointAt` does the same for a mouse.
 //
 // After a failed test's screenshot, a later `touchStart` in the run can wait forever
 // and surface as "promise never resolved": read the first failure, or rerun with
@@ -49,11 +49,17 @@ export const drag = ($el, dy) => {
 
 // A real mouse over the element, so `:hover` applies; `.trigger('mouseover')` fires the
 // event and leaves the pseudo-class off.
+const moveMouse = (point) =>
+  Cypress.automation('remote:debugger:protocol', {
+    command: 'Input.dispatchMouseEvent',
+    params: { type: 'mouseMoved', ...point }
+  })
+
 export const pointAt = ($el) => {
   const [x, y] = centreOf($el)
 
-  return Cypress.automation('remote:debugger:protocol', {
-    command: 'Input.dispatchMouseEvent',
-    params: { type: 'mouseMoved', ...inRunner(x, y) }
-  })
+  return moveMouse(inRunner(x, y))
 }
+
+// The pointer stays where a test left it, and so does its `:hover`: park it in an afterEach.
+export const pointAway = () => moveMouse({ x: 0, y: 0 })

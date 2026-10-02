@@ -1,11 +1,14 @@
-import { paintedContrast } from '../support/painted_contrast'
+import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
+import { pointAt, pointAway } from '../support/tap'
 
 // Pieces that used to paint fixed colours and only broke under a dark theme: SlimSelect's
 // own stylesheet froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes),
 // BlockEditor's code block kept github-light's ink (1.00:1), and a comments sidebar portaled out
 // of the editor kept BlockNote's #3f3f3f (1.51–1.68:1).
 describe('colours that follow the theme', () => {
+  afterEach(() => { pointAway() })
+
   const AA = 4.5
   // github-light on base-200 measures 3.17–3.29:1 on the light themes, before and after this
   // guard existed: that is the light palette's own debt. The 3:1 floor there still catches the
@@ -41,6 +44,27 @@ describe('colours that follow the theme', () => {
       const options = theme === 'dark' ? '.ss-option:not(.ss-disabled):not(.ss-selected)' : '.ss-option:not(.ss-disabled)'
       cy.get('.ss-main').first().click()
       everyReadsAtAA(`.ss-content.ss-open ${options}`, theme, 2)
+    })
+
+    // base-200 stepped down on the dark themes: a hovered option read 1.05:1 against the list.
+    it(`shows SlimSelect's hovered option on the ${theme} theme`, () => {
+      cy.visit('/bali/form/slim_select/default')
+      useTheme(theme)
+      cy.get('.ss-main').first().click()
+      cy.get('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)').eq(1).then(pointAt)
+
+      cy.get('.ss-content.ss-open').should(($list) => {
+        const doc = $list[0].ownerDocument
+        const style = (el) => doc.defaultView.getComputedStyle(el)
+        const option = $list[0].querySelector('.ss-option:hover')
+        expect(option, 'an option under the pointer').to.not.equal(null)
+        expectSettled(option)
+
+        const ground = style($list[0]).backgroundColor
+        const [hi, lo] = [paintedLuminance(doc, ground, style(option).backgroundColor), paintedLuminance(doc, ground)]
+          .sort((a, b) => b - a)
+        expect((hi + 0.05) / (lo + 0.05), `${theme}: hovered option against the list`).to.be.at.least(1.15)
+      })
     })
 
     it(`reads SlimSelect's count of a long selection at AA on the ${theme} theme`, () => {

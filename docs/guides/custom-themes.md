@@ -233,13 +233,13 @@ pattern in production first) is a `dark` `color-scheme` plus those, `primary`, a
 
 Two things the component already handles so the theme does not have to:
 
-- **Hover, borders and flyout panels sit above the rail.** A themed rail mixes its
-  own ink into `base-100` — 8% for `base-200`, 18% for `base-300` — instead of reading
-  the theme's, because daisyUI's `dark` and Bali's dark themes step those two *down*
-  for a full page, and inside a rail that put the panel darker than the rail. The
-  panels also get a real border and a shadow dark enough to read on a dark surface. All of
-  it ships in the component's own CSS, scoped to `.side-menu-component[data-theme]` — so a rail given a
-  light theme gets it too, with slightly firmer borders and hover than that theme's own.
+- **Borders and flyout panels sit above the rail.** A themed rail mixes its own ink
+  into `base-100` — 8% for `base-200`, 18% for `base-300` — instead of reading the
+  theme's, because daisyUI's `dark` and Bali's dark themes step those two *down* for a
+  full page, and inside a rail that put the panel darker than the rail. The panels also
+  get a real border and a shadow dark enough to read on a dark surface. All of it ships
+  in the component's own CSS, scoped to `.side-menu-component[data-theme]` — so a rail
+  given a light theme gets it too, with slightly firmer borders than that theme's own.
 - **The `dark_chrome` Lookbook preview** renders the sidebar with daisyUI's stock
   `dark` theme next to light content — use it to sanity-check your own chrome theme
   by passing its name in the preview's theme param.

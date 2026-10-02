@@ -1,4 +1,4 @@
-import { pointAt } from '../support/tap'
+import { pointAt, pointAway } from '../support/tap'
 import { THEMES } from '../support/themes'
 import { paintedLuminance as luminance } from '../support/painted_contrast'
 
@@ -7,6 +7,8 @@ import { paintedLuminance as luminance } from '../support/painted_contrast'
 // themes step base-200/300 DOWN from base-100 — the page sits under its cards — so inside the
 // rail that panel measured 1.05–1.07:1 against the rail and its border went darker still.
 describe('SideMenu chrome surfaces', () => {
+  afterEach(() => { pointAway() })
+
   ;['dark', 'afal-dark', 'costa-norte-dark'].forEach((theme) => {
     it(`lifts the panel and the borders above a ${theme} rail`, () => {
       cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
@@ -37,8 +39,11 @@ describe('SideMenu chrome surfaces', () => {
 
         expect(item, 'an item under the pointer').to.not.equal(null)
         expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
-        expect(luminance(doc, style(item).backgroundColor), `${theme}: hovered item above the panel`)
-          .to.be.above(luminance(doc, style($panel[0]).backgroundColor))
+        const panelColour = style($panel[0]).backgroundColor
+        const panel = luminance(doc, panelColour)
+        const hovered = luminance(doc, panelColour, style(item).backgroundColor)
+        expect((Math.max(hovered, panel) + 0.05) / (Math.min(hovered, panel) + 0.05), `${theme}: hovered item against the panel`)
+          .to.be.at.least(1.15)
       })
     })
   })
@@ -65,25 +70,41 @@ describe('SideMenu chrome surfaces', () => {
   })
 
   // base-200 steps down on the dark themes, so a hovered item painted darker than its rail,
-  // 1.05:1. The ink at 8% lifts it on a dark rail and darkens it on a light one: 1.20 and
-  // 1.16 on afal-dark and afal, the proposal Federico chose.
-  THEMES.forEach((theme) => {
-    it(`shows the hovered item of an unthemed rail on the ${theme} theme`, () => {
-      cy.viewport(1280, 800)
-      cy.visit('/bali/side_menu/default')
-      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-      cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(pointAt)
+  // 1.05:1, and an inline rail's base-300 1.04–1.09. The ink at 8% lifts it on a dark rail
+  // and darkens it on a light one: 1.20 and 1.16 on afal-dark and afal. An inline rail is
+  // transparent, so the hover lands on whatever the host painted under it.
+  const opaqueGround = (el) => {
+    const doc = el.ownerDocument
+    const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
+      .getContext('2d', { willReadFrequently: true })
+    for (let node = el; node; node = node.parentElement) {
+      const colour = doc.defaultView.getComputedStyle(node).backgroundColor
+      ctx.clearRect(0, 0, 1, 1)
+      ctx.fillStyle = colour
+      ctx.fillRect(0, 0, 1, 1)
+      if (ctx.getImageData(0, 0, 1, 1).data[3] === 255) return colour
+    }
+    return 'white'
+  }
 
-      cy.get('.side-menu-component a.menu-item:hover').should(($item) => {
-        const doc = $item[0].ownerDocument
-        const style = (el) => doc.defaultView.getComputedStyle(el)
-        const railColour = style($item[0].closest('.side-menu-component')).backgroundColor
-        const rail = luminance(doc, railColour)
-        const hovered = luminance(doc, railColour, style($item[0]).backgroundColor)
+  ;[['fixed', '/bali/side_menu/default'], ['inline', '/bali/side_menu/with_icons']].forEach(([kind, url]) => {
+    THEMES.forEach((theme) => {
+      it(`shows the hovered item of an unthemed ${kind} rail on the ${theme} theme`, () => {
+        cy.viewport(1280, 800)
+        cy.visit(url)
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+        cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(pointAt)
 
-        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
-        expect((Math.max(hovered, rail) + 0.05) / (Math.min(hovered, rail) + 0.05), `${theme}: hovered item against the rail`)
-          .to.be.at.least(1.15)
+        cy.get('.side-menu-component a.menu-item:hover').should(($item) => {
+          const doc = $item[0].ownerDocument
+          const ground = opaqueGround($item[0].parentElement)
+          const under = luminance(doc, ground)
+          const hovered = luminance(doc, ground, doc.defaultView.getComputedStyle($item[0]).backgroundColor)
+
+          expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+          expect((Math.max(hovered, under) + 0.05) / (Math.min(hovered, under) + 0.05), `${theme}: hovered item against what is under it`)
+            .to.be.at.least(1.15)
+        })
       })
     })
   })
