@@ -57,7 +57,7 @@
 }
 
 .split-view-row:hover {
-  @apply bg-base-200/50;
+  @apply bg-base-content/8;
 }
 
 .split-view-row[aria-current] {
