@@ -198,6 +198,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
   -- app/views`).
 
+- **Los controles de una condición de `Bali::Filters` se anuncian con su nombre** (#1271): el
+  campo y el operador salían sin nombre, y el valor como «Combobox» (SlimSelect), sin nombre
+  (booleano) o como «0» (número). Ahora se llaman «Campo», «Operador» y «Valor» («Field»,
+  «Operator», «Value» en inglés), también cuando el valor se rehace al cambiar de campo; el
+  texto y las fechas, que se nombraban con su placeholder, pasan también a «Valor». Lo notan
+  las apps con `with_filters_panel` (afal-apps, gobierno-corporativo e identity:
+  `git grep -l -E 'with_filters_panel|Bali::Filters::Component' origin/main -- app`). Sin nada
+  que hacer en el anfitrión.
+
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
   `Bali::Dropdown`, con el teclado de «Agrupar por» (#1231); en Columnas las flechas recorren
