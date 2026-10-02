@@ -7,9 +7,13 @@ goes here.
 
 - **CSS transitions.** After switching `data-theme`, or a class on anything with
   `transition-colors`, the computed colour is a frame of the transition: the previous state's. A
-  `should` callback passes on its first try if the previous state already passes, so a contrast
-  guard could go green on all five themes having measured only `light`. Make the first
-  assertion of the callback `expect($el[0].getAnimations({ subtree: true })).to.have.length(0)`.
+  `should` callback passes on its first try if the previous state already passes, and a `then`
+  never retries, so a contrast guard could go green on every theme having measured only `light`.
+  Make the first assertion of the callback `expect(doc.getAnimations()).to.have.length(0)`. Under
+  `AppLayout` — the dummy app's own pages — the document never goes still: unless `drawer: false`,
+  its closed drawer holds a `Skeleton` that animates forever. There, wait on
+  `el.getAnimations({ subtree: true })` for an `el` that holds both the text and the ground it is
+  measured over.
 - **Turbo Streams apply on the next frame** (after `nextRepaint()`). Asserting right after
   `Turbo.renderStreamMessage` reads the node being replaced. Put a marker on the streamed markup
   (`data-streamed`) and wait for `[data-…][data-streamed]` before asserting.

@@ -476,7 +476,7 @@ describe('SplitView structured list', () => {
     // 4.5 for 12px text.
     //
     // Settled within the band and not the whole document: the layout's closed
-    // modal keeps a loading skeleton animating forever, so the document never
+    // drawer keeps a loading skeleton animating forever, so the document never
     // goes still. The band holds both the text and the ground it is measured over.
     THEMES.forEach((theme) => {
       it(`reads the heading and its count at AA on the ${theme} theme`, () => {
