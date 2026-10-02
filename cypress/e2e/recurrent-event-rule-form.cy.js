@@ -274,45 +274,64 @@ describe('RecurrentEventRuleForm', () => {
       }
     }
 
-    beforeEach(() => {
-      cy.then(unhover)
-      cy.visit('/bali/recurrent_event_rule_form/disabled')
-    })
+    // Both previews tick Monday and leave Tuesday unticked.
+    const ways = {
+      'disabled: true': () => cy.visit('/bali/recurrent_event_rule_form/disabled'),
+      // A host disabling the whole form: the days are disabled without the component's option.
+      'a disabled fieldset': () => {
+        cy.visit('/bali/recurrent_event_rule_form/with_value')
+        cy.get('form').then(([form]) => {
+          const fieldset = form.ownerDocument.createElement('fieldset')
+          fieldset.disabled = true
+          form.before(fieldset)
+          fieldset.append(form)
+        })
+      }
+    }
 
-    afterEach(() => cy.then(unhover))
-
-    // The preview's BYDAY=MO,WE: Monday checked, Tuesday not.
-    ;[['a checked', 0, 'be.checked'], ['an unchecked', 1, 'not.be.checked']].forEach(([day, index, state]) => {
-      it(`does not react to the cursor on ${day} day`, () => {
-        weekday(index).should('be.disabled').and(state)
-
-        let atRest
-        dayLabel(index).should(([label]) => {
-          expectSettled(label)
-          expect(label.parentElement.matches(':hover'), 'at rest').to.equal(false)
-          atRest = reaction(label)
+    Object.entries(ways).forEach(([way, visit]) => {
+      describe(`through ${way}`, () => {
+        beforeEach(() => {
+          cy.then(unhover)
+          visit()
         })
 
-        dayLabel(index).then(hover)
+        afterEach(() => cy.then(unhover))
 
-        // Read through the day's wrapper: a disabled label does not take the pointer itself.
-        dayLabel(index).should(([label]) => {
-          expect(label.parentElement.matches(':hover'), 'under the cursor').to.equal(true)
-          expectSettled(label)
-          expect(reaction(label), 'under the cursor').to.deep.equal(atRest)
+        ;[['a checked', 0, 'be.checked'], ['an unchecked', 1, 'not.be.checked']].forEach(([day, index, state]) => {
+          it(`does not react to the cursor on ${day} day`, () => {
+            weekday(index).should('be.disabled').and(state)
+
+            let atRest
+            dayLabel(index).should(([label]) => {
+              expectSettled(label)
+              expect(label.parentElement.matches(':hover'), 'at rest').to.equal(false)
+              atRest = reaction(label)
+            })
+
+            dayLabel(index).then(hover)
+
+            // Read through the day's wrapper: a disabled label does not take the pointer itself.
+            dayLabel(index).should(([label]) => {
+              expect(label.parentElement.matches(':hover'), 'under the cursor').to.equal(true)
+              expectSettled(label)
+              expect(reaction(label), 'under the cursor').to.deep.equal(atRest)
+            })
+          })
         })
-      })
-    })
 
-    it('shows the not-allowed cursor over a day', () => {
-      dayLabel(0).then(([label]) => label.scrollIntoView({ block: 'center' }))
+        it('shows the not-allowed cursor over a day', () => {
+          weekday(0).should('be.disabled')
+          dayLabel(0).then(([label]) => label.scrollIntoView({ block: 'center' }))
 
-      dayLabel(0).should(([label]) => {
-        const box = label.getBoundingClientRect()
-        const hit = label.ownerDocument.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+          dayLabel(0).should(([label]) => {
+            const box = label.getBoundingClientRect()
+            const hit = label.ownerDocument.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
 
-        expect(label.parentElement.contains(hit), 'the point is on the day').to.equal(true)
-        expect(getComputedStyle(hit).cursor, 'cursor').to.equal('not-allowed')
+            expect(label.parentElement.contains(hit), 'the point is on the day').to.equal(true)
+            expect(getComputedStyle(hit).cursor, 'cursor').to.equal('not-allowed')
+          })
+        })
       })
     })
   })
