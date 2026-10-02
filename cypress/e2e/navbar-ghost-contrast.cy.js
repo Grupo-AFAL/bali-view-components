@@ -45,6 +45,25 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
         })
       })
     })
+
+    // `color: nil` leaves the bar's colours to the caller's `class:`, which is why the rule is
+    // scoped to every `.navbar` and not to the four presets.
+    it(`the burger reads at 3:1 on a navbar coloured through class:, ${theme} theme`, () => {
+      open('base', theme)
+      // The classes `color: nil, class: 'bg-neutral text-neutral-content'` renders.
+      cy.get('nav.navbar').then(($nav) => {
+        $nav[0].classList.remove('navbar-base')
+        $nav[0].classList.add('bg-neutral', 'text-neutral-content')
+      })
+
+      cy.get('nav.navbar').should(($nav) => {
+        expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+        expect($nav.css('background-color'), 'the bar paints bg-neutral').not.to.equal('rgba(0, 0, 0, 0)')
+        const burger = $nav[0].querySelector('[data-navbar-target="burger"]')
+        expect(burger.matches(':hover'), 'measured at rest').to.equal(false)
+        expect(paintedContrast(burger.querySelector('svg')), `${theme}: bg-neutral text-neutral-content navbar`).to.be.at.least(NON_TEXT)
+      })
+    })
   })
 
   // Why `currentColor` and not the preset's `-content`: the mobile menu inside the bar is
