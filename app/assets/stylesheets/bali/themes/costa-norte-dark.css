@@ -7,15 +7,17 @@
  * that app's sidebar changes the day it drops its own block for this file.
  *
  * Derivation rules (from the light theme):
- * - Surfaces are the light theme's `neutral` (dark teal) and two lifted steps;
- *   base-content is the light theme's neutral-content.
+ * - base-100 is the light theme's `neutral` (dark teal) under its
+ *   neutral-content, and base-200/300 step DOWN from it, as daisyUI's own dark
+ *   does: hosts lay base-100 cards on a base-200 page. The app's sidebar paints
+ *   base-100 only, so it keeps its colour.
  * - Primary is the brand gold: the brand teal sits on base-100 at 1.69:1,
  *   unusable as a fill or as text.
  * - Secondary is the brand teal lifted until it reads on those surfaces, so it
  *   stays distinct from primary.
- * - Neutral is the ink, light on the dark surfaces, with base-100 as its content:
- *   the app's dark neutral equals base-200, so as text it measured 1.00–1.28:1
- *   and as a fill its edge vanished against the surface.
+ * - Neutral is a dark fill above base-100, under the light text, as in
+ *   daisyUI's dark. Bali paints a neutral stat, gauge, loader or timeline
+ *   marker with base-content instead.
  * - Status colors are the light theme's. Their content colors are the app's,
  *   except info and error: its near-white content measured 2.1 and 2.7:1 on
  *   those pastels, so they take the light theme's dark content instead.
@@ -32,8 +34,8 @@
   color-scheme: dark;
 
   --color-base-100: oklch(0.2493 0.0385 215.27);
-  --color-base-200: oklch(0.305 0.04 215.27);
-  --color-base-300: oklch(0.37 0.04 215.27);
+  --color-base-200: oklch(0.222 0.036 215.27);
+  --color-base-300: oklch(0.196 0.033 215.27);
   --color-base-content: oklch(0.95 0.01 80);
 
   --color-primary: oklch(0.7909 0.1712 70.15);
@@ -45,8 +47,8 @@
   --color-accent: oklch(0.7417 0.0864 72.83);
   --color-accent-content: oklch(0.2493 0.0385 215.27);
 
-  --color-neutral: oklch(0.80 0.03 215.27);
-  --color-neutral-content: oklch(0.2493 0.0385 215.27);
+  --color-neutral: oklch(0.37 0.04 215.27);
+  --color-neutral-content: oklch(0.95 0.01 80);
 
   --color-info: oklch(0.74 0.16 232.661);
   --color-info-content: oklch(0.29 0.066 243.157);

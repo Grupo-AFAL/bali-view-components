@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Modo oscuro: `costa-norte-dark` y el interruptor en el menú de usuario.** Bali trae
   `costa-norte-dark` junto a `afal-dark`, y `Bali::Topbar::UserMenu` ofrece «Modo oscuro» cuando
   la app declara su tema oscuro. Nadie lo ve hasta que la app lo active, y entonces sólo quien lo
-  elige; la elección se guarda en la cookie `bali_theme`, por app y por dispositivo. En los dos
-  temas oscuros `neutral` sigue siendo la tinta, como en los claros, así que ahí es claro con
-  texto oscuro encima.
+  elige; la elección se guarda en la cookie `bali_theme`, por app y por dispositivo. Los dos
+  temas oscuros siguen la forma del `dark` de daisyUI: `base-200` y `base-300` son más oscuros
+  que `base-100`, así que una página sobre `base-200` queda debajo de sus tarjetas, y `neutral`
+  es un relleno oscuro con texto claro.
   **Anfitrión que lo quiera:**
   - `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`; una
     clave desconocida o sin `light:` levanta al arrancar.
@@ -25,10 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cambiar por tokens del tema los colores fijos de las vistas, que en oscuro quedan como
     tarjetas blancas con texto claro
     (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`).
+  - `text-neutral` propio pasa a `text-base-content`: en oscuro `neutral` es un relleno y como
+    texto no se lee; en `afal` y `costa-norte` son el mismo color.
 
   costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]` e importar el de Bali: su
-  menú lateral conserva superficies y dorado; cambian el texto sobre info y error, que ahora
-  pasa AA, el secundario y `neutral`.
+  menú lateral pinta `base-100`, el texto y el dorado, que no cambian; cambian el texto sobre
+  info y error, que ahora pasa AA, el secundario, `neutral` y `base-200`/`base-300`.
 
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
@@ -132,6 +135,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline) y
+  también el botón neutral `outline`: pintaban `neutral` como texto, que en oscuro es un relleno
+  oscuro (1.72:1 en `afal-dark`, 1.26 en el `dark` de daisyUI). Ahora usan `base-content`,
+  idéntico a `neutral` en `afal` y `costa-norte`. Sin nada que hacer en el anfitrión.
 - **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
   claro de daisyUI, y bajo un tema oscuro el disparador se volvía oscuro con el texto todavía
   oscuro (1.04–1.10:1). Ahora todo texto y superficie del archivo es un token del tema, lo que

@@ -84,6 +84,9 @@ module Bali
           c.with_item(heading: 'Completed', icon: 'check', color: :success) do
             tag.p 'Project delivered'
           end
+          c.with_item(heading: 'Archived', icon: 'archive', color: :neutral) do
+            tag.p 'Kept for the record'
+          end
           c.with_header(text: 'Complete', color: :success)
         end
       end

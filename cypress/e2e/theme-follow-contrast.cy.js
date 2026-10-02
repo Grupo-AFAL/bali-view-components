@@ -73,4 +73,29 @@ describe('colours that follow the theme', () => {
       })
     })
   })
+
+  // `color: :neutral` on these, and the neutral outline button, paint ink, not a fill. A dark
+  // theme's neutral is a dark fill, so as ink over the page it measured 1.72:1 on afal-dark,
+  // 1.54 on costa-norte-dark and 1.26 on daisyUI's dark; base-content is the same colour as
+  // neutral on Bali's light themes.
+  const NEUTRAL_INK = [
+    ['gauge', '/bali/gauge/default?color=neutral', '.bali-gauge', AA],
+    ['loader text', '/bali/loader/default?color=neutral', 'p.text-xl', AA],
+    ['stat card icon', '/bali/stat_card/default?color=neutral', '.card-body .rounded-full svg', 3],
+    ['timeline marker', '/bali/timeline/with_colors', 'li:contains("Archived") .timeline-middle', 3],
+    ['outline button', '/bali/button/default?variant=neutral&style=outline', '.btn-outline', AA]
+  ]
+
+  THEMES.forEach((theme) => {
+    NEUTRAL_INK.forEach(([what, url, selector, floor]) => {
+      it(`reads a neutral ${what} on the ${theme} theme`, () => {
+        cy.visit(url)
+        useTheme(theme)
+        cy.get(selector).should(($els) => {
+          expectSettled($els[0])
+          expect(paintedContrast($els[0]), `${theme}: neutral ${what}`).to.be.at.least(floor)
+        })
+      })
+    })
+  })
 })

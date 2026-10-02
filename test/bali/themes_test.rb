@@ -41,13 +41,13 @@ class BaliThemesTest < ActiveSupport::TestCase
       name = File.basename(file, ".css")
 
       assert_match(/^\[data-theme="#{Regexp.escape(name)}"\]\s*\{/, css,
-                   "#{name}.css no define [data-theme=\"#{name}\"] al inicio de línea")
+                   "#{name}.css does not open with [data-theme=\"#{name}\"]")
       assert_match(/color-scheme:\s*(light|dark);/, css,
-                   "#{name}.css no declara color-scheme")
+                   "#{name}.css declares no color-scheme")
 
       REQUIRED_VARIABLES.each do |variable|
         assert_match(/#{Regexp.escape(variable)}:\s*[^;]+;/, css,
-                     "#{name}.css no define #{variable}")
+                     "#{name}.css does not define #{variable}")
       end
     end
   end
@@ -64,9 +64,29 @@ class BaliThemesTest < ActiveSupport::TestCase
     assert_includes(css, "color-scheme: light")
   end
 
+  # daisyUI's order, dark themes included: hosts lay base-100 cards on a base-200 page, and a
+  # dark theme that stepped up instead painted the page lighter than its cards.
+  def test_every_theme_steps_its_surfaces_down_from_base_100
+    theme_files.each do |file|
+      css = File.read(file)
+      levels = %w[100 200 300].map { |step| lightness(css, "--color-base-#{step}") }
+
+      assert_equal levels.sort.reverse, levels,
+                   "#{File.basename(file)}: base-100/200/300 lightness #{levels.join(' / ')}"
+    end
+  end
+
   def test_the_dark_themes_declare_a_dark_scheme
     %w[afal-dark costa-norte-dark].each do |name|
       assert_includes(File.read(THEMES_DIR.join("#{name}.css")), "color-scheme: dark", name)
     end
+  end
+
+  private
+
+  # The L of an `oklch()` token, written either as a percentage or as a fraction.
+  def lightness(css, variable)
+    number, percent = css.match(/#{Regexp.escape(variable)}:\s*oklch\(([\d.]+)(%?)/).captures
+    percent.empty? ? number.to_f : number.to_f / 100
   end
 end

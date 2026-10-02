@@ -20,11 +20,13 @@ module Bali
         xl: "loading-xl"
       }.freeze
 
+      # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
+      # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
       COLORS = {
         primary: "text-primary",
         secondary: "text-secondary",
         accent: "text-accent",
-        neutral: "text-neutral",
+        neutral: "text-base-content",
         info: "text-info",
         success: "text-success",
         warning: "text-warning",

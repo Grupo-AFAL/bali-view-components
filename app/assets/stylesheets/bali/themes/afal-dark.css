@@ -5,16 +5,16 @@
  * paints when an app declares `Bali.themes = { light: "afal", dark: "afal-dark" }`.
  *
  * Derivation rules (from the light theme):
- * - Surfaces invert down the same gray ramp: base-100/200/300 become
- *   gray-900/800/700 and base-content becomes gray-200.
+ * - base-100 is gray-900 under gray-200 text, and base-200/300 step DOWN from
+ *   it, as daisyUI's own dark does: hosts lay base-100 cards on a base-200
+ *   page, and stepped up the page painted lighter than its cards.
  * - Brand hues are kept but lifted to their Tailwind 400 step so they
  *   hold contrast on dark surfaces, paired with -950 content colors.
  *   Every pair measures >= 4.5:1 (WCAG AA).
- * - Neutral is the ink, as in the light theme (where it equals base-content):
- *   gray-300 on gray-900. A dark neutral cannot work both ways — as text it
- *   measured 1.00–1.72:1 on the surfaces (`btn-outline btn-neutral`, a neutral
- *   stat or gauge), and no lightness readable as text also carries the light
- *   neutral-content as a fill.
+ * - Neutral is a dark fill (gray-700 under gray-200), as in daisyUI's dark.
+ *   As text it does not read on these surfaces, so Bali paints a neutral
+ *   stat, gauge, loader or timeline marker with base-content, which is the
+ *   same colour as neutral on Bali's light themes.
  * - Status colors are identical to the light theme: those pastels already
  *   sit on dark content colors that pass AA on both schemes.
  * - Structural tokens (radius/size/border/depth/noise) are identical.
@@ -34,11 +34,11 @@
   --color-secondary-content: oklch(28.27% 0.1351 291.089); /* #2E1065 (violet-950) */
   --color-accent: oklch(83.69% 0.1644 84.429);             /* #FBBF24 (amber-400) */
   --color-accent-content: oklch(27.91% 0.0742 45.635);     /* #451A03 (amber-950) */
-  --color-neutral: oklch(87.17% 0.0093 258.338);          /* #D1D5DB (gray-300) */
-  --color-neutral-content: oklch(21.01% 0.0318 264.665);   /* #111827 (gray-900) */
+  --color-neutral: oklch(37.29% 0.0306 259.733);          /* #374151 (gray-700) */
+  --color-neutral-content: oklch(92.76% 0.0058 264.531);   /* #E5E7EB (gray-200) */
   --color-base-100: oklch(21.01% 0.0318 264.665);          /* #111827 (gray-900) */
-  --color-base-200: oklch(27.81% 0.0296 256.848);          /* #1F2937 (gray-800) */
-  --color-base-300: oklch(37.29% 0.0306 259.733);          /* #374151 (gray-700) */
+  --color-base-200: oklch(18.6% 0.029 264.665);            /* #0C1320 */
+  --color-base-300: oklch(16.2% 0.026 264.665);            /* #080D19 */
   --color-base-content: oklch(92.76% 0.0058 264.531);      /* #E5E7EB (gray-200) */
   --color-info: oklch(75.85% 0.1374 231.617);              /* #3ABFF8 */
   --color-info-content: oklch(27.15% 0.0553 231.935);      /* #002B3D */

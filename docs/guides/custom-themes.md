@@ -121,6 +121,14 @@ paints it), `text-gray-*` for `text-base-content` at the opacity you need:
 git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components
 ```
 
+`text-neutral` belongs on that list too. On the dark themes `neutral` is a dark fill, as in
+daisyUI's own `dark`, and as text it does not read on the page; `text-base-content` is the same
+colour on `afal` and `costa-norte`:
+
+```sh
+git grep -n -E 'text-neutral(\b|/)' -- app | grep -v neutral-content
+```
+
 Preview both dark themes in Lookbook under *Theme Sampler → Afal Dark* and *Costa Norte Dark*.
 
 ## Creating Your Own Theme
