@@ -3186,8 +3186,9 @@ used, so your value wins, but two sources of truth for the same state is worth c
 BlockNote's ProseMirror `contenteditable` — the editor creates it client-side, so there is no
 id at render time and naming it needs an `aria-labelledby` the editor writes when it mounts.
 SlimSelect's dropdown search input is named by that library, after its placeholder
-(`search_placeholder:`, "Search" by default). Its `role="combobox"` trigger takes the caption
-through `aria-labelledby` on `slim_select_group` (#1253); `slim_select_field` and hand-written
+(`search_placeholder:`, Bali's translated "Search"/"Buscar" by default). Its
+`role="combobox"` trigger takes the caption through `aria-labelledby` on `slim_select_group`
+(#1253); `slim_select_field` and hand-written
 `data-controller="slim-select"` markup need the name by hand. The bare `*_field` helpers never
 rendered a caption; that is the `_group` variant's job, and they are unchanged.
 
