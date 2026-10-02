@@ -331,9 +331,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vistas guardadas de `DataTable` y los menús del `Gantt`. En `/70` el mínimo es 4.88:1 (el
   subtítulo del switcher del `SideMenu` con el puntero encima). Los íconos que son todo el control
   o toda la respuesta (el vacío de `BooleanIcon`, los chevrons del `SideMenu`, los de `Filters`,
-  `DirectUpload` y `Gantt`, el chip de agregar reacción de un comentario) pasan a `/55`, el primer
-  múltiplo de 5 que llega a 3:1 en los seis temas sobre `base-300` (3.27:1 en `afal`), y el cero
-  que atenúa un `Widget` (texto grande) de `/30` (1.86:1) a `/55`.
+  `DirectUpload` y `Gantt`, el chip de agregar reacción y los botones de la píldora de acciones de
+  un comentario) pasan a `/55`, el primer múltiplo de 5 que llega a 3:1 en los seis temas sobre
+  `base-300` (3.27:1 en `afal`), y el cero que atenúa un `Widget` (texto grande) de `/30` (1.86:1)
+  a `/55`.
 
   También el placeholder habilitado de todo `input.input`, `textarea.textarea` y el `input` de
   dentro de un `label.input`, que el preflight de Tailwind y daisyUI pintaban al 50 % (3.05:1), sea

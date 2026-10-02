@@ -449,10 +449,19 @@ describe('muted icon contrast', () => {
       open: () => cy.get('[data-filters-target="dropdown"] > button').click(),
       targets: [['remove-condition button', 'button[data-action="condition#remove"]', 2]]
     },
+    // Mantine shows a comment's action pill on `mouseenter`. At `/50` its buttons measured
+    // 3.05:1 on `afal`, over the pill's base-100: they never failed.
     {
       ...COMMENTED,
-      opened: 'the comments panel open on a reacted comment',
-      targets: [['add-reaction chip', '.document-editor-panel .bn-comment-add-reaction .mantine-Chip-label', 1]]
+      opened: 'the comments panel open on a reacted comment, its action pill showing',
+      open: () => {
+        COMMENTED.open()
+        cy.get('.document-editor-panel .bn-thread-comment').first().trigger('mouseenter')
+      },
+      targets: [
+        ['add-reaction chip', '.document-editor-panel .bn-comment-add-reaction .mantine-Chip-label', 1],
+        ['comment action', '.document-editor-panel .bn-action-toolbar :is(.mantine-ActionIcon-root, .mantine-Button-root)', 3]
+      ]
     }
   ]
 

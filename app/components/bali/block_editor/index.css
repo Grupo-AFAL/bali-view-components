@@ -942,7 +942,7 @@
 .document-editor-panel .bn-action-toolbar .mantine-Button-root {
   background-color: transparent;
   border: none;
-  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+  color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
   cursor: pointer;
   border-radius: 0.25rem;
   width: 1.5rem;
