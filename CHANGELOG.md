@@ -181,6 +181,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
   recargar. Sin nada que hacer en el anfitrión.
 
+- **Los hovers, los tintes y los bordes de panel que pintaban `base-200` o `base-300` se ven en
+  los seis temas** (#1276). Medidos sobre la superficie en que se pintan, los hovers quedaban en
+  1.01–1.05:1 en `afal-dark` y en 1.10 como mucho en cualquier tema, salvo el de plegar una fila
+  del Gantt, que cae sobre el tinte de la fila y medía 1.01–1.03 en los temas claros; el del
+  TreeView, en 1.00 en los seis, porque su propia superficie ya es `base-200`; y los bordes de
+  panel, en 1.05–1.09 en `afal-dark`. Ahora el hover y el tinte son el texto al 8 % (1.16:1 como mínimo) y el borde, el
+  texto al 15 % (1.33), como el menú desde el modo oscuro. Cambian el hover de TreeView, de las
+  opciones de una condición «es alguno de» de Filters, de un Timeline con `href:`, del disparador
+  de Clipboard, de la zona de DirectUpload, de las opciones de RecurrentEventRuleForm y de los
+  botones de zoom y de plegar fila del Gantt; el borde del panel de Filters, de su lista de
+  opciones y de los controles de zoom del Gantt; y el día `:ghost` de `Calendar::YearGrid`, que
+  ninguna app pinta hoy. Sin nada que hacer en el anfitrión: ninguno sobrescribe esas clases
+  (`git grep -n -E "CLICKABLE_BOX_CLASSES|ITEM_CLASSES|DAY_COLORS|clipboard-trigger|tree-view-item|filters-multi-select|timeline-content-box|year-day" origin/main -- app lib config`
+  da 0 en las nueve apps).
+
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
   esos que ponga el anfitrión entra ahora en el recorrido con teclado.
