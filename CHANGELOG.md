@@ -111,6 +111,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
+  SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
+  `<select>`, y el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
+  etiqueta, salvo que `html:` ya traiga uno de los dos. Nada que hacer con `slim_select_group`;
+  un `slim_select_field` junto a una etiqueta propia la necesita a mano (receta en
+  `form-builder.md`), y eso es en **gobierno-corporativo** la fila de filtros de
+  `governing_bodies/member_matrices/_filters.html.erb` (`git grep -n "slim_select_field"
+  origin/main -- app`).
+
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
   menú de ítems las teclas llevan el foco al primero— y lo cierran Escape, un clic fuera o que el
