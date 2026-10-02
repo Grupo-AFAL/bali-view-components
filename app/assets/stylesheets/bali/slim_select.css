@@ -17,11 +17,11 @@
 /* =============================================================================
    CSS Custom Properties
    ============================================================================= */
-/* The colours are the theme's tokens, not literals: literals froze daisyUI's light
-   theme, and under a dark theme the selected value painted light-on-light at
-   1.04–1.10:1. Declared again on every [data-theme]: a custom property resolves its
-   var() where it is declared, so a sidebar that re-themes its subtree would inherit
-   the root's colours otherwise. */
+/* Every colour in this file is a theme token, never a literal: the literals froze daisyUI's
+   light theme, and under a dark theme the trigger's own `bg-base-100` went dark while the
+   value kept the light theme's dark ink, 1.04–1.10:1. Declared again on every [data-theme]:
+   a custom property resolves its var() where it is declared, so a sidebar that re-themes its
+   subtree would inherit the root's colours otherwise. */
 :root,
 [data-theme] {
   --ss-primary-color: var(--color-primary);
@@ -115,7 +115,7 @@
 
     &:focus {
       border-color: var(--ss-error-color);
-      outline-color: oklch(0.7176 0.221 22.18 / 0.2);
+      outline-color: color-mix(in oklab, var(--color-error) 20%, transparent);
     }
   }
 }
@@ -385,7 +385,7 @@
 
   path {
     fill: none;
-    stroke: oklch(0.278 0.033 256.8 / 0.6);
+    stroke: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     stroke-width: 2.5;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -471,7 +471,7 @@
   flex-direction: row;
   align-items: center;
   padding: var(--ss-spacing-s) var(--ss-spacing-m);
-  border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
   background-color: transparent;
   margin: 0;
 
@@ -523,9 +523,10 @@
       height: 1rem;
       width: 1rem;
       cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
-      background-size: contain;
-      background-repeat: no-repeat;
+      background-color: var(--color-base-content);
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+      mask-size: contain;
+      mask-repeat: no-repeat;
       opacity: 0.5;
       transition: opacity 0.15s ease;
     }
@@ -609,11 +610,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: oklch(0.278 0.033 256.8 / 0.2);
+    background: color-mix(in oklab, var(--color-base-content) 20%, transparent);
     border-radius: 3px;
 
     &:hover {
-      background: oklch(0.278 0.033 256.8 / 0.3);
+      background: color-mix(in oklab, var(--color-base-content) 30%, transparent);
     }
   }
 
@@ -627,7 +628,7 @@
   /* Searching/loading message */
   .ss-searching {
     padding: var(--ss-spacing-l);
-    color: oklch(0.278 0.033 256.8 / 0.6);
+    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     font-size: 0.875rem;
   }
 
@@ -636,7 +637,7 @@
      the top search bar's padding, border, and magnifier ::before icon. */
   .ss-search {
     padding: var(--ss-spacing-s) var(--ss-spacing-l);
-    color: oklch(0.278 0.033 256.8 / 0.6);
+    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     font-size: 0.875rem;
     border-bottom: none;
 
@@ -769,7 +770,7 @@
   justify-content: space-between;
   padding: var(--ss-spacing-m) var(--ss-spacing-l);
   margin-top: var(--ss-spacing-m);
-  border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
 
   &:has(.ss-arrow) {
     cursor: pointer;
@@ -781,7 +782,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: oklch(0.278 0.033 256.8 / 0.5);
+    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
   }
 }
 
@@ -859,7 +860,7 @@
 
       path {
         fill: none;
-        stroke: oklch(0.278 0.033 256.8 / 0.5);
+        stroke: color-mix(in oklab, var(--color-base-content) 50%, transparent);
         stroke-width: 18;
         stroke-linecap: round;
         stroke-linejoin: round;

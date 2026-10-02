@@ -32,7 +32,21 @@ export class ChartController extends Controller {
   // System font stack matching DaisyUI/Tailwind
   static FONT_FAMILY = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"'
 
-  async connect () {
+  connect () {
+    this.rendering = this.render()
+
+    // The colours are read from the theme once and painted into a canvas, so a dark-mode
+    // switch that flips <html data-theme> in place (Bali::Topbar::UserMenu) would leave the
+    // chart in the old theme until the next page.
+    if (this.useThemeColorsValue) {
+      this.themeObserver = new MutationObserver(() => {
+        this.rendering = this.rendering.then(() => this.render())
+      })
+      this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    }
+  }
+
+  async render () {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
     const options = this.optionsValue || {}
     const data = this.dataValue || {}
@@ -56,6 +70,7 @@ export class ChartController extends Controller {
 
     Chart.register(...registerables)
 
+    this.chart?.destroy()
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data,
@@ -64,6 +79,7 @@ export class ChartController extends Controller {
   }
 
   disconnect () {
+    this.themeObserver?.disconnect()
     this.chart?.destroy()
     this.chart = undefined
   }

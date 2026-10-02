@@ -16,17 +16,18 @@ module Bali
                    '`Bali.themes = { light: "afal", dark: "afal-dark" }` in ' \
                    "config/initializers/bali.rb (`dark:` is optional)."
 
-    def self.themes
-      Bali.themes.presence || raise(ArgumentError, UNCONFIGURED)
+    # Whether the app declared a dark theme, which is what puts the switch in the UserMenu.
+    def self.dark_mode?
+      Bali.themes&.dig(:dark).present?
     end
 
     def self.dark?(request)
-      Bali.themes&.dig(:dark).present? && request.cookies[COOKIE] == DARK
+      dark_mode? && request.cookies[COOKIE] == DARK
     end
 
     def bali_theme
-      themes = ThemeHelper.themes
-      ThemeHelper.dark?(request) ? themes[:dark] : themes.fetch(:light)
+      themes = Bali.themes || raise(ArgumentError, UNCONFIGURED)
+      ThemeHelper.dark?(request) ? themes[:dark] : themes[:light]
     end
   end
 end

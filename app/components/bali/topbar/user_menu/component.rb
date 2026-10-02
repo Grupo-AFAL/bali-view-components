@@ -60,7 +60,7 @@ module Bali
           header = header_content
           with_item(tag: :title, class: "bali-topbar-user-menu-header") { header }
           content
-          add_dark_mode_item if Bali.themes&.dig(:dark).present?
+          add_dark_mode_item if ThemeHelper.dark_mode?
           add_sign_out_item if @sign_out
           super
         end
@@ -109,9 +109,8 @@ module Bali
           { method: SIGN_OUT_METHOD }.merge(sign_out)
         end
 
-        # The theme pair and the cookie name travel as values, so the theme-toggle
-        # controller never names a theme or a cookie of its own: what it writes is
-        # what Bali::ThemeHelper reads to paint the next page.
+        # The theme names and the cookie's name travel as values; the controller writes
+        # "dark" or "light" into that cookie, which Bali::ThemeHelper reads back.
         def add_dark_mode_item
           themes = Bali.themes
           with_item(tag: :button, name: t(DARK_MODE_KEY), icon: "moon",

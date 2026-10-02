@@ -7,7 +7,6 @@
   inline-size: 1.75rem;
   block-size: 1rem;
   margin-inline-start: auto;
-  justify-self: end;
   border: 1px solid color-mix(in oklab, var(--color-base-content) 60%, transparent);
   border-radius: 9999px;
   transition: background-color 0.15s, border-color 0.15s;

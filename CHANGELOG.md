@@ -9,20 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Modo oscuro: `costa-norte-dark` y el interruptor en el menú de usuario.** Bali trae el tema
-  `costa-norte-dark` (las superficies teal y el dorado del menú lateral de costa-norte) junto a
-  `afal-dark`, y `Bali::Topbar::UserMenu` ofrece «Modo oscuro» cuando la app declara su tema
-  oscuro. Nadie lo ve hasta que la app lo active, y entonces sólo quien lo elige; la elección se
-  guarda en la cookie `bali_theme`, por app y por dispositivo. **Anfitrión que lo quiera:**
-  `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`,
-  `<html data-theme="<%= bali_theme %>">` en el layout, importar el tema oscuro y sumarlo a la
-  línea `@custom-variant dark`. Antes de activarlo, cambiar los colores fijos de las vistas por
-  tokens del tema (`bg-white` → `bg-base-100`, o nada sobre un `Bali::Card`, que ya lo pinta):
-  en oscuro quedan como tarjetas blancas con texto claro
-  (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`). costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]`
-  e importar el de Bali: su menú lateral, que ya lleva ese tema, conserva superficies y dorado;
-  sólo cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`, que en
-  los dos temas oscuros es la tinta (claro, con texto oscuro encima), como en los claros.
+- **Modo oscuro: `costa-norte-dark` y el interruptor en el menú de usuario.** Bali trae
+  `costa-norte-dark` junto a `afal-dark`, y `Bali::Topbar::UserMenu` ofrece «Modo oscuro» cuando
+  la app declara su tema oscuro. Nadie lo ve hasta que la app lo active, y entonces sólo quien lo
+  elige; la elección se guarda en la cookie `bali_theme`, por app y por dispositivo. En los dos
+  temas oscuros `neutral` es la tinta, claro con texto oscuro encima, como en los claros.
+  **Anfitrión que lo quiera:**
+  - `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`; una
+    clave desconocida o sin `light:` levanta al arrancar.
+  - `<html data-theme="<%= bali_theme %>">` en **cada** layout: Turbo no toca el `<html>` al
+    navegar, así que un layout con el tema fijo deja la página en el tema equivocado.
+  - Importar el tema oscuro y sumarlo a la línea `@custom-variant dark`.
+  - Cambiar los colores fijos de las vistas por tokens del tema, que en oscuro quedan como
+    tarjetas blancas con texto claro
+    (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`).
+
+  costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]` e importar el de Bali: su
+  menú lateral conserva superficies y dorado; cambian el texto sobre info y error, que ahora
+  pasa AA, el secundario y `neutral`.
 
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
@@ -127,15 +131,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
-  claro de daisyUI, y bajo un tema oscuro el valor elegido quedaba claro sobre claro
-  (1.04–1.10:1). Ahora usa `primary`, `base-100`, `base-content` y compañía del tema activo, así
-  que en `afal` y `costa-norte` sus acentos pasan del violeta de daisyUI al primario del tema.
-  Sin nada que hacer en el anfitrión.
+  claro de daisyUI, y bajo un tema oscuro el disparador se volvía oscuro con el texto todavía
+  oscuro (1.04–1.10:1). Ahora todo color del archivo es un token del tema, lo que también se nota
+  en claro: el acento pasa al primario de cada tema (antes un violeta fijo, también en `light`),
+  el hover y el resaltado de las opciones son `base-200`, y el contador de una selección larga
+  sigue a `neutral`. Sin nada que hacer en el anfitrión.
 
-- **BlockEditor en un tema oscuro** (modo oscuro): el bloque de código pintaba la tinta de
-  `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
+- **BlockEditor y las gráficas en un tema oscuro** (modo oscuro): el bloque de código pintaba la
+  tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
   `color-scheme` del tema; los comentarios de una barra lateral fuera del editor salían en el gris
-  fijo de BlockNote (1.51–1.68:1) y ahora siguen el tema. Sin nada que hacer en el anfitrión.
+  fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
+  recargar. Sin nada que hacer en el anfitrión.
+
+- **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
+  `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
+  esos que ponga el anfitrión entra ahora en el recorrido con teclado.
 
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un

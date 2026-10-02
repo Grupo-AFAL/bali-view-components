@@ -1,11 +1,8 @@
 /*
- * AFAL Dark Theme for DaisyUI 5 — DRAFT / EXPERIMENTAL
+ * AFAL Dark Theme for DaisyUI 5
  *
- * Dark variant derived from themes/afal.css (#718). The four host apps have
- * declared `afal-dark` in their daisyUI plugin config without a definition
- * existing anywhere — this file is the first actual design, pending visual
- * approval in the ThemeSampler; expect token adjustments before it is
- * announced as stable. No app activates it today.
+ * Dark variant of themes/afal.css (#718): the theme the UserMenu's dark-mode switch
+ * paints when an app declares `Bali.themes = { light: "afal", dark: "afal-dark" }`.
  *
  * Derivation rules (from the light theme):
  * - Surfaces invert down the same gray ramp: base-100/200/300 become

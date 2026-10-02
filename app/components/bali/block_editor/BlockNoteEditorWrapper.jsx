@@ -65,7 +65,7 @@ function withBothThemes (highlighter) {
     get (target, key) {
       if (key === 'codeToTokens') {
         return (code, options) => target.codeToTokens(code, {
-          lang: options?.lang,
+          ...options,
           themes: { light: 'github-light', dark: 'github-dark' },
           defaultColor: false
         })

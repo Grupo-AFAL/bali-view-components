@@ -79,23 +79,27 @@ Bali.themes = { light: "afal", dark: "afal-dark" }
 # costa-norte: { light: "costa-norte", dark: "costa-norte-dark" }
 ```
 
-Without `dark:` there is no switch, and `bali_theme` always answers the light theme.
+Without `dark:` there is no switch, and `bali_theme` always answers the light theme. A key other
+than `light:` and `dark:`, or a pair without `light:`, raises when the initializer runs.
 
-### 2. Let the server paint the `<html>`
+### 2. Let the server paint every `<html>`
 
 ```erb
 <html data-theme="<%= bali_theme %>">
 ```
 
-`bali_theme` reads the `bali_theme` cookie and answers the dark theme only when the person chose
-it, so a dark page arrives dark instead of flashing light first. Import both theme files.
+In **every** layout. `bali_theme` reads the `bali_theme` cookie and answers the dark theme only
+when the person chose it, so a dark page arrives dark instead of flashing light first. Turbo
+never touches `<html>` when it navigates, so a layout that still says `data-theme="afal"` leaves
+the page in whatever theme the previous one had. Import both theme files.
 
 ### 3. The switch
 
 `Bali::Topbar::UserMenu` adds a **Dark mode** item, between your items and sign out, as soon as
 `Bali.themes` declares a `dark:` theme. It is a `menuitemcheckbox`: a click (or Enter / Space)
-flips `<html data-theme>` in place, writes the cookie for a year and leaves the menu open. The
-choice is per app and per device — a cookie does not cross the apps' domains.
+flips `<html data-theme>` in place, writes the cookie for a year and leaves the menu open; charts
+repaint with the new theme. The choice is per app and per device — a cookie does not cross the
+apps' domains.
 
 ### 4. The `dark:` variant
 

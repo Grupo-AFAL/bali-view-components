@@ -52,6 +52,22 @@ class ThemeHelperTest < ActionView::TestCase
     assert_match(/Bali\.themes = \{ light:/, error.message)
   end
 
+  def test_string_keys_are_read_as_symbols
+    Bali.themes = { "light" => "afal", "dark" => "afal-dark" }
+
+    assert_equal({ light: "afal", dark: "afal-dark" }, Bali.themes)
+  end
+
+  def test_a_misspelt_key_fails_on_assignment
+    error = assert_raises(ArgumentError) { Bali.themes = { light: "afal", drak: "afal-dark" } }
+    assert_match(/drak/, error.message)
+  end
+
+  def test_a_pair_without_light_fails_on_assignment
+    error = assert_raises(ArgumentError) { Bali.themes = { dark: "afal-dark" } }
+    assert_match(/light:/, error.message)
+  end
+
   def test_the_cookie_name_is_the_one_the_toggle_writes
     assert_equal "bali_theme", Bali::ThemeHelper::COOKIE
     assert_equal "dark", Bali::ThemeHelper::DARK

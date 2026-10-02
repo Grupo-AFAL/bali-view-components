@@ -29,6 +29,7 @@ class BaliThemesTest < ActiveSupport::TestCase
     Dir[THEMES_DIR.join("*.css").to_s].sort
   end
 
+  # cypress/support/themes.js lists the same themes for the contrast guards.
   def test_the_expected_themes_ship_with_the_gem
     assert_equal(%w[afal-dark.css afal.css costa-norte-dark.css costa-norte.css],
                  theme_files.map { |file| File.basename(file) })
@@ -63,10 +64,9 @@ class BaliThemesTest < ActiveSupport::TestCase
     assert_includes(css, "color-scheme: light")
   end
 
-  def test_the_afal_dark_draft_declares_a_dark_scheme
-    css = File.read(THEMES_DIR.join("afal-dark.css"))
-
-    assert_includes(css, "color-scheme: dark")
-    assert_match(/DRAFT/, css, "afal-dark.css debe declararse borrador hasta su aprobación visual")
+  def test_the_dark_themes_declare_a_dark_scheme
+    %w[afal-dark costa-norte-dark].each do |name|
+      assert_includes(File.read(THEMES_DIR.join("#{name}.css")), "color-scheme: dark", name)
+    end
   end
 end
