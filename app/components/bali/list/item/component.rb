@@ -6,7 +6,8 @@ module Bali
       class Component < ApplicationViewComponent
         BASE_CLASSES = "list-row"
         TITLE_CLASSES = "font-semibold"
-        SUBTITLE_CLASSES = "text-sm text-base-content/60"
+        # `/70`, not `/60`: at 14px `/60` measured 4.04:1 on `afal`, under AA's 4.5:1.
+        SUBTITLE_CLASSES = "text-sm text-base-content/70"
         CONTENT_CLASSES = "list-col-grow"
         ACTIONS_CLASSES = "flex items-center gap-2 ml-auto"
 

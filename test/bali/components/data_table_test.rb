@@ -767,13 +767,24 @@ class BaliDataTableComponentTest < ComponentTestCase
 
   # The ColumnSelector has no test of its own: its coverage lives here.
   # The negative assertion MUST be scoped to the `data-controller`: the toolbar's own ⋯ is
-  # painted with `align: :bottom_end`, so a bare `assert_no_selector('.dropdown-end')` fails
-  # against a `dropdown-end` that is correct and has to stay.
+  # painted with `direction: :bottom, align: :end`, so a bare
+  # `assert_no_selector('.dropdown-end')` fails against a `dropdown-end` that is correct and has
+  # to stay.
   def test_the_column_selector_popover_opens_to_the_left
     render_collapsible_toolbar
 
-    assert_selector("[data-controller='column-selector'].dropdown", visible: :all)
-    assert_no_selector("[data-controller='column-selector'].dropdown-end", visible: :all)
+    assert_selector("[data-controller='column-selector'] .dropdown.dropdown-start", visible: :all)
+    assert_no_selector("[data-controller='column-selector'] .dropdown-end", visible: :all)
+  end
+
+  # The role is the contract with the dropdown controller, whose arrows walk
+  # `[role^="menuitem"]` (`getMenuItems` and `fromFormControl` in dropdown/index.js).
+  def test_the_column_checkboxes_are_menu_items_the_arrows_walk
+    render_collapsible_toolbar
+
+    assert_selector("[data-controller='column-selector'] ul[role=menu] " \
+                    "input[type=checkbox][role=menuitemcheckbox][data-column-index='0']",
+                    visible: :all)
   end
 
   SavedView = Struct.new(:id, :name, :payload, keyword_init: true)

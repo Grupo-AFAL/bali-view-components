@@ -129,6 +129,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
   -- app/views`).
 
+- **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
+  los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
+  `Bali::Dropdown`, con el teclado de «Agrupar por» (#1231); en Columnas las flechas recorren
+  las casillas, que pasan a `role="menuitemcheckbox"`. Sus paneles toman el aspecto del de
+  «Agrupar por», y el de Vistas pasa de 288 a 320 px. **Anfitrión:** el disparador
+  deja de ser un `<button>` (es el `div[role=button]` de `Bali::Dropdown`), así que una prueba
+  que lo busque como `button` deja de encontrarlo; hay una, en gobierno-corporativo
+  (`git grep -n -E "(saved-views|column-selector)['\"]?\] button" origin/main -- test spec`).
+  Cámbiala a `[data-controller='saved-views'] [data-dropdown-target='trigger']`, que sólo
+  encuentra el disparador. `[data-controller='column-selector']` y
+  `[data-controller='saved-views']` siguen valiendo tal cual, con sus `li label` e
+  `input[data-column-index]`.
+
 - **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
   de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el
   paso en curso de `WorkflowSteps` `:progress`, la opción marcada de `SimpleFilters`, la mención
@@ -222,6 +235,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app/views/governing_bodies/calendars/approval_flows/show.html.erb`, que vuelven a
   `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e "with_timestamp"
   origin/main -- app/views`).
+
+- **El mismo texto atenuado quedaba bajo AA en `List`, `PageHeader`, `StatCard` y los campos de
+  archivo y rango, y la línea de `WorkflowSteps` `:progress` bajo 3:1** (#1248, #1249). El
+  subtítulo de `List::Item` y de `PageHeader`, el nombre del archivo de `file_group`, las marcas de
+  `range_group` y la etiqueta y la nota de `StatCard` iban en `/60`: 4.04:1 sobre `base-100` en
+  `afal`, y 3.77:1 sobre una celda con `emphasis:`, la peor de los nueve colores. Pasan a `/70`,
+  5.01:1 o más en los cinco temas. El contorno de los pasos por venir y la línea hacia ellos en
+  `orientation: :progress` pasan de `/50` a `/55`: en `afal`, dentro de una tarjeta `base-200`, el
+  contorno sobre su disco va de 2.77:1 a 3.17:1 y la línea de 2.96:1 a 3.38:1. Sin nada que hacer
+  en el anfitrión;
+  **gobierno-corporativo** puede quitar el `class: 'text-base-content/70'` que le puso al subtítulo
+  en `app/views/governing_bodies/documents/_controlled_forms.html.erb`, y su comentario.
 
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
