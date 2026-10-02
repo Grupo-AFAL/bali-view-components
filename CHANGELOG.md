@@ -164,11 +164,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bali_view.data_table.export.button_label`, y las etiquetas de formato pasan de
   `bali_view.data_table.export.formats.*` a `bali_view.page_components.export.formats.*`, junto a
   `menu_title`. Ninguna de las nueve apps toca nada de esto:
-  `git grep -n "DataTable::Export" origin/main -- app lib config test spec` y
-  `git grep -n "data_table.export" origin/main` dan cero, y ninguna declara una llave
-  `bali_view:` en sus `*.yml`. **Anfitrión:** si apareces en el primero, cambia el `render` por
-  `page.with_export(url:, formats:)` en la página; si apareces en el segundo, cambia esa llamada
-  a `t` por tu propio texto, o pasa tu traducción a la llave nueva.
+  `git grep -n "DataTable::Export" origin/main -- app lib config test spec`,
+  `git grep -n "data_table.export" origin/main` y
+  `git grep -n "^ *bali_view:" origin/main -- '*.yml'` dan cero. **Anfitrión:** si apareces en
+  el primero, cambia el `render` por `page.with_export(url:, formats:)` en la página; en el
+  segundo, cambia la llave de esa llamada a `t` por `bali_view.page_components.export.formats.*`,
+  o por tu propio texto si era `button_label`; en el tercero, si bajo `bali_view:` traduces
+  `data_table.export.formats`, mueve esas traducciones a `page_components.export.formats`.
 
 ### Fixed
 
