@@ -111,6 +111,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
+  de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el
+  paso en curso de `WorkflowSteps` `:progress`, la opción marcada de `SimpleFilters`, la mención
+  del `BlockEditor` y «Agregar condición» / «Agregar grupo de filtros» de `Filters` bajo el
+  cursor medían hasta 2.23:1 en `dark`, 3.52 en `afal` y 1.46 un badge de advertencia. Ahora
+  pintan `text-soft-<color>`, el color mezclado al 40% con `base-content` como las variantes
+  soft de #1126, y el peor caso es 5.16:1. **Anfitrión:** la utilidad es pública, para el mismo
+  par en sus vistas —9 en afal-apps, 10 en gobierno-corporativo, 1 en identity—:
+  `git grep -nE "bg-primary/10.*text-primary\b|text-primary\b.*bg-primary/10" origin/main -- app`.
+
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
   menú de ítems las teclas llevan el foco al primero— y lo cierran Escape, un clic fuera o que el
