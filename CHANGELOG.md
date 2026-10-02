@@ -30,8 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     texto no se lee; en `afal` y `costa-norte` son el mismo color.
 
   costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]` e importar el de Bali: su
-  menú lateral pinta `base-100`, el texto y el dorado, que no cambian; cambian el texto sobre
-  info y error, que ahora pasa AA, el secundario, `neutral` y `base-200`/`base-300`.
+  menú lateral conserva el riel, el texto y el dorado, y el hover, los bordes y el panel del
+  switcher los deriva el SideMenu (0.305 y 0.375, contra los 0.305 y 0.37 de la app). Cambian el
+  texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
 
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
@@ -139,6 +140,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un SideMenu con `theme:` oscuro levanta su hover, sus bordes y el panel del switcher**
+  sobre el riel. Con el `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan
+  desde `base-100`, y dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el
+  borde más oscuro todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa
+  del tema. Sin nada que hacer en el anfitrión.
 - **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline) y
   también el botón neutral `outline`: pintaban `neutral` como texto, que en oscuro es un relleno
   oscuro (1.72:1 en `afal-dark`, 1.26 en el `dark` de daisyUI). Ahora usan `base-content`,

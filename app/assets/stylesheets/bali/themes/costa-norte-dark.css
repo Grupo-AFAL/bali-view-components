@@ -1,16 +1,17 @@
 /*
  * Costa Norte Dark Theme for DaisyUI 5
  *
- * Dark variant of themes/costa-norte.css. The surfaces, the text and the gold
+ * Dark variant of themes/costa-norte.css. base-100, the text and the gold
  * primary are the exact values the costa-norte app has painted its sidebar with
  * since it scoped `data-theme="costa-norte-dark"` onto it: keep them equal, or
- * that app's sidebar changes the day it drops its own block for this file.
+ * that app's sidebar changes the day it drops its own block for this file. Its
+ * hand-tuned base-200/300 (0.305 / 0.37) are not here: SideMenu derives them
+ * inside a themed rail (side_menu/daisyui-overrides.css).
  *
  * Derivation rules (from the light theme):
  * - base-100 is the light theme's `neutral` (dark teal) under its
  *   neutral-content, and base-200/300 step DOWN from it, as daisyUI's own dark
- *   does: hosts lay base-100 cards on a base-200 page. The app's sidebar paints
- *   base-100 only, so it keeps its colour.
+ *   does: hosts lay base-100 cards on a base-200 page.
  * - Primary is the brand gold: the brand teal sits on base-100 at 1.69:1,
  *   unusable as a fill or as text.
  * - Secondary is the brand teal lifted until it reads on those surfaces, so it
