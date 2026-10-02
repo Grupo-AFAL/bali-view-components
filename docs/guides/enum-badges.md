@@ -125,8 +125,11 @@ pair = Bali::Status.palette(TASK_STATUSES.fetch(task.status.to_sym))
 ```
 
 If a state's color ever changes, it changes in the pill and in the bar at once.
-Public also means frozen: changing one of the twelve hex values is a breaking
-change to Bali, so hosts can rely on them.
+The twelve names are frozen — removing or renaming one is a breaking change to
+Bali — but a hex value can change to keep its pair at AA, as orange, green and
+teal did in #1259. That is why the pair is read through the accessor. AA covers
+`fg` on `bg`: a `bg` you paint as text or an icon on a surface of your own is
+yours to measure, and a darker `bg` reads worse on a dark one.
 
 An unknown name raises, listing the valid ones. The deterministic avatar
 colors (`Bali::Utils::ColorCalculator#deterministic_color`) draw from this same
