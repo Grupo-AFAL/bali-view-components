@@ -403,9 +403,11 @@ describe('DropdownController', () => {
           cy.get(item).should(expectTopMostAtTheirCentres)
         })
 
-        // `showModal()` leaves the page behind scrollable. Popper measures against the dialog,
-        // which is `position: fixed`, so the menu has to land under its trigger at any offset.
-        it('keeps the menu under its trigger with the page behind scrolled', () => {
+        // `showModal()` leaves the page behind scrollable, and a popup moved into the fixed
+        // dialog can land a scroll away from its field (utils/top-layer.js). Reachability is what
+        // covers #1269; the distance is 4 px on `<body>` too, so it only guards Popper measuring
+        // against the dialog, which is what lets this skip `showPopover()`.
+        it('keeps every item reachable and under its trigger with the page behind scrolled', () => {
           cy.document().then((doc) => {
             const spacer = doc.createElement('div')
             spacer.style.height = '3000px'
