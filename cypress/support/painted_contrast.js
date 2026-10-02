@@ -1,17 +1,27 @@
-// WCAG contrast of an element's text as it is PAINTED: its colour at the colour's alpha times
-// every `opacity` between it and the first opaque background, composited over that background on
-// a 1px canvas. `getComputedStyle().color` carries only the colour's alpha: read that way the
-// SplitView filter count reported 6.38:1 while it painted 2.92:1 (#1202). Every translucent
-// background on the way is painted over that ground first, the farthest first: SideMenu's active
-// item reads 5.25:1 against the bare page and 4.51 over its own primary/10 tint (#1221).
+// WCAG contrast of what an element paints — its text unless told otherwise — as it is PAINTED:
+// its colour at the colour's alpha times every `opacity` between it and the first opaque
+// background, composited over that background on a 1px canvas. `getComputedStyle().color` carries
+// only the colour's alpha: read that way the SplitView filter count reported 6.38:1 while it
+// painted 2.92:1 (#1202). Every translucent background on the way is painted over that ground
+// first, the farthest first: SideMenu's active item measured 5.25:1 against the bare page and
+// 4.51 over its own primary/10 tint (#1221).
 //
 // Two things it still does not see: the `opacity` of the node that carries a tint is not applied
 // to the tint, which on a light theme measures the tint darker than it paints (the safe side), and
-// the background of a pseudo-element.
+// the background of a pseudo-element, which the caller hands over as `under`.
 //
 // `over` is where the search for that background starts. Text starts at its own element; a shape
 // drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own
 // fill and measure 1:1 against itself, so it starts at the parent.
+//
+// `property` is the colour measured, `color` unless told otherwise. A shape not drawn in `color`
+// — an outline in `borderTopColor`, a line in `backgroundColor` — passes the property; a line is
+// its own fill, so it starts at the parent too.
+//
+// `under` is a fill the shape sits straight on, inside the ground the search found. The colour is
+// painted over it and measured against it and against that ground, and the lower of the two is
+// the answer: the outline of a WorkflowSteps marker on its `::before` disc, in a base-200 card on
+// `afal`, read 3.38:1 composited over the card alone and paints 3.17 (#1249).
 
 const luminance = ([r, g, b]) => {
   const channel = (v) => {
@@ -21,7 +31,12 @@ const luminance = ([r, g, b]) => {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-export const paintedContrast = (el, { over = el } = {}) => {
+const contrast = (a, b) => {
+  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+  return (high + 0.05) / (low + 0.05)
+}
+
+export const paintedContrast = (el, { over = el, property = 'color', under } = {}) => {
   if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')
 
   const win = el.ownerDocument.defaultView
@@ -55,7 +70,7 @@ export const paintedContrast = (el, { over = el } = {}) => {
 
   let ground = paint(groundColour)
   tints.forEach((tint) => { ground = paint(tint) })
-  const text = paint(win.getComputedStyle(el).color, opacity)
-  const [high, low] = [luminance(text), luminance(ground)].sort((x, y) => y - x)
-  return (high + 0.05) / (low + 0.05)
+  const bed = under ? paint(under) : ground
+  const ink = paint(win.getComputedStyle(el)[property], opacity)
+  return Math.min(contrast(ink, ground), contrast(ink, bed))
 }

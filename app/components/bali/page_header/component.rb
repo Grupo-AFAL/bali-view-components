@@ -30,7 +30,9 @@ module Bali
       # `h1` this component now defaults to would have jumped from 24px to 36px
       # and the documented `tag: :h2` migration would have shrunk it again.
       TITLE_CLASSES = "title text-2xl font-bold"
-      SUBTITLE_CLASSES = "subtitle text-sm text-base-content/60"
+      # `/70`, not `/60`: over the `base-200` of an AppLayout page `/60` measured 3.89:1 on
+      # `afal`, under AA's 4.5:1.
+      SUBTITLE_CLASSES = "subtitle text-sm text-base-content/70"
 
       # `flex-wrap` so the tags drop under the title instead of squeezing it:
       # unwrapped, two badges cut a 375px title down to 277px.

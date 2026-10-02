@@ -63,7 +63,7 @@ class WorkflowStepsPreviewsTest < ActionDispatch::IntegrationTest
     assert_select ".workflow-steps-progress-rail" do |shapes|
       connectors = shapes.first.css(".workflow-step-connector")
       colors = connectors.map { |node| node["class"][/bg-\S+/] }
-      assert_equal (%w[bg-primary] * 5) + ([ "bg-base-content/50" ] * 3), colors
+      assert_equal (%w[bg-primary] * 5) + ([ "bg-base-content/55" ] * 3), colors
     end
   end
 
