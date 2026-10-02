@@ -16,6 +16,22 @@ describe('DropdownController', () => {
 
   const press = (key) => cy.focused().trigger('keydown', { key, bubbles: true, force: true })
 
+  // Through the browser's own keyboard path (CDP), so the key also does what the browser does
+  // with it: a Tab moves the focus, an Escape asks a modal dialog to close. `press` reaches the
+  // handlers and nothing else.
+  const KEYS = {
+    Escape: { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 },
+    Tab: { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 }
+  }
+  const sendKey = (name) => {
+    const send = (type) => Cypress.automation('remote:debugger:protocol', {
+      command: 'Input.dispatchKeyEvent',
+      params: { type, ...KEYS[name] }
+    })
+
+    return cy.then(() => send('rawKeyDown').then(() => send('keyUp')))
+  }
+
   // `display` and not `not.be.visible`: see docs/reference/testing-traps.md.
   const expectClosed = ($menu) => {
     expect($menu[0].ownerDocument.defaultView.getComputedStyle($menu[0]).display).to.equal('none')
@@ -356,14 +372,29 @@ describe('DropdownController', () => {
   // #1269: Modal and Drawer open with `showModal()`, which makes everything outside the
   // `<dialog>` inert. A popper on `<body>` opened there — `aria-expanded="true"`, the popper in
   // the DOM — with not one item the pointer or the keyboard could reach.
-  context('popover mode inside a Modal or Drawer', () => {
+  context('inside a Modal or Drawer', () => {
     const OVERLAYS = {
-      Modal: { dialog: '#dropdown-modal', event: 'bali:modal:open' },
-      Drawer: { dialog: '#dropdown-drawer', event: 'bali:drawer:open' }
+      Modal: { dialog: '#dropdown-modal', event: 'bali:modal:open', close: '[data-action="modal#close"]' },
+      Drawer: { dialog: '#dropdown-drawer', event: 'bali:drawer:open', close: '[data-action="drawer#close"]' }
     }
     const item = '[data-tippy-root] [role="menuitem"]'
 
     const expectModal = ($dialog) => expect($dialog[0].matches(':modal'), ':modal').to.equal(true)
+
+    const expectFocusOn = (label) =>
+      cy.document().should((doc) => {
+        const focused = doc.activeElement
+        const name = focused.matches(item) ? focused.textContent.trim() : `<${focused.tagName.toLowerCase()}>`
+        expect(name, 'the focused element').to.equal(label)
+      })
+
+    // The markup the server renders, before any controller has touched it: a remote panel's
+    // content is a string the open event hands over, and so is this.
+    const renderedDropdown = (popover) =>
+      cy.request('/bali/dropdown/basic').its('body').then((html) =>
+        new window.DOMParser().parseFromString(html, 'text/html')
+          .querySelector(`[data-dropdown-popover-value="${popover}"]`).outerHTML
+      )
 
     // `elementFromPoint` and not `be.visible`: an item painted under the panel, or made inert by
     // it, is still visible to Cypress.
@@ -376,14 +407,19 @@ describe('DropdownController', () => {
       })
     }
 
-    Object.entries(OVERLAYS).forEach(([name, { dialog, event }]) => {
+    Object.entries(OVERLAYS).forEach(([name, { dialog, event, close }]) => {
       context(name, () => {
+        const expectFocusOnClose = () =>
+          cy.document().should((doc) => {
+            expect(doc.activeElement, 'the focused element').to.equal(doc.querySelector(`${dialog} ${close}`))
+          })
+
         // The trigger buttons are what a reader clicks, but a click scrolls them into view, and
         // one test needs the page behind left where it was. Same event, same addressed open.
-        const openOverlay = () => {
+        const openOverlay = (content) => {
           cy.window().then((win) => {
             win.document.dispatchEvent(
-              new win.CustomEvent(event, { detail: { id: dialog.slice(1), options: {} } })
+              new win.CustomEvent(event, { detail: { id: dialog.slice(1), content, options: {} } })
             )
           })
           cy.get(dialog).should(expectModal)
@@ -441,13 +477,6 @@ describe('DropdownController', () => {
 
         // `focus()` cannot land on an inert node, so the keyboard was locked out too.
         it('walks the items from the keyboard', () => {
-          const expectFocusOn = (label) =>
-            cy.document().should((doc) => {
-              const focused = doc.activeElement
-              const name = focused.matches(item) ? focused.textContent.trim() : `<${focused.tagName.toLowerCase()}>`
-              expect(name, 'the focused element').to.equal(label)
-            })
-
           openOverlay()
           cy.get(`${dialog} ${trigger}`).focus()
 
@@ -457,6 +486,90 @@ describe('DropdownController', () => {
           press('ArrowDown')
           expectFocusOn('Export')
         })
+
+        // The Escape that closed the menu went on up to `keydown.esc->modal#close` on the
+        // dialog. A real key, because the browser's own close request rides on it too.
+        it(`closes only the menu on the first Escape and the ${name} on the second`, () => {
+          openOverlay()
+          cy.get(`${dialog} ${trigger}`).focus()
+          press('ArrowDown')
+          expectFocusOn('Edit')
+
+          sendKey('Escape')
+
+          cy.get(dialog).should(expectModal)
+          cy.focused().should('match', `${dialog} ${trigger}`)
+          cy.get('[data-tippy-root]').should('not.exist')
+
+          sendKey('Escape')
+
+          cy.get(dialog).should(($dialog) => expect($dialog[0].matches(':modal'), ':modal').to.equal(false))
+        })
+
+        it(`closes only a CSS-mode menu on Escape and leaves the ${name} open`, () => {
+          renderedDropdown(false).then(openOverlay)
+          // What `connect()` leaves on a click dropdown, so the keys below have a controller.
+          cy.get(`${dialog} ${cssDropdown}`).should('have.class', 'dropdown-close')
+          cy.get(`${dialog} ${cssDropdown} ${trigger}`).focus()
+          press('ArrowDown')
+          cy.focused().should('contain', 'Item 1')
+
+          sendKey('Escape')
+
+          cy.get(dialog).should(expectModal)
+          cy.focused().should('match', `${dialog} ${cssDropdown} ${trigger}`)
+          cy.get(`${dialog} ${cssDropdown}`).find(menu).should(expectClosed)
+        })
+
+        // The menu hangs in the dialog beside the panel, where the panel's focus trap never saw
+        // its Tab: from the trigger, the last thing in the panel, the browser went on into the
+        // menu tippy was still hiding, and from there to `<body>`.
+        it(`keeps Tab from the menu inside the ${name}`, () => {
+          openOverlay()
+          cy.get(`${dialog} ${trigger}`).focus()
+          press('ArrowDown')
+          expectFocusOn('Edit')
+
+          sendKey('Tab')
+
+          cy.get('[data-tippy-root]').should('not.exist')
+          expectFocusOnClose()
+        })
+
+        // The trap was measured right after the content landed, before the dropdown in it
+        // connected and took its items out of the panel: the last of them stayed its edge.
+        it(`keeps Tab from the menu inside the ${name} when the content comes with the open event`, () => {
+          renderedDropdown(true).then(openOverlay)
+          cy.get(`${dialog} ${popoverDropdown}`).find(menu).should('not.exist')
+          cy.get(`${dialog} ${trigger}`).focus()
+          press('ArrowDown')
+          expectFocusOn('Edit')
+
+          sendKey('Tab')
+
+          cy.get('[data-tippy-root]').should('not.exist')
+          expectFocusOnClose()
+        })
+      })
+    })
+
+    // Only inside a modal dialog does the dropdown keep that Escape to itself.
+    ;[['CSS', cssDropdown], ['popover', popoverDropdown]].forEach(([mode, dropdown]) => {
+      it(`lets the Escape that closed a ${mode} menu outside a dialog reach the document`, () => {
+        cy.visit('/bali/dropdown/basic')
+        cy.document().then((doc) => {
+          const seen = []
+          doc.addEventListener('keydown', (e) => { if (e.key === 'Escape') seen.push(e.key) })
+          cy.wrap(seen).as('seen')
+        })
+        cy.get(dropdown).first().find(trigger).focus()
+        press('ArrowDown')
+        cy.focused().should('have.attr', 'role', 'menuitem')
+
+        press('Escape')
+
+        cy.focused().should('have.attr', 'data-dropdown-target', 'trigger')
+        cy.get('@seen').should('have.length', 1)
       })
     })
   })
