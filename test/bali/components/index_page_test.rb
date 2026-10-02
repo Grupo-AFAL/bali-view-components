@@ -181,7 +181,7 @@ class BaliIndexPageComponentTest < ComponentTestCase
   # The label key is interpolated, so `i18n_usage_test` only checks its prefix.
   def test_every_export_format_has_a_label_in_both_locales
     %i[en es].each do |locale|
-      labels = I18n.t("bali_view.page_components.export.formats", locale: locale).compact_blank
+      labels = I18n.t("bali_view.page_components.export.formats", locale: locale, default: {}).compact_blank
 
       assert_equal Bali::PageComponents::Shared::EXPORT_FORMATS.sort, labels.keys.sort, locale
     end
