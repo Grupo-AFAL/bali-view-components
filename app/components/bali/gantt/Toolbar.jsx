@@ -143,7 +143,7 @@ export default memo(function Toolbar ({
           value={search}
           onChange={(e) => onSearch(e.target.value)}
           placeholder={t('search_placeholder')}
-          className='w-[140px] border-none bg-transparent text-xs text-base-content outline-none'
+          className='w-[140px] border-none bg-transparent text-xs text-base-content outline-none placeholder:text-base-content/70'
         />
       </label>
 

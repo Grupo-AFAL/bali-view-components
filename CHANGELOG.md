@@ -322,9 +322,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   etiquetas de grupo y los subtítulos del `SideMenu`, la paleta de `Command` (disparador,
   encabezados, metadatos, pie y placeholder), los paneles de `DocumentEditor` y `DocumentPage`
   (con el extracto de un comentario), `Filters`, `DirectUpload`, `SplitView`, `Widget` y
-  `WidgetGrid`, `Gantt`, las etiquetas de `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el
-  correo del `UserMenu`, el `BlockEditor` (placeholder, aviso de un toggle vacío y enlaces del
-  índice, también en `DocumentEditor` y `DocumentPage`), SlimSelect (placeholder, etiquetas de
+  `WidgetGrid`, `Gantt` (también el placeholder de su búsqueda), las etiquetas de
+  `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el correo del `UserMenu`, el
+  `BlockEditor` (placeholder, aviso de un toggle vacío y enlaces del índice, también en
+  `DocumentEditor` y `DocumentPage`), SlimSelect (placeholder, etiquetas de
   grupo, «Searching...» y «No results»), el placeholder de `RichTextEditor` (el del campo de enlace
   iba en `base-300`, 1.24:1) y los encabezados de sección de los menús, que heredaban el `/40` de
   `.menu-title` de daisyUI (2.36:1): el `tag: :title` de `Dropdown`, el selector de columnas y las

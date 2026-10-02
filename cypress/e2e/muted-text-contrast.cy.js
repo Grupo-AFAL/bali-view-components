@@ -179,7 +179,8 @@ describe('muted text contrast', () => {
     'gantt/default': [
       ['monospaced figure', '.bali-gantt .font-mono', 53],
       ['caps label', '.bali-gantt .uppercase', 13],
-      ['legend label', '.bali-gantt .font-sans', 5]
+      ['legend label', '.bali-gantt .font-sans', 5],
+      ['search placeholder', '.bali-gantt input[placeholder]', 1, '::placeholder']
     ],
     '/dashboard_widgets/edit': [
       ['picker note', 'form p.text-sm', 1]
