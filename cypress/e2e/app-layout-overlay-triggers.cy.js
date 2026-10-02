@@ -51,4 +51,25 @@ describe('AppLayout overlay triggers outside <main> (#1268)', () => {
 
     expectOpenOnThePreview('main-drawer', 'John Doe')
   })
+
+  // The item the panel would hand the focus back to lives in tippy's popper, which is gone by
+  // the time the panel closes: the menu shuts as the focus moves into the panel.
+  const MENU_ITEMS = [
+    { name: 'Open in drawer', panelId: 'main-drawer', text: 'John Doe' },
+    { name: 'Open in modal', panelId: 'main-modal', text: 'Welcome!' }
+  ]
+  MENU_ITEMS.forEach(({ name, panelId, text }) => {
+    it(`closing what "${name}" opened returns the focus to the menu trigger`, () => {
+      clickMenuItem(name)
+      expectOpenOnThePreview(panelId, text)
+      cy.get('[data-tippy-root]').should('not.exist')
+
+      cy.focused().type('{esc}')
+
+      cy.get(`#${panelId}`).should(($panel) => expect($panel[0].matches(':modal'), 'closed').to.equal(false))
+      cy.document().should((doc) => {
+        expect(doc.activeElement, 'the focused element').to.match(`${popover} [data-dropdown-target="trigger"]`)
+      })
+    })
+  })
 })

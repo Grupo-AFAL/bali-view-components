@@ -251,7 +251,7 @@ export class ModalController extends Controller {
     // skeleton pulls the focus in, the second call would otherwise overwrite
     // the trigger with the panel itself, and closing would restore nothing.
     if (!this.templateTarget.contains(document.activeElement)) {
-      this.previouslyFocusedElement = document.activeElement
+      this.previouslyFocusedElement = this._focusReturnTarget(document.activeElement)
     }
 
     if (this.wrapperClasses) {
@@ -275,6 +275,14 @@ export class ModalController extends Controller {
     // — a sibling subtree — so for the whole length of the fetch Escape never
     // reached the panel's handler and Tab walked the page behind the overlay.
     this.trapFocus()
+  }
+
+  // A trigger inside a tippy popper — an item of a `popover: true` menu — is gone by the
+  // time the panel closes: the menu shuts as the focus moves into the panel, tippy unmounts
+  // the popper, and `.focus()` on a detached item leaves the focus on <body>. The popper's
+  // reference, the menu's trigger, is where the reader came from.
+  _focusReturnTarget (element) {
+    return element?.closest('[data-tippy-root]')?._tippy?.reference || element
   }
 
   // The overlay element is a real `<dialog>`, and `showModal()` is the whole
