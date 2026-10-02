@@ -62,28 +62,10 @@
   }
 
   /* The text color is NOT touched here: a transparent navbar over a dark hero still
-   * wants the light `*-content` of its preset. Recovering it below 1023px while the
-   * menu is open is done by the block underneath, which already existed. */
+   * wants the light `*-content` of its preset. */
   &.is-transparent {
     @apply bg-transparent shadow-none;
     transition: background-color 1s;
-  }
-
-  @media (max-width: 1023px) {
-    &.is-transparent.is-active {
-      @apply shadow-none;
-      transition: background-color 1s;
-
-      a,
-      .dropdown-item,
-      .dropdown-link {
-        @apply text-base-content;
-      }
-
-      .navbar-menu {
-        transition: background-color 1s;
-      }
-    }
   }
 }
 
