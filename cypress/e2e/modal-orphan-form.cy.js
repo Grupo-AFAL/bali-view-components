@@ -1,9 +1,9 @@
 // #984 — `submit_group(..., drawer: true)` on a full page: the button's `drawer#submit`
-// and the Cancel's `drawer#close` land on the orphan controller AppLayout mounts on
-// `<main>` (`data-controller="modal drawer"`, with no targets). The guards hand the events
-// back to the browser BEFORE the preventDefault: the submit degrades to the normal form
-// submit and the Cancel navigates. Before the guard this was the dead button with an
-// endless spinner, the 422 eaten by `_replaceContent` and the Cancel swallowed.
+// and the Cancel's `drawer#close` land on the orphan `drawer` controller AppLayout mounts on
+// `<body>` (it has no targets). The guards hand the events back to the browser BEFORE the
+// preventDefault: the submit degrades to the normal form submit and the Cancel navigates.
+// Before the guard this was the dead button with an endless spinner, the 422 eaten by
+// `_replaceContent` and the Cancel swallowed.
 //
 // The preview sends by GET to its own URL, so the proof that the submit went out through
 // the browser path is the query string — same criterion as simple-filters-auto-submit.

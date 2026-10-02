@@ -1,0 +1,42 @@
+<%= render Bali::AppLayout::Component.new(fixed_sidebar: false, drawer_size: :md, flash: {}) do |layout| %>
+  <% layout.with_topbar do %>
+    <div class="flex items-center justify-end gap-2 px-4 py-2 bg-base-100 border-b border-base-300">
+      <%= render Bali::Link::Component.new(
+        name: "User details",
+        href: "/drawers/user_details",
+        icon: "user",
+        drawer: true,
+        variant: :primary,
+        size: :sm,
+        data: { testid: "topbar-drawer-trigger" }
+      ) %>
+    </div>
+  <% end %>
+
+  <% layout.with_body do %>
+    <div class="max-w-3xl space-y-4">
+      <%= render Bali::PageHeader::Component.new(
+        title: "Overlay triggers",
+        subtitle: "The topbar button and the row menu open the shared drawer and modal."
+      ) %>
+
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="overflow-x-auto">
+          <%= render Bali::Table::Component.new do |table| %>
+            <% table.with_headers([{ name: "Name" }, { name: "Email" }, { name: "" }]) %>
+            <% table.with_row do %>
+              <td>Ana García López</td>
+              <td>ana@example.com</td>
+              <td class="text-right">
+                <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |menu| %>
+                  <% menu.with_item(name: "Open in drawer", href: "/drawers/user_details", icon: "panel-right", drawer: true) %>
+                  <% menu.with_item(name: "Open in modal", href: "/modals/basic", icon: "app-window", modal: true) %>
+                <% end %>
+              </td>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
