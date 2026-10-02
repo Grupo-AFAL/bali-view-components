@@ -1,4 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
 
 // Infinite scroll for the structured SplitView listing. The preview renders page
 // one and points the sentinel at the dummy's `/split-view`, so every fetch here is
@@ -7,7 +8,6 @@ import { paintedContrast } from '../support/painted_contrast'
 //
 // 20 movies, 5 per page: four pages, and the fourth is the end of the list.
 describe('SplitView structured list', () => {
-  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
   const scroller = () => cy.get('[data-split-view-list-target="scroller"]')
   const rows = () => cy.get('.split-view-item')
   const scrollToBottom = () => scroller().scrollTo('bottom', { ensureScrollable: false })

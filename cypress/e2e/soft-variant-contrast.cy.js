@@ -1,4 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
 
 // The text colour of the soft, outline and dash variants, which only exists in
 // compiled CSS and so cannot be seen by a component test.
@@ -22,10 +23,9 @@ describe('tinted variant text contrast', () => {
   const ALERTS = '.alert-soft, .alert-outline, .alert-dash'
   const TAGS = '.badge-soft, .badge-outline, .badge-dash'
 
-  // The three Bali themes plus daisyUI's own pair: the fix has to hold where the
+  // Every theme, daisyUI's own pair included: the fix has to hold where the
   // `*-content` token would NOT have (a dark theme puts a dark `*-content`
   // over a dark tint — measured at 1.01–1.48 with that token).
-  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
 
   // The alert's body, the `<div>` #1126 reported unreadable: inside the title's
   // column when there is a title, straight under the alert when there is not.
