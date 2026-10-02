@@ -120,11 +120,12 @@ class BaliIndexPageComponentTest < ComponentTestCase
   # `?clear_filters=true` wiped their stored filters by clicking export.
   def test_export_links_drop_the_one_shot_orders
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
-      page.with_export(url: "/movies", params: { "clear_filters" => "true", "clear_search" => "true" })
+      page.with_export(url: "/movies", params: { "q" => { "name_cont" => "dune" },
+                                                 "clear_filters" => "true", "clear_search" => "true" })
       page.with_body { "Content" }
     end
 
-    assert_selector('a[href="/movies?format=csv"]', visible: :all)
+    assert_selector('a[href="/movies?format=csv&q%5Bname_cont%5D=dune"]', visible: :all)
   end
 
   # A bare `?` gave `/movies?scope=archived?format=csv`, which Rack reads as ONE corrupt scope and
