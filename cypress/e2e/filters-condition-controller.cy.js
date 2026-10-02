@@ -61,8 +61,7 @@ describe('ConditionController', () => {
     operator().select('in')
     expectLabel('Select values...', { muted: true })
 
-    cy.get(`${container} [data-multi-select-target="trigger"]`).click()
-    cy.get(`${container} input[value="Drama"]`).check()
+    checkOption('Drama')
     expectLabel('Drama', { muted: false })
   })
 
