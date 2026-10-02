@@ -149,8 +149,8 @@
    inside @layer utilities, so their overrides live in
    ./daisyui-overrides.css. */
 
-/* Arrow icon rotation. `/55` is the first step that clears 3:1 for an icon over
-   base-300 on `afal` (3.27:1); `/50` measured 2.96 over the sidebar's base-200. */
+/* Arrow icon rotation. `/55` is the first multiple of 5 that clears 3:1 for an icon
+   over base-300 on `afal` (3.27:1); `/50` measured 2.96 over the sidebar's base-200. */
 .side-menu-component .arrow-icon {
   @apply transition-transform duration-200 text-base-content/55;
 }

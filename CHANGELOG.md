@@ -323,12 +323,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encabezados, metadatos, pie y placeholder), los paneles de `DocumentEditor` y `DocumentPage`,
   `Filters`, `DirectUpload`, `SplitView`, `Widget` y `WidgetGrid`, `Gantt`, las etiquetas de
   `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el correo del `UserMenu` y los placeholders
-  de SlimSelect y `RichTextEditor`. En `/70` el mínimo es 4.88:1 (el subtítulo del switcher del
-  `SideMenu` con el puntero encima). Los íconos que son todo el control o toda la respuesta (el
-  vacío de `BooleanIcon`, los chevrons del `SideMenu`, los de `Filters`, `DirectUpload` y `Gantt`)
-  pasan a `/55`, lo primero que llega a 3:1 en los seis temas sobre `base-300` (3.27:1 en `afal`), y
-  el cero que atenúa un `Widget` (texto grande) de `/30` (1.86:1) a `/55`. Sin nada que hacer en el
-  anfitrión.
+  de SlimSelect y `RichTextEditor` (el del campo de enlace iba en `base-300`, 1.24:1). En `/70` el
+  mínimo es 4.88:1 (el subtítulo del switcher del `SideMenu` con el puntero encima). Los íconos que
+  son todo el control o toda la respuesta (el vacío de `BooleanIcon`, los chevrons del `SideMenu`,
+  los de `Filters`, `DirectUpload` y `Gantt`) pasan a `/55`, el primer múltiplo de 5 que llega a
+  3:1 en los seis temas sobre `base-300` (3.27:1 en `afal`), y el cero que atenúa un `Widget`
+  (texto grande) de `/30` (1.86:1) a `/55`.
+
+  También el placeholder de todo `.input` y `.textarea` habilitado, que daisyUI y el preflight de
+  Tailwind pintaban al 50 % (3.05:1): los campos del FormBuilder, la búsqueda de `Filters`,
+  `simple_filters` y los campos daisyUI que la app escribe a mano. Ninguna de las nueve apps
+  estiliza esos placeholders (`git grep -nE "placeholder:|::placeholder" origin/main -- app config`
+  sólo da dos campos sin `.input` en `gobierno-corporativo`), así que no hay nada que hacer; la
+  regla va sin capa, y quien quiera otro color en un campo lo pone con `placeholder:text-…!`.
 
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**

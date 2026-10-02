@@ -13,7 +13,9 @@ goes here.
   `AppLayout` — the dummy app's own pages — the document never goes still: unless `drawer: false`,
   its closed drawer holds a `Skeleton` that animates forever. There, wait on
   `el.getAnimations({ subtree: true })` for an `el` that holds both the text and the ground it is
-  measured over.
+  measured over. A guard that spans many pages, or measures beside a spinner of its own (Frame's),
+  waits on the document instead and leaves out what repeats forever, which no transition does:
+  `animation.effect.getComputedTiming().iterations !== Infinity` (`muted-text-contrast.cy.js`).
 - **Turbo Streams apply on the next frame** (after `nextRepaint()`). Asserting right after
   `Turbo.renderStreamMessage` reads the node being replaced. Put a marker on the streamed markup
   (`data-streamed`) and wait for `[data-…][data-streamed]` before asserting.
