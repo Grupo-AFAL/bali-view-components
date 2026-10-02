@@ -70,4 +70,14 @@ class BaliThemesTest < ActiveSupport::TestCase
     assert_includes(css, "color-scheme: dark")
     assert_match(/DRAFT/, css, "afal-dark.css debe declararse borrador hasta su aprobación visual")
   end
+
+  def test_the_contrast_guards_walk_every_shipped_theme
+    js = File.read(Bali::Engine.root.join("cypress/support/themes.js"))
+    listed = js[/BALI_THEMES = \[([^\]]*)\]/, 1]
+
+    refute_nil(listed, "cypress/support/themes.js no longer declares BALI_THEMES = [...]")
+    assert_equal(theme_files.map { |file| File.basename(file, ".css") }.sort,
+                 listed.scan(/'([\w-]+)'/).flatten.sort,
+                 "BALI_THEMES in cypress/support/themes.js has to list every theme the gem ships")
+  end
 end

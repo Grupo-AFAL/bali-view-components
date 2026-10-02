@@ -165,10 +165,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Las guardias de contraste del calendario anual y del encabezado de grupo de `SplitView` miden
   lo pintado, una vez quieto el tema** (#1252): `calendar-year-view.cy.js` deja su copia de la
-  medición, que no veía la `opacity` de un ancestro —con `opacity-60` en el día vacío pasaba en
-  los cinco temas, y pintado mide 2.47:1 en `afal`—, y las dos esperan a que termine la
-  transición antes de medir. Los seis specs que recorren temas toman la lista de
-  `cypress/support/themes.js`. Para quien trabaja en el repo; nada que hacer en un anfitrión.
+  medición, que no veía la `opacity`, ni la del día ni la de sus ancestros —con `opacity-60` en
+  el día vacío pasaba en los cinco temas, y pintado mide 2.47:1 en `afal`—, y las dos esperan a
+  que termine la transición antes de medir. Los seis specs que recorren temas toman la lista de
+  `cypress/support/themes.js`, y Minitest falla si esa lista y los temas de la gema no coinciden.
+  Para quien trabaja en el repo; nada que hacer en un anfitrión.
 
 - **El texto atenuado de `WorkflowSteps` y `Timeline` quedaba bajo AA** (#1233, #1234): el
   título y el círculo de un paso `:pending` o `:skipped`, la fecha, la etiqueta de los pasos por
