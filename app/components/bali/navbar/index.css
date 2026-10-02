@@ -51,6 +51,16 @@
     @apply bg-neutral text-neutral-content;
   }
 
+  /* daisyUI 5.7.47 paints a resting `.btn-ghost` with `var(--btn-rest-fg, var(--btn-color,
+   * var(--color-base-content, currentColor)))`, so on a coloured bar the burger painted
+   * base-content: 1.00:1 on `neutral` in `afal`, 1.69 on `primary` in `costa-norte`.
+   * `currentColor` rather than the preset's `-content`, because the menu that opens inside the
+   * bar is `bg-base-100 text-base-content`. Not `--btn-fg`: that is the hover colour, and `.btn`
+   * sets it on itself. */
+  & .btn-ghost {
+    --btn-rest-fg: var(--btn-color, currentColor);
+  }
+
   /* The text color is NOT touched here: a transparent navbar over a dark hero still
    * wants the light `*-content` of its preset. Recovering it below 1023px while the
    * menu is open is done by the block underneath, which already existed. */
