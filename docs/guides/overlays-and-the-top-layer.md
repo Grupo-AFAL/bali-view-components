@@ -178,11 +178,6 @@ toasts that arrive while an overlay is open, plus whatever the stack is holding 
 moment. In practice a toast auto-dismisses in three seconds, so the window is small; if it
 matters to you, open the overlay first.
 
-The `dropdown` tier sits below them, and a dropdown on the page behind an open overlay needs
-nothing: nobody can reach it anyway. A `popover: true` dropdown rendered *inside* the panel is
-the other case. Its menu would hang off `<body>`, outside the dialog, so it is appended to the
-dialog like a tooltip's balloon (#1269).
-
 ## What is not covered
 
 The BlockNote portals inside `BlockEditor` and `Status`' panel read `--bali-z-popover` and

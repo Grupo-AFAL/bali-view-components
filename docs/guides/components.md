@@ -1084,9 +1084,9 @@ is a preset of this one, not a second implementation.
   Left out, daisyUI's default (below the trigger) applies. It composes with `align:`.
 - `width` - `:sm` (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
 - `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
-  it (default: `false`). What a dropdown inside a scrollable table needs. Inside an open
-  `Modal` or `Drawer` the popper goes into that `<dialog>` instead, because everything
-  outside it is inert.
+  it (default: `false`). What a dropdown inside a scrollable table needs. Inside a
+  `<dialog>` opened with `showModal()` (`Modal`, `Drawer`) the popper goes into that dialog
+  instead, because everything outside it is inert.
 - `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
 - `close_on_click` - close on a click outside even when the focus is not inside the dropdown
   (default: `true`). With the focus inside, the click takes it out, and that closes the menu

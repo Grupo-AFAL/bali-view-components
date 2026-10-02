@@ -56,6 +56,15 @@ module Bali
 
       # @!endgroup
 
+      # Inside a Modal or Drawer
+      # ---------------
+      # `popover: true` in a panel opened with `showModal()`. Everything outside the
+      # `<dialog>` is inert while it is open, so the popper hangs off the dialog instead of
+      # `<body>` there — see the guide "Overlays and the top layer".
+      def in_dialog
+        render_with_template
+      end
+
       # @!group Alignments
 
       # Direction Top
@@ -109,15 +118,6 @@ module Bali
       end
 
       # @!endgroup
-
-      # Inside a Modal or Drawer
-      # ---------------
-      # `popover: true` in a panel opened with `showModal()`. Everything outside the
-      # `<dialog>` is inert while it is open, so the popper hangs off the dialog instead of
-      # `<body>` there — see the guide "Overlays and the top layer".
-      def in_dialog
-        render_with_template
-      end
     end
   end
 end
