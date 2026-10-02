@@ -55,8 +55,8 @@ const COMMENTED = {
 }
 
 // The text a component mutes is `base-content` at an alpha, composited over the
-// surface it lands on. Shipped at `/40`, `/50` and `/60`, it measured as low as
-// 2.33:1 against AA's 4.5 (#1233, #1234, #1248, #1256), and no one theme showed all of
+// surface it lands on. Shipped from `/30` to `/60`, it measured as low as
+// 1.86:1 against AA's 4.5 (#1233, #1234, #1248, #1256), and no one theme showed all of
 // it: `light` passed the timeline's `/60` and `dark` the date's `/50`. Hence every
 // theme, and the base-200 cards of the progress preview, where only the labels are
 // measured as text: a glyph there paints on its marker's `::before` disc, which this
