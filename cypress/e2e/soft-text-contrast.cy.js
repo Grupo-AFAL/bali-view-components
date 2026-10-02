@@ -10,7 +10,11 @@ import { THEMES } from '../support/themes'
 // 2.27 there, an accent entity reference 1.71 on `light` (#1274). Each state is reached the way a
 // user reaches it: a query typed into the palette, a group opened, a mention picked, a pointer
 // resting on the button.
-describe('a colour over a tint of itself', () => {
+//
+// Two rows measure the soft colour on base-100 instead, where it replaced a `text-<colour>` there:
+// DashboardPage's change line, which reads StatCard's icon class, and StatCard's trend footer.
+// As `text-success` both read 1.96:1 on `light`.
+describe('a colour over a tint of itself, and its soft colour on base-100', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.
   const GRAPHIC = 3
@@ -102,7 +106,8 @@ describe('a colour over a tint of itself', () => {
     // A footer in `text-soft-success` on the card's base-100, the class the guide's StatCard
     // example writes.
     ['stat_card/with_trend', null, [
-      ['trend', '.card .text-sm > span:not(.icon-component)', 1]
+      ['trend', '.card .text-sm > span:not(.icon-component)', 1],
+      ['trend icon', '.card .text-sm > .icon-component svg', 1, GRAPHIC]
     ]],
     ['filters/default?popover=false', () => {
       cy.get('[data-action="condition#remove"]').then(hover)
