@@ -59,7 +59,7 @@
 
       <div class="space-y-2">
         <%# Option 1: On specific date %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors">
           <%= radio_button_tag("#{unique_id}_yearly_on", 1, true, checked: true,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -87,7 +87,7 @@
         <div class="divider my-0 h-px"></div>
 
         <%# Option 2: On the Nth weekday %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors">
           <%= radio_button_tag("#{unique_id}_yearly_on", 2, false,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -132,7 +132,7 @@
 
       <div class="space-y-2">
         <%# Option 1: On specific day of month %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors">
           <%= radio_button_tag("#{unique_id}_monthly_on", 1, true, checked: true,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -154,7 +154,7 @@
         <div class="divider my-0 h-px"></div>
 
         <%# Option 2: On the Nth weekday %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors">
           <%= radio_button_tag("#{unique_id}_monthly_on", 2, false,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
