@@ -55,9 +55,10 @@ function collectHeadings (blocks, result = []) {
   return result
 }
 
-// The faintest ink of each is its comment: 4.58:1 over base-200, the code block's ground, on
-// afal, and 5.45 on dark. github-light painted variables at 3.17 on afal and github-dark
-// comments at 3.48 on dark; github-light-default's comment still reads 4.13 on afal.
+// Every token of both reads at AA over the code block's base-200 in all six themes; the
+// faintest, the comment, measures 4.58:1 on afal and 5.45 on dark. Not github-light (variables
+// 3.17 on afal), github-dark (comments 3.48 on dark) or github-light-default (comments 4.13 on
+// afal).
 const CODE_THEMES = { light: 'github-light-high-contrast', dark: 'github-dark-default' }
 
 // BlockNote tokenizes through prosemirror-highlight's shiki parser, which it calls with no
