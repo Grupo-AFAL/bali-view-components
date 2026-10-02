@@ -11,7 +11,7 @@ import { THEMES } from '../support/themes'
 describe('text over a tint of its own colour', () => {
   const AA = 4.5
 
-  // [preview, how the state is reached, [[what, selector, how many]]]
+  // [preview, how the state is reached, [[what, selector, how many]], whether the pointer is on it]
   const PREVIEWS = [
     ['command/default', () => {
       cy.get('body').type('{meta+k}')
@@ -66,19 +66,19 @@ describe('text over a tint of its own colour', () => {
       cy.get('[data-action="filter-group#addCondition"]').then(hover)
     }, [
       ['hovered "Add condition"', '[data-action="filter-group#addCondition"]', 1]
-    ]],
+    ], true],
     ['filters/default?popover=false', () => {
       cy.get('[data-action="filters#addGroup"]').then(hover)
     }, [
       ['hovered "Add filter group"', '[data-action="filters#addGroup"]', 1]
-    ]]
+    ], true]
   ]
 
   // Below `lg` a fixed SideMenu is a closed drawer, and its bottom group cannot be opened.
   beforeEach(() => cy.viewport(1280, 800))
-  afterEach(unhover)
+  afterEach(() => cy.then(unhover))
 
-  PREVIEWS.forEach(([preview, reach, targets]) => {
+  PREVIEWS.forEach(([preview, reach, targets, hovered = false]) => {
     THEMES.forEach((theme) => {
       it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} at AA on the ${theme} theme`, () => {
         cy.visit(`/bali/${preview}`)
@@ -94,6 +94,7 @@ describe('text over a tint of its own colour', () => {
             const elements = [...doc.querySelectorAll(selector)]
             expect(elements, `${preview}: every ${what}`).to.have.length(count)
             elements.forEach((el) => {
+              expect(el.matches(':hover'), hovered ? 'under the pointer' : 'at rest').to.equal(hovered)
               const label = (el.textContent.trim() || el.getAttribute('aria-label')).replace(/\s+/g, ' ')
               expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(AA)
             })
