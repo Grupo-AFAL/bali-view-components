@@ -91,10 +91,6 @@ describe('modal history', () => {
     cy.get('@originGet.all').should('have.length', 1)
   })
 
-  // AppLayout puts `modal drawer` on <body> (#1268), so the swap has to bring the
-  // destination's <body>, attributes included. Here the destination is the login page an
-  // expired session is sent to: no shared modal, so none of the origin's overlay controllers
-  // may stay on — a page-level `modal` left there throws as its panel goes.
   it('leaves none of the origin overlay controllers on a swapped-in page with no shared modal', () => {
     const errors = []
     cy.on('uncaught:exception', (err) => {
@@ -112,8 +108,6 @@ describe('modal history', () => {
     cy.then(() => expect(errors, 'uncaught errors').to.deep.equal([]))
   })
 
-  // The other direction: from a <body> with no overlay controller, a children-only swap left
-  // the destination's `#main-drawer` with nothing to open it, and its trigger navigated.
   it('connects the overlay controllers of the page it swaps in', () => {
     cy.visit(`${appOrigin}/modal_redirect/bare`)
     cy.window().then((win) => { win.__cySurvivesSwap = true })
