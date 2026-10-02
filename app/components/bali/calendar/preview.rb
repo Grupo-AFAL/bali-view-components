@@ -115,7 +115,7 @@ module Bali
         ]
       end
 
-      # The 11th holds two events (`has-multiple`) and a name long enough to wrap
+      # The 12th holds two events (`has-multiple`) and a name long enough to wrap
       # in a hover card tippy caps at 350px. Keep both. `ghost` is in the cycle so a
       # ghost day is drawn: base-surface-steps.cy.js measures 20 January.
       def year_sample_events(year)
