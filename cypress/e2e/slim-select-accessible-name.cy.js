@@ -1,17 +1,11 @@
+import { cdp, frameAt } from '../support/accessibility_tree'
+
 // #1253 — SlimSelect hides the real <select> and draws a div[role="combobox"] named from the
 // select's aria-label / aria-labelledby and nothing else. The markup looked labelled all
 // along — a <label for> reached the select — so these read the name from Chromium's
 // accessibility tree, which is what a screen reader is handed. The attribute the FormBuilder
 // writes for it is asserted in test/bali/form_builder/slim_select_fields_test.rb.
 describe('SlimSelect accessible name', () => {
-  const cdp = (command, params = {}) =>
-    Cypress.automation('remote:debugger:protocol', { command, params })
-
-  const frameAt = (tree, url) =>
-    tree.frame.url === url
-      ? tree.frame
-      : (tree.childFrames || []).map((child) => frameAt(child, url)).find(Boolean)
-
   // The page under test is an iframe of the runner, so its tree is asked for by frame.
   const comboboxNames = () =>
     cy.url().then((url) =>
