@@ -10,9 +10,9 @@
  * an `active:` drawer carries it from the server before its controller calls
  * `showModal()`.
  *
- * Only `.skeleton`, not `*`: unlayered, a `*` would also strip any animation a host puts in
- * a drawer, through the 300ms slide-out too, and a Tailwind `animate-*` could only take it
- * back with `!`.
+ * Only `.skeleton`, not `*`: unlayered, a `*` would also stop any animation a host puts in
+ * a closed drawer, visibly so during the 300ms slide-out, and a Tailwind `animate-*` could
+ * only take it back with `!`.
  */
 .drawer-component:not(.drawer-open) .skeleton {
   animation: none;
