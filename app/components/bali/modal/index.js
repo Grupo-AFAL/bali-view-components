@@ -204,10 +204,13 @@ export class ModalController extends Controller {
     this.templateTarget.addEventListener('cancel', this._onDialogCancel)
   }
 
-  templateTargetDisconnected () {
-    this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
-    this.templateTarget.removeEventListener('click', this._onOverlayClick)
-    this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
+  // The element Stimulus hands over, not `this.templateTarget`: the panel can leave while
+  // the controller stays — AppLayout's sits on <body>, which `_replaceBodyAndURL` keeps —
+  // and on a page with no panel left that getter throws.
+  templateTargetDisconnected (element) {
+    element.removeEventListener('mousedown', this._onOverlayMousedown)
+    element.removeEventListener('click', this._onOverlayClick)
+    element.removeEventListener('cancel', this._onDialogCancel)
   }
 
   setOptionsAndOpenModal = event => {

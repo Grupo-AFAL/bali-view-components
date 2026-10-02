@@ -32,7 +32,10 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     # `ModalController#open` down `_replaceBodyAndURL`, the body-swapping branch. A 302 is
     # this route rendering correctly, so the sweep would be asserting the opposite of the
     # contract. The page it lands on, `modal_redirect#landing`, IS swept.
-    "modal_redirect#go" => "redirects by design; it is the fixture for the modal Back-path spec"
+    "modal_redirect#go" => "redirects by design; it is the fixture for the modal Back-path spec",
+    # Same fixture, sending the fetch to `/login`, whose layout renders no shared modal: the
+    # body swap the modal-history spec checks for an uncaught error. `/login` IS swept.
+    "modal_redirect#expired" => "redirects by design; the modal-history spec's swap to a page with no shared modal"
   }.freeze
 
   # Deprecations the dummy fires on purpose, keyed by the leading text of the entry the

@@ -17,4 +17,10 @@ class ModalRedirectController < ApplicationController
   end
 
   def landing; end
+
+  # What an expired session does to a drawer trigger in a host on bali-auth: the fetch is
+  # sent to the login page, whose AppLayout renders no shared modal or drawer.
+  def expired
+    redirect_to login_path
+  end
 end

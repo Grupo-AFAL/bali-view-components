@@ -102,6 +102,7 @@ Rails.application.routes.draw do
   get "modal_redirect", to: "modal_redirect#index", as: :modal_redirect
   get "modal_redirect/go", to: "modal_redirect#go", as: :modal_redirect_go
   get "modal_redirect/landing", to: "modal_redirect#landing", as: :modal_redirect_landing
+  get "modal_redirect/expired", to: "modal_redirect#expired", as: :modal_redirect_expired
 
   # The real widget dashboard demo, as opposed to the Lookbook preview's stub
   # above. A SINGULAR resource — there is one dashboard per user, not a collection.

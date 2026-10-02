@@ -90,4 +90,22 @@ describe('modal history', () => {
 
     cy.get('@originGet.all').should('have.length', 1)
   })
+
+  // The swap keeps <body>, and since #1268 the page-level `modal` controller AppLayout puts
+  // there survives it, so the departing `#main-modal` disconnects from a controller that stays.
+  // On a destination with no shared modal — the login page an expired session is sent to —
+  // `templateTargetDisconnected` read `this.templateTarget` and threw on the window.
+  it('swaps to a page with no shared modal without an uncaught error', () => {
+    const errors = []
+    cy.on('uncaught:exception', (err) => {
+      errors.push(err.message)
+      return false
+    })
+
+    cy.get('#expired-session-trigger').click()
+
+    cy.location('pathname').should('eq', '/login')
+    cy.get('form[action="/login"]').should('exist')
+    cy.then(() => expect(errors, 'uncaught errors').to.deep.equal([]))
+  })
 })
