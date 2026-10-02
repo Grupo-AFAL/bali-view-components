@@ -1,11 +1,10 @@
 /// <reference types="cypress" />
 
 // Tailwind 4 wraps every `hover:` utility in `@media (hover: hover)`, and headless Chrome on
-// a machine with no mouse reports `(hover: none)`: in CI not one `hover:` class applied, and
-// the specs that rest the pointer on an element measured it at rest (#1264, #1267; reproduced
-// with Chrome for Testing 151 headless). These Blink settings make Chrome report a fine
-// pointer that hovers, like the laptops the apps are used on. Electron under xvfb already
-// reports the X server's pointer, so it needs nothing.
+// a machine with no mouse reports `(hover: none)` (measured with Chrome for Testing 151):
+// `:hover` still matches, but no `hover:` style applies. These Blink settings make Chrome
+// report a fine pointer that hovers, like the laptops the apps are used on. Electron under
+// xvfb already reports the X server's pointer, so it needs nothing.
 const DESKTOP_POINTER =
   '--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4'
 

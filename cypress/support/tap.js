@@ -58,8 +58,9 @@ const moveMouse = (point) =>
 // A mouse resting on the element, through the same pipeline, so the browser itself
 // matches `:hover`. `.trigger('mouseover')` dispatches the event and nothing else: no
 // rule a stylesheet scopes to `:hover` ever applies. A browser that reports
-// `(hover: none)` matches `:hover` all the same but applies no `hover:` utility, so the
-// spec would fail later, on a colour; it fails here instead (cypress/plugins/index.cjs).
+// `(hover: none)` matches `:hover` all the same but applies no `hover:` utility, so a spec
+// measures the element at rest and passes wherever that colour already does (four of the
+// five themes did in CI); it fails here instead (cypress/plugins/index.cjs).
 export const hover = ($el) => {
   if (!$el[0].ownerDocument.defaultView.matchMedia('(hover: hover)').matches) {
     throw new Error('hover: the browser reports (hover: none), so no hover: utility applies')
