@@ -21,7 +21,7 @@ class BaliStatusComponentTest < ComponentTestCase
 
   def test_named_color_is_applied_as_inline_background_style
     render_inline(Bali::Status::Component.new(selected: "green", options: [ { value: "green", label: "G", color: :green } ]))
-    assert_selector('.status-pill[style*="background-color: #16a34a"]')
+    assert_selector('.status-pill[style*="background-color: #15803d"]')
     assert_selector('.status-pill[style*="color: #fff"]')
   end
 
@@ -112,7 +112,7 @@ class BaliStatusComponentTest < ComponentTestCase
 
   def test_option_rows_carry_their_own_inline_color
     render_inline(Bali::Status::Component.new(selected: "pending", options: OPTIONS, form: FORM))
-    assert_selector('button.status-option[value="validated"][style*="background-color: #16a34a"]', visible: false)
+    assert_selector('button.status-option[value="validated"][style*="background-color: #15803d"]', visible: false)
   end
 
   def test_readonly_with_form_renders_static_pill_and_no_form
@@ -156,8 +156,19 @@ class BaliStatusComponentTest < ComponentTestCase
   # `PALETTE` is public API as of v3.1 (#711): hosts paint non-pill things (a
   # Gantt bar) with the pill's colour through this accessor.
   def test_palette_returns_the_bg_fg_pair_for_a_name
-    assert_equal({ bg: "#16a34a", fg: "#fff" }, Bali::Status.palette(:green))
+    assert_equal({ bg: "#15803d", fg: "#fff" }, Bali::Status.palette(:green))
     assert_equal({ bg: "#64748b", fg: "#fff" }, Bali::Status.palette("slate"))
+  end
+
+  # The pill's text is 11–14px, so every pair owes WCAG's 4.5:1 for normal text,
+  # and the palette is the same in every theme: one check per pair covers all of them.
+  def test_every_palette_pair_reads_at_aa
+    short = Bali::Status::Component::PALETTE.filter_map do |name, pair|
+      ratio = contrast_ratio(pair[:fg], pair[:bg])
+      "#{name} #{pair[:fg]} on #{pair[:bg]} = #{ratio.round(2)}:1" if ratio < 4.5
+    end
+
+    assert_empty short, "Status palette pairs below 4.5:1"
   end
 
   def test_palette_rejects_an_unknown_name_and_lists_the_valid_ones
@@ -206,5 +217,24 @@ class BaliStatusComponentTest < ComponentTestCase
   def test_for_with_a_nil_value_renders_the_placeholder
     render_inline(Bali::Status.for(nil, map: { pending: :slate }))
     assert_selector(".status-pill.status-pill--none")
+  end
+
+  private
+
+  # WCAG 2.x, the same formula cypress/support/painted_contrast.js applies to what
+  # the browser paints.
+  def contrast_ratio(first, second)
+    low, high = [ relative_luminance(first), relative_luminance(second) ].minmax
+    (high + 0.05) / (low + 0.05)
+  end
+
+  def relative_luminance(hex)
+    digits = hex.delete("#")
+    digits = digits.chars.map { |digit| digit * 2 }.join if digits.size == 3
+    red, green, blue = digits.scan(/../).map do |pair|
+      channel = pair.hex / 255.0
+      channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055)**2.4
+    end
+    (0.2126 * red) + (0.7152 * green) + (0.0722 * blue)
   end
 end

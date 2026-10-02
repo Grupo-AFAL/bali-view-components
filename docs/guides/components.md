@@ -2308,7 +2308,7 @@ unmapped selected value raises unless `default:` is given. Recipe and the Tag vs
 criterion: [enum badges guide](enum-badges.md).
 
 **Public palette:** the twelve fixed pairs are public API — `Bali::Status.palette(:green)`
-returns `{ bg: "#16a34a", fg: "#fff" }` (raising on an unknown name), for painting
+returns `{ bg: "#15803d", fg: "#fff" }` (raising on an unknown name), for painting
 something that is *not* a pill (a Gantt bar, a chart slice) in the same colour as the
 pill for the same state. Public means frozen: changing a hex is a breaking change.
 
