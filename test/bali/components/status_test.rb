@@ -163,12 +163,12 @@ class BaliStatusComponentTest < ComponentTestCase
   # The pill's text is 11–14px, so every pair owes WCAG's 4.5:1 for normal text,
   # and the palette is the same in every theme: one check per pair covers all of them.
   def test_every_palette_pair_reads_at_aa
-    short = Bali::Status::Component::PALETTE.filter_map do |name, pair|
+    below_aa = Bali::Status::Component::PALETTE.filter_map do |name, pair|
       ratio = contrast_ratio(pair[:fg], pair[:bg])
       "#{name} #{pair[:fg]} on #{pair[:bg]} = #{ratio.round(2)}:1" if ratio < 4.5
     end
 
-    assert_empty short, "Status palette pairs below 4.5:1"
+    assert_empty below_aa, "Status palette pairs below 4.5:1"
   end
 
   def test_palette_rejects_an_unknown_name_and_lists_the_valid_ones
@@ -221,8 +221,6 @@ class BaliStatusComponentTest < ComponentTestCase
 
   private
 
-  # WCAG 2.x, the same formula cypress/support/painted_contrast.js applies to what
-  # the browser paints.
   def contrast_ratio(first, second)
     low, high = [ relative_luminance(first), relative_luminance(second) ].minmax
     (high + 0.05) / (low + 0.05)
