@@ -167,8 +167,8 @@ export default function BlockNoteEditorWrapper ({
 
   // Build schema with optional syntax highlighting, multi-column, and mentions support.
   //
-  // `shiki` is a heavyweight optional dependency (~9 MB unminified with every
-  // grammar) and is NOT declared as a peer. Each import() is awaited on its own
+  // `shiki` is a heavyweight optional peer (~9 MB unminified with every
+  // grammar) that a host may not install. Each import() is awaited on its own
   // line inside the try: esbuild only treats a dynamic import as optional when
   // it can attribute the failure to a surrounding try, which it cannot do for
   // imports nested in a Promise.all argument list. Written this way, an app that
