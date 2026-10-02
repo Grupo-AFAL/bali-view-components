@@ -13,10 +13,6 @@ es:
       select_values: "Seleccionar valores..."
       enter_value: "Ingrese valor..."
       remove_condition: "Eliminar condición"
-      aria_labels:
-        field: "Campo"
-        operator: "Operador"
-        value: "Valor"
       remove_filter: "Eliminar filtro"
       incomplete_condition: "Sin valor elegido, así que esta condición se ignora"
       add_condition: "Agregar condición"
@@ -50,6 +46,12 @@ es:
         and: "Y"
         or: "O"
       combinator_toggle: "Combinar condiciones con"
+
+      # Accessible names of a condition's controls (no visible caption)
+      aria_labels:
+        field: "Campo"
+        operator: "Operador"
+        value: "Valor"
 
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
