@@ -24,7 +24,7 @@
 
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <%= render Bali::Table::Component.new do |table| %>
-          <% table.with_headers([{ name: "Name" }, { name: "Email" }, { name: "" }]) %>
+          <% table.with_headers([{ name: "Name" }, { name: "Email" }, { name: "Actions", class: "text-right" }]) %>
           <% table.with_row do %>
             <td>Ana García López</td>
             <td>ana@example.com</td>
