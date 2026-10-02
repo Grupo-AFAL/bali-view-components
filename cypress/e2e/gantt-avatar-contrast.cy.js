@@ -5,6 +5,9 @@ import { THEMES } from '../support/themes'
 // The assignee avatar writes white initials, bold at 9–9.5px — normal text for WCAG, so AA is
 // 4.5:1 — over a colour hashed from the assignee. The preview only seeds two assignees (hues 49
 // and 50), so the formula is also swept over every hue `hashHue` can return (#1260).
+// Neither the ink nor the background reads a theme token today, so the six themes measure one
+// pair; they stay for the day either does (`text-primary-content`, a `--color-*` background),
+// when one theme can pass while another fails.
 describe('Gantt assignee avatar contrast', () => {
   const AA = 4.5
   const AVATAR = 'span.rounded-full.text-white[title]'
