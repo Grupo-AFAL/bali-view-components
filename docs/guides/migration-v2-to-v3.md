@@ -2282,7 +2282,7 @@ not.
 | `with_actions_panel` | `with_bulk_actions` |
 | `with_actions_panel(export_formats:)` | `page.with_export(url:)` on the page component |
 | `dt.with_export` | `page.with_export(url:)` on the page component |
-| `Bali::DataTable::Export(method:)` | *(deleted — it only emitted a dead `data-method`)* |
+| `Bali::DataTable::Export::Component` | `page.with_export(url:)` on the page component |
 | `with_actions_panel(grid_display_mode_enabled:)` | `with_view_switch` |
 | `Bali::DataTable::ActionsPanel::Component` | *(deleted)* |
 | `Bali::DataTable::Action::Component` | *(deleted)* |
@@ -3723,7 +3723,7 @@ two `-A2` FormBuilder ones returned 12 lines for 9 real call sites. **Read the o
 list of places to look at, not as a count of places to change.**
 
 ```
-grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "with_actions_panel\|with_export\|DataTable::Export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/
 grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
