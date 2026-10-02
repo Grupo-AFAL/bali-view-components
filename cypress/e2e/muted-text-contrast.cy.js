@@ -13,10 +13,12 @@ const transitions = doc => doc.getAnimations()
   .filter(animation => animation.playState === 'running' && animation.effect.getComputedTiming().iterations !== Infinity)
 
 // Every target of a page, on one theme: [what, selector, how many the page renders, and the
-// pseudo-element that paints it when the element itself does not — a `::placeholder`].
-// A page is a Lookbook preview, or the dummy app's own when it starts with `/`; `open` is
-// what has to happen before the text shows.
-const guard = ({ page, open, targets, theme, floor }) => {
+// pseudo-element that paints it when the element itself does not — a `::placeholder`, or the
+// `::after` BlockNote writes its placeholder on]. A page is a Lookbook preview, or the dummy
+// app's own when it starts with `/`; `stub` is what has to be answered before the page loads,
+// and `open` what has to happen before the text shows.
+const guard = ({ page, stub, open, targets, theme, floor }) => {
+  if (stub) stub()
   cy.visit(page.startsWith('/') ? `${appOrigin}${page}` : `/bali/${page}`)
   if (open) open()
   cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -28,11 +30,28 @@ const guard = ({ page, open, targets, theme, floor }) => {
       const elements = [...$body[0].querySelectorAll(selector)]
       expect(elements, `${page}: every ${what}`).to.have.length(count)
       elements.forEach((el) => {
-        const text = pseudo ? el.getAttribute('placeholder') : el.textContent.trim()
+        const generated = () => el.ownerDocument.defaultView.getComputedStyle(el, pseudo).content.replace(/^"|"$/g, '')
+        const text = pseudo ? el.getAttribute('placeholder') ?? generated() : el.textContent.trim()
         expect(paintedContrast(el, { pseudo }), `${theme}: ${what} ${text ? `"${text}"` : '(no text)'}`).to.be.at.least(floor)
       })
     })
   })
+}
+
+// DocumentEditor's comments panel on one thread. The thread store asks for its threads as the
+// editor loads; the reaction is what makes BlockNote draw the add-reaction chip, and with no
+// mark left in the document the excerpt says the original content was deleted.
+const COMMENTED = {
+  page: 'document_editor/default',
+  stub: () => {
+    const at = '2026-07-01T12:00:00Z'
+    const body = [{ id: 'b1', type: 'paragraph', props: {}, content: [{ type: 'text', text: 'Please check the numbers.', styles: {} }], children: [] }]
+    const reactions = [{ emoji: '👍', created_at: at, user_ids: ['2'] }]
+    cy.intercept('GET', /\/block_editor_comments\?/, [
+      { id: 't1', created_at: at, updated_at: at, comments: [{ id: 'c1', user_id: '1', created_at: at, updated_at: at, reactions, body }] }
+    ])
+  },
+  open: () => cy.get('[data-action*="document-editor#toggleComments"]:visible').first().click()
 }
 
 // The text a component mutes is `base-content` at an alpha, composited over the
@@ -94,7 +113,8 @@ describe('muted text contrast', () => {
       ['group label', '.menu-label', 2]
     ],
     'document_page/with_panels': [
-      ['contents heading', '[data-document-page-target="tocPanel"] h3', 1]
+      ['contents heading', '[data-document-page-target="tocPanel"] h3', 1],
+      ['contents link', '.bn-toc-link', 12]
     ],
     'filters/with_applied_tags': [
       ['caption', '.applied-filters > span:first-child', 1],
@@ -244,6 +264,44 @@ describe('muted text contrast', () => {
       ]
     },
     {
+      ...COMMENTED,
+      opened: 'the comments panel open on a thread',
+      targets: [['comment excerpt', '.document-editor-panel .bn-header-text', 1]]
+    },
+    // BlockNote writes the placeholder on the empty block's `::after` once the editor has the focus.
+    {
+      page: 'block_editor/default',
+      opened: 'the empty editor focused',
+      open: () => cy.get('.bn-editor').first().click(),
+      targets: [['placeholder', '.bn-block-content[data-is-empty-and-focused]', 1, '::after']]
+    },
+    {
+      page: 'form/slim_select/optgroups',
+      opened: 'the list open',
+      open: () => cy.get('.ss-main').first().click(),
+      targets: [['group label', '.ss-optgroup-label-text', 3]]
+    },
+    {
+      page: 'form/slim_select/default',
+      opened: 'a search that matches nothing',
+      open: () => {
+        cy.get('.ss-main').first().click()
+        cy.focused().type('zzqx')
+      },
+      targets: [['no-results line', '.ss-list > .ss-search', 1]]
+    },
+    // The remote search is answered long after the guard has measured, so "Searching..." stays up.
+    {
+      page: 'form/slim_select/remote',
+      opened: 'a remote search waiting on its answer',
+      stub: () => cy.intercept('GET', /\/users\.json/, { delay: 30000, body: [] }),
+      open: () => {
+        cy.get('.ss-main').first().click()
+        cy.focused().type('ana')
+      },
+      targets: [['searching line', '.ss-list > .ss-searching', 1]]
+    },
+    {
       page: 'filters/with_persistence?persist_enabled=true',
       opened: 'the panel open',
       open: () => cy.get('[data-filters-target="dropdown"] > button').click(),
@@ -321,10 +379,10 @@ describe('muted text contrast', () => {
     })
   })
 
-  OPENED.forEach(({ page, opened, open, targets }) => {
+  OPENED.forEach(({ page, opened, stub, open, targets }) => {
     THEMES.forEach((theme) => {
       it(`reads the muted text of ${page} at AA with ${opened} on the ${theme} theme`, () => {
-        guard({ page, open, targets, theme, floor: AA })
+        guard({ page, stub, open, targets, theme, floor: AA })
       })
     })
   })
@@ -390,6 +448,11 @@ describe('muted icon contrast', () => {
       opened: 'the panel open',
       open: () => cy.get('[data-filters-target="dropdown"] > button').click(),
       targets: [['remove-condition button', 'button[data-action="condition#remove"]', 2]]
+    },
+    {
+      ...COMMENTED,
+      opened: 'the comments panel open on a reacted comment',
+      targets: [['add-reaction chip', '.document-editor-panel .bn-comment-add-reaction .mantine-Chip-label', 1]]
     }
   ]
 
@@ -401,10 +464,10 @@ describe('muted icon contrast', () => {
     })
   })
 
-  OPENED.forEach(({ page, opened, open, targets }) => {
+  OPENED.forEach(({ page, opened, stub, open, targets }) => {
     THEMES.forEach((theme) => {
       it(`draws the muted icons of ${page} at 3:1 with ${opened} on the ${theme} theme`, () => {
-        guard({ page, open, targets, theme, floor: NON_TEXT })
+        guard({ page, stub, open, targets, theme, floor: NON_TEXT })
       })
     })
   })
@@ -413,32 +476,30 @@ describe('muted icon contrast', () => {
 // The placeholder rule lives in two layers: unlayered in `bali/forms.css` for the input inside a
 // `label.input`, which daisyUI paints from @layer utilities, and in @layer components in
 // `bali/general.css` for an `input.input` or a `textarea.textarea`, which only the preflight
-// paints. The contrast guard above sees neither promise the halves make: a disabled control
-// keeps daisyUI's `opacity: .2` (1.48:1 on `afal`, against 4.98 or more at 70%), and a host's
-// `placeholder:` utility beats the layered half without `!`.
+// paints. The contrast guard above sees neither promise the halves make: the unlayered half
+// leaves a disabled control at daisyUI's `opacity: .2` (1.48:1 on `afal`, against 4.98 or more
+// at 70%), and a host's `placeholder:` utility beats the layered half without `!`.
 describe('form placeholder cascade', () => {
+  it("leaves the placeholder of a disabled input inside a label.input at daisyUI's opacity", () => {
+    const search = '[data-filters-target="searchInput"]'
+    cy.visit('/bali/data_table/with_search')
+    cy.get(search).invoke('attr', 'disabled', '')
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', 'afal'))
+
+    cy.get(search).should(($field) => {
+      expect(transitions($field[0].ownerDocument), 'transitions settled').to.have.length(0)
+      expect(paintedContrast($field[0], { pseudo: '::placeholder' }), `afal: disabled input inside a label.input "${$field.attr('placeholder')}"`)
+        .to.be.below(2)
+    })
+  })
+
   // [page, what, selector]
   const FIELDS = [
-    ['data_table/with_search', 'input inside a label.input', '[data-filters-target="searchInput"]'],
     ['data_table/with_simple_filters', 'input.input', 'input.input[placeholder]:not(.hidden)'],
     ['form/text_area/default', 'textarea.textarea', 'textarea.textarea']
   ]
 
   FIELDS.forEach(([page, what, selector]) => {
-    it(`leaves the placeholder of a disabled ${what} at daisyUI's opacity`, () => {
-      cy.visit(`/bali/${page}`)
-      cy.get(selector).first().invoke('attr', 'disabled', '')
-      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', 'afal'))
-
-      cy.get(selector).first().should(($field) => {
-        expect(transitions($field[0].ownerDocument), 'transitions settled').to.have.length(0)
-        expect(paintedContrast($field[0], { pseudo: '::placeholder' }), `afal: disabled ${what} "${$field.attr('placeholder')}"`)
-          .to.be.below(2)
-      })
-    })
-  })
-
-  FIELDS.slice(1).forEach(([page, what, selector]) => {
     it(`yields the ${what} placeholder to a host utility`, () => {
       cy.visit(`/bali/${page}`)
       cy.document().then((doc) => {
