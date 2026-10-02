@@ -41,8 +41,10 @@ module Bali
 
         # Marker colours, keyed by Bali::Color::NAMES. Spelled out because
         # Tailwind only emits a class it can find literally in a source file.
+        # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
+        # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
         COLORS = {
-          neutral: "text-neutral",
+          neutral: "text-base-content",
           primary: "text-primary",
           secondary: "text-secondary",
           accent: "text-accent",

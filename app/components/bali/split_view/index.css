@@ -115,10 +115,10 @@
 
 /* `/70` and not `/50`. The token is translucent, so what reaches the reader is
    it composited over the band, and at `/50` that is 2.96:1 on `afal`, 3.16 on
-   `costa-norte`, 3.33 on `light` and 4.11 on `afal-dark`, against AA's 4.5 for
-   12px text. Stock `dark` was already over the line at 4.91 — it is the themes
-   the fleet runs that were not. At `/70` the range is 5.27 (`afal`) to 8.26
-   (`dark`), so even the tightest still carries headroom. */
+   `costa-norte` and 3.33 on `light`, against AA's 4.5 for 12px text. The dark
+   themes clear it (4.51 `afal-dark`, 4.91 `dark`) — it is the light themes the
+   fleet runs that do not. At `/70` the range is 5.27 (`afal`) to 8.26 (`dark`),
+   so even the tightest still carries headroom. */
 .split-view-group-count {
   @apply ml-auto font-normal tabular-nums text-base-content/70;
 }

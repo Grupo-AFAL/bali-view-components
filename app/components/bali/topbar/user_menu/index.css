@@ -1,0 +1,42 @@
+/* The dark-mode switch of Bali::Topbar::UserMenu. The drawing reads the button's
+   `aria-checked`, which the theme-toggle controller keeps in step with <html data-theme>,
+   instead of keeping a class of its own in sync. */
+.bali-theme-toggle-switch {
+  position: relative;
+  flex-shrink: 0;
+  inline-size: 1.75rem;
+  block-size: 1rem;
+  margin-inline-start: auto;
+  border: 1px solid color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  border-radius: 9999px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.bali-theme-toggle-switch::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 1px;
+  inset-inline-start: 1px;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.bali-theme-toggle[aria-checked="true"] .bali-theme-toggle-switch {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.bali-theme-toggle[aria-checked="true"] .bali-theme-toggle-switch::after {
+  background: var(--color-primary-content);
+  transform: translateX(0.75rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bali-theme-toggle-switch,
+  .bali-theme-toggle-switch::after {
+    transition: none;
+  }
+}

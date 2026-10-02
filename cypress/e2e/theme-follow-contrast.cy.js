@@ -1,0 +1,126 @@
+import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
+import { hover, unhover } from '../support/tap'
+
+// Pieces that used to paint fixed colours and only broke under a dark theme: SlimSelect's
+// own stylesheet froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes),
+// BlockEditor's code block kept github-light's ink (1.00:1), and a comments sidebar portaled out
+// of the editor kept BlockNote's #3f3f3f (1.51–1.68:1).
+describe('colours that follow the theme', () => {
+  afterEach(() => { unhover() })
+
+  const AA = 4.5
+  // github-light on base-200 measures 3.17–3.29:1 on the light themes, before and after this
+  // guard existed: that is the light palette's own debt. The 3:1 floor there still catches the
+  // other direction, github-dark's light ink resolved on a light page.
+  const DARK_THEMES = ['dark', 'afal-dark', 'costa-norte-dark']
+
+  const useTheme = (theme) => {
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+  }
+
+  const expectSettled = (el) => {
+    expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
+  }
+
+  const everyReadsAtAA = (selector, theme, fewest = 1) => {
+    cy.get(selector).should(($els) => {
+      const els = $els.toArray()
+      expectSettled(els[0])
+      expect(els, selector).to.have.length.at.least(fewest)
+      els.forEach((el) => {
+        expect(paintedContrast(el), `${theme}: ${el.textContent.trim().slice(0, 30)}`).to.be.at.least(AA)
+      })
+    })
+  }
+
+  THEMES.forEach((theme) => {
+    it(`reads SlimSelect's value and its open list at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/form/slim_select/default')
+      useTheme(theme)
+      everyReadsAtAA('.ss-main .ss-single', theme)
+
+      // The selected option is `primary` as text, and daisyUI's own `dark` paints it at 3.40:1.
+      const options = theme === 'dark' ? '.ss-option:not(.ss-disabled):not(.ss-selected)' : '.ss-option:not(.ss-disabled)'
+      cy.get('.ss-main').first().click()
+      everyReadsAtAA(`.ss-content.ss-open ${options}`, theme, 2)
+    })
+
+    // base-200 stepped down on the dark themes: a hovered option read 1.05:1 against the list.
+    it(`shows SlimSelect's hovered option on the ${theme} theme`, () => {
+      cy.visit('/bali/form/slim_select/default')
+      useTheme(theme)
+      cy.get('.ss-main').first().click()
+      cy.get('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)').eq(1).then(hover)
+
+      cy.get('.ss-content.ss-open').should(($list) => {
+        const doc = $list[0].ownerDocument
+        const style = (el) => doc.defaultView.getComputedStyle(el)
+        const option = $list[0].querySelector('.ss-option:hover')
+        expect(option, 'an option under the pointer').to.not.equal(null)
+        expectSettled(option)
+
+        const ground = style($list[0]).backgroundColor
+        const [hi, lo] = [paintedLuminance(doc, ground, style(option).backgroundColor), paintedLuminance(doc, ground)]
+          .sort((a, b) => b - a)
+        expect((hi + 0.05) / (lo + 0.05), `${theme}: hovered option against the list`).to.be.at.least(1.15)
+      })
+    })
+
+    it(`reads SlimSelect's count of a long selection at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/form/slim_select/many_selected')
+      useTheme(theme)
+      everyReadsAtAA('.ss-main .ss-max', theme)
+    })
+
+    it(`reads a portaled comments sidebar at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/with_portaled_read_only_comments_sidebar')
+      useTheme(theme)
+      everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2)
+    })
+  })
+
+  THEMES.forEach((theme) => {
+    const floor = DARK_THEMES.includes(theme) ? AA : 3
+
+    it(`paints the code block's tokens at ${floor}:1 on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/readonly')
+      cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
+      useTheme(theme)
+      cy.get('[data-content-type="codeBlock"] pre .shiki').should(($tokens) => {
+        const tokens = $tokens.toArray().filter(el => el.textContent.trim())
+        expectSettled(tokens[0])
+        expect(tokens, 'code tokens').to.have.length.at.least(5)
+        tokens.forEach((el) => {
+          expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(floor)
+        })
+      })
+    })
+  })
+
+  // `color: :neutral` on these, and the neutral outline button, paint ink, not a fill. A dark
+  // theme's neutral is a dark fill, so as ink over the page it measured 1.72:1 on afal-dark,
+  // 1.54 on costa-norte-dark and 1.26 on daisyUI's dark; base-content is the same colour as
+  // neutral on Bali's light themes.
+  const NEUTRAL_INK = [
+    ['gauge', '/bali/gauge/default?color=neutral', '.bali-gauge', AA],
+    ['loader text', '/bali/loader/default?color=neutral', 'p.text-xl', AA],
+    ['stat card icon', '/bali/stat_card/default?color=neutral', '.card-body .rounded-full svg', 3],
+    ['timeline marker', '/bali/timeline/with_colors', 'li:contains("Archived") .timeline-middle', 3],
+    ['outline button', '/bali/button/default?variant=neutral&style=outline', '.btn-outline', AA],
+    ['progress bar', '/bali/progress/default?color=neutral', 'progress', 3]
+  ]
+
+  THEMES.forEach((theme) => {
+    NEUTRAL_INK.forEach(([what, url, selector, floor]) => {
+      it(`reads a neutral ${what} on the ${theme} theme`, () => {
+        cy.visit(url)
+        useTheme(theme)
+        cy.get(selector).should(($els) => {
+          expectSettled($els[0])
+          expect(paintedContrast($els[0]), `${theme}: neutral ${what}`).to.be.at.least(floor)
+        })
+      })
+    })
+  })
+})

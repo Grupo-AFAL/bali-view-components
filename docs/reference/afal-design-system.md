@@ -13,9 +13,9 @@ document.
    AFAL app stays on one version of the vocabulary.
 2. **The shipped themes** (`css/themes/`): `afal` (the canonical brand palette that
    gobierno-corporativo, afal-apps, identity and opina used to copy by hand),
-   `afal-dark` (draft), and `costa-norte`. Adoption, the chrome-theme pattern for
-   dark sidebars, and the structural-token rules live in
-   `docs/guides/custom-themes.md`.
+   `costa-norte`, and their dark variants `afal-dark` and `costa-norte-dark`. Adoption,
+   dark mode, the chrome-theme pattern for dark sidebars, and the structural-token rules
+   live in `docs/guides/custom-themes.md`.
 3. **The components** in `app/components/bali/` — always composed instead of raw
    daisyUI markup (`.claude/CLAUDE.md`, "Component Composition"). The catalogue is
    `docs/guides/components.md`.

@@ -15,6 +15,7 @@
 @import "../../../components/bali/navbar/index.css" layer(components);
 @import "../../../components/bali/side_menu/index.css" layer(components);
 @import "../../../components/bali/command/index.css" layer(components);
+@import "../../../components/bali/topbar/user_menu/index.css" layer(components);
 
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css" layer(components);
@@ -76,3 +77,6 @@
    that contrasts (#1126). */
 @import "../../../components/bali/alert/daisyui-overrides.css";
 @import "../../../components/bali/tag/daisyui-overrides.css";
+/* daisyUI paints the neutral outline button with `neutral` as text, a dark fill on the
+   dark themes. */
+@import "../../../components/bali/button/daisyui-overrides.css";

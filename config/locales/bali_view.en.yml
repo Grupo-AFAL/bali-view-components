@@ -658,6 +658,7 @@ en:
       user_menu:
         trigger_label: "User menu for %{name}"
         sign_out: "Sign out"
+        dark_mode: "Dark mode"
       tools_menu:
         trigger_label: "Tools"
         items:

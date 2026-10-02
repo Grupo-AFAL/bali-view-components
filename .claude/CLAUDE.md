@@ -182,17 +182,20 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 | `@layer utilities`, through `@utility` | `bali/utilities.css` only — a class templates and hosts write like any Tailwind one (`text-soft-<colour>`) | Tailwind refuses an `@utility` inside a layer and emits it among the utilities itself. A component's sheet reaches it with `@apply`. |
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
-`bali/container-overrides.css`, `breadcrumb/index.css`, `data_table/index.css`,
+`bali/container-overrides.css`, `bali/prose-invert.css`, `breadcrumb/index.css`, `data_table/index.css`,
 `toast/index.css`, `feedback_widget/index.css`, `side_menu/daisyui-overrides.css`,
 `calendar/daisyui-overrides.css`, `rich_text_editor/daisyui-overrides.css`,
-`gauge/daisyui-overrides.css`, `alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`.
+`gauge/daisyui-overrides.css`, `alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`,
+`button/daisyui-overrides.css`.
 Each file's header names the rule it has to beat and the measurement that put it there —
 read it before adding to one.
 
 Rule of thumb for a new unlayered rule: the right-most compound is a daisyUI class, and you
 are only setting declarations daisyUI also sets. Anything else belongs in `@layer components`.
 `container-overrides.css` is the same shape against Tailwind's `.container` utility — the
-reason is the layer, not the vendor.
+reason is the layer, not the vendor. The third shape is a component that redefines a theme
+token inside itself (a SideMenu rail with `theme:`): its adversary is the theme's own unlayered
+`[data-theme]` block, so it goes unlayered and outranks it on specificity.
 
 **Specificity only settles ties inside a layer.** Across layers the later one wins outright,
 so a `:where()` selector in `base` is not "weak" against `@layer theme` — it beats it. The

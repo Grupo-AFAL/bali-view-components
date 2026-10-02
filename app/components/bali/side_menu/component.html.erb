@@ -78,7 +78,7 @@
           blur on scroll). <details> uses native browser toggling and works
           reliably on all touch devices. %>
       <details class="dropdown dropdown-bottom w-full">
-        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-200 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-content/8 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
                  data-tip="<%= active_menu.title %>">
           <%= active_menu %>
           <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'menu-switcher-chevron ml-auto size-4 text-base-content/50') %>

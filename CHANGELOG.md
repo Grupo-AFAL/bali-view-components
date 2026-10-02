@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Modo oscuro: `costa-norte-dark` y el interruptor en el menú de usuario.** Bali trae
+  `costa-norte-dark` junto a `afal-dark`, y `Bali::Topbar::UserMenu` ofrece «Modo oscuro» cuando
+  la app declara su tema oscuro. Nadie lo ve hasta que la app lo active, y entonces sólo quien lo
+  elige; la elección se guarda en la cookie `bali_theme`, por app y por dispositivo. Los dos
+  temas oscuros siguen la forma del `dark` de daisyUI: `base-200` y `base-300` son más oscuros
+  que `base-100`, así que una página sobre `base-200` queda debajo de sus tarjetas, y `neutral`
+  es un relleno oscuro con texto claro. Por lo mismo, un borde `base-300` sobre `base-100` es en
+  oscuro tan tenue como en el `dark` de daisyUI (1.09:1 en `afal-dark`, 1.11 en `dark`).
+  **Anfitrión que lo quiera:**
+  - `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`; una
+    clave desconocida o sin `light:` levanta al arrancar.
+  - `<html data-theme="<%= bali_theme %>">` en **cada** layout: Turbo no copia el `data-theme`
+    del `<html>` nuevo al navegar, así que un layout con el tema fijo deja la página en el tema
+    equivocado.
+  - Importar el tema oscuro y sumarlo a la línea `@custom-variant dark`.
+  - Cambiar por tokens del tema los colores fijos de las vistas, que en oscuro quedan como
+    tarjetas blancas con texto claro
+    (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`).
+  - `text-neutral` propio pasa a `text-base-content`: en oscuro `neutral` es un relleno y como
+    texto no se lee; en `afal` y `costa-norte` son el mismo color.
+
+  costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]` e importar el de Bali: su
+  menú lateral conserva el riel, el texto y el dorado; los bordes y el panel del switcher los
+  deriva el SideMenu (0.305 y 0.375, contra los 0.305 y 0.37 de la app), y el hover es el texto
+  al 8 %. También
+  sobra su `.menu-switcher .dropdown-content`: el SideMenu ya pinta igual el panel de un riel con
+  tema. Cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
+
 - **`text-soft-<color>`, el color del texto sobre un tinte de ese mismo color** (#1245, #1247):
   cualquier color del tema mezclado al 40% con `base-content`, que llega a AA donde `text-<color>`
   no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
@@ -85,6 +113,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
+  `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
+  `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su
+  resaltado de teclado. En oscuro `base-200` queda debajo de `base-100` y el hover se pintaba más
+  oscuro que el riel, casi invisible (1.05:1); ahora se ve en los dos sentidos (1.20 en
+  `afal-dark`, 1.16 en `afal`, antes 1.10) y también dentro de un panel. El riel inline
+  (`fixed: false`) deja su hover `base-300` y toma el mismo; hoy ninguna app lo usa. Sin nada
+  que hacer en el anfitrión.
+- **Los menús desplegables (`Bali::Dropdown` y los paneles del SideMenu) llevan un borde fino**,
+  `base-content` al 15 %. El panel es `base-100` como la página, y en un tema oscuro la sombra no
+  se ve: panel y página medían 1.00:1. Cambia en todas las apps, también en claro, donde apenas
+  se nota. Sin nada que hacer en el anfitrión.
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
   son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
   `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
@@ -115,6 +155,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `:flightdeck` o pasa `name:`.
 
 ### Fixed
+
+- **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
+  `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
+  dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
+  todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa del tema. Vale
+  para cualquier riel con tema: en uno claro, los bordes quedan un poco más marcados (de 1.24 a
+  1.48:1 en `afal`); hoy ninguna app usa uno. Sin nada que hacer en el anfitrión.
+- **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline,
+  Progress, Chart, Heatmap, el día de `Calendar::YearGrid` y el anillo del Avatar) y también el
+  botón neutral `outline`: pintaban `neutral` como tinta, que en oscuro es un relleno oscuro
+  (1.72:1 en `afal-dark`, 1.26 en el `dark` de daisyUI). Ahora usan `base-content`, idéntico a
+  `neutral` en `afal` y `costa-norte`; con el `light` de daisyUI o un tema propio, el neutral de
+  esos componentes pasa a ser el `base-content` de ese tema. Sin nada que hacer en el anfitrión.
+- **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
+  claro de daisyUI, y bajo un tema oscuro el disparador se volvía oscuro con el texto todavía
+  oscuro (1.04–1.10:1). Ahora todo texto y superficie del archivo es un token del tema, lo que
+  también se nota en claro: el acento pasa al primario de cada tema (antes un violeta fijo, también
+  en `light`), el hover y el resaltado de las opciones son el texto al 8 %, y el contador de una
+  selección larga sigue a `neutral`. Sin nada que hacer en el anfitrión.
+
+- **BlockEditor y las gráficas en un tema oscuro** (modo oscuro): el bloque de código pintaba la
+  tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
+  `color-scheme` del tema; los comentarios de una barra lateral fuera del editor salían en el gris
+  fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
+  recargar. Sin nada que hacer en el anfitrión.
+
+- **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
+  `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
+  esos que ponga el anfitrión entra ahora en el recorrido con teclado.
 
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
   SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del

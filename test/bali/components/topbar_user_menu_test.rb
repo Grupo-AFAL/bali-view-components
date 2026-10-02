@@ -125,9 +125,19 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
 
   def test_renders_nothing_with_no_items_and_no_sign_out
     # The header is presentational and does not count towards Dropdown#render?:
-    # a user menu with nothing actionable in it renders no menu at all.
-    render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García"))
+    # a user menu with nothing actionable in it renders no menu at all. The dummy
+    # declares a dark theme, and the dark-mode switch IS actionable.
+    with_themes({ light: "light" }) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García"))
+    end
     assert_no_selector(".dropdown")
+  end
+
+  def test_the_dark_mode_switch_alone_is_a_menu
+    with_themes({ light: "light", dark: "dark" }) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García"))
+    end
+    assert_selector(".dropdown [role=\"menuitemcheckbox\"]")
   end
 
   def test_items_keep_the_dropdown_lambda_powers
@@ -138,5 +148,74 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
     end
 
     assert_selector('a[role="menuitem"] svg')
+  end
+
+  # The dark-mode switch (docs/superpowers/specs/2026-10-01-dark-themes-design.md): it exists
+  # only where the host declared a dark theme in Bali.themes, and it is a menuitemcheckbox that
+  # hands the theme pair and the cookie name to the theme-toggle controller.
+  def with_themes(themes)
+    previous = Bali.themes
+    Bali.themes = themes
+    yield
+  ensure
+    Bali.themes = previous
+  end
+
+  def toggle_selector
+    'button[role="menuitemcheckbox"][data-controller="theme-toggle"]'
+  end
+
+  def test_no_dark_mode_item_when_no_themes_are_declared
+    with_themes(nil) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García", sign_out: sign_out))
+    end
+
+    assert_no_selector('[role="menuitemcheckbox"]')
+  end
+
+  def test_no_dark_mode_item_when_no_dark_theme_is_declared
+    with_themes({ light: "afal" }) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García", sign_out: sign_out))
+    end
+
+    assert_no_selector('[role="menuitemcheckbox"]')
+  end
+
+  def test_dark_mode_item_hands_the_pair_and_the_cookie_to_the_controller
+    with_themes({ light: "afal", dark: "afal-dark" }) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García", sign_out: sign_out))
+    end
+
+    assert_selector(
+      "#{toggle_selector}[aria-checked=\"false\"]" \
+      '[data-theme-toggle-light-value="afal"][data-theme-toggle-dark-value="afal-dark"]' \
+      "[data-theme-toggle-cookie-value=\"#{Bali::ThemeHelper::COOKIE}\"]" \
+      '[data-action="theme-toggle#toggle"]',
+      text: "Dark mode"
+    )
+  end
+
+  def test_dark_mode_item_is_checked_when_the_cookie_chose_dark
+    vc_test_request.cookies[Bali::ThemeHelper::COOKIE] = Bali::ThemeHelper::DARK
+    with_themes({ light: "afal", dark: "afal-dark" }) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García", sign_out: sign_out))
+    end
+
+    assert_selector("#{toggle_selector}[aria-checked=\"true\"]")
+  end
+
+  def test_dark_mode_item_sits_between_the_host_items_and_sign_out
+    with_themes({ light: "afal", dark: "afal-dark" }) do
+      render_inline(Bali::Topbar::UserMenu::Component.new(
+                      name: "Ana García", sign_out: sign_out
+                    )) do |menu|
+        menu.with_item(name: "Profile", href: "/profile")
+      end
+    end
+
+    texts = page.all("ul li").map(&:text)
+    assert_match(/Profile/, texts[1])
+    assert_match(/Dark mode/, texts[2])
+    assert_match(/Sign out/, texts.last)
   end
 end

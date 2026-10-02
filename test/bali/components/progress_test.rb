@@ -37,10 +37,12 @@ class BaliProgressComponentTest < ComponentTestCase
     assert_selector("progress.progress.progress-accent")
   end
 
-  def test_colors_renders_neutral_color
+  # daisyUI's own bar is base-content; `progress-neutral` paints a dark theme's fill colour.
+  def test_colors_renders_neutral_as_the_default_bar
     render_inline(Bali::Progress::Component.new(value: 50, color: :neutral))
 
-    assert_selector("progress.progress.progress-neutral")
+    assert_selector("progress.progress")
+    assert_no_selector(".progress-neutral")
   end
 
   def test_colors_renders_info_color

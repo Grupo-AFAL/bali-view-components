@@ -83,10 +83,6 @@
 .side-menu-component--inline {
   width: 100%;
   background-color: transparent;
-
-  .menu-item:hover {
-    @apply bg-base-300;
-  }
 }
 
 /* ========================================
@@ -115,7 +111,7 @@
 
 .menu-item {
   @apply flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer;
-  @apply text-base-content/80 hover:bg-base-200 hover:text-base-content;
+  @apply text-base-content/80 hover:bg-base-content/8 hover:text-base-content;
   @apply transition-all duration-200;
 
   &.active {
@@ -392,9 +388,11 @@
  * `.dropdown-content` is a daisyUI class, but these are not daisyUI's
  * declarations — daisyUI only positions the panel — so this belongs here and
  * not in ./daisyui-overrides.css. A host utility still beats both rules, which
- * is exactly what @layer components is for. */
+ * is exactly what @layer components is for. The border is Bali::Dropdown's: the
+ * panel is base-100 like the rail, and on a dark page the shadow does not show
+ * (1.00:1). */
 .side-menu-component .dropdown-content {
-  @apply bg-base-100 shadow-lg;
+  @apply bg-base-100 shadow-lg border border-base-content/15;
 }
 
 /* A themed sidebar OWNS its surface. The inline variant is transparent on

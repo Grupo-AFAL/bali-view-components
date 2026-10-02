@@ -31,7 +31,7 @@ class BaliThemesTest < ActiveSupport::TestCase
 
   # cypress/support/themes.js lists the same themes for the contrast guards.
   def test_the_expected_themes_ship_with_the_gem
-    assert_equal(%w[afal-dark.css afal.css costa-norte.css],
+    assert_equal(%w[afal-dark.css afal.css costa-norte-dark.css costa-norte.css],
                  theme_files.map { |file| File.basename(file) })
   end
 
@@ -41,13 +41,13 @@ class BaliThemesTest < ActiveSupport::TestCase
       name = File.basename(file, ".css")
 
       assert_match(/^\[data-theme="#{Regexp.escape(name)}"\]\s*\{/, css,
-                   "#{name}.css no define [data-theme=\"#{name}\"] al inicio de línea")
+                   "#{name}.css does not open with [data-theme=\"#{name}\"]")
       assert_match(/color-scheme:\s*(light|dark);/, css,
-                   "#{name}.css no declara color-scheme")
+                   "#{name}.css declares no color-scheme")
 
       REQUIRED_VARIABLES.each do |variable|
         assert_match(/#{Regexp.escape(variable)}:\s*[^;]+;/, css,
-                     "#{name}.css no define #{variable}")
+                     "#{name}.css does not define #{variable}")
       end
     end
   end
@@ -64,11 +64,22 @@ class BaliThemesTest < ActiveSupport::TestCase
     assert_includes(css, "color-scheme: light")
   end
 
-  def test_the_afal_dark_draft_declares_a_dark_scheme
-    css = File.read(THEMES_DIR.join("afal-dark.css"))
+  # daisyUI's order, dark themes included: hosts lay base-100 cards on a base-200 page, and a
+  # dark theme that stepped up instead painted the page lighter than its cards.
+  def test_every_theme_steps_its_surfaces_down_from_base_100
+    theme_files.each do |file|
+      css = File.read(file)
+      levels = %w[100 200 300].map { |step| lightness(css, "--color-base-#{step}", file) }
 
-    assert_includes(css, "color-scheme: dark")
-    assert_match(/DRAFT/, css, "afal-dark.css debe declararse borrador hasta su aprobación visual")
+      assert levels.each_cons(2).all? { |upper, lower| upper > lower },
+             "#{File.basename(file)}: base-100/200/300 lightness #{levels.join(' / ')}"
+    end
+  end
+
+  def test_the_dark_themes_declare_a_dark_scheme
+    %w[afal-dark costa-norte-dark].each do |name|
+      assert_includes(File.read(THEMES_DIR.join("#{name}.css")), "color-scheme: dark", name)
+    end
   end
 
   def test_the_contrast_guards_walk_every_shipped_theme
@@ -79,5 +90,15 @@ class BaliThemesTest < ActiveSupport::TestCase
     assert_equal(theme_files.map { |file| File.basename(file, ".css") }.sort,
                  listed.scan(/'([\w-]+)'/).flatten.sort,
                  "BALI_THEMES in cypress/support/themes.js has to list every theme the gem ships")
+  end
+
+  private
+
+  # The L of an `oklch()` token, written either as a percentage or as a fraction.
+  def lightness(css, variable, file)
+    pattern = /#{Regexp.escape(variable)}:\s*oklch\(([\d.]+)(%?)/
+    assert_match pattern, css, "#{File.basename(file)}: #{variable} is not an oklch() colour"
+    number, percent = css.match(pattern).captures
+    percent.empty? ? number.to_f : number.to_f / 100
   end
 end

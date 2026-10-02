@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 Bali.config do |config|
+  # The pair the layouts paint through `bali_theme`: the dummy keeps daisyUI's own light theme
+  # by default, and the UserMenu previews show the dark-mode switch because `dark:` is set.
+  config.themes = { light: "light", dark: "dark" }
+
   # Rich Text Editor is disabled by default to avoid loading TipTap dependencies
   # Set ENABLE_RICH_TEXT_EDITOR=1 to enable for testing
   config.rich_text_editor_enabled = ENV["ENABLE_RICH_TEXT_EDITOR"].present?

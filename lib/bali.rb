@@ -118,6 +118,21 @@ module Bali
     @@google_maps_key.presence || ENV["GOOGLE_MAPS_KEY"].presence
   end
 
+  # The daisyUI themes the host paints with: `{ light: "afal", dark: "afal-dark" }`.
+  # `bali_theme` (Bali::ThemeHelper) picks one for the `<html>` per request, and the
+  # UserMenu offers the dark-mode switch only when a `dark:` theme is declared.
+  mattr_reader :themes, default: nil
+
+  # Checked on assignment, at boot: a misspelt `drak:` would otherwise just hide the switch,
+  # and a missing `light:` would only fail for the people who never chose dark.
+  def self.themes=(themes)
+    themes = themes&.to_h&.symbolize_keys
+    themes&.assert_valid_keys(:light, :dark)
+    raise ArgumentError, "Bali.themes needs a `light:` theme" if themes && themes[:light].blank?
+
+    @@themes = themes # rubocop:disable Style/ClassVars
+  end
+
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
   mattr_accessor :rich_text_editor_enabled, default: false

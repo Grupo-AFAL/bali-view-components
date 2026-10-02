@@ -55,6 +55,27 @@ function collectHeadings (blocks, result = []) {
   return result
 }
 
+// BlockNote tokenizes through prosemirror-highlight's shiki parser, which it calls with no
+// options, so every token got the first loaded theme and a dark page painted github-light's
+// ink on a dark code block (measured 1.00:1). Asking for both themes with no default colour
+// leaves each token a --shiki-light and a --shiki-dark, and index.css picks between them with
+// light-dark(), which follows the theme's color-scheme.
+function withBothThemes (highlighter) {
+  return new Proxy(highlighter, {
+    get (target, key) {
+      if (key === 'codeToTokens') {
+        return (code, options) => target.codeToTokens(code, {
+          ...options,
+          themes: { light: 'github-light', dark: 'github-dark' },
+          defaultColor: false
+        })
+      }
+      const value = Reflect.get(target, key)
+      return typeof value === 'function' ? value.bind(target) : value
+    }
+  })
+}
+
 export default function BlockNoteEditorWrapper ({
   initialContent,
   htmlContent,
@@ -155,11 +176,11 @@ export default function BlockNoteEditorWrapper ({
           try {
             const { createHighlighter } = await import('shiki')
             const { createJavaScriptRegexEngine } = await import('shiki/engine/javascript')
-            return createHighlighter({
+            return withBothThemes(await createHighlighter({
               themes: ['github-light', 'github-dark'],
               langs: PRELOADED_LANGS,
               engine: createJavaScriptRegexEngine()
-            })
+            }))
           } catch (error) {
             console.error('BlockEditor: syntax highlighting is on but `shiki` could not be loaded. Install it, or pass syntax_highlighting: false.', error)
             throw error

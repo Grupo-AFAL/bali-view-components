@@ -17,8 +17,11 @@ module Bali
       # class it can find literally in a source file.
       #
       # `Bali::DashboardPage#stat_change_class` reads `[:text]` out of this table.
+      # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
+      # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
       COLORS = {
-        neutral: { bg: "bg-neutral/10", text: "text-neutral", border: "border-neutral/30" },
+        neutral: { bg: "bg-base-content/10", text: "text-base-content",
+                   border: "border-base-content/30" },
         primary: { bg: "bg-primary/10", text: "text-primary", border: "border-primary/30" },
         secondary: { bg: "bg-secondary/10", text: "text-secondary",
                      border: "border-secondary/30" },

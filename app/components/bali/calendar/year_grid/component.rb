@@ -4,15 +4,16 @@ module Bali
   module Calendar
     module YearGrid
       class Component < ApplicationViewComponent
-        # Keyed by Bali::Color::NAMES, spelled out: Tailwind only emits a class it
+        # Keyed by Bali::Color::NAMES but `neutral`, spelled out: Tailwind only emits a class it
         # finds as a literal in a source file, so `"bg-#{name}"` compiles to nothing.
         #
         # The number stays `text-base-content` on the tint instead of taking the
         # colour like daisyUI's `badge-soft`: measured on the light themes, text in
         # the colour reads at 1.59:1 for `warning` and 1.68:1 for `accent`;
         # base-content on the same 20% tint is 9.25:1 at worst (AA wants 4.5).
+        # `neutral` falls through to NEUTRAL_HIGHLIGHT: `bg-neutral` is a dark theme's fill,
+        # and its tint vanished against an empty day.
         DAY_COLORS = {
-          neutral: "bg-neutral/20 text-base-content hover:bg-neutral hover:text-neutral-content",
           primary: "bg-primary/20 text-base-content hover:bg-primary hover:text-primary-content",
           secondary: "bg-secondary/20 text-base-content hover:bg-secondary hover:text-secondary-content",
           accent: "bg-accent/20 text-base-content hover:bg-accent hover:text-accent-content",

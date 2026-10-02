@@ -23,8 +23,12 @@
 }
 
 /* Override BlockNote's default theme variables with DaisyUI colors.
- * .block-editor-component .bn-container (0,2,0) beats BlockNote's .bn-container (0,1,0) */
-.block-editor-component .bn-container {
+ * .block-editor-component .bn-container (0,2,0) beats BlockNote's .bn-container (0,1,0).
+ * A comments sidebar portaled out of the editor is outside .block-editor-component, and
+ * each comment there is a BlockNote of its own: without this second selector its text kept
+ * BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes). */
+.block-editor-component .bn-container,
+.bn-threads-sidebar .bn-container {
   --bn-colors-editor-text: var(--color-base-content);
   --bn-colors-editor-background: var(--color-base-100);
   --bn-colors-menu-text: var(--color-base-content);
@@ -313,6 +317,18 @@
 
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] > div > select > option {
   color: var(--color-base-content);
+}
+
+/* Each token carries both themes' colours (withBothThemes in BlockNoteEditorWrapper.jsx);
+   light-dark() reads the color-scheme the page's theme declares. BlockNote stamps `light`
+   on .bn-container from the `theme:` it is handed, which kept the dark ink out (1.00:1 on
+   afal-dark), so the container inherits the page's scheme instead. */
+.block-editor-component .bn-container {
+  color-scheme: inherit;
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki {
+  color: light-dark(var(--shiki-light), var(--shiki-dark));
 }
 
 /* Override shiki theme backgrounds so they don't clash with our wrapper */

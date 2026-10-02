@@ -216,7 +216,7 @@
       /* The disc cannot read which surface it was dropped on, and `inherit`
          yields transparent — the marker's own background. Measured inside a
          `bg-base-200` card, a `base-100` disc is a halo of 1.06:1 in light and
-         1.21:1 in `afal-dark`; a host on another surface names its own here. */
+         1.05:1 in `afal-dark`; a host on another surface names its own here. */
       background-color: var(--bali-workflow-steps-surface, var(--color-base-100));
     }
   }

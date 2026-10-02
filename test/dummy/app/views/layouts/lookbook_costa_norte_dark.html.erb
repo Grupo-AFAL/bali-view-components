@@ -1,9 +1,5 @@
-<%# Layout for Bali::AppLayout previews.
-    The AppLayout component renders its own `<body>` tag, so this layout
-    intentionally omits one — the HTML parser folds AppLayout's body into the
-    document body, matching how the component is used in production. %>
 <!DOCTYPE html>
-<html data-theme="<%= bali_theme %>">
+<html data-theme="costa-norte-dark">
   <head>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
@@ -11,5 +7,7 @@
     <%= stylesheet_link_tag "application", media: 'all' %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
-  <%= yield %>
+  <body class="p-4 bg-base-100">
+    <%= yield %>
+  </body>
 </html>

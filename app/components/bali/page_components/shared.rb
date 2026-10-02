@@ -233,7 +233,7 @@ module Bali
       #
       # The title also goes as `aria-describedby` on each format: inside a
       # `<ul role="menu">` the screen reader navigates ONLY the menuitems —the same way
-      # `DropdownController#getMenuItems` looks them up, by `[role="menuitem"]`—, so loose
+      # `DropdownController#getMenuItems` looks them up, by `[role^="menuitem"]`—, so loose
       # text is skipped and the fix was left purely visual. As a description and not as an
       # `aria-label` so as not to clobber the accessible name: the visible one is still
       # "CSV" and "Label in Name" is not broken.

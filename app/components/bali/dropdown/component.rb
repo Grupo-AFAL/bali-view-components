@@ -153,6 +153,7 @@ module Bali
           "bg-base-100",
           "text-base-content", # Ensure proper text contrast regardless of parent colors
           "rounded-box",
+          "border border-base-content/15", # The panel is base-100 like the page; a dark theme swallows the shadow
           "z-[var(--bali-z-dropdown)]",
           "shadow-lg",
           "p-2",

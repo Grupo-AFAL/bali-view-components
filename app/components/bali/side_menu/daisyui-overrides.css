@@ -20,7 +20,9 @@
  * component's own styling stays in ./index.css, where host utilities beat it.
  *
  * Rule of thumb when adding here: only rules whose right-most compound is a
- * daisyUI class, and only the declarations daisyUI also sets.
+ * daisyUI class, and only the declarations daisyUI also sets. The one other
+ * adversary is a theme's own unlayered `[data-theme]` block, which a rail that
+ * redefines a theme token has to outrank (the last rule of this file).
  */
 
 /* ── .menu ───────────────────────────────────────────────────────────────
@@ -44,7 +46,7 @@
    the same `.menu-item` inside and outside a `.menu`:
 
      transition-property   color,background-color,box-shadow  vs  all
-     :hover background     base-content/10                    vs  base-200
+     :hover background     base-content/10                    vs  Bali's own
      .active:hover bg      base-content/10                    vs  primary/10
 
    (`.active` while idle was never lost — daisyUI declares nothing for it.)
@@ -60,9 +62,12 @@
 }
 
 /* `.active` after `:hover`: same specificity, so source order is what keeps a
-   selected item tinted while the cursor is on it. */
+   selected item tinted while the cursor is on it. The ink at 8% and not base-200:
+   base-200 steps down on the dark themes, so the hover painted darker than the
+   surface under it (1.05:1); the ink lifts it on dark and darkens it on light, on a
+   rail or inside a panel alike (1.20 on afal-dark, 1.16 on afal). */
 .menu .menu-item:hover {
-  @apply bg-base-200;
+  @apply bg-base-content/8;
 }
 
 .menu .menu-item.active {
@@ -147,7 +152,7 @@
 
 .side-menu-component .collapse-title {
   @apply flex items-center gap-2 min-h-0 px-2.5 py-2 rounded-lg cursor-pointer;
-  @apply text-base-content/80 hover:bg-base-200 hover:text-base-content;
+  @apply text-base-content/80 hover:bg-base-content/8 hover:text-base-content;
   @apply transition-all duration-200 after:hidden;
   /* Remove default DaisyUI arrow */
 
@@ -269,3 +274,16 @@
     }
   }
 }
+
+/* A rail with its own `theme:` is chrome, and its borders and the switcher's panel sit a
+   step ABOVE the rail. daisyUI's `dark` and Bali's dark themes step base-200/300 DOWN from
+   base-100 (the page sits under its cards), which inside the rail put the panel darker than
+   the rail, 1.05–1.07:1. Mixing the ink into the rail lifts them
+   whichever way the theme's own ramp runs; 8% and 18% paint 0.305 / 0.375 against the
+   0.305 / 0.37 costa-norte hand-tuned for its rail. The theme files are unlayered `[data-theme="…"]`
+   blocks, so this has to be unlayered too, and outranks them on specificity. */
+.side-menu-component[data-theme] {
+  --color-base-200: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-100));
+  --color-base-300: color-mix(in oklab, var(--color-base-content) 18%, var(--color-base-100));
+}
+

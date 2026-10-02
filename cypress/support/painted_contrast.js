@@ -23,7 +23,7 @@
 // the answer: the outline of a WorkflowSteps marker on its `::before` disc, in a base-200 card on
 // `afal`, read 3.38:1 composited over the card alone and paints 3.17 (#1249).
 
-const luminance = ([r, g, b]) => {
+export const luminance = ([r, g, b]) => {
   const channel = (v) => {
     v /= 255
     return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
@@ -73,4 +73,20 @@ export const paintedContrast = (el, { over = el, property = 'color', under } = {
   const bed = under ? paint(under) : ground
   const ink = paint(win.getComputedStyle(el)[property], opacity)
   return Math.min(contrast(ink, ground), contrast(ink, bed))
+}
+
+// The luminance of colours painted one over the other, in order, on a 1px canvas: a
+// translucent border has to land on what it is drawn over, or it reads as its opaque ink.
+export const paintedLuminance = (doc, ...colours) => {
+  const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
+    .getContext('2d', { willReadFrequently: true })
+  colours.forEach((colour) => {
+    ctx.fillStyle = colour
+    ctx.fillRect(0, 0, 1, 1)
+  })
+  const pixel = [...ctx.getImageData(0, 0, 1, 1).data]
+  // A canvas hands back a translucent pixel un-premultiplied — the bare ink — so a colour
+  // with nothing opaque under it would measure as if it were solid.
+  if (pixel[3] !== 255) throw new Error(`paintedLuminance: ${colours.join(' over ')} is not opaque`)
+  return luminance(pixel)
 }

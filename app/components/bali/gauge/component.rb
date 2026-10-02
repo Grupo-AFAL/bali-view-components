@@ -16,11 +16,13 @@ module Bali
     # composition rule in `.claude/CLAUDE.md` — and because daisyUI's own example
     # emits no ARIA at all, which is the part below that actually matters.
     class Component < ApplicationViewComponent
+      # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
+      # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
       COLORS = {
         primary: "text-primary",
         secondary: "text-secondary",
         accent: "text-accent",
-        neutral: "text-neutral",
+        neutral: "text-base-content",
         info: "text-info",
         success: "text-success",
         warning: "text-warning",

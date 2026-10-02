@@ -51,7 +51,7 @@ module Bali
         primary: "ring-primary",
         secondary: "ring-secondary",
         accent: "ring-accent",
-        neutral: "ring-neutral",
+        neutral: "ring-base-content",
         success: "ring-success",
         warning: "ring-warning",
         error: "ring-error",
