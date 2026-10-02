@@ -196,7 +196,8 @@
         data-rrule-freq-option="weekly_1">
         <% I18n.t('date.day_names').each_with_index do |day, index| %>
           <% day_value = index.zero? ? 6 : index - 1 %>
-          <%# Wrap each checkbox-label pair to isolate peer relationship %>
+          <%# Wraps each checkbox-label pair to isolate the peer relationship, and carries the
+              not-allowed cursor a pointer-less disabled label cannot show. %>
           <span class="inline-block has-disabled:cursor-not-allowed">
             <%= check_box_tag "byweekday_#{unique_id}_[]", day_value, false,
                 id: "byweekday_#{unique_id}_#{day_value}",
@@ -208,9 +209,8 @@
                 hover is a ring because each tint measured lowered the text on some theme: `/80` took
                 afal from 5.25 to 3.76:1 (#1246), 15% of base-content `dark` from 4.13 to 3.19, and 7%
                 of black afal-dark from 5.78 to 4.76.
-                A disabled day takes no pointer, so no hover reaches it. Gating the hovers on
-                `peer-enabled:` instead ties `peer-checked:hover:bg-primary` and is emitted after it:
-                1.53:1 again (#1272). The wrapper shows the not-allowed cursor the label cannot. %>
+                A disabled day takes no pointer: gating these hovers on `peer-enabled:` would tie
+                `peer-checked:hover:bg-primary` and be emitted after it, 1.53:1 again (#1272). %>
             <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
                 disabled: disabled,
                 class: 'flex items-center justify-center w-8 h-8 rounded-full ' \
