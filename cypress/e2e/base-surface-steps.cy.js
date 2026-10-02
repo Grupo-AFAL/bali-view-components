@@ -148,31 +148,44 @@ describe('hovers, tints and edges over a base surface', () => {
 
   // The preview's sample events cycle through `ghost` and `neutral`: 20 January is a ghost day,
   // 20 February a neutral one.
-  THEMES.forEach((theme) => {
-    it(`tints a ghost day off an empty one and, under the pointer, further off the page than at rest, off a neutral day and with its number at AA, on the ${theme} theme`, () => {
-      const ghost = 'a.year-day[aria-label="20 January 2026"]'
-      const neutral = 'a.year-day[aria-label="20 February 2026"]'
-      const fill = (el) => el.ownerDocument.defaultView.getComputedStyle(el).backgroundColor
-      let atRest, neutralAtRest
-      cy.viewport(1440, 1200)
-      cy.visit('/bali/calendar/year?start_date=2026-01-01')
-      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+  const GHOST = 'a.year-day[aria-label="20 January 2026"]'
+  const NEUTRAL = 'a.year-day[aria-label="20 February 2026"]'
+  const fill = (el) => el.ownerDocument.defaultView.getComputedStyle(el).backgroundColor
+  const openYear = (theme) => {
+    cy.viewport(1440, 1200)
+    cy.visit('/bali/calendar/year?start_date=2026-01-01')
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+  }
 
-      cy.get(ghost, { timeout: 10000 }).should(($day) => {
+  THEMES.forEach((theme) => {
+    it(`tints a ghost day off an empty one on the ${theme} theme`, () => {
+      openYear(theme)
+
+      cy.get(GHOST, { timeout: 10000 }).should(($day) => {
+        settled($day[0].ownerDocument)
+        expect($day[0].matches(':hover'), 'at rest').to.equal(false)
+        expect(lift($day[0]), `${theme}: ghost day against an empty one`).to.be.at.least(STEP)
+      })
+    })
+
+    it(`lifts a hovered ghost day further off the page, off a neutral day, number at AA on the ${theme} theme`, () => {
+      let atRest, neutralAtRest
+      openYear(theme)
+
+      cy.get(GHOST, { timeout: 10000 }).should(($day) => {
         const doc = $day[0].ownerDocument
         settled(doc)
         expect($day[0].matches(':hover'), 'at rest').to.equal(false)
-        expect(lift($day[0]), `${theme}: ghost day against an empty one`).to.be.at.least(STEP)
-        expect(doc.querySelector(neutral), 'a neutral day').to.not.equal(null)
+        expect(doc.querySelector(NEUTRAL), 'a neutral day').to.not.equal(null)
         atRest = fill($day[0])
-        neutralAtRest = fill(doc.querySelector(neutral))
+        neutralAtRest = fill(doc.querySelector(NEUTRAL))
       })
-      cy.get(ghost).then(hover)
+      cy.get(GHOST).then(hover)
 
       // Away from its rest is not enough: base-300 under the pointer is a step away from the ink
       // at 8% on the dark themes too, but across the page and nearer to it than the day at rest.
       // The number's AA is what kept the hover at 30%: at 40% it read 4.11:1 on `dark`.
-      cy.get(ghost, { timeout: 10000 }).should(($day) => {
+      cy.get(GHOST, { timeout: 10000 }).should(($day) => {
         const doc = $day[0].ownerDocument
         settled(doc)
         expect($day[0].matches(':hover'), 'under the pointer').to.equal(true)
