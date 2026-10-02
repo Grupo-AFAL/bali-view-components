@@ -16,20 +16,26 @@
 
 /* =============================================================================
    CSS Custom Properties
-   Using DaisyUI-compatible values, easily themeable
    ============================================================================= */
-:root {
-  /* Colors - DaisyUI light theme */
-  --ss-primary-color: oklch(0.6569 0.196 275.75);    /* primary */
-  --ss-bg-color: oklch(1 0 0);                        /* base-100 */
-  --ss-font-color: oklch(0.278 0.033 256.8);          /* base-content */
-  --ss-placeholder-color: oklch(0.278 0.033 256.8 / 0.5);
-  --ss-disabled-color: oklch(0.95 0 0);
-  --ss-border-color: oklch(0.278 0.033 256.8 / 0.2);
-  --ss-highlight-color: oklch(0.879 0.169 91.6 / 0.3); /* warning with alpha */
-  --ss-success-color: oklch(0.648 0.15 160);          /* success */
-  --ss-error-color: oklch(0.7176 0.221 22.18);        /* error */
+/* The colours are the theme's tokens, not literals: literals froze daisyUI's light
+   theme, and under a dark theme the selected value painted light-on-light at
+   1.04–1.10:1. Declared again on every [data-theme]: a custom property resolves its
+   var() where it is declared, so a sidebar that re-themes its subtree would inherit
+   the root's colours otherwise. */
+:root,
+[data-theme] {
+  --ss-primary-color: var(--color-primary);
+  --ss-bg-color: var(--color-base-100);
+  --ss-font-color: var(--color-base-content);
+  --ss-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  --ss-disabled-color: var(--color-base-200);
+  --ss-border-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+  --ss-highlight-color: color-mix(in oklab, var(--color-warning) 30%, transparent);
+  --ss-success-color: var(--color-success);
+  --ss-error-color: var(--color-error);
+}
 
+:root {
   /* Dimensions */
   --ss-main-height: 3rem;
   --ss-content-height: 280px;
@@ -266,8 +272,8 @@
   font-size: 0.75rem;
   line-height: 1;
   padding: var(--ss-spacing-s) var(--ss-spacing-m);
-  background-color: oklch(0.278 0.033 256.8);
-  color: var(--ss-bg-color);
+  background-color: var(--color-neutral);
+  color: var(--color-neutral-content);
   border-radius: 1.5rem;
 }
 
@@ -298,7 +304,7 @@
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.625rem;
-  color: var(--ss-bg-color);
+  color: var(--color-primary-content);
   padding: 0 0.625rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -557,7 +563,7 @@
 
       path {
         fill: none;
-        stroke: #ffffff;
+        stroke: var(--color-primary-content);
         stroke-width: 3;
         stroke-linecap: round;
         stroke-linejoin: round;
@@ -668,12 +674,12 @@
 
   /* Hover state */
   &:hover:not(.ss-disabled) {
-    background-color: oklch(0.95 0 0);
+    background-color: var(--color-base-200);
   }
 
   /* Keyboard highlighted */
   &.ss-highlighted {
-    background-color: oklch(0.95 0 0);
+    background-color: var(--color-base-200);
   }
 
   /* Selected state — blue text + checkmark, no background tint */
@@ -684,7 +690,7 @@
     padding-right: calc(12px + 1.25rem);
 
     &:hover {
-      background-color: oklch(0.95 0 0);
+      background-color: var(--color-base-200);
     }
 
     &::after {

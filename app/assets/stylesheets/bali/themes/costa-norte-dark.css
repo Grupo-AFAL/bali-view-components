@@ -13,6 +13,9 @@
  *   unusable as a fill or as text.
  * - Secondary is the brand teal lifted until it reads on those surfaces, so it
  *   stays distinct from primary.
+ * - Neutral is the ink, light on the dark surfaces, with base-100 as its content:
+ *   the app's dark neutral equals base-200, so as text it measured 1.00–1.28:1
+ *   and as a fill its edge vanished against the surface.
  * - Status colors are the light theme's. Their content colors are the app's,
  *   except info and error: its near-white content measured 2.1 and 2.7:1 on
  *   those pastels, so they take the light theme's dark content instead.
@@ -42,8 +45,8 @@
   --color-accent: oklch(0.7417 0.0864 72.83);
   --color-accent-content: oklch(0.2493 0.0385 215.27);
 
-  --color-neutral: oklch(0.305 0.04 215.27);
-  --color-neutral-content: oklch(0.95 0.01 80);
+  --color-neutral: oklch(0.80 0.03 215.27);
+  --color-neutral-content: oklch(0.2493 0.0385 215.27);
 
   --color-info: oklch(0.74 0.16 232.661);
   --color-info-content: oklch(0.29 0.066 243.157);

@@ -13,6 +13,11 @@
  * - Brand hues are kept but lifted to their Tailwind 400 step so they
  *   hold contrast on dark surfaces, paired with -950 content colors.
  *   Every pair measures >= 4.5:1 (WCAG AA).
+ * - Neutral is the ink, as in the light theme (where it equals base-content):
+ *   gray-300 on gray-900. A dark neutral cannot work both ways — as text it
+ *   measured 1.00–1.72:1 on the surfaces (`btn-outline btn-neutral`, a neutral
+ *   stat or gauge), and no lightness readable as text also carries the light
+ *   neutral-content as a fill.
  * - Status colors are identical to the light theme: those pastels already
  *   sit on dark content colors that pass AA on both schemes.
  * - Structural tokens (radius/size/border/depth/noise) are identical.
@@ -32,8 +37,8 @@
   --color-secondary-content: oklch(28.27% 0.1351 291.089); /* #2E1065 (violet-950) */
   --color-accent: oklch(83.69% 0.1644 84.429);             /* #FBBF24 (amber-400) */
   --color-accent-content: oklch(27.91% 0.0742 45.635);     /* #451A03 (amber-950) */
-  --color-neutral: oklch(37.29% 0.0306 259.733);           /* #374151 (gray-700) */
-  --color-neutral-content: oklch(96.70% 0.0029 264.542);   /* #F3F4F6 (gray-100) */
+  --color-neutral: oklch(87.17% 0.0093 258.338);          /* #D1D5DB (gray-300) */
+  --color-neutral-content: oklch(21.01% 0.0318 264.665);   /* #111827 (gray-900) */
   --color-base-100: oklch(21.01% 0.0318 264.665);          /* #111827 (gray-900) */
   --color-base-200: oklch(27.81% 0.0296 256.848);          /* #1F2937 (gray-800) */
   --color-base-300: oklch(37.29% 0.0306 259.733);          /* #374151 (gray-700) */

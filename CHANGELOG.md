@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en oscuro quedan como tarjetas blancas con texto claro
   (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`). costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]`
   e importar el de Bali: su menú lateral, que ya lleva ese tema, conserva superficies y dorado;
-  sólo cambian el texto sobre info y error, que ahora pasa AA, y el secundario.
+  sólo cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`, que en
+  los dos temas oscuros es la tinta (claro, con texto oscuro encima), como en los claros.
 
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
@@ -124,6 +125,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `:flightdeck` o pasa `name:`.
 
 ### Fixed
+
+- **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
+  claro de daisyUI, y bajo un tema oscuro el valor elegido quedaba claro sobre claro
+  (1.04–1.10:1). Ahora usa `primary`, `base-100`, `base-content` y compañía del tema activo, así
+  que en `afal` y `costa-norte` sus acentos pasan del violeta de daisyUI al primario del tema.
+  Sin nada que hacer en el anfitrión.
+
+- **BlockEditor en un tema oscuro** (modo oscuro): el bloque de código pintaba la tinta de
+  `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
+  `color-scheme` del tema; los comentarios de una barra lateral fuera del editor salían en el gris
+  fijo de BlockNote (1.51–1.68:1) y ahora siguen el tema. Sin nada que hacer en el anfitrión.
 
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
