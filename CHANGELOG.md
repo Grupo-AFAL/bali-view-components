@@ -186,8 +186,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   esos que ponga el anfitrión entra ahora en el recorrido con teclado.
 
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
-  SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
-  `<select>`, y el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
+  SlimSelect nombra el combobox que dibuja con el `aria-label` o `aria-labelledby` del `<select>`
+  y, hasta la 3.4, el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
   etiqueta, salvo que `html:` ya traiga uno de los dos. Siguen en «Combobox» y necesitan el
   nombre a mano: un `slim_select_group` con `label: false` (`html: { "aria-label": … }`; en
   **gobierno-corporativo**, `mdm/departments/cut_proposals/index.html.erb`), un
