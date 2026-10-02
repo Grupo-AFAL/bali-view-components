@@ -761,8 +761,8 @@ export class ConditionController extends Controller {
     `
   }
 
-  // The panel and its options paint like the multi-select in filters/condition/component.html.erb,
-  // the same widget as the server draws it: change both.
+  // The options' classes, and the panel's past how it is placed and shown, match the
+  // multi-select in filters/condition/component.html.erb: change both.
   buildMultiSelectInput (fieldName, options) {
     const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
     const selectedCountTemplate = this.t.selected_count || '%{count} selected'
