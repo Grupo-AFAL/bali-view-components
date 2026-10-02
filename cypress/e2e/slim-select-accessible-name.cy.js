@@ -1,6 +1,6 @@
 // #1253 — SlimSelect hides the real <select> and draws a div[role="combobox"] named from the
-// select's aria-label / aria-labelledby and nothing else. The markup looked labelled all
-// along — a <label for> reached the select — so these read the name from Chromium's
+// select's aria-label / aria-labelledby and, up to the 3.4 the dummy runs, nothing else. The
+// markup looked labelled all along — a <label for> reached the select — so these read the name from Chromium's
 // accessibility tree, which is what a screen reader is handed. The attribute the FormBuilder
 // writes for it is asserted in test/bali/form_builder/slim_select_fields_test.rb.
 describe('SlimSelect accessible name', () => {
@@ -62,6 +62,29 @@ describe('SlimSelect accessible name', () => {
       cy.get('.ss-main').should('exist')
 
       names('listbox').should('deep.equal', ['Owner'])
+    })
+
+    // SlimSelect 2.x (centinela-web) puts the listbox role on `.ss-content` itself and leaves
+    // it unnamed. The dummy runs 3.x, so this moves the role to where 2.x draws it.
+    it('is named where SlimSelect 2.x puts the role, on the content box', () => {
+      cy.visit('/bali/form/slim_select/many_selected?locale=es')
+      cy.get('.ss-main').should('exist')
+
+      cy.window().then((win) => {
+        const controller = win.Stimulus.getControllerForElementAndIdentifier(
+          win.document.querySelector('[data-controller~="slim-select"]'),
+          'slim-select'
+        )
+        const { main: content, list } = controller.select.render.content
+
+        for (const attribute of ['role', 'aria-label', 'aria-labelledby']) {
+          list.removeAttribute(attribute)
+        }
+        content.setAttribute('role', 'listbox')
+        controller.forwardAccessibility()
+      })
+
+      names('listbox').should('deep.equal', ['Rooms'])
     })
   })
 
