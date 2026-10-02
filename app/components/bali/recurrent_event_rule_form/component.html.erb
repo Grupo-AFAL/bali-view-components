@@ -205,8 +205,9 @@
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
             <%# `peer-checked:hover:bg-primary` is not redundant: without it `hover:bg-base-content/20`,
                 emitted later at the same specificity, repaints a checked day (1.53:1 on afal). The
-                hover is a ring because every tint lowers the text on some theme: `/80` took afal from
-                5.25 to 3.76:1 (#1246), and 15% of base-content takes `dark` from 4.13 to 3.19. %>
+                hover is a ring because each tint measured lowered the text on some theme: `/80` took
+                afal from 5.25 to 3.76:1 (#1246), 15% of base-content `dark` from 4.13 to 3.19, and 7%
+                of black afal-dark from 5.78 to 4.76. %>
             <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
                 disabled: disabled,
                 class: 'flex items-center justify-center w-8 h-8 rounded-full ' \

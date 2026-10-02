@@ -1,12 +1,14 @@
-// Touch input through Chromium's own pipeline, sent over CDP. For a tap the browser
-// fires touchstart, touchend and then the compatibility mouseover, mousedown, focusin,
-// mouseup and click a phone fires — the same order Playwright's `isMobile` tap
+// Touch and mouse input through Chromium's own pipeline, sent over CDP. For a tap the
+// browser fires touchstart, touchend and then the compatibility mouseover, mousedown,
+// focusin, mouseup and click a phone fires — the same order Playwright's `isMobile` tap
 // measured. `.trigger('touchstart')` would fire only the event it names, so the spec
 // would be deciding the order instead of the browser.
 //
 // After a failed test's screenshot, a later `touchStart` in the run can wait forever
 // and surface as "promise never resolved": read the first failure, or rerun with
-// `CYPRESS_screenshotOnRunFailure=false`.
+// `CYPRESS_screenshotOnRunFailure=false`. A `mouseMoved` still resolves, but slowly:
+// measured after one, each took ~1 s instead of ~10 ms, and a theme's transitions
+// took 3.7–3.9 s of the 4 s retry to settle.
 const touch = (type, touchPoints) =>
   Cypress.automation('remote:debugger:protocol', {
     command: 'Input.dispatchTouchEvent',

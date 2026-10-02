@@ -194,7 +194,7 @@ describe('RecurrentEventRuleForm', () => {
 
   // A checked day is the theme's primary pair, which theme-primary-contrast.cy.js holds at AA on
   // Bali's themes; daisyUI's `dark` paints it at 4.13:1, so the bar under the cursor is the day at
-  // rest, not 4.5. `primary/80` let the page through: afal 5.25 → 3.76:1 (#1246).
+  // rest, not 4.5.
   describe('the weekdays as painted', () => {
     const dayLabel = (index) => cy.get(`label[for="byweekday_form_record_rule_${index}"]`)
 
@@ -232,6 +232,7 @@ describe('RecurrentEventRuleForm', () => {
         let atRest
         dayLabel(0).should(([label]) => {
           expectSettled(label)
+          expect(label.matches(':hover'), 'at rest').to.equal(false)
           atRest = paintedContrast(label)
         })
 
