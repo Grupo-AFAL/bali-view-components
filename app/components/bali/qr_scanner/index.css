@@ -83,5 +83,5 @@
 
 .qr-scanner-hint {
   font-size: 0.875rem;
-  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
 }

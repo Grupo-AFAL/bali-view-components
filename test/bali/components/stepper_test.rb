@@ -159,7 +159,7 @@ class BaliStepperComponentTest < ComponentTestCase
         <% detail = nil %>
         <% c.with_step(title: 'Publicado') do %>
           <% if detail.present? %>
-            <span class="text-xs opacity-60"><%= detail %></span>
+            <span class="text-xs opacity-70"><%= detail %></span>
           <% end %>
         <% end %>
       <% end %>

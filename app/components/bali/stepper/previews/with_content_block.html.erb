@@ -6,22 +6,22 @@
     <%= render Bali::Stepper::Component.new(current: 2) do |c| %>
       <% c.with_step(title: 'Propuesto') do %>
         <% if notes[:proposed].present? %>
-          <span class="text-xs opacity-60"><%= notes[:proposed] %></span>
+          <span class="text-xs opacity-70"><%= notes[:proposed] %></span>
         <% end %>
       <% end %>
       <% c.with_step(title: 'Aprobado') do %>
         <% if notes[:approved].present? %>
-          <span class="text-xs opacity-60"><%= notes[:approved] %></span>
+          <span class="text-xs opacity-70"><%= notes[:approved] %></span>
         <% end %>
       <% end %>
       <% c.with_step(title: 'Publicado') do %>
         <% if notes[:published].present? %>
-          <span class="text-xs opacity-60"><%= notes[:published] %></span>
+          <span class="text-xs opacity-70"><%= notes[:published] %></span>
         <% end %>
       <% end %>
       <% c.with_step(title: 'Vigente') do %>
         <% if notes[:current].present? %>
-          <span class="text-xs opacity-60"><%= notes[:current] %></span>
+          <span class="text-xs opacity-70"><%= notes[:current] %></span>
         <% end %>
       <% end %>
     <% end %>
@@ -33,7 +33,7 @@
       <% c.with_step(title: 'Propuesto') %>
       <% c.with_step(title: 'Aprobado') %>
       <% c.with_step(title: 'Publicado') do %>
-        <span class="text-xs opacity-60">publicación #12</span>
+        <span class="text-xs opacity-70">publicación #12</span>
       <% end %>
       <% c.with_step(title: 'Vigente') %>
     <% end %>

@@ -1162,7 +1162,7 @@ title, or a free content block for arbitrary markup.
   <% s.with_step(title: "Proposed", sublabel: "07/01 · Luis Pérez") %>
   <% s.with_step(title: "Approved", sublabel: "07/03 · Ana Gutiérrez") %>
   <% s.with_step(title: "Published") do %>
-    <span class="text-xs opacity-60">release #12</span>
+    <span class="text-xs opacity-70">release #12</span>
   <% end %>
   <% s.with_step(title: "Active") %>
 <% end %>
