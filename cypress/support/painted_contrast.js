@@ -6,9 +6,11 @@
 // first, the farthest first: SideMenu's active item measured 5.25:1 against the bare page and
 // 4.51 over its own primary/10 tint (#1221).
 //
-// Two things it still does not see: the `opacity` of the node that carries a tint is not applied
-// to the tint, which on a light theme measures the tint darker than it paints (the safe side), and
-// the background of a pseudo-element, which the caller hands over as `under`.
+// What it still does not see: the `opacity` of the node that carries a tint is not applied to the
+// tint, which on a light theme measures the tint darker than it paints (the safe side); the
+// background of a pseudo-element, which the caller hands over as `under`; and a `filter` or an
+// inset `box-shadow` on the way, which the caller asserts absent: without that, a Status row
+// hovered through either one passed (#1259).
 //
 // `over` is where the search for that background starts. Text starts at its own element; a shape
 // drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own

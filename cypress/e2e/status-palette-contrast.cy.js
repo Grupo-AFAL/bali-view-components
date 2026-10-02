@@ -4,10 +4,15 @@ import { hover, unhover } from '../support/tap'
 // The palette's pairs at rest are test_every_palette_pair_reads_at_aa's job. What only a
 // browser shows is a row of the editable panel under the pointer: the row's `:hover` rule
 // is painted over the inline pair. `filter: brightness(.95)` dimmed the text with the fill
-// and took pink from 4.60 to 4.49:1 (#1259). The pair is inline and the overlay a fixed
-// black, so no theme changes what this measures.
+// and took pink from 4.60 to 4.49:1 (#1259).
+//
+// paintedContrast sees neither a `filter` nor an inset `box-shadow`, and with either one in
+// the hover rule it still passed, so both are asserted absent instead. One run stands for all
+// six themes only while the overlay is a flat black, so that is asserted too: a `color-mix` of
+// base-content follows the theme, and its stops serialize as oklch(), not rgba().
 describe('Status palette: hovered panel rows', () => {
   const AA = 4.5
+  const FLAT_BLACK_OR_NONE = /^none$|^linear-gradient\((rgba\(0, 0, 0, [\d.]+\)), \1\)$/
 
   afterEach(() => { unhover() })
 
@@ -20,13 +25,15 @@ describe('Status palette: hovered panel rows', () => {
       cy.wrap($row).should(($hovered) => {
         const row = $hovered[0]
         const style = row.ownerDocument.defaultView.getComputedStyle(row)
-        const overlay = new Set(style.backgroundImage.match(/rgba?\([^)]*\)/g))
 
         expect(row.matches(':hover'), `${row.value} under the pointer`).to.equal(true)
         expect(row.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
         expect(style.filter, `${row.value}: no filter dims the text`).to.equal('none')
-        expect(overlay.size, `${row.value}: a flat overlay, or none`).to.be.at.most(1)
-        expect(paintedContrast(row, { under: [...overlay][0] }), `${row.value} hovered`).to.be.at.least(AA)
+        expect(style.boxShadow, `${row.value}: no inset shadow over the fill`).not.to.contain('inset')
+        expect(style.backgroundImage, `${row.value}: a flat black overlay, or none`).to.match(FLAT_BLACK_OR_NONE)
+
+        const [, overlay] = style.backgroundImage.match(FLAT_BLACK_OR_NONE)
+        expect(paintedContrast(row, { under: overlay }), `${row.value} hovered`).to.be.at.least(AA)
       })
     })
   })
