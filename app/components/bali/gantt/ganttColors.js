@@ -97,9 +97,11 @@ export function hashHue (value) {
 }
 
 // Background color of the assignee avatar (solid, white text on top).
+// White initials over L 0.5 measure 5.15–6.52:1 across all 360 hues; L 0.6
+// gave 3.49–4.27, under the 4.5 AA asks of 9px bold text (#1260).
 export function avatarColor (assignee) {
   if (!assignee) return 'color-mix(in oklch, var(--color-base-content) 30%, transparent)'
-  return `oklch(0.6 0.14 ${hashHue(assignee.id ?? assignee.name)})`
+  return `oklch(0.5 0.14 ${hashHue(assignee.id ?? assignee.name)})`
 }
 
 function priorityHue (priority, catalogs) {

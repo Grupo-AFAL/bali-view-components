@@ -325,6 +325,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
 
+- **Las iniciales del responsable en el Gantt se leen** (#1260): eran blancas, en negrita de
+  9–9.5px, sobre `oklch(0.6 0.14 <tono>)`, y medían de 3.49 a 4.27:1 según el tono que sale del
+  id o del nombre (AA pide 4.5). El fondo baja a L 0.5: los 360 tonos quedan entre 5.15 y 6.52:1
+  y cada persona conserva su tono; el avatar se ve más oscuro, en la tabla y sobre la barra. Las
+  barras y la leyenda del modo «Owner» no cambian. Lo nota el cronograma de tareas de
+  **afal-apps**, el único anfitrión que manda `assignee`. Sin nada que hacer en el anfitrión.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
