@@ -14,11 +14,9 @@ module Bali
       # @label With Existing Value
       # Pre-populates the form with an existing RRULE value.
       # The component parses and displays the rule correctly.
-      def with_value
-        render_with_template(locals: {
-          model: form_record,
-          value: "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE,FR;COUNT=10"
-        })
+      # @param value text
+      def with_value(value: "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE,FR;COUNT=10")
+        render_with_template(locals: { model: form_record, value: value })
       end
 
       # @label Monthly Pattern
@@ -51,12 +49,9 @@ module Bali
 
       # @label Disabled State
       # Shows the form in a read-only/disabled state.
-      def disabled
-        render_with_template(locals: {
-          model: form_record,
-          value: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE",
-          disabled: true
-        })
+      # @param value text
+      def disabled(value: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE")
+        render_with_template(locals: { model: form_record, value: value, disabled: true })
       end
     end
   end
