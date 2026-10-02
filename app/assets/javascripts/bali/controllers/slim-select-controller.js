@@ -158,6 +158,7 @@ export class SlimSelectController extends Controller {
       }
 
       this.joinTopLayer()
+      this.forwardAccessibility()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
     }
@@ -174,6 +175,34 @@ export class SlimSelectController extends Controller {
       this.beforeCacheHandler = null
     }
     this.teardown()
+  }
+
+  // SlimSelect hides the <select> behind `aria-hidden` and copies only its `aria-label` or
+  // `aria-labelledby` onto the combobox it draws, so the error and help ids the FormBuilder
+  // writes (html_utils.rb#aria_attributes) stayed on a node nobody reads. Copying them at
+  // connect is enough: a form with errors comes back as a new render, with its own controller.
+  //
+  // Its listbox is labelled `ariaLabel + " listbox"`, "Combobox listbox" on every field, so
+  // it takes whatever names the combobox, in SlimSelect's precedence. 2.x puts the role on
+  // the content box and leaves it unnamed; 3.x and 4.x on the list inside it.
+  forwardAccessibility () {
+    const select = this.selectTarget
+    const { main, list } = this.select.render.content
+    const listbox = [list, main].find((element) => element.getAttribute('role') === 'listbox')
+
+    for (const attribute of ['aria-describedby', 'aria-invalid']) {
+      const value = select.getAttribute(attribute)
+      if (value) this.select.render.main.main.setAttribute(attribute, value)
+    }
+
+    const label = select.getAttribute('aria-label')
+    const labelledBy = select.getAttribute('aria-labelledby')
+
+    if (label) {
+      listbox.setAttribute('aria-label', label)
+    } else if (labelledBy) {
+      listbox.setAttribute('aria-labelledby', labelledBy)
+    }
   }
 
   // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers

@@ -13,7 +13,7 @@ describe('SlimSelect accessible name', () => {
       : (tree.childFrames || []).map((child) => frameAt(child, url)).find(Boolean)
 
   // The page under test is an iframe of the runner, so its tree is asked for by frame.
-  const comboboxNames = () =>
+  const axNodes = (role) =>
     cy.url().then((url) =>
       cdp('Page.getFrameTree')
         .then(({ frameTree }) =>
@@ -21,16 +21,22 @@ describe('SlimSelect accessible name', () => {
         )
         .then(({ nodes }) =>
           nodes
-            .filter((node) => !node.ignored && node.role?.value === 'combobox')
-            .map((node) => node.name?.value)
+            .filter((node) => !node.ignored && node.role?.value === role)
+            .map((node) => ({
+              name: node.name?.value,
+              description: node.description?.value,
+              invalid: node.properties?.find(({ name }) => name === 'invalid')?.value?.value
+            }))
         )
     )
+
+  const names = (role) => axNodes(role).then((nodes) => nodes.map(({ name }) => name))
 
   it('names the combobox of a slim_select_group after its caption', () => {
     cy.visit('/bali/form/slim_select/many_selected?locale=es')
     cy.get('.ss-main').should('exist')
 
-    comboboxNames().should('deep.equal', ['Rooms'])
+    names('combobox').should('deep.equal', ['Rooms'])
   })
 
   it('names it on a form where native selects sit beside it', () => {
@@ -38,6 +44,39 @@ describe('SlimSelect accessible name', () => {
     cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/movies/new`)
     cy.get('.ss-main').should('exist')
 
-    comboboxNames().should('include', 'Timezone').and('not.include', 'Combobox')
+    names('combobox').should('include', 'Timezone').and('not.include', 'Combobox')
+  })
+
+  // #1270 — SlimSelect labels its list `ariaLabel + " listbox"`: "Combobox listbox" on every
+  // field and in every locale.
+  describe('the listbox', () => {
+    it('is named after the caption that names the combobox', () => {
+      cy.visit('/bali/form/slim_select/many_selected?locale=es')
+      cy.get('.ss-main').should('exist')
+
+      names('listbox').should('deep.equal', ['Rooms'])
+    })
+
+    it('is named after the aria-label of a select with no caption', () => {
+      cy.visit('/bali/data_table/simple_filters/uncaptioned')
+      cy.get('.ss-main').should('exist')
+
+      names('listbox').should('deep.equal', ['Owner'])
+    })
+  })
+
+  // #1270 — the FormBuilder writes `aria-invalid` and `aria-describedby` on the <select>
+  // (html_utils.rb#aria_attributes), the element SlimSelect hides with aria-hidden.
+  it('announces the error and the help of its field on the combobox', () => {
+    cy.visit('/bali/form/slim_select/with_errors')
+    cy.get('.ss-main').should('exist')
+
+    axNodes('combobox').should('deep.equal', [
+      {
+        name: 'Name',
+        description: 'Name must be selected Pick the option that applies to this record.',
+        invalid: 'true'
+      }
+    ])
   })
 })
