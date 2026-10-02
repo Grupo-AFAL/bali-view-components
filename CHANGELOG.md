@@ -32,8 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   costa-norte puede borrar su bloque `[data-theme="costa-norte-dark"]` e importar el de Bali: su
   menú lateral conserva el riel, el texto y el dorado, y el hover, los bordes y el panel del
-  switcher los deriva el SideMenu (0.305 y 0.375, contra los 0.305 y 0.37 de la app). Cambian el
-  texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
+  switcher los deriva el SideMenu (0.305 y 0.375, contra los 0.305 y 0.37 de la app). También
+  sobra su `.menu-switcher .dropdown-content`: el SideMenu ya pinta igual el panel de un riel con
+  tema. Cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
 
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
@@ -106,10 +107,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Los menús desplegables (`Bali::Dropdown`) llevan un borde fino**, `base-content` al 15 %. El
-  panel es `base-100` como la página, y en un tema oscuro la sombra no se ve: panel y página
-  medían 1.00:1. Cambia en todas las apps, también en claro, donde apenas se nota. Sin nada que
-  hacer en el anfitrión.
+- **Los menús desplegables (`Bali::Dropdown` y los paneles del SideMenu) llevan un borde fino**,
+  `base-content` al 15 %. El panel es `base-100` como la página, y en un tema oscuro la sombra no
+  se ve: panel y página medían 1.00:1. Cambia en todas las apps, también en claro, donde apenas
+  se nota. Sin nada que hacer en el anfitrión.
 - **El engine deja de asignar `config.eager_load_paths`** (#1206). Desde Rails 7.1 esa lista
   son sólo las *adiciones* de un engine; lo que Rails autocarga y precarga es eso más
   `paths.eager_load`, que ya recorre todo `app/*`. La lista no quitaba nada —`app/services`, que
@@ -141,16 +142,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Un SideMenu con `theme:` oscuro levanta su hover, sus bordes y el panel del switcher**
-  sobre el riel. Con el `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan
-  desde `base-100`, y dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el
-  borde más oscuro todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa
-  del tema. Sin nada que hacer en el anfitrión.
+- **Un SideMenu con `theme:` levanta su hover, sus bordes y el panel del switcher** sobre el
+  riel. Con el `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde
+  `base-100`, y dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más
+  oscuro todavía. Ahora el riel los mezcla con su propio texto, sea cual sea la rampa del tema,
+  y un ítem bajo el cursor dentro del panel sube un paso más (antes era del mismo color que el
+  panel). Vale para cualquier riel con tema: en uno claro, bordes y hover quedan un poco más
+  marcados (el borde pasa de 1.24 a 1.48:1 en `afal`); hoy ninguna app usa uno. Sin nada que
+  hacer en el anfitrión.
 - **`color: :neutral` se lee en los temas oscuros** (Gauge, Loader, StatCard, Timeline,
   Progress, Chart, Heatmap, el día de `Calendar::YearGrid` y el anillo del Avatar) y también el
   botón neutral `outline`: pintaban `neutral` como tinta, que en oscuro es un relleno oscuro
   (1.72:1 en `afal-dark`, 1.26 en el `dark` de daisyUI). Ahora usan `base-content`, idéntico a
-  `neutral` en `afal` y `costa-norte`. Sin nada que hacer en el anfitrión.
+  `neutral` en `afal` y `costa-norte`; con el `light` de daisyUI o un tema propio, el neutral de
+  esos componentes pasa a ser el `base-content` de ese tema. Sin nada que hacer en el anfitrión.
 - **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
   claro de daisyUI, y bajo un tema oscuro el disparador se volvía oscuro con el texto todavía
   oscuro (1.04–1.10:1). Ahora todo texto y superficie del archivo es un token del tema, lo que

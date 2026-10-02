@@ -46,3 +46,14 @@ export const drag = ($el, dy) => {
     .then(() => touch('touchMove', [inRunner(x, y + dy)]))
     .then(() => touch('touchEnd', []))
 }
+
+// A real mouse over the element, so `:hover` applies; `.trigger('mouseover')` fires the
+// event and leaves the pseudo-class off.
+export const pointAt = ($el) => {
+  const [x, y] = centreOf($el)
+
+  return Cypress.automation('remote:debugger:protocol', {
+    command: 'Input.dispatchMouseEvent',
+    params: { type: 'mouseMoved', ...inRunner(x, y) }
+  })
+}

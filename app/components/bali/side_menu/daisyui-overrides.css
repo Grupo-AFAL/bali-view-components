@@ -20,7 +20,9 @@
  * component's own styling stays in ./index.css, where host utilities beat it.
  *
  * Rule of thumb when adding here: only rules whose right-most compound is a
- * daisyUI class, and only the declarations daisyUI also sets.
+ * daisyUI class, and only the declarations daisyUI also sets. The one other
+ * adversary is a theme's own unlayered `[data-theme]` block, which a rail that
+ * redefines a theme token has to outrank (the last rules of this file).
  */
 
 /* ── .menu ───────────────────────────────────────────────────────────────
@@ -273,10 +275,16 @@
    sit a step ABOVE the rail. daisyUI's `dark` and Bali's dark themes step base-200/300
    DOWN from base-100 (the page sits under its cards), which inside the rail put the panel
    and the hover darker than the rail, 1.05–1.07:1. Mixing the ink into the rail lifts them
-   whichever way the theme's own ramp runs; 8% and 18% reproduce the 0.305 / 0.37 that
-   costa-norte hand-tuned for its rail. The theme files are unlayered `[data-theme="…"]`
+   whichever way the theme's own ramp runs; 8% and 18% paint 0.305 / 0.375 against the
+   0.305 / 0.37 costa-norte hand-tuned for its rail. The theme files are unlayered `[data-theme="…"]`
    blocks, so this has to be unlayered too, and outranks them on specificity. */
 .side-menu-component[data-theme] {
   --color-base-200: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-100));
   --color-base-300: color-mix(in oklab, var(--color-base-content) 18%, var(--color-base-100));
+}
+
+/* Inside that rail the panel is base-200 already, so an item's base-200 hover painted the
+   panel's own colour (1.00:1); it takes the next step up. `.active` keeps its tint. */
+.side-menu-component[data-theme] .dropdown-content .menu-item:not(.active):hover {
+  background-color: var(--color-base-300);
 }

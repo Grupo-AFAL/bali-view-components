@@ -4,7 +4,7 @@ module Bali
   module Calendar
     module YearGrid
       class Component < ApplicationViewComponent
-        # Keyed by Bali::Color::NAMES, spelled out: Tailwind only emits a class it
+        # Keyed by Bali::Color::NAMES but `neutral`, spelled out: Tailwind only emits a class it
         # finds as a literal in a source file, so `"bg-#{name}"` compiles to nothing.
         #
         # The number stays `text-base-content` on the tint instead of taking the

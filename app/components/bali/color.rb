@@ -30,13 +30,13 @@ module Bali
 
     NAMES = [ *SEMANTIC, GHOST ].freeze
 
-    # What `:ghost` resolves to when a component needs a colour *value* rather
-    # than a class — a gradient stop, an inline style.
+    # What `:ghost` and `:neutral` resolve to when a component needs a colour *value*
+    # rather than a class — a gradient stop, an inline style.
     GHOST_VARIABLE = "--color-base-content"
 
     # The order a component cycles through when one call site needs more than one
     # colour, e.g. the slices of a pie chart. `neutral` is left out: it is the
-    # colour of furniture, not of data.
+    # colour of furniture, and named for data it paints as base-content anyway.
     CYCLE = %i[primary secondary accent info success warning error].freeze
 
     # #rgb, #rgba, #rrggbb, #rrggbbaa. Anything else is not something we can drop
@@ -92,13 +92,6 @@ module Bali
         "var(--color-#{color})"
       end
 
-      # `:neutral` as a value is data ink — a chart bar, a heatmap cell — and a dark theme's
-      # neutral is a fill that does not read as ink; base-content is the same colour on Bali's
-      # light themes.
-      def page_ink?(color)
-        [ GHOST, :neutral ].include?(color.to_sym)
-      end
-
       def css_value?(color)
         color.is_a?(String) && (color.start_with?("#") || color.include?("("))
       end
@@ -137,6 +130,13 @@ module Bali
       end
 
       private
+
+      # `:neutral` asked for as a value — a chart bar, a heatmap cell — paints with the ink: a
+      # dark theme's neutral is a fill and does not read on the page, and base-content is the
+      # same colour on Bali's light themes.
+      def page_ink?(color)
+        [ GHOST, :neutral ].include?(color.to_sym)
+      end
 
       def rejection_message(component, param, key, allowed)
         replacement = LEGACY[key]

@@ -1,4 +1,5 @@
 import { THEMES } from '../support/themes'
+import { paintedLuminance } from '../support/painted_contrast'
 
 // The point of the merge: the SAME controller drives the menu in both modes. In popover
 // mode the menu is moved into a tippy popper on `<body>`, so every "is this mine?" question
@@ -400,22 +401,10 @@ describe('DropdownController', () => {
   context('panel edge', () => {
     const edgeContrast = (panel) => {
       const doc = panel.ownerDocument
-      const win = doc.defaultView
-      const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
-        .getContext('2d', { willReadFrequently: true })
-      const paint = (colour) => {
-        ctx.fillStyle = colour
-        ctx.fillRect(0, 0, 1, 1)
-        return [...ctx.getImageData(0, 0, 1, 1).data]
-      }
-      const luminance = ([r, g, b]) => [r, g, b]
-        .map(v => v / 255)
-        .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-        .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0)
-
-      const page = paint(win.getComputedStyle(doc.body).backgroundColor)
-      const edge = paint(win.getComputedStyle(panel).borderTopColor)
-      const [hi, lo] = [luminance(edge), luminance(page)].sort((a, b) => b - a)
+      const style = (el) => doc.defaultView.getComputedStyle(el)
+      const page = style(doc.body).backgroundColor
+      const [hi, lo] = [paintedLuminance(doc, page, style(panel).borderTopColor), paintedLuminance(doc, page)]
+        .sort((a, b) => b - a)
       return (hi + 0.05) / (lo + 0.05)
     }
 

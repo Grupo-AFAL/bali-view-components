@@ -1,19 +1,11 @@
+import { pointAt } from '../support/tap'
+import { paintedLuminance as luminance } from '../support/painted_contrast'
+
 // A rail with its own `theme:` is chrome next to the page, and its hover, borders and the
 // switcher's panel are meant to sit a step ABOVE the rail. daisyUI's `dark` and Bali's dark
 // themes step base-200/300 DOWN from base-100 — the page sits under its cards — so inside the
 // rail that panel measured 1.05–1.07:1 against the rail and its border went darker still.
 describe('SideMenu chrome surfaces', () => {
-  const luminance = (doc, colour) => {
-    const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
-      .getContext('2d', { willReadFrequently: true })
-    ctx.fillStyle = colour
-    ctx.fillRect(0, 0, 1, 1)
-    return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-      .map(v => v / 255)
-      .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-      .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0)
-  }
-
   ;['dark', 'afal-dark', 'costa-norte-dark'].forEach((theme) => {
     it(`lifts the panel and the borders above a ${theme} rail`, () => {
       cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
@@ -27,6 +19,46 @@ describe('SideMenu chrome surfaces', () => {
 
         expect(panel, `${theme}: panel above the rail`).to.be.above(rail)
         expect(border, `${theme}: border above the panel`).to.be.above(panel)
+      })
+    })
+
+    // The bottom group's items are `.menu-item`s, whose hover is base-200 — the panel's own
+    // colour inside a themed rail, so the hovered item measured 1.00:1 against it.
+    it(`shows the hovered item inside the panel of a ${theme} rail`, () => {
+      cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
+      cy.get('.side-menu-component').contains('Configuration').click()
+      cy.get('.side-menu-bottom-section .dropdown-content .menu-item').first().then(pointAt)
+
+      cy.get('.side-menu-bottom-section .dropdown-content').should(($panel) => {
+        const doc = $panel[0].ownerDocument
+        const style = (el) => doc.defaultView.getComputedStyle(el)
+        const item = $panel[0].querySelector('.menu-item:hover')
+
+        expect(item, 'an item under the pointer').to.not.equal(null)
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+        expect(luminance(doc, style(item).backgroundColor), `${theme}: hovered item above the panel`)
+          .to.be.above(luminance(doc, style($panel[0]).backgroundColor))
+      })
+    })
+  })
+
+  // Without a `theme:` the rail is base-100 like its panels, and on a dark page the shadow
+  // does not show: same edge as Bali::Dropdown, same border.
+  ;['dark', 'afal-dark', 'costa-norte-dark'].forEach((theme) => {
+    it(`draws the edge of a panel opened from an unthemed rail on a ${theme} page`, () => {
+      cy.visit('/bali/side_menu/with_bottom_groups')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.get('.side-menu-component:not([data-theme]) .dropdown-content').first().should(($panel) => {
+        const doc = $panel[0].ownerDocument
+        const style = (el) => doc.defaultView.getComputedStyle(el)
+        const railColour = style($panel[0].closest('.side-menu-component')).backgroundColor
+        const rail = luminance(doc, railColour)
+        const edge = luminance(doc, railColour, style($panel[0]).borderTopColor)
+
+        expect(parseFloat(style($panel[0]).borderTopWidth), 'border width').to.be.at.least(1)
+        expect((Math.max(edge, rail) + 0.05) / (Math.min(edge, rail) + 0.05), `${theme}: edge against the rail`)
+          .to.be.above(1.2)
       })
     })
   })

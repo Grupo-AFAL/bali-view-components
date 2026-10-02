@@ -13,7 +13,7 @@
 // drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own
 // fill and measure 1:1 against itself, so it starts at the parent.
 
-const luminance = ([r, g, b]) => {
+export const luminance = ([r, g, b]) => {
   const channel = (v) => {
     v /= 255
     return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
@@ -58,4 +58,16 @@ export const paintedContrast = (el, { over = el } = {}) => {
   const text = paint(win.getComputedStyle(el).color, opacity)
   const [high, low] = [luminance(text), luminance(ground)].sort((x, y) => y - x)
   return (high + 0.05) / (low + 0.05)
+}
+
+// The luminance of colours painted one over the other, in order, on a 1px canvas: a
+// translucent border has to land on what it is drawn over, or it reads as its opaque ink.
+export const paintedLuminance = (doc, ...colours) => {
+  const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
+    .getContext('2d', { willReadFrequently: true })
+  colours.forEach((colour) => {
+    ctx.fillStyle = colour
+    ctx.fillRect(0, 0, 1, 1)
+  })
+  return luminance([...ctx.getImageData(0, 0, 1, 1).data])
 }
