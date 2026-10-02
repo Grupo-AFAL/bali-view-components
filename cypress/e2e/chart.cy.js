@@ -7,7 +7,7 @@
 describe('Chart', () => {
   const canvas = () => cy.get('canvas.chart')
 
-  // Chart.js is imported inside connect(), so the instance appears a tick after
+  // Chart.js is imported inside render(), so the instance appears a tick after
   // the page is ready.
   const chartInstance = (callback) => {
     canvas().should(($canvas) => {
@@ -59,6 +59,27 @@ describe('Chart', () => {
         expect(tooltip.backgroundColor).to.match(/^oklch\(/)
         expect(legend.labels.useThemeColors, 'flag left behind').to.eq(undefined)
         expect(chart.options.scales.y.ticks.color).to.match(/^oklch\(/)
+      })
+    })
+
+    // The UserMenu's dark-mode switch flips <html data-theme> in place, and the
+    // canvas keeps the colours it resolved from the old theme until it is painted again.
+    it('paints again in the theme the page switches to', () => {
+      let before
+      chartInstance((chart) => {
+        before = { chart, tick: chart.options.scales.y.ticks.color }
+      })
+
+      cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
+
+      cy.window().then((win) => {
+        const ink = cssVariable(win, '--color-base-content').replace(/^oklch\(|\)$/g, '')
+        expect(before.tick, 'the old theme had other ink').to.not.include(ink)
+
+        chartInstance((chart) => {
+          expect(chart, 'a fresh chart.js instance').to.not.eq(before.chart)
+          expect(chart.options.scales.y.ticks.color, 'tick ink').to.include(ink)
+        })
       })
     })
 

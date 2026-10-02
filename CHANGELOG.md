@@ -13,14 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `costa-norte-dark` junto a `afal-dark`, y `Bali::Topbar::UserMenu` ofrece «Modo oscuro» cuando
   la app declara su tema oscuro. Nadie lo ve hasta que la app lo active, y entonces sólo quien lo
   elige; la elección se guarda en la cookie `bali_theme`, por app y por dispositivo. En los dos
-  temas oscuros `neutral` es la tinta, claro con texto oscuro encima, como en los claros.
+  temas oscuros `neutral` sigue siendo la tinta, como en los claros, así que ahí es claro con
+  texto oscuro encima.
   **Anfitrión que lo quiera:**
   - `Bali.themes = { light: "afal", dark: "afal-dark" }` en `config/initializers/bali.rb`; una
     clave desconocida o sin `light:` levanta al arrancar.
-  - `<html data-theme="<%= bali_theme %>">` en **cada** layout: Turbo no toca el `<html>` al
-    navegar, así que un layout con el tema fijo deja la página en el tema equivocado.
+  - `<html data-theme="<%= bali_theme %>">` en **cada** layout: Turbo no copia el `data-theme`
+    del `<html>` nuevo al navegar, así que un layout con el tema fijo deja la página en el tema
+    equivocado.
   - Importar el tema oscuro y sumarlo a la línea `@custom-variant dark`.
-  - Cambiar los colores fijos de las vistas por tokens del tema, que en oscuro quedan como
+  - Cambiar por tokens del tema los colores fijos de las vistas, que en oscuro quedan como
     tarjetas blancas con texto claro
     (`git grep -n -E 'bg-white|bg-gray-|text-gray-' -- app/views app/components`).
 
@@ -132,10 +134,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **SlimSelect toma los colores del tema** (modo oscuro): `bali/slim_select.css` fijaba los del
   claro de daisyUI, y bajo un tema oscuro el disparador se volvía oscuro con el texto todavía
-  oscuro (1.04–1.10:1). Ahora todo color del archivo es un token del tema, lo que también se nota
-  en claro: el acento pasa al primario de cada tema (antes un violeta fijo, también en `light`),
-  el hover y el resaltado de las opciones son `base-200`, y el contador de una selección larga
-  sigue a `neutral`. Sin nada que hacer en el anfitrión.
+  oscuro (1.04–1.10:1). Ahora todo texto y superficie del archivo es un token del tema, lo que
+  también se nota en claro: el acento pasa al primario de cada tema (antes un violeta fijo, también
+  en `light`), el hover y el resaltado de las opciones son `base-200`, y el contador de una
+  selección larga sigue a `neutral`. Sin nada que hacer en el anfitrión.
 
 - **BlockEditor y las gráficas en un tema oscuro** (modo oscuro): el bloque de código pintaba la
   tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el

@@ -1,6 +1,6 @@
-/* The dark-mode switch of Bali::Topbar::UserMenu. Its state lives in the button's
-   `aria-checked`, which the theme-toggle controller flips, so the drawing reads it
-   from there instead of keeping a class of its own in sync. */
+/* The dark-mode switch of Bali::Topbar::UserMenu. The drawing reads the button's
+   `aria-checked`, which the theme-toggle controller keeps in step with <html data-theme>,
+   instead of keeping a class of its own in sync. */
 .bali-theme-toggle-switch {
   position: relative;
   flex-shrink: 0;

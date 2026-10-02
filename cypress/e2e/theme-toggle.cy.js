@@ -73,9 +73,12 @@ describe('Topbar::UserMenu dark-mode switch', () => {
   context('Turbo restoration', () => {
     const appOrigin = new URL(Cypress.config('baseUrl')).origin
 
+    // The mark only survives in Turbo's snapshot: a page fetched again would come back
+    // without it, and already checked from the cookie.
     it('reports the theme the page has after going back', () => {
       cy.visit(`${appOrigin}/admin`)
       cy.window().then((win) => { win.notReloaded = true })
+      cy.get(`${userMenu} ${toggle}`).invoke('attr', 'data-from-snapshot', '')
 
       cy.window().then((win) => win.Turbo.visit('/admin/settings'))
       cy.location('pathname').should('eq', '/admin/settings')
@@ -87,7 +90,7 @@ describe('Topbar::UserMenu dark-mode switch', () => {
       cy.location('pathname').should('eq', '/admin')
       cy.window().its('notReloaded').should('eq', true)
       theme().should('equal', 'dark')
-      cy.get(`${userMenu} ${toggle}`).should('have.attr', 'aria-checked', 'true')
+      cy.get(`${userMenu} ${toggle}[data-from-snapshot]`).should('have.attr', 'aria-checked', 'true')
     })
   })
 })

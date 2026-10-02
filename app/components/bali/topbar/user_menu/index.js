@@ -6,7 +6,7 @@ import { Controller } from '@hotwired/stimulus'
 //
 // The page's <html data-theme> is the state, not the switch's own aria-checked: a Turbo
 // restoration visit paints a snapshot taken before the theme changed, so the attribute can
-// be stale, and a second UserMenu on the page never sees the first one's click.
+// be stale.
 const YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
 export class ThemeToggleController extends Controller {

@@ -17,7 +17,7 @@
 /* =============================================================================
    CSS Custom Properties
    ============================================================================= */
-/* Every colour in this file is a theme token, never a literal: the literals froze daisyUI's
+/* Every ink and surface in this file is a theme token, never a literal: the literals froze daisyUI's
    light theme, and under a dark theme the trigger's own `bg-base-100` went dark while the
    value kept the light theme's dark ink, 1.04–1.10:1. Declared again on every [data-theme]:
    a custom property resolves its var() where it is declared, so a sidebar that re-themes its
@@ -524,9 +524,10 @@
       width: 1rem;
       cursor: pointer;
       background-color: var(--color-base-content);
-      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E") no-repeat center;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E") no-repeat center;
+      -webkit-mask-size: contain;
       mask-size: contain;
-      mask-repeat: no-repeat;
       opacity: 0.5;
       transition: opacity 0.15s ease;
     }

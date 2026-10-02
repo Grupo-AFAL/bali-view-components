@@ -382,10 +382,9 @@ compiled CSS silently wins):
    those names — the unlayered `[data-theme]` block does all the work). Keep or drop it;
    dropping it removes the implication that daisyUI defines these themes.
 
-`afal-dark` remains **draft/experimental**: no app activates it today, and its tokens may
-change before it is announced as stable. If you want to try it, see
-[Custom Themes](custom-themes.md) — including the `@custom-variant dark` extension needed
-for `dark:` utilities to fire under it.
+`afal-dark` shipped here as a draft; it is now the dark theme of the dark-mode switch. See
+[Custom Themes](custom-themes.md#dark-mode) — including the `@custom-variant dark` extension
+needed for `dark:` utilities to fire under it.
 
 While migrating, also fix your `@source` glob if it scans only `{rb,erb}`: Bali writes
 some classes from JavaScript (the drawer submit spinner among them). Better, drop the

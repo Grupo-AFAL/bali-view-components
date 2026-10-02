@@ -90,8 +90,8 @@ than `light:` and `dark:`, or a pair without `light:`, raises when the initializ
 
 In **every** layout. `bali_theme` reads the `bali_theme` cookie and answers the dark theme only
 when the person chose it, so a dark page arrives dark instead of flashing light first. Turbo
-never touches `<html>` when it navigates, so a layout that still says `data-theme="afal"` leaves
-the page in whatever theme the previous one had. Import both theme files.
+copies only `lang` and `dir` from the new `<html>` when it navigates, so a layout that still says
+`data-theme="afal"` leaves the page in whatever theme the previous one had. Import both theme files.
 
 ### 3. The switch
 

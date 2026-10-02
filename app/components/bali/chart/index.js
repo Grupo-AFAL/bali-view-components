@@ -39,8 +39,9 @@ export class ChartController extends Controller {
     // switch that flips <html data-theme> in place (Bali::Topbar::UserMenu) would leave the
     // chart in the old theme until the next page.
     if (this.useThemeColorsValue) {
+      // A paint that failed must not stop the ones after it.
       this.themeObserver = new MutationObserver(() => {
-        this.rendering = this.rendering.then(() => this.render())
+        this.rendering = this.rendering.catch(() => {}).then(() => this.render())
       })
       this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     }
@@ -65,7 +66,9 @@ export class ChartController extends Controller {
     }
 
     const chartjs = await import('chart.js').catch(optionalPeer('chart.js'))
-    if (!chartjs) return
+    // disconnect() can land while the import is pending, and nothing would ever destroy a
+    // chart built on the detached canvas.
+    if (!chartjs || !this.element.isConnected) return
     const { Chart, registerables } = chartjs
 
     Chart.register(...registerables)

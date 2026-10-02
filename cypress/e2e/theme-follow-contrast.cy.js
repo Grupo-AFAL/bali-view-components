@@ -8,7 +8,8 @@ import { THEMES } from '../support/themes'
 describe('colours that follow the theme', () => {
   const AA = 4.5
   // github-light on base-200 measures 3.17–3.29:1 on the light themes, before and after this
-  // guard existed: that is the light palette's own debt, not what this guards.
+  // guard existed: that is the light palette's own debt. The 3:1 floor there still catches the
+  // other direction, github-dark's light ink resolved on a light page.
   const DARK_THEMES = ['dark', 'afal-dark', 'costa-norte-dark']
 
   const useTheme = (theme) => {
@@ -36,10 +37,10 @@ describe('colours that follow the theme', () => {
       useTheme(theme)
       everyReadsAtAA('.ss-main .ss-single', theme)
 
-      // The selected option is `primary` as text, which theme-primary-contrast.cy.js guards
-      // on Bali's themes; daisyUI's own `dark` paints it at 3.40:1.
+      // The selected option is `primary` as text, and daisyUI's own `dark` paints it at 3.40:1.
+      const options = theme === 'dark' ? '.ss-option:not(.ss-disabled):not(.ss-selected)' : '.ss-option:not(.ss-disabled)'
       cy.get('.ss-main').first().click()
-      everyReadsAtAA('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)', theme, 2)
+      everyReadsAtAA(`.ss-content.ss-open ${options}`, theme, 2)
     })
 
     it(`reads SlimSelect's count of a long selection at AA on the ${theme} theme`, () => {
@@ -55,8 +56,10 @@ describe('colours that follow the theme', () => {
     })
   })
 
-  DARK_THEMES.forEach((theme) => {
-    it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
+  THEMES.forEach((theme) => {
+    const floor = DARK_THEMES.includes(theme) ? AA : 3
+
+    it(`paints the code block's tokens at ${floor}:1 on the ${theme} theme`, () => {
       cy.visit('/bali/block_editor/readonly')
       cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
       useTheme(theme)
@@ -65,7 +68,7 @@ describe('colours that follow the theme', () => {
         expectSettled(tokens[0])
         expect(tokens, 'code tokens').to.have.length.at.least(5)
         tokens.forEach((el) => {
-          expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(AA)
+          expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(floor)
         })
       })
     })
