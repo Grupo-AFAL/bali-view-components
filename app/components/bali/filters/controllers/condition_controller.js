@@ -802,7 +802,7 @@ export class ConditionController extends Controller {
           </span>
         </div>
         <div tabindex="0"
-             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-content/15 rounded-lg w-full max-h-60 overflow-y-auto">
+             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto">
           ${optionsHtml}
         </div>
       </div>
