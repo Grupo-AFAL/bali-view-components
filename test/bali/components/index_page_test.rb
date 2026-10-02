@@ -158,8 +158,7 @@ class BaliIndexPageComponentTest < ComponentTestCase
     assert_selector('a[href="/movies?format=excel"]', text: "Excel", visible: :all)
   end
 
-  # Raised and not skipped: an export left with no format vanishes without a word, or leaves its
-  # title alone in a ⋯ shared with other actions.
+  # Raised and not skipped: a misspelt format used to drop out of the ⋯ without a word.
   def test_export_raises_on_an_unknown_format
     error = assert_raises(ArgumentError) do
       Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: %w[csv xml])
@@ -169,6 +168,8 @@ class BaliIndexPageComponentTest < ComponentTestCase
                  error.message
   end
 
+  # Raised and not skipped: an export left with no format vanishes without a word, or leaves its
+  # title alone in a ⋯ shared with other actions.
   def test_export_raises_without_a_format
     [ [], nil, [ nil ] ].each do |formats|
       assert_raises(ArgumentError, "formats: #{formats.inspect}") do
@@ -177,11 +178,10 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
   end
 
-  # The label key is interpolated, so `i18n_usage_test` only checks its prefix: with `json:` gone
-  # from both locales the rest of the suite stayed green and the ⋯ would paint "Translation missing".
+  # The label key is interpolated, so `i18n_usage_test` only checks its prefix.
   def test_every_export_format_has_a_label_in_both_locales
     %i[en es].each do |locale|
-      labels = I18n.t("bali_view.page_components.export.formats", locale: locale)
+      labels = I18n.t("bali_view.page_components.export.formats", locale: locale).compact_blank
 
       assert_equal Bali::PageComponents::Shared::EXPORT_FORMATS.sort, labels.keys.sort, locale
     end
