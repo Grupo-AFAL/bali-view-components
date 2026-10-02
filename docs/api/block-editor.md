@@ -886,7 +886,7 @@ Override the default icons, labels, and colors per entity type:
 |-----|------|-------------|
 | `icon` | `String` | Unicode character or emoji displayed in the chip |
 | `label` | `String` | Type label for grouping in the suggestion menu |
-| `color` | `String` | DaisyUI semantic color name (`info`, `accent`, `success`, `warning`, `error`, `secondary`, `primary`) or a CSS color value (`#ff0000`, `rgb(...)`, `var(--my-color)`) |
+| `color` | `String` | DaisyUI semantic color name (`info`, `accent`, `success`, `warning`, `error`, `secondary`, `primary`, `neutral`) or a CSS color value (`#ff0000`, `rgb(...)`, `var(--my-color)`). The chip's tint is that colour at 15% (25% under the pointer when the chip links somewhere); its name, type label and icon are the colour mixed 40% into `base-content`, like `text-soft-*`, so they follow light and dark |
 
 **Default configuration:**
 
