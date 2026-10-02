@@ -325,8 +325,11 @@ export class DropdownController extends Controller {
     return Boolean(nearest) && nearest !== this.element && this.owns(nearest)
   }
 
+  // A field that IS a menuitem is walked like any other item, by the same `[role^="menuitem"]`
+  // as `getMenuItems`: the DataTable column selector's checkboxes
+  // (`column_selector/component.html.erb`).
   fromFormControl (target) {
-    return Boolean(target?.closest?.('input, textarea, select'))
+    return Boolean(target?.closest?.('input:not([role^="menuitem"]), textarea, select'))
   }
 
   toggle () {

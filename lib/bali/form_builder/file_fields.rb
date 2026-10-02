@@ -20,7 +20,8 @@ module Bali
       # hidden class hides the native file input (consistent with ImageField)
       INPUT_CLASS = "hidden"
       WRAPPER_CLASS = "flex items-center gap-3"
-      FILENAME_CLASS = "text-sm text-base-content/60 truncate"
+      # `/70`, not `/60`: at 14px `/60` measured 4.04:1 on `afal`, under AA's 4.5:1.
+      FILENAME_CLASS = "text-sm text-base-content/70 truncate"
       CTA_CLASS = "btn btn-soft btn-primary gap-2"
       LABEL_CLASS = "cursor-pointer inline-flex"
       DEFAULT_ICON = "upload"

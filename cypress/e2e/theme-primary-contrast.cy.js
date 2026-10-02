@@ -1,19 +1,18 @@
 import { paintedContrast } from '../support/painted_contrast'
 import { BALI_THEMES as THEMES } from '../support/themes'
 
-// The primary of every theme Bali ships, as painted: filled under its `-content`, as text on the
-// page and as text on its own 10% tint. `afal` shipped blue-500 under white, 3.68:1 on the first
-// two, against AA's 4.5 for the 14px label of a button (#1221); on the tint, Tailwind v3's
-// blue-600 reads 4.49:1, which is why `afal` uses v4's. daisyUI's own `light` and `dark` are not
-// Bali's to change, and `dark` paints its button at 4.13:1.
+// The primary of every theme Bali ships, as painted: filled under its `-content` and as text on
+// the page. `afal` shipped blue-500 under white, 3.68:1 on both, against AA's 4.5 for the 14px
+// label of a button (#1221). Text over a primary tint is not the theme's to carry: Bali paints it
+// `text-soft-primary` (soft-text-contrast.cy.js). daisyUI's own `light` and `dark` are not Bali's
+// to change, and `dark` paints its button at 4.13:1.
 describe('theme primary contrast', () => {
   const AA = 4.5
   // The selector is what proves the preview honoured its params: a `?variant=link` it ignored
   // renders `.btn-primary`, and the `get` fails instead of measuring the wrong button.
   const SURFACES = [
     ['the primary button', '/bali/button/default', '.btn-primary'],
-    ['primary text on the page', '/bali/button/default?variant=link', '.btn-link'],
-    ['primary text on its 10% tint', '/bali/side_menu/default', '.menu-item.side-menu-expanded[aria-current="page"]']
+    ['primary text on the page', '/bali/button/default?variant=link', '.btn-link']
   ]
 
   THEMES.forEach((theme) => {

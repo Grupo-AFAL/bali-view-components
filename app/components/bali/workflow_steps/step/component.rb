@@ -65,18 +65,18 @@ module Bali
         # ground it needs is drawn once by `.workflow-step-marker::before`
         # (index.css) instead of six times here.
         #
-        # Their greys are measured over that disc, not picked, on the five
-        # themes, and `afal` is the floor of both: `base-content` clears AA's
-        # 4.5:1 for the glyph at `/70` (5.54:1; `/60` is 4.04:1) and 3:1 for
-        # the outline at `/50` (3.05:1). `base-300`, which the rail uses for
-        # both, tops out at 1.16:1.
+        # Their greys are measured, not picked, on every theme, and `afal` is
+        # the floor of both: `base-content` clears AA's 4.5:1 for the glyph at
+        # `/70` (5.54:1; `/60` is 4.04:1) and 3:1 for the outline at `/55`
+        # (3.17:1 on its disc inside a `base-200` card, where `/50` painted
+        # 2.77:1). `base-300`, which the rail uses for both, tops out at 1.16:1.
         PROGRESS_CIRCLE_CLASSES = {
           success: "bg-primary text-primary-content",
           error: "bg-error text-error-content",
           warning: "bg-warning text-warning-content",
-          pending: "border border-base-content/50 text-base-content/70",
-          skipped: "border border-dashed border-base-content/50 text-base-content/70",
-          current: "border-2 border-primary bg-primary/10 text-primary"
+          pending: "border border-base-content/55 text-base-content/70",
+          skipped: "border border-dashed border-base-content/55 text-base-content/70",
+          current: "border-2 border-primary bg-primary/10 text-soft-primary"
         }.freeze
 
         # Reached is every state but `:pending` — `:skipped` included, because
@@ -86,13 +86,13 @@ module Bali
         # all `:skipped` draws a full primary line, and a reached step after
         # `:current` carries the colour past it.
         #
-        # The grey half takes the outline's `/50` for the same 3:1: the whole
+        # The grey half takes the outline's `/55` for the same 3:1: the whole
         # answer of this shape is the line, and `bg-base-300` measured 1.16:1.
         PROGRESS_CONNECTOR_CLASSES = {
           success: "bg-primary",
           error: "bg-primary",
           warning: "bg-primary",
-          pending: "bg-base-content/50",
+          pending: "bg-base-content/55",
           skipped: "bg-primary",
           current: "bg-primary"
         }.freeze

@@ -139,11 +139,13 @@ module Bali
       # Use `with_bottom_group` to add a collapsible dropdown at the bottom of the sidebar.
       # Useful for grouping configuration, profile, and logout items to save vertical space.
       # The dropdown opens **upward** so it doesn't overflow below the sidebar.
+      # Set `current_path` to `/settings` to see the current page inside the opened group.
       # @param collapsible toggle
-      def with_bottom_groups(collapsible: false)
+      # @param current_path select { choices: [/dashboard, /settings] }
+      def with_bottom_groups(collapsible: false, current_path: "/dashboard")
         render_with_template(
           template: "bali/side_menu/previews/with_bottom_groups",
-          locals: { collapsible: collapsible }
+          locals: { collapsible: collapsible, current_path: current_path }
         )
       end
 

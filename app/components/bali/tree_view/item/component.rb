@@ -86,7 +86,7 @@ module Bali
           class_names(
             "item",
             ITEM_CLASSES,
-            'bg-primary/10 text-primary font-medium': active?,
+            'bg-primary/10 text-soft-primary font-medium': active?,
             'is-active': active?,
             'is-childless': !items?,
             'is-root': root

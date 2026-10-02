@@ -171,7 +171,7 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   end
 
   def test_constants_has_filename_class_constant
-    assert_equal "text-sm text-base-content/60 truncate", Bali::FormBuilder::FileFields::FILENAME_CLASS
+    assert_equal "text-sm text-base-content/70 truncate", Bali::FormBuilder::FileFields::FILENAME_CLASS
   end
 
   # The density left the constant when `size:` started choosing it (#723); it is

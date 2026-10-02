@@ -171,7 +171,7 @@ it cost (6.98 → 1.06, AA wants 4.5). Aim for those two.
 
 ## Which CSS layer a rule belongs in
 
-Since v3 the package's CSS sits in three deliberate positions. Put a new rule in the wrong
+Since v3 the package's CSS sits in these deliberate positions. Put a new rule in the wrong
 one and it either loses to daisyUI or becomes impossible for a host to override.
 
 | Position | What goes there | Why |
@@ -179,6 +179,7 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 | `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so a real theme *in that layer* wins. They are fallbacks, not overrides. |
 | `@layer components` | Bali's own look — nearly every `index.css` and global sheet, and any default the caller is meant to be able to override | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. Written on the template instead, that same default stays in `@layer utilities` and the caller needs `!` — see below. |
 | unlayered | Only rules whose job is to outrank daisyUI (or Tailwind itself) | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
+| `@layer utilities`, through `@utility` | `bali/utilities.css` only — a class templates and hosts write like any Tailwind one (`text-soft-<colour>`) | Tailwind refuses an `@utility` inside a layer and emits it among the utilities itself. A component's sheet reaches it with `@apply`. |
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
 `bali/container-overrides.css`, `bali/prose-invert.css`, `breadcrumb/index.css`, `data_table/index.css`,

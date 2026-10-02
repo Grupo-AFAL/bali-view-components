@@ -337,10 +337,12 @@
   background-color: transparent !important;
 }
 
-/* Mention chips - styled inline elements for @mentions */
+/* Mention chips - styled inline elements for @mentions.
+ * The colour is `text-soft-primary` written out (bali/utilities.css), since this file
+ * cannot @apply: primary over its own tint measured 2.92:1 on daisyUI's `dark`. */
 .block-editor-component .bn-mention {
   background-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
-  color: var(--color-primary);
+  color: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-content));
   border-radius: 0.25rem;
   padding: 0.1em 0.35em;
   font-weight: 500;

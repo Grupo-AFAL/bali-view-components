@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import { syncPopoverAria } from './popover_aria'
 import { columnId, readColumnState, visibleColumns } from './column_storage'
 
 /**
@@ -22,14 +21,6 @@ import { columnId, readColumnState, visibleColumns } from './column_storage'
 export default class extends Controller {
   static targets = ['saveForm', 'renameForm', 'payload']
   static values = { table: String, storageKey: String, serverColumns: Array }
-
-  connect () {
-    this.disconnectAria = syncPopoverAria(this.element, this.element.querySelector('button'))
-  }
-
-  disconnect () {
-    this.disconnectAria?.()
-  }
 
   toggleSaveForm () {
     this.saveFormTarget.classList.toggle('hidden')

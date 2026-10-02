@@ -115,7 +115,7 @@
   @apply transition-all duration-200;
 
   &.active {
-    @apply bg-primary/10 text-primary font-medium;
+    @apply bg-primary/10 text-soft-primary font-medium;
   }
 }
 

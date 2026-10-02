@@ -238,7 +238,7 @@ class BaliSideMenuComponentTest < ComponentTestCase
       end
     end
     assert_selector("p.menu-label", text: "Pendientes")
-    assert_selector("p.menu-label span.text-primary", text: "3")
+    assert_selector("p.menu-label span.text-soft-primary", text: "3")
   end
 
   def test_section_badge_respects_badge_color
@@ -247,8 +247,8 @@ class BaliSideMenuComponentTest < ComponentTestCase
         list.with_item(name: "Item 1", href: "/movies")
       end
     end
-    assert_selector("p.menu-label span.text-warning", text: "9")
-    assert_no_selector("p.menu-label span.text-primary")
+    assert_selector("p.menu-label span.text-soft-warning", text: "9")
+    assert_no_selector("p.menu-label span.text-soft-primary")
   end
 
   def test_does_not_render_a_section_badge_when_badge_is_absent

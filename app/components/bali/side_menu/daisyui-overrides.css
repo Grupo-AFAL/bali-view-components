@@ -87,7 +87,7 @@
    `ul.dropdown-content.menu` — so from 5.7.42 that selector reaches them. The
    `background-color` above still wins for Bali, being unlayered; `color` did not,
    because it was deliberately left in ./index.css (@layer components) on the premise
-   quoted above, which daisyUI has now broken. The result is the accent text colour
+   quoted above, which daisyUI has now broken. The result is Bali's text colour
    replaced by `--menu-active-fg` over a `primary/10` ground it was never meant for.
 
    MEASURED on `side_menu/with_bottom_groups`, the bottom group's current item, WCAG
@@ -95,23 +95,24 @@
 
      light   6.98 -> 1.06      dark   4.10 -> 1.12      (AA: 4.5)
 
-   i.e. the label disappears. Restating the colour here — next to the background it
-   has to pair with, which is this file's own doctrine — puts it back. Scoped to
-   `[aria-current]` and not to `.active`, so the escape hatch above survives
-   everywhere daisyUI did not take the declaration.
+   i.e. the label disappears. Restating the colour here — `text-soft-primary`, next to
+   the background it has to pair with, which is this file's own doctrine — puts it
+   back. Scoped to `[aria-current]` and not to `.active`, so the escape hatch above
+   survives everywhere daisyUI did not take the declaration.
 
    The background is restated too, although `.menu .menu-item.active` above already
    wins it for every element Bali renders (`aria-current` implies `active?` in all
    four call sites of ./item/component.rb). It is here so the pair cannot come apart
    on markup Bali does not control: a host writing `[aria-current]` without `.active`
-   would otherwise get Bali's accent text on daisyUI's near-black `--menu-active-bg`.
+   would otherwise get Bali's `text-soft-primary` on daisyUI's near-black
+   `--menu-active-bg`.
 
    `box-shadow` is deliberately NOT restated. daisyUI also gives the state
    `0 2px calc(var(--depth) * 3px) -2px var(--menu-active-bg)`; measured on the same
    preview it reads as a soft elevation under the pill, it costs no legibility, and
    nothing of Bali's lost a declaration to it. */
 .menu .menu-item[aria-current]:not([aria-current="false"], [aria-current=""]) {
-  @apply bg-primary/10 text-primary;
+  @apply bg-primary/10 text-soft-primary;
 }
 
 /* ── .tooltip ────────────────────────────────────────────────────────────

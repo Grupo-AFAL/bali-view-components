@@ -1,0 +1,18 @@
+/* `text-soft-<colour>` — the text colour for a colour painted over a tint of itself:
+ * `bg-primary/10`, or a 15% `color-mix` (`.cmd-mark`, `.bn-mention`). The colour itself
+ * fails there by construction, text and ground being one hue: the Command's match
+ * highlight measured 2.23:1 on daisyUI's `dark` and 3.52 on `afal`, a SideMenu warning
+ * badge 1.46 (AA: 4.5).
+ *
+ * The mix is the one #1126 gave daisyUI's soft alerts and badges
+ * (../../../components/bali/alert/daisyui-overrides.css): base-content, which every theme
+ * contrasts with base-100, tinted 40% toward the colour. Worst case after it, 5.16:1 —
+ * that same warning badge on `afal`. Written out by hand in
+ * ../../../components/bali/block_editor/index.css, which Vite processes without @apply.
+ *
+ * A utility and not a custom property on `:root`: a property declared there resolves its
+ * `var()`s there, and a SideMenu with its own `theme:` inherits the page's mix — 1.05:1 on
+ * `side_menu/dark_chrome`, against 7.97 for the utility. */
+@utility text-soft-* {
+  color: color-mix(in oklab, --value(--color-*) 40%, var(--color-base-content));
+}

@@ -52,12 +52,17 @@ module Bali
       CELL_SURFACE_CLASSES = "bg-base-100 border-base-300"
 
       VALUE_CLASSES = "text-3xl font-bold mt-1"
-      NOTE_CLASSES = "text-base-content/60 mt-1 text-xs"
+
+      # The label over the value and the note under it are `/70`, not `/60`: at 12px, on the
+      # tint of an emphasised cell, `/60` measured 3.77:1 on `afal` — the worst of the nine
+      # colours — under AA's 4.5:1.
+      LABEL_CLASSES = "text-base-content/70 text-xs font-medium tracking-wide uppercase"
+      NOTE_CLASSES = "text-base-content/70 mt-1 text-xs"
 
       # A ViewComponent template reaches private constants and private methods, so
       # none of these has to be public API.
       private_constant :SURFACES, :CARD_KEYWORDS, :CELL_CLASSES, :CELL_SURFACE_CLASSES,
-                       :VALUE_CLASSES, :NOTE_CLASSES
+                       :VALUE_CLASSES, :LABEL_CLASSES, :NOTE_CLASSES
 
       renders_one :footer
 

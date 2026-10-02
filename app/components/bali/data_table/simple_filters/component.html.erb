@@ -72,7 +72,7 @@
               <input type="checkbox"
                      name="<%= filter_field_name(filter) %>"
                      value="<%= value %>"
-                     class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
+                     class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-soft-primary checked:!border-primary"
                      aria-label="<%= label %>"
                      <%= tag.attributes(auto_submit_attributes(filter)) %>
                      <%= "checked" if is_checked %> />
@@ -85,7 +85,7 @@
               <input type="radio"
                      name="<%= filter_field_name(filter) %>"
                      value="<%= value %>"
-                     class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
+                     class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-soft-primary checked:!border-primary"
                      aria-label="<%= label %>"
                      <%= tag.attributes(auto_submit_attributes(filter)) %>
                      <%= "checked" if current_value == value.to_s %> />

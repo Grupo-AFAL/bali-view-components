@@ -227,13 +227,13 @@ module Bali
         end
 
         BADGE_COLOR_CLASSES = {
-          primary: "border-primary/20 bg-primary/10 text-primary",
-          secondary: "border-secondary/20 bg-secondary/10 text-secondary",
-          accent: "border-accent/20 bg-accent/10 text-accent",
-          success: "border-success/20 bg-success/10 text-success",
-          warning: "border-warning/20 bg-warning/10 text-warning",
-          error: "border-error/20 bg-error/10 text-error",
-          info: "border-info/20 bg-info/10 text-info"
+          primary: "border-primary/20 bg-primary/10 text-soft-primary",
+          secondary: "border-secondary/20 bg-secondary/10 text-soft-secondary",
+          accent: "border-accent/20 bg-accent/10 text-soft-accent",
+          success: "border-success/20 bg-success/10 text-soft-success",
+          warning: "border-warning/20 bg-warning/10 text-soft-warning",
+          error: "border-error/20 bg-error/10 text-soft-error",
+          info: "border-info/20 bg-info/10 text-soft-info"
         }.freeze
 
         def badge_classes

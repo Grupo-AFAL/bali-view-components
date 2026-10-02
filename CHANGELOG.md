@@ -37,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sobra su `.menu-switcher .dropdown-content`: el SideMenu ya pinta igual el panel de un riel con
   tema. Cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
 
+- **`text-soft-<color>`, el color del texto sobre un tinte de ese mismo color** (#1245, #1247):
+  cualquier color del tema mezclado al 40% con `base-content`, que llega a AA donde `text-<color>`
+  no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
+  `<span class="bg-primary/10 text-soft-primary">12</span>`.
+
 - **`Bali::WorkflowSteps` con `orientation: :segments`, la forma para una celda de tabla**
   (#1235): una barra corta por paso, sin título pintado, y el título del primer paso `:current`
   al lado. Cada estado es una forma distinta, también con colores forzados. **gobierno-corporativo**
@@ -193,6 +198,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
   -- app/views`).
 
+- **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
+  los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
+  `Bali::Dropdown`, con el teclado de «Agrupar por» (#1231); en Columnas las flechas recorren
+  las casillas, que pasan a `role="menuitemcheckbox"`. Sus paneles toman el aspecto del de
+  «Agrupar por», y el de Vistas pasa de 288 a 320 px. **Anfitrión:** el disparador
+  deja de ser un `<button>` (es el `div[role=button]` de `Bali::Dropdown`), así que una prueba
+  que lo busque como `button` deja de encontrarlo; hay una, en gobierno-corporativo
+  (`git grep -n -E "(saved-views|column-selector)['\"]?\] button" origin/main -- test spec`).
+  Cámbiala a `[data-controller='saved-views'] [data-dropdown-target='trigger']`, que sólo
+  encuentra el disparador. `[data-controller='column-selector']` y
+  `[data-controller='saved-views']` siguen valiendo tal cual, con sus `li label` e
+  `input[data-column-index]`.
+
+- **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
+  de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el
+  paso en curso de `WorkflowSteps` `:progress`, la opción marcada de `SimpleFilters`, la mención
+  del `BlockEditor` y «Agregar condición» / «Agregar grupo de filtros» de `Filters` bajo el
+  cursor medían hasta 2.23:1 en `dark`, 3.52 en `afal` y 1.46 un badge de advertencia. Ahora
+  pintan `text-soft-<color>`, el color mezclado al 40% con `base-content` como las variantes
+  soft de #1126, y el peor caso es 5.16:1. **Anfitrión:** la utilidad es pública, para el mismo
+  par en sus vistas —9 en afal-apps, 10 en gobierno-corporativo, 1 en identity—:
+  `git grep -nE "bg-primary/10.*text-primary\b|text-primary\b.*bg-primary/10" origin/main -- app`.
+
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un
   menú de ítems las teclas llevan el foco al primero— y lo cierran Escape, un clic fuera o que el
@@ -276,6 +304,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app/views/governing_bodies/calendars/approval_flows/show.html.erb`, que vuelven a
   `timestamp: l(…)` con el mismo formato (`git grep -n -e "workflow-step-" -e "with_timestamp"
   origin/main -- app/views`).
+
+- **El mismo texto atenuado quedaba bajo AA en `List`, `PageHeader`, `StatCard` y los campos de
+  archivo y rango, y la línea de `WorkflowSteps` `:progress` bajo 3:1** (#1248, #1249). El
+  subtítulo de `List::Item` y de `PageHeader`, el nombre del archivo de `file_group`, las marcas de
+  `range_group` y la etiqueta y la nota de `StatCard` iban en `/60`: 4.04:1 sobre `base-100` en
+  `afal`, y 3.77:1 sobre una celda con `emphasis:`, la peor de los nueve colores. Pasan a `/70`,
+  5.01:1 o más en los cinco temas. El contorno de los pasos por venir y la línea hacia ellos en
+  `orientation: :progress` pasan de `/50` a `/55`: en `afal`, dentro de una tarjeta `base-200`, el
+  contorno sobre su disco va de 2.77:1 a 3.17:1 y la línea de 2.96:1 a 3.38:1. Sin nada que hacer
+  en el anfitrión;
+  **gobierno-corporativo** puede quitar el `class: 'text-base-content/70'` que le puso al subtítulo
+  en `app/views/governing_bodies/documents/_controlled_forms.html.erb`, y su comentario.
 
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
@@ -3652,7 +3692,6 @@ changes, each with its blast radius measured. From v2, read
   around it ("1.", "#1") lives in the markup and survives renumbering. Absent target, nothing
   happens — this is the piece host apps were each writing a controller for.
 
-
 - **`submit-on-change#debouncedSubmit`, so one form can mix immediate and debounced controls** (#717). The controller has always had a `delay` value, but it applied to the whole form: either every control waited or none did, which is why a filter row with a select and a search box needed two controllers (or, in three AFAL apps, a local `auto_submit_controller.js` copy that had grown the pair on its own). `submit` stays as it was and `debouncedSubmit` is always debounced, so `<select data-action="submit-on-change#submit">` next to `<input type="search" data-action="submit-on-change#debouncedSubmit">` is now the whole wiring. `delay` still governs both actions when set; without it `debouncedSubmit` waits 300 ms. New `bali/submit_on_change/default` preview and `cypress/e2e/submit-on-change.cy.js` cover both actions, and `docs/guides/controllers.md` has the markup.
 
 - **`char_counter:` works on a text field, not just a textarea** (#723). `f.text_group :headline, char_counter: { max: 80 }` renders the same live count under the control that `text_area_group` has had, because it is the same thing: the Stimulus controller behind it only reads `value.length`, so an `<input>` and a `<textarea>` are indistinguishable to it. `{ max: n }` counts against a maximum and turns the counter red past it; `true` just counts. The typing is never stopped — the count is an advisory, so pair it with `maxlength:` and a model validation when the limit has to hold. New preview **Form / Text → With Character Counter**, a `char-counter.cy.js` spec that runs the same expectations against both controls, and the option finally documented in the FormBuilder guide.
@@ -4158,7 +4197,6 @@ channels work is in [Release channels](docs/guides/release-channels.md).
 
   Clearing the search keeps them, too: `clearSearch` navigates dropping every `q[...]`, so the stored state is the only record left of what was selected.
 
-
 - **`required:` on a `slim_select_*` field is no longer emitted, because it could block the submit without ever telling the user why.** The `<select>` SlimSelect wraps is clipped to 1×1 by `bali/slim_select.css` — correctly, since SlimSelect draws its own UI — and the browser cannot anchor a validation bubble to a box that size. Measured in the browser with only that control invalid: `reportValidity()` returns `false`, focus lands on the `<select>` (it is focusable, being clipped rather than `display: none`), and no message appears and nothing scrolls. The constraint was real and uncommunicable.
 
   `required_option_test.rb` already writes the contract this settles — the attribute reaches a control the browser validates, or it reaches nothing at all — and validated-but-unreportable is the in-between that test exists to forbid. `slim_select_group` moves to its `DROPS` side, next to the widgets over a hidden field, for a different reason than theirs: not "no element could carry it" but "the element that carries it cannot speak".
@@ -4174,11 +4212,9 @@ channels work is in [Release channels](docs/guides/release-channels.md).
 
   Wider than "inside a panel": `AppLayout` renders `<main>` with `data-controller="modal drawer"` by default, so a `submit_group(..., drawer: true)` on an ordinary page is captured by the same controller. The line dates from #430, so this is not a v3 regression. A new `drawer/required_fields` preview covers it.
 
-
 - **Every control in the `DataTable` toolbar sits on the same line, not just the row's direct children.** Aligning the row itself fixed one level and left the other: the four groups that make it up align their own children, and the one holding the `SimpleFilters` block — which is twice the height of a single-line neighbour, because its captions sit above the controls — was centring them against it. Measured on `/admin/studios` at 2600px with the row already aligned: "Views" and the persistence marker sat level with the Filter button, while "Group by" and "Columns" sat **11px** above it. All four groups align to the end now; where every item is the same height the two alignments produce the same layout, so only that one group moves.
 
 - **A listing with a search box and no filters says "Search" on its button, not "Filter".** With nothing declared to filter by, the only thing the button submits is the search term. The string already shipped — `bali_view.filters.submit_search`, used until now only as the full filter panel's search `aria-label` — so no new translation is involved.
-
 
 - **The `data_table/with_simple_filters` preview survives a Studio with no status.** It answered 500 with `undefined method 'humanize' for nil` as soon as the database held one, which any record created from the drawer without picking a status leaves behind — the preview then stayed broken in that environment. The Size cell two lines below had the safe navigation all along. Seeded databases always set a status, which is why the preview sweep never saw it.
 - **Opening Views, Columns or Group by inside the `DataTable` overflow menu no longer resizes the menu.** Measured on `/admin/studios` at 1900px, the `⋯` panel went from 320x176 to 320x338 — a popover growing under the pointer, with the child laid out in flow inside it.
@@ -4189,13 +4225,11 @@ channels work is in [Release channels](docs/guides/release-channels.md).
 
   Getting to zero took removing 4px of bottom padding from the filters row, and those 4px were doing something: the row declared `overflow-x-auto` at every width, which makes it a scroll container, and a scroll container clips at its padding box — the padding was the room for the Filter button's focus ring (`outline-width: 2px` at `outline-offset: 2px`). Above the breakpoint the row wraps and never scrolls, so the overflow goes back to `visible` there and the padding has nothing left to reserve. Below it nothing changes: the horizontal scroll and its gutter stay.
 
-
 - **A transparent navbar is finally transparent, and shadowless.** `.navbar.is-transparent { @apply bg-transparent shadow-none }` had never had any effect. It lives in `@layer components`, and the `shadow-sm` the component put on the element itself is a utility, from a layer that outranks it — so with `is-transparent` on the element, box-shadow measured `0 1px 3px rgba(0,0,0,.1)` and the background measured `oklch(1 0 0)`, on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`. The shadow half is fixed here, by moving the default into the sheet next to the state that overrides it, which is the rule the rest of the package follows. The background half needed the `color:` presets to move the same way, and is under Changed above.
 
   The `@apply shadow-md` that had been sitting in `navbar/index.css` went with it. It lost the same way and had never rendered at all: the effective shadow was always the element's `shadow-sm`.
 
 - **Classes passed to `Navbar` land on the `<nav>` once.** `navbar_classes` named `@options[:class]` and then handed its result to `prepend_class_name`, which appends the caller's classes a second time — measured on the AppLayout preview, the four it passes came out twice over.
-
 
 - **The time picker shows one pair of arrows per column, not two.** Hovering the minutes field drew a second, larger, darker pair with a grey track of its own, sitting on top of flatpickr's — and the native one is the half that is *not* wired to the calendar's value.
 
@@ -4222,7 +4256,6 @@ channels work is in [Release channels](docs/guides/release-channels.md).
 - **Taking a `DeleteLink`'s `<form>` out of the box tree is asked for with `form_class: "contents"`, not inferred from `plain:`.** The menu-item fix that landed earlier gated it on that keyword, on the premise that it means "this DeleteLink is a menu item". It does not: `plain:` is what the API says it is — a button without the `.btn` box — and it travels far outside menus. The same Dropdown builder hands it to `Link` too, `Breadcrumb::Item` passes it with no menu in sight, and in one host alone twelve hand-written `DeleteLink` carry it in the action rows of show pages, none of them from a menu. Gated there, `plain:` grew a second, undocumented meaning that a caller asking for the documented one never signed up for. `Dropdown` now asks for it explicitly, which is the one place that needs it.
 
   The `inline-block` default moved off the element and into `@layer components` as `.bali-delete-link-form`, and that part is not cosmetic: as two utilities they tied on layer and specificity, so the compiled sheet broke the tie — and it broke it the wrong way. `.contents` is emitted **before** `.inline-block`, so `class="inline-block contents"` rendered as `inline-block` and a `form_class: "contents"` from a call site did nothing at all, silently. From the components layer any display utility passed in wins outright.
-
 
 - **The `DataTable` toolbar reserves the space for what can collapse instead of showing it and taking it away.** On first load the row used to show every control and then, a full second later, drop four of them into the `⋯` at once. Measured on `/admin/studios`: 5 controls in the row and 0 in the menu at 195ms, 1 and 4 at 1208ms.
 
@@ -4571,13 +4604,11 @@ channels work is in [Release channels](docs/guides/release-channels.md).
 
 - **Two Cypress specs ignored `CYPRESS_BASE_URL` and tested somebody else's server.** `page-export-links.cy.js` and `direct-upload-controller.cy.js` visit the dummy app rather than a Lookbook preview, and both wrote out `http://localhost:3001`. `CYPRESS_BASE_URL` overrides the configured `baseUrl`, which governs relative paths only — an absolute URL in `cy.visit()` goes where it says. Running the suite from a git worktree, which needs its own port, therefore sent those two specs to a different checkout's code and database, where they *passed or failed* on the wrong thing; two earlier sessions chased that as an intermittent failure before finding the cause. Both now derive the origin from `new URL(Cypress.config('baseUrl')).origin`, so one variable governs all seventeen specs. The default in `cypress.config.cjs` is unchanged, so a run from the main checkout behaves exactly as before.
 
-
 - **BlockEditor** - two editors on one page no longer fight over the upload-error toast. `useFileUpload` resolved its container with a global `document.querySelector('[data-controller="block-editor"]')`, which was wrong twice over. The selector is an exact attribute match, so it found nothing the moment a host put a second controller on the same element (`data-controller="block-editor analytics"`) and upload errors vanished with no trace. And with two editors it resolved to whichever came first in the document regardless of which one actually failed, so both toasts landed on the same `position: fixed` corner and the user could not tell which editor rejected the file. Errors are now appended inside the editor that raised them. A `two_editors` Lookbook preview covers the case, which nothing did before. No API change.
 
 - **BlockEditor** - deleting a comment thread now removes its highlight from the document instead of leaving orphaned coloured text behind. `RESTThreadStore#_removeMarks` passed a freshly built `markType.create({ threadId })` to ProseMirror's `removeMark`, which matches on **every** attribute; BlockNote's comment mark carries `orphan` as well as `threadId`, so the rebuilt mark only matched while `orphan` happened to equal its default of `false`. Measured in the browser against the real schema: with `orphan: false` the old code removed the mark, with `orphan: true` it silently left it in place — and `orphan: true` is exactly what BlockNote sets on a comment whose thread it can no longer resolve, so the highlight survived precisely the case the code existed to handle. It now finds the real mark on the node, which also keeps overlapping comments intact where removing by mark *type* would have stripped every other thread's highlight in the same range.
 
 - **BlockEditor** - `comments:` accepts `poll_interval:` (milliseconds, default 5000; `0` turns polling off). `RESTThreadStore` had always taken the option and nothing in Ruby could reach it, so every persistent-comments editor polled every five seconds whether or not the document had more than one author.
-
 
 - **`CommandController`, `FeedbackWidgetController` and `FilterPersistenceController` are importable again.** All three were registered by `registerAll`, so their components worked — but none was re-exported from the package root, so a host could not import them to register one selectively, subclass one, or replace one. The root entry re-exported 61 of the 64 controllers `registerAll` registers and nothing anywhere compared the two numbers.
 
@@ -4608,7 +4639,6 @@ channels work is in [Release channels](docs/guides/release-channels.md).
   The `@blocknote` floor stays at `>= 0.52.1` and the guide now says why, along with the discrepancy behind it: `spec/dummy/yarn.lock` resolves 0.52.1 and CI installs it on every run, but `spec/dummy/node_modules` holds **0.46.2** and `.yarn-integrity` still records `^0.46.0`, so the last install here predates #759 and every by-hand pass over the editor since has been a pass over 0.46.2. Lowering the floor to match would re-open the data-loss bug that 0.51's synchronous serialisers fixed; what is missing is a `yarn install` and a human looking at the editor on the version the floor names.
 
 - **`bali:modal:open` and `bali:drawer:open` can name the overlay they mean.** Both events now read an optional `detail.id`, and a controller answers only when that id matches its own template target's id; a trigger link can carry `data-modal-id` / `data-drawer-id` to the same effect. Without an id the event stays a broadcast handled by whichever overlay holds the targets, which is what every existing call site sends, so **nothing changes for a host that updates**. This is what makes more than one modal per page addressable: until now the only tiebreaker was to discard controllers lacking targets, which selects nothing when two candidates both have them. Note that the generated fallback ids are still not stable across renders (`modal-#{object_id}`, `drawer-#{SecureRandom.hex(4)}`), so addressing an overlay means passing `id:` / `drawer_id:` explicitly — the generated ones remain unaddressable by construction.
-
 
 - **The five page components take a `context:`, and one view now serves the full page and the drawer.** "The same view serves a page and an overlay" is the one gesture of the Modal/Drawer contract that Bali did not help with at all, and hosts paid for it by writing the same render twice. Across `afal-apps`, 43 views branch on `drawer_request?`; 40 of them render a `FormPage`, all 40 pass `card: false` in the drawer arm, and 42 pass a `back:` in the page arm. **The two arms of that `if` differ by exactly two arguments** — roughly eight duplicated lines per template, and templates come in `new`/`edit` pairs, so about sixteen per resource. `context:` collapses the pair into one call:
 
