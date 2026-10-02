@@ -177,6 +177,16 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
   end
 
+  # The label key is interpolated, so `i18n_usage_test` only checks its prefix: with `json:` gone
+  # from both locales the rest of the suite stayed green and the ⋯ would paint "Translation missing".
+  def test_every_export_format_has_a_label_in_both_locales
+    %i[en es].each do |locale|
+      labels = I18n.t("bali_view.page_components.export.formats", locale: locale)
+
+      assert_equal Bali::PageComponents::Shared::EXPORT_FORMATS.sort, labels.keys.sort, locale
+    end
+  end
+
   def test_export_links_read_the_slice_from_the_request_by_default
     with_request_url "/admin/movies?q%5Bname_cont%5D=dune&page=2" do
       render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
