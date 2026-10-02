@@ -187,8 +187,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Un `Bali::Dropdown` con `popover: true` dentro de un `<dialog>` abierto con `showModal()`
   (un `Modal`, un `Drawer` o uno propio) ya se puede usar** (#1269): el menú colgaba de
-  `<body>`, que el `<dialog>` deja inerte, y se abría debajo de él, fuera del alcance del
-  puntero y del teclado. Ahora cuelga del `<dialog>` modal, como el tooltip y el hover card;
+  `<body>`, fuera del `<dialog>`, que deja inerte todo lo que no contiene, y se abría debajo
+  de él, fuera del alcance del puntero y del teclado. Ahora cuelga del `<dialog>` modal, como el tooltip y el hover card;
   fuera de uno sigue en `<body>`. Ningún anfitrión lo tiene hoy dentro de un diálogo: los de
   **afal-apps** están en páginas (`git grep -n "popover: true" origin/main -- app/views`). Sin
   nada que hacer en el anfitrión.
