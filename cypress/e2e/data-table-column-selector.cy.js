@@ -12,8 +12,8 @@ describe('DataTable column selector on a grouped table', () => {
   const trigger = `${band} button[data-table-groups-target="trigger"]`
   const rows = 'tbody tr[data-table-groups-target="row"]'
 
-  // `force`: daisyUI's `:focus-within` is what opens the dropdown panel, so the checkbox is not
-  // actionable with the menu closed. What matters here is the `change` it fires.
+  // `force`: the checkbox is not actionable with the menu closed. What matters here is the
+  // `change` it fires.
   const hideColumn = (listing, index) =>
     cy.get(`${listing} [data-controller~="column-selector"] input[data-column-index="${index}"]`)
       .uncheck({ force: true })

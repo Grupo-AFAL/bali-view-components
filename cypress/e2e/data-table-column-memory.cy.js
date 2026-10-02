@@ -154,8 +154,8 @@ describe('DataTable: column selector memory', () => {
         box(3).should('be.checked')
       })
 
-      // `force`: the panel is opened by daisyUI's `:focus-within`, so the box is not actionable
-      // with the menu closed. What matters is the `change` it fires.
+      // `force`: the box is not actionable with the menu closed. What matters is the `change`
+      // it fires.
       it('writes what is hidden on hide, and clears it on show', () => {
         visit()
 

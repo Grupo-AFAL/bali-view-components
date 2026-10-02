@@ -37,8 +37,8 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     # it belongs to, ever since the control moved into the left group.
     render_component(form)
 
-    assert_selector "[data-controller='saved-views'].dropdown"
-    assert_no_selector "[data-controller='saved-views'].dropdown-end"
+    assert_selector "[data-controller='saved-views'] .dropdown.dropdown-start"
+    assert_no_selector "[data-controller='saved-views'] .dropdown-end"
   end
 
   def test_renders_personal_views_with_apply_urls_and_the_save_form
@@ -57,7 +57,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     applied = form(ActionController::Parameters.new(saved_view: "1"))
     render_component(applied)
 
-    assert_selector "button", text: "Activos"
+    assert_selector "[data-dropdown-target='trigger']", text: "Activos"
     assert_selector "a[href='/listado?saved_view=1'].text-primary"
   end
 
@@ -209,7 +209,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     render_component(matching)
 
     assert_selector "a[href='/listado?saved_view=1'].text-primary"
-    assert_selector "button", text: "Activos"
+    assert_selector "[data-dropdown-target='trigger']", text: "Activos"
   end
 
   def test_a_default_view_whose_query_matches_the_state_is_active
@@ -221,7 +221,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_selector "a.text-primary", text: "Con a"
     assert_no_selector "a.text-primary", text: "Otra"
-    assert_selector "button", text: "Con a"
+    assert_selector "[data-dropdown-target='trigger']", text: "Con a"
   end
 
   def test_the_view_applied_by_url_wins_over_state_matching
@@ -232,7 +232,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_selector "a[href='/listado?saved_view=2'].text-primary"
     assert_no_selector "a[href='/listado?saved_view=1'].text-primary"
-    assert_selector "button", text: "Míos"
+    assert_selector "[data-dropdown-target='trigger']", text: "Míos"
   end
 
   # --- The active marker cannot LIE ---
@@ -248,7 +248,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_no_selector "a.text-primary"
     # The button keeps its generic label: there is no view to name.
-    assert_selector "button", text: I18n.t("bali_view.data_table.saved_views.button_label")
+    assert_selector "[data-dropdown-target='trigger']", text: I18n.t("bali_view.data_table.saved_views.button_label")
 
     # Applied by URL it is recognised: there the view's state really is imposed.
     render_component(named_form(ActionController::Parameters.new(saved_view: "9"),

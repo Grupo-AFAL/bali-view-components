@@ -1,26 +1,29 @@
-<%# No `dropdown-end`: the control lives in the LEFT group of the toolbar, and anchored to
-    the right edge of its trigger the panel opened outside the row it belongs to. %>
-<div class="dropdown"
-     data-controller="column-selector"
+<%# The controller sits on a wrapper of its own, not in the dropdown's `data-controller`: host
+    apps select this control as `[data-controller='column-selector']`, an exact match. %>
+<div data-controller="column-selector"
      data-column-selector-table-value="<%= table_selector %>"
      data-column-selector-storage-key-value="<%= persist? ? columns_storage_key : '' %>"
      data-column-selector-server-state-value="<%= server_state? %>">
-  <%# Explicit aria-label: the visible label lives in a `hidden sm:inline` span, so until the
-      JS moves the control into the ⋯ the button is an icon with no accessible name. %>
-  <%# `aria-haspopup`/`aria-expanded`: the panel is opened by daisyUI's `:focus-within`, not by
-      JS, so without this the button announced neither that it opens a popover nor whether it
-      is open. `syncPopoverAria` keeps it up to date from the controller. %>
-  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>"
-          aria-haspopup="true" aria-expanded="false">
-    <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
-    <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
-  </button>
-  <ul tabindex="0" class="dropdown-content z-[var(--bali-z-dropdown)] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
-    <li class="menu-title"><%= menu_title %></li>
+  <%# `align: :start`: the control lives in the LEFT group of the toolbar, and anchored to the
+      right edge of its trigger the panel opened outside the row it belongs to. No `popover:`:
+      tippy moves the panel to `<body>`, out of the `column-selector` element, and Stimulus
+      stops dispatching the checkboxes' `toggle` (measured: the box unticks, the column stays);
+      inside the ⋯, the first click on it closes the ⋯. %>
+  <%= render Bali::Dropdown::Component.new(align: :start) do |dropdown| %>
+    <%# Explicit aria-label: the visible label lives in a `hidden sm:inline` span, so until the
+        JS moves the control into the ⋯ the trigger is an icon with no accessible name. %>
+    <% dropdown.with_trigger(variant: :outline, class: "btn-sm gap-2", "aria-label": button_label) do %>
+      <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
+      <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
+    <% end %>
+    <li role="presentation" class="menu-title"><%= menu_title %></li>
     <% columns.each do |column| %>
-      <li>
+      <li role="none">
         <label class="label cursor-pointer justify-start gap-3">
+          <%# `menuitemcheckbox` is the checkbox a `role="menu"` allows, and the arrows of the
+              dropdown controller walk `[role^="menuitem"]`. %>
           <input type="checkbox"
+                 role="menuitemcheckbox"
                  <%= 'checked' if column.visible %>
                  class="checkbox checkbox-sm checkbox-primary"
                  data-action="column-selector#toggle"
@@ -29,5 +32,5 @@
         </label>
       </li>
     <% end %>
-  </ul>
+  <% end %>
 </div>

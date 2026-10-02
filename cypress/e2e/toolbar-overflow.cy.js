@@ -110,8 +110,7 @@ describe('DataTable toolbar overflow', () => {
 
   it('closes an open dropdown before folding it into the ⋯', () => {
     // `.dropdown-open` SURVIVES the move: without closing it first, the control lands open
-    // inside the menu. Group by is a Bali::Dropdown and sets the class; Columns and Views open
-    // through daisyUI's :focus-within and never do.
+    // inside the menu.
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
@@ -128,8 +127,8 @@ describe('DataTable toolbar overflow', () => {
 
   it('keeps keyboard focus on the toolbar when the breakpoint is crossed', () => {
     // A 400% zoom leaves the viewport at 320px CSS: crossing the threshold cannot cost a keyboard
-    // user their position. `closeOpenDropdowns` blurs and the collapse moves the node, so without
-    // restoring focus it falls to <body>.
+    // user their position. The collapse moves the node, so without restoring focus it falls to
+    // <body>.
     cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
