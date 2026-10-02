@@ -119,8 +119,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deja de ser un `<button>` (es el `div[role=button]` de `Bali::Dropdown`), así que una prueba
   que lo busque como `button` deja de encontrarlo; hay una, en gobierno-corporativo
   (`git grep -n -E "(saved-views|column-selector)['\"]?\] button" origin/main -- test spec`).
-  `[data-controller='column-selector']` y `[data-controller='saved-views']` siguen valiendo tal
-  cual, con sus `li label` e `input[data-column-index]`.
+  Cámbiala a `[data-controller='saved-views'] [data-dropdown-target='trigger']`, que sólo
+  encuentra el disparador. `[data-controller='column-selector']` y
+  `[data-controller='saved-views']` siguen valiendo tal cual, con sus `li label` e
+  `input[data-column-index]`.
 
 - **Un `Bali::Dropdown` se abría con sólo enfocarlo, y el Enter que debía abrirlo lo cerraba**
   (#1231): daisyUI lo abre por `:focus-within`. Ahora lo abren el clic, Enter, Espacio o ↓ —en un

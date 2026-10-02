@@ -1,7 +1,6 @@
-// #1250: the toolbar held two keyboard models side by side. Columns and Views were raw
-// `.dropdown`s that daisyUI opened from `:focus-within`, so Tab unfolded them and no key closed
-// them, while Group by was a Bali::Dropdown, which only a click, Enter, Space or an arrow opens
-// (#1231). All three are Bali::Dropdowns now, and this walks the row as a keyboard user would.
+// One keyboard for the whole toolbar row (#1250): the focus alone opens no menu, Enter, Space
+// and ArrowDown do, and Escape closes it and hands the focus back — every control, in the row
+// and folded into the ⋯.
 describe('DataTable toolbar keyboard', () => {
   const toolbar = '[data-controller~="toolbar-overflow"]'
   const trigger = (label) => `${toolbar} .dropdown > [aria-label="${label}"]`
