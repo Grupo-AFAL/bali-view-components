@@ -16,7 +16,7 @@
     <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-0") do %>
       <div class="px-4 py-3 border-b border-base-200 text-sm font-medium">
         Catálogo
-        <span class="text-base-content/50 font-normal ml-1"><%= movies.size %></span>
+        <span class="text-base-content/70 font-normal ml-1"><%= movies.size %></span>
       </div>
 
       <%# The scroll wrapper sits around the list alone so the header above it
@@ -35,7 +35,7 @@
             <div class="font-medium text-sm leading-snug truncate"><%= movie.name %></div>
             <div class="flex items-center gap-2 mt-1">
               <%= render Bali::Tag::Component.new(text: movie.genre, color: :info, size: :sm) %>
-              <span class="text-[11px] text-base-content/60 truncate"><%= movie.studio&.name %></span>
+              <span class="text-[11px] text-base-content/70 truncate"><%= movie.studio&.name %></span>
             </div>
           <% end %>
         <% end %>
