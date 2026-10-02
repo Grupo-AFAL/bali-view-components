@@ -145,6 +145,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
   ser cierto.
 
+- **`Bali::Status`: el naranja, el verde y el teal de la paleta fija pasan a -700 de Tailwind**
+  (#1259): `#ea580c` → `#c2410c`, `#16a34a` → `#15803d`, `#0d9488` → `#0f766e`. Con texto blanco
+  medían 3.56, 3.30 y 3.74:1, bajo el 4.5 de AA; ahora 5.18, 5.02 y 5.47. La paleta sigue igual
+  en todos los temas. Se ve en las píldoras de afal-apps, costa-norte y bali-analytics, en lo que
+  se pinta con `Bali::Status.palette` (el ícono de la StatCard de entregados en el dashboard de
+  costa-norte) y en los avatares de iniciales que caen en esos colores (`Avatar` con `name:`,
+  `Topbar::UserMenu`). La guía declara congelados estos hex porque cambiarlos rompe a quien los
+  copió: ninguna de las nueve apps lo hizo
+  (`git grep -n -i -E "ea580c|16a34a|0d9488" origin/main -- app config lib test`). Sin nada que
+  hacer en el anfitrión.
+
 ### Removed
 
 - **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
@@ -324,6 +335,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   los eventos del día para que se alcancen en celular (lo que hizo
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
+
+- **Las filas de color del panel de un `Bali::Status` editable ya no atenúan su texto bajo el
+  puntero** (#1259). El hover era `filter: brightness(0.95)`, que oscurecía el fondo y también el
+  texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo pinta el
+  mismo fondo y el texto queda en su par; la fila sin estado, que no tiene fondo, sigue igual. Sin
+  nada que hacer en el anfitrión.
 
 ### Documentation
 
