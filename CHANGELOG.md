@@ -153,15 +153,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   todavía la usara no truena: el menú cae a `humanize` y muestra «Mission control» en vez de
   «Panel de trabajos». **Anfitrión:** si apareces en ese `git grep`, cambia la clave a
   `:flightdeck` o pasa `name:`.
-- **`Bali::DataTable::Export::Component` se retira** (#1275). Su plantilla, un `.dropdown` que
-  daisyUI abre por `:focus-within`, no la pintaba nadie: desde v3 la exportación vive en el ⋯ de
-  la página (`page.with_export`), que sólo construía el componente para leer sus enlaces. Se van
-  con él `button_label:`, `button_icon:` y la llave `bali_view.data_table.export.button_label`;
-  los enlaces los arma ahora `Bali::DataTable::ExportLinks` y el ⋯ sale idéntico. Ninguna app lo
-  usa (`git grep -n "DataTable::Export" origin/main -- app lib config test spec` da cero en las
-  nueve) ni sobrescribe la llave (`git grep -n "button_label" origin/main -- config/locales`).
-  **Anfitrión:** si apareces en ese `git grep`, cambia el `render` por
-  `page.with_export(url:, formats:)` en la página.
+- **`Bali::DataTable::Export::Component` se retira** (#1275), aunque la entrada de v3 lo dejaba
+  «usable standalone»: su plantilla no la pintaba nadie, porque desde v3 la exportación vive en
+  el ⋯ de la página (`page.with_export`), que sale idéntico. Se van con él `button_label:`,
+  `button_icon:` y la llave `bali_view.data_table.export.button_label`. Ninguna de las nueve apps
+  los usa: `git grep -n "DataTable::Export" origin/main -- app lib config test spec` y
+  `git grep -n "data_table.export.button_label" origin/main` dan cero. **Anfitrión:** si apareces
+  en el primero, cambia el `render` por `page.with_export(url:, formats:)` en la página; si
+  apareces en el segundo, cambia esa llamada a `t` por tu propio texto.
 
 ### Fixed
 
