@@ -3,8 +3,8 @@
 // background, composited over that background on a 1px canvas. `getComputedStyle().color` carries
 // only the colour's alpha: read that way the SplitView filter count reported 6.38:1 while it
 // painted 2.92:1 (#1202). Every translucent background on the way is painted over that ground
-// first, the farthest first: SideMenu's active item reads 5.25:1 against the bare page and 4.51
-// over its own primary/10 tint (#1221).
+// first, the farthest first: SideMenu's active item measured 5.25:1 against the bare page and
+// 4.51 over its own primary/10 tint (#1221).
 //
 // Two things it still does not see: the `opacity` of the node that carries a tint is not applied
 // to the tint, which on a light theme measures the tint darker than it paints (the safe side), and
