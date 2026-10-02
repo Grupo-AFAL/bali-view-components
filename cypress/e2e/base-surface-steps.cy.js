@@ -11,7 +11,8 @@ import { THEMES } from '../support/themes'
 // either way the theme's ramp runs: 1.16 and 1.33 at worst.
 describe('hovers, tints and edges over a base surface', () => {
   const STEP = 1.15
-  const EDGE = 1.2
+  // Above the 1.238 a base-300 edge reads on afal: base-300 must not pass it.
+  const EDGE = 1.25
 
   // The colours under `el`, the farthest first: the first opaque background on the way up, then
   // every translucent one between it and `el`.
@@ -67,6 +68,11 @@ describe('hovers, tints and edges over a base surface', () => {
     cy.get('button[title="Zoom in"]').should('exist')
   }
 
+  const openGanttMenu = (label) => () => {
+    openGantt()
+    cy.contains('details > summary', label).click()
+  }
+
   // [what, how the state is reached, the element that paints it]
   const HOVERS = [
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
@@ -84,7 +90,8 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a RecurrentEventRuleForm option', () => cy.visit('/bali/recurrent_event_rule_form/default'),
       '[data-recurrent-event-rule-target="freqCustomizationInputsContainer"]:visible label'],
     ['a Gantt zoom button', openGantt, 'button[title="Zoom in"]'],
-    ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]']
+    ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]'],
+    ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])']
   ]
 
   const EDGES = [
@@ -93,7 +100,10 @@ describe('hovers, tints and edges over a base surface', () => {
       '[data-condition-target="valueContainer"] .filters-multi-select-content'],
     ['the multi-select panel the server drew', openServerMultiSelect,
       '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"]'],
-    ['the Gantt zoom controls', openGantt, 'div:has(> button[title="Zoom in"])']
+    ['the Gantt zoom controls', openGantt, 'div:has(> button[title="Zoom in"])'],
+    ['the Gantt minimap', openGantt, 'div[title^="Minimap"]'],
+    ['the Gantt filter menu', openGanttMenu('Filter'), 'details[open] > ul.menu'],
+    ['the Gantt columns menu', openGanttMenu('Columns'), 'details[open] > ul.menu']
   ]
 
   beforeEach(() => cy.viewport(1280, 900))
