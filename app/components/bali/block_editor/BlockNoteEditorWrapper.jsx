@@ -55,8 +55,8 @@ function collectHeadings (blocks, result = []) {
   return result
 }
 
-// Every token of both reads at AA over the code block's base-200 in all six themes; the
-// faintest, the comment, measures 4.58:1 on afal and 5.45 on dark. Not github-light (variables
+// Every token colour of both themes reads at AA over the code block's base-200 in all six themes;
+// the faintest, the comment, measures 4.58:1 on afal and 5.45 on dark. Not github-light (variables
 // 3.17 on afal), github-dark (comments 3.48 on dark) or github-light-default (comments 4.13 on
 // afal).
 const CODE_THEMES = { light: 'github-light-high-contrast', dark: 'github-dark-default' }

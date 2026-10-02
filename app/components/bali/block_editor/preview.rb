@@ -518,7 +518,8 @@ module Bali
             content: [{ type: 'text', text: 'Code Block', styles: {} }],
             props: { level: 3 }
           },
-          # Code block with syntax highlighting
+          # Keep the comment line: theme-follow-contrast.cy.js measures it as the faintest ink of
+          # both shiki themes.
           {
             type: 'codeBlock',
             content: [{ type: 'text', styles: {},
