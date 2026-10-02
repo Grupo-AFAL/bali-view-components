@@ -370,7 +370,8 @@ compiled CSS silently wins):
 2. Delete your local copy:
    - **gobierno-corporativo, afal-apps, identity, opina**: delete the
      `[data-theme="afal"]` block from `app/assets/tailwind/application.css`. The gem file
-     is byte-identical to it, so nothing changes visually.
+     was byte-identical to it in v3.1; since then its primary and secondary are one step
+     darker, so white text on them clears AA (#1221, #1261), and those two repaint.
    - **centinela-web**: delete `app/assets/tailwind/themes/afal.css` (and its import).
      **Expect a visible delta** — centinela's copy came from an independent OKLCH
      conversion of the same hex values, so its secondary (a darker, differently-hued
