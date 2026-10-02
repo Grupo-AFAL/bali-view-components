@@ -450,7 +450,9 @@ Enhanced select with search, multi-select, and AJAX support.
 **Accessible name:** SlimSelect draws its own `div[role="combobox"]` and names it from the
 `<select>`'s `aria-label` or `aria-labelledby` only — a `<label for>` does not reach it.
 `slim_select_group` points `aria-labelledby` at its caption unless `html:` already carries one
-of the two. Beside a `<label>` of your own, `slim_select_field` needs it by hand:
+of the two. With `label: false` there is no caption to point at, so pass
+`html: { "aria-label": "…" }`. Beside a `<label>` of your own, `slim_select_field` needs it by
+hand:
 
 ```erb
 <label id="role_label" for="q_role_in">Role</label>

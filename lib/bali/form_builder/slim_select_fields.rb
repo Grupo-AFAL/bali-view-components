@@ -99,7 +99,8 @@ module Bali
         html.merge("aria-labelledby": caption_id(method, group))
       end
 
-      # Every spelling Rails renders: `"aria-label":`, `"aria-label" =>` and `aria: { label: }`.
+      # Every spelling Rails renders: `"aria-label":`, `"aria-label" =>`, `aria: { label: }`
+      # and `"aria" => { "label" => }`.
       def aria_named?(html)
         nested = html[:aria] || html["aria"]
         names = html.keys.map(&:to_s)

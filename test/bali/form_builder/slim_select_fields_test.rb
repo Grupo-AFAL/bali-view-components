@@ -66,11 +66,14 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_slim_select_group_leaves_a_callers_aria_label_as_the_only_name
-    [ { "aria-label": "Room" }, { "aria-label" => "Room" }, { aria: { label: "Room" } } ].each do |html|
-      result = builder.slim_select_group(:status, Movie.statuses.to_a, html: html)
+    [
+      { "aria-label": "Room" }, { "aria-label" => "Room" },
+      { aria: { label: "Room" } }, { "aria" => { "label" => "Room" } }
+    ].each do |html|
+      document = Capybara.string(builder.slim_select_group(:status, Movie.statuses.to_a, html: html))
 
-      assert_html(result, "select[aria-label=Room]")
-      refute_html(result, "select[aria-labelledby]")
+      assert document.has_css?("select[aria-label=Room]"), html.inspect
+      refute document.has_css?("select[aria-labelledby]"), html.inspect
     end
   end
 
