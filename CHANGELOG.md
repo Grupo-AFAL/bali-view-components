@@ -329,11 +329,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vez de navegar** (#1268). AppLayout montaba los controllers `modal drawer` en `<main>`, y tippy
   cuelga el menú al final de `<body>`: sin el controller encima, el enlace cargaba su URL a página
   completa. Lo mismo un disparador en los slots `banner`, `navbar`, `sidebar` o `topbar`. Ahora
-  van en el `<body>` que AppLayout rinde, junto a `app-layout`. Sin nada que hacer en el
-  anfitrión: en **afal-apps**, los hasta seis ítems `drawer: true` del menú de
-  `td_flow/feedback_items/index.html.erb` pasan a abrir el drawer, y el comentario de
-  `finance/terminals/terminals/show.html.erb` que evita `popover: true` por esto queda sin motivo
-  (`git grep -n "popover: true" origin/main -- app/views`).
+  van en el `<body>` que AppLayout rinde, junto a `app-layout`, y al cerrar el overlay el foco
+  vuelve al disparador del menú. Sin nada que hacer en el anfitrión: en **afal-apps**, los hasta
+  seis ítems `drawer: true` del menú de `td_flow/feedback_items/index.html.erb` pasan a abrir el
+  drawer, y el comentario de `finance/terminals/terminals/show.html.erb` que evita
+  `popover: true` por esto queda sin motivo (`git grep -n "popover: true" origin/main -- app/views`).
+
+- **Cuando el fetch o el envío de un modal/drawer acaba en redirect, la página de destino
+  reemplaza el elemento `<body>`, no sólo su contenido** (#1268), como en una visita de Turbo:
+  entran los controllers y las clases del `<body>` de destino y salen los de origen. Hacía falta
+  por el cambio de arriba. Un layout propio con `modal` en su `<body>` deja de lanzar `Missing
+  target element "template"` tras ese reemplazo hacia una página sin `#main-modal`. Un listener
+  puesto a mano sobre `document.body` se pierde, como ya pasaba en cada visita de Turbo; ninguno
+  de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
 
 ### Documentation
 
