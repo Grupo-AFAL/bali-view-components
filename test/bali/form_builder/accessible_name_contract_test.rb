@@ -16,10 +16,16 @@ require "test_helper"
 # deriving ids from `field_id` in one place is that no family can opt out.
 class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
   # Every group helper, and how the control inside it is expected to get its
-  # name. Three legitimate shapes, spelled out rather than inferred:
+  # name. Four legitimate shapes, spelled out rather than inferred:
   #
   #   "an_id"          a `<label for>` reaching that id, which must be in the
   #                    document — the ~18 families wrapping one labelable control;
+  #   { labelled_by: "an_id" }
+  #                    that same `<label for>`, plus an `aria-labelledby` on the
+  #                    control naming the caption: for a widget that hides the
+  #                    control and draws its own, copying only that attribute
+  #                    across. With the `for` alone SlimSelect's combobox read out
+  #                    "Combobox" (#1253); the `for` stays, its click opens the list;
   #   :legend          a `<legend>` over a group whose several controls carry
   #                    names of their own, or a widget no `for` can reach;
   #   :wrapping_label  the control sits inside a `<label>` that contributes text,
@@ -48,7 +54,7 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
     "file_group" => [ ->(b) { b.file_group(:name) }, "movie_name" ],
     "select_group" => [ ->(b) { b.select_group(:status, [ %w[One 1] ]) }, "movie_status" ],
     "slim_select_group" => [ ->(b) { b.slim_select_group(:status, [ %w[One 1] ]) },
-                            "movie_status" ],
+                            { labelled_by: "movie_status" } ],
     "time_zone_select_group" => [ ->(b) { b.time_zone_select_group(:name) }, "movie_name" ],
     "time_period_group" => [ ->(b) { b.time_period_group(:release_date, [ %w[T t] ]) },
                                   "movie_release_date_period" ],
@@ -88,6 +94,7 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
       case expectation
       when :wrapping_label then resolve_wrapping_label(name, document)
       when :legend then resolve_legend(name, document)
+      when Hash then resolve_labelled_by(name, document, expectation[:labelled_by])
       else resolve_label_for(name, document, expectation)
       end
     end
@@ -204,6 +211,18 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
       if caption["for"] != control_id
     return "#{name}: for points at #{control_id.inspect}, which nothing emits" \
       if document.at_css("##{CSS.escape_id(control_id)}").nil?
+
+    nil
+  end
+
+  def resolve_labelled_by(name, document, control_id)
+    unreached = resolve_label_for(name, document, control_id)
+    return unreached if unreached
+
+    caption_id = caption_in(document)["id"]
+    labelled_by = document.at_css("##{CSS.escape_id(control_id)}")["aria-labelledby"]
+    return "#{name}: aria-labelledby=#{labelled_by.inspect} but the caption is #{caption_id.inspect}" \
+      if caption_id.blank? || labelled_by != caption_id
 
     nil
   end

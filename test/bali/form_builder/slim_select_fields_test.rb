@@ -40,6 +40,64 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "select#thing_status")
   end
 
+  # Accessible name (#1253). The Ruby half: the attribute SlimSelect copies onto its
+  # combobox. cypress/e2e/slim-select-accessible-name.cy.js reads the name that results.
+
+  def test_slim_select_group_points_the_select_at_its_caption
+    result = builder.slim_select_group(:status, Movie.statuses.to_a)
+
+    assert_html(result, "label#movie_status_label[for=movie_status]", text: "Status")
+    assert_html(result, "select#movie_status[aria-labelledby=movie_status_label]")
+  end
+
+  def test_slim_select_group_points_at_its_caption_when_input_id_moves_the_select
+    result = builder.slim_select_group(:status, Movie.statuses.to_a, input_id: "thing_status")
+
+    assert_html(result, "label#movie_status_label[for=thing_status]")
+    assert_html(result, "select#thing_status[aria-labelledby=movie_status_label]")
+  end
+
+  def test_slim_select_group_keeps_the_error_pair_beside_the_caption
+    resource.errors.add(:status, :invalid)
+    result = builder.slim_select_group(:status, Movie.statuses.to_a)
+
+    assert_html(result, "select[aria-labelledby=movie_status_label][aria-invalid=true]" \
+                        "[aria-describedby=movie_status_error]")
+  end
+
+  def test_slim_select_group_leaves_a_callers_aria_label_as_the_only_name
+    [
+      { "aria-label": "Room" }, { "aria-label" => "Room" },
+      { aria: { label: "Room" } }, { "aria" => { "label" => "Room" } }
+    ].each do |html|
+      document = Capybara.string(builder.slim_select_group(:status, Movie.statuses.to_a, html: html))
+
+      assert document.has_css?("select[aria-label=Room]"), html.inspect
+      refute document.has_css?("select[aria-labelledby]"), html.inspect
+    end
+  end
+
+  def test_slim_select_group_leaves_a_callers_aria_labelledby_alone
+    result = builder.slim_select_group(:status, Movie.statuses.to_a,
+                                       html: { aria: { labelledby: "rooms-heading" } })
+
+    assert_html(result, "select[aria-labelledby=rooms-heading]")
+    assert_equal 1, result.scan("aria-labelledby=").size, "aria-labelledby written twice"
+  end
+
+  def test_slim_select_group_without_a_caption_points_at_nothing
+    result = builder.slim_select_group(:status, Movie.statuses.to_a, label: false)
+
+    refute_html(result, "label")
+    refute_html(result, "select[aria-labelledby]")
+  end
+
+  def test_slim_select_field_has_no_caption_to_point_at
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+
+    refute_html(result, "select[aria-labelledby]")
+  end
+
   # #slim_select_field
 
   def test_slim_select_field_renders_a_div_with_control_class

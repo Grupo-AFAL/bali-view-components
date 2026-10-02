@@ -447,6 +447,19 @@ Enhanced select with search, multi-select, and AJAX support.
 <%= f.slim_select_group :category, categories, add_items: true %>
 ```
 
+**Accessible name:** SlimSelect draws its own `div[role="combobox"]` and names it from the
+`<select>`'s `aria-label` or `aria-labelledby` only — a `<label for>` does not reach it.
+`slim_select_group` points `aria-labelledby` at its caption unless `html:` already carries one
+of the two. With `label: false` there is no caption to point at, so pass
+`html: { "aria-label": "…" }`. Beside a `<label>` of your own, `slim_select_field` needs it by
+hand:
+
+```erb
+<label id="role_label" for="q_role_in">Role</label>
+<%= f.slim_select_field "q[role_in]", roles,
+      html: { id: "q_role_in", multiple: true, "aria-labelledby": "role_label" } %>
+```
+
 **Options:**
 - `show_search` - Enable search input (default: true)
 - `add_items` - Allow adding new items (default: false)

@@ -1,11 +1,12 @@
 import { paintedContrast } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
 
 // What WorkflowSteps and Timeline mute — the steps still to come, the date line,
 // a timeline's timestamp and its pending heading — is `base-content` at an alpha,
 // composited over the surface it lands on. Shipped at `/40`, `/50` and `/60`, it
 // measured 2.33–4.47:1 against AA's 4.5 (#1233, #1234), and no one theme showed
 // all of it: `light` passed the timeline's `/60` and `dark` the date's `/50`.
-// Hence all five themes, and the base-200 cards of the progress preview, where
+// Hence every theme, and the base-200 cards of the progress preview, where
 // only the labels are measured: a glyph there paints on its marker's `::before`
 // disc, which `paintedContrast` cannot see.
 //
@@ -13,7 +14,6 @@ import { paintedContrast } from '../support/painted_contrast'
 // step's `primary` pair is the theme's own, not measured against AA here (#1221).
 describe('muted text contrast in WorkflowSteps and Timeline', () => {
   const AA = 4.5
-  const THEMES = ['light', 'dark', 'afal', 'afal-dark', 'costa-norte']
   const GREY = '[class*="text-base-content/"]'
 
   // preview → [what, selector, how many the preview renders]
