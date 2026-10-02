@@ -107,6 +107,16 @@ class BaliColorTest < ComponentTestCase
     )
   end
 
+  # The utility's own declaration with the hex in place of `--value(--color-*)`, so a change to
+  # the mix in bali/utilities.css fails here as well as in the browser.
+  def test_soft_is_the_text_soft_utility_written_for_a_hex
+    utilities = Bali::Engine.root.join("app/assets/stylesheets/bali/utilities.css").read
+    declaration = utilities[/@utility text-soft-\* \{\s*color: ([^;]+);/, 1]
+
+    refute_nil(declaration, "bali/utilities.css no longer declares text-soft-*")
+    assert_equal(declaration.sub("--value(--color-*)", "#f59e0b"), Bali::Color.soft("#f59e0b"))
+  end
+
   def test_gradient_ramps_from_transparent_to_the_colour
     ramp = Bali::Color.gradient(:primary)
     assert_equal(10, ramp.size)

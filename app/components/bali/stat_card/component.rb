@@ -138,13 +138,10 @@ module Bali
         COLORS.dig(@color, :text)
       end
 
-      # `text-soft-*` (bali/utilities.css) written out for a hex, which no utility can name. The
-      # hex itself over its own tint read 1.99:1 for an amber on the light themes and 2.14 for a
-      # violet on `dark`, the two ends of the Bali::Status hexes costa-norte hands in here.
       def icon_style
         return if @custom_color.blank?
 
-        "color: color-mix(in oklab, #{@custom_color} 40%, var(--color-base-content))"
+        "color: #{Bali::Color.soft(@custom_color)}"
       end
 
       private

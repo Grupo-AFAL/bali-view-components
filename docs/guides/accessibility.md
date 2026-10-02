@@ -593,7 +593,9 @@ and 3.28 on daisyUI's `dark`, and its warning badge, `text-warning` on `bg-warni
 An icon over its own tint fails the same way, against the 3:1 a graphic needs: a StatCard's
 warning icon read 1.60:1 on `afal`. StatCard paints it with `text-soft-<colour>`. Where no
 utility can name the colour — a hex, or a custom property set at runtime — write the same mix
-out, as StatCard does for `custom_color:` and the BlockEditor for an entity reference's colour:
+out. For a hex in Ruby, `Bali::Color.soft(hex)` returns it, and StatCard paints `custom_color:`
+with it; in a stylesheet, write it by hand, as the BlockEditor does for an entity reference's
+colour:
 
 ```css
 color: color-mix(in oklab, #f59e0b 40%, var(--color-base-content));

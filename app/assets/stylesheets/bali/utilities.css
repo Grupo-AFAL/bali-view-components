@@ -9,7 +9,8 @@
  * contrasts with base-100, tinted 40% toward the colour. Worst case after it, 5.16:1 —
  * that same warning badge on `afal`. Written out by hand where no utility can name the colour:
  * ../../../components/bali/block_editor/index.css, which Vite processes without @apply, and
- * ../../../components/bali/stat_card/component.rb, for a `custom_color:` hex.
+ * `Bali::Color.soft` (../../../components/bali/color.rb), for a hex such as StatCard's
+ * `custom_color:`.
  *
  * A utility and not a custom property on `:root`: a property declared there resolves its
  * `var()`s there, and a SideMenu with its own `theme:` inherits the page's mix — 1.05:1 on
