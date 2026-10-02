@@ -188,8 +188,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   borde de panel que era `base-300`, de 1.24 a 1.33:1 en `afal`). Cambian TreeView, Filters
   (opciones «es alguno de» y bordes de panel), Timeline con `href:`, Clipboard, DirectUpload,
   RecurrentEventRuleForm, la fila de SplitView, el Gantt (zoom, plegar fila, minimapa y menús),
-  el panel de la paleta de Command y el día `:ghost` de `Calendar::YearGrid`. Sin nada que hacer
-  en el anfitrión.
+  el panel de la paleta de Command y el día `:ghost` de `Calendar::YearGrid`; el disparador de
+  Command, la píldora de filtro de SplitView y el botón de `Avatar::Upload`, con relleno
+  `base-200` en reposo, conservan su hover `base-300`. Sin nada que hacer en el anfitrión.
 
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
