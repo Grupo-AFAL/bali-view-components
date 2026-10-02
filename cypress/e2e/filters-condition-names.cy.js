@@ -12,9 +12,8 @@ describe('Filter condition accessible names', () => {
   const attribute = () => cy.get('[data-condition-target="attribute"]')
   const operator = () => cy.get('[data-condition-target="operator"]')
 
-  // The page under test is an iframe of the runner, so the condition is reached through the
-  // frame's document, and only its own subtree is asked for: the page around it has
-  // comboboxes and text boxes of its own.
+  // Only the condition's subtree is asked for: the page around it has comboboxes and text
+  // boxes of its own.
   const conditionControls = (roles = ['combobox', 'textbox', 'spinbutton']) =>
     cy.url().then((url) =>
       cdp('Page.getFrameTree')
