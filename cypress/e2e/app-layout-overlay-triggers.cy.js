@@ -52,8 +52,6 @@ describe('AppLayout overlay triggers outside <main> (#1268)', () => {
     expectOpenOnThePreview('main-drawer', 'John Doe')
   })
 
-  // The item the panel would hand the focus back to lives in tippy's popper, which is gone by
-  // the time the panel closes: the menu shuts as the focus moves into the panel.
   const MENU_ITEMS = [
     { name: 'Open in drawer', panelId: 'main-drawer', text: 'John Doe' },
     { name: 'Open in modal', panelId: 'main-modal', text: 'Welcome!' }
