@@ -41,3 +41,12 @@ goes here.
   caching, so the browser keeps running the old bundle and the spec tests the code from before.
 - **`.scrollIntoView()` ignores `scroll-margin`.** Cypress computes its own offsets. Call the
   native method inside a `then` and measure in the same block.
+- **A `hover:` utility needs a real pointer and `(hover: hover)`.** `.trigger('mouseover')`
+  dispatches the event but never makes the element match `:hover`. And Tailwind 4 wraps every
+  `hover:` utility in `@media (hover: hover)`, which headless Chrome without a mouse reports as
+  false: `:hover` matches, no `hover:` style applies, and a contrast guard measures the element
+  at rest — four of five themes passed that way in CI. Rest the pointer with `hover()` from
+  `cypress/support/tap.js`, which fails if the browser reports `(hover: none)`
+  (`cypress/plugins/index.cjs` gives Chrome a pointer that hovers). The pointer stays where the
+  previous test left it: `unhover()` in an `afterEach`, and assert `!el.matches(':hover')`
+  before measuring a resting state.
