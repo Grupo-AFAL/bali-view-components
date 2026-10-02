@@ -176,10 +176,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   selección larga sigue a `neutral`. Sin nada que hacer en el anfitrión.
 
 - **BlockEditor y las gráficas en un tema oscuro** (modo oscuro): el bloque de código pintaba la
-  tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
+  tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de un tema oscuro según el
   `color-scheme` del tema; los comentarios de una barra lateral fuera del editor salían en el gris
   fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
   recargar. Sin nada que hacer en el anfitrión.
+- **El código del BlockEditor se lee en AA en los seis temas** (#1258): el bloque de código pasa
+  de `github-light` / `github-dark` a `github-light-high-contrast` / `github-dark-default` de
+  shiki. Sobre `base-200`, las variables de `github-light` quedaban en 3.17:1 (`afal`) y los
+  comentarios de `github-dark` en 3.48 (`dark`); ahora el token más tenue, el comentario, mide
+  4.58 y 5.45. Cambia el tono del código en claro y en oscuro donde el resaltado está encendido:
+  en la flota, sólo **gobierno-corporativo** (afal-apps lo apaga). Sin nada que hacer: los dos
+  temas vienen en shiki desde 1.13, y el editor ya necesitaba 1.18 por `shiki/engine/javascript`.
 
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de

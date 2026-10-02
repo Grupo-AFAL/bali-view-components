@@ -55,8 +55,13 @@ function collectHeadings (blocks, result = []) {
   return result
 }
 
+// The faintest ink of each is its comment: 4.58:1 over base-200, the code block's ground, on
+// afal, and 5.45 on dark. github-light painted variables at 3.17 on afal and github-dark
+// comments at 3.48 on dark; github-light-default's comment still reads 4.13 on afal.
+const CODE_THEMES = { light: 'github-light-high-contrast', dark: 'github-dark-default' }
+
 // BlockNote tokenizes through prosemirror-highlight's shiki parser, which it calls with no
-// options, so every token got the first loaded theme and a dark page painted github-light's
+// options, so every token got the first loaded theme and a dark page painted the light theme's
 // ink on a dark code block (measured 1.00:1). Asking for both themes with no default colour
 // leaves each token a --shiki-light and a --shiki-dark, and index.css picks between them with
 // light-dark(), which follows the theme's color-scheme.
@@ -66,7 +71,7 @@ function withBothThemes (highlighter) {
       if (key === 'codeToTokens') {
         return (code, options) => target.codeToTokens(code, {
           ...options,
-          themes: { light: 'github-light', dark: 'github-dark' },
+          themes: CODE_THEMES,
           defaultColor: false
         })
       }
@@ -177,7 +182,7 @@ export default function BlockNoteEditorWrapper ({
             const { createHighlighter } = await import('shiki')
             const { createJavaScriptRegexEngine } = await import('shiki/engine/javascript')
             return withBothThemes(await createHighlighter({
-              themes: ['github-light', 'github-dark'],
+              themes: Object.values(CODE_THEMES),
               langs: PRELOADED_LANGS,
               engine: createJavaScriptRegexEngine()
             }))
