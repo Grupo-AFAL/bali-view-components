@@ -55,10 +55,10 @@
   opacity: 1;
 }
 
-/* ── Highlight matched substring — uses DaisyUI primary token ─────────── */
+/* ── Highlight matched substring ──────────────────────────────────────── */
 .cmd-mark {
+  @apply text-soft-primary;
   background: color-mix(in oklch, var(--color-primary) 15%, transparent);
-  color: var(--color-primary);
   padding: 0 1px;
   border-radius: 2px;
 }

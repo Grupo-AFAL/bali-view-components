@@ -577,6 +577,19 @@ DaisyUI themes are designed for accessibility. Use semantic colors:
 <p class="text-gray-400">May not have sufficient contrast</p>
 ```
 
+### Text over a tint of its own colour
+
+`text-primary` on `bg-primary/10` is one hue over a dilution of itself, and it fails AA wherever
+the colour does not contrast with that dilution: SideMenu's active item measured 4.12:1 on `afal`
+and 3.28 on daisyUI's `dark`, and its warning badge, `text-warning` on `bg-warning/10`, 1.46 on
+`afal`. Paint that text with `text-soft-<colour>` instead — any theme colour, mixed 40% into
+`base-content`:
+
+```erb
+<span class="rounded-box bg-primary/10 px-1.5 text-soft-primary">12</span>
+<span class="rounded-box bg-warning/10 px-1.5 text-soft-warning">3</span>
+```
+
 ### Testing Contrast
 
 ```ruby

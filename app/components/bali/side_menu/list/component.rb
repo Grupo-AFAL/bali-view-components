@@ -6,17 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         renders_many :items, Item::Component.renderable
 
-        # Mirrors Bali::SideMenu::Item::Component::BADGE_COLOR_CLASSES so a section
-        # badge looks identical to the badges rendered on individual items.
-        BADGE_COLOR_CLASSES = {
-          primary: "border-primary/20 bg-primary/10 text-primary",
-          secondary: "border-secondary/20 bg-secondary/10 text-secondary",
-          accent: "border-accent/20 bg-accent/10 text-accent",
-          success: "border-success/20 bg-success/10 text-success",
-          warning: "border-warning/20 bg-warning/10 text-warning",
-          error: "border-error/20 bg-error/10 text-error",
-          info: "border-info/20 bg-info/10 text-info"
-        }.freeze
+        BADGE_COLOR_CLASSES = Item::Component::BADGE_COLOR_CLASSES
 
         attr_reader :title, :badge
 

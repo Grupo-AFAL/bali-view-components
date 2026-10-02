@@ -76,7 +76,7 @@ module Bali
           warning: "bg-warning text-warning-content",
           pending: "border border-base-content/55 text-base-content/70",
           skipped: "border border-dashed border-base-content/55 text-base-content/70",
-          current: "border-2 border-primary bg-primary/10 text-primary"
+          current: "border-2 border-primary bg-primary/10 text-soft-primary"
         }.freeze
 
         # Reached is every state but `:pending` — `:skipped` included, because
