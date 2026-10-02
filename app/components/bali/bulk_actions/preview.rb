@@ -98,7 +98,7 @@ module Bali
 
       def item_for(component, record)
         component.with_item(record_id: record[:id],
-                            class: 'flex items-center gap-3 p-3 rounded-lg hover:bg-base-200') do
+                            class: 'flex items-center gap-3 p-3 rounded-lg hover:bg-base-content/8') do
           safe_join([
             tag.input(type: 'checkbox', class: 'checkbox checkbox-sm'),
             tag.div(class: 'flex-1') do

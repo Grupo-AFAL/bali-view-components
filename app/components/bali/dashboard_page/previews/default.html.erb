@@ -22,7 +22,7 @@
             { title: "New studio added: Pixar", time: "5 hours ago", icon: "plus" },
             { title: "The Matrix archived", time: "1 day ago", icon: "archive" }
           ].each do |item| %>
-            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200">
+            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-content/8">
               <%= render Bali::Icon::Component.new(item[:icon], class: "size-4 text-base-content/40") %>
               <div class="flex-1">
                 <p class="text-sm font-medium"><%= item[:title] %></p>
