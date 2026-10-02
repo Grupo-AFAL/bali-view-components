@@ -328,7 +328,6 @@ en:
         delete: Delete
         delete_confirm: "Delete the \"%{name}\" view?"
       export:
-        button_label: Export
         formats:
           csv: CSV
           excel: Excel

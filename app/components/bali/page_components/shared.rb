@@ -131,8 +131,7 @@ module Bali
       # Export the listing. It lives here and not in the DataTable toolbar because exporting
       # is an action ON the page, not a control over how the listing looks — and that way
       # importing or printing have somewhere to land later. It is called "Export filtered"
-      # because the link carries the active slice along (see
-      # Bali::DataTable::Export::Component#export_url).
+      # because the link carries the active slice along (see Bali::DataTable::ExportLinks).
       #
       # @param url [String] Base URL of the listing (without `format`)
       # @param formats [Array<Symbol>] Formats to offer
@@ -241,12 +240,12 @@ module Bali
         return [] unless @export_options
 
         items = [ { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id } ]
-        export_component.export_items.each do |item|
+        export_links.items.each do |item|
           # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which
           # does nothing under Turbo. `data-turbo="false"` IS needed: a CSV is not a response
           # Turbo Drive can render, and the visit stalls halfway instead of firing the
           # download.
-          items << { href: item[:url], name: item[:label], icon: item[:icon], method: nil,
+          items << { href: item[:url], name: item[:label], icon: "file-export", method: nil,
                      "aria-describedby": export_menu_title_id,
                      data: { turbo: false, export_links_target: "link" } }
         end
@@ -267,13 +266,10 @@ module Bali
         @export_options.nil? || @export_options[:params].nil?
       end
 
-      # The params are resolved HERE and passed explicitly: the Export is built to read its
-      # `export_items` and is never rendered, and `request_query_params` needs the render
-      # context that only the component actually being painted has.
-      def export_component
-        @export_component ||= Bali::DataTable::Export::Component.new(
-          formats: @export_options[:formats],
+      def export_links
+        Bali::DataTable::ExportLinks.new(
           url: @export_options[:url],
+          formats: @export_options[:formats],
           params: @export_options[:params] || request_query_params
         )
       end
