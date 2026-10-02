@@ -448,7 +448,8 @@ Enhanced select with search, multi-select, and AJAX support.
 ```
 
 **Accessible name:** SlimSelect draws its own `div[role="combobox"]` and names it from the
-`<select>`'s `aria-label` or `aria-labelledby` only — a `<label for>` does not reach it.
+`<select>`'s `aria-label` or `aria-labelledby` — a `<label for>` reaches it only from
+SlimSelect 3.5.
 `slim_select_group` points `aria-labelledby` at its caption unless `html:` already carries one
 of the two, and the listbox it opens takes the same name. With `label: false` there is no
 caption to point at, so pass `html: { "aria-label": "…" }`. Beside a `<label>` of your own,
