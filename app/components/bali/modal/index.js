@@ -423,8 +423,9 @@ export class ModalController extends Controller {
   // Inside-the-panel, however the panel is composed at that moment: the
   // wrapper's subtree, or a popup portaled into the dialog NEXT to it —
   // flatpickr's calendar and SlimSelect's dropdown arrive via `enterTopLayer`,
-  // which leaves them carrying `[popover]`; a tooltip balloon portals itself to
-  // the top-layer host and is `[data-tippy-root]`. Asking only
+  // which leaves them carrying `[popover]`; a tippy popper (tooltip, hover card,
+  // the menu of a `popover: true` dropdown) portals itself to the top-layer host
+  // and is `[data-tippy-root]`. Asking only
   // `wrapperTarget.contains(target)` counted every one of those clicks as a
   // close gesture: with a dirty form, paging the calendar's month asked "are
   // you sure you want to close?" (#1013). Day clicks never showed it only

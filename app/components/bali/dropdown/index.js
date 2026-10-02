@@ -84,10 +84,9 @@ export class DropdownController extends Controller {
     // also what keeps the two modes behaving alike.
     this.tippy = tippy(this.triggerTarget, {
       content: this.menu,
-      // Inside a Modal or Drawer, everything outside the `<dialog>` is inert: hung off
-      // `<body>` there, the menu opened under the panel with 0 of its 3 items reachable
-      // (#1269). Asked on every show, not once at connect: a dropdown in a panel rendered
-      // closed connects before its dialog is modal.
+      // Everything outside a modal `<dialog>` is inert (utils/top-layer.js). A function, so
+      // it is asked on every show: a dropdown in a panel rendered closed connects before its
+      // dialog is modal.
       appendTo: (reference) => topLayerHost(reference) ?? document.body,
       trigger: 'manual',
       hideOnClick: false,
@@ -306,9 +305,10 @@ export class DropdownController extends Controller {
         }
         break
       case 'Tab':
-        // The popper hangs at the end of `<body>`: Tab from its last item left the document
-        // and Shift+Tab from its first went to the end of the page. From the trigger, the
-        // browser's own Tab carries on in the trigger's place.
+        // The popper hangs at the end of `<body>`, or of the open `<dialog>`, far from its
+        // trigger: Tab from its last item left the document and Shift+Tab from its first
+        // landed on whatever comes before it there. From the trigger, the browser's own Tab
+        // carries on in the trigger's place.
         if (this.tippy && this.menu.contains(event.target)) {
           this.close()
           this.triggerTarget.focus()
