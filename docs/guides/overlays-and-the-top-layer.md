@@ -82,11 +82,17 @@ Nothing to do: put a Bali field inside your `<dialog>` and it works. The mechani
 `:modal`, not off any Bali markup, so it covers a dialog your application renders just as
 well as one the package will render.
 
-Two things are worth knowing:
+Three things are worth knowing:
 
 - A `<dialog>` opened with **`show()`** rather than `showModal()` is *not* in the top layer
   and does *not* make anything inert. It is an ordinary positioned box that the stacking
   scale already orders, so the package leaves popups inside it alone.
+- A `popover: true` dropdown's menu moves into the dialog but does not join the top layer,
+  so the dialog's own `overflow` clips it, and the UA stylesheet gives a modal `<dialog>`
+  `overflow: auto`. Measured in Chromium and Firefox with a `w-96` dialog: `elementFromPoint`
+  at the centre of each of the 3 items returned the dialog; with `overflow: visible` on the
+  same dialog, the item. daisyUI's `.modal` fills the viewport, and so does `Modal`;
+  `Drawer`'s dialog is `overflow: visible`. None of the three clips the menu.
 - If you portal an overlay of your own to `<body>` and open it from inside a modal dialog,
   it will hit the same wall. The three functions are published for exactly that:
 
