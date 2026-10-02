@@ -7,10 +7,10 @@
 // 4.51 over its own primary/10 tint (#1221).
 //
 // What it still does not see: the `opacity` of the node that carries a tint is not applied to the
-// tint, which on a light theme measures the tint darker than it paints (the safe side); the
-// background of a pseudo-element, which the caller hands over as `under`; and a `filter` or an
-// inset `box-shadow` on the way, which the caller asserts absent: without that, a Status row
-// hovered through either one passed (#1259).
+// tint, which on a light theme measures the tint darker than it paints (the safe side); a
+// `background-image` or the background of a pseudo-element, which the caller hands over as
+// `under`; and a `filter`, an inset `box-shadow` or a pseudo-element drawn over the text, which
+// the caller has to rule out.
 //
 // `over` is where the search for that background starts. Text starts at its own element; a shape
 // drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own
