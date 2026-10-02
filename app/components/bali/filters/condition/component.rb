@@ -110,10 +110,6 @@ module Bali
           }.to_json
         end
 
-        def value_label
-          t("bali_view.filters.value_label")
-        end
-
         # Translations JSON for multi-select controller specifically
         def multi_select_translations_json
           {
@@ -123,6 +119,10 @@ module Bali
         end
 
         private
+
+        def value_label
+          t("bali_view.filters.value_label")
+        end
 
         def operators_translations
           {
