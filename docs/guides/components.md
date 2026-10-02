@@ -49,6 +49,10 @@ Every component that colours something takes the same two keywords, resolved by
 | `color:` | one of `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
 | `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No — that is the point of it |
 
+The hex itself stays fixed. Where Bali paints ink over that hex's own tint — StatCard's icon —
+the ink is the hex mixed 40% into `base-content`, like `text-soft-*`, so it still follows light
+and dark.
+
 The seven components on this contract are `Tag`, `Status`, `Heatmap`, `Chart`,
 `Timeline::Item` / `Timeline::Header`, `StatCard` and `Kanban::Column`. A value
 outside the list raises `ArgumentError` at construction, naming the component and

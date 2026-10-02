@@ -21,8 +21,9 @@ module Bali
         render_with_template(template: 'bali/stat_card/previews/all_colors')
       end
 
-      # The hex escape hatch. `custom_color:` replaces the semantic pair with an
-      # inline colour, so it stops following the theme — that is the trade.
+      # The hex escape hatch. `custom_color:` replaces the semantic pair with inline
+      # styles: the tint is the hex at 10%, and the icon mixes it 40% into base-content,
+      # like `text-soft-*`, so the hue stays the host's and the ink follows light and dark.
       # @param custom_color text
       def with_custom_color(custom_color: '#7c3aed')
         render Bali::StatCard::Component.new(
