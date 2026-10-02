@@ -11,12 +11,12 @@ class BaliEmptyStateComponentTest < ComponentTestCase
 
   def test_renders_description_when_given
     render_inline(Bali::EmptyState::Component.new(title: "No projects", description: "Create one to get started"))
-    assert_selector(".empty-state-component p.text-base-content\\/60", text: "Create one to get started")
+    assert_selector(".empty-state-component p.text-base-content\\/70", text: "Create one to get started")
   end
 
   def test_omits_description_when_not_given
     render_inline(Bali::EmptyState::Component.new(title: "No projects"))
-    assert_no_selector(".empty-state-component p.text-base-content\\/60")
+    assert_no_selector(".empty-state-component p.text-base-content\\/70")
   end
 
   def test_renders_icon_inside_soft_circle_when_given

@@ -94,7 +94,7 @@ module Bali
         def header_content
           safe_join([
             tag.span(@name, class: "block text-sm font-medium text-base-content"),
-            (tag.span(@email, class: "block text-xs font-normal text-base-content/60") if
+            (tag.span(@email, class: "block text-xs font-normal text-base-content/70") if
               @email.present?)
           ].compact)
         end

@@ -64,7 +64,7 @@ module Bali
       # aria-label (like Bali::Loader): when it becomes visible with [busy],
       # assistive technology announces that it is loading.
       def default_loading
-        tag.div(class: "flex items-center justify-center gap-2 py-6 text-sm text-base-content/60") do
+        tag.div(class: "flex items-center justify-center gap-2 py-6 text-sm text-base-content/70") do
           safe_join([
             tag.span(class: "loading loading-spinner loading-sm", role: "status", aria: { label: display_text }),
             display_text
