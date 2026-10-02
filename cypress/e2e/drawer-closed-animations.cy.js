@@ -49,7 +49,7 @@ describe('Drawer: what animates while it is closed', () => {
       cy.document().should(doc => expectEverySkeletonAnimating(doc, '#main-drawer', 'the open drawer'))
 
       cy.focused().type('{esc}')
-      cy.get('#main-drawer').should('not.have.attr', 'open')
+      expectClosedWithSkeleton('#main-drawer')
 
       cy.document().should(doc => {
         expect(animationNames(doc), 'animations on the page after closing').to.have.length(0)
