@@ -232,7 +232,6 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     )) do |layout|
       layout.with_body { "Content" }
     end
-    # The host's controller keeps the container, next to the layout's own.
     assert_selector(".app-layout[data-controller='app-layout modal drawer theme-switcher']")
   end
 

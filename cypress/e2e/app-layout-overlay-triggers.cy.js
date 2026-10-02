@@ -1,9 +1,6 @@
-// #1268 — a `drawer: true` / `modal: true` trigger needs the `drawer` / `modal` controller
-// on an ancestor, and two places on an AppLayout page are outside <main>: the chrome slots,
-// and the menu of a `popover: true` dropdown, which tippy moves to the end of <body> when it
-// opens. With no controller above it Stimulus binds nothing, and the link (`data-turbo="false"`)
-// navigates the whole page to its href. Lookbook's own layout puts both controllers on
-// <body>, which is why only a preview under `app_layout_preview` shows it.
+// The preview has to stay under `layout "app_layout_preview"`: Lookbook's own layout puts
+// `modal drawer` on its <body>, where every trigger here finds them wherever AppLayout mounts
+// its own, and this spec stays green with them back on <main>.
 const PREVIEW = '/bali/app_layout/overlay_triggers'
 const popover = '[data-dropdown-popover-value="true"]'
 
