@@ -54,9 +54,9 @@
   /* daisyUI 5.7.47 paints a resting `.btn-ghost` with `var(--btn-rest-fg, var(--btn-color,
    * var(--color-base-content, currentColor)))`, so on a coloured bar the burger painted
    * base-content: 1.00:1 on `neutral` in `afal`, 1.69 on `primary` in `costa-norte`.
-   * `currentColor` rather than the preset's `-content`, because the menu that opens inside the
-   * bar is `bg-base-100 text-base-content`. Not `--btn-fg`: that is the hover colour, and `.btn`
-   * sets it on itself. */
+   * `currentColor` rather than the preset's `-content`, because the mobile menu inside the bar
+   * is `bg-base-100 max-lg:text-base-content`. Not `--btn-fg`: that is the hover colour, and
+   * `.btn` sets it on itself. */
   & .btn-ghost {
     --btn-rest-fg: var(--btn-color, currentColor);
   }
