@@ -337,11 +337,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
 
-- **Las filas de color del panel de un `Bali::Status` editable ya no atenúan su texto bajo el
-  puntero** (#1259). El hover era `filter: brightness(0.95)`, que oscurecía el fondo y también el
-  texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo pinta el
-  mismo fondo y el texto queda en su par. La fila sin estado, que no tiene fondo, deja de cambiar
-  bajo el puntero: el filtro sólo atenuaba su texto. Sin nada que hacer en el anfitrión.
+- **`Bali::Status` llega a AA sin estado, y el editable también bajo el puntero y en su triángulo**
+  (#1259). El hover de las filas del panel era `filter: brightness(0.95)`, que oscurecía el fondo y
+  también el texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo
+  pinta el mismo fondo y el texto queda en su par, también en la fila sin estado. El texto de una
+  píldora sin estado, editable o no, y el de esa fila pasan del 60 % al 70 % de `base-content`:
+  medían 4.04:1 en `afal` y 4.32 en `costa-norte`; ahora 5.54 y 6.00. El triángulo de la píldora
+  editable deja su `opacity: 0.7` y se pinta en el color del texto: medía 2.89:1 sobre rosa y 2.99
+  sobre rojo, bajo el 3:1 de un ícono. Sin nada que hacer en el anfitrión.
 
 ### Documentation
 
