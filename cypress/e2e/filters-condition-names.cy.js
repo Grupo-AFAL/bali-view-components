@@ -51,11 +51,23 @@ describe('Filter condition accessible names', () => {
   const multiSelectShows = (text) =>
     cy.get(`${container} [data-multi-select-target="label"]`).should('have.text', text)
 
+  // flatpickr reads the user agent when it mounts, and on a phone it hides its altInput too
+  // and shows a native `input.flatpickr-mobile` (date, datetime-local) in its place.
+  const onAPhone = {
+    onBeforeLoad (win) {
+      Object.defineProperty(win.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36',
+        configurable: true
+      })
+    }
+  }
+  const nativeDateMounted = () => cy.get(`${container} input.flatpickr-mobile`).should('exist')
+
   context('in the page language', () => {
     // The dummy app lives above the Lookbook preview path `baseUrl` points at, and is the
     // only place that serves Spanish.
-    const openMovieFilters = (query) => {
-      cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/admin/movies?locale=es&${query}`)
+    const openMovieFilters = (query, visitOptions = {}) => {
+      cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/admin/movies?locale=es&${query}`, visitOptions)
       cy.get('[data-action="click->filters#toggleDropdown"]').first().click()
     }
 
@@ -92,6 +104,28 @@ describe('Filter condition accessible names', () => {
         'combobox «Valor»'
       ])
     })
+
+    it('names the native date field a phone gets for the date the server painted', () => {
+      openMovieFilters('q[g][0][created_at_eq]=2026-01-15', onAPhone)
+      nativeDateMounted()
+
+      conditionControls(['combobox', 'Date']).should('deep.equal', [
+        'Date «Valor»', 'combobox «Campo»', 'combobox «Operador»'
+      ])
+    })
+  })
+
+  it('names the native date field a phone gets for the dates it rebuilds', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false', onAPhone)
+
+    attribute().select('birth_date')
+    nativeDateMounted()
+    conditionControls(['Date']).should('deep.equal', ['Date «Value»'])
+
+    attribute().select('last_login')
+    operator().select('eq')
+    nativeDateMounted()
+    conditionControls(['DateTime']).should('deep.equal', ['DateTime «Value»'])
   })
 
   it('names the value widget it rebuilds for every type of field', () => {

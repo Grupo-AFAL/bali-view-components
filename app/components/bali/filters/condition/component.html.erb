@@ -51,9 +51,9 @@
   <div class="flex-1 min-w-0">
     <%# Each widget is named by aria-label, as is each one condition_controller.js builds in
         its place (`valueAriaLabel`): SlimSelect names its combobox from the <select>'s
-        aria-label or aria-labelledby alone, and datepicker-controller.js carries it to
-        flatpickr's altInput. The multi-select trigger is the exception: an aria-label would
-        hide the choices it lists. %>
+        aria-label or aria-labelledby alone, and datepicker-controller.js carries it to the
+        input flatpickr shows in its place. The multi-select trigger is the exception: an
+        aria-label would hide the choices it lists. %>
     <div data-condition-target="valueContainer">
       <% case attribute_type.to_sym %>
       <% when :select %>
