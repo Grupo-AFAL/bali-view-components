@@ -156,6 +156,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un color sobre su propio tinte, también en íconos, botones y referencias** (#1274): pasan a
+  `text-soft-<color>`, o a la misma mezcla escrita a mano, el ícono de `StatCard` (también el de
+  `custom_color:`) y la línea `change:` de `DashboardPage#with_stat`, que lee la misma clase; el
+  rojo bajo el cursor de los botones de quitar de `Filters` (condición y filtro aplicado) y de
+  `file_group(multiple: true)`; y las referencias `#` del BlockEditor, cuya etiqueta de tipo
+  pierde además su `opacity: 0.7`. Antes, el ícono de advertencia leía 1.60:1 en `afal` (3:1 para
+  un gráfico), el botón de quitar filtro 2.27 y una referencia `accent` 1.71 en `light` (AA: 4.5);
+  ahora el peor caso es 5.01. Lo ven las 97 `StatCard` y los 21 `with_stat` de la flota
+  (`git grep -n -E "StatCard::Component.new|with_stat\(" origin/main`), casi todos `success`,
+  `info` y `warning`: el ícono sale más oscuro en los temas claros y más claro en los oscuros. El
+  ejemplo de la guía y el preview `with_trend` escriben `text-soft-success` en el pie, donde
+  `text-success` leía 1.96. Sin nada que hacer en el anfitrión.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
