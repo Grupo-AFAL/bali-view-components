@@ -1,4 +1,4 @@
-import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
+import { contrastRatio, paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
@@ -11,7 +11,8 @@ import { THEMES } from '../support/themes'
 // either way the theme's ramp runs: 1.16 and 1.27 at worst.
 describe('hovers, tints and edges over a base surface', () => {
   const STEP = 1.15
-  // Above the 1.238 a base-300 edge reads on afal: base-300 must not pass it.
+  // Above the 1.238 a base-300 edge reads on afal, so base-300 does not pass, and below the 1.267
+  // the ink at 15% paints at worst: the multi-select list inside the filter group's tint, on afal.
   const EDGE = 1.25
 
   // A hover is the element's own fill, so what it lifts off starts at its parent.
@@ -56,6 +57,13 @@ describe('hovers, tints and edges over a base surface', () => {
     cy.contains('details > summary', label).click()
   }
 
+  // The select's values are RRule's frequency constants: 0 yearly, 1 monthly.
+  const openRecurrence = (frequency) => () => {
+    cy.visit('/bali/recurrent_event_rule_form/default')
+    cy.get('#form_record_rule_freq').select(frequency)
+  }
+  const recurrenceOption = (period, n) => `label:has(> input[name$="_${period}_on"][value="${n}"])`
+
   // [what, how the state is reached, the element that paints it]
   const HOVERS = [
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
@@ -70,8 +78,10 @@ describe('hovers, tints and edges over a base surface', () => {
       '.clipboard-trigger'],
     ['the DirectUpload dropzone', () => cy.visit('/bali/direct_upload/basic_usage'),
       '[data-direct-upload-target="dropzone"]'],
-    ['a RecurrentEventRuleForm option', () => cy.visit('/bali/recurrent_event_rule_form/default'),
-      '[data-recurrent-event-rule-target="freqCustomizationInputsContainer"]:visible label'],
+    ['a RecurrentEventRuleForm option, yearly on a date', openRecurrence('0'), recurrenceOption('yearly', 1)],
+    ['a RecurrentEventRuleForm option, yearly on the Nth weekday', openRecurrence('0'), recurrenceOption('yearly', 2)],
+    ['a RecurrentEventRuleForm option, monthly on a day', openRecurrence('1'), recurrenceOption('monthly', 1)],
+    ['a RecurrentEventRuleForm option, monthly on the Nth weekday', openRecurrence('1'), recurrenceOption('monthly', 2)],
     ['a Gantt zoom button', openGantt, 'button[title="Zoom in"]'],
     ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]'],
     ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])']
@@ -130,16 +140,16 @@ describe('hovers, tints and edges over a base surface', () => {
 
   // A day's looks replace each other, so each is painted on the page alone, never one over the
   // other. The year preview's card is base-100, like the page.
-  const apart = (doc, a, b) => {
-    const page = doc.defaultView.getComputedStyle(doc.body).backgroundColor
-    const [hi, lo] = [paintedLuminance(doc, page, a), paintedLuminance(doc, page, b)].sort((x, y) => y - x)
-    return (hi + 0.05) / (lo + 0.05)
-  }
+  const onPage = (doc, ...colours) =>
+    paintedLuminance(doc, doc.defaultView.getComputedStyle(doc.body).backgroundColor, ...colours)
+  const apart = (doc, a, b) => contrastRatio(onPage(doc, a), onPage(doc, b))
+  const offPage = (doc, a) => contrastRatio(onPage(doc, a), onPage(doc))
+  const side = (doc, a) => Math.sign(onPage(doc, a) - onPage(doc))
 
   // The preview's sample events cycle through `ghost` and `neutral`: 20 January is a ghost day,
   // 20 February a neutral one.
   THEMES.forEach((theme) => {
-    it(`tints a ghost day off an empty one, and under the pointer off its rest and a neutral day, on the ${theme} theme`, () => {
+    it(`tints a ghost day off an empty one and, under the pointer, further off the page than at rest, off a neutral day and with its number at AA, on the ${theme} theme`, () => {
       const ghost = 'a.year-day[aria-label="20 January 2026"]'
       const neutral = 'a.year-day[aria-label="20 February 2026"]'
       const fill = (el) => el.ownerDocument.defaultView.getComputedStyle(el).backgroundColor
@@ -159,13 +169,19 @@ describe('hovers, tints and edges over a base surface', () => {
       })
       cy.get(ghost).then(hover)
 
+      // Away from its rest is not enough: base-300 under the pointer is a step away from the ink
+      // at 8% on the dark themes too, but across the page and nearer to it than the day at rest.
+      // The number's AA is what kept the hover at 30%: at 40% it read 4.11:1 on `dark`.
       cy.get(ghost, { timeout: 10000 }).should(($day) => {
         const doc = $day[0].ownerDocument
         settled(doc)
         expect($day[0].matches(':hover'), 'under the pointer').to.equal(true)
         const hovered = fill($day[0])
         expect(apart(doc, hovered, atRest), `${theme}: hovered ghost day against the same day at rest`).to.be.at.least(STEP)
+        expect(side(doc, hovered), `${theme}: hovered ghost day on the side of the page the day at rest is`).to.equal(side(doc, atRest))
+        expect(offPage(doc, hovered), `${theme}: hovered ghost day off the page, against the day at rest`).to.be.above(offPage(doc, atRest))
         expect(apart(doc, hovered, neutralAtRest), `${theme}: hovered ghost day against a neutral day at rest`).to.be.at.least(STEP)
+        expect(paintedContrast($day[0]), `${theme}: number on a hovered ghost day`).to.be.at.least(4.5)
       })
     })
   })
