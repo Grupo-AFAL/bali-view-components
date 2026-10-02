@@ -42,7 +42,6 @@
   border-left: 0.25rem solid transparent;
   border-right: 0.25rem solid transparent;
   border-top: 0.3rem solid currentColor;
-  opacity: 0.7;
 }
 
 .status-pill__clear {
