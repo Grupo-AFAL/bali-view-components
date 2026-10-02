@@ -14,6 +14,11 @@ describe('RecurrentEventRuleForm', () => {
   const frequency = () => cy.get('#form_record_rule_freq')
   const endMethod = () => cy.get('#form_record_rule_end')
   const weekday = (index) => cy.get(`#byweekday_form_record_rule_${index}`)
+  const dayLabel = (index) => cy.get(`label[for="byweekday_form_record_rule_${index}"]`)
+  // A transition's first frame still paints the previous theme or state, and can pass.
+  const expectSettled = (el) => {
+    expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
+  }
   // The select values are RRule's own frequency constants.
   const YEARLY = '0'
   const MONTHLY = '1'
@@ -186,7 +191,7 @@ describe('RecurrentEventRuleForm', () => {
     it('cannot be edited when disabled', () => {
       cy.visit('/bali/recurrent_event_rule_form/disabled')
 
-      rule().should('have.value', 'FREQ=DAILY;INTERVAL=1')
+      rule().should('have.value', 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE')
       frequency().should('be.disabled')
       cy.get('#form_record_rule_interval').should('be.disabled')
     })
@@ -196,13 +201,6 @@ describe('RecurrentEventRuleForm', () => {
   // Bali's themes; daisyUI's `dark` paints it at 4.13:1, so the bar under the cursor is the day at
   // rest, not 4.5.
   describe('the weekdays as painted', () => {
-    const dayLabel = (index) => cy.get(`label[for="byweekday_form_record_rule_${index}"]`)
-
-    // A transition's first frame still paints the previous theme or state, and can pass.
-    const expectSettled = (el) => {
-      expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
-    }
-
     // An outline is drawn outside the box, over whatever the element sits on: measured as text
     // of its colour placed beside it.
     const ringContrast = (el) => {
@@ -258,6 +256,63 @@ describe('RecurrentEventRuleForm', () => {
           expect(getComputedStyle(label).outlineStyle, 'ring drawn').to.not.equal('none')
           expect(ringContrast(label), `${theme}: focus ring`).to.be.at.least(3)
         })
+      })
+    })
+  })
+
+  // #1272: a disabled day scaled, tinted and ringed under the cursor as if it could be picked.
+  describe('a disabled day', () => {
+    // Everything the cursor changes on an enabled day.
+    const reaction = (label) => {
+      const style = getComputedStyle(label)
+
+      return {
+        scale: style.scale,
+        background: style.backgroundColor,
+        outline: style.outlineStyle,
+        shadow: style.boxShadow
+      }
+    }
+
+    beforeEach(() => {
+      cy.then(unhover)
+      cy.visit('/bali/recurrent_event_rule_form/disabled')
+    })
+
+    afterEach(() => cy.then(unhover))
+
+    // The preview's BYDAY=MO,WE: Monday checked, Tuesday not.
+    ;[['a checked', 0, 'be.checked'], ['an unchecked', 1, 'not.be.checked']].forEach(([day, index, state]) => {
+      it(`does not react to the cursor on ${day} day`, () => {
+        weekday(index).should('be.disabled').and(state)
+
+        let atRest
+        dayLabel(index).should(([label]) => {
+          expectSettled(label)
+          expect(label.parentElement.matches(':hover'), 'at rest').to.equal(false)
+          atRest = reaction(label)
+        })
+
+        dayLabel(index).then(hover)
+
+        // Read through the day's wrapper: a disabled label does not take the pointer itself.
+        dayLabel(index).should(([label]) => {
+          expect(label.parentElement.matches(':hover'), 'under the cursor').to.equal(true)
+          expectSettled(label)
+          expect(reaction(label), 'under the cursor').to.deep.equal(atRest)
+        })
+      })
+    })
+
+    it('shows the not-allowed cursor over a day', () => {
+      dayLabel(0).then(([label]) => label.scrollIntoView({ block: 'center' }))
+
+      dayLabel(0).should(([label]) => {
+        const box = label.getBoundingClientRect()
+        const hit = label.ownerDocument.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+
+        expect(label.parentElement.contains(hit), 'the point is on the day').to.equal(true)
+        expect(getComputedStyle(hit).cursor, 'cursor').to.equal('not-allowed')
       })
     })
   })

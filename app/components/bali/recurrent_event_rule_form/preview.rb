@@ -54,7 +54,7 @@ module Bali
       def disabled
         render_with_template(locals: {
           model: form_record,
-          value: "FREQ=DAILY;INTERVAL=1",
+          value: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE",
           disabled: true
         })
       end
