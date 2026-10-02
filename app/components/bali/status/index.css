@@ -110,9 +110,9 @@
 }
 
 /* 5% black over a row's fill paints the fill `filter: brightness(0.95)` did and leaves the
-   text alone; the filter dimmed the text as well, and white on pink read 4.49:1. The
-   no-status row keeps the filter: it has no fill, and on the light themes the black over the
-   panel lowers its muted text (4.66 → 4.48:1 on `light`), which the filter does not. */
+   text alone; the filter dimmed the text as well, and white on pink read 4.49:1. Not on the
+   no-status row: it has no fill, and the black over the panel takes its muted text from 4.66
+   to 4.48:1 on `light`. */
 .status-option:not(.status-option--none):hover {
   background-image: linear-gradient(rgb(0 0 0 / 5%), rgb(0 0 0 / 5%));
 }
@@ -126,7 +126,4 @@
   color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
   border: 1px dashed color-mix(in oklch, var(--color-base-content) 20%, transparent);
   font-weight: 500;
-  transition: filter 0.1s ease-in-out;
 }
-
-.status-option--none:hover { filter: brightness(0.95); }

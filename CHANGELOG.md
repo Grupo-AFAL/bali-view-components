@@ -340,8 +340,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Las filas de color del panel de un `Bali::Status` editable ya no atenúan su texto bajo el
   puntero** (#1259). El hover era `filter: brightness(0.95)`, que oscurecía el fondo y también el
   texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo pinta el
-  mismo fondo y el texto queda en su par; la fila sin estado, que no tiene fondo, sigue igual. Sin
-  nada que hacer en el anfitrión.
+  mismo fondo y el texto queda en su par. La fila sin estado, que no tiene fondo, deja de cambiar
+  bajo el puntero: el filtro sólo atenuaba su texto. Sin nada que hacer en el anfitrión.
 
 ### Documentation
 
