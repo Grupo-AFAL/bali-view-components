@@ -128,6 +128,53 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_equal "Sin resultados", translations["no_results"]
   end
 
+  # The row paints no caption for any of its controls. cypress/e2e/filters-condition-names.cy.js
+  # reads the same names from the accessibility tree, SlimSelect's combobox included.
+  def test_names_the_field_and_the_operator_in_the_page_language
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    assert_selector('select[data-condition-target="attribute"][aria-label="Campo"]')
+    assert_selector('select[data-condition-target="operator"][aria-label="Operador"]')
+  end
+
+  VALUE_WIDGETS = {
+    { attribute: "name", operator: "cont" } => 'input[type="text"][data-condition-target="value"]',
+    { attribute: "age", operator: "eq" } => 'input[type="number"][data-condition-target="value"]',
+    { attribute: "created_at", operator: "eq" } => 'input[data-controller="datepicker"][data-condition-target="value"]',
+    { attribute: "created_at", operator: "between" } => 'input[data-controller="datepicker"][data-condition-target="rangeInput"]',
+    { attribute: "logged_in_at", operator: "eq" } => 'input[data-controller="datepicker"][data-condition-target="value"]',
+    { attribute: "logged_in_at", operator: "between" } => 'input[data-controller="datepicker"][data-condition-target="rangeInput"]',
+    { attribute: "verified", operator: "eq" } => 'select[data-condition-target="value"]',
+    { attribute: "status", operator: "eq" } => 'select[data-slim-select-target="select"]'
+  }.freeze
+
+  def test_names_every_value_widget_in_the_page_language
+    attributes = @available_attributes + [ { key: :logged_in_at, label: "Logged in", type: :datetime } ]
+    VALUE_WIDGETS.each do |condition, widget|
+      I18n.with_locale(:es) do
+        render_inline(Bali::Filters::Condition::Component.new(
+          condition: condition, group_index: 0, condition_index: 0, available_attributes: attributes
+        ))
+      end
+      assert_selector("#{widget}[aria-label=\"Valor\"]")
+    end
+  end
+
+  # condition_controller.js rebuilds the value widget whenever the field changes, and names
+  # it from here.
+  def test_translations_carry_the_name_of_the_value_widget_built_in_js
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
+    assert_equal "Valor", translations["value_label"]
+  end
+
   def test_with_pre_selected_attribute_shows_select_for_boolean_type
     condition = { attribute: "verified", operator: "eq", value: "true" }
     render_inline(Bali::Filters::Condition::Component.new(

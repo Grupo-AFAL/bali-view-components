@@ -9,6 +9,7 @@
   <%# Attribute selector - narrow; long labels truncate with ellipsis so the value gets space %>
   <div class="w-full sm:w-36 sm:shrink-0">
     <select class="select select-bordered select-sm w-full truncate"
+            aria-label="<%= t('bali_view.filters.field_label') %>"
             data-action="condition#attributeChanged"
             data-condition-target="attribute">
       <option value="">
@@ -29,6 +30,7 @@
   <%# Operator selector - kept narrow; long labels ("es exactamente") truncate with ellipsis %>
   <div class="w-full sm:w-28 sm:shrink-0">
     <select class="select select-bordered select-sm w-full truncate"
+            aria-label="<%= t('bali_view.filters.operator_label') %>"
             data-action="condition#operatorChanged"
             data-condition-target="operator">
       <% operators_for_current_type.each do |op| %>
@@ -45,7 +47,11 @@
   <%# Value input plus its "ignored" note - takes remaining space. The note is a SIBLING of
       the container rather than a child of it: condition_controller.js rebuilds the
       container's innerHTML whenever the operator asks for a different widget, and that
-      would take the note with it. %>
+      would take the note with it.
+      Each widget is named by aria-label, as is each one condition_controller.js builds
+      (`valueLabel`): SlimSelect names its combobox from the <select>'s aria-label or
+      aria-labelledby alone, and datepicker-controller.js carries it to flatpickr's altInput.
+      The multi-select trigger is the exception: an aria-label would hide the choices it lists. %>
   <div class="flex-1 min-w-0">
     <div data-condition-target="valueContainer">
       <% case attribute_type.to_sym %>
@@ -95,6 +101,7 @@
                data-slim-select-no-results-text-value="<%= t('bali_view.form_builder.slim_select.no_results') %>">
             <select class="select select-bordered select-sm w-full"
                     name="<%= field_name %>"
+                    aria-label="<%= value_label %>"
                     data-slim-select-target="select"
                     data-condition-target="value">
               <option value="">
@@ -113,6 +120,7 @@
       <% when :boolean %>
         <select class="select select-bordered select-sm w-full"
                 name="<%= field_name %>"
+                aria-label="<%= value_label %>"
                 data-condition-target="value">
           <option value="">
             <%= t('bali_view.filters.boolean.any') %>
@@ -132,6 +140,7 @@
             <input type="text"
                    class="input input-bordered input-sm w-full"
                    placeholder="<%= t('bali_view.filters.select_date_range') %>"
+                   aria-label="<%= value_label %>"
                    data-controller="datepicker"
                    data-datepicker-locale-value="<%= I18n.locale %>"
                    data-datepicker-mode-value="range"
@@ -157,6 +166,7 @@
                  name="<%= field_name %>"
                  value="<%= value %>"
                  placeholder="<%= t('bali_view.filters.select_date') %>"
+                 aria-label="<%= value_label %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
                  data-datepicker-mode-value="single"
@@ -172,6 +182,7 @@
             <input type="text"
                    class="input input-bordered input-sm w-full"
                    placeholder="<%= t('bali_view.filters.select_datetime_range') %>"
+                   aria-label="<%= value_label %>"
                    data-controller="datepicker"
                    data-datepicker-locale-value="<%= I18n.locale %>"
                    data-datepicker-mode-value="range"
@@ -198,6 +209,7 @@
                  name="<%= field_name %>"
                  value="<%= value %>"
                  placeholder="<%= t('bali_view.filters.select_datetime') %>"
+                 aria-label="<%= value_label %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
                  data-datepicker-mode-value="single"
@@ -214,6 +226,7 @@
                value="<%= value %>"
                step="any"
                placeholder="0"
+               aria-label="<%= value_label %>"
                data-condition-target="value">
 
       <% else %>
@@ -222,6 +235,7 @@
                name="<%= field_name %>"
                value="<%= value %>"
                placeholder="<%= t('bali_view.filters.enter_value') %>"
+               aria-label="<%= value_label %>"
                data-condition-target="value">
       <% end %>
     </div>

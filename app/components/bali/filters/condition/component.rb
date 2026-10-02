@@ -105,8 +105,13 @@ module Bali
             boolean: boolean_translations,
             selected_count: selected_count_translation,
             search: t("bali_view.filters.search"),
-            no_results: t("bali_view.form_builder.slim_select.no_results")
+            no_results: t("bali_view.form_builder.slim_select.no_results"),
+            value_label: value_label
           }.to_json
+        end
+
+        def value_label
+          t("bali_view.filters.value_label")
         end
 
         # Translations JSON for multi-select controller specifically
