@@ -2,10 +2,10 @@ import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 import { hover, unhover } from '../support/tap'
 
-// Pieces that used to paint fixed colours and only broke under a dark theme: SlimSelect's
-// own stylesheet froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes),
-// BlockEditor's code block kept github-light's ink (1.00:1), and a comments sidebar portaled out
-// of the editor kept BlockNote's #3f3f3f (1.51–1.68:1).
+// Pieces that used to paint fixed colours instead of the theme's: SlimSelect's own stylesheet
+// froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes), BlockEditor's
+// code block kept github-light's ink (1.00:1 on a dark theme, 3.17 on afal), and a comments
+// sidebar portaled out of the editor kept BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes).
 describe('colours that follow the theme', () => {
   afterEach(() => { unhover() })
 
