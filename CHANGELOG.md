@@ -182,12 +182,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   recargar. Sin nada que hacer en el anfitrión.
 
 - **Los hovers, los tintes y los bordes de panel que pintaban `base-200` o `base-300` se ven en
-  los seis temas** (#1276): el hover y el tinte pasan al texto al 8 % y el borde de un panel al
-  15 %, los valores del menú desde #1255. El hover de una opción de Filters, por ejemplo, va de
-  1.05:1 a 1.20:1 en `afal-dark`. Cambian TreeView, Filters (opciones «es alguno de» y bordes de
-  panel), Timeline con `href:`, Clipboard, DirectUpload, RecurrentEventRuleForm, la fila de
-  SplitView, el Gantt (zoom, plegar fila, minimapa y menús) y el día `:ghost` de
-  `Calendar::YearGrid`. Sin nada que hacer en el anfitrión.
+  claro y en oscuro** (#1276): el hover y el tinte pasan al texto al 8 % y el borde de un panel
+  al 15 %, los valores del menú desde #1255. El hover de una opción de Filters, por ejemplo, va
+  de 1.05:1 a 1.20:1 en `afal-dark`; en los temas claros también se marcan un poco más (un
+  borde de panel que era `base-300`, de 1.24 a 1.33:1 en `afal`). Cambian TreeView, Filters
+  (opciones «es alguno de» y bordes de panel), Timeline con `href:`, Clipboard, DirectUpload,
+  RecurrentEventRuleForm, la fila de SplitView, el Gantt (zoom, plegar fila, minimapa y menús) y
+  el día `:ghost` de `Calendar::YearGrid`. Sin nada que hacer en el anfitrión.
 
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
