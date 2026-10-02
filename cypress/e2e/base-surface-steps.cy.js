@@ -8,19 +8,20 @@ import { THEMES } from '../support/themes'
 // base-200 hover over base-100 read 1.048:1 on afal-dark and no more than 1.101 on any theme
 // (afal), TreeView's 1.00 on all six — its own surface is base-200 — and a panel's base-300 edge
 // 1.07–1.09 on afal-dark (#1276). The ink at 8% (a hover, a tint) and at 15% (an edge) steps off
-// either way the theme's ramp runs: 1.16 and 1.27 at worst.
+// either way the theme's ramp runs: 1.16 and 1.33 at worst.
 describe('hovers, tints and edges over a base surface', () => {
   const STEP = 1.15
-  // Above the 1.238 a base-300 edge reads on afal, so base-300 does not pass, and below the 1.267
-  // the ink at 15% paints at worst: the multi-select list inside the filter group's tint, on afal.
+  // Above the 1.238 a base-300 edge reads on afal, so base-300 does not pass, and below the 1.279
+  // of the lowest edge: the multi-select list's ink at 20% over the filter group's 8% tint, on afal.
   const EDGE = 1.25
+  const AA = 4.5
 
   // A hover is the element's own fill, so what it lifts off starts at its parent.
   const lift = (el) => paintedContrast(el, { over: el.parentElement, property: 'backgroundColor' })
 
   // A border paints over its panel's own background, not over what lies outside the panel: over
-  // the filter group's tint outside, the multi-select list's edge read 1.329:1 on afal and
-  // paints 1.267. `under` measures it against both sides and keeps the lower.
+  // the filter group's tint outside, the multi-select list's edge read 1.476:1 on afal and
+  // paints 1.279. `under` measures it against both sides and keeps the lower.
   const edge = (panel) => paintedContrast(panel, {
     over: panel.parentElement,
     property: 'borderTopColor',
@@ -95,7 +96,16 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a RecurrentEventRuleForm option, monthly on the Nth weekday', openRecurrence('1'), recurrenceOption('monthly', 2)],
     ['a Gantt zoom button', openGantt, 'button[title="Zoom in"]'],
     ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]'],
-    ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])']
+    ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])'],
+    // Filled at rest. Their base-300 hover over a base-200 fill stepped 1.044:1 (afal-dark) to
+    // 1.130 (costa-norte) off the same control at rest; the ink at 16% over 8%, 1.168 at worst
+    // (afal). The fill has to step off the surface too, and the text is read on both fills.
+    ['the Avatar::Upload button', () => cy.visit('/bali/avatar/with_upload'),
+      'label:has([data-avatar-target="input"])', { filled: true }],
+    ['the Command trigger', () => cy.visit('/bali/command/default'),
+      '.bali-command-trigger', { filled: true, text: '.bali-command-trigger > span' }],
+    ['a SplitView filter pill', () => cy.visit('/bali/split_view/default'),
+      '.split-view-filter:not([data-active="true"])', { filled: true, text: '.split-view-filter' }]
   ]
 
   const EDGES = [
@@ -118,9 +128,14 @@ describe('hovers, tints and edges over a base surface', () => {
   // (soft-text-contrast.cy.js), so every wait after one gets 10 s.
   const settled = (doc) => expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
 
-  HOVERS.forEach(([what, reach, selector]) => {
+  const textOn = (el, selector) => paintedContrast(el.matches(selector) ? el : el.querySelector(selector))
+
+  HOVERS.forEach(([what, reach, selector, { filled = false, text } = {}]) => {
     THEMES.forEach((theme) => {
-      it(`lifts ${what} under the pointer off its surface on the ${theme} theme`, () => {
+      const name = filled
+        ? `tints ${what} off its surface and lifts it further under the pointer on the ${theme} theme`
+        : `lifts ${what} under the pointer off its surface on the ${theme} theme`
+      it(name, () => {
         let atRest
         reach()
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -129,6 +144,8 @@ describe('hovers, tints and edges over a base surface', () => {
           settled($el[0].ownerDocument)
           expect($el[0].matches(':hover'), 'at rest').to.equal(false)
           atRest = lift($el[0])
+          if (filled) expect(atRest, `${theme}: ${what} at rest against its surface`).to.be.at.least(STEP)
+          if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} at rest`).to.be.at.least(AA)
         })
         cy.get(selector).first().then(hover)
 
@@ -142,6 +159,7 @@ describe('hovers, tints and edges over a base surface', () => {
           const lifted = lift($el[0])
           expect(lifted, `${theme}: ${what} against its surface`).to.be.at.least(STEP)
           expect(lifted / atRest, `${theme}: ${what} against itself at rest`).to.be.at.least(STEP)
+          if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} under the pointer`).to.be.at.least(AA)
         })
       })
     })
@@ -159,6 +177,23 @@ describe('hovers, tints and edges over a base surface', () => {
           expect(parseFloat(style.borderTopWidth), 'border width').to.be.at.least(1)
           expect(measure($panel[0]), `${theme}: edge of ${what}`).to.be.above(EDGE)
         })
+      })
+    })
+  })
+
+  // The group has no border: its tint is all that draws it on the panel. The remove-condition
+  // icon is the one glyph on that tint with no fill of its own; at /50 it read 2.92:1 over the
+  // ink at 8% on afal, under the 3:1 an icon needs.
+  THEMES.forEach((theme) => {
+    it(`tints a Filters group off its panel, its remove icon at 3:1, on the ${theme} theme`, () => {
+      openFilters()
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.get('.filter-group').first({ timeout: 10000 }).should(($group) => {
+        settled($group[0].ownerDocument)
+        expect(lift($group[0]), `${theme}: a Filters group against its panel`).to.be.at.least(STEP)
+        expect(paintedContrast($group[0].querySelector('[data-action="condition#remove"]')),
+          `${theme}: the remove-condition icon on the group`).to.be.at.least(3)
       })
     })
   })
