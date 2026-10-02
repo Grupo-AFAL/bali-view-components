@@ -3,10 +3,11 @@ import { paintedLuminance } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 
 // The point of the merge: the SAME controller drives the menu in both modes. In popover
-// mode the menu is moved into a tippy popper on `<body>`, so every "is this mine?" question
-// the controller asks — `this.element.contains`, the nested-dropdown guard, the item list —
-// has to look in two places. Before, popover mode rendered a HoverCard around a string copy
-// of the list and had no keyboard at all.
+// mode the menu is moved into a tippy popper outside the wrapper (on `<body>`, or on the open
+// modal `<dialog>`), so every "is this mine?" question the controller asks —
+// `this.element.contains`, the nested-dropdown guard, the item list — has to look in two
+// places. Before, popover mode rendered a HoverCard around a string copy of the list and had
+// no keyboard at all.
 describe('DropdownController', () => {
   const cssDropdown = '[data-dropdown-popover-value="false"]'
   const popoverDropdown = '[data-dropdown-popover-value="true"]'
