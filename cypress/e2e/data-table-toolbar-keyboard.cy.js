@@ -1,6 +1,6 @@
 // One keyboard for the whole toolbar row (#1250): the focus alone opens no menu, Enter, Space
-// and ArrowDown do, and Escape closes it and hands the focus back — every control, in the row
-// and folded into the ⋯.
+// and ArrowDown do, and Escape closes it and hands the focus back — every control in the row,
+// and Columns folded into the ⋯.
 describe('DataTable toolbar keyboard', () => {
   const toolbar = '[data-controller~="toolbar-overflow"]'
   const trigger = (label) => `${toolbar} .dropdown > [aria-label="${label}"]`
