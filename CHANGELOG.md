@@ -204,10 +204,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   «Operator», «Value» en inglés), también cuando el valor se rehace al cambiar de campo; el
   texto y las fechas, que se nombraban con su placeholder, pasan también a «Valor». La
   excepción es el multi-select de «es cualquiera de» / «no es ninguno de»: sigue nombrándose
-  por lo que muestra («Action, Adventure», «3 seleccionados»). Lo notan las apps con
-  `with_filters_panel` (afal-apps, gobierno-corporativo e identity:
-  `git grep -l -E 'with_filters_panel|Bali::Filters::Component' origin/main -- app`); ga-apps
-  también lo usa, pero sigue fijada a bali 1.2.4 (#702). Sin nada que hacer en el anfitrión.
+  por lo que muestra («Action, Adventure», «3 seleccionados»). Lo notan las apps que usan
+  `Bali::Filters`, solo o con `with_filters_panel` del `DataTable`. Sin nada que hacer en el
+  anfitrión.
 
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
