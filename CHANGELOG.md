@@ -191,13 +191,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   alcance del puntero y del teclado. Ahora cuelga del `<dialog>` modal, como el tooltip y el
   hover card; fuera de uno sigue en `<body>`. En un `<dialog>` propio el navegador pone
   `overflow: auto`, y uno más chico que la pantalla recorta el menú en su borde; el
-  `class="modal"` de daisyUI ocupa la pantalla y no lo recorta. Además, dentro de un `Modal` o
-  un `Drawer` el Escape que cierra un menú abierto, en cualquiera de los dos modos, ya no
-  cierra también el panel: lo cierra el siguiente. Y Tab desde un menú `popover: true` sigue
-  desde el disparador sin salir del panel, también con el contenido de un panel remoto. Ningún
-  anfitrión tiene hoy un `popover: true` dentro de un diálogo: los de **afal-apps** están en
-  páginas (`git grep -n "popover: true" origin/main -- app/views`). Sin nada que hacer en el
-  anfitrión.
+  `class="modal"` de daisyUI ocupa la pantalla y no lo recorta. Y Tab desde un menú
+  `popover: true` sigue desde el disparador sin salir del panel, también con el contenido de un
+  panel remoto. Ningún anfitrión tiene hoy un `popover: true` dentro de un diálogo: los de
+  **afal-apps** están en páginas (`git grep -n "popover: true" origin/main -- app/views`).
+  Lo que sí alcanza a los anfitriones es el Escape: dentro de un `Modal` o un `Drawer`, el que
+  cierra un menú abierto ya no cierra también el panel, que se cierra con el siguiente. Vale
+  para todo dropdown que pongan ahí, en cualquiera de los dos modos, como un `ActionsDropdown`
+  o los de la barra de un `DataTable`. Sin nada que hacer en el anfitrión.
 
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
   SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
