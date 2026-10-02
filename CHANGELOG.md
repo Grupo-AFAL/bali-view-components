@@ -149,12 +149,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1259): `#ea580c` → `#c2410c`, `#16a34a` → `#15803d`, `#0d9488` → `#0f766e`. Con texto blanco
   medían 3.56, 3.30 y 3.74:1, bajo el 4.5 de AA; ahora 5.18, 5.02 y 5.47. La paleta sigue igual
   en todos los temas. Se ve en las píldoras de afal-apps, costa-norte y bali-analytics, en lo que
-  se pinta con `Bali::Status.palette` (el ícono de la StatCard de entregados en el dashboard de
-  costa-norte) y en los avatares de iniciales que caen en esos colores (`Avatar` con `name:`,
-  `Topbar::UserMenu`). La guía declara congelados estos hex porque cambiarlos rompe a quien los
-  copió: ninguna de las nueve apps lo hizo
-  (`git grep -n -i -E "ea580c|16a34a|0d9488" origin/main -- app config lib test`). Sin nada que
-  hacer en el anfitrión.
+  se pinta con `Bali::Status.palette` y en los avatares de iniciales que caen en esos colores
+  (`Avatar` con `name:`, `Topbar::UserMenu`). Acota lo que prometió v3.1: los doce nombres siguen
+  congelados, pero un hex puede cambiar para que su par llegue a AA. **Anfitrión:** quien pinte
+  el `bg` como color de un ícono o de un texto sobre una superficie oscura pierde contraste con
+  estos -700 (el ícono verde de la StatCard de costa-norte bajaría de 4.18 a 2.88:1 en
+  `costa-norte-dark`); revisen esos sitios:
+  `git grep -n -E "Status\.palette|Status::Component::PALETTE" origin/main -- app`.
 
 ### Removed
 
