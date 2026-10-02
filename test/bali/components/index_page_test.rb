@@ -116,6 +116,42 @@ class BaliIndexPageComponentTest < ComponentTestCase
     refute_includes href, "page="
   end
 
+  def test_export_links_read_the_slice_from_the_request_by_default
+    with_request_url "/admin/movies?q%5Bname_cont%5D=dune&page=2" do
+      render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+        page.with_export(url: "/admin/movies")
+        page.with_body { "Content" }
+      end
+    end
+
+    assert_selector('a[href="/admin/movies?format=csv&q%5Bname_cont%5D=dune"]', visible: :all)
+  end
+
+  # `{}` is the opt-out, "export everything, deliberately": it has to beat the query string of the
+  # request, which is the only place `nil` and `{}` give different links.
+  def test_export_links_with_empty_params_ignore_the_request
+    with_request_url "/admin/movies?q%5Bname_cont%5D=dune" do
+      render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+        page.with_export(url: "/admin/movies", params: {})
+        page.with_body { "Content" }
+      end
+    end
+
+    assert_selector('a[href="/admin/movies?format=csv"]', visible: :all)
+  end
+
+  # Bali::Dropdown items default to `method: :get`, which Link paints as Rails-UJS's
+  # `data-method="get"`: dead under Turbo.
+  def test_export_links_carry_no_rails_ujs_method
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies")
+      page.with_body { "Content" }
+    end
+
+    assert_selector('[data-export-links-target="link"]', count: 3, visible: :all)
+    assert_no_selector('[data-export-links-target="link"][data-method]', visible: :all)
+  end
+
   def test_export_links_are_kept_in_sync_by_their_controller
     # The ⋯ lives in the PageHeader, OUTSIDE the node the listing's turbo_stream replaces: without
     # the controller the first filter leaves the hrefs frozen.
