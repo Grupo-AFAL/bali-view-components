@@ -154,10 +154,11 @@ describe('CommandController', () => {
       count().should('have.text', '1 resultado')
     })
 
-    // At 360px "9 resultados" does not fit beside the key hints, and on that line
-    // the panel's overflow-hidden would cut it to "resultad".
+    // 320px is the width WCAG 1.4.10 asks content to reflow at. Kept on one line
+    // there, "9 resultados" runs 42px past the panel, whose overflow-hidden leaves
+    // "9 res". Not 360px: there it overflows by about 2px, which a font can erase.
     it('keeps the whole count inside the panel on a phone', () => {
-      cy.viewport(360, 760)
+      cy.viewport(320, 760)
       cy.visit('/bali/command/default?locale=es')
       openPalette()
 
