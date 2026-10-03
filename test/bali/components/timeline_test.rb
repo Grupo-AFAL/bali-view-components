@@ -96,7 +96,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_item(color: :success)
     end
-    assert_selector(".timeline-middle.text-success")
+    assert_selector(".timeline-middle.text-soft-success")
   end
 
   def test_timeline_items_renders_colored_connecting_lines
@@ -220,7 +220,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_item(state: :done, heading: "Done")
     end
-    assert_selector(".timeline-middle.text-primary")
+    assert_selector(".timeline-middle.text-soft-primary")
     assert_selector('.timeline-middle svg path[d="m9 12 2 2 4-4"]')
     assert_selector("hr.bg-primary", count: 2)
   end
@@ -229,7 +229,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_item(state: :current, heading: "Here")
     end
-    assert_selector(".timeline-middle.text-primary")
+    assert_selector(".timeline-middle.text-soft-primary")
     assert_selector('.timeline-middle svg circle[r="1"]')
   end
 
@@ -248,14 +248,14 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_item(state: "done")
     end
-    assert_selector(".timeline-middle.text-primary")
+    assert_selector(".timeline-middle.text-soft-primary")
   end
 
   def test_state_is_overridable_by_explicit_icon_and_color
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_item(state: :done, icon: "circle", color: :warning)
     end
-    assert_selector(".timeline-middle.text-warning")
+    assert_selector(".timeline-middle.text-soft-warning")
     assert_no_selector(".timeline-middle svg path")
   end
 
@@ -374,6 +374,17 @@ class BaliTimelineComponentTest < ComponentTestCase
 
     first = page.all("li", visible: :all).first
     assert_includes(first.all("hr", visible: :all).last[:style].to_s, "#123456")
+  end
+
+  # The line paints the hex as is; the marker is an icon on the page, mixed into the theme's ink
+  # like `text-soft-*`. soft-text-contrast.cy.js measures it.
+  def test_a_custom_colour_marker_takes_the_soft_mix_and_its_line_the_hex
+    render_inline(Bali::Timeline::Component.new) do |c|
+      c.with_item(heading: "Brand", custom_color: "#7c3aed")
+    end
+
+    assert_selector(".timeline-middle[style='color: #{Bali::Color.soft('#7c3aed')}']")
+    assert_selector("hr[style='background-color: #7c3aed']", count: 2)
   end
 
   def test_deprecated_slots_with_tag_item_still_renders_and_warns

@@ -43,15 +43,17 @@ module Bali
         # Tailwind only emits a class it can find literally in a source file.
         # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
         # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
+        # The marker is an icon on the page, where the colour itself fails the 3:1 of a graphic:
+        # `text-warning` read 1.69:1 on `afal`. The line keeps the colour.
         COLORS = {
           neutral: "text-base-content",
-          primary: "text-primary",
-          secondary: "text-secondary",
-          accent: "text-accent",
-          info: "text-info",
-          success: "text-success",
-          warning: "text-warning",
-          error: "text-error",
+          primary: "text-soft-primary",
+          secondary: "text-soft-secondary",
+          accent: "text-soft-accent",
+          info: "text-soft-info",
+          success: "text-soft-success",
+          warning: "text-soft-warning",
+          error: "text-soft-error",
           ghost: "text-base-content"
         }.freeze
 
@@ -99,7 +101,8 @@ module Bali
         # @param heading [String, nil] Optional heading text for the item
         # @param icon [String, nil] Lucide icon name to display in the marker
         # @param color [Symbol] Semantic colour for the marker and line (Bali::Color::NAMES)
-        # @param custom_color [String, nil] Hex colour for the marker and line
+        # @param custom_color [String, nil] Hex colour for the line, mixed into the theme's ink
+        #   for the marker (see `marker_style`)
         # @param state [:done, :current, :pending, nil] Tracking sugar: resolves the
         #   marker icon and colour (see STATES); `icon:`/`color:` given explicitly win.
         #   `:pending` also mutes the heading.
@@ -173,8 +176,10 @@ module Bali
           class_names(MARKER_BASE_CLASSES, COLORS[color])
         end
 
+        # `Bali::Color.soft` is `text-soft-*` for a hex: the preview's violet itself read 2.78:1
+        # on `dark`.
         def marker_style
-          "color: #{custom_color}" if custom_color
+          "color: #{Bali::Color.soft(custom_color)}" if custom_color
         end
 
         def line_after_source
