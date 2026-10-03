@@ -103,7 +103,7 @@ module Bali
       # does in SimpleFilters: the <label> wrapped around this box names it first, with the
       # empty string, or with the clear button's "Clear search" once there is text (#1282).
       def search_label
-        @search.label.presence || search_placeholder
+        @search.label.presence || @search.placeholder.presence || I18n.t("bali_view.filters.search_placeholder")
       end
 
       def search_icon

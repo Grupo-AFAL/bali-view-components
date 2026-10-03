@@ -497,6 +497,15 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchInput"][aria-label="Search users..."]'
   end
 
+  def test_a_blank_placeholder_still_leaves_the_search_input_a_name
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], placeholder: "" }
+    ))
+
+    assert_selector '[data-filters-target="searchInput"][aria-label="Search..."]'
+  end
+
   def test_the_search_box_takes_the_declared_width
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes,
