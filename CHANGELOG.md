@@ -243,12 +243,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de la píldora de estatus, así que hay que corregir los dos comentarios que lo afirman, el de
   `shipment_status_hex` y el de `dashboard/show.html.erb`.
 
-- **El texto y los íconos de un color pintados sobre la página pasan a `text-soft-<color>`**
-  (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`, `text-info` y
-  `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1 en `afal`,
-  `text-success` 1.92— y el secundario de `costa-norte`, 1.99 (AA pide 4.5 para texto y 3:1 para
-  un ícono). Con la mezcla, el mínimo es 5.97:1 (`text-soft-warning` en `afal`). Cambian:
-  - FormBuilder: el mensaje de error de cada campo y el asterisco de requerido.
+- **El error del FormBuilder y el texto y los íconos de color de siete componentes pasan a
+  `text-soft-<color>`** (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`,
+  `text-info` y `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1
+  en `afal`, `text-success` 1.92— y el secundario de `costa-norte`, 1.99 (AA pide 4.5 para texto y
+  3:1 para un ícono). Con la mezcla, el mínimo es 5.97:1 (`text-soft-warning` en `afal`). Cambian:
+  - FormBuilder: el mensaje de error de cada campo, el asterisco de requerido y el contador de
+    caracteres pasado el máximo.
   - `Filters`: los tres «Clear all».
   - `Widget`: la tendencia, y el sí y el no del Check, que dibuja `BooleanIcon`.
   - `Gauge` y `Loader`: el porcentaje y el texto; el anillo y el spinner conservan el color, y la
@@ -265,19 +266,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`affiliations_controller_test.rb`, `census_assignments_controller_test.rb` y
   `terminals_controller_test.rb`, la de `count: 0`) y, en **gobierno-corporativo**,
   `document_classification_types_controller_test.rb` y
-  `governing_bodies/body_creation_requests_controller_test.rb`.
+  `governing_bodies/body_creation_requests_controller_test.rb`. Donde una app copió el marcado,
+  no cambia sola: **identity** escribe `fieldset-label text-error` en
+  `app/views/rodauth/_otp_digits.html.erb` (pasa a `text-soft-error`), y **gobierno-corporativo**
+  pinta de `text-error` su contador en `app/javascript/controllers/character_counter_controller.js`.
 
 - **El texto que daisyUI atenúa a `/60` pasa a `/70`: la ayuda de cada campo del FormBuilder y el
   encabezado y el pie de tabla** (#1281). Medían 4.04:1 en `afal` y 4.32 en `costa-norte`; a `/70`,
   5.54 y 6.00. Lo llevan `Bali::Table`, y con ella `DataTable`, y la tabla de los campos
-  dinámicos. Sin nada que hacer en el anfitrión.
+  dinámicos. **identity** escribe a mano tres `<p class="fieldset-label">` de ayuda en
+  `app/views/admin/connected_applications/_form.html.erb`, que siguen en el `/60` hasta que les
+  ponga `text-base-content/70`.
 
 - **`Bali::Footer` deja de atenuar el título, la descripción y el copyright** (#1281). Sobre
   `primary` el título medía 2.83:1 en `afal`, y sobre `neutral` 4.15 en `afal-dark`. Con los
   cuatro colores en los temas de Bali, una opacidad sólo pasa desde `.9`, que sobre `primary` en
   `afal` lee 4.55 contra 5.25 a tinta plena: una atenuación que no se ve. El `secondary` de los
-  `light` y `dark` de daisyUI no llega a AA ni a tinta plena (3.04:1). Ninguna app renderiza
-  `Bali::Footer`.
+  `light` y `dark` de daisyUI no llega a AA ni a tinta plena (3.04:1), y el `primary` de `dark`
+  tampoco (4.13). Ninguna app renderiza `Bali::Footer`.
 
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
