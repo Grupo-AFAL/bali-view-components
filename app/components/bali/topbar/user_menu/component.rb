@@ -76,14 +76,14 @@ module Bali
           super
         end
 
-        # Avatar + name (from md up) + chevron (from sm up). Rendered into locals first:
-        # a block that calls `render` itself comes back empty here — `capture`
-        # prefers the output buffer and discards the returned string (see the
-        # measurement note in Bali::ActionsDropdown#default_trigger).
+        # Avatar + name + chevron. Rendered into locals first: a block that calls
+        # `render` itself comes back empty here — `capture` prefers the output buffer
+        # and discards the returned string (see the measurement note in
+        # Bali::ActionsDropdown#default_trigger).
         #
-        # Below sm the trigger is the avatar alone, square like the IconActions beside it:
-        # at 320 px, next to the hamburger, the palette and two actions, the avatar-and-chevron
-        # trigger ended at x=335, 15 px past the screen edge where AppLayout clips.
+        # Why the avatar stands alone below sm: at 320 px, beside the hamburger, the
+        # palette and two actions, avatar and chevron ended at x=335, 15 px past the
+        # screen edge where AppLayout clips.
         def default_trigger
           avatar = Bali::Avatar::Component.new(name: @name, initials: @initials,
                                                src: @avatar_url, size: :xs)

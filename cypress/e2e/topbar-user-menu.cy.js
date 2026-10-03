@@ -67,8 +67,6 @@ describe('Topbar::UserMenu', () => {
     })
   })
 
-  // A line that clips: longer than its box, the box inside its container, and the overflow
-  // hidden behind an ellipsis rather than painted past the edge.
   const expectClippedWithin = (el, right) => {
     const style = el.ownerDocument.defaultView.getComputedStyle(el)
     expect(el.getBoundingClientRect().right, 'right edge').to.be.at.most(right)
@@ -78,7 +76,7 @@ describe('Topbar::UserMenu', () => {
   }
 
   describe('with a long name and email', () => {
-    const longMenu = () => cy.get(userMenu).eq(3)
+    const longMenu = () => cy.contains(userMenu, 'María Fernanda')
 
     beforeEach(() => cy.viewport(1280, 800))
 
