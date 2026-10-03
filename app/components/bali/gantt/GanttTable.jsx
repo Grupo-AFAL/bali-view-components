@@ -52,10 +52,7 @@ const colStyle = (key) => ({ flex: `0 0 ${COL_W[key]}px`, minWidth: 0 })
 // the name of a second-level row. Below it the table clips its right-hand columns instead.
 const NAME_MIN_W = 140
 
-// The width at which the table shows every visible column whole.
-export function tableWidthFor (cols) {
-  return Object.keys(COL_W).reduce((sum, key) => sum + (cols[key] ? COL_W[key] : 0), NAME_MIN_W)
-}
+export const FULL_TABLE_W = Object.values(COL_W).reduce((sum, w) => sum + w, NAME_MIN_W)
 
 export default memo(function GanttTable ({
   rows,
