@@ -42,7 +42,6 @@
   border-left: 0.25rem solid transparent;
   border-right: 0.25rem solid transparent;
   border-top: 0.3rem solid currentColor;
-  opacity: 0.7;
 }
 
 .status-pill__clear {
@@ -62,17 +61,6 @@
 
 .status-pill:hover .status-pill__clear,
 .status-pill:focus-within .status-pill__clear { opacity: 0.85; }
-
-/* None / unassigned state. No !important: the component only writes an inline
-   style when something is selected, so there was never anything to outrank —
-   and inside @layer components an !important is nearly unbeatable from a host,
-   which is the opposite of what this rule wants. */
-.status-pill--none {
-  background-color: transparent;
-  color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
-  border: 1px dashed color-mix(in oklch, var(--color-base-content) 20%, transparent);
-  font-weight: 500;
-}
 
 /* Sizes */
 .status--xs { font-size: 0.6875rem; padding: 0.125rem 0.5rem; }
@@ -107,18 +95,27 @@
   font-weight: 600;
   font-size: 0.8125rem;
   cursor: pointer;
-  transition: filter 0.1s ease-in-out;
 }
 
-.status-option:hover { filter: brightness(0.95); }
+/* 5% black over a row's fill paints the fill `filter: brightness(0.95)` did and leaves the
+   text alone; the filter dimmed the text as well, and white on pink read 4.49:1. */
+.status-option:hover {
+  background-image: linear-gradient(rgb(0 0 0 / 5%), rgb(0 0 0 / 5%));
+}
 
 .status-option[aria-selected="true"] {
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-base-content) 30%, transparent);
 }
 
+/* None / unassigned state, on the pill and as the panel's last row. 70% and not 60:
+   at 60 its text read 4.04:1 on afal's base-100 and 4.32 on costa-norte's. No
+   !important: the component writes no inline style on either, so there was never
+   anything to outrank — and inside @layer components an !important is nearly
+   unbeatable from a host, which is the opposite of what this rule wants. */
+.status-pill--none,
 .status-option--none {
   background-color: transparent;
-  color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+  color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   border: 1px dashed color-mix(in oklch, var(--color-base-content) 20%, transparent);
   font-weight: 500;
 }

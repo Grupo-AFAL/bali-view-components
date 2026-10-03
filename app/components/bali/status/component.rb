@@ -9,7 +9,10 @@ module Bali
 
       # Fixed, vibrant status palette. Rendered as inline styles (never Tailwind
       # bg-* classes) so statuses look identical across DaisyUI themes and need
-      # no safelist. `fg` values are picked for AA-ish contrast on `bg`.
+      # no safelist. Every `fg` reads at least 4.5:1 on its `bg`, AA for the
+      # pill's 11–14px text; pink (4.60) and slate (4.76) are the closest.
+      # Orange, green and teal are Tailwind's -700 because their -600, the step
+      # red and blue use, measured 3.30–3.74:1 under white (#1259).
       #
       # This is the one place a colour name outside Bali::Color::NAMES survives,
       # and on purpose: a workflow's "blue" is not the app's `primary`, and a host
@@ -20,11 +23,11 @@ module Bali
         slate:  { bg: "#64748b", fg: "#fff" },
         gray:   { bg: "#d1d5db", fg: "#1f2937" },
         red:    { bg: "#dc2626", fg: "#fff" },
-        orange: { bg: "#ea580c", fg: "#fff" },
+        orange: { bg: "#c2410c", fg: "#fff" },
         amber:  { bg: "#f59e0b", fg: "#1f2937" },
         yellow: { bg: "#eab308", fg: "#1f2937" },
-        green:  { bg: "#16a34a", fg: "#fff" },
-        teal:   { bg: "#0d9488", fg: "#fff" },
+        green:  { bg: "#15803d", fg: "#fff" },
+        teal:   { bg: "#0f766e", fg: "#fff" },
         blue:   { bg: "#2563eb", fg: "#fff" },
         indigo: { bg: "#4f46e5", fg: "#fff" },
         violet: { bg: "#6d28d9", fg: "#fff" },
