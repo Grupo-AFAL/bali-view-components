@@ -621,8 +621,9 @@ module Bali
       apply_group_by_ordering(params)
 
       # Last step and over a copy: the state that is RENDERED (filter_groups, the pills, a
-      # saved view's payload, the persistence cache) keeps speaking in labels, which is what
-      # the `<option value>` carries. See EnumCasting and WholeDayCasting.
+      # saved view's payload, the persistence cache) keeps speaking in labels and bare dates,
+      # which is what the `<option value>` and the range picker carry. See EnumCasting and
+      # WholeDayCasting.
       cast_whole_days(cast_enum_labels(params))
     end
 

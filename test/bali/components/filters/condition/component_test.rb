@@ -167,8 +167,6 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     end
   end
 
-  # Bali::FilterForm::WholeDayCasting reads the top of a range as the end of its day, so a time
-  # on screen would be one the query never used (#1282).
   def test_a_datetime_range_picks_whole_days
     render_inline(Bali::Filters::Condition::Component.new(
       condition: { attribute: "logged_in_at", operator: "between" }, group_index: 0, condition_index: 0,
