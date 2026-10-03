@@ -11,8 +11,8 @@
   frame_id: "split-view-detail",
   frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }
 ) do |split| %>
-  <% split.with_list(header: "Catálogo", count: movies.size, selected: selected&.id,
-                     item_name: "películas", max_height: "none") do |list| %>
+  <% split.with_list(header: "Catalog", count: movies.size, selected: selected&.id,
+                     item_name: "movies", max_height: "none") do |list| %>
     <% movies.each do |movie| %>
       <% list.with_item(id: movie.id, href: "#{request.path}?selected=#{movie.id}",
                         title: movie.name, subtitle: movie.studio&.name) do |row| %>
@@ -30,16 +30,16 @@
       <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
         <% card.with_title(selected.name, class: "text-lg", data: { testid: "detail-title" }) %>
         <%= render Bali::DescriptionList::Component.new(columns: 2) do |items| %>
-          <% items.with_item(label: "Género", value: selected.genre) %>
-          <% items.with_item(label: "Estudio", value: selected.studio&.name) %>
+          <% items.with_item(label: "Genre", value: selected.genre) %>
+          <% items.with_item(label: "Studio", value: selected.studio&.name) %>
         <% end %>
       <% end %>
     <% end %>
   <% else %>
     <% split.with_empty_detail do %>
       <%= render Bali::EmptyState::Component.new(
-        title: "Selecciona una película",
-        description: "Elige una fila para ver su ficha aquí.",
+        title: "Select a movie",
+        description: "Pick a row to see its details here.",
         icon: "inbox"
       ) %>
     <% end %>

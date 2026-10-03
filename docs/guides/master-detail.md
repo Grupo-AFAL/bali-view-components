@@ -11,7 +11,8 @@ detail pane stays completely yours.
 
 - Live examples: `/lookbook/preview/bali/split_view/default` (the structured
   listing, with live filter pills), `.../multi_filters`, `.../full_height/default`
-  (inside a locked AppLayout) and `.../custom_master` (the escape hatch)
+  (inside a locked AppLayout), `.../frame_options` (scrolling to the detail when
+  stacked) and `.../custom_master` (the escape hatch)
 - Working reference in the dummy app: `test/dummy/app/controllers/split_views_controller.rb`
   and `test/dummy/app/views/split_views/` — the whole Rails side in one action.
 
@@ -69,8 +70,9 @@ of them missing meant a row that silently reloaded the whole page.
   (default: `true`).
 - `frame_options` — HTML attributes for the detail `<turbo-frame>` itself;
   the rest of the options go to the container. `class:` is added to the
-  component's and `data:` merged into it, so `advance` keeps working; `id:`
-  raises, because the frame's id is `frame_id`. See
+  component's and `data:` merged into it key by key, so the `turbo_action` of
+  `advance` stays unless you name one, which wins; `id:` raises, because the
+  frame's id is `frame_id`. See
   [Bringing the detail into view on a phone](#bringing-the-detail-into-view-on-a-phone).
 
 **Slots on the SplitView**
