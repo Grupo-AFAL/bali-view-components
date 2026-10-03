@@ -635,7 +635,8 @@ function GanttCanvas (props) {
 
   // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%. The
   // 520 cap has to hold every GanttTable column with Name at its minimum; on a board under 840 px
-  // the right-hand columns are clipped.
+  // the right-hand columns are clipped. The loading skeleton's name column (index.css) opens at
+  // the same width.
   const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 380
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
