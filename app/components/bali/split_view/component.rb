@@ -151,17 +151,16 @@ module Bali
       end
 
       def container_attributes
-        options.except(:class, :style)
-               .merge(
-                 class: class_names("split-view-component",
-                                    ("split-view-component--full" if full_height?),
-                                    options[:class]),
-                 # The only inline declaration is the custom property the grid
-                 # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an
-                 # arbitrary value Tailwind never sees at build time, so it would
-                 # be purged out of the bundle.
-                 style: [ "--bali-split-master-width: #{master_width}", options[:style] ].compact.join("; ")
-               )
+        options.merge(
+          class: class_names("split-view-component",
+                             ("split-view-component--full" if full_height?),
+                             options[:class]),
+          # The only inline declaration is the custom property the grid
+          # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an
+          # arbitrary value Tailwind never sees at build time, so it would
+          # be purged out of the bundle.
+          style: [ "--bali-split-master-width: #{master_width}", options[:style] ].compact.join("; ")
+        )
       end
 
       def frame_attributes
