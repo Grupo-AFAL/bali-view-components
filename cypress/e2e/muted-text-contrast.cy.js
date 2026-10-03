@@ -159,7 +159,7 @@ describe('muted text contrast', () => {
     ],
     // One row this week against one the week before: no change, which is muted too. The grey
     // is what says it is flat: should `count` stop applying (#843, after a reload), the preview
-    // draws a rise in `text-success`, and the count fails instead of measuring that.
+    // draws its default five-row rise, which is red, and the count fails instead of measuring it.
     'widget/default?pattern=trend&count=1': [
       ['flat trend', `.bali-widget-body ${GREY} > span[aria-hidden="true"]:not(.icon-component)`, 1]
     ],
