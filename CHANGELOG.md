@@ -219,7 +219,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `advance: true`, al volver a una fila la página que se deja apuntaba su frame a esa fila; si la
   respuesta llegaba antes de que Turbo restaurara la página, el frame, que aún llevaba el `advance`
   del clic, volvía a empujar ese URL y se perdía la entrada de adelante. Ahora esa página no pide
-  nada y cancela la carga que tuviera en curso; la restaurada pide el detalle si le falta.
+  nada y cancela la carga que tuviera en curso; la restaurada pide el detalle si le falta. Las
+  mismas tres pantallas, sin nada que hacer.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
