@@ -15,11 +15,8 @@ describe('Modal: the close button of a modal built from content', () => {
       expect(dialog.matches(':modal'), 'open').to.equal(true)
       const box = dialog.querySelector('.modal-box')
       expect(box.getAnimations({ subtree: true }), 'transitions settled').to.have.length(0)
-      fn({
-        box,
-        boxRect: box.getBoundingClientRect(),
-        close: box.querySelector(':scope > [data-action="modal#close"]').getBoundingClientRect()
-      })
+      const closeButton = box.querySelector(':scope > [data-action="modal#close"]')
+      fn({ box, boxRect: box.getBoundingClientRect(), closeButton, close: closeButton.getBoundingClientRect() })
     })
   }
 
@@ -46,11 +43,19 @@ describe('Modal: the close button of a modal built from content', () => {
         })
       })
 
+      // A float shortens the lines beside it, never the box around them: the paragraph's box stays
+      // full width with the float reaching into its lines, so those are measured too.
       it('gives the content below the first row its full width', () => {
-        measure(({ box, boxRect }) => {
-          const paragraph = box.querySelector('.modal-inner p').getBoundingClientRect()
+        measure(({ box, boxRect, closeButton, close }) => {
+          const paragraph = box.querySelector('.modal-inner p')
           const padding = parseFloat(getComputedStyle(box).paddingRight)
-          expect(Math.round(boxRect.right - padding - paragraph.right), 'px short of the padding').to.equal(0)
+          expect(Math.round(boxRect.right - padding - paragraph.getBoundingClientRect().right), 'px short of the padding').to.equal(0)
+
+          const floatBottom = close.bottom + parseFloat(getComputedStyle(closeButton).marginBottom)
+          const range = paragraph.ownerDocument.createRange()
+          range.selectNodeContents(paragraph)
+          const firstLine = Math.min(...[...range.getClientRects()].map((line) => line.top))
+          expect(Math.round(floatBottom - firstLine), 'px the float reaches into the paragraph').to.be.at.most(0)
         })
       })
     })
