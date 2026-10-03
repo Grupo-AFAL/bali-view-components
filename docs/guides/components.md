@@ -336,15 +336,18 @@ The prefabricated user dropdown for the `with_user_menu` slot — a preset of
 `Bali::Dropdown` (like `ActionsDropdown`), so keyboard navigation, Escape,
 `aria-expanded` and `popover:` come with it. The trigger is an avatar (photo
 via `avatar_url:`, or initials with a deterministic colour derived from
-`name:` — see Avatar), the name (hidden on mobile) and a chevron. The panel
+`name:` — see Avatar), the name (from `md` up, cut with an ellipsis at 12rem)
+and a chevron (from `sm` up; below it the trigger is the avatar alone). The panel
 opens with a non-actionable name/email header, then your `with_item`s, then
 the **Dark mode** switch when `Bali.themes` declares a `dark:` theme, then the
-sign-out entry (see *Dark mode* in `docs/guides/custom-themes.md`).
+sign-out entry (see *Dark mode* in `docs/guides/custom-themes.md`). The header's
+two lines wrap inside the panel, the email at any character.
 
 **Options:**
 - `name` (required) - the user's full name; feeds avatar, header and the trigger's `aria-label`
+- `initials` - the avatar's letters, passed to Avatar as given. Without it Avatar takes the first and the last word of `name:`, which reads two surnames as the wrong pair: `initials: "FG"` for "Federico González Pérez", not the derived "FP"
 - `email` - second line of the header; omitted when absent
-- `avatar_url` - photo for the avatar; wins over the derived initials
+- `avatar_url` - photo for the avatar; wins over the initials
 - `sign_out` - `{ href:, method: :delete }`. **No default route**: without this hash the item is not rendered, so the gem stays uncoupled from bali-auth and from the host's route names. With bali-auth: `sign_out: { href: bali_auth.sign_out_path }`. The default `:delete` submits a real form (`button_to`) that cannot degrade to a GET; extra keys (`name:`, `confirm:`, `data:`, ...) reach the item
 - Everything else is `Bali::Dropdown::Component`'s (`align:` defaults to `:end` here)
 
@@ -717,6 +720,7 @@ keeps its scroll position and its highlight.
 - `frame_id` - **Required.** Id of the detail Turbo Frame; rows point at it with `data-turbo-frame`, so it must be unique in the page
 - `master_width` - Width of the left column from `lg` up. A CSS length or percentage (default: `"420px"`); anything more expressive overrides `--bali-split-master-width` in your own stylesheet
 - `advance` - Emit `data-turbo-action="advance"` on the frame, so a row click pushes its URL into the history and the selection is deep-linkable (default: `true`)
+- `frame_options` - HTML attributes for the detail `<turbo-frame>` itself (the other options go to the container). `class:` is added to the component's and `data:` merged into it key by key, so the `turbo_action` of `advance` stays unless you name one, which wins; `id:` raises, because it is `frame_id`. It is how a stacked layout scrolls the detail into view after a click: `frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }`, plus a `lg:hidden` marker as the detail's first child — see `docs/guides/master-detail.md`
 - `height` - `:content` (default) grows with the content and lets the page scroll; `:full` fills the nearest ancestor with a definite height and gives **each pane its own scrollbar**. `:full` is `height: 100%` plus a flex chain — no measured offsets, no JavaScript — so pair it with `Bali::AppLayout::Component.new(viewport_locked: true)`, which is what makes `<main>` a bounded box. With no bounded ancestor it fills nothing, visibly. Inert below `lg`, where the panes are stacked and cannot both fill one screen
 
 **Slots:**

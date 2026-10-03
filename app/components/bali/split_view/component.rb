@@ -95,18 +95,27 @@ module Bali
       #             pushes its URL into the history and the selection is
       #             deep-linkable. Turn it off for a split view that is not a
       #             navigable location of its own.
+      # frame_options - HTML attributes for the detail `<turbo-frame>`, as the
+      #             remaining options are for the container. `class:` joins the
+      #             component's; `data:` is merged into it key by key, so the
+      #             `turbo_action` of `advance:` stays unless you name one, which
+      #             wins; `id:` raises, because it is `frame_id:`.
+      #             Nothing inside the detail can stand in for it: Turbo reads
+      #             `data-autoscroll-block` and `data-autoscroll-behavior` off the
+      #             frame already in the page, never off the one in the response.
       def initialize(frame_id:, master_width: DEFAULT_MASTER_WIDTH, advance: true,
-                     height: :content, **options)
+                     height: :content, frame_options: {}, **options)
         @frame_id = frame_id
         @master_width = validated_master_width(master_width)
         @advance = advance
         @height = validated_height(height)
+        @frame_options = validated_frame_options(frame_options)
         @options = options
       end
 
       private
 
-      attr_reader :options
+      attr_reader :options, :frame_options
 
       def advance? = @advance
       def full_height? = @height == :full
@@ -124,6 +133,14 @@ module Bali
               "height must be one of #{HEIGHTS.map(&:inspect).join(', ')}, got #{value.inspect}."
       end
 
+      def validated_frame_options(value)
+        value = value.to_h.symbolize_keys
+        return value unless value.key?(:id)
+
+        raise ArgumentError,
+              "frame_options cannot set id: the frame's id is frame_id:, which the rows and the controller target."
+      end
+
       def validated_master_width(value)
         width = value.to_s.strip
         return width if width.match?(MASTER_WIDTH_FORMAT)
@@ -134,23 +151,29 @@ module Bali
       end
 
       def container_attributes
-        options.except(:class, :style)
-               .merge(
-                 class: class_names("split-view-component",
-                                    ("split-view-component--full" if full_height?),
-                                    options[:class]),
-                 # The only inline declaration is the custom property the grid
-                 # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an
-                 # arbitrary value Tailwind never sees at build time, so it would
-                 # be purged out of the bundle.
-                 style: [ "--bali-split-master-width: #{master_width}", options[:style] ].compact.join("; ")
-               )
+        options.merge(
+          class: class_names("split-view-component",
+                             ("split-view-component--full" if full_height?),
+                             options[:class]),
+          # The only inline declaration is the custom property the grid
+          # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an
+          # arbitrary value Tailwind never sees at build time, so it would
+          # be purged out of the bundle.
+          style: [ "--bali-split-master-width: #{master_width}", options[:style] ].compact.join("; ")
+        )
       end
 
       def frame_attributes
-        { id: frame_id, class: "split-view-detail" }.tap do |attributes|
-          attributes[:data] = { turbo_action: "advance" } if advance?
-        end
+        frame_options.merge(
+          id: frame_id,
+          class: class_names("split-view-detail", frame_options[:class]),
+          # Keyed as Rails writes the attribute, `data-` and the key dasherized:
+          # `turbo_action`, `"turbo_action"` and `"turbo-action"` are one attribute
+          # in the HTML, but three keys here, which would render it twice and leave
+          # the browser keeping the first — advance's.
+          data: { "turbo-action" => ("advance" if advance?) }
+                  .merge(frame_options[:data].to_h.transform_keys { |key| key.to_s.dasherize })
+        )
       end
     end
   end
