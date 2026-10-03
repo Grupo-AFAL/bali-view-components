@@ -30,7 +30,7 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import TaskBarNode from './TaskBarNode'
 import TimeHeader, { HEADER_H } from './TimeHeader'
-import GanttTable from './GanttTable'
+import GanttTable, { tableWidthFor } from './GanttTable'
 import Toolbar from './Toolbar'
 import GanttFooter from './GanttFooter'
 import Minimap from './Minimap'
@@ -633,9 +633,6 @@ function GanttCanvas (props) {
     [maxFlowX, rowsHeight]
   ]
 
-  // Table width: adjustable via the splitter (tableWidth) or responsive.
-  const defaultTableW = rootWidth ? Math.min(520, Math.max(300, Math.round(rootWidth * 0.42))) : 380
-  const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
     () => ({
       assignee: !hiddenCols.has('assignee'),
@@ -646,6 +643,12 @@ function GanttCanvas (props) {
     }),
     [hiddenCols]
   )
+  // Table width: adjustable via the splitter (tableWidth) or responsive — 42% of the board,
+  // widened to show its columns whole as long as the timeline keeps 40%.
+  const defaultTableW = rootWidth
+    ? Math.min(520, Math.max(300, Math.round(rootWidth * 0.42), Math.min(tableWidthFor(cols), Math.round(rootWidth * 0.6))))
+    : 380
+  const effTableW = tableWidth != null ? tableWidth : defaultTableW
 
   const gridTicks = useMemo(() => timeTicks(canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart), [canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart])
   const weekend = useMemo(() => weekendBands(canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart), [canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart])

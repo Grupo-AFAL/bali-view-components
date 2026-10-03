@@ -38,6 +38,23 @@ function HeaderCell ({ label, style, className = '' }) {
 
 const DEFAULT_COLS = { assignee: true, dates: true, days: true, status: true, progress: true }
 
+// Widths (px) of the columns after Name. `assignee` fits its 39 px `OWNER` label, `status` the
+// 74 px `In progress` pill.
+const COL_W = { assignee: 44, dates: 108, days: 32, status: 84, progress: 88 }
+
+// Neither a header nor a cell outgrows its column: grown to its content, `OWNER` pushed every
+// header after it 1 px out of line, and a `Ready for review` pill its row's Progress 33 px.
+const colStyle = (key) => ({ flex: `0 0 ${COL_W[key]}px`, minWidth: 0 })
+
+// The Name column gives way to the others down to this: the toggle, the WBS and the start of
+// the name of a second-level row. Below it the table clips its right-hand columns instead.
+const NAME_MIN_W = 140
+
+// The width at which the table shows every visible column whole.
+export function tableWidthFor (cols) {
+  return Object.keys(COL_W).reduce((sum, key) => sum + (cols[key] ? COL_W[key] : 0), NAME_MIN_W)
+}
+
 export default memo(function GanttTable ({
   rows,
   criticalIds,
@@ -62,12 +79,12 @@ export default memo(function GanttTable ({
         className='flex shrink-0 items-stretch border-b border-base-300 bg-base-200/60'
         style={{ height: headerHeight }}
       >
-        <HeaderCell label={t('col_name')} style={{ flex: '1 1 auto', paddingLeft: 12 }} />
-        {cols.assignee && <HeaderCell label={t('col_assignee_short')} style={{ flex: '0 0 38px', justifyContent: 'center' }} className='justify-center' />}
-        {cols.dates && <HeaderCell label={t('col_dates')} style={{ flex: '0 0 108px' }} />}
-        {cols.days && <HeaderCell label={t('col_days')} style={{ flex: '0 0 32px', justifyContent: 'flex-end' }} className='justify-end' />}
-        {cols.status && <HeaderCell label={t('col_status')} style={{ flex: '0 0 76px' }} />}
-        {cols.progress && <HeaderCell label={t('col_progress')} style={{ flex: '0 0 88px', paddingRight: 12 }} />}
+        <HeaderCell label={t('col_name')} className='flex-1 pl-3' style={{ minWidth: NAME_MIN_W }} />
+        {cols.assignee && <HeaderCell label={t('col_assignee_short')} className='justify-center' style={colStyle('assignee')} />}
+        {cols.dates && <HeaderCell label={t('col_dates')} className='px-1.5' style={colStyle('dates')} />}
+        {cols.days && <HeaderCell label={t('col_days')} className='justify-end px-1.5' style={colStyle('days')} />}
+        {cols.status && <HeaderCell label={t('col_status')} className='px-1' style={colStyle('status')} />}
+        {cols.progress && <HeaderCell label={t('col_progress')} className='pl-1 pr-3' style={colStyle('progress')} />}
       </div>
 
       {/* Body shifted with the viewport (same translateY as the bars). */}
@@ -123,8 +140,8 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
     >
       {/* Name column: collapse + WBS + name (+ critical mark on the edge). */}
       <div
-        className='flex min-w-0 flex-1 items-center gap-1.5 pr-1.5'
-        style={{ paddingLeft, borderLeft: isCritical ? '2px solid var(--color-error)' : '2px solid transparent' }}
+        className='flex flex-1 items-center gap-1.5 pr-1.5'
+        style={{ minWidth: NAME_MIN_W, paddingLeft, borderLeft: isCritical ? '2px solid var(--color-error)' : '2px solid transparent' }}
       >
         {row.hasChildren ? (
           <button
@@ -152,7 +169,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
 
       {/* Owner: assignee avatar. */}
       {cols.assignee && (
-        <div className='flex shrink-0 items-center justify-center' style={{ flex: '0 0 38px' }}>
+        <div className='flex items-center justify-center' style={colStyle('assignee')}>
           {!isGroup && item.assignee && (
             <span
               className='grid h-[21px] w-[21px] place-items-center rounded-full text-[9.5px] font-bold text-white'
@@ -170,7 +187,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
       {cols.dates && (
         <div
           className='flex items-center truncate px-1.5 font-mono text-[10px] text-base-content/70'
-          style={{ flex: '0 0 108px' }}
+          style={colStyle('dates')}
         >
           {!isGroup && item.starts_on && item.ends_on
             ? `${fmtDayMonth(item.starts_on)} → ${fmtDayMonth(item.ends_on)}`
@@ -180,7 +197,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
       {cols.days && (
         <div
           className='flex items-center justify-end px-1.5 font-mono text-[11px] text-base-content/70'
-          style={{ flex: '0 0 32px' }}
+          style={colStyle('days')}
         >
           {!isGroup && item.starts_on ? durationDays(item.starts_on, item.ends_on) : ''}
         </div>
@@ -188,7 +205,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
 
       {/* Status: pill badge. */}
       {cols.status && (
-        <div className='flex items-center px-1' style={{ flex: '0 0 76px' }}>
+        <div className='flex items-center px-1' style={colStyle('status')}>
           {!isGroup && (
             <span
               className='truncate whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold'
@@ -202,7 +219,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
 
       {/* Progress: bar + %. */}
       {cols.progress && (
-        <div className='flex items-center gap-1.5 py-0' style={{ flex: '0 0 88px', paddingRight: 12, paddingLeft: 4 }}>
+        <div className='flex items-center gap-1.5 pl-1 pr-3' style={colStyle('progress')}>
           {!isGroup && (
             <>
               <div className='h-[5px] flex-1 overflow-hidden rounded-full bg-base-content/10'>
