@@ -769,6 +769,12 @@ span.flatpickr-weekday {
   border-top-color: var(--fp-font-color);
 }
 
+/* `.numInputWrapper span:hover` is a white tint for the coloured header: over this row it painted
+   1.00:1 on the light themes and a light square, 2.65–2.70:1, on the dark ones. */
+.flatpickr-time .numInputWrapper span:hover {
+  background: var(--fp-hover-bg);
+}
+
 /* =============================================================================
    Week Numbers
    ============================================================================= */

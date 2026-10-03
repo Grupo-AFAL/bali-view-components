@@ -111,6 +111,10 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a Datepicker day of another month', openDatepicker('date'), `${DAY}.nextMonthDay`, { text: '.flatpickr-day' }],
     ['the hour of the time picker', openDatepicker('time'), '.flatpickr-calendar.open input.flatpickr-hour'],
     ['the AM/PM toggle of the time picker', openDatepicker('time'), '.flatpickr-calendar.open .flatpickr-am-pm'],
+    // `.numInputWrapper span:hover` is a white tint meant for the coloured header: over the time
+    // row it painted 1.00:1 on the light themes and a light square, 2.65–2.70, on the dark ones.
+    ['a stepper arrow of the time picker', openDatepicker('time'),
+      '.flatpickr-calendar.open .flatpickr-time span.arrowUp'],
     // Filled at rest. Their base-300 hover over a base-200 fill stepped 1.044:1 (afal-dark) to
     // 1.130 (costa-norte) off the same control at rest; the ink at 16% over 8%, 1.168 at worst
     // (afal). The fill has to step off the surface too, and the text is read on both fills.
