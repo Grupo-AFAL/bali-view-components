@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, token } from '../support/themes'
 
 // Modal's box and Drawer's panel paint base-100, and both took their text colour from wherever
 // they were rendered: inside a `neutral` Navbar the title measured 1.27:1 on `light` and 1.00 on
@@ -34,6 +34,23 @@ describe('Modal and Drawer inside a container with a text colour of its own', ()
           })
         })
       })
+    })
+  })
+})
+
+// What `wrapper_class:` renders, and what a trigger's `data-wrapper-class` adds when it opens the
+// modal: a class on the box. The header of modal/index.css says why the box's own colour has to
+// lose to it.
+describe('Modal: a text colour passed in wrapper_class', () => {
+  it('beats the box\'s base-content', () => {
+    cy.visit('/bali/modal/with_slots')
+    cy.get('dialog.modal-component .modal-box').then(($box) => $box[0].classList.add('text-accent-content'))
+
+    cy.get('dialog.modal-component .modal-box').should(($box) => {
+      expect($box[0].getAnimations({ subtree: true }), 'transitions settled').to.have.length(0)
+      const accent = token($box[0], 'accent-content')
+      expect(accent, 'two colours to tell apart').not.to.equal(token($box[0], 'base-content'))
+      expect(window.getComputedStyle($box[0]).color, 'accent-content').to.equal(accent)
     })
   })
 })

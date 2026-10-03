@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, token } from '../support/themes'
 
 // A transparent bar shows whatever is under it, which its `color:` preset knows nothing about.
 // Painting its preset's `-content` over the page, its links measured 1.00:1 on a `primary` bar in
@@ -16,16 +16,6 @@ describe('Navbar: a transparent bar', () => {
   }
 
   const byText = (nav, text) => [...nav.querySelectorAll('a')].find(a => a.textContent.trim() === text)
-
-  // The colour a theme token computes to, read the way the bar's own colour is read.
-  const token = (nav, name) => {
-    const probe = nav.ownerDocument.createElement('span')
-    probe.style.color = `var(--color-${name})`
-    nav.append(probe)
-    const { color } = window.getComputedStyle(probe)
-    probe.remove()
-    return color
-  }
 
   THEMES.forEach((theme) => {
     COLORS.forEach((color) => {
@@ -66,6 +56,29 @@ describe('Navbar: a transparent bar', () => {
       const home = byText(nav, 'Home')
       expect(window.getComputedStyle(nav).color, 'the container\'s colour').to.equal(window.getComputedStyle(nav.parentElement).color)
       expect(paintedContrast(home), 'Home over the container').to.be.at.least(TEXT)
+    })
+  })
+
+  // The YARD example of `transparency:`, over a dark section: `color: :neutral, class:
+  // "text-neutral-content"`. A host's text utility has to beat `.is-transparent`, which is why
+  // that rule sits in @layer components and not in an unlayered sheet.
+  it('a text colour passed in class: beats the colour it inherits', () => {
+    cy.viewport(1280, 800)
+    open('neutral', 'light')
+    cy.get('nav.navbar').then(($nav) => {
+      const section = $nav[0].ownerDocument.createElement('div')
+      section.className = 'bg-neutral'
+      $nav[0].before(section)
+      section.append($nav[0])
+      $nav[0].classList.add('text-neutral-content')
+    })
+
+    cy.document().should((doc) => {
+      expect(doc.getAnimations(), 'colour transitions settled').to.have.length(0)
+      const nav = doc.querySelector('nav.navbar')
+      expect(nav.classList.contains('is-transparent'), 'still transparent after the move').to.equal(true)
+      expect(window.getComputedStyle(nav).color, 'neutral-content').to.equal(token(nav, 'neutral-content'))
+      expect(paintedContrast(byText(nav, 'Home')), 'Home over the dark section').to.be.at.least(TEXT)
     })
   })
 
