@@ -293,11 +293,6 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 0.25rem;
-  transition: background var(--fp-animation-timing) ease;
-}
-
-.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
-  background: oklch(1 0 0 / 0.2);
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months:focus {
@@ -322,10 +317,6 @@
   vertical-align: middle;
   appearance: textfield;
   transition: background var(--fp-animation-timing) ease;
-}
-
-.flatpickr-current-month input.cur-year:hover {
-  background: oklch(1 0 0 / 0.2);
 }
 
 .flatpickr-current-month input.cur-year:focus {
@@ -373,8 +364,14 @@
   opacity: 1;
 }
 
-.numInputWrapper span:hover {
-  background: oklch(1 0 0 / 0.3);
+/* A ring in the text's own colour, not a fill. A white tint took the month and the year to
+   2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and raised them on afal-dark and
+   costa-norte-dark (5.78 → 7.06, 7.98 → 9.06): primary-content is the lighter side on some
+   themes and the darker on others, so no one tint keeps them all. */
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month input.cur-year:hover,
+.flatpickr-current-month .numInputWrapper span:hover {
+  box-shadow: inset 0 0 0 1px currentColor;
 }
 
 .numInputWrapper span:after {
@@ -767,8 +764,6 @@ span.flatpickr-weekday {
   border-top-color: var(--fp-font-color);
 }
 
-/* `.numInputWrapper span:hover` is a white tint for the coloured header: over this row it painted
-   1.00:1 on the light themes and a light square, 2.65–2.70:1, on the dark ones. */
 .flatpickr-time .numInputWrapper span:hover {
   background: var(--fp-hover-bg);
 }
