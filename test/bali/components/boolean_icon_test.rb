@@ -31,8 +31,7 @@ class BaliBooleanIconComponentTest < ComponentTestCase
   def test_with_nil_value_renders_a_neutral_state_instead_of_false
     render_inline(Bali::BooleanIcon::Component.new(value: nil))
     assert_selector("div.boolean-icon-component")
-    assert_no_selector("div.text-soft-error")
-    assert_no_selector("div.text-soft-success")
+    assert_no_selector("div.text-error, div.text-soft-error, div.text-success, div.text-soft-success")
     assert_selector(".icon-component svg")
   end
 

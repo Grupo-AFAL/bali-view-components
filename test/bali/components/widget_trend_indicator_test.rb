@@ -39,8 +39,7 @@ class BaliWidgetTrendIndicatorComponentTest < ComponentTestCase
   def test_a_flat_trend_is_neither_good_nor_bad
     render_trend(delta: 0)
 
-    assert_no_selector(".text-soft-success")
-    assert_no_selector(".text-soft-error")
+    assert_no_selector(".text-success, .text-soft-success, .text-error, .text-soft-error")
   end
 
   # The arrow describes the MOVEMENT, where the colour describes the meaning —

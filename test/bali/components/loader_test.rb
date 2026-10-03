@@ -67,7 +67,7 @@ class BaliLoaderComponentTest < ComponentTestCase
 
   # The text is on the page and takes the soft mix; soft-text-contrast.cy.js measures it.
   Bali::Loader::Component::TEXT_COLORS.each do |color, css_class|
-    define_method("test_colors_renders_#{color}_text_colour_on_text") do
+    define_method("test_text_colors_renders_#{color}_on_text") do
       render_inline(Bali::Loader::Component.new(color: color))
       assert_selector("p.#{css_class}")
     end
