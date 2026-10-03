@@ -10,7 +10,7 @@
  *
  * Imported from bali/components.css with layer(components) on purpose (D7):
  * nothing here fights daisyUI, and host utility classes must keep winning. */
-/* GanttFlow.jsx's `defaultTableW`: the table opens at 60% of the board, between 300 and 520 px. */
+/* Mirrors GanttFlow.jsx's `defaultTableW`; change both together. */
 .bali-gantt {
   --gantt-name-col: clamp(300px, 60%, 520px);
 }
