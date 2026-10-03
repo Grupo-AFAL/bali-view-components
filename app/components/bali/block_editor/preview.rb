@@ -106,6 +106,18 @@ module Bali
         )
       end
 
+      # @label Entity Reference Colors
+      # One chip per colour a type can name in `references_config:` (or in the
+      # registry's `display:`), plus a hex, which a host may pass as well. Every chip
+      # carries a `url`, so it is a link and takes the hover tint of a resolved reference.
+      def entity_reference_colors
+        render BlockEditor::Component.new(
+          editable: false,
+          references_config: entity_reference_color_types,
+          initial_content: [ { type: 'paragraph', content: entity_reference_chips } ].to_json
+        )
+      end
+
       # Full-featured editor with all capabilities enabled.
       # Includes: rich text, code blocks, multi-column, tables,
       # mentions, entity references, comments, export, AI, and form integration.
@@ -275,6 +287,22 @@ module Bali
       # exactly this path; nobody should copy the literal.
       def demo_comments_url
         '/bali/block_editor_comments?commentable_type=Document&commentable_id=1'
+      end
+
+      def entity_reference_color_types
+        colors = Bali::Color::SEMANTIC.to_h { |name| [ name.to_s, name.to_s ] }
+        colors.merge('custom' => '#7c3aed')
+              .transform_values { |color| { icon: '#', label: color, color: color } }
+      end
+
+      def entity_reference_chips
+        entity_reference_color_types.keys.flat_map do |type|
+          [
+            { type: 'entityReference',
+              props: { entityType: type, entityId: '1', entityName: 'Q4 Release', url: '/lookbook' } },
+            { type: 'text', text: ' ', styles: {} }
+          ]
+        end
       end
 
       def sample_users
@@ -518,12 +546,14 @@ module Bali
             content: [{ type: 'text', text: 'Code Block', styles: {} }],
             props: { level: 3 }
           },
-          # Code block with syntax highlighting
+          # Keep the comment line: theme-follow-contrast.cy.js measures it as the faintest ink the
+          # supported grammars get from either shiki theme.
           {
             type: 'codeBlock',
             content: [{ type: 'text', styles: {},
-                        text: "function greet(name) {\n  " \
-                              "return `Hello, \#{'{'}name\#{'}'}!`;\n" \
+                        text: "// Greets whoever it is given\n" \
+                              "function greet(name) {\n  " \
+                              "return `Hello, ${name}!`;\n" \
                               "}\n\nconsole.log(greet('World'));" }],
             props: { language: 'javascript' }
           },

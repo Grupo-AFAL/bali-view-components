@@ -189,10 +189,11 @@ it is gone as soon as the user types — the same reasoning that gave the quick 
 own `aria_label:` in #982.
 
 **Where a widget draws its own control, verify in the tree.** SlimSelect clips the real
-`<select>` to 1x1 and builds a `div[role="combobox"]` that copies only the select's own
-`aria-*`; flatpickr hides the real input and creates a second one. In both, the `<label for>`
-names an element the user never touches, and the markup looks correct. Read the accessibility
-tree — see the section below.
+`<select>` to 1x1 and builds a `div[role="combobox"]` named from the select's `aria-label` or
+`aria-labelledby` — and, from SlimSelect 3.5, its `<label for>`. Bali's `slim-select`
+controller carries `aria-describedby` and `aria-invalid` across. flatpickr hides the real
+input and creates a second one. In both, a `<label for>` can name an element the user never
+touches while the markup looks correct. Read the accessibility tree — see the section below.
 
 ### Images
 
@@ -588,6 +589,17 @@ and 3.28 on daisyUI's `dark`, and its warning badge, `text-warning` on `bg-warni
 ```erb
 <span class="rounded-box bg-primary/10 px-1.5 text-soft-primary">12</span>
 <span class="rounded-box bg-warning/10 px-1.5 text-soft-warning">3</span>
+```
+
+An icon over its own tint fails the same way, against the 3:1 a graphic needs: a StatCard's
+warning icon read 1.60:1 on `afal`. StatCard paints it with `text-soft-<colour>`. Where no
+utility can name the colour — a hex, or a custom property set at runtime — write the same mix
+out. For a hex in Ruby, `Bali::Color.soft(hex)` returns it, and StatCard paints `custom_color:`
+with it; in a stylesheet, write it by hand, as the BlockEditor does for an entity reference's
+colour:
+
+```css
+color: color-mix(in oklab, #f59e0b 40%, var(--color-base-content));
 ```
 
 ### Testing Contrast

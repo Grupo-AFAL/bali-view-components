@@ -1,0 +1,70 @@
+// The preview has to stay under `layout "app_layout_preview"`: Lookbook's own layout puts
+// `modal drawer` on its <body>, where every trigger here finds them wherever AppLayout mounts
+// its own, and this spec stays green with them back on <main>.
+const PREVIEW = '/bali/app_layout/overlay_triggers'
+const popover = '[data-dropdown-popover-value="true"]'
+
+// One callback, so the page that navigated away fails on the path rather than on a missing
+// panel, and a panel that never opened cannot pass on the path alone.
+const expectOpenOnThePreview = (panelId, text) => {
+  cy.document().should((doc) => {
+    expect(doc.location.pathname, 'still on the preview').to.include(PREVIEW)
+    const panel = doc.getElementById(panelId)
+    expect(panel && panel.matches(':modal'), `#${panelId} is open`).to.equal(true)
+    expect(panel.textContent, 'the fetched content').to.include(text)
+  })
+}
+
+describe('AppLayout overlay triggers outside <main> (#1268)', () => {
+  beforeEach(() => {
+    cy.visit(PREVIEW)
+    // tippy is a dynamic import; the menu leaves the wrapper once it resolves.
+    cy.get(`${popover} [data-dropdown-target="menu"]`).should('not.exist')
+  })
+
+  const clickMenuItem = (name) => {
+    cy.get(`${popover} [data-dropdown-target="trigger"]`).click()
+    cy.get('[data-tippy-root]').contains('a', name).as('item')
+    cy.get('@item').should(($a) => expect($a[0].closest('main'), 'the item is outside <main>').to.equal(null))
+    cy.get('@item').click()
+  }
+
+  it('a drawer: true item in a popover menu opens the shared drawer', () => {
+    clickMenuItem('Open in drawer')
+
+    expectOpenOnThePreview('main-drawer', 'John Doe')
+  })
+
+  it('a modal: true item in a popover menu opens the shared modal', () => {
+    clickMenuItem('Open in modal')
+
+    expectOpenOnThePreview('main-modal', 'Welcome!')
+  })
+
+  it('a drawer: true trigger in the topbar slot opens the shared drawer', () => {
+    cy.get('[data-testid="topbar-drawer-trigger"]')
+      .should(($a) => expect($a[0].closest('main'), 'the trigger is outside <main>').to.equal(null))
+      .click()
+
+    expectOpenOnThePreview('main-drawer', 'John Doe')
+  })
+
+  const MENU_ITEMS = [
+    { name: 'Open in drawer', panelId: 'main-drawer', text: 'John Doe' },
+    { name: 'Open in modal', panelId: 'main-modal', text: 'Welcome!' }
+  ]
+  MENU_ITEMS.forEach(({ name, panelId, text }) => {
+    it(`closing what "${name}" opened returns the focus to the menu trigger`, () => {
+      clickMenuItem(name)
+      expectOpenOnThePreview(panelId, text)
+      cy.get('[data-tippy-root]').should('not.exist')
+
+      cy.focused().type('{esc}')
+
+      cy.get(`#${panelId}`).should(($panel) => expect($panel[0].matches(':modal'), 'closed').to.equal(false))
+      cy.document().should((doc) => {
+        expect(doc.activeElement, 'the focused element').to.match(`${popover} [data-dropdown-target="trigger"]`)
+      })
+    })
+  })
+})

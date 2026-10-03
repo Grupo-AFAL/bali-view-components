@@ -604,6 +604,13 @@ export class ConditionController extends Controller {
 
   // Input builders
 
+  // The name condition/component.html.erb gives the widgets it paints, sent here as
+  // `value_aria_label` in component.rb's translations_json. The ERB says why it is an
+  // aria-label.
+  get valueAriaLabel () {
+    return this.t.value_aria_label || 'Value'
+  }
+
   buildTextInput (fieldName) {
     const placeholder = this.t.placeholders?.enter_value || 'Enter value...'
     return `
@@ -611,6 +618,7 @@ export class ConditionController extends Controller {
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-condition-target="value">
     `
   }
@@ -623,6 +631,7 @@ export class ConditionController extends Controller {
              name="${fieldName}"
              step="any"
              placeholder="${this.escapeHtml(placeholder)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-condition-target="value">
     `
   }
@@ -652,6 +661,7 @@ export class ConditionController extends Controller {
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
@@ -668,6 +678,7 @@ export class ConditionController extends Controller {
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
+             aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
@@ -685,6 +696,7 @@ export class ConditionController extends Controller {
         <input type="text"
                class="input input-bordered input-sm w-full"
                placeholder="${this.escapeHtml(placeholder)}"
+               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
@@ -705,6 +717,7 @@ export class ConditionController extends Controller {
         <input type="text"
                class="input input-bordered input-sm w-full"
                placeholder="${this.escapeHtml(placeholder)}"
+               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
@@ -726,6 +739,7 @@ export class ConditionController extends Controller {
     return `
       <select class="select select-bordered select-sm w-full"
               name="${fieldName}"
+              aria-label="${this.escapeHtml(this.valueAriaLabel)}"
               data-condition-target="value">
         <option value="">${this.escapeHtml(anyLabel)}</option>
         <option value="true">${this.escapeHtml(yesLabel)}</option>
@@ -752,6 +766,7 @@ export class ConditionController extends Controller {
            data-slim-select-no-results-text-value="${this.escapeHtml(noResults)}">
         <select class="select select-bordered select-sm w-full"
                 name="${fieldName}"
+                aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                 data-slim-select-target="select"
                 data-condition-target="value">
           <option value="">${this.escapeHtml(placeholder)}</option>
@@ -761,6 +776,8 @@ export class ConditionController extends Controller {
     `
   }
 
+  // The option classes, and the panel classes other than the ones that position and show it,
+  // match the multi-select in filters/condition/component.html.erb: change both.
   buildMultiSelectInput (fieldName, options) {
     const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
     const selectedCountTemplate = this.t.selected_count || '%{count} selected'
@@ -770,7 +787,7 @@ export class ConditionController extends Controller {
         const escapedLabel = this.escapeHtml(label)
         const escapedValue = this.escapeHtml(value)
         return `
-          <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
+          <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-content/8 cursor-pointer">
             <input type="checkbox"
                    class="checkbox checkbox-sm checkbox-primary"
                    name="${fieldName}"
@@ -800,7 +817,7 @@ export class ConditionController extends Controller {
           </span>
         </div>
         <div tabindex="0"
-             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto">
+             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto">
           ${optionsHtml}
         </div>
       </div>

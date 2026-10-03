@@ -167,7 +167,7 @@ module Bali
       def dropzone_classes
         class_names(
           "border-2 border-dashed border-base-300 rounded-box p-8 text-center",
-          "hover:border-primary hover:bg-base-200/50 transition-colors cursor-pointer",
+          "hover:border-primary hover:bg-base-content/8 transition-colors cursor-pointer",
           "dropzone-active:border-primary dropzone-active:bg-primary/10"
         )
       end

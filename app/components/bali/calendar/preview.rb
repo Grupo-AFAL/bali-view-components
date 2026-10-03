@@ -115,20 +115,21 @@ module Bali
         ]
       end
 
-      # The 11th holds two events (`has-multiple`) and a name long enough to wrap
-      # in a hover card tippy caps at 350px. Keep both.
+      # The 12th holds two events (`has-multiple`) and a name long enough to wrap
+      # in a hover card tippy caps at 350px. Keep both. `ghost` and `neutral` are in
+      # the cycle so both are drawn: base-surface-steps.cy.js measures a ghost day
+      # against a neutral one.
       def year_sample_events(year)
-        statuses = %i[success warning error info]
-
         (1..12).flat_map do |month|
           first = Date.new(year, month, 1)
+          statuses = %i[success warning error info ghost neutral].rotate(month)
 
           [
-            build_event(first + 4, "Item #{month}-A", statuses[month % 4]),
+            build_event(first + 4, "Item #{month}-A", statuses[0]),
             build_event(first + 11, "Item #{month}-B, with a deliberately long name that wraps onto several lines",
-                        statuses[(month + 1) % 4]),
-            build_event(first + 11, "Item #{month}-C", statuses[(month + 2) % 4]),
-            build_event(first + 19, "Item #{month}-D", statuses[(month + 3) % 4])
+                        statuses[1]),
+            build_event(first + 11, "Item #{month}-C", statuses[2]),
+            build_event(first + 19, "Item #{month}-D", statuses[3])
           ]
         end
       end

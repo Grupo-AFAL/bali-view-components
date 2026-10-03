@@ -6,9 +6,12 @@
 // first, the farthest first: SideMenu's active item measured 5.25:1 against the bare page and
 // 4.51 over its own primary/10 tint (#1221).
 //
-// Two things it still does not see: the `opacity` of the node that carries a tint is not applied
-// to the tint, which on a light theme measures the tint darker than it paints (the safe side), and
-// the background of a pseudo-element, which the caller hands over as `under`.
+// What it still does not see: the `opacity` of the node that carries a tint is not applied to the
+// tint, which on a light theme measures the tint darker than it paints (the safe side); a
+// `background-image` or the background of a pseudo-element, which the caller hands over as
+// `under`; and a `filter`, an inset `box-shadow`, an `opacity` above that background, a
+// pseudo-element drawn over the text or a `::first-line` or `::first-letter` colour, which the
+// caller has to rule out.
 //
 // `over` is where the search for that background starts. Text starts at its own element; a shape
 // drawn in its `color` — a WorkflowSteps segment, filled with `bg-current` — would find its own
@@ -36,10 +39,9 @@ export const luminance = ([r, g, b]) => {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-const contrast = (a, b) => {
-  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return (high + 0.05) / (low + 0.05)
-}
+export const contrastRatio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+
+const contrast = (a, b) => contrastRatio(luminance(a), luminance(b))
 
 export const paintedContrast = (el, { over = el, property = 'color', pseudo, under } = {}) => {
   if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')

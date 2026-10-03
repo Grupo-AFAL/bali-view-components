@@ -6,7 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         BASE_CLASSES = "clipboard-trigger btn btn-ghost " \
                        "rounded-l-none rounded-r-lg border border-base-300 " \
-                       "hover:bg-base-200 transition-colors"
+                       "hover:bg-base-content/8 transition-colors"
 
         attr_reader :text
 

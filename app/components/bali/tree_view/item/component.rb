@@ -8,12 +8,13 @@ module Bali
         BASE_CLASSES = "tree-view-item-component"
         CONTROLLER_NAME = "tree-view-item"
 
-        # Item styling classes - DaisyUI menu-inspired
+        # Item styling classes - DaisyUI menu-inspired. The hover is the ink at 8%, not
+        # base-200: the tree's own surface is base-200, so that hover read 1.00:1.
         ITEM_CLASSES = %w[
           flex items-center gap-2
           py-1 px-2 rounded-lg cursor-pointer
           text-sm
-          hover:bg-base-200
+          hover:bg-base-content/8
           transition-colors duration-150
         ].join(" ").freeze
 

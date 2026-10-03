@@ -57,9 +57,10 @@
         <%= t('.yearly_options') %>
       </legend>
 
-      <div class="space-y-2">
+      <%# Carries the not-allowed cursor its disabled rows, which take no pointer, cannot show. %>
+      <div class="space-y-2 has-disabled:cursor-not-allowed">
         <%# Option 1: On specific date %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors has-disabled:pointer-events-none">
           <%= radio_button_tag("#{unique_id}_yearly_on", 1, true, checked: true,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -87,7 +88,7 @@
         <div class="divider my-0 h-px"></div>
 
         <%# Option 2: On the Nth weekday %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors has-disabled:pointer-events-none">
           <%= radio_button_tag("#{unique_id}_yearly_on", 2, false,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -130,9 +131,10 @@
         <%= t('.monthly_options') %>
       </legend>
 
-      <div class="space-y-2">
+      <%# Carries the not-allowed cursor its disabled rows, which take no pointer, cannot show. %>
+      <div class="space-y-2 has-disabled:cursor-not-allowed">
         <%# Option 1: On specific day of month %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors has-disabled:pointer-events-none">
           <%= radio_button_tag("#{unique_id}_monthly_on", 1, true, checked: true,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -154,7 +156,7 @@
         <div class="divider my-0 h-px"></div>
 
         <%# Option 2: On the Nth weekday %>
-        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-content/8 transition-colors has-disabled:pointer-events-none">
           <%= radio_button_tag("#{unique_id}_monthly_on", 2, false,
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
@@ -196,8 +198,9 @@
         data-rrule-freq-option="weekly_1">
         <% I18n.t('date.day_names').each_with_index do |day, index| %>
           <% day_value = index.zero? ? 6 : index - 1 %>
-          <%# Wrap each checkbox-label pair to isolate peer relationship %>
-          <span class="inline-block">
+          <%# Wraps each checkbox-label pair to isolate the peer relationship, and carries the
+              not-allowed cursor a pointer-less disabled label cannot show. %>
+          <span class="inline-block has-disabled:cursor-not-allowed">
             <%= check_box_tag "byweekday_#{unique_id}_[]", day_value, false,
                 id: "byweekday_#{unique_id}_#{day_value}",
                 disabled: disabled,
@@ -207,7 +210,9 @@
                 emitted later at the same specificity, repaints a checked day (1.53:1 on afal). The
                 hover is a ring because each tint measured lowered the text on some theme: `/80` took
                 afal from 5.25 to 3.76:1 (#1246), 15% of base-content `dark` from 4.13 to 3.19, and 7%
-                of black afal-dark from 5.78 to 4.76. %>
+                of black afal-dark from 5.78 to 4.76.
+                A disabled day takes no pointer: gating these hovers on `peer-enabled:` would tie
+                `peer-checked:hover:bg-primary` and be emitted after it, 1.53:1 again (#1272). %>
             <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
                 disabled: disabled,
                 class: 'flex items-center justify-center w-8 h-8 rounded-full ' \
@@ -220,7 +225,7 @@
                        'peer-checked:hover:outline-primary ' \
                        'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ' \
                        'peer-focus-visible:outline-base-content ' \
-                       'peer-disabled:opacity-50 peer-disabled:cursor-not-allowed' %>
+                       'peer-disabled:opacity-50 peer-disabled:pointer-events-none' %>
           </span>
         <% end %>
       </div>

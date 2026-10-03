@@ -2,16 +2,30 @@ import { paintedContrast } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
-// Text in a colour over a tint of that same colour fails by construction wherever the colour
-// does not contrast with a dilution of itself. Measured before `text-soft-*`
+// A colour over a tint of that same colour fails by construction wherever the colour does not
+// contrast with a dilution of itself. Measured before `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css): the Command's match highlight in the active row
 // 2.23:1 on `dark` and 3.52 on `afal`, SideMenu's active item 4.12 on `afal`, its warning badge
-// 1.46 (#1245, #1247). Each state is reached the way a user reaches it: a query typed into the
-// palette, a group opened, a mention picked, a pointer resting on the button.
-describe('text over a tint of its own colour', () => {
+// 1.46 (#1245, #1247); a StatCard's warning icon 1.60 on `afal`, the hovered remove-filter button
+// 2.27 there, an accent entity reference 1.71 on `light` (#1274). Each state is reached the way a
+// user reaches it: a query typed into the palette, a group opened, a mention picked, a pointer
+// resting on the button.
+//
+// Two rows measure the soft colour on base-100 instead, where it replaced a `text-<colour>` there:
+// DashboardPage's change line, which reads StatCard's icon class, and StatCard's trend footer.
+// As `text-success` both read 1.96:1 on `light`.
+describe('a colour over a tint of itself, and its soft colour on base-100', () => {
   const AA = 4.5
+  // WCAG 1.4.11: an icon is a graphical object, not text.
+  const GRAPHIC = 3
 
-  // [preview, how the state is reached, [[what, selector, how many]], whether the pointer is on it]
+  const pickFile = () => {
+    cy.get('input[type="file"]').selectFile({ contents: Cypress.Buffer.from('%PDF-1.4'), fileName: 'contract.pdf' }, { force: true })
+    cy.get('[data-action="file-input#removeFile"]').should('have.length', 1)
+  }
+
+  // [preview, how the state is reached, [[what, selector, how many, minimum = AA]], whether the
+  // pointer is on it]
   const PREVIEWS = [
     ['command/default', () => {
       cy.get('body').type('{meta+k}')
@@ -71,6 +85,48 @@ describe('text over a tint of its own colour', () => {
       cy.get('[data-action="filters#addGroup"]').then(hover)
     }, [
       ['hovered "Add filter group"', '[data-action="filters#addGroup"]', 1]
+    ], true],
+    ['stat_card/all_colors', null, [
+      ['icon on its tint', '.rounded-full svg', 9, GRAPHIC]
+    ]],
+    // The two ends of costa-norte's dashboard, which hands Bali::Status hexes to `custom_color:`:
+    // amber read 1.99:1 on the light themes, violet 2.14 on `dark`.
+    ['stat_card/with_custom_color?custom_color=%23f59e0b', null, [
+      ['custom amber icon on its tint', '.rounded-full svg', 1, GRAPHIC]
+    ]],
+    ['stat_card/with_custom_color?custom_color=%236d28d9', null, [
+      ['custom violet icon on its tint', '.rounded-full svg', 1, GRAPHIC]
+    ]],
+    // Not over a tint: DashboardPage#stat_change_class paints the change line with the same
+    // class as the icon, on the card's base-100. As `text-primary`, the change line of a stat in
+    // the default colour read 3.40:1 on `dark`.
+    ['dashboard_page/default', null, [
+      ['stat change', '.dashboard-page-component > .grid .card .text-sm > span', 3]
+    ]],
+    // A footer in `text-soft-success` on the card's base-100, the class the guide's StatCard
+    // example writes.
+    ['stat_card/with_trend', null, [
+      ['trend', '.card .text-sm > span:not(.icon-component)', 1],
+      ['trend icon', '.card .text-sm > .icon-component svg', 1, GRAPHIC]
+    ]],
+    ['filters/default?popover=false', () => {
+      cy.get('[data-action="condition#remove"]').then(hover)
+    }, [
+      ['hovered "Remove condition"', '[data-action="condition#remove"]', 1, GRAPHIC]
+    ], true],
+    ['filters/with_applied_tags', () => {
+      cy.get('[data-action="applied-tags#removeFilter"]').first().then(hover)
+    }, [
+      ['hovered "Remove filter"', '[data-action="applied-tags#removeFilter"]:hover', 1, GRAPHIC]
+    ], true],
+    ['form/file/multiple', pickFile, [
+      ['"Remove file"', '[data-action="file-input#removeFile"]', 1, GRAPHIC]
+    ]],
+    ['form/file/multiple', () => {
+      pickFile()
+      cy.get('[data-action="file-input#removeFile"]').then(hover)
+    }, [
+      ['hovered "Remove file"', '[data-action="file-input#removeFile"]', 1, GRAPHIC]
     ], true]
   ]
 
@@ -80,7 +136,7 @@ describe('text over a tint of its own colour', () => {
 
   PREVIEWS.forEach(([preview, reach, targets, hovered = false]) => {
     THEMES.forEach((theme) => {
-      it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} at AA on the ${theme} theme`, () => {
+      it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} on the ${theme} theme`, () => {
         cy.visit(`/bali/${preview}`)
         if (reach) reach()
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -90,15 +146,50 @@ describe('text over a tint of its own colour', () => {
         cy.document({ timeout: 10000 }).should((doc) => {
           expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
 
-          targets.forEach(([what, selector, count]) => {
+          targets.forEach(([what, selector, count, minimum = AA]) => {
             const elements = [...doc.querySelectorAll(selector)]
             expect(elements, `${preview}: every ${what}`).to.have.length(count)
             elements.forEach((el) => {
               expect(el.matches(':hover'), hovered ? 'under the pointer' : 'at rest').to.equal(hovered)
-              const label = (el.textContent.trim() || el.getAttribute('aria-label')).replace(/\s+/g, ' ')
-              expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(AA)
+              const label = (el.textContent.trim() || el.getAttribute('aria-label') ||
+                el.closest('.card')?.querySelector('p')?.textContent.trim() || what).replace(/\s+/g, ' ')
+              expect(paintedContrast(el), `${theme}: ${what} "${label}"`).to.be.at.least(minimum)
             })
           })
+        })
+      })
+    })
+  })
+
+  // The chip's name, its type label and its icon, at rest over a 15% tint and under the pointer
+  // over a 25% one, in every colour a host can name — the default `secondary` among them.
+  THEMES.forEach((theme) => {
+    it(`reads every entity reference at rest and under the pointer on the ${theme} theme`, () => {
+      const expectReads = (chip) => {
+        const what = `${theme}: ${chip.style.getPropertyValue('--entity-ref-color')}`
+        expect(paintedContrast(chip), `${what} name`).to.be.at.least(AA)
+        expect(paintedContrast(chip.querySelector('.bn-entity-reference-label')), `${what} type label`).to.be.at.least(AA)
+        expect(paintedContrast(chip.querySelector('.bn-entity-reference-icon')), `${what} icon`).to.be.at.least(GRAPHIC)
+      }
+
+      cy.visit('/bali/block_editor/entity_reference_colors')
+      cy.get('.bn-entity-reference-link > .bn-entity-reference').should('have.length', 9)
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.document({ timeout: 10000 }).should((doc) => {
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+        doc.querySelectorAll('.bn-entity-reference').forEach((chip) => {
+          expect(chip.matches(':hover'), 'at rest').to.equal(false)
+          expectReads(chip)
+        })
+      })
+
+      cy.get('.bn-entity-reference').each(($chip) => {
+        cy.wrap($chip).then(hover)
+        cy.document({ timeout: 10000 }).should((doc) => {
+          expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+          expect($chip[0].matches(':hover'), 'under the pointer').to.equal(true)
+          expectReads($chip[0])
         })
       })
     })

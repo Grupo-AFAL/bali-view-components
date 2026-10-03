@@ -6,7 +6,7 @@
     <%= render Bali::Button::Component.new(name: "Export", variant: :ghost, icon: "download") %>
   <% end %>
 
-  <% page.with_stat(label: "Total Movies", value: "1,234", icon: "film", color: :primary, href: "/lookbook") %>
+  <% page.with_stat(label: "Total Movies", value: "1,234", icon: "film", color: :primary, change: "+48 this week", href: "/lookbook") %>
   <% page.with_stat(label: "Studios", value: "56", icon: "building-2", color: :secondary) %>
   <% page.with_stat(label: "Revenue", value: "$45.2K", icon: "dollar-sign", color: :success, change: "+12.5%") %>
   <% page.with_stat(label: "Users", value: "892", icon: "users", color: :info, change: "+3.2%") %>
@@ -22,7 +22,7 @@
             { title: "New studio added: Pixar", time: "5 hours ago", icon: "plus" },
             { title: "The Matrix archived", time: "1 day ago", icon: "archive" }
           ].each do |item| %>
-            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200">
+            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-content/8">
               <%= render Bali::Icon::Component.new(item[:icon], class: "size-4 text-base-content/40") %>
               <div class="flex-1">
                 <p class="text-sm font-medium"><%= item[:title] %></p>

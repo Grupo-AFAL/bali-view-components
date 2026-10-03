@@ -87,8 +87,7 @@ export function hueColor (hue) {
   }
 }
 
-// Stable 0..359 hue from a string (assignee id/name). Same algorithm as
-// Bali::Gantt::Colors.hash_hue so Ruby and JS color one assignee identically.
+// Stable 0..359 hue from a string (assignee id/name).
 export function hashHue (value) {
   const s = String(value == null ? '' : value)
   let h = 0
@@ -97,9 +96,10 @@ export function hashHue (value) {
 }
 
 // Background color of the assignee avatar (solid, white text on top).
+// White initials over L 0.5 measure 5.15–6.52:1 across all 360 hues; L 0.6
+// gave 3.49–4.27, under the 4.5 AA asks of 9px bold text (#1260).
 export function avatarColor (assignee) {
-  if (!assignee) return 'color-mix(in oklch, var(--color-base-content) 30%, transparent)'
-  return `oklch(0.6 0.14 ${hashHue(assignee.id ?? assignee.name)})`
+  return `oklch(0.5 0.14 ${hashHue(assignee.id ?? assignee.name)})`
 }
 
 function priorityHue (priority, catalogs) {
@@ -133,19 +133,19 @@ export function legendFor (colorBy, ctx) {
   if (colorBy === 'assignee') {
     return assignees.map((a) => ({
       label: firstWord(a.name),
-      color: `oklch(0.6 0.14 ${hashHue(a.id ?? a.name)})`
+      color: hueColor(hashHue(a.id ?? a.name)).solid
     }))
   }
   if (colorBy === 'group') {
     return groups.map((g, i) => ({
       label: firstWord(g.name),
-      color: `oklch(0.62 0.15 ${GROUP_HUES[i % GROUP_HUES.length]})`
+      color: hueColor(GROUP_HUES[i % GROUP_HUES.length]).solid
     }))
   }
   if (colorBy === 'priority') {
     return catalogs.priorities.map((p) => ({
       label: p.label || p.value,
-      color: p.hue != null ? `oklch(0.62 0.15 ${p.hue})` : neutralColor().solid
+      color: hueColor(p.hue).solid
     }))
   }
   return catalogs.statuses.map((s) => ({

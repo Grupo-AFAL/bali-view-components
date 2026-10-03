@@ -212,8 +212,9 @@
                   value: filter[:value] || filter[:default],
                   placeholder: filter[:placeholder] || filter_caption(filter),
                   # With a caption the JS already solves it: `datepicker#forwardAccessibleName`
-                  # copies the `label[for]` onto the altInput flatpickr creates beside it. With
-                  # no caption there was nothing to copy and the altInput came out unnamed (#1155).
+                  # points the field flatpickr shows (its altInput, or on a phone the native
+                  # mobileInput of a single date) at the `label[for]`. With no caption there was
+                  # nothing to point at and that field came out unnamed (#1155).
                   "aria-label": aria_label_for(filter),
                   alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" },

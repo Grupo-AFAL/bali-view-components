@@ -47,6 +47,12 @@ es:
         or: "O"
       combinator_toggle: "Combinar condiciones con"
 
+      # Accessible names of a condition's controls (no visible caption)
+      aria_labels:
+        field: "Campo"
+        operator: "Operador"
+        value: "Valor"
+
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
 
@@ -321,13 +327,6 @@ es:
         rename: Renombrar
         delete: Borrar
         delete_confirm: "¿Borrar la vista \"%{name}\"?"
-      export:
-        button_label: Exportar
-        formats:
-          csv: CSV
-          excel: Excel
-          pdf: PDF
-          json: JSON
     page_header:
       back: Volver
     page_components:
@@ -335,6 +334,11 @@ es:
         button_label: Más acciones
       export:
         menu_title: Exportar lo filtrado
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
     pagination:
       aria_label: Paginación
       previous_page: Página anterior

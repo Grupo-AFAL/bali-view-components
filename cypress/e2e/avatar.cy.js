@@ -34,4 +34,16 @@ describe('Avatar upload', () => {
     })
     cy.get('form').should('have.attr', 'enctype', 'multipart/form-data')
   })
+
+  // The button sits on the picture's corner, so its tint has to be painted over something
+  // opaque: straight on the picture, the photo showed through it.
+  it('paints the upload button opaque over the picture', () => {
+    cy.get('label:has([data-avatar-target="input"])').should(($label) => {
+      const doc = $label[0].ownerDocument
+      const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 }).getContext('2d')
+      ctx.fillStyle = doc.defaultView.getComputedStyle($label[0].parentElement).backgroundColor
+      ctx.fillRect(0, 0, 1, 1)
+      expect(ctx.getImageData(0, 0, 1, 1).data[3], 'alpha of the fill under the tint').to.equal(255)
+    })
+  })
 })

@@ -12,7 +12,8 @@ module Bali
   # Two keywords, and only two:
   #
   #   color:        a symbol from NAMES. Follows the daisyUI theme.
-  #   custom_color: a hex string. The escape hatch, and never theme-aware.
+  #   custom_color: a hex string. The escape hatch: the hex itself never follows the
+  #                 theme, though `soft` mixes it into the theme's ink.
   #
   # What this module does NOT do is build Tailwind class names. `"badge-#{name}"`
   # would be invisible to Tailwind's source scanner, so every class a component
@@ -110,6 +111,14 @@ module Bali
       # — the form this repo used before — is not valid CSS at all.
       def with_alpha(color, percent)
         "color-mix(in oklch, #{css(color)} #{percent}%, transparent)"
+      end
+
+      # `text-soft-*` (bali/utilities.css) as a value, for a colour no utility can name: a hex.
+      # The hex itself over its own tint read 1.99:1 for an amber on the light themes and 2.14
+      # for a violet on `dark` — the two ends of the Bali::Status hexes costa-norte hands to
+      # StatCard's `custom_color:`.
+      def soft(color)
+        "color-mix(in oklab, #{css(color)} 40%, var(--color-base-content))"
       end
 
       # A ramp from transparent to the colour, for a heatmap or any other
