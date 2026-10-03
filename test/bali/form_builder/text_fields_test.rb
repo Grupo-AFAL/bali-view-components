@@ -56,7 +56,7 @@ class BaliFormBuilderTextFieldsTest < FormBuilderTestCase
   def test_text_field_with_validation_errors_displays_error_message
     resource.errors.add(:name, "is invalid")
     result = builder.text_field(:name)
-    assert_html(result, "p.text-error", text: "Name is invalid")
+    assert_html(result, "p.text-soft-error", text: "Name is invalid")
   end
 
   def test_text_field_with_help_text_displays_help_text
@@ -190,7 +190,7 @@ class BaliFormBuilderTextFieldsTest < FormBuilderTestCase
     resource.errors.add(:name, "is invalid")
     result = builder.text_field(:name, char_counter: true, help: "Keep it short")
 
-    assert_html(result, "p.fieldset-label.text-error")
+    assert_html(result, "p.fieldset-label.text-soft-error")
     assert_html(result, "p.fieldset-label", text: "Keep it short")
   end
 

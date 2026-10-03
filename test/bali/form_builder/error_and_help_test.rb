@@ -39,7 +39,7 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
     failures = FAMILIES.filter_map do |name, render|
       html = render_with_error(render)
       messages = [
-        ("no error" unless Capybara.string(html).has_css?("p.text-error")),
+        ("no error" unless Capybara.string(html).has_css?("p.text-soft-error")),
         ("no help" unless Capybara.string(html).has_css?("p.fieldset-label", text: HELP))
       ].compact
 
@@ -54,8 +54,8 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
   def test_every_family_renders_exactly_one_error_and_one_help_paragraph
     failures = FAMILIES.filter_map do |name, render|
       node = Capybara.string(render_with_error(render))
-      errors = node.all("p.fieldset-label.text-error", visible: :all).size
-      helps = node.all("p.fieldset-label:not(.text-error)", visible: :all).size
+      errors = node.all("p.fieldset-label.text-soft-error", visible: :all).size
+      helps = node.all("p.fieldset-label:not(.text-soft-error)", visible: :all).size
 
       "#{name}: #{errors} error(s), #{helps} help(s)" unless errors == 1 && helps == 1
     end
@@ -69,7 +69,7 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
     failures = FAMILIES.filter_map do |name, render|
       node = Capybara.string(render_with_error(render))
       missing = [
-        ("error id" unless node.has_css?("p.text-error##{error_id(name)}")),
+        ("error id" unless node.has_css?("p.text-soft-error##{error_id(name)}")),
         ("help id" unless node.has_css?("p.fieldset-label##{help_id(name)}"))
       ].compact
 
@@ -88,7 +88,7 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
     html = builder.text_field(:name)
 
     refute_html html, "p.fieldset-label"
-    refute_html html, "p.text-error"
+    refute_html html, "p.text-soft-error"
   end
 
   def test_the_error_comes_before_the_help

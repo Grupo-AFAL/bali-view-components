@@ -79,7 +79,7 @@ class BaliFormBuilderSearchFieldsTest < FormBuilderTestCase
   def test_search_group_with_validation_errors_displays_error_message
     resource.errors.add(:name, "is required")
     result = builder.search_group(:name)
-    assert_html(result, "p.text-error", text: "Name is required")
+    assert_html(result, "p.text-soft-error", text: "Name is required")
   end
 
   def test_search_group_with_custom_class_includes_custom_class_with_daisyui_classes

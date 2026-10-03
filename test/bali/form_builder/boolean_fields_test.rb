@@ -125,7 +125,7 @@ class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
   def test_boolean_field_with_validation_errors_displays_error_message
     resource.errors.add(:indie, "must be accepted")
     result = builder.boolean_field(:indie)
-    assert_html(result, "p.text-error", text: "Indie must be accepted")
+    assert_html(result, "p.text-soft-error", text: "Indie must be accepted")
   end
 
   def test_boolean_field_with_custom_checked_unchecked_values_uses_custom_unchecked_value

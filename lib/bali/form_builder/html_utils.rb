@@ -42,8 +42,12 @@ module Bali
       # the messages under a control. Unlike `.label` — the other candidate — it
       # is a block-level flex container with no `white-space: nowrap`, so a long
       # validation message wraps instead of overflowing the fieldset.
-      MESSAGE_CLASS = "fieldset-label"
-      ERROR_MESSAGE_CLASS = "fieldset-label text-error"
+      #
+      # Its colour goes on the element: daisyUI paints `.fieldset-label` at `/60` from
+      # @layer utilities, 4.04:1 on `afal` (AA wants 4.5). On the page `text-error` read
+      # 2.75:1 there, hence the soft red, for the message and the required asterisk.
+      MESSAGE_CLASS = "fieldset-label text-base-content/70"
+      ERROR_MESSAGE_CLASS = "fieldset-label text-soft-error"
 
       # The character counter's own class. It lives here rather than next to the
       # textarea because the counter is no longer a textarea feature: `<input>`
@@ -215,7 +219,7 @@ module Bali
       # `<label>`/`<legend>`, and the checkbox and toggle into the label beside the
       # box, which is the caption those two families have.
       def required_marker
-        @template.tag.span(class: "text-error ms-0.5") do
+        @template.tag.span(class: "text-soft-error ms-0.5") do
           @template.safe_join([
             @template.tag.span("*", aria: { hidden: true }),
             @template.tag.span(I18n.t("bali_view.form_builder.required"), class: "sr-only")

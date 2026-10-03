@@ -6,7 +6,7 @@ require "test_helper"
 # validator that is not ActiveModel — produced, on a form that may not have an
 # object at all. It joins the model's errors rather than replacing them, the
 # caller's message first, and rides the exact plumbing model errors already
-# use: the `.text-error` paragraph, the `aria-describedby`/`aria-invalid` pair,
+# use: the `.text-soft-error` paragraph, the `aria-describedby`/`aria-invalid` pair,
 # and the family's `*-error` class on the control.
 #
 # Not every family has all three to offer, so — like `required_option_test` —
@@ -153,7 +153,7 @@ class BaliFormBuilderExternalErrorOptionTest < FormBuilderTestCase
 
     assert_equal [ "Bad login" ], error_paragraphs(html)
     assert_html html, "input.input-error[aria-invalid='true'][aria-describedby='login_error']"
-    assert_html html, "p.text-error#login_error"
+    assert_html html, "p.text-soft-error#login_error"
   end
 
   def test_a_builder_without_an_object_and_without_an_error_stays_clean
@@ -175,7 +175,7 @@ class BaliFormBuilderExternalErrorOptionTest < FormBuilderTestCase
   private
 
   def error_paragraphs(html)
-    Nokogiri::HTML5.fragment(html.to_s).css("p.text-error").map(&:text)
+    Nokogiri::HTML5.fragment(html.to_s).css("p.text-soft-error").map(&:text)
   end
 
   def invalid_elements(html)

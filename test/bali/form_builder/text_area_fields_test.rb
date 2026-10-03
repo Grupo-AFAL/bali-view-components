@@ -56,7 +56,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
   def test_text_area_with_validation_errors_displays_error_message
     resource.errors.add(:synopsis, "is required")
     result = builder.text_area(:synopsis)
-    assert_html(result, "p.text-error", text: "Synopsis is required")
+    assert_html(result, "p.text-soft-error", text: "Synopsis is required")
   end
 
   def test_text_area_with_help_text_displays_help_text
@@ -113,7 +113,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
     resource.errors.add(:synopsis, "is required")
     result = builder.text_area(:synopsis, char_counter: { max: 500 }, help: "Keep it short")
 
-    assert_html(result, "p.text-error", text: "Synopsis is required")
+    assert_html(result, "p.text-soft-error", text: "Synopsis is required")
     assert_html(result, "p.fieldset-label", text: "Keep it short")
   end
 

@@ -232,7 +232,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   def test_slim_select_field_with_validation_errors_displays_error_message
     resource.errors.add(:status, :invalid)
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
-    assert_html(result, "p.text-error")
+    assert_html(result, "p.text-soft-error")
   end
 
   # custom data attributes

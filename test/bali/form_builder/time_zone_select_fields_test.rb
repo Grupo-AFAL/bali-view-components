@@ -61,7 +61,7 @@ class BaliFormBuilderTimeZoneSelectFieldsTest < FormBuilderTestCase
   def test_time_zone_select_with_errors_renders_error_message
     resource.errors.add(:release_date, "is invalid")
     result = builder.time_zone_select(:release_date)
-    assert_html(result, "p.text-error", text: "Release date is invalid")
+    assert_html(result, "p.text-soft-error", text: "Release date is invalid")
   end
 
   def test_time_zone_select_does_not_mutate_input_hashes_preserves_the_original_html_options_hash
