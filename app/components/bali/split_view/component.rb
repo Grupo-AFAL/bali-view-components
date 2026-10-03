@@ -95,18 +95,26 @@ module Bali
       #             pushes its URL into the history and the selection is
       #             deep-linkable. Turn it off for a split view that is not a
       #             navigable location of its own.
+      # frame_options - HTML attributes for the detail `<turbo-frame>`, as the
+      #             remaining options are for the container. `class:` joins the
+      #             component's and `data:` is merged into it, so `advance:` keeps
+      #             its `turbo_action`; `id:` raises, because it is `frame_id:`.
+      #             Nothing inside the detail can stand in for it: Turbo reads
+      #             `data-autoscroll-block` and `data-autoscroll-behavior` off the
+      #             frame already in the page, never off the one in the response.
       def initialize(frame_id:, master_width: DEFAULT_MASTER_WIDTH, advance: true,
-                     height: :content, **options)
+                     height: :content, frame_options: {}, **options)
         @frame_id = frame_id
         @master_width = validated_master_width(master_width)
         @advance = advance
         @height = validated_height(height)
+        @frame_options = validated_frame_options(frame_options)
         @options = options
       end
 
       private
 
-      attr_reader :options
+      attr_reader :options, :frame_options
 
       def advance? = @advance
       def full_height? = @height == :full
@@ -122,6 +130,13 @@ module Bali
 
         raise ArgumentError,
               "height must be one of #{HEIGHTS.map(&:inspect).join(', ')}, got #{value.inspect}."
+      end
+
+      def validated_frame_options(value)
+        return value unless value.key?(:id)
+
+        raise ArgumentError,
+              "frame_options cannot set id: the frame's id is frame_id:, which the rows and the controller target."
       end
 
       def validated_master_width(value)
@@ -148,9 +163,11 @@ module Bali
       end
 
       def frame_attributes
-        { id: frame_id, class: "split-view-detail" }.tap do |attributes|
-          attributes[:data] = { turbo_action: "advance" } if advance?
-        end
+        frame_options.except(:class, :data).merge(
+          id: frame_id,
+          class: class_names("split-view-detail", frame_options[:class]),
+          data: { turbo_action: ("advance" if advance?) }.merge(frame_options.fetch(:data, {}))
+        )
       end
     end
   end

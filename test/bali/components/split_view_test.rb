@@ -161,4 +161,59 @@ class BaliSplitViewComponentTest < ComponentTestCase
 
     assert_selector("div#inbox-split.split-view-component")
   end
+
+  # --- frame_options --------------------------------------------------------------------
+
+  def test_frame_options_reach_the_frame
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail",
+                                     frame_options: { autoscroll: true, aria: { label: "Detail" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame#inbox-detail[autoscroll][aria-label="Detail"]', visible: :all)
+  end
+
+  def test_frame_options_data_is_merged_with_the_turbo_action_advance_writes
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { data: { autoscroll_block: "start" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame[data-turbo-action="advance"][data-autoscroll-block="start"]', visible: :all)
+  end
+
+  def test_frame_options_data_reaches_the_frame_without_advance
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", advance: false,
+                                     frame_options: { data: { autoscroll_block: "start" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame[data-autoscroll-block="start"]', visible: :all)
+    assert_no_selector("turbo-frame[data-turbo-action]", visible: :all)
+  end
+
+  def test_frame_options_class_is_added_to_the_frame_class
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { class: "scroll-mt-20" })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector("turbo-frame.split-view-detail.scroll-mt-20", visible: :all)
+  end
+
+  # The rows, the list and the controller all find the frame by `frame_id:`, so a
+  # second id would leave every row pointing at a frame that is not in the page.
+  def test_frame_options_cannot_set_the_frame_id
+    error = assert_raises(ArgumentError) do
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { id: "other" })
+    end
+
+    assert_match(/frame_options cannot set id/, error.message)
+  end
 end
