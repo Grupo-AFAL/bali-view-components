@@ -90,15 +90,26 @@ describe('colours that follow the theme', () => {
       everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2)
     })
 
-    it(`reads the BlockEditor's "/" menu at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/default')
-      useTheme(theme)
-      cy.get('.bn-editor').click().type('/')
-      everyReadsAtAA([
+    // AA alone also passes with BlockNote's own palette once BlockNote is told the scheme
+    // (#cfcfcf on the dark themes), so the menu is held to the editor's ink as well.
+    it(`reads the BlockEditor's "/" menu at AA, in the editor's ink, on the ${theme} theme`, () => {
+      const menuText = [
         '.bn-suggestion-menu-label',
         '.bn-mt-suggestion-menu-item-title',
         '.bn-mt-suggestion-menu-item-subtitle'
-      ].map(part => `.bn-suggestion-menu ${part}`).join(', '), theme, 10)
+      ].map(part => `.bn-suggestion-menu ${part}`).join(', ')
+
+      cy.visit('/bali/block_editor/default')
+      useTheme(theme)
+      cy.get('.bn-editor').click().type('/')
+      everyReadsAtAA(menuText, theme, 10)
+      cy.get(menuText).should(($els) => {
+        const style = el => el.ownerDocument.defaultView.getComputedStyle(el)
+        const ink = style($els[0].ownerDocument.querySelector('.bn-editor')).color
+        $els.each((_, el) => {
+          expect(style(el).color, `${theme}: ${el.textContent.trim()}`).to.equal(ink)
+        })
+      })
     })
 
     // Icons, so 3:1 (WCAG 1.4.11). BlockNote's #cfcfcf painted 1.56:1 on the light themes.
@@ -135,7 +146,7 @@ describe('colours that follow the theme', () => {
   // Each render of the editor reads the page's scheme, and it is still rendering as it mounts:
   // with no subscription at all, the single switch above passed on one or two of the three
   // dark themes. Switching back as well failed 10 runs out of 10.
-  it('follows the UserMenu\'s switch to dark and back', () => {
+  it('follows a data-theme switched in place, to dark and back', () => {
     cy.visit('/bali/block_editor/readonly')
     cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
     useTheme('dark')
