@@ -302,6 +302,31 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     refute(@form.active_filters?)
   end
 
+  # The bare dates the panel's range picker sends (condition_controller.js#syncRangeDates), over a
+  # datetime column.
+  def test_a_between_range_includes_its_whole_last_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { created_at_gteq: "2026-08-25", created_at_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
+  def test_a_between_range_over_a_date_column_still_compares_dates
+    @tenant.movies.create!(name: "Last day", production_starts_on: Date.new(2026, 8, 27))
+    @tenant.movies.create!(name: "Next day", production_starts_on: Date.new(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { production_starts_on_gteq: "2026-08-25",
+                            production_starts_on_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
   # What is COUNTED and what TRAVELS have to be the same question: if they diverge, a bulk action
   # acts on a different set than the listing says it is showing.
   def test_what_counts_as_applied_is_what_travels

@@ -339,7 +339,8 @@ export class ConditionController extends Controller {
     const flatpickr = input._flatpickr
 
     if (flatpickr && flatpickr.selectedDates.length === 2) {
-      // Format dates as YYYY-MM-DD for Ransack
+      // Bare dates: Bali::FilterForm::WholeDayCasting::BARE_DATE reads the top end as the end
+      // of that day. Change both.
       const formatDate = (date) => {
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')

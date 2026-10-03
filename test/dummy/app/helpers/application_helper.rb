@@ -29,7 +29,7 @@ module ApplicationHelper
       { key: :status, label: "Status", type: :select, options: Movie.statuses.map { |k, _v| [ k.humanize, k ] } },
       { key: :created_at, label: "Created Date", type: :date },
       # A second date, so a `between` can be carried from one date field to another
-      # (filters-between-across-fields.cy.js).
+      # (filters-between.cy.js).
       { key: :production_starts_on, label: "Production Start", type: :date },
       { key: :indie, label: "Indie Film", type: :boolean }
     ]
