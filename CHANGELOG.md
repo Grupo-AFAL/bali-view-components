@@ -218,7 +218,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   etiqueta junto al título, o la acción de un `ShowPage` abierto en el modal. Ahora el ✕ flota en
   la misma esquina y esa fila se acorta a su lado. Una caja `flex`, `grid` o con scroll que
   empiece junto al ✕ —una Card, el primer `fieldset` del FormBuilder, una `Table`— se acorta en
-  toda su altura, 24 px en escritorio y 32 en celular. Sin nada que hacer en el anfitrión.
+  toda su altura, 24 px en escritorio y 32 en celular. **Anfitrión:** si una vista que se abre
+  en el modal empieza con una de esas cajas, un título antes de ella le devuelve todo el ancho;
+  las vistas que hoy abren las apps en el modal compartido ya empiezan con su cabecera.
 
 - **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
   anual «On the First / Sunday / of January» no se partía y estiraba su panel más allá de la
