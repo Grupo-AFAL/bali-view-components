@@ -74,12 +74,16 @@ module Bali
         @options.except(*EXTRACTED_OPTIONS)
       end
 
-      # chart/index.js repaints only the series whose border is the theme's, points included,
-      # so a host's own colour has to reach the points from here. Its fill before its border,
-      # the way Chart.js fills a point: a hidden line over a fill, like bali-analytics'
-      # suppressed band, has a transparent border and would lose its legend swatch.
+      # Without a border of its own a series takes the palette's, and under the theme
+      # chart/index.js repaints it whole, a fill of its own included: its points follow that
+      # border. A host's own border is left alone, so its colour reaches the points from here,
+      # the fill before the border the way Chart.js fills a point: a hidden line over a fill,
+      # like bali-analytics' suppressed band, has a transparent border and would lose its
+      # legend swatch.
       def point_background_color
-        @options[:backgroundColor] || @options[:borderColor] || border_colors.first
+        return border_colors.first unless @options.key?(:borderColor)
+
+        @options[:backgroundColor] || @options[:borderColor]
       end
 
       def background_colors

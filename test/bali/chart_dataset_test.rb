@@ -59,6 +59,14 @@ class BaliChartDatasetTest < ActiveSupport::TestCase
     assert_equal [ line[:pointBackgroundColor] ], line[:borderColor]
   end
 
+  # chart/index.js repaints a series with the theme's border whole, its fill included, so a
+  # fill of its own would leave the points and legend swatch apart from the line.
+  def test_line_points_of_a_theme_series_ignore_a_fill_of_its_own
+    line = theme_line(backgroundColor: "#ff0000")
+
+    assert_equal line[:borderColor].first, line[:pointBackgroundColor]
+  end
+
   private
 
   # A line as Bali::Chart::Component builds it, its colour handed out from the theme.

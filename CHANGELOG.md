@@ -234,8 +234,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Los puntos de una línea de `Bali::Chart` y su muestra en la leyenda toman el color de la
   serie** (#1281). Ruby los escribía siempre con un `var(--color-*)` del tema, que un canvas no
   resuelve, y el controlador sólo traducía el borde y el relleno: los puntos salían negros y la
-  muestra de la leyenda del gris de su texto. Ahora una serie del tema los pinta con su borde, y
-  una con colores propios con su `backgroundColor:` o, si no lo da, con su `borderColor:`.
+  muestra de la leyenda del gris de su texto. Ahora una serie sin `borderColor:` propio los pinta
+  con el borde del tema, y una que lo trae, con su `backgroundColor:` o, si no lo da, con ese
+  borde.
   Cambian las líneas con colores del tema: **gobierno-corporativo** (tendencia de conciliación,
   actividad y clics de la importación de la intranet), **afal-apps** (peso en wellness),
   **centinela-web** (tendencia diaria de incidentes), **bali-analytics** (la serie de personas

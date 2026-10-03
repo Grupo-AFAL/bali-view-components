@@ -2416,7 +2416,8 @@ purpose: in it, neighbouring series stay apart for a reader with protanopia, deu
 tritanopia in every theme Bali ships, where `afal`'s primary and secondary differ in hue alone.
 `color:` rotates it so the colour it names comes first. A series that brings its own `borderColor:`
 is not repainted from the theme; on a line, its points and legend swatch take its
-`backgroundColor:`, or that border when it gives no fill.
+`backgroundColor:`, or that border when it gives no fill. A series without one is repainted
+whole, a `backgroundColor:` of its own included.
 
 **Slots:** `with_data_table` — a real `<table>` visually hidden next to the canvas.
 
