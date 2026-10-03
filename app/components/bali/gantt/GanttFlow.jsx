@@ -30,7 +30,7 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import TaskBarNode from './TaskBarNode'
 import TimeHeader, { HEADER_H } from './TimeHeader'
-import GanttTable, { FULL_TABLE_W } from './GanttTable'
+import GanttTable from './GanttTable'
 import Toolbar from './Toolbar'
 import GanttFooter from './GanttFooter'
 import Minimap from './Minimap'
@@ -633,11 +633,10 @@ function GanttCanvas (props) {
     [maxFlowX, rowsHeight]
   ]
 
-  // Table width: adjustable via the splitter (tableWidth) or responsive. It opens wide enough for
-  // every column only as far as that leaves the timeline 40% of the board: on a board under
-  // 840 px it takes 60% and clips the right-hand columns.
-  const fitsColumns = Math.min(FULL_TABLE_W, Math.round(rootWidth * 0.6))
-  const defaultTableW = rootWidth ? Math.min(520, Math.max(300, Math.round(rootWidth * 0.42), fitsColumns)) : 380
+  // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%. The
+  // 520 cap has to hold every GanttTable column with Name at its minimum; on a board under 840 px
+  // the right-hand columns are clipped.
+  const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 380
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
     () => ({
