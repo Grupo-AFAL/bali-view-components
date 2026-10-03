@@ -82,8 +82,9 @@ describe('hovers, tints and edges over a base surface', () => {
     cy.get('.flatpickr-calendar.open').should('be.visible')
   }
   const DAY = '.flatpickr-calendar.open .flatpickr-day'
+  const upArrow = (el) => paintedContrast(el, { pseudo: '::after', property: 'borderBottomColor' })
 
-  // [what, how the state is reached, the element that paints it, { filled, text, ringless }]
+  // [what, how the state is reached, the element that paints it, { filled, text, icon, ringless }]
   const HOVERS = [
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
       '.tree-view-item-component .item:not(.is-active)'],
@@ -116,8 +117,10 @@ describe('hovers, tints and edges over a base surface', () => {
       { text: '.flatpickr-am-pm' }],
     // `.numInputWrapper span:hover` is a white tint meant for the coloured header: over the time
     // row it painted 1.00:1 on the light themes and a light square, 2.65–2.70, on the dark ones.
+    // The arrow is read on that fill too: an opaque light one lifts off all six themes and leaves
+    // the dark ones' arrow at 1.00–1.08:1.
     ['a stepper arrow of the time picker', openDatepicker('time'),
-      '.flatpickr-calendar.open .flatpickr-time span.arrowUp'],
+      '.flatpickr-calendar.open .flatpickr-time span.arrowUp', { icon: upArrow }],
     // Filled at rest. Their base-300 hover over a base-200 fill stepped 1.044:1 (afal-dark) to
     // 1.130 (costa-norte) off the same control at rest; the ink at 16% over 8%, 1.168 at worst
     // (afal). The fill has to step off the surface too, and the text is read on both fills.
@@ -157,7 +160,7 @@ describe('hovers, tints and edges over a base surface', () => {
   // paints over it a second time, a darker ring.
   const ring = (el) => paintedContrast(el, { property: 'borderTopColor' })
 
-  HOVERS.forEach(([what, reach, selector, { filled = false, text, ringless = false } = {}]) => {
+  HOVERS.forEach(([what, reach, selector, { filled = false, text, icon, ringless = false } = {}]) => {
     THEMES.forEach((theme) => {
       const name = filled
         ? `tints ${what} off its surface and lifts it further under the pointer on the ${theme} theme`
@@ -173,6 +176,7 @@ describe('hovers, tints and edges over a base surface', () => {
           atRest = lift($el[0])
           if (filled) expect(atRest, `${theme}: ${what} at rest against its surface`).to.be.at.least(STEP)
           if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} at rest`).to.be.at.least(AA)
+          if (icon) expect(icon($el[0]), `${theme}: the icon of ${what} at rest`).to.be.at.least(3)
         })
         cy.get(selector).first().then(hover)
 
@@ -187,6 +191,7 @@ describe('hovers, tints and edges over a base surface', () => {
           expect(lifted, `${theme}: ${what} against its surface`).to.be.at.least(STEP)
           expect(lifted / atRest, `${theme}: ${what} against itself at rest`).to.be.at.least(STEP)
           if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} under the pointer`).to.be.at.least(AA)
+          if (icon) expect(icon($el[0]), `${theme}: the icon of ${what} under the pointer`).to.be.at.least(3)
           if (ringless) expect(ring($el[0]), `${theme}: the border of ${what} over its own fill`).to.be.closeTo(1, 0.01)
         })
       })
