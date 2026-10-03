@@ -217,10 +217,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   filas de ese día. `FilterForm` lee ahora la fecha sola de un `_lteq` o un `_gt` de cualquier
   grupo del panel, también anidado, como el final de ese día: así también «en o antes de»
   incluye el día y «después de» lo deja fuera, en vez de traer sus filas. El rango de un campo
-  `type: :datetime` elige días enteros: mostraba una hora (12:00) que no viajaba. Lo notan los paneles que filtran una
-  columna de fecha y hora con `type: :date`, como `created_at` y `last_active_at` en los
-  usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de identity: devuelven
-  también las filas del último día. Sin nada que hacer en el anfitrión. Se retiran las claves
+  `type: :datetime` elige días enteros: mostraba una hora (12:00) que no viajaba. Lo notan los
+  paneles que filtran una columna de fecha y hora con `type: :date`, como `created_at` y
+  `last_active_at` en los usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de
+  identity: «entre» y «en o antes de» devuelven también las filas del último día, y «después de»
+  deja de traer las del día elegido. Sin nada que hacer en el anfitrión. Se retiran las claves
   `bali_view.filters.select_datetime_range` y
   `bali_view.filters.placeholders.select_datetime_range`, que ninguna de las nueve apps usa.
 
