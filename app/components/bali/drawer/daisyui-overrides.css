@@ -1,0 +1,19 @@
+/* Drawer — the rule that has to outrank daisyUI's `.skeleton` animation.
+ *
+ * A closed drawer stays rendered so it can slide (index.css), and daisyUI animates
+ * `.skeleton` forever: AppLayout's closed drawer kept 15 `skeleton` animations running
+ * on every page, so `document.getAnimations()` never emptied (#1273). daisyUI emits that
+ * animation inside `@layer utilities`; the same rule in `@layer components` (index.css)
+ * measured all 15 still running.
+ *
+ * Keyed on `.drawer-open`, not `[open]`: the class is what puts the panel on screen, and
+ * an `active:` drawer carries it from the server before its controller calls
+ * `showModal()`.
+ *
+ * Only `.skeleton`, not `*`: unlayered, a `*` would also stop any animation a host puts in
+ * a closed drawer, visibly so during the 300ms slide-out, and a Tailwind `animate-*` could
+ * only take it back with `!`.
+ */
+.drawer-component:not(.drawer-open) .skeleton {
+  animation: none;
+}

@@ -26,7 +26,7 @@ describe('theme primary and secondary contrast', () => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         cy.get(selector).should(($el) => {
-          expect($el[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+          expect($el[0].ownerDocument.getAnimations(), 'colour transitions settled').to.have.length(0)
           expect(paintedContrast($el[0]), `${theme}: ${surface}`).to.be.at.least(AA)
         })
       })
