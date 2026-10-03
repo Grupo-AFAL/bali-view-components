@@ -272,12 +272,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app/views/rodauth/_otp_digits.html.erb` (pasa a `text-soft-error`), y **gobierno-corporativo**
   pinta de `text-error` su contador en `app/javascript/controllers/character_counter_controller.js`.
 
-- **El texto que daisyUI atenúa a `/60` pasa a `/70`: la ayuda de cada campo del FormBuilder y el
-  encabezado y el pie de tabla** (#1281). Medían 4.04:1 en `afal` y 4.32 en `costa-norte`; a `/70`,
-  5.54 y 6.00. Lo llevan `Bali::Table`, y con ella `DataTable`, y la tabla de los campos
-  dinámicos. **identity** escribe a mano tres `<p class="fieldset-label">` de ayuda en
-  `app/views/admin/connected_applications/_form.html.erb`, que siguen en el `/60` hasta que les
-  ponga `text-base-content/70`.
+- **El texto que daisyUI atenúa a `/60` pasa a `/70` en la ayuda de cada campo del FormBuilder y
+  en el encabezado y el pie de `Bali::Table`** (#1281). Medían 4.04:1 en `afal` y 4.32 en
+  `costa-norte`; a `/70`, 5.54 y 6.00. Lo llevan también `DataTable` y la tabla de los campos
+  dinámicos. **Anfitrión:** el marcado escrito a mano no cambia solo. Una `<table class="table">`
+  conserva el `/60` hasta que su `<thead>` y su `<tfoot>` lleven `text-base-content/70`, y hay 95
+  vistas así en seis apps, 69 de ellas en **gobierno-corporativo** y 15 en **afal-apps**; donde un
+  `<th>` escribe su propio `text-base-content/60`, como en el historial de documentos de
+  gobierno-corporativo, es ese el que cambia. **identity** escribe además tres
+  `<p class="fieldset-label">` de ayuda en `app/views/admin/connected_applications/_form.html.erb`,
+  que siguen en el `/60` hasta que les ponga `text-base-content/70`.
 
 - **`Bali::Footer` deja de atenuar el título, la descripción y el copyright** (#1281). Sobre
   `primary` el título medía 2.83:1 en `afal`, y sobre `neutral` 4.15 en `afal-dark`. Con los
