@@ -7,9 +7,6 @@ module Bali
       CONTAINER_CLASSES = "overflow-x-auto table-component"
       STICKY_CLASSES = "overflow-visible [&_table]:overflow-x-auto " \
                        "[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]"
-      # On the element, because daisyUI paints a `.table`'s thead and tfoot at `/60` from
-      # @layer utilities: 4.04:1 on `afal` (AA wants 4.5).
-      HEAD_AND_FOOT_CLASSES = "text-base-content/70"
 
       class MissingFilterForm < StandardError; end
 

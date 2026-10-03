@@ -182,9 +182,7 @@ module Bali
       def table_head(columns)
         return nil if columns.blank?
 
-        tag.thead(class: Bali::Table::Component::HEAD_AND_FOOT_CLASSES) do
-          tag.tr { safe_join(columns.map { |column| tag.th(column) }) }
-        end
+        tag.thead { tag.tr { safe_join(columns.map { |column| tag.th(column) }) } }
       end
 
       def controller_data_attributes(method, singular, options)

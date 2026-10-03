@@ -72,9 +72,9 @@ module Bali
         # sortable column apart without competing with the table's data.
         #
         # Explicit colour and NOT `opacity`: the thead is already `base-content` at 70%
-        # (`Table::Component::HEAD_AND_FOOT_CLASSES`), so an opacity MULTIPLIES against that —
-        # `opacity-30` over daisyUI's 60% measured 1.5:1 against base-100, below the 3:1 WCAG
-        # 1.4.11 asks of a user interface element.
+        # (bali/utilities.css), so an opacity MULTIPLIES against that — `opacity-30` over
+        # daisyUI's 60% measured 1.5:1 against base-100, below the 3:1 WCAG 1.4.11 asks of a
+        # user interface element.
         # And since the only highlight is hover/focus, on a phone there is no way to raise it:
         # the affordance stayed down there forever, for exactly the people who see it least.
         def indicator_classes

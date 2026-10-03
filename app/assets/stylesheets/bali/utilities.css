@@ -18,3 +18,14 @@
 @utility text-soft-* {
   color: color-mix(in oklab, --value(--color-*) 40%, var(--color-base-content));
 }
+
+/* A `.table`'s thead and tfoot, which daisyUI paints at `/60`: 4.04:1 on `afal` (AA: 4.5).
+ * A rule rather than a class on Bali's templates, because host views write that table by hand.
+ * In @layer utilities itself, which outranks daisyUI's `daisyui.*` sublayers of it whatever the
+ * specificity; under `:where()`, because this block is emitted after Tailwind's utilities and a
+ * host's colour class on the thead has to keep winning on specificity. */
+@layer utilities {
+  :where(.table) :where(thead, tfoot) {
+    @apply text-base-content/70;
+  }
+}

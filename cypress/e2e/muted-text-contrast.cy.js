@@ -230,6 +230,16 @@ describe('muted text contrast', () => {
 
   // The text that only shows once something is opened or typed.
   const OPENED = [
+    // A `<table class="table">` written by hand, the way host views write theirs: nothing of
+    // Bali's on its thead or its tfoot.
+    {
+      page: 'status/in_table',
+      opened: 'a tfoot written by hand',
+      open: () => cy.get('table.table').then(($table) => {
+        $table[0].insertAdjacentHTML('beforeend', '<tfoot><tr><td>2 scenarios</td><td></td></tr></tfoot>')
+      }),
+      targets: [['column header', 'table.table thead th', 2], ['totals row', 'table.table tfoot td:first-child', 1]]
+    },
     {
       page: 'side_menu/collapsible',
       opened: 'the rail collapsed and a flyout open',
@@ -591,6 +601,28 @@ describe('form placeholder cascade', () => {
         const placeholder = $field[0].ownerDocument.defaultView.getComputedStyle($field[0], '::placeholder')
         expect(placeholder.color, `${what}: placeholder colour`).to.eq('rgb(255, 0, 0)')
       })
+    })
+  })
+})
+
+// The rule that lifts a `.table`'s thead and tfoot (bali/utilities.css) sits in @layer utilities
+// after Tailwind's own utilities, so only its zero specificity lets a host's colour class on the
+// thead win, and nothing in the contrast guard above would notice it stopped.
+describe('table head cascade', () => {
+  it('yields the thead of a hand-written table to a host colour utility', () => {
+    const HOST = 'text-base-content/60'
+    cy.visit('/bali/status/in_table')
+    cy.get('table.table thead').then(($thead) => {
+      const probe = $thead[0].ownerDocument.createElement('span')
+      probe.className = HOST
+      probe.id = 'host-colour-probe'
+      $thead[0].ownerDocument.body.appendChild(probe)
+      $thead.addClass(HOST)
+    })
+    cy.get('table.table thead th').first().should(($th) => {
+      const doc = $th[0].ownerDocument
+      const colour = el => doc.defaultView.getComputedStyle(el).color
+      expect(colour($th[0]), `header with ${HOST} on its thead`).to.eq(colour(doc.getElementById('host-colour-probe')))
     })
   })
 })
