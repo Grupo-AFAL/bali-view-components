@@ -144,6 +144,9 @@ en:
       navigate: "navigate"
       open_action: "open"
       close: "close"
+      results:
+        one: "%{count} result"
+        other: "%{count} results"
 
     # Conversational chat
     chat:

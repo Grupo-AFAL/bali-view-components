@@ -136,6 +136,7 @@ export default function TaskBarNode ({ data, width, selected }) {
                 background: avatarColor(assignee),
                 border: '1.5px solid var(--color-base-100)'
               }}
+              role='img'
               title={assignee.name}
             >
               {assignee.initials}

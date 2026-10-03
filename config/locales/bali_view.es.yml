@@ -139,6 +139,9 @@ es:
       navigate: "navegar"
       open_action: "abrir"
       close: "cerrar"
+      results:
+        one: "%{count} resultado"
+        other: "%{count} resultados"
 
     # Chat conversacional
     chat:

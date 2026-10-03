@@ -56,7 +56,7 @@ class BaliFormBuilderPasswordFieldsTest < FormBuilderTestCase
   def test_password_field_with_validation_errors_displays_error_message
     resource.errors.add(:budget, "is required")
     result = builder.password_field(:budget)
-    assert_html(result, "p.text-error", text: "Budget is required")
+    assert_html(result, "p.text-soft-error", text: "Budget is required")
   end
 
   def test_password_field_with_help_text_displays_help_text

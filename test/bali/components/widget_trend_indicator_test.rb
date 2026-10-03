@@ -18,29 +18,28 @@ class BaliWidgetTrendIndicatorComponentTest < ComponentTestCase
   def test_a_rise_is_green_when_the_widget_says_rising_is_good
     render_trend(delta: 12, positive_when: :up)
 
-    assert_selector(".text-success")
-    assert_no_selector(".text-error")
+    assert_selector(".text-soft-success")
+    assert_no_selector(".text-soft-error")
   end
 
   def test_the_same_rise_is_red_when_the_widget_says_rising_is_bad
     render_trend(delta: 12, positive_when: :down)
 
-    assert_selector(".text-error")
-    assert_no_selector(".text-success")
+    assert_selector(".text-soft-error")
+    assert_no_selector(".text-soft-success")
   end
 
   def test_a_fall_is_green_when_the_widget_says_falling_is_good
     render_trend(delta: -12, positive_when: :down)
 
-    assert_selector(".text-success")
+    assert_selector(".text-soft-success")
   end
 
   # Painting "no change" green would say it was good news.
   def test_a_flat_trend_is_neither_good_nor_bad
     render_trend(delta: 0)
 
-    assert_no_selector(".text-success")
-    assert_no_selector(".text-error")
+    assert_no_selector(".text-success, .text-soft-success, .text-error, .text-soft-error")
   end
 
   # The arrow describes the MOVEMENT, where the colour describes the meaning —
@@ -54,7 +53,7 @@ class BaliWidgetTrendIndicatorComponentTest < ComponentTestCase
 
     render_inline(bad_rise)
 
-    assert_selector(".text-error")
+    assert_selector(".text-soft-error")
   end
 
   def test_a_flat_trend_gets_neither_arrow

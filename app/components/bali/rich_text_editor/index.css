@@ -99,7 +99,7 @@
   }
 
   .suggestion {
-    @apply text-info border border-info rounded-md py-0.5 px-1 cursor-pointer;
+    @apply text-soft-info border border-info rounded-md py-0.5 px-1 cursor-pointer;
     box-decoration-break: clone;
   }
 

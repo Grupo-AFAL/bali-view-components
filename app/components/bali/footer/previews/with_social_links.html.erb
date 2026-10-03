@@ -1,7 +1,7 @@
 <%= render Bali::Footer::Component.new(color: :neutral) do |footer| %>
   <% footer.with_brand do %>
     <h3 class="text-lg font-bold mb-2">TechCorp</h3>
-    <p class="text-sm opacity-80 max-w-xs mb-4">Making technology accessible to everyone.</p>
+    <p class="text-sm max-w-xs mb-4">Making technology accessible to everyone.</p>
     <div class="flex gap-4">
       <%= render Bali::Link::Component.new(href: '#', variant: :ghost, class: 'p-2') do %>
         <%= render Bali::Icon::Component.new('twitter') %>
