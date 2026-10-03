@@ -13,7 +13,7 @@ module Bali
       # It carries the widget's own name because a bare "couldn't load" in a
       # bento of twelve cards does not say WHICH one failed.
       #
-      # `text-warning`, not the `/40` grey the empty state uses: those are
+      # `text-soft-warning`, not the `/70` grey the empty state uses: those are
       # opposite messages, and the muted one already means "nothing to do". No
       # retry link either — the reload is the retry, and a button that re-runs
       # the same broken query promises a recovery this card cannot make.
