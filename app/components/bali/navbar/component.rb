@@ -45,8 +45,11 @@ module Bali
       # @param sticky [Boolean] Make navbar sticky at top (default: true)
       # @param transparency [Boolean] Start without background or shadow, and get both back once
       #   the page scrolls past the bar's height. While transparent the bar takes the text colour
-      #   of its container, not its preset's; over a dark hero, pass the preset's own in `class:`
-      #   (`color: :neutral, class: "text-neutral-content"`).
+      #   of its container, not its preset's. Over a dark hero, pass in `class:` a light colour
+      #   that also reads on the preset's fill: `color: :neutral, class: "text-neutral-content"`.
+      #   Not just any preset's own `-content`: over that hero `text-accent-content` measured
+      #   1.12–1.83:1 in `light`, `dark` and Bali's four themes, and `:primary`'s and
+      #   `:secondary`'s fall as low in some of them.
       # @param fullscreen [Boolean] Full-width navbar without max-width constraint
       # @param color [Symbol, nil] Background color preset (:base, :primary, :secondary, :accent,
       #   :neutral). Pass nil to skip color classes and use your own via the class: option.

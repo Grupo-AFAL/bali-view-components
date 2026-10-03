@@ -225,7 +225,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     las 24 combinaciones de color y tema (1.00 con `primary` en `afal`); ahora, de 13.73 a
     17.72. Pasada su altura recupera fondo y `-content`, como antes. Sobre un hero oscuro el
     color lo pone el anfitrión: `color: :neutral, class: "text-neutral-content"` lo conserva
-    también transparente.
+    también transparente. El `-content` de otro preset no sirve igual: el de `accent` es oscuro
+    en los seis temas.
   - La caja de `Bali::Modal` y el panel de `Bali::Drawer` pintan `base-content` sobre su
     `base-100` en vez de heredar el color de donde se rendericen: dentro de un Navbar `neutral`
     su título medía 1.00:1 en `afal` y 1.27 en `light`; ahora 14.68 y 17.72. Un color de texto
