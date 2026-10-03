@@ -208,7 +208,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Un drawer cerrado ya no oscurece el borde de la página** (#1286). El panel cerrado espera
   justo fuera de la pantalla, y su sombra entraba unos 40 px: cada página con `Bali::AppLayout`
-  tenía gris el borde derecho, y el izquierdo una con un drawer `position: :left`. Ahora el panel
+  tenía gris el borde derecho, y una con un drawer `position: :left`, el izquierdo. Ahora el panel
   sólo tiene sombra abierto, desde el primer cuadro del deslizamiento de entrada, y la desvanece
   al cerrarse. Vale para todo `Bali::Drawer`. Sin nada que hacer en el anfitrión.
 
