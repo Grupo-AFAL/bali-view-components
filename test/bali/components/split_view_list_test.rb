@@ -96,7 +96,7 @@ class BaliSplitViewListComponentTest < ComponentTestCase
 
   def test_meta_color_paints_the_overdue_case
     render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan", meta_color: :error } ])
-    assert_selector(".split-view-item .text-error", text: "1 Jan")
+    assert_selector(".split-view-item .text-soft-error", text: "1 Jan")
   end
 
   def test_meta_is_neutral_without_a_color
