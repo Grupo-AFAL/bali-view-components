@@ -50,6 +50,8 @@ module Bali
       # @param fullscreen [Boolean] Full-width navbar without max-width constraint
       # @param color [Symbol, nil] Background color preset (:base, :primary, :secondary, :accent,
       #   :neutral). Pass nil to skip color classes and use your own via the class: option.
+      #   A preset paints its theme's `-content` on its fill: daisyUI's own `light` and `dark`
+      #   pair `:secondary` at 3.04:1, and `dark` pairs `:primary` at 4.13, under AA's 4.5.
       # @param shadow [Boolean] Draw the drop shadow under the bar (default: true).
       #   Pass false where the bar already separates itself some other way — an app
       #   shell whose navbar carries a bottom border that continues the sidebar's
