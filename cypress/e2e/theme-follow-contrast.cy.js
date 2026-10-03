@@ -31,6 +31,20 @@ describe('colours that follow the theme', () => {
     })
   }
 
+  const codeTokensReadAtAA = (theme) => {
+    cy.get('[data-content-type="codeBlock"] pre .shiki').should(($tokens) => {
+      const tokens = $tokens.toArray().filter(el => el.textContent.trim())
+      expectSettled(tokens[0])
+      expect(tokens, 'code tokens').to.have.length.at.least(5)
+      // Of the colours the supported grammars get, a comment is the faintest in both shiki
+      // themes, so the preview's snippet has to keep one for this to measure the worst case.
+      expect(tokens.some(el => el.textContent.trim().startsWith('//')), 'a comment token').to.equal(true)
+      tokens.forEach((el) => {
+        expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(AA)
+      })
+    })
+  }
+
   THEMES.forEach((theme) => {
     it(`reads SlimSelect's value and its open list at AA on the ${theme} theme`, () => {
       cy.visit('/bali/form/slim_select/default')
@@ -114,18 +128,28 @@ describe('colours that follow the theme', () => {
       cy.visit('/bali/block_editor/readonly')
       cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
       useTheme(theme)
-      cy.get('[data-content-type="codeBlock"] pre .shiki').should(($tokens) => {
-        const tokens = $tokens.toArray().filter(el => el.textContent.trim())
-        expectSettled(tokens[0])
-        expect(tokens, 'code tokens').to.have.length.at.least(5)
-        // Of the colours the supported grammars get, a comment is the faintest in both shiki
-        // themes, so the preview's snippet has to keep one for this to measure the worst case.
-        expect(tokens.some(el => el.textContent.trim().startsWith('//')), 'a comment token').to.equal(true)
-        tokens.forEach((el) => {
-          expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(AA)
-        })
-      })
+      codeTokensReadAtAA(theme)
     })
+  })
+
+  // Each render of the editor reads the page's scheme, and it is still rendering as it mounts:
+  // with no subscription at all, the single switch above passed on one or two of the three
+  // dark themes. Switching back as well failed 10 runs out of 10.
+  it('follows the UserMenu\'s switch to dark and back', () => {
+    cy.visit('/bali/block_editor/readonly')
+    cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
+    useTheme('dark')
+    codeTokensReadAtAA('dark')
+    useTheme('light')
+    codeTokensReadAtAA('light')
+  })
+
+  // With the `bali_theme` cookie the page arrives dark from the server instead.
+  it('paints the code block\'s tokens at AA on a page that arrives dark', () => {
+    cy.setCookie('bali_theme', 'dark')
+    cy.visit('/bali/block_editor/readonly')
+    cy.get('html').should('have.attr', 'data-theme', 'dark')
+    codeTokensReadAtAA('dark')
   })
 
   // `color: :neutral` on these, and the neutral outline button, paint ink, not a fill. A dark

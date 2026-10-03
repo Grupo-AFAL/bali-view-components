@@ -323,13 +323,8 @@
 }
 
 /* Each token carries both themes' colours (withBothThemes in BlockNoteEditorWrapper.jsx);
-   light-dark() reads the color-scheme the page's theme declares. BlockNote stamps `light`
-   on .bn-container from the `theme:` it is handed, which kept the dark ink out (1.00:1 on
-   afal-dark), so the container inherits the page's scheme instead. */
-.block-editor-component .bn-container {
-  color-scheme: inherit;
-}
-
+   light-dark() reads the color-scheme Mantine sets on the editor, which is the page's
+   (usePageColorScheme there). */
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki {
   color: light-dark(var(--shiki-light), var(--shiki-dark));
 }
