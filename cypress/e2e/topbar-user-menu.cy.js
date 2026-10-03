@@ -83,7 +83,7 @@ describe('Topbar::UserMenu', () => {
     it('caps the name in the trigger at 12rem, with an ellipsis', () => {
       longMenu().find(trigger).contains('span', 'María Fernanda').should(($name) => {
         const name = $name[0]
-        expect(name.getBoundingClientRect().width).to.be.at.most(192)
+        expect(name.getBoundingClientRect().width, 'name width').to.be.closeTo(192, 0.5)
         expectClippedWithin(name, name.closest(trigger).getBoundingClientRect().right)
       })
     })
@@ -103,7 +103,7 @@ describe('Topbar::UserMenu', () => {
   })
 
   // `app_layout/with_topbar` is the arrangement an app ships: hamburger, palette, two actions.
-  it('fits its trigger inside a 320px topbar, and keeps the chevron from sm up', () => {
+  it('fits its trigger inside a 320px topbar, and keeps the chevron inside it from sm up', () => {
     const chevron = `${userMenu} ${trigger} > .icon-component`
     const display = ($el) => $el[0].ownerDocument.defaultView.getComputedStyle($el[0]).display
     const contentRight = (el) => {
@@ -119,6 +119,10 @@ describe('Topbar::UserMenu', () => {
     cy.get(chevron).should(($c) => expect(display($c)).to.equal('none'))
 
     cy.viewport(640, 640)
-    cy.get(chevron).should(($c) => expect(display($c)).not.to.equal('none'))
+    cy.get(chevron).should(($c) => {
+      expect(display($c)).not.to.equal('none')
+      const triggerRight = $c[0].closest(trigger).getBoundingClientRect().right
+      expect($c[0].getBoundingClientRect().right, 'chevron right edge').to.be.at.most(triggerRight)
+    })
   })
 })
