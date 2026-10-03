@@ -121,9 +121,9 @@ describe('Gantt table', () => {
     })
   })
 
-  // At 1000 px the table opened at 42% of the board, 407 px: the Name column kept 65 px, and 11
-  // of the preview's 14 rows showed no name at all.
-  it('opens the table wide enough for every column on a 1000 px board', () => {
+  // In a 1000 px window the table opened at 42% of a 968 px board, 407 px: the Name column kept
+  // 65 px, and 11 of the preview's 14 rows showed no name at all.
+  it('opens the table wide enough for every column in a 1000 px window', () => {
     cy.viewport(1000, 660)
     cy.visit('/bali/gantt/default')
     cy.get(ROWS).should('have.length.at.least', 1)
