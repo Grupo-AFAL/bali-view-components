@@ -128,6 +128,43 @@ describe('CommandController', () => {
     })
   })
 
+  // The counter changes on every keystroke, so the controller writes it, with the
+  // plural forms component.html.erb hands over in the `results` value
+  // (command_test.rb checks that half).
+  context('the result counter in the footer', () => {
+    const count = () => cy.get('[data-command-target="count"]')
+    const openPalette = () => {
+      cy.get('.bali-command-trigger').click()
+      cy.get('[data-command-target="panel"]').should('not.have.class', 'hidden')
+    }
+
+    it('counts in the page language', () => {
+      cy.visit('/bali/command/default?locale=es')
+      openPalette()
+      count().should('have.text', '9 resultados')
+
+      cy.get('[data-command-target="input"]').type('Committees')
+      count().should('have.text', '4 resultados')
+    })
+
+    it('uses the singular form for a single result', () => {
+      cy.visit('/bali/command/compact?locale=es')
+      openPalette()
+
+      count().should('have.text', '1 resultado')
+    })
+
+    // Hosts pin the gem and the npm package separately, so this controller can
+    // meet a palette rendered by a gem that sends no forms.
+    it('falls back to English when the markup carries no forms', () => {
+      cy.visit('/bali/command/compact?locale=es')
+      cy.get('[data-controller="command"]').invoke('removeAttr', 'data-command-results-value')
+      openPalette()
+
+      count().should('have.text', '1 result')
+    })
+  })
+
   // The trigger's hint is server-rendered, so the HTML says ⌘K to everyone.
   // Only the browser knows which keyboard is in front of the user, so the
   // controller is what corrects it — a Windows user was being pointed at a key

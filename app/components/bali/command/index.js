@@ -50,7 +50,14 @@ export class CommandController extends Controller {
   ]
 
   static values = {
-    open: { type: Boolean, default: false }
+    open: { type: Boolean, default: false },
+    // `bali_view.command.results`, from component.html.erb. Keep the English
+    // default: hosts pin the gem and the npm package separately, so this
+    // controller can meet markup from a gem that sends no forms.
+    results: {
+      type: Object,
+      default: { one: '%{count} result', other: '%{count} results' }
+    }
   }
 
   connect () {
@@ -192,8 +199,9 @@ export class CommandController extends Controller {
     }
 
     if (this.hasCountTarget) {
-      const label = visibleCount === 1 ? 'result' : 'results'
-      this.countTarget.textContent = `${visibleCount} ${label}`
+      const { one, other } = this.resultsValue
+      const form = visibleCount === 1 ? one : other
+      this.countTarget.textContent = form.replace('%{count}', visibleCount)
     }
 
     this._activeIndex = 0

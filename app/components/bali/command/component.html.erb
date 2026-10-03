@@ -1,4 +1,7 @@
-<%= tag.div(class: container_classes, data: { controller: "command" }) do %>
+<%# `results` holds the footer counter's `one`/`other` forms, `%{count}` still in
+    them: the count changes on every keystroke, so index.js picks and fills them. %>
+<%= tag.div(class: container_classes,
+            data: { controller: "command", command_results_value: t("bali_view.command.results") }) do %>
   <% if trigger? %>
     <div data-action="click->command#open">
       <%= trigger %>
