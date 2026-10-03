@@ -86,7 +86,9 @@ module Bali
       # nothing inside the detail could set it.
       #
       # Turbo scrolls to the frame's first child, so the detail opens with a
-      # marker hidden from `lg` up: side by side, the page does not move.
+      # marker hidden from `lg` up: side by side, the page does not move. The
+      # list is uncapped, so that page scrolls away from the detail; the frame's
+      # `lg:sticky lg:top-4` keeps it beside the row clicked.
       #
       # Narrow the window below 1024px to see it scroll.
       def frame_options

@@ -4,12 +4,17 @@
 
     The list is uncapped (`max_height: "none"`): the page scrolls, not the list,
     so stacked below `lg` the detail starts far below a phone's first screen, and
-    from `lg` up the page is still tall enough for a scroll to have somewhere to go. %>
+    from `lg` up the page is still tall enough for a scroll to have somewhere to go.
+
+    That same scroll carries an unpinned detail off the top of a wide screen, and a
+    click far down the list would then change a pane nobody can see: measured at
+    1280x800, scrolled 600px, the tenth row's detail landed at y=-584. Hence
+    `lg:sticky lg:top-4` on the frame. %>
 <% movies = Movie.includes(:studio).order(:name) %>
 <% selected = Movie.find_by(id: request.query_parameters["selected"]) %>
 <%= render Bali::SplitView::Component.new(
   frame_id: "split-view-detail",
-  frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }
+  frame_options: { class: "lg:sticky lg:top-4", autoscroll: true, data: { autoscroll_block: "start" } }
 ) do |split| %>
   <% split.with_list(header: "Catalog", count: movies.size, selected: selected&.id,
                      item_name: "movies", max_height: "none") do |list| %>
@@ -25,7 +30,9 @@
     <% split.with_detail do %>
       <%# Turbo scrolls the frame's FIRST CHILD into view, so this marker decides
           where the scroll lands. `lg:hidden` is what keeps a wide screen still:
-          an element with no box is never scrolled to. %>
+          an element with no box is never scrolled to. The pin does not make it
+          redundant: a visible marker stays put only while the pin's top equals
+          its `scroll-mt-4`, and a pin at 80px moved the page 64px. %>
       <div class="scroll-mt-4 lg:hidden" data-testid="detail-scroll-target"></div>
       <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
         <% card.with_title(selected.name, class: "text-lg", data: { testid: "detail-title" }) %>
