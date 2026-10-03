@@ -79,7 +79,8 @@
  * the panel whose field opened them, the palette as a dialog of its own, and the
  * toast stack by moving into the open overlay for as long as it lasts. What is
  * BELOW them needs nothing: a dropdown that a modal covers is a dropdown nobody
- * can reach anyway.
+ * can reach anyway. A `popover: true` dropdown INSIDE the panel is not covered
+ * by it, and its menu joins the dialog like a tooltip's balloon (#1269).
  */
 @layer theme {
   :where(:root) {
