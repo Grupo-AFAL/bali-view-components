@@ -4969,7 +4969,7 @@ Notion-style block editor (BlockNote) with rich text, slash commands, mentions, 
 - `export` - Enable export; `true` for PDF+DOCX or an array like `[:pdf]` (default: false)
 - `comments` - Inline comments config hash (`url:`, `user:`, `users:`) (default: false)
 
-See the component class for the full list (`ai_url`, `mentions`, `references_url`, `multi_column`, `table_of_contents`, `theme`, ...).
+See the component class for the full list (`ai_url`, `mentions`, `references_url`, `multi_column`, `table_of_contents`, ...).
 
 #### DocumentEditor
 

@@ -223,6 +223,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   o por tu propio texto si era `button_label`; en el tercero, si bajo `bali_view:` traduces
   `data_table.export.formats`, mueve esas traducciones a `page_components.export.formats`.
 
+- **`BlockEditor` deja de aceptar `theme:`** (#1285). El editor sigue el tema de la página, y
+  `theme:` sólo podía contradecirlo. Ninguna de las nueve apps lo pasa
+  (`git grep -n -E "theme: *(:|\"|')(light|dark)" origin/main -- app lib config` da cero). Una app
+  que lo pasara no truena: cae como atributo HTML del `<div>` del editor y no hace nada.
+  **Anfitrión:** si apareces en ese `git grep` con un BlockEditor, borra el `theme:`.
+
 ### Fixed
 
 - **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
@@ -762,6 +768,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Sólo ga-apps renderiza `Bali::Navbar` (`layouts/_nav.html.erb` y el layout de
   `dev_website`), fijada a bali 1.2.4 y sin `transparency:`. Los modales y drawers de las apps
   cuelgan de la página, cuyo texto ya es `base-content`: pintan lo mismo. Nada que hacer.
+
+- **Los menús flotantes del BlockEditor siguen el tema** (#1285). El menú «/», el menú lateral,
+  las asas de tabla, la barra de formato y los menús que abren se dibujan en un contenedor
+  aparte de BlockNote que conservaba su paleta: el texto del menú «/» medía 1.50–1.68:1 en los
+  temas oscuros y los íconos del menú lateral y de las asas 1.56:1 en los claros. Ahora toman los
+  colores del tema (13.34:1 el texto y 5.54 los íconos, lo más bajo de los seis), su radio y la
+  tipografía de la página, que ya tenía el autor de un comentario. El texto del documento sigue
+  en Inter, que BlockNote le fija aparte, así que los menús ya no van en la misma letra que él.
+  La fecha de un comentario en la barra lateral del editor pasa al `base-content` al 70 %: medía
+  3.32:1 en los temas claros y ahora 5.54 en `afal`; también el placeholder de los campos de
+  enlace y de URL de imagen, que medía 2.07:1. El selector de emojis de un comentario y el panel
+  que abre «Replace image» pierden el marco cuadrado que Bali les ponía alrededor de su propia
+  tarjeta redondeada.
+  Además el editor le dice a BlockNote, a Mantine y al selector de emojis si la página es
+  clara u oscura, también cuando el interruptor del UserMenu cambia el tema sin recargar; antes
+  les decía siempre «claro», y en un tema oscuro los fondos de color que se le ponen al texto eran
+  pasteles bajo texto claro (1.00–1.18:1). Ahora toman la paleta oscura de BlockNote, que todavía
+  deja bajo AA tres fondos en cada tema oscuro (gris, amarillo y naranja: 2.27–3.62:1 en
+  `afal-dark`, 2.43–3.87 en `costa-norte-dark`, 2.62–4.17 en `dark`) y colores de texto: cuatro
+  en `afal-dark` (café 3.49, morado 3.54, rosa 3.87 y azul 4.40) y seis en `dark` y en
+  `costa-norte-dark` (desde 3.12, el café). Lo ven BlockEditor, DocumentEditor y DocumentPage:
+  en la flota, **gobierno-corporativo** y los formularios con `block_editor_group` de
+  **afal-apps**. Sin nada que hacer en el anfitrión.
 
 ### Documentation
 

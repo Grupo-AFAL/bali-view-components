@@ -16,7 +16,7 @@ module Bali
     class Config
       # Only features that are meaningful in all three contexts belong here.
       # Deliberately absent: `editable`, `initial_content`, `input_name`, `format`,
-      # `preset`, `placeholder`, `theme`, `table_of_contents*`, `show_export_buttons`
+      # `preset`, `placeholder`, `table_of_contents*`, `show_export_buttons`
       # and `comments_container_id` -- each wrapper decides those for itself, and a
       # shared value would be a wrapper silently overriding its own layout.
       # WATCH OUT with `comments`: turning it on changes the FORM in which the editor
