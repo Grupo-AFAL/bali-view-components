@@ -20,6 +20,13 @@ describe('colours that follow the theme', () => {
     expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
   }
 
+  // [what, the form field that draws it, the element, { ringless }]
+  const FOCUSED = [
+    ['a Datepicker day', 'date', '.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.today)', { ringless: true }],
+    ['the hour of the time picker', 'time', 'input.flatpickr-hour'],
+    ['the AM/PM toggle of the time picker', 'time', '.flatpickr-am-pm']
+  ]
+
   const everyReadsAtAA = (selector, theme, fewest = 1) => {
     cy.get(selector).should(($els) => {
       const els = $els.toArray()
@@ -75,19 +82,47 @@ describe('colours that follow the theme', () => {
       })
     })
 
-    // The focus fill was the same light-theme literal as the hover: on the dark themes the
-    // focused day turned a near-white square with its number at 1.00–1.08:1.
-    it(`reads a Datepicker day under keyboard focus on the ${theme} theme`, () => {
-      cy.visit('/bali/form/date/default')
-      useTheme(theme)
-      cy.get('form input.input:not([type="hidden"])').click()
-      cy.get('.flatpickr-calendar.open .flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.today)').first().focus()
+    // A day's focus fill was the same light-theme literal as its hover: on the dark themes the
+    // focused day turned a near-white square with its number at 1.00–1.08:1. The hour's and
+    // AM/PM's was base-200, 1.05–1.10:1 off the calendar. `ringless` as in base-surface-steps.
+    FOCUSED.forEach(([what, field, selector, { ringless = false } = {}]) => {
+      it(`reads ${what} under keyboard focus on the ${theme} theme`, () => {
+        cy.visit(`/bali/form/${field}/default`)
+        useTheme(theme)
+        cy.get('form input.input:not([type="hidden"])').click()
+        cy.get(`.flatpickr-calendar.open ${selector}`).first().focus()
 
-      cy.get('.flatpickr-calendar.open .flatpickr-day:focus').should(($day) => {
+        cy.get(`.flatpickr-calendar.open ${selector}`).first().should(($el) => {
+          const el = $el[0]
+          expectSettled(el)
+          expect(el.matches(':focus'), 'under focus').to.equal(true)
+          expect(paintedContrast(el), `${theme}: ${what} under focus`).to.be.at.least(AA)
+          expect(paintedContrast(el, { over: el.parentElement, property: 'backgroundColor' }),
+            `${theme}: ${what} under focus against the calendar`).to.be.at.least(1.15)
+          if (ringless) {
+            expect(paintedContrast(el, { property: 'borderTopColor' }), `${theme}: the border of ${what} over its own fill`)
+              .to.be.closeTo(1, 0.01)
+          }
+        })
+      })
+    })
+
+    // A custom property resolves its var() where it is declared: declared on :root alone, the
+    // tokens kept the page's ink inside a subtree with a theme of its own, and a day of another
+    // month read 1.00–1.09:1 there.
+    it(`re-themes the Datepicker inside a subtree on the ${theme} theme`, () => {
+      const page = theme.endsWith('dark') ? 'light' : 'dark'
+      cy.visit('/bali/form/date/default')
+      useTheme(page)
+      cy.get('form input.input:not([type="hidden"])').click()
+      cy.get('.flatpickr-calendar.open').should(($calendar) => {
+        expect($calendar[0].parentElement, 'appended to the body').to.equal($calendar[0].ownerDocument.body)
+      })
+      cy.document().then(doc => doc.body.setAttribute('data-theme', theme))
+
+      cy.get('.flatpickr-calendar.open .flatpickr-day.nextMonthDay').first().should(($day) => {
         expectSettled($day[0])
-        expect(paintedContrast($day[0]), `${theme}: focused day`).to.be.at.least(AA)
-        expect(paintedContrast($day[0], { over: $day[0].parentElement, property: 'backgroundColor' }),
-          `${theme}: focused day against the calendar`).to.be.at.least(1.15)
+        expect(paintedContrast($day[0]), `${theme} under a ${page} page: a day of another month`).to.be.at.least(AA)
       })
     })
 

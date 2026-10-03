@@ -83,7 +83,7 @@ describe('hovers, tints and edges over a base surface', () => {
   }
   const DAY = '.flatpickr-calendar.open .flatpickr-day'
 
-  // [what, how the state is reached, the element that paints it]
+  // [what, how the state is reached, the element that paints it, { filled, text, ringless }]
   const HOVERS = [
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
       '.tree-view-item-component .item:not(.is-active)'],
@@ -105,12 +105,15 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]'],
     ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])'],
     ['a Datepicker day', openDatepicker('date'),
-      `${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today):not(.selected)`, { text: '.flatpickr-day' }],
+      `${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today):not(.selected)`, { text: '.flatpickr-day', ringless: true }],
     // Its hover was a light-theme literal: on the dark themes a near-white square, 13.6–15.3:1
     // against the calendar, with the number on it at 1.00–1.02.
-    ['a Datepicker day of another month', openDatepicker('date'), `${DAY}.nextMonthDay`, { text: '.flatpickr-day' }],
-    ['the hour of the time picker', openDatepicker('time'), '.flatpickr-calendar.open input.flatpickr-hour'],
-    ['the AM/PM toggle of the time picker', openDatepicker('time'), '.flatpickr-calendar.open .flatpickr-am-pm'],
+    ['a Datepicker day of another month', openDatepicker('date'), `${DAY}.nextMonthDay`,
+      { text: '.flatpickr-day', ringless: true }],
+    ['the hour of the time picker', openDatepicker('time'), '.flatpickr-calendar.open input.flatpickr-hour',
+      { text: 'input.flatpickr-hour' }],
+    ['the AM/PM toggle of the time picker', openDatepicker('time'), '.flatpickr-calendar.open .flatpickr-am-pm',
+      { text: '.flatpickr-am-pm' }],
     // `.numInputWrapper span:hover` is a white tint meant for the coloured header: over the time
     // row it painted 1.00:1 on the light themes and a light square, 2.65–2.70, on the dark ones.
     ['a stepper arrow of the time picker', openDatepicker('time'),
@@ -150,7 +153,11 @@ describe('hovers, tints and edges over a base surface', () => {
 
   const textOn = (el, selector) => paintedContrast(el.matches(selector) ? el : el.querySelector(selector))
 
-  HOVERS.forEach(([what, reach, selector, { filled = false, text } = {}]) => {
+  // A translucent fill already runs under a transparent border: a border in the same colour
+  // paints over it a second time, a darker ring.
+  const ring = (el) => paintedContrast(el, { property: 'borderTopColor' })
+
+  HOVERS.forEach(([what, reach, selector, { filled = false, text, ringless = false } = {}]) => {
     THEMES.forEach((theme) => {
       const name = filled
         ? `tints ${what} off its surface and lifts it further under the pointer on the ${theme} theme`
@@ -180,6 +187,7 @@ describe('hovers, tints and edges over a base surface', () => {
           expect(lifted, `${theme}: ${what} against its surface`).to.be.at.least(STEP)
           expect(lifted / atRest, `${theme}: ${what} against itself at rest`).to.be.at.least(STEP)
           if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} under the pointer`).to.be.at.least(AA)
+          if (ringless) expect(ring($el[0]), `${theme}: the border of ${what} over its own fill`).to.be.closeTo(1, 0.01)
         })
       })
     })
