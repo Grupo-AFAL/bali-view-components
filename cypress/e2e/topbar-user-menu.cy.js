@@ -1,8 +1,9 @@
 // Bali::Topbar::UserMenu is a preset of Bali::Dropdown, so the point of this file is not
 // to re-test the menu mechanics (dropdown-controller.cy.js owns those) but to prove the
 // preset actually inherits them — the hand-rolled `<details class="dropdown">` it replaces
-// had no keyboard, no Escape and no aria-expanded at all — plus the two pieces the preset
-// adds: the presentational identity header and the sign-out `button_to` form.
+// had no keyboard, no Escape and no aria-expanded at all — plus what the preset adds: the
+// presentational identity header, the sign-out `button_to` form, and a trigger and header
+// that hold a long identity at any width.
 describe('Topbar::UserMenu', () => {
   const userMenu = '.bali-topbar-user-menu'
   const trigger = '[data-dropdown-target="trigger"]'
@@ -63,6 +64,77 @@ describe('Topbar::UserMenu', () => {
     cy.get(userMenu).eq(2).within(() => {
       cy.get('.bali-topbar-sign-out').should('not.exist')
       cy.get('form').should('not.exist')
+    })
+  })
+
+  const expectClippedWithin = (el, right) => {
+    const style = el.ownerDocument.defaultView.getComputedStyle(el)
+    expect(el.getBoundingClientRect().right, 'right edge').to.be.at.most(right)
+    expect(el.scrollWidth, 'text width over box width').to.be.greaterThan(el.clientWidth)
+    expect(style.overflowX, 'overflow-x').to.equal('hidden')
+    expect(style.textOverflow, 'text-overflow').to.equal('ellipsis')
+  }
+
+  describe('with a long name and email', () => {
+    const longMenu = () => cy.contains(userMenu, 'María Fernanda')
+
+    it('caps the name in the trigger at 12rem, with an ellipsis', () => {
+      cy.viewport(1280, 800)
+      longMenu().find(trigger).contains('span', 'María Fernanda').should(($name) => {
+        const name = $name[0]
+        expect(name.getBoundingClientRect().width, 'name width').to.be.closeTo(192, 0.5)
+        expectClippedWithin(name, name.closest(trigger).getBoundingClientRect().right)
+      })
+    })
+
+    ;[320, 390, 1280].forEach((width) => {
+      it(`wraps both header lines inside the panel at ${width}px`, () => {
+        cy.viewport(width, 800)
+        longMenu().find(trigger).click()
+        longMenu().find(menu).should(($menu) => {
+          expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
+          const panelRight = $menu[0].getBoundingClientRect().right
+          const header = $menu.find('.bali-topbar-user-menu-header')[0]
+          const lines = $menu.find('.bali-topbar-user-menu-header > span').toArray()
+          expect(lines).to.have.length(2)
+          const underText = header.getBoundingClientRect().bottom - lines[1].getBoundingClientRect().bottom
+          const paddingBottom = parseFloat(header.ownerDocument.defaultView.getComputedStyle(header).paddingBottom)
+          expect(underText, 'header height under the email').to.be.closeTo(paddingBottom, 0.5)
+          lines.forEach((line) => {
+            const text = line.ownerDocument.createRange()
+            text.selectNodeContents(line)
+            const rects = [...text.getClientRects()]
+            const textRight = Math.max(...rects.map((r) => r.right))
+            expect(textRight, `${line.textContent} right edge`).to.be.at.most(line.getBoundingClientRect().right)
+            expect(line.getBoundingClientRect().right, 'line right edge').to.be.at.most(panelRight)
+            expect(new Set(rects.map((r) => Math.round(r.top))).size, 'lines of text').to.be.greaterThan(1)
+          })
+        })
+      })
+    })
+  })
+
+  // `app_layout/with_topbar` is the arrangement an app ships: hamburger, palette, two actions.
+  it('fits its trigger inside a 320px topbar, and keeps the chevron inside it from sm up', () => {
+    const chevron = `${userMenu} ${trigger} > .icon-component`
+    const display = ($el) => $el[0].ownerDocument.defaultView.getComputedStyle($el[0]).display
+    const contentRight = (el) => {
+      const right = el.getBoundingClientRect().right
+      return right - parseFloat(el.ownerDocument.defaultView.getComputedStyle(el).paddingRight)
+    }
+
+    cy.viewport(320, 640)
+    cy.visit('/bali/app_layout/with_topbar')
+    cy.get(`${userMenu} ${trigger}`).should(($t) => {
+      expect($t[0].getBoundingClientRect().right).to.be.at.most(contentRight($t[0].closest('.bali-topbar')))
+    })
+    cy.get(chevron).should(($c) => expect(display($c)).to.equal('none'))
+
+    cy.viewport(640, 640)
+    cy.get(chevron).should(($c) => {
+      expect(display($c)).not.to.equal('none')
+      const triggerRight = $c[0].closest(trigger).getBoundingClientRect().right
+      expect($c[0].getBoundingClientRect().right, 'chevron right edge').to.be.at.most(triggerRight)
     })
   })
 })

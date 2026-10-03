@@ -29,6 +29,20 @@ module Bali
         error: "text-error"
       }.freeze
 
+      # The figure inside the ring is text on the page, where the colour itself fails AA:
+      # `text-accent` read 2.15:1 on `afal`, `text-secondary` 1.99 on `costa-norte` and
+      # `text-primary` 3.40 on `dark` (AA wants 4.5). The ring keeps the colour.
+      TEXT_COLORS = {
+        primary: "text-soft-primary",
+        secondary: "text-soft-secondary",
+        accent: "text-soft-accent",
+        neutral: "text-base-content",
+        info: "text-soft-info",
+        success: "text-soft-success",
+        warning: "text-soft-warning",
+        error: "text-soft-error"
+      }.freeze
+
       # `--size` and `--thickness` are daisyUI's own custom properties. Named
       # sizes rather than a free number so a dashboard's rings match each other.
       SIZES = {
@@ -88,6 +102,10 @@ module Bali
       def gauge_classes
         class_names("bali-gauge radial-progress", COLORS[color],
                     SIZES.fetch(size, SIZES[:md]), options[:class])
+      end
+
+      def text_classes
+        class_names("flex flex-col items-center leading-none", TEXT_COLORS[color])
       end
 
       # THE CALLER'S ARIA WINS. Both hashes used to be written to the tag

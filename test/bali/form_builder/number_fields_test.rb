@@ -56,7 +56,7 @@ class BaliFormBuilderNumberFieldsTest < FormBuilderTestCase
   def test_number_field_with_validation_errors_displays_error_message
     resource.errors.add(:budget, "must be positive")
     result = builder.number_field(:budget)
-    assert_html(result, "p.text-error", text: "Budget must be positive")
+    assert_html(result, "p.text-soft-error", text: "Budget must be positive")
   end
 
   def test_number_field_with_help_text_displays_help_text
@@ -182,6 +182,6 @@ class BaliFormBuilderNumberFieldsTest < FormBuilderTestCase
     result = builder.number_field(:budget, delimited: true)
 
     assert_html(result, "input.input.input-error")
-    assert_html(result, "p.text-error", text: "Budget must be positive")
+    assert_html(result, "p.text-soft-error", text: "Budget must be positive")
   end
 end

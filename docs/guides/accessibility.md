@@ -134,7 +134,7 @@ exist):
   <label class="fieldset-legend" for="password">Password</label>
   <input type="password" id="password" class="input input-error"
          aria-invalid="true" aria-describedby="password-error">
-  <p class="fieldset-label text-error" id="password-error">
+  <p class="fieldset-label text-soft-error" id="password-error">
     Password must be at least 8 characters
   </p>
 </fieldset>
@@ -495,7 +495,7 @@ only thing separating two states, which fails WCAG 1.4.1 as well.
 <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
 
 <%# The hand-rolled equivalent %>
-<span class="text-success">
+<span class="text-soft-success">
   <%= render Bali::Icon::Component.new('check-circle', 'aria-hidden': true) %>
   <span class="sr-only">Yes</span>
 </span>
@@ -566,15 +566,22 @@ unnamed list of nothing.
 
 ### DaisyUI Semantic Colors
 
-DaisyUI themes are designed for accessibility. Use semantic colors:
+Use the theme's colours, never a fixed grey: they follow the theme. But a semantic colour is a
+fill — `bg-error` under `text-error-content` is the pair a theme designs to contrast — and as
+text on the page it mostly is not: on `base-100`, `text-error`, `text-success`, `text-warning`,
+`text-info` and `text-accent` stay under AA on every light theme (`text-error` measured 2.75:1
+on `afal`, `text-success` 1.92). Write text and icons in a semantic colour with
+`text-soft-<colour>`, which reads in every theme:
 
 ```erb
-<%# GOOD - Semantic colors adapt to themes %>
+<%# GOOD - follows the theme and reads on the page %>
 <p class="text-base-content">Regular text</p>
-<p class="text-primary">Primary accent</p>
+<p class="text-soft-error">Error message</p>
+
+<%# BAD - the fill colour as text: 2.75:1 on afal %>
 <p class="text-error">Error message</p>
 
-<%# BAD - Hardcoded colors may not have contrast %>
+<%# BAD - a fixed grey ignores the theme %>
 <p class="text-gray-400">May not have sufficient contrast</p>
 ```
 
@@ -869,7 +876,7 @@ cy.checkA11y()
 
 <%# FIX - Add icon and text %>
 <input class="input-error" aria-invalid="true" aria-describedby="error-msg">
-<p id="error-msg" class="text-error flex items-center gap-2">
+<p id="error-msg" class="text-soft-error flex items-center gap-2">
   <svg aria-hidden="true">...</svg>
   This field is required
 </p>

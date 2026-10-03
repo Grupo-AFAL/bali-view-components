@@ -183,7 +183,7 @@
 }
 
 .split-view-sentinel-error {
-  @apply flex items-center gap-2 text-error;
+  @apply flex items-center gap-2 text-soft-error;
 }
 
 /* `hidden` is how the controller switches between loading, end-of-list and

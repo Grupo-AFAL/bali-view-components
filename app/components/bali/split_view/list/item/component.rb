@@ -21,12 +21,13 @@ module Bali
 
           # Only the colours a listing actually needs on a trailing date or count.
           # `nil` is the neutral default; `:error` is the overdue case both source
-          # listings paint red.
+          # listings paint red. Soft, because the meta is text on the row: `text-error`
+          # read 2.75:1 on `afal`, `text-primary` 3.40 on `dark` (AA wants 4.5).
           META_COLORS = {
-            error: "text-error font-medium",
-            warning: "text-warning font-medium",
-            success: "text-success",
-            primary: "text-primary"
+            error: "text-soft-error font-medium",
+            warning: "text-soft-warning font-medium",
+            success: "text-soft-success",
+            primary: "text-soft-primary"
           }.freeze
 
           renders_many :tags, lambda { |text:, color: nil, **options|

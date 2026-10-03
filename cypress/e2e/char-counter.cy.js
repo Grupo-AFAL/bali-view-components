@@ -26,13 +26,19 @@ describe('CharCounter', () => {
     })
 
     it('turns red past the maximum, without stopping the typing', () => {
-      counter().should('not.have.class', 'text-error')
+      counter().should('not.have.class', 'text-soft-error')
 
       cy.get('#form_record_text').type('x'.repeat(41), { delay: 0 })
 
       counter().should('have.text', '41 / 40')
-      counter().should('have.class', 'text-error')
+      counter().should('have.class', 'text-soft-error')
+      counter().should('not.have.class', 'text-base-content/70')
       cy.get('#form_record_text').should('have.value', 'x'.repeat(41))
+
+      cy.get('#form_record_text').type('{backspace}')
+      counter().should('have.text', '40 / 40')
+      counter().should('have.class', 'text-base-content/70')
+      counter().should('not.have.class', 'text-soft-error')
     })
 
     it('just counts when no maximum was given', () => {
@@ -70,7 +76,7 @@ describe('CharCounter', () => {
 
     it('turns red past the maximum', () => {
       cy.get('#form_record_text').type('x'.repeat(41), { delay: 0 })
-      counter().should('have.class', 'text-error')
+      counter().should('have.class', 'text-soft-error')
     })
   })
 })
