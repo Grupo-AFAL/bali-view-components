@@ -566,8 +566,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   del editor pasa al `base-content` al 70 %: medía 3.32:1 en los temas claros y ahora 5.54 en
   `afal`. Además el editor le dice a BlockNote, a Mantine y al selector de emojis si la página es
   clara u oscura, también cuando el interruptor del UserMenu cambia el tema sin recargar; antes
-  les decía siempre «claro», y en un tema oscuro los fondos de color del texto eran pasteles bajo
-  texto claro (1.00–1.18:1). Lo ven BlockEditor, DocumentEditor y DocumentPage: en la flota,
+  les decía siempre «claro», y en un tema oscuro los fondos de color que se le ponen al texto eran
+  pasteles bajo texto claro (1.00–1.18:1). Ahora toman la paleta oscura de BlockNote, que todavía
+  deja bajo AA tres fondos (gris 2.27:1, amarillo 2.55 y naranja 3.62 en `afal-dark`) y cuatro
+  colores de texto (3.49–4.40). Lo ven BlockEditor, DocumentEditor y DocumentPage: en la flota,
   **gobierno-corporativo** y los formularios con `block_editor_group` de **afal-apps**. Sin nada
   que hacer en el anfitrión.
 
