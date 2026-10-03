@@ -191,7 +191,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     trigger = '[data-multi-select-target="trigger"]'
     assert_selector %(#{trigger}[role="button"][tabindex="0"][aria-haspopup="listbox"])
     assert_equal %w[click->multi-select#toggle keydown.enter->multi-select#toggle:prevent
-                    keydown.space->multi-select#toggle:prevent], page.find(trigger)["data-action"].split
+                    keydown.space->multi-select#toggle:prevent], page.find(trigger)["data-action"].to_s.split
     assert_selector('[data-multi-select-target="dropdown"].hidden', visible: :all)
     assert_no_selector(".dropdown, .dropdown-content", visible: :all)
   end
