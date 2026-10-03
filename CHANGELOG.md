@@ -346,6 +346,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   editable deja su `opacity: 0.7` y se pinta en el color del texto: medía 2.89:1 sobre rosa y 2.99
   sobre rojo, bajo el 3:1 de un ícono. Sin nada que hacer en el anfitrión.
 
+- **Las iniciales del responsable en el Gantt se leen** (#1260): eran blancas, en negrita de
+  9–9.5px, sobre `oklch(0.6 0.14 <tono>)`, y medían de 3.49 a 4.27:1 según el tono que sale del
+  id o del nombre (AA pide 4.5). El fondo baja a L 0.5: los 360 tonos quedan entre 5.15 y 6.52:1
+  y cada persona conserva su tono; el avatar se ve más oscuro, en la tabla y sobre la barra. Las
+  barras del modo «Owner» no cambian, y su leyenda pasa a pintarse con el mismo color que ellas
+  (`oklch(0.62 0.15 <tono>)` en vez de `0.6 0.14`, que era la copia del avatar). Lo nota el
+  cronograma de tareas de **afal-apps**, el único anfitrión que manda `assignee`. Sin nada que
+  hacer en el anfitrión.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
