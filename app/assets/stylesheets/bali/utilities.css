@@ -8,7 +8,7 @@
  * (../../../components/bali/alert/daisyui-overrides.css): base-content, which every theme
  * contrasts with base-100, tinted 40% toward the colour. Worst case after it, 5.16:1 —
  * that same warning badge on `afal`. Written out by hand where no utility can name the colour:
- * ../../../components/bali/block_editor/index.css, which Vite processes without @apply, and
+ * ../../../components/bali/block_editor/index.css, which esbuild bundles as plain CSS, and
  * `Bali::Color.soft` (../../../components/bali/color.rb), for a hex such as StatCard's
  * `custom_color:`. test/bali/components/color_test.rb holds both to the declaration below.
  *
