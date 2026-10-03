@@ -1,8 +1,9 @@
 // Bali::Topbar::UserMenu is a preset of Bali::Dropdown, so the point of this file is not
 // to re-test the menu mechanics (dropdown-controller.cy.js owns those) but to prove the
 // preset actually inherits them — the hand-rolled `<details class="dropdown">` it replaces
-// had no keyboard, no Escape and no aria-expanded at all — plus the two pieces the preset
-// adds: the presentational identity header and the sign-out `button_to` form.
+// had no keyboard, no Escape and no aria-expanded at all — plus what the preset adds: the
+// presentational identity header, the sign-out `button_to` form, and a trigger and header
+// that hold a long identity at any width.
 describe('Topbar::UserMenu', () => {
   const userMenu = '.bali-topbar-user-menu'
   const trigger = '[data-dropdown-target="trigger"]'
@@ -63,6 +64,43 @@ describe('Topbar::UserMenu', () => {
     cy.get(userMenu).eq(2).within(() => {
       cy.get('.bali-topbar-sign-out').should('not.exist')
       cy.get('form').should('not.exist')
+    })
+  })
+
+  // A line that clips: longer than its box, the box inside its container, and the overflow
+  // hidden behind an ellipsis rather than painted past the edge.
+  const expectClippedWithin = (el, right) => {
+    const style = el.ownerDocument.defaultView.getComputedStyle(el)
+    expect(el.getBoundingClientRect().right, 'right edge').to.be.at.most(right)
+    expect(el.scrollWidth, 'text width over box width').to.be.greaterThan(el.clientWidth)
+    expect(style.overflowX, 'overflow-x').to.equal('hidden')
+    expect(style.textOverflow, 'text-overflow').to.equal('ellipsis')
+  }
+
+  describe('with a long name and email', () => {
+    const longMenu = () => cy.get(userMenu).eq(3)
+
+    beforeEach(() => cy.viewport(1280, 800))
+
+    it('caps the name in the trigger at 12rem, with an ellipsis', () => {
+      longMenu().find(trigger).contains('span', 'María Fernanda').should(($name) => {
+        const name = $name[0]
+        expect(name.getBoundingClientRect().width).to.be.at.most(192)
+        expectClippedWithin(name, name.closest(trigger).getBoundingClientRect().right)
+      })
+    })
+
+    it('keeps both header lines inside the panel, the whole text in their title', () => {
+      longMenu().find(trigger).click()
+      longMenu().find(menu).should(($menu) => {
+        expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
+        const lines = $menu.find('.bali-topbar-user-menu-header > span').toArray()
+        expect(lines).to.have.length(2)
+        lines.forEach((line) => {
+          expectClippedWithin(line, $menu[0].getBoundingClientRect().right)
+          expect(line.title).to.equal(line.textContent)
+        })
+      })
     })
   })
 })

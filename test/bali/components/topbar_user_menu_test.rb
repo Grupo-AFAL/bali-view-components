@@ -62,6 +62,17 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
     assert_no_selector('[role="menuitem"].bali-topbar-user-menu-header')
   end
 
+  # Both lines truncate in the panel, so the title is where the whole text is left.
+  def test_header_lines_carry_their_full_text_as_title
+    render_inline(Bali::Topbar::UserMenu::Component.new(
+                    name: "Ana García", email: "ana@example.com", sign_out: sign_out
+                  ))
+
+    assert_selector('.bali-topbar-user-menu-header span[title="Ana García"]', text: "Ana García")
+    assert_selector('.bali-topbar-user-menu-header span[title="ana@example.com"]',
+                    text: "ana@example.com")
+  end
+
   def test_header_omits_the_email_line_when_absent
     render_inline(Bali::Topbar::UserMenu::Component.new(name: "Ana García", sign_out: sign_out))
     assert_selector(".bali-topbar-user-menu-header span", count: 1)

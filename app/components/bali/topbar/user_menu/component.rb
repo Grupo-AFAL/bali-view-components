@@ -29,6 +29,12 @@ module Bali
         SIGN_OUT_KEY = "bali_view.topbar.user_menu.sign_out"
         DARK_MODE_KEY = "bali_view.topbar.user_menu.dark_mode"
 
+        # The lines' `truncate` alone clips nothing: daisyUI's `.menu` wraps (`flex-wrap:
+        # wrap`), which sizes a row to its widest unbreakable line, so a 51-character email
+        # made the header row 342 px wide inside a 208 px panel. `contain-inline-size` keeps
+        # the header's text out of that sum.
+        HEADER_CLASSES = "bali-topbar-user-menu-header contain-inline-size"
+
         SIGN_OUT_MESSAGE = "Bali::Topbar::UserMenu::Component: `sign_out:` takes a Hash " \
                            "with `href:` — e.g. `sign_out: { href: sign_out_path }`. " \
                            "`method:` defaults to :delete. There is no default route: " \
@@ -63,14 +69,14 @@ module Bali
         # then sign-out.
         def before_render
           header = header_content
-          with_item(tag: :title, class: "bali-topbar-user-menu-header") { header }
+          with_item(tag: :title, class: HEADER_CLASSES) { header }
           content
           add_dark_mode_item if ThemeHelper.dark_mode?
           add_sign_out_item if @sign_out
           super
         end
 
-        # Avatar + name (hidden on mobile) + chevron. Rendered into locals first:
+        # Avatar + name (from md up) + chevron. Rendered into locals first:
         # a block that calls `render` itself comes back empty here — `capture`
         # prefers the output buffer and discards the returned string (see the
         # measurement note in Bali::ActionsDropdown#default_trigger).
@@ -80,7 +86,7 @@ module Bali
           chevron = Bali::Icon::Component.new("chevron-down", size: :small)
           inner = safe_join([
                               render(avatar),
-                              tag.span(@name, class: "hidden md:inline"),
+                              tag.span(@name, class: "hidden md:inline max-w-48 truncate"),
                               render(chevron)
                             ])
 
@@ -99,9 +105,10 @@ module Bali
         # renders nothing at all rather than a menu with nothing to choose.
         def header_content
           safe_join([
-            tag.span(@name, class: "block text-sm font-medium text-base-content"),
-            (tag.span(@email, class: "block text-xs font-normal text-base-content/70") if
-              @email.present?)
+            tag.span(@name, class: "block truncate text-sm font-medium text-base-content",
+                            title: @name),
+            (tag.span(@email, class: "block truncate text-xs font-normal text-base-content/70",
+                              title: @email) if @email.present?)
           ].compact)
         end
 
