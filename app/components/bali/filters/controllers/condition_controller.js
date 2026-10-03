@@ -97,10 +97,9 @@ export class ConditionController extends Controller {
     // Update operators for this type (from data attribute or fallback)
     this.updateOperators(type, operators)
 
-    // Get the current operator (may have changed)
-    const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
-    const isMultiple = this.isMultipleOperator(operator)
-    const isRange = this.isRangeOperator(operator)
+    // The operator may have changed with the list
+    const isMultiple = this.operatorFlag('multiple')
+    const isRange = this.operatorFlag('range')
 
     // Update value input for this type
     this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
@@ -120,9 +119,8 @@ export class ConditionController extends Controller {
    */
   operatorChanged (event) {
     const operator = event.target.value
-    const selectedOption = event.target.options[event.target.selectedIndex]
-    const isMultiple = selectedOption?.dataset?.multiple === 'true'
-    const isRange = selectedOption?.dataset?.range === 'true'
+    const isMultiple = this.operatorFlag('multiple')
+    const isRange = this.operatorFlag('range')
 
     // Update hidden field
     if (this.hasOperatorHiddenTarget) {
@@ -364,18 +362,11 @@ export class ConditionController extends Controller {
     this.refreshHint()
   }
 
-  /**
-   * Check if an operator requires multiple selection
-   */
-  isMultipleOperator (operator) {
-    return ['in', 'not_in'].includes(operator)
-  }
-
-  /**
-   * Check if an operator requires range inputs (start + end)
-   */
-  isRangeOperator (operator) {
-    return operator === 'between'
+  // `range` or `multiple`, as Bali::Filters::Operators.for_type marks the chosen operator: its
+  // <option> carries the mark, from condition/component.html.erb or #updateOperators.
+  operatorFlag (flag) {
+    const option = this.hasOperatorTarget ? this.operatorTarget.selectedOptions[0] : null
+    return option?.dataset[flag] === 'true'
   }
 
   /**
@@ -472,8 +463,8 @@ export class ConditionController extends Controller {
 
     const attribute = this.hasAttributeTarget ? this.attributeTarget.value : ''
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
-    const isMultiple = this.isMultipleOperator(operator)
-    const isRange = this.isRangeOperator(operator)
+    const isMultiple = this.operatorFlag('multiple')
+    const isRange = this.operatorFlag('range')
 
     if (!attribute) return
 
@@ -503,7 +494,7 @@ export class ConditionController extends Controller {
    */
   buildFieldName (attributeKey) {
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
-    const isMultiple = this.isMultipleOperator(operator)
+    const isMultiple = this.operatorFlag('multiple')
 
     if (attributeKey) {
       return `q[g][${this.groupIndexValue}][${attributeKey}_${operator}]${isMultiple ? '[]' : ''}`
