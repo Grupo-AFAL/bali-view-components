@@ -214,15 +214,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     El hover y el foco de los días, de la hora y de AM/PM, y el hover de las flechas de la hora,
     pasan al texto al 8 %; antes eran `base-200`, el literal claro (el foco de un día y el hover
     de uno de otro mes) o, en las flechas, un blanco al 30 % que en los temas claros no se veía.
-    El borde del calendario y la línea sobre la hora pasan de `base-300` al texto al 15 %.
+    El borde del calendario y la línea sobre la hora pasan de `base-300` al texto al 15 %. Los
+    días de un rango pierden el marco que les dejaba su relleno pintado también en el borde.
   - En SlimSelect, la opción elegida y «Select all» pasan de `primary` (3.40:1 en el `dark` de
     daisyUI) a `text-soft-primary`, y la marca de la opción elegida toma el color de su texto.
     «Select all» ya no se atenúa bajo el cursor; le queda el subrayado.
 
   Lo ve toda app que use esos campos, también en los temas claros: los días de otro mes se leen
   más, el hover y el borde del calendario se marcan algo más, las flechas de la hora marcan el
-  hover, y el primario de la opción elegida y de «Select all» sale más oscuro. Sin nada que
-  hacer en el anfitrión.
+  hover, los días de un rango van sin marco, y el primario de la opción elegida y de
+  «Select all» sale más oscuro. Sin nada que hacer en el anfitrión.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
