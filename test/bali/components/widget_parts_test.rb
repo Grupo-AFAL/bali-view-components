@@ -135,7 +135,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # TERNARY: `nil` is "not checked yet" and draws muted, which says something
   # different from a check that answered no.
   def test_a_check_draws_three_states
-    { true => "text-success", false => "text-error", nil => "text-base-content/55" }.each do |state, colour|
+    { true => "text-soft-success", false => "text-soft-error", nil => "text-base-content/55" }.each do |state, colour|
       render_inline(Bali::Widget::Check::Component.new(check_widget(state), size: :large))
 
       assert_selector ".boolean-icon-component[class*='#{colour}']"

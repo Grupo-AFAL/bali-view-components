@@ -12,10 +12,11 @@ module Bali
     # announcing "No" for a column nobody filled in states something the record
     # does not say.
     class Component < ApplicationViewComponent
+      # The icon is the whole answer, so 3:1: `text-success` read 1.92:1 on `afal`, and the blank
+      # state's `/40` 2.36.
       STATES = {
-        true => { icon: "check-circle", class: "text-success", key: "true" },
-        false => { icon: "times-circle", class: "text-error", key: "false" },
-        # The icon is the whole answer, so 3:1: `/40` measured 2.36:1 on `afal`.
+        true => { icon: "check-circle", class: "text-soft-success", key: "true" },
+        false => { icon: "times-circle", class: "text-soft-error", key: "false" },
         nil => { icon: "minus", class: "text-base-content/55", key: "blank" }
       }.freeze
 
