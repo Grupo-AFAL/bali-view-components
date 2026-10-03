@@ -145,6 +145,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
   ser cierto.
 
+- **`Bali::Status`: el naranja, el verde y el teal de la paleta fija pasan a -700 de Tailwind**
+  (#1259): `#ea580c` → `#c2410c`, `#16a34a` → `#15803d`, `#0d9488` → `#0f766e`. Con texto blanco
+  medían 3.56, 3.30 y 3.74:1, bajo el 4.5 de AA; ahora 5.18, 5.02 y 5.47. La paleta sigue igual
+  en todos los temas. Se ve en las píldoras de afal-apps, costa-norte y bali-analytics, en lo que
+  se pinta con `Bali::Status.palette` y en los avatares de iniciales que caen en esos colores
+  (`Avatar` con `name:`, `Topbar::UserMenu`). Acota lo que prometió v3.1: los doce nombres siguen
+  congelados, pero un hex puede cambiar para que su par llegue a AA. **Anfitrión:** quien pinte
+  el `bg` como color de un ícono o de un texto sobre una superficie oscura pierde contraste con
+  estos -700 (el ícono verde de la StatCard de costa-norte bajaría de 4.18 a 2.88:1 en
+  `costa-norte-dark`); revisen esos sitios:
+  `git grep -n -E "Status\.palette|Status::Component::PALETTE" origin/main -- app`.
+
 ### Removed
 
 - **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
@@ -324,6 +336,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   los eventos del día para que se alcancen en celular (lo que hizo
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
+
+- **`Bali::Status` llega a AA sin estado, y el editable también bajo el puntero y en su triángulo**
+  (#1259). El hover de las filas del panel era `filter: brightness(0.95)`, que oscurecía el fondo y
+  también el texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo
+  pinta el mismo fondo y el texto queda en su par, también en la fila sin estado. El texto de una
+  píldora sin estado, editable o no, y el de esa fila pasan del 60 % al 70 % de `base-content`:
+  medían 4.04:1 en `afal` y 4.32 en `costa-norte`; ahora 5.54 y 6.00. El triángulo de la píldora
+  editable deja su `opacity: 0.7` y se pinta en el color del texto: medía 2.89:1 sobre rosa y 2.99
+  sobre rojo, bajo el 3:1 de un ícono. Sin nada que hacer en el anfitrión.
 
 - **Las iniciales del responsable en el Gantt se leen** (#1260): eran blancas, en negrita de
   9–9.5px, sobre `oklch(0.6 0.14 <tono>)`, y medían de 3.49 a 4.27:1 según el tono que sale del
