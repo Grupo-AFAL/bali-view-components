@@ -124,16 +124,19 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
   const sc = isGroup ? null : statusColor(item.status, catalogs)
   const pct = isGroup ? 0 : Math.max(0, Math.min(100, Number(item.percent_complete) || 0))
 
-  const bg = isSelected
-    ? 'color-mix(in oklch, var(--color-primary) 12%, transparent)'
+  // Set inline, the tint outranked every `hover:` class and no row ever showed the pointer.
+  // A selected row keeps its tint under it: at 16% primary the warning pill on it read 4.43:1
+  // on `afal`.
+  const tint = isSelected
+    ? 'bg-primary/12'
     : isGroup
-      ? 'color-mix(in oklch, var(--color-base-content) 4%, transparent)'
-      : 'transparent'
+      ? 'bg-base-content/4 hover:bg-base-content/12'
+      : 'hover:bg-base-content/8'
 
   return (
     <div
-      className='group absolute inset-x-0 flex cursor-pointer select-none items-center border-b border-base-200/70 hover:bg-base-content/[0.06]'
-      style={{ top: row.rowIndex * ROW_H, height: ROW_H, background: bg, fontWeight: isGroup ? 700 : 400 }}
+      className={`group absolute inset-x-0 flex cursor-pointer select-none items-center border-b border-base-200/70 ${tint}`}
+      style={{ top: row.rowIndex * ROW_H, height: ROW_H, fontWeight: isGroup ? 700 : 400 }}
       title={label}
       onClick={isGroup ? () => onToggle(row.kind, row.id) : (e) => onSelect(String(row.id), e)}
       onDoubleClick={isGroup ? undefined : () => onOpen(String(row.id))}

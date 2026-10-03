@@ -1,8 +1,11 @@
+import { hover, unhover } from '../support/tap'
+
 // The left-hand table of the Gantt island (GanttTable.jsx), #1283.
 const appOrigin = new URL(Cypress.config('baseUrl')).origin
 
 // The Minimap is the other `cursor-pointer` with a `title`.
 const ROWS = '.bali-gantt div.group.cursor-pointer[title]'
+const rowFor = (name) => cy.get(`.bali-gantt div.group.cursor-pointer[title="${name}"]`)
 
 // The header row is the sibling before the box the body rows scroll in.
 const tableOf = (doc) => {
@@ -44,6 +47,8 @@ const expectNameColumnWhole = ({ rows }) => {
 }
 
 describe('Gantt table', () => {
+  afterEach(() => cy.then(unhover))
+
   // What a screen reader is handed is Chromium's accessibility tree for the preview's frame. A
   // `<span>` is `generic`, which takes no name from its `title`: the avatar read as its initials.
   it('names every assignee avatar after its assignee, in the table and on the bars', () => {
@@ -124,6 +129,22 @@ describe('Gantt table', () => {
       table.rows.forEach((row) => {
         expect(box(row.lastElementChild).right, `${row.title}: Progress column inside the table`)
           .to.be.at.most(box(table.table).right)
+      })
+    })
+  })
+
+  it('paints the hover over a group row and a task row', () => {
+    cy.visit('/bali/gantt/default')
+
+    ;['Discovery', 'Stakeholder interviews'].forEach((name) => {
+      cy.then(unhover)
+      rowFor(name).should(($row) => expect($row[0].matches(':hover'), 'at rest').to.equal(false)).then(($row) => {
+        const rest = getComputedStyle($row[0]).backgroundColor
+        cy.wrap($row).then(hover)
+        rowFor(name).should(($hovered) => {
+          expect($hovered[0].matches(':hover'), 'under the pointer').to.equal(true)
+          expect(getComputedStyle($hovered[0]).backgroundColor, `${name} under the pointer`).to.not.equal(rest)
+        })
       })
     })
   })
