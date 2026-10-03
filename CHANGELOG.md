@@ -120,6 +120,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **identity** puede pasarlo para volver a las iniciales de `first_name` y `last_name` que
   pintaba antes de Grupo-AFAL/identity#366.
 
+- **`frame_options:` en `Bali::SplitView`, atributos para el `<turbo-frame>` del detalle**
+  (#1279). Las demás opciones siguen yendo al contenedor. `class:` se suma a la del componente,
+  `data:` se mezcla clave a clave con el `turbo_action` de `advance:` (si nombras uno, gana el tuyo)
+  e `id:` levanta, porque es `frame_id:`.
+  Sirve para que, con los paneles apilados (bajo `lg`), un clic baje al detalle:
+  `frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }` y un marcador
+  `lg:hidden` como primer hijo del detalle; la receta, y cuándo fijar además el frame con
+  `lg:sticky` (un maestro más alto que la pantalla), está en `docs/guides/master-detail.md`.
+  **gobierno-corporativo** puede borrar `RegulationSplitView` y su prueba de contrato y renderizar
+  `Bali::SplitView::Component` con ese `frame_options:`; el marcador de `_section.html.erb` se
+  queda, y su comentario deja de nombrar la subclase (`git grep -n "RegulationSplitView" origin/main`).
+  Mientras no lo haga, la subclase sigue funcionando: el método privado conserva su nombre.
+
 ### Changed
 
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
