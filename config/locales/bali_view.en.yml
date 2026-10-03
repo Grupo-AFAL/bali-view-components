@@ -47,6 +47,12 @@ en:
         or: "OR"
       combinator_toggle: "Combine conditions with"
 
+      # Accessible names of a condition's controls (no visible caption)
+      aria_labels:
+        field: "Field"
+        operator: "Operator"
+        value: "Value"
+
       # Selected count for multi-select
       selected_count: "%{count} selected"
 
@@ -327,13 +333,6 @@ en:
         rename: Rename
         delete: Delete
         delete_confirm: "Delete the \"%{name}\" view?"
-      export:
-        button_label: Export
-        formats:
-          csv: CSV
-          excel: Excel
-          pdf: PDF
-          json: JSON
     page_header:
       back: Go back
     page_components:
@@ -341,6 +340,11 @@ en:
         button_label: More actions
       export:
         menu_title: Export filtered
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
     pagination:
       aria_label: Pagination
       previous_page: Previous page

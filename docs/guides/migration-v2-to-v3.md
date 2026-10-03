@@ -1186,7 +1186,7 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 | `ActionsDropdown` menu (CSS mode) | `actions_dropdown/component.rb` | `z-1` | `--bali-z-dropdown` |
 | `Navbar::DropdownItem` menu | `navbar/dropdown_item/component.rb` | `z-50` | `--bali-z-dropdown` |
 | `SideMenu` collapsed group / bottom group / item flyouts | 4 templates | `z-50` | `--bali-z-dropdown` |
-| `DataTable` saved views, column selector, export | 3 templates | `z-50` | `--bali-z-dropdown` |
+| `DataTable` saved views, column selector | through `Bali::Dropdown` (#1250) | `z-50` | `--bali-z-dropdown` |
 | `Filters` popover panel | `filters/component.html.erb` | `z-50` | `--bali-z-dropdown` |
 | `Filters::Condition` value menu | `filters/condition/component.html.erb` | `z-[100]` | `--bali-z-dropdown` |
 | `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `.filters-multi-select-content` → `--bali-z-dropdown` |
@@ -2282,7 +2282,7 @@ not.
 | `with_actions_panel` | `with_bulk_actions` |
 | `with_actions_panel(export_formats:)` | `page.with_export(url:)` on the page component |
 | `dt.with_export` | `page.with_export(url:)` on the page component |
-| `Bali::DataTable::Export(method:)` | *(deleted — it only emitted a dead `data-method`)* |
+| `Bali::DataTable::Export::Component` | `page.with_export(url:)` on the page component |
 | `with_actions_panel(grid_display_mode_enabled:)` | `with_view_switch` |
 | `Bali::DataTable::ActionsPanel::Component` | *(deleted)* |
 | `Bali::DataTable::Action::Component` | *(deleted)* |
@@ -3723,7 +3723,7 @@ two `-A2` FormBuilder ones returned 12 lines for 9 real call sites. **Read the o
 list of places to look at, not as a count of places to change.**
 
 ```
-grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "with_actions_panel\|with_export\|DataTable::Export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/
 grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/

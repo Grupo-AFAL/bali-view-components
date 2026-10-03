@@ -88,13 +88,16 @@ export class DatepickerController extends Controller {
 
   // With `altInput` on — the default — flatpickr builds a brand new input, copies
   // only the placeholder, disabled, required and tabIndex across, and turns the
-  // original into `type="hidden"`. Everything that named the original therefore
-  // stops applying to the field the user actually types into: the `<label for>`
-  // now points at a hidden element, and so do `aria-describedby` and
-  // `aria-invalid`. Carry them over by hand.
+  // original into `type="hidden"`. On a phone user agent, in `single` mode with no
+  // `disable` list, it hides the altInput too and puts a native `mobileInput`
+  // (date, datetime-local or time) in front of the user, carrying the placeholder,
+  // disabled and required and nothing aria. Everything that named the original
+  // therefore stops applying to the field the user actually types into: the
+  // `<label for>` now points at a hidden element, and so do `aria-describedby`
+  // and `aria-invalid`. Carry them over by hand.
   forwardAccessibleName (input) {
-    const altInput = this.flatpickr?.altInput
-    if (!altInput || !input) return
+    const field = this.flatpickr?.mobileInput || this.flatpickr?.altInput
+    if (!field || !input) return
 
     // Rails derives the id off the method name, so a filter bound to a Ransack
     // param carries brackets: `q[released_at_gteq]`. Those need escaping before
@@ -103,16 +106,16 @@ export class DatepickerController extends Controller {
     const label = selector && document.querySelector(selector)
 
     if (label?.id) {
-      altInput.setAttribute('aria-labelledby', label.id)
+      field.setAttribute('aria-labelledby', label.id)
     } else if (input.getAttribute('aria-label')) {
-      altInput.setAttribute('aria-label', input.getAttribute('aria-label'))
+      field.setAttribute('aria-label', input.getAttribute('aria-label'))
     } else if (input.getAttribute('aria-labelledby')) {
-      altInput.setAttribute('aria-labelledby', input.getAttribute('aria-labelledby'))
+      field.setAttribute('aria-labelledby', input.getAttribute('aria-labelledby'))
     }
 
     for (const attribute of ['aria-describedby', 'aria-invalid']) {
       const value = input.getAttribute(attribute)
-      if (value) altInput.setAttribute(attribute, value)
+      if (value) field.setAttribute(attribute, value)
     }
   }
 

@@ -5,8 +5,10 @@ module Bali
   #
   # * `Bali::Status.palette(name)` — the fixed workflow palette as public API,
   #   for painting something that is NOT a pill (a Gantt bar, a chart slice)
-  #   with the same colour the pill uses for the same state. Public means
-  #   frozen: as of v3.1 changing one of the twelve pairs is a breaking change.
+  #   with the same colour the pill uses for the same state. The twelve names
+  #   are frozen: removing or renaming one is a breaking change. A hex can
+  #   change to keep its pair at AA (#1259), which is why the pair is read
+  #   here and never copied.
   # * `Bali::Status.for` — the enum sugar, mirror of `Bali::Tag.for`. Tag is
   #   for categories that follow the theme; Status is for workflow states with
   #   the fixed palette and the editable pill. docs/guides/enum-badges.md has

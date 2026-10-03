@@ -49,12 +49,22 @@ module Bali
       # The same menu, moved into a popper on `<body>` so no ancestor's `overflow` can clip
       # it — the case a dropdown inside a scrollable table always hits. The keyboard is not
       # a second implementation: the menu element is MOVED rather than copied, so the same
-      # controller drives the same list from the top layer.
+      # controller drives the same list from `<body>`.
       def popover
         render_with_template
       end
 
       # @!endgroup
+
+      # Inside a Modal or Drawer
+      # ---------------
+      # `popover: true` in a panel opened with `showModal()`. Everything outside the
+      # `<dialog>` is inert while it is open, so the popper hangs off the dialog instead of
+      # `<body>` there — see the guide "Overlays and the top layer". Escape closes the menu
+      # and leaves the panel open, and Tab from the menu stays in the panel.
+      def in_dialog
+        render_with_template
+      end
 
       # @!group Alignments
 

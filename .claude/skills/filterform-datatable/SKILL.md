@@ -218,10 +218,11 @@ zero-arity proc like `label:`. Instance-level `simple_filters:` hashes take the 
 The `aria-label` is emitted only where no visible `<label for>` reaches the control, so a
 captioned row's markup is untouched. `slim_select` and `date`/`date_range` are the two
 exceptions — their real control is built by JS (`.ss-main`, flatpickr's altInput) and the
-`<label for>` never reaches it, so those carry `aria-labelledby`/`aria-label` even with a
-caption. **Verify them in the accessibility tree, not the markup**
-(`docs/guides/accessibility.md`, "Read the accessibility tree, not the markup"): the Lookbook
-previews are `data_table/simple_filters/uncaptioned` and `.../slim_select`.
+`<label for>` does not reach it (SlimSelect reads it only from 3.5), so those carry
+`aria-labelledby`/`aria-label` even with a caption. **Verify them in the accessibility tree,
+not the markup** (`docs/guides/accessibility.md`, "Read the accessibility tree, not the
+markup"): the Lookbook previews are `data_table/simple_filters/uncaptioned` and
+`.../slim_select`.
 
 A `date_range` with `presets:` names its two controls apart: the period select can fall back
 to its blank option ("Any date"), the "Custom…" picker never borrows that text and falls back

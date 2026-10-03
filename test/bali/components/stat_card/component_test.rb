@@ -104,12 +104,12 @@ class BaliStatCardComponentTest < ComponentTestCase
 
   def test_icon_text_classes_returns_correct_text_class_for_primary
     component = Bali::StatCard::Component.new(**default_attrs, color: :primary)
-    assert_equal("text-primary", component.icon_text_class)
+    assert_equal("text-soft-primary", component.icon_text_class)
   end
 
   def test_icon_text_classes_returns_correct_text_class_for_success
     component = Bali::StatCard::Component.new(**default_attrs, color: :success)
-    assert_equal("text-success", component.icon_text_class)
+    assert_equal("text-soft-success", component.icon_text_class)
   end
 
   def test_icon_text_classes_ghost_takes_the_theme_surface
@@ -121,7 +121,8 @@ class BaliStatCardComponentTest < ComponentTestCase
   def test_icon_text_classes_custom_color_replaces_both_classes_with_inline_styles
     component = Bali::StatCard::Component.new(**default_attrs, custom_color: "#ff0000")
     assert_nil(component.icon_bg_class)
-    assert_equal("color: #ff0000", component.icon_style)
+    assert_equal("color: color-mix(in oklab, #ff0000 40%, var(--color-base-content))",
+                 component.icon_style)
     assert_includes(component.icon_container_style, "#ff0000")
   end
 

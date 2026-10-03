@@ -387,9 +387,9 @@ module Bali
 
         # @label Slim Select
         # `type: :slim_select` swaps the native dropdown for a searchable one. SlimSelect
-        # clips the real `<select>` to 1x1 and draws its own `div[role="combobox"]`, so the
-        # caption's `<label for>` never reaches the control the user operates — that is why
-        # this row also emits `aria-labelledby` pointing at the caption.
+        # clips the real `<select>` to 1x1 and draws its own `div[role="combobox"]`, so before
+        # SlimSelect 3.5 the caption's `<label for>` never reaches the control the user
+        # operates — that is why this row also emits `aria-labelledby` pointing at the caption.
         #
         # @param owner select { choices: ["", ana, beto, carla] }
         def slim_select(owner: '')

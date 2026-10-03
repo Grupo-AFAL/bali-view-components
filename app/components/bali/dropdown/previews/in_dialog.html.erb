@@ -1,0 +1,29 @@
+<div class="flex justify-center items-center gap-4 min-h-[250px] p-8">
+  <%= render Bali::Button::Component.new(name: 'Open modal', variant: :primary,
+                                         modal: { id: 'dropdown-modal', local: true }) %>
+  <%= render Bali::Button::Component.new(name: 'Open drawer', variant: :primary,
+                                         drawer: { id: 'dropdown-drawer', local: true }) %>
+</div>
+
+<%= render Bali::Modal::Component.new(id: 'dropdown-modal', active: false, shared: false) do |m| %>
+  <% m.with_header(title: 'Modal') %>
+  <% m.with_body do %>
+    <%= render(Bali::Dropdown::Component.new(popover: true)) do |c|
+      c.with_trigger(class: 'btn-primary') { 'Actions' }
+
+      c.with_item(tag: :button, name: 'Edit', icon: 'pencil')
+      c.with_item(tag: :button, name: 'Export', icon: 'download')
+      c.with_item(tag: :button, name: 'Archive', icon: 'archive')
+    end %>
+  <% end %>
+<% end %>
+
+<%= render Bali::Drawer::Component.new(drawer_id: 'dropdown-drawer', shared: false, title: 'Drawer') do %>
+  <%= render(Bali::Dropdown::Component.new(popover: true)) do |c|
+    c.with_trigger(class: 'btn-primary') { 'Actions' }
+
+    c.with_item(tag: :button, name: 'Edit', icon: 'pencil')
+    c.with_item(tag: :button, name: 'Export', icon: 'download')
+    c.with_item(tag: :button, name: 'Archive', icon: 'archive')
+  end %>
+<% end %>
