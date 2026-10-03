@@ -219,8 +219,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   primera fila: la etiqueta «New» de un encabezado (16×14 px a 1280 de ancho, 24×22 a 390) o la
   acción «Edit» de un `ShowPage` abierto en el modal (16×16). Ahora el ✕ flota en la misma
   esquina, a 8 px de cada borde, y esa primera fila se acorta a su lado; lo que viene debajo
-  conserva todo el ancho. Sin nada que hacer en el anfitrión: ninguna de las nueve apps le
-  dejaba un hueco al ✕ a mano.
+  conserva todo el ancho. Un contenido cuya raíz sea un contenedor `flex` o `grid` queda entero
+  al lado del ✕, 24 px más angosto en escritorio. Sin nada que hacer en el anfitrión: ninguna
+  de las nueve apps le dejaba un hueco al ✕ a mano.
 
 - **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
   anual «On the First / Sunday / of January» no se podía partir y estiraba su panel a 485 px en
