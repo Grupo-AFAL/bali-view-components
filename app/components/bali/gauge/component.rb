@@ -29,9 +29,9 @@ module Bali
         error: "text-error"
       }.freeze
 
-      # The figure inside the ring is text on the page, where the colour itself fails AA on the
-      # light themes: `text-accent` read 2.15:1 on `afal`, `text-secondary` 1.99 on
-      # `costa-norte` (AA wants 4.5). The ring keeps the colour.
+      # The figure inside the ring is text on the page, where the colour itself fails AA:
+      # `text-accent` read 2.15:1 on `afal`, `text-secondary` 1.99 on `costa-norte` and
+      # `text-primary` 3.40 on `dark` (AA wants 4.5). The ring keeps the colour.
       TEXT_COLORS = {
         primary: "text-soft-primary",
         secondary: "text-soft-secondary",
