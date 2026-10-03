@@ -222,6 +222,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   conserva todo el ancho. Sin nada que hacer en el anfitrión: ninguna de las nueve apps le
   dejaba un hueco al ✕ a mano.
 
+- **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
+  anual «On the First / Sunday / of January» no se podía partir y estiraba su panel a 485 px en
+  una pantalla de 390: ahora sus selects pasan al renglón siguiente cuando no caben, y en
+  escritorio siguen en una sola línea. «On the», en el panel anual y en el mensual, ya no se
+  parte en dos renglones. Ninguna de las nueve apps usa el componente.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el

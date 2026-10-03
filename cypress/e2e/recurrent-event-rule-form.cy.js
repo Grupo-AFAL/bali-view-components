@@ -406,4 +406,58 @@ describe('RecurrentEventRuleForm', () => {
       })
     })
   })
+
+  // #1286: at 390px the yearly row "On the First / Sunday / of January" stretched its panel to
+  // 485px, and the page scrolled sideways under it, with "On the" broken over two lines.
+  describe('the yearly and monthly rows', () => {
+    const panels = {
+      yearly: { freq: YEARLY, rule: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1' },
+      monthly: { freq: MONTHLY, rule: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR' }
+    }
+    const open = (rule) => cy.visit(`/bali/recurrent_event_rule_form/with_value?value=${encodeURIComponent(rule)}`)
+
+    Object.entries(panels).forEach(([panel, { freq, rule }]) => {
+      ;[390, 320].forEach((width) => {
+        it(`fit the ${panel} panel into ${width}px without scrolling the page sideways`, () => {
+          cy.viewport(width, 844)
+          open(rule)
+
+          cy.get(`fieldset[data-rrule-freq="${freq}"]`).should('be.visible')
+          cy.document().should((doc) => {
+            const { scrollWidth, clientWidth } = doc.documentElement
+            expect(scrollWidth, `scrollWidth of a page ${clientWidth}px wide`).to.equal(clientWidth)
+          })
+        })
+
+        it(`keep each ${panel} row label on one line at ${width}px`, () => {
+          cy.viewport(width, 844)
+          open(rule)
+
+          cy.get(`fieldset[data-rrule-freq="${freq}"] label > span`).should(($labels) => {
+            expect($labels, 'row labels').to.have.length(2)
+            $labels.each((_, text) => {
+              const range = text.ownerDocument.createRange()
+              range.selectNodeContents(text)
+              const lines = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)))
+              expect(lines.size, `lines of "${text.textContent.trim()}"`).to.equal(1)
+            })
+          })
+        })
+      })
+
+      it(`keep each ${panel} row on one line at 1280px`, () => {
+        cy.viewport(1280, 800)
+        open(rule)
+
+        cy.get(`fieldset[data-rrule-freq="${freq}"] [data-recurrent-event-rule-target="freqCustomizationInputs"]`)
+          .should(($rows) => {
+            expect($rows, 'rows').to.have.length(2)
+            $rows.each((_, row) => {
+              const tops = [...row.querySelectorAll('select')].map((select) => Math.round(select.getBoundingClientRect().top))
+              expect(new Set(tops).size, `lines in ${row.dataset.rruleFreqOption}`).to.equal(1)
+            })
+          })
+      })
+    })
+  })
 })
