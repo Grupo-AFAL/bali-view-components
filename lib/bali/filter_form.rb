@@ -7,6 +7,7 @@ require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
 require_relative "filter_form/saved_views_configuration"
 require_relative "filter_form/enum_casting"
+require_relative "filter_form/whole_day_casting"
 require_relative "filter_form/default_filters"
 
 module Bali
@@ -53,6 +54,7 @@ module Bali
     include GroupByConfiguration
     include SavedViewsConfiguration
     include EnumCasting
+    include WholeDayCasting
     include DefaultFilters
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
@@ -619,9 +621,10 @@ module Bali
       apply_group_by_ordering(params)
 
       # Last step and over a copy: the state that is RENDERED (filter_groups, the pills, a
-      # saved view's payload, the persistence cache) keeps speaking in labels, which is what
-      # the `<option value>` carries. See EnumCasting.
-      cast_enum_labels(params)
+      # saved view's payload, the persistence cache) keeps speaking in labels and bare dates,
+      # which is what the `<option value>` and the range picker carry. See EnumCasting and
+      # WholeDayCasting.
+      cast_whole_days(cast_enum_labels(params))
     end
 
     private

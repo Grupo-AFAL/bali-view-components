@@ -60,7 +60,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
   def test_select_field_with_validation_errors_displays_error_message
     resource.errors.add(:status, :invalid)
     result = builder.select_field(:status, Movie.statuses.to_a)
-    assert_html(result, "p.text-error")
+    assert_html(result, "p.text-soft-error")
   end
 
   def test_select_field_with_help_text_displays_help_text

@@ -1,11 +1,12 @@
 /* BlockEditor: DaisyUI 5 theme integration for BlockNote + Mantine
  *
- * Loaded ONLY via Vite: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote CSS.
+ * Loaded ONLY through the JS bundle: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote's
+ * CSS, which is the order esbuild emits them in.
  * NOT included in the global Tailwind pipeline (components.css) to avoid loading
  * heavy editor styles on pages that don't use the BlockEditor.
  *
  * IMPORTANT: Do NOT use @apply or other Tailwind directives here.
- * This file must work as plain CSS when loaded via Vite.
+ * This file must work as plain CSS: esbuild bundles it as it is.
  *
  * DaisyUI 5 variable reference:
  *   --color-base-100   = base background (white in light theme)
@@ -23,12 +24,17 @@
 }
 
 /* Override BlockNote's default theme variables with DaisyUI colors.
- * .block-editor-component .bn-container (0,2,0) beats BlockNote's .bn-container (0,1,0).
+ * BlockNote declares its palette on each `.bn-root`, and an editor has two: the `.bn-container`
+ * and the one nested in it for the floating UI (the "/" menu, the side menu, the table
+ * handles), which with only the container matched kept #3f3f3f: 1.50–1.68:1 on the dark
+ * themes. BlockNote's dark palette sits on `.bn-root[data-color-scheme]` and Mantine's on
+ * `.bn-mantine[data-mantine-color-scheme]`, (0,2,0) like these: this file loading after theirs
+ * (see the header) is what wins.
  * A comments sidebar portaled out of the editor is outside .block-editor-component, and
  * each comment there is a BlockNote of its own: without this second selector its text kept
  * BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes). */
-.block-editor-component .bn-container,
-.bn-threads-sidebar .bn-container {
+.block-editor-component .bn-root,
+.bn-threads-sidebar .bn-root {
   --bn-colors-editor-text: var(--color-base-content);
   --bn-colors-editor-background: var(--color-base-100);
   --bn-colors-menu-text: var(--color-base-content);
@@ -42,15 +48,20 @@
   --bn-colors-disabled-text: color-mix(in oklch, var(--color-base-content) 40%, transparent);
   --bn-colors-disabled-background: var(--color-base-200);
   --bn-colors-border: color-mix(in oklch, var(--color-base-content) 15%, transparent);
-  /* Inside the editor BlockNote paints text in this one, the placeholder and an empty toggle's
-     prompt: 1.86:1 on `afal` at 30% (AA wants 4.5). Its third reader here, the hairline beside a
-     nested group, keeps its 30% further down. The side menu it is named after, the table handles
-     and the suggestion menu's loader sit in BlockNote's floating `.bn-root`, which redeclares
-     BlockNote's own default. */
+  /* Besides the side menu it is named after, the table handles and the suggestion menu's loader,
+     BlockNote paints text in this one, the placeholder and an empty toggle's prompt: 1.86:1 on
+     `afal` at 30% (AA wants 4.5). The hairline beside a nested group, its other reader, keeps
+     its 30% further down. */
   --bn-colors-side-menu: color-mix(in oklch, var(--color-base-content) 70%, transparent);
-  --bn-colors-highlight-colors-gray-background: var(--color-base-200);
   --bn-colors-shadow: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  /* Mantine's own greys. A comment's date is `dimmed`, its gray-6 in a light scheme: 3.32:1 on
+     the light themes. The placeholder of the link and image URL fields is `placeholder`, gray-5
+     or dark-3: 2.07:1 on the light themes, 2.88–3.23 on the dark ones. */
+  --mantine-color-dimmed: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+  --mantine-color-placeholder: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --bn-border-radius: var(--radius-box, 0.5rem);
+  /* The page's font reaches the menus, the toolbar and a comment's author and date. Not the
+     document text: BlockNote writes Inter on `.bn-default-styles` itself, not through this. */
   --bn-font-family: inherit;
 }
 
@@ -209,26 +220,6 @@
   background-color: transparent;
 }
 
-/* -------------------------------------------------------
- * Menu/toolbar overrides - explicit background + shadow
- * These use !important to ensure they override BlockNote's
- * Vite-loaded styles regardless of CSS load order.
- * ------------------------------------------------------- */
-
-/* Floating formatting toolbar */
-.block-editor-component .bn-toolbar {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
-/* Slash menu and suggestion menus */
-.block-editor-component .bn-suggestion-menu {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
 /* Compact suggestion menu items */
 .block-editor-component .bn-suggestion-menu-item {
   padding: 0.15rem 0.5rem !important;
@@ -253,21 +244,6 @@
 .block-editor-component .bn-suggestion-menu-label {
   padding: 0.25rem 0.5rem 0.1rem !important;
   font-size: 0.7rem;
-}
-
-/* Mantine dropdown menus (toolbar color picker, link input, etc.) */
-.block-editor-component .mantine-Menu-dropdown,
-.block-editor-component .mantine-Popover-dropdown {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
-/* Form popovers (link editor, etc.) */
-.block-editor-component .bn-form-popover {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
 }
 
 /* Links - DaisyUI resets anchor styles; restore them inside the editor */
@@ -318,13 +294,8 @@
 }
 
 /* Each token carries both themes' colours (withBothThemes in BlockNoteEditorWrapper.jsx);
-   light-dark() reads the color-scheme the page's theme declares. BlockNote stamps `light`
-   on .bn-container from the `theme:` it is handed, which kept the dark ink out (1.00:1 on
-   afal-dark), so the container inherits the page's scheme instead. */
-.block-editor-component .bn-container {
-  color-scheme: inherit;
-}
-
+   light-dark() reads the color-scheme Mantine sets on the editor, which is the page's
+   (usePageColorScheme there). */
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki {
   color: light-dark(var(--shiki-light), var(--shiki-dark));
 }
@@ -1048,6 +1019,9 @@
   z-index: var(--bali-z-popover) !important;
 }
 
+/* A comment's "…" menu hangs off its toolbar, outside every .bn-root in the portaled panel
+ * (only each comment's text is one), so --bn-colors-menu-background is undefined there:
+ * without this, the menu is transparent. */
 .document-editor-panel .mantine-Menu-dropdown {
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
@@ -1191,9 +1165,9 @@
 
 /* Upload-failure toast, built by useFileUpload.js and appended INSIDE the
    `.block-editor-component` whose upload failed -- not to <body>, so two editors
-   on one page each get their own instead of stacking on the same corner. Same
-   reason as `.filters-multi-select-content`: Tailwind does not scan this
-   package's JavaScript, so the tier cannot ride on a utility class. */
+   on one page each get their own instead of stacking on the same corner.
+   Tailwind does not scan this package's JavaScript, so the tier cannot ride on a
+   utility class. */
 .block-editor-upload-toast {
   z-index: var(--bali-z-toast);
 }

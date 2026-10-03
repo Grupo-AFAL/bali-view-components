@@ -1,20 +1,36 @@
-/* `text-soft-<colour>` — the text colour for a colour painted over a tint of itself:
- * `bg-primary/10`, or a 15% `color-mix` (`.cmd-mark`, `.bn-mention`). The colour itself
- * fails there by construction, text and ground being one hue: the Command's match
- * highlight measured 2.23:1 on daisyUI's `dark` and 3.52 on `afal`, a SideMenu warning
- * badge 1.46 (AA: 4.5).
+/* `text-soft-<colour>` — the text colour for a colour painted over a tint of itself
+ * (`bg-primary/10`, or a 15% `color-mix`: `.cmd-mark`, `.bn-mention`) or straight on a
+ * `base-*` surface. The colour itself fails over its tint by construction, text and ground
+ * being one hue: the Command's match highlight measured 2.23:1 on daisyUI's `dark` and 3.52 on
+ * `afal`, a SideMenu warning badge 1.46 (AA: 4.5). On the page, error, success, warning, info
+ * and accent miss AA on every light theme: `text-error` read 2.75 on `afal` (#1281).
  *
  * The mix is the one #1126 gave daisyUI's soft alerts and badges
  * (../../../components/bali/alert/daisyui-overrides.css): base-content, which every theme
- * contrasts with base-100, tinted 40% toward the colour. Worst case after it, 5.16:1 —
- * that same warning badge on `afal`. Written out by hand where no utility can name the colour:
- * ../../../components/bali/block_editor/index.css, which Vite processes without @apply, and
- * `Bali::Color.soft` (../../../components/bali/color.rb), for a hex such as StatCard's
- * `custom_color:`. test/bali/components/color_test.rb holds both to the declaration below.
+ * contrasts with base-100, tinted 40% toward the colour. Worst case after it, 4.66:1 — the
+ * Gantt's warning pill on a selected row, on `afal`. Written out by hand where no utility can
+ * name the colour: ../../../components/bali/block_editor/index.css, which esbuild bundles as
+ * plain CSS; `Bali::Color.soft` (../../../components/bali/color.rb), for a hex such as StatCard's
+ * `custom_color:`; and the Gantt's status pill (../../../components/bali/gantt/ganttColors.js),
+ * for whichever `--color-*` a host's catalog names. test/bali/components/color_test.rb holds the
+ * three to the declaration below.
  *
  * A utility and not a custom property on `:root`: a property declared there resolves its
  * `var()`s there, and a SideMenu with its own `theme:` inherits the page's mix — 1.05:1 on
  * `side_menu/dark_chrome`, against 7.97 for the utility. */
 @utility text-soft-* {
   color: color-mix(in oklab, --value(--color-*) 40%, var(--color-base-content));
+}
+
+/* A `.table`'s thead and tfoot and a `.fieldset-label`, which daisyUI paints at `/60`: 4.04:1
+ * on `afal` (AA: 4.5). A rule rather than a class on Bali's markup, because host views write
+ * both by hand. In @layer utilities itself, which outranks daisyUI's `daisyui.*` sublayers of it
+ * whatever the specificity; under `:where()`, because this block is emitted after Tailwind's
+ * utilities and a colour class on the element (a host's, or the FormBuilder's error red) has to
+ * keep winning on specificity. */
+@layer utilities {
+  :where(.table) :where(thead, tfoot),
+  :where(.fieldset-label) {
+    @apply text-base-content/70;
+  }
 }

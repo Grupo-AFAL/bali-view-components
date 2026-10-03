@@ -1,0 +1,5 @@
+<div class="flex flex-wrap gap-8">
+  <% colors.each do |color| %>
+    <%= render Bali::Loader::Component.new(text: color.to_s.capitalize, size: :md, color: color) %>
+  <% end %>
+</div>

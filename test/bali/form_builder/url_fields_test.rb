@@ -56,7 +56,7 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
   def test_url_field_with_validation_errors_displays_error_message
     resource.errors.add(:website_url, "is invalid")
     result = builder.url_field(:website_url)
-    assert_html(result, "p.text-error", text: "Website url is invalid")
+    assert_html(result, "p.text-soft-error", text: "Website url is invalid")
   end
 
   def test_url_field_with_help_text_displays_help_text

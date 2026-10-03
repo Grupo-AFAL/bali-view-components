@@ -21,14 +21,17 @@ export class MultiSelectController extends Controller {
   connect () {
     this.updateLabel()
     this.boundCloseOnClickOutside = this.closeOnClickOutside.bind(this)
+    this.boundCloseOnFocusOutside = this.closeOnFocusOutside.bind(this)
     this.boundHandleKeydown = this.handleKeydown.bind(this)
     document.addEventListener('click', this.boundCloseOnClickOutside)
+    document.addEventListener('focusin', this.boundCloseOnFocusOutside)
     this.element.addEventListener('keydown', this.boundHandleKeydown)
     this.focusedIndex = -1
   }
 
   disconnect () {
     document.removeEventListener('click', this.boundCloseOnClickOutside)
+    document.removeEventListener('focusin', this.boundCloseOnFocusOutside)
     this.element.removeEventListener('keydown', this.boundHandleKeydown)
   }
 
@@ -99,6 +102,14 @@ export class MultiSelectController extends Controller {
     if (!this.element.contains(event.target)) {
       this.close()
     }
+  }
+
+  // Focus landing on an ancestor is not Tab moving on: it is a press on an option's text,
+  // whose focus Bali::AppLayout's <main tabindex="-1"> takes. Closing on it would hide the
+  // option before the click reached its checkbox.
+  closeOnFocusOutside (event) {
+    const target = event.target
+    if (!this.element.contains(target) && !target.contains(this.element)) this.close()
   }
 
   updateSelection (event) {
