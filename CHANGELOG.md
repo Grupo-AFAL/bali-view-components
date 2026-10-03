@@ -592,6 +592,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Lo ven las siete apps con paleta, sin nada que hacer más que subir la gema y el paquete npm
   juntos: con uno solo, el contador sigue en inglés.
 
+- **`Bali::SplitView` ya no pierde el clic en una fila hecho justo al llegar el detalle
+  anterior** (#1280). Con `advance: true`, un clic hecho entre el arranque de la visita `advance`
+  que sigue a la llegada de un detalle y el momento en que esa visita cachea la página (un cuadro
+  de animación) dejaba la fila nueva marcada y el detalle y la URL en la anterior: el rebobinado
+  de #1012 quitaba en `turbo:before-cache` el `src` que ese clic acababa de poner, y Turbo
+  cancelaba su petición. Ahora el rebobinado deja en paz un frame que no ha terminado de cargar.
+  Lo ganan la bandeja de afal-apps y la bandeja y el reglamento de gobierno-corporativo, sin nada
+  que hacer.
+
+- **`Bali::SplitView`: volver atrás ya no puede duplicar la entrada del historial** (#1280). Con
+  `advance: true`, al volver a una fila la página que se deja apuntaba su frame a esa fila; si la
+  respuesta llegaba antes de que Turbo restaurara la página, el frame, que aún llevaba el `advance`
+  del clic, volvía a empujar ese URL y se perdía la entrada de adelante. Ahora esa página no pide
+  nada y cancela la carga que tuviera en curso; la restaurada pide el detalle si le falta. Las
+  mismas tres pantallas, sin nada que hacer.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
