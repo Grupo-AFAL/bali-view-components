@@ -256,12 +256,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1281). El controlador resuelve en el tema de la página cada color que nombra un
   `var(--color-*)`, también dentro de un `color-mix()`, y deja como vienen los demás (hex,
   `rgb()`, `hsl()`). Antes recalculaba la paleta por la posición de la serie y adivinaba cuáles
-  eran de Ruby: el `pointBackgroundColor:` transparente de un marcador hueco (#1065) se pintaba
-  con el borde si el relleno también era transparente, cada anillo de una dona de varias series
-  repetía los colores del primero en vez de seguir el ciclo del JSON, un borde
-  `Bali::Color.css(:error)` salía del color de su posición, el relleno propio de una serie sin
-  borde propio se cambiaba por el del tema y un relleno `var(--color-*)` bajo un borde literal
-  llegaba sin resolver al canvas. Ninguna gráfica de las apps cambia: ninguna usa esas formas.
+  eran de Ruby: cada anillo de una dona de varias series repetía los colores del primero en vez
+  de seguir el ciclo del JSON, un borde `Bali::Color.css(:error)` salía del color de su
+  posición, el relleno propio de una serie sin borde propio se cambiaba por el del tema y un
+  relleno `var(--color-*)` bajo un borde literal llegaba sin resolver al canvas. Ninguna gráfica
+  de las apps cambia: ninguna usa esas formas.
 - **`Bali::Chart` reparte la lista completa de colores antes de repetir** (#1281).
   `Bali::Utils::ColorPicker` volvía al primero al llegar al penúltimo: con `use_theme_colors:
   false` la serie 10 repetía el turquesa en vez de tomar el oliva, y con `custom_color:` la 11
