@@ -5,7 +5,8 @@ import { hover, unhover } from '../support/tap'
 // Pieces that used to paint fixed colours instead of the theme's: SlimSelect's own stylesheet
 // froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes), BlockEditor's
 // code block kept github-light's ink (1.00:1 on a dark theme, 3.17 on afal), and a comments
-// sidebar portaled out of the editor kept BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes).
+// sidebar portaled out of the editor and the editor's floating menus kept BlockNote's #3f3f3f
+// (1.50–1.68:1 on the dark themes).
 describe('colours that follow the theme', () => {
   afterEach(() => { unhover() })
 
@@ -73,6 +74,31 @@ describe('colours that follow the theme', () => {
       cy.visit('/bali/block_editor/with_portaled_read_only_comments_sidebar')
       useTheme(theme)
       everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2)
+    })
+
+    it(`reads the BlockEditor's "/" menu at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/default')
+      useTheme(theme)
+      cy.get('.bn-editor').click().type('/')
+      everyReadsAtAA([
+        '.bn-suggestion-menu-label',
+        '.bn-mt-suggestion-menu-item-title',
+        '.bn-mt-suggestion-menu-item-subtitle'
+      ].map(part => `.bn-suggestion-menu ${part}`).join(', '), theme, 10)
+    })
+
+    // Icons, so 3:1 (WCAG 1.4.11). BlockNote's #cfcfcf painted 1.56:1 on the light themes.
+    it(`shows the BlockEditor's side menu on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/with_initial_content')
+      useTheme(theme)
+      cy.get('.bn-editor [data-content-type="paragraph"]').first().then(hover)
+      cy.get('.bn-side-menu svg').should(($icons) => {
+        expectSettled($icons[0])
+        expect($icons, 'the add and drag icons').to.have.length(2)
+        $icons.each((i, icon) => {
+          expect(paintedContrast(icon), `${theme}: side menu icon ${i + 1}`).to.be.at.least(3)
+        })
+      })
     })
 
     it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
