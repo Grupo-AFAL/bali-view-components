@@ -67,6 +67,12 @@ const COMMENTED = {
 // Titles and glyphs are collected by their base-content grey: the current
 // step's `primary` pair is the theme's own, not measured against AA here (#1221).
 describe('muted text contrast', () => {
+  const FOOTER = [
+    ['section title', '.footer-title', 3],
+    ['description', 'aside > p', 1],
+    ['copyright', '.footer + div > p', 1]
+  ]
+
   // preview → [what, selector, how many the preview renders]
   const PREVIEWS = {
     'workflow_steps/default': [
@@ -153,7 +159,7 @@ describe('muted text contrast', () => {
     ],
     // One row this week against one the week before: no change, which is muted too. The grey
     // is what says it is flat: should `count` stop applying (#843, after a reload), the preview
-    // draws a rise in `text-success`, and the count fails instead of measuring that.
+    // draws its default five-row rise, which is red, and the count fails instead of measuring it.
     'widget/default?pattern=trend&count=1': [
       ['flat trend', `.bali-widget-body ${GREY} > span[aria-hidden="true"]:not(.icon-component)`, 1]
     ],
@@ -192,6 +198,24 @@ describe('muted text contrast', () => {
     'form/slim_select/placeholder': [
       ['placeholder', '.ss-placeholder', 1]
     ],
+    // daisyUI paints the help text, `.fieldset-label`, and a `.table`'s thead and tfoot at
+    // `/60` from @layer utilities: 4.04:1 on `afal` (#1281).
+    'form/text/with_external_error': [
+      ['help text', 'p.fieldset-label[id$="_help"]', 2]
+    ],
+    'data_table/default': [
+      ['column header', 'table.table thead th', 4]
+    ],
+    'data_table/with_column_selector': [
+      ['totals row', 'table.table tfoot :is(td, th)', 3]
+    ],
+    'form/dynamic_fields/table': [
+      ['column header', 'table.table thead th', 3]
+    ],
+    // daisyUI's `.footer-title` is at `opacity: .6`: on `neutral` it read 4.15:1 on `afal-dark`.
+    // The two colours that are a theme's own pair are measured below, on Bali's themes.
+    'footer/default?color=neutral': FOOTER,
+    'footer/default?color=base': FOOTER,
     // The `·` between the footer's figures is decoration and keeps a colour of its own.
     'gantt/default': [
       ['monospaced figure', '.bali-gantt .font-mono', 53],
@@ -206,6 +230,16 @@ describe('muted text contrast', () => {
 
   // The text that only shows once something is opened or typed.
   const OPENED = [
+    // A `<table class="table">` written by hand, the way host views write theirs: nothing of
+    // Bali's on its thead or its tfoot.
+    {
+      page: 'status/in_table',
+      opened: 'a tfoot written by hand',
+      open: () => cy.get('table.table').then(($table) => {
+        $table[0].insertAdjacentHTML('beforeend', '<tfoot><tr><td>2 scenarios</td><td></td></tr></tfoot>')
+      }),
+      targets: [['column header', 'table.table thead th', 2], ['totals row', 'table.table tfoot td:first-child', 1]]
+    },
     {
       page: 'side_menu/collapsible',
       opened: 'the rail collapsed and a flyout open',
@@ -420,6 +454,18 @@ describe('muted text contrast', () => {
     })
   })
 
+  // A `primary` or `secondary` Footer is the theme's own pair, which daisyUI's themes leave under AA
+  // in full: `secondary` 3.04:1 on `light` and `dark`, `primary` 4.13 on `dark`. Muted at daisyUI's
+  // `.6`, the section title read 2.83:1 on `afal` over `primary` (#1281).
+  const THEME_PAIRS = ['primary', 'secondary']
+  THEME_PAIRS.forEach((color) => {
+    BALI_THEMES.forEach((theme) => {
+      it(`reads the text of a ${color} footer at AA on the ${theme} theme`, () => {
+        guard({ page: `footer/default?color=${color}`, targets: FOOTER, theme, floor: AA })
+      })
+    })
+  })
+
   it('keeps the compact timestamp no larger than the heading above it', () => {
     cy.visit('/bali/timeline/tracking')
 
@@ -555,6 +601,37 @@ describe('form placeholder cascade', () => {
         const placeholder = $field[0].ownerDocument.defaultView.getComputedStyle($field[0], '::placeholder')
         expect(placeholder.color, `${what}: placeholder colour`).to.eq('rgb(255, 0, 0)')
       })
+    })
+  })
+})
+
+// The rule that lifts a `.table`'s thead and tfoot and a `.fieldset-label` (bali/utilities.css)
+// sits in @layer utilities after Tailwind's own utilities, so only its zero specificity lets a
+// colour class on the element win, and nothing in the contrast guard above would notice it stopped.
+describe('muted rule cascade', () => {
+  const sameColour = (el, className, what) => {
+    const doc = el.ownerDocument
+    const probe = doc.createElement('span')
+    probe.className = className
+    doc.body.appendChild(probe)
+    const colour = node => doc.defaultView.getComputedStyle(node).color
+    expect(colour(el), what).to.eq(colour(probe))
+    probe.remove()
+  }
+
+  it('yields the thead of a hand-written table to a host colour utility', () => {
+    const HOST = 'text-base-content/80'
+    cy.visit('/bali/status/in_table')
+    cy.get('table.table thead').invoke('addClass', HOST)
+    cy.get('table.table thead th').first().should(($th) => {
+      sameColour($th[0], HOST, `header with ${HOST} on its thead`)
+    })
+  })
+
+  it('keeps the error message of a field in its own soft red', () => {
+    cy.visit('/bali/form/text/with_external_error')
+    cy.get('p.fieldset-label[id$="_error"]').first().should(($error) => {
+      sameColour($error[0], 'text-soft-error', `error message "${$error.text().trim()}"`)
     })
   })
 })

@@ -13,7 +13,7 @@ module Bali
       # It carries the widget's own name because a bare "couldn't load" in a
       # bento of twelve cards does not say WHICH one failed.
       #
-      # `text-warning`, not the `/40` grey the empty state uses: those are
+      # `text-soft-warning`, not the `/70` grey the empty state uses: those are
       # opposite messages, and the muted one already means "nothing to do". No
       # retry link either — the reload is the retry, and a button that re-runs
       # the same broken query promises a recovery this card cannot make.
@@ -27,7 +27,7 @@ module Bali
           tag.div(class: "flex flex-1 flex-col items-center justify-center gap-1 px-2 text-center") do
             safe_join([
               tag.p(short_title, class: "text-sm font-medium text-base-content/70"),
-              tag.p(t("bali_view.widgets.load_error"), class: "text-xs text-warning")
+              tag.p(t("bali_view.widgets.load_error"), class: "text-xs text-soft-warning")
             ])
           end
         end

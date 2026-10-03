@@ -154,7 +154,7 @@ module Bali
           if method == SIGN_OUT_METHOD
             opts[:skip_confirm] = true unless opts.key?(:confirm) || opts.key?(:skip_confirm)
           else
-            opts[:class] = class_names("text-error", opts[:class])
+            opts[:class] = class_names("text-soft-error", opts[:class])
           end
 
           with_item(href: @sign_out[:href], method: method, **opts)

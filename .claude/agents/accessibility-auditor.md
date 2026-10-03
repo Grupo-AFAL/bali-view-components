@@ -264,7 +264,7 @@ To verify fixes, test with:
 
 <%# GOOD - Icon and text supplement color %>
 <input class="input-error" aria-invalid="true" aria-describedby="email-error">
-<span id="email-error" class="text-error flex items-center gap-1">
+<span id="email-error" class="text-soft-error flex items-center gap-1">
   <svg aria-hidden="true" class="w-4 h-4"><!-- error icon --></svg>
   This field is required
 </span>

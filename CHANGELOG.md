@@ -608,6 +608,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   nada y cancela la carga que tuviera en curso; la restaurada pide el detalle si le falta. Las
   mismas tres pantallas, sin nada que hacer.
 
+- **El texto y los íconos de color que Bali pinta sobre la página pasan a `text-soft-<color>`**
+  (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`, `text-info` y
+  `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1 en `afal`,
+  `text-success` 1.92—, `text-secondary` en `light`, `costa-norte` (1.99) y `dark` (4.32), y
+  `text-primary` en `dark` (3.40); AA pide 4.5 para texto y 3:1 para un ícono. Con la mezcla, el
+  mínimo medido es 5.14:1 (`text-soft-warning` en `afal`). Cambian:
+  - FormBuilder: el mensaje de error de cada campo, el asterisco de requerido, el contador de
+    caracteres pasado el máximo y el «Clear» de `coordinates_polygon_group`.
+  - `DeleteLink`: el rojo del botón `ghost` o `link`, y con él cada ítem `method: :delete` de
+    `Dropdown` y `ActionsDropdown`, que bajo el puntero del menú medía 3.27 en `dark`, y el
+    cierre de sesión del `Topbar::UserMenu`, con el `:delete` por omisión y también con `:post`
+    (el de identity).
+  - `Filters`: los tres «Clear all» y la pista de una condición sin valor.
+  - `Widget`: la tendencia, el sí y el no del Check, que dibuja `BooleanIcon`, y el aviso de un
+    widget que no cargó.
+  - `Gauge` y `Loader`: el porcentaje y el texto; el anillo y el spinner conservan el color, y la
+    etiqueta del `Gauge` pasa a `text-base-content/70`.
+  - `Timeline`: el marcador, también el de `custom_color:`, con `Bali::Color.soft`; la línea
+    conserva el color.
+  - `SplitView`: el `meta_color:` de una fila y el error al cargar la página siguiente.
+  - `BooleanIcon`: el sí y el no.
+  - `DocumentEditor`: el estado de un guardado fallido y el error del historial.
+  - `DirectUpload`: el error de un archivo y el ícono de subido.
+  - El aviso de error de una isla de React (`react-island.js`), la caja que `BlockEditor` muestra
+    en development con el flag apagado y la mención de `RichTextEditor`.
+
+  Lo ve toda app con formularios, con un botón o un ítem de borrar o con el cierre de sesión del
+  `Topbar::UserMenu`, con cualquiera de los dos verbos: el rojo sale más oscuro en los temas
+  claros y más claro en los oscuros.
+  **Anfitrión:** una prueba que busca el error con `p.text-error` o el asterisco con
+  `label .text-error` pasa a `text-soft-error`, y una con `count: 0` deja de fallar sin avisar.
+  Son las de `test/controllers/finance/terminals/` en **afal-apps**
+  (`affiliations_controller_test.rb`, `census_assignments_controller_test.rb` y
+  `terminals_controller_test.rb`, la de `count: 0`) y, en **gobierno-corporativo**,
+  `document_classification_types_controller_test.rb` y
+  `governing_bodies/body_creation_requests_controller_test.rb`. Donde una app copió el marcado,
+  no cambia sola: **identity** escribe `fieldset-label text-error` en
+  `app/views/rodauth/_otp_digits.html.erb` (pasa a `text-soft-error`), y **gobierno-corporativo**
+  pinta de `text-error` su contador en `app/javascript/controllers/character_counter_controller.js`.
+
+- **El texto que daisyUI atenúa a `/60` pasa a `/70` en toda `.fieldset-label`, que es la ayuda
+  de cada campo del FormBuilder, y en el encabezado y el pie de toda `.table`** (#1281). Medían
+  4.04:1 en `afal` y 4.32 en `costa-norte`; a `/70`, 5.54 y 6.00. Es una regla de Bali y no una
+  clase en sus plantillas, así que alcanza también el marcado escrito a mano sin tocar nada: las
+  95 vistas con una `<table class="table">` y su `<thead>` o `<tfoot>` en seis apps, 69 de ellas
+  en **gobierno-corporativo** y 15 en **afal-apps**, y los tres `<p class="fieldset-label">` de
+  ayuda que **identity** escribe en `app/views/admin/connected_applications/_form.html.erb`. Una
+  clase de color propia en el elemento sigue ganando: el historial de documentos de
+  gobierno-corporativo, que escribe `text-base-content/60` en cada `<th>`, se queda en 4.04 en
+  `afal` hasta que la quite.
+
+- **`Bali::Footer` deja de atenuar el título, la descripción y el copyright** (#1281). Sobre
+  `primary` el título medía 2.83:1 en `afal`, y sobre `neutral` 4.15 en `afal-dark`. Con los
+  cuatro colores en los temas de Bali, una opacidad sólo pasa desde `.9`, que sobre `primary` en
+  `afal` lee 4.55 contra 5.25 a tinta plena: una atenuación que no se ve. El `secondary` de los
+  `light` y `dark` de daisyUI no llega a AA ni a tinta plena (3.04:1), y el `primary` de `dark`
+  tampoco (4.13). Ninguna app renderiza `Bali::Footer`.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte

@@ -49,9 +49,9 @@ Every component that colours something takes the same two keywords, resolved by
 | `color:` | one of `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
 | `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No — that is the point of it |
 
-The hex itself stays fixed. Where Bali paints ink over that hex's own tint — StatCard's icon —
-the ink is the hex mixed 40% into `base-content`, like `text-soft-*`, so it still follows light
-and dark.
+The hex itself stays fixed. Where Bali paints the hex as ink — StatCard's icon over the hex's
+own tint, a Timeline marker on the page — the ink is the hex mixed 40% into `base-content`, like
+`text-soft-*`, so it still follows light and dark.
 
 The seven components on this contract are `Tag`, `Status`, `Heatmap`, `Chart`,
 `Timeline::Item` / `Timeline::Header`, `StatCard` and `Kanban::Column`. A value
@@ -454,7 +454,7 @@ that is not `class:` is passed through to the tag.
 
 <%# ✅ %>
 <% c.with_header(title: 'Needs your approval', icon: 'triangle-alert',
-                 icon_class: 'text-warning') %>
+                 icon_class: 'text-soft-warning') %>
 ```
 
 #### Modal
@@ -2891,7 +2891,7 @@ Renders an icon by name, resolving Lucide icons first (1,600+ available), then k
 
 ```erb
 <%= render Bali::Icon::Component.new('check', size: :large) %>
-<%= render Bali::Icon::Component.new('alert', class: 'text-error') %>
+<%= render Bali::Icon::Component.new('alert', class: 'text-soft-error') %>
 ```
 
 **Options:**
@@ -3389,7 +3389,7 @@ Vertical timeline for chronological sequences of events, using DaisyUI's timelin
 
 **Slots:** `with_header(text:, color:, custom_color:, class:)` (badge separators) and `with_item(heading:, icon:, color:, custom_color:, state:, timestamp:, href:)` with block content. Any other `with_item` option becomes an HTML attribute of the content box — `data: { action: 'click->drawer#open' }` makes the box Stimulus-clickable.
 
-`color:` takes a semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`); `custom_color:` takes a hex. An item defaults to `:ghost`, which leaves the marker and the connecting line their DaisyUI colour — in v2 that value was spelled `:default`. `color: :outline` is gone from headers: it named a style, not a colour, so pass `color: :primary, class: 'badge-outline'`.
+`color:` takes a semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`); `custom_color:` takes a hex. The line paints the colour itself and the marker, an icon on the page, its soft mix (`text-soft-<color>`). An item defaults to `:ghost`, which leaves the marker and the connecting line their DaisyUI colour — in v2 that value was spelled `:default`. `color: :outline` is gone from headers: it named a style, not a colour, so pass `color: :primary, class: 'badge-outline'`.
 
 `state:` is tracking sugar over `icon:`/`color:`: `:done` renders a `circle-check` primary marker, `:current` a `circle-dot` primary marker, and `:pending` the plain circle with a muted heading. Explicit `icon:`/`color:` win over the state's defaults (`state: :done, color: :success` for the green check). The line below an item takes the colour of the item that follows it, so the coloured line runs exactly as far as the journey has. `timestamp:` (a string, or anything `l`-localizable; the `with_timestamp` slot replaces it when the metadata needs markup) renders muted on the free side of the line — or inside the box when compact. `href:` renders the content box as a link with hover feedback.
 
@@ -4195,7 +4195,7 @@ Delete button that submits a DELETE request and automatically triggers the style
 - `plain` - Render as a plain text link instead of a button (default: `false`)
 - `form_class` - Extra classes for the wrapping form (default: `nil`)
 
-The destructive red is `text-error` on top of `variant: :ghost`, the default. It also
+The destructive red is `text-soft-error` on top of `variant: :ghost`, the default. It also
 applies to `variant: :link`; those two are the variants with no colour of their own. Name
 any other colour and it owns the button.
 

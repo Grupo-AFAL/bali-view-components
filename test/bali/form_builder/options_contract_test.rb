@@ -147,7 +147,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     html = builder.text_field(:name, { help: "Still shown while erroring" }.freeze)
 
     assert_html html, "input.input-error"
-    assert_html html, "p.text-error", text: "Name is invalid"
+    assert_html html, "p.text-soft-error", text: "Name is invalid"
     assert_html html, "p.fieldset-label", text: "Still shown while erroring"
   end
 
