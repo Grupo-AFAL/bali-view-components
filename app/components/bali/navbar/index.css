@@ -14,7 +14,6 @@
  * purpose: that one comes from @layer utilities. */
 .navbar {
   @apply shadow-sm;
-  transition: background-color 1s;
 
   &>.container {
     & .navbar-brand {
@@ -68,7 +67,6 @@
   &.is-transparent {
     @apply bg-transparent shadow-none;
     color: inherit;
-    transition: background-color 1s;
   }
 }
 

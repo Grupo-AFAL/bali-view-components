@@ -98,4 +98,49 @@ describe('Navbar: a transparent bar', () => {
       expect(window.getComputedStyle($nav[0]).color, 'the page\'s text colour').to.equal(window.getComputedStyle($nav[0].parentElement).color)
     })
   })
+
+  // Text colour and background swap at the threshold, so anything that fades one of them leaves
+  // the links on a background they were not made for: with the bar's 1 s background fade,
+  // `secondary` in `light` read under 3:1 for 833 ms going down. The moment the controller flips
+  // the class, every transition in the bar is paused and walked through in 10 ms steps, so a slow
+  // frame on the runner cannot hide one.
+  const BRIEF = 100
+  const STEP = 10
+
+  const watchCrossings = (nav) => {
+    const win = nav.ownerDocument.defaultView
+    win.crossings = []
+    new win.MutationObserver(() => {
+      const transitions = nav.getAnimations({ subtree: true })
+      transitions.forEach(transition => transition.pause())
+      const end = Math.max(0, ...transitions.map(transition => transition.effect.getComputedTiming().endTime))
+      let under = 0
+      for (let time = 0; time <= end; time += STEP) {
+        transitions.forEach((transition) => { transition.currentTime = time })
+        if (['Home', 'LOGO'].some(text => paintedContrast(byText(nav, text)) < 3)) under += STEP
+      }
+      transitions.forEach(transition => transition.finish())
+      win.crossings.push({ transparent: nav.classList.contains('is-transparent'), under })
+    }).observe(nav, { attributeFilter: ['class'] })
+  }
+
+  THEMES.forEach((theme) => {
+    COLORS.forEach((color) => {
+      it(`changes its text colour with its background, both ways, ${color} bar, ${theme} theme`, () => {
+        cy.viewport(1280, 800)
+        open(color, theme, 'with_sidebar_burger', '')
+        cy.document().should(doc => expect(doc.getAnimations(), 'colour transitions settled').to.have.length(0))
+        cy.get('nav.navbar').then($nav => watchCrossings($nav[0]))
+
+        ;[['down', 600], ['up', 0]].forEach(([direction, y], index) => {
+          cy.scrollTo(0, y)
+          cy.window().its('crossings').should((crossings) => {
+            expect(crossings, `crossings after scrolling ${direction}`).to.have.length(index + 1)
+            expect(crossings[index].transparent, 'transparent after it').to.equal(direction === 'up')
+            expect(crossings[index].under, `${theme}: ms under 3:1 crossing ${direction}`).to.be.at.most(BRIEF)
+          })
+        })
+      })
+    })
+  })
 })
