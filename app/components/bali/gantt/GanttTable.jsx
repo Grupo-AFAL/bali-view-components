@@ -157,6 +157,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
             <span
               className='grid h-[21px] w-[21px] place-items-center rounded-full text-[9.5px] font-bold text-white'
               style={{ background: avatarColor(item.assignee) }}
+              role='img'
               title={item.assignee.name}
             >
               {item.assignee.initials}

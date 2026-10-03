@@ -420,7 +420,8 @@ sit behind it. So:
 
 What the island itself does carry: the toolbar is real `<button>`s in labelled
 `role="group"`s (zoom, colour-by, columns), group rows collapse from buttons
-carrying `aria-expanded`, the table half is keyboard-reachable, and the loading
+carrying `aria-expanded`, the table half is keyboard-reachable, an assignee's avatar is a
+`role="img"` named after the assignee rather than read as its initials, and the loading
 skeleton announces itself as `role="status"` with `aria-busy="true"`.
 
 ---
