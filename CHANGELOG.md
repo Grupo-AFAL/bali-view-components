@@ -564,7 +564,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   colores del tema (13.34:1 el texto y 5.54 los íconos, lo más bajo de los seis), y también su
   tipografía y su radio, como el resto del editor. La fecha de un comentario en la barra lateral
   del editor pasa al `base-content` al 70 %: medía 3.32:1 en los temas claros y ahora 5.54 en
-  `afal`. Además el editor le dice a BlockNote, a Mantine y al selector de emojis si la página es
+  `afal`; también el placeholder de los campos de enlace y de URL de imagen, que medía 2.07:1.
+  Además el editor le dice a BlockNote, a Mantine y al selector de emojis si la página es
   clara u oscura, también cuando el interruptor del UserMenu cambia el tema sin recargar; antes
   les decía siempre «claro», y en un tema oscuro los fondos de color que se le ponen al texto eran
   pasteles bajo texto claro (1.00–1.18:1). Ahora toman la paleta oscura de BlockNote, que todavía

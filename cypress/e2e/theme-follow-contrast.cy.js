@@ -135,6 +135,27 @@ describe('colours that follow the theme', () => {
       everyReadsAtAA('.bn-threads-sidebar .bn-thread-comment .mantine-Text-root > .mantine-Text-root', theme, 2)
     })
 
+    // Mantine's placeholder grey: gray-5 in a light scheme, 2.07:1, and dark-3 in a dark one,
+    // 2.88–3.23.
+    it(`reads the BlockEditor's link field placeholder at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/default')
+      useTheme(theme)
+      cy.get('.bn-editor').should(($editor) => expectSettled($editor[0]))
+      // Under Electron, Mantine's fade-in of a popover opened after a theme switch never starts:
+      // the popover computes `opacity: 0` for good (Chrome ends the fade). The colours are what
+      // is measured here, so the fade goes.
+      cy.document().then((doc) => {
+        doc.head.insertAdjacentHTML('beforeend', '<style>.bn-form-popover { transition: none !important }</style>')
+      })
+      cy.get('.bn-editor').click().type('Bali{selectall}')
+      cy.get('.bn-formatting-toolbar [data-test="createLink"]').click()
+      cy.get('.bn-form-popover').should('have.css', 'opacity', '1')
+      cy.get('.bn-form-popover input').should(($input) => {
+        expect(paintedContrast($input[0], { pseudo: '::placeholder' }), `${theme}: ${$input.attr('placeholder')}`)
+          .to.be.at.least(AA)
+      })
+    })
+
     it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
       cy.visit('/bali/block_editor/readonly')
       cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')

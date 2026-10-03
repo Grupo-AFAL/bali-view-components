@@ -54,8 +54,11 @@
      its 30% further down. */
   --bn-colors-side-menu: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --bn-colors-shadow: color-mix(in oklch, var(--color-base-content) 12%, transparent);
-  /* Mantine's, and it paints a comment's date in it: its gray-6, 3.32:1 on the light themes. */
+  /* Mantine's own greys. A comment's date is `dimmed`, its gray-6 in a light scheme: 3.32:1 on
+     the light themes. The placeholder of the link and image URL fields is `placeholder`, gray-5
+     or dark-3: 2.07:1 on the light themes, 2.88–3.23 on the dark ones. */
   --mantine-color-dimmed: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+  --mantine-color-placeholder: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --bn-border-radius: var(--radius-box, 0.5rem);
   --bn-font-family: inherit;
 }
