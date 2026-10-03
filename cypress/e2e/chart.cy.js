@@ -185,6 +185,7 @@ describe('Chart', () => {
 
       chartInstance((chart) => {
         chart.data.datasets.forEach((dataset, index) => {
+          expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.match(/^oklch\(/)
           expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.eq(firstColor(dataset))
           expect(chart.legend.legendItems[index].fillStyle, `series ${index + 1} legend`).to.eq(firstColor(dataset))
         })
