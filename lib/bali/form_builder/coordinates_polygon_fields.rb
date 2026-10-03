@@ -5,7 +5,7 @@ module Bali
     module CoordinatesPolygonFields
       BUTTON_CLASSES = {
         clear_holes: "btn btn-ghost mr-4",
-        clear_all: "btn btn-ghost text-error"
+        clear_all: "btn btn-ghost text-soft-error"
       }.freeze
 
       MAP_CLASSES = "map h-[400px]"

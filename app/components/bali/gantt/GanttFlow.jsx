@@ -633,8 +633,11 @@ function GanttCanvas (props) {
     [maxFlowX, rowsHeight]
   ]
 
-  // Table width: adjustable via the splitter (tableWidth) or responsive.
-  const defaultTableW = rootWidth ? Math.min(520, Math.max(300, Math.round(rootWidth * 0.42))) : 380
+  // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%. The
+  // 520 cap has to hold every GanttTable column with Name at its minimum; on a board under 840 px
+  // GanttTable leaves out the right-hand columns it cannot hold whole. The loading skeleton's name
+  // column (index.css) opens at the same width.
+  const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 380
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
     () => ({

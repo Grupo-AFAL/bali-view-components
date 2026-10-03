@@ -32,9 +32,13 @@ theme restyles them for free:
 | `base-100/200/300` + `base-content` | Surfaces (lightest to darkest) and text on them |
 | `info` / `success` / `warning` / `error` | Status (it is `error`, never `danger`) |
 
-Use `*-content` on colored backgrounds (`primary-content` on `bg-primary`). Where a
-palette must NOT follow the theme (record-status tags a host keys by value), `Tag`
-and `EnumBadge` take the fixed status palette (`:slate :red :amber :green …`) as a
+Use `*-content` on colored backgrounds (`primary-content` on `bg-primary`). Text or an
+icon in `secondary`, `accent` or a status color straight on a `base-*` surface is
+`text-soft-<color>` (`bali/utilities.css`), not `text-<color>`: on `base-100` in `afal`,
+`text-error` reads 2.75:1 and `text-success` 1.92, against 7.61 and 6.44 for their soft
+pair (AA wants 4.5 for text, 3 for an icon). The color itself is for fills, borders and
+rings. Where a palette must NOT follow the theme (record-status tags a host keys by
+value), `Tag` and `EnumBadge` take the fixed status palette (`:slate :red :amber :green …`) as a
 deliberate, documented exception — see `docs/guides/enum-badges.md`.
 
 Two structural rules with measurements behind them:
@@ -125,7 +129,7 @@ tracked in #730.
 
    ```ruby
    assert_selector(".card.bg-base-100.card-border")
-   assert_selector(".text-success")   # never .text-green-500
+   assert_selector(".text-soft-success")   # never .text-green-500
    ```
 
 3. **Dark/chrome**: the `dark_chrome` SideMenu preview sanity-checks a chrome theme

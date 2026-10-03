@@ -1,4 +1,7 @@
-<%= tag.div(class: container_classes, data: { controller: "command" }) do %>
+<%# `results` holds the footer counter's `one`/`other` forms, `%{count}` still in
+    them: the count changes on every keystroke, so index.js picks and fills them. %>
+<%= tag.div(class: container_classes,
+            data: { controller: "command", command_results_value: t("bali_view.command.results") }) do %>
   <% if trigger? %>
     <div data-action="click->command#open">
       <%= trigger %>
@@ -78,13 +81,13 @@
           </div>
         </div>
 
-        <%# Footer %>
-        <div class="flex items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/70">
+        <%# Footer. It wraps because the panel's overflow-hidden clips whatever
+            does not fit: on one line at 320px, "9 resultados" overflows by 42px. %>
+        <div class="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/70">
           <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> <%= t('bali_view.command.navigate') %></span>
           <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> <%= t('bali_view.command.open_action') %></span>
           <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs"><%= t('.esc_key') %></kbd> <%= t('bali_view.command.close') %></span>
-          <span class="flex-1"></span>
-          <span class="font-mono text-[10.5px] text-base-content/70" data-command-target="count"></span>
+          <span class="ml-auto font-mono text-[10.5px] text-base-content/70" data-command-target="count"></span>
         </div>
       </div>
     </div>

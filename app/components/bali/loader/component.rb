@@ -33,6 +33,20 @@ module Bali
         error: "text-error"
       }.freeze
 
+      # The text under the spinner is text on the page, where the colour itself fails AA:
+      # `text-accent` read 2.15:1 on `afal`, `text-secondary` 1.99 on `costa-norte` and
+      # `text-primary` 3.40 on `dark` (AA wants 4.5). The spinner keeps the colour.
+      TEXT_COLORS = {
+        primary: "text-soft-primary",
+        secondary: "text-soft-secondary",
+        accent: "text-soft-accent",
+        neutral: "text-base-content",
+        info: "text-soft-info",
+        success: "text-soft-success",
+        warning: "text-soft-warning",
+        error: "text-soft-error"
+      }.freeze
+
       BASE_CLASSES = "loader-component flex flex-col items-center gap-4"
 
       # @param text [String, nil] Optional text to display below the loader
@@ -88,7 +102,7 @@ module Bali
       def text_classes
         class_names(
           "text-xl font-semibold text-center",
-          COLORS[@color]
+          TEXT_COLORS[@color]
         )
       end
     end

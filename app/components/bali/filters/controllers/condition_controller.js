@@ -97,12 +97,12 @@ export class ConditionController extends Controller {
     // Update operators for this type (from data attribute or fallback)
     this.updateOperators(type, operators)
 
-    // Get the current operator (may have changed)
-    const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
-    const isMultiple = this.isMultipleOperator(operator)
+    // The operator may have changed with the list
+    const isMultiple = this.operatorFlag('multiple')
+    const isRange = this.operatorFlag('range')
 
     // Update value input for this type
-    this.renderValueInput(type, attributeKey, options, isMultiple)
+    this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
 
     // A different attribute is a fresh start: its option list is a different one, so
     // losing the previous value is correct and there is nothing to explain yet.
@@ -119,9 +119,8 @@ export class ConditionController extends Controller {
    */
   operatorChanged (event) {
     const operator = event.target.value
-    const selectedOption = event.target.options[event.target.selectedIndex]
-    const isMultiple = selectedOption?.dataset?.multiple === 'true'
-    const isRange = selectedOption?.dataset?.range === 'true'
+    const isMultiple = this.operatorFlag('multiple')
+    const isRange = this.operatorFlag('range')
 
     // Update hidden field
     if (this.hasOperatorHiddenTarget) {
@@ -338,7 +337,8 @@ export class ConditionController extends Controller {
     const flatpickr = input._flatpickr
 
     if (flatpickr && flatpickr.selectedDates.length === 2) {
-      // Format dates as YYYY-MM-DD for Ransack
+      // Bare dates: Bali::FilterForm::WholeDayCasting::BARE_DATE reads the top end as the end
+      // of that day. Change both.
       const formatDate = (date) => {
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -362,18 +362,11 @@ export class ConditionController extends Controller {
     this.refreshHint()
   }
 
-  /**
-   * Check if an operator requires multiple selection
-   */
-  isMultipleOperator (operator) {
-    return ['in', 'not_in'].includes(operator)
-  }
-
-  /**
-   * Check if an operator requires range inputs (start + end)
-   */
-  isRangeOperator (operator) {
-    return operator === 'between'
+  // `range` or `multiple`, as Bali::Filters::Operators.for_type marks the chosen operator: its
+  // <option> carries the mark, from condition/component.html.erb or #updateOperators.
+  operatorFlag (flag) {
+    const option = this.hasOperatorTarget ? this.operatorTarget.selectedOptions[0] : null
+    return option?.dataset[flag] === 'true'
   }
 
   /**
@@ -431,8 +424,9 @@ export class ConditionController extends Controller {
           : this.buildDateInput(fieldName)
         break
       case 'datetime':
+        // Whole days, as condition/component.html.erb says.
         html = isRange
-          ? this.buildDatetimeRangeInput(rangeFieldNames)
+          ? this.buildDateRangeInput(rangeFieldNames)
           : this.buildDatetimeInput(fieldName)
         break
       case 'number':
@@ -469,8 +463,8 @@ export class ConditionController extends Controller {
 
     const attribute = this.hasAttributeTarget ? this.attributeTarget.value : ''
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
-    const isMultiple = this.isMultipleOperator(operator)
-    const isRange = this.isRangeOperator(operator)
+    const isMultiple = this.operatorFlag('multiple')
+    const isRange = this.operatorFlag('range')
 
     if (!attribute) return
 
@@ -500,7 +494,7 @@ export class ConditionController extends Controller {
    */
   buildFieldName (attributeKey) {
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
-    const isMultiple = this.isMultipleOperator(operator)
+    const isMultiple = this.operatorFlag('multiple')
 
     if (attributeKey) {
       return `q[g][${this.groupIndexValue}][${attributeKey}_${operator}]${isMultiple ? '[]' : ''}`
@@ -710,28 +704,6 @@ export class ConditionController extends Controller {
     `
   }
 
-  buildDatetimeRangeInput (rangeFieldNames) {
-    const placeholder = this.t.placeholders?.select_datetime_range || 'Select date & time range...'
-    return `
-      <div class="w-full" data-condition-target="value">
-        <input type="text"
-               class="input input-bordered input-sm w-full"
-               placeholder="${this.escapeHtml(placeholder)}"
-               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
-               data-controller="datepicker"
-               data-datepicker-locale-value="${this.localeValue}"
-               data-datepicker-mode-value="range"
-               data-datepicker-enable-time-value="true"
-               data-datepicker-alt-format-value="${this.shortDatetimeFormat()}"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-action="change->condition#syncRangeDates"
-               data-condition-target="rangeInput">
-        <input type="hidden" name="${rangeFieldNames.start}" data-condition-target="rangeStart">
-        <input type="hidden" name="${rangeFieldNames.end}" data-condition-target="rangeEnd">
-      </div>
-    `
-  }
-
   buildBooleanInput (fieldName) {
     const anyLabel = this.t.boolean?.any || 'Any'
     const yesLabel = this.t.boolean?.yes || 'Yes'
@@ -776,8 +748,9 @@ export class ConditionController extends Controller {
     `
   }
 
-  // The option classes, and the panel classes other than the ones that position and show it,
-  // match the multi-select in filters/condition/component.html.erb: change both.
+  // The multi-select filters/condition/component.html.erb draws, attribute for attribute: change
+  // both. Tailwind never scans this package's JavaScript, so a class here is generated only
+  // because that template writes it too.
   buildMultiSelectInput (fieldName, options) {
     const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
     const selectedCountTemplate = this.t.selected_count || '%{count} selected'
@@ -801,7 +774,7 @@ export class ConditionController extends Controller {
       .join('')
 
     return `
-      <div class="dropdown w-full"
+      <div class="relative w-full"
            data-controller="multi-select"
            data-multi-select-translations-value='${JSON.stringify({
              select_values: selectValuesLabel,
@@ -810,14 +783,16 @@ export class ConditionController extends Controller {
            data-condition-target="value">
         <div tabindex="0"
              role="button"
-             class="select select-bordered select-sm w-full flex items-center"
+             aria-haspopup="listbox"
+             class="select select-bordered select-sm w-full flex items-center cursor-pointer"
+             data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
              data-multi-select-target="trigger">
           <span class="flex-1 truncate text-left" data-multi-select-target="label">
             ${this.escapeHtml(selectValuesLabel)}
           </span>
         </div>
-        <div tabindex="0"
-             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto">
+        <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto"
+             data-multi-select-target="dropdown">
           ${optionsHtml}
         </div>
       </div>

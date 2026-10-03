@@ -45,10 +45,9 @@ module Bali
         # @param fields [Array<Symbol>] Field names to search across
         # @param icon [String, nil] Icon name for search input
         # @param aria_label [String, nil] Accessible name (`aria-label`) for the
-        #   search box. Without it the box is named by its placeholder alone,
-        #   which disappears as soon as the user types (#982). The keyword is
-        #   `aria_label:`, matching every other accessible-name option in the
-        #   library — it was `label:` in the v3.1 betas (#1026)
+        #   search box (#982). Without it the placeholder names the box (#1282).
+        #   The keyword is `aria_label:`, matching every other accessible-name
+        #   option in the library — it was `label:` in the v3.1 betas (#1026)
         # @param width [String, nil] Width classes for the search box; each
         #   component keeps its own default when absent
         #

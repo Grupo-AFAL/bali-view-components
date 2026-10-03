@@ -141,15 +141,24 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
   })
 
-  // A transparent bar keeps its preset's text colour for the dark hero it is meant to sit on (the
-  // `.is-transparent` rule in index.css), and its ghost buttons follow it as its links do.
+  // While the bar is transparent its ghost buttons follow its text colour, as its links do. This
+  // pins the `.btn-ghost` rule, not where that colour comes from: it passes without the
+  // `.is-transparent` rule's `color: inherit`, which navbar-transparent.cy.js pins. The bar goes
+  // inside a container with a colour of its own because on the bare page it would inherit
+  // base-content, which daisyUI paints a ghost button with anyway.
   it('the burger of a transparent coloured navbar paints the text colour of the bar', () => {
-    open('neutral', 'light', '&transparency=true')
+    open('primary', 'light', '&transparency=true')
+    cy.get('nav.navbar').then(($nav) => {
+      const container = $nav[0].ownerDocument.createElement('div')
+      container.className = 'bg-neutral text-neutral-content'
+      $nav[0].before(container)
+      container.append($nav[0])
+    })
 
     cy.get('nav.navbar').should('have.class', 'is-transparent').should(($nav) => {
       expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
       const bar = window.getComputedStyle($nav[0]).color
-      expect(bar, 'the bar keeps its preset text colour').not.to.equal(window.getComputedStyle($nav[0].ownerDocument.body).color)
+      expect(bar, 'not the page\'s base-content').not.to.equal(window.getComputedStyle($nav[0].ownerDocument.body).color)
       const burger = $nav[0].querySelector('[data-navbar-target="burger"]')
       expect(burger.matches(':hover'), 'measured at rest').to.equal(false)
       expect(window.getComputedStyle(burger).color, 'the burger').to.equal(bar)
