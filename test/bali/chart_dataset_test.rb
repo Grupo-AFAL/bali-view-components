@@ -36,9 +36,7 @@ class BaliChartDatasetTest < ActiveSupport::TestCase
     assert_equal "#123456", result[:pointBorderColor]
   end
 
-  # chart/index.js repaints a series only when its border is the theme's, so a host's own
-  # colours have to reach the points from here: left on the theme's CSS, which a canvas
-  # cannot resolve, the points came out black and the legend swatch grey.
+  # Left on the palette's colour, the points and legend swatch would not be the line's.
   def test_line_points_take_the_hosts_border_colour
     assert_equal "#2563eb", theme_line(borderColor: "#2563eb")[:pointBackgroundColor]
   end
@@ -51,7 +49,7 @@ class BaliChartDatasetTest < ActiveSupport::TestCase
     assert_equal "rgba(148, 163, 184, 0.20)", band[:pointBackgroundColor]
   end
 
-  # The CSS chart/index.js resolves when it repaints the series with the theme's border.
+  # The same CSS as the border, which chart/index.js resolves in the page's theme.
   def test_line_points_of_a_theme_series_follow_its_border
     line = theme_line
 
@@ -59,8 +57,8 @@ class BaliChartDatasetTest < ActiveSupport::TestCase
     assert_equal [ line[:pointBackgroundColor] ], line[:borderColor]
   end
 
-  # chart/index.js repaints a series with the theme's border whole, its fill included, so a
-  # fill of its own would leave the points and legend swatch apart from the line.
+  # A series without a border of its own is drawn in the palette's colour, and a fill of its
+  # own (an area's tint) does not take its points off the line.
   def test_line_points_of_a_theme_series_ignore_a_fill_of_its_own
     line = theme_line(backgroundColor: "#ff0000")
 

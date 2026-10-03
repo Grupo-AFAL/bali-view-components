@@ -60,8 +60,9 @@ module Bali
       # @label Series Palette
       # One series per theme colour, in the order a multi-series chart hands
       # them out (`Bali::Color::CYCLE`). An eighth series would start over at
-      # the first.
-      # @param type select { choices: [bar, line] }
+      # the first. As a doughnut each ring takes four slices, carrying on the
+      # cycle where the one before it stopped.
+      # @param type select { choices: [bar, line, doughnut] }
       def series_palette(type: :bar)
         render Bali::Chart::Component.new(
           data: {
@@ -75,11 +76,11 @@ module Bali
       end
 
       # @label Own Colours
-      # A series whose own `borderColor:` is a literal colour is not repainted
-      # from the theme: on a line its points and legend swatch take its
-      # `backgroundColor:`, or that border when it gives no fill. A
-      # `var(--color-*)` border is repainted by position, fill and points
-      # included: the third series is not red.
+      # A series' own colours reach the canvas as written, and one naming a
+      # `var(--color-*)` in the theme's value for it: the third series is red.
+      # On a line, the points and legend swatch take the series' own
+      # `backgroundColor:`, or its own `borderColor:` when it gives no fill.
+      # The fourth asks for hollow markers (#1065).
       def own_colors
         render Bali::Chart::Component.new(
           data: {
@@ -89,7 +90,9 @@ module Bali
               { label: 'Border and fill', data: [8, 9, 11, 10, 12],
                 borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.5)' },
               { label: 'Theme border, own fill', data: [4, 6, 5, 7, 6],
-                borderColor: Bali::Color.css(:error), backgroundColor: 'rgba(220, 38, 38, 0.5)' }
+                borderColor: Bali::Color.css(:error), backgroundColor: 'rgba(220, 38, 38, 0.5)' },
+              { label: 'Hollow markers', data: [2, 3, 2, 4, 3], backgroundColor: 'rgba(0, 0, 0, 0)',
+                pointBackgroundColor: 'rgba(0, 0, 0, 0)', pointBorderColor: 'rgba(100, 116, 139, 0.90)' }
             ]
           },
           type: :line,

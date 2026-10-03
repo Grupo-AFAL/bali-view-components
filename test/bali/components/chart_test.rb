@@ -213,14 +213,11 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal(%w[primary accent secondary success warning info error], series_colors(7))
   end
 
-  # chart/index.js repaints the series in THEME_COLOR_VARS order, starting over after the
-  # last, so the series Ruby names have to walk the whole cycle too or the JSON names one
-  # colour and the canvas shows another.
   def test_theme_colors_hand_out_every_colour_of_the_cycle_before_repeating
     assert_equal([ *Bali::Color::CYCLE.map(&:to_s), "primary" ], series_colors(8))
   end
 
-  # Without the theme the controller repaints nothing: the hex in the JSON is what is drawn.
+  # Without the theme the controller resolves nothing: the hex in the JSON is what is drawn.
   def test_without_theme_colors_the_tenth_series_takes_the_last_hex
     assert_equal("#AAAA11", series_border_colors(10, use_theme_colors: false).last[0, 7])
   end

@@ -12,23 +12,8 @@ export class ChartController extends Controller {
     options: Object,
     labels: Array,
     displayPercent: { type: Boolean, default: false },
-    useThemeColors: { type: Boolean, default: true },
-    // The DaisyUI variable the palette starts from, e.g. '--color-success'.
-    // Empty means the default order.
-    color: { type: String, default: '' }
+    useThemeColors: { type: Boolean, default: true }
   }
-
-  // The order of Bali::Color::CYCLE, which says why it is not daisyUI's. Ruby names the
-  // series' colours in that order and this list repaints them in it, so the two agree.
-  static THEME_COLOR_VARS = [
-    '--color-primary',
-    '--color-accent',
-    '--color-secondary',
-    '--color-success',
-    '--color-warning',
-    '--color-info',
-    '--color-error'
-  ]
 
   // System font stack matching DaisyUI/Tailwind
   static FONT_FAMILY = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"'
@@ -51,6 +36,8 @@ export class ChartController extends Controller {
   async render () {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
     const options = this.optionsValue || {}
+    // Parsed from the attribute on every read: a theme switch resolves Ruby's colours again,
+    // not the ones the previous theme resolved them to.
     const data = this.dataValue || {}
 
     this.addPrefixAndSuffixToAxisLabel(options)
@@ -63,7 +50,7 @@ export class ChartController extends Controller {
 
     if (this.useThemeColorsValue) {
       this.applyThemeColors(options)
-      this.applyThemeColorsToDatasets(data)
+      this.resolveThemeColors(data)
     }
 
     const chartjs = await import('chart.js').catch(optionalPeer('chart.js'))
@@ -120,77 +107,25 @@ export class ChartController extends Controller {
     return colorValue
   }
 
-  // The palette rotated so a declared `color:` leads it. Ruby applies the same
-  // rotation when it builds the dataset colors; without it here the recomputed
-  // colors would silently put --color-primary back in front.
-  get themeColorVars () {
-    const vars = ChartController.THEME_COLOR_VARS
-    if (!this.colorValue) return vars
+  // Ruby writes the theme's colours as CSS naming a `var(--color-*)` (Bali::Color.css, alone or
+  // inside Chart::Dataset#apply_alpha's color-mix()), which a canvas cannot paint. The browser
+  // resolves each one in the current theme; any other colour is the host's and stays as written.
+  resolveThemeColors (data) {
+    const probe = document.body.appendChild(document.createElement('span'))
+    probe.hidden = true
+    const resolve = (colour) => {
+      if (typeof colour !== 'string' || !colour.includes('var(--color-')) return colour
 
-    const index = vars.indexOf(this.colorValue)
-    if (index === -1) return [this.colorValue, ...vars]
+      probe.style.color = colour
+      return window.getComputedStyle(probe).color
+    }
 
-    return [...vars.slice(index), ...vars.slice(0, index)]
-  }
-
-  // Get an array of theme colors for datasets
-  getThemeColorPalette () {
-    return this.themeColorVars.map(varName => ({
-      solid: this.getThemeColor(varName, 1),
-      border: this.getThemeColor(varName, 0.8),
-      background: this.getThemeColor(varName, 0.5)
-    }))
-  }
-
-  // Check if a color string contains CSS variable or color-mix
-  isCssVarColor (color) {
-    return color && typeof color === 'string' && (
-      color.includes('var(--color-') ||
-      color.includes('color-mix(') ||
-      color.includes('oklch(var(')
-    )
-  }
-
-  // Apply theme colors to dataset colors
-  applyThemeColorsToDatasets (data) {
-    if (!data.datasets) return
-
-    const palette = this.getThemeColorPalette()
-
-    data.datasets.forEach((dataset, index) => {
-      const colorIndex = index % palette.length
-      const colors = palette[colorIndex]
-
-      // Get the first color to check if it's a CSS variable color
-      const firstBorderColor = Array.isArray(dataset.borderColor)
-        ? dataset.borderColor[0]
-        : dataset.borderColor
-
-      // Replace CSS variable colors with computed colors
-      if (this.isCssVarColor(firstBorderColor)) {
-        if (Array.isArray(dataset.borderColor) && dataset.borderColor.length > 1) {
-          // Multi-color (pie/doughnut charts) - each slice gets a different color
-          dataset.borderColor = dataset.borderColor.map((_, i) =>
-            palette[i % palette.length].border
-          )
-          dataset.backgroundColor = dataset.backgroundColor.map((_, i) =>
-            palette[i % palette.length].background
-          )
-        } else {
-          // Single color (bar/line charts) - whole dataset gets one color
-          // Use the computed color for this dataset based on its index
-          const ownFill = dataset.backgroundColor
-          dataset.borderColor = colors.border
-          dataset.backgroundColor = colors.background
-          // Dataset#point_background_color (dataset.rb) leaves a theme series' points in its
-          // border's CSS, which a canvas cannot resolve, or in the fill this just repainted,
-          // and Chart.js fills a line's legend swatch from the points.
-          if (this.isCssVarColor(dataset.pointBackgroundColor) || dataset.pointBackgroundColor === ownFill) {
-            dataset.pointBackgroundColor = colors.border
-          }
-        }
-      }
+    data.datasets?.forEach((dataset) => {
+      Object.keys(dataset).filter((key) => key.endsWith('Color')).forEach((key) => {
+        dataset[key] = Array.isArray(dataset[key]) ? dataset[key].map(resolve) : resolve(dataset[key])
+      })
     })
+    probe.remove()
   }
 
   // Apply DaisyUI theme colors to chart options
