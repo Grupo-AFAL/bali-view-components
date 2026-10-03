@@ -290,8 +290,8 @@ describe('SplitView: what gets cached after the frame is navigated (#1012)', () 
 // #1280 — a row clicked after one detail lands but before Turbo caches the page
 // for that click's `advance` used to be lost: the rewind removed the `src` the
 // new click had just set, and removing a frame's `src` cancels its request in
-// flight. The window is one animation frame (measured: a click 4–12 ms after
-// `turbo:frame-load` was lost, one at 16 ms was not), too narrow to time a
+// flight. The window runs from that `advance`'s `turbo:visit` to its
+// `turbo:before-cache`, about one animation frame: too narrow to time a
 // `cy.click()` into. So the second click goes out from a capture listener on
 // that very `turbo:before-cache`, which runs before the controller's listener on
 // `document`: the order the race produces, every time.
