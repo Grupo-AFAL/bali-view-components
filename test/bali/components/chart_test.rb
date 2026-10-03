@@ -208,10 +208,9 @@ class BaliChartComponentTest < ComponentTestCase
     assert_selector('canvas[data-chart-use-theme-colors-value="false"]')
   end
 
-  # `afal`'s primary and secondary differ in hue alone (ΔL 0.005), and under deuteranopia
-  # `afal-dark`'s are ΔE_OK 0.003 apart (#1281).
-  def test_theme_colors_paint_the_second_series_in_the_accent
-    assert_equal(%w[primary accent], series_colors(2))
+  # The order the guide publishes to hosts; Bali::Color::CYCLE says why it is not daisyUI's.
+  def test_theme_colors_paint_the_series_in_the_published_order
+    assert_equal(%w[primary accent secondary success warning info error], series_colors(7))
   end
 
   # chart/index.js repaints the series in THEME_COLOR_VARS order, starting over after the
