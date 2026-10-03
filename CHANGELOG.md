@@ -137,13 +137,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`#155DFC`)** (#1221): con blanco encima pintaba 3.68:1, bajo el 4.5 de AA, y ahora 5.25:1.
   Cambio visible en botones, enlaces y estados activos de afal-apps, garita y
   gobierno-corporativo, que importan el tema de la gema. **Anfitrión:** identity y opina cargan
-  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor: bórrenlo e importen
-  el de la gema, `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
+  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor y el secundario
+  (abajo): bórrenlo e importen el de la gema,
+  `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
   `themes/afal.css` difiere en más tokens, cambia sólo su `--color-primary` a
   `oklch(54.6% 0.245 262.881)`. Los hex copiados pasan a `#155DFC`
   (`git grep -n -i "3b82f6" origin/main -- app`), incluido el `PRIMARY` de
   `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
   ser cierto.
+- **El secundario del tema `afal` pasa de violet-500 (`#8B5CF6`) a violet-600 (`#7C3AED`)**
+  (#1261): con blanco encima pintaba 4.23:1, bajo el 4.5 de AA, y ahora 5.70:1. Cambio visible
+  en todo lo que pinta `secondary` en afal-apps, garita y gobierno-corporativo, que importan el
+  tema de la gema (`git grep -n "css/themes/afal.css" origin/main -- app/assets`).
+  `afal-dark` no cambia. En un `Navbar` `color: :secondary`, la hamburguesa, la marca y «Log in»
+  pasan de 3.47 a 5.70:1 junto con #1257, que les da el blanco de la barra; ninguna de las nueve
+  apps renderiza `Bali::Navbar`. **Anfitrión:** identity y opina, con su bloque propio, lo
+  reciben al borrarlo e importar el de la gema, como en el primario. centinela-web, cuyo
+  `oklch(0.541 0.241 285.8)` ya pasa (5.62:1), no tiene que hacer nada; si quiere el canónico:
+  `--color-secondary: oklch(54.13% 0.2466 293.009)`. Los hex copiados pasan a `#7C3AED`
+  (`git grep -n -i "8b5cf6" origin/main -- app`), como el `purple: "8B5CF6"` de
+  `app/models/business_processes/sheet_pdf.rb` en gobierno-corporativo. En esa misma app, el
+  `badge: "bg-violet-500"` de `app/controllers/concerns/processes/catalog_builder.rb`, que
+  acompaña a `dot: "bg-secondary"` y quedaría más claro que él, pasa a `bg-violet-600`.
 
 - **`Bali::Status`: el naranja, el verde y el teal de la paleta fija pasan a -700 de Tailwind**
   (#1259): `#ea580c` → `#c2410c`, `#16a34a` → `#15803d`, `#0d9488` → `#0f766e`. Con texto blanco
