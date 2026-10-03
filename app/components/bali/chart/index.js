@@ -181,8 +181,9 @@ export class ChartController extends Controller {
           // Use the computed color for this dataset based on its index
           dataset.borderColor = colors.border
           dataset.backgroundColor = colors.background
-          // Ruby defaults a line's points to its border, in the same CSS a canvas cannot
-          // resolve, and Chart.js fills a line's legend swatch from the points.
+          // Dataset#point_background_color (dataset.rb) leaves a theme series' points in its
+          // border's CSS, which a canvas cannot resolve, and Chart.js fills a line's legend
+          // swatch from the points.
           if (this.isCssVarColor(dataset.pointBackgroundColor)) {
             dataset.pointBackgroundColor = colors.border
           }

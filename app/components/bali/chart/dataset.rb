@@ -53,7 +53,7 @@ module Bali
         if line_chart?
           result[:pointRadius] = @options.fetch(:pointRadius, DEFAULT_POINT_RADIUS)
           result[:pointHoverRadius] = @options.fetch(:pointHoverRadius, DEFAULT_POINT_HOVER_RADIUS)
-          result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor, border_colors.first)
+          result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor) { point_background_color }
           result[:pointBorderColor] = @options.fetch(:pointBorderColor, DEFAULT_POINT_BORDER_COLOR)
           result[:pointBorderWidth] = @options.fetch(:pointBorderWidth, DEFAULT_POINT_BORDER_WIDTH)
         end
@@ -72,6 +72,14 @@ module Bali
 
       def extra_options
         @options.except(*EXTRACTED_OPTIONS)
+      end
+
+      # chart/index.js repaints only the series whose border is the theme's, points included,
+      # so a host's own colour has to reach the points from here. Its fill before its border,
+      # the way Chart.js fills a point: a hidden line over a fill, like bali-analytics'
+      # suppressed band, has a transparent border and would lose its legend swatch.
+      def point_background_color
+        @options[:backgroundColor] || @options[:borderColor] || border_colors.first
       end
 
       def background_colors
