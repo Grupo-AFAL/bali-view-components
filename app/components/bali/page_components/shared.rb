@@ -12,6 +12,8 @@ module Bali
       SECONDARY_ACTIONS_LABEL_KEY = "bali_view.page_components.secondary_actions.button_label"
       EXPORT_MENU_TITLE_KEY = "bali_view.page_components.export.menu_title"
 
+      EXPORT_FORMATS = %i[csv excel pdf json].freeze
+
       # ONE width table for the five. It used to live duplicated in DashboardPage (four keys,
       # no `sm`/`md`) and in FormPage (five, no `2xl`), and the other three had no
       # `max_width:` at all — so the same symbol meant a different width depending on the
@@ -131,15 +133,15 @@ module Bali
       # Export the listing. It lives here and not in the DataTable toolbar because exporting
       # is an action ON the page, not a control over how the listing looks — and that way
       # importing or printing have somewhere to land later. It is called "Export filtered"
-      # because the link carries the active slice along (see
-      # Bali::DataTable::Export::Component#export_url).
+      # because the link carries the active slice along.
       #
       # @param url [String] Base URL of the listing (without `format`)
-      # @param formats [Array<Symbol>] Formats to offer
+      # @param formats [Array<Symbol>] One or more of EXPORT_FORMATS, in menu order; an empty list
+      #   or any other format raises ArgumentError
       # @param params [Hash, nil] Slice to carry along. `nil` reads it from the request; `{}`
       #   is the explicit opt-out.
       def with_export(url:, formats: %i[csv excel pdf], params: nil)
-        @export_options = { url: url, formats: formats, params: params }
+        @export_options = { url: url, formats: resolve_export_formats(formats), params: params }
         nil
       end
 
@@ -188,6 +190,14 @@ module Bali
 
         raise ArgumentError,
               "Unknown heading: #{value.inspect}. Valid: #{HEADINGS.join(', ')}"
+      end
+
+      def resolve_export_formats(formats)
+        keys = Array(formats).map { |format| format.to_s.to_sym }
+        return keys if keys.any? && (keys - EXPORT_FORMATS).empty?
+
+        raise ArgumentError,
+              "Invalid export formats: #{formats.inspect}. Valid: one or more of #{EXPORT_FORMATS.join(', ')}"
       end
 
       def secondary_action_items
@@ -240,17 +250,20 @@ module Bali
       def export_menu_items
         return [] unless @export_options
 
-        items = [ { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id } ]
-        export_component.export_items.each do |item|
-          # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which
-          # does nothing under Turbo. `data-turbo="false"` IS needed: a CSV is not a response
-          # Turbo Drive can render, and the visit stalls halfway instead of firing the
-          # download.
-          items << { href: item[:url], name: item[:label], icon: item[:icon], method: nil,
-                     "aria-describedby": export_menu_title_id,
-                     data: { turbo: false, export_links_target: "link" } }
-        end
-        items
+        params = @export_options[:params] || request_query_params
+        title = { tag: :title, name: I18n.t(EXPORT_MENU_TITLE_KEY), id: export_menu_title_id }
+        [ title, *@export_options[:formats].map { |format| export_menu_item(format, params) } ]
+      end
+
+      # `method: nil` so that Link does not emit Rails-UJS's `data-method="get"`, which does
+      # nothing under Turbo. `data-turbo="false"` IS needed: a CSV is not a response Turbo
+      # Drive can render, and the visit stalls halfway instead of firing the download.
+      def export_menu_item(format, params)
+        { href: build_toolbar_href(@export_options[:url], params, :format, format),
+          name: I18n.t("bali_view.page_components.export.formats.#{format}"),
+          icon: "file-export", method: nil,
+          "aria-describedby": export_menu_title_id,
+          data: { turbo: false, export_links_target: "link" } }
       end
 
       # Unique per render and not fixed: two page components on the same page would repeat
@@ -265,17 +278,6 @@ module Bali
       # controller undid that as soon as Stimulus booted, with the Ruby tests green.
       def export_links_sync?
         @export_options.nil? || @export_options[:params].nil?
-      end
-
-      # The params are resolved HERE and passed explicitly: the Export is built to read its
-      # `export_items` and is never rendered, and `request_query_params` needs the render
-      # context that only the component actually being painted has.
-      def export_component
-        @export_component ||= Bali::DataTable::Export::Component.new(
-          formats: @export_options[:formats],
-          url: @export_options[:url],
-          params: @export_options[:params] || request_query_params
-        )
       end
 
       def breadcrumb_spacer_class

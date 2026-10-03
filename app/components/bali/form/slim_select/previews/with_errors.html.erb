@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.slim_select_group :name, options, help: 'Pick the option that applies to this record.' %>
+<% end %>

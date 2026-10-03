@@ -252,12 +252,12 @@ module Bali
 
         # SlimSelect shrinks the real `<select>` to 1x1 (`bali/slim_select.css`) and draws
         # its own `div[role="combobox"]`, onto which it copies the select's
-        # `aria-label`/`aria-labelledby` and nothing else — the `<label for>` does not
-        # travel, its `setupLabelHandlers` only wires clicks. Measured in the accessibility
-        # tree: a slim_select WITH a caption announced itself as "Combobox", the widget's
-        # default. So this is the only branch where the aria is emitted in the captioned
-        # case too, and the only one that points at the caption with `aria-labelledby`
-        # instead of repeating the text.
+        # `aria-label`/`aria-labelledby` and, before 3.5, nothing else — the `<label for>`
+        # does not travel, its `setupLabelHandlers` only wires clicks. Measured in the
+        # accessibility tree: a slim_select WITH a caption announced itself as "Combobox",
+        # the widget's default. So this is the only branch where the aria is emitted in the
+        # captioned case too, and the only one that points at the caption with
+        # `aria-labelledby` instead of repeating the text.
         def slim_select_aria(filter)
           return { "aria-labelledby": filter_label_id(filter) } if captioned?(filter)
 

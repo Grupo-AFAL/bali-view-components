@@ -183,7 +183,7 @@ slots are independent so non-shell layouts work too.
 - `skip_link` - Render the "skip to main content" link as the first focusable element (default: true)
 - `body_container` - `:wide` (default), `:contained`, `:narrow`, `:full`
 - `flash` - Pass `flash` for built-in toast notifications
-- `modal` / `drawer` - Render shared modal/drawer slots (default: true)
+- `modal` / `drawer` - Render the shared `#main-modal` / `#main-drawer` and put their Stimulus controllers on `<body>`, so a `modal: true` / `drawer: true` trigger opens them from anywhere on the page — a chrome slot or a `popover: true` menu included (default: true)
 - `mobile_bottom_padding` - Room under the content on a phone, for the browser's floating bar plus the device safe area (default: false) — see below
 
 The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
@@ -1084,7 +1084,12 @@ is a preset of this one, not a second implementation.
   Left out, daisyUI's default (below the trigger) applies. It composes with `align:`.
 - `width` - `:sm` (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
 - `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
-  it (default: `false`). What a dropdown inside a scrollable table needs.
+  it (default: `false`). What a dropdown inside a scrollable table needs. An item that opens a
+  `modal:` / `drawer:` then needs that controller on `<body>`: `AppLayout` puts both there, and
+  a layout of your own has to as well, or the item navigates to its href. Inside a `<dialog>`
+  opened with `showModal()` (`Modal`, `Drawer`) the popper goes into that dialog instead,
+  because everything outside it is inert, and there the dialog's own `overflow` still applies
+  (see [Overlays and the top layer](overlays-and-the-top-layer.md)).
 - `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
 - `close_on_click` - close on a click outside even when the focus is not inside the dropdown
   (default: `true`). With the focus inside, the click takes it out, and that closes the menu
@@ -1126,12 +1131,14 @@ on the same page with a matching `id:` and `shared: false` (a drawer with `drawe
 **Keyboard.** Tab reaches the trigger without opening it. A click, Enter, Space or `↓` open
 it; in a menu of items (`menu: true`) the keys also move the focus to the first one, `↑` opens it
 on the last, and the arrows walk them. Escape closes it and puts the focus back on the trigger;
-a click outside or the focus leaving closes it too. All of that is the same in both modes. Tab
+inside a `Modal` or `Drawer` that Escape closes only the menu, and the next one the panel. A
+click outside or the focus leaving closes it too. All of that is the same in both modes. Tab
 is the one difference: in the CSS mode the panel follows the trigger in the document and Tab
-walks its items, while in popover mode it hangs at the end of `<body>`, so a Tab from inside it
-closes it and carries on from the trigger. `hoverable:` is the exception: daisyUI's CSS still
-opens it on hover and on focus. `aria-expanded` follows what is on screen rather than the path
-that got there.
+walks its items, while in popover mode it hangs at the end of `<body>` (or of the open
+`<dialog>`), so a Tab from inside it closes it and carries on from the trigger, without leaving
+a `Modal` or `Drawer` it is in. `hoverable:` is
+the exception: daisyUI's CSS still opens it on hover and on focus. `aria-expanded` follows what
+is on screen rather than the path that got there.
 
 **Position.** daisyUI places the menu against the trigger and nothing else, so an `align: :end`
 trigger that wrapped to the left of a phone opened its menu off screen (#1231). A menu the
@@ -2308,9 +2315,10 @@ unmapped selected value raises unless `default:` is given. Recipe and the Tag vs
 criterion: [enum badges guide](enum-badges.md).
 
 **Public palette:** the twelve fixed pairs are public API — `Bali::Status.palette(:green)`
-returns `{ bg: "#16a34a", fg: "#fff" }` (raising on an unknown name), for painting
+returns `{ bg: "#15803d", fg: "#fff" }` (raising on an unknown name), for painting
 something that is *not* a pill (a Gantt bar, a chart slice) in the same colour as the
-pill for the same state. Public means frozen: changing a hex is a breaking change.
+pill for the same state. The names are frozen; a hex can change to keep its pair at AA,
+which is why hosts read it through the accessor instead of copying it.
 
 #### Progress
 
@@ -4514,13 +4522,14 @@ key.
 
 **The `aria-label` is only emitted where no visible `<label for>` names the control**, so a
 captioned row's markup is unchanged. Two widgets are the exception, because there the caption
-never reaches the control the user operates and Bali has to point at it explicitly:
+may not reach the control the user operates and Bali has to point at it explicitly:
 
 - **`slim_select`** clips the real `<select>` to 1x1 and draws its own
-  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and
-  nothing else — a `<label for>` does not travel. Captioned, Bali emits `aria-labelledby`
-  at the caption; uncaptioned, the resolved name. Before #1155 a captioned slim_select
-  announced itself as "Combobox", the widget's own default.
+  `div[role="combobox"]`, which copies the select's `aria-label`/`aria-labelledby` and,
+  before SlimSelect 3.5, nothing else — a `<label for>` does not travel. Bali's controller
+  carries `aria-describedby` and `aria-invalid` across. Captioned, Bali emits
+  `aria-labelledby` at the caption; uncaptioned, the resolved name. Before #1155 a captioned
+  slim_select announced itself as "Combobox", the widget's own default.
 - **`date` / `date_range`** are drawn by flatpickr, which hides the real input and creates
   a second one. `datepicker#forwardAccessibleName` copies the caption across; with no
   caption there was nothing to copy.
@@ -5321,11 +5330,14 @@ does not say (#1230):
 **`with_export(url:, formats: %i[csv excel pdf], params: nil)`** renders a section titled
 *Export filtered* with one item per format. The name is a promise the links keep: each href
 carries the same slice of data the user is looking at — filters, search, sort, grouping and the applied
-saved view — merged from the current query string. Two parameters are deliberately dropped
+saved view — merged from the current query string. Three parameters are deliberately dropped
 (`Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`): `page`, because exporting page 3 of a
-listing is never what "export" means, and `clear_filters`, which on the server *deletes* the
-user's stored filters as a side effect of the click. Pass `params: {}` to opt out and export
-everything on purpose, or an explicit hash to override.
+listing is never what "export" means, and the one-shot orders `clear_filters` and
+`clear_search` — the first *deletes* the user's stored filters on the server as a side effect of
+the click. Pass `params: {}` to opt out and export everything on purpose, or an explicit hash to
+override. `formats:` takes one or more of `:csv`, `:excel`, `:pdf` and `:json`, as symbols or
+strings, in the order the items should appear; an empty list or an unknown format raises
+`ArgumentError`.
 
 Export is **not** a DataTable toolbar control. It acts on the page, not on how the listing
 looks, which is also what gives import and print somewhere to land later. Because the `⋯`

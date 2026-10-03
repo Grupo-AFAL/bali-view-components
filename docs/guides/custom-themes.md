@@ -46,9 +46,10 @@ Or apply it to a specific section:
 ## The AFAL Theme
 
 `afal` is the canonical copy of the `[data-theme="afal"]` block that gobierno-corporativo,
-afal-apps, identity and opina used to carry byte-identically in their own CSS. If your app
-still has a local copy, delete it **in the same commit** that adds the import — while both
-exist, whichever appears later in the compiled CSS wins, silently.
+afal-apps, identity and opina used to carry byte-identically in their own CSS, with its primary
+and secondary one step darker so white text on them clears AA (the header of `afal.css` has the
+measurements). If your app still has a local copy, delete it **in the same commit** that adds
+the import — while both exist, whichever appears later in the compiled CSS wins, silently.
 
 ```css
 @import "bali-view-components/css/themes/afal.css";

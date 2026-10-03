@@ -1,4 +1,4 @@
-<%# The full #984 case: AppLayout mounts `modal drawer` on <main> (the default) and the
+<%# The full #984 case: AppLayout mounts `modal drawer` on <body> (the default) and the
     page's form hardcodes `drawer: true` — the pattern correct usage avoids with
     `drawer: page.drawer?`, but that a host may bring in hardcoded. The form submits by
     GET to this same preview, so the query string below is the proof that the submit went

@@ -237,10 +237,9 @@ export class ModalController extends Controller {
   }
 
   openModal (content) {
-    // No panel, nothing to open. The instance AppLayout mounts on `<main>`
-    // (`data-controller="modal drawer"`) owns no targets — Stimulus scopes the
-    // panel's targets to the `<dialog>`'s own controller — so every write below
-    // would throw on it (#984).
+    // No panel, nothing to open. The `drawer` instance AppLayout mounts on
+    // `<body>` owns no targets — Stimulus scopes the panel's targets to the
+    // `<dialog>`'s own controller — so every write below would throw on it (#984).
     if (!this.hasTemplateTarget || !this.hasWrapperTarget || !this.hasContentTarget) return
 
     // A freshly opened modal starts clean
@@ -252,7 +251,7 @@ export class ModalController extends Controller {
     // skeleton pulls the focus in, the second call would otherwise overwrite
     // the trigger with the panel itself, and closing would restore nothing.
     if (!this.templateTarget.contains(document.activeElement)) {
-      this.previouslyFocusedElement = document.activeElement
+      this.previouslyFocusedElement = this._focusReturnTarget(document.activeElement)
     }
 
     if (this.wrapperClasses) {
@@ -276,6 +275,14 @@ export class ModalController extends Controller {
     // — a sibling subtree — so for the whole length of the fetch Escape never
     // reached the panel's handler and Tab walked the page behind the overlay.
     this.trapFocus()
+  }
+
+  // A trigger inside a tippy popper — an item of a `popover: true` menu — is gone by the
+  // time the panel closes: the menu shuts as the focus moves into the panel, tippy unmounts
+  // the popper, and `.focus()` on a detached item leaves the focus on <body>. The popper's
+  // reference, the menu's trigger, is where the reader came from.
+  _focusReturnTarget (element) {
+    return element?.closest('[data-tippy-root]')?._tippy?.reference || element
   }
 
   // The overlay element is a real `<dialog>`, and `showModal()` is the whole
@@ -355,21 +362,29 @@ export class ModalController extends Controller {
   }
 
   trapFocus () {
-    if (!this.hasWrapperTarget) return
-
-    const focusableElements = this.wrapperTarget.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-
-    this.firstFocusable = focusableElements[0]
-    this.lastFocusable = focusableElements[focusableElements.length - 1]
+    if (!this.hasTemplateTarget || !this.hasWrapperTarget) return
 
     // Idempotent: openModal runs once for the skeleton and again for the loaded
     // content, and the same listener must not stack up.
-    this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
-    this.wrapperTarget.addEventListener('keydown', this.handleTabKey)
+    //
+    // On the dialog, not the panel: a `popover: true` dropdown's menu hangs in the
+    // dialog BESIDE the panel, so its Tab never crossed the panel. By the time that
+    // Tab reaches the dialog the dropdown has handed the focus back to its trigger,
+    // which is what `handleTabKey` compares against (#1269).
+    this.templateTarget.removeEventListener('keydown', this.handleTabKey)
+    this.templateTarget.addEventListener('keydown', this.handleTabKey)
 
     this._setInitialFocus()
+  }
+
+  // Read on every Tab rather than kept from the open: `openModal` runs right after
+  // `innerHTML =`, before the content's controllers connect, and a `popover: true`
+  // dropdown connecting there moves its items out of the panel. Kept, the last of
+  // them stayed the trap's edge and Tab from the trigger stopped wrapping (#1269).
+  get focusableElements () {
+    return this.wrapperTarget.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
   }
 
   // The host's `autofocus` wins. It used to lose: this ran after
@@ -381,7 +396,7 @@ export class ModalController extends Controller {
   // flight. `wrapperTarget` carries tabindex="-1" so it can receive it.
   _setInitialFocus () {
     const autofocusNode = this.hasContentTarget && this.contentTarget.querySelector('[autofocus]')
-    const target = autofocusNode || this.firstFocusable || this.wrapperTarget
+    const target = autofocusNode || this.focusableElements[0] || this.wrapperTarget
 
     target.focus()
   }
@@ -389,23 +404,27 @@ export class ModalController extends Controller {
   handleTabKey = (event) => {
     if (event.key !== 'Tab') return
 
+    const focusable = this.focusableElements
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+
     // Skeleton, or content with nothing focusable: there is nowhere to move to,
     // so hold focus rather than let Tab escape to the page behind the overlay.
-    if (!this.firstFocusable) {
+    if (!first) {
       event.preventDefault()
       this.wrapperTarget.focus()
       return
     }
 
     if (event.shiftKey) {
-      if (document.activeElement === this.firstFocusable) {
+      if (document.activeElement === first) {
         event.preventDefault()
-        this.lastFocusable.focus()
+        last.focus()
       }
     } else {
-      if (document.activeElement === this.lastFocusable) {
+      if (document.activeElement === last) {
         event.preventDefault()
-        this.firstFocusable.focus()
+        first.focus()
       }
     }
   }
@@ -423,8 +442,9 @@ export class ModalController extends Controller {
   // Inside-the-panel, however the panel is composed at that moment: the
   // wrapper's subtree, or a popup portaled into the dialog NEXT to it —
   // flatpickr's calendar and SlimSelect's dropdown arrive via `enterTopLayer`,
-  // which leaves them carrying `[popover]`; a tooltip balloon portals itself to
-  // the top-layer host and is `[data-tippy-root]`. Asking only
+  // which leaves them carrying `[popover]`; a tippy popper (tooltip, hover card,
+  // the menu of a `popover: true` dropdown) portals itself to the top-layer host
+  // and is `[data-tippy-root]`. Asking only
   // `wrapperTarget.contains(target)` counted every one of those clicks as a
   // close gesture: with a dirty form, paging the calendar's month asked "are
   // you sure you want to close?" (#1013). Day clicks never showed it only
@@ -522,13 +542,11 @@ export class ModalController extends Controller {
       this.contentTarget.innerHTML = this._originalContent || ''
     }
 
-    // Clean up focus trap. `hasWrapperTarget`, not `wrapperTarget`: reading the target
+    // Clean up focus trap. `hasTemplateTarget`, not `templateTarget`: reading the target
     // getter to test for its own absence throws instead of answering false — the same
-    // mistake as `this.fooTarget?.bar`, spelled as a condition. Every other read of this
-    // target in the file (setupListeners, _applySize, _restoreDefaultSize, the two overlay
-    // handlers) already asks the has* twin.
-    if (this.hasWrapperTarget) {
-      this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
+    // mistake as `this.fooTarget?.bar`, spelled as a condition.
+    if (this.hasTemplateTarget) {
+      this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     }
 
     // Restore focus to the element that triggered the modal
@@ -554,7 +572,7 @@ export class ModalController extends Controller {
     element.innerHTML = html
 
     return {
-      body: element.querySelector('body').innerHTML,
+      body: element.querySelector('body'),
       title: element.querySelector('title').text
     }
   }
@@ -562,7 +580,10 @@ export class ModalController extends Controller {
   _replaceBodyAndURL = (html, url) => {
     const { body, title } = this._extractResponseBodyAndTitle(html)
 
-    document.body.innerHTML = body
+    // The element, not `innerHTML`: <body> carries controllers of its own (AppLayout's
+    // `modal drawer`, #1268), and a children-only swap leaves the origin's attributes on it,
+    // so the destination's controllers never connect and the origin's stay on.
+    document.body.replaceWith(body)
 
     if (window.Turbo) {
       window.Turbo.session.history.push(new URL(url))
@@ -729,11 +750,11 @@ export class ModalController extends Controller {
    */
   submit = event => {
     // BEFORE preventDefault, so the browser and Turbo keep the submit. The
-    // instance with no panel is the one AppLayout mounts on `<main>`
-    // (`data-controller="modal drawer"`): a `submit_group(..., drawer: true)`
-    // hardcoded on a full-page form lands its click here, and fetching into a
-    // panel that does not exist ate the 422 response and left the button dead
-    // with its spinner on (#984). Returning degrades it to a working page form.
+    // instance with no panel is the `drawer` one AppLayout mounts on `<body>`: a
+    // `submit_group(..., drawer: true)` hardcoded on a full-page form lands its
+    // click here, and fetching into a panel that does not exist ate the 422
+    // response and left the button dead with its spinner on (#984). Returning
+    // degrades it to a working page form.
     if (!this.hasContentTarget || !this.hasTemplateTarget) return
 
     event.preventDefault()
@@ -755,7 +776,7 @@ export class ModalController extends Controller {
     // The form-level call does all of it — validates every control the browser validates,
     // focuses the first invalid one, scrolls to it and shows its message.
     //
-    // (The orphan `<main>` instance used to reach this line too; since #984 it
+    // (The orphan page-level instance used to reach this line too; since #984 it
     // returns before preventDefault, so its validation is the browser's own.)
     const form = button.closest('form')
     if (!form.reportValidity()) {

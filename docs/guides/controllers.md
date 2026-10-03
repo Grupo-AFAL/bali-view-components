@@ -505,8 +505,10 @@ peer, imported on demand): search, multi-select, remote options, addable items.
 ```
 
 The `aria-labelledby` is what names the widget: SlimSelect reads the select's `aria-label`
-or `aria-labelledby` and nothing else, so with a bare `<label for>` it announces itself as
-"Combobox". `f.slim_select_group` writes it for you.
+or `aria-labelledby` and, before 3.5, nothing else, so with a bare `<label for>` it announces
+itself as "Combobox". `f.slim_select_group` writes it for you. The controller gives the
+same name to the listbox the widget opens, and copies the select's `aria-describedby` and
+`aria-invalid` onto the combobox, where a screen reader reads the field's error and help.
 
 The values map mostly 1:1 onto SlimSelect settings (`show-search`,
 `close-on-select`, `allow-deselect-option`, `hide-selected`, `search-highlight`,

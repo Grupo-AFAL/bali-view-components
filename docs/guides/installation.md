@@ -249,8 +249,8 @@ beat a rule daisyUI emits inside `@layer utilities` (daisyUI 5 does not use
 `.container`: `forms.css`, `datepicker.css`, `slim_select.css`,
 `container-overrides.css`, `prose-invert.css`, `breadcrumb/index.css`, `data_table/index.css`,
 `toast/index.css`, `feedback_widget/index.css`, and the `daisyui-overrides.css`
-of `side_menu`, `calendar`, `rich_text_editor`, `gauge`, `alert`, `tag` and
-`button`. Each file's header names the rule it is fighting. To override one of those from your app, use a `!` utility variant or
+of `side_menu`, `calendar`, `rich_text_editor`, `gauge`, `alert`, `tag`,
+`button` and `drawer`. Each file's header names the rule it is fighting. To override one of those from your app, use a `!` utility variant or
 plain unlayered CSS imported after Bali.
 
 ### DaisyUI Themes
@@ -403,7 +403,7 @@ Components behind their own entry point carry their own dependency sets, which a
 | Entry point | Dependency set |
 |-------------|----------------|
 | `bali-view-components/charts` | `chart.js` |
-| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.53.0, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
+| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.53.0, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` (>= 1.17.4) only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
 | `bali-view-components/rich-text-editor` | The `@tiptap/*` set plus `lowlight`, `highlight.js` and `tippy.js`. **Deprecated in v3, removed in v4** — migrate to the block editor. |
 
 ### Flatpickr Setup

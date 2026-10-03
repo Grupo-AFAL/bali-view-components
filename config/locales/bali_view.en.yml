@@ -333,13 +333,6 @@ en:
         rename: Rename
         delete: Delete
         delete_confirm: "Delete the \"%{name}\" view?"
-      export:
-        button_label: Export
-        formats:
-          csv: CSV
-          excel: Excel
-          pdf: PDF
-          json: JSON
     page_header:
       back: Go back
     page_components:
@@ -347,6 +340,11 @@ en:
         button_label: More actions
       export:
         menu_title: Export filtered
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
     pagination:
       aria_label: Pagination
       previous_page: Previous page
