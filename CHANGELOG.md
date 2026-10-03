@@ -206,6 +206,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Filters`: «entre» sigue filtrando al pasar de un campo de fecha a otro** (#1282). Con
+  «entre» elegido, cambiar a otro campo de fecha o de fecha y hora dejaba el listado sin
+  filtrar bajo una condición que seguía diciendo «entre»: viajaba como `<campo>_between`, que
+  Ransack descarta sin aviso. Ahora viaja como `_gteq`/`_lteq`. Sin nada que hacer en el
+  anfitrión.
+
+- **La búsqueda rápida de `Filters` se nombra con su placeholder** cuando el anfitrión no pasa
+  `aria_label:` (#1282). Chromium le daba un nombre vacío, o el del botón de limpiar en cuanto
+  había texto. `aria_label:` sigue ganando. Lo notan las tres apps con
+  `with_filters_panel` —afal-apps, gobierno-corporativo e identity—, donde ningún
+  `search_fields` pasa `aria_label:`. Sin nada que hacer en el anfitrión.
+
+- **El multi-select que `Filters` arma en el navegador es el que pinta el servidor** (#1282),
+  el de «es cualquiera de» y «no es ninguno de»: se abre con clic, Enter o Espacio y ya no con
+  sólo enfocarlo, se cierra con Escape y el disparador lleva `aria-haspopup`. Se retira la
+  clase `.filters-multi-select-content`, que ninguna de las nueve apps usa. Sin nada que hacer
+  en el anfitrión.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
