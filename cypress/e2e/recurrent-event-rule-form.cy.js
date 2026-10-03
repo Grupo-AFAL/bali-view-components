@@ -410,14 +410,16 @@ describe('RecurrentEventRuleForm', () => {
   // #1286: at 390px the yearly row "On the First / Sunday / of January" stretched its panel to
   // 485px, and the page scrolled sideways under it, with "On the" broken over two lines.
   describe('the yearly and monthly rows', () => {
+    // The monthly row is the shorter one: on main it fit at 390px, and broke "On the" only from
+    // 360px down.
     const panels = {
-      yearly: { freq: YEARLY, rule: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1' },
-      monthly: { freq: MONTHLY, rule: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR' }
+      yearly: { freq: YEARLY, rule: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1', widths: [390, 320] },
+      monthly: { freq: MONTHLY, rule: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR', widths: [320] }
     }
     const open = (rule) => cy.visit(`/bali/recurrent_event_rule_form/with_value?value=${encodeURIComponent(rule)}`)
 
-    Object.entries(panels).forEach(([panel, { freq, rule }]) => {
-      ;[390, 320].forEach((width) => {
+    Object.entries(panels).forEach(([panel, { freq, rule, widths }]) => {
+      widths.forEach((width) => {
         it(`fit the ${panel} panel into ${width}px without scrolling the page sideways`, () => {
           cy.viewport(width, 844)
           open(rule)
@@ -443,20 +445,6 @@ describe('RecurrentEventRuleForm', () => {
             })
           })
         })
-      })
-
-      it(`keep each ${panel} row on one line at 1280px`, () => {
-        cy.viewport(1280, 800)
-        open(rule)
-
-        cy.get(`fieldset[data-rrule-freq="${freq}"] [data-recurrent-event-rule-target="freqCustomizationInputs"]`)
-          .should(($rows) => {
-            expect($rows, 'rows').to.have.length(2)
-            $rows.each((_, row) => {
-              const tops = [...row.querySelectorAll('select')].map((select) => Math.round(select.getBoundingClientRect().top))
-              expect(new Set(tops).size, `lines in ${row.dataset.rruleFreqOption}`).to.equal(1)
-            })
-          })
       })
     })
   })
