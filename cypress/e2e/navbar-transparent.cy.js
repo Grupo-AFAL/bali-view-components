@@ -101,7 +101,7 @@ describe('Navbar: a transparent bar', () => {
 
   // Text colour and background swap at the threshold, so anything that fades one of them leaves
   // the links on a background they were not made for: with the bar's 1 s background fade,
-  // `secondary` in `light` read under 3:1 for 833 ms going down. The moment the controller flips
+  // `secondary` in `light` read under 3:1 for ~830 ms going down. The moment the controller flips
   // the class, every transition in the bar is paused and walked through in 10 ms steps, so a slow
   // frame on the runner cannot hide one.
   const BRIEF = 100
