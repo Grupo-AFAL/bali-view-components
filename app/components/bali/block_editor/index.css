@@ -218,26 +218,6 @@
   background-color: transparent;
 }
 
-/* -------------------------------------------------------
- * Menu/toolbar overrides - explicit background + shadow
- * These use !important to ensure they override BlockNote's
- * Vite-loaded styles regardless of CSS load order.
- * ------------------------------------------------------- */
-
-/* Floating formatting toolbar */
-.block-editor-component .bn-toolbar {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
-/* Slash menu and suggestion menus */
-.block-editor-component .bn-suggestion-menu {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
 /* Compact suggestion menu items */
 .block-editor-component .bn-suggestion-menu-item {
   padding: 0.15rem 0.5rem !important;
@@ -267,13 +247,6 @@
 /* Mantine dropdown menus (toolbar color picker, link input, etc.) */
 .block-editor-component .mantine-Menu-dropdown,
 .block-editor-component .mantine-Popover-dropdown {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
-/* Form popovers (link editor, etc.) */
-.block-editor-component .bn-form-popover {
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
   box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
