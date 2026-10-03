@@ -138,6 +138,23 @@ describe('Gantt table', () => {
     })
   })
 
+  // Every column fits only on a board of 840 px or more. On a narrower one the table stops where
+  // the timeline keeps 40% of the board: opened with every column, it left a 358 px board at
+  // 390 no timeline at all.
+  it('leaves the timeline 40% of a tablet board and gives the table the rest', () => {
+    cy.viewport(768, 1024)
+    cy.visit('/bali/gantt/default')
+    cy.get(ROWS).should('have.length.at.least', 1)
+
+    cy.document().should((doc) => {
+      const { table } = tableOf(doc)
+      const board = box(table.parentElement.parentElement).width
+      expect(board - box(table).width, 'px beside the table, for the splitter and the timeline')
+        .to.be.at.least(Math.floor(board * 0.4))
+      expect(box(table).width, 'table width').to.be.closeTo(board * 0.6, 0.5)
+    })
+  })
+
   // The Status column fits afal-apps' `Completada`; a longer label — `Ready for review` here —
   // is cut short, and the pill's tooltip carries it whole.
   it('titles every status pill with its whole label', () => {
