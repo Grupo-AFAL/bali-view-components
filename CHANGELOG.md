@@ -291,6 +291,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.btn-primary`— y ahora también bajo el cursor (antes 5.33). Ninguna app lo usa hoy:
   `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las ocho.
 
+- **En `RecurrentEventRuleForm`, un día o una opción deshabilitados ya no reaccionan al cursor**
+  (#1272): con `disabled: true`, o dentro de un `<fieldset disabled>`, los días de la semana
+  crecían y se teñían bajo el cursor, y las filas de opción de los paneles anual y mensual se
+  teñían y mostraban el cursor de mano, como si se pudieran elegir. Ahora no toman el puntero y el
+  cursor sobre ellos es `not-allowed`. Sin nada que hacer en el anfitrión; ninguna app lo usa:
+  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en todas.
+
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
   (`?q[]=x`) dejaba un `String` o un `Array` donde la pastilla escribe `q[...]`, y la escritura

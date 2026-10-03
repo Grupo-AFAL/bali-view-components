@@ -14,6 +14,27 @@ describe('RecurrentEventRuleForm', () => {
   const frequency = () => cy.get('#form_record_rule_freq')
   const endMethod = () => cy.get('#form_record_rule_end')
   const weekday = (index) => cy.get(`#byweekday_form_record_rule_${index}`)
+  const dayLabel = (index) => cy.get(`label[for="byweekday_form_record_rule_${index}"]`)
+  // A transition's first frame still paints the previous theme or state, and can pass.
+  const expectSettled = (el) => {
+    expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
+  }
+  // The two ways a control ends up disabled, each opened on `rule`.
+  const disabledBy = {
+    'disabled: true': (rule) => {
+      cy.visit(`/bali/recurrent_event_rule_form/disabled?value=${encodeURIComponent(rule)}`)
+    },
+    // A host disabling the whole form: the controls are disabled without the component's option.
+    'a disabled fieldset': (rule) => {
+      cy.visit(`/bali/recurrent_event_rule_form/with_value?value=${encodeURIComponent(rule)}`)
+      cy.get('form').then(([form]) => {
+        const fieldset = form.ownerDocument.createElement('fieldset')
+        fieldset.disabled = true
+        form.before(fieldset)
+        fieldset.append(form)
+      })
+    }
+  }
   // The select values are RRule's own frequency constants.
   const YEARLY = '0'
   const MONTHLY = '1'
@@ -186,7 +207,7 @@ describe('RecurrentEventRuleForm', () => {
     it('cannot be edited when disabled', () => {
       cy.visit('/bali/recurrent_event_rule_form/disabled')
 
-      rule().should('have.value', 'FREQ=DAILY;INTERVAL=1')
+      rule().should('have.value', 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE')
       frequency().should('be.disabled')
       cy.get('#form_record_rule_interval').should('be.disabled')
     })
@@ -196,13 +217,6 @@ describe('RecurrentEventRuleForm', () => {
   // Bali's themes; daisyUI's `dark` paints it at 4.13:1, so the bar under the cursor is the day at
   // rest, not 4.5.
   describe('the weekdays as painted', () => {
-    const dayLabel = (index) => cy.get(`label[for="byweekday_form_record_rule_${index}"]`)
-
-    // A transition's first frame still paints the previous theme or state, and can pass.
-    const expectSettled = (el) => {
-      expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
-    }
-
     // An outline is drawn outside the box, over whatever the element sits on: measured as text
     // of its colour placed beside it.
     const ringContrast = (el) => {
@@ -257,6 +271,137 @@ describe('RecurrentEventRuleForm', () => {
           expect(label.control.matches(':focus-visible'), 'keyboard focus').to.equal(true)
           expect(getComputedStyle(label).outlineStyle, 'ring drawn').to.not.equal('none')
           expect(ringContrast(label), `${theme}: focus ring`).to.be.at.least(3)
+        })
+      })
+    })
+  })
+
+  // #1272: a disabled day scaled, tinted and ringed under the cursor as if it could be picked.
+  describe('a disabled day', () => {
+    // Everything the cursor changes on an enabled day.
+    const reaction = (label) => {
+      const style = getComputedStyle(label)
+
+      return {
+        scale: style.scale,
+        background: style.backgroundColor,
+        outline: style.outlineStyle,
+        shadow: style.boxShadow
+      }
+    }
+
+    const rule = 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE'
+    const days = {
+      'a checked': [0, 'be.checked'],
+      'an unchecked': [1, 'not.be.checked']
+    }
+
+    Object.entries(disabledBy).forEach(([way, visit]) => {
+      describe(`through ${way}`, () => {
+        beforeEach(() => {
+          cy.then(unhover)
+          visit(rule)
+        })
+
+        afterEach(() => cy.then(unhover))
+
+        Object.entries(days).forEach(([day, [index, state]]) => {
+          it(`does not react to the cursor on ${day} day`, () => {
+            weekday(index).should('be.disabled').and(state)
+
+            let atRest
+            dayLabel(index).should(([label]) => {
+              expectSettled(label)
+              expect(label.parentElement.matches(':hover'), 'at rest').to.equal(false)
+              atRest = reaction(label)
+            })
+
+            dayLabel(index).then(hover)
+
+            // Read through the day's wrapper: a disabled label does not take the pointer itself.
+            dayLabel(index).should(([label]) => {
+              expect(label.parentElement.matches(':hover'), 'under the cursor').to.equal(true)
+              expectSettled(label)
+              expect(reaction(label), 'under the cursor').to.deep.equal(atRest)
+            })
+          })
+        })
+
+        it('shows the not-allowed cursor over a day', () => {
+          weekday(0).should('be.disabled')
+          dayLabel(0).then(([label]) => label.scrollIntoView({ block: 'center' }))
+
+          dayLabel(0).should(([label]) => {
+            const box = label.getBoundingClientRect()
+            const hit = label.ownerDocument.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+
+            expect(label.parentElement.contains(hit), 'the point is on the day').to.equal(true)
+            expect(getComputedStyle(hit).cursor, 'cursor').to.equal('not-allowed')
+          })
+        })
+      })
+    })
+  })
+
+  // #1272: a disabled yearly or monthly row tinted under the cursor and showed a pointer.
+  describe('a disabled option row', () => {
+    // Each rule opens its panel with one row ticked and the other not.
+    const panels = {
+      yearly: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1',
+      monthly: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR'
+    }
+    const rows = [1, 2]
+    const radio = (panel, row) => cy.get(`#form_record_rule_${panel}_on_${row}`)
+    const rowText = (panel, row) => radio(panel, row).siblings('span')
+
+    Object.entries(disabledBy).forEach(([way, visit]) => {
+      Object.entries(panels).forEach(([panel, rule]) => {
+        describe(`on the ${panel} panel, through ${way}`, () => {
+          beforeEach(() => {
+            cy.then(unhover)
+            visit(rule)
+          })
+
+          afterEach(() => cy.then(unhover))
+
+          it('does not react to the cursor on either row', () => {
+            rows.forEach((row) => {
+              radio(panel, row).should('be.disabled').and('be.visible')
+
+              let atRest
+              radio(panel, row).parent().should(([label]) => {
+                expectSettled(label)
+                expect(label.parentElement.matches(':hover'), `row ${row} at rest`).to.equal(false)
+                atRest = getComputedStyle(label).backgroundColor
+              })
+
+              rowText(panel, row).then(hover)
+
+              // Read through the panel: a disabled row does not take the pointer itself.
+              radio(panel, row).parent().should(([label]) => {
+                expect(label.parentElement.matches(':hover'), `row ${row} under the cursor`).to.equal(true)
+                expectSettled(label)
+                expect(getComputedStyle(label).backgroundColor, `row ${row} under the cursor`).to.equal(atRest)
+              })
+
+              cy.then(unhover)
+            })
+          })
+
+          it('shows the not-allowed cursor over either row', () => {
+            rows.forEach((row) => {
+              radio(panel, row).should('be.disabled')
+              rowText(panel, row).then(([text]) => text.scrollIntoView({ block: 'center' }))
+
+              rowText(panel, row).should(([text]) => {
+                const box = text.getBoundingClientRect()
+                const hit = text.ownerDocument.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+
+                expect(text.closest('label').parentElement.contains(hit), `row ${row}: the point is on the panel`).to.equal(true)
+                expect(getComputedStyle(hit).cursor, `row ${row}: cursor`).to.equal('not-allowed')
+              })
+            })
+          })
         })
       })
     })
