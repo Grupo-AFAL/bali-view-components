@@ -138,9 +138,11 @@
           </option>
         </select>
 
-      <% when :date %>
+      <% when :date, :datetime %>
         <% if range_operator? %>
-          <%# Date range picker using Flatpickr range mode with hidden fields for Ransack %>
+          <%# A range picks whole days, also over a datetime: Bali::FilterForm::WholeDayCasting
+              reads its top end as the end of that day, so a time picked here would not be the
+              one the query used (#1282). %>
           <div class="w-full" data-condition-target="value">
             <input type="text"
                    class="input input-bordered input-sm w-full"
@@ -164,7 +166,7 @@
                    value="<%= range_values[:end] %>"
                    data-condition-target="rangeEnd">
           </div>
-        <% else %>
+        <% elsif attribute_type.to_sym == :date %>
           <%# Single date picker using Flatpickr %>
           <input type="text"
                  class="input input-bordered input-sm w-full"
@@ -178,35 +180,6 @@
                  data-datepicker-alt-format-value="<%= short_date_format %>"
                  data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
                  data-condition-target="value">
-        <% end %>
-
-      <% when :datetime %>
-        <% if range_operator? %>
-          <%# Datetime range picker using Flatpickr range mode with hidden fields for Ransack %>
-          <div class="w-full" data-condition-target="value">
-            <input type="text"
-                   class="input input-bordered input-sm w-full"
-                   placeholder="<%= t('bali_view.filters.select_datetime_range') %>"
-                   aria-label="<%= value_aria_label %>"
-                   data-controller="datepicker"
-                   data-datepicker-locale-value="<%= I18n.locale %>"
-                   data-datepicker-mode-value="range"
-                   data-datepicker-enable-time-value="true"
-                   data-datepicker-alt-format-value="<%= short_datetime_format %>"
-                   data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-                   data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
-                   data-action="change->condition#syncRangeDates"
-                   data-condition-target="rangeInput">
-            <%# Hidden fields for Ransack gteq/lteq params %>
-            <input type="hidden"
-                   name="<%= range_field_names[:start] %>"
-                   value="<%= range_values[:start] %>"
-                   data-condition-target="rangeStart">
-            <input type="hidden"
-                   name="<%= range_field_names[:end] %>"
-                   value="<%= range_values[:end] %>"
-                   data-condition-target="rangeEnd">
-          </div>
         <% else %>
           <%# Single datetime picker using Flatpickr %>
           <input type="text"

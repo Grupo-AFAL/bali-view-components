@@ -150,7 +150,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     { attribute: "logged_in_at", operator: "eq" } =>
       'input[data-controller="datepicker"][data-condition-target="value"][data-datepicker-enable-time-value="true"]',
     { attribute: "logged_in_at", operator: "between" } =>
-      'input[data-controller="datepicker"][data-condition-target="rangeInput"][data-datepicker-enable-time-value="true"]',
+      'input[data-controller="datepicker"][data-condition-target="rangeInput"]:not([data-datepicker-enable-time-value])',
     { attribute: "verified", operator: "eq" } => 'select[data-condition-target="value"]:not([data-slim-select-target])',
     { attribute: "status", operator: "eq" } => 'select[data-slim-select-target="select"]'
   }.freeze
@@ -165,6 +165,19 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       end
       assert_selector("#{widget}[aria-label=\"Valor\"]")
     end
+  end
+
+  # Bali::FilterForm::WholeDayCasting reads the top of a range as the end of its day, so a time
+  # on screen would be one the query never used (#1282).
+  def test_a_datetime_range_picks_whole_days
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: { attribute: "logged_in_at", operator: "between" }, group_index: 0, condition_index: 0,
+      available_attributes: @available_attributes + [ { key: :logged_in_at, label: "Logged in", type: :datetime } ]
+    ))
+
+    assert_selector('input[data-condition-target="rangeInput"][data-datepicker-alt-format-value="M j, Y"]' \
+                    ":not([data-datepicker-enable-time-value])")
+    assert_selector('input[data-condition-target="rangeInput"][placeholder="Select date range..."]')
   end
 
   # Whatever is chosen, the server paints "Select values..." here: multi_select_controller.js

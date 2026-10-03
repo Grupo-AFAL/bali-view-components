@@ -433,8 +433,9 @@ export class ConditionController extends Controller {
           : this.buildDateInput(fieldName)
         break
       case 'datetime':
+        // Whole days, as condition/component.html.erb says.
         html = isRange
-          ? this.buildDatetimeRangeInput(rangeFieldNames)
+          ? this.buildDateRangeInput(rangeFieldNames)
           : this.buildDatetimeInput(fieldName)
         break
       case 'number':
@@ -703,28 +704,6 @@ export class ConditionController extends Controller {
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
                data-datepicker-alt-format-value="${this.shortDateFormat()}"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-action="change->condition#syncRangeDates"
-               data-condition-target="rangeInput">
-        <input type="hidden" name="${rangeFieldNames.start}" data-condition-target="rangeStart">
-        <input type="hidden" name="${rangeFieldNames.end}" data-condition-target="rangeEnd">
-      </div>
-    `
-  }
-
-  buildDatetimeRangeInput (rangeFieldNames) {
-    const placeholder = this.t.placeholders?.select_datetime_range || 'Select date & time range...'
-    return `
-      <div class="w-full" data-condition-target="value">
-        <input type="text"
-               class="input input-bordered input-sm w-full"
-               placeholder="${this.escapeHtml(placeholder)}"
-               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
-               data-controller="datepicker"
-               data-datepicker-locale-value="${this.localeValue}"
-               data-datepicker-mode-value="range"
-               data-datepicker-enable-time-value="true"
-               data-datepicker-alt-format-value="${this.shortDatetimeFormat()}"
                data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
                data-action="change->condition#syncRangeDates"
                data-condition-target="rangeInput">

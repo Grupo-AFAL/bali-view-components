@@ -86,4 +86,18 @@ describe('A between condition', () => {
       expectRowsWithin(from, day, name)
     })
   })
+
+  it('shows a datetime range as the whole days it sends', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false')
+
+    cy.get('[data-condition-target="attribute"]').first().select('last_login')
+    cy.get('[data-condition-target="operator"]').first().select('between')
+    pickRange('2026-08-25', '2026-08-27')
+
+    cy.get(`${container} [data-condition-target="rangeInput"]`).should(($input) => {
+      expect($input[0]._flatpickr.altInput.value).to.equal('Aug 25, 2026 to Aug 27, 2026')
+    })
+    cy.get(`${container} [data-condition-target="rangeStart"]`).should('have.value', '2026-08-25')
+    cy.get(`${container} [data-condition-target="rangeEnd"]`).should('have.value', '2026-08-27')
+  })
 })

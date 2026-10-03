@@ -34,7 +34,6 @@ en:
       select_date: "Select date..."
       select_datetime: "Select date & time..."
       select_date_range: "Select date range..."
-      select_datetime_range: "Select date & time range..."
 
       # Boolean values
       any: "Any"
@@ -63,7 +62,6 @@ en:
         select_date: "Select date..."
         select_datetime: "Select date & time..."
         select_date_range: "Select date range..."
-        select_datetime_range: "Select date & time range..."
         select: "Select..."
         select_values: "Select values..."
 
