@@ -210,16 +210,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - El calendario de `date_group`, `datetime_group` y `time_group` llevaba escritos a mano los
     colores del `light` de daisyUI: en los temas oscuros, un día con foco o uno de otro mes bajo
     el cursor era un cuadro casi blanco con el número ilegible, y las flechas de la hora no se
-    veían. Ahora sigue al tema. Los días de otro mes pasan de `/30` (1.86:1 en `afal`) a `/70`;
-    el hover y el foco de un día, de la hora y de AM/PM, de `base-200` al texto al 8 %; el borde
-    del calendario y la línea sobre la hora, de `base-300` al texto al 15 %.
+    veían. Ahora sigue al tema. Los días de otro mes pasan de `/30` (1.86:1 en `afal`) a `/70`.
+    El hover y el foco de los días, de la hora y de AM/PM, y el hover de las flechas de la hora,
+    pasan al texto al 8 %; antes eran `base-200`, el literal claro (el foco de un día y el hover
+    de uno de otro mes) o, en las flechas, un blanco al 30 % que en los temas claros no se veía.
+    El borde del calendario y la línea sobre la hora pasan de `base-300` al texto al 15 %.
   - En SlimSelect, la opción elegida y «Select all» pasan de `primary` (3.40:1 en el `dark` de
     daisyUI) a `text-soft-primary`, y la marca de la opción elegida toma el color de su texto.
     «Select all» ya no se atenúa bajo el cursor; le queda el subrayado.
 
   Lo ve toda app que use esos campos, también en los temas claros: los días de otro mes se leen
-  más, el hover y el borde del calendario se marcan algo más, y el primario de la opción elegida
-  y de «Select all» sale más oscuro. Sin nada que hacer en el anfitrión.
+  más, el hover y el borde del calendario se marcan algo más, las flechas de la hora marcan el
+  hover, y el primario de la opción elegida y de «Select all» sale más oscuro. Sin nada que
+  hacer en el anfitrión.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
