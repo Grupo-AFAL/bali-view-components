@@ -1600,7 +1600,7 @@ Whoever wrote the item could not tell which of the two APIs they were using.
 
 On `Button` and `Link` the keyword now shares its name with the `with_icon` slot, which is
 deliberate: they were always the same concept, and the slot is simply the form that takes
-options (`with_icon('star', class: 'text-error')`). Given both, the slot wins.
+options (`with_icon('star', class: 'text-soft-error')`). Given both, the slot wins.
 
 ### Nothing breaks on upgrade, and here is the count that decided it
 
