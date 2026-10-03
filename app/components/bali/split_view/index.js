@@ -169,11 +169,11 @@ export class SplitViewController extends Controller {
   // Only on a traversal. On a first paint the server's markup wins, because a
   // master can be rendered on a page whose URL is not in the rows' URL space at
   // all and deriving there would erase a correct selection.
-  syncFromLocation () {
+  syncFromLocation (event) {
     const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
     this.selectedHref = current?.href ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
-    this.syncFrameFromLocation(current)
+    this.syncFrameFromLocation(current, Boolean(event?.state?.turbo))
   }
 
   // The other half of the rewind. A navigated frame is cached without its `src`
@@ -191,7 +191,7 @@ export class SplitViewController extends Controller {
   //     keeps that row's `src` (the rewind leaves a loading frame alone) and
   //     Turbo reloads it on restore, even when the pane still looks pristine.
   //     Dropping the `src` cancels that reload.
-  syncFrameFromLocation (current) {
+  syncFrameFromLocation (current, leaving = false) {
     const frame = this.detailFrame
     if (!frame) return
 
@@ -202,6 +202,17 @@ export class SplitViewController extends Controller {
         frame.removeAttribute('data-split-view-src')
         frame.innerHTML = pristine
       }
+      return
+    }
+
+    // A popstate onto an entry Turbo wrote is followed by its restore, which
+    // replaces this body. A request this frame makes before then, if it lands
+    // first, pushes the URL just reached a second time (the frame still carries
+    // the row click's `advance`) and the forward entry is lost. So no refetch
+    // here, and a load still in flight is cancelled; the restored page refetches
+    // from `connect()` if its pane needs it.
+    if (leaving) {
+      frame.removeAttribute('src')
       return
     }
 
