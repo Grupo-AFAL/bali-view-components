@@ -208,6 +208,12 @@ class BaliChartComponentTest < ComponentTestCase
     assert_selector('canvas[data-chart-use-theme-colors-value="false"]')
   end
 
+  # `afal`'s primary and secondary differ in hue alone (ΔL 0.005), and under deuteranopia
+  # `afal-dark`'s are ΔE_OK 0.003 apart (#1281).
+  def test_theme_colors_paint_the_second_series_in_the_accent
+    assert_equal(%w[primary accent], series_colors(2))
+  end
+
   # chart/index.js paints series N in THEME_COLOR_VARS[N % 7], so the series Ruby names
   # have to walk the whole cycle too or the JSON names one colour and the canvas shows another.
   def test_theme_colors_hand_out_every_colour_of_the_cycle_before_repeating

@@ -38,7 +38,14 @@ module Bali
     # The order a component cycles through when one call site needs more than one
     # colour, e.g. the slices of a pie chart. `neutral` is left out: it is the
     # colour of furniture, and named for data it paints as base-content anyway.
-    CYCLE = %i[primary secondary accent info success warning error].freeze
+    #
+    # Not daisyUI's order: `afal`'s primary and secondary differ in hue alone (ΔL 0.005),
+    # and `afal-dark`'s measured ΔE_OK 0.003 apart under deuteranopia. In this order no
+    # two neighbours, the last and the first included, come closer than 0.06 under
+    # protanopia, deuteranopia or tritanopia in the six themes (#1281). Bali::Chart's
+    # controller repaints every series from THEME_COLOR_VARS (chart/index.js), which
+    # lists the same order.
+    CYCLE = %i[primary accent secondary success warning info error].freeze
 
     # #rgb, #rgba, #rrggbb, #rrggbbaa. Anything else is not something we can drop
     # into a style attribute without guessing what the caller meant.

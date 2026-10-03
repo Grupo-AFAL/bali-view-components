@@ -18,14 +18,15 @@ export class ChartController extends Controller {
     color: { type: String, default: '' }
   }
 
-  // DaisyUI 5 theme color variable names (full form)
+  // The order of Bali::Color::CYCLE, which says why it is not daisyUI's. Ruby names each
+  // series' colour from that list and this one repaints series N in entry N % 7, so they agree.
   static THEME_COLOR_VARS = [
     '--color-primary',
-    '--color-secondary',
     '--color-accent',
-    '--color-info',
+    '--color-secondary',
     '--color-success',
     '--color-warning',
+    '--color-info',
     '--color-error'
   ]
 

@@ -57,6 +57,23 @@ module Bali
         )
       end
 
+      # @label Series Palette
+      # One series per theme colour, in the order a multi-series chart hands
+      # them out: primary, accent, secondary, success, warning, info, error. An
+      # eighth series starts over at primary.
+      # @param type select { choices: [bar, line] }
+      def series_palette(type: :bar)
+        render Bali::Chart::Component.new(
+          data: {
+            labels: %w[Q1 Q2 Q3 Q4],
+            datasets: (1..7).map { |n| { label: "Series #{n}", data: [n + 3, n + 6, n + 4, n + 8] } }
+          },
+          type: type.to_sym,
+          card_style: :bordered,
+          legend: true
+        )
+      end
+
       # @label Accessible Data Table
       # A canvas is pixels: `role="img"` and a name are all the accessibility
       # tree gets from it, and neither carries a number. The `data_table` slot

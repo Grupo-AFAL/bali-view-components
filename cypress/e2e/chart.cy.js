@@ -1,3 +1,6 @@
+import { DEFICIENCIES, cvdDistance, srgb } from '../support/color_vision'
+import { THEMES } from '../support/themes'
+
 // #1041 — Chart had no E2E spec, and a canvas is the one component where a
 // broken render looks exactly like an empty one. Ruby writes the dataset colors
 // as `color-mix(in oklch, var(--color-primary) ...)` — CSS a canvas cannot
@@ -121,6 +124,74 @@ describe('Chart', () => {
           expect(first).to.not.include(primary.replace(/^oklch\(|\)$/g, ''))
         })
       })
+    })
+  })
+
+  describe('series palette', () => {
+    // Before #1281 `afal-dark`'s first two series were 0.003 apart under deuteranopia. The
+    // closest neighbours left are costa-norte's accent and secondary, both golds, at 0.061 under
+    // tritanopia: the widest closest pair of the 120 orders that start primary, accent.
+    const FLOOR = 0.06
+
+    const bare = (colour) => colour.replace(/^oklch\(|\)$/g, '')
+    const firstColor = (dataset) => [dataset.borderColor].flat()[0]
+
+    beforeEach(() => {
+      cy.visit('/bali/chart/series_palette')
+    })
+
+    // Ruby names each series' colour from Bali::Color::CYCLE and the controller repaints it
+    // from THEME_COLOR_VARS: two lists that have to agree.
+    it('paints each series in the colour Ruby named for it', () => {
+      canvas().then(($canvas) => {
+        const named = JSON.parse($canvas.attr('data-chart-data-value')).datasets
+          .map((dataset) => firstColor(dataset).match(/var\((--color-[\w-]+)\)/)[1])
+
+        cy.window().then((win) => {
+          const tokens = named.map((name) => bare(cssVariable(win, name)))
+          expect(new Set(tokens).size, 'the theme keeps them apart').to.eq(new Set(named).size)
+
+          chartInstance((chart) => {
+            chart.data.datasets.forEach((dataset, index) => {
+              expect(firstColor(dataset), `series ${index + 1}, ${named[index]}`).to.include(tokens[index])
+            })
+          })
+        })
+      })
+    })
+
+    // The pair after the last series counts too: series 8 repeats series 1, and a `color:`
+    // rotates the cycle so that pair lands anywhere.
+    it('keeps neighbouring series apart under colour-vision deficiencies in every theme', () => {
+      const collapsed = []
+
+      THEMES.forEach((theme) => {
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+        cy.window().then((win) => {
+          const primary = bare(cssVariable(win, '--color-primary'))
+
+          chartInstance((chart) => {
+            expect(win.document.getAnimations(), 'transitions').to.have.length(0)
+            expect(firstColor(chart.data.datasets[0]), `${theme} repainted`).to.include(primary)
+
+            // The series' own colour, not the 0.8 its border is painted at.
+            const colours = chart.data.datasets
+              .map((dataset) => srgb(win.document, firstColor(dataset).replace(/\s*\/\s*[\d.]+\)$/, ')')))
+
+            colours.forEach((colour, index) => {
+              const next = (index + 1) % colours.length
+              DEFICIENCIES.forEach((deficiency) => {
+                const distance = cvdDistance(colour, colours[next], deficiency)
+                if (distance < FLOOR) {
+                  collapsed.push(`${theme} series ${index + 1}-${next + 1} ${deficiency} ${distance.toFixed(3)}`)
+                }
+              })
+            })
+          })
+        })
+      })
+
+      cy.then(() => expect(collapsed, `neighbours closer than ΔE_OK ${FLOOR}`).to.deep.eq([]))
     })
   })
 
