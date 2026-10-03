@@ -243,25 +243,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de la píldora de estatus, así que hay que corregir los dos comentarios que lo afirman, el de
   `shipment_status_hex` y el de `dashboard/show.html.erb`.
 
-- **El error del FormBuilder y el texto y los íconos de color de siete componentes pasan a
-  `text-soft-<color>`** (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`,
-  `text-info` y `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1
-  en `afal`, `text-success` 1.92—, `text-secondary` en `light`, `costa-norte` (1.99) y `dark`
-  (4.32), y `text-primary` en `dark` (3.40); AA pide 4.5 para texto y 3:1 para un ícono. Con la
-  mezcla, el mínimo es 5.97:1 (`text-soft-warning` en `afal`). Cambian:
-  - FormBuilder: el mensaje de error de cada campo, el asterisco de requerido y el contador de
-    caracteres pasado el máximo.
-  - `Filters`: los tres «Clear all».
-  - `Widget`: la tendencia, y el sí y el no del Check, que dibuja `BooleanIcon`.
+- **El texto y los íconos de color que Bali pinta sobre la página pasan a `text-soft-<color>`**
+  (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`, `text-info` y
+  `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1 en `afal`,
+  `text-success` 1.92—, `text-secondary` en `light`, `costa-norte` (1.99) y `dark` (4.32), y
+  `text-primary` en `dark` (3.40); AA pide 4.5 para texto y 3:1 para un ícono. Con la mezcla, el
+  mínimo medido es 5.14:1 (`text-soft-warning` en `afal`). Cambian:
+  - FormBuilder: el mensaje de error de cada campo, el asterisco de requerido, el contador de
+    caracteres pasado el máximo y el «Clear» de `coordinates_polygon_group`.
+  - `DeleteLink`: el rojo del botón `ghost` o `link`, y con él cada ítem `method: :delete` de
+    `Dropdown` y `ActionsDropdown`, que bajo el puntero del menú medía 3.27 en `dark`.
+  - `Filters`: los tres «Clear all» y la pista de una condición sin valor.
+  - `Widget`: la tendencia, el sí y el no del Check, que dibuja `BooleanIcon`, y el aviso de un
+    widget que no cargó.
   - `Gauge` y `Loader`: el porcentaje y el texto; el anillo y el spinner conservan el color, y la
     etiqueta del `Gauge` pasa a `text-base-content/70`.
   - `Timeline`: el marcador, también el de `custom_color:`, con `Bali::Color.soft`; la línea
     conserva el color.
-  - `SplitView`: el `meta_color:` de una fila.
+  - `SplitView`: el `meta_color:` de una fila y el error al cargar la página siguiente.
   - `BooleanIcon`: el sí y el no.
+  - `DocumentEditor`: el estado de un guardado fallido y el error del historial.
+  - `DirectUpload`: el error de un archivo y el ícono de subido.
+  - El aviso de error de una isla de React (`react-island.js`), la caja que `BlockEditor` muestra
+    en development con el flag apagado y la mención de `RichTextEditor`.
 
-  Lo ve toda app con formularios: el rojo del error sale más oscuro en los temas claros y más
-  claro en los oscuros. **Anfitrión:** una prueba que busca el error con `p.text-error` o el
+  Lo ve toda app con formularios o con un botón o un ítem de borrar: el rojo sale más oscuro en
+  los temas claros y más claro en los oscuros. **Anfitrión:** una prueba que busca el error con `p.text-error` o el
   asterisco con `label .text-error` pasa a `text-soft-error`, y una con `count: 0` deja de fallar
   sin avisar. Son las de `test/controllers/finance/terminals/` en **afal-apps**
   (`affiliations_controller_test.rb`, `census_assignments_controller_test.rb` y
