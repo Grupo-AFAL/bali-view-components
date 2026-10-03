@@ -664,9 +664,17 @@ frame into view after each swap; it has to be asked on the frame:
   marker.** `lg:hidden` keeps a wide screen still: an element with no box is
   never scrolled to. Leave it visible and a click on a long page scrolls the
   page back to the top of the detail. `scroll-mt-4` is the gap left above it.
+- **Still only works while the detail stays beside the list.** A master taller
+  than the screen — `max_height: "none"`, or a `master` slot with no
+  `.split-view-scroll` — carries the detail off the top as the page scrolls,
+  and a click far down the list then changes a pane nobody can see. Pin the
+  frame from `lg` up, `frame_options: { class: "lg:sticky lg:top-4", … }`, as
+  the preview does. That suits a detail shorter than the screen: a taller one,
+  pinned, shows its end only once the list runs out. With `height: :full` each
+  pane scrolls on its own instead.
 
 Live at `/lookbook/preview/bali/split_view/frame_options`, with a window
-narrower than 1024px.
+narrower than 1024px to see the scroll and a wider one to see the pin.
 
 ---
 

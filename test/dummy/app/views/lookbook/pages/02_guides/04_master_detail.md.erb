@@ -61,7 +61,9 @@ makes the selection deep-linkable.
 [frame_options](/lookbook/inspect/bali/split_view/frame_options) preview uses it to
 scroll the detail into view after a click when the panes are stacked: `autoscroll`
 and `data: { autoscroll_block: "start" }` on the frame, and a `lg:hidden` marker as
-the detail's first child so a wide screen does not move.
+the detail's first child so a wide screen does not move. Its list is uncapped, so the
+frame is also `lg:sticky lg:top-4`: a wide screen that does not move must not leave
+the detail scrolled off the top.
 
 `with_item` takes `title:` and `href:` (required), plus `id:`, `subtitle:`, `icon:`,
 `meta:`, `meta_color:`, any number of `with_tag(text:, color:)`, and a block for
