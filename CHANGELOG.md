@@ -207,27 +207,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Un drawer cerrado ya no oscurece el borde de la página** (#1286). El panel cerrado espera
-  justo fuera de la pantalla, y su `shadow-2xl` entraba unos 40 px: en `light` el borde derecho
-  de cada página con `Bali::AppLayout` bajaba de 248 a 228, y lo mismo el izquierdo con un
-  drawer `position: :left`. Ahora el panel sólo tiene sombra abierto: la trae desde el primer cuadro
-  del deslizamiento de entrada y la desvanece con el de salida. Vale para todo `Bali::Drawer`.
-  Sin nada que hacer en el anfitrión.
+  justo fuera de la pantalla, y su sombra entraba unos 40 px: cada página con `Bali::AppLayout`
+  tenía gris el borde derecho, y el izquierdo una con un drawer `position: :left`. Ahora el panel
+  sólo tiene sombra abierto, desde el primer cuadro del deslizamiento de entrada, y la desvanece
+  al cerrarse. Vale para todo `Bali::Drawer`. Sin nada que hacer en el anfitrión.
 
-- **El ✕ de un modal armado con contenido ya no tapa la cabecera de ese contenido** (#1286). El
-  `#main-modal` de `Bali::AppLayout`, y todo modal sin `with_header`, pinta su propio ✕ en la
-  esquina, y como iba `absolute` se encimaba sobre lo que el contenido pusiera a la derecha de su
-  primera fila: la etiqueta «New» de un encabezado (16×14 px a 1280 de ancho, 24×22 a 390) o la
-  acción «Edit» de un `ShowPage` abierto en el modal (16×16). Ahora el ✕ flota en la misma
-  esquina, a 8 px de cada borde, y esa primera fila se acorta a su lado; lo que viene debajo
-  conserva todo el ancho. Un contenido cuya raíz sea un contenedor `flex` o `grid` queda entero
-  al lado del ✕, 24 px más angosto en escritorio. Sin nada que hacer en el anfitrión: ninguna
-  de las nueve apps le dejaba un hueco al ✕ a mano.
+- **El ✕ de un modal sin `with_header` ya no tapa la cabecera del contenido** (#1286). El
+  `#main-modal` de `Bali::AppLayout`, y todo modal armado con contenido, pinta su ✕ en la
+  esquina, y se encimaba sobre lo que el contenido pusiera a la derecha de su primera fila: una
+  etiqueta junto al título, o la acción de un `ShowPage` abierto en el modal. Ahora el ✕ flota en
+  la misma esquina y esa fila se acorta a su lado. Un contenido cuya raíz sea `flex` o `grid`
+  —una Card, un `fieldset` del FormBuilder— se acorta en toda su altura, 24 px en escritorio y
+  32 en celular. Sin nada que hacer en el anfitrión.
 
 - **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
-  anual «On the First / Sunday / of January» no se podía partir y estiraba su panel a 485 px en
-  una pantalla de 390: ahora sus selects pasan al renglón siguiente cuando no caben, y en
-  escritorio siguen en una sola línea. «On the», en el panel anual y en el mensual, ya no se
-  parte en dos renglones. Ninguna de las nueve apps usa el componente.
+  anual «On the First / Sunday / of January» no se partía y estiraba su panel más allá de la
+  pantalla; ahora sus selects pasan al renglón siguiente cuando no caben, y en escritorio siguen
+  en una línea. «On the» ya no se parte en dos renglones. Ninguna de las nueve apps usa el
+  componente.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
