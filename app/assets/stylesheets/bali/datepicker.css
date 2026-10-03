@@ -898,14 +898,6 @@ span.flatpickr-weekday {
   input.cur-year {
     @apply text-primary-content font-semibold;
   }
-
-  .numInputWrapper span.arrowUp:after {
-    border-bottom-color: oklch(var(--pc));
-  }
-
-  .numInputWrapper span.arrowDown:after {
-    border-top-color: oklch(var(--pc));
-  }
 }
 
 /* Hide the arrow pointing to input - cleaner look matching other dropdowns.
