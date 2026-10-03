@@ -213,6 +213,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   del deslizamiento de entrada y la desvanece con el de salida. Vale para todo `Bali::Drawer`.
   Sin nada que hacer en el anfitrión.
 
+- **El ✕ de un modal armado con contenido ya no tapa la cabecera de ese contenido** (#1286). El
+  `#main-modal` de `Bali::AppLayout`, y todo modal sin `with_header`, pinta su propio ✕ en la
+  esquina, y como iba `absolute` se encimaba sobre lo que el contenido pusiera a la derecha de su
+  primera fila: la etiqueta «New» de un encabezado (16×14 px a 1280 de ancho, 24×22 a 390) o la
+  acción «Edit» de un `ShowPage` abierto en el modal (16×16). Ahora el ✕ flota en la misma
+  esquina, a 8 px de cada borde, y esa primera fila se acorta a su lado; lo que viene debajo
+  conserva todo el ancho. Sin nada que hacer en el anfitrión: ninguna de las nueve apps le
+  dejaba un hueco al ✕ a mano.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
