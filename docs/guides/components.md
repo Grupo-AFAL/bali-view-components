@@ -336,15 +336,18 @@ The prefabricated user dropdown for the `with_user_menu` slot — a preset of
 `Bali::Dropdown` (like `ActionsDropdown`), so keyboard navigation, Escape,
 `aria-expanded` and `popover:` come with it. The trigger is an avatar (photo
 via `avatar_url:`, or initials with a deterministic colour derived from
-`name:` — see Avatar), the name (hidden on mobile) and a chevron. The panel
+`name:` — see Avatar), the name (from `md` up, cut with an ellipsis at 12rem)
+and a chevron (from `sm` up; below it the trigger is the avatar alone). The panel
 opens with a non-actionable name/email header, then your `with_item`s, then
 the **Dark mode** switch when `Bali.themes` declares a `dark:` theme, then the
-sign-out entry (see *Dark mode* in `docs/guides/custom-themes.md`).
+sign-out entry (see *Dark mode* in `docs/guides/custom-themes.md`). The header's
+two lines wrap inside the panel, the email at any character.
 
 **Options:**
 - `name` (required) - the user's full name; feeds avatar, header and the trigger's `aria-label`
+- `initials` - the avatar's letters, passed to Avatar as given. Without it Avatar takes the first and the last word of `name:`, which reads two surnames as the wrong pair: `initials: "FG"` for "Federico González Pérez", not the derived "FP"
 - `email` - second line of the header; omitted when absent
-- `avatar_url` - photo for the avatar; wins over the derived initials
+- `avatar_url` - photo for the avatar; wins over the initials
 - `sign_out` - `{ href:, method: :delete }`. **No default route**: without this hash the item is not rendered, so the gem stays uncoupled from bali-auth and from the host's route names. With bali-auth: `sign_out: { href: bali_auth.sign_out_path }`. The default `:delete` submits a real form (`button_to`) that cannot degrade to a GET; extra keys (`name:`, `confirm:`, `data:`, ...) reach the item
 - Everything else is `Bali::Dropdown::Component`'s (`align:` defaults to `:end` here)
 
