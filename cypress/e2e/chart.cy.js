@@ -1,4 +1,4 @@
-import { DEFICIENCIES, cvdDistance } from '../support/color_vision'
+import { DEFICIENCIES, cvdDistance, okDistance } from '../support/color_vision'
 import { paintedPixel } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 
@@ -189,6 +189,30 @@ describe('Chart', () => {
           expect(chart.legend.legendItems[index].fillStyle, `series ${index + 1} legend`).to.eq(firstColor(dataset))
         })
       })
+    })
+
+    // Seven series show each theme colour once, unless two of them are one colour: afal-dark's
+    // amber-400 accent was its warning to 0.005, and series 5 repeated series 2.
+    it('keeps every pair of series apart in every theme', () => {
+      const alike = []
+
+      THEMES.forEach((theme) => {
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+        cy.window().then((win) => {
+          chartInstance((chart) => {
+            expect(win.document.getAnimations(), 'transitions').to.have.length(0)
+            const colours = chart.data.datasets.map((dataset) => opaque(win, firstColor(dataset)))
+            expect(colours[0], `${theme} repainted`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
+
+            colours.forEach((colour, index) => colours.slice(index + 1).forEach((other, offset) => {
+              const distance = okDistance(colour, other)
+              if (distance < FLOOR) alike.push(`${theme} series ${index + 1}-${index + offset + 2} ${distance.toFixed(3)}`)
+            }))
+          })
+        })
+      })
+
+      cy.then(() => expect(alike, `series closer than ΔE_OK ${FLOOR}`).to.deep.eq([]))
     })
 
     // The pair after the last series counts too: series 8 repeats series 1, and a `color:`

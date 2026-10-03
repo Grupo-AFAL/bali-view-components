@@ -136,6 +136,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `backgroundColor: Bali::Color.with_alpha(:info, 50)` la dejan celeste. En `costa-norte-dark`,
   donde el primario y el acento son dos dorados, las dos primeras series quedan más cerca que
   antes (0.061 con tritanopia, antes 0.265); ninguna app pinta hoy una gráfica en ese tema.
+- **`afal-dark`: el acento pasa del ámbar 400 al 500 (`#F59E0B`), el de `afal`** (#1281). El
+  ámbar 400 (`#FBBF24`) era el `warning` (`#FBBD23`) a ΔE_OK 0.005, así que una gráfica de cinco
+  o más series repetía en la quinta el color de la segunda; ahora quedan a 0.075, y a 0.063 o más
+  con protanopia, deuteranopia y tritanopia. Los botones, etiquetas, Hero, Navbar y demás piezas
+  `accent` de `afal-dark` cambian a un ámbar más oscuro: su texto (`accent-content`) queda a
+  6.97:1 (antes 8.97) y el acento como texto sobre `base-100`, a 8.26 (antes 10.63). Hoy ninguna
+  app pinta `afal-dark`: garita importa el tema, sin el interruptor de modo oscuro.
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
   `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
   `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su

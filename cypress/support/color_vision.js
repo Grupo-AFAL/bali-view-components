@@ -33,7 +33,10 @@ const oklab = ([r, g, b]) => {
   ]
 }
 
-export const cvdDistance = (a, b, deficiency) => {
-  const [p, q] = [a, b].map((rgb) => oklab(simulate(rgb.map(linear), deficiency)))
-  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
-}
+const distance = ([p, q]) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
+
+export const cvdDistance = (a, b, deficiency) =>
+  distance([a, b].map((rgb) => oklab(simulate(rgb.map(linear), deficiency))))
+
+// The same ΔE_OK for a reader without a deficiency.
+export const okDistance = (a, b) => distance([a, b].map((rgb) => oklab(rgb.map(linear))))
