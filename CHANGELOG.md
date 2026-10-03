@@ -279,17 +279,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app/views/rodauth/_otp_digits.html.erb` (pasa a `text-soft-error`), y **gobierno-corporativo**
   pinta de `text-error` su contador en `app/javascript/controllers/character_counter_controller.js`.
 
-- **El texto que daisyUI atenúa a `/60` pasa a `/70` en la ayuda de cada campo del FormBuilder y
-  en el encabezado y el pie de toda `.table`** (#1281). Medían 4.04:1 en `afal` y 4.32 en
-  `costa-norte`; a `/70`, 5.54 y 6.00. El de la tabla es una regla de Bali y no una clase en sus
-  plantillas, así que alcanza también las tablas escritas a mano: las 95 vistas con una
-  `<table class="table">` y su `<thead>` o `<tfoot>` en seis apps, 69 de ellas en
-  **gobierno-corporativo** y 15 en **afal-apps**, leen el encabezado y el pie algo más oscuros sin
-  tocar nada. Una clase de color propia en el `<thead>`, el `<tfoot>` o un `<th>` sigue ganando:
-  el historial de documentos de gobierno-corporativo, que escribe `text-base-content/60` en cada
-  `<th>`, se queda en 4.04 en `afal` hasta que la quite. **identity** escribe además tres
-  `<p class="fieldset-label">` de ayuda en `app/views/admin/connected_applications/_form.html.erb`,
-  que siguen en el `/60` hasta que les ponga `text-base-content/70`.
+- **El texto que daisyUI atenúa a `/60` pasa a `/70` en toda `.fieldset-label`, que es la ayuda
+  de cada campo del FormBuilder, y en el encabezado y el pie de toda `.table`** (#1281). Medían
+  4.04:1 en `afal` y 4.32 en `costa-norte`; a `/70`, 5.54 y 6.00. Es una regla de Bali y no una
+  clase en sus plantillas, así que alcanza también el marcado escrito a mano sin tocar nada: las
+  95 vistas con una `<table class="table">` y su `<thead>` o `<tfoot>` en seis apps, 69 de ellas
+  en **gobierno-corporativo** y 15 en **afal-apps**, y los tres `<p class="fieldset-label">` de
+  ayuda que **identity** escribe en `app/views/admin/connected_applications/_form.html.erb`. Una
+  clase de color propia en el elemento sigue ganando: el historial de documentos de
+  gobierno-corporativo, que escribe `text-base-content/60` en cada `<th>`, se queda en 4.04 en
+  `afal` hasta que la quite.
 
 - **`Bali::Footer` deja de atenuar el título, la descripción y el copyright** (#1281). Sobre
   `primary` el título medía 2.83:1 en `afal`, y sobre `neutral` 4.15 en `afal-dark`. Con los
