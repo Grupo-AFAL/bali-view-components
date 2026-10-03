@@ -27,7 +27,7 @@ module Bali
           tag.div(class: "flex flex-1 flex-col items-center justify-center gap-1 px-2 text-center") do
             safe_join([
               tag.p(short_title, class: "text-sm font-medium text-base-content/70"),
-              tag.p(t("bali_view.widgets.load_error"), class: "text-xs text-warning")
+              tag.p(t("bali_view.widgets.load_error"), class: "text-xs text-soft-warning")
             ])
           end
         end
