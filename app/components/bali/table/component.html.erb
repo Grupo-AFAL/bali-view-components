@@ -1,6 +1,6 @@
 <%= tag.div(id: container_id, **table_container_options) do %>
   <%= tag.table(**options) do %>
-    <thead>
+    <thead class="<%= HEAD_AND_FOOT_CLASSES %>">
       <tr>
         <% if selectable? %>
           <th class="w-4">
@@ -78,7 +78,7 @@
       <% end %>
     <% end %>
     <% if footers.any? %>
-      <tfoot>
+      <tfoot class="<%= HEAD_AND_FOOT_CLASSES %>">
         <% footers.each do |footer| %><%= footer %><% end %>
       </tfoot>
     <% end %>
