@@ -18,20 +18,27 @@
 
 /* =============================================================================
    CSS Custom Properties
-   Using DaisyUI-compatible oklch values, easily themeable
    ============================================================================= */
-:root {
-  /* Colors - DaisyUI light theme */
-  --fp-primary-color: oklch(0.6569 0.196 275.75);    /* primary */
-  --fp-primary-content: oklch(0.98 0.005 275.75);    /* primary-content */
-  --fp-bg-color: oklch(1 0 0);                        /* base-100 */
-  --fp-font-color: oklch(0.278 0.033 256.8);          /* base-content */
-  --fp-muted-color: oklch(0.278 0.033 256.8 / 0.5);   /* base-content/50 */
-  --fp-border-color: oklch(0.278 0.033 256.8 / 0.2);  /* base-content/20 */
-  --fp-hover-bg: oklch(0.95 0 0);                     /* base-200 */
-  --fp-today-border: oklch(0.6569 0.196 275.75);      /* primary */
-  --fp-range-bg: oklch(0.6569 0.196 275.75 / 0.2);    /* primary/20 */
+/* Theme tokens, never literals: these were daisyUI's light theme written out, and on a dark
+   theme a day under keyboard focus, or of another month under the pointer, turned a near-white
+   square (13.6–15.3:1 against the calendar) with its number at 1.00–1.08:1, and the time
+   picker's stepper arrows read 1.05–1.14:1. Declared again on every [data-theme], as in
+   slim_select.css: a custom property resolves its var() where it is declared. */
+:root,
+[data-theme] {
+  --fp-primary-color: var(--color-primary);
+  --fp-primary-content: var(--color-primary-content);
+  --fp-bg-color: var(--color-base-100);
+  --fp-font-color: var(--color-base-content);
+  /* A day of another month can be picked, so it is text: at 30% it read 1.86:1 on `afal`. */
+  --fp-muted-color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  --fp-border-color: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+  --fp-hover-bg: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+  --fp-today-border: var(--color-primary);
+  --fp-range-bg: color-mix(in oklab, var(--color-primary) 20%, transparent);
+}
 
+:root {
   /* Dimensions */
   --fp-calendar-width: 308px;
   --fp-day-size: 40px;
@@ -286,11 +293,6 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 0.25rem;
-  transition: background var(--fp-animation-timing) ease;
-}
-
-.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
-  background: oklch(1 0 0 / 0.2);
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months:focus {
@@ -315,10 +317,6 @@
   vertical-align: middle;
   appearance: textfield;
   transition: background var(--fp-animation-timing) ease;
-}
-
-.flatpickr-current-month input.cur-year:hover {
-  background: oklch(1 0 0 / 0.2);
 }
 
 .flatpickr-current-month input.cur-year:focus {
@@ -366,8 +364,14 @@
   opacity: 1;
 }
 
-.numInputWrapper span:hover {
-  background: oklch(1 0 0 / 0.3);
+/* A ring in the text's own colour, not a fill. A white tint took the month and the year to
+   2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and raised them on afal-dark and
+   costa-norte-dark (5.78 → 7.06, 7.98 → 9.06): primary-content is the lighter side on some
+   themes and the darker on others, so no one tint keeps them all. */
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month input.cur-year:hover,
+.flatpickr-current-month .numInputWrapper span:hover {
+  box-shadow: inset 0 0 0 1px currentColor;
 }
 
 .numInputWrapper span:after {
@@ -483,17 +487,16 @@ span.flatpickr-weekday {
               color var(--fp-animation-timing) ease;
 }
 
-/* Hover state */
+/* Hover state. The fill is translucent and already runs under the transparent border, so it
+   leaves `border-color` alone: the same colour on the border paints over it, a darker ring. */
 .flatpickr-day:hover {
   background: var(--fp-hover-bg);
-  border-color: var(--fp-hover-bg);
 }
 
 /* Focus state */
 .flatpickr-day:focus {
   outline: 0;
   background: var(--fp-hover-bg);
-  border-color: var(--fp-hover-bg);
 }
 
 /* Today indicator */
@@ -534,17 +537,15 @@ span.flatpickr-weekday {
   box-shadow: none;
 }
 
-/* Range selection */
-.flatpickr-day.inRange {
+/* Range selection. The fill runs under the transparent border, as on hover. No band either:
+   flatpickr bridges the 5px between its days with a ±5px box-shadow, and here they are 1.7px
+   apart, so a translucent band paints twice over each neighbour. flatpickr marks the other
+   month's days inRange too, and the rule below that empties them is as specific as `.inRange`. */
+.flatpickr-day.inRange,
+.flatpickr-day.prevMonthDay.inRange,
+.flatpickr-day.nextMonthDay.inRange {
   background: var(--fp-range-bg);
-  border-color: var(--fp-range-bg);
   border-radius: 0;
-  box-shadow: -5px 0 0 var(--fp-range-bg), 5px 0 0 var(--fp-range-bg);
-}
-
-.flatpickr-day.inRange:hover {
-  background: var(--fp-range-bg);
-  border-color: var(--fp-range-bg);
 }
 
 /* Range start/end rounded corners */
@@ -577,7 +578,6 @@ span.flatpickr-weekday {
 .flatpickr-day.prevMonthDay:hover,
 .flatpickr-day.nextMonthDay:hover {
   background: var(--fp-hover-bg);
-  border-color: var(--fp-hover-bg);
 }
 
 /* Disabled days */
@@ -585,7 +585,7 @@ span.flatpickr-weekday {
 .flatpickr-day.flatpickr-disabled:hover,
 .flatpickr-day.notAllowed,
 .flatpickr-day.notAllowed:hover {
-  color: oklch(0.278 0.033 256.8 / 0.2);
+  color: color-mix(in oklab, var(--fp-font-color) 20%, transparent);
   background: transparent;
   border-color: transparent;
   cursor: not-allowed;
@@ -764,6 +764,10 @@ span.flatpickr-weekday {
   border-top-color: var(--fp-font-color);
 }
 
+.flatpickr-time .numInputWrapper span:hover {
+  background: var(--fp-hover-bg);
+}
+
 /* =============================================================================
    Week Numbers
    ============================================================================= */
@@ -791,24 +795,6 @@ span.flatpickr-weekday {
   background: transparent;
   cursor: default;
   border: none;
-}
-
-/* =============================================================================
-   Multi-month calendar
-   ============================================================================= */
-/* No !important: the only rule setting `box-shadow` on `.flatpickr-day.inRange`
-   is in this same file at (0,2,0), and this selector is both more specific and
-   later. Nothing in @layer utilities matches `.flatpickr-*`. */
-.flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+1) .flatpickr-day.inRange:nth-child(7n+7) {
-  box-shadow: none;
-}
-
-.flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+2) .flatpickr-day.inRange:nth-child(7n+1) {
-  box-shadow: -2px 0 0 var(--fp-range-bg), 5px 0 0 var(--fp-range-bg);
-}
-
-.dayContainer + .dayContainer {
-  box-shadow: -1px 0 0 var(--fp-border-color);
 }
 
 /* =============================================================================
@@ -875,7 +861,7 @@ span.flatpickr-weekday {
 
 /* Calendar container - enhanced with DaisyUI tokens */
 .flatpickr-calendar {
-  @apply bg-base-100 shadow-lg rounded-lg border border-base-300;
+  @apply bg-base-100 shadow-lg rounded-lg;
   font-family: inherit;
 }
 
@@ -903,14 +889,6 @@ span.flatpickr-weekday {
   input.cur-year {
     @apply text-primary-content font-semibold;
   }
-
-  .numInputWrapper span.arrowUp:after {
-    border-bottom-color: oklch(var(--pc));
-  }
-
-  .numInputWrapper span.arrowDown:after {
-    border-top-color: oklch(var(--pc));
-  }
 }
 
 /* Hide the arrow pointing to input - cleaner look matching other dropdowns.
@@ -930,10 +908,6 @@ span.flatpickr-weekday {
 /* Day cells */
 .flatpickr-day {
   @apply text-base-content rounded-lg;
-
-  &:hover {
-    @apply bg-base-200 border-base-200;
-  }
 }
 
 /* Today indicator */
@@ -968,28 +942,8 @@ span.flatpickr-weekday {
   @apply bg-primary text-primary-content border-primary font-semibold;
 }
 
-/* Range selection - days between start and end */
-.flatpickr-day.inRange {
-  @apply bg-primary/20 border-primary/20;
-  box-shadow: -5px 0 0 oklch(var(--p) / 0.2), 5px 0 0 oklch(var(--p) / 0.2);
-}
-
-/* Previous/next month days (faded) */
-.flatpickr-day.prevMonthDay,
-.flatpickr-day.nextMonthDay {
-  @apply text-base-content/30;
-}
-
-/* Disabled days */
-.flatpickr-day.flatpickr-disabled,
-.flatpickr-day.flatpickr-disabled:hover {
-  @apply text-base-content/20 cursor-not-allowed;
-}
-
 /* Time picker */
 .flatpickr-time {
-  @apply border-t border-base-300;
-
   input {
     @apply text-base-content;
   }
@@ -997,12 +951,5 @@ span.flatpickr-weekday {
   .flatpickr-time-separator,
   .flatpickr-am-pm {
     @apply text-base-content;
-  }
-
-  input:hover,
-  input:focus,
-  .flatpickr-am-pm:hover,
-  .flatpickr-am-pm:focus {
-    @apply bg-base-200;
   }
 }

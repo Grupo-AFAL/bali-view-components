@@ -76,7 +76,15 @@ describe('hovers, tints and edges over a base surface', () => {
   }
   const recurrenceOption = (period, n) => `label:has(> input[name$="_${period}_on"][value="${n}"])`
 
-  // [what, how the state is reached, the element that paints it]
+  const openDatepicker = (field) => () => {
+    cy.visit(`/bali/form/${field}/default`)
+    cy.get('form input.input:not([type="hidden"])').click()
+    cy.get('.flatpickr-calendar.open').should('be.visible')
+  }
+  const DAY = '.flatpickr-calendar.open .flatpickr-day'
+  const upArrow = (el) => paintedContrast(el, { pseudo: '::after', property: 'borderBottomColor' })
+
+  // [what, how the state is reached, the element that paints it, { filled, text, icon, ringless }]
   const HOVERS = [
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
       '.tree-view-item-component .item:not(.is-active)'],
@@ -97,6 +105,22 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a Gantt zoom button', openGantt, 'button[title="Zoom in"]'],
     ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]'],
     ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])'],
+    ['a Datepicker day', openDatepicker('date'),
+      `${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today):not(.selected)`, { text: '.flatpickr-day', ringless: true }],
+    // Its hover was a light-theme literal: on the dark themes a near-white square, 13.6–15.3:1
+    // against the calendar, with the number on it at 1.00–1.02.
+    ['a Datepicker day of another month', openDatepicker('date'), `${DAY}.nextMonthDay`,
+      { text: '.flatpickr-day', ringless: true }],
+    ['the hour of the time picker', openDatepicker('time'), '.flatpickr-calendar.open input.flatpickr-hour',
+      { text: 'input.flatpickr-hour' }],
+    ['the AM/PM toggle of the time picker', openDatepicker('time'), '.flatpickr-calendar.open .flatpickr-am-pm',
+      { text: '.flatpickr-am-pm' }],
+    // `.numInputWrapper span:hover` is a white tint meant for the coloured header: over the time
+    // row it painted 1.00:1 on the light themes and a light square, 2.65–2.70, on the dark ones.
+    // The arrow is read on that fill too: an opaque light one lifts off all six themes and leaves
+    // the dark ones' arrow at 1.00–1.08:1.
+    ['a stepper arrow of the time picker', openDatepicker('time'),
+      '.flatpickr-calendar.open .flatpickr-time span.arrowUp', { icon: upArrow }],
     // Filled at rest. Their base-300 hover over a base-200 fill stepped 1.044:1 (afal-dark) to
     // 1.130 (costa-norte) off the same control at rest; the ink at 16% over 8%, 1.168 at worst
     // (afal). The fill has to step off the surface too, and the text is read on both fills.
@@ -116,6 +140,8 @@ describe('hovers, tints and edges over a base surface', () => {
       '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"]'],
     ['the Gantt zoom controls', openGantt, 'div:has(> button[title="Zoom in"])'],
     ['the Gantt minimap', openGantt, 'div[title^="Minimap"]'],
+    ['the Datepicker calendar', openDatepicker('date'), '.flatpickr-calendar.open'],
+    ['the line over the time of a datetime picker', openDatepicker('datetime'), '.flatpickr-calendar.open .flatpickr-time'],
     ['the Gantt filter menu', openGanttMenu('Filter'), 'details[open] > ul.menu'],
     ['the Gantt columns menu', openGanttMenu('Columns'), 'details[open] > ul.menu'],
     ['the Command palette', openCommand, '.cmd-panel', edgeOnOwnFill]
@@ -130,7 +156,11 @@ describe('hovers, tints and edges over a base surface', () => {
 
   const textOn = (el, selector) => paintedContrast(el.matches(selector) ? el : el.querySelector(selector))
 
-  HOVERS.forEach(([what, reach, selector, { filled = false, text } = {}]) => {
+  // A translucent fill already runs under a transparent border: a border in the same colour
+  // paints over it a second time, a darker ring.
+  const ring = (el) => paintedContrast(el, { property: 'borderTopColor' })
+
+  HOVERS.forEach(([what, reach, selector, { filled = false, text, icon, ringless = false } = {}]) => {
     THEMES.forEach((theme) => {
       const name = filled
         ? `tints ${what} off its surface and lifts it further under the pointer on the ${theme} theme`
@@ -146,6 +176,7 @@ describe('hovers, tints and edges over a base surface', () => {
           atRest = lift($el[0])
           if (filled) expect(atRest, `${theme}: ${what} at rest against its surface`).to.be.at.least(STEP)
           if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} at rest`).to.be.at.least(AA)
+          if (icon) expect(icon($el[0]), `${theme}: the icon of ${what} at rest`).to.be.at.least(3)
         })
         cy.get(selector).first().then(hover)
 
@@ -160,6 +191,8 @@ describe('hovers, tints and edges over a base surface', () => {
           expect(lifted, `${theme}: ${what} against its surface`).to.be.at.least(STEP)
           expect(lifted / atRest, `${theme}: ${what} against itself at rest`).to.be.at.least(STEP)
           if (text) expect(textOn($el[0], text), `${theme}: the text on ${what} under the pointer`).to.be.at.least(AA)
+          if (icon) expect(icon($el[0]), `${theme}: the icon of ${what} under the pointer`).to.be.at.least(3)
+          if (ringless) expect(ring($el[0]), `${theme}: the border of ${what} over its own fill`).to.be.closeTo(1, 0.01)
         })
       })
     })
@@ -194,6 +227,109 @@ describe('hovers, tints and edges over a base surface', () => {
         expect(lift($group[0]), `${theme}: a Filters group against its panel`).to.be.at.least(STEP)
         expect(paintedContrast($group[0].querySelector('[data-action="condition#remove"]')),
           `${theme}: the remove-condition icon on the group`).to.be.at.least(3)
+      })
+    })
+  })
+
+  // flatpickr bridges the 5px between its days with a ±5px box-shadow, and these are 1.7px apart:
+  // what reaches past the gap lands on the neighbour's own fill, a second coat.
+  const bandOver = (day, neighbour) => {
+    const doc = day.ownerDocument
+    const styleOf = (el) => doc.defaultView.getComputedStyle(el)
+    const gap = neighbour.getBoundingClientRect().left - day.getBoundingClientRect().right
+    const floor = [styleOf(day.closest('.flatpickr-calendar')).backgroundColor, styleOf(neighbour).backgroundColor]
+    const reaching = (styleOf(day).boxShadow.match(/[a-z-]+\([^)]*\)[^,]*/g) || []).filter((shadow) => {
+      const [x, , blur, spread] = shadow.match(/-?[\d.]+px/g).map(parseFloat)
+      return !shadow.includes('inset') && Math.abs(x) + blur + spread > gap
+    })
+    return Math.max(1, ...reaching.map(shadow => contrastRatio(
+      paintedLuminance(doc, ...floor, shadow.match(/^[a-z-]+\([^)]*\)/)[0]), paintedLuminance(doc, ...floor))))
+  }
+
+  // Picks the two days `ends` chooses among every day of the calendar, then reopens it on the
+  // range. A pick redraws the days, so the second one is found again by its label.
+  const pickRange = (theme, ends) => {
+    cy.visit('/bali/form/date/date_range')
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+    cy.get('form input.input:not([type="hidden"])').click()
+    cy.get(DAY).then(($days) => {
+      ends($days.toArray()).map(day => day.getAttribute('aria-label'))
+        .forEach(label => cy.get(`${DAY}[aria-label="${label}"]`).click())
+    })
+    cy.get('form input.input:not([type="hidden"])').click()
+  }
+
+  // The days of a range wore their translucent fill on the border too, and flatpickr's band over
+  // each neighbour: a ring and stripes, 1.21–1.45:1 against their own inside.
+  THEMES.forEach((theme) => {
+    it(`tints the days of a Datepicker range off the calendar, without a ring or a band, on the ${theme} theme`, () => {
+      const IN_RANGE = `${DAY}.inRange:not(.today)`
+      pickRange(theme, (days) => {
+        const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay'))
+        const week = Object.values(Cypress._.groupBy(inMonth, day => day.getBoundingClientRect().top))
+          .find(row => row.length === 7 && !row.some(day => day.classList.contains('today')))
+        return [week[1], week[5]]
+      })
+
+      cy.get(IN_RANGE, { timeout: 10000 }).should(($days) => {
+        settled($days[0].ownerDocument)
+        expect($days, 'the days between the ends').to.have.length(3)
+        expect($days[0].matches(':hover'), 'at rest').to.equal(false)
+        expect(lift($days[0]), `${theme}: a day of the range against the calendar`).to.be.at.least(STEP)
+        expect(paintedContrast($days[0]), `${theme}: the number on a day of the range`).to.be.at.least(AA)
+        expect(ring($days[0]), `${theme}: the border of a day of the range over its own fill`).to.be.closeTo(1, 0.01)
+        expect(bandOver($days[0], $days[1]), `${theme}: a day of the range over the next one`).to.be.closeTo(1, 0.01)
+      })
+      cy.get(IN_RANGE).eq(1).then(hover)
+
+      cy.get(IN_RANGE).eq(1).should(($day) => {
+        settled($day[0].ownerDocument)
+        expect($day[0].matches(':hover'), 'under the pointer').to.equal(true)
+        expect(ring($day[0]), `${theme}: the border of a day of the range under the pointer`).to.be.closeTo(1, 0.01)
+      })
+    })
+
+    // flatpickr marks the days of the next month inRange too, and the rule that empties those
+    // days has the specificity of the range's own: whichever comes later wins.
+    it(`carries a Datepicker range on into the days of the next month on the ${theme} theme`, () => {
+      pickRange(theme, (days) => {
+        const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay, .today'))
+        return [inMonth.at(-1), days.filter(day => day.matches('.nextMonthDay'))[1]]
+      })
+
+      cy.get(`${DAY}.nextMonthDay.inRange:not(.selected)`, { timeout: 10000 }).should(($days) => {
+        settled($days[0].ownerDocument)
+        expect($days, 'the days of the next month before the end').to.have.length(1)
+        expect($days[0].matches(':hover'), 'at rest').to.equal(false)
+        expect(lift($days[0]), `${theme}: a day of the range in the next month against the calendar`).to.be.at.least(STEP)
+        expect(paintedContrast($days[0]), `${theme}: the number on a day of the range in the next month`).to.be.at.least(AA)
+        expect(ring($days[0]), `${theme}: the border of a day of the range in the next month`).to.be.closeTo(1, 0.01)
+      })
+    })
+
+    // While the second end is picked, flatpickr marks inRange every day between the first end and
+    // the pointer, those of the previous month too. A month whose first day opens the week shows
+    // none of them, so the calendar moves on until it shows two, and past a month where one of
+    // them is today: datepicker.css gives `.today` its primary border after it clears theirs.
+    it(`keeps the range fill on a day of the previous month while the second end is picked on the ${theme} theme`, () => {
+      cy.visit('/bali/form/date/date_range')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+      cy.get('form input.input:not([type="hidden"])').click()
+      const toTwoDaysOfThePreviousMonth = () => cy.get(DAY).then(($days) => {
+        if ($days.filter('.prevMonthDay').length >= 2 && !$days.filter('.prevMonthDay.today').length) return
+        cy.get('.flatpickr-calendar.open .flatpickr-next-month').click()
+        toTwoDaysOfThePreviousMonth()
+      })
+      toTwoDaysOfThePreviousMonth()
+      cy.get(`${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today)`).first().click()
+      cy.get(`${DAY}.prevMonthDay`).first().then(hover)
+
+      cy.get(`${DAY}.prevMonthDay.inRange`, { timeout: 10000 }).should(($days) => {
+        settled($days[0].ownerDocument)
+        expect($days[0].matches(':hover'), 'away from the pointer').to.equal(false)
+        expect(lift($days[0]), `${theme}: a day of the range in the previous month against the calendar`).to.be.at.least(STEP)
+        expect(paintedContrast($days[0]), `${theme}: the number on a day of the range in the previous month`).to.be.at.least(AA)
+        expect(ring($days[0]), `${theme}: the border of a day of the range in the previous month`).to.be.closeTo(1, 0.01)
       })
     })
   })
