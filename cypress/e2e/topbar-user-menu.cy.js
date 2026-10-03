@@ -103,4 +103,24 @@ describe('Topbar::UserMenu', () => {
       })
     })
   })
+
+  // `app_layout/with_topbar` is the arrangement an app ships: hamburger, palette, two actions.
+  it('fits its trigger inside a 320px topbar, and keeps the chevron from sm up', () => {
+    const chevron = `${userMenu} ${trigger} > .icon-component`
+    const display = ($el) => $el[0].ownerDocument.defaultView.getComputedStyle($el[0]).display
+    const contentRight = (el) => {
+      const right = el.getBoundingClientRect().right
+      return right - parseFloat(el.ownerDocument.defaultView.getComputedStyle(el).paddingRight)
+    }
+
+    cy.viewport(320, 640)
+    cy.visit('/bali/app_layout/with_topbar')
+    cy.get(`${userMenu} ${trigger}`).should(($t) => {
+      expect($t[0].getBoundingClientRect().right).to.be.at.most(contentRight($t[0].closest('.bali-topbar')))
+    })
+    cy.get(chevron).should(($c) => expect(display($c)).to.equal('none'))
+
+    cy.viewport(640, 640)
+    cy.get(chevron).should(($c) => expect(display($c)).not.to.equal('none'))
+  })
 })

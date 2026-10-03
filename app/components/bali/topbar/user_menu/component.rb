@@ -76,14 +76,18 @@ module Bali
           super
         end
 
-        # Avatar + name (from md up) + chevron. Rendered into locals first:
+        # Avatar + name (from md up) + chevron (from sm up). Rendered into locals first:
         # a block that calls `render` itself comes back empty here — `capture`
         # prefers the output buffer and discards the returned string (see the
         # measurement note in Bali::ActionsDropdown#default_trigger).
+        #
+        # Below sm the trigger is the avatar alone, square like the IconActions beside it:
+        # at 320 px, next to the hamburger, the palette and two actions, the avatar-and-chevron
+        # trigger ended at x=335, 15 px past the screen edge where AppLayout clips.
         def default_trigger
           avatar = Bali::Avatar::Component.new(name: @name, initials: @initials,
                                                src: @avatar_url, size: :xs)
-          chevron = Bali::Icon::Component.new("chevron-down", size: :small)
+          chevron = Bali::Icon::Component.new("chevron-down", size: :small, class: "max-sm:hidden")
           inner = safe_join([
                               render(avatar),
                               tag.span(@name, class: "hidden md:inline max-w-48 truncate"),
@@ -92,7 +96,7 @@ module Bali
 
           render(Dropdown::Trigger::Component.new(
                    variant: :ghost,
-                   class: "btn-sm gap-2",
+                   class: "btn-sm gap-2 max-sm:btn-square",
                    "aria-label": t(TRIGGER_LABEL_KEY, name: @name)
                  )) { inner }
         end
