@@ -541,17 +541,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correr el resto de la fila. Las columnas del responsable y del estado pasan de 38 a 48 px y de
   76 a 88. La de nombre no baja de 140 px. La tabla abre al 60 % del tablero, entre 300 y 520 px
   (antes el 42 %): todas las columnas entran desde un tablero de 840 px. En uno más angosto, como
-  el de una tableta, se cortan las de la derecha y el cronograma conserva el 40 %: en un tablero de
-  736 px la tabla abre a 442, antes 309. En un teléfono sigue en 300. El hover de fila se pinta; la
-  fila seleccionada conserva su tinte. Lo nota **afal-apps**, el único anfitrión que rinde el
-  Gantt: «Listo para revisión» y, en el portafolio, «En despliegue», «Midiendo valor» y
-  «Mantenimiento» se ven cortados. Sin nada que hacer en el anfitrión.
+  el de una tableta, se ocultan las columnas de la derecha que no caben enteras, en vez de asomar
+  cortadas en el borde, y el cronograma conserva el 40 %: en un tablero de 736 px la tabla abre a
+  442, antes 309. En un teléfono sigue en 300. El esqueleto de carga abre su columna de nombre a
+  ese mismo ancho, no a 256 px. El hover de fila se pinta; la fila seleccionada conserva su
+  tinte. Lo nota **afal-apps**, el único anfitrión que rinde el Gantt: «Listo para revisión» y,
+  en el portafolio, «En despliegue», «Midiendo valor» y «Mantenimiento» se ven cortados. Sin nada
+  que hacer en el anfitrión.
 
 - **Las píldoras de estado del Gantt se leen** (#1281, punto 3): el texto era el color sobre su
   propio tinte, 1.55–2.13:1 en los temas claros. Ahora es la mezcla de `text-soft-*`, y el gris
-  de la píldora neutra sube de `/62` a `/70`. Con los siete colores semánticos y el neutro, en
-  reposo, bajo el puntero o en la fila seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada
-  que hacer en el anfitrión.
+  de la píldora neutra sube de `/62` a `/70`. Un catálogo que nombra `--color-neutral` pinta con
+  `base-content`, como ya lo resuelve `Bali::Color`: en `dark` esa píldora medía 4.20:1 bajo el
+  puntero. Con cualquiera de los ocho colores de daisyUI o sin color, en reposo, bajo el puntero
+  o en la fila seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada que hacer en el
+  anfitrión.
 
 - **Bajo `AppLayout`, un ítem `drawer:` o `modal:` de un menú `popover: true` abre el overlay en
   vez de navegar** (#1268). AppLayout montaba los controllers `modal drawer` en `<main>`, y tippy
