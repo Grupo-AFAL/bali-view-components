@@ -19,12 +19,6 @@ dialog.drawer-component {
   overflow: visible;
 }
 
-/* The panel paints base-100, so it sets the text colour that goes with it rather than inherit
- * one: in a `neutral` Navbar its title measured 1.00:1 in `afal` (#1284). */
-.drawer-component .drawer-panel {
-  @apply text-base-content;
-}
-
 /* Kept rendered while closed, against the UA's `dialog:not([open])`. Closing a
    dialog is instantaneous — it drops out of the top layer in the same frame — so
    with `display: none` the panel would blink out instead of sliding away, and the
