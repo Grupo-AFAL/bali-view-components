@@ -13,19 +13,39 @@ module Bali
       # datepicker-controller.js#dateFormat write: change the three together.
       BARE_DATE = /\A\d{4}-\d{2}-\d{2}\z/
 
+      # Both read the date as the END of that day, so "on or before the 27th" and "after the
+      # 27th" stay complementary over a datetime column.
+      END_OF_DAY_PREDICATES = %w[_lteq _gt].freeze
+
       private
 
       def cast_whole_days(params)
         groups = params[:g]
-        return params unless groups.is_a?(Hash)
+        return params if groups.nil?
 
-        params.merge(g: groups.transform_values { |group| cast_whole_day_group(group) })
+        params.merge(g: cast_whole_day_groupings(groups))
+      end
+
+      # Same walk as EnumCasting#cast_enum_groupings: a nested `g` can arrive as a hash or an array.
+      def cast_whole_day_groupings(groupings)
+        return groupings.map { |group| cast_whole_day_group(group) } if groupings.is_a?(Array)
+        return groupings unless groupings.is_a?(Hash)
+
+        groupings.transform_values { |group| cast_whole_day_group(group) }
       end
 
       def cast_whole_day_group(group)
         return group unless group.is_a?(Hash)
 
-        group.to_h { |key, value| [ key, key.to_s.end_with?("_lteq") ? end_of_day(value) : value ] }
+        group.to_h do |key, value|
+          name = key.to_s
+          casted =
+            if EnumCasting::GROUPING_KEYS.include?(name) then cast_whole_day_groupings(value)
+            elsif name.end_with?(*END_OF_DAY_PREDICATES) then end_of_day(value)
+            else value
+            end
+          [ key, casted ]
+        end
       end
 
       # A date column gets the same day back: Ransack casts the time with `to_date`, in the zone.

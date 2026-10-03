@@ -327,6 +327,26 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal([ "Last day" ], form.result.pluck(:name))
   end
 
+  def test_after_a_date_excludes_that_whole_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_gt: "2026-08-27", created_at_lt: "2026-08-29" })
+    )
+
+    assert_equal([ "Next day" ], form.result.pluck(:name))
+  end
+
+  def test_a_nested_group_includes_its_whole_last_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { g: { "0" => { created_at_lteq: "2026-08-27" } } })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
   def test_a_between_range_over_a_date_column_still_compares_dates
     @tenant.movies.create!(name: "Last day", production_starts_on: Date.new(2026, 8, 27))
     @tenant.movies.create!(name: "Next day", production_starts_on: Date.new(2026, 8, 28))

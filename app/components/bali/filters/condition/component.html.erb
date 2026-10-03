@@ -140,9 +140,9 @@
 
       <% when :date, :datetime %>
         <% if range_operator? %>
-          <%# A range picks whole days, also over a datetime: Bali::FilterForm::WholeDayCasting
-              reads its top end as the end of that day, so a time picked here would not be the
-              one the query used (#1282). %>
+          <%# condition_controller.js#syncRangeDates sends bare dates, which
+              Bali::FilterForm::WholeDayCasting reads as whole days: a time shown here would not
+              travel (#1282). %>
           <div class="w-full" data-condition-target="value">
             <input type="text"
                    class="input input-bordered input-sm w-full"
