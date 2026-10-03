@@ -137,13 +137,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`#155DFC`)** (#1221): con blanco encima pintaba 3.68:1, bajo el 4.5 de AA, y ahora 5.25:1.
   Cambio visible en botones, enlaces y estados activos de afal-apps, garita y
   gobierno-corporativo, que importan el tema de la gema. **Anfitrión:** identity y opina cargan
-  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor: bórrenlo e importen
-  el de la gema, `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
+  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor y el secundario
+  (abajo): bórrenlo e importen el de la gema,
+  `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
   `themes/afal.css` difiere en más tokens, cambia sólo su `--color-primary` a
   `oklch(54.6% 0.245 262.881)`. Los hex copiados pasan a `#155DFC`
   (`git grep -n -i "3b82f6" origin/main -- app`), incluido el `PRIMARY` de
   `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
   ser cierto.
+- **El secundario del tema `afal` pasa de violet-500 (`#8B5CF6`) a violet-600 (`#7C3AED`)**
+  (#1261): con blanco encima pintaba 4.23:1, bajo el 4.5 de AA, y ahora 5.70:1. Cambio visible
+  en todo lo que pinta `secondary` en afal-apps, garita y gobierno-corporativo, que importan el
+  tema de la gema (`git grep -n "css/themes/afal.css" origin/main -- app/assets`).
+  `afal-dark` no cambia. En un `Navbar` `color: :secondary`, la hamburguesa, la marca y «Log in»
+  pasan de 3.47 a 5.70:1 junto con #1257, que les da el blanco de la barra; ninguna de las nueve
+  apps renderiza `Bali::Navbar`. **Anfitrión:** identity y opina, con su bloque propio, lo
+  reciben al borrarlo e importar el de la gema, como en el primario. centinela-web, cuyo
+  `oklch(0.541 0.241 285.8)` ya pasa (5.62:1), no tiene que hacer nada; si quiere el canónico:
+  `--color-secondary: oklch(54.13% 0.2466 293.009)`. Los hex copiados pasan a `#7C3AED`
+  (`git grep -n -i "8b5cf6" origin/main -- app`), como el `purple: "8B5CF6"` de
+  `app/models/business_processes/sheet_pdf.rb` en gobierno-corporativo. En esa misma app, el
+  `badge: "bg-violet-500"` de `app/controllers/concerns/processes/catalog_builder.rb`, que
+  acompaña a `dot: "bg-secondary"` y quedaría más claro que él, pasa a `bg-violet-600`.
+
+- **`Bali::Status`: el naranja, el verde y el teal de la paleta fija pasan a -700 de Tailwind**
+  (#1259): `#ea580c` → `#c2410c`, `#16a34a` → `#15803d`, `#0d9488` → `#0f766e`. Con texto blanco
+  medían 3.56, 3.30 y 3.74:1, bajo el 4.5 de AA; ahora 5.18, 5.02 y 5.47. La paleta sigue igual
+  en todos los temas. Se ve en las píldoras de afal-apps, costa-norte y bali-analytics, en lo que
+  se pinta con `Bali::Status.palette` y en los avatares de iniciales que caen en esos colores
+  (`Avatar` con `name:`, `Topbar::UserMenu`). Acota lo que prometió v3.1: los doce nombres siguen
+  congelados, pero un hex puede cambiar para que su par llegue a AA. **Anfitrión:** quien pinte
+  el `bg` como color de un ícono o de un texto sobre una superficie oscura pierde contraste con
+  estos -700 (el ícono verde de la StatCard de costa-norte bajaría de 4.18 a 2.88:1 en
+  `costa-norte-dark`); revisen esos sitios:
+  `git grep -n -E "Status\.palette|Status::Component::PALETTE" origin/main -- app`.
 
 ### Removed
 
@@ -155,6 +182,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `:flightdeck` o pasa `name:`.
 
 ### Fixed
+
+- **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
+  de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
+  dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
+  `base-content` fijo que le daba daisyUI: la hamburguesa y una marca `variant: :ghost` pasan
+  de 1.00 a 14.68:1 sobre `neutral` en `afal`. En un Navbar transparente de color toman, como
+  sus enlaces, el `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content`
+  es claro, y sobre la página pueden dejar de verse (#1284). Se retira además
+  `.navbar.is-transparent.is-active`, que nunca aplicaba: el controlador pone `is-active` en la
+  hamburguesa, no en el `<nav>`. Ninguna de las nueve apps tiene un `.navbar` de color (el
+  único escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de
+  texto) ni le pone `is-active`: nada que hacer.
 
 - **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
   de la pantalla para poder deslizarse, y el `.skeleton` de daisyUI anima sin fin: cada página
@@ -183,11 +222,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en `light`), el hover y el resaltado de las opciones son el texto al 8 %, y el contador de una
   selección larga sigue a `neutral`. Sin nada que hacer en el anfitrión.
 
-- **BlockEditor y las gráficas en un tema oscuro** (modo oscuro): el bloque de código pintaba la
-  tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
-  `color-scheme` del tema; los comentarios de una barra lateral fuera del editor salían en el gris
-  fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
-  recargar. Sin nada que hacer en el anfitrión.
+- **BlockEditor y las gráficas siguen al tema** (modo oscuro, #1258): el bloque de código pintaba
+  la tinta de `github-light` en todos los temas —1.00:1 sobre fondo oscuro, y las variables a
+  3.17:1 en `afal`— y ahora usa `github-light-high-contrast` o `github-dark-default` según el
+  `color-scheme` del tema, con todo token de los lenguajes que resalta en AA sobre `base-200` en
+  los seis temas (el más tenue, el comentario, mide 4.58 en `afal`); los comentarios de una barra
+  lateral fuera del editor salían en el gris fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se
+  vuelve a pintar cuando el tema cambia sin recargar. El código cambia de tono también en claro
+  donde el resaltado está encendido: en la flota, sólo **gobierno-corporativo** (afal-apps lo
+  apaga). Sin nada que hacer en el anfitrión: el peer `shiki` sube a `>=1.17.4`, la primera
+  versión que exporta `shiki/engine/javascript`, que el editor ya importaba, y
+  gobierno-corporativo trae 3.23.
 
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
@@ -253,6 +298,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `base-content`. En `dark` de daisyUI el día marcado pinta 4.13:1 en reposo —el de su
   `.btn-primary`— y ahora también bajo el cursor (antes 5.33). Ninguna app lo usa hoy:
   `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las ocho.
+
+- **En `RecurrentEventRuleForm`, un día o una opción deshabilitados ya no reaccionan al cursor**
+  (#1272): con `disabled: true`, o dentro de un `<fieldset disabled>`, los días de la semana
+  crecían y se teñían bajo el cursor, y las filas de opción de los paneles anual y mensual se
+  teñían y mostraban el cursor de mano, como si se pudieran elegir. Ahora no toman el puntero y el
+  cursor sobre ellos es `not-allowed`. Sin nada que hacer en el anfitrión; ninguna app lo usa:
+  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en todas.
 
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
@@ -332,6 +384,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   los eventos del día para que se alcancen en celular (lo que hizo
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
+
+- **`Bali::Status` llega a AA sin estado, y el editable también bajo el puntero y en su triángulo**
+  (#1259). El hover de las filas del panel era `filter: brightness(0.95)`, que oscurecía el fondo y
+  también el texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo
+  pinta el mismo fondo y el texto queda en su par, también en la fila sin estado. El texto de una
+  píldora sin estado, editable o no, y el de esa fila pasan del 60 % al 70 % de `base-content`:
+  medían 4.04:1 en `afal` y 4.32 en `costa-norte`; ahora 5.54 y 6.00. El triángulo de la píldora
+  editable deja su `opacity: 0.7` y se pinta en el color del texto: medía 2.89:1 sobre rosa y 2.99
+  sobre rojo, bajo el 3:1 de un ícono. Sin nada que hacer en el anfitrión.
+
+- **Las iniciales del responsable en el Gantt se leen** (#1260): eran blancas, en negrita de
+  9–9.5px, sobre `oklch(0.6 0.14 <tono>)`, y medían de 3.49 a 4.27:1 según el tono que sale del
+  id o del nombre (AA pide 4.5). El fondo baja a L 0.5: los 360 tonos quedan entre 5.15 y 6.52:1
+  y cada persona conserva su tono; el avatar se ve más oscuro, en la tabla y sobre la barra. Las
+  barras del modo «Owner» no cambian, y su leyenda pasa a pintarse con el mismo color que ellas
+  (`oklch(0.62 0.15 <tono>)` en vez de `0.6 0.14`, que era la copia del avatar). Lo nota el
+  cronograma de tareas de **afal-apps**, el único anfitrión que manda `assignee`. Sin nada que
+  hacer en el anfitrión.
 
 ### Documentation
 
