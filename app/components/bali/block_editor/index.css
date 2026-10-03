@@ -60,6 +60,8 @@
   --mantine-color-dimmed: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --mantine-color-placeholder: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --bn-border-radius: var(--radius-box, 0.5rem);
+  /* The page's font reaches the menus, the toolbar and a comment's author and date. Not the
+     document text: BlockNote writes Inter on `.bn-default-styles` itself, not through this. */
   --bn-font-family: inherit;
 }
 
