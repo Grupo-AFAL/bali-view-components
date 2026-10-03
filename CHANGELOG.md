@@ -210,9 +210,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pasa a «9 resultados». Las formas `one`/`other` de `bali_view.command.results` llegan del
   componente al controlador; una app que quiera otro texto las redefine en sus locales. Si el
   pie no cabe en una línea, el contador baja a la segunda en vez de quedar cortado por el panel:
-  «9 resultados» no cabe junto a los atajos a 360 px, ni «9 results» a 320 px. Lo ven las siete
-  apps con paleta, sin nada que hacer más que subir la gema y el paquete npm juntos: con uno
-  solo, el contador sigue en inglés.
+  «9 resultados» no cabe junto a los atajos a 360 px, ni «9 results» a 320 px. Con una
+  búsqueda, el contador cuenta sólo lo que coincide: las dos filas `action` de
+  gobierno-corporativo, la única app con ese grupo, siguen en pantalla y ya no cuentan bajo el
+  aviso de que nada coincide.
+  Lo ven las siete apps con paleta, sin nada que hacer más que subir la gema y el paquete npm
+  juntos: con uno solo, el contador sigue en inglés.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
