@@ -117,9 +117,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`initials:` en `Bali::Topbar::UserMenu`** (#1277), que llega tal cual a `Bali::Avatar`. Sin
   él, Avatar toma la primera y la última palabra del nombre, y con dos apellidos elige mal:
   «Federico González Pérez» queda «FP». Hasta ahora `initials:` caía en las opciones del
-  Dropdown y salía como atributo `initials="…"` del `<div>`, sin llegar al avatar. **identity**
-  puede conservar con él sus iniciales de nombre y apellido al pasar su topbar a `UserMenu`
-  (Grupo-AFAL/identity#350); las otras seis apps no lo pasan y no cambian.
+  Dropdown y salía como atributo `initials="…"` del `<div>`, sin llegar al avatar. Ninguna de
+  las siete apps que usan `UserMenu` lo pasa, así que ninguna cambia. **identity** pintaba las
+  iniciales de `first_name` y `last_name` hasta pasar su topbar a `UserMenu`
+  (Grupo-AFAL/identity#366); para recuperarlas, `initials:` con esas dos letras.
 
 ### Changed
 
@@ -560,7 +561,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
 
 - **`Bali::Topbar::UserMenu` contiene un nombre o un correo largo, y su disparador cabe a
-  320 px** (#1277). Las seis apps que lo usan lo reciben con el bump.
+  320 px** (#1277). Las siete apps que lo usan lo reciben con el bump.
   - El nombre del disparador se corta con puntos suspensivos a 12rem.
   - Las dos líneas del encabezado se cortan al ancho del panel, con el texto completo en
     `title`. Antes un correo largo se salía del panel y dejaba fuera de él el interruptor de
@@ -569,9 +570,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     lado. A 320 px, junto a hamburguesa, paleta y dos acciones, el de avatar y chevron se
     salía de la pantalla y AppLayout lo recortaba.
   - El correo queda también en un `title`, y Sentry copia `title` al selector del breadcrumb
-    de un clic sobre esa línea, como ya copia el nombre del `aria-label` del disparador. Las
-    cinco apps con Sentry en el navegador (afal-apps, centinela-web, costa-norte,
-    gobierno-corporativo, opina) no filtran esos atributos en los breadcrumbs.
+    de un clic sobre esa línea, como ya copia el nombre del `aria-label` del disparador. De
+    las seis apps con Sentry en el navegador sólo identity filtra esos atributos en los
+    breadcrumbs; afal-apps, centinela-web, costa-norte, gobierno-corporativo y opina no.
 
 ### Documentation
 
