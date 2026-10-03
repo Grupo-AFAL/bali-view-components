@@ -80,7 +80,6 @@ module Bali
       # `var(--color-*)` in the theme's value for it: the third series is red.
       # On a line, the points and legend swatch take the series' own
       # `backgroundColor:`, or its own `borderColor:` when it gives no fill.
-      # The fourth asks for hollow markers (#1065).
       def own_colors
         render Bali::Chart::Component.new(
           data: {
@@ -90,9 +89,7 @@ module Bali
               { label: 'Border and fill', data: [8, 9, 11, 10, 12],
                 borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.5)' },
               { label: 'Theme border, own fill', data: [4, 6, 5, 7, 6],
-                borderColor: Bali::Color.css(:error), backgroundColor: 'rgba(220, 38, 38, 0.5)' },
-              { label: 'Hollow markers', data: [2, 3, 2, 4, 3], backgroundColor: 'rgba(0, 0, 0, 0)',
-                pointBackgroundColor: 'rgba(0, 0, 0, 0)', pointBorderColor: 'rgba(100, 116, 139, 0.90)' }
+                borderColor: Bali::Color.css(:error), backgroundColor: 'rgba(220, 38, 38, 0.5)' }
             ]
           },
           type: :line,

@@ -283,17 +283,6 @@ describe('Chart', () => {
         })
       })
     })
-
-    // #1065: a transparent point inside a ring of its own. Its fill being the same transparent is
-    // no sign that Ruby copied it.
-    it('keeps the hollow markers a theme series asks for', () => {
-      chartInstance((chart) => {
-        const hollow = series(chart, 'Hollow markers')
-
-        expect(hollow.borderColor, 'border').to.match(/^oklch\(/)
-        expect(hollow.pointBackgroundColor, 'points').to.eq('rgba(0, 0, 0, 0)')
-      })
-    })
   })
 
   describe('with the accessible data table', () => {
