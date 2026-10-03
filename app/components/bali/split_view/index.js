@@ -108,6 +108,14 @@ export class SplitViewController extends Controller {
   rewindFrameBeforeCache () {
     const frame = this.detailFrame
     if (!frame || !frame.hasAttribute('src')) return
+    // A `src` Turbo has not finished loading can be a row clicked in the animation
+    // frame between the previous detail landing and its `advance` caching the
+    // page: removing it cancels that request and the click is lost (#1280). The
+    // first `turbo:before-cache` after it lands rewinds it instead — with
+    // `advance`, the one from its own visit. The attribute and not
+    // `frame.complete`, which in Turbo 8.0.23 answers true mid-load and settles
+    // `frame.loaded` as a side effect.
+    if (!frame.hasAttribute('complete')) return
 
     // Stash where the pane points before dropping `src`, so a traversal that
     // lands back on this URL can recognise the pane as already right instead

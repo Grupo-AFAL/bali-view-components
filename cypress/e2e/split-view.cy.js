@@ -287,6 +287,40 @@ describe('SplitView: what gets cached after the frame is navigated (#1012)', () 
   })
 })
 
+// #1280 — a row clicked after one detail lands but before Turbo caches the page
+// for that click's `advance` used to be lost: the rewind removed the `src` the
+// new click had just set, and removing a frame's `src` cancels its request in
+// flight. The window is one animation frame (measured: a click 4–12 ms after
+// `turbo:frame-load` was lost, one at 16 ms was not), too narrow to time a
+// `cy.click()` into. So the second click goes out from a capture listener on
+// that very `turbo:before-cache`, which runs before the controller's listener on
+// `document`: the order the race produces, every time.
+describe('SplitView: a row clicked before the previous advance is cached (#1280)', () => {
+  it('loads the second row instead of cancelling its request', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+
+    cy.get('.split-view-row').eq(4).then(($second) => {
+      const second = $second[0]
+      const name = second.querySelector('.font-medium').textContent.trim()
+
+      cy.window().then((win) => {
+        win.addEventListener('turbo:before-cache', () => second.click(), { capture: true, once: true })
+      })
+      cy.get('.split-view-row').eq(2).click()
+
+      cy.location('href').should('eq', second.href)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+      cy.wrap($second).should('have.attr', 'aria-current', 'true')
+      // The rewind it skipped still happens: the second click's own `advance`
+      // caches the page once its detail lands, so #1012 holds.
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+    })
+  })
+})
+
 // #1029 — the refetch guard compared the frame's `src` (which Turbo leaves
 // ABSOLUTE after navigating) against the row's `href` (relative, as written),
 // so they never matched: every popstate rewrote the `src` and refetched a
