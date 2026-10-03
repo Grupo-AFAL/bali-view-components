@@ -60,4 +60,22 @@ describe('Modal: the close button of a modal built from content', () => {
       })
     })
   })
+
+  // The price of the float, stated in the CHANGELOG: a box with a formatting context of its own
+  // cannot share its lines with a float, so it gives up that width for its whole height. A
+  // position that spares it changes this test and the CHANGELOG together.
+  const NARROWING = { 1280: 24, 390: 32 }
+
+  VIEWPORTS.forEach(([width, height]) => {
+    it(`narrows a card that starts beside it by ${NARROWING[width]}px at ${width}px wide`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/modal/content_card')
+
+      measure(({ box, boxRect }) => {
+        const card = box.querySelector('.modal-inner > .card').getBoundingClientRect()
+        const padding = parseFloat(getComputedStyle(box).paddingRight)
+        expect(Math.round(boxRect.right - padding - card.right), 'px the card gives up').to.equal(NARROWING[width])
+      })
+    })
+  })
 })
