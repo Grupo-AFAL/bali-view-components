@@ -1,6 +1,6 @@
 <%= render Bali::Modal::Component.new(active: active, size: size) do %>
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg">Add Character</h3>
+  <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+    <% card.with_title('Add Character') %>
     <p>This card starts beside the close button, and stays that much narrower all the way down.</p>
   <% end %>
 <% end %>
