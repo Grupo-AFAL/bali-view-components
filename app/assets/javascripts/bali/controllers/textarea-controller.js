@@ -43,6 +43,7 @@ export class TextareaController extends Controller {
       // The red of the field's error message, ERROR_MESSAGE_CLASS in
       // lib/bali/form_builder/html_utils.rb: `text-error` read 2.75:1 on `afal`.
       this.counterTarget.classList.toggle('text-soft-error', length > max)
+      this.counterTarget.classList.toggle('text-base-content/70', length <= max)
     } else {
       this.counterTarget.textContent = `${length}`
     }

@@ -628,6 +628,14 @@ describe('muted rule cascade', () => {
     })
   })
 
+  it('paints a character counter past its maximum in the soft red, not the muted grey', () => {
+    cy.visit('/bali/form/text/with_char_counter')
+    cy.get('#form_record_text').type('x'.repeat(41), { delay: 0 })
+    cy.get('#form_record_text_field [data-textarea-target="counter"]').should(($counter) => {
+      sameColour($counter[0], 'text-soft-error', 'counter at 41 / 40')
+    })
+  })
+
   it('keeps the error message of a field in its own soft red', () => {
     cy.visit('/bali/form/text/with_external_error')
     cy.get('p.fieldset-label[id$="_error"]').first().should(($error) => {

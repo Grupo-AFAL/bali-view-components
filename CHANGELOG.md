@@ -253,8 +253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     caracteres pasado el máximo y el «Clear» de `coordinates_polygon_group`.
   - `DeleteLink`: el rojo del botón `ghost` o `link`, y con él cada ítem `method: :delete` de
     `Dropdown` y `ActionsDropdown`, que bajo el puntero del menú medía 3.27 en `dark`, y el
-    cierre de sesión del `Topbar::UserMenu` con el `:delete` por omisión. Con `:post` conserva
-    `text-error`.
+    cierre de sesión del `Topbar::UserMenu`, con el `:delete` por omisión y también con `:post`
+    (el de identity).
   - `Filters`: los tres «Clear all» y la pista de una condición sin valor.
   - `Widget`: la tendencia, el sí y el no del Check, que dibuja `BooleanIcon`, y el aviso de un
     widget que no cargó.

@@ -111,8 +111,8 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
 
     # #641 (announced in v3.1): every non-GET item is a real `button_to` form —
     # an `<a data-turbo-method>` degrades to GET without JS. `:post` keeps the
-    # text-error styling it had as a link.
-    assert_selector('form[action="/logout"] button.text-error', text: "Sign out")
+    # red it had as a link, the soft one a `:delete` sign-out gets from DeleteLink.
+    assert_selector('form[action="/logout"] button.text-soft-error', text: "Sign out")
     assert_no_selector("a[data-turbo-method]")
   end
 

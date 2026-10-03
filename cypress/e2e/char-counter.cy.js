@@ -32,6 +32,7 @@ describe('CharCounter', () => {
 
       counter().should('have.text', '41 / 40')
       counter().should('have.class', 'text-soft-error')
+      counter().should('not.have.class', 'text-base-content/70')
       cy.get('#form_record_text').should('have.value', 'x'.repeat(41))
     })
 
