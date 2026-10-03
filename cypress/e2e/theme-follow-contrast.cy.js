@@ -1,4 +1,4 @@
-import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
+import { contrastRatio, paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 import { hover, unhover } from '../support/tap'
 
@@ -26,6 +26,24 @@ describe('colours that follow the theme', () => {
     ['the hour of the time picker', 'time', 'input.flatpickr-hour'],
     ['the AM/PM toggle of the time picker', 'time', '.flatpickr-am-pm']
   ]
+
+  // [what, the element in the Datepicker's header, what it paints, the contrast it is held to]
+  const HEADER = [
+    ['the month', '.flatpickr-monthDropdown-months', el => paintedContrast(el), AA],
+    ['the year', 'input.cur-year', el => paintedContrast(el), AA],
+    ["the year's up arrow", '.numInputWrapper span.arrowUp',
+      el => paintedContrast(el, { pseudo: '::after', property: 'borderBottomColor' }), 3]
+  ]
+
+  // An inset box-shadow is invisible to paintedContrast: its colour is read off the computed
+  // style and painted over the header.
+  const ringOf = (el) => {
+    const colour = el.ownerDocument.defaultView.getComputedStyle(el).boxShadow.match(/^[a-z-]+\([^)]*\)/)
+    if (!colour) return 1
+    const doc = el.ownerDocument
+    const header = doc.defaultView.getComputedStyle(el.closest('.flatpickr-months')).backgroundColor
+    return contrastRatio(paintedLuminance(doc, header, colour[0]), paintedLuminance(doc, header))
+  }
 
   const everyReadsAtAA = (selector, theme, fewest = 1) => {
     cy.get(selector).should(($els) => {
@@ -142,6 +160,36 @@ describe('colours that follow the theme', () => {
             `${theme}: up arrow`).to.be.at.least(3)
           expect(paintedContrast(wrapper.querySelector('.arrowDown'), { pseudo: '::after', property: 'borderTopColor' }),
             `${theme}: down arrow`).to.be.at.least(3)
+        })
+      })
+    })
+
+    // A white tint over the primary header took the month and the year under the pointer to
+    // 2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and the year's arrow to 2.48 on `dark`.
+    // Each is held to its contrast where it reaches it at rest and to its rest where it does not:
+    // `dark`'s month reads 4.13 at rest, its arrow 2.80. The ring sits at the element's edge,
+    // clear of the text and the arrow.
+    HEADER.forEach(([what, selector, painted, floor]) => {
+      it(`marks ${what} of the Datepicker header under the pointer and keeps it legible on the ${theme} theme`, () => {
+        const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
+        let atRest
+        cy.visit('/bali/form/date/default')
+        useTheme(theme)
+        cy.get('form input.input:not([type="hidden"])').click()
+
+        cy.get(target).should(($el) => {
+          expectSettled($el[0])
+          expect($el[0].matches(':hover'), 'at rest').to.equal(false)
+          expect(ringOf($el[0]), `${theme}: a ring around ${what} at rest`).to.equal(1)
+          atRest = painted($el[0])
+        })
+        cy.get(target).then(hover)
+
+        cy.get(target).should(($el) => {
+          expectSettled($el[0])
+          expect($el[0].matches(':hover'), 'under the pointer').to.equal(true)
+          expect(painted($el[0]), `${theme}: ${what} under the pointer`).to.be.at.least(Math.min(floor, atRest))
+          expect(ringOf($el[0]), `${theme}: the ring around ${what} under the pointer`).to.be.at.least(3)
         })
       })
     })
