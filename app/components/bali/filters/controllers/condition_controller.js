@@ -812,7 +812,7 @@ export class ConditionController extends Controller {
              role="button"
              class="select select-bordered select-sm w-full flex items-center"
              data-multi-select-target="trigger">
-          <span class="flex-1 truncate text-left text-base-content/50" data-multi-select-target="label">
+          <span class="flex-1 truncate text-left" data-multi-select-target="label">
             ${this.escapeHtml(selectValuesLabel)}
           </span>
         </div>

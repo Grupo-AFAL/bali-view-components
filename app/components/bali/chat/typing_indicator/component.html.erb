@@ -16,7 +16,10 @@
     <% message.with_avatar { avatar.to_s } if avatar? %>
     <span class="flex items-center gap-2">
       <% if show_label %>
-        <span class="text-xs opacity-60"><%= label %></span>
+        <%# Not muted: the label paints on the bubble, and a coloured bubble has no
+            room for an opacity. On afal's primary it measured 3.33:1 at 70%, 5.25
+            at full ink. %>
+        <span class="text-xs"><%= label %></span>
       <% end %>
       <span class="loading loading-dots loading-sm" aria-hidden="true"></span>
     </span>

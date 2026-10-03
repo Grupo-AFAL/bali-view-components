@@ -15,7 +15,8 @@ module Bali
       STATES = {
         true => { icon: "check-circle", class: "text-success", key: "true" },
         false => { icon: "times-circle", class: "text-error", key: "false" },
-        nil => { icon: "minus", class: "text-base-content/40", key: "blank" }
+        # The icon is the whole answer, so 3:1: `/40` measured 2.36:1 on `afal`.
+        nil => { icon: "minus", class: "text-base-content/55", key: "blank" }
       }.freeze
 
       # @param value [Boolean, nil] true, false, or nil for "not specified"

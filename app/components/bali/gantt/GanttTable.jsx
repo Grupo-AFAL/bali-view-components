@@ -28,7 +28,7 @@ function Caret ({ collapsed }) {
 function HeaderCell ({ label, style, className = '' }) {
   return (
     <div
-      className={`flex items-end pb-1.5 text-[10px] font-bold uppercase tracking-wide text-base-content/55 ${className}`}
+      className={`flex items-end pb-1.5 text-[10px] font-bold uppercase tracking-wide text-base-content/70 ${className}`}
       style={style}
     >
       {label}
@@ -129,7 +129,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
         {row.hasChildren ? (
           <button
             type='button'
-            className='flex h-4 w-4 shrink-0 items-center justify-center rounded text-base-content/50 hover:bg-base-content/8 hover:text-base-content'
+            className='flex h-4 w-4 shrink-0 items-center justify-center rounded text-base-content/55 hover:bg-base-content/8 hover:text-base-content'
             onClick={(e) => {
               e.stopPropagation()
               onToggle(row.kind, row.id)
@@ -142,7 +142,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
         ) : (
           <span className='inline-block w-4 shrink-0' />
         )}
-        <span className='shrink-0 font-mono text-[10px] text-base-content/40'>{row.wbs}</span>
+        <span className='shrink-0 font-mono text-[10px] text-base-content/70'>{row.wbs}</span>
         <span
           className={`truncate ${isGroup ? 'text-[12.5px] text-base-content' : 'text-[12px] text-base-content/90'}`}
         >
@@ -168,7 +168,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
       {/* Dates + Days. */}
       {cols.dates && (
         <div
-          className='flex items-center truncate px-1.5 font-mono text-[10px] text-base-content/55'
+          className='flex items-center truncate px-1.5 font-mono text-[10px] text-base-content/70'
           style={{ flex: '0 0 108px' }}
         >
           {!isGroup && item.starts_on && item.ends_on
@@ -207,7 +207,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
               <div className='h-[5px] flex-1 overflow-hidden rounded-full bg-base-content/10'>
                 <div className='h-full rounded-full' style={{ width: `${pct}%`, background: sc.solid }} />
               </div>
-              <span className='w-[26px] shrink-0 text-right font-mono text-[10px] text-base-content/60'>{pct}%</span>
+              <span className='w-[26px] shrink-0 text-right font-mono text-[10px] text-base-content/70'>{pct}%</span>
             </>
           )}
         </div>

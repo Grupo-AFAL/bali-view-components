@@ -55,7 +55,7 @@
                 id: filter_label_id(filter),
                 for: (filter_control_id(filter) unless multi_control?(filter)),
                 title: filter_caption(filter),
-                class: "block text-xs font-medium text-base-content/60 mb-0.5 truncate"
+                class: "block text-xs font-medium text-base-content/70 mb-0.5 truncate"
               ) %>
         <% end %>
         <% group_attrs = group_attributes(filter) %>
@@ -128,7 +128,7 @@
                      placeholder="<%= filter[:placeholder_min] || t('.placeholder_min') %>"
                      class="input input-bordered input-sm w-20 <%= 'join-item rounded-l-none border-l-0' if filter[:icon] %>"
                      step="<%= filter[:step] || 'any' %>" />
-              <span class="text-base-content/40 text-xs">–</span>
+              <span class="text-base-content/70 text-xs">–</span>
               <input type="number"
                      name="<%= names[:max] %>"
                      value="<%= values[:max] %>"

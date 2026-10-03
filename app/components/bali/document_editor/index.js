@@ -422,7 +422,7 @@ export class DocumentEditorController extends Controller {
     if (this.hasSaveStatusTarget) {
       this.saveStatusTarget.textContent = text
       this.saveStatusTarget.classList.toggle('text-error', error)
-      this.saveStatusTarget.classList.toggle('text-base-content/50', !error)
+      this.saveStatusTarget.classList.toggle('text-base-content/70', !error)
     }
     if (this.hasSaveButtonTarget) {
       this.saveButtonTarget.disabled = !this._dirty

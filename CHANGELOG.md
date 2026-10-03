@@ -473,6 +473,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **gobierno-corporativo** puede quitar el `class: 'text-base-content/70'` que le puso al subtítulo
   en `app/views/governing_bodies/documents/_controlled_forms.html.erb`, y su comentario.
 
+- **Más texto atenuado pasa a `/70`, y los íconos atenuados a `/55`** (#1256). Lo que #1248 no
+  cubría, de `/30` a `/60`, medía de 1.86:1 a 4.04:1 en `afal` contra el 4.5 de AA: las
+  etiquetas de grupo y los subtítulos del `SideMenu`, la paleta de `Command` (disparador,
+  encabezados, metadatos, pie y placeholder), los paneles de `DocumentEditor` y `DocumentPage`
+  (con el extracto de un comentario), `Filters`, `DirectUpload`, `SplitView`, `Widget` y
+  `WidgetGrid`, `Gantt` (también el placeholder de su búsqueda), las etiquetas de
+  `simple_filters`, `EmptyState`, `Frame`, `InfoLevel`, el correo del `UserMenu`, el
+  `BlockEditor` (placeholder, aviso de un toggle vacío y enlaces del índice, también en
+  `DocumentEditor` y `DocumentPage`), SlimSelect (placeholder, etiquetas de
+  grupo, «Searching...» y «No results»), el placeholder de `RichTextEditor` (el del campo de enlace
+  iba en `base-300`, 1.24:1) y los encabezados de sección de los menús, que heredaban el `/40` de
+  `.menu-title` de daisyUI (2.36:1): el `tag: :title` de `Dropdown`, el selector de columnas y las
+  vistas guardadas de `DataTable` y los menús del `Gantt`; también la pista de `QrScanner`, el
+  `sublabel:` de `Stepper`, la hora de un mensaje de `Chat` y el título de un `Widget` pequeño,
+  que heredaba el `/60` de `.stat-title`. En `/70` el mínimo es 4.88:1 (el subtítulo del switcher
+  del `SideMenu` con el puntero encima). La etiqueta del indicador de escritura de `Chat` deja de
+  atenuarse: se pinta sobre la burbuja, y sobre la `primary` de `afal` medía 3.33:1 al 70 %,
+  contra 5.25 a tinta plena. Los íconos que son todo el control o toda la respuesta (el vacío de
+  `BooleanIcon`, los chevrons del `SideMenu`, los de `Filters`, `DirectUpload` y `Gantt`, el chip
+  de agregar reacción y los botones de la píldora de acciones de un comentario) pasan a `/55`, el
+  primer múltiplo de 5 que llega a 3:1 en los seis temas sobre `base-300` (3.27:1 en `afal`), y el
+  cero que atenúa un `Widget` (texto grande) de `/30` (1.86:1) a `/55`.
+
+  También el placeholder habilitado de todo `input.input`, `textarea.textarea` y el `input` de
+  dentro de un `label.input`, que el preflight de Tailwind y daisyUI pintaban al 50 % (3.05:1), sea
+  del FormBuilder, de la búsqueda de `Filters`, de `simple_filters` o escrito a mano. Ninguna de
+  las nueve apps estiliza esos placeholders
+  (`git grep -nE "placeholder:[a-z!\[]|::placeholder" origin/main -- app config` sólo da dos
+  campos sin `.input` en `gobierno-corporativo`), así que no hay nada que hacer. Un
+  `placeholder:text-…` de la app sigue ganando sin `!` en los tres; un `placeholder:opacity-…`
+  sobre el `input` de dentro de un `label.input` ahora lo necesita.
+
+  Y cinco íconos de `DirectUpload` dejan de sacar un atributo `aria_hidden="true"`, que no existe
+  en HTML, junto al `aria-hidden` que `Icon` ya les ponía.
+
 - **En táctil, el primer tap sobre el disparador de un `HoverCard` abre la tarjeta y retiene la
   acción por defecto del disparador —seguir un enlace, enviar un formulario— hasta el segundo**
   (#1229). Antes ese mismo tap navegaba y la tarjeta se iba con la página. Con mouse y teclado

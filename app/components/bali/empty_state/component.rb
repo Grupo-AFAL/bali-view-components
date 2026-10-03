@@ -13,7 +13,7 @@ module Bali
                           "justify-center gap-4 text-center"
 
       TITLE_CLASSES = "font-medium text-base-content"
-      DESCRIPTION_CLASSES = "mt-1 text-base-content/60"
+      DESCRIPTION_CLASSES = "mt-1 text-base-content/70"
 
       SIZES = { sm: "py-4", md: "py-8", lg: "py-12" }.freeze
       ICON_CIRCLE_SIZES = { sm: "size-10", md: "size-12", lg: "size-16" }.freeze

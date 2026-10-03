@@ -56,12 +56,12 @@
   <% page.with_metadata do %>
     <div class="space-y-5">
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Status</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Status</p>
         <%= render Bali::Tag::Component.new(text: "Published", color: :success, size: :sm) %>
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Author</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Author</p>
         <div class="flex items-center gap-2">
           <%= render Bali::Avatar::Component.new(size: :xs) do |c| %>
             <% c.with_placeholder do %><span>SC</span><% end %>
@@ -71,27 +71,27 @@
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Created</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Created</p>
         <p class="text-sm">March 1, 2026</p>
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Last Modified</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Last Modified</p>
         <p class="text-sm">2 hours ago</p>
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Word Count</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Word Count</p>
         <p class="text-sm">842</p>
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Versions</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Versions</p>
         <p class="text-sm">7</p>
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Tags</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Tags</p>
         <div class="flex flex-wrap gap-1 mt-1">
           <%= render Bali::Tag::Component.new(text: "Roadmap", size: :sm) %>
           <%= render Bali::Tag::Component.new(text: "Q2 2026", size: :sm) %>
@@ -101,7 +101,7 @@
       </div>
 
       <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Collaborators</p>
+        <p class="text-xs text-base-content/70 uppercase tracking-wider mb-1">Collaborators</p>
         <div class="space-y-2 mt-1">
           <div class="flex items-center gap-2">
             <%= render Bali::Avatar::Component.new(size: :xs) do |c| %>

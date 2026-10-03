@@ -221,6 +221,20 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_includes(announcer.native["class"], "sr-only")
   end
 
+  def test_accessibility_renders_no_literal_aria_hidden_attribute_on_its_icons
+    movie = Movie.new
+    movie.poster.attach(io: StringIO.new("x"), filename: "minutes.pdf", content_type: "application/pdf")
+
+    [ true, false ].each do |drop_zone|
+      form_with(model: movie, url: "/movies") do |form|
+        render_inline(Bali::DirectUpload::Component.new(form: form, method: :poster, drop_zone: drop_zone))
+      end
+
+      assert_selector('[data-direct-upload-target="existingFiles"] .icon-component[aria-hidden="true"]', count: 3)
+      assert_empty(rendered_content.scan(/<[^>]*\baria_hidden\b[^>]*>/), "drop_zone: #{drop_zone}")
+    end
+  end
+
   def test_accessibility_has_keyboard_support_handler_on_dropzone
     render_component
     dropzone = page.find('[data-direct-upload-target="dropzone"]')

@@ -340,7 +340,7 @@
     }
 
     [contenteditable='true']:empty:before {
-      @apply text-base-300 block pointer-events-none;
+      @apply text-base-content/70 block pointer-events-none;
       content: attr(placeholder);
     }
 
@@ -398,7 +398,7 @@
 
     .is-empty:before {
       content: attr(data-placeholder);
-      @apply float-left text-base-content/40 pointer-events-none h-0;
+      @apply float-left text-base-content/70 pointer-events-none h-0;
     }
 
     img.ProseMirror-selectednode {

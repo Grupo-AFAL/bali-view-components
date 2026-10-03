@@ -70,6 +70,17 @@
   }
 }
 
+/* daisyUI paints the placeholder of an input inside a `label.input` in `base-content` at
+   `opacity: .5` (3.05:1 on `afal`; AA wants 4.5), from its `daisyui.l1.l2.l3` sublayer of
+   @layer utilities: a host's utility, outside that sublayer, beats it, and of Bali's positions
+   only unlayered does. Only the opacity is raised here, so the colour stays daisyUI's and a
+   host's `placeholder:text-*` still wins without `!`; a `placeholder:opacity-*` needs one.
+   `:not(:disabled)` leaves a disabled control, which AA exempts, at daisyUI's `opacity: .2`.
+   The placeholder of an `input.input` itself is lifted in general.css, layered. */
+.input:not([disabled]) input:not(:disabled)::placeholder {
+  @apply opacity-70;
+}
+
 /* DaisyUI 5's .fieldset is a flex column, so .control is a flex item with
    min-width: auto — it refuses to shrink below its content's min-content width.
    A select/slim-select holding a long option then overflows grid columns

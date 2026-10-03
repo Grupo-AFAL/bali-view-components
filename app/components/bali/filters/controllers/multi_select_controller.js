@@ -116,15 +116,13 @@ export class MultiSelectController extends Controller {
 
     if (labels.length === 0) {
       this.labelTarget.textContent = selectValuesLabel
-      this.labelTarget.classList.add('text-base-content/50')
     } else if (labels.length <= 2) {
       this.labelTarget.textContent = labels.join(', ')
-      this.labelTarget.classList.remove('text-base-content/50')
     } else {
       // Replace %{count} placeholder with actual count (Rails I18n style)
       this.labelTarget.textContent = selectedCountTemplate.replace('%{count}', labels.length)
-      this.labelTarget.classList.remove('text-base-content/50')
     }
+    this.labelTarget.classList.toggle('text-base-content/70', labels.length === 0)
   }
 
   // Get selected values (useful for form submission)

@@ -23,7 +23,7 @@ export default memo(function GanttFooter ({
   selectionActive = false
 }) {
   return (
-    <div className='flex h-8 shrink-0 items-center gap-3.5 overflow-hidden whitespace-nowrap border-t border-base-300 bg-base-200/50 px-3.5 font-mono text-[11px] text-base-content/60'>
+    <div className='flex h-8 shrink-0 items-center gap-3.5 overflow-hidden whitespace-nowrap border-t border-base-300 bg-base-200/50 px-3.5 font-mono text-[11px] text-base-content/70'>
       <span className={selectionActive ? 'font-semibold text-primary' : ''}>{selectionLabel}</span>
       <span>{countLabel}</span>
       {undatedLabel && onShowUndated && (
@@ -46,7 +46,7 @@ export default memo(function GanttFooter ({
           {legend.map((l, i) => (
             <div key={`${l.label}-${i}`} className='flex items-center gap-1.5'>
               <span className='h-2.5 w-2.5 shrink-0 rounded-sm' style={{ background: l.color }} />
-              <span className='whitespace-nowrap font-sans text-[11px] text-base-content/60'>{l.label}</span>
+              <span className='whitespace-nowrap font-sans text-[11px] text-base-content/70'>{l.label}</span>
             </div>
           ))}
         </div>

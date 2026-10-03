@@ -15,6 +15,9 @@ goes here.
   runs `set-page-has-scroll` on `:root` against a scroll timeline. With either on the page, wait
   on `el.getAnimations({ subtree: true })` for an `el` that holds both the text and the ground it
   is measured over.
+  A guard that spans many pages, or measures beside a spinner of its own (Frame's), waits on the
+  document instead and leaves out what repeats forever, which no transition does:
+  `animation.effect.getComputedTiming().iterations !== Infinity` (`muted-text-contrast.cy.js`).
 - **Turbo Streams apply on the next frame** (after `nextRepaint()`). Asserting right after
   `Turbo.renderStreamMessage` reads the node being replaced. Put a marker on the streamed markup
   (`data-streamed`) and wait for `[data-…][data-streamed]` before asserting.

@@ -5,7 +5,7 @@ module Bali
     module Item
       class Component < ApplicationViewComponent
         BASE_CLASSES = "level-item text-center"
-        HEADING_CLASSES = "heading text-xs text-base-content/60 uppercase tracking-wide"
+        HEADING_CLASSES = "heading text-xs text-base-content/70 uppercase tracking-wide"
         TITLE_CLASSES = "title text-2xl font-bold"
 
         renders_one :heading, ->(text = nil, **options, &block) do

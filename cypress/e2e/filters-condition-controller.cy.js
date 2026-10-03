@@ -48,6 +48,23 @@ describe('ConditionController', () => {
     cy.get(`${container} input[value="Comedy"]`).should('not.be.checked')
   })
 
+  // Muted only while it stands for an empty choice, the state muted-text-contrast.cy.js
+  // measures: a chosen value is the control's own text.
+  it('paints a chosen value in the ink of its control', () => {
+    const ink = el => el.ownerDocument.defaultView.getComputedStyle(el).color
+    const expectLabel = (text, { muted }) => cy.get(`${container} [data-multi-select-target="label"]`).should(($label) => {
+      expect($label.text().trim()).to.eq(text)
+      const [own, control] = [$label[0], $label[0].parentElement].map(ink)
+      expect(own !== control, `"${text}" in ${own}, its control in ${control}: muted`).to.eq(muted)
+    })
+
+    operator().select('in')
+    expectLabel('Select values...', { muted: true })
+
+    checkOption('Drama')
+    expectLabel('Drama', { muted: false })
+  })
+
   it('drops several values rather than silently keeping one, and says so', () => {
     pickValue('Drama')
     operator().select('in')

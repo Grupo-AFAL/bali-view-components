@@ -1,0 +1,6 @@
+<%= form_with(model: movie, url: '/lookbook', method: :get, class: 'max-w-md') do |form| %>
+  <%= render Bali::DirectUpload::Component.new(
+    form: form,
+    method: :poster
+  ) %>
+<% end %>

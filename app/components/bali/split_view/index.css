@@ -179,7 +179,7 @@
 }
 
 .split-view-sentinel {
-  @apply flex items-center justify-center gap-2 px-4 py-6 text-xs text-base-content/60;
+  @apply flex items-center justify-center gap-2 px-4 py-6 text-xs text-base-content/70;
 }
 
 .split-view-sentinel-error {

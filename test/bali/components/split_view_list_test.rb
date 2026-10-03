@@ -101,7 +101,7 @@ class BaliSplitViewListComponentTest < ComponentTestCase
 
   def test_meta_is_neutral_without_a_color
     render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan" } ])
-    assert_selector(".split-view-item .text-base-content\\/60", text: "1 Jan")
+    assert_selector(".split-view-item .text-base-content\\/70", text: "1 Jan")
   end
 
   def test_free_block_content_renders_inside_the_row

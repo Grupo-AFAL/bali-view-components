@@ -16,7 +16,7 @@ module Bali
         # the block, which renders under the subtitle.
         class Component < ApplicationViewComponent
           TITLE_CLASSES = "font-medium text-sm text-base-content leading-snug truncate"
-          SUBTITLE_CLASSES = "text-xs text-base-content/60 truncate"
+          SUBTITLE_CLASSES = "text-xs text-base-content/70 truncate"
           META_CLASSES = "text-xs shrink-0 whitespace-nowrap"
 
           # Only the colours a listing actually needs on a trailing date or count.
@@ -59,7 +59,7 @@ module Bali
           attr_reader :options
 
           def meta_classes
-            class_names(META_CLASSES, META_COLORS[@meta_color&.to_sym] || "text-base-content/60")
+            class_names(META_CLASSES, META_COLORS[@meta_color&.to_sym] || "text-base-content/70")
           end
 
           def link_attributes

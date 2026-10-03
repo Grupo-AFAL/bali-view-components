@@ -79,6 +79,17 @@ module Bali
       end
 
       # @!endgroup
+
+      # Editing a record that already has its file: the server lists it below the
+      # drop zone, with its size and a button to remove it.
+      #
+      # The record is built and never saved, so nothing reaches the storage service.
+      def with_existing_file
+        movie = Movie.new
+        movie.poster.attach(io: StringIO.new("x" * 123_456), filename: "minutes.pdf",
+                            content_type: "application/pdf")
+        render_with_template(locals: { movie: movie })
+      end
     end
   end
 end

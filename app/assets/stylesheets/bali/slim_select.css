@@ -27,7 +27,8 @@
   --ss-primary-color: var(--color-primary);
   --ss-bg-color: var(--color-base-100);
   --ss-font-color: var(--color-base-content);
-  --ss-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  /* The placeholder is text: at 50% it measured 3.05:1 on `afal`, under AA's 4.5. */
+  --ss-placeholder-color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   --ss-disabled-color: var(--color-base-200);
   --ss-border-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
   --ss-highlight-color: color-mix(in oklab, var(--color-warning) 30%, transparent);
@@ -629,7 +630,7 @@
   /* Searching/loading message */
   .ss-searching {
     padding: var(--ss-spacing-l);
-    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     font-size: 0.875rem;
   }
 
@@ -638,7 +639,7 @@
      the top search bar's padding, border, and magnifier ::before icon. */
   .ss-search {
     padding: var(--ss-spacing-s) var(--ss-spacing-l);
-    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     font-size: 0.875rem;
     border-bottom: none;
 
@@ -783,7 +784,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   }
 }
 

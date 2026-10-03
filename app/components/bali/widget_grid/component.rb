@@ -40,7 +40,7 @@ module Bali
 
       ADD_TILE_CLASSES = "bali-widget-add-tile hidden [.editing_&]:flex flex-col items-center " \
                          "justify-center gap-2 rounded-box border-2 border-dashed " \
-                         "border-base-300 text-base-content/50 transition-colors " \
+                         "border-base-300 text-base-content/70 transition-colors " \
                          "hover:border-primary hover:text-primary"
 
       # `editing_param` is the query param the mode is remembered in. Exposed

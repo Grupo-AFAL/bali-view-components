@@ -117,5 +117,5 @@
  * Muted rather than red: the number on the card is still true, just older. This
  * is the card declining to imply it is current — not an error state. */
 .bali-widget-freshness {
-  @apply mt-2 flex items-center gap-1 text-xs text-base-content/50;
+  @apply mt-2 flex items-center gap-1 text-xs text-base-content/70;
 }
