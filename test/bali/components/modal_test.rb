@@ -168,7 +168,6 @@ class BaliModalComponentTest < ComponentTestCase
     render_inline(Bali::Modal::Component.new) do |modal|
       modal.with_header(title: "Title")
     end
-    # Only the header's close button, not the standalone one as well
     assert_selector('button[aria-label="Close modal"]', count: 1)
   end
 
