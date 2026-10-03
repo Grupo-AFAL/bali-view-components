@@ -160,6 +160,20 @@ describe('Chart', () => {
       })
     })
 
+    // Chart.js fills a line's points, and its legend swatch under `usePointStyle`, from
+    // `pointBackgroundColor`, which Ruby writes as the same CSS as the border. Left unresolved,
+    // the swatches came out grey and the points black.
+    it('paints the points and legend swatch of a line in its series colour', () => {
+      cy.visit('/bali/chart/series_palette?type=line')
+
+      chartInstance((chart) => {
+        chart.data.datasets.forEach((dataset, index) => {
+          expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.eq(firstColor(dataset))
+          expect(chart.legend.legendItems[index].fillStyle, `series ${index + 1} legend`).to.eq(firstColor(dataset))
+        })
+      })
+    })
+
     // The pair after the last series counts too: series 8 repeats series 1, and a `color:`
     // rotates the cycle so that pair lands anywhere.
     it('keeps neighbouring series apart under colour-vision deficiencies in every theme', () => {

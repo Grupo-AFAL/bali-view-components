@@ -225,6 +225,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Los puntos de una línea de `Bali::Chart` y su muestra en la leyenda toman el color de la
+  serie** (#1281). Ruby los escribe con el mismo `var(--color-*)` del borde, que un canvas no
+  resuelve, y el controlador sólo traducía el borde y el relleno: los puntos salían negros y la
+  muestra de la leyenda gris, igual en todas las series. Se ve en las líneas con colores del tema:
+  **gobierno-corporativo** (tendencia de conciliación, actividad y clics de la importación de la
+  intranet), **afal-apps** (peso en wellness), **centinela-web** (tendencia diaria de
+  incidentes), **bali-analytics** (la serie de personas activas) y las gráficas grandes de línea
+  de `Bali::Widget`. Una serie con su propio `borderColor:` en hex queda como estaba. Sin nada
+  que hacer en el anfitrión.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
