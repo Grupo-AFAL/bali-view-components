@@ -47,6 +47,12 @@ en:
         or: "OR"
       combinator_toggle: "Combine conditions with"
 
+      # Accessible names of a condition's controls (no visible caption)
+      aria_labels:
+        field: "Field"
+        operator: "Operator"
+        value: "Value"
+
       # Selected count for multi-select
       selected_count: "%{count} selected"
 

@@ -294,6 +294,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   anfitrión. Un `<select>` sin nombre (los casos que lista la entrada de #1253) sigue sin
   nombre propio en el combobox y en la lista hasta que se le ponga.
 
+- **Los controles de una condición de `Bali::Filters` se anuncian con su nombre** (#1271): el
+  campo y el operador salían sin nombre, y el valor como «Combobox» (SlimSelect), sin nombre
+  (booleano) o como «0» (número). Ahora se llaman «Campo», «Operador» y «Valor» («Field»,
+  «Operator», «Value» en inglés), también cuando el valor se rehace al cambiar de campo; el
+  texto y las fechas, que se nombraban con su placeholder, pasan también a «Valor». La
+  excepción es el multi-select de «es cualquiera de» / «no es ninguno de»: sigue nombrándose
+  por lo que muestra («Action, Adventure», «3 seleccionados»). Lo notan las apps que usan
+  `Bali::Filters`, solo o con `with_filters_panel` del `DataTable`. Sin nada que hacer en el
+  anfitrión.
+
+- **En un teléfono, los campos de fecha y de hora se anunciaban sin nombre** (#1271): flatpickr
+  pone ahí un campo nativo (`input.flatpickr-mobile`) y oculta su `altInput`, que era el único
+  al que el datepicker le pasaba el nombre. Ahora se lo pasa al nativo, con `aria-describedby`
+  y `aria-invalid`: `date_group`, `datetime_group`, `time_group` y el filtro de fecha de
+  `SimpleFilters` se anuncian con su etiqueta, y la fecha de una condición de `Bali::Filters`
+  como «Valor». Los rangos y los campos con `disable_weekends` o `disabled_dates` no cambian:
+  flatpickr no los pasa a un campo nativo y ya se anunciaban con su nombre. Sin nada que hacer
+  en el anfitrión.
+
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
   `Bali::Dropdown`, con el teclado de «Agrupar por» (#1231); en Columnas las flechas recorren
