@@ -220,9 +220,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **El multi-select que `Filters` arma en el navegador es el que pinta el servidor** (#1282),
   el de «es cualquiera de» y «no es ninguno de»: se abre con clic, Enter o Espacio y ya no con
-  sólo enfocarlo, se cierra con Escape y el disparador lleva `aria-haspopup`. Se retira la
-  clase `.filters-multi-select-content`, que ninguna de las nueve apps usa. Sin nada que hacer
-  en el anfitrión.
+  sólo enfocarlo, se cierra con Escape y el disparador lleva `aria-haspopup`. Los dos, el
+  armado y el del servidor, se cierran también cuando el foco sale con Tab, en vez de quedar
+  abiertos sobre el control que lo recibe. Se retira la clase `.filters-multi-select-content`,
+  que ninguna de las nueve apps usa. Sin nada que hacer en el anfitrión.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
