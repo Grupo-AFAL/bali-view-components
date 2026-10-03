@@ -31,9 +31,7 @@ module Bali
 
         # The lines wrap instead of truncating with the whole text in `title`: Sentry copies
         # `title` into the selector of a click breadcrumb, so the email would travel with it.
-        # `contain-inline-size` keeps the text out of the panel's width when the panel has
-        # none of its own (`width: nil`), where the long identity widened it from 171 to 282 px.
-        HEADER_CLASSES = "bali-topbar-user-menu-header contain-inline-size wrap-anywhere"
+        HEADER_CLASSES = "bali-topbar-user-menu-header wrap-anywhere"
 
         SIGN_OUT_MESSAGE = "Bali::Topbar::UserMenu::Component: `sign_out:` takes a Hash " \
                            "with `href:` — e.g. `sign_out: { href: sign_out_path }`. " \

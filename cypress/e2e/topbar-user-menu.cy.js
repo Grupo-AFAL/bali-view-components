@@ -94,8 +94,12 @@ describe('Topbar::UserMenu', () => {
         longMenu().find(menu).should(($menu) => {
           expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
           const panelRight = $menu[0].getBoundingClientRect().right
+          const header = $menu.find('.bali-topbar-user-menu-header')[0]
           const lines = $menu.find('.bali-topbar-user-menu-header > span').toArray()
           expect(lines).to.have.length(2)
+          const underText = header.getBoundingClientRect().bottom - lines[1].getBoundingClientRect().bottom
+          const paddingBottom = parseFloat(header.ownerDocument.defaultView.getComputedStyle(header).paddingBottom)
+          expect(underText, 'header height under the email').to.be.closeTo(paddingBottom, 0.5)
           lines.forEach((line) => {
             const text = line.ownerDocument.createRange()
             text.selectNodeContents(line)
