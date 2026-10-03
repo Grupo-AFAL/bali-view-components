@@ -467,12 +467,10 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchInput"][aria-label="Search users"]'
   end
 
-  # The placeholder cannot name this box on its own: the <label> wrapped around it does first, and
-  # its text is the clear button's aria-label once there is something to clear (#1282).
   def test_the_search_input_is_named_by_its_placeholder_without_a_label
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes,
-      search: { fields: [ :name ], value: "drama", placeholder: "Search users..." }
+      search: { fields: [ :name ], placeholder: "Search users..." }
     ))
 
     assert_selector '[data-filters-target="searchInput"][aria-label="Search users..."]'

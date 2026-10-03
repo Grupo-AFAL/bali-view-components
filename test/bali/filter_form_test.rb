@@ -66,8 +66,7 @@ class DualChannelSearchFilterForm < Bali::FilterForm
 end
 
 # Test form with the full search_fields signature (#982): aria_label: is the
-# box's aria-label — the only accessible name that survives typing — and
-# width: the per-listing width override. Both were renderable by the
+# box's aria-label and width: the per-listing width override. Both were renderable by the
 # components but unreachable from the DSL. (`label:` was the beta spelling and
 # now raises — see the rename tests below, #1026.)
 class LabelledSearchMovieFilterForm < Bali::FilterForm
