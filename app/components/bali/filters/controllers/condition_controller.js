@@ -100,9 +100,10 @@ export class ConditionController extends Controller {
     // Get the current operator (may have changed)
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
     const isMultiple = this.isMultipleOperator(operator)
+    const isRange = this.isRangeOperator(operator)
 
     // Update value input for this type
-    this.renderValueInput(type, attributeKey, options, isMultiple)
+    this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
 
     // A different attribute is a fresh start: its option list is a different one, so
     // losing the previous value is correct and there is nothing to explain yet.
