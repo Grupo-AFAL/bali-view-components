@@ -1,23 +1,23 @@
-// #1282 — what a between condition shows has to be what it filters by, so these read the rows the
+// #1282 — what a date condition shows has to be what it filters by, so these read the rows the
 // server sends back on the dummy's listing, not the markup of the row.
+const container = '[data-condition-target="valueContainer"]'
+const movies = () => `${new URL(Cypress.config('baseUrl')).origin}/admin/movies`
+
+// YYYY-MM-DD, `days` away from another one. In UTC, so a DST change on the machine running
+// the browser cannot move the day.
+const shift = (isoDate, days) => {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10)
+}
+
+// The day each row was created on, in the app's time zone: `<time datetime>` carries its
+// offset, and Ransack casts the range in that same zone. An empty listing still has a row, the
+// empty state, which has neither.
+const movieRows = ($rows) => $rows.toArray().filter((row) => row.querySelector('time[datetime]'))
+const rowDays = ($rows) => movieRows($rows).map((row) => row.querySelector('time[datetime]').getAttribute('datetime').slice(0, 10))
+const rowNames = ($rows) => movieRows($rows).map((row) => row.querySelector('td.font-medium').textContent.trim())
+
 describe('A between condition', () => {
-  const container = '[data-condition-target="valueContainer"]'
-  const movies = () => `${new URL(Cypress.config('baseUrl')).origin}/admin/movies`
-
-  // YYYY-MM-DD, `days` away from another one. In UTC, so a DST change on the machine running
-  // the browser cannot move the day.
-  const shift = (isoDate, days) => {
-    const [year, month, day] = isoDate.split('-').map(Number)
-    return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10)
-  }
-
-  // The day each row was created on, in the app's time zone: `<time datetime>` carries its
-  // offset, and Ransack casts the range in that same zone. An empty listing still has a row, the
-  // empty state, which has neither.
-  const movieRows = ($rows) => $rows.toArray().filter((row) => row.querySelector('time[datetime]'))
-  const rowDays = ($rows) => movieRows($rows).map((row) => row.querySelector('time[datetime]').getAttribute('datetime').slice(0, 10))
-  const rowNames = ($rows) => movieRows($rows).map((row) => row.querySelector('td.font-medium').textContent.trim())
-
   // flatpickr asks `instanceof Array`, which an array built in the spec's window fails: it then
   // picks nothing at all.
   const pickRange = (from, to) =>
@@ -99,5 +99,34 @@ describe('A between condition', () => {
     })
     cy.get(`${container} [data-condition-target="rangeStart"]`).should('have.value', '2026-08-25')
     cy.get(`${container} [data-condition-target="rangeEnd"]`).should('have.value', '2026-08-27')
+  })
+})
+
+// The single picker of a `type: :date` attribute sends a bare date too, which
+// Bali::FilterForm::WholeDayCasting::BARE_DATE reads as a whole day.
+describe('An on-or-before condition', () => {
+  it('keeps the rows of the day it names', () => {
+    cy.visit(movies())
+
+    cy.get('tbody tr').eq(1).then(($anchor) => {
+      const [name] = rowNames($anchor)
+      const [day] = rowDays($anchor)
+
+      cy.get('[data-action="click->filters#toggleDropdown"]').first().click()
+      cy.get('[data-condition-target="attribute"]').select('created_at')
+      cy.get('[data-condition-target="operator"]').select('lteq')
+      cy.get(`${container} [data-controller="datepicker"]`)
+        .should(($input) => expect($input[0]._flatpickr, 'flatpickr mounted').to.exist)
+        .then(($input) => $input[0]._flatpickr.setDate(day, true))
+      cy.get('.filters button').contains('Apply').click()
+
+      cy.location('search').should((search) =>
+        expect(new URLSearchParams(search).get('q[g][0][created_at_lteq]')).to.equal(day))
+      cy.get('tbody tr').should(($rows) => {
+        rowDays($rows).forEach((created) =>
+          expect(created <= day, `a row created on ${created}, on or before ${day}`).to.equal(true))
+        expect(rowNames($rows)).to.include(name)
+      })
+    })
   })
 })

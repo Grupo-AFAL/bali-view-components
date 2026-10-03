@@ -315,6 +315,18 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal([ "Last day" ], form.result.pluck(:name))
   end
 
+  # The bare date "on or before" sends: the single picker of a `type: :date` attribute
+  # (datepicker-controller.js#dateFormat), over a datetime column.
+  def test_on_or_before_a_date_includes_that_whole_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
   def test_a_between_range_over_a_date_column_still_compares_dates
     @tenant.movies.create!(name: "Last day", production_starts_on: Date.new(2026, 8, 27))
     @tenant.movies.create!(name: "Next day", production_starts_on: Date.new(2026, 8, 28))

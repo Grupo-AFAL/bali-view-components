@@ -9,7 +9,8 @@ module Bali
     module WholeDayCasting
       extend ActiveSupport::Concern
 
-      # What condition_controller.js#syncRangeDates writes: change both.
+      # What condition_controller.js#syncRangeDates and the timeless format of
+      # datepicker-controller.js#dateFormat write: change the three together.
       BARE_DATE = /\A\d{4}-\d{2}-\d{2}\z/
 
       private
