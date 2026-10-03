@@ -65,11 +65,11 @@ module Bali
         class_names(
           "drawer-panel",
           "fixed top-0 h-full w-full",
+          # Inherited instead, it measured 1.00:1 on `bg-base-100` inside a `neutral` Navbar in `afal` (#1284).
+          "text-base-content",
           position_config[:side],
           SIZES.fetch(@size, SIZES[:md]),
           "bg-base-100 shadow-2xl",
-          # Inherited instead, it measured 1.00:1 inside a `neutral` Navbar in `afal` (#1284).
-          "text-base-content",
           "transform transition-transform duration-300 ease-in-out",
           position_config[:transform],
           "overflow-auto z-10"
