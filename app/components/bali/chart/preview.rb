@@ -74,6 +74,26 @@ module Bali
         )
       end
 
+      # @label Own Colours
+      # A series that brings its own `borderColor:` is not repainted from the
+      # theme. On a line its points and legend swatch take its
+      # `backgroundColor:`, or that border when it gives no fill.
+      def own_colors
+        render Bali::Chart::Component.new(
+          data: {
+            labels: %w[Jan Feb Mar Apr May],
+            datasets: [
+              { label: 'Border only', data: [12, 15, 13, 18, 16], borderColor: '#2563eb' },
+              { label: 'Border and fill', data: [8, 9, 11, 10, 12],
+                borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.5)' }
+            ]
+          },
+          type: :line,
+          card_style: :bordered,
+          legend: true
+        )
+      end
+
       # @label Accessible Data Table
       # A canvas is pixels: `role="img"` and a name are all the accessibility
       # tree gets from it, and neither carries a number. The `data_table` slot

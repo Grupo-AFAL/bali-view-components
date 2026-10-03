@@ -211,6 +211,24 @@ describe('Chart', () => {
     })
   })
 
+  // The controller repaints only the series whose border is the theme's, so a host's own
+  // colours reach the points from Ruby. Before #1281 they stayed on the theme's CSS: black
+  // points and a legend swatch in the legend's text colour.
+  describe('with its own colours', () => {
+    it('paints the points and legend swatch of a line in its fill, else its border', () => {
+      cy.visit('/bali/chart/own_colors')
+
+      chartInstance((chart) => {
+        const expected = ['#2563eb', 'rgba(22, 163, 74, 0.5)']
+
+        chart.data.datasets.forEach((dataset, index) => {
+          expect(dataset.pointBackgroundColor, `${dataset.label} points`).to.eq(expected[index])
+          expect(chart.legend.legendItems[index].fillStyle, `${dataset.label} legend`).to.eq(expected[index])
+        })
+      })
+    })
+  })
+
   describe('with the accessible data table', () => {
     it('offers the same figures as text', () => {
       cy.visit('/bali/chart/with_data_table')
