@@ -246,22 +246,30 @@ describe('hovers, tints and edges over a base surface', () => {
       paintedLuminance(doc, ...floor, shadow.match(/^[a-z-]+\([^)]*\)/)[0]), paintedLuminance(doc, ...floor))))
   }
 
+  // Picks the two days `ends` chooses among every day of the calendar, then reopens it on the
+  // range. A pick redraws the days, so the second one is found again by its label.
+  const pickRange = (theme, ends) => {
+    cy.visit('/bali/form/date/date_range')
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+    cy.get('form input.input:not([type="hidden"])').click()
+    cy.get(DAY).then(($days) => {
+      ends($days.toArray()).map(day => day.getAttribute('aria-label'))
+        .forEach(label => cy.get(`${DAY}[aria-label="${label}"]`).click())
+    })
+    cy.get('form input.input:not([type="hidden"])').click()
+  }
+
   // The days of a range wore their translucent fill on the border too, and flatpickr's band over
   // each neighbour: a ring and stripes, 1.21–1.45:1 against their own inside.
   THEMES.forEach((theme) => {
     it(`tints the days of a Datepicker range off the calendar, without a ring or a band, on the ${theme} theme`, () => {
       const IN_RANGE = `${DAY}.inRange:not(.today)`
-      cy.visit('/bali/form/date/date_range')
-      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-      cy.get('form input.input:not([type="hidden"])').click()
-      cy.get(`${DAY}:not(.prevMonthDay):not(.nextMonthDay)`).then(($days) => {
-        const week = Object.values(Cypress._.groupBy($days.toArray(), day => day.getBoundingClientRect().top))
+      pickRange(theme, (days) => {
+        const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay'))
+        const week = Object.values(Cypress._.groupBy(inMonth, day => day.getBoundingClientRect().top))
           .find(row => row.length === 7 && !row.some(day => day.classList.contains('today')))
-        // A pick redraws the days, so the second one is found again by its label.
-        ;[week[1], week[5]].map(day => day.getAttribute('aria-label'))
-          .forEach(label => cy.get(`${DAY}[aria-label="${label}"]`).click())
+        return [week[1], week[5]]
       })
-      cy.get('form input.input:not([type="hidden"])').click()
 
       cy.get(IN_RANGE, { timeout: 10000 }).should(($days) => {
         settled($days[0].ownerDocument)
@@ -278,6 +286,24 @@ describe('hovers, tints and edges over a base surface', () => {
         settled($day[0].ownerDocument)
         expect($day[0].matches(':hover'), 'under the pointer').to.equal(true)
         expect(ring($day[0]), `${theme}: the border of a day of the range under the pointer`).to.be.closeTo(1, 0.01)
+      })
+    })
+
+    // flatpickr marks the days of the next month inRange too, and the rule that empties those
+    // days has the specificity of the range's own: whichever comes later wins.
+    it(`carries a Datepicker range on into the days of the next month on the ${theme} theme`, () => {
+      pickRange(theme, (days) => {
+        const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay, .today'))
+        return [inMonth.at(-1), days.filter(day => day.matches('.nextMonthDay'))[1]]
+      })
+
+      cy.get(`${DAY}.nextMonthDay.inRange:not(.selected)`, { timeout: 10000 }).should(($days) => {
+        settled($days[0].ownerDocument)
+        expect($days, 'the days of the next month before the end').to.have.length(1)
+        expect($days[0].matches(':hover'), 'at rest').to.equal(false)
+        expect(lift($days[0]), `${theme}: a day of the range in the next month against the calendar`).to.be.at.least(STEP)
+        expect(paintedContrast($days[0]), `${theme}: the number on a day of the range in the next month`).to.be.at.least(AA)
+        expect(ring($days[0]), `${theme}: the border of a day of the range in the next month`).to.be.closeTo(1, 0.01)
       })
     })
   })

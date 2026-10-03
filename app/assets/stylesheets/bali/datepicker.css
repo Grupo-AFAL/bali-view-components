@@ -542,8 +542,11 @@ span.flatpickr-weekday {
 
 /* Range selection. The fill runs under the transparent border, as on hover. No band either:
    flatpickr bridges the 5px between its days with a ±5px box-shadow, and here they are 1.7px
-   apart, so a translucent band paints twice over each neighbour. */
-.flatpickr-day.inRange {
+   apart, so a translucent band paints twice over each neighbour. flatpickr marks the other
+   month's days inRange too, and the rule below that empties them is as specific as `.inRange`. */
+.flatpickr-day.inRange,
+.flatpickr-day.prevMonthDay.inRange,
+.flatpickr-day.nextMonthDay.inRange {
   background: var(--fp-range-bg);
   border-radius: 0;
 }
