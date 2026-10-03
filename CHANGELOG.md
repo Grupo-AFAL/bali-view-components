@@ -232,14 +232,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Los puntos de una línea de `Bali::Chart` y su muestra en la leyenda toman el color de la
-  serie** (#1281). Ruby los escribe con el mismo `var(--color-*)` del borde, que un canvas no
+  serie** (#1281). Ruby los escribía siempre con un `var(--color-*)` del tema, que un canvas no
   resuelve, y el controlador sólo traducía el borde y el relleno: los puntos salían negros y la
-  muestra de la leyenda gris, igual en todas las series. Se ve en las líneas con colores del tema:
-  **gobierno-corporativo** (tendencia de conciliación, actividad y clics de la importación de la
-  intranet), **afal-apps** (peso en wellness), **centinela-web** (tendencia diaria de
-  incidentes), **bali-analytics** (la serie de personas activas) y las gráficas grandes de línea
-  de `Bali::Widget`. Una serie con su propio `borderColor:` en hex queda como estaba. Sin nada
-  que hacer en el anfitrión.
+  muestra de la leyenda del gris de su texto. Ahora una serie del tema los pinta con su borde, y
+  una con colores propios con su `backgroundColor:` o, si no lo da, con su `borderColor:`.
+  Cambian las líneas con colores del tema: **gobierno-corporativo** (tendencia de conciliación,
+  actividad y clics de la importación de la intranet), **afal-apps** (peso en wellness),
+  **centinela-web** (tendencia diaria de incidentes), **bali-analytics** (la serie de personas
+  activas) y las gráficas grandes de línea de `Bali::Widget`. Y las que traen su color sin
+  `pointBackgroundColor:`: la tasa efectiva de comisión de **afal-apps**, y en la leyenda
+  semanal de **bali-analytics** la franja suprimida y los hitos, que toman su propio gris.
+  **afal-apps:** el `pointBackgroundColor:` de la curva de flujo acumulado de TDFlow ya no hace
+  falta; puedes borrarlo.
 - **`Bali::Chart` reparte la lista completa de colores antes de repetir** (#1281).
   `Bali::Utils::ColorPicker` volvía al primero al llegar al penúltimo: con `use_theme_colors:
   false` la serie 10 repetía el turquesa en vez de tomar el oliva, y con `custom_color:` la 11
