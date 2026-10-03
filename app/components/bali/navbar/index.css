@@ -63,8 +63,8 @@
 
   /* The preset's `-content` is made for the preset's fill, not for what shows through: over
    * the page it measured 1.00:1 on `primary` in `afal`, under 3:1 in 15 of the 24 colour ×
-   * theme pairs (#1284). `inherit` and not base-content: inside a container with a text
-   * colour of its own, such as a Hero, the bar reads in that colour. */
+   * theme pairs (#1284). `inherit` and not base-content: inside a section with a text colour
+   * of its own, the bar reads in that colour. */
   &.is-transparent {
     @apply bg-transparent shadow-none;
     color: inherit;

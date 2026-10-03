@@ -24,7 +24,7 @@ describe('Modal and Drawer inside a container with a text colour of its own', ()
           doc.documentElement.setAttribute('data-theme', theme)
         })
 
-        // Not the document: an open daisyUI `.modal` keeps an endless animation on `:root`.
+        // Not the document: while a daisyUI `.modal` is open, `set-page-has-scroll` runs on `:root`.
         cy.get(panel).should(($panel) => {
           expect($panel[0].getAnimations({ subtree: true }), 'transitions settled').to.have.length(0)
           texts.forEach((selector) => {
