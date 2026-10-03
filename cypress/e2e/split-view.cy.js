@@ -325,7 +325,7 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
   // `src` and no `complete` on restore. The detail is held back so the page is
   // certainly left mid-load, and a mark on `window` proves back was Turbo's
   // restore and not a fresh load, which would come back pristine by itself.
-  it('keeps a detail still loading when the page was left off the list on back', () => {
+  it('does not paint, on back to the list, a detail still loading when the page was left', () => {
     cy.visit('/bali/split_view/custom_master')
     cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
     cy.intercept({ method: 'GET', url: '/split-view*', headers: { 'turbo-frame': 'split-view-detail' } },

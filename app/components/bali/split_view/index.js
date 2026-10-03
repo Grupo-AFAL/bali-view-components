@@ -81,17 +81,17 @@ export class SplitViewController extends Controller {
   }
 
   // A frame the reader navigated in-page must not reach Turbo's snapshot cache
-  // still carrying its `src` (#1012).
+  // still carrying its `src` (#1012), unless it is still loading (#1280, below).
   //
   // A row click swaps the frame and, through the frame's own
   // `data-turbo-action="advance"`, rewrites the URL. Turbo caches the page it is
   // leaving under the OLD url — but it reads the DOM when it gets around to it,
   // and if the frame's response landed first the snapshot keeps `src` and the
-  // detail. Restoring that snapshot reloads the frame (Turbo reloads any frame
-  // with a `src`), the reload advances again, and the reader who pressed back is
-  // thrown forward to the detail they just left. Measured: locally the snapshot
-  // is taken before the response and the bug never appears; in CI it did, in
-  // about a third of the runs.
+  // detail. Restoring that snapshot reloads the frame (Turbo reloads a frame with
+  // a `src` and no `complete`), the reload advances again, and the reader who
+  // pressed back is thrown forward to the detail they just left. Measured:
+  // locally the snapshot is taken before the response and the bug never
+  // appears; in CI it did, in about a third of the runs.
   //
   // Only the `src` is stripped, NOT the content. A row-click's own advance visit
   // (`data-turbo-action="advance"`, willRender: false) fires `turbo:before-cache`
@@ -186,9 +186,9 @@ export class SplitViewController extends Controller {
   //     shows the last detail: reset it to the pristine empty state, so the list
   //     view is not left showing a stale record.
   //   - The same URL, cached while a row's detail was still loading: the pane
-  //     still looks pristine but keeps that row's `src` (the rewind leaves a
-  //     loading frame alone), and Turbo reloads it on restore. Dropping the
-  //     `src` cancels that reload.
+  //     keeps that row's `src` (the rewind leaves a loading frame alone) and
+  //     Turbo reloads it on restore, even when the pane still looks pristine.
+  //     Dropping the `src` cancels that reload.
   syncFrameFromLocation (current) {
     const frame = this.detailFrame
     if (!frame) return
