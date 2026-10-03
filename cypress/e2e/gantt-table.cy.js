@@ -41,6 +41,24 @@ const expectHeaderOverColumns = ({ rows, header }) => {
   })
 }
 
+// What shows of `el` through every box above it that clips, each at its padding box.
+const shownBox = (el) => {
+  const shown = box(el).toJSON()
+  for (let clip = el.parentElement; clip; clip = clip.parentElement) {
+    const { overflowX, overflowY } = getComputedStyle(clip)
+    if (overflowX === 'visible' && overflowY === 'visible') continue
+    const left = box(clip).left + clip.clientLeft
+    const top = box(clip).top + clip.clientTop
+    Object.assign(shown, {
+      left: Math.max(shown.left, left),
+      right: Math.min(shown.right, left + clip.clientWidth),
+      top: Math.max(shown.top, top),
+      bottom: Math.min(shown.bottom, top + clip.clientHeight)
+    })
+  }
+  return { width: Math.max(0, shown.right - shown.left), height: Math.max(0, shown.bottom - shown.top) }
+}
+
 // Toggle, WBS and the start of the name stay in the Name column, where nothing paints over them.
 const expectNameColumnWhole = ({ rows }) => {
   rows.forEach((row) => {
@@ -151,6 +169,30 @@ describe('Gantt table', () => {
       expect(board - box(table).width, 'px beside the table, for the splitter and the timeline')
         .to.be.at.least(Math.floor(board * 0.4))
       expect(box(table).width, 'table width').to.be.closeTo(board * 0.6, 0.5)
+    })
+  })
+
+  // A column the table cannot hold whole is left out, not cut at its edge: at 390 px the first
+  // 4 px of DAYS showed after DATES, a stray "D", and at 768 the start of PROGRESS.
+  ;[[390, 844], [768, 1024]].forEach(([width, height]) => {
+    it(`shows every column whole or not at all in a ${width} px window`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/gantt/default')
+      cy.get(ROWS).should('have.length.at.least', 1)
+
+      cy.document().should((doc) => {
+        const { rows, header } = tableOf(doc)
+        ;[header, ...rows].forEach((line) => {
+          ;[...line.children].forEach((cell, i) => {
+            const shown = shownBox(cell)
+            if (shown.width < 0.5 || shown.height < 0.5) return
+
+            const what = `${line.title || 'header'}: "${header.children[i].textContent}" column`
+            expect(shown.width, `${what}, px showing`).to.be.closeTo(box(cell).width, 0.5)
+            expect(box(cell).top, `${what} beside Name, top`).to.be.below(box(line.children[0]).bottom - 0.5)
+          })
+        })
+      })
     })
   })
 

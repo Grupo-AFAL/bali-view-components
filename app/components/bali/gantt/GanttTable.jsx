@@ -50,7 +50,9 @@ const COL_W = { assignee: 48, dates: 108, days: 32, status: 88, progress: 88 }
 const colStyle = (key) => ({ flex: `0 0 ${COL_W[key]}px`, minWidth: 0 })
 
 // The Name column gives way to the others down to this: the toggle, the WBS and the start of
-// the name of a second-level row. Below it the table clips its right-hand columns instead.
+// the name of a second-level row. Below it the header and every row wrap, and a column they
+// cannot hold whole drops below Name's full height, where their `overflow-hidden` hides it. Cut
+// at the table's edge instead, the first 4 px of `DAYS` showed after `DATES` at 390 px.
 const NAME_MIN_W = 140
 
 export default memo(function GanttTable ({
@@ -74,10 +76,10 @@ export default memo(function GanttTable ({
     <div className='relative flex h-full min-h-0 flex-col overflow-hidden bg-base-100' style={{ width }}>
       {/* Column header (height = timeline header, so row 0 aligns). */}
       <div
-        className='flex shrink-0 items-stretch border-b border-base-300 bg-base-200/60'
+        className='flex shrink-0 flex-wrap overflow-hidden border-b border-base-300 bg-base-200/60'
         style={{ height: headerHeight }}
       >
-        <HeaderCell label={t('col_name')} className='flex-1 pl-3' style={{ minWidth: NAME_MIN_W }} />
+        <HeaderCell label={t('col_name')} className='h-full flex-1 pl-3' style={{ minWidth: NAME_MIN_W }} />
         {cols.assignee && <HeaderCell label={t('col_assignee_short')} className='justify-center' style={colStyle('assignee')} />}
         {cols.dates && <HeaderCell label={t('col_dates')} className='px-1.5' style={colStyle('dates')} />}
         {cols.days && <HeaderCell label={t('col_days')} className='justify-end px-1.5' style={colStyle('days')} />}
@@ -134,7 +136,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
 
   return (
     <div
-      className={`group absolute inset-x-0 flex cursor-pointer select-none items-center border-b border-base-200/70 ${tint}`}
+      className={`group absolute inset-x-0 flex cursor-pointer select-none flex-wrap overflow-hidden border-b border-base-200/70 ${tint}`}
       style={{ top: row.rowIndex * ROW_H, height: ROW_H, fontWeight: isGroup ? 700 : 400 }}
       title={label}
       onClick={isGroup ? () => onToggle(row.kind, row.id) : (e) => onSelect(String(row.id), e)}
@@ -142,7 +144,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
     >
       {/* Name column: collapse + WBS + name (+ critical mark on the edge). */}
       <div
-        className='flex flex-1 items-center gap-1.5 pr-1.5'
+        className='flex h-full flex-1 items-center gap-1.5 pr-1.5'
         style={{ minWidth: NAME_MIN_W, paddingLeft, borderLeft: isCritical ? '2px solid var(--color-error)' : '2px solid transparent' }}
       >
         {row.hasChildren ? (
