@@ -163,7 +163,7 @@ describe('a colour over a tint of itself, and its soft colour on base-100', () =
       cy.get('#form_record_text').type('x'.repeat(41), { delay: 0 })
       cy.get('[data-textarea-target="counter"]').first().should('have.text', '41 / 40')
     }, [
-      ['counters, one past its maximum', '[data-textarea-target="counter"]', 2]
+      ['counter one past its maximum', '#form_record_text_field [data-textarea-target="counter"]', 1]
     ]],
     ['filters/with_applied_tags', null, [
       ['"Clear all"', '.applied-filters > a', 1]
