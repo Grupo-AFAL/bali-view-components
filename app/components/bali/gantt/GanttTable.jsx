@@ -38,9 +38,11 @@ function HeaderCell ({ label, style, className = '' }) {
 
 const DEFAULT_COLS = { assignee: true, dates: true, days: true, status: true, progress: true }
 
-// Widths (px) of the columns after Name. `assignee` fits its 39 px `OWNER` label, `status` the
-// 74 px `In progress` pill.
-const COL_W = { assignee: 44, dates: 108, days: 32, status: 84, progress: 88 }
+// Widths (px) of the columns after Name. `assignee` keeps 2 px either side of `OWNER` in DejaVu
+// Sans, the widest fallback measured (43.7 px; 39 in Noto Sans). `status` fits a 78 px pill,
+// afal-apps' `Completada`; a longer one, such as its `Listo para revisión`, is cut short and
+// carries the whole label in its title.
+const COL_W = { assignee: 48, dates: 108, days: 32, status: 88, progress: 88 }
 
 // Neither a header nor a cell outgrows its column: grown to its content, `OWNER` pushed every
 // header after it 1 px out of line, and a `Ready for review` pill its row's Progress 33 px.
@@ -122,6 +124,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
   const label = isGroup ? row.name : item.name
   const paddingLeft = 8 + row.depth * 15
   const sc = isGroup ? null : statusColor(item.status, catalogs)
+  const status = isGroup ? null : statusLabel(item.status, catalogs)
   const pct = isGroup ? 0 : Math.max(0, Math.min(100, Number(item.percent_complete) || 0))
 
   // Set inline, the tint outranked every `hover:` class and no row ever showed the pointer.
@@ -213,8 +216,9 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
             <span
               className='truncate whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold'
               style={{ color: sc.text, background: sc.fill, border: `1px solid ${sc.border}` }}
+              title={status}
             >
-              {statusLabel(item.status, catalogs)}
+              {status}
             </span>
           )}
         </div>

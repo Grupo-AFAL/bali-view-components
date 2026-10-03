@@ -120,7 +120,7 @@ describe('Gantt table', () => {
     })
   })
 
-  // At 1000 px the table opened at 42% of the board, 407 px: the Name column kept 46 px, and 11
+  // At 1000 px the table opened at 42% of the board, 407 px: the Name column kept 65 px, and 11
   // of the preview's 14 rows showed no name at all.
   it('opens the table wide enough for every column on a 1000 px board', () => {
     cy.viewport(1000, 660)
@@ -134,6 +134,19 @@ describe('Gantt table', () => {
         expect(box(row.lastElementChild).right, `${row.title}: Progress column inside the table`)
           .to.be.at.most(box(table.table).right)
       })
+    })
+  })
+
+  // The Status column fits afal-apps' `Completada`; a longer label — `Ready for review` here —
+  // is cut short, and the pill's tooltip carries it whole.
+  it('titles every status pill with its whole label', () => {
+    cy.viewport(1280, 800)
+    cy.visit('/bali/gantt/default')
+
+    cy.get(`${ROWS} span.rounded-full.font-semibold`).should(($pills) => {
+      const cut = $pills.toArray().filter((pill) => pill.scrollWidth > pill.clientWidth)
+      expect(cut.map((pill) => pill.textContent), 'pills cut short').to.include('Ready for review')
+      $pills.toArray().forEach((pill) => expect(pill.title, `"${pill.textContent}" tooltip`).to.equal(pill.textContent))
     })
   })
 
