@@ -134,7 +134,7 @@ module Bali
       end
 
       def validated_frame_options(value)
-        value = value.symbolize_keys
+        value = value.to_h.symbolize_keys
         return value unless value.key?(:id)
 
         raise ArgumentError,

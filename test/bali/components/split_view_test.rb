@@ -225,6 +225,19 @@ class BaliSplitViewComponentTest < ComponentTestCase
     end
   end
 
+  def test_frame_options_nil_renders_the_default_frame
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_master { "MASTER" }
+    end
+    default_frame = rendered_content[/<turbo-frame[^>]*>/]
+
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: nil)) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_equal default_frame, rendered_content[/<turbo-frame[^>]*>/]
+  end
+
   # The rows, the list and the controller all find the frame by `frame_id:`, so it
   # wins the merge, and without the raise an `id:` here would vanish in silence.
   def test_frame_options_cannot_set_the_frame_id
