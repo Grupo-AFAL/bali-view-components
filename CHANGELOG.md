@@ -551,11 +551,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Las píldoras de estado del Gantt se leen** (#1281, punto 3): el texto era el color sobre su
   propio tinte, 1.55–2.13:1 en los temas claros. Ahora es la mezcla de `text-soft-*`, y el gris
-  de la píldora neutra sube de `/62` a `/70`. Un catálogo que nombra `--color-neutral` pinta con
-  `base-content`, como ya lo resuelve `Bali::Color`: en `dark`, `neutral` es más oscuro que la
-  fila sobre la que va la píldora. Con cualquiera de los ocho colores de daisyUI o sin color, en
-  reposo, bajo el puntero o en la fila seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada
-  que hacer en el anfitrión.
+  de la píldora neutra sube de `/62` a `/70`. Si un catálogo nombra `--color-neutral`, el texto de
+  su píldora va en `base-content`, como ya lo resuelve `Bali::Color`: en `dark`, `neutral` es más
+  oscuro que la fila sobre la que va la píldora. Las barras siguen en `neutral`. Con cualquiera
+  de los ocho colores de daisyUI o sin color, en reposo, bajo el puntero o en la fila
+  seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada que hacer en el anfitrión.
 
 - **Bajo `AppLayout`, un ítem `drawer:` o `modal:` de un menú `popover: true` abre el overlay en
   vez de navegar** (#1268). AppLayout montaba los controllers `modal drawer` en `<main>`, y tippy
