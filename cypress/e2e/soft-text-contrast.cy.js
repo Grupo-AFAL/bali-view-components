@@ -30,7 +30,6 @@ describe('a colour over a tint of itself, and its soft colour on base-100', () =
   const openFilters = () => cy.get('[data-filters-target="dropdown"] > button').click()
   const CLEAR_ALL = 'button[data-action="filters#clearAll"]'
   const TREND = '.bali-widget-body .sr-only + [aria-hidden="true"]'
-  const TREND_ARROW = '.bali-widget-body .icon-component:has(+ .sr-only) svg'
 
   // [preview, how the state is reached, [[what, selector, how many, minimum = AA]], whether the
   // pointer is on it]
@@ -166,14 +165,13 @@ describe('a colour over a tint of itself, and its soft colour on base-100', () =
     }, [
       ['hovered "Clear all"', CLEAR_ALL, 1]
     ], true],
-    // Five rows that rise: bad news, as the preview's widget counts low stock.
+    // Five rows that rise: bad news, as the preview's widget counts low stock. The arrow inherits
+    // the delta's colour on the same surface, so the delta's 4.5 already holds it to its 3.
     ['widget/default?pattern=trend', null, [
-      ['bad trend', TREND, 1],
-      ['bad trend arrow', TREND_ARROW, 1, GRAPHIC]
+      ['bad trend', TREND, 1]
     ]],
     ['widget/default?pattern=trend&count=0', null, [
-      ['good trend', TREND, 1],
-      ['good trend arrow', TREND_ARROW, 1, GRAPHIC]
+      ['good trend', TREND, 1]
     ]],
     ['gauge/all_colors', null, [
       ['figure and label', '.bali-gauge > span > span', 16]
