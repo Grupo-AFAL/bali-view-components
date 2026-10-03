@@ -80,3 +80,5 @@
 /* daisyUI paints the neutral outline button with `neutral` as text, a dark fill on the
    dark themes. */
 @import "../../../components/bali/button/daisyui-overrides.css";
+/* daisyUI's `.skeleton` animates forever, and a closed drawer stays rendered. */
+@import "../../../components/bali/drawer/daisyui-overrides.css";

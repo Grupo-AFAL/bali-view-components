@@ -111,6 +111,33 @@ describe('ModalController', () => {
       cy.focused().should('have.id', 'opener-probe')
     })
 
+    // A `showModal()`-ed <dialog> hands the focus back by itself on `close()`, so the test
+    // above passes without the controller's own restore. Only `_showOverlay`'s fallback,
+    // where the panel opens by its class alone, leaves the restore to the controller.
+    it('returns the focus to whatever held it before when the panel opens without showModal()', () => {
+      cy.window().then(win => { win.HTMLDialogElement.prototype.showModal = undefined })
+      cy.get('body').then($body => {
+        const probe = $body[0].ownerDocument.createElement('button')
+        probe.id = 'opener-probe'
+        probe.textContent = 'open'
+        $body[0].prepend(probe)
+        probe.focus()
+      })
+
+      openWith('<input id="loaded-field" autofocus>')
+      cy.focused().should('have.id', 'loaded-field')
+      cy.get('[data-modal-target="template"]').should($dialog => {
+        expect($dialog[0].classList.contains('modal-open'), 'open').to.equal(true)
+        expect($dialog[0].matches(':modal'), 'in the top layer').to.equal(false)
+      })
+
+      cy.focused().type('{esc}')
+      cy.get('.modal-open').should('not.exist')
+      cy.document().should(doc => {
+        expect(doc.activeElement.id, 'the focused element').to.equal('opener-probe')
+      })
+    })
+
     it('keeps Tab inside the panel while the skeleton shows', () => {
       openWith(null)
 

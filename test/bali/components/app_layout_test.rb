@@ -149,17 +149,31 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_selector(".drawer-panel.max-w-sm")
   end
 
-  def test_adds_modal_and_drawer_stimulus_controllers_to_main
+  def test_mounts_the_modal_and_drawer_controllers_on_body
     render_inline(Bali::AppLayout::Component.new(modal: true, drawer: true)) do |layout|
       layout.with_body { "Content" }
     end
-    assert_selector("main[data-controller='modal drawer']")
+    assert_selector("body[data-controller='app-layout modal drawer']")
+    assert_no_selector("main[data-controller]")
   end
 
-  def test_no_data_controller_when_both_modal_and_drawer_disabled
+  def test_mounts_only_the_controller_of_the_overlay_it_renders
+    render_inline(Bali::AppLayout::Component.new(modal: false, drawer: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body[data-controller='app-layout drawer']")
+
+    render_inline(Bali::AppLayout::Component.new(modal: true, drawer: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body[data-controller='app-layout modal']")
+  end
+
+  def test_no_overlay_controllers_when_both_modal_and_drawer_disabled
     render_inline(Bali::AppLayout::Component.new(modal: false, drawer: false)) do |layout|
       layout.with_body { "Content" }
     end
+    assert_selector("body[data-controller='app-layout']")
     assert_no_selector("main[data-controller]")
   end
 
@@ -223,10 +237,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     )) do |layout|
       layout.with_body { "Content" }
     end
-    # The host's controller keeps the container, next to the layout's own;
-    # modal/drawer stay on main.
-    assert_selector(".app-layout[data-controller='app-layout theme-switcher']")
-    assert_selector("main[data-controller='modal drawer']")
+    assert_selector(".app-layout[data-controller='app-layout modal drawer theme-switcher']")
   end
 
   def test_the_layout_controller_is_attached_even_without_a_banner
@@ -234,7 +245,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
       layout.with_body { "Content" }
     end
 
-    assert_selector("body.app-layout[data-controller='app-layout']")
+    assert_selector("body.app-layout[data-controller~='app-layout']")
     assert_no_selector("[data-app-layout-target='banner']")
   end
 

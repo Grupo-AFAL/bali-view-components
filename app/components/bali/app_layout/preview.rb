@@ -157,13 +157,24 @@ module Bali
       # @label Orphan Drawer Form (#984)
       # A full page whose form hardcodes `submit_group(..., drawer: true)`. The
       # button's `drawer#submit` and the Cancel's `drawer#close` land on the
-      # controller AppLayout mounts on `<main>` — an instance with no targets —
+      # controller AppLayout mounts on `<body>` — an instance with no targets —
       # so both must leave the events to the browser: the submit degrades to the
       # form's own GET (the query string below proves it round-trips) and Cancel
       # navigates. Before the #984 guards this page was the dead-button repro:
       # spinner forever, 422 eaten, Cancel swallowed.
       def orphan_drawer_form
         render_with_template(template: "bali/app_layout/previews/orphan_drawer_form")
+      end
+
+      # @label Overlay Triggers Outside Main (#1268)
+      # A `drawer: true` or `modal: true` trigger only works under an ancestor that
+      # carries the `drawer` / `modal` controller, and two places on an AppLayout page are
+      # not inside `<main>`: the chrome slots (the topbar here) and the menu of a
+      # `popover: true` dropdown, which tippy moves to the end of `<body>` when it opens.
+      # Both controllers sit on `<body>`, so every trigger below opens its overlay instead
+      # of navigating to the href.
+      def overlay_triggers
+        render_with_template(template: "bali/app_layout/previews/overlay_triggers")
       end
     end
   end
