@@ -229,13 +229,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - La caja de `Bali::Modal` y el panel de `Bali::Drawer` pintan `base-content` sobre su
     `base-100` en vez de heredar el color de donde se rendericen: dentro de un Navbar `neutral`
     su título medía 1.00:1 en `afal` y 1.27 en `light`; ahora 14.68 y 17.72. Un color de texto
-    en `wrapper_class:` sigue ganándole.
-  - En los temas `light` y `dark` de daisyUI, `color: :secondary` pinta los enlaces a 3.04:1, y
-    `:primary` en `dark` a 4.13, bajo el 4.5 de AA. Es la pareja de daisyUI y Bali no la
-    cambia; en los cuatro temas de Bali todos los presets pasan (5.25 o más).
+    en `wrapper_class:` del Modal sigue ganándole.
 
-  Ninguna de las nueve apps renderiza `Bali::Navbar`, y sus modales y drawers cuelgan de la
-  página, cuyo texto ya es `base-content`: pintan lo mismo. Nada que hacer.
+  Sólo ga-apps renderiza `Bali::Navbar` (`layouts/_nav.html.erb` y el layout de
+  `dev_website`), fijada a bali 1.2.4 y sin `transparency:`. Los modales y drawers de las apps
+  cuelgan de la página, cuyo texto ya es `base-content`: pintan lo mismo. Nada que hacer.
 
 - **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
   de la pantalla para poder deslizarse, y el `.skeleton` de daisyUI anima sin fin: cada página
