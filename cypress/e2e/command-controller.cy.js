@@ -143,8 +143,28 @@ describe('CommandController', () => {
       openPalette()
       count().should('have.text', '9 resultados')
 
-      cy.get('[data-command-target="input"]').type('Committees')
-      count().should('have.text', '4 resultados')
+      cy.get('[data-command-target="input"]').type('Policy')
+      count().should('have.text', '2 resultados')
+    })
+
+    // The action rows stay on screen under every query, so counting them read
+    // "3 results" beneath "No results".
+    const noMatchCounts = [
+      ['default', 'es', '0 resultados'],
+      ['default', 'en', '0 results'],
+      ['compact', 'es', '0 resultados'],
+      ['compact', 'en', '0 results']
+    ]
+    noMatchCounts.forEach(([preview, locale, expected]) => {
+      it(`agrees with the no-results message when nothing matches (${preview}, ${locale})`, () => {
+        cy.visit(`/bali/command/${preview}?locale=${locale}`)
+        openPalette()
+        cy.get('[data-command-target="input"]').type('xyzzy')
+
+        cy.get('[data-command-target="noResults"]').should('not.have.class', 'hidden')
+        cy.get('.cmd-row[data-mode="action"]').should('not.have.class', 'hidden')
+        count().should('have.text', expected)
+      })
     })
 
     it('uses the singular form for a single result', () => {
