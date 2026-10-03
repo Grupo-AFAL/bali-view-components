@@ -67,6 +67,11 @@ of them missing meant a row that silently reloaded the whole page.
 - `advance` — emit `data-turbo-action="advance"` on the frame so a row click
   pushes its URL into the history and the selection is deep-linkable
   (default: `true`).
+- `frame_options` — HTML attributes for the detail `<turbo-frame>` itself;
+  the rest of the options go to the container. `class:` is added to the
+  component's and `data:` merged into it, so `advance` keeps working; `id:`
+  raises, because the frame's id is `frame_id`. See
+  [Bringing the detail into view on a phone](#bringing-the-detail-into-view-on-a-phone).
 
 **Slots on the SplitView**
 
@@ -78,8 +83,10 @@ of them missing meant a row that silently reloaded the whole page.
   when `detail` is present.
 
 Below `lg` the two panes stack, master on top. That needs no JavaScript and no
-option; see [Full-page detail on a phone](#full-page-detail-on-a-phone) if you
-want the other mobile behaviour.
+option; see [Bringing the detail into view on a phone](#bringing-the-detail-into-view-on-a-phone)
+to scroll to the detail after a click, and
+[Full-page detail on a phone](#full-page-detail-on-a-phone) for the other mobile
+behaviour.
 
 ---
 
@@ -621,6 +628,43 @@ controller; the condition is easy to get subtly wrong in two places.
 
 The detail pane's empty state is a third, different one, and it belongs in
 `empty_detail`: nothing is wrong, the user simply has not picked anything yet.
+
+---
+
+## Bringing the detail into view on a phone
+
+Stacked, the detail sits under the whole master, so a row click can change a
+pane below the first screen while nothing visible happens. Turbo can scroll the
+frame into view after each swap; it has to be asked on the frame:
+
+```erb
+<%= render Bali::SplitView::Component.new(
+  frame_id: "inbox-detail",
+  frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }
+) do |split| %>
+  <%# … the list, as above %>
+  <% if @selected %>
+    <% split.with_detail do %>
+      <div class="scroll-mt-4 lg:hidden"></div>
+      <%= render "detail_pane", item: @selected %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+- **The attributes go on the frame, through `frame_options:`.** Turbo reads
+  `data-autoscroll-block` and `data-autoscroll-behavior` off the frame already
+  in the page, never off the one in the response, so nothing the detail renders
+  can set them. Without `autoscroll_block: "start"` Turbo aligns the bottom of
+  the detail's first child with the bottom of the screen, which leaves the
+  detail just below it.
+- **Turbo scrolls to the frame's first child, so the detail opens with a
+  marker.** `lg:hidden` keeps a wide screen still: an element with no box is
+  never scrolled to. Leave it visible and a click on a long page scrolls the
+  page back to the top of the detail. `scroll-mt-4` is the gap left above it.
+
+Live at `/lookbook/preview/bali/split_view/frame_options`, with a window
+narrower than 1024px.
 
 ---
 

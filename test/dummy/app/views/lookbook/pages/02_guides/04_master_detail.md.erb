@@ -56,6 +56,10 @@ its own `id:`.
 `frame_id:` is required. `master_width:` (default `"420px"`) sets the left column
 from `lg` up; below `lg` the panes stack, master on top. `advance:` (default `true`)
 makes the selection deep-linkable.
+`frame_options:` takes HTML attributes for the detail's `<turbo-frame>`, which is
+where Turbo's `autoscroll` goes: the
+[frame_options](/lookbook/inspect/bali/split_view/frame_options) preview scrolls the
+detail into view after a click when the panes are stacked.
 
 `with_item` takes `title:` and `href:` (required), plus `id:`, `subtitle:`, `icon:`,
 `meta:`, `meta_color:`, any number of `with_tag(text:, color:)`, and a block for

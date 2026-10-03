@@ -114,6 +114,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   «Más acciones del calendario» y un ancho —era `w-72`, que no está en la escala:
   `secondary_actions_width: :xl` (w-80)— que perdió al pasar a `with_secondary_action` (su #1224).
 
+- **`frame_options:` en `Bali::SplitView`, atributos para el `<turbo-frame>` del detalle**
+  (#1279). Las demás opciones siguen yendo al contenedor. `class:` se suma a la del componente,
+  `data:` se mezcla con el `turbo_action` de `advance:` e `id:` levanta, porque es `frame_id:`.
+  Sirve para que, con los paneles apilados (bajo `lg`), un clic baje al detalle:
+  `frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }` y un marcador
+  `lg:hidden` como primer hijo del detalle; la receta está en `docs/guides/master-detail.md`.
+  **gobierno-corporativo** puede borrar `RegulationSplitView` y su prueba de contrato y renderizar
+  `Bali::SplitView::Component` con ese `frame_options:`; el marcador de `_section.html.erb` se
+  queda (`git grep -n "RegulationSplitView" origin/main`). Mientras no lo haga, la subclase sigue
+  funcionando: el método privado conserva su nombre.
+
 ### Changed
 
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
