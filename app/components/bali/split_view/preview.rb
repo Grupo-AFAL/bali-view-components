@@ -5,6 +5,7 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       STRUCTURED = "bali/split_view/previews/structured_list"
       CUSTOM_MASTER = "bali/split_view/previews/custom_master"
+      FRAME_OPTIONS = "bali/split_view/previews/frame_options"
 
       PER_PAGE = 5
 
@@ -75,6 +76,21 @@ module Bali
       # frame still swaps, but nothing is pushed into the history.
       def without_advance
         render_structured(advance: false)
+      end
+
+      # `frame_options:` writes attributes on the detail `<turbo-frame>` itself.
+      # Here they make a row click scroll the detail into view while the panes
+      # are stacked, below `lg`, where the detail sits under the whole list:
+      # `autoscroll` and `data-autoscroll-block="start"`. Turbo reads the second
+      # off the frame already in the page, never off the one in the response, so
+      # nothing inside the detail could set it.
+      #
+      # Turbo scrolls to the frame's first child, so the detail opens with a
+      # marker hidden from `lg` up: side by side, the page does not move.
+      #
+      # Narrow the window below 1024px to see it scroll.
+      def frame_options
+        render_with_template(template: Bali::SplitView::Preview::FRAME_OPTIONS)
       end
 
       # The **escape hatch**: the free `master` slot, with every row attribute
