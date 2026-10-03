@@ -27,6 +27,12 @@ module Bali
       def beyond_the_goal
         render Bali::Gauge::Component.new(value: 11, max: 10, label: "shifts")
       end
+
+      # Every `color:`. The ring takes the colour itself; the figure inside it takes
+      # `text-soft-<color>`, which reads on the page where the colour does not.
+      def all_colors
+        render_with_template(locals: { colors: Bali::Gauge::Component::COLORS.keys })
+      end
     end
   end
 end

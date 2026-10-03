@@ -8,12 +8,12 @@
      <%= tag.attributes(gauge_attributes) %>>
   <%# `aria-hidden`: every one of these is already in the ring's accessible
       name, and without this a screen reader reads the figure twice. %>
-  <span aria-hidden="true" class="flex flex-col items-center leading-none">
+  <span aria-hidden="true" class="<%= text_classes %>">
     <% if show_percentage? %>
       <span class="font-semibold tabular-nums"><%= percentage %>%</span>
     <% end %>
     <% if label.present? %>
-      <span class="text-[0.65em] opacity-70"><%= label %></span>
+      <span class="text-[0.65em] text-base-content/70"><%= label %></span>
     <% end %>
   </span>
 </div>

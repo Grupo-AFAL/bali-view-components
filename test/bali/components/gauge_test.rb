@@ -68,6 +68,14 @@ class BaliGaugeComponentTest < ComponentTestCase
     assert_equal 1, page.native.to_html.scan(/aria-label=/).size, "one attribute, not two"
   end
 
+  # The colour is the ring's; the figure inside it is text on the page, which takes the soft mix.
+  # soft-text-contrast.cy.js measures what each paints.
+  def test_the_ring_keeps_the_colour_and_its_text_takes_the_soft_one
+    render_inline(Bali::Gauge::Component.new(value: 7, max: 10, label: "shifts", color: :success))
+
+    assert_selector ".radial-progress.text-success > span.text-soft-success", text: "70%"
+  end
+
   # And the contract still ships when the caller says nothing.
   def test_the_progressbar_contract_survives_the_merge
     render_inline(Bali::Gauge::Component.new(value: 3, max: 10))

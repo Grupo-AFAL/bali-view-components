@@ -1,0 +1,5 @@
+<div class="flex flex-wrap gap-8">
+  <% colors.each do |color| %>
+    <%= render Bali::Gauge::Component.new(value: 7, max: 10, label: color.to_s, color: color) %>
+  <% end %>
+</div>

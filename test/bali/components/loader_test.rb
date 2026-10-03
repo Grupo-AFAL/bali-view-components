@@ -63,10 +63,20 @@ class BaliLoaderComponentTest < ComponentTestCase
       render_inline(Bali::Loader::Component.new(color: color, hide_text: true))
       assert_selector("span.loading.#{css_class}")
     end
-    define_method("test_colors_renders_#{color}_color_on_text") do
+  end
+
+  # The text is on the page and takes the soft mix; soft-text-contrast.cy.js measures it.
+  Bali::Loader::Component::TEXT_COLORS.each do |color, css_class|
+    define_method("test_colors_renders_#{color}_text_colour_on_text") do
       render_inline(Bali::Loader::Component.new(color: color))
       assert_selector("p.#{css_class}")
     end
+  end
+
+  def test_the_spinner_keeps_the_colour_and_the_text_takes_the_soft_one
+    render_inline(Bali::Loader::Component.new(color: :warning))
+
+    assert_selector("span.loading.text-warning + p.text-soft-warning")
   end
 
   def test_options_passthrough_accepts_custom_classes_on_container
