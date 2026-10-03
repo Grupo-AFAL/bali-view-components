@@ -46,6 +46,8 @@ module Bali
       # Its colour goes on the element: daisyUI paints `.fieldset-label` at `/60` from
       # @layer utilities, 4.04:1 on `afal` (AA wants 4.5). On the page `text-error` read
       # 2.75:1 there, hence the soft red, for the message and the required asterisk.
+      # textarea-controller.js paints the character counter past its maximum in the
+      # same red.
       MESSAGE_CLASS = "fieldset-label text-base-content/70"
       ERROR_MESSAGE_CLASS = "fieldset-label text-soft-error"
 
