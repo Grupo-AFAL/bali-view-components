@@ -62,10 +62,10 @@ All buttons, links, and controls must have:
 ### Buttons
 
 ```erb
-<%# GOOD - Native button with visible text %>
+<%%# GOOD - Native button with visible text %>
 <%%= render Bali::Button::Component.new(name: 'Save Changes') %>
 
-<%# GOOD - Icon button with aria-label %>
+<%%# GOOD - Icon button with aria-label %>
 <%%= render Bali::Button::Component.new(
   icon: 'x',
   'aria-label': 'Close dialog'
@@ -75,7 +75,7 @@ All buttons, links, and controls must have:
 ### Forms
 
 ```erb
-<%# Labels are automatically associated %>
+<%%# Labels are automatically associated %>
 <%%= f.bali_text_field :email,
   label: 'Email',
   hint: "We'll never share your email",
@@ -102,14 +102,14 @@ AA on every light theme (`text-error` measured 2.75:1 on `afal`). Write text and
 semantic colour with `text-soft-<colour>`:
 
 ```erb
-<%# GOOD - follows the theme and reads on the page %>
+<%%# GOOD - follows the theme and reads on the page %>
 <p class="text-base-content">Regular text</p>
 <p class="text-soft-error">Error message</p>
 
-<%# BAD - the fill colour as text: 2.75:1 on afal %>
+<%%# BAD - the fill colour as text: 2.75:1 on afal %>
 <p class="text-error">Error message</p>
 
-<%# BAD - a fixed grey ignores the theme %>
+<%%# BAD - a fixed grey ignores the theme %>
 <p class="text-gray-400">May not have sufficient contrast</p>
 ```
 
@@ -120,24 +120,24 @@ semantic colour with `text-soft-<colour>`:
 ### Visually Hidden (sr-only)
 
 ```erb
-<%# Hidden visually but read by screen readers %>
+<%%# Hidden visually but read by screen readers %>
 <span class="sr-only">Additional context for screen readers</span>
 
-<%# Show on focus (for skip links) %>
+<%%# Show on focus (for skip links) %>
 <a href="#main" class="sr-only focus:not-sr-only">Skip to main</a>
 ```
 
 ### Live Regions
 
 ```erb
-<%# Polite - waits for pause in speech %>
+<%%# Polite - waits for pause in speech %>
 <div aria-live="polite" aria-atomic="true">
-  <%# Dynamic content inserted here %>
+  <%%# Dynamic content inserted here %>
 </div>
 
-<%# Assertive - interrupts immediately %>
+<%%# Assertive - interrupts immediately %>
 <div aria-live="assertive">
-  <%# Critical alerts inserted here %>
+  <%%# Critical alerts inserted here %>
 </div>
 ```
 
