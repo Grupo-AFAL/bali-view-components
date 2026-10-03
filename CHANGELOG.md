@@ -132,11 +132,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de una sola serie, las que fijan sus colores en hex (los reportes de TDFlow) y las de garita y
   bali-analytics no cambian. **gobierno-corporativo:** en la tendencia de conciliación la cuarta
   serie, «mismatched», pasa de celeste a verde, el verde que la misma página da a «matched»; si
-  no debe leerse así, hoy la única salida es fijar un hex en `borderColor:` y
-  `backgroundColor:` de esa serie, porque el controlador repinta por posición cualquier
-  `var(--color-*)`. En `costa-norte-dark`, donde el primario y el acento son dos dorados, las
-  dos primeras series quedan más cerca que antes (0.061 con tritanopia, antes 0.265); ninguna
-  app pinta hoy una gráfica en ese tema.
+  no debe leerse así, esa serie puede traer su color: `borderColor: Bali::Color.css(:info)` y
+  `backgroundColor: Bali::Color.with_alpha(:info, 50)` la dejan celeste. En `costa-norte-dark`,
+  donde el primario y el acento son dos dorados, las dos primeras series quedan más cerca que
+  antes (0.061 con tritanopia, antes 0.265); ninguna app pinta hoy una gráfica en ese tema.
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
   `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
   `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su
@@ -224,19 +223,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   segundo, cambia la llave de esa llamada a `t` por `bali_view.page_components.export.formats.*`,
   o por tu propio texto si era `button_label`; en el tercero, si bajo `bali_view:` traduces
   `data_table.export.formats`, mueve esas traducciones a `page_components.export.formats`.
-- **`Bali::Utils::ColorPicker` pierde `#current`, `#opacify_current` y `#use_theme_colors`**
-  (#1281). No los leía nadie: `git grep -n "opacify_current\|ColorPicker" origin/main -- app lib`
-  da cero en las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que
-  devuelve `#next_color` y pásalo a `ColorPicker.opacify`.
+- **`Bali::Utils::ColorPicker` pierde `#current`, `#opacify_current` y `#use_theme_colors`, y
+  `Bali::Color` pierde `.variable_name`** (#1281). No los leía nadie:
+  `git grep -n "opacify_current\|ColorPicker\|variable_name" origin/main -- app lib` da cero en
+  las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que devuelve
+  `#next_color` y pásalo a `ColorPicker.opacify`.
 
 ### Fixed
 
 - **Los puntos de una línea de `Bali::Chart` y su muestra en la leyenda toman el color de la
   serie** (#1281). Ruby los escribía siempre con un `var(--color-*)` del tema, que un canvas no
   resuelve, y el controlador sólo traducía el borde y el relleno: los puntos salían negros y la
-  muestra de la leyenda del gris de su texto. Ahora una serie que el controlador repinta, sin
-  `borderColor:` propio o con uno `var(--color-*)`, los pinta con el borde del tema, y una con
-  un borde literal, con su `backgroundColor:` o, si no lo da, con ese borde.
+  muestra de la leyenda del gris de su texto. Ahora los de una serie sin `borderColor:` propio
+  llevan el color del tema de la serie, y los de una con borde propio, su `backgroundColor:` o,
+  si no lo da, ese borde.
   Cambian las líneas con colores del tema: **gobierno-corporativo** (tendencia de conciliación,
   actividad y clics de la importación de la intranet), **afal-apps** (peso en wellness),
   **centinela-web** (tendencia diaria de incidentes), **bali-analytics** (la serie de personas
@@ -245,6 +245,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   semanal de **bali-analytics** la franja suprimida y los hitos, que toman su propio gris.
   **afal-apps:** el `pointBackgroundColor:` de la curva de flujo acumulado de TDFlow ya no hace
   falta; puedes borrarlo.
+- **`Bali::Chart` pinta cada color del tema que escribe Ruby, no el de la posición de la serie**
+  (#1281). El controlador resuelve en el tema de la página cada color que nombra un
+  `var(--color-*)`, también dentro de un `color-mix()`, y deja como vienen los demás (hex,
+  `rgb()`, `hsl()`). Antes recalculaba la paleta por la posición de la serie y adivinaba cuáles
+  eran de Ruby: el `pointBackgroundColor:` transparente de un marcador hueco (#1065) se pintaba
+  con el borde si el relleno también era transparente, cada anillo de una dona de varias series
+  repetía los colores del primero en vez de seguir el ciclo del JSON, un borde
+  `Bali::Color.css(:error)` salía del color de su posición, el relleno propio de una serie sin
+  borde propio se cambiaba por el del tema y un relleno `var(--color-*)` bajo un borde literal
+  llegaba sin resolver al canvas. Ninguna gráfica de las apps cambia: ninguna usa esas formas.
 - **`Bali::Chart` reparte la lista completa de colores antes de repetir** (#1281).
   `Bali::Utils::ColorPicker` volvía al primero al llegar al penúltimo: con `use_theme_colors:
   false` la serie 10 repetía el turquesa en vez de tomar el oliva, y con `custom_color:` la 11
