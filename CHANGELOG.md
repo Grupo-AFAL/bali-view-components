@@ -246,8 +246,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **El error del FormBuilder y el texto y los íconos de color de siete componentes pasan a
   `text-soft-<color>`** (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`,
   `text-info` y `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1
-  en `afal`, `text-success` 1.92— y el secundario de `costa-norte`, 1.99 (AA pide 4.5 para texto y
-  3:1 para un ícono). Con la mezcla, el mínimo es 5.97:1 (`text-soft-warning` en `afal`). Cambian:
+  en `afal`, `text-success` 1.92—, `text-secondary` en `light`, `costa-norte` (1.99) y `dark`
+  (4.32), y `text-primary` en `dark` (3.40); AA pide 4.5 para texto y 3:1 para un ícono. Con la
+  mezcla, el mínimo es 5.97:1 (`text-soft-warning` en `afal`). Cambian:
   - FormBuilder: el mensaje de error de cada campo, el asterisco de requerido y el contador de
     caracteres pasado el máximo.
   - `Filters`: los tres «Clear all».
