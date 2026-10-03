@@ -108,7 +108,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
     t.integer "owner_id", null: false
     t.string "owner_type", null: false
     t.integer "position", null: false
-    t.string "size"
+    t.string "size", limit: 32
     t.datetime "updated_at", null: false
     t.string "widget_key", null: false
     t.index ["owner_type", "owner_id", "context", "dashboard_key", "position", "widget_key"], name: "index_bali_dashboard_widgets_ordering"

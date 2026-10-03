@@ -206,6 +206,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Para quien trabaja en el repo: migrar la dummy ya no borra de `schema.rb` las tablas del
+  engine.** Rails sólo suma las migraciones del engine a los rake corridos desde la raíz; con una
+  base que el server ya había abierto, el botón «Run pending migrations» o un `db:migrate` desde
+  `test/dummy` corrían sólo las de la dummy, dejaban fuera `bali_saved_views` y otras seis tablas,
+  y el dump las borraba del archivo. `test/dummy/config/database.yml` declara ahora las dos
+  carpetas en `migrations_paths`, y `test/dummy_schema_test.rb` falla si migrar una base vacía no
+  reproduce `schema.rb`. Una migración nueva del engine ya no se escribe a mano en `schema.rb`:
+  `bin/rails db:migrate` desde `test/dummy` la corre y la vuelca. **Una vez, antes de correr nada
+  que migre** (el botón, `db:migrate`, `db:prepare`, `bin/setup`), tu base de desarrollo tiene que
+  registrar las migraciones del engine cuyas tablas ya existen, o intentará crearlas de nuevo.
+  Desde `test/dummy`, sin tocar los datos:
+  `bin/rails runner 'c = ActiveRecord::Base.lease_connection; c.assume_migrated_upto_version(c.pool.migration_context.current_version); c.change_column :bali_dashboard_widgets, :size, :string, limit: 32'`.
+  `db:schema:load` no sirve aquí: sobre una base SQLite con datos choca con una llave foránea. La
+  base de pruebas se rehace sola. Nada que hacer en un anfitrión.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
